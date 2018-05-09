@@ -341,10 +341,11 @@ func (u *smuUser) perUserKeyUpgrade() error {
 	g := u.getPrimaryGlobalContext()
 	arg := &engine.PerUserKeyUpgradeArgs{}
 	eng := engine.NewPerUserKeyUpgrade(g, arg)
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI: g.UI.GetLogUI(),
 	}
-	err := engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
 	return err
 }
 

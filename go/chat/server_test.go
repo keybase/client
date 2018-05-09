@@ -312,10 +312,11 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	h.boxer = NewBoxer(g)
 
-	chatStorage := storage.New(g)
+	chatStorage := storage.New(g, nil)
 	chatStorage.SetClock(c.world.Fc)
 	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return ri })
+	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.InboxSource = NewHybridInboxSource(g, func() chat1.RemoteInterface { return ri })
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	chatSyncer := NewSyncer(g)
@@ -1821,6 +1822,7 @@ type serverChatListener struct {
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 	teamType                chan chat1.TeamTypeInfo
 	expunge                 chan chat1.ExpungeInfo
+	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1862,6 +1864,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.teamType <- activity.Teamtype()
 	case chat1.ChatActivityType_EXPUNGE:
 		n.expunge <- activity.Expunge()
+	case chat1.ChatActivityType_EPHEMERAL_PURGE:
+		n.ephemeralPurge <- activity.EphemeralPurge()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -1898,6 +1902,7 @@ func newServerChatListener() *serverChatListener {
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, buf),
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
+		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -1924,6 +1929,19 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			listener := newServerChatListener()
 			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+			assertEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
+				valid := unboxed.Valid()
+				require.False(t, valid.IsEphemeralExpired)
+				if ephemeralLifetime == nil {
+					require.False(t, valid.IsEphemeral)
+					require.EqualValues(t, valid.Etime, 0)
+				} else {
+					require.True(t, valid.IsEphemeral)
+					lifetime := time.Second * time.Duration(*ephemeralLifetime)
+					require.True(t, time.Now().Add(lifetime).Sub(valid.Etime.Time()) <= lifetime)
+				}
+			}
 
 			var err error
 			var created chat1.ConversationInfoLocal
@@ -1988,6 +2006,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
+
 			select {
 			case info := <-listener.newMessage:
 				unboxed = info.Message
@@ -1996,13 +2015,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Equal(t, genOutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
-				if ephemeralLifetime == nil {
-					require.False(t, unboxed.Valid().IsExploding())
-				} else {
-					require.True(t, unboxed.Valid().IsExploding())
-					metadata := unboxed.Valid().EphemeralMetadata
-					require.Equal(t, metadata.Lifetime, *ephemeralLifetime)
-				}
+				assertEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2027,13 +2040,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
 				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, chat1.MessageType_EDIT, unboxed.GetMessageType(), "invalid type")
-				if ephemeralLifetime == nil {
-					require.False(t, unboxed.Valid().IsExploding())
-				} else {
-					require.True(t, unboxed.Valid().IsExploding())
-					metadata := unboxed.Valid().EphemeralMetadata
-					require.Equal(t, metadata.Lifetime, *ephemeralLifetime)
-				}
+				assertEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2873,6 +2880,16 @@ func consumeExpunge(t *testing.T, listener *serverChatListener) chat1.ExpungeInf
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get expunge notification")
 		return chat1.ExpungeInfo{}
+	}
+}
+
+func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.EphemeralPurgeNotifInfo {
+	select {
+	case x := <-listener.ephemeralPurge:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get ephemeralPurge notification")
+		return chat1.EphemeralPurgeNotifInfo{}
 	}
 }
 

@@ -14,13 +14,11 @@ import (
 )
 
 type SignupJoinEngine struct {
-	uid            keybase1.UID
-	session        string
-	csrf           string
-	lastPassphrase string
-	username       libkb.NormalizedUsername
-	ppGen          libkb.PassphraseGeneration
-
+	uid      keybase1.UID
+	session  string
+	csrf     string
+	username libkb.NormalizedUsername
+	ppGen    libkb.PassphraseGeneration
 	libkb.Contextified
 }
 
@@ -75,11 +73,12 @@ type SignupJoinEngineRunArg struct {
 	SkipMail   bool
 }
 
-func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
+func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg) (err error) {
 	var res *libkb.APIRes
 	var ppGenTmp int
-	res, err = s.G().API.Post(libkb.APIArg{
-		Endpoint: "signup",
+	res, err = m.G().API.Post(libkb.APIArg{
+		Endpoint:   "signup",
+		NetContext: m.Ctx(),
 		Args: libkb.HTTPArgs{
 			"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
 			"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
@@ -102,7 +101,7 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 		err = libkb.CheckUIDAgainstUsername(s.uid, arg.Username)
 		s.ppGen = libkb.PassphraseGeneration(ppGenTmp)
 	}
-	return
+	return err
 }
 
 type SignupJoinEngineRunRes struct {
@@ -119,14 +118,14 @@ func (r SignupJoinEngineRunRes) Error() string {
 	return r.Err.Error()
 }
 
-func (s *SignupJoinEngine) Run(lctx libkb.LoginContext, arg SignupJoinEngineRunArg) (res SignupJoinEngineRunRes) {
+func (s *SignupJoinEngine) Run(m libkb.MetaContext, arg SignupJoinEngineRunArg) (res SignupJoinEngineRunRes) {
 	res.PassphraseOk = true
 
-	if res.Err = s.Post(arg); res.Err != nil {
+	if res.Err = s.Post(m, arg); res.Err != nil {
 		return
 	}
 	res.PostOk = true
-	if res.Err = s.WriteOut(lctx, arg.PWSalt); res.Err != nil {
+	if res.Err = s.WriteOut(m, arg.PWSalt); res.Err != nil {
 		return
 	}
 	res.WriteOk = true
@@ -135,12 +134,18 @@ func (s *SignupJoinEngine) Run(lctx libkb.LoginContext, arg SignupJoinEngineRunA
 	return
 }
 
-func (s *SignupJoinEngine) WriteOut(lctx libkb.LoginContext, salt []byte) error {
+func (s *SignupJoinEngine) WriteOut(m libkb.MetaContext, salt []byte) error {
+	lctx := m.LoginContext()
 	if err := lctx.CreateLoginSessionWithSalt(s.username.String(), salt); err != nil {
 		return err
 	}
 	var nilDeviceID keybase1.DeviceID
-	return lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID)
+	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID); err != nil {
+		return err
+	}
+	// Switching to a new user is an operation on the GlobalContext, and will atomically
+	// update the config file and alter the current ActiveDevice. So farm out to over there.
+	return m.SwitchUserNewConfig(s.uid, s.username, salt, nilDeviceID)
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(ctx context.Context, arg libkb.InviteRequestArg) error {

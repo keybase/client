@@ -28,7 +28,7 @@ func TestUnlock(t *testing.T) {
 		t.Fatal("expected valid stream cache after sign up")
 	}
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: fu.NewSecretUI(),
@@ -43,7 +43,8 @@ func TestUnlock(t *testing.T) {
 	}
 
 	eng := NewUnlock(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -62,14 +63,15 @@ func TestUnlockNoop(t *testing.T) {
 		t.Fatal("expected valid stream cache after sign up")
 	}
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: fu.NewSecretUI(),
 	}
 
 	eng := NewUnlock(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -88,7 +90,7 @@ func TestUnlockWithPassphrase(t *testing.T) {
 		t.Fatal("expected valid stream cache after sign up")
 	}
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:   tc.G.UI.GetLogUI(),
 		LoginUI: &libkb.TestLoginUI{},
 		// No SecretUI here!
@@ -103,7 +105,8 @@ func TestUnlockWithPassphrase(t *testing.T) {
 	}
 
 	eng := NewUnlockWithPassphrase(tc.G, fu.Passphrase)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 

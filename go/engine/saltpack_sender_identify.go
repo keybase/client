@@ -51,8 +51,8 @@ func (e *SaltpackSenderIdentify) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *SaltpackSenderIdentify) Run(ctx *Context) (err error) {
-	defer e.G().Trace("SaltpackSenderIdentify::Run", func() error { return err })()
+func (e *SaltpackSenderIdentify) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("SaltpackSenderIdentify::Run", func() error { return err })()
 
 	if e.arg.isAnon {
 		e.res.SenderType = keybase1.SaltpackSenderType_ANONYMOUS
@@ -83,7 +83,7 @@ func (e *SaltpackSenderIdentify) Run(ctx *Context) (err error) {
 		return
 	}
 
-	loadUserArg := libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), maybeUID)
+	loadUserArg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(maybeUID)
 	var user *libkb.User
 	user, err = libkb.LoadUser(loadUserArg)
 	if err != nil {
@@ -116,20 +116,20 @@ func (e *SaltpackSenderIdentify) Run(ctx *Context) (err error) {
 
 	// The key is active! This is the happy path. We'll do an identify and show
 	// it to the user, and the SenderType will follow from that.
-	err = e.identifySender(ctx)
+	err = e.identifySender(m)
 
 	return
 }
 
-func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
-	defer e.G().Trace("SaltpackDecrypt::identifySender", func() error { return err })()
+func (e *SaltpackSenderIdentify) identifySender(m libkb.MetaContext) (err error) {
+	defer m.CTrace("SaltpackDecrypt::identifySender", func() error { return err })()
 
 	var lin bool
 	var uid keybase1.UID
-	if lin, uid = IsLoggedIn(e, ctx); lin && uid.Equal(e.res.Uid) {
+	if lin, uid = isLoggedIn(m); lin && uid.Equal(e.res.Uid) {
 		e.res.SenderType = keybase1.SaltpackSenderType_SELF
 		if len(e.arg.userAssertion) == 0 {
-			e.G().Log.Debug("| Sender is self")
+			m.CDebugf("| Sender is self")
 			return nil
 		}
 	}
@@ -146,7 +146,7 @@ func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
 		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(e.G(), &iarg)
-	if err = RunEngine(eng, ctx); err != nil {
+	if err = RunEngine2(m, eng); err != nil {
 		return err
 	}
 

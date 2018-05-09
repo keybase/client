@@ -225,10 +225,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 
 	// Delete all assets on the deleted message.
 	// assetsForMessage logs instead of failing.
-	pads2, err := s.assetsForMessage(ctx, deleteTarget.Valid().MessageBody)
-	if err != nil {
-		return msg, nil, err
-	}
+	pads2 := utils.AssetsForMessage(s.G(), deleteTarget.Valid().MessageBody)
 	pendingAssetDeletes = append(pendingAssetDeletes, pads2...)
 
 	// Time of the first message to be deleted.
@@ -274,10 +271,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 
 				// Delete all assets on AttachmentUploaded's for the deleted message.
 				// assetsForMessage logs instead of failing.
-				pads2, err = s.assetsForMessage(ctx, body)
-				if err != nil {
-					return msg, nil, err
-				}
+				pads2 = utils.AssetsForMessage(s.G(), body)
 				pendingAssetDeletes = append(pendingAssetDeletes, pads2...)
 			}
 		default:
@@ -294,35 +288,6 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
 
 	return msg, pendingAssetDeletes, nil
-}
-
-// assetsForMessage gathers all assets on a message
-func (s *BlockingSender) assetsForMessage(ctx context.Context, msgBody chat1.MessageBody) ([]chat1.Asset, error) {
-	var assets []chat1.Asset
-	typ, err := msgBody.MessageType()
-	if err != nil {
-		// Log and drop the error for a malformed MessageBody.
-		s.G().Log.Warning("error getting assets for message: %s", err)
-		return assets, nil
-	}
-	switch typ {
-	case chat1.MessageType_ATTACHMENT:
-		body := msgBody.Attachment()
-		if body.Object.Path != "" {
-			assets = append(assets, body.Object)
-		}
-		if body.Preview != nil {
-			assets = append(assets, *body.Preview)
-		}
-		assets = append(assets, body.Previews...)
-	case chat1.MessageType_ATTACHMENTUPLOADED:
-		body := msgBody.Attachmentuploaded()
-		if body.Object.Path != "" {
-			assets = append(assets, body.Object)
-		}
-		assets = append(assets, body.Previews...)
-	}
-	return assets, nil
 }
 
 func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,

@@ -3,16 +3,30 @@ package storage
 import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
 func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *Storage, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 	return func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
-		_, err := chatStorage.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo)
+		_, explodedMsgs, err := chatStorage.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo)
 		if err != nil {
 			g.GetLog().CDebugf(ctx, "ephemeralPurge error: %s", err)
+		} else {
+			if len(explodedMsgs) > 0 {
+				purgedMsgs := []chat1.UIMessage{}
+				for _, msg := range explodedMsgs {
+					purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, g, msg, uid, job.ConvID))
+				}
+				act := chat1.NewChatActivityWithEphemeralPurge(chat1.EphemeralPurgeNotifInfo{
+					ConvID: job.ConvID,
+					Msgs:   purgedMsgs,
+				})
+				g.NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
+			}
 		}
 	}
 }
@@ -40,7 +54,7 @@ func (s *Storage) QueueEphemeralBackgroundPurges(ctx context.Context, uid gregor
 				s.Debug(ctx, "invalid convID: %v, error: %s", convIDStr, err)
 				continue
 			}
-			job := types.NewConvLoaderJob(convID, nil, types.ConvLoaderPriorityHigh,
+			job := types.NewConvLoaderJob(convID, &chat1.Pagination{}, types.ConvLoaderPriorityHigh,
 				newConvLoaderEphemeralPurgeHook(s.G(), s, uid, &purgeInfo))
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "convLoader Queue error %s", err)
@@ -53,30 +67,30 @@ func (s *Storage) QueueEphemeralBackgroundPurges(ctx context.Context, uid gregor
 // For a given conversation, purge all ephemeral messages from
 // purgeInfo.MinUnexplodedID to the present, updating bookkeeping for the next
 // time we need to purge this conv.
-func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, err Error) {
+func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "EphemeralPurge")()
 
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 
 	if purgeInfo == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
-		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+		return nil, nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// We don't care about holes.
@@ -94,30 +108,30 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 		// ok
 		if len(rc.Result()) == 0 {
 			err := s.ephemeralTracker.inactivatePurgeInfo(ctx, convID, uid)
-			return nil, err
+			return nil, nil, err
 		}
 	case MissError:
 		s.Debug(ctx, "record-only ephemeralTracker: no local messages")
 		// We don't have these messages in cache, so don't retry this
 		// conversation until further notice.
 		err := s.ephemeralTracker.inactivatePurgeInfo(ctx, convID, uid)
-		return nil, err
+		return nil, nil, err
 	default:
-		return nil, err
+		return nil, nil, err
 	}
-	newPurgeInfo, err = s.ephemeralPurgeHelper(ctx, convID, uid, rc.Result())
+	newPurgeInfo, explodedMsgs, err = s.ephemeralPurgeHelper(ctx, convID, uid, rc.Result())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	err = s.ephemeralTracker.setPurgeInfo(ctx, convID, uid, newPurgeInfo)
-	return newPurgeInfo, err
+	return newPurgeInfo, explodedMsgs, err
 }
 
 func (s *Storage) explodeExpiredMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (err Error) {
 	defer s.Trace(ctx, func() error { return err }, "explodeExpiredMessages")()
 
-	purgeInfo, err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
+	purgeInfo, _, err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
 	if err != nil {
 		return err
 	}
@@ -130,16 +144,16 @@ func (s *Storage) explodeExpiredMessages(ctx context.Context, convID chat1.Conve
 // give info for our bookkeeping for the next time we have to purge.
 // requires msgs to be sorted by descending message ID
 func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) (purgeInfo *chat1.EphemeralPurgeInfo, err Error) {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) (purgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "ephemeralPurgeHelper convID: %v, uid: %v, numMessages %v", convID, uid, len(msgs))()
 
 	if msgs == nil || len(msgs) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	nextPurgeTime := gregor1.Time(0)
 	minUnexplodedID := msgs[0].GetMessageID()
-	var exploded []chat1.MessageUnboxed
+	var allAssets []chat1.Asset
 	var hasExploding bool
 	for i, msg := range msgs {
 		if !msg.IsValid() {
@@ -147,7 +161,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 			continue
 		}
 		mvalid := msg.Valid()
-		if mvalid.IsExploding() {
+		if mvalid.IsEphemeral() {
 			if !mvalid.IsEphemeralExpired(s.clock.Now()) {
 				hasExploding = true
 				// Keep track of the minimum ephemeral message that is not yet
@@ -163,23 +177,27 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 			} else if mvalid.MessageBody.IsNil() {
 				s.Debug(ctx, "skipping already exploded message: %v", msg.GetMessageID())
 			} else {
-				var emptyBody chat1.MessageBody
-				mvalid.MessageBody = emptyBody
-				newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
-				exploded = append(exploded, newMsg)
-				msgs[i] = newMsg
+				msgPurged, assets := s.purgeMessage(mvalid)
+				allAssets = append(allAssets, assets...)
+				explodedMsgs = append(explodedMsgs, msgPurged)
+				msgs[i] = msgPurged
+				s.Debug(ctx, "purging ephemeral msg: %v", msgPurged.GetMessageID())
 			}
 		}
 	}
-	s.Debug(ctx, "purging %v ephemeral messages", len(exploded))
-	err = s.engine.WriteMessages(ctx, convID, uid, exploded)
-	if err != nil {
+
+	// queue asset deletions in the background
+	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+
+	s.Debug(ctx, "purging %v ephemeral messages", len(explodedMsgs))
+	if err = s.engine.WriteMessages(ctx, convID, uid, explodedMsgs); err != nil {
 		s.Debug(ctx, "write messages failed: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
+
 	return &chat1.EphemeralPurgeInfo{
 		MinUnexplodedID: minUnexplodedID,
 		NextPurgeTime:   nextPurgeTime,
 		IsActive:        hasExploding,
-	}, nil
+	}, explodedMsgs, nil
 }

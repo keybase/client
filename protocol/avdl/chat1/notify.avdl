@@ -14,7 +14,8 @@ protocol NotifyChat {
     MEMBERS_UPDATE_6,
     SET_APP_NOTIFICATION_SETTINGS_7,
     TEAMTYPE_8,
-    EXPUNGE_9
+    EXPUNGE_9,
+    EPHEMERAL_PURGE_10
   }
 
   record IncomingMessage {
@@ -69,6 +70,11 @@ protocol NotifyChat {
     Expunge expunge;
   }
 
+  record EphemeralPurgeNotifInfo {
+    ConversationID convID;
+    array<UIMessage> msgs;
+  }
+
   variant ChatActivity switch (ChatActivityType activityType) {
     case INCOMING_MESSAGE: IncomingMessage;
     case READ_MESSAGE: ReadMessageInfo;
@@ -79,6 +85,7 @@ protocol NotifyChat {
     case SET_APP_NOTIFICATION_SETTINGS: SetAppNotificationSettingsInfo;
     case TEAMTYPE: TeamTypeInfo;
     case EXPUNGE: ExpungeInfo;
+    case EPHEMERAL_PURGE: EphemeralPurgeNotifInfo;
   }
 
   record TyperInfo {

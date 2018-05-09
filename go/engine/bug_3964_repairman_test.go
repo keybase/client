@@ -240,7 +240,7 @@ func checkAuditLogForBug3964Repair(t *testing.T, log []string, deviceID keybase1
 func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
 	Logout(dev)
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{},
 		LogUI:       dev.G.UI.GetLogUI(),
@@ -248,7 +248,8 @@ func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(dev.G, libkb.DeviceTypeDesktop, user.Username, keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(dev).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -283,7 +284,7 @@ func checkAuditLogForRepairmanShortCircuit(t *testing.T, log []string) {
 }
 
 func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI: u.NewSecretUI(),
 	}
 	me, err := libkb.LoadMe(libkb.LoadUserArg{Contextified: libkb.NewContextified(tctx.G)})
@@ -295,7 +296,8 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
+	m := NewMetaContextForTest(tctx).WithUIs(uis)
+	arg := m.SecretKeyPromptArg(ska, "tracking signature")
 	encKey, err := tctx.G.Keyrings.GetSecretKeyWithPrompt(NewMetaContextForTest(tctx), arg)
 	if err != nil {
 		t.Fatal(err)
@@ -303,11 +305,11 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 	if encKey == nil {
 		t.Fatal("got back a nil decryption key")
 	}
-	_, clientHalf, err := fetchLKS(ctx, tctx.G, encKey)
+	_, clientHalf, err := fetchLKS(m, encKey)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pps, err := tctx.G.LoginState().GetPassphraseStream(NewMetaContextForTest(tctx), ctx.SecretUI)
+	pps, err := tctx.G.LoginState().GetPassphraseStream(m, m.UIs().SecretUI)
 	if err != nil {
 		t.Fatal(err)
 	}

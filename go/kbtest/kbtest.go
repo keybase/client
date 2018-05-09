@@ -60,7 +60,7 @@ func (fu *FakeUser) GetUserVersion() keybase1.UserVersion {
 }
 
 func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		ProvisionUI: &TestProvisionUI{},
 		LogUI:       g.UI.GetLogUI(),
 		GPGUI:       &gpgtestui{},
@@ -68,7 +68,8 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
 	li := engine.NewLogin(g, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI)
-	return engine.RunEngine(li, ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	return engine.RunEngine2(m, li)
 }
 
 func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
@@ -94,14 +95,15 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 		SkipMail:   true,
 		SkipPaper:  skipPaper,
 	}
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := engine.NewSignupEngine(&arg, g)
-	if err := engine.RunEngine(s, ctx); err != nil {
+	s := engine.NewSignupEngine(g, &arg)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	if err := engine.RunEngine2(m, s); err != nil {
 		return nil, err
 	}
 	fu.User, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(g, fu.Username))

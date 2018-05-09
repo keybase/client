@@ -25,7 +25,7 @@ func setupStorageTest(t testing.TB, name string) (kbtest.ChatTestContext, *Stora
 	}
 	tc.Context().ServerCacheVersions = NewServerVersions(tc.Context())
 	require.NoError(t, err)
-	return tc, New(tc.Context()), gregor1.UID(u.User.GetUID().ToBytes())
+	return tc, New(tc.Context(), kbtest.NewDummyAssetDeleter()), gregor1.UID(u.User.GetUID().ToBytes())
 }
 
 func randBytes(n int) []byte {

@@ -172,7 +172,7 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 	// to refactor for UIMessage
 	hitText := highlightHits(searchHit.HitMessage, searchHit.Matches)
 	if hitText != "" {
-		w := c.terminal.ErrorWriter()
+		w := c.terminal.OutputWriter()
 		fmt.Fprintf(w, getContext(searchHit.PrevMessage))
 		fmt.Fprintln(w, hitText)
 		fmt.Fprintf(w, getContext(searchHit.NextMessage))

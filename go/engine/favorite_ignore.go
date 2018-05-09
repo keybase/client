@@ -17,7 +17,7 @@ type FavoriteIgnore struct {
 }
 
 // NewFavoriteIgnore creates a FavoriteIgnore engine.
-func NewFavoriteIgnore(arg *keybase1.FavoriteIgnoreArg, g *libkb.GlobalContext) *FavoriteIgnore {
+func NewFavoriteIgnore(g *libkb.GlobalContext, arg *keybase1.FavoriteIgnoreArg) *FavoriteIgnore {
 	return &FavoriteIgnore{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -47,13 +47,14 @@ func (e *FavoriteIgnore) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *FavoriteIgnore) Run(ctx *Context) error {
+func (e *FavoriteIgnore) Run(m libkb.MetaContext) error {
 	if e.arg == nil {
 		return fmt.Errorf("FavoriteIgnore arg is nil")
 	}
-	_, err := e.G().API.Post(libkb.APIArg{
+	_, err := m.G().API.Post(libkb.APIArg{
 		Endpoint:    "kbfs/favorite/add",
 		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  m.Ctx(),
 		Args: libkb.HTTPArgs{
 			"tlf_name":    libkb.S{Val: e.arg.Folder.Name},
 			"folder_type": libkb.I{Val: int(e.arg.Folder.FolderType)},

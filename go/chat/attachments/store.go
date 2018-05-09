@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 
 	"github.com/keybase/client/go/chat/s3"
@@ -317,19 +318,16 @@ func (a *Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.
 }
 
 func (a *Store) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error {
-	var errs []error
+
+	epick := libkb.FirstErrorPicker{}
 	for _, asset := range assets {
 		if err := a.DeleteAsset(ctx, params, signer, asset); err != nil {
 			a.Debug(ctx, "DeleteAssets: DeleteAsset error: %s", err)
-			errs = append(errs, err)
+			epick.Push(err)
 		}
 	}
 
-	if len(errs) > 0 {
-		a.Debug(ctx, "DeleteAssets: errors: %d, returning first one", len(errs))
-		return errs[0]
-	}
-	return nil
+	return epick.Error()
 }
 
 func (a *Store) DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer, asset chat1.Asset) error {

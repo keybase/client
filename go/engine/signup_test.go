@@ -133,14 +133,14 @@ func TestSignupWithGPG(t *testing.T) {
 	}
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipGPG = false
-	s := NewSignupEngine(&arg, tc.G)
-	ctx := &Context{
+	s := NewSignupEngine(tc.G, &arg)
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	if err := RunEngine(s, ctx); err != nil {
+	if err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -150,14 +150,14 @@ func TestLocalKeySecurity(t *testing.T) {
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "se")
 	arg := MakeTestSignupEngineRunArg(fu)
-	s := NewSignupEngine(&arg, tc.G)
-	ctx := &Context{
+	s := NewSignupEngine(tc.G, &arg)
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	if err := RunEngine(s, ctx); err != nil {
+	if err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s); err != nil {
 		t.Fatal(err)
 	}
 
@@ -245,15 +245,15 @@ func TestIssue280(t *testing.T) {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
-		Ctx: tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
-	eng := NewPGPKeyImportEngine(arg)
-	err := RunEngine(eng, &ctx)
+	eng := NewPGPKeyImportEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -282,7 +282,7 @@ func TestSignupShortPassphrase(t *testing.T) {
 
 	fu := NewFakeUserOrBust(t, "sup")
 	fu.Passphrase = "1234"
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
@@ -290,8 +290,8 @@ func TestSignupShortPassphrase(t *testing.T) {
 	}
 	arg := MakeTestSignupEngineRunArg(fu)
 	t.Logf("signup arg: %+v", arg)
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err == nil {
 		t.Fatal("signup worked with short passphrase")
 	}

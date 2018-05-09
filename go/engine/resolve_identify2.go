@@ -22,7 +22,7 @@ type ResolveThenIdentify2 struct {
 	trackOptions keybase1.TrackOptions
 }
 
-var _ (Engine) = (*ResolveThenIdentify2)(nil)
+var _ (Engine2) = (*ResolveThenIdentify2)(nil)
 
 func NewResolveThenIdentify2(g *libkb.GlobalContext, arg *keybase1.Identify2Arg) *ResolveThenIdentify2 {
 	return &ResolveThenIdentify2{
@@ -63,14 +63,14 @@ func (e *ResolveThenIdentify2) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
+func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 	if !e.arg.Uid.IsNil() {
 		return nil
 	}
 
 	// if no uid and no assertion, then if logged in use self uid:
 	if len(e.arg.UserAssertion) == 0 && e.arg.AllowEmptySelfID {
-		ok, uid := IsLoggedIn(e, ctx)
+		ok, uid := isLoggedIn(m)
 		if ok {
 			e.arg.Uid = uid
 			return nil
@@ -78,7 +78,7 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 		return libkb.LoginRequiredError{Context: "to identify without specifying a user assertion"}
 	}
 
-	rres := e.G().Resolver.ResolveFullExpressionWithBody(ctx.GetNetContext(), e.arg.UserAssertion)
+	rres := m.G().Resolver.ResolveFullExpressionWithBody(m.Ctx(), e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
 		return err
 	}
@@ -96,25 +96,24 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 	return nil
 }
 
-func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
-	e.SetGlobalContext(ctx.CloneGlobalContextWithLogTags(e.G(), "ID2"))
+func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
+	m = m.WithLogTag("ID2")
 
-	defer e.G().CTraceTimed(ctx.GetNetContext(), "ResolveThenIdentify2#Run", func() error { return err })()
+	defer m.CTraceTimed("ResolveThenIdentify2#Run", func() error { return err })()
 
-	e.i2eng = NewIdentify2WithUID(e.G(), e.arg)
+	e.i2eng = NewIdentify2WithUID(m.G(), e.arg)
 	if e.responsibleGregorItem != nil {
 		e.i2eng.SetResponsibleGregorItem(e.responsibleGregorItem)
 	}
 	e.i2eng.trackOptions = e.trackOptions
 
-	if err = e.resolveUID(ctx); err != nil {
+	if err = e.resolveUID(m); err != nil {
 		return
 	}
 
 	// For testing
 	e.i2eng.testArgs = e.testArgs
-
-	return RunEngine(e.i2eng, ctx)
+	return RunEngine2(m, e.i2eng)
 }
 
 func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {

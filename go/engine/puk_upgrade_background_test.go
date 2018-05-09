@@ -30,14 +30,15 @@ func TestPerUserKeyUpgradeBackgroundShutdownFirst(t *testing.T) {
 		testingMetaCh: metaCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI: tc.G.UI.GetLogUI(),
 	}
 
 	// shut down before starting
 	eng.Shutdown()
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	err := RunEngine(eng, ctx)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "early-shutdown")
@@ -71,10 +72,8 @@ func TestPerUserKeyUpgradeBackgroundShutdownSoon(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
@@ -112,10 +111,8 @@ func TestPerUserKeyUpgradeBackgroundShutdownMiddle(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
@@ -180,11 +177,8 @@ func TestPerUserKeyUpgradeBackgroundUnnecessary(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
@@ -234,11 +228,8 @@ func TestPerUserKeyUpgradeBackgroundWork(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
@@ -301,16 +292,13 @@ func TestPerUserKeyUpgradeBackgroundYield(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
 
-	tc.G.LocalSigchainGuard().Set(ctx.GetNetContext(), "Test")
+	tc.G.LocalSigchainGuard().Set(m.Ctx(), "Test")
 
 	advance(PerUserKeyUpgradeBackgroundSettings.Start + time.Second)
 	expectMeta(t, metaCh, "woke-start")
@@ -328,7 +316,7 @@ func TestPerUserKeyUpgradeBackgroundYield(t *testing.T) {
 	checkPerUserKeyCountLocal(&tc, 0)
 
 	// second round runs and works
-	tc.G.LocalSigchainGuard().Clear(ctx.GetNetContext(), "Test")
+	tc.G.LocalSigchainGuard().Clear(m.Ctx(), "Test")
 	advance(PerUserKeyUpgradeBackgroundSettings.Interval + time.Second)
 	expectMeta(t, metaCh, "woke-interval")
 	advance(PerUserKeyUpgradeBackgroundSettings.WakeUp + time.Second)
@@ -371,11 +359,8 @@ func TestPerUserKeyUpgradeBackgroundLoginLate(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")

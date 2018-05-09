@@ -18,13 +18,14 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 	tc.G.Env.GetConfigWriter().SetDeviceID("")
 
 	// now try to log in on current device
-	ctx := &Context{
+	uis := libkb.UIs{
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
 	eng := NewLoginProvisionedDevice(tc.G, fu.Username)
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	if err != errNoDevice {
 		t.Errorf("run error: %v, expected %v", err, errNoDevice)
 	}
@@ -32,7 +33,7 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 	// put a device id into config file that is not this user's device
 	tc.G.Env.GetConfigWriter().SetDeviceID("31a7669bfa163eed3619780ebac8ee18")
 	eng = NewLoginProvisionedDevice(tc.G, fu.Username)
-	err = RunEngine(eng, ctx)
+	err = RunEngine2(m, eng)
 	if err != errNoDevice {
 		t.Errorf("run error: %v, expected %v", err, errNoDevice)
 	}

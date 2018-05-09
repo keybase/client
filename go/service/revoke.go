@@ -23,34 +23,37 @@ func NewRevokeHandler(xp rpc.Transporter, g *libkb.GlobalContext) *RevokeHandler
 	}
 }
 
-func (h *RevokeHandler) RevokeKey(_ context.Context, arg keybase1.RevokeKeyArg) error {
+func (h *RevokeHandler) RevokeKey(ctx context.Context, arg keybase1.RevokeKeyArg) error {
 	sessionID := arg.SessionID
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),
 		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	eng := engine.NewRevokeKeyEngine(arg.KeyID, h.G())
-	return engine.RunEngine(eng, &ctx)
+	eng := engine.NewRevokeKeyEngine(h.G(), arg.KeyID)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
-func (h *RevokeHandler) RevokeDevice(_ context.Context, arg keybase1.RevokeDeviceArg) error {
+func (h *RevokeHandler) RevokeDevice(ctx context.Context, arg keybase1.RevokeDeviceArg) error {
 	sessionID := arg.SessionID
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),
 		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	eng := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: arg.DeviceID, ForceSelf: arg.ForceSelf, ForceLast: arg.ForceLast}, h.G())
-	return engine.RunEngine(eng, &ctx)
+	eng := engine.NewRevokeDeviceEngine(h.G(), engine.RevokeDeviceEngineArgs{ID: arg.DeviceID, ForceSelf: arg.ForceSelf, ForceLast: arg.ForceLast})
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
-func (h *RevokeHandler) RevokeSigs(_ context.Context, arg keybase1.RevokeSigsArg) error {
-	ctx := engine.Context{
+func (h *RevokeHandler) RevokeSigs(ctx context.Context, arg keybase1.RevokeSigsArg) error {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	eng := engine.NewRevokeSigsEngine(arg.SigIDQueries, h.G())
-	return engine.RunEngine(eng, &ctx)
+	eng := engine.NewRevokeSigsEngine(h.G(), arg.SigIDQueries)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }

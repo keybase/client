@@ -539,7 +539,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s%s <%s> %s",
 		m.SenderUsername, possiblyRevokedMark, m.SenderDeviceName, shortDurationFromNow(t))
 
-	if m.IsExploding() {
+	if m.IsEphemeral() {
 		remainingLifetime := m.RemainingLifetime()
 		if remainingLifetime <= 0 {
 			mv.Body = "[exploded]"

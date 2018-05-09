@@ -15,7 +15,7 @@ type HasServerKeys struct {
 }
 
 // NewHasServerKeys creates a HasServerKeys engine.
-func NewHasServerKeys(arg *keybase1.HasServerKeysArg, g *libkb.GlobalContext) *HasServerKeys {
+func NewHasServerKeys(g *libkb.GlobalContext) *HasServerKeys {
 	return &HasServerKeys{
 		Contextified: libkb.NewContextified(g),
 	}
@@ -44,22 +44,23 @@ func (e *HasServerKeys) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *HasServerKeys) Run(ctx *Context) error {
-	apiRes, err := e.G().API.Get(libkb.APIArg{
+func (e *HasServerKeys) Run(m libkb.MetaContext) error {
+	apiRes, err := m.G().API.Get(libkb.APIArg{
 		Endpoint:    "key/fetch_private",
 		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  m.Ctx(),
 	})
 	if err != nil {
 		return err
 	}
 	var spk libkb.ServerPrivateKeys
 	if err = apiRes.Body.UnmarshalAgain(&spk); err != nil {
-		e.G().Log.Debug("error unmarshaling ServerPrivateKeys")
+		m.CDebugf("error unmarshaling ServerPrivateKeys")
 		return err
 	}
 	e.res.HasServerKeys = len(spk.PrivateKeys) > 0
-	e.G().Log.Debug("HasServerKeys: %v", e.res.HasServerKeys)
+	m.CDebugf("HasServerKeys: %v", e.res.HasServerKeys)
 
 	return nil
 }

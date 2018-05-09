@@ -179,10 +179,8 @@ func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string)
 		NeedProofSet:     true,
 	}
 	eng := engine.NewResolveThenIdentify2(g, &arg)
-	ectx := &engine.Context{
-		NetContext: ctx,
-	}
-	if err := engine.RunEngine(eng, ectx); err != nil {
+	m := libkb.NewMetaContext(ctx, g)
+	if err := engine.RunEngine2(m, eng); err != nil {
 		return nil, err
 	}
 	return eng.GetProofSet(), nil

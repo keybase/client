@@ -23,14 +23,14 @@ func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 		Options:          options,
 		ForceRemoteCheck: forceRemoteCheck,
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   secretUI,
 	}
-
-	eng := NewTrackEngine(arg, tc.G)
-	err = RunEngine(eng, ctx)
+	eng := NewTrackEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	them = eng.User()
 	return
 }
@@ -223,14 +223,14 @@ func TestTrackRetrack(t *testing.T) {
 		UserAssertion: "t_alice",
 		Options:       keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   secretUI,
 	}
-
-	eng := NewTrackEngine(arg, tc.G)
-	err = RunEngine(eng, ctx)
+	eng := NewTrackEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -245,8 +245,8 @@ func TestTrackRetrack(t *testing.T) {
 		t.Errorf("seqno after track: %d, expected > %d", seqnoAfter, seqnoBefore)
 	}
 
-	eng = NewTrackEngine(arg, tc.G)
-	err = RunEngine(eng, ctx)
+	eng = NewTrackEngine(tc.G, arg)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -333,8 +333,9 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewResolveThenIdentify2(tc.G, iarg)
-		ctx := Context{IdentifyUI: fui}
-		if err := RunEngine(eng, &ctx); err != nil {
+		uis := libkb.UIs{IdentifyUI: fui}
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -349,12 +350,13 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 				SigVersion:    &sv,
 			},
 		}
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:    tc.G.UI.GetLogUI(),
 			SecretUI: user.NewSecretUI(),
 		}
-		eng := NewTrackToken(&arg, tc.G)
-		return RunEngine(eng, ctx)
+		eng := NewTrackToken(tc.G, &arg)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		return RunEngine2(m, eng)
 	}
 
 	trackSucceed := func(tc libkb.TestContext, fui *FakeIdentifyUI) {
@@ -391,7 +393,7 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 		trackFail(dev2, fui2, (i == 0))
 	}
 
-	runUntrack(dev1.G, user, trackee, sigVersion)
+	runUntrack(dev1, user, trackee, sigVersion)
 }
 
 func TestTrackNoKeys(t *testing.T) {

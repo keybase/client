@@ -1110,7 +1110,8 @@
         "MISC_0",
         "BADVERSION_CRITICAL_1",
         "BADVERSION_2",
-        "IDENTIFY_3"
+        "IDENTIFY_3",
+        "EPHEMERAL_4"
       ]
     },
     {
@@ -1136,6 +1137,24 @@
         {
           "type": "gregor1.Time",
           "name": "ctime"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeral",
+          "mpackkey": "ie",
+          "jsonkey": "ie"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeralExpired",
+          "mpackkey": "iex",
+          "jsonkey": "iex"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "etime",
+          "mpackkey": "e",
+          "jsonkey": "e"
         }
       ]
     },

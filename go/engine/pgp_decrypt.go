@@ -28,7 +28,7 @@ type PGPDecrypt struct {
 }
 
 // NewPGPDecrypt creates a PGPDecrypt engine.
-func NewPGPDecrypt(arg *PGPDecryptArg, g *libkb.GlobalContext) *PGPDecrypt {
+func NewPGPDecrypt(g *libkb.GlobalContext, arg *PGPDecryptArg) *PGPDecrypt {
 	return &PGPDecrypt{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -59,21 +59,21 @@ func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPDecrypt) Run(ctx *Context) (err error) {
-	defer e.G().Trace("PGPDecrypt::Run", func() error { return err })()
+func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("PGPDecrypt#Run", func() error { return err })()
 
-	e.G().Log.Debug("| ScanKeys")
-	sk, err := NewScanKeys(ctx.SecretUI, e.G())
+	m.CDebugf("| ScanKeys")
+	sk, err := NewScanKeys(m)
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("| PGPDecrypt")
-	e.signStatus, err = libkb.PGPDecrypt(e.G(), e.arg.Source, e.arg.Sink, sk)
+	m.CDebugf("| PGPDecrypt")
+	e.signStatus, err = libkb.PGPDecrypt(m.G(), e.arg.Source, e.arg.Sink, sk)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("| Sink Close")
+	m.CDebugf("| Sink Close")
 	if err = e.arg.Sink.Close(); err != nil {
 		return err
 	}
@@ -112,8 +112,8 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 			NoSkipSelf:       true,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
-		eng := NewResolveThenIdentify2(e.G(), &arg)
-		if err := RunEngine(eng, ctx); err != nil {
+		eng := NewResolveThenIdentify2(m.G(), &arg)
+		if err := RunEngine2(m, eng); err != nil {
 			return err
 		}
 		signByUser := eng.Result().Upk
@@ -126,8 +126,8 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 	} else {
 		if e.signer == nil {
 			// signer isn't a keybase user
-			e.G().Log.Debug("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
-			return OutputSignatureSuccessNonKeybase(ctx, e.signStatus.KeyID, e.signStatus.SignatureTime)
+			m.CDebugf("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
+			return OutputSignatureSuccessNonKeybase(m, e.signStatus.KeyID, e.signStatus.SignatureTime)
 		}
 
 		// identify the signer
@@ -138,8 +138,8 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 			NoSkipSelf:       true,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
-		eng := NewResolveThenIdentify2(e.G(), &arg)
-		if err := RunEngine(eng, ctx); err != nil {
+		eng := NewResolveThenIdentify2(m.G(), &arg)
+		if err := RunEngine2(m, eng); err != nil {
 			return err
 		}
 	}
@@ -155,7 +155,7 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 	}
 
 	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
-	return OutputSignatureSuccess(ctx, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime)
+	return OutputSignatureSuccess(m, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime)
 }
 
 func (e *PGPDecrypt) SignatureStatus() *libkb.SignatureStatus {

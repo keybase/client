@@ -27,8 +27,8 @@ func (h *SignupHandler) CheckUsernameAvailable(_ context.Context, arg keybase1.C
 	return engine.CheckUsernameAvailable(h.G(), arg.Username)
 }
 
-func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
-	ctx := &engine.Context{
+func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		GPGUI:     h.getGPGUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
@@ -47,8 +47,9 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 		GenPGPBatch: arg.GenPGPBatch,
 		SkipPaper:   !arg.GenPaper,
 	}
-	eng := engine.NewSignupEngine(&runarg, h.G())
-	err = engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	eng := engine.NewSignupEngine(h.G(), &runarg)
+	err = engine.RunEngine2(m, eng)
 
 	if err == nil {
 		// everything succeeded

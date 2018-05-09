@@ -11,12 +11,13 @@ import (
 )
 
 func doUpdate(fingerprints []string, all bool, fu *FakeUser, tc libkb.TestContext) (err error) {
-	eng := NewPGPUpdateEngine(fingerprints, all, tc.G)
-	ctx := Context{
+	eng := NewPGPUpdateEngine(tc.G, fingerprints, all)
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	err = RunEngine(eng, &ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	return
 }
 
@@ -111,15 +112,15 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
-		Ctx: tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	eng := NewPGPKeyImportEngine(arg)
-	err := RunEngine(eng, &ctx)
+	eng := NewPGPKeyImportEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

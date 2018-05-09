@@ -268,6 +268,7 @@ export const localMessageUnboxedErrorType = {
   badversionCritical: 1,
   badversion: 2,
   identify: 3,
+  ephemeral: 4,
 }
 
 export const localNewConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalNewConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.newConversationLocal', request)
@@ -395,6 +396,7 @@ export const notifyChatChatActivityType = {
   setAppNotificationSettings: 7,
   teamtype: 8,
   expunge: 9,
+  ephemeralPurge: 10,
 }
 
 export const notifyChatStaleUpdateType = {
@@ -612,7 +614,7 @@ export type ChannelMention =
 
 export type ChannelNameMention = $ReadOnly<{convID: ConversationID, topicName: String}>
 
-export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo}
+export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo} | {activityType: 10, ephemeralPurge: ?EphemeralPurgeNotifInfo}
 
 export type ChatActivityType =
   | 0 // RESERVED_0
@@ -625,6 +627,7 @@ export type ChatActivityType =
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
   | 8 // TEAMTYPE_8
   | 9 // EXPUNGE_9
+  | 10 // EPHEMERAL_PURGE_10
 
 export type ChatSearchHit = $ReadOnly<{prevMessage?: ?UIMessage, hitMessage?: ?UIMessage, nextMessage?: ?UIMessage, matches?: ?Array<String>}>
 
@@ -753,6 +756,8 @@ export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
 export type EphemeralPurgeInfo = $ReadOnly<{isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
+
+export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
@@ -1065,13 +1070,14 @@ export type MessageType =
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 
-export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time}>
+export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
 
 export type MessageUnboxedErrorType =
   | 0 // MISC_0
   | 1 // BADVERSION_CRITICAL_1
   | 2 // BADVERSION_2
   | 3 // IDENTIFY_3
+  | 4 // EPHEMERAL_4
 
 export type MessageUnboxedPlaceholder = $ReadOnly<{messageID: MessageID, hidden: Boolean}>
 
@@ -1360,7 +1366,7 @@ export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?
 
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
 
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, ephemeralMetadata?: ?MsgEphemeralMetadata}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
 
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 

@@ -2115,30 +2115,6 @@ func (h *Server) uploadAsset(ctx context.Context, sessionID int, params chat1.S3
 	return h.store.UploadAsset(ctx, &task)
 }
 
-func (h *Server) deleteAssets(ctx context.Context, conversationID chat1.ConversationID, assets []chat1.Asset) {
-	if len(assets) == 0 {
-		return
-	}
-
-	// get s3 params from server
-	params, err := h.remoteClient().GetS3Params(ctx, conversationID)
-	if err != nil {
-		h.Debug(ctx, "error getting s3 params: %s", err)
-		return
-	}
-
-	if err := h.store.DeleteAssets(ctx, params, h, assets); err != nil {
-		h.Debug(ctx, "error deleting assets: %s", err)
-
-		// there's no way to get asset information after this point.
-		// any assets not deleted will be stranded on s3.
-
-		return
-	}
-
-	h.Debug(ctx, "deleted %d assets", len(assets))
-}
-
 func (h *Server) FindConversationsLocal(ctx context.Context,
 	arg chat1.FindConversationsLocalArg) (res chat1.FindConversationsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure

@@ -79,6 +79,7 @@ type ConversationSource interface {
 		convID chat1.ConversationID, deleteID chat1.MessageID)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
+	DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, assets []chat1.Asset)
 }
 
 type MessageDeliverer interface {
@@ -231,6 +232,8 @@ type UPAKFinder interface {
 type ProgressReporter func(bytesCompleted, bytesTotal int64)
 
 type AttachmentFetcher interface {
+	DeleteAssets(ctx context.Context, convID chat1.ConversationID, assets []chat1.Asset,
+		ri func() chat1.RemoteInterface, signer s3.Signer) error
 	FetchAttachment(ctx context.Context, w io.Writer, convID chat1.ConversationID, asset chat1.Asset,
 		ri func() chat1.RemoteInterface, signer s3.Signer, progress ProgressReporter) error
 }

@@ -45,44 +45,44 @@ func (e *Bootstrap) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *Bootstrap) Run(ctx *Context) error {
-	e.status.Registered = e.signedUp()
+func (e *Bootstrap) Run(m libkb.MetaContext) error {
+	e.status.Registered = e.signedUp(m)
 
 	// if any Login engine worked previously, then ActiveDevice will
 	// be valid:
-	validActiveDevice := e.G().ActiveDevice.Valid()
+	validActiveDevice := m.G().ActiveDevice.Valid()
 
 	// the only way for ActiveDevice to be valid is to be logged in
 	// (and provisioned)
 	e.status.LoggedIn = validActiveDevice
 	if !e.status.LoggedIn {
-		e.G().Log.Debug("Bootstrap: not logged in")
+		m.CDebugf("Bootstrap: not logged in")
 		return nil
 	}
-	e.G().Log.Debug("Bootstrap: logged in (valid active device)")
+	m.CDebugf("Bootstrap: logged in (valid active device)")
 
 	e.status.Uid, e.status.DeviceID, e.status.DeviceName, _, _ = e.G().ActiveDevice.AllFields()
 	e.status.Username = e.G().Env.GetUsername().String()
-	e.G().Log.Debug("Bootstrap status: uid=%s, username=%s, deviceID=%s, deviceName=%s", e.status.Uid, e.status.Username, e.status.DeviceID, e.status.DeviceName)
+	m.CDebugf("Bootstrap status: uid=%s, username=%s, deviceID=%s, deviceName=%s", e.status.Uid, e.status.Username, e.status.DeviceID, e.status.DeviceName)
 
 	// get user summaries
 	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
 	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
-		e.G().Log.Debug("connected, loading self user upak for cache")
-		arg := libkb.NewLoadUserByUIDArg(context.Background(), e.G(), e.status.Uid)
+		m.CDebugf("connected, loading self user upak for cache")
+		arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(e.status.Uid)
 		if _, _, err := e.G().GetUPAKLoader().Load(arg); err != nil {
-			e.G().Log.Debug("Bootstrap: error loading upak user for cache priming: %s", err)
+			m.CDebugf("Bootstrap: error loading upak user for cache priming: %s", err)
 		}
 
-		e.G().Log.Debug("connected, running full tracker2 syncer")
+		m.CDebugf("connected, running full tracker2 syncer")
 		if err := libkb.RunSyncer(ts, e.status.Uid, false, nil); err != nil {
-			e.G().Log.Warning("error running Tracker2Syncer: %s", err)
+			m.CWarningf("error running Tracker2Syncer: %s", err)
 			return nil
 		}
 	} else {
-		e.G().Log.Debug("not connected, running cached tracker2 syncer")
+		m.CDebugf("not connected, running cached tracker2 syncer")
 		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
-			e.G().Log.Warning("error running Tracker2Syncer (cached): %s", err)
+			m.CWarningf("error running Tracker2Syncer (cached): %s", err)
 			return nil
 		}
 	}
@@ -102,8 +102,8 @@ func (e *Bootstrap) Run(ctx *Context) error {
 }
 
 // signedUp is true if there's a uid in config.json.
-func (e *Bootstrap) signedUp() bool {
-	cr := e.G().Env.GetConfig()
+func (e *Bootstrap) signedUp(m libkb.MetaContext) bool {
+	cr := m.G().Env.GetConfig()
 	if cr == nil {
 		return false
 	}

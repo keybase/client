@@ -59,7 +59,7 @@ func (e *PGPKeyExportEngine) Results() []keybase1.KeyInfo {
 	return e.res
 }
 
-func NewPGPKeyExportEngine(arg keybase1.PGPExportArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+func NewPGPKeyExportEngine(g *libkb.GlobalContext, arg keybase1.PGPExportArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        either,
@@ -68,7 +68,7 @@ func NewPGPKeyExportEngine(arg keybase1.PGPExportArg, g *libkb.GlobalContext) *P
 	}
 }
 
-func NewPGPKeyExportByKIDEngine(arg keybase1.PGPExportByKIDArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+func NewPGPKeyExportByKIDEngine(g *libkb.GlobalContext, arg keybase1.PGPExportByKIDArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        kid,
@@ -77,7 +77,7 @@ func NewPGPKeyExportByKIDEngine(arg keybase1.PGPExportByKIDArg, g *libkb.GlobalC
 	}
 }
 
-func NewPGPKeyExportByFingerprintEngine(arg keybase1.PGPExportByFingerprintArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+func NewPGPKeyExportByFingerprintEngine(g *libkb.GlobalContext, arg keybase1.PGPExportByFingerprintArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        fingerprint,
@@ -128,14 +128,14 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 	return
 }
 
-func (e *PGPKeyExportEngine) exportSecret(m libkb.MetaContext, ctx *Context) error {
+func (e *PGPKeyExportEngine) exportSecret(m libkb.MetaContext) error {
 	ska := libkb.SecretKeyArg{
 		Me:         e.me,
 		KeyType:    libkb.PGPKeyType,
 		KeyQuery:   e.arg.Query,
 		ExactMatch: e.arg.ExactMatch,
 	}
-	key, skb, err := m.G().Keyrings.GetSecretKeyAndSKBWithPrompt(m, ctx.SecretKeyPromptArg(ska, "key export"))
+	key, skb, err := m.G().Keyrings.GetSecretKeyAndSKBWithPrompt(m, m.SecretKeyPromptArg(ska, "key export"))
 	if err != nil {
 		if _, ok := err.(libkb.NoSecretKeyError); ok {
 			// if no secret key found, don't return an error, just let
@@ -165,7 +165,7 @@ func (e *PGPKeyExportEngine) exportSecret(m libkb.MetaContext, ctx *Context) err
 	if e.encrypted {
 		// Make encrypted PGP key bundle using provided passphrase.
 		// Key will be reimported from bytes so we don't mutate SKB.
-		raw, err = e.encryptKey(m, ctx, raw)
+		raw, err = e.encryptKey(m, raw)
 		if err != nil {
 			return err
 		}
@@ -196,7 +196,7 @@ func GetPGPExportPassphrase(m libkb.MetaContext, ui libkb.SecretUI, desc string)
 	return pRes, nil
 }
 
-func (e *PGPKeyExportEngine) encryptKey(m libkb.MetaContext, ctx *Context, raw []byte) ([]byte, error) {
+func (e *PGPKeyExportEngine) encryptKey(m libkb.MetaContext, raw []byte) ([]byte, error) {
 	entity, _, err := libkb.ReadOneKeyFromBytes(raw)
 	if err != nil {
 		return nil, err
@@ -207,7 +207,7 @@ func (e *PGPKeyExportEngine) encryptKey(m libkb.MetaContext, ctx *Context, raw [
 	}
 
 	desc := "Enter passphrase to protect your PGP key. Secure passphrases have at least 8 characters."
-	pRes, err := GetPGPExportPassphrase(m, ctx.SecretUI, desc)
+	pRes, err := GetPGPExportPassphrase(m, m.UIs().SecretUI, desc)
 	if err != nil {
 		return nil, err
 	}
@@ -224,26 +224,24 @@ func (e *PGPKeyExportEngine) encryptKey(m libkb.MetaContext, ctx *Context, raw [
 	return buf.Bytes(), nil
 }
 
-func (e *PGPKeyExportEngine) loadMe() (err error) {
-	e.me, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
+func (e *PGPKeyExportEngine) loadMe(m libkb.MetaContext) (err error) {
+	e.me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
 	return
 }
 
-func (e *PGPKeyExportEngine) Run(ctx *Context) (err error) {
-
-	m := NewMetaContext(e, ctx)
+func (e *PGPKeyExportEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("PGPKeyExportEngine::Run", func() error { return err })()
 
 	if e.qtype == unset {
 		return fmt.Errorf("PGPKeyExportEngine: query type not set")
 	}
 
-	if err = e.loadMe(); err != nil {
+	if err = e.loadMe(m); err != nil {
 		return
 	}
 
 	if e.arg.Secret {
-		err = e.exportSecret(m, ctx)
+		err = e.exportSecret(m)
 	} else {
 		err = e.exportPublic()
 	}

@@ -22,6 +22,11 @@ func loadAndUnlockKey(m MetaContext, kr *SKBKeyringFile, secretStore SecretStore
 	return unlocked, err
 }
 
+// BootstrapActiveDevice takes the user's config.json, keys.mpack file and
+// secret store to populate ActiveDevice, and to have all credentials necessary
+// to sign NIST tokens, allowing the user to act as if "logged in". Will return
+// nil if everything work, LoginRequiredError if a real "login" in required to
+// make the app work, and various errors on unexpected failures.
 func BootstrapActiveDeviceFromConfig(m MetaContext, online bool) (uid keybase1.UID, err error) {
 	uid, err = bootstrapActiveDeviceFromConfigReturnRawError(m, online)
 	err = fixupBootstrapError(err)
@@ -37,7 +42,7 @@ func bootstrapActiveDeviceFromConfigReturnRawError(m MetaContext, online bool) (
 	if deviceID.IsNil() {
 		return uid, NoDeviceError{fmt.Sprintf("no device in config for UID=%s", uid)}
 	}
-	err = BootstrapActiveDevice(m, uid, deviceID, online)
+	err = bootstrapActiveDeviceReturnRawError(m, uid, deviceID, online)
 	return uid, err
 }
 
@@ -59,16 +64,6 @@ func fixupBootstrapError(err error) error {
 		return LoginRequiredError{err.Error()}
 	}
 	return err
-}
-
-// BootstrapActiveDevice takes the user's config.json, keys.mpack file and
-// secret store to populate ActiveDevice, and to have all credentials necessary
-// to sign NIST tokens, allowing the user to act as if "logged in". Will return
-// nil if everything work, LoginRequiredError if a real "login" in required to
-// make the app work, and various errors on unexpected failures.
-func BootstrapActiveDevice(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) error {
-	err := bootstrapActiveDeviceReturnRawError(m, uid, deviceID, online)
-	return fixupBootstrapError(err)
 }
 
 func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (err error) {
@@ -127,7 +122,7 @@ func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, device
 		return err
 	}
 
-	err = ad.Set(m, uid, deviceID, sib, sub, deviceName)
+	err = m.SetActiveDevice(uid, deviceID, sib, sub, deviceName)
 	return err
 }
 
