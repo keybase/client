@@ -12,7 +12,7 @@ type call struct {
 	resultCh chan *rpcResponseMessage
 
 	method         string
-	seqid          seqNumber
+	seqid          SeqNumber
 	arg            interface{}
 	res            interface{}
 	errorUnwrapper ErrorUnwrapper
@@ -20,14 +20,14 @@ type call struct {
 
 type callContainer struct {
 	callsMtx sync.RWMutex
-	calls    map[seqNumber]*call
+	calls    map[SeqNumber]*call
 	seqMtx   sync.Mutex
-	seqid    seqNumber
+	seqid    SeqNumber
 }
 
 func newCallContainer() *callContainer {
 	return &callContainer{
-		calls: make(map[seqNumber]*call),
+		calls: make(map[SeqNumber]*call),
 		seqid: 0,
 	}
 }
@@ -48,7 +48,7 @@ func (cc *callContainer) NewCall(ctx context.Context, m string, arg interface{},
 	}
 }
 
-func (cc *callContainer) nextSeqid() seqNumber {
+func (cc *callContainer) nextSeqid() SeqNumber {
 	cc.seqMtx.Lock()
 	defer cc.seqMtx.Unlock()
 
@@ -64,14 +64,14 @@ func (cc *callContainer) AddCall(c *call) {
 	cc.calls[c.seqid] = c
 }
 
-func (cc *callContainer) RetrieveCall(seqid seqNumber) *call {
+func (cc *callContainer) RetrieveCall(seqid SeqNumber) *call {
 	cc.callsMtx.RLock()
 	defer cc.callsMtx.RUnlock()
 
 	return cc.calls[seqid]
 }
 
-func (cc *callContainer) RemoveCall(seqid seqNumber) {
+func (cc *callContainer) RemoveCall(seqid SeqNumber) {
 	cc.callsMtx.Lock()
 	defer cc.callsMtx.Unlock()
 

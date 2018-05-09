@@ -7,8 +7,8 @@ import (
 )
 
 type dispatcher interface {
-	Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper) error
-	Notify(ctx context.Context, name string, arg interface{}) error
+	Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper, sendNotifier SendNotifier) error
+	Notify(ctx context.Context, name string, arg interface{}, sendNotifier SendNotifier) error
 	Close()
 }
 
@@ -36,7 +36,16 @@ func newDispatch(enc encoder, calls *callContainer, l LogInterface) *dispatch {
 	return d
 }
 
-func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper) error {
+func currySendNotifier(sendNotifier SendNotifier, seqid SeqNumber) func() {
+	if sendNotifier == nil {
+		return nil
+	}
+	return func() {
+		sendNotifier(seqid)
+	}
+}
+
+func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper, sendNotifier SendNotifier) error {
 	profiler := d.log.StartProfiler("call %s", name)
 	defer profiler.Stop()
 
@@ -50,7 +59,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	if len(rpcTags) > 0 {
 		v = append(v, rpcTags)
 	}
-	errCh := d.writer.EncodeAndWrite(ctx, v)
+	errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, c.seqid))
 
 	// Wait for result from encode
 	select {
@@ -78,13 +87,13 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	}
 }
 
-func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) error {
+func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}, sendNotifier SendNotifier) error {
 	rpcTags, _ := RpcTagsFromContext(ctx)
 	v := []interface{}{MethodNotify, name, arg}
 	if len(rpcTags) > 0 {
 		v = append(v, rpcTags)
 	}
-	errCh := d.writer.EncodeAndWrite(ctx, v)
+	errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, SeqNumber(-1)))
 	select {
 	case err := <-errCh:
 		if err == nil {

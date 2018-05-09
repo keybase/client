@@ -505,6 +505,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	}
 
 	// call the connect handler
+	c.log.Debug("Connection: %s", LogField{Key: ConnectionLogMsgKey, Value: "calling OnConnect"})
 	err = c.handler.OnConnect(ctx, c, client, server)
 	if err != nil {
 		c.log.Warning("Connection: error calling %s handler: %s",

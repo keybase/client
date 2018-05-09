@@ -16,17 +16,17 @@ type Profiler interface {
 type LogInterface interface {
 	TransportStart()
 	TransportError(error)
-	ClientCall(seqNumber, string, interface{})
-	ServerCall(seqNumber, string, error, interface{})
-	ServerReply(seqNumber, string, error, interface{})
+	ClientCall(SeqNumber, string, interface{})
+	ServerCall(SeqNumber, string, error, interface{})
+	ServerReply(SeqNumber, string, error, interface{})
 	ClientNotify(string, interface{})
 	ServerNotifyCall(string, error, interface{})
 	ServerNotifyComplete(string, error)
-	ClientCancel(seqNumber, string, error)
-	ServerCancelCall(seqNumber, string)
-	ClientReply(seqNumber, string, error, interface{})
+	ClientCancel(SeqNumber, string, error)
+	ServerCancelCall(SeqNumber, string)
+	ClientReply(SeqNumber, string, error, interface{})
 	StartProfiler(format string, args ...interface{}) Profiler
-	UnexpectedReply(seqNumber)
+	UnexpectedReply(SeqNumber)
 	Warning(format string, args ...interface{})
 	Info(format string, args ...interface{})
 }
@@ -185,17 +185,17 @@ func (l SimpleLog) TransportError(e error) {
 }
 
 // Call
-func (s SimpleLog) ClientCall(q seqNumber, meth string, arg interface{}) {
+func (s SimpleLog) ClientCall(q SeqNumber, meth string, arg interface{}) {
 	if s.Opts.ClientTrace() {
 		s.trace("call", "arg", s.Opts.ShowArg(), q, meth, nil, arg)
 	}
 }
-func (s SimpleLog) ServerCall(q seqNumber, meth string, err error, arg interface{}) {
+func (s SimpleLog) ServerCall(q SeqNumber, meth string, err error, arg interface{}) {
 	if s.Opts.ServerTrace() {
 		s.trace("serve", "arg", s.Opts.ShowArg(), q, meth, err, arg)
 	}
 }
-func (s SimpleLog) ServerReply(q seqNumber, meth string, err error, res interface{}) {
+func (s SimpleLog) ServerReply(q SeqNumber, meth string, err error, res interface{}) {
 	if s.Opts.ServerTrace() {
 		s.trace("reply", "res", s.Opts.ShowResult(), q, meth, err, res)
 	}
@@ -219,24 +219,24 @@ func (s SimpleLog) ServerNotifyComplete(meth string, err error) {
 }
 
 // Cancel
-func (s SimpleLog) ClientCancel(q seqNumber, meth string, err error) {
+func (s SimpleLog) ClientCancel(q SeqNumber, meth string, err error) {
 	if s.Opts.ClientTrace() {
 		s.trace("cancel", "", false, q, meth, err, nil)
 	}
 }
-func (s SimpleLog) ServerCancelCall(q seqNumber, meth string) {
+func (s SimpleLog) ServerCancelCall(q SeqNumber, meth string) {
 	if s.Opts.ServerTrace() {
 		s.trace("serve-cancel", "", false, q, meth, nil, nil)
 	}
 }
 
-func (s SimpleLog) ClientReply(q seqNumber, meth string, err error, res interface{}) {
+func (s SimpleLog) ClientReply(q SeqNumber, meth string, err error, res interface{}) {
 	if s.Opts.ClientTrace() {
 		s.trace("reply", "res", s.Opts.ShowResult(), q, meth, err, res)
 	}
 }
 
-func (s SimpleLog) trace(which string, objname string, verbose bool, q seqNumber, meth string, err error, obj interface{}) {
+func (s SimpleLog) trace(which string, objname string, verbose bool, q SeqNumber, meth string, err error, obj interface{}) {
 	args := []interface{}{which, q}
 	fmts := "%s(%d):"
 	if len(meth) > 0 {
@@ -278,7 +278,7 @@ func (s SimpleLog) StartProfiler(format string, args ...interface{}) Profiler {
 	}
 }
 
-func (s SimpleLog) UnexpectedReply(seqno seqNumber) {
+func (s SimpleLog) UnexpectedReply(seqno SeqNumber) {
 	s.Out.Warning(s.msg(false, "Unexpected seqno %d in incoming reply", seqno))
 }
 
