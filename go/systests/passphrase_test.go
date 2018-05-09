@@ -49,7 +49,8 @@ func TestPassphraseChange(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(userInfo.passphrase, nil); err != nil {
+	m := libkb.NewMetaContextForTest(*tc)
+	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(m, userInfo.passphrase, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -62,11 +63,11 @@ func TestPassphraseChange(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase, nil); err != nil {
+	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(m, newPassphrase, nil); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(oldPassphrase, nil); err == nil {
+	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(m, oldPassphrase, nil); err == nil {
 		t.Fatal("old passphrase passed verification after passphrase change")
 	}
 
@@ -163,8 +164,10 @@ func TestPassphraseRecover(t *testing.T) {
 	require.NoError(t, err)
 	tcClient = nil
 
+	m1 := libkb.NewMetaContextForTest(*tc1)
+
 	t.Logf("Verify on tc1")
-	_, err = tc1.G.LoginState().VerifyPlaintextPassphrase(userInfo.passphrase, nil)
+	_, err = tc1.G.LoginState().VerifyPlaintextPassphrase(m1, userInfo.passphrase, nil)
 	require.NoError(t, err)
 
 	oldPassphrase := userInfo.passphrase
@@ -189,15 +192,16 @@ func TestPassphraseRecover(t *testing.T) {
 	tcClient = nil
 
 	t.Logf("Verify new passphrase on tc2")
-	_, err = tc2.G.LoginState().VerifyPlaintextPassphrase(newPassphrase, nil)
+	m2 := libkb.NewMetaContextForTest(*tc2)
+	_, err = tc2.G.LoginState().VerifyPlaintextPassphrase(m2, newPassphrase, nil)
 	require.NoError(t, err)
 
 	t.Logf("Verify new passphrase on tc1")
-	_, err = tc2.G.LoginState().VerifyPlaintextPassphrase(newPassphrase, nil)
+	_, err = tc2.G.LoginState().VerifyPlaintextPassphrase(m2, newPassphrase, nil)
 	require.NoError(t, err)
 
 	t.Logf("Verify old passphrase on tc1")
-	_, err = tc1.G.LoginState().VerifyPlaintextPassphrase(oldPassphrase, nil)
+	_, err = tc1.G.LoginState().VerifyPlaintextPassphrase(m2, oldPassphrase, nil)
 	require.Error(t, err, "old passphrase passed verification after passphrase change")
 
 	t.Logf("Stop tc1")

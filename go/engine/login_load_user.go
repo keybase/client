@@ -55,22 +55,22 @@ func (e *loginLoadUser) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *loginLoadUser) Run(ctx *Context) error {
-	username, err := e.findUsername(ctx)
+func (e *loginLoadUser) Run(m libkb.MetaContext) error {
+	username, err := e.findUsername(m)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("loginLoadUser: found username %q", username)
+	m.CDebugf("loginLoadUser: found username %q", username)
 
-	arg := libkb.NewLoadUserByNameArg(e.G(), username).WithPublicKeyOptional()
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithName(username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		return err
 	}
 	e.user = user
 
-	e.G().Log.Debug("loginLoadUser: found user %s for username %q", e.user.GetUID(), username)
+	m.CDebugf("loginLoadUser: found user %s for username %q", e.user.GetUID(), username)
 
 	return nil
 }
@@ -79,9 +79,9 @@ func (e *loginLoadUser) User() *libkb.User {
 	return e.user
 }
 
-func (e *loginLoadUser) findUsername(ctx *Context) (string, error) {
+func (e *loginLoadUser) findUsername(m libkb.MetaContext) (string, error) {
 	if len(e.usernameOrEmail) == 0 {
-		if err := e.prompt(ctx); err != nil {
+		if err := e.prompt(m); err != nil {
 			return "", err
 		}
 	}
@@ -99,24 +99,24 @@ func (e *loginLoadUser) findUsername(ctx *Context) (string, error) {
 	}
 
 	// looks like an email address
-	e.G().Log.Debug("%q looks like an email address, must get login session to get user", e.usernameOrEmail)
+	m.CDebugf("%q looks like an email address, must get login session to get user", e.usernameOrEmail)
 	// need to login with it in order to get the username
 	var username string
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		username = lctx.LocalSession().GetUsername().String()
 		return nil
 	}
-	if err := e.G().LoginState().VerifyEmailAddress(e.usernameOrEmail, ctx.SecretUI, afterLogin); err != nil {
+	if err := m.G().LoginState().VerifyEmailAddress(m, e.usernameOrEmail, m.UIs().SecretUI, afterLogin); err != nil {
 		return "", err
 	}
 
-	e.G().Log.Debug("VerifyEmailAddress %q => %q", e.usernameOrEmail, username)
+	m.CDebugf("VerifyEmailAddress %q => %q", e.usernameOrEmail, username)
 
 	return username, nil
 }
 
-func (e *loginLoadUser) prompt(ctx *Context) error {
-	res, err := ctx.LoginUI.GetEmailOrUsername(ctx.GetNetContext(), 0)
+func (e *loginLoadUser) prompt(m libkb.MetaContext) error {
+	res, err := m.UIs().LoginUI.GetEmailOrUsername(m.Ctx(), 0)
 	if err != nil {
 		return err
 	}

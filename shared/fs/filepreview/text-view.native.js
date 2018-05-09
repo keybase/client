@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/fs'
 import {globalColors, globalMargins} from '../../styles'
 import WebView from '../../common-adapters/web-view.native'
 import {type TextViewProps} from './text-view'
@@ -27,8 +28,14 @@ body{
   line-height: 1.6;
 }
 \`
+window.postMessage({title: document.title})
 `
 
-const TextView = ({url}: TextViewProps) => <WebView source={{uri: url}} injectedJavaScript={webviewJS} />
+const getOnMessage = onInvalidToken => e =>
+  e.nativeEvent.data.title === Constants.invalidTokenTitle && onInvalidToken()
+
+const TextView = ({url, onInvalidToken}: TextViewProps) => (
+  <WebView source={{uri: url}} injectedJavaScript={webviewJS} onMessage={getOnMessage(onInvalidToken)} />
+)
 
 export default TextView

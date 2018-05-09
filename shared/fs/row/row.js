@@ -12,6 +12,7 @@ type RowProps = {
   type: Types.PathType,
   lastModifiedTimestamp: number,
   lastWriter: string,
+  shouldShowMenu: boolean,
   itemStyles: Types.ItemStyles,
   badgeCount: number,
   tlfMeta?: Types.FavoriteMetadata,
@@ -91,10 +92,7 @@ export const Row = (props: RowProps) => (
               className="fs-path-item-hover-icon"
             />
           )}
-          {// TODO: when we have share-to-app, we'll want to re-enable this on
-          // mobile, but filter out share/download in the popup menu.
-          // Currently it doesn't make sense to popup an empty menu.
-          (!isMobile || props.type !== 'folder') && (
+          {props.shouldShowMenu && (
             <Icon
               type="iconfont-ellipsis"
               style={rowActionIconStyle}

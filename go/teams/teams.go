@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/keybase/go-codec/codec"
 
@@ -29,6 +30,7 @@ type Team struct {
 
 	keyManager *TeamKeyManager
 
+	// rotated is set by rotateBoxes after rotating team key.
 	rotated bool
 }
 
@@ -40,6 +42,37 @@ func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.Tea
 		ID:   chain.GetID(),
 		Data: teamData,
 	}
+}
+
+func (t *Team) CanSkipKeyRotation() bool {
+	// Only applies for >=200 member teams.
+	const MinTeamSize = 200
+	// Aim for one rotation every 24h.
+	const KeyRotateInterval = time.Duration(24) * time.Hour
+
+	if t.IsImplicit() {
+		// Do not do this optimization for implicit teams.
+		return false
+	}
+
+	// If cannot decide because of an error, return default false.
+	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
+	if err != nil {
+		return false
+	}
+	if len(members) < MinTeamSize {
+		// Not a big team
+		return false
+	}
+
+	now := t.G().Clock().Now()
+	duration := now.Sub(time.Unix(int64(t.chain().GetLatestPerTeamKeyCTime()), 0))
+	if duration > KeyRotateInterval {
+		// Last key rotation was more than predefined interval.
+		return false
+	}
+	// Team is big and key was rotated recently - can skip rotation.
+	return true
 }
 
 func (t *Team) chain() *TeamSigChainState {
@@ -430,7 +463,17 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 	return uids, nil
 }
 
-func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamChangeReq, permanent bool) (err error) {
+type ChangeMembershipOptions struct {
+	// Pass "permanent" flag, user will not be able to request access
+	// to the team again, admin will have to add them back.
+	Permanent bool
+
+	// Do not rotate team key, even on member removals. Server will
+	// queue CLKR if client sends removals without rotation.
+	SkipKeyRotation bool
+}
+
+func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.TeamChangeReq, opts ChangeMembershipOptions) (err error) {
 	defer t.G().CTrace(ctx, "Team.ChangeMembershipPermanent", func() error { return err })()
 
 	if t.IsSubteam() && len(req.Owners) > 0 {
@@ -438,7 +481,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 	}
 
 	// create the change membership section + secretBoxes
-	section, secretBoxes, implicitAdminBoxes, teamEKPayload, memberSet, err := t.changeMembershipSection(ctx, req)
+	section, secretBoxes, implicitAdminBoxes, teamEKPayload, memberSet, err := t.changeMembershipSection(ctx, req, opts.SkipKeyRotation)
 	if err != nil {
 		return err
 	}
@@ -479,7 +522,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 		teamEKPayload:      teamEKPayload,
 	}
 
-	if permanent {
+	if opts.Permanent {
 		sigPayloadArgs.prePayload = libkb.JSONPayload{"permanent": true}
 	}
 
@@ -493,7 +536,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 }
 
 func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
-	return t.ChangeMembershipPermanent(ctx, req, false)
+	return t.ChangeMembershipWithOptions(ctx, req, ChangeMembershipOptions{})
 }
 
 func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
@@ -1062,7 +1105,7 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 	return &ret, nil
 }
 
-func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *teamEKPayload, *memberSet, error) {
+func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq, skipKeyRotation bool) (SCTeamSection, *PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *teamEKPayload, *memberSet, error) {
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return SCTeamSection{}, nil, nil, nil, nil, err
@@ -1096,7 +1139,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	}
 
 	// create secret boxes for recipients, possibly rotating the key
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := t.recipientBoxes(ctx, memSet)
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := t.recipientBoxes(ctx, memSet, skipKeyRotation)
 	if err != nil {
 		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
@@ -1260,7 +1303,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 	return sigMultiItem, keybase1.LinkID(newLinkID.String()), nil
 }
 
-func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, *teamEKPayload, error) {
+func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRotation bool) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, *teamEKPayload, error) {
 
 	// get device key
 	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
@@ -1292,12 +1335,17 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 	// team key, and recipients will be all the users in the team
 	// after the removal.
 	if memSet.HasRemoval() {
-		// key is rotating, so recipients needs to be all the remaining members
-		// of the team after the removal (and including any new members in this
-		// change)
-		t.G().Log.Debug("team change request contains removal, rotating team key")
-		boxes, perTeamKey, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
-		return boxes, implicitAdminBoxes, perTeamKey, teamEKPayload, err
+		if !skipKeyRotation {
+			// key is rotating, so recipients needs to be all the remaining members
+			// of the team after the removal (and including any new members in this
+			// change)
+			t.G().Log.Debug("recipientBoxes: Team change request contains removal, rotating team key")
+			boxes, perTeamKey, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
+			return boxes, implicitAdminBoxes, perTeamKey, teamEKPayload, err
+		}
+
+		// If we don't rotate key, continue with the usual boxing.
+		t.G().Log.Debug("recipientBoxes: Skipping key rotation")
 	}
 
 	// don't need keys for existing members, so remove them from the set

@@ -10,7 +10,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
-	"golang.org/x/net/context"
 )
 
 type SaltpackDecryptArg struct {
@@ -27,7 +26,7 @@ type SaltpackDecrypt struct {
 }
 
 // NewSaltpackDecrypt creates a SaltpackDecrypt engine.
-func NewSaltpackDecrypt(arg *SaltpackDecryptArg, g *libkb.GlobalContext) *SaltpackDecrypt {
+func NewSaltpackDecrypt(g *libkb.GlobalContext, arg *SaltpackDecryptArg) *SaltpackDecrypt {
 	return &SaltpackDecrypt{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
@@ -59,8 +58,8 @@ func (e *SaltpackDecrypt) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, publicKey keybase1.KID, isAnon bool) (err error) {
-	defer e.G().Trace("SaltpackDecrypt::promptForDecrypt", func() error { return err })()
+func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybase1.KID, isAnon bool) (err error) {
+	defer m.CTrace("SaltpackDecrypt#promptForDecrypt", func() error { return err })()
 
 	spsiArg := SaltpackSenderIdentifyArg{
 		isAnon:           isAnon,
@@ -74,7 +73,7 @@ func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, publicKey keybase1.KID,
 	}
 
 	spsiEng := NewSaltpackSenderIdentify(e.G(), &spsiArg)
-	if err = RunEngine(spsiEng, ctx); err != nil {
+	if err = RunEngine2(m, spsiEng); err != nil {
 		return err
 	}
 
@@ -90,7 +89,7 @@ func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, publicKey keybase1.KID,
 		}
 	}
 
-	err = ctx.SaltpackUI.SaltpackPromptForDecrypt(context.TODO(), arg, usedDelegateUI)
+	err = m.UIs().SaltpackUI.SaltpackPromptForDecrypt(m.Ctx(), arg, usedDelegateUI)
 	if err != nil {
 		return err
 	}
@@ -115,8 +114,8 @@ func (e *SaltpackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageK
 }
 
 // Run starts the engine.
-func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
-	defer e.G().Trace("SaltpackDecrypt::Run", func() error { return err })()
+func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("SaltpackDecrypt::Run", func() error { return err })()
 
 	// We don't load this in the --paperkey case.
 	var me *libkb.User
@@ -125,7 +124,7 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 	if e.arg.Opts.UsePaperKey {
 		// Prompt the user for a paper key. This doesn't require you to be
 		// logged in.
-		keypair, _, err := getPaperKey(e.G(), ctx, nil)
+		keypair, _, err := getPaperKey(m, nil)
 		if err != nil {
 			return err
 		}
@@ -142,8 +141,8 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 			Me:      me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
-		e.G().Log.Debug("| GetSecretKeyWithPrompt")
-		key, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "decrypting a message/file"))
+		m.CDebugf("| GetSecretKeyWithPrompt")
+		key, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "decrypting a message/file"))
 		if err != nil {
 			return err
 		}
@@ -157,7 +156,7 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 	// For DH mode.
 	hookMki := func(mki *saltpack.MessageKeyInfo) error {
 		kidToIdentify := libkb.BoxPublicKeyToKeybaseKID(mki.SenderKey)
-		return e.promptForDecrypt(ctx, kidToIdentify, mki.SenderIsAnon)
+		return e.promptForDecrypt(m, kidToIdentify, mki.SenderIsAnon)
 	}
 
 	// For signcryption mode.
@@ -168,12 +167,12 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 		if senderSigningKey == nil || bytes.Equal(senderSigningKey.ToKID(), make([]byte, len(senderSigningKey.ToKID()))) {
 			isAnon = true
 		}
-		return e.promptForDecrypt(ctx, kidToIdentify, isAnon)
+		return e.promptForDecrypt(m, kidToIdentify, isAnon)
 	}
 
 	e.G().Log.Debug("| SaltpackDecrypt")
 	var mki *saltpack.MessageKeyInfo
-	mki, err = libkb.SaltpackDecrypt(ctx.GetNetContext(), e.G(), e.arg.Source, e.arg.Sink, kp, hookMki, hookSenderSigningKey)
+	mki, err = libkb.SaltpackDecrypt(m.Ctx(), m.G(), e.arg.Source, e.arg.Sink, kp, hookMki, hookSenderSigningKey)
 	if err == saltpack.ErrNoDecryptionKey {
 		err = libkb.NoDecryptionKeyError{Msg: "no suitable device key found"}
 	}

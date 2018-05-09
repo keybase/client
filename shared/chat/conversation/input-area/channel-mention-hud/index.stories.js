@@ -14,11 +14,8 @@ const UpDownFilterHoc = compose(
       upCounter: 0,
     },
     {
-      // $FlowIssue
       setDownCounter: () => (downCounter: number) => ({downCounter}),
-      // $FlowIssue
       setFilter: () => (filter: string) => ({filter}),
-      // $FlowIssue
       setUpCounter: () => (upCounter: number) => ({upCounter}),
     }
   ),

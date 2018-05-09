@@ -98,7 +98,8 @@ func (c *cmdWalletImport) promptSecretKey() (stellar1.SecretKey, stellar1.Accoun
 	if len(secStr) == 0 {
 		return "", "", libkb.InputCanceledError{}
 	}
-	return libkb.ParseStellarSecretKey(secStr)
+	secKey, accountID, _, err := libkb.ParseStellarSecretKey(secStr)
+	return secKey, accountID, err
 }
 
 func (c *cmdWalletImport) confirm(accountID stellar1.AccountID) error {

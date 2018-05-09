@@ -31,7 +31,7 @@ type PGPEncrypt struct {
 }
 
 // NewPGPEncrypt creates a PGPEncrypt engine.
-func NewPGPEncrypt(arg *PGPEncryptArg, g *libkb.GlobalContext) *PGPEncrypt {
+func NewPGPEncrypt(g *libkb.GlobalContext, arg *PGPEncryptArg) *PGPEncrypt {
 	return &PGPEncrypt{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -63,9 +63,9 @@ func (e *PGPEncrypt) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPEncrypt) Run(ctx *Context) error {
+func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 	// verify valid options based on logged in state:
-	ok, uid := IsLoggedIn(e, ctx)
+	ok, uid := isLoggedIn(m)
 
 	if !ok {
 		// not logged in.  this is fine, unless they requested signing the message.
@@ -78,7 +78,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 			return libkb.LoginRequiredError{Context: "you must be logged in to encrypt for yourself (or use --no-self flag)"}
 		}
 	} else {
-		me, err := libkb.LoadMeByUID(ctx.GetNetContext(), e.G(), uid)
+		me, err := libkb.LoadMeByMetaContextAndUID(m, uid)
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 			KeyType:  libkb.PGPKeyType,
 			KeyQuery: e.arg.KeyQuery,
 		}
-		key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "command-line signature"))
+		key, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "command-line signature"))
 		if err != nil {
 			return err
 		}
@@ -106,7 +106,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		signer = mykey
 	}
 
-	usernames, err := e.verifyUsers(ctx, e.arg.Recips, ok)
+	usernames, err := e.verifyUsers(m, e.arg.Recips, ok)
 	if err != nil {
 		return err
 	}
@@ -115,8 +115,8 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		Usernames: usernames,
 	}
 
-	kf := NewPGPKeyfinder(kfarg, e.G())
-	if err := RunEngine(kf, ctx); err != nil {
+	kf := NewPGPKeyfinder(e.G(), kfarg)
+	if err := RunEngine2(m, kf); err != nil {
 		return err
 	}
 	uplus := kf.UsersPlusKeys()
@@ -186,7 +186,7 @@ func (e *PGPEncrypt) loadSelfKey() (*libkb.PGPKeyBundle, error) {
 	return keys[0], nil
 }
 
-func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn bool) ([]string, error) {
+func (e *PGPEncrypt) verifyUsers(m libkb.MetaContext, assertions []string, loggedIn bool) ([]string, error) {
 	var names []string
 	for _, userAssert := range assertions {
 		arg := keybase1.Identify2Arg{
@@ -198,7 +198,7 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewResolveThenIdentify2(e.G(), &arg)
-		if err := RunEngine(eng, ctx); err != nil {
+		if err := RunEngine2(m, eng); err != nil {
 			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: err.Error()}
 		}
 		res := eng.Result()

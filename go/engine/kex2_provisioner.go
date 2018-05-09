@@ -26,7 +26,7 @@ type Kex2Provisioner struct {
 	pps                   keybase1.PassphraseStream
 	provisioneeDeviceName string
 	provisioneeDeviceType string
-	ctx                   *Context
+	mctx                  libkb.MetaContext
 }
 
 // Kex2Provisioner implements kex2.Provisioner interface.
@@ -70,43 +70,38 @@ func (e *Kex2Provisioner) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the provisioner engine.
-func (e *Kex2Provisioner) Run(ctx *Context) error {
+func (e *Kex2Provisioner) Run(m libkb.MetaContext) error {
 
 	// The guard is acquired later, after the potentially long pause by the user.
-	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Kex2Provisioner")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "Kex2Provisioner")
 
 	// before starting provisioning, need to load some information:
 	if err := e.loadMe(); err != nil {
 		return err
 	}
-	if err := e.loadSecretKeys(ctx); err != nil {
+	if err := e.loadSecretKeys(m); err != nil {
 		return err
 	}
 
 	// get current passphrase stream if necessary:
 	if e.pps.PassphraseStream == nil {
-		e.G().Log.Debug("kex2 provisioner needs passphrase stream, getting it from LoginState")
-		pps, err := e.G().LoginState().GetPassphraseStreamStored(ctx.SecretUI)
+		m.CDebugf("kex2 provisioner needs passphrase stream, getting it from LoginState")
+		pps, err := m.G().LoginState().GetPassphraseStreamStored(m, m.UIs().SecretUI)
 		if err != nil {
 			return err
 		}
 		e.pps = pps.Export()
 	}
 
-	// ctx needed by some kex2 functions
-	e.ctx = ctx
+	// Go's context.Context needed by some kex2 callback functions
+	m = m.EnsureCtx()
+	e.mctx = m
 
-	deviceID := e.G().Env.GetDeviceID()
-
-	nctx := ctx.NetContext
-	if nctx == nil {
-		e.G().Log.Debug("no NetContext in engine.Context, using context.Background()")
-		nctx = context.Background()
-	}
+	deviceID := m.G().Env.GetDeviceID()
 
 	// all set:  start provisioner
 	karg := kex2.KexBaseArg{
-		Ctx:           nctx,
+		Ctx:           m.Ctx(),
 		LogCtx:        newKex2LogContext(e.G()),
 		Mr:            libkb.NewKexRouter(e.G()),
 		DeviceID:      deviceID,
@@ -122,23 +117,23 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 	if err := kex2.RunProvisioner(parg); err != nil {
 		return err
 	}
-	e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Kex2Provisioner")
+	m.G().LocalSigchainGuard().Clear(m.Ctx(), "Kex2Provisioner")
 
 	// successfully provisioned the other device
 	sarg := keybase1.ProvisionerSuccessArg{
 		DeviceName: e.provisioneeDeviceName,
 		DeviceType: e.provisioneeDeviceType,
 	}
-	return ctx.ProvisionUI.ProvisionerSuccess(context.TODO(), sarg)
+	return m.UIs().ProvisionUI.ProvisionerSuccess(context.Background(), sarg)
 }
 
-func (e *Kex2Provisioner) loadSecretKeys(ctx *Context) (err error) {
+func (e *Kex2Provisioner) loadSecretKeys(m libkb.MetaContext) (err error) {
 	// get signing key (including secret key)
 	ska1 := libkb.SecretKeyArg{
 		Me:      e.me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	e.signingKey, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska1, "new device install"))
+	e.signingKey, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska1, "new device install"))
 	if err != nil {
 		return err
 	}
@@ -148,7 +143,7 @@ func (e *Kex2Provisioner) loadSecretKeys(ctx *Context) (err error) {
 		Me:      e.me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	encryptionKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska2, "new device install"))
+	encryptionKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska2, "new device install"))
 	if err != nil {
 		return err
 	}
@@ -173,10 +168,14 @@ func (e *Kex2Provisioner) GetLogFactory() rpc.LogFactory {
 
 // GetHelloArg implements GetHelloArg in kex2.Provisioner.
 func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
-	e.G().Log.Debug("+ GetHelloArg()")
-	defer func() { e.G().Log.Debug("- GetHelloArg() -> %s", libkb.ErrToOk(err)) }()
 
-	e.ctx.ProvisionUI.DisplaySecretExchanged(context.TODO(), 0)
+	// Pull the metaContext out of the this object, since we can't pass it through the
+	// kex2/provisioner interface
+	m := e.mctx
+
+	defer m.CTrace("Kex2Provisioner#GetHelloArg()", func() error { return err })()
+
+	m.UIs().ProvisionUI.DisplaySecretExchanged(context.Background(), 0)
 
 	// get a session token that device Y can use
 	token, csrf, err := e.sessionForY()
@@ -203,8 +202,12 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 
 // GetHello2Arg implements GetHello2Arg in kex2.Provisioner.
 func (e *Kex2Provisioner) GetHello2Arg() (arg2 keybase1.Hello2Arg, err error) {
-	e.G().Log.Debug("+ GetHello2Arg()")
-	defer func() { e.G().Log.Debug("- GetHello2Arg() -> %s", libkb.ErrToOk(err)) }()
+	// Pull the metaContext out of the this object, since we can't pass it through the
+	// kex2/provisioner interface
+	m := e.mctx
+
+	defer m.CTrace("Kex2Provisioner#GetHello2Arg", func() error { return err })()
+
 	var arg1 keybase1.HelloArg
 	arg1, err = e.GetHelloArg()
 	if err != nil {
@@ -222,8 +225,8 @@ func (e *Kex2Provisioner) GetHello2Arg() (arg2 keybase1.Hello2Arg, err error) {
 
 // CounterSign implements CounterSign in kex2.Provisioner.
 func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err error) {
-	e.G().Log.Debug("+ CounterSign()")
-	defer func() { e.G().Log.Debug("- CounterSign() -> %s", libkb.ErrToOk(err)) }()
+	m := e.mctx
+	defer m.CTrace("Kex2Provisioner#CounterSign", func() error { return err })()
 
 	jw, err := jsonw.Unmarshal([]byte(input))
 	if err != nil {
@@ -232,10 +235,10 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 
 	// check the reverse signature
 	if err = e.checkReverseSig(jw); err != nil {
-		e.G().Log.Debug("provisioner failed to verify reverse sig: %s", err)
+		m.CDebugf("provisioner failed to verify reverse sig: %s", err)
 		return nil, err
 	}
-	e.G().Log.Debug("provisioner verified reverse sig")
+	m.CDebugf("provisioner verified reverse sig")
 
 	// remember some device information for ProvisionUI.ProvisionerSuccess()
 	if err = e.rememberDeviceInfo(jw); err != nil {
@@ -253,7 +256,10 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 
 // CounterSign2 implements CounterSign in kex2.Provisioner.
 func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase1.DidCounterSign2Arg, err error) {
-	defer e.G().Trace("CounterSign2()", func() error { return err })()
+
+	m := e.mctx
+
+	defer m.CTrace("Kex2Provisioner#CounterSign2", func() error { return err })()
 	var key libkb.GenericKey
 	key, err = libkb.ImportKeypairFromKID(input.EncryptionKey)
 	if err != nil {
@@ -275,24 +281,24 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	// Sync the PUK, if the pukring is nil, we don't have a PUK and have
 	// nothing to box. We also can't make a userEKBox which is signed by the
 	// PUK.
-	pukring, err := e.syncPUK()
+	pukring, err := e.syncPUK(m)
 	if err != nil || pukring == nil {
 		return output, err
 	}
 
-	output.PukBox, err = e.makePukBox(pukring, key)
+	output.PukBox, err = e.makePukBox(m, pukring, key)
 	if err != nil {
 		return output, err
 	}
 
-	userEKBoxStorage := e.G().GetUserEKBoxStorage()
+	userEKBoxStorage := m.G().GetUserEKBoxStorage()
 	if len(string(input.DeviceEkKID)) != 0 && userEKBoxStorage != nil {
-		output.UserEkBox, err = e.makeUserEKBox(input.DeviceEkKID)
+		output.UserEkBox, err = e.makeUserEKBox(m, input.DeviceEkKID)
 		if err != nil {
 			return output, err
 		}
 	} else {
-		e.G().Log.CDebugf(e.ctx.NetContext, "Skipping userEKBox generation empty KID or storage. KID: %v, storage: %v", input.DeviceEkKID, userEKBoxStorage)
+		m.CDebugf("Skipping userEKBox generation empty KID or storage. KID: %v, storage: %v", input.DeviceEkKID, userEKBoxStorage)
 	}
 
 	return output, nil
@@ -408,12 +414,12 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 }
 
 // Returns nil if there are no per-user-keys.
-func (e *Kex2Provisioner) syncPUK() (*libkb.PerUserKeyring, error) {
+func (e *Kex2Provisioner) syncPUK(m libkb.MetaContext) (*libkb.PerUserKeyring, error) {
 	pukring, err := e.G().GetPerUserKeyring()
 	if err != nil {
 		return nil, err
 	}
-	if err = pukring.Sync(e.ctx.NetContext); err != nil {
+	if err = pukring.Sync(m); err != nil {
 		return nil, err
 	}
 	if !pukring.HasAnyKeys() {
@@ -422,20 +428,20 @@ func (e *Kex2Provisioner) syncPUK() (*libkb.PerUserKeyring, error) {
 	return pukring, nil
 }
 
-func (e *Kex2Provisioner) makePukBox(pukring *libkb.PerUserKeyring, receiverKeyGeneric libkb.GenericKey) (*keybase1.PerUserKeyBox, error) {
+func (e *Kex2Provisioner) makePukBox(m libkb.MetaContext, pukring *libkb.PerUserKeyring, receiverKeyGeneric libkb.GenericKey) (*keybase1.PerUserKeyBox, error) {
 	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
 		return nil, fmt.Errorf("Unexpected receiver key type")
 	}
 
-	pukBox, err := pukring.PrepareBoxForNewDevice(e.ctx.NetContext,
+	pukBox, err := pukring.PrepareBoxForNewDevice(m,
 		receiverKey,     // receiver key: provisionee enc
 		e.encryptionKey) // sender key: this device enc
 	return &pukBox, err
 }
 
 // Returns nil box if there are no userEKs.
-func (e *Kex2Provisioner) makeUserEKBox(KID keybase1.KID) (*keybase1.UserEkBoxed, error) {
+func (e *Kex2Provisioner) makeUserEKBox(m libkb.MetaContext, KID keybase1.KID) (*keybase1.UserEkBoxed, error) {
 	ekPair, err := libkb.ImportKeypairFromKID(KID)
 	if err != nil {
 		return nil, err
@@ -447,7 +453,7 @@ func (e *Kex2Provisioner) makeUserEKBox(KID keybase1.KID) (*keybase1.UserEkBoxed
 	ekLib := e.G().GetEKLib()
 	// This is hardcoded to 1 since we're provisioning a new device.
 	deviceEKGeneration := keybase1.EkGeneration(1)
-	return ekLib.BoxLatestUserEK(e.ctx.NetContext, receiverKey, deviceEKGeneration)
+	return ekLib.BoxLatestUserEK(m.Ctx(), receiverKey, deviceEKGeneration)
 }
 
 func (e *Kex2Provisioner) loadMe() error {

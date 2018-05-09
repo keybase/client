@@ -745,6 +745,11 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
 	state *keybase1.TeamData, gen keybase1.PerTeamKeyGeneration) error {
 
 	for _, app := range keybase1.TeamApplicationMap {
+		if app == keybase1.TeamApplication_STELLAR_RELAY {
+			// TODO CORE-7718 Allow clients to be missing these RKMs for now.
+			//                Will need a team cache bust to repair.
+			continue
+		}
 		if _, ok := state.ReaderKeyMasks[app]; !ok {
 			return fmt.Errorf("missing reader key mask for gen:%v app:%v", gen, app)
 		}

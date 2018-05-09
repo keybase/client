@@ -65,13 +65,14 @@ func TestPaperKey(t *testing.T) {
 
 	userDeviceID := tc.G.Env.GetDeviceID()
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	eng := NewPaperKey(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	if len(eng.Passphrase()) == 0 {
@@ -90,7 +91,7 @@ func TestPaperKey(t *testing.T) {
 
 	// make sure the passphrase authentication didn't change:
 
-	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(fu.Passphrase, nil)
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(NewMetaContextForTest(tc), fu.Passphrase, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,13 +131,14 @@ func testPaperKeyMulti(t *testing.T, upgradePerUserKey bool) {
 	fu, _, _ := CreateAndSignupFakeUserCustomArg(tc, "login", f)
 
 	for i := 0; i < 3; i++ {
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:    tc.G.UI.GetLogUI(),
 			LoginUI:  &libkb.TestLoginUI{},
 			SecretUI: &libkb.TestSecretUI{},
 		}
 		eng := NewPaperKey(tc.G)
-		if err := RunEngine(eng, ctx); err != nil {
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			t.Fatal(err)
 		}
 		if len(eng.Passphrase()) == 0 {
@@ -156,14 +158,15 @@ func TestPaperKeyRevoke(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "login")
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{RevokeBackup: true},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
 	eng := NewPaperKey(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	if len(eng.Passphrase()) == 0 {
@@ -178,7 +181,7 @@ func TestPaperKeyRevoke(t *testing.T) {
 
 	// generate another one, first should be revoked
 	eng = NewPaperKey(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	if len(eng.Passphrase()) == 0 {
@@ -200,13 +203,14 @@ func TestPaperKeyAfterRevokePUK(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "login")
 
 	gen := func() {
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:    tc.G.UI.GetLogUI(),
 			LoginUI:  &libkb.TestLoginUI{},
 			SecretUI: &libkb.TestSecretUI{},
 		}
 		eng := NewPaperKey(tc.G)
-		err := RunEngine(eng, ctx)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err)
 		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
 	}
@@ -232,14 +236,15 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 
 	fu := CreateAndSignupFakeUserPaper(tc, "login")
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{RevokeBackup: false},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
 	eng := NewPaperKey(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	if len(eng.Passphrase()) == 0 {
@@ -254,7 +259,7 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 
 	// generate another one, first should be left alone
 	eng = NewPaperKey(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	if len(eng.Passphrase()) == 0 {
@@ -272,13 +277,14 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 func TestPaperKeyGenWithSecretStore(t *testing.T) {
 	testEngineWithSecretStore(t, func(
 		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:    tc.G.UI.GetLogUI(),
 			LoginUI:  &libkb.TestLoginUI{},
 			SecretUI: secretUI,
 		}
 		eng := NewPaperKey(tc.G)
-		if err := RunEngine(eng, ctx); err != nil {
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			t.Fatal(err)
 		}
 	})

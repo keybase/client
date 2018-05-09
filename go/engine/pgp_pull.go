@@ -23,9 +23,9 @@ type PGPPullEngine struct {
 	libkb.Contextified
 }
 
-func NewPGPPullEngine(arg *PGPPullEngineArg, g *libkb.GlobalContext) *PGPPullEngine {
+func NewPGPPullEngine(g *libkb.GlobalContext, arg *PGPPullEngineArg) *PGPPullEngine {
 	return &PGPPullEngine{
-		listTrackingEngine: NewListTrackingEngine(&ListTrackingEngineArg{}, g),
+		listTrackingEngine: NewListTrackingEngine(g, &ListTrackingEngineArg{}),
 		userAsserts:        arg.UserAsserts,
 		Contextified:       libkb.NewContextified(g),
 	}
@@ -71,8 +71,8 @@ func proofSetFromUserSummary(summary keybase1.UserSummary) *libkb.ProofSet {
 	return libkb.NewProofSet(proofs)
 }
 
-func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase1.UserSummary, error) {
-	err := RunEngine(e.listTrackingEngine, ctx)
+func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1.UserSummary, error) {
+	err := RunEngine2(m, e.listTrackingEngine)
 	if err != nil {
 		return nil, err
 	}
@@ -129,21 +129,21 @@ func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase1.UserSu
 	return matchedList, nil
 }
 
-func (e *PGPPullEngine) runLoggedOut(ctx *Context) error {
+func (e *PGPPullEngine) runLoggedOut(m libkb.MetaContext) error {
 	if len(e.userAsserts) == 0 {
 		return libkb.PGPPullLoggedOutError{}
 	}
 	t := time.Now()
 	for i, assertString := range e.userAsserts {
 		t = e.rateLimit(t, i)
-		if err := e.processUserWhenLoggedOut(ctx, assertString); err != nil {
+		if err := e.processUserWhenLoggedOut(m, assertString); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
+func (e *PGPPullEngine) processUserWhenLoggedOut(m libkb.MetaContext, u string) error {
 	iarg := keybase1.Identify2Arg{
 		UserAssertion:    u,
 		ForceRemoteCheck: true,
@@ -153,8 +153,8 @@ func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
 		LocalOnly:  true,
 		ForPGPPull: true,
 	}
-	ieng := NewResolveThenIdentify2WithTrack(e.G(), &iarg, topts)
-	if err := RunEngine(ieng, ctx); err != nil {
+	ieng := NewResolveThenIdentify2WithTrack(m.G(), &iarg, topts)
+	if err := RunEngine2(m, ieng); err != nil {
 		e.G().Log.Info("identify run err: %s", err)
 		return err
 	}
@@ -172,35 +172,35 @@ func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
 	}
 	// with more plumbing, there is likely a more efficient way to get this identified user out
 	// of the identify2 engine, but `pgp pull` is not likely to be called often.
-	arg := libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), idRes.Upk.Uid)
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(idRes.Upk.Uid)
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		return err
 	}
-	return e.exportKeysToGPG(ctx, user, nil)
+	return e.exportKeysToGPG(m, user, nil)
 }
 
-func (e *PGPPullEngine) Run(ctx *Context) error {
+func (e *PGPPullEngine) Run(m libkb.MetaContext) error {
 
-	e.gpgClient = libkb.NewGpgCLI(e.G(), ctx.LogUI)
+	e.gpgClient = libkb.NewGpgCLI(m.G(), m.UIs().LogUI)
 	err := e.gpgClient.Configure()
 	if err != nil {
 		return err
 	}
 
-	if ok, _ := IsLoggedIn(e, ctx); !ok {
-		return e.runLoggedOut(ctx)
+	if ok, _ := isLoggedIn(m); !ok {
+		return e.runLoggedOut(m)
 	}
 
-	summaries, err := e.getTrackedUserSummaries(ctx)
+	summaries, err := e.getTrackedUserSummaries(m)
 	if err != nil {
 		return err
 	}
 
-	return e.runLoggedIn(ctx, summaries)
+	return e.runLoggedIn(m, summaries)
 }
 
-func (e *PGPPullEngine) runLoggedIn(ctx *Context, summaries []keybase1.UserSummary) error {
+func (e *PGPPullEngine) runLoggedIn(m libkb.MetaContext, summaries []keybase1.UserSummary) error {
 
 	// Loop over the list of all users we track.
 	t := time.Now()
@@ -220,26 +220,26 @@ func (e *PGPPullEngine) runLoggedIn(ctx *Context, summaries []keybase1.UserSumma
 			libkb.NewLoadUserByNameArg(e.G(), userSummary.Username).
 				WithPublicKeyOptional())
 		if err != nil {
-			ctx.LogUI.Errorf("Failed to load user %s: %s", userSummary.Username, err)
+			m.UIs().LogUI.Errorf("Failed to load user %s: %s", userSummary.Username, err)
 			continue
 		}
 		if user.GetStatus() == keybase1.StatusCode_SCDeleted {
-			e.G().Log.Debug("User %q is deleted, skipping", userSummary.Username)
+			m.CDebugf("User %q is deleted, skipping", userSummary.Username)
 			continue
 		}
 
-		if err = e.exportKeysToGPG(ctx, user, trackedFingerprints); err != nil {
+		if err = e.exportKeysToGPG(m, user, trackedFingerprints); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (e *PGPPullEngine) exportKeysToGPG(ctx *Context, user *libkb.User, tfp map[string]bool) error {
+func (e *PGPPullEngine) exportKeysToGPG(m libkb.MetaContext, user *libkb.User, tfp map[string]bool) error {
 	for _, bundle := range user.GetActivePGPKeys(false) {
 		// Check each key against the tracked set.
 		if tfp != nil && !tfp[bundle.GetFingerprint().String()] {
-			ctx.LogUI.Warning("Keybase says that %s owns key %s, but you have not tracked this fingerprint before.", user.GetName(), bundle.GetFingerprint())
+			m.UIs().LogUI.Warning("Keybase says that %s owns key %s, but you have not tracked this fingerprint before.", user.GetName(), bundle.GetFingerprint())
 			continue
 		}
 
@@ -247,7 +247,7 @@ func (e *PGPPullEngine) exportKeysToGPG(ctx *Context, user *libkb.User, tfp map[
 			return err
 		}
 
-		ctx.LogUI.Info("Imported key for %s.", user.GetName())
+		m.UIs().LogUI.Info("Imported key for %s.", user.GetName())
 	}
 	return nil
 }

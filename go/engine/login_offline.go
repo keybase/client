@@ -34,23 +34,24 @@ func (e *LoginOffline) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *LoginOffline) Run(ctx *Context) error {
-	if err := e.run(ctx); err != nil {
+func (e *LoginOffline) Run(m libkb.MetaContext) error {
+	if err := e.run(m); err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("LoginOffline success, sending login notification")
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
-	e.G().Log.Debug("LoginOffline success, calling login hooks")
-	e.G().CallLoginHooks()
+	m.CDebugf("LoginOffline success, sending login notification")
+	m.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+	m.CDebugf("LoginOffline success, calling login hooks")
+	m.G().CallLoginHooks()
 
 	return nil
 }
 
-func (e *LoginOffline) run(ctx *Context) error {
+func (e *LoginOffline) run(m libkb.MetaContext) error {
 	var gerr error
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-		_, err := libkb.BootstrapActiveDeviceFromConfig(ctx.NetContext, e.G(), a, false)
+	aerr := m.G().LoginState().Account(func(a *libkb.Account) {
+		m := m.WithLoginContext(a)
+		_, err := libkb.BootstrapActiveDeviceFromConfig(m, false)
 		if err != nil {
 			gerr = libkb.NewLoginRequiredError(err.Error())
 		}
@@ -58,14 +59,12 @@ func (e *LoginOffline) run(ctx *Context) error {
 	}, "LoginOffline")
 
 	if aerr != nil {
-		e.G().Log.Debug("LoginOffline: LoginState account error: %s", aerr)
+		m.CDebugf("LoginOffline: LoginState account error: %s", aerr)
 		return aerr
 	}
 	if gerr != nil {
 		return gerr
 	}
-
-	e.G().Log.Debug("LoginOffline: run success")
-
+	m.CDebugf("LoginOffline: run success")
 	return nil
 }

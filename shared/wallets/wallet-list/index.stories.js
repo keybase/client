@@ -2,7 +2,7 @@
 import React from 'react'
 import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
-import {Wallet, AddWallet} from '../../wallets/wallet'
+import {Wallet, AddWallet} from '.'
 
 const common = {
   isSelected: false,
@@ -28,7 +28,7 @@ const mocks = [
 ]
 
 const load = () => {
-  storiesOf('Stellar', module).add('Wallet List', () => (
+  storiesOf('Wallets', module).add('Wallet List', () => (
     <Box style={{width: 240}}>
       {mocks.map(m => <Wallet key={m.name} {...m} />)}
       <AddWallet showingMenu={true} onAddNew={action('onAddNew')} onLinkExisting={action('onAddExisting')} />

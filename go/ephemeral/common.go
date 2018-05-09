@@ -44,6 +44,22 @@ func (e *EKUnboxErr) Error() string {
 	return fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", e.boxType, e.boxGeneration, e.missingType, e.missingGeneration)
 }
 
+type EKMissingBoxErr struct {
+	boxType       EKType
+	boxGeneration keybase1.EkGeneration
+}
+
+func newEKMissingBoxErr(boxType EKType, boxGeneration keybase1.EkGeneration) *EKMissingBoxErr {
+	return &EKMissingBoxErr{
+		boxType:       boxType,
+		boxGeneration: boxGeneration,
+	}
+}
+
+func (e *EKMissingBoxErr) Error() string {
+	return fmt.Sprintf("Missing box for %s@generation:%v", e.boxType, e.boxGeneration)
+}
+
 func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
 	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyLifetimeSecs
 }

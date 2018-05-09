@@ -26,14 +26,14 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  loginUI,
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	secUI := fu.NewSecretUI()
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
-	ctx = &Context{
+	uis = libkb.UIs{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -94,7 +94,8 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	}
 
 	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("d2 provisioned (1)")
@@ -212,14 +213,14 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  loginUI,
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -244,7 +245,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	secUI := fu.NewSecretUI()
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
-	ctx = &Context{
+	uis = libkb.UIs{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -253,7 +254,8 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	}
 
 	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("d2 provisioned (1)")

@@ -6,7 +6,6 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // "Oneshot login" is a login that works only once, say in an ephemeral
@@ -40,27 +39,27 @@ func (e *LoginOneshot) Prereqs() Prereqs {
 func (e *LoginOneshot) RequiredUIs() []libkb.UIKind      { return []libkb.UIKind{} }
 func (e *LoginOneshot) SubConsumers() []libkb.UIConsumer { return []libkb.UIConsumer{} }
 
-func (e *LoginOneshot) loadUser(ctx context.Context) (err error) {
-	defer e.G().CTrace(ctx, "LoginOneshot#loadUser", func() error { return err })()
-	arg := libkb.NewLoadUserArgWithContext(ctx, e.G()).WithName(e.arg.Username)
+func (e *LoginOneshot) loadUser(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOneshot#loadUser", func() error { return err })()
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithName(e.arg.Username)
 	var upak *keybase1.UserPlusKeysV2AllIncarnations
-	upak, _, err = e.G().GetUPAKLoader().LoadV2(arg)
+	upak, _, err = m.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
 		return err
 	}
 	e.upak = upak.Current
 	return nil
 }
-func (e *LoginOneshot) loadKey(ectx *Context) (err error) {
-	ctx := ectx.GetNetContext()
-	defer e.G().CTrace(ctx, "LoginOneshot#loadKey", func() error { return err })()
+
+func (e *LoginOneshot) loadKey(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOneshot#loadKey", func() error { return err })()
 	arg := PaperKeyGenArg{
 		Passphrase: libkb.NewPaperKeyPhrase(e.arg.PaperKey),
 		SkipPush:   true,
 		UID:        e.upak.GetUID(),
 	}
-	eng := NewPaperKeyGen(&arg, e.G())
-	err = RunEngine(eng, ectx)
+	eng := NewPaperKeyGen(e.G(), &arg)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		return err
 	}
@@ -78,19 +77,19 @@ func (e *LoginOneshot) loadKey(ectx *Context) (err error) {
 	return nil
 }
 
-func (e *LoginOneshot) checkLogin(ctx context.Context) (err error) {
-	defer e.G().CTrace(ctx, "LoginOneshot#checkLogin", func() error { return err })()
+func (e *LoginOneshot) checkLogin(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOneshot#checkLogin", func() error { return err })()
 	arg := libkb.NewRetryAPIArg("sesscheck")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
-	_, err = e.G().API.Get(arg)
+	_, err = m.G().API.Get(arg)
 	return err
 }
 
-func (e *LoginOneshot) makeLoginChanges(ctx context.Context) (err error) {
-	defer e.G().CTrace(ctx, "LoginOneshot#makeLoginChanges", func() error { return err })()
+func (e *LoginOneshot) makeLoginChanges(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOneshot#makeLoginChanges", func() error { return err })()
 	var gerr error
-	err = e.G().LoginState().Account(func(a *libkb.Account) {
-		gerr = e.G().ActiveDevice.Set(e.G(), a, e.upak.GetUID(), e.deviceID, e.sigKey, e.encKey, e.deviceName)
+	err = m.G().LoginState().Account(func(a *libkb.Account) {
+		gerr = m.ActiveDevice().Set(m.WithLoginContext(a), e.upak.GetUID(), e.deviceID, e.sigKey, e.encKey, e.deviceName)
 	}, "LoginOneshot#makeLoginChanges")
 	if err != nil {
 		return err
@@ -100,23 +99,23 @@ func (e *LoginOneshot) makeLoginChanges(ctx context.Context) (err error) {
 		return err
 	}
 	uc := libkb.NewOneshotUserConfig(e.upak.GetUID(), libkb.NewNormalizedUsername(e.upak.GetName()), nil, e.deviceID)
-	e.G().Env.GetConfigWriter().SetUserConfig(uc, false)
+	m.G().Env.GetConfigWriter().SetUserConfig(uc, false)
 
 	return nil
 }
 
-func (e *LoginOneshot) commitLoginChanges(ctx context.Context) (err error) {
-	defer e.G().CTrace(ctx, "LoginOneshot#commitLoginChanges", func() error { return err })()
-	e.G().NotifyRouter.HandleLogin(e.arg.Username)
-	e.G().CallLoginHooks()
+func (e *LoginOneshot) commitLoginChanges(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOneshot#commitLoginChanges", func() error { return err })()
+	m.G().NotifyRouter.HandleLogin(e.arg.Username)
+	m.G().CallLoginHooks()
 	return nil
 }
 
-func (e *LoginOneshot) rollbackLoginChanges(ctx context.Context) (err error) {
-	defer e.G().CTrace(ctx, "LoginOneshot#rollbackLoginChanges", func() error { return err })()
+func (e *LoginOneshot) rollbackLoginChanges(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOneshot#rollbackLoginChanges", func() error { return err })()
 	var gerr error
-	err = e.G().LoginState().Account(func(a *libkb.Account) {
-		gerr = e.G().ActiveDevice.Clear(a)
+	err = m.G().LoginState().Account(func(a *libkb.Account) {
+		gerr = m.ActiveDevice().Clear(a)
 	}, "LoginOneshot#rollbackLoginChanges")
 	if err != nil {
 		return err
@@ -125,48 +124,47 @@ func (e *LoginOneshot) rollbackLoginChanges(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	e.G().Env.GetConfigWriter().SetUserConfig(nil, false)
+	m.G().Env.GetConfigWriter().SetUserConfig(nil, false)
 	return nil
 }
 
-func (e *LoginOneshot) finish(ctx context.Context) (err error) {
-	defer e.G().CTrace(ctx, "LoginOneshot#commit", func() error { return err })()
+func (e *LoginOneshot) finish(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOneshot#commit", func() error { return err })()
 
-	err = e.makeLoginChanges(ctx)
+	err = e.makeLoginChanges(m)
 	if err != nil {
 		return err
 	}
-	err = e.checkLogin(ctx)
+	err = e.checkLogin(m)
 	if err == nil {
-		err = e.commitLoginChanges(ctx)
+		err = e.commitLoginChanges(m)
 	} else {
-		e.rollbackLoginChanges(ctx)
+		e.rollbackLoginChanges(m)
 	}
 	return err
 }
 
-func (e *LoginOneshot) checkPreconditions(ctx context.Context) (err error) {
-	defer e.G().CTrace(ctx, "LoginOneshot#checkPreconditions", func() error { return err })()
-	if e.G().ActiveDevice.Valid() {
+func (e *LoginOneshot) checkPreconditions(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOneshot#checkPreconditions", func() error { return err })()
+	if m.ActiveDevice().Valid() {
 		return libkb.LoggedInError{}
 	}
 	return nil
 }
 
-func (e *LoginOneshot) Run(ectx *Context) (err error) {
-	ctx := ectx.GetNetContext()
-	defer e.G().CTrace(ctx, "LoginOneshot#run", func() error { return err })()
+func (e *LoginOneshot) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOneshot#run", func() error { return err })()
 
-	if err = e.checkPreconditions(ctx); err != nil {
+	if err = e.checkPreconditions(m); err != nil {
 		return err
 	}
 
-	if err = e.loadUser(ctx); err != nil {
+	if err = e.loadUser(m); err != nil {
 		return err
 	}
-	if err = e.loadKey(ectx); err != nil {
+	if err = e.loadKey(m); err != nil {
 		return err
 	}
-	err = e.finish(ctx)
+	err = e.finish(m)
 	return err
 }

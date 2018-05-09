@@ -15,7 +15,6 @@ const (
 type UnlockerFunc func(pw string, storeSecret bool) (ret GenericKey, err error)
 
 type KeyUnlocker struct {
-	Contextified
 	tries          int
 	reason         string
 	keyDesc        string
@@ -25,9 +24,8 @@ type KeyUnlocker struct {
 	unlocker       UnlockerFunc
 }
 
-func NewKeyUnlocker(g *GlobalContext, tries int, reason string, keyDesc string, which PassphraseType, useSecretStore bool, ui SecretUI, unlocker UnlockerFunc) KeyUnlocker {
+func NewKeyUnlocker(tries int, reason string, keyDesc string, which PassphraseType, useSecretStore bool, ui SecretUI, unlocker UnlockerFunc) KeyUnlocker {
 	return KeyUnlocker{
-		Contextified:   NewContextified(g),
 		tries:          tries,
 		reason:         reason,
 		keyDesc:        keyDesc,
@@ -38,7 +36,7 @@ func NewKeyUnlocker(g *GlobalContext, tries int, reason string, keyDesc string, 
 	}
 }
 
-func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
+func (arg KeyUnlocker) Run(m MetaContext) (ret GenericKey, err error) {
 	var emsg string
 
 	if arg.ui == nil {
@@ -55,7 +53,7 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 	title := "Your " + string(arg.which) + " passphrase"
 
 	for i := 0; arg.tries <= 0 || i < arg.tries; i++ {
-		res, err := GetSecret(arg.G(), arg.ui, title, prompt, emsg, arg.useSecretStore)
+		res, err := GetSecret(m, arg.ui, title, prompt, emsg, arg.useSecretStore)
 		if err != nil {
 			// probably canceled
 			return nil, err

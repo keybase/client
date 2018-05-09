@@ -280,6 +280,15 @@ func GetChatLocalClient(g *libkb.GlobalContext) (cli chat1.LocalClient, err erro
 	return cli, nil
 }
 
+func GetDebuggingClient(g *libkb.GlobalContext) (cli keybase1.DebuggingClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.DebuggingClient{Cli: rcli}
+	return cli, nil
+}
+
 func introduceMyself(g *libkb.GlobalContext, xp rpc.Transporter) error {
 	cli := rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil)
 	ccli := keybase1.ConfigClient{Cli: cli}

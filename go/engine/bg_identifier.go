@@ -96,7 +96,7 @@ type BackgroundIdentifier struct {
 	settings  BackgroundIdentifierSettings
 }
 
-var _ (Engine) = (*BackgroundIdentifier)(nil)
+var _ (Engine2) = (*BackgroundIdentifier)(nil)
 
 type BackgroundIdentifierSettings struct {
 	Enabled         bool          // = true
@@ -188,15 +188,15 @@ func (b *BackgroundIdentifier) waitUntil() time.Time {
 	return lowest.nextRun
 }
 
-func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
+func (b *BackgroundIdentifier) Run(m libkb.MetaContext) (err error) {
 	fn := "BackgroundIdentifier#Run"
-	defer b.G().Trace(fn, func() error { return err })()
+	defer m.CTrace(fn, func() error { return err })()
 
 	// Mark all identifies with background identifier tag / context.
-	netContext := libkb.WithLogTag(ctx.GetNetContext(), "BG")
+	netContext := libkb.WithLogTag(m.Ctx(), "BG")
 
 	if !b.settings.Enabled {
-		b.G().Log.Debug("%s: Bailing out since BackgroundIdentifier isn't enabled", fn)
+		m.CDebugf("%s: Bailing out since BackgroundIdentifier isn't enabled", fn)
 		return nil
 	}
 
@@ -204,23 +204,23 @@ func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 	for keepGoing {
 		waitUntil := b.waitUntil()
 		if waitUntil.IsZero() {
-			b.G().Log.Debug("%s: not waiting, got an immediate identifiee", fn)
+			m.CDebugf("%s: not waiting, got an immediate identifiee", fn)
 		} else {
-			b.G().Log.Debug("%s: waiting %s", fn, waitUntil.Sub(b.G().Clock().Now()))
+			m.CDebugf("%s: waiting %s", fn, waitUntil.Sub(b.G().Clock().Now()))
 		}
 		select {
 		case <-b.untilCh:
 			keepGoing = false
 		case <-b.addCh:
-			b.G().Log.Debug("| early wake up due to new addition")
+			m.CDebugf("| early wake up due to new addition")
 			continue
 		case <-b.G().Clock().AfterTime(waitUntil):
-			b.G().Log.Debug("| running next after wait")
+			m.CDebugf("| running next after wait")
 
 			// Reset the netContext every time through the loop, so we don't
 			// endlessly accumulate WithValues
-			ctx.NetContext = netContext
-			b.runNext(ctx)
+			m = m.WithCtx(netContext)
+			b.runNext(m)
 		}
 	}
 	return nil
@@ -295,7 +295,7 @@ func trackBreaksToError(b *keybase1.IdentifyTrackBreaks) error {
 	return err
 }
 
-func (b *BackgroundIdentifier) runNext(ctx *Context) error {
+func (b *BackgroundIdentifier) runNext(m libkb.MetaContext) error {
 	user, err := b.popNext()
 	if err != nil {
 		return nil
@@ -303,13 +303,13 @@ func (b *BackgroundIdentifier) runNext(ctx *Context) error {
 	if user == nil {
 		panic("should never get an empty user without an error")
 	}
-	tmp := b.runOne(ctx, user.uid)
+	tmp := b.runOne(m, user.uid)
 	waitTime := b.errorToRetryDuration(tmp)
 	user.nextRun = b.G().Clock().Now().Add(waitTime)
 	lastError := user.lastError
 	user.lastError = tmp
 
-	b.G().Log.Debug("requeuing %s for %s (until %s)", user.uid, waitTime, user.nextRun)
+	m.CDebugf("requeuing %s for %s (until %s)", user.uid, waitTime, user.nextRun)
 	b.requeue(user)
 
 	// We should only say we're done with this user after we've requeued him.
@@ -320,15 +320,15 @@ func (b *BackgroundIdentifier) runNext(ctx *Context) error {
 	}
 
 	if d := b.settings.DelaySlot; d != 0 {
-		b.G().Log.Debug("BackgroundIdentifier sleeping for %s", d)
+		m.CDebugf("BackgroundIdentifier sleeping for %s", d)
 		b.G().Clock().Sleep(d)
 	}
 
 	return nil
 }
 
-func (b *BackgroundIdentifier) runOne(ctx *Context, u keybase1.UID) (err error) {
-	defer b.G().Trace(fmt.Sprintf("BackgroundIdentifier#runOne(%s)", u), func() error { return err })()
+func (b *BackgroundIdentifier) runOne(m libkb.MetaContext, u keybase1.UID) (err error) {
+	defer m.CTrace(fmt.Sprintf("BackgroundIdentifier#runOne(%s)", u), func() error { return err })()
 	arg := keybase1.Identify2Arg{
 		Uid: u,
 		Reason: keybase1.IdentifyReason{
@@ -341,7 +341,7 @@ func (b *BackgroundIdentifier) runOne(ctx *Context, u keybase1.UID) (err error) 
 	if b.testArgs != nil {
 		eng.testArgs = b.testArgs.identify2TestArgs
 	}
-	err = RunEngine(eng, ctx)
+	err = RunEngine2(m, eng)
 	if err == nil {
 		err = trackBreaksToError(eng.Result().TrackBreaks)
 	}

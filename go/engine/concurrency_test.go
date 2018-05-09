@@ -111,7 +111,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					_, err := tc.G.LoginState().GetPassphraseStream(u.NewSecretUI())
+					_, err := tc.G.LoginState().GetPassphraseStream(NewMetaContextForTest(tc), u.NewSecretUI())
 					if err != nil {
 						tc.G.Log.Warning("GetPassphraseStream err: %s", err)
 					}

@@ -44,6 +44,19 @@ func (k KeychainSecretStore) StoreSecret(accountName NormalizedUsername, secret 
 	return nil
 }
 
+func (k KeychainSecretStore) updateAccessibility(accountName string) {
+	query := keychain.NewItem()
+	query.SetSecClass(keychain.SecClassGenericPassword)
+	query.SetService(k.serviceName())
+	query.SetAccount(accountName)
+	query.SetMatchLimit(keychain.MatchLimitOne)
+	updateItem := keychain.NewItem()
+	updateItem.SetAccessible(k.accessible())
+	if err := keychain.UpdateItem(query, updateItem); err != nil {
+		k.context.GetLog().Debug("KeychainSecretStore.updateAccessibility: failed: %s", err)
+	}
+}
+
 func (k KeychainSecretStore) RetrieveSecret(accountName NormalizedUsername) (LKSecFullSecret, error) {
 	k.context.GetLog().Debug("KeychainSecretStore.RetrieveSecret(%s)", accountName)
 	encodedSecret, err := keychain.GetGenericPassword(k.serviceName(), string(accountName), "", "")
@@ -69,6 +82,9 @@ func (k KeychainSecretStore) RetrieveSecret(accountName NormalizedUsername) (LKS
 		k.context.GetLog().Debug("KeychainSecretStore.RetrieveSecret(%s) error creating lksec: %s", accountName, err)
 		return LKSecFullSecret{}, err
 	}
+
+	// Update accessibility
+	k.updateAccessibility(accountName.String())
 
 	k.context.GetLog().Debug("KeychainSecretStore.RetrieveSecret(%s) success", accountName)
 

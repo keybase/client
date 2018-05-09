@@ -61,12 +61,13 @@ func TestPGPSign(t *testing.T) {
 			},
 		}
 
-		eng := NewPGPSignEngine(&earg, tc.G)
-		ctx := Context{
+		eng := NewPGPSignEngine(tc.G, &earg)
+		uis := libkb.UIs{
 			SecretUI: fu.NewSecretUI(),
 		}
 
-		err = RunEngine(eng, &ctx)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err = RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("%s: run error: %s", test.name, err)
 			continue

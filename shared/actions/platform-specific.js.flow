@@ -16,6 +16,7 @@ declare export function downloadAndShowShareActionSheet(fileURL: string): Promis
 
 type NextURI = string
 declare export function saveAttachmentDialog(filePath: string): Promise<NextURI>
+export async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {}
 declare export function displayNewMessageNotification(
   text: string,
   convID: ?string,

@@ -17,6 +17,7 @@ declare export var globalStyles: {
   flexBoxRow: {|flexDirection: 'row'|},
   flexGrow: {|flexGrow: 1|},
   fontBold: {|fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'|},
+  fontExtrabold: _fakeFontDefSeeCommentsOnThisStyle,
   fontRegular: _fakeFontDefSeeCommentsOnThisStyle,
   fontSemibold: _fakeFontDefSeeCommentsOnThisStyle,
   fontTerminal: _fakeFontDefSeeCommentsOnThisStyle,

@@ -65,15 +65,16 @@ func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 }
 
 // Prove handles the `keybase.1.startProof` RPC.
-func (ph *ProveHandler) StartProof(_ context.Context, arg keybase1.StartProofArg) (res keybase1.StartProofResult, err error) {
-	eng := engine.NewProve(&arg, ph.G())
-	ctx := engine.Context{
+func (ph *ProveHandler) StartProof(ctx context.Context, arg keybase1.StartProofArg) (res keybase1.StartProofResult, err error) {
+	eng := engine.NewProve(ph.G(), &arg)
+	uis := libkb.UIs{
 		ProveUI:   ph.getProveUI(arg.SessionID),
 		SecretUI:  ph.getSecretUI(arg.SessionID, ph.G()),
 		LogUI:     ph.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-	err = engine.RunEngine(eng, &ctx)
+	m := libkb.NewMetaContext(ctx, ph.G()).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
 	if err != nil {
 		return res, err
 	}
@@ -81,10 +82,10 @@ func (ph *ProveHandler) StartProof(_ context.Context, arg keybase1.StartProofArg
 	return res, err
 }
 
-func (ph *ProveHandler) CheckProof(_ context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
+func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
 	eng := engine.NewProveCheck(ph.G(), arg.SigID)
-	ctx := &engine.Context{}
-	if err = engine.RunEngine(eng, ctx); err != nil {
+	m := libkb.NewMetaContext(ctx, ph.G())
+	if err = engine.RunEngine2(m, eng); err != nil {
 		return
 	}
 	found, status, state, text := eng.Results()

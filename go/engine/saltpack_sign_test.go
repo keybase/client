@@ -19,11 +19,12 @@ func TestSaltpackSignDeviceRequired(t *testing.T) {
 	tc := SetupEngineTest(t, "sign")
 	defer tc.Cleanup()
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewSaltpackSign(nil, tc.G)
-	err := RunEngine(eng, ctx)
+	eng := NewSaltpackSign(tc.G, nil)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	if err == nil {
 		t.Fatal("sign not logged in returned no error")
 	}
@@ -48,13 +49,14 @@ func TestSaltpackSignVerify(t *testing.T) {
 			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
 		}
 
-		eng := NewSaltpackSign(sarg, tc.G)
-		ctx := &Context{
+		eng := NewSaltpackSign(tc.G, sarg)
+		uis := libkb.UIs{
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   fu.NewSecretUI(),
 		}
 
-		if err := RunEngine(eng, ctx); err != nil {
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			t.Errorf("%s: run error: %s", test.name, err)
 			continue
 		}
@@ -69,11 +71,11 @@ func TestSaltpackSignVerify(t *testing.T) {
 			Sink:   libkb.NopWriteCloser{W: &sink},
 			Source: strings.NewReader(sig),
 		}
-		veng := NewSaltpackVerify(varg, tc.G)
+		veng := NewSaltpackVerify(tc.G, varg)
 
-		ctx.SaltpackUI = fakeSaltpackUI{}
+		m = m.WithSaltpackUI(fakeSaltpackUI{})
 
-		if err := RunEngine(veng, ctx); err != nil {
+		if err := RunEngine2(m, veng); err != nil {
 			t.Errorf("%s: verify error: %s", test.name, err)
 			continue
 		}
@@ -86,8 +88,8 @@ func TestSaltpackSignVerify(t *testing.T) {
 				SignedBy: fu.Username,
 			},
 		}
-		veng = NewSaltpackVerify(varg, tc.G)
-		if err := RunEngine(veng, ctx); err != nil {
+		veng = NewSaltpackVerify(tc.G, varg)
+		if err := RunEngine2(m, veng); err != nil {
 			t.Errorf("%s: verify w/ SignedBy error: %s", test.name, err)
 			continue
 		}
@@ -99,8 +101,8 @@ func TestSaltpackSignVerify(t *testing.T) {
 				SignedBy: "unknown",
 			},
 		}
-		veng = NewSaltpackVerify(varg, tc.G)
-		if err := RunEngine(veng, ctx); err == nil {
+		veng = NewSaltpackVerify(tc.G, varg)
+		if err := RunEngine2(m, veng); err == nil {
 			t.Errorf("%s: verify w/ SignedBy=unknown worked, should have failed", test.name)
 			continue
 		}
@@ -118,13 +120,13 @@ func TestSaltpackSignVerify(t *testing.T) {
 			},
 		}
 
-		eng := NewSaltpackSign(sarg, tc.G)
-		ctx := &Context{
+		eng := NewSaltpackSign(tc.G, sarg)
+		uis := libkb.UIs{
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   fu.NewSecretUI(),
 		}
-
-		if err := RunEngine(eng, ctx); err != nil {
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			t.Errorf("(detached) %s: run error: %s", test.name, err)
 			continue
 		}
@@ -142,11 +144,10 @@ func TestSaltpackSignVerify(t *testing.T) {
 				Signature: sig,
 			},
 		}
-		veng := NewSaltpackVerify(varg, tc.G)
 
-		ctx.SaltpackUI = fakeSaltpackUI{}
-
-		if err := RunEngine(veng, ctx); err != nil {
+		veng := NewSaltpackVerify(tc.G, varg)
+		m = m.WithSaltpackUI(fakeSaltpackUI{})
+		if err := RunEngine2(m, veng); err != nil {
 			t.Errorf("(detached) %s: verify error: %s", test.name, err)
 			continue
 		}
@@ -172,13 +173,13 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 			},
 		}
 
-		eng := NewSaltpackSign(sarg, tc.G)
-		ctx := &Context{
+		eng := NewSaltpackSign(tc.G, sarg)
+		uis := libkb.UIs{
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   fu.NewSecretUI(),
 		}
-
-		if err := RunEngine(eng, ctx); err != nil {
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			t.Errorf("%s: run error: %s", test.name, err)
 			continue
 		}
@@ -193,11 +194,11 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 			Sink:   libkb.NopWriteCloser{W: &sink},
 			Source: strings.NewReader(sig),
 		}
-		veng := NewSaltpackVerify(varg, tc.G)
+		veng := NewSaltpackVerify(tc.G, varg)
 
-		ctx.SaltpackUI = fakeSaltpackUI{}
+		m = m.WithSaltpackUI(fakeSaltpackUI{})
 
-		if err := RunEngine(veng, ctx); err != nil {
+		if err := RunEngine2(m, veng); err != nil {
 			t.Errorf("%s: verify error: %s", test.name, err)
 			continue
 		}
@@ -216,13 +217,13 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 			},
 		}
 
-		eng := NewSaltpackSign(sarg, tc.G)
-		ctx := &Context{
+		eng := NewSaltpackSign(tc.G, sarg)
+		uis := libkb.UIs{
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   fu.NewSecretUI(),
 		}
-
-		if err := RunEngine(eng, ctx); err != nil {
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			t.Errorf("(detached) %s: run error: %s", test.name, err)
 			continue
 		}
@@ -240,11 +241,10 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 				Signature: sig,
 			},
 		}
-		veng := NewSaltpackVerify(varg, tc.G)
+		veng := NewSaltpackVerify(tc.G, varg)
+		m = m.WithSaltpackUI(fakeSaltpackUI{})
 
-		ctx.SaltpackUI = fakeSaltpackUI{}
-
-		if err := RunEngine(veng, ctx); err != nil {
+		if err := RunEngine2(m, veng); err != nil {
 			t.Errorf("(detached) %s: verify error: %s", test.name, err)
 			continue
 		}
@@ -264,13 +264,14 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 		Source: ioutil.NopCloser(bytes.NewBufferString("this is from me")),
 	}
 
-	eng := NewSaltpackSign(sarg, tc.G)
-	ctx := &Context{
+	eng := NewSaltpackSign(tc.G, sarg)
+	uis := libkb.UIs{
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   signer.NewSecretUI(),
 	}
 
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -289,11 +290,11 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 		Sink:   libkb.NopWriteCloser{W: &sink},
 		Source: strings.NewReader(sig),
 	}
-	veng := NewSaltpackVerify(varg, tc.G)
+	veng := NewSaltpackVerify(tc.G, varg)
 
-	ctx.SaltpackUI = fakeSaltpackUI{}
+	m = m.WithSaltpackUI(fakeSaltpackUI{})
 
-	if err := RunEngine(veng, ctx); err != nil {
+	if err := RunEngine2(m, veng); err != nil {
 		t.Fatalf("verify error: %s", err)
 	}
 
@@ -305,8 +306,8 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 			SignedBy: signer.Username,
 		},
 	}
-	veng = NewSaltpackVerify(varg, tc.G)
-	if err := RunEngine(veng, ctx); err != nil {
+	veng = NewSaltpackVerify(tc.G, varg)
+	if err := RunEngine2(m, veng); err != nil {
 		t.Fatalf("verify w/ SignedBy error: %s", err)
 	}
 
@@ -318,8 +319,8 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 			SignedBy: "unknown",
 		},
 	}
-	veng = NewSaltpackVerify(varg, tc.G)
-	if err := RunEngine(veng, ctx); err == nil {
+	veng = NewSaltpackVerify(tc.G, varg)
+	if err := RunEngine2(m, veng); err == nil {
 		t.Errorf("verify w/ SignedBy unknown didn't fail")
 	}
 }
@@ -337,15 +338,15 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 		Source: ioutil.NopCloser(bytes.NewBufferString("test input wooo")),
 	}
 
-	eng := NewSaltpackSign(sarg, tc.G)
-	ctx := &Context{
+	eng := NewSaltpackSign(tc.G, sarg)
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		LoginUI:    &libkb.TestLoginUI{},
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
 	}
-
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -359,7 +360,7 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	// Delegate a new paper key so that we have something active after we
 	// revoke the current device.
 	paperEng := NewPaperKey(tc.G)
-	if err := RunEngine(paperEng, ctx); err != nil {
+	if err := RunEngine2(m, paperEng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -388,9 +389,9 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 		Sink:   libkb.NopWriteCloser{W: &sink},
 		Source: strings.NewReader(sig),
 	}
-	veng := NewSaltpackVerify(varg, tc.G)
-	ctx.SaltpackUI = fakeSaltpackUI{}
-	err = RunEngine(veng, ctx)
+	veng := NewSaltpackVerify(tc.G, varg)
+	m = m.WithSaltpackUI(fakeSaltpackUI{})
+	err = RunEngine2(m, veng)
 	if err == nil {
 		t.Fatal("expected error during verify")
 	}
@@ -424,12 +425,13 @@ func TestSaltpackSignForceVersion(t *testing.T) {
 					Detached:        !isAttached,
 				},
 			}
-			eng := NewSaltpackSign(sarg, tc.G)
-			ctx := &Context{
+			eng := NewSaltpackSign(tc.G, sarg)
+			uis := libkb.UIs{
 				IdentifyUI: &FakeIdentifyUI{},
 				SecretUI:   fu.NewSecretUI(),
 			}
-			if err := RunEngine(eng, ctx); err != nil {
+			m := NewMetaContextForTest(tc).WithUIs(uis)
+			if err := RunEngine2(m, eng); err != nil {
 				t.Fatal(err)
 			}
 

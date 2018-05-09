@@ -17,7 +17,7 @@ type EmailChange struct {
 
 // NewEmailChange creates a new engine for changing a user's email
 // address via signature (and therefore without passphrase required)
-func NewEmailChange(a *keybase1.EmailChangeArg, g *libkb.GlobalContext) *EmailChange {
+func NewEmailChange(g *libkb.GlobalContext, a *keybase1.EmailChangeArg) *EmailChange {
 	return &EmailChange{
 		arg:          a,
 		Contextified: libkb.NewContextified(g),
@@ -47,15 +47,15 @@ func (c *EmailChange) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run the engine
-func (c *EmailChange) Run(ctx *Context) (err error) {
-	defer c.G().Trace("EmailChange#Run", func() error { return err })()
+func (c *EmailChange) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("EmailChange#Run", func() error { return err })()
 
 	if !libkb.CheckEmail.F(c.arg.NewEmail) {
 		return libkb.BadEmailError{}
 	}
 
 	var me *libkb.User
-	me, err = libkb.LoadMe(libkb.NewLoadUserForceArg(c.G()))
+	me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload())
 	if err != nil {
 		return err
 	}
@@ -65,8 +65,8 @@ func (c *EmailChange) Run(ctx *Context) (err error) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
-	signingKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(arg)
+	arg := m.SecretKeyPromptArg(ska, "tracking signature")
+	signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, arg)
 	if err != nil {
 		return err
 	}
@@ -84,13 +84,14 @@ func (c *EmailChange) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	_, err = c.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(libkb.APIArg{
 		Endpoint:    "account/email_update_signed",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"sig":         libkb.S{Val: sig},
 			"signing_kid": libkb.S{Val: signingKey.GetKID().String()},
 		},
+		NetContext: m.Ctx(),
 	})
 
 	if err != nil {

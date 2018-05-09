@@ -6,7 +6,7 @@ import Text from './text'
 import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../styles'
 import FloatingBox from './floating-box.native'
 
-type PickerItem = {label: string, value: string | number}
+type PickerItem = {|label: string, value: string | number|}
 
 type Props = {
   items: PickerItem[], // values must be unique

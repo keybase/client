@@ -83,16 +83,16 @@ func (e *loginProvision) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *loginProvision) Run(ctx *Context) error {
-	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "loginProvision")
-	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "loginProvision")
+func (e *loginProvision) Run(m libkb.MetaContext) error {
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "loginProvision")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "loginProvision")
 
 	if err := e.checkArg(); err != nil {
 		return err
 	}
 
 	// transaction around config file
-	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
+	tx, err := m.G().Env.GetConfigWriter().BeginTransaction()
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func (e *loginProvision) Run(ctx *Context) error {
 		}
 	}()
 
-	e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.arg.User.GetUID())
+	e.perUserKeyring, err = libkb.NewPerUserKeyring(m.G(), e.arg.User.GetUID())
 	if err != nil {
 		return err
 	}
@@ -113,13 +113,13 @@ func (e *loginProvision) Run(ctx *Context) error {
 	e.cleanupOnErr = true
 	// based on information in e.arg.User, route the user
 	// through the provisioning options
-	if err := e.route(ctx); err != nil {
+	if err := e.route(m); err != nil {
 		// cleanup state because there was an error:
-		e.cleanup()
+		e.cleanup(m)
 
 		switch err.(type) {
 		case libkb.APINetError:
-			e.G().Log.Debug("provision failed with an APINetError: %s, returning ProvisionFailedOfflineError", err)
+			m.CDebugf("provision failed with an APINetError: %s, returning ProvisionFailedOfflineError", err)
 			return libkb.ProvisionFailedOfflineError{}
 		}
 
@@ -135,39 +135,39 @@ func (e *loginProvision) Run(ctx *Context) error {
 	// exit.
 	tx = nil
 
-	if err := e.displaySuccess(ctx); err != nil {
+	if err := e.displaySuccess(m); err != nil {
 		return err
 	}
 
-	e.G().KeyfamilyChanged(e.arg.User.GetUID())
+	m.G().KeyfamilyChanged(e.arg.User.GetUID())
 
 	// check to make sure local files stored correctly
-	e.verifyLocalStorage()
+	e.verifyLocalStorage(m)
 
 	// initialize a stellar wallet for the user if they don't already have one.
-	e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "loginProvision")
-	e.G().GetStellar().CreateWalletSoft(context.Background())
+	m.G().LocalSigchainGuard().Clear(m.Ctx(), "loginProvision")
+	m.G().GetStellar().CreateWalletSoft(context.Background())
 
 	return nil
 }
 
-func saveToSecretStore(g *libkb.GlobalContext, lctx libkb.LoginContext, nun libkb.NormalizedUsername, lks *libkb.LKSec) (err error) {
-	defer g.Trace(fmt.Sprintf("saveToSecretStore(%s)", nun), func() error { return err })()
+func saveToSecretStore(m libkb.MetaContext, nun libkb.NormalizedUsername, lks *libkb.LKSec) (err error) {
+	defer m.CTrace(fmt.Sprintf("saveToSecretStore(%s)", nun), func() error { return err })()
 	var secret libkb.LKSecFullSecret
-	secretStore := libkb.NewSecretStore(g, nun)
-	secret, err = lks.GetSecret(lctx)
+	secretStore := libkb.NewSecretStore(m.G(), nun)
+	secret, err = lks.GetSecret(m)
 	if err == nil {
 		err = secretStore.StoreSecret(secret)
 	}
 	if err != nil {
-		g.Log.Warning("saveToSecretStore(%s) failed: %s", nun, err)
+		m.CWarningf("saveToSecretStore(%s) failed: %s", nun, err)
 	}
 	return err
 }
 
 // deviceWithType provisions this device with an existing device using the
 // kex2 protocol.  provisionerType is the existing device type.
-func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.DeviceType) error {
+func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType keybase1.DeviceType) error {
 
 	// make a new device:
 	deviceID, err := libkb.NewDeviceID()
@@ -180,14 +180,14 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 	}
 
 	// prompt for the device name here so there's no delay during kex:
-	e.G().Log.Debug("deviceWithType: prompting for device name")
-	name, err := e.deviceName(ctx)
+	m.CDebugf("deviceWithType: prompting for device name")
+	name, err := e.deviceName(m)
 	if err != nil {
-		e.G().Log.Debug("deviceWithType: error getting device name from user: %s", err)
+		m.CDebugf("deviceWithType: error getting device name from user: %s", err)
 		return err
 	}
 	device.Description = &name
-	e.G().Log.Debug("deviceWithType: got device name: %q", name)
+	m.CDebugf("deviceWithType: got device name: %q", name)
 
 	// make a new secret:
 	secret, err := libkb.NewKex2Secret(e.arg.DeviceType == libkb.DeviceTypeMobile ||
@@ -197,7 +197,7 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 	}
 
 	// create provisionee engine
-	provisionee := NewKex2Provisionee(e.G(), device, secret.Secret())
+	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret())
 
 	var canceler func()
 
@@ -212,30 +212,30 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		var contxt context.Context
 		contxt, canceler = context.WithCancel(context.Background())
 		for i := 0; i < 10; i++ {
-			receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
+			receivedSecret, err := m.UIs().ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 			if err != nil {
 				// cancel provisionee run:
 				provisionee.Cancel()
-				e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+				m.CWarningf("DisplayAndPromptSecret error: %s", err)
 				break
 			} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
-				e.G().Log.Debug("received secret, adding to provisionee")
+				m.CDebugf("received secret, adding to provisionee")
 				var ks kex2.Secret
 				copy(ks[:], receivedSecret.Secret)
 				provisionee.AddSecret(ks)
 				break
 			} else if len(receivedSecret.Phrase) > 0 {
-				e.G().Log.Debug("received secret phrase, checking validity")
-				checker := libkb.MakeCheckKex2SecretPhrase(e.G())
+				m.CDebugf("received secret phrase, checking validity")
+				checker := libkb.MakeCheckKex2SecretPhrase(m.G())
 				if !checker.F(receivedSecret.Phrase) {
-					e.G().Log.Debug("secret phrase failed validity check (attempt %d)", i)
+					m.CDebugf("secret phrase failed validity check (attempt %d)", i)
 					arg.PreviousErr = checker.Hint
 					continue
 				}
-				e.G().Log.Debug("received secret phrase, adding to provisionee")
+				m.CDebugf("received secret phrase, adding to provisionee")
 				ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
 				if err != nil {
-					e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+					m.CWarningf("DisplayAndPromptSecret error: %s", err)
 				} else {
 					provisionee.AddSecret(ks.Secret())
 				}
@@ -243,7 +243,7 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 			} else {
 				// empty secret, so must have been a display-only case.
 				// ok to stop the loop
-				e.G().Log.Debug("login provision DisplayAndPromptSecret returned empty secret, stopping retry loop")
+				m.CDebugf("login provision DisplayAndPromptSecret returned empty secret, stopping retry loop")
 				break
 			}
 		}
@@ -251,21 +251,21 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 
 	defer func() {
 		if canceler != nil {
-			e.G().Log.Debug("canceling DisplayAndPromptSecret call")
+			m.CDebugf("canceling DisplayAndPromptSecret call")
 			canceler()
 		}
 	}()
 
 	f := func(lctx libkb.LoginContext) error {
 		// run provisionee
-		ctx.LoginContext = lctx
-		err := RunEngine(provisionee, ctx)
+		m := m.WithLoginContext(lctx)
+		err := RunEngine2(m, provisionee)
 		if err != nil {
 			return err
 		}
 
 		// TODO this error is being ignored... k?
-		saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), provisionee.GetLKSec())
+		saveToSecretStore(m, e.arg.User.GetNormalizedName(), provisionee.GetLKSec())
 
 		e.signingKey, err = provisionee.SigningKey()
 		if err != nil {
@@ -277,7 +277,7 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		}
 
 		// Load me again so that keys will be up to date.
-		loadArg := libkb.NewLoadUserArg(e.G()).WithSelf(true).WithUID(e.arg.User.GetUID()).WithNetContext(ctx.NetContext)
+		loadArg := libkb.NewLoadUserArgWithMetaContext(m).WithSelf(true).WithUID(e.arg.User.GetUID())
 		e.arg.User, err = libkb.LoadUser(loadArg)
 		if err != nil {
 			return err
@@ -285,7 +285,7 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 
 		return nil
 	}
-	if err := e.G().LoginState().ExternalFunc(f, "loginProvision.device - Run provisionee"); err != nil {
+	if err := m.G().LoginState().ExternalFunc(f, "loginProvision.device - Run provisionee"); err != nil {
 		return err
 	}
 
@@ -293,9 +293,9 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 	e.username = provisionee.GetName()
 	pdevice := provisionee.Device()
 	if pdevice == nil {
-		e.G().Log.Warning("nil provisionee device")
+		m.CWarningf("nil provisionee device")
 	} else if pdevice.Description == nil {
-		e.G().Log.Warning("nil provisionee device description")
+		m.CWarningf("nil provisionee device description")
 	} else {
 		e.devname = *pdevice.Description
 	}
@@ -304,54 +304,55 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 }
 
 // paper attempts to provision the device via a paper key.
-func (e *loginProvision) paper(ctx *Context, device *libkb.Device) error {
+func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device) error {
+
 	// get the paper key from the user
-	kp, err := e.getValidPaperKey(ctx)
+	kp, err := e.getValidPaperKey(m)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("paper signing key kid: %s", kp.sigKey.GetKID())
-	e.G().Log.Debug("paper encryption key kid: %s", kp.encKey.GetKID())
+	m.CDebugf("paper signing key kid: %s", kp.sigKey.GetKID())
+	m.CDebugf("paper encryption key kid: %s", kp.encKey.GetKID())
 
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the paper key.
 	var afterLogin = func(lctx libkb.LoginContext) error {
-		ctx.LoginContext = lctx
+		m = m.WithLoginContext(lctx)
 
 		lctx.EnsureUsername(e.arg.User.GetNormalizedName())
 
 		// need lksec to store device keys locally
-		if err := e.fetchLKS(ctx, kp.encKey); err != nil {
+		if err := e.fetchLKS(m, kp.encKey); err != nil {
 			return err
 		}
 
-		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
+		if err := e.makeDeviceKeysWithSigner(m, kp.sigKey); err != nil {
 			return err
 		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName())); err != nil {
+		if err := lctx.LocalSession().SetDeviceProvisioned(m.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName())); err != nil {
 			// not a fatal error, session will stay in memory
-			e.G().Log.Warning("error saving session file: %s", err)
+			m.CWarningf("error saving session file: %s", err)
 		}
-		saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), e.lks)
+		saveToSecretStore(m, e.arg.User.GetNormalizedName(), e.lks)
 		return nil
 	}
 
 	// need a session to continue to provision, login with paper sigKey
-	return e.G().LoginState().LoginWithKey(ctx.LoginContext, e.arg.User, kp.sigKey, afterLogin)
+	return m.G().LoginState().LoginWithKey(m, e.arg.User, kp.sigKey, afterLogin)
 }
 
 var paperKeyNotFound = libkb.NotFoundError{
 	Msg: "paper key not found, most likely due to a typo in one of the words in the phrase",
 }
 
-func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
+func (e *loginProvision) getValidPaperKey(m libkb.MetaContext) (*keypair, error) {
 	var lastErr error
 	for i := 0; i < 10; i++ {
 		// get the paper key from the user
-		kp, prefix, err := getPaperKey(e.G(), ctx, lastErr)
+		kp, prefix, err := getPaperKey(m, lastErr)
 		if err != nil {
-			e.G().Log.Debug("getValidPaperKey attempt %d (%s): %s", i, prefix, err)
+			m.CDebugf("getValidPaperKey attempt %d (%s): %s", i, prefix, err)
 			if _, ok := err.(libkb.InputCanceledError); ok {
 				return nil, err
 			}
@@ -360,9 +361,9 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 		}
 
 		// use the KID to find the uid
-		uid, err := e.uidByKID(kp.sigKey.GetKID())
+		uid, err := e.uidByKID(m, kp.sigKey.GetKID())
 		if err != nil {
-			e.G().Log.Debug("getValidPaperKey attempt %d (%s): %s", i, prefix, err)
+			m.CDebugf("getValidPaperKey attempt %d (%s): %s", i, prefix, err)
 
 			switch err := err.(type) {
 			case libkb.NotFoundError:
@@ -386,54 +387,54 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 		}
 
 		// found a paper key that can be used for signing
-		e.G().Log.Debug("found paper key (%s) match for %s", prefix, e.arg.User.GetName())
+		m.CDebugf("found paper key (%s) match for %s", prefix, e.arg.User.GetName())
 		return kp, nil
 	}
 
-	e.G().Log.Debug("getValidPaperKey retry attempts exhausted")
+	m.CDebugf("getValidPaperKey retry attempts exhausted")
 	return nil, lastErr
 }
 
 // pgpProvision attempts to provision with a synced pgp key.  It
 // needs to get a session first to look for a synced pgp key.
-func (e *loginProvision) pgpProvision(ctx *Context) error {
+func (e *loginProvision) pgpProvision(m libkb.MetaContext) error {
 	// After obtaining login session, this will be called before the login state is released.
 	// It tries to get the pgp key and uses it to provision new device keys for this device.
 	var afterLogin = func(lctx libkb.LoginContext) error {
-		ctx.LoginContext = lctx
+		m = m.WithLoginContext(lctx)
 
 		lctx.EnsureUsername(e.arg.User.GetNormalizedName())
 
-		signer, err := e.syncedPGPKey(ctx)
+		signer, err := e.syncedPGPKey(m)
 		if err != nil {
 			return err
 		}
 
-		if err := e.makeDeviceKeysWithSigner(ctx, signer); err != nil {
+		if err := e.makeDeviceKeysWithSigner(m, signer); err != nil {
 			return err
 		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName())); err != nil {
+		if err := lctx.LocalSession().SetDeviceProvisioned(m.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName())); err != nil {
 			// not a fatal error, session will stay in memory
-			e.G().Log.Warning("error saving session file: %s", err)
+			m.CWarningf("error saving session file: %s", err)
 			return err
 		}
 
 		u := e.arg.User
-		tmpErr := saveToSecretStore(e.G(), lctx, u.GetNormalizedName(), e.lks)
+		tmpErr := saveToSecretStore(m, u.GetNormalizedName(), e.lks)
 		if tmpErr != nil {
-			e.G().Log.Warning("pgpProvision: %s", tmpErr)
+			m.CWarningf("pgpProvision: %s", tmpErr)
 		}
 		return nil
 	}
 
 	// need a session to try to get synced private key
-	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
+	return m.G().LoginState().LoginWithPrompt(m, e.arg.User.GetName(), m.UIs().LoginUI, m.UIs().SecretUI, afterLogin)
 }
 
 // makeDeviceKeysWithSigner creates device keys given a signing
 // key.
-func (e *loginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.GenericKey) error {
-	args, err := e.makeDeviceWrapArgs(ctx)
+func (e *loginProvision) makeDeviceKeysWithSigner(m libkb.MetaContext, signer libkb.GenericKey) error {
+	args, err := e.makeDeviceWrapArgs(m)
 	if err != nil {
 		return err
 	}
@@ -441,18 +442,18 @@ func (e *loginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.Gen
 	args.IsEldest = false // just to be explicit
 	args.EldestKID = e.arg.User.GetEldestKID()
 
-	return e.makeDeviceKeys(ctx, args)
+	return e.makeDeviceKeys(m, args)
 }
 
 // makeDeviceWrapArgs creates a base set of args for DeviceWrap.
 // It ensures that LKSec is created.  It also gets a new device
 // name for this device.
-func (e *loginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error) {
-	if err := e.ensureLKSec(ctx); err != nil {
+func (e *loginProvision) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWrapArgs, error) {
+	if err := e.ensureLKSec(m); err != nil {
 		return nil, err
 	}
 
-	devname, err := e.deviceName(ctx)
+	devname, err := e.deviceName(m)
 	if err != nil {
 		return nil, err
 	}
@@ -468,40 +469,40 @@ func (e *loginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, erro
 }
 
 // ensureLKSec ensures we have LKSec for saving device keys.
-func (e *loginProvision) ensureLKSec(ctx *Context) error {
+func (e *loginProvision) ensureLKSec(m libkb.MetaContext) error {
 	if e.lks != nil {
 		return nil
 	}
 
-	pps, err := e.ppStream(ctx)
+	pps, err := e.ppStream(m)
 	if err != nil {
 		return err
 	}
 
-	e.lks = libkb.NewLKSec(pps, e.arg.User.GetUID(), e.G())
+	e.lks = libkb.NewLKSec(pps, e.arg.User.GetUID(), m.G())
 	return nil
 }
 
 // ppStream gets the passphrase stream, either cached or via
 // SecretUI.
-func (e *loginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
-	if ctx.LoginContext != nil {
-		cached := ctx.LoginContext.PassphraseStreamCache()
+func (e *loginProvision) ppStream(m libkb.MetaContext) (*libkb.PassphraseStream, error) {
+	if lctx := m.LoginContext(); lctx != nil {
+		cached := lctx.PassphraseStreamCache()
 		if cached == nil {
 			return nil, errors.New("loginProvision: ppStream() -> nil PassphraseStreamCache")
 		}
 		return cached.PassphraseStream(), nil
 	}
-	return e.G().LoginState().GetPassphraseStreamForUser(ctx.SecretUI, e.arg.User.GetName())
+	return m.G().LoginState().GetPassphraseStreamForUser(m, m.UIs().SecretUI, e.arg.User.GetName())
 }
 
 // deviceName gets a new device name from the user.
-func (e *loginProvision) deviceName(ctx *Context) (string, error) {
+func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 	var names []string
-	upk, _, err := e.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), e.arg.User.GetUID()).WithPublicKeyOptional().WithForcePoll(true).WithSelf(true))
+	upk, _, err := m.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(e.arg.User.GetUID()).WithPublicKeyOptional().WithForcePoll(true).WithSelf(true))
 	if err != nil {
-		e.G().Log.Debug("error getting device names via upak: %s", err)
-		e.G().Log.Debug("proceeding to ask user for a device name despite error...")
+		m.CDebugf("error getting device names via upak: %s", err)
+		m.CDebugf("proceeding to ask user for a device name despite error...")
 	} else {
 		names = upk.AllDeviceNames()
 	}
@@ -511,12 +512,12 @@ func (e *loginProvision) deviceName(ctx *Context) (string, error) {
 	}
 
 	for i := 0; i < 10; i++ {
-		devname, err := ctx.ProvisionUI.PromptNewDeviceName(ctx.GetNetContext(), arg)
+		devname, err := m.UIs().ProvisionUI.PromptNewDeviceName(m.Ctx(), arg)
 		if err != nil {
 			return "", err
 		}
 		if !libkb.CheckDeviceName.F(devname) {
-			e.G().Log.Debug("invalid device name supplied: %s", devname)
+			m.CDebugf("invalid device name supplied: %s", devname)
 			arg.ErrorMessage = "Invalid device name. Device names should be " + libkb.CheckDeviceName.Hint
 			continue
 		}
@@ -529,7 +530,7 @@ func (e *loginProvision) deviceName(ctx *Context) (string, error) {
 		}
 
 		if duplicate {
-			e.G().Log.Debug("Device name reused: %q", devname)
+			m.CDebugf("Device name reused: %q", devname)
 			arg.ErrorMessage = fmt.Sprintf("Device name %q already used", devname)
 			continue
 		}
@@ -540,9 +541,9 @@ func (e *loginProvision) deviceName(ctx *Context) (string, error) {
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.
-func (e *loginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
-	eng := NewDeviceWrap(args, e.G())
-	if err := RunEngine(eng, ctx); err != nil {
+func (e *loginProvision) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
+	eng := NewDeviceWrap(m.G(), args)
+	if err := RunEngine2(m, eng); err != nil {
 		return err
 	}
 
@@ -554,8 +555,8 @@ func (e *loginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 
 // syncedPGPKey looks for a synced pgp key for e.user.  If found,
 // it unlocks it.
-func (e *loginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
-	key, err := e.arg.User.SyncedSecretKey(ctx.LoginContext)
+func (e *loginProvision) syncedPGPKey(m libkb.MetaContext) (libkb.GenericKey, error) {
+	key, err := e.arg.User.SyncedSecretKey(m)
 	if err != nil {
 		return nil, err
 	}
@@ -563,23 +564,23 @@ func (e *loginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 		return nil, libkb.NoSyncedPGPKeyError{}
 	}
 
-	e.G().Log.Debug("got synced secret key")
+	m.CDebugf("got synced secret key")
 
 	// unlock it
 	// XXX improve this prompt
-	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
-	unlocked, err := key.PromptAndUnlock(parg, nil, e.arg.User)
+	parg := m.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
+	unlocked, err := key.PromptAndUnlock(m, parg, nil, e.arg.User)
 	if err != nil {
 		return nil, err
 	}
 
-	e.G().Log.Debug("unlocked secret key")
+	m.CDebugf("unlocked secret key")
 	return unlocked, nil
 }
 
 // gpgPrivateIndex returns an index of the private gpg keys.
-func (e *loginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
-	cli, err := e.gpgClient()
+func (e *loginProvision) gpgPrivateIndex(m libkb.MetaContext) (*libkb.GpgKeyIndex, error) {
+	cli, err := e.gpgClient(m)
 	if err != nil {
 		return nil, err
 	}
@@ -594,7 +595,7 @@ func (e *loginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
 }
 
 // gpgClient returns a gpg client.
-func (e *loginProvision) gpgClient() (gpgInterface, error) {
+func (e *loginProvision) gpgClient(m libkb.MetaContext) (gpgInterface, error) {
 	if e.arg.DeviceType == libkb.DeviceTypeMobile {
 		return nil, libkb.GPGUnavailableError{}
 	}
@@ -602,7 +603,7 @@ func (e *loginProvision) gpgClient() (gpgInterface, error) {
 		return e.gpgCli, nil
 	}
 
-	gpg := e.G().GetGpgClient()
+	gpg := m.G().GetGpgClient()
 	ok, err := gpg.CanExec()
 	if err != nil {
 		return nil, err
@@ -628,7 +629,7 @@ func (e *loginProvision) checkArg() error {
 	return nil
 }
 
-func (e *loginProvision) route(ctx *Context) error {
+func (e *loginProvision) route(m libkb.MetaContext) error {
 	// check if User has any pgp keys, active devices
 	ckf := e.arg.User.GetComputedKeyFamily()
 	if ckf != nil {
@@ -637,11 +638,11 @@ func (e *loginProvision) route(ctx *Context) error {
 	}
 
 	if e.hasDevice {
-		return e.chooseDevice(ctx, e.hasPGP)
+		return e.chooseDevice(m, e.hasPGP)
 	}
 
 	if e.hasPGP {
-		return e.tryPGP(ctx)
+		return e.tryPGP(m)
 	}
 
 	if !e.arg.User.GetEldestKID().IsNil() {
@@ -655,10 +656,10 @@ func (e *loginProvision) route(ctx *Context) error {
 
 	// User has no existing devices or pgp keys, so create
 	// the eldest device.
-	return e.makeEldestDevice(ctx)
+	return e.makeEldestDevice(m)
 }
 
-func (e *loginProvision) chooseDevice(ctx *Context, pgp bool) error {
+func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) error {
 	ckf := e.arg.User.GetComputedKeyFamily()
 	devices := partitionDeviceList(ckf.GetAllActiveDevices())
 	sort.Sort(devices)
@@ -676,7 +677,7 @@ func (e *loginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	}
 
 	// check to see if they have a PUK, in which case they must select a device
-	hasPUK, err := e.hasPerUserKey(ctx)
+	hasPUK, err := e.hasPerUserKey(m)
 	if err != nil {
 		return err
 	}
@@ -684,48 +685,48 @@ func (e *loginProvision) chooseDevice(ctx *Context, pgp bool) error {
 		arg.CanSelectNoDevice = false
 	}
 
-	id, err := ctx.ProvisionUI.ChooseDevice(ctx.GetNetContext(), arg)
+	id, err := m.UIs().ProvisionUI.ChooseDevice(m.Ctx(), arg)
 	if err != nil {
 		return err
 	}
 
 	if len(id) == 0 {
 		// they chose not to use a device
-		e.G().Log.Debug("user has devices, but chose not to use any of them")
+		m.CDebugf("user has devices, but chose not to use any of them")
 		if pgp {
 			if hasPUK {
-				e.G().Log.Debug("user has a per-user-key, not attempting pgp provision")
+				m.CDebugf("user has a per-user-key, not attempting pgp provision")
 				return libkb.ProvisionViaDeviceRequiredError{}
 			}
 
 			// they have pgp keys, so try that:
-			return e.tryPGP(ctx)
+			return e.tryPGP(m)
 		}
 		// tell them they need to reset their account
 		return libkb.ProvisionUnavailableError{}
 	}
 
-	e.G().Log.Debug("user selected device %s", id)
+	m.CDebugf("user selected device %s", id)
 	selected, ok := idMap[id]
 	if !ok {
 		return fmt.Errorf("selected device %s not in local device map", id)
 	}
-	e.G().Log.Debug("device details: %+v", selected)
+	m.CDebugf("device details: %+v", selected)
 
 	switch selected.Type {
 	case libkb.DeviceTypePaper:
-		return e.paper(ctx, selected)
+		return e.paper(m, selected)
 	case libkb.DeviceTypeDesktop:
-		return e.deviceWithType(ctx, keybase1.DeviceType_DESKTOP)
+		return e.deviceWithType(m, keybase1.DeviceType_DESKTOP)
 	case libkb.DeviceTypeMobile:
-		return e.deviceWithType(ctx, keybase1.DeviceType_MOBILE)
+		return e.deviceWithType(m, keybase1.DeviceType_MOBILE)
 	default:
 		return fmt.Errorf("unknown device type: %v", selected.Type)
 	}
 }
 
-func (e *loginProvision) tryPGP(ctx *Context) error {
-	err := e.pgpProvision(ctx)
+func (e *loginProvision) tryPGP(m libkb.MetaContext) error {
+	err := e.pgpProvision(m)
 	if err == nil {
 		return nil
 	}
@@ -736,12 +737,12 @@ func (e *loginProvision) tryPGP(ctx *Context) error {
 		return err
 	}
 
-	e.G().Log.Debug("no synced pgp key found, trying GPG")
-	return e.tryGPG(ctx)
+	m.CDebugf("no synced pgp key found, trying GPG")
+	return e.tryGPG(m)
 }
 
-func (e *loginProvision) tryGPG(ctx *Context) error {
-	key, method, err := e.chooseGPGKeyAndMethod(ctx)
+func (e *loginProvision) tryGPG(m libkb.MetaContext) error {
+	key, method, err := e.chooseGPGKeyAndMethod(m)
 	if err != nil {
 		return err
 	}
@@ -750,19 +751,19 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 	var signingKey libkb.GenericKey
 	switch method {
 	case keybase1.GPGMethod_GPG_IMPORT:
-		signingKey, err = e.gpgImportKey(ctx, key.GetFingerprint())
+		signingKey, err = e.gpgImportKey(m, key.GetFingerprint())
 		if err != nil {
 			// There was an error importing the key.
 			// So offer to switch to using gpg to sign
 			// the provisioning statement:
-			signingKey, err = e.switchToGPGSign(ctx, key, err)
+			signingKey, err = e.switchToGPGSign(m, key, err)
 			if err != nil {
 				return err
 			}
 			method = keybase1.GPGMethod_GPG_SIGN
 		}
 	case keybase1.GPGMethod_GPG_SIGN:
-		signingKey, err = e.gpgSignKey(ctx, key.GetFingerprint())
+		signingKey, err = e.gpgSignKey(m, key.GetFingerprint())
 		if err != nil {
 			return err
 		}
@@ -773,46 +774,46 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the selected gpg key.
 	var afterLogin = func(lctx libkb.LoginContext) error {
-		ctx.LoginContext = lctx
+		m = m.WithLoginContext(lctx)
 
 		lctx.EnsureUsername(e.arg.User.GetNormalizedName())
 
-		if err := e.makeDeviceKeysWithSigner(ctx, signingKey); err != nil {
+		if err := e.makeDeviceKeysWithSigner(m, signingKey); err != nil {
 			if appErr, ok := err.(libkb.AppStatusError); ok && appErr.Code == libkb.SCKeyCorrupted {
 				// Propagate the error, but display a more descriptive message to the user.
-				e.G().Log.Error("during GPG provisioning.\nWe were able to generate a PGP signature " +
+				m.G().Log.Error("during GPG provisioning.\nWe were able to generate a PGP signature " +
 					"with gpg client, but it was rejected by the server. This often means that this " +
 					"PGP key is expired or unusable. You can update your key on https://keybase.io")
 			}
 			return err
 		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName())); err != nil {
+		if err := lctx.LocalSession().SetDeviceProvisioned(m.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName())); err != nil {
 			// not a fatal error, session will stay in memory
-			e.G().Log.Warning("error saving session file: %s", err)
+			m.CWarningf("error saving session file: %s", err)
 		}
 
 		if method == keybase1.GPGMethod_GPG_IMPORT {
 			// store the key in lksec
-			_, err := libkb.WriteLksSKBToKeyring(e.G(), signingKey, e.lks, lctx)
+			_, err := libkb.WriteLksSKBToKeyring(m, signingKey, e.lks)
 			if err != nil {
-				e.G().Log.Warning("error saving exported gpg key in lksec: %s", err)
+				m.CWarningf("error saving exported gpg key in lksec: %s", err)
 				return err
 			}
 		}
 
-		saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), e.lks)
+		saveToSecretStore(m, e.arg.User.GetNormalizedName(), e.lks)
 
 		return nil
 	}
 
 	// need a session to continue to provision
-	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
+	return m.G().LoginState().LoginWithPrompt(m, e.arg.User.GetName(), m.UIs().LoginUI, m.UIs().SecretUI, afterLogin)
 }
 
-func (e *loginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryKey, keybase1.GPGMethod, error) {
+func (e *loginProvision) chooseGPGKeyAndMethod(m libkb.MetaContext) (*libkb.GpgPrimaryKey, keybase1.GPGMethod, error) {
 	nilMethod := keybase1.GPGMethod_GPG_NONE
 	// find any local private gpg keys that are in user's key family
-	matches, err := e.matchingGPGKeys()
+	matches, err := e.matchingGPGKeys(m)
 	if err != nil {
 		if _, ok := err.(libkb.NoSecretKeyError); ok {
 			// no match found
@@ -823,8 +824,8 @@ func (e *loginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryK
 	}
 
 	// have a match
-	for _, m := range matches {
-		e.G().Log.Debug("matching gpg key: %+v", m)
+	for _, match := range matches {
+		m.CDebugf("matching gpg key: %+v", match)
 	}
 
 	// create protocol array of keys
@@ -845,7 +846,7 @@ func (e *loginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryK
 	arg := keybase1.ChooseGPGMethodArg{
 		Keys: gks,
 	}
-	method, err := ctx.ProvisionUI.ChooseGPGMethod(ctx.GetNetContext(), arg)
+	method, err := m.UIs().ProvisionUI.ChooseGPGMethod(m.Ctx(), arg)
 	if err != nil {
 		return nil, nilMethod, err
 	}
@@ -856,7 +857,7 @@ func (e *loginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryK
 		key = matches[0]
 	} else {
 		// if more than one match, show the user the matching keys, ask for selection
-		keyid, err := ctx.GPGUI.SelectKey(ctx.GetNetContext(), keybase1.SelectKeyArg{Keys: gks})
+		keyid, err := m.UIs().GPGUI.SelectKey(m.Ctx(), keybase1.SelectKeyArg{Keys: gks})
 		if err != nil {
 			return nil, nilMethod, err
 		}
@@ -868,12 +869,12 @@ func (e *loginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryK
 		}
 	}
 
-	e.G().Log.Debug("using gpg key %v for provisioning", key)
+	m.CDebugf("using gpg key %v for provisioning", key)
 
 	return key, method, nil
 }
 
-func (e *loginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey, importError error) (libkb.GenericKey, error) {
+func (e *loginProvision) switchToGPGSign(m libkb.MetaContext, key *libkb.GpgPrimaryKey, importError error) (libkb.GenericKey, error) {
 	gk := keybase1.GPGKey{
 		Algorithm:  key.AlgoString(),
 		KeyID:      key.ID64,
@@ -884,7 +885,7 @@ func (e *loginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey,
 		Key:         gk,
 		ImportError: importError.Error(),
 	}
-	ok, err := ctx.ProvisionUI.SwitchToGPGSignOK(ctx.GetNetContext(), arg)
+	ok, err := m.UIs().ProvisionUI.SwitchToGPGSignOK(m.Ctx(), arg)
 	if err != nil {
 		return nil, err
 	}
@@ -892,12 +893,12 @@ func (e *loginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey,
 		return nil, fmt.Errorf("user chose not to switch to GPG sign, original import error: %s", importError)
 	}
 
-	e.G().Log.Debug("switching to GPG sign")
-	return e.gpgSignKey(ctx, key.GetFingerprint())
+	m.CDebugf("switching to GPG sign")
+	return e.gpgSignKey(m, key.GetFingerprint())
 }
 
-func (e *loginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
-	index, err := e.gpgPrivateIndex()
+func (e *loginProvision) matchingGPGKeys(m libkb.MetaContext) ([]*libkb.GpgPrimaryKey, error) {
+	index, err := e.gpgPrivateIndex(m)
 	if err != nil {
 		return nil, err
 	}
@@ -905,7 +906,7 @@ func (e *loginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
 	kfKeys := e.arg.User.GetComputedKeyFamily().GetActivePGPKeys(false)
 
 	if index.Len() == 0 {
-		e.G().Log.Debug("no private gpg keys found")
+		m.CDebugf("no private gpg keys found")
 		return nil, e.newGPGMatchErr(kfKeys)
 	}
 
@@ -923,7 +924,7 @@ func (e *loginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
 		// if none exist, then abort with error that they need to get
 		// the private key for one of the pgp keys in the keyfamily
 		// onto this device.
-		e.G().Log.Debug("no matching private gpg keys found")
+		m.CDebugf("no matching private gpg keys found")
 		return nil, e.newGPGMatchErr(kfKeys)
 	}
 
@@ -938,7 +939,7 @@ func (e *loginProvision) newGPGMatchErr(keys []*libkb.PGPKeyBundle) error {
 	return libkb.NoMatchingGPGKeysError{Fingerprints: fps, HasActiveDevice: e.hasDevice}
 }
 
-func (e *loginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
+func (e *loginProvision) gpgSignKey(m libkb.MetaContext, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
 	kf := e.arg.User.GetComputedKeyFamily()
 	if kf == nil {
 		return nil, libkb.KeyFamilyError{Msg: "no key family for user"}
@@ -949,20 +950,20 @@ func (e *loginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (lib
 	}
 
 	// create a GPGKey shell around gpg cli with fp, kid
-	return libkb.NewGPGKey(e.G(), fp, kid, ctx.GPGUI, e.arg.ClientType), nil
+	return libkb.NewGPGKey(m.G(), fp, kid, m.UIs().GPGUI, e.arg.ClientType), nil
 }
 
-func (e *loginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
+func (e *loginProvision) gpgImportKey(m libkb.MetaContext, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
 
 	// import it with gpg
-	cli, err := e.gpgClient()
+	cli, err := e.gpgClient(m)
 	if err != nil {
 		return nil, err
 	}
 
-	tty, err := ctx.GPGUI.GetTTY(ctx.NetContext)
+	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
 	if err != nil {
-		e.G().Log.Warning("error getting TTY for GPG: %s", err)
+		m.CWarningf("error getting TTY for GPG: %s", err)
 		err = nil
 	}
 
@@ -972,37 +973,37 @@ func (e *loginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (l
 	}
 
 	// unlock it
-	if err := bundle.Unlock(e.G(), "sign new device", ctx.SecretUI); err != nil {
+	if err := bundle.Unlock(m, "sign new device", m.UIs().SecretUI); err != nil {
 		return nil, err
 	}
 
 	return bundle, nil
 }
 
-func (e *loginProvision) makeEldestDevice(ctx *Context) error {
-	args, err := e.makeDeviceWrapArgs(ctx)
+func (e *loginProvision) makeEldestDevice(m libkb.MetaContext) error {
+	args, err := e.makeDeviceWrapArgs(m)
 	if err != nil {
 		return err
 	}
 	args.IsEldest = true
 
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+	aerr := m.G().LoginState().Account(func(a *libkb.Account) {
 		a.EnsureUsername(e.arg.User.GetNormalizedName())
-		ctx.LoginContext = a
+		m = m.WithLoginContext(a)
 
-		if err = e.makeDeviceKeys(ctx, args); err != nil {
+		if err = e.makeDeviceKeys(m, args); err != nil {
 			return
 		}
 
 		// save provisioned device id in the session
-		err = a.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName()))
+		err = a.LocalSession().SetDeviceProvisioned(m.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName()))
 		if err != nil {
 			return
 		}
 
 		// Store the secret.
 		// It is not stored in login_state.go/passphraseLogin because there is no device id at that time.
-		saveToSecretStore(e.G(), a, e.arg.User.GetNormalizedName(), e.lks)
+		saveToSecretStore(m, e.arg.User.GetNormalizedName(), e.lks)
 	}, "makeEldestDevice")
 	if err != nil {
 		return err
@@ -1014,13 +1015,13 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 }
 
 // This is used by SaltpackDecrypt as well.
-func getPaperKey(g *libkb.GlobalContext, ctx *Context, lastErr error) (pair *keypair, prefix string, err error) {
-	passphrase, err := libkb.GetPaperKeyPassphrase(g, ctx.SecretUI, "", lastErr)
+func getPaperKey(m libkb.MetaContext, lastErr error) (pair *keypair, prefix string, err error) {
+	passphrase, err := libkb.GetPaperKeyPassphrase(m, m.UIs().SecretUI, "", lastErr)
 	if err != nil {
 		return nil, "", err
 	}
 
-	paperPhrase, err := libkb.NewPaperKeyPhraseCheckVersion(g, passphrase)
+	paperPhrase, err := libkb.NewPaperKeyPhraseCheckVersion(m, passphrase)
 	if err != nil {
 		return nil, "", err
 	}
@@ -1030,13 +1031,13 @@ func getPaperKey(g *libkb.GlobalContext, ctx *Context, lastErr error) (pair *key
 		Passphrase: paperPhrase,
 		SkipPush:   true,
 	}
-	bkeng := NewPaperKeyGen(bkarg, g)
-	if err := RunEngine(bkeng, ctx); err != nil {
+	bkeng := NewPaperKeyGen(m.G(), bkarg)
+	if err := RunEngine2(m, bkeng); err != nil {
 		return nil, prefix, err
 	}
 
 	kp := &keypair{sigKey: bkeng.SigKey(), encKey: bkeng.EncKey()}
-	if err := g.LoginState().Account(func(a *libkb.Account) {
+	if err := m.G().LoginState().Account(func(a *libkb.Account) {
 		a.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
 	}, "UnlockedPaperKey"); err != nil {
 		return nil, prefix, err
@@ -1045,14 +1046,15 @@ func getPaperKey(g *libkb.GlobalContext, ctx *Context, lastErr error) (pair *key
 	return kp, prefix, nil
 }
 
-func (e *loginProvision) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
+func (e *loginProvision) uidByKID(m libkb.MetaContext, kid keybase1.KID) (keybase1.UID, error) {
 	var nilUID keybase1.UID
 	arg := libkb.APIArg{
 		Endpoint:    "key/owner",
 		SessionType: libkb.APISessionTypeNONE,
 		Args:        libkb.HTTPArgs{"kid": libkb.S{Val: kid.String()}},
+		NetContext:  m.Ctx(),
 	}
-	res, err := e.G().API.Get(arg)
+	res, err := m.G().API.Get(arg)
 	if err != nil {
 		return nilUID, err
 	}
@@ -1063,23 +1065,23 @@ func (e *loginProvision) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
 	return keybase1.UIDFromString(suid)
 }
 
-func (e *loginProvision) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
-	gen, clientLKS, err := fetchLKS(ctx, e.G(), encKey)
+func (e *loginProvision) fetchLKS(m libkb.MetaContext, encKey libkb.GenericKey) error {
+	gen, clientLKS, err := fetchLKS(m, encKey)
 	if err != nil {
 		return err
 	}
-	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.arg.User.GetUID(), e.G())
+	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.arg.User.GetUID(), m.G())
 	return nil
 }
 
-func (e *loginProvision) hasPerUserKey(ctx *Context) (bool, error) {
+func (e *loginProvision) hasPerUserKey(m libkb.MetaContext) (bool, error) {
 	if e.arg.User == nil {
 		return false, errors.New("no user object in arg")
 	}
 	return len(e.arg.User.ExportToUserPlusKeys().PerUserKeys) > 0, nil
 }
 
-func (e *loginProvision) displaySuccess(ctx *Context) error {
+func (e *loginProvision) displaySuccess(m libkb.MetaContext) error {
 	if len(e.username) == 0 && e.arg.User != nil {
 		e.username = e.arg.User.GetName()
 	}
@@ -1087,60 +1089,60 @@ func (e *loginProvision) displaySuccess(ctx *Context) error {
 		Username:   e.username,
 		DeviceName: e.devname,
 	}
-	return ctx.ProvisionUI.ProvisioneeSuccess(ctx.GetNetContext(), sarg)
+	return m.UIs().ProvisionUI.ProvisioneeSuccess(m.Ctx(), sarg)
 }
 
-func (e *loginProvision) cleanup() {
+func (e *loginProvision) cleanup(m libkb.MetaContext) {
 	if !e.cleanupOnErr {
 		return
 	}
 
 	// the best way to cleanup is to logout...
-	e.G().Log.Debug("an error occurred during provisioning, logging out")
-	e.G().Logout()
+	m.G().Log.Debug("an error occurred during provisioning, logging out")
+	m.G().Logout()
 }
 
-func (e *loginProvision) verifyLocalStorage() {
-	e.G().Log.Debug("loginProvision: verifying local storage")
-	defer e.G().Log.Debug("loginProvision: done verifying local storage")
+func (e *loginProvision) verifyLocalStorage(m libkb.MetaContext) {
+	m.CDebugf("loginProvision: verifying local storage")
+	defer m.CDebugf("loginProvision: done verifying local storage")
 	normUsername := libkb.NewNormalizedUsername(e.username)
 
 	// check config.json looks ok
-	e.verifyRegularFile("config", e.G().Env.GetConfigFilename())
-	cr := e.G().Env.GetConfig()
+	e.verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
+	cr := m.G().Env.GetConfig()
 	if cr.GetUsername() != normUsername {
-		e.G().Log.Debug("loginProvision(verify): config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
+		m.CDebugf("loginProvision(verify): config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
 	}
 	if cr.GetUID().NotEqual(e.arg.User.GetUID()) {
-		e.G().Log.Debug("loginProvision(verify): config uid %q doesn't match engine uid %q", cr.GetUID(), e.arg.User.GetUID())
+		m.CDebugf("loginProvision(verify): config uid %q doesn't match engine uid %q", cr.GetUID(), e.arg.User.GetUID())
 	}
 
 	// check session.json is valid
-	e.verifyRegularFile("session", e.G().Env.GetSessionFilename())
+	e.verifyRegularFile(m, "session", m.G().Env.GetSessionFilename())
 
 	// check keys in secretkeys.mpack
-	e.verifyRegularFile("secretkeys", e.G().SKBFilenameForUser(normUsername))
+	e.verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
 
 	// check secret stored
-	secret, err := e.G().SecretStore().RetrieveSecret(normUsername)
+	secret, err := m.G().SecretStore().RetrieveSecret(normUsername)
 	if err != nil {
-		e.G().Log.Debug("loginProvision(verify): failed to retrieve secret for %s: %s", e.username, err)
+		m.CDebugf("loginProvision(verify): failed to retrieve secret for %s: %s", e.username, err)
 	}
 	if secret.IsNil() || len(secret.Bytes()) == 0 {
-		e.G().Log.Debug("loginProvision(verify): retrieved nil/empty secret for %s", e.username)
+		m.CDebugf("loginProvision(verify): retrieved nil/empty secret for %s", e.username)
 	}
 }
 
-func (e *loginProvision) verifyRegularFile(name, filename string) {
+func (e *loginProvision) verifyRegularFile(m libkb.MetaContext, name, filename string) {
 	info, err := os.Stat(filename)
 	if err != nil {
-		e.G().Log.Debug("loginProvision(verify): stat %s file %q error: %s", name, filename, err)
+		m.CDebugf("loginProvision(verify): stat %s file %q error: %s", name, filename, err)
 		return
 	}
 
-	e.G().Log.Debug("loginProvision(verify): %s file %q size: %d", name, filename, info.Size())
+	m.CDebugf("loginProvision(verify): %s file %q size: %d", name, filename, info.Size())
 	if !info.Mode().IsRegular() {
-		e.G().Log.Debug("loginProvision(verify): %s file %q not regular: %s", name, filename, info.Mode())
+		m.CDebugf("loginProvision(verify): %s file %q not regular: %s", name, filename, info.Mode())
 	}
 }
 

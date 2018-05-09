@@ -30,12 +30,13 @@ func TestLoginLoadUser(t *testing.T) {
 	defer tc.Cleanup()
 
 	for _, test := range lutests {
-		ctx := &Context{
+		uis := libkb.UIs{
 			LoginUI:  &libkb.TestLoginUI{},
 			SecretUI: &libkb.TestSecretUI{},
 		}
+		m := NewMetaContextForTest(tc).WithUIs(uis)
 		eng := newLoginLoadUser(tc.G, test.input)
-		if err := RunEngine(eng, ctx); err != nil {
+		if err := RunEngine2(m, eng); err != nil {
 			if test.err == nil {
 				t.Errorf("%s: run error %s", test.name, err)
 				continue
@@ -72,14 +73,15 @@ func TestLoginLoadUserPrompt(t *testing.T) {
 	lutestsPrompt[len(lutestsPrompt)-1] = luTest{name: "empty prompt input", input: "", err: libkb.NoUsernameError{}}
 
 	for _, test := range lutestsPrompt {
-		ctx := &Context{
+		uis := libkb.UIs{
 			LoginUI: &libkb.TestLoginUI{
 				Username: test.input,
 			},
 			SecretUI: &libkb.TestSecretUI{},
 		}
 		eng := newLoginLoadUser(tc.G, "")
-		if err := RunEngine(eng, ctx); err != nil {
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			if test.err == nil {
 				t.Errorf("%s: run error %s", test.name, err)
 				continue
@@ -110,12 +112,13 @@ func TestLoginLoadUserPrompt(t *testing.T) {
 func TestLoginLoadUserPromptCancel(t *testing.T) {
 	tc := SetupEngineTest(t, "lu")
 	defer tc.Cleanup()
-	ctx := &Context{
+	uis := libkb.UIs{
 		LoginUI:  &libkb.TestLoginCancelUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	eng := newLoginLoadUser(tc.G, "")
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	if err == nil {
 		t.Fatal("expected an error")
 	}
@@ -175,14 +178,15 @@ func testLoginLoadUserEmail(t *testing.T, fu *FakeUser, input string) (*libkb.Us
 	tc := SetupEngineTest(t, "lu")
 	defer tc.Cleanup()
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LoginUI: &libkb.TestLoginUI{
 			Username: fu.Email,
 		},
 		SecretUI: fu.NewSecretUI(),
 	}
 	eng := newLoginLoadUser(tc.G, input)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		return nil, err
 	}
 	return eng.User(), nil

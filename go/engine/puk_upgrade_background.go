@@ -82,45 +82,45 @@ func (e *PerUserKeyUpgradeBackground) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 // Returns immediately, kicks off a background goroutine.
-func (e *PerUserKeyUpgradeBackground) Run(ctx *Context) (err error) {
-	return RunEngine(e.task, ctx)
+func (e *PerUserKeyUpgradeBackground) Run(m libkb.MetaContext) (err error) {
+	return RunEngine2(m, e.task)
 }
 
 func (e *PerUserKeyUpgradeBackground) Shutdown() {
 	e.task.Shutdown()
 }
 
-func PerUserKeyUpgradeBackgroundRound(g *libkb.GlobalContext, ectx *Context) error {
-	if !g.Env.GetUpgradePerUserKey() {
-		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground disabled")
+func PerUserKeyUpgradeBackgroundRound(m libkb.MetaContext) error {
+	if !m.G().Env.GetUpgradePerUserKey() {
+		m.CDebugf("PerUserKeyUpgradeBackground disabled")
 		return nil
 	}
 
-	if !g.LocalSigchainGuard().IsAvailable(ectx.GetNetContext(), "PerUserKeyUpgradeBackgroundRound") {
-		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground yielding to guard")
+	if !m.G().LocalSigchainGuard().IsAvailable(m.Ctx(), "PerUserKeyUpgradeBackgroundRound") {
+		m.CDebugf("PerUserKeyUpgradeBackground yielding to guard")
 		return nil
 	}
 
-	if g.ConnectivityMonitor.IsConnected(ectx.GetNetContext()) == libkb.ConnectivityMonitorNo {
-		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground giving up offline")
+	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
+		m.CDebugf("PerUserKeyUpgradeBackground giving up offline")
 		return nil
 	}
 
 	// Do a fast local check to see if our work is done.
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := m.G().GetPerUserKeyring()
 	if err != nil {
-		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground error getting keyring: %v", err)
+		m.CDebugf("PerUserKeyUpgradeBackground error getting keyring: %v", err)
 		// ignore error
 	}
 	if err == nil {
 		if pukring.HasAnyKeys() {
-			g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground already has keys")
+			m.CDebugf("PerUserKeyUpgradeBackground already has keys")
 			return nil
 		}
 	}
 
 	arg := &PerUserKeyUpgradeArgs{}
-	eng := NewPerUserKeyUpgrade(g, arg)
-	err = RunEngine(eng, ectx)
+	eng := NewPerUserKeyUpgrade(m.G(), arg)
+	err = RunEngine2(m, eng)
 	return err
 }

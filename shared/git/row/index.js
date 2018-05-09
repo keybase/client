@@ -11,8 +11,9 @@ import {
   Avatar,
   Meta,
   Usernames,
+  HOCTimers,
+  type PropsWithTimer,
 } from '../../common-adapters'
-import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 
 import {globalStyles, globalColors, globalMargins, platformStyles, transition, isMobile} from '../../styles'
 
@@ -40,7 +41,7 @@ type _Props = {
   openUserTracker: (username: string) => void,
 }
 
-export type Props = _Props & TimerProps
+export type Props = PropsWithTimer<_Props>
 
 type State = {
   showingCopy: boolean,

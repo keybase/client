@@ -41,18 +41,19 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 
 func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
 	netCtx = libkb.WithLogTag(netCtx, "ID2")
+	m := libkb.NewMetaContext(netCtx, h.G())
 	defer h.G().CTrace(netCtx, "IdentifyHandler#Identify2", func() error { return err })()
 
 	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
 	logui := h.getLogUI(arg.SessionID)
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		LogUI:      logui,
 		IdentifyUI: iui,
 		SessionID:  arg.SessionID,
-		NetContext: netCtx,
 	}
+	m = m.WithUIs(uis)
 	eng := engine.NewResolveThenIdentify2(h.G(), &arg)
-	err = engine.RunEngine(eng, &ctx)
+	err = engine.RunEngine2(m, eng)
 	resp := eng.Result()
 	if resp != nil {
 		res = *resp
@@ -87,7 +88,8 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 }
 
 func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
-	h.G().Log.CDebugf(netCtx, "IdentifyLite on user")
+	m := libkb.NewMetaContext(netCtx, h.G())
+	m.CDebugf("IdentifyLite on user")
 
 	var uid keybase1.UID
 	if arg.Id.Exists() {
@@ -116,15 +118,14 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 
 	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
 	logui := h.getLogUI(arg.SessionID)
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		LogUI:      logui,
 		IdentifyUI: iui,
 		SessionID:  arg.SessionID,
-		NetContext: netCtx,
 	}
-
+	m = m.WithUIs(uis)
 	eng := engine.NewResolveThenIdentify2(h.G(), &id2arg)
-	err = engine.RunEngine(eng, &ctx)
+	err = engine.RunEngine2(m, eng)
 	resp := eng.Result()
 	if resp != nil {
 		res.Ul.Id = keybase1.UserOrTeamID(resp.Upk.Uid)
@@ -281,15 +282,15 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 
 			iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
 			logui := h.getLogUI(arg.SessionID)
-			engCtx := engine.Context{
+			uis := libkb.UIs{
 				LogUI:      logui,
 				IdentifyUI: iui,
 				SessionID:  arg.SessionID,
-				NetContext: subctx,
 			}
 
 			eng := engine.NewIdentify2WithUID(h.G(), &id2arg)
-			err := engine.RunEngine(eng, &engCtx)
+			m := libkb.NewMetaContext(subctx, h.G()).WithUIs(uis)
+			err := engine.RunEngine2(m, eng)
 			idRes := eng.Result()
 			if err != nil {
 				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)

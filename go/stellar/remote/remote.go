@@ -140,12 +140,13 @@ func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.
 	if err != nil {
 		return pukGen, pukSeed, err
 	}
-	err = pukring.Sync(ctx)
+	m := libkb.NewMetaContext(ctx, g)
+	err = pukring.Sync(m)
 	if err != nil {
 		return pukGen, pukSeed, err
 	}
 	pukGen = pukring.CurrentGeneration()
-	pukSeed, err = pukring.GetSeedByGeneration(ctx, pukGen)
+	pukSeed, err = pukring.GetSeedByGeneration(m, pukGen)
 	return pukGen, pukSeed, err
 }
 
@@ -181,7 +182,8 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	if err != nil {
 		return res, 0, err
 	}
-	puk, err := pukring.GetSeedByGenerationOrSync(ctx, decodeRes.Enc.Gen)
+	m := libkb.NewMetaContext(ctx, g)
+	puk, err := pukring.GetSeedByGenerationOrSync(m, decodeRes.Enc.Gen)
 	if err != nil {
 		return res, 0, err
 	}
@@ -263,19 +265,39 @@ func (s *submitResult) GetAppStatus() *libkb.AppStatus {
 	return &s.Status
 }
 
-func SubmitTransaction(ctx context.Context, g *libkb.GlobalContext, payload libkb.JSONPayload) (stellar1.PaymentResult, error) {
+func SubmitPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
+	payload := make(libkb.JSONPayload)
+	payload["payment"] = post
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/submitpayment",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 		NetContext:  ctx,
 	}
-
 	var res submitResult
 	if err := g.API.PostDecode(apiArg, &res); err != nil {
 		return stellar1.PaymentResult{}, err
 	}
+	return res.PaymentResult, nil
+}
 
+func SubmitRelayPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error) {
+	if true {
+		// TODO CORE-7718 re-enable this outgoing RPC
+		return stellar1.PaymentResult{}, fmt.Errorf("relay payments not implemented in this version (you may need to update keybase)")
+	}
+	payload := make(libkb.JSONPayload)
+	payload["payment"] = post
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitrelaypayment",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res submitResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return stellar1.PaymentResult{}, err
+	}
 	return res.PaymentResult, nil
 }
 

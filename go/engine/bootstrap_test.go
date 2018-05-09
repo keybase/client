@@ -42,14 +42,13 @@ func TestBootstrap(t *testing.T) {
 	tc.G.ConnectivityMonitor = OfflineConnectivityMonitor{}
 
 	eng := NewLoginOffline(tc.G)
-	ctx := &Context{NetContext: context.Background()}
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
 	beng := NewBootstrap(tc.G)
-	bctx := &Context{NetContext: context.Background()}
-	if err := RunEngine(beng, bctx); err != nil {
+	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
 	status := beng.Status()
@@ -87,8 +86,8 @@ func TestBootstrapAfterSignup(t *testing.T) {
 	u1 := CreateAndSignupFakeUser(tc, "login")
 
 	beng := NewBootstrap(tc.G)
-	bctx := &Context{NetContext: context.Background()}
-	if err := RunEngine(beng, bctx); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
 	status := beng.Status()

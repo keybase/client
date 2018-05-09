@@ -28,13 +28,14 @@ func NewDeviceHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DeviceHandler
 }
 
 // DeviceList returns a list of all the devices for a user.
-func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1.Device, error) {
-	ctx := &engine.Context{
+func (h *DeviceHandler) DeviceList(ctx context.Context, sessionID int) ([]keybase1.Device, error) {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),
 		SessionID: sessionID,
 	}
 	eng := engine.NewDevList(h.G())
-	if err := engine.RunEngine(eng, ctx); err != nil {
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	if err := engine.RunEngine2(m, eng); err != nil {
 		return nil, err
 	}
 	return eng.List(), nil
@@ -43,13 +44,13 @@ func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1
 // DeviceHistoryList returns a list of all the devices for a user,
 // with detailed history and provisioner, revoker information.
 func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) ([]keybase1.DeviceDetail, error) {
-	ctx := &engine.Context{
-		LogUI:      h.getLogUI(sessionID),
-		NetContext: nctx,
-		SessionID:  sessionID,
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(sessionID),
+		SessionID: sessionID,
 	}
 	eng := engine.NewDeviceHistorySelf(h.G())
-	if err := engine.RunEngine(eng, ctx); err != nil {
+	m := libkb.NewMetaContext(nctx, h.G()).WithUIs(uis)
+	if err := engine.RunEngine2(m, eng); err != nil {
 		return nil, err
 	}
 	return eng.Devices(), nil
@@ -58,14 +59,14 @@ func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) (
 // DeviceAdd starts the kex2 device provisioning on the
 // provisioner (device X/C1)
 func (h *DeviceHandler) DeviceAdd(c context.Context, sessionID int) error {
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		ProvisionUI: h.getProvisionUI(sessionID),
 		SecretUI:    h.getSecretUI(sessionID, h.G()),
 		SessionID:   sessionID,
-		NetContext:  c,
 	}
+	m := libkb.NewMetaContext(c, h.G()).WithUIs(uis)
 	eng := engine.NewDeviceAdd(h.G())
-	return engine.RunEngine(eng, ctx)
+	return engine.RunEngine2(m, eng)
 }
 
 // CheckDeviceNameFormat verifies that the device name has a valid

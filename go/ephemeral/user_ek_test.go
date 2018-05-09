@@ -124,15 +124,16 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	paperKey := fullUser.GetComputedKeyInfos().PaperDevices()[0]
 
 	// Revoke the paper key.
-	revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{
+	revokeEngine := engine.NewRevokeDeviceEngine(tc.G, engine.RevokeDeviceEngineArgs{
 		ID:                   paperKey.ID,
 		SkipUserEKForTesting: skipUserEKForTesting,
-	}, tc.G)
-	ctx := &engine.Context{
+	})
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: user.NewSecretUI(),
 	}
-	err = engine.RunEngine(revokeEngine, ctx)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, revokeEngine)
 	require.NoError(t, err)
 
 	// Finally, confirm that the revocation above rolled a new userEK.
@@ -180,11 +181,12 @@ func TestPukRollNewUserEK(t *testing.T) {
 
 	// Do a PUK roll.
 	rollEngine := engine.NewPerUserKeyRoll(tc.G, &engine.PerUserKeyRollArgs{})
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: user.NewSecretUI(),
 	}
-	err = engine.RunEngine(rollEngine, ctx)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, rollEngine)
 	require.NoError(t, err)
 
 	// Finally, confirm that the roll above also rolled a new userEK.

@@ -474,7 +474,7 @@ func FilterExploded(msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 	for _, msg := range msgs {
 		if msg.IsValid() {
 			mvalid := msg.Valid()
-			if mvalid.IsExploding() && mvalid.HideExplosion(now) {
+			if mvalid.IsEphemeral() && mvalid.HideExplosion(now) {
 				continue
 			}
 		}
@@ -962,12 +962,20 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 	}
 	switch state {
 	case chat1.MessageUnboxedState_VALID:
+		valid := rawMsg.Valid()
 		if !rawMsg.IsValidFull() {
-			return miscErr(fmt.Errorf("unexpected deleted %v message",
-				strings.ToLower(rawMsg.GetMessageType().String())))
+			showErr := true
+			// If we have an expired ephemeral message, don't show an error
+			// message.
+			if valid.IsEphemeral() && valid.IsEphemeralExpired(time.Now()) {
+				showErr = false
+			}
+			if showErr {
+				return miscErr(fmt.Errorf("unexpected deleted %v message",
+					strings.ToLower(rawMsg.GetMessageType().String())))
+			}
 		}
 		var strOutboxID *string
-		valid := rawMsg.Valid()
 		if valid.ClientHeader.OutboxID != nil {
 			so := valid.ClientHeader.OutboxID.String()
 			strOutboxID = &so
@@ -986,7 +994,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			ChannelMention:        valid.ChannelMention,
 			ChannelNameMentions:   presentChannelNameMentions(ctx, valid.ChannelNameMentions),
 			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
-			EphemeralMetadata:     valid.EphemeralMetadata(),
+			IsEphemeral:           valid.IsEphemeral(),
+			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
+			Etime:                 valid.Etime(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
@@ -1209,4 +1219,32 @@ func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *ch
 		}
 	}
 	return res
+}
+
+// assetsForMessage gathers all assets on a message
+func AssetsForMessage(g *globals.Context, msgBody chat1.MessageBody) (assets []chat1.Asset) {
+	typ, err := msgBody.MessageType()
+	if err != nil {
+		// Log and drop the error for a malformed MessageBody.
+		g.Log.Warning("error getting assets for message: %s", err)
+		return assets
+	}
+	switch typ {
+	case chat1.MessageType_ATTACHMENT:
+		body := msgBody.Attachment()
+		if body.Object.Path != "" {
+			assets = append(assets, body.Object)
+		}
+		if body.Preview != nil {
+			assets = append(assets, *body.Preview)
+		}
+		assets = append(assets, body.Previews...)
+	case chat1.MessageType_ATTACHMENTUPLOADED:
+		body := msgBody.Attachmentuploaded()
+		if body.Object.Path != "" {
+			assets = append(assets, body.Object)
+		}
+		assets = append(assets, body.Previews...)
+	}
+	return assets
 }

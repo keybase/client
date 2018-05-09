@@ -328,7 +328,7 @@ func TestBackgroundPurge(t *testing.T) {
 	uid := gregor1.UID(u.GetUID().ToBytes())
 	trip := newConvTriple(ctx, t, tc, u.Username)
 	clock := world.Fc
-	chatStorage := storage.New(g)
+	chatStorage := storage.New(g, tc.ChatG.ConvSource)
 	chatStorage.SetClock(clock)
 
 	// setup a ticker since we don't run the service's fastChatChecks ticker here.
@@ -379,6 +379,20 @@ func TestBackgroundPurge(t *testing.T) {
 		require.Equal(t, expectedPurgeInfo, purgeInfo)
 	}
 
+	assertEphemeralPurgeNotifInfo := func(convID chat1.ConversationID, msgIDs []chat1.MessageID) {
+		info := listener.consumeEphemeralPurge(t)
+		require.Equal(t, info.ConvID, convID)
+		if msgIDs == nil {
+			require.Nil(t, info.Msgs)
+		} else {
+			purgedIDs := []chat1.MessageID{}
+			for _, purgedMsg := range info.Msgs {
+				purgedIDs = append(purgedIDs, purgedMsg.GetMessageID())
+			}
+			require.Equal(t, msgIDs, purgedIDs)
+		}
+	}
+
 	// Load our conv with the initial tlf msg
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
 		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
@@ -422,6 +436,7 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   msgUnboxed2.Valid().Etime(),
 		IsActive:        true,
 	})
+	assertEphemeralPurgeNotifInfo(res.ConvID, []chat1.MessageID{msgUnboxed1.GetMessageID()})
 
 	t.Logf("assert listener 3")
 	assertListener(res.ConvID)
@@ -430,4 +445,5 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   0,
 		IsActive:        false,
 	})
+	assertEphemeralPurgeNotifInfo(res.ConvID, []chat1.MessageID{msgUnboxed2.GetMessageID()})
 }

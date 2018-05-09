@@ -1,22 +1,22 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props as PropsCommon} from './copyable-text'
-import HOCTimers, {type TimerProps} from './hoc-timers'
+import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import Text from './text'
 import Box from './box'
 import {Clipboard, TouchableHighlight} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-export type Props = {
+export type Props = PropsWithTimer<{
   ...PropsCommon,
   textStyle: Object,
-}
+}>
 
 type State = {
   hasCopied: boolean,
 }
 
-class CopyableText<P: Props & TimerProps> extends Component<P, State> {
+class CopyableText<P: Props> extends Component<P, State> {
   state: State
   lastCopyTimeoutId: TimeoutID
 

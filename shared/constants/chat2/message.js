@@ -29,6 +29,11 @@ const makeMessageCommon = {
   outboxID: Types.stringToOutboxID(''),
 }
 
+const makeMessageExplodable = {
+  exploded: false,
+  explodedBy: '',
+}
+
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
   ...makeMessageCommon,
   type: 'placeholder',
@@ -41,6 +46,7 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -51,6 +57,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   attachmentType: 'file',
   downloadPath: null,
   fileName: '',
@@ -603,6 +610,13 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
     })
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
+    if (old.submitState === 'pending') {
+      // we sent an attachment, service replied
+      // with the real message. replace our placeholder but
+      // only hold on to the ordinal so it doesn't
+      // jump in the conversation view
+      return m.set('ordinal', old.ordinal)
+    }
     // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
       // We got an attachment-uploaded message. Hold on to the old ID

@@ -50,15 +50,15 @@ func (e *PGPProvision) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPProvision) Run(ctx *Context) error {
-	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "PGPProvision")
-	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "PGPProvision")
+func (e *PGPProvision) Run(m libkb.MetaContext) error {
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "PGPProvision")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "PGPProvision")
 
 	// clear out any existing session:
-	e.G().Logout()
+	m.G().Logout()
 
 	// transaction around config file
-	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
+	tx, err := m.G().Env.GetConfigWriter().BeginTransaction()
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (e *PGPProvision) Run(ctx *Context) error {
 
 	// run the LoginLoadUser sub-engine to load a user
 	ueng := newLoginLoadUser(e.G(), e.username)
-	if err = RunEngine(ueng, ctx); err != nil {
+	if err = RunEngine2(m, ueng); err != nil {
 		return err
 	}
 
@@ -85,51 +85,51 @@ func (e *PGPProvision) Run(ctx *Context) error {
 	}
 	e.user = ueng.User()
 
-	return e.provision(ctx)
+	return e.provision(m)
 }
 
 // provision attempts to provision with a synced pgp key.  It
 // needs to get a session first to look for a synced pgp key.
-func (e *PGPProvision) provision(ctx *Context) error {
+func (e *PGPProvision) provision(m libkb.MetaContext) error {
 	// After obtaining login session, this will be called before the login state is released.
 	// It tries to get the pgp key and uses it to provision new device keys for this device.
 	var afterLogin = func(lctx libkb.LoginContext) error {
-		ctx.LoginContext = lctx
-		signer, err := e.syncedPGPKey(ctx)
+		m = m.WithLoginContext(lctx)
+		signer, err := e.syncedPGPKey(m)
 		if err != nil {
 			return err
 		}
 
-		if err := e.makeDeviceKeysWithSigner(ctx, signer); err != nil {
+		if err := e.makeDeviceKeysWithSigner(m, signer); err != nil {
 			return err
 		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+		if err := lctx.LocalSession().SetDeviceProvisioned(m.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
-			e.G().Log.Warning("error saving session file: %s", err)
+			m.CWarningf("error saving session file: %s", err)
 		}
 		return nil
 	}
 
 	// need a session to try to get synced private key
-	err := e.G().LoginState().LoginWithPassphrase(e.user.GetName(), e.passphrase, false, afterLogin)
+	err := m.G().LoginState().LoginWithPassphrase(m, e.user.GetName(), e.passphrase, false, afterLogin)
 	if err != nil {
 		return err
 	}
 
 	// Get a per-user key.
 	// Wait for attempt but only warn on error.
-	eng := NewPerUserKeyUpgrade(e.G(), &PerUserKeyUpgradeArgs{})
-	err = RunEngine(eng, ctx)
+	eng := NewPerUserKeyUpgrade(m.G(), &PerUserKeyUpgradeArgs{})
+	err = RunEngine2(m, eng)
 	if err != nil {
-		e.G().Log.CWarningf(ctx.GetNetContext(), "PGPProvision PerUserKeyUpgrade failed: %v", err)
+		m.CWarningf("PGPProvision PerUserKeyUpgrade failed: %v", err)
 	}
 	return nil
 }
 
 // syncedPGPKey looks for a synced pgp key for e.user.  If found,
 // it unlocks it.
-func (e *PGPProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
-	key, err := e.user.SyncedSecretKey(ctx.LoginContext)
+func (e *PGPProvision) syncedPGPKey(m libkb.MetaContext) (libkb.GenericKey, error) {
+	key, err := e.user.SyncedSecretKey(m)
 	if err != nil {
 		return nil, err
 	}
@@ -137,23 +137,23 @@ func (e *PGPProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 		return nil, libkb.NoSyncedPGPKeyError{}
 	}
 
-	e.G().Log.Debug("got synced secret key")
+	m.CDebugf("got synced secret key")
 
 	// unlock it
-	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
-	unlocked, err := key.PromptAndUnlock(parg, nil, e.user)
+	parg := m.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
+	unlocked, err := key.PromptAndUnlock(m, parg, nil, e.user)
 	if err != nil {
 		return nil, err
 	}
 
-	e.G().Log.Debug("unlocked secret key")
+	m.CDebugf("unlocked secret key")
 	return unlocked, nil
 }
 
 // makeDeviceKeysWithSigner creates device keys given a signing
 // key.
-func (e *PGPProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.GenericKey) error {
-	args, err := e.makeDeviceWrapArgs(ctx)
+func (e *PGPProvision) makeDeviceKeysWithSigner(m libkb.MetaContext, signer libkb.GenericKey) error {
+	args, err := e.makeDeviceWrapArgs(m)
 	if err != nil {
 		return err
 	}
@@ -161,17 +161,17 @@ func (e *PGPProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.Gener
 	args.IsEldest = false // just to be explicit
 	args.EldestKID = e.user.GetEldestKID()
 
-	return e.makeDeviceKeys(ctx, args)
+	return e.makeDeviceKeys(m, args)
 }
 
 // makeDeviceWrapArgs creates a base set of args for DeviceWrap.
-func (e *PGPProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error) {
+func (e *PGPProvision) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWrapArgs, error) {
 	// generate lks
-	salt, err := ctx.LoginContext.LoginSession().Salt()
+	salt, err := m.LoginContext().LoginSession().Salt()
 	if err != nil {
 		return nil, err
 	}
-	_, pps, err := libkb.StretchPassphrase(e.G(), e.passphrase, salt)
+	_, pps, err := libkb.StretchPassphrase(m.G(), e.passphrase, salt)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (e *PGPProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error)
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.
-func (e *PGPProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
-	eng := NewDeviceWrap(args, e.G())
-	return RunEngine(eng, ctx)
+func (e *PGPProvision) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
+	eng := NewDeviceWrap(e.G(), args)
+	return RunEngine2(m, eng)
 }

@@ -13,6 +13,10 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+type UIDer interface {
+	GetUID() keybase1.UID
+}
+
 type LoadUserArg struct {
 	Contextified
 	uid                      keybase1.UID
@@ -24,7 +28,7 @@ type LoadUserArg struct {
 	forcePoll                bool // for cached user load, force a repoll
 	staleOK                  bool // if stale cached versions are OK (for immutable fields)
 	cachedOnly               bool // only return cached data (StaleOK should be true as well)
-	loginContext             LoginContext
+	uider                    UIDer
 	abortIfSigchainUnchanged bool
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
 
@@ -54,6 +58,14 @@ func (arg LoadUserArg) String() string {
 
 func NewLoadUserArg(g *GlobalContext) LoadUserArg {
 	return LoadUserArg{Contextified: NewContextified(g)}
+}
+
+func NewLoadUserArgWithMetaContext(m MetaContext) LoadUserArg {
+	return LoadUserArg{
+		Contextified: NewContextified(m.G()),
+		netContext:   m.Ctx(),
+		uider:        m.LoginContext(),
+	}
 }
 
 func NewLoadUserArgWithContext(ctx context.Context, g *GlobalContext) LoadUserArg {
@@ -164,7 +176,7 @@ func (arg LoadUserArg) GetNetContext() context.Context {
 }
 
 func (arg LoadUserArg) WithLoginContext(l LoginContext) LoadUserArg {
-	arg.loginContext = l
+	arg.uider = l
 	return arg
 }
 
@@ -202,7 +214,7 @@ func (arg *LoadUserArg) checkUIDName() error {
 		return nil
 	}
 
-	if arg.uid = myUID(arg.G(), arg.loginContext); arg.uid.IsNil() {
+	if arg.uid = myUID(arg.G(), arg.uider); arg.uid.IsNil() {
 		arg.name = arg.G().Env.GetUsername().String()
 		if len(arg.name) == 0 {
 			return SelfNotFoundError{msg: "could not find UID or username for self"}
@@ -240,7 +252,7 @@ func (arg *LoadUserArg) checkSelf() {
 		return
 	}
 
-	myuid := myUID(arg.G(), arg.loginContext)
+	myuid := myUID(arg.G(), arg.uider)
 	if myuid.Exists() && arg.uid.Exists() && myuid.Equal(arg.uid) {
 		arg.self = true
 	}
@@ -253,6 +265,9 @@ func LoadMe(arg LoadUserArg) (*User, error) {
 
 func LoadMeByUID(ctx context.Context, g *GlobalContext, uid keybase1.UID) (*User, error) {
 	return LoadMe(NewLoadUserByUIDArg(ctx, g, uid))
+}
+func LoadMeByMetaContextAndUID(m MetaContext, uid keybase1.UID) (*User, error) {
+	return LoadMe(NewLoadUserArgWithMetaContext(m).WithUID(uid))
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
@@ -499,9 +514,9 @@ func LoadUserFromServer(ctx context.Context, g *GlobalContext, uid keybase1.UID,
 	return u, err
 }
 
-func myUID(g *GlobalContext, lctx LoginContext) keybase1.UID {
-	if lctx != nil {
-		return lctx.LocalSession().GetUID()
+func myUID(g *GlobalContext, uider UIDer) keybase1.UID {
+	if uider != nil {
+		return uider.GetUID()
 	}
 	return g.GetMyUID()
 }

@@ -48,11 +48,11 @@ func (e *CryptocurrencyEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
-	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "CryptocurrencyEngine")
-	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "CryptocurrencyEngine")
+func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "CryptocurrencyEngine")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "CryptocurrencyEngine")
 
-	defer e.G().Trace("CryptocurrencyEngine", func() error { return err })()
+	defer m.CTrace("CryptocurrencyEngine", func() error { return err })()
 
 	var typ libkb.CryptocurrencyType
 	typ, _, err = libkb.CryptocurrencyParseAndCheck(e.arg.Address)
@@ -66,7 +66,7 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 		return libkb.InvalidAddressError{Msg: fmt.Sprintf("wanted coin type %q, but got %q", e.arg.WantedFamily, family)}
 	}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 	var merkleRoot *libkb.MerkleRoot
 	if cryptocurrencyLink != nil {
 		sigIDToRevoke = cryptocurrencyLink.GetSigID()
-		lease, merkleRoot, err = libkb.RequestDowngradeLeaseBySigIDs(ctx.NetContext, e.G(), []keybase1.SigID{sigIDToRevoke})
+		lease, merkleRoot, err = libkb.RequestDowngradeLeaseBySigIDs(m.Ctx(), m.G(), []keybase1.SigID{sigIDToRevoke})
 		if err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to register a cryptocurrency address"))
+	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "to register a cryptocurrency address"))
 	if err != nil {
 		return err
 	}
@@ -138,10 +138,11 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 		args["sig_inner"] = libkb.S{Val: string(sigInner)}
 	}
 
-	_, err = e.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(libkb.APIArg{
 		Endpoint:    "sig/post",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        args,
+		NetContext:  m.Ctx(),
 	})
 	if err != nil {
 		return err

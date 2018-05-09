@@ -31,7 +31,7 @@ function MissingProofRow({missingProof, style}: {missingProof: MissingProof, sty
         </Box>
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>
-            <Text type="Body" selectable={true} style={{...styleProofName, color: missingColor}}>
+            <Text type="Body" style={{...styleProofName, color: missingColor}}>
               {missingProof.message}
             </Text>
           </Box>

@@ -4,7 +4,6 @@
 package engine
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -40,7 +39,7 @@ type SaltpackEncrypt struct {
 }
 
 // NewSaltpackEncrypt creates a SaltpackEncrypt engine.
-func NewSaltpackEncrypt(arg *SaltpackEncryptArg, g *libkb.GlobalContext) *SaltpackEncrypt {
+func NewSaltpackEncrypt(g *libkb.GlobalContext, arg *SaltpackEncryptArg) *SaltpackEncrypt {
 	return &SaltpackEncrypt{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -92,28 +91,25 @@ func (e *SaltpackEncrypt) loadMyPublicKeys() ([]libkb.NaclDHKeyPublic, error) {
 	return ret, nil
 }
 
-func (e *SaltpackEncrypt) loadMe(ctx *Context) error {
-	loggedIn, uid, err := IsLoggedInWithError(e, ctx)
+func (e *SaltpackEncrypt) loadMe(m libkb.MetaContext) error {
+	loggedIn, uid, err := isLoggedInWithUIDAndError(m)
 	if err != nil && !e.arg.Opts.NoSelfEncrypt {
 		return err
 	}
 	if !loggedIn {
 		return nil
 	}
-	e.me, err = libkb.LoadMeByUID(ctx.GetNetContext(), e.G(), uid)
+	e.me, err = libkb.LoadMeByMetaContextAndUID(m, uid)
 	return err
 }
 
 // Run starts the engine.
-func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ SaltpackEncrypt::Run")
-	defer func() {
-		e.G().Log.Debug("- SaltpackEncrypt::Run -> %v", err)
-	}()
+func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("SaltpackEncrypt::Run", func() error { return err })()
 
 	var receivers []libkb.NaclDHKeyPublic
 
-	if err = e.loadMe(ctx); err != nil {
+	if err = e.loadMe(m); err != nil {
 		return err
 	}
 
@@ -130,8 +126,8 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 		Self:            e.me,
 	}
 
-	kf := NewDeviceKeyfinder(e.G(), kfarg)
-	if err := RunEngine(kf, ctx); err != nil {
+	kf := NewDeviceKeyfinder(m.G(), kfarg)
+	if err := RunEngine2(m, kf); err != nil {
 		return err
 	}
 	uplus := kf.UsersPlusKeys()
@@ -155,7 +151,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 			Me:      e.me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
-		dhKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(secretKeyArgDH, "encrypting a message/file"))
+		dhKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(secretKeyArgDH, "encrypting a message/file"))
 		if err != nil {
 			return err
 		}
@@ -172,7 +168,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 			Me:      e.me,
 			KeyType: libkb.DeviceSigningKeyType,
 		}
-		signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(secretKeyArgSigning, "signing a message/file"))
+		signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(secretKeyArgSigning, "signing a message/file"))
 		if err != nil {
 			return err
 		}
@@ -185,7 +181,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 
 	var symmetricReceivers []saltpack.ReceiverSymmetricKey
 	if !e.arg.Opts.EncryptionOnlyMode && !e.skipTLFKeysForTesting {
-		symmetricReceivers, err = e.makeSymmetricReceivers(ctx)
+		symmetricReceivers, err = e.makeSymmetricReceivers(m)
 		if err != nil {
 			return err
 		}
@@ -209,25 +205,25 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 
 		VisibleRecipientsForTesting: e.visibleRecipientsForTesting,
 	}
-	return libkb.SaltpackEncrypt(e.G(), &encarg)
+	return libkb.SaltpackEncrypt(m.G(), &encarg)
 }
 
-func (e *SaltpackEncrypt) getCryptKeys(ctx context.Context, name string) (keybase1.GetTLFCryptKeysRes, error) {
-	xp := e.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+func (e *SaltpackEncrypt) getCryptKeys(m libkb.MetaContext, name string) (keybase1.GetTLFCryptKeysRes, error) {
+	xp := m.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
 		return keybase1.GetTLFCryptKeysRes{}, libkb.KBFSNotRunningError{}
 	}
 	cli := &keybase1.TlfKeysClient{
-		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(e.G()), libkb.LogTagsFromContext),
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(m.G()), libkb.LogTagsFromContext),
 	}
-	return cli.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
+	return cli.GetTLFCryptKeys(m.Ctx(), keybase1.TLFQuery{
 		TlfName:          name,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_SALTPACK,
 	})
 }
 
-func (e SaltpackEncrypt) completeAndCanonicalize(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
-	username := e.G().Env.GetUsername()
+func (e SaltpackEncrypt) completeAndCanonicalize(m libkb.MetaContext, tlfName string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+	username := m.G().Env.GetUsername()
 	if len(username) == 0 {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, libkb.LoginRequiredError{}
 	}
@@ -240,7 +236,7 @@ func (e SaltpackEncrypt) completeAndCanonicalize(ctx context.Context, tlfName st
 	// TODO: We should think about how to handle read-only TLFs.
 	tlfName = string(username) + "," + tlfName
 
-	resp, err := e.getCryptKeys(ctx, tlfName)
+	resp, err := e.getCryptKeys(m, tlfName)
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
@@ -249,15 +245,15 @@ func (e SaltpackEncrypt) completeAndCanonicalize(ctx context.Context, tlfName st
 }
 
 // TODO: Make sure messages that encrypt only to self are working properly.
-func (e *SaltpackEncrypt) makeSymmetricReceivers(ctx *Context) ([]saltpack.ReceiverSymmetricKey, error) {
+func (e *SaltpackEncrypt) makeSymmetricReceivers(m libkb.MetaContext) ([]saltpack.ReceiverSymmetricKey, error) {
 
 	// Fetch the TLF keys and assemble the pseudonym info objects.
 	var cryptKeys []keybase1.CryptKey
 	var pseudonymInfos []libkb.TlfPseudonymInfo
 	for _, user := range e.arg.Opts.Recipients {
-		tlfName := fmt.Sprintf("%s,%s", e.G().Env.GetUsername(), user)
-		e.G().Log.Debug("saltpack signcryption fetching TLF key for %s", tlfName)
-		res, err := e.completeAndCanonicalize(ctx.GetNetContext(), tlfName)
+		tlfName := fmt.Sprintf("%s,%s", m.G().Env.GetUsername(), user)
+		m.CDebugf("saltpack signcryption fetching TLF key for %s", tlfName)
+		res, err := e.completeAndCanonicalize(m, tlfName)
 		if err != nil {
 			return nil, err
 		}
@@ -270,7 +266,7 @@ func (e *SaltpackEncrypt) makeSymmetricReceivers(ctx *Context) ([]saltpack.Recei
 			return nil, err
 		}
 		copy(tlfID[:], tlfIDSlice)
-		keys, err := e.getCryptKeys(ctx.GetNetContext(), tlfName)
+		keys, err := e.getCryptKeys(m, tlfName)
 		if err != nil {
 			return nil, err
 		}
@@ -286,7 +282,7 @@ func (e *SaltpackEncrypt) makeSymmetricReceivers(ctx *Context) ([]saltpack.Recei
 	}
 
 	// Post the pseudonyms in a batch.
-	pseudonyms, err := libkb.PostTlfPseudonyms(ctx.GetNetContext(), e.G(), pseudonymInfos)
+	pseudonyms, err := libkb.PostTlfPseudonyms(m.Ctx(), m.G(), pseudonymInfos)
 	if err != nil {
 		return nil, err
 	}

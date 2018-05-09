@@ -387,3 +387,48 @@ func TestImplicitInvalidLinks(t *testing.T) {
 		RequirePrecheckError(err)
 	}
 }
+
+func TestTeamListImplicit(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	impteamName := strings.Join([]string{fus[0].Username, fus[1].Username}, ",")
+	t.Logf("created implicit team: %s", impteamName)
+	_, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	teamName := createTeam(*tcs[1])
+	t.Logf("created normal team: %s", teamName)
+
+	require.NoError(t, SetRoleWriter(context.Background(), tcs[1].G, teamName, fus[0].Username))
+
+	list, err := ListTeamsVerified(context.Background(), tcs[0].G, keybase1.TeamListVerifiedArg{IncludeImplicitTeams: false})
+	require.NoError(t, err)
+	require.Len(t, list.Teams, 1)
+
+	list, err = ListTeamsVerified(context.Background(), tcs[0].G, keybase1.TeamListVerifiedArg{IncludeImplicitTeams: true})
+	require.NoError(t, err)
+	require.Len(t, list.Teams, 2)
+
+	list, err = ListTeamsUnverified(context.Background(), tcs[0].G, keybase1.TeamListUnverifiedArg{IncludeImplicitTeams: false})
+	require.NoError(t, err)
+	require.Len(t, list.Teams, 1)
+
+	list, err = ListTeamsUnverified(context.Background(), tcs[0].G, keybase1.TeamListUnverifiedArg{IncludeImplicitTeams: true})
+	require.NoError(t, err)
+	require.Len(t, list.Teams, 2)
+
+	list, err = ListAll(context.Background(), tcs[0].G, keybase1.TeamListTeammatesArg{
+		IncludeImplicitTeams: false,
+	})
+	require.NoError(t, err)
+	require.Len(t, list.Teams, 2)
+	require.Equal(t, teamName, list.Teams[0].FqName)
+	require.Equal(t, teamName, list.Teams[1].FqName)
+
+	list, err = ListAll(context.Background(), tcs[0].G, keybase1.TeamListTeammatesArg{
+		IncludeImplicitTeams: true,
+	})
+	require.NoError(t, err)
+	require.Len(t, list.Teams, 4)
+}

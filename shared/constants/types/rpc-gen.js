@@ -630,6 +630,10 @@ export const debuggingIncrementRpcChannelMap = (configKeys: Array<string>, reque
 
 export const debuggingIncrementRpcPromise = (request: DebuggingIncrementRpcParam): Promise<DebuggingIncrementResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.increment', request, (error: RPCError, result: DebuggingIncrementResult) => (error ? reject(error) : resolve(result))))
 
+export const debuggingScriptRpcChannelMap = (configKeys: Array<string>, request: DebuggingScriptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.script', request)
+
+export const debuggingScriptRpcPromise = (request: DebuggingScriptRpcParam): Promise<DebuggingScriptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.script', request, (error: RPCError, result: DebuggingScriptResult) => (error ? reject(error) : resolve(result))))
+
 export const debuggingSecondStepRpcChannelMap = (configKeys: Array<string>, request: DebuggingSecondStepRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.secondStep', request)
 
 export const debuggingSecondStepRpcPromise = (request: DebuggingSecondStepRpcParam): Promise<DebuggingSecondStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.secondStep', request, (error: RPCError, result: DebuggingSecondStepResult) => (error ? reject(error) : resolve(result))))
@@ -789,6 +793,10 @@ export const gregorUIPushReason = {
   reconnected: 1,
   newData: 2,
 }
+
+export const gregorUpdateItemRpcChannelMap = (configKeys: Array<string>, request: GregorUpdateItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.updateItem', request)
+
+export const gregorUpdateItemRpcPromise = (request: GregorUpdateItemRpcParam): Promise<GregorUpdateItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.updateItem', request, (error: RPCError, result: GregorUpdateItemResult) => (error ? reject(error) : resolve(result))))
 
 export const homeHomeActionTakenRpcChannelMap = (configKeys: Array<string>, request: HomeHomeActionTakenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeActionTaken', request)
 
@@ -1670,6 +1678,7 @@ export const teamsTeamApplication = {
   saltpack: 3,
   gitMetadata: 4,
   seitanInviteToken: 5,
+  stellarRelay: 6,
 }
 
 export const teamsTeamChangeMembershipRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamChangeMembershipRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamChangeMembership', request)
@@ -2207,6 +2216,8 @@ export type DebuggingFirstStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?: 
 
 export type DebuggingIncrementRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type DebuggingScriptRpcParam = $ReadOnly<{script: String, args?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type DebuggingSecondStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam = $ReadOnly<{systems?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -2489,6 +2500,8 @@ export type GregorInjectItemRpcParam = $ReadOnly<{cat: String, body: String, dti
 export type GregorUIPushOutOfBandMessagesRpcParam = $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason: PushReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type GregorUpdateItemRpcParam = $ReadOnly<{msgID: Gregor1.MsgID, cat: String, body: String, dtime: Gregor1.TimeOrOffset, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
 
@@ -3720,6 +3733,7 @@ export type TeamApplication =
   | 3 // SALTPACK_3
   | 4 // GIT_METADATA_4
   | 5 // SEITAN_INVITE_TOKEN_5
+  | 6 // STELLAR_RELAY_6
 
 export type TeamApplicationKey = $ReadOnly<{application: TeamApplication, keyGeneration: PerTeamKeyGeneration, key: Bytes32}>
 
@@ -3840,7 +3854,7 @@ export type TeamSettings = $ReadOnly<{open: Boolean, joinAs: TeamRole}>
 
 export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean}>
 
-export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}}>
+export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}}>
 
 export type TeamTreeEntry = $ReadOnly<{name: TeamName, admin: Boolean}>
 
@@ -4160,6 +4174,7 @@ type CryptocurrencyRegisterAddressResult = RegisterAddressRes
 type CtlDbGetResult = ?DbValue
 type DebuggingFirstStepResult = FirstStepResult
 type DebuggingIncrementResult = Int
+type DebuggingScriptResult = String
 type DebuggingSecondStepResult = Int
 type DeviceCheckDeviceNameFormatResult = Boolean
 type DeviceDeviceHistoryListResult = ?Array<DeviceDetail>
@@ -4179,6 +4194,7 @@ type GpgUiSignResult = String
 type GpgUiWantToAddGPGKeyResult = Boolean
 type GregorGetStateResult = Gregor1.State
 type GregorInjectItemResult = Gregor1.MsgID
+type GregorUpdateItemResult = Gregor1.MsgID
 type HomeHomeGetScreenResult = HomeScreen
 type IdentifyIdentify2Result = Identify2Res
 type IdentifyIdentifyLiteResult = IdentifyLiteRes
