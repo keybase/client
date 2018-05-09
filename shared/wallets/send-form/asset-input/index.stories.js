@@ -25,7 +25,7 @@ const props2 = {
   inputPlaceholder: '0.0000000',
 }
 
-const props3 = {
+export const props3 = {
   ...common,
   bottomLabel: '1 XLM = $0.2303',
   displayUnit: 'XLM',

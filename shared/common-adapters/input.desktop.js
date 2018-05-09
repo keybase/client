@@ -434,16 +434,14 @@ class Input2 extends React.Component<Input2Props> {
             style={collapseStyles([
               style,
               inputStyles.nochrome,
-              // TODO get this input resizing to work as the decoration gets wider
               inputStyles.autoResize,
-              !!this.props.decoration && inputStyles.withDecoration,
               !!this.props.decoration && {height: style.height},
               this.props.style,
             ])}
             placeholder={this.props.placeholder}
           />
+          {this.props.decoration || null}
         </Box2>
-        {this.props.decoration || null}
       </Box2>
     )
   }
@@ -451,8 +449,9 @@ class Input2 extends React.Component<Input2Props> {
 
 const inputStyles = styleSheetCreate({
   autoResize: {
-    resize: 'horizontal',
-    width: 'auto',
+    minWidth: 0,
+    width: '100%',
+    flex: 1,
   },
   container: {
     alignSelf: 'unset',
@@ -463,7 +462,6 @@ const inputStyles = styleSheetCreate({
     padding: globalMargins.tiny,
   },
   nochrome: {borderWidth: 0, lineHeight: 'unset', outline: 'none'},
-  withDecoration: {flexBasis: 0, flex: 1, width: 'auto'},
 })
 
 export {Input2}

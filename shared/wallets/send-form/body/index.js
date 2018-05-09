@@ -22,7 +22,7 @@ const Spinner = () => (
 )
 
 const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
-  <Box2 direction="vertical">
+  <Box2 fullWidth={true} direction="vertical">
     {isProcessing && <Spinner />}
     {bannerInfo && <Banner />}
     <Participants />
