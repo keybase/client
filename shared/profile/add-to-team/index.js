@@ -11,6 +11,7 @@ import {
   Divider,
   Meta,
   PopupDialog,
+  ProgressIndicator,
   ScrollView,
   Text,
 } from '../../common-adapters'
@@ -57,7 +58,7 @@ const TeamRow = ({
           {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
         </Box>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Text type="BodySmall">foo is already a member</Text>
+          {waiting ? <ProgressIndicator style={{width: 16}} white={false} /> : <Text type="BodySmall">foo is already a member</Text>}
         </Box>
       </Box>
     </Box>
@@ -105,7 +106,7 @@ const AddToTeam = (props: Props) => (
               membercount={props.teammembercounts[name]}
               onPromote={promoted => props.onPromote(name, promoted)}
               showcased={props.teamNameToIsShowcasing[name]}
-              waiting={!!props.waiting[teamWaitingKey(name)]}
+              waiting={!props.teamNameToMembers[name]}
             />
           ))}
       </Box>
