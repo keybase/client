@@ -56,6 +56,13 @@ type AssetDeleter interface {
 	DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, assets []chat1.Asset)
 }
 
+type DummyAssetDeleter struct{}
+
+func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	assets []chat1.Asset) {
+
+}
+
 func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
 	return &Storage{
 		Contextified:     globals.NewContextified(g),
@@ -300,6 +307,9 @@ func (s *Storage) MaybeNuke(ctx context.Context, force bool, err Error, convID c
 			if _, err = s.G().LocalChatDb.Nuke(); err != nil {
 				s.Debug(ctx, "failed to delete chat local storage: %s", err)
 			}
+		}
+		if err := s.idtracker.clear(convID, uid); err != nil {
+			s.Debug(ctx, "failed to clear max message storage: %s", err)
 		}
 	}
 	return err
