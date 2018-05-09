@@ -423,31 +423,39 @@ class Input2 extends React.Component<Input2Props> {
   render() {
     const {textType = 'Body'} = this.props
     const style = getTextStyle(textType)
-    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }`
+    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+                          ::-webkit-outer-spin-button, ::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}`
     return (
-      <Box2 direction="vertical">
-        <Box2 direction="horizontal" style={inputStyles.container}>
-          <style>{inputRealCSS}</style>
-          <Box2 direction="horizontal" fullHeight={true} style={{alignItems: 'flex-start', flexBasis: 0}}>
-            <input
-              style={collapseStyles([
-                style,
-                inputStyles.nochrome,
-                this.props.style,
-                this.props.decoration && {flexBasis: 0, height: style.height},
-              ])}
-              placeholder={this.props.placeholder}
-            />
-          </Box2>
-          {this.props.decoration || null}
+      <Box2 direction="horizontal" style={inputStyles.container}>
+        <style>{inputRealCSS}</style>
+        <Box2 direction="horizontal" fullHeight={true} style={{alignItems: 'flex-start'}}>
+          <input
+            type={this.props.type}
+            style={collapseStyles([
+              style,
+              inputStyles.nochrome,
+              // TODO get this input resizing to work as the decoration gets wider
+              inputStyles.autoResize,
+              !!this.props.decoration && inputStyles.withDecoration,
+              !!this.props.decoration && {height: style.height},
+              this.props.style,
+            ])}
+            placeholder={this.props.placeholder}
+          />
         </Box2>
+        {this.props.decoration || null}
       </Box2>
     )
   }
 }
 
 const inputStyles = styleSheetCreate({
+  autoResize: {
+    resize: 'horizontal',
+    width: 'auto',
+  },
   container: {
+    alignSelf: 'unset',
     borderColor: globalColors.black_10,
     borderRadius: 4,
     borderStyle: 'solid',
@@ -455,9 +463,7 @@ const inputStyles = styleSheetCreate({
     padding: globalMargins.tiny,
   },
   nochrome: {borderWidth: 0, lineHeight: 'unset', outline: 'none'},
-  input: {
-    maxWidth: 460,
-  },
+  withDecoration: {flexBasis: 0, flex: 1, width: 'auto'},
 })
 
 export {Input2}
