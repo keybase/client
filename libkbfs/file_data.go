@@ -1096,9 +1096,9 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 
 		// Take care not to write past the beginning of the next block
 		// by using max.
-		max := len(data)
+		max := int64(len(data))
 		if nextBlockOff > 0 {
-			if room := int(nextBlockOff - off); room < max {
+			if room := nextBlockOff - off; room < max {
 				max = room
 			}
 		}
