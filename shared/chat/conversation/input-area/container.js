@@ -24,6 +24,8 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
     } else {
       conversationIDKeyToShow = meta.conversationIDKey
     }
+  } else if (conversationIDKeyToShow === Constants.pendingWaitingConversationIDKey) {
+    noInput = true
   }
 
   return {
