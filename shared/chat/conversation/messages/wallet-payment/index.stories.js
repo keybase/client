@@ -14,7 +14,7 @@ const sentProps = {
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
   balanceChangeColor: globalColors.red,
-  icon: 'iconfont-arrow-up',
+  icon: 'iconfont-stellar-send',
   memo: ':beer:',
   pending: false,
 }
@@ -33,7 +33,7 @@ const requestCommon = {
   action: 'requested lumens worth',
   balanceChange: '',
   balanceChangeColor: '',
-  icon: 'iconfont-arrow-down',
+  icon: 'iconfont-stellar-request',
   pending: false,
 }
 
@@ -57,7 +57,7 @@ const sentAssetProps = {
   amount: '1 BTC/Abc.def',
   balanceChange: '-1 BTC',
   balanceChangeColor: globalColors.red,
-  icon: 'iconfont-arrow-up',
+  icon: 'iconfont-stellar-send',
   memo: '₿',
   pending: false,
 }

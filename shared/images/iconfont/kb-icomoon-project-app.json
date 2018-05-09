@@ -330,11 +330,11 @@
     },
     {
       "order": 0,
-      "name": "kb-iconfont-stellar-request"
+      "name": "kb-iconfont-stellar-request-16"
     },
     {
       "order": 0,
-      "name": "kb-iconfont-stellar-send"
+      "name": "kb-iconfont-stellar-send-16"
     },
     {
       "order": 0,
@@ -395,7 +395,7 @@
       "width": 16,
       "height": 16
     },
-    "iconsHash": 556970432
+    "iconsHash": 1150943692
   },
   "height": 1024,
   "prevSize": 32,
@@ -1156,7 +1156,7 @@
       ],
       "grid": 0,
       "tags": [
-        "kb-iconfont-stellar-request"
+        "kb-iconfont-stellar-request-16"
       ]
     },
     {
@@ -1167,7 +1167,7 @@
       ],
       "grid": 0,
       "tags": [
-        "kb-iconfont-stellar-send"
+        "kb-iconfont-stellar-send-16"
       ]
     },
     {
