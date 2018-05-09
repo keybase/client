@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 49.2 (51160) - http://www.bohemiancoding.com/sketch -->
+    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
     <title>B5F3A9F0-2A96-4F87-AE5B-86680B87031A</title>
     <desc>Created with sketchtool.</desc>
     <defs></defs>
     <g id="Colors,-icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons-2" transform="translate(-94.000000, -263.000000)">
-            <g id="kb-iconfont-nav-folders-24" transform="translate(94.000000, 263.000000)">
+        <g id="Icons-2" transform="translate(-94.000000, -265.000000)">
+            <g id="kb-iconfont-nav-folders-24" transform="translate(94.000000, 265.000000)">
                 <rect id="icon-area" x="0" y="0" width="24" height="24"></rect>
                 <path d="M11.1665583,7 L9.499875,4 L3.66668333,4 C2.74621861,4.00004602 2.00004602,4.74621861 2,5.66668333 L2,19.00015 C2.00004602,19.9206147 2.74621861,20.999954 3.66668333,21 L20.3333167,21 C21.2537814,20.999954 21.999954,19.9206147 22,19.00015 L22,8.5 C21.999954,7.57953527 21.2537814,7.00004602 20.3333167,7 L11.1665583,7 Z" id="folder" fill="#000000" fill-rule="nonzero"></path>
             </g>
