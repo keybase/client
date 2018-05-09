@@ -704,7 +704,7 @@ func (u *CachedUPAKLoader) CheckDeviceForUIDAndUsername(ctx context.Context, uid
 		return NewKeyRevokedError(did.String())
 	}
 	if !n.IsNil() && !foundUsername.Eq(n) {
-		return NewBadUsernameError(fmt.Sprintf("expected %q not %q", foundUsername.String(), n.String()))
+		return LoggedInWrongUserError{ExistingName: foundUsername, AttemptedName: foundUsername}
 	}
 	return nil
 }

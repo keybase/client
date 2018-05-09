@@ -199,11 +199,11 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 			m.CDebugf("logout error: %s", err)
 		}
 		return false, err
-	case libkb.BadUsernameError:
+	case libkb.LoggedInWrongUserError:
 		if libkb.CheckEmail.F(e.usernameOrEmail) {
 			m.CDebugf("Login: already logged in, but %q email address provided. Can't determine if that is current user without further work, so just returning LoggedInError", e.usernameOrEmail)
 		} else {
-			m.CDebugf("User already logged in as different user (%s)", err.Error())
+			m.CDebugf(err.Error())
 		}
 		return true, libkb.LoggedInError{}
 	default:

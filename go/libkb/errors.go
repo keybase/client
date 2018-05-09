@@ -566,7 +566,7 @@ type LoggedInWrongUserError struct {
 }
 
 func (e LoggedInWrongUserError) Error() string {
-	return fmt.Sprintf("Logged in as %q, attempting to log in as %q:  try logout first", e.ExistingName, e.AttemptedName)
+	return fmt.Sprintf("Logged in as %q, attempting to log in as %q: try logout first", e.ExistingName, e.AttemptedName)
 }
 
 //=============================================================================
