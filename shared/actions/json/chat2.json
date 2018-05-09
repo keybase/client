@@ -24,6 +24,7 @@
           "'desktopNotification'", // clicked notification
           "'searching'", // searching and found one
           "'sendingToPending'", // select the pending we sent into
+          "'createdMessagePrivately'", // messaging privately and maybe made it
           "'findNewestConversation'", // find a new chat to select
           "'inboxBig'", // inbox row
           "'inboxFilterArrow'", // arrow keys in inbox filter
@@ -194,11 +195,6 @@
     // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
     "setPendingMode": {
       "pendingMode": "Types.PendingMode"
-    },
-    "setPendingStatus": {
-      "_description":
-        "Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.",
-      "pendingStatus": "Types.PendingStatus"
     },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {

@@ -181,7 +181,7 @@ export const updateMetaWithNotificationSettings = (
     .set('notificationsMobile', notificationsMobile)
 }
 
-export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: true) => {
+export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {
   // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null

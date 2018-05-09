@@ -972,7 +972,7 @@ const messageReplyPrivatelySuccess = (
   }
 
   return Saga.sequentially([
-    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
+    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
     Saga.put(
       Chat2Gen.createMessageSetQuoting({
         ordinal: action.payload.ordinal,
@@ -1033,20 +1033,6 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
     logger.warn('Editing non-text message')
   }
 }
-
-const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPayload) =>
-  Saga.sequentially([
-    // Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-    // clear the search
-    // Saga.put(Chat2Gen.createExitSearch({canceled: true})),
-    // clear out pending conv data
-    // Saga.put(Chat2Gen.createClearPendingConversation()),
-    // // Reset pending flags
-    // Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-    // Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
-    // Navigate to the inbox
-    Saga.put(Chat2Gen.createNavigateToInbox()),
-  ])
 
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
   const {outboxID} = action.payload
@@ -1243,7 +1229,6 @@ const desktopChangeSelection = (
     | Chat2Gen.LeaveConversationPayload
     | Chat2Gen.MetaDeletePayload
     | Chat2Gen.MessageSendPayload
-    | Chat2Gen.CancelPendingConversationPayload
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentUploadPayload
     | TeamsGen.LeaveTeamPayload,
@@ -1890,13 +1875,8 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
   return ret
 }
 
-const changePendingMode = (
-  action: Chat2Gen.SelectConversationPayload | Chat2Gen.CancelPendingConversationPayload,
-  state: TypedState
-) => {
+const changePendingMode = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
   switch (action.type) {
-    case Chat2Gen.cancelPendingConversation:
-      return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
     case Chat2Gen.selectConversation: {
       if (state.chat2.pendingMode === 'none') {
         return
@@ -1950,19 +1930,6 @@ const createConversationSelectIt = (result: RPCChatTypes.NewConversationLocalRes
   ])
 }
 
-const createConversationError = (e: Error, action: Chat2Gen.CreateConversationPayload) =>
-  Saga.sequentially([
-    // Enable controls for the user to retry / cancel
-    Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'})),
-    // Set the submitState of the pending messages
-    Saga.put(
-      Chat2Gen.createSetPendingMessageSubmitState({
-        reason: e.message,
-        submitState: 'failed',
-      })
-    ),
-  ])
-
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -1982,7 +1949,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
         Chat2Gen.metasReceived,
         Chat2Gen.leaveConversation,
         Chat2Gen.metaDelete,
-        Chat2Gen.cancelPendingConversation,
         Chat2Gen.setPendingMode,
         Chat2Gen.messageSend,
         Chat2Gen.attachmentUpload,
@@ -2042,8 +2008,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, bootstrapSuccess)
 
   // Search handling
-  // Changing pending mode selects the special pending conversationidkey
-  // yield Saga.safeTakeEveryPure(Chat2Gen.setPendingMode, selectPendingConversation)
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
     updatePendingParticipants
@@ -2053,17 +2017,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     [Chat2Gen.setPendingConversationUsers, Chat2Gen.selectConversation],
     getRecommendations
   )
-  // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, hideEmptySearch)
-
-  // TODO clean up chat.json
-  // yield Saga.safeTakeEveryPure(
-  // Chat2Gen.sendToPendingConversation,
-  // sendToPendingConversation,
-  // sendToPendingConversationSuccess,
-  // sendToPendingConversationError
-  // )
-  // yield Saga.safeTakeEveryPure(Chat2Gen.cancelPendingConversation, cancelPendingConversation)
-  // yield Saga.safeTakeEveryPure(Chat2Gen.retryPendingConversation, retryPendingConversation)
 
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentUpload, attachmentUpload)
@@ -2099,17 +2052,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     messageReplyPrivately,
     messageReplyPrivatelySuccess
   )
-  yield Saga.safeTakeEveryPure(
-    Chat2Gen.createConversation,
-    createConversation,
-    createConversationSelectIt,
-    createConversationError
-  )
-
-  yield Saga.safeTakeEveryPure(
-    [Chat2Gen.selectConversation, Chat2Gen.cancelPendingConversation],
-    changePendingMode
-  )
+  yield Saga.safeTakeEveryPure(Chat2Gen.createConversation, createConversation, createConversationSelectIt)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, changePendingMode)
 }
 
 export default chat2Saga

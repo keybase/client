@@ -24,7 +24,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   ]),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
-  pendingStatus: 'none', // TODO remove
   quotingMap: I.Map(),
   selectedConversation: noConversationIDKey,
   typingMap: I.Map(),

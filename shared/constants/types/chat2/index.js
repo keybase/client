@@ -11,11 +11,6 @@ export type PendingMode =
   | 'fixedSetOfUsers' // selected a set of users externally
   | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
 
-export type PendingStatus =
-  | 'none' // no pending
-  | 'waiting' // attempting to create conversation
-  | 'failed' // creating conversation failed
-
 export type QuotedOrdConv = {
   ordinal: Message.Ordinal,
   sourceConversationIDKey: Common.ConversationIDKey,
@@ -35,7 +30,6 @@ export type _State = {
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
-  pendingStatus: PendingStatus, // where are we at in submitting the conversation
 }
 
 export type State = I.RecordOf<_State>
