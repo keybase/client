@@ -1,0 +1,75 @@
+// @flow
+import {Component} from 'react'
+import {type StylesCrossPlatform} from '../styles'
+import type {TextType} from './text'
+
+export type KeyboardType =
+  | 'default'
+  | 'email-address'
+  | 'numeric'
+  | 'phone-pad'
+  // iOS only
+  | 'ascii-capable'
+  | 'numbers-and-punctuation'
+  | 'url'
+  | 'number-pad'
+  | 'name-phone-pad'
+  | 'decimal-pad'
+  | 'twitter'
+  | 'web-search'
+  // Android Only
+  | 'visible-password'
+
+export type Props = {
+  autoFocus?: boolean,
+  className?: string,
+  disabled?: boolean,
+  // Resize in a flexbox-like fashion
+  flexable?: boolean,
+  placeholder?: string,
+  style?: StylesCrossPlatform,
+  onBlur?: () => void,
+  onClick?: (event: Event) => void,
+  onChangeText?: (text: string) => void,
+  onFocus?: () => void,
+  maxLength?: number,
+  textType?: TextType,
+  type?: 'password' | 'text' | 'number',
+
+  // NOTE: Setting this prop will make the input controlled, which
+  // can impair performance badle on some platforms
+  value?: ?string,
+
+  // Maps to onKeyPress on native
+  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+
+  // Desktop only
+  onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+
+  // Mobile only
+  onEndEditing?: () => void,
+  onSubmitEditing?: () => void,
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
+  autoCorrect?: boolean,
+  keyboardType?: KeyboardType,
+  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
+  selectTextOnFocus?: boolean,
+}
+
+export type Selection = {start: number, end: number}
+
+export type TextInfo = {
+  text: string,
+  selection: Selection,
+}
+
+declare export default class Input extends Component<Props> {
+  blur: () => void;
+  focus: () => void;
+  select: () => void;
+  getValue: () => string;
+  selection: () => Selection;
+  // transformText must be called only on uncontrolled Input
+  // components. The transformation may be done asynchronously.
+  transformText: (fn: (TextInfo) => TextInfo) => void;
+}
