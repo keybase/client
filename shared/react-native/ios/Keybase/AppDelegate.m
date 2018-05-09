@@ -213,7 +213,7 @@ const BOOL isDebug = NO;
       PushNotifier* pusher = [[PushNotifier alloc] init];
       NSError* err = nil;
       KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, pusher, &err);
-      if (err == nil) {
+      if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }
       completionHandler(UIBackgroundFetchResultNewData);
