@@ -5,10 +5,6 @@ import {Box} from '../../../../common-adapters'
 import {globalColors} from '../../../../styles'
 import Payment from '.'
 
-// TODO replace placeholders with real icons
-// 'iconfont-arrow-up' = 'sent'
-// 'iconfont-arrow-down' = 'request'
-
 const sentProps = {
   action: 'sent lumens worth',
   amount: '$35',
