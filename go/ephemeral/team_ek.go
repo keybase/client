@@ -61,13 +61,18 @@ func prepareNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		return "", nil, metadata, nil, err
 	}
 
-	prevStatement, err := fetchTeamEKStatement(ctx, g, teamID)
+	prevStatement, latestGeneration, _, err := fetchTeamEKStatement(ctx, g, teamID)
 	if err != nil {
 		return "", nil, metadata, nil, err
 	}
 	var generation keybase1.EkGeneration
 	if prevStatement == nil {
-		generation = 1 // start at generation 1
+		// Even if the teamEK statement was signed by the wrong key (this can
+		// happen when legacy clients roll the PTK, fetchTeamEKStatement will
+		// return the generation number from the last (unverifiable) statement.
+		// If there was never any statement, latestGeneration will be 0, so
+		// adding one is correct in all cases.
+		generation = latestGeneration + 1
 	} else {
 		generation = prevStatement.CurrentTeamEkMetadata.Generation + 1
 	}
@@ -211,7 +216,7 @@ type teamEKStatementResponse struct {
 // one, this function will also return nil and log a warning. This is a
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
-func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (statement *keybase1.TeamEkStatement, err error) {
+func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTrace(ctx, "fetchTeamEKStatement", func() error { return err })()
 
 	apiArg := libkb.APIArg{
@@ -224,35 +229,35 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	}
 	res, err := g.GetAPI().Get(apiArg)
 	if err != nil {
-		return nil, err
+		return nil, latestGeneration, false, err
 	}
 
 	parsedResponse := teamEKStatementResponse{}
 	err = res.Body.UnmarshalAgain(&parsedResponse)
 	if err != nil {
-		return nil, err
+		return nil, latestGeneration, false, err
 	}
 
 	// If the result field in the response is null, the server is saying that
 	// the team has never published a teamEKStatement, stale or otherwise.
 	if parsedResponse.Sig == nil {
 		g.Log.CDebugf(ctx, "team has no teamEKStatement at all")
-		return nil, nil
+		return nil, latestGeneration, false, nil
 	}
 
-	statement, wrongKID, err := verifySigWithLatestPTK(ctx, g, teamID, *parsedResponse.Sig)
+	statement, latestGeneration, wrongKID, err = verifySigWithLatestPTK(ctx, g, teamID, *parsedResponse.Sig)
 	// Check the wrongKID condition before checking the error, since an error
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
 	if wrongKID {
 		g.Log.CDebugf(ctx, "It looks like someone rolled the PTK without generating new ephemeral keys. They might be on an old version.")
-		return nil, nil
+		return nil, latestGeneration, true, nil
 	}
 	if err != nil {
-		return nil, err
+		return nil, latestGeneration, false, err
 	}
 
-	return statement, nil
+	return statement, latestGeneration, false, nil
 }
 
 // Verify that the blob is validly signed, and that the signing key is the
@@ -261,13 +266,23 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 // `wrongKID` flag. As a transitional measure while we wait for all clients in
 // the wild to have EK support, callers will treat that case as "there is no
 // key" and convert the error to a warning.
-func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string) (statement *keybase1.TeamEkStatement, wrongKID bool, err error) {
+func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string) (statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTrace(ctx, "verifySigWithLatestPTK", func() error { return err })()
 
 	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
 	if err != nil {
-		return nil, false, err
+		return nil, latestGeneration, false, err
 	}
+
+	// Parse the statement before we verify the signing key. Even if the
+	// signing key is bad (likely because of a legacy PTK roll that didn't
+	// include a teamEK statement), we'll still return the generation number.
+	parsedStatement := keybase1.TeamEkStatement{}
+	err = json.Unmarshal(payload, &parsedStatement)
+	if err != nil {
+		return nil, latestGeneration, false, err
+	}
+	latestGeneration = parsedStatement.CurrentTeamEkMetadata.Generation
 
 	// Verify the signing key corresponds to the latest PTK. We load the team's
 	// from cache, but if the KID doesn't match, we try a forced reload to see
@@ -277,11 +292,11 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 		ID: teamID,
 	})
 	if err != nil {
-		return nil, false, err
+		return nil, latestGeneration, false, err
 	}
 	teamSigningKey, err := team.SigningKey()
 	if err != nil {
-		return nil, false, err
+		return nil, latestGeneration, false, err
 	}
 	if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
 		// The latest PTK might be stale. Force a reload, then check this over again.
@@ -290,26 +305,21 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 			ForceRepoll: true,
 		})
 		if err != nil {
-			return nil, false, err
+			return nil, latestGeneration, false, err
 		}
 		teamSigningKey, err = team.SigningKey()
 		if err != nil {
-			return nil, false, err
+			return nil, latestGeneration, false, err
 		}
 		if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
-			return nil, true, fmt.Errorf("teamEK returned for PTK signing KID %s, but latest is %s",
+			return nil, latestGeneration, true, fmt.Errorf("teamEK returned for PTK signing KID %s, but latest is %s",
 				signerKey.GetKID(), teamSigningKey.GetKID())
 		}
 	}
 
-	// If we didn't short circuit above, then the signing key is correct. Parse
-	// the JSON and return the result.
-	parsedStatement := keybase1.TeamEkStatement{}
-	err = json.Unmarshal(payload, &parsedStatement)
-	if err != nil {
-		return nil, false, err
-	}
-	return &parsedStatement, false, nil
+	// If we didn't short circuit above, then the signing key is correct.
+	// Return the parsed statement.
+	return &parsedStatement, latestGeneration, false, nil
 }
 
 func filterStaleTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, statement *keybase1.TeamEkStatement, merkleRoot libkb.MerkleRoot) (active []keybase1.TeamEkMetadata, err error) {
