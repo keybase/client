@@ -42,6 +42,34 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 	s.ri = ri
 }
 
+// Sign implements github.com/keybase/go/chat/s3.Signer interface.
+func (s *baseConversationSource) Sign(payload []byte) ([]byte, error) {
+	arg := chat1.S3SignArg{
+		Payload: payload,
+		Version: 1,
+	}
+	return s.ri().S3Sign(context.Background(), arg)
+}
+
+// DeleteAssets implements github.com/keybase/go/chat/storage/storage.AssetDeleter interface.
+func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, assets []chat1.Asset) {
+	defer s.Trace(ctx, func() error { return nil }, "DeleteAssets", assets)()
+
+	if len(assets) == 0 {
+		return
+	}
+
+	// Fire off a background load of the thread with a post hook to delete the bodies cache
+	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil, types.ConvLoaderPriorityHigh,
+		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
+			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
+				s.Debug(ctx, "Error purging ephemeral attachments %v", err)
+			}
+		}))
+}
+
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
@@ -789,7 +817,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 			superXform := newBasicSupersedesTransform(s.G())
 			superXform.SetMessagesFunc(func(ctx context.Context, conv types.UnboxConversationInfo,
 				uid gregor1.UID, msgIDs []chat1.MessageID) (res []chat1.MessageUnboxed, err error) {
-				msgs, err := storage.New(s.G()).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
+				msgs, err := storage.New(s.G(), s).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
 				if err != nil {
 					return nil, err
 				}

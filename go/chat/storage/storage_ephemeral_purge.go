@@ -153,6 +153,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 
 	nextPurgeTime := gregor1.Time(0)
 	minUnexplodedID := msgs[0].GetMessageID()
+	var allAssets []chat1.Asset
 	var hasExploding bool
 	for i, msg := range msgs {
 		if !msg.IsValid() {
@@ -176,20 +177,24 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 			} else if mvalid.MessageBody.IsNil() {
 				s.Debug(ctx, "skipping already exploded message: %v", msg.GetMessageID())
 			} else {
-				var emptyBody chat1.MessageBody
-				mvalid.MessageBody = emptyBody
-				newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
-				explodedMsgs = append(explodedMsgs, newMsg)
-				msgs[i] = newMsg
+				msgPurged, assets := s.purgeMessage(mvalid)
+				allAssets = append(allAssets, assets...)
+				explodedMsgs = append(explodedMsgs, msgPurged)
+				msgs[i] = msgPurged
+				s.Debug(ctx, "purging ephemeral msg: %v", msgPurged.GetMessageID())
 			}
 		}
 	}
+
+	// queue asset deletions in the background
+	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+
 	s.Debug(ctx, "purging %v ephemeral messages", len(explodedMsgs))
-	err = s.engine.WriteMessages(ctx, convID, uid, explodedMsgs)
-	if err != nil {
+	if err = s.engine.WriteMessages(ctx, convID, uid, explodedMsgs); err != nil {
 		s.Debug(ctx, "write messages failed: %v", err)
 		return nil, nil, err
 	}
+
 	return &chat1.EphemeralPurgeInfo{
 		MinUnexplodedID: minUnexplodedID,
 		NextPurgeTime:   nextPurgeTime,

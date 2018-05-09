@@ -328,7 +328,7 @@ func TestBackgroundPurge(t *testing.T) {
 	uid := gregor1.UID(u.GetUID().ToBytes())
 	trip := newConvTriple(ctx, t, tc, u.Username)
 	clock := world.Fc
-	chatStorage := storage.New(g)
+	chatStorage := storage.New(g, tc.ChatG.ConvSource)
 	chatStorage.SetClock(clock)
 
 	// setup a ticker since we don't run the service's fastChatChecks ticker here.

@@ -312,10 +312,11 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	h.boxer = NewBoxer(g)
 
-	chatStorage := storage.New(g)
+	chatStorage := storage.New(g, nil)
 	chatStorage.SetClock(c.world.Fc)
 	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return ri })
+	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.InboxSource = NewHybridInboxSource(g, func() chat1.RemoteInterface { return ri })
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	chatSyncer := NewSyncer(g)

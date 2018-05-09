@@ -1009,3 +1009,13 @@ func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg
 	c.searchDoneCb <- arg
 	return nil
 }
+
+type DummyAssetDeleter struct{}
+
+func NewDummyAssetDeleter() DummyAssetDeleter {
+	return DummyAssetDeleter{}
+}
+
+// DeleteAssets implements github.com/keybase/go/chat/storage/storage.AssetDeleter interface.
+func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, assets []chat1.Asset) {
+}
