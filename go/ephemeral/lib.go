@@ -395,8 +395,11 @@ func (e *EKLib) GetMaybeCreateNewTeamEK(ctx context.Context, teamID keybase1.Tea
 
 	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation)
 	if err != nil {
-		if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
-			e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
+		switch err.(type) {
+		case *EKUnboxErr, *EKMissingBoxErr:
+			if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
+				e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
+			}
 		}
 	}
 	return teamEK, err
