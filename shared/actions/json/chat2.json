@@ -134,18 +134,6 @@
       "reason": "string",
       "outboxID": "Types.OutboxID"
     },
-    "setPendingMessageSubmitState": {
-      "_description": "Sets pending messages in the store to the supplied state and logs the reason",
-      "reason": "string",
-      "submitState": ["'failed'", "'pending'"]
-    },
-    "cancelPendingConversation": {
-      "_description":
-        "Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox"
-    },
-    "retryPendingConversation": {
-      "_description": "Retries sending the pending message that is currently stored in the metaMap"
-    },
     "setPendingConversationExistingConversationIDKey": {
       "_description": "When the search changes we need to find any existing conversations to stash into the metaMap",
       "conversationIDKey": "Types.ConversationIDKey",
