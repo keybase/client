@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, Button, ButtonBar, Icon, InfoNote, Text, Input} from '../../common-adapters'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../styles'
 
 type View = 'enter-key' | 'enter-name'
 
@@ -69,7 +69,7 @@ const EnterKey = (props: EnterKeyProps) => (
       </Box2>
       <InfoNote>
         <Box2 direction="vertical" fullWidth={true}>
-          <Text type="BodySmall" style={styles.textCenter}>
+          <Text type="BodySmall" lineClamp={1} style={styles.textCenter}>
             Example: SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
           </Text>
           <Text type="BodySmall" style={styles.textCenter}>
@@ -111,7 +111,7 @@ const EnterName = (props: EnterNameProps) => (
         <Input
           hideLabel={true}
           hideUnderline={true}
-          inputStyle={styles.inputElement}
+          inputStyle={collapseStyles([styles.inputElement, styles.tallSingleLineInput])}
           style={styles.input}
           value={props.name}
           onChangeText={props.onNameChange}
@@ -145,14 +145,24 @@ const styles = styleSheetCreate({
   inputContainer: {
     alignItems: 'flex-start',
   },
-  inputElement: {
-    borderColor: globalColors.black_10,
-    borderRadius: 4,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    padding: globalMargins.xtiny,
-    textAlign: 'left',
-  },
+  inputElement: platformStyles({
+    common: {
+      borderColor: globalColors.black_10,
+      borderRadius: 4,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      padding: globalMargins.xtiny,
+      textAlign: 'left',
+    },
+    isMobile: {minWidth: '100%', paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.xtiny},
+  }),
+  tallSingleLineInput: platformStyles({
+    isMobile: {
+      minHeight: 32,
+      paddingBottom: 0,
+      paddingTop: 0,
+    },
+  }),
   textCenter: {textAlign: 'center'},
 })
 
