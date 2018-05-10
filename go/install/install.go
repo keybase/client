@@ -214,8 +214,11 @@ func defaultLinkPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	linkPath := filepath.Join("/usr/local/bin", keybaseName)
-	return linkPath, nil
+
+	if runtime.GOOS == "darwin" {
+		return filepath.Join("/Applications/Keybase.app/Contents/SharedSupport/bin", keybaseName), nil
+	}
+	return filepath.Join("/usr/local/bin", keybaseName), nil
 }
 
 func uninstallLink(linkPath string, log Log) error {
