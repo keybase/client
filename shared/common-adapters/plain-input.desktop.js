@@ -10,6 +10,8 @@ type State = {
   value: string,
 }
 
+// A plain text input component. Handles callbacks, text styling, and auto resizing but
+// adds no styling
 class PlainInput extends React.PureComponent<Props, State> {
   state: State
   _input: HTMLTextAreaElement | HTMLInputElement | null

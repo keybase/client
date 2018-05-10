@@ -25,6 +25,10 @@ const load = () => {
     .add('Larger text type', () => <PlainInput {...commonProps} textType="HeaderBig" />)
     .add('Number', () => <PlainInput {...commonProps} type="number" />)
     .add('Password', () => <PlainInput {...commonProps} type="password" />)
+    .add('Multiline', () => <PlainInput {...commonProps} multiline={true} />)
+    .add('Multiline with row constraints', () => (
+      <PlainInput {...commonProps} multiline={true} rowsMin={4} rowsMax={8} />
+    ))
     .add('Flexable', () => (
       <Box2 direction="vertical" fullWidth={true} gap="medium">
         <Box2
