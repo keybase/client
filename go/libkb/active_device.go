@@ -16,24 +16,42 @@ type ActiveDevice struct {
 	signingKey    GenericKey   // cached secret signing key
 	encryptionKey GenericKey   // cached secret encryption key
 	nistFactory   *NISTFactory // Non-Interactive Session Token
+	secretSyncer  *SecretSyncer
 	sync.RWMutex
+}
+
+// NewProvisionalActiveDevice creates an ActiveDevice that is "provisional", in that it
+// should not be considered the global ActiveDevice. Instead, it should reside in thread-local
+// context, and can be weaved through the login machinery without trampling the actual global
+// ActiveDevice.
+func NewProvisionalActiveDevice(m MetaContext, u keybase1.UID, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) *ActiveDevice {
+	return &ActiveDevice{
+		uid:           u,
+		deviceID:      d,
+		deviceName:    deviceName,
+		signingKey:    sigKey,
+		encryptionKey: encKey,
+		nistFactory:   NewNISTFactory(m.G(), u, d, sigKey),
+		secretSyncer:  NewSecretSyncer(m.G()),
+	}
 }
 
 // Set acquires the write lock and sets all the fields in ActiveDevice.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) Set(g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
+func (a *ActiveDevice) Set(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(lctx, uid, deviceID); err != nil {
+	if err := a.internalUpdateUIDDeviceID(m.LoginContext(), uid, deviceID); err != nil {
 		return err
 	}
 
 	a.signingKey = sigKey
 	a.encryptionKey = encKey
 	a.deviceName = deviceName
-	a.nistFactory = NewNISTFactory(g, uid, deviceID, sigKey)
+	a.nistFactory = NewNISTFactory(m.G(), uid, deviceID, sigKey)
+	a.secretSyncer = NewSecretSyncer(m.G())
 
 	return nil
 }
@@ -90,9 +108,9 @@ func (a *ActiveDevice) setDeviceName(lctx LoginContext, uid keybase1.UID, device
 
 // should only called by the functions in this type, with the write lock.
 func (a *ActiveDevice) internalUpdateUIDDeviceID(lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID) error {
-	if lctx == nil {
-		return errors.New("ActiveDevice.set funcs must be called from inside a LoginState account request")
-	}
+
+	// Ignore lctx
+
 	if uid.IsNil() {
 		return errors.New("ActiveDevice.set with nil uid")
 	}
@@ -116,16 +134,10 @@ func (a *ActiveDevice) Clear(acct *Account) error {
 	return a.clear(acct)
 }
 
-// clear acquires the write lock and resets all the fields to zero values.
-// The acct parameter is not used for anything except to help ensure
-// that this is called from inside a LogingState account request.
+// Clear acquires the write lock and resets all the fields to zero values.
 func (a *ActiveDevice) clear(acct *Account) error {
 	a.Lock()
 	defer a.Unlock()
-
-	if acct == nil {
-		return errors.New("ActiveDevice.clear must be called from inside a LoginState account request")
-	}
 
 	a.uid = ""
 	a.deviceID = ""
@@ -247,4 +259,18 @@ func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, err
 	defer a.RUnlock()
 	nist, err := a.nistFactory.NIST(ctx)
 	return nist, a.uid, err
+}
+
+func (a *ActiveDevice) SyncSecrets(m MetaContext) (err error) {
+	defer m.CTrace("ActiveDevice#SyncSecrets", func() error { return err })()
+
+	a.RLock()
+	s := a.secretSyncer
+	uid := a.uid
+	a.RUnlock()
+
+	if s == nil {
+		return fmt.Errorf("Can't sync secrets: nil secret syncer")
+	}
+	return RunSyncer(s, uid, true, nil)
 }

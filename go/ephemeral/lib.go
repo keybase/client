@@ -33,8 +33,13 @@ func NewEKLib(g *libkb.GlobalContext) *EKLib {
 	}
 }
 
+func (e *EKLib) NewMetaContext(ctx context.Context) libkb.MetaContext {
+	return libkb.NewMetaContext(ctx, e.G())
+}
+
 func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
-	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithLoginContext(ctx, e.G(), nil); err != nil {
+	m := e.NewMetaContext(ctx)
+	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithMetaContext(m); err != nil {
 		return err
 	} else if !loggedIn {
 		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
@@ -44,7 +49,7 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := pukring.Sync(ctx); err != nil {
+	if err := pukring.Sync(m); err != nil {
 		return err
 	}
 	if !pukring.HasAnyKeys() {

@@ -24,7 +24,11 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
-import {showMainWindow, saveAttachmentDialog, downloadAndShowShareActionSheet} from '../platform-specific'
+import {
+  showMainWindow,
+  saveAttachmentToCameraRoll,
+  downloadAndShowShareActionSheet,
+} from '../platform-specific'
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
@@ -1791,10 +1795,10 @@ function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSa
   }
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield Saga.call(saveAttachmentDialog, message.fileURL)
+    yield Saga.call(saveAttachmentToCameraRoll, message.fileURL, message.fileType)
   } catch (err) {
-    logger.info('Failed to save attachment: ' + err)
-    throw new Error('Save attachment failed. Enable photo access in privacy settings.')
+    logger.error('Failed to save attachment: ' + err)
+    throw new Error('Failed to save attachment: ' + err)
   }
 }
 

@@ -1049,7 +1049,7 @@ func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string
 func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageSummary, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, chat1.ConversationErrorType, error) {
 
-	st := storage.New(s.G())
+	st := storage.New(s.G(), s.G().ConvSource)
 	res, err := st.FetchMessages(ctx, convID, uid, utils.PluckMessageIDs(msgs))
 	if err != nil {
 		// Just say we didn't find it in this case

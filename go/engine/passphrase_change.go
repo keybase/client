@@ -24,7 +24,7 @@ type PassphraseChange struct {
 
 // NewPassphraseChange creates a new engine for changing user passphrases,
 // either if the current passphrase is known, or in "force" mode
-func NewPassphraseChange(a *keybase1.PassphraseChangeArg, g *libkb.GlobalContext) *PassphraseChange {
+func NewPassphraseChange(g *libkb.GlobalContext, a *keybase1.PassphraseChangeArg) *PassphraseChange {
 	return &PassphraseChange{
 		arg:          a,
 		Contextified: libkb.NewContextified(g),
@@ -60,14 +60,14 @@ func (c *PassphraseChange) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run the engine
-func (c *PassphraseChange) Run(ctx *Context) (err error) {
-	c.G().Log.Debug("+ PassphraseChange.Run")
+func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
+
+	defer m.CTrace("PassphraseChange#Run", func() error { return err })()
 	defer func() {
-		c.G().Log.Debug("- PassphraseChange.Run -> %s", libkb.ErrToOk(err))
-		c.G().SKBKeyringMu.Unlock()
+		m.G().SKBKeyringMu.Unlock()
 	}()
-	c.G().SKBKeyringMu.Lock()
-	c.G().Log.Debug("| Acquired SKBKeyringMu mutex")
+	m.G().SKBKeyringMu.Lock()
+	m.CDebugf("| Acquired SKBKeyringMu mutex")
 
 	if len(c.arg.Passphrase) < libkb.MinPassphraseLength {
 		return libkb.PassphraseError{Msg: "too short"}
@@ -77,37 +77,37 @@ func (c *PassphraseChange) Run(ctx *Context) (err error) {
 		return
 	}
 
-	c.G().LoginState().RunSecretSyncer(c.me.GetUID())
+	m.G().LoginState().RunSecretSyncer(c.me.GetUID())
 
 	if c.arg.Force {
-		err = c.runForcedUpdate(ctx)
+		err = c.runForcedUpdate(m)
 	} else {
-		err = c.runStandardUpdate(ctx)
+		err = c.runStandardUpdate(m)
 	}
 
 	if err == nil {
-		c.G().LoginState().RunSecretSyncer(c.me.GetUID())
+		m.G().LoginState().RunSecretSyncer(c.me.GetUID())
 	}
 
 	return
 }
 
 // findDeviceKeys looks for device keys and unlocks them.
-func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
-	return findDeviceKeys(ctx, c, c.me)
+func (c *PassphraseChange) findDeviceKeys(m libkb.MetaContext) (*keypair, error) {
+	return findDeviceKeys(m, c.me)
 }
 
 // findPaperKeys checks if the user has paper keys.  If he/she
 // does, it prompts for a paper key phrase.  This is used to
 // regenerate paper keys, which are then matched against the
 // paper keys found in the keyfamily.
-func (c *PassphraseChange) findPaperKeys(ctx *Context) (*keypair, error) {
-	kp, err := findPaperKeys(ctx, c.G(), c.me)
+func (c *PassphraseChange) findPaperKeys(m libkb.MetaContext) (*keypair, error) {
+	kp, err := findPaperKeys(m, c.me)
 	if err != nil {
-		c.G().Log.Debug("findPaperKeys error: %s", err)
+		m.CDebugf("findPaperKeys error: %s", err)
 		return nil, err
 	}
-	c.G().Log.Debug("findPaperKeys success")
+	m.CDebugf("findPaperKeys success")
 	c.usingPaper = true
 	return kp, nil
 }
@@ -116,19 +116,19 @@ func (c *PassphraseChange) findPaperKeys(ctx *Context) (*keypair, error) {
 // The first choice is device keys.  If that fails, it will look
 // for backup keys.  If backup keys are necessary, then it will
 // also log the user in with the backup keys.
-func (c *PassphraseChange) findUpdateKeys(ctx *Context) (*keypair, error) {
-	kp, err := c.findDeviceKeys(ctx)
+func (c *PassphraseChange) findUpdateKeys(m libkb.MetaContext) (*keypair, error) {
+	kp, err := c.findDeviceKeys(m)
 	if err == nil {
 		return kp, nil
 	}
 
-	kp, err = c.findPaperKeys(ctx)
+	kp, err = c.findPaperKeys(m)
 	if err != nil {
 		return nil, err
 	}
 
 	// log in with backup keys
-	err = c.G().LoginState().LoginWithKey(ctx.LoginContext, c.me, kp.sigKey, nil)
+	err = c.G().LoginState().LoginWithKey(m, c.me, kp.sigKey, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -136,22 +136,23 @@ func (c *PassphraseChange) findUpdateKeys(ctx *Context) (*keypair, error) {
 	return kp, nil
 }
 
-func (c *PassphraseChange) forceUpdatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf libkb.LKSecClientHalf) error {
+func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf libkb.LKSecClientHalf) error {
 	// Don't update server-synced pgp keys when recovering.
 	// This will render any server-synced pgp keys unrecoverable from the server.
 	// TODO would it responsible to ask the server to delete them?
-	pgpKeys, nPgpKeysLost, err := c.findAndDecryptPrivatePGPKeysLossy(ctx)
+	pgpKeys, nPgpKeysLost, err := c.findAndDecryptPrivatePGPKeysLossy(m)
 	if err != nil {
 		return err
 	}
 
 	if nPgpKeysLost > 0 {
-		c.G().Log.Debug("PassphraseChange.runForcedUpdate: Losing %v synced keys", nPgpKeysLost)
+		m.CDebugf("PassphraseChange.runForcedUpdate: Losing %v synced keys", nPgpKeysLost)
 	}
 
 	var acctErr error
 	c.G().LoginState().Account(func(a *libkb.Account) {
 		// Ready the update argument; almost done, but we need some more stuff.
+		m = m.WithLoginContext(a)
 		payload, err := c.commonArgs(a, oldClientHalf, pgpKeys, ppGen)
 		if err != nil {
 			acctErr = err
@@ -215,51 +216,46 @@ func (c *PassphraseChange) forceUpdatePassphrase(ctx *Context, sigKey libkb.Gene
 // 2. If necessary, log in with backup keys
 // 3. Get lks client half from server
 // 4. Post an update passphrase proof
-func (c *PassphraseChange) runForcedUpdate(ctx *Context) (err error) {
-	c.G().Log.Debug("+ PassphraseChange.runForcedUpdate")
-	defer func() {
-		c.G().Log.Debug("- PassphraseChange.runForcedUpdate -> %s", libkb.ErrToOk(err))
-	}()
+func (c *PassphraseChange) runForcedUpdate(m libkb.MetaContext) (err error) {
+	defer m.CTrace("PassphraseChange#runForcedUpdate", func() error { return err })()
 
-	kp, err := c.findUpdateKeys(ctx)
+	kp, err := c.findUpdateKeys(m)
 	if err != nil {
 		return
 	}
 	if kp == nil {
 		return libkb.NoSecretKeyError{}
 	}
-	ppGen, oldClientHalf, err := fetchLKS(ctx, c.G(), kp.encKey)
+	ppGen, oldClientHalf, err := fetchLKS(m, kp.encKey)
 	if err != nil {
 		return
 	}
 
-	return c.forceUpdatePassphrase(ctx, kp.sigKey, ppGen, oldClientHalf)
+	return c.forceUpdatePassphrase(m, kp.sigKey, ppGen, oldClientHalf)
 }
 
 // runStandardUpdate is for when the user knows the current password.
-func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
+func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 
-	c.G().Log.Debug("+ PassphraseChange.runStandardUpdate")
-	defer func() {
-		c.G().Log.Debug("- PassphraseChange.runStandardUpdate -> %s", libkb.ErrToOk(err))
-	}()
+	defer m.CTrace("PassphraseChange.runStandardUpdate", func() error { return err })()
 
 	if len(c.arg.OldPassphrase) == 0 {
-		err = c.getVerifiedPassphraseHash(ctx)
+		err = c.getVerifiedPassphraseHash(m)
 	} else {
-		err = c.verifySuppliedPassphrase(ctx)
+		err = c.verifySuppliedPassphrase(m)
 	}
 	if err != nil {
 		return err
 	}
 
-	pgpKeys, err := c.findAndDecryptPrivatePGPKeys(ctx)
+	pgpKeys, err := c.findAndDecryptPrivatePGPKeys(m)
 	if err != nil {
 		return err
 	}
 
 	var acctErr error
 	c.G().LoginState().Account(func(a *libkb.Account) {
+		m = m.WithLoginContext(a)
 		gen := a.PassphraseStreamCache().PassphraseStream().Generation()
 		oldClientHalf := a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
 
@@ -269,7 +265,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 			return
 		}
 
-		lp, err := libkb.ComputeLoginPackage(a, "")
+		lp, err := libkb.ComputeLoginPackage(m, "")
 		if err != nil {
 			acctErr = err
 			return
@@ -371,29 +367,29 @@ func (c *PassphraseChange) loadMe() (err error) {
 	return
 }
 
-func (c *PassphraseChange) getVerifiedPassphraseHash(ctx *Context) (err error) {
-	c.ppStream, err = c.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+func (c *PassphraseChange) getVerifiedPassphraseHash(m libkb.MetaContext) (err error) {
+	c.ppStream, err = c.G().LoginState().GetPassphraseStream(m, m.UIs().SecretUI)
 	return
 }
 
-func (c *PassphraseChange) verifySuppliedPassphrase(ctx *Context) (err error) {
-	c.ppStream, err = c.G().LoginState().VerifyPlaintextPassphrase(c.arg.OldPassphrase, nil)
+func (c *PassphraseChange) verifySuppliedPassphrase(m libkb.MetaContext) (err error) {
+	c.ppStream, err = c.G().LoginState().VerifyPlaintextPassphrase(m, c.arg.OldPassphrase, nil)
 	return
 }
 
 // findAndDecryptPrivatePGPKeys gets the user's private pgp keys if any exist and decrypts them.
-func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.GenericKey, error) {
+func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(m libkb.MetaContext) ([]libkb.GenericKey, error) {
 
 	var keyList []libkb.GenericKey
 
 	// Using a paper key makes TripleSec-synced keys unrecoverable
 	if c.usingPaper {
-		c.G().Log.Debug("using a paper key, thus TripleSec-synced keys are unrecoverable")
+		m.CDebugf("using a paper key, thus TripleSec-synced keys are unrecoverable")
 		return keyList, nil
 	}
 
 	// Only use the synced secret keys:
-	blocks, err := c.me.AllSyncedSecretKeys(ctx.LoginContext)
+	blocks, err := c.me.AllSyncedSecretKeys(m.LoginContext())
 	if err != nil {
 		return nil, err
 	}
@@ -401,8 +397,8 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 	secretRetriever := libkb.NewSecretStore(c.G(), c.me.GetNormalizedName())
 
 	for _, block := range blocks {
-		parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "passphrase change")
-		key, err := block.PromptAndUnlock(parg, secretRetriever, c.me)
+		parg := m.SecretKeyPromptArg(libkb.SecretKeyArg{}, "passphrase change")
+		key, err := block.PromptAndUnlock(m, parg, secretRetriever, c.me)
 		if err != nil {
 			return nil, err
 		}
@@ -415,13 +411,13 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 // findAndDecryptPrivatePGPKeysLossy gets the user's private pgp keys if any exist and attempts
 // to decrypt them without prompting the user. If any fail to decrypt, they are silently not returned.
 // The second return value is the number of keys which were not decrypted.
-func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(ctx *Context) ([]libkb.GenericKey, int, error) {
+func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(m libkb.MetaContext) ([]libkb.GenericKey, int, error) {
 
 	var keyList []libkb.GenericKey
 	nLost := 0
 
 	// Only use the synced secret keys:
-	blocks, err := c.me.AllSyncedSecretKeys(ctx.LoginContext)
+	blocks, err := c.me.AllSyncedSecretKeys(m.LoginContext())
 	if err != nil {
 		return nil, 0, err
 	}
@@ -429,7 +425,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(ctx *Context) ([]li
 	secretRetriever := libkb.NewSecretStore(c.G(), c.me.GetNormalizedName())
 
 	for _, block := range blocks {
-		key, err := block.UnlockNoPrompt(ctx.LoginContext, secretRetriever)
+		key, err := block.UnlockNoPrompt(m, secretRetriever)
 		if err == nil {
 			keyList = append(keyList, key)
 		} else {
@@ -437,7 +433,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(ctx *Context) ([]li
 				return nil, 0, err
 			}
 			nLost++
-			c.G().Log.Debug("findAndDecryptPrivatePGPKeysLossy: ignoring failure to decrypt key without prompt")
+			m.CDebugf("findAndDecryptPrivatePGPKeysLossy: ignoring failure to decrypt key without prompt")
 		}
 	}
 

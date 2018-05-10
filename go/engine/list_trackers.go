@@ -18,7 +18,7 @@ type ListTrackersEngine struct {
 }
 
 // NewListTrackers creates a TrackerList engine for uid.
-func NewListTrackers(uid keybase1.UID, g *libkb.GlobalContext) *ListTrackersEngine {
+func NewListTrackers(g *libkb.GlobalContext, uid keybase1.UID) *ListTrackersEngine {
 	return &ListTrackersEngine{
 		uid:          uid,
 		Contextified: libkb.NewContextified(g),
@@ -60,11 +60,11 @@ func (e *ListTrackersEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *ListTrackersEngine) Run(ctx *Context) error {
-	if err := e.ensureUID(); err != nil {
+func (e *ListTrackersEngine) Run(m libkb.MetaContext) error {
+	if err := e.ensureUID(m); err != nil {
 		return err
 	}
-	ts := libkb.NewTrackerSyncer(e.uid, e.G())
+	ts := libkb.NewTrackerSyncer(e.uid, m.G())
 	if err := libkb.RunSyncer(ts, e.uid, false, nil); err != nil {
 		return err
 	}
@@ -87,18 +87,18 @@ func (e *ListTrackersEngine) ExportedList() (ret []keybase1.Tracker) {
 	return
 }
 
-func (e *ListTrackersEngine) ensureUID() error {
+func (e *ListTrackersEngine) ensureUID(m libkb.MetaContext) error {
 	if e.uid.Exists() {
 		return nil
 	}
 	if len(e.username) == 0 {
-		e.uid = e.G().GetMyUID()
+		e.uid = m.G().GetMyUID()
 		return nil
 	}
 
-	arg := libkb.NewLoadUserByNameArg(e.G(), e.username)
+	arg := libkb.NewLoadUserByNameArg(m.G(), e.username)
 	var err error
-	err = e.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
+	err = m.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
 		e.uid = user.GetUID()
 		return nil
 	})

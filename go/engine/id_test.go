@@ -21,13 +21,14 @@ func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, 
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 	}
 
 	eng := NewResolveThenIdentify2(tc.G, &arg)
-	err = RunEngine(eng, &ctx)
+	m := NewMetaContextForTest(*tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		return idUI, nil, err
 	}
@@ -153,13 +154,14 @@ func TestIdPGPNotEldest(t *testing.T) {
 
 	// create new user, then add pgp key
 	u := CreateAndSignupFakeUser(tc, "login")
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: u.NewSecretUI()}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: u.NewSecretUI()}
 	_, _, key := armorKey(t, tc, u.Email)
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 

@@ -13,18 +13,16 @@ func TestSearch(t *testing.T) {
 	tc := SetupEngineTest(t, "btc")
 	defer tc.Cleanup()
 
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
+	m := NewMetaContextForTestWithLogUI(tc)
 	// This twitter handle is used by t_alice and t_charlie.
-	e := NewSearchEngine(SearchEngineArgs{
+	e := NewSearchEngine(tc.G, SearchEngineArgs{
 		Query: "tacovontaco",
 		// Asking for a lot of results hacks around the case where so many test
 		// users have been created with these identities that the search reply
 		// leaves out the ones we wanted.
 		NumWanted: 100,
-	}, tc.G)
-	err := RunEngine(e, ctx)
+	})
+	err := RunEngine2(m, e)
 	if err != nil {
 		t.Fatal(err)
 	}

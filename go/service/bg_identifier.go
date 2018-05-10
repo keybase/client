@@ -67,7 +67,7 @@ func newBackgroundIdentifier(g *libkb.GlobalContext, cg *globals.ChatContext, u 
 
 	go func() {
 		eng.SetSnooperChannel(sch)
-		err := engine.RunEngine(eng, &engine.Context{NetContext: context.Background()})
+		err := engine.RunEngine2(libkb.NewMetaContextBackground(g), eng)
 		if err != nil {
 			g.Log.Warning("Background identifier failed: %s\n", err)
 		}

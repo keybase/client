@@ -257,8 +257,8 @@ type ExternalAPIRes struct {
 
 type API interface {
 	Get(APIArg) (*APIRes, error)
-	GetResp(APIArg) (*http.Response, func(), error)
 	GetDecode(APIArg, APIResponseWrapper) error
+	GetResp(APIArg) (*http.Response, func(), error)
 	Post(APIArg) (*APIRes, error)
 	PostJSON(APIArg) (*APIRes, error)
 	PostDecode(APIArg, APIResponseWrapper) error
@@ -771,4 +771,7 @@ type ChatHelper interface {
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
+	UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
+		convID chat1.ConversationID, membersType chat1.ConversationMembersType, pushIDs []string, payload string) (string, error)
+	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
 }

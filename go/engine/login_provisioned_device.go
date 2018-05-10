@@ -50,27 +50,27 @@ func (e *LoginProvisionedDevice) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *LoginProvisionedDevice) Run(ctx *Context) error {
-	if err := e.run(ctx); err != nil {
+func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
+	if err := e.run(m); err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("LoginProvisionedDevice success, sending login notification")
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
-	e.G().Log.Debug("LoginProvisionedDevice success, calling login hooks")
-	e.G().CallLoginHooks()
+	m.CDebugf("LoginProvisionedDevice success, sending login notification")
+	m.G().NotifyRouter.HandleLogin(string(m.G().Env.GetUsername()))
+	m.CDebugf("LoginProvisionedDevice success, calling login hooks")
+	m.G().CallLoginHooks()
 
 	return nil
 }
 
-func (e *LoginProvisionedDevice) run(ctx *Context) error {
+func (e *LoginProvisionedDevice) run(m libkb.MetaContext) error {
 	// already logged in?
-	in, err := e.G().LoginState().LoggedInProvisioned(ctx.GetNetContext())
+	in, err := m.G().LoginState().LoggedInProvisioned(m.Ctx())
 	if err == nil && in {
-		if len(e.username) == 0 || e.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
+		if len(e.username) == 0 || m.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
 			// already logged in, make sure to unlock device keys
 			var partialCopy *libkb.User
-			err = e.G().GetFullSelfer().WithSelf(ctx.NetContext, func(user *libkb.User) error {
+			err = m.G().GetFullSelfer().WithSelf(m.Ctx(), func(user *libkb.User) error {
 
 				// We don't want to hold onto the full cached user during
 				// the whole `unlockDeviceKey` run below, which touches
@@ -83,53 +83,53 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 			if err != nil {
 				return err
 			}
-			return e.unlockDeviceKeys(ctx, partialCopy)
+			return e.unlockDeviceKeys(m, partialCopy)
 		}
 	}
 
 	var config *libkb.UserConfig
-	loadUserArg := libkb.NewLoadUserArg(e.G()).WithPublicKeyOptional().WithForceReload()
+	loadUserArg := libkb.NewLoadUserArg(m.G()).WithPublicKeyOptional().WithForceReload()
 	var nu libkb.NormalizedUsername
 	if len(e.username) == 0 {
-		e.G().Log.Debug("| using current username")
-		config, err = e.G().Env.GetConfig().GetUserConfig()
+		m.CDebugf("| using current username")
+		config, err = m.G().Env.GetConfig().GetUserConfig()
 		loadUserArg = loadUserArg.WithSelf(true)
 	} else {
-		e.G().Log.Debug("| using new username %s", e.username)
+		m.CDebugf("| using new username %s", e.username)
 		nu = libkb.NewNormalizedUsername(e.username)
-		config, err = e.G().Env.GetConfig().GetUserConfigForUsername(nu)
+		config, err = m.G().Env.GetConfig().GetUserConfigForUsername(nu)
 		loadUserArg = loadUserArg.WithName(e.username)
 	}
 	if err != nil {
-		e.G().Log.Debug("error getting user config: %s (%T)", err, err)
+		m.CDebugf("error getting user config: %s (%T)", err, err)
 		return errNoConfig
 	}
 	if config == nil {
-		e.G().Log.Debug("user config is nil")
+		m.CDebugf("user config is nil")
 		return errNoConfig
 	}
 	deviceID := config.GetDeviceID()
 	if deviceID.IsNil() {
-		e.G().Log.Debug("no device in user config")
+		m.CDebugf("no device in user config")
 		return errNoDevice
 	}
 
 	// Make sure the device ID is still valid.
 	me, err := libkb.LoadUser(loadUserArg)
 	if err != nil {
-		e.G().Log.Debug("error loading user profile: %#v", err)
+		m.CDebugf("error loading user profile: %#v", err)
 		return err
 	}
 	if !me.HasDeviceInCurrentInstall(deviceID) {
-		e.G().Log.Debug("current device is not valid")
+		m.CDebugf("current device is not valid")
 
 		// If our config file is showing that we have a bogus
 		// deviceID (maybe from our account before an account reset),
 		// then we'll delete it from the config file here, so later parts
 		// of provisioning aren't confused by this device ID.
-		err := e.G().Env.GetConfigWriter().NukeUser(nu)
+		err := m.G().Env.GetConfigWriter().NukeUser(nu)
 		if err != nil {
-			e.G().Log.Warning("Error clearing user config: %s", err)
+			m.CWarningf("Error clearing user config: %s", err)
 		}
 		return errNoDevice
 	}
@@ -142,44 +142,44 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 	// just login normally.
 
 	var afterLogin = func(lctx libkb.LoginContext) error {
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+		if err := lctx.LocalSession().SetDeviceProvisioned(m.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
-			e.G().Log.Warning("error saving session file: %s", err)
+			m.CWarningf("error saving session file: %s", err)
 		}
 		return nil
 	}
 
 	if e.SecretStoreOnly {
-		if err := e.G().LoginState().LoginWithStoredSecret(e.username, afterLogin); err != nil {
+		if err := m.G().LoginState().LoginWithStoredSecret(m, e.username, afterLogin); err != nil {
 			return err
 		}
 
 	} else {
-		if err := e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin); err != nil {
+		if err := m.G().LoginState().LoginWithPrompt(m, e.username, m.UIs().LoginUI, m.UIs().SecretUI, afterLogin); err != nil {
 			return err
 		}
 	}
 
 	// login was successful, unlock the device keys
-	err = e.unlockDeviceKeys(ctx, me)
+	err = e.unlockDeviceKeys(m, me)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (e *LoginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
+func (e *LoginProvisionedDevice) unlockDeviceKeys(m libkb.MetaContext, me *libkb.User) error {
 
 	// CORE-5876 idea that lksec will be unusable if reachability state is NO
 	// and the user changed passphrase with a different device since it won't
 	// be able to sync the new server half.
-	if e.G().ConnectivityMonitor.IsConnected(ctx.NetContext) != libkb.ConnectivityMonitorYes {
-		e.G().Log.Debug("LoginProvisionedDevice: in unlockDeviceKeys, ConnectivityMonitor says not reachable, check to make sure")
-		if err := e.G().ConnectivityMonitor.CheckReachability(ctx.NetContext); err != nil {
-			e.G().Log.Debug("error checking reachability: %s", err)
+	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) != libkb.ConnectivityMonitorYes {
+		m.CDebugf("LoginProvisionedDevice: in unlockDeviceKeys, ConnectivityMonitor says not reachable, check to make sure")
+		if err := m.G().ConnectivityMonitor.CheckReachability(m.Ctx()); err != nil {
+			m.CDebugf("error checking reachability: %s", err)
 		} else {
-			connected := e.G().ConnectivityMonitor.IsConnected(ctx.NetContext)
-			e.G().Log.Debug("after CheckReachability(), IsConnected() => %v (connected? %v)", connected, connected == libkb.ConnectivityMonitorYes)
+			connected := m.G().ConnectivityMonitor.IsConnected(m.Ctx())
+			m.CDebugf("after CheckReachability(), IsConnected() => %v (connected? %v)", connected, connected == libkb.ConnectivityMonitorYes)
 		}
 	}
 
@@ -187,12 +187,12 @@ func (e *LoginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) 
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	_, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	_, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "unlock device keys"))
 	if err != nil {
 		return err
 	}
 	ska.KeyType = libkb.DeviceEncryptionKeyType
-	_, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	_, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "unlock device keys"))
 	if err != nil {
 		return err
 	}

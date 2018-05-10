@@ -1351,6 +1351,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-skull-64.png'),
   },
+  'icon-stellar-coins-flying-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-stellar-coins-flying-48.png'),
+  },
   'icon-team-git-16': {
     isFont: false,
     extension: 'png',

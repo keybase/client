@@ -48,18 +48,18 @@ func (e *DeprovisionEngine) SubConsumers() []libkb.UIConsumer {
 // This function anticipates some error cases (particularly that the device may
 // be already revoked), but it will still return an error if something
 // unexpected goes wrong.
-func (e *DeprovisionEngine) attemptLoggedInRevoke(ctx *Context) error {
-	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "DeprovisionEngine")
-	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "DeprovisionEngine")
+func (e *DeprovisionEngine) attemptLoggedInRevoke(m libkb.MetaContext) error {
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "DeprovisionEngine")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "DeprovisionEngine")
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {
-		e.G().Log.Debug("DeprovisionEngine error loading current user: %s", err)
+		m.CDebugf("DeprovisionEngine error loading current user: %s", err)
 		return err
 	}
 	nun := me.GetNormalizedName()
 
-	keys, err := me.GetComputedKeyFamily().GetAllActiveKeysForDevice(e.G().Env.GetDeviceIDForUsername(nun))
+	keys, err := me.GetComputedKeyFamily().GetAllActiveKeysForDevice(m.G().Env.GetDeviceIDForUsername(nun))
 	if err != nil {
 		e.G().Log.Debug("DeprovisionEngine error loading keys for current device: %s", err)
 		return err
@@ -68,32 +68,32 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(ctx *Context) error {
 	// If there are no keys to revoke, it's likely the device has already been
 	// revoked. We still need to log out below though.
 	if len(keys) == 0 {
-		ctx.LogUI.Warning("No active keys to revoke.")
+		m.UIs().LogUI.Warning("No active keys to revoke.")
 	} else {
 		// Do the revoke. We expect this to succeed.
 		revokeArg := RevokeDeviceEngineArgs{
-			ID:        e.G().Env.GetDeviceIDForUsername(nun),
+			ID:        m.G().Env.GetDeviceIDForUsername(nun),
 			ForceSelf: true,
 			ForceLast: true,
 		}
-		revokeEng := NewRevokeDeviceEngine(revokeArg, e.G())
-		err = revokeEng.Run(ctx)
+		revokeEng := NewRevokeDeviceEngine(m.G(), revokeArg)
+		err = revokeEng.Run(m)
 		if err != nil {
-			e.G().Log.Debug("DeprovisionEngine error during revoke: %s", err)
+			m.CDebugf("DeprovisionEngine error during revoke: %s", err)
 			return err
 		}
 	}
 
-	ctx.LogUI.Info("Logging out...")
-	if err = e.G().Logout(); err != nil {
-		e.G().Log.Debug("DeprovisionEngine error during logout: %s", err)
+	m.UIs().LogUI.Info("Logging out...")
+	if err = m.G().Logout(); err != nil {
+		m.CDebugf("DeprovisionEngine error during logout: %s", err)
 		return err
 	}
 
 	return nil
 }
 
-func (e *DeprovisionEngine) Run(ctx *Context) (err error) {
+func (e *DeprovisionEngine) Run(m libkb.MetaContext) (err error) {
 	// Deprovision steps
 	// =================
 	// 1. If the user is logged in:
@@ -104,38 +104,40 @@ func (e *DeprovisionEngine) Run(ctx *Context) (err error) {
 	// 4. Db nuke.
 
 	if e.doRevoke {
-		err = e.attemptLoggedInRevoke(ctx)
+		err = e.attemptLoggedInRevoke(m)
 		if err != nil {
 			return
 		}
 	}
 
-	if clearSecretErr := libkb.ClearStoredSecret(e.G(), e.username); clearSecretErr != nil {
-		e.G().Log.Warning("ClearStoredSecret error: %s", clearSecretErr)
+	logui := m.UIs().LogUI
+
+	if clearSecretErr := libkb.ClearStoredSecret(m.G(), e.username); clearSecretErr != nil {
+		m.CWarningf("ClearStoredSecret error: %s", clearSecretErr)
 	}
 
 	// XXX: Delete the user's secret keyring. It's very important that we never
 	// do this to the wrong user. Please do not copy this code :)
-	ctx.LogUI.Info("Deleting %s's secret keys file...", e.username.String())
-	filename := e.G().SKBFilenameForUser(e.username)
+	logui.Info("Deleting %s's secret keys file...", e.username.String())
+	filename := m.G().SKBFilenameForUser(e.username)
 	err = libkb.ShredFile(filename)
 	if err != nil {
 		return fmt.Errorf("Failed to delete secret key file: %s", err)
 	}
 
-	ctx.LogUI.Info("Deleting %s from config.json...", e.username.String())
-	if err = e.G().Env.GetConfigWriter().NukeUser(e.username); err != nil {
+	logui.Info("Deleting %s from config.json...", e.username.String())
+	if err = m.G().Env.GetConfigWriter().NukeUser(e.username); err != nil {
 		return
 	}
 
 	// The config entries we just nuked could still be in memory. Clear them.
-	e.G().Env.GetConfigWriter().SetUserConfig(nil, true /* overwrite; ignored */)
+	m.G().Env.GetConfigWriter().SetUserConfig(nil, true /* overwrite; ignored */)
 
-	ctx.LogUI.Info("Clearing the local cache db...")
-	if _, err = e.G().LocalDb.Nuke(); err != nil {
+	logui.Info("Clearing the local cache db...")
+	if _, err = m.G().LocalDb.Nuke(); err != nil {
 		return
 	}
 
-	ctx.LogUI.Info("Deprovision finished.")
+	logui.Info("Deprovision finished.")
 	return
 }

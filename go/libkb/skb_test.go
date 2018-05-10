@@ -88,7 +88,7 @@ func makeTestSKB(t *testing.T, lks *LKSec, g *GlobalContext) *SKB {
 		t.Fatal(err)
 	}
 
-	skb, err := lks.ToSKB(NewGeneratedPGPKeyBundle(entity))
+	skb, err := lks.ToSKB(NewMetaContextTODO(g), NewGeneratedPGPKeyBundle(entity))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func testPromptAndUnlock(t *testing.T, skb *SKB) {
 	if ss == nil {
 		t.Fatal("NewSecretStore returned nil")
 	}
-	key, err := skb.PromptAndUnlock(parg, ss, nil)
+	key, err := skb.PromptAndUnlock(NewMetaContextTODO(skb.G()), parg, ss, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +138,7 @@ func TestBasicSecretStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	lks := makeTestLKSec(t, tc.G)
-	expectedSecret, err := lks.GetSecret(nil)
+	expectedSecret, err := lks.GetSecret(NewMetaContextTODO(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +168,7 @@ func TestCorruptSecretStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	lks := makeTestLKSec(t, tc.G)
-	expectedSecret, err := lks.GetSecret(nil)
+	expectedSecret, err := lks.GetSecret(NewMetaContextTODO(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -268,7 +268,7 @@ func TestPromptCancelCache(t *testing.T) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "passphrase"},
 	}
-	key, err := skb.PromptAndUnlock(parg, NewSecretStore(tc.G, "testusername"), nil)
+	key, err := skb.PromptAndUnlock(NewMetaContextTODO(tc.G), parg, NewSecretStore(tc.G, "testusername"), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -283,7 +283,7 @@ func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 		SecretUI:       ui,
 		UseCancelCache: true,
 	}
-	key, err := skb.PromptAndUnlock(parg, NewSecretStore(skb.G(), "testusername"), nil)
+	key, err := skb.PromptAndUnlock(NewMetaContextTODO(skb.G()), parg, NewSecretStore(skb.G(), "testusername"), nil)
 	if err == nil {
 		t.Fatal("PromptAndUnlock returned nil error")
 	}

@@ -12,9 +12,6 @@ package engine
 
 import (
 	"fmt"
-
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -37,7 +34,7 @@ type GPGImportKeyEngine struct {
 	libkb.Contextified
 }
 
-func NewGPGImportKeyEngine(arg *GPGImportKeyArg, g *libkb.GlobalContext) *GPGImportKeyEngine {
+func NewGPGImportKeyEngine(g *libkb.GlobalContext, arg *GPGImportKeyArg) *GPGImportKeyEngine {
 	return &GPGImportKeyEngine{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -69,7 +66,7 @@ func (e *GPGImportKeyEngine) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
+func (e *GPGImportKeyEngine) WantsGPG(m libkb.MetaContext) (bool, error) {
 	gpg := e.G().GetGpgClient()
 	canExec, err := gpg.CanExec()
 	if err != nil {
@@ -91,14 +88,14 @@ func (e *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
 		return false, nil
 	}
 
-	res, err := ctx.GPGUI.WantToAddGPGKey(context.TODO(), 0)
+	res, err := m.UIs().GPGUI.WantToAddGPGKey(m.Ctx(), 0)
 	if err != nil {
 		return false, err
 	}
 	return res, nil
 }
 
-func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
+func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 	gpg := e.G().GetGpgClient()
 
 	me := e.arg.Me
@@ -138,11 +135,11 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return fmt.Errorf("No PGP keys available to choose from.")
 	}
 
-	res, err := ctx.GPGUI.SelectKeyAndPushOption(context.TODO(), keybase1.SelectKeyAndPushOptionArg{Keys: gks})
+	res, err := m.UIs().GPGUI.SelectKeyAndPushOption(m.Ctx(), keybase1.SelectKeyAndPushOptionArg{Keys: gks})
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("SelectKey result: %+v", res)
+	m.CDebugf("SelectKey result: %+v", res)
 
 	var selected *libkb.GpgPrimaryKey
 	for _, key := range index.Keys {
@@ -166,7 +163,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	}
 	if duplicate && !e.arg.OnlyImport {
 		// This key's already been posted to the server.
-		res, err := ctx.GPGUI.ConfirmDuplicateKeyChosen(context.TODO(), 0)
+		res, err := m.UIs().GPGUI.ConfirmDuplicateKeyChosen(m.Ctx(), 0)
 		if err != nil {
 			return err
 		}
@@ -175,16 +172,16 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		}
 		// We're sending a key update, then.
 		fp := fmt.Sprintf("%s", *(selected.GetFingerprint()))
-		eng := NewPGPUpdateEngine([]string{fp}, false, e.G())
-		err = RunEngine(eng, ctx)
+		eng := NewPGPUpdateEngine(e.G(), []string{fp}, false)
+		err = RunEngine2(m, eng)
 		e.duplicatedFingerprints = eng.duplicatedFingerprints
 
 		return err
 	}
 
-	tty, err := ctx.GPGUI.GetTTY(ctx.NetContext)
+	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
 	if err != nil {
-		e.G().Log.Warning("error getting TTY for GPG: %s", err)
+		m.CWarningf("error getting TTY for GPG: %s", err)
 		err = nil
 	}
 
@@ -208,15 +205,14 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 			return PGPImportStubbedError{KeyIDString: selected.GetFingerprint().ToKeyID()}
 		}
 
-		if err := bundle.Unlock(e.G(), "Import of key into Keybase keyring", ctx.SecretUI); err != nil {
+		if err := bundle.Unlock(m, "Import of key into Keybase keyring", m.UIs().SecretUI); err != nil {
 			return err
 		}
 	}
 
-	e.G().Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
+	m.CDebugf("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
 
-	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
-		Ctx:         e.G(),
+	eng := NewPGPKeyImportEngine(m.G(), PGPKeyImportEngineArg{
 		Pregen:      bundle,
 		SigningKey:  e.arg.Signer,
 		Me:          me,
@@ -227,7 +223,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		GPGFallback: true,
 	})
 
-	if err = RunEngine(eng, ctx); err != nil {
+	if err = RunEngine2(m, eng); err != nil {
 
 		// It's important to propagate a CanceledError unmolested,
 		// since the UI needs to know that. See:
@@ -238,7 +234,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	e.G().Log.Info("Key %s imported", selected.GetFingerprint().ToKeyID())
+	m.CDebugf("Key %s imported", selected.GetFingerprint().ToKeyID())
 
 	e.last = bundle
 

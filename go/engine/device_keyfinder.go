@@ -57,10 +57,10 @@ func (e *DeviceKeyfinder) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *DeviceKeyfinder) Run(ctx *Context) (err error) {
-	defer libkb.Trace(e.G().Log, "DeviceKeyfinder::Run", func() error { return err })()
+func (e *DeviceKeyfinder) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("DeviceKeyfinder#Run", func() error { return err })()
 
-	err = e.identifyUsers(ctx)
+	err = e.identifyUsers(m)
 	if err != nil {
 		return err
 	}
@@ -73,16 +73,16 @@ func (e *DeviceKeyfinder) UsersPlusKeys() map[keybase1.UID](*keybase1.UserPlusKe
 	return e.userMap
 }
 
-func (e *DeviceKeyfinder) identifyUsers(ctx *Context) error {
+func (e *DeviceKeyfinder) identifyUsers(m libkb.MetaContext) error {
 	for _, u := range e.arg.Users {
-		if err := e.identifyUser(ctx, u); err != nil {
+		if err := e.identifyUser(m, u); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (e *DeviceKeyfinder) identifyUser(ctx *Context, user string) error {
+func (e *DeviceKeyfinder) identifyUser(m libkb.MetaContext, user string) error {
 	arg := keybase1.Identify2Arg{
 		UserAssertion: user,
 		Reason: keybase1.IdentifyReason{
@@ -91,19 +91,19 @@ func (e *DeviceKeyfinder) identifyUser(ctx *Context, user string) error {
 		AlwaysBlock:      true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
-	eng := NewResolveThenIdentify2(e.G(), &arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewResolveThenIdentify2(m.G(), &arg)
+	if err := RunEngine2(m, eng); err != nil {
 		return libkb.IdentifyFailedError{Assertion: user, Reason: err.Error()}
 	}
-	return e.addUser(eng.Result())
+	return e.addUser(m, eng.Result())
 }
 
-func (e *DeviceKeyfinder) hasUser(upk *keybase1.UserPlusKeys) bool {
+func (e *DeviceKeyfinder) hasUser(m libkb.MetaContext, upk *keybase1.UserPlusKeys) bool {
 	_, ok := e.userMap[upk.Uid]
 	return ok
 }
 
-func (e *DeviceKeyfinder) filterKeys(upk *keybase1.UserPlusKeys) error {
+func (e *DeviceKeyfinder) filterKeys(m libkb.MetaContext, upk *keybase1.UserPlusKeys) error {
 	var keys []keybase1.PublicKey
 	for _, key := range upk.DeviceKeys {
 		if len(key.PGPFingerprint) != 0 {
@@ -125,23 +125,23 @@ func (e *DeviceKeyfinder) filterKeys(upk *keybase1.UserPlusKeys) error {
 	return nil
 }
 
-func (e *DeviceKeyfinder) addUser(ir *keybase1.Identify2Res) error {
+func (e *DeviceKeyfinder) addUser(m libkb.MetaContext, ir *keybase1.Identify2Res) error {
 
 	if ir == nil {
 		return fmt.Errorf("Null result from Identify2")
 	}
 	upk := &ir.Upk
 
-	if e.hasUser(upk) {
+	if e.hasUser(m, upk) {
 		return nil
 	}
 
 	if e.arg.Self != nil && e.arg.Self.GetUID().Equal(upk.Uid) {
-		e.G().Log.Debug("skipping self in DevicekeyFinder (uid=%s)", upk.Uid)
+		m.CDebugf("skipping self in DevicekeyFinder (uid=%s)", upk.Uid)
 		return nil
 	}
 
-	if err := e.filterKeys(upk); err != nil {
+	if err := e.filterKeys(m, upk); err != nil {
 		return err
 	}
 

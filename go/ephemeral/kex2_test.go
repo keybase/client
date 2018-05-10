@@ -43,7 +43,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		// explicitly sync it.
 		keyring, err := tcX.G.GetPerUserKeyring()
 		require.NoError(t, err)
-		err = keyring.Sync(context.Background())
+		err = keyring.Sync(libkb.NewMetaContext(context.Background(), tcX.G))
 		require.NoError(t, err)
 
 		ekLib := tcX.G.GetEKLib()
@@ -88,9 +88,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 
 		f := func(lctx libkb.LoginContext) error {
 
-			ctx := &engine.Context{
-				ProvisionUI:  &kbtest.TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
-				LoginContext: lctx,
+			uis := libkb.UIs{
+				ProvisionUI: &kbtest.TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
 			}
 			deviceID, err := libkb.NewDeviceID()
 			if err != nil {
@@ -109,7 +108,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 				Type:        libkb.DeviceTypeDesktop,
 			}
 			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY)
-			if err := engine.RunEngine(provisionee, ctx); err != nil {
+			m := libkb.NewMetaContextForTest(tcY).WithUIs(uis).WithLoginContext(lctx)
+			if err := engine.RunEngine2(m, provisionee); err != nil {
 				t.Errorf("provisionee error: %s", err)
 				return err
 			}
@@ -125,13 +125,14 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		ctx := &engine.Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: &kbtest.TestProvisionUI{},
 		}
 		provisioner := engine.NewKex2Provisioner(tcX.G, secretX, nil)
 		go provisioner.AddSecret(secretY)
-		if err := engine.RunEngine(provisioner, ctx); err != nil {
+		m := libkb.NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := engine.RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}

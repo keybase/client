@@ -19,6 +19,10 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   throw new Error('Save Attachment - unsupported on this platform')
 }
 
+async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+  throw new Error('Save Attachment to camera roll - unsupported on this platform')
+}
+
 function requestPushPermissions(): Promise<*> {
   throw new Error('Push permissions unsupported on this platform')
 }
@@ -79,6 +83,7 @@ export {
   getAppState,
   setAppState,
   saveAttachmentDialog,
+  saveAttachmentToCameraRoll,
   showShareActionSheet,
   downloadAndShowShareActionSheet,
   displayNewMessageNotification,

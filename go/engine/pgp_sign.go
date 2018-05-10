@@ -45,14 +45,14 @@ func (p *PGPSignEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func NewPGPSignEngine(arg *PGPSignArg, g *libkb.GlobalContext) *PGPSignEngine {
+func NewPGPSignEngine(g *libkb.GlobalContext, arg *PGPSignArg) *PGPSignEngine {
 	return &PGPSignEngine{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (p *PGPSignEngine) Run(ctx *Context) (err error) {
+func (p *PGPSignEngine) Run(m libkb.MetaContext) (err error) {
 	var key libkb.GenericKey
 	var pgp *libkb.PGPKeyBundle
 	var ok bool
@@ -83,7 +83,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 		KeyType:  libkb.PGPKeyType,
 		KeyQuery: p.arg.Opts.KeyQuery,
 	}
-	key, err = p.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "command-line signature"))
+	key, err = p.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "command-line signature"))
 	if err != nil {
 		return
 	} else if pgp, ok = key.(*libkb.PGPKeyBundle); !ok {

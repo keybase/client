@@ -80,27 +80,28 @@ func (e *WalletInitBackground) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 // Returns immediately, kicks off a background goroutine.
-func (e *WalletInitBackground) Run(ctx *Context) (err error) {
-	return RunEngine(e.task, ctx)
+func (e *WalletInitBackground) Run(m libkb.MetaContext) (err error) {
+	return RunEngine2(m, e.task)
 }
 
 func (e *WalletInitBackground) Shutdown() {
 	e.task.Shutdown()
 }
 
-func WalletInitBackgroundRound(g *libkb.GlobalContext, ectx *Context) error {
-	if g.ConnectivityMonitor.IsConnected(ectx.GetNetContext()) == libkb.ConnectivityMonitorNo {
-		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackground giving up offline")
+func WalletInitBackgroundRound(m libkb.MetaContext) error {
+	g := m.G()
+	if g.ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
+		m.CDebugf("WalletInitBackgroundRound giving up offline")
 		return nil
 	}
 
 	if !g.ActiveDevice.Valid() {
-		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackground not logged in")
+		m.CDebugf("WalletInitBackground not logged in")
 		return nil
 	}
 
-	if !g.LocalSigchainGuard().IsAvailable(ectx.GetNetContext(), "WalletInitBackground") {
-		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackground yielding to guard")
+	if !g.LocalSigchainGuard().IsAvailable(m.Ctx(), "WalletInitBackground") {
+		m.CDebugf("WalletInitBackgroundRound yielding to guard")
 		return nil
 	}
 

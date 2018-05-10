@@ -137,7 +137,7 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	if err != nil {
 		return metadata, err
 	}
-	pukSigning, err := pukKeyring.GetLatestSigningKey(ctx)
+	pukSigning, err := pukKeyring.GetLatestSigningKey(libkb.NewMetaContext(ctx, g))
 	if err != nil {
 		return metadata, err
 	}

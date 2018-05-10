@@ -28,11 +28,13 @@ const FolderHeader = ({
     <Box style={styleFolderHeader}>
       {isMobile ? (
         <Box style={styleFolderHeaderContainer}>
-          {breadcrumbItems.length === 1 && (
-            <Box style={folderHeaderStyleRoot}>
-              <Text type="BodyBig">Keybase Files</Text>
-            </Box>
-          )}
+          <Box style={folderHeaderStyleRoot}>
+            <Text type="BodyBig">
+              {breadcrumbItems.length === 1
+                ? 'Keybase Files'
+                : breadcrumbItems[breadcrumbItems.length - 1].name}
+            </Text>
+          </Box>
           <BackButton title={null} onClick={onBack} style={{marginLeft: globalMargins.small}} />
         </Box>
       ) : breadcrumbItems.length === 1 ? (

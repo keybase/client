@@ -37,6 +37,7 @@ type Storage struct {
 	breakTracker     *breakTracker
 	delhTracker      *delhTracker
 	ephemeralTracker *ephemeralTracker
+	assetDeleter     AssetDeleter
 	clock            clockwork.Clock
 }
 
@@ -51,7 +52,11 @@ type storageEngine interface {
 		msgIDs []chat1.MessageID) Error
 }
 
-func New(g *globals.Context) *Storage {
+type AssetDeleter interface {
+	DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, assets []chat1.Asset)
+}
+
+func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
 	return &Storage{
 		Contextified:     globals.NewContextified(g),
 		engine:           newBlockEngine(g),
@@ -59,6 +64,7 @@ func New(g *globals.Context) *Storage {
 		breakTracker:     newBreakTracker(g),
 		delhTracker:      newDelhTracker(g),
 		ephemeralTracker: newEphemeralTracker(g),
+		assetDeleter:     assetDeleter,
 		clock:            clockwork.NewRealClock(),
 		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Storage", false),
 	}
@@ -70,6 +76,10 @@ func (s *Storage) setEngine(engine storageEngine) {
 
 func (s *Storage) SetClock(clock clockwork.Clock) {
 	s.clock = clock
+}
+
+func (s *Storage) SetAssetDeleter(assetDeleter AssetDeleter) {
+	s.assetDeleter = assetDeleter
 }
 
 func makeBlockIndexKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
@@ -388,6 +398,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
+	var allAssets []chat1.Asset
 	for _, msg := range msgs {
 
 		msgid := msg.GetMessageID()
@@ -430,10 +441,12 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 				mvalid := superMsg.Valid()
 				mvalid.ServerHeader.SupersededBy = msgid
 				if msg.GetMessageType() == chat1.MessageType_DELETE {
-					var emptyBody chat1.MessageBody
-					mvalid.MessageBody = emptyBody
+					msgPurged, assets := s.purgeMessage(mvalid)
+					allAssets = append(allAssets, assets...)
+					superMsgs[0] = msgPurged
+				} else {
+					superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
 				}
-				superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
 				if err = s.engine.WriteMessages(ctx, convID, uid, superMsgs); err != nil {
 					return err
 				}
@@ -443,6 +456,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			}
 		}
 	}
+
+	// queue asset deletions in the background
+	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 
 	return nil
 }
@@ -608,6 +624,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 		return nil, err
 	}
 
+	var allAssets []chat1.Asset
 	var writeback []chat1.MessageUnboxed
 	for _, msg := range rc.Result() {
 		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
@@ -624,14 +641,16 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 			continue
 		}
 		mvalid.ServerHeader.SupersededBy = expunge.Basis // Can be 0
-		var emptyBody chat1.MessageBody
-		mvalid.MessageBody = emptyBody
-		writeback = append(writeback, chat1.NewMessageUnboxedWithValid(mvalid))
+		msgPurged, assets := s.purgeMessage(mvalid)
+		allAssets = append(allAssets, assets...)
+		writeback = append(writeback, msgPurged)
 	}
-	de("deleting %v messages", len(writeback))
 
-	err = s.engine.WriteMessages(ctx, convID, uid, writeback)
-	if err != nil {
+	// queue asset deletions in the background
+	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+
+	de("deleting %v messages", len(writeback))
+	if err = s.engine.WriteMessages(ctx, convID, uid, writeback); err != nil {
 		de("write messages failed: %v", err)
 		return nil, err
 	}
@@ -863,4 +882,12 @@ func (s *Storage) IsTLFIdentifyBroken(ctx context.Context, tlfID chat1.TLFID) bo
 		return true
 	}
 	return idBroken
+}
+
+// Clears the body of a message and returns any assets to be deleted.
+func (s *Storage) purgeMessage(mvalid chat1.MessageUnboxedValid) (chat1.MessageUnboxed, []chat1.Asset) {
+	assets := utils.AssetsForMessage(s.G(), mvalid.MessageBody)
+	var emptyBody chat1.MessageBody
+	mvalid.MessageBody = emptyBody
+	return chat1.NewMessageUnboxedWithValid(mvalid), assets
 }

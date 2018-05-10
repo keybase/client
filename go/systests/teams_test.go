@@ -781,10 +781,11 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 	g := u.device.tctx.G
 	arg := &engine.PerUserKeyUpgradeArgs{}
 	eng := engine.NewPerUserKeyUpgrade(g, arg)
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI: u.tc.G.Log,
 	}
-	err := engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
 	require.NoError(t, err, "Run engine.NewPerUserKeyUpgrade")
 }
 
@@ -929,16 +930,17 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 		require.NotNil(t, target)
 		revokedKID = target.Kid
 
-		revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{
+		revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
 			ID:        target.ID,
 			ForceSelf: true,
 			ForceLast: false,
-		}, alice.tc.G)
-		ectx := &engine.Context{
+		})
+		uis := libkb.UIs{
 			LogUI:    alice.tc.G.Log,
 			SecretUI: alice.newSecretUI(),
 		}
-		err := engine.RunEngine(revokeEngine, ectx)
+		m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
+		err := engine.RunEngine2(m, revokeEngine)
 		require.NoError(t, err)
 	}
 
@@ -1010,16 +1012,17 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 		}
 		require.NotNil(t, target)
 
-		revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{
+		revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
 			ID:        target.ID,
 			ForceSelf: true,
 			ForceLast: false,
-		}, alice.tc.G)
-		ectx := &engine.Context{
+		})
+		uis := libkb.UIs{
 			LogUI:    alice.tc.G.Log,
 			SecretUI: alice.newSecretUI(),
 		}
-		err := engine.RunEngine(revokeEngine, ectx)
+		m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
+		err := engine.RunEngine2(m, revokeEngine)
 		require.NoError(t, err)
 	}
 
