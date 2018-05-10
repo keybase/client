@@ -98,10 +98,13 @@ const Detail = (props: DetailProps) => {
 type AmountXLMProps = {|
   yourRole: Role,
   amountXLM: string,
+  pending: boolean,
 |}
 
 const AmountXLM = (props: AmountXLMProps) => {
-  const color = props.yourRole === 'sender' ? globalColors.red : globalColors.green
+  const color = props.pending
+    ? globalColors.black_20
+    : props.yourRole === 'sender' ? globalColors.red : globalColors.green
   const amount = `${props.yourRole === 'sender' ? '-' : '+'} ${props.amountXLM}`
     // Replace spaces with non-breaking spaces.
     .replace(/ /g, '\u00a0')
@@ -114,7 +117,8 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 export type Props = {|
   ...$Exact<DetailProps>,
-  timestamp: Date,
+  // A null timestamp means the transaction is still pending.
+  timestamp: Date | null,
   amountXLM: string,
   note: string,
 |}
@@ -123,7 +127,7 @@ export const Transaction = (props: Props) => (
   <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
     <Icon counterparty={props.counterparty} counterpartyType={props.counterpartyType} />
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.rightContainer}>
-      <Text type="BodySmall">{formatTimeForPopup(props.timestamp)}</Text>
+      <Text type="BodySmall">{props.timestamp ? formatTimeForPopup(props.timestamp) : 'Pending'}</Text>
       <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.rightDownContainer}>
         <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.detailContainer}>
           <Detail
@@ -136,7 +140,7 @@ export const Transaction = (props: Props) => (
             {props.note}
           </Text>
         </Box2>
-        <AmountXLM yourRole={props.yourRole} amountXLM={props.amountXLM} />
+        <AmountXLM pending={!props.timestamp} yourRole={props.yourRole} amountXLM={props.amountXLM} />
       </Box2>
     </Box2>
   </Box2>

@@ -42,7 +42,17 @@ const load = () => {
     ))
     .add('Anonymous wallet to Keybase User', () => <Text type="BodyBig">TBD</Text>)
     .add('Anonymous wallet to Stellar public key', () => <Text type="BodyBig">TBD</Text>)
-    .add('Pending', () => <Text type="BodyBig">TBD</Text>)
+    .add('Pending', () => (
+      <Transaction
+        timestamp={null}
+        yourRole="receiver"
+        counterparty="paul"
+        counterpartyType="keybaseUser"
+        amountUser="$100"
+        amountXLM="42.535091 XLM"
+        note="Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah."
+      />
+    ))
     .add('Wallet to Wallet', () => (
       <Transaction
         timestamp={new Date()}
