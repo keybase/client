@@ -1,4 +1,4 @@
-// Copyright 2017 Keybase Inc. All rights reserved.
+// Copyright 2018 Keybase Inc. All rights reserved.
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfigV1Default(t *testing.T) {
-	config := DefaultV1()
+func TestConfigV2Default(t *testing.T) {
+	config := DefaultV2()
 	read, list,
 		possibleRead, possibleList,
 		realm, err := config.GetPermissions("/", nil)
@@ -24,10 +24,10 @@ func TestConfigV1Default(t *testing.T) {
 	require.Equal(t, "/", realm)
 }
 
-func TestConfigV1Invalid(t *testing.T) {
-	err := (&V1{
+func TestConfigV2Invalid(t *testing.T) {
+	err := (&V2{
 		Common: Common{
-			Version: Version1Str,
+			Version: Version2Str,
 		},
 		ACLs: map[string]AccessControlV1{
 			"/": AccessControlV1{
@@ -40,9 +40,9 @@ func TestConfigV1Invalid(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, ErrUndefinedUsername{}, err)
 
-	err = (&V1{
+	err = (&V2{
 		Common: Common{
-			Version: Version1Str,
+			Version: Version2Str,
 		},
 		ACLs: map[string]AccessControlV1{
 			"/": AccessControlV1{
@@ -56,9 +56,9 @@ func TestConfigV1Invalid(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, ErrDuplicateAccessControlPath{}, err)
 
-	err = (&V1{
+	err = (&V2{
 		Common: Common{
-			Version: Version1Str,
+			Version: Version2Str,
 		},
 		ACLs: map[string]AccessControlV1{
 			"/foo": AccessControlV1{
@@ -72,9 +72,9 @@ func TestConfigV1Invalid(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, ErrDuplicateAccessControlPath{}, err)
 
-	err = (&V1{
+	err = (&V2{
 		Common: Common{
-			Version: Version1Str,
+			Version: Version2Str,
 		},
 		ACLs: map[string]AccessControlV1{
 			"/": AccessControlV1{
@@ -86,14 +86,14 @@ func TestConfigV1Invalid(t *testing.T) {
 	require.IsType(t, ErrInvalidPermissions{}, err)
 }
 
-func TestConfigV1Full(t *testing.T) {
-	config := V1{
+func TestConfigV2Full(t *testing.T) {
+	config := V2{
 		Common: Common{
-			Version: Version1Str,
+			Version: Version2Str,
 		},
 		Users: map[string]string{
-			"alice": string(generatePasswordHashForTestOrBust(t, "12345")),
-			"bob":   string(generatePasswordHashForTestOrBust(t, "54321")),
+			"alice": GenerateSHA256PasswordHash("12345"),
+			"bob":   GenerateSHA256PasswordHash("54321"),
 		},
 		ACLs: map[string]AccessControlV1{
 			"/": AccessControlV1{

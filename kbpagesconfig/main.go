@@ -24,6 +24,7 @@ func main() {
 	app.Commands = []cli.Command{
 		userCmd,
 		aclCmd,
+		upgradeCmd,
 	}
 
 	app.Run(os.Args)

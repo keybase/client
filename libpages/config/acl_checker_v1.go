@@ -10,6 +10,26 @@ import (
 	"strings"
 )
 
+const (
+	// PermRead is the read permission.
+	PermRead = "read"
+	// PermList is the list permission.
+	PermList = "list"
+	// PermReadAndList allows both read and list.
+	PermReadAndList = "read,list"
+)
+
+// AccessControlV1 defines an access control list (ACL) for the V1 config.
+type AccessControlV1 struct {
+	// WhitelistAdditionalPermissions is a map of username -> permissions that
+	// defines a list of additional permissions that authenticated users have
+	// in addition to AnonymousPermissions.
+	WhitelistAdditionalPermissions map[string]string `json:"whitelist_additional_permissions"`
+	// AnonymousPermissions is the permissions for
+	// unauthenticated/anonymous requests.
+	AnonymousPermissions string `json:"anonymous_permissions"`
+}
+
 // permissionsV1 is the parsed version of a permission string.
 type permissionsV1 struct {
 	read bool

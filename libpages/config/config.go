@@ -33,18 +33,28 @@ const (
 	VersionUnknown = iota
 	// Version1 is version 1.
 	Version1
+	// Version2 is version 2.
+	//
+	// Currently the only difference between V1 and V2 is that V2 uses
+	// sha-based password hash instead of bcrypt in V1. V2 still uses the ACL
+	// definition and checker from V1.
+	Version2
 )
 const (
 	// VersionUnknownStr is the string representation of VUnknown.
 	VersionUnknownStr string = "unknown"
 	// Version1Str is the string representation of Version1.
 	Version1Str string = "v1"
+	// Version2Str is the string representation of Version2.
+	Version2Str string = "v2"
 )
 
 func (v Version) String() string {
 	switch v {
 	case Version1:
 		return Version1Str
+	case Version2:
+		return Version2Str
 	default:
 		return VersionUnknownStr
 	}
@@ -55,6 +65,8 @@ func parseVersion(s string) (Version, error) {
 	switch s {
 	case Version1Str:
 		return Version1, nil
+	case Version2Str:
+		return Version2, nil
 	default:
 		return VersionUnknown, ErrInvalidVersion{s}
 	}
@@ -101,6 +113,13 @@ func ParseConfig(reader io.Reader) (config Config, err error) {
 			return nil, err
 		}
 		return &v1, (&v1).EnsureInit()
+	case Version2:
+		var v2 V2
+		err = json.NewDecoder(buf).Decode(&v2)
+		if err != nil {
+			return nil, err
+		}
+		return &v2, (&v2).EnsureInit()
 	default:
 		return nil, ErrInvalidVersion{}
 	}
