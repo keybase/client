@@ -252,7 +252,7 @@ func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfNam
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetMaybeCreateNewTeamEK(ctx, teamID, generation)
+	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
 }
 
 type ImplicitTeamsNameInfoSource struct {
@@ -412,14 +412,14 @@ func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context
 		if err != nil {
 			return teamEK, err
 		}
-		return t.G().GetEKLib().GetMaybeCreateNewTeamEK(ctx, teamID, generation)
+		return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
 	}
 	// Otherwise for implicit teams, we have to load the team to get its ID.
 	team, err := t.loader.loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetMaybeCreateNewTeamEK(ctx, team.ID, generation)
+	return t.G().GetEKLib().GetTeamEK(ctx, team.ID, generation)
 }
 
 func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {

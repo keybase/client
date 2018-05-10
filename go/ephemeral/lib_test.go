@@ -182,7 +182,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	// If we try to access an older teamEK that we cannot access, we don't
 	// create a new teamEK
-	teamEK, err := ekLib.GetMaybeCreateNewTeamEK(context.Background(), teamID, expectedTeamEKGen-1)
+	teamEK, err := ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen-1)
 	require.Error(t, err)
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
@@ -193,7 +193,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	require.NoError(t, err)
 	tc.G.GetDeviceEKStorage().ClearCache()
 
-	teamEK, err = ekLib.GetMaybeCreateNewTeamEK(context.Background(), teamID, expectedTeamEKGen)
+	teamEK, err = ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen)
 	require.Error(t, err)
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 
