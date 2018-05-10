@@ -3,12 +3,14 @@ import React from 'react'
 import {Text} from '../common-adapters'
 import {storiesOf} from '../stories/storybook'
 import asset from './asset/index.stories'
+import linkExisting from './link-existing/index.stories'
+import sendForm from './send-form/index.stories'
 import walletList from './wallet-list/index.stories'
 import wallet from './wallet/index.stories'
-import sendForm from './send-form/index.stories'
 
 const load = () => {
   asset()
+  linkExisting()
   sendForm()
   walletList()
   wallet()
