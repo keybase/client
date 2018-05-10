@@ -4,7 +4,6 @@ import React from 'react'
 import {ProgressIndicator, Box} from '../../common-adapters'
 import SearchResultsList from '.'
 import * as SearchGen from '../../actions/search-gen'
-import {branch, compose, renderComponent} from 'recompose'
 import {globalMargins} from '../../styles'
 
 type OwnProps = {
@@ -26,9 +25,9 @@ const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey
   return {
     disableIfInTeamName,
     items: searchResultIds && searchResultIds.toArray(),
-    showSearchSuggestions,
-    selectedId,
     pending,
+    selectedId,
+    showSearchSuggestions,
   }
 }
 
@@ -46,14 +45,12 @@ const Progress = ({style}) => (
   </Box>
 )
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  branch((props: {pending: boolean}) => props.pending, renderComponent(Progress))
-)(SearchResultsList)
-
 const styleSpinner = {
   alignSelf: 'center',
   marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,
   width: 24,
 }
+
+const Chooser = props => (props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />)
+export default connect(mapStateToProps, mapDispatchToProps)(Chooser)

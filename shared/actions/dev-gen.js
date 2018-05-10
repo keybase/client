@@ -23,7 +23,7 @@ export const createUpdateDebugConfig = (
 ) => ({error: false, payload, type: updateDebugConfig})
 
 // Action Payloads
-export type DebugCountPayload = More.ReturnType<typeof createDebugCount>
+export type DebugCountPayload = $Call<typeof createDebugCount, any>
 export type UpdateDebugConfigPayload = More.ReturnType<typeof createUpdateDebugConfig>
 
 // All Actions

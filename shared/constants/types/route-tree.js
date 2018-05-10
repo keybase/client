@@ -29,7 +29,7 @@ export type NavigateAppend = NoErrorTypedAction<
 >
 
 export type NavigateUp = NoErrorTypedAction<'routeTree:navigateUp', null>
-export type PutActionIfOnPath<T: TypedAction<*, *, *>> = NoErrorTypedAction<
+export type PutActionIfOnPath<T: TypedAction<any, any, any>> = NoErrorTypedAction<
   'routeTree:putActionIfOnPath',
   {expectedPath: Path, parentPath?: Path, otherAction: T}
 >

@@ -6,7 +6,7 @@ import {chatTab, peopleTab, profileTab, type Tab} from '../../constants/tabs'
 import {navigateTo, switchTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
 
-const mapStateToProps = (state: TypedState): * => ({
+const mapStateToProps = (state: TypedState) => ({
   _badgeNumbers: state.notifications.get('navBadges'),
   username: usernameSelector(state),
 })

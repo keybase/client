@@ -125,7 +125,7 @@ const getProfilePath = (
   username: string,
   me: string,
   state: TypedState
-): PropsPath<*> => {
+) => {
   const onlyProfilesProps = peopleRouteProps.filter(segment =>
     [peopleTab, 'profile', 'nonUserProfile'].includes(segment.node)
   )

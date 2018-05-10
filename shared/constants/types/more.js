@@ -1,8 +1,7 @@
 // @flow
 import {Component} from 'react' // eslint-disable-line
-import {pickBy} from 'lodash-es'
 
-const ProvablePlatformsMap = {
+const provablePlatformsMap = {
   twitter: true,
   reddit: true,
   facebook: true,
@@ -14,7 +13,7 @@ const ProvablePlatformsMap = {
   rooter: __DEV__,
 }
 
-const PlatformsExpandedMap = {
+const platformsExpandedMap = {
   // Flow needs this to be duplicated
   twitter: true,
   reddit: true,
@@ -31,17 +30,23 @@ const PlatformsExpandedMap = {
   pgp: true,
 }
 
-export type ProvablePlatformsType = $Keys<typeof ProvablePlatformsMap>
-export const ProvablePlatforms: Array<*> = Object.keys(pickBy(ProvablePlatformsMap))
+export type ProvablePlatformsType = $Keys<typeof provablePlatformsMap>
+export const ProvablePlatforms = Object.keys(provablePlatformsMap).reduce((arr, p) => {
+  if (provablePlatformsMap[p]) {
+    arr.push(p)
+  }
+  return arr
+}, [])
 
-export type PlatformsExpandedType = $Keys<typeof PlatformsExpandedMap>
-export const PlatformsExpanded: Array<*> = Object.keys(pickBy(PlatformsExpandedMap))
+export type PlatformsExpandedType = $Keys<typeof platformsExpandedMap>
+export const PlatformsExpanded = Object.keys(platformsExpandedMap).reduce((arr, p) => {
+  if (platformsExpandedMap[p]) {
+    arr.push(p)
+  }
+  return arr
+}, [])
 
 export type Exact<X> = $Shape<X> & X
-
-// eslint-disable-next-line
-type _ReturnValue<A, X, Fn: (...args: A) => X> = X
-export type ReturnValue<F> = _ReturnValue<*, *, F>
 
 // eslint-disable-next-line
 type _ExtractReturn<B, F: (...args: any[]) => B> = B
