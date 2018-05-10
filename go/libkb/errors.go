@@ -832,9 +832,9 @@ func (d DecryptOpenError) Error() string {
 
 //=============================================================================
 
-type NoConfigFile struct{}
+type NoConfigFileError struct{}
 
-func (n NoConfigFile) Error() string {
+func (n NoConfigFileError) Error() string {
 	return "No configuration file available"
 }
 
