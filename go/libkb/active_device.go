@@ -254,6 +254,10 @@ func (a *ActiveDevice) Valid() bool {
 	a.RLock()
 	defer a.RUnlock()
 
+	return a.valid()
+}
+
+func (a *ActiveDevice) valid() bool {
 	return a.signingKey != nil && a.encryptionKey != nil && !a.uid.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
 }
 
@@ -297,4 +301,16 @@ func (a *ActiveDevice) SyncSecrets(m MetaContext) (err error) {
 		return fmt.Errorf("Can't sync secrets: nil secret syncer")
 	}
 	return RunSyncer(s, uid, true, nil)
+}
+
+func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername) (err error) {
+	a.RLock()
+	uid := a.UID()
+	deviceID := a.DeviceID()
+	valid := a.valid()
+	a.RUnlock()
+	if !valid {
+		return NoActiveDeviceError{}
+	}
+	return m.G().GetUPAKLoader().CheckDeviceForUIDAndUsername(m.Ctx(), uid, deviceID, n)
 }

@@ -566,7 +566,7 @@ type LoggedInWrongUserError struct {
 }
 
 func (e LoggedInWrongUserError) Error() string {
-	return fmt.Sprintf("Logged in as %q, attempting to log in as %q:  try logout first", e.ExistingName, e.AttemptedName)
+	return fmt.Sprintf("Logged in as %q, attempting to log in as %q: try logout first", e.ExistingName, e.AttemptedName)
 }
 
 //=============================================================================
@@ -2319,5 +2319,11 @@ func (e TeamProvisionalError) Error() string {
 func NewTeamProvisionalError(canKey bool, isPublic bool, dn string) error {
 	return TeamProvisionalError{canKey, isPublic, dn}
 }
+
+//=============================================================================
+
+type NoActiveDeviceError struct{}
+
+func (e NoActiveDeviceError) Error() string { return "no active device" }
 
 //=============================================================================
