@@ -181,7 +181,6 @@ const summaryRowStyle = {
   alignItems: 'flex-start',
   flexShrink: 0,
   justifyContent: 'flex-start',
-  // minHeight: GlobalError.maxHeightForSize('Small'),
   padding: globalMargins.tiny,
 }
 
