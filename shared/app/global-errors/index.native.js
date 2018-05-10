@@ -96,7 +96,6 @@ class GlobalError extends Component<Props, State> {
     }
 
     const {onDismiss} = this.props
-    const summary = this.state.cachedSummary
     const details = this.state.cachedDetails
     const maxHeight = GlobalError.maxHeightForSize(this.state.size)
 
