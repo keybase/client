@@ -81,9 +81,9 @@ func Pipeowner(name string) (bool, error){
 		// It will return immediately regardless of timeout, if no instances
 		// of the named pipe have been created yet.
 		// If this returns with no error, there is a pipe available.
-		err = waitNamedPipe(name, 1000)
-		if err != nil {
-			return false, err
+		err2 := waitNamedPipe(name, 1000)
+		if err2 != nil {
+			return false, err	// return original busy error
 		}
 		fileSid, err = GetFileUserSid(name)
 	}

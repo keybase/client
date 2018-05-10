@@ -5,6 +5,7 @@ package libkb
 import (
 	"golang.org/x/sys/windows"
 
+	"syscall"
 	"unsafe"
 )
 
@@ -52,7 +53,7 @@ var (
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa446645.aspx
 func GetNamedSecurityInfo(objectName string, objectType int32, secInfo uint32, owner, group **windows.SID, dacl, sacl, secDesc *windows.Handle) error {
-	ret, _, err := procGetNamedSecurityInfoW.Call(
+	ret, _, _ := procGetNamedSecurityInfoW.Call(
 		uintptr(unsafe.Pointer(windows.StringToUTF16Ptr(objectName))),
 		uintptr(objectType),
 		uintptr(secInfo),
@@ -66,7 +67,7 @@ func GetNamedSecurityInfo(objectName string, objectType int32, secInfo uint32, o
 		if ret == ERROR_PIPE_BUSY {
 			return PipeBusyError
 		}
-		return err
+		return syscall.Errno(ret)
 	}
 	
 	return nil
