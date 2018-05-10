@@ -5,7 +5,7 @@ import Icon from './icon'
 import {collapseStyles, globalColors, styleSheetCreate, type StylesCrossPlatform} from '../styles'
 
 export type Props = {
-  containerStyle: StylesCrossPlatform,
+  containerStyle?: StylesCrossPlatform,
   children: React.Node,
 }
 
