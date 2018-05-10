@@ -622,7 +622,6 @@ type Stellar interface {
 	Upkeep(context.Context) error
 	OnLogout()
 
-	SetServerDefinitions(context.Context, stellar1.StellarServerDefinitions) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 }
 

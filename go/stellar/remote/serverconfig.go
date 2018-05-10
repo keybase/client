@@ -20,7 +20,7 @@ func (b *configResult) GetAppStatus() *libkb.AppStatus {
 	return &b.Status
 }
 
-func RefreshServerConfig(ctx context.Context, g *libkb.GlobalContext) (ret stellar1.StellarServerDefinitions, err error) {
+func FetchServerConfig(ctx context.Context, g *libkb.GlobalContext) (ret stellar1.StellarServerDefinitions, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/config",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -34,9 +34,5 @@ func RefreshServerConfig(ctx context.Context, g *libkb.GlobalContext) (ret stell
 
 	ret.Revision = res.Revision
 	ret.Currencies = res.Currencies
-
-	if err := g.GetStellar().SetServerDefinitions(ctx, ret); err != nil {
-		return ret, err
-	}
 	return ret, nil
 }

@@ -240,7 +240,7 @@
       ],
       "response": "OutsideExchangeRate"
     },
-    "getAvailableCurrencies": {
+    "getAvailableLocalCurrencies": {
       "request": [],
       "response": {
         "type": "map",
@@ -248,10 +248,10 @@
         "keys": "OutsideCurrencyCode"
       }
     },
-    "formatCurrencyString": {
+    "formatLocalCurrencyString": {
       "request": [
         {
-          "name": "money",
+          "name": "amount",
           "type": "string"
         },
         {

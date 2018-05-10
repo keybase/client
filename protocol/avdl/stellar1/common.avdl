@@ -80,7 +80,7 @@ protocol common {
   record CurrencySymbol {
     @jsonkey("str")
     string symbol; // Example: "$"
-    boolean ambigious; // whether the symbol uniquely describes the currency
+    boolean ambigious; // whether the symbol is used by multiple currencies
     boolean postfix; // whether symbol goes after the number
   }
 

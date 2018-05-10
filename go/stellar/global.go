@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"context"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -15,6 +16,7 @@ func ServiceInit(g *libkb.GlobalContext) {
 type Stellar struct {
 	libkb.Contextified
 
+	serverConfLock   sync.Mutex
 	cachedServerConf stellar1.StellarServerDefinitions
 }
 
@@ -40,15 +42,18 @@ func (s *Stellar) Upkeep(ctx context.Context) error {
 
 func (s *Stellar) OnLogout() {}
 
-func (s *Stellar) SetServerDefinitions(ctx context.Context, def stellar1.StellarServerDefinitions) error {
-	s.cachedServerConf = def
-	return nil
-}
-
 func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
 	if s.cachedServerConf.Revision == 0 {
-		if _, err = remote.RefreshServerConfig(ctx, s.G()); err != nil {
-			return ret, err
+		s.serverConfLock.Lock()
+		defer s.serverConfLock.Unlock()
+		if s.cachedServerConf.Revision == 0 {
+			// check if still 0, we might have waited for other thread
+			// to finish fetching.
+			if ret, err = remote.FetchServerConfig(ctx, s.G()); err != nil {
+				return ret, err
+			}
+
+			s.cachedServerConf = ret
 		}
 	}
 

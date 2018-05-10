@@ -98,14 +98,7 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 				if acc.ExchangeRate != nil {
 					localAmount, err := stellar.ConvertXLMToOutside(balance.Amount, *acc.ExchangeRate)
 					if err == nil {
-						ret, err := cli.FormatCurrencyString(context.Background(), stellar1.FormatCurrencyStringArg{
-							Money: localAmount,
-							Code:  acc.ExchangeRate.Currency,
-						})
-						if err != nil {
-							c.G().Log.Warning("Unable to format amount in: %s", err)
-						}
-						localAmountStr = fmt.Sprintf(" (%s ~%s)", string(acc.ExchangeRate.Currency), ret)
+						localAmountStr = fmt.Sprintf(" (%s ~%s)", string(acc.ExchangeRate.Currency), localAmount)
 					} else {
 						c.G().Log.Warning("Unable to convert to local currency: %s", err)
 					}

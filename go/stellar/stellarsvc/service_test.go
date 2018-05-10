@@ -441,9 +441,6 @@ func TestGetAvailableCurrencies(t *testing.T) {
 	defer cleanup()
 
 	stellar.ServiceInit(tcs[0].G)
-	_, err := remote.RefreshServerConfig(context.Background(), tcs[0].G)
-	require.NoError(t, err)
-
 	conf, err := tcs[0].G.GetStellar().GetServerDefinitions(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, conf.Currencies["USD"].Name, "US Dollar")
