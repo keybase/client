@@ -25,6 +25,10 @@ const Icon = (props: IconProps) => {
       // TODO: Return wallet icon.
       return null
     default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
       return null
   }
 }
@@ -48,34 +52,37 @@ const Detail = (props: DetailProps) => {
       counterparty = <Text type={textTypeSemibold}>{props.counterparty}</Text>
       break
     case 'stellarPublicKey':
-      const counterpartyStr = props.counterparty.substr(0, 6) + '...' + props.counterparty.substr(-5)
-      counterparty = <Text type={textType}>{counterpartyStr}</Text>
+      counterparty = props.counterparty.substr(0, 6) + '...' + props.counterparty.substr(-5)
       break
     case 'wallet':
-      counterparty = <Text type={textType}>{props.counterparty}</Text>
+      counterparty = props.large ? (
+        <Text type={textType}>{props.counterparty}</Text>
+      ) : (
+        <Text type={'BodySmallItalic'}>{props.counterparty}</Text>
+      )
       break
     default:
-      counterparty = <Text type={textTypeSemibold}>TODO {props.counterparty}</Text>
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
       break
   }
+
+  const amount = <Text type={textTypeSemibold}>{props.amountUser}</Text>
 
   if (props.counterpartyType === 'wallet') {
     if (props.yourRole === 'sender') {
       return (
         <Text type={textType}>
-          You transferred Lumens worth
-          <Text type={textTypeSemibold}> {props.amountUser} </Text>
-          from this wallet to
-          {counterparty}.
+          You transferred Lumens worth {amount} from this wallet to {counterparty}.
         </Text>
       )
     }
 
     return (
       <Text type={textType}>
-        You transferred Lumens worth
-        <Text type={textTypeSemibold}> {props.amountUser} </Text>
-        from {counterparty} to this wallet.
+        You transferred Lumens worth {amount} from {counterparty} to this wallet.
       </Text>
     )
   }
@@ -83,19 +90,14 @@ const Detail = (props: DetailProps) => {
   if (props.yourRole === 'sender') {
     return (
       <Text type={textType}>
-        You sent Lumens worth
-        <Text type={textTypeSemibold}> {props.amountUser} </Text>
-        to
-        {counterparty}.
+        You sent Lumens worth {amount} to {counterparty}.
       </Text>
     )
   }
 
   return (
     <Text type={textType}>
-      {counterparty}
-      sent you Lumens worth
-      <Text type={textTypeSemibold}> {props.amountUser}</Text>.
+      {counterparty} sent you Lumens worth {amount}.
     </Text>
   )
 }

@@ -69,6 +69,18 @@ const load = () => {
         note="Short note."
       />
     ))
+    .add('Wallet to Wallet (small)', () => (
+      <Transaction
+        large={false}
+        timestamp={new Date()}
+        yourRole="sender"
+        counterparty="Second wallet"
+        counterpartyType="wallet"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+        note="Short note."
+      />
+    ))
 }
 
 export default load
