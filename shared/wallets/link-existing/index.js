@@ -141,10 +141,13 @@ const styles = styleSheetCreate({
     alignSelf: 'flex-start',
     flex: 1,
   },
-  input: {margin: 0},
-  inputContainer: {
-    alignItems: 'flex-start',
-  },
+  input: platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
+  inputContainer: platformStyles({
+    common: {
+      alignItems: 'flex-start',
+    },
+    isElectron: {width: '100%'},
+  }),
   inputElement: platformStyles({
     common: {
       borderColor: globalColors.black_10,
@@ -153,6 +156,10 @@ const styles = styleSheetCreate({
       borderWidth: 1,
       padding: globalMargins.xtiny,
       textAlign: 'left',
+    },
+    isElectron: {
+      minWidth: 0,
+      width: '100%',
     },
     isMobile: {minWidth: '100%', paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.xtiny},
   }),
