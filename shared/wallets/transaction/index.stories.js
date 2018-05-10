@@ -12,6 +12,7 @@ const load = () => {
         timestamp={new Date()}
         yourRole="sender"
         counterparty="paul"
+        counterpartyType="keybaseUser"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
         note="Short note."
@@ -22,16 +23,37 @@ const load = () => {
         timestamp={new Date()}
         yourRole="receiver"
         counterparty="paul"
+        counterpartyType="keybaseUser"
         amountUser="$100"
         amountXLM="42.535091 XLM"
         note="Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah."
       />
     ))
-    .add('Default wallet to Stellar Public Key', () => <Text type="BodyBig">TBD</Text>)
+    .add('Default wallet to Stellar Public Key', () => (
+      <Transaction
+        timestamp={new Date()}
+        yourRole="sender"
+        counterparty="G43289XXXXX34OPL"
+        counterpartyType="stellarPublicKey"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+        note="Short note."
+      />
+    ))
     .add('Anonymous wallet to Keybase User', () => <Text type="BodyBig">TBD</Text>)
     .add('Anonymous wallet to Stellar public key', () => <Text type="BodyBig">TBD</Text>)
     .add('Pending', () => <Text type="BodyBig">TBD</Text>)
-    .add('Wallet to Wallet', () => <Text type="BodyBig">TBD</Text>)
+    .add('Wallet to Wallet', () => (
+      <Transaction
+        timestamp={new Date()}
+        yourRole="sender"
+        counterparty="Second wallet"
+        counterpartyType="wallet"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+        note="Short note."
+      />
+    ))
 }
 
 export default load

@@ -6,29 +6,89 @@ import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../
 import {formatTimeForPopup} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
+type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
+
+type IconProps = {|
+  counterparty: string,
+  counterpartyType: CounterpartyType,
+|}
+
+const Icon = (props: IconProps) => {
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      return <Avatar username={props.counterparty} size={48} />
+    case 'stellarPublicKey':
+      // TODO: Return anonymous user icon.
+      return null
+    case 'wallet':
+      // TODO: Return wallet icon.
+      return null
+    default:
+      return null
+  }
+}
 
 type DetailProps = {|
   yourRole: Role,
   counterparty: string,
+  counterpartyType: CounterpartyType,
   amountUser: string,
 |}
 
 const Detail = (props: DetailProps) => {
-  // TODO: Color counterparty based on following status.
+  let counterparty
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      // TODO: Color counterparty based on following status.
+      counterparty = <Text type="BodySemibold">{props.counterparty}</Text>
+      break
+    case 'stellarPublicKey':
+      const counterpartyStr = props.counterparty.substr(0, 6) + '...' + props.counterparty.substr(-5)
+      counterparty = <Text type="Body">{counterpartyStr}</Text>
+      break
+    case 'wallet':
+      counterparty = <Text type="Body">{props.counterparty}</Text>
+      break
+    default:
+      counterparty = <Text type="BodySemibold">TODO {props.counterparty}</Text>
+      break
+  }
+
+  if (props.counterpartyType === 'wallet') {
+    if (props.yourRole === 'sender') {
+      return (
+        <Text type="Body">
+          You transferred Lumens worth
+          <Text type="BodySemibold"> {props.amountUser} </Text>
+          from this wallet to
+          {counterparty}.
+        </Text>
+      )
+    }
+
+    return (
+      <Text type="Body">
+        You transferred Lumens worth
+        <Text type="BodySemibold"> {props.amountUser} </Text>
+        from {counterparty} to this wallet.
+      </Text>
+    )
+  }
+
   if (props.yourRole === 'sender') {
     return (
       <Text type="Body">
         You sent Lumens worth
         <Text type="BodySemibold"> {props.amountUser} </Text>
         to
-        <Text type="BodySemibold"> {props.counterparty}</Text>.
+        {counterparty}.
       </Text>
     )
   }
 
   return (
     <Text type="Body">
-      <Text type="BodySemibold">{props.counterparty} </Text>
+      {counterparty}
       sent you Lumens worth
       <Text type="BodySemibold"> {props.amountUser}</Text>.
     </Text>
@@ -61,12 +121,17 @@ export type Props = {|
 
 export const Transaction = (props: Props) => (
   <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-    <Avatar username={props.counterparty} size={48} />
+    <Icon counterparty={props.counterparty} counterpartyType={props.counterpartyType} />
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.rightContainer}>
       <Text type="BodySmall">{formatTimeForPopup(props.timestamp)}</Text>
       <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.rightDownContainer}>
         <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.detailContainer}>
-          <Detail yourRole={props.yourRole} counterparty={props.counterparty} amountUser={props.amountUser} />
+          <Detail
+            yourRole={props.yourRole}
+            counterparty={props.counterparty}
+            counterpartyType={props.counterpartyType}
+            amountUser={props.amountUser}
+          />
           <Text style={styles.note} type="Body">
             {props.note}
           </Text>
