@@ -508,6 +508,7 @@ const styleHeader = {
 
 // styleScrollHeaderBg sits beneath the content and colors the background under the overlay scrollbar.
 const styleScrollHeaderBg = {
+  ...desktopStyles.windowDragging,
   position: 'absolute',
   left: 0,
   right: 0,

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
+import {desktopStyles, globalStyles, globalColors, globalMargins} from '../../../../styles'
 
 import type {Props} from '.'
 
@@ -88,6 +88,7 @@ const UsernameHeader = ({
 )
 
 const containerStyle = {
+  ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   borderBottomColor: globalColors.black_05,

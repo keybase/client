@@ -3,7 +3,7 @@ import * as React from 'react'
 import {ProgressIndicator, ScrollView} from '../common-adapters'
 import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
-import {globalStyles} from '../styles'
+import {desktopStyles, globalStyles} from '../styles'
 
 const People = (props: Props) => (
   <ScrollView style={{...globalStyles.fullHeight}}>
@@ -12,7 +12,7 @@ const People = (props: Props) => (
     )}
     <PeoplePageSearchBar
       {...props}
-      styleRowContainer={{left: 80}}
+      styleRowContainer={{...desktopStyles.windowDragging, left: 80}}
       styleSearchContainer={{minHeight: 24, width: 240}}
       styleSearchText={{fontSize: 13}}
     />

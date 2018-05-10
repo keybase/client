@@ -13,7 +13,7 @@ import {
   FloatingMenu,
 } from '../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
+import {desktopStyles, globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {branch} from 'recompose'
 
 type Props = {
@@ -108,6 +108,7 @@ const _sectionHeaderStyle = {
 }
 
 const _headerStyle = {
+  ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxCenter,
   ...globalStyles.flexBoxRow,
   flexShrink: 0,

@@ -4,7 +4,7 @@ import * as React from 'react'
 import flags from '../../util/feature-flags'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {desktopStyles, globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index.render'
 
@@ -74,6 +74,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
 )
 
 const stylesTabBar = {
+  ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue2,
   justifyContent: 'flex-start',

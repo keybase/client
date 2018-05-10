@@ -7,7 +7,7 @@ import FloatingMenu, {
   type FloatingMenuParentProps,
 } from '../common-adapters/floating-menu'
 import {RowConnector} from './row'
-import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
+import {desktopStyles, globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
 import {branch} from 'recompose'
 
 import type {MenuItem} from '../common-adapters/popup-menu.js'
@@ -22,7 +22,7 @@ export type Props = {
 }
 
 const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
-  <ClickableBox onClick={onAddNew}>
+  <ClickableBox onClick={onAddNew} style={{...desktopStyles.windowDragging}}>
     <Box ref={setAttachmentRef} style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
       {waiting && (
         <ProgressIndicator style={{position: 'absolute', width: 20, top: isMobile ? 22 : 14, left: 12}} />

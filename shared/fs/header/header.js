@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {platformStyles, globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
+import {
+  desktopStyles,
+  platformStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+} from '../../styles'
 import {Avatar, BackButton, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import ConnectedFilesBanner from '../banner/container'
 
@@ -89,6 +96,7 @@ const stylesCommonRow = {
 }
 
 const styleHeaderContainer = {
+  ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxColumn,
 }
 
