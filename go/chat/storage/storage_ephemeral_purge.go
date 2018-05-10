@@ -14,9 +14,16 @@ func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *Storage, u
 	return func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 		_, explodedMsgs, err := chatStorage.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo)
 		if err != nil {
-			g.GetLog().CDebugf(ctx, "ephemeralPurge error: %s", err)
+			g.GetLog().CDebugf(ctx, "ephemeralPurge: %s", err)
 		} else {
 			if len(explodedMsgs) > 0 {
+				convs, err := g.ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{job.ConvID})
+				if err != nil || len(convs) != 1 {
+					g.GetLog().CDebugf(ctx, "FindConversationsByID: convs: %v err: %v", convs, err)
+					return
+				}
+				inboxUIItem := utils.PresentConversationLocal(convs[0], g.Env.GetUsername().String())
+
 				purgedMsgs := []chat1.UIMessage{}
 				for _, msg := range explodedMsgs {
 					purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, g, msg, uid, job.ConvID))
@@ -24,6 +31,7 @@ func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *Storage, u
 				act := chat1.NewChatActivityWithEphemeralPurge(chat1.EphemeralPurgeNotifInfo{
 					ConvID: job.ConvID,
 					Msgs:   purgedMsgs,
+					Conv:   &inboxUIItem,
 				})
 				g.NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
 			}

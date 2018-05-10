@@ -390,6 +390,7 @@ func TestBackgroundPurge(t *testing.T) {
 				purgedIDs = append(purgedIDs, purgedMsg.GetMessageID())
 			}
 			require.Equal(t, msgIDs, purgedIDs)
+			require.Equal(t, convID.String(), info.Conv.ConvID)
 		}
 	}
 
