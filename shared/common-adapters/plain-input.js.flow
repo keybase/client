@@ -26,13 +26,16 @@ export type Props = {
   disabled?: boolean,
   // Resize in a flexbox-like fashion
   flexable?: boolean,
-  placeholder?: string,
-  style?: StylesCrossPlatform,
+  maxLength?: number,
+  multiline?: boolean,
   onBlur?: () => void,
   onClick?: (event: Event) => void,
   onChangeText?: (text: string) => void,
   onFocus?: () => void,
-  maxLength?: number,
+  placeholder?: string,
+  rowsMin?: number,
+  rowsMax?: number,
+  style?: StylesCrossPlatform,
   textType?: TextType,
   type?: 'password' | 'text' | 'number',
 
@@ -47,13 +50,13 @@ export type Props = {
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 
   // Mobile only
-  onEndEditing?: () => void,
-  onSubmitEditing?: () => void,
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoCorrect?: boolean,
   keyboardType?: KeyboardType,
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
+  onEndEditing?: () => void,
+  onSubmitEditing?: () => void,
 }
 
 export type Selection = {start: number, end: number}

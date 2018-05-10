@@ -51,6 +51,7 @@ class PlainInput extends React.PureComponent<Props, State> {
   _onChangeTextDone = () => {
     const value = this.getValue()
     this.props.onChangeText && this.props.onChangeText(value)
+    this._autoResize()
   }
 
   _onChangeText = (text: string) => {
@@ -64,6 +65,40 @@ class PlainInput extends React.PureComponent<Props, State> {
   _smartAutoresize = {
     pivotLength: -1,
     width: -1,
+  }
+
+  _autoResize = () => {
+    if (!this.props.multiline) {
+      return
+    }
+
+    const n = this._input
+    if (!n || !n.style) {
+      return
+    }
+
+    const value = this.getValue()
+
+    // Smart auto resize algorithm from `Input`, use it by default here
+    const rect = n.getBoundingClientRect()
+    // width changed so throw out our data
+    if (rect.width !== this._smartAutoresize.width) {
+      this._smartAutoresize.width = rect.width
+      this._smartAutoresize.pivotLength = -1
+    }
+
+    // See if we've gone up in size, if so keep track of the input at that point
+    if (n.scrollHeight > rect.height) {
+      this._smartAutoresize.pivotLength = value.length
+      n.style.height = `${n.scrollHeight}px`
+    } else {
+      // see if we went back down in height
+      if (this._smartAutoresize.pivotLength !== -1 && value.length <= this._smartAutoresize.pivotLength) {
+        this._smartAutoresize.pivotLength = -1
+        n.style.height = '1px'
+        n.style.height = `${n.scrollHeight}px`
+      }
+    }
   }
 
   focus = () => {
@@ -94,6 +129,7 @@ class PlainInput extends React.PureComponent<Props, State> {
       n.selectionStart = newTextInfo.selection.start
       n.selectionEnd = newTextInfo.selection.end
     }
+    this._onChangeTextDone()
   }
 
   _onCompositionStart = () => {
@@ -160,13 +196,31 @@ class PlainInput extends React.PureComponent<Props, State> {
       type: this.props.type,
     }
 
+    const defaultRows = Math.min(2, this.props.rowsMax || 2)
+    const multilineProps = {
+      ...commonProps,
+      rows: this.props.rowsMin || defaultRows,
+      style: collapseStyles([
+        styles.noChrome, // noChrome comes before because we want lineHeight set
+        textStyle,
+        styles.multiline,
+        {
+          minHeight: (this.props.rowsMin || defaultRows) * (textStyle.fontSize || 20),
+          ...(this.props.rowsMax
+            ? {maxHeight: this.props.rowsMax * (parseInt(textStyle.lineHeight, 10) || 20)}
+            : {overflowY: 'hidden'}),
+        },
+        this.props.style,
+      ]),
+    }
+
     const css = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
                  ::-webkit-outer-spin-button, ::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}`
 
     return (
       <React.Fragment>
         <style>{css}</style>
-        <input {...singlelineProps} />
+        {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
       </React.Fragment>
     )
   }
@@ -177,6 +231,14 @@ const styles = styleSheetCreate({
     minWidth: 0,
     width: '100%',
     flex: 1,
+  },
+  multiline: {
+    height: 'initial',
+    width: '100%',
+    resize: 'none',
+    wrap: 'off',
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   noChrome: {borderWidth: 0, lineHeight: 'unset', outline: 'none'},
 })
