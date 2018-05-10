@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Icon, InfoNote, Text, Input} from '../../common-adapters'
+import {Box2, Button, ButtonBar, Icon, InfoNote, Text, Input} from '../../common-adapters'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
 type View = 'enter-key' | 'enter-name'
@@ -44,9 +44,15 @@ type EnterKeyProps = {
   secretKey: string,
 }
 
-const EnterKey = (props: EnterKeyProps) => {
-  return (
-    <Box2 direction="vertical" gap="medium" fullWidth={true} style={styles.container}>
+const EnterKey = (props: EnterKeyProps) => (
+  <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+    <Box2
+      direction="vertical"
+      gap="medium"
+      fullWidth={true}
+      fullHeight={true}
+      style={styles.contentContainer}
+    >
       <Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
       <Text type="Header">Link an existing wallet</Text>
       <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
@@ -76,8 +82,12 @@ const EnterKey = (props: EnterKeyProps) => {
         </Box2>
       </InfoNote>
     </Box2>
-  )
-}
+    <ButtonBar>
+      <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
+      <Button type="Wallet" onClick={props.onNext} label="Next" />
+    </ButtonBar>
+  </Box2>
+)
 
 type EnterNameProps = {
   name: string,
@@ -90,8 +100,12 @@ const EnterName = (props: EnterNameProps) => {}
 
 const styles = styleSheetCreate({
   container: {
-    alignItems: 'center',
     padding: globalMargins.medium,
+  },
+  contentContainer: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    flex: 1,
   },
   input: {margin: 0},
   inputContainer: {
