@@ -5,9 +5,40 @@ package libkb
 
 
 import (
-	"fmt"
+	"syscall"
+	"unsafe"
 	"golang.org/x/sys/windows"
 )
+
+var (
+	modkernel32        = syscall.NewLazyDLL("kernel32.dll")
+	procWaitNamedPipeW = modkernel32.NewProc("WaitNamedPipeW")
+)
+
+const ERROR_PIPE_BUSY = 231
+type _PipeBusyError struct{}
+var PipeBusyError _PipeBusyError
+
+func (e _PipeBusyError) Error() string {
+	return "All pipe instances are busy"
+}
+
+func waitNamedPipe(name string, timeout uint32) (err error) {
+	rawName, e1 := syscall.UTF16PtrFromString(name)
+	if e1 != nil {
+		return e1
+	}
+
+	r1, _, e2 := syscall.Syscall(procWaitNamedPipeW.Addr(), 2, uintptr(unsafe.Pointer(rawName)), uintptr(timeout), 0)
+	if r1 == 0 {
+		if e2 != 0 {
+			err = error(e2)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
 
 // currentProcessUserSid is a utility to get the
 // SID of the current user running the process.
@@ -44,6 +75,18 @@ func Pipeowner(name string) (bool, error){
 	}
 
 	fileSid, err := GetFileUserSid(name)
+	if err == PipeBusyError {
+		// If at least one instance of the pipe has been created, this function
+		// will wait timeout milliseconds for it to become available.
+		// It will return immediately regardless of timeout, if no instances
+		// of the named pipe have been created yet.
+		// If this returns with no error, there is a pipe available.
+		err = waitNamedPipe(name, 1000)
+		if err != nil {
+			return false, err
+		}
+		fileSid, err = GetFileUserSid(name)
+	}
 	if err != nil {
 		return false, err
 	}

@@ -43,6 +43,7 @@ const (
 	UNPROTECTED_SACL_SECURITY_INFORMATION = 0x10000000
 )
 
+
 var (
 	advapi32 = windows.MustLoadDLL("advapi32.dll")
 	procGetNamedSecurityInfoW = advapi32.MustFindProc("GetNamedSecurityInfoW")
@@ -62,7 +63,11 @@ func GetNamedSecurityInfo(objectName string, objectType int32, secInfo uint32, o
 		uintptr(unsafe.Pointer(secDesc)),
 	)
 	if ret != 0 {
+		if ret == ERROR_PIPE_BUSY {
+			return PipeBusyError
+		}
 		return err
 	}
+	
 	return nil
 }
