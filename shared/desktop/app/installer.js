@@ -91,6 +91,7 @@ export default (callback: (err: any) => void): void => {
       logger.info(errorsResult.errors.join('\n'))
       logger.info(`Install errors: stdout=${stdout || ''}, stderr=${stderr || ''}`)
       showError(errorsResult.errors, errorsResult.hasFUSEError || errorsResult.hasKBNMError, callback)
+      callback(null)
       return
     }
 
@@ -98,7 +99,6 @@ export default (callback: (err: any) => void): void => {
     // privileged install.
     if (errorsResult.hasCLIError && !installerState.state.promptedForCLI) {
       promptForInstallCLIPrivileged(keybaseBin, callback)
-      return
     }
 
     callback(null)
