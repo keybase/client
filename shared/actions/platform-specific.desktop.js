@@ -2,10 +2,6 @@
 import {showDockIcon} from '../desktop/app/dock-icon'
 import {getMainWindow} from '../desktop/remote/util'
 import {ipcRenderer} from 'electron'
-import {isWindows, socketPath} from '../constants/platform'
-import logger from '../logger'
-import {execFile} from 'child_process'
-import path from 'path'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -76,33 +72,6 @@ function openAppSettings(): void {
   throw new Error('Cannot open app settings on desktop')
 }
 
-function checkRPCOwnership(): Promise<*> {
-  return new Promise((resolve, reject) => {
-    if (!isWindows) {
-      return resolve({})
-    }
-    logger.info('Checking RPC ownership')
-
-    const localAppData = String(process.env.LOCALAPPDATA)
-    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
-    const args = ['pipeowner', socketPath]
-    execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
-      if (error) {
-        logger.info(`pipeowner check returns: ${error.message}`)
-        reject(error)
-        return
-      }
-      const result = stdout.trim()
-      logger.info(`pipeowner check returns: ${result}`)
-      if (result === 'true') {
-        resolve()
-        return
-      }
-      reject(new Error(`pipeowner check returns: ${result}`))
-    })
-  })
-}
-
 export {
   checkPermissions,
   setShownPushPrompt,
@@ -119,5 +88,4 @@ export {
   downloadAndShowShareActionSheet,
   displayNewMessageNotification,
   clearAllNotifications,
-  checkRPCOwnership,
 }

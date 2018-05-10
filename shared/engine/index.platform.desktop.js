@@ -2,7 +2,9 @@
 import net from 'net'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
-
+import logger from '../logger'
+import {execFile} from 'child_process'
+import path from 'path'
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 class NativeTransport extends TransportShared {
@@ -38,6 +40,33 @@ function windowsHack() {
   fake.on('error', function() {})
 }
 
+function checkRPCOwnership(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    if (!isWindows) {
+      return resolve({})
+    }
+    logger.info('Checking RPC ownership')
+
+    const localAppData = String(process.env.LOCALAPPDATA)
+    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const args = ['pipeowner', socketPath]
+    execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
+      if (error) {
+        logger.info(`pipeowner check returns: ${error.message}`)
+        reject(error)
+        return
+      }
+      const result = stdout.trim()
+      logger.info(`pipeowner check returns: ${result}`)
+      if (result === 'true') {
+        resolve()
+        return
+      }
+      reject(new Error(`pipeowner check returns: ${result}`))
+    })
+  })
+}
+
 function createClient(
   incomingRPCCallback: incomingRPCCallbackType,
   connectCallback: connectDisconnectCB,
@@ -50,4 +79,4 @@ function resetClient(client: createClientType) {
   client.transport.reset()
 }
 
-export {resetClient, createClient, rpcLog}
+export {resetClient, createClient, rpcLog, checkRPCOwnership}

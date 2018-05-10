@@ -274,10 +274,6 @@ function openAppSettings() {
   Linking.openURL('app-settings:')
 }
 
-function checkRPCOwnership(): Promise<*> {
-  return Promise.resolve({})
-}
-
 export {
   openAppSettings,
   checkPermissions,
@@ -294,5 +290,4 @@ export {
   getShownPushPrompt,
   showShareActionSheet,
   clearAllNotifications,
-  checkRPCOwnership,
 }
