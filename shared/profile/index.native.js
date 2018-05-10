@@ -281,6 +281,7 @@ class Profile extends Component<Props, State> {
               onAddToTeam={this.props.onAddToTeam}
               onChat={this.props.onChat}
               onFollow={this.props.onFollow}
+              onOpenPrivateFolder={this.props.onOpenPrivateFolder}
               onUnfollow={this.props.onUnfollow}
               onAcceptProofs={this.props.onAcceptProofs}
               waiting={this.props.waiting}

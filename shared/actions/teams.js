@@ -517,10 +517,31 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
 }
 
 function _getDetailsForAllTeams(action: TeamsGen.GetDetailsForAllTeamsPayload, state: TypedState) {
-  console.warn('in getDetailsForAllTeams')
-  const actions = state.teams.teamnames.map(teamname => Saga.put(TeamsGen.createGetDetails({teamname}))).toArray()
-  console.warn('actions', actions)
+  const actions = state.teams.teamnames
+    .toArray()
+    .map(teamname => Saga.put(TeamsGen.createGetDetails({teamname})))
   return Saga.sequentially(actions)
+}
+
+function* _addUserToTeams(action: TeamsGen.AddUserToTeamsPayload, state: TypedState) {
+  const {role, teams, user} = action.payload
+  const collectedResults = []
+  console.warn(role, teams, user)
+  for (const team of teams) {
+    try {
+      yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
+        name: team,
+        email: '',
+        username: user,
+        role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+        sendChatNotification: true,
+      })
+      collectedResults.push(`Added ${user} to ${team}.`)
+    } catch (error) {
+      collectedResults.push(`Error adding ${user}: ${error.desc}  `)
+    }
+  }
+  yield Saga.put(TeamsGen.createSetAddUserToTeamsResults({results: collectedResults.join('\n')}))
 }
 
 const _getTeamOperations = function*(
@@ -1126,6 +1147,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.setupTeamHandlers, _setupTeamHandlers)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)
   yield Saga.safeTakeEvery(TeamsGen.addPeopleToTeam, _addPeopleToTeam)
+  yield Saga.safeTakeEvery(TeamsGen.addUserToTeams, _addUserToTeams)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByEmail, _inviteByEmail)
   yield Saga.safeTakeEvery(TeamsGen.ignoreRequest, _ignoreRequest)
   yield Saga.safeTakeEvery(TeamsGen.editTeamDescription, _editDescription)

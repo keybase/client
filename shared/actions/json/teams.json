@@ -4,6 +4,11 @@
     "import * as Types from '../constants/types/teams'"
   ],
   "actions": {
+    "addUserToTeams": {
+      "role": "Types.TeamRoleType",
+      "teams": "Array<string>",
+      "user": "string"
+    },
     "createNewTeam": {
       "joinSubteam": "boolean",
       "teamname": "string",
@@ -22,6 +27,9 @@
       "rootPath": "I.List<string>",
       "sourceSubPath": "I.List<string>",
       "destSubPath": "I.List<string>"
+    },
+    "setAddUserToTeamsResults": {
+      "results": "string"
     },
     "getChannels": {
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",

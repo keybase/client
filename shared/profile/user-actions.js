@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Button, FollowButton, ButtonBar, Icon} from '../common-adapters'
+import {Box2, Button, ClickableBox, FloatingMenu, FollowButton, ButtonBar, Icon} from '../common-adapters'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import {normal as proofNormal} from '../constants/tracker'
 import {globalColors} from '../styles'
 import type {SimpleProofState} from '../constants/types/tracker'
@@ -10,8 +11,10 @@ type Props = {
   currentlyFollowing: boolean,
   style: Object,
   onAddToTeam: () => void,
+  onBrowsePublicFolder: () => void,
   onChat: () => void,
   onFollow: () => void,
+  onOpenPrivateFolder: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
   waiting: boolean,
@@ -22,8 +25,10 @@ function UserActions({
   currentlyFollowing,
   style,
   onAddToTeam,
+  onBrowsePublicFolder,
   onChat,
   onFollow,
+  onOpenPrivateFolder,
   onUnfollow,
   onAcceptProofs,
   waiting,
@@ -42,7 +47,11 @@ function UserActions({
               color={globalColors.white}
             />
           </Button>
-          <Button label="..." type="Secondary" onClick={onAddToTeam} style={{marginRight: 0}} />
+          <DropdownButton
+            onAddToTeam={onAddToTeam}
+            onOpenPrivateFolder={onOpenPrivateFolder}
+            onBrowsePublicFolder={onBrowsePublicFolder}
+          />{' '}
         </ButtonBar>
       )
     } else {
@@ -50,7 +59,11 @@ function UserActions({
         <ButtonBar style={style}>
           <Button type="Secondary" label="Unfollow" onClick={onUnfollow} waiting={waiting} />
           <Button type="PrimaryGreen" label="Accept" onClick={onAcceptProofs} />
-          <Button label="..." type="Secondary" onClick={onAddToTeam} style={{marginRight: 0}} />
+          <DropdownButton
+            onAddToTeam={onAddToTeam}
+            onOpenPrivateFolder={onOpenPrivateFolder}
+            onBrowsePublicFolder={onBrowsePublicFolder}
+          />{' '}
         </ButtonBar>
       )
     }
@@ -67,10 +80,61 @@ function UserActions({
             color={globalColors.white}
           />
         </Button>
-        <Button label="..." type="Secondary" onClick={onAddToTeam} />
+        <DropdownButton
+          onAddToTeam={onAddToTeam}
+          onOpenPrivateFolder={onOpenPrivateFolder}
+          onBrowsePublicFolder={onBrowsePublicFolder}
+        />
       </ButtonBar>
     )
   }
 }
+
+type DropdownProps = {
+  onAddToTeam: () => void,
+  onBrowsePublicFolder: () => void,
+  onOpenPrivateFolder: () => void,
+}
+
+class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuParentProps> {
+  _menuItems = [
+    {
+      onClick: () => this.props.onAddToTeam(),
+      title: 'Add to team...',
+    },
+    {
+      onClick: () => this.props.onOpenPrivateFolder(),
+      title: 'Open private folder',
+    },
+    {
+      onClick: () => this.props.onBrowsePublicFolder(),
+      title: 'Browse public folder',
+    },
+  ]
+
+  render() {
+    return (
+      <ClickableBox
+        onClick={this.props.toggleShowingMenu}
+        style={{backgroundColor: globalColors.white}}
+        ref={this.props.setAttachmentRef}
+      >
+        <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
+          <Button onClick={null} type="Secondary" label="..." />
+        </Box2>
+        <FloatingMenu
+          attachTo={this.props.attachmentRef}
+          closeOnSelect={true}
+          items={this._menuItems}
+          onHidden={this.props.toggleShowingMenu}
+          visible={this.props.showingMenu}
+          position="bottom center"
+        />
+      </ClickableBox>
+    )
+  }
+}
+
+const DropdownButton = FloatingMenuParentHOC(_DropdownButton)
 
 export default UserActions

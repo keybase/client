@@ -20,6 +20,9 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setTeamCreationPending:
       return state.set('teamCreationPending', action.payload.pending)
 
+    case TeamsGen.setAddUserToTeamsResults:
+      return state.set('addUserToTeamsResults', action.payload.results)
+
     case TeamsGen.setTeamInviteError:
       return state.set('teamInviteError', action.payload.error)
 

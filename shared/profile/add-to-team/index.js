@@ -60,11 +60,20 @@ const TeamRow = ({
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
           <Box style={globalStyles.flexBoxRow}>
-            <Text style={{color: memberIsInTeam ? globalColors.black_40 : globalColors.black}} type="BodySemibold">{name}</Text>
+            <Text
+              style={{color: memberIsInTeam ? globalColors.black_40 : globalColors.black}}
+              type="BodySemibold"
+            >
+              {name}
+            </Text>
             {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            {waiting ? <ProgressIndicator style={{width: 16}} white={false} /> : <Text type="BodySmall">{memberStatus}</Text>}
+            {waiting ? (
+              <ProgressIndicator style={{width: 16}} white={false} />
+            ) : (
+              <Text type="BodySmall">{memberStatus}</Text>
+            )}
           </Box>
         </Box>
       </Box>
@@ -149,10 +158,17 @@ const AddToTeam = (props: Props) => (
         />
       </ClickableBox>
     </Box>
-    <ClickableBox onClick={props.onBack} style={collapseStyles([globalStyles.flexBoxRow, {flexGrow: 1, paddingTop: globalMargins.small}])}>
+    <ClickableBox
+      onClick={props.onBack}
+      style={collapseStyles([globalStyles.flexBoxRow, {flexGrow: 1, paddingTop: globalMargins.small}])}
+    >
       <Button style={{margin: globalMargins.small}} type="Secondary" onClick={props.onBack} label="Close" />
-      <Button style={{margin: globalMargins.small}} type="Primary" onClick={props.onAddToTeam} label="Add to team" />
-
+      <Button
+        style={{margin: globalMargins.small}}
+        type="Primary"
+        onClick={() => props.onSave(props.role, props.selectedTeams)}
+        label="Add to team"
+      />
     </ClickableBox>
   </Box>
 )

@@ -342,6 +342,19 @@ class ProfileRender extends PureComponent<Props, State> {
 
     return (
       <Box style={styleOuterContainer}>
+        {!!this.props.addUserToTeamsResults && (
+          <Box style={{...styleScrollHeaderBg, backgroundColor: globalColors.green, zIndex: 15}}>
+            <Box style={globalStyles.flexBoxRow}>
+              <Text
+                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                type="BodySemibold"
+                backgroundMode="HighRisk"
+              >
+                {this.props.addUserToTeamsResults}
+              </Text>
+            </Box>
+          </Box>
+        )}
         <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
         <Box style={globalStyles.flexBoxColumn}>
@@ -395,8 +408,10 @@ class ProfileRender extends PureComponent<Props, State> {
                     trackerState={this.props.trackerState}
                     currentlyFollowing={this.props.currentlyFollowing}
                     onAddToTeam={this.props.onAddToTeam}
+                    onBrowsePublicFolder={this.props.onBrowsePublicFolder}
                     onChat={this.props.onChat}
                     onFollow={this.props.onFollow}
+                    onOpenPrivateFolder={this.props.onOpenPrivateFolder}
                     onUnfollow={this.props.onUnfollow}
                     onAcceptProofs={this.props.onAcceptProofs}
                     waiting={this.props.waiting}

@@ -1,7 +1,15 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {branch, compose, connect, lifecycle, withHandlers, withStateHandlers, type TypedState} from '../../util/container'
+import {
+  branch,
+  compose,
+  connect,
+  lifecycle,
+  withHandlers,
+  withStateHandlers,
+  type TypedState,
+} from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
@@ -27,7 +35,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   loadAllTeams: () => dispatch(TeamsGen.createGetDetailsForAllTeams()),
   loadTeamList: () => dispatch(TeamsGen.createGetTeams()),
-  _onAddToTeams: (teams: Array<string>, user: string) => dispatch(TeamsGen.createAddUserToTeams({teams, user})),
+  _onAddToTeams: (role: string, teams: Array<string>, user: string) =>
+    dispatch(TeamsGen.createAddUserToTeams({role, teams, user})),
   onBack: () => dispatch(navigateUp()),
   onOpenRolePicker: (role: string, onComplete: (string, boolean) => void) => {
     dispatch(
@@ -51,7 +60,8 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    onAddToTeams: (role: any, teams: Array<string>) => dispatchProps._onAddToTeams(role, teams, stateProps._them),
+    onAddToTeams: (role: string, teams: Array<string>) =>
+      dispatchProps._onAddToTeams(role, teams, stateProps._them),
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teammembercounts: stateProps._teammembercounts.toObject(),
     teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
@@ -77,11 +87,12 @@ export default compose(
     )
   ),
   withHandlers({
-    onToggle: props => (teamname: string) => props.setSelectedTeams({
-      ...props.selectedTeams,
-      [teamname]: !props.selectedTeams[teamname],
-    }),
-    onSave: props => () => props.onAddToTeams(props.role, props.selectedTeams),
+    onToggle: props => (teamname: string) =>
+      props.setSelectedTeams({
+        ...props.selectedTeams,
+        [teamname]: !props.selectedTeams[teamname],
+      }),
+    onSave: props => () => props.onAddToTeams(props.role, Object.keys(props.selectedTeams)),
   }),
   lifecycle({
     componentDidMount() {
