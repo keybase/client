@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Icon, Text, Input} from '../../common-adapters'
+import {Box2, Icon, InfoNote, Text, Input} from '../../common-adapters'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
 type View = 'enter-key' | 'enter-name'
@@ -48,6 +48,7 @@ const EnterKey = (props: EnterKeyProps) => {
   return (
     <Box2 direction="vertical" gap="medium" fullWidth={true} style={styles.container}>
       <Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
+      <Text type="Header">Link an existing wallet</Text>
       <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
         <Text type="BodySmall" style={{color: globalColors.blue}}>
           Paste your secret key
@@ -63,6 +64,17 @@ const EnterKey = (props: EnterKeyProps) => {
           onChangeText={props.onKeyChange}
         />
       </Box2>
+      <InfoNote>
+        <Box2 direction="vertical" fullWidth={true}>
+          <Text type="BodySmall" style={styles.textCenter}>
+            Example: SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
+          </Text>
+          <Text type="BodySmall" style={styles.textCenter}>
+            This imports a Stellar secret key so you can also use it in Keybase. You can continue to use this
+            Stellar account in other wallet apps.
+          </Text>
+        </Box2>
+      </InfoNote>
     </Box2>
   )
 }
@@ -90,10 +102,10 @@ const styles = styleSheetCreate({
     borderRadius: 4,
     borderStyle: 'solid',
     borderWidth: 1,
-    paddingBottom: 2,
-    paddingTop: 2,
+    padding: globalMargins.xtiny,
     textAlign: 'left',
   },
+  textCenter: {textAlign: 'center'},
 })
 
 export default LinkWallet
