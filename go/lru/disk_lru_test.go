@@ -21,15 +21,24 @@ func TestDiskLRUBasic(t *testing.T) {
 	v := "Library/Caches/473847384738.jpg"
 	_, err := l.Put(ctx, tc.G, k, v)
 	require.NoError(t, err)
+
 	found, getRes, err := l.Get(ctx, tc.G, k)
 	require.NoError(t, err)
 	require.True(t, found)
 	require.Equal(t, v, getRes.Value.(string))
+
 	l.ClearMemory(ctx, tc.G)
 	found, getRes, err = l.Get(ctx, tc.G, k)
 	require.NoError(t, err)
 	require.True(t, found)
 	require.Equal(t, v, getRes.Value.(string))
+
+	err = l.Remove(ctx, tc.G, k)
+	require.NoError(t, err)
+	found, getRes, err = l.Get(ctx, tc.G, k)
+	require.NoError(t, err)
+	require.False(t, found)
+
 	found, getRes, err = l.Get(ctx, tc.G, "missing")
 	require.NoError(t, err)
 	require.False(t, found)

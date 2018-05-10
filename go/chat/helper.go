@@ -341,7 +341,7 @@ func (h *Helper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UI
 	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
 		return res, err
 	}
-	maxMsgID, err := storage.New(h.G()).GetMaxMsgID(ctx, convID, uid)
+	maxMsgID, err := storage.New(h.G(), h.G().ConvSource).GetMaxMsgID(ctx, convID, uid)
 	if err == nil {
 		if msgUnboxed.GetMessageID() > maxMsgID {
 			if _, err = h.G().ConvSource.PushUnboxed(ctx, convID, uid, msgUnboxed); err != nil {

@@ -23,7 +23,7 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   throw new Error('Save Attachment - unsupported on this platform')
 }
 
-function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
 

@@ -352,8 +352,7 @@ func (d *DiskLRU) Remove(ctx context.Context, lctx libkb.LRUContext, key string)
 	if err != nil {
 		return err
 	}
-	index.Remove(key)
-	return nil
+	return d.removeEntry(ctx, lctx, index, key)
 }
 
 func (d *DiskLRU) ClearMemory(ctx context.Context, lctx libkb.LRUContext) {

@@ -75,65 +75,46 @@ func (s *SignupEngine) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	f := func(a libkb.LoginContext) error {
-		m = m.WithLoginContext(a)
-		if err := s.genPassphraseStream(m, s.arg.Passphrase); err != nil {
-			return err
-		}
+	m = m.WithNewProvisionalLoginContext()
 
-		if err := s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
-			return err
-		}
-
-		var err error
-		s.perUserKeyring, err = libkb.NewPerUserKeyring(m.G(), s.uid)
-		if err != nil {
-			return err
-		}
-
-		if err := s.registerDevice(m, s.arg.DeviceName); err != nil {
-			return err
-		}
-
-		if !s.arg.SkipPaper {
-			if err := s.genPaperKeys(m); err != nil {
-				return err
-			}
-		}
-
-		// GenPGPBatch can be set in devel CLI to generate
-		// a pgp key and push it to the server without any
-		// user interaction to make testing easier.
-		if s.arg.GenPGPBatch {
-			if err := s.genPGPBatch(m); err != nil {
-				return err
-			}
-		}
-
-		if s.arg.SkipGPG {
-			return nil
-		}
-
-		// only desktop potentially has gpg, so if not desktop then
-		// bail out
-		if s.arg.DeviceType != keybase1.DeviceType_DESKTOP {
-			return nil
-		}
-
-		if wantsGPG, err := s.checkGPG(m); err != nil {
-			return err
-		} else if wantsGPG {
-			if err := s.addGPG(m, true, true); err != nil {
-				return fmt.Errorf("addGPG error: %s", err)
-			}
-		}
-
-		return nil
-	}
-
-	if err := m.G().LoginState().ExternalFunc(f, "SignupEngine - Run"); err != nil {
+	if err := s.genPassphraseStream(m, s.arg.Passphrase); err != nil {
 		return err
 	}
+
+	if err := s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
+		return err
+	}
+
+	var err error
+	s.perUserKeyring, err = libkb.NewPerUserKeyring(m.G(), s.uid)
+	if err != nil {
+		return err
+	}
+
+	if err := s.registerDevice(m, s.arg.DeviceName); err != nil {
+		return err
+	}
+
+	if !s.arg.SkipPaper {
+		if err := s.genPaperKeys(m); err != nil {
+			return err
+		}
+	}
+
+	// GenPGPBatch can be set in devel CLI to generate
+	// a pgp key and push it to the server without any
+	// user interaction to make testing easier.
+	if s.arg.GenPGPBatch {
+		if err := s.genPGPBatch(m); err != nil {
+			return err
+		}
+	}
+
+	if err := s.doGPG(m); err != nil {
+		return err
+	}
+
+	m = m.CommitProvisionalLogin()
 
 	// signup complete, notify anyone interested.
 	// (and don't notify inside a LoginState action to avoid
@@ -147,6 +128,28 @@ func (s *SignupEngine) Run(m libkb.MetaContext) error {
 		m.G().GetStellar().CreateWalletSoft(context.Background())
 	}()
 
+	return nil
+}
+
+func (s *SignupEngine) doGPG(m libkb.MetaContext) error {
+
+	if s.arg.SkipGPG {
+		return nil
+	}
+
+	// only desktop potentially has gpg, so if not desktop then
+	// bail out
+	if s.arg.DeviceType != keybase1.DeviceType_DESKTOP {
+		return nil
+	}
+
+	if wantsGPG, err := s.checkGPG(m); err != nil {
+		return err
+	} else if wantsGPG {
+		if err := s.addGPG(m, true, true); err != nil {
+			return fmt.Errorf("addGPG error: %s", err)
+		}
+	}
 	return nil
 }
 
@@ -228,34 +231,37 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 	}
 	s.signingKey = eng.SigningKey()
 	s.encryptionKey = eng.EncryptionKey()
-
-	did := m.G().Env.GetDeviceID()
+	did := eng.DeviceID()
 
 	if err := m.LoginContext().LocalSession().SetDeviceProvisioned(did); err != nil {
 		// this isn't a fatal error, session will stay in memory...
 		m.CWarningf("error saving session file: %s", err)
 	}
 
-	// Create the secret store as late as possible here, as the username may
-	// change during the signup process.
-	if s.arg.StoreSecret {
-		secretStore := libkb.NewSecretStore(m.G(), s.me.GetNormalizedName())
-		if secretStore != nil {
-			secret, err := s.lks.GetSecret(m)
-			if err != nil {
-				return err
-			}
-			// Ignore any errors storing the secret.
-			storeSecretErr := secretStore.StoreSecret(secret)
-			if storeSecretErr != nil {
-				m.CWarningf("StoreSecret error: %s", storeSecretErr)
-			}
-		}
+	if err := s.storeSecret(m); err != nil {
+		return err
 	}
 
 	m.CDebugf("registered new device: %s", m.G().Env.GetDeviceID())
 	m.CDebugf("eldest kid: %s", s.me.GetEldestKID())
 
+	return nil
+}
+
+func (s *SignupEngine) storeSecret(m libkb.MetaContext) (err error) {
+	defer m.CTrace("SignupEngine#storeSecret", func() error { return err })()
+
+	// Create the secret store as late as possible here, as the username may
+	// change during the signup process.
+	if !s.arg.StoreSecret {
+		m.CDebugf("not storing secret; disabled")
+		return nil
+	}
+
+	w := libkb.StoreSecretAfterLoginWithLKS(m, s.me.GetNormalizedName(), s.lks)
+	if w != nil {
+		m.CWarningf("StoreSecret error: %s", w)
+	}
 	return nil
 }
 

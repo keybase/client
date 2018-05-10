@@ -17,6 +17,7 @@ type DeviceWrap struct {
 
 	signingKey    libkb.GenericKey
 	encryptionKey libkb.NaclDHKeyPair
+	deviceID      keybase1.DeviceID
 }
 
 type DeviceWrapArgs struct {
@@ -56,28 +57,42 @@ func (e *DeviceWrap) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *DeviceWrap) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&DeviceRegister{},
 		&DeviceKeygen{},
 	}
 }
 
-// Run starts the engine.
-func (e *DeviceWrap) Run(m libkb.MetaContext) error {
-	regArgs := &DeviceRegisterArgs{
-		Me:   e.args.Me,
-		Name: e.args.DeviceName,
-		Lks:  e.args.Lks,
+func (e *DeviceWrap) registerDevice(m libkb.MetaContext) (err error) {
+
+	defer m.CTrace("DeviceWrap#registerDevice", func() error { return err })()
+
+	if e.args.Me.HasCurrentDeviceInCurrentInstall() {
+		return libkb.DeviceAlreadyProvisionedError{}
 	}
-	regEng := NewDeviceRegister(m.G(), regArgs)
-	if err := RunEngine2(m, regEng); err != nil {
+
+	if e.deviceID, err = libkb.NewDeviceID(); err != nil {
 		return err
 	}
 
-	deviceID := regEng.DeviceID()
+	if err = e.args.Lks.GenerateServerHalf(); err != nil {
+		return err
+	}
+
+	m.CDebugf("Device name: %s", e.args.DeviceName)
+	m.CDebugf("Device ID: %s", e.deviceID)
+
+	m.UIs().LogUI.Debug("Setting Device ID to %s", e.deviceID)
+	if err = m.SetDeviceIDWithinRegistration(e.deviceID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
+	defer m.CTrace("DeviceWrap#genKeys", func() error { return err })()
 
 	kgArgs := &DeviceKeygenArgs{
 		Me:             e.args.Me,
-		DeviceID:       deviceID,
+		DeviceID:       e.deviceID,
 		DeviceName:     e.args.DeviceName,
 		DeviceType:     e.args.DeviceType,
 		Lks:            e.args.Lks,
@@ -85,7 +100,7 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 		PerUserKeyring: e.args.PerUserKeyring,
 	}
 	kgEng := NewDeviceKeygen(m.G(), kgArgs)
-	if err := RunEngine2(m, kgEng); err != nil {
+	if err = RunEngine2(m, kgEng); err != nil {
 		return err
 	}
 
@@ -93,7 +108,7 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 		Signer:    e.args.Signer,
 		EldestKID: e.args.EldestKID,
 	}
-	if err := kgEng.Push(m, pargs); err != nil {
+	if err = kgEng.Push(m, pargs); err != nil {
 		return err
 	}
 
@@ -101,20 +116,41 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 	e.encryptionKey = kgEng.EncryptionKey()
 	// TODO get the per-user-key and save it if it was generated
 
-	if lctx := m.LoginContext(); lctx != nil {
+	return nil
+}
 
-		// Set the device id so that SetCachedSecretKey picks it up.
-		// Signup does this too, but by then it's too late.
-		if err := lctx.LocalSession().SetDeviceProvisioned(deviceID); err != nil {
-			// Not fatal. Because, um, it was working ok before.
-			m.CWarningf("error saving session file: %s", err)
-		}
+func (e *DeviceWrap) setActiveDevice(m libkb.MetaContext) (err error) {
+	defer m.CTrace("DeviceWrap#setActiveDevice", func() error { return err })()
 
-		device := kgEng.device()
+	if err := m.SetActiveDevice(e.args.Me.GetUID(), e.deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName); err != nil {
+		return err
+	}
 
-		// cache the secret keys
-		lctx.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceSigningKeyType}, e.signingKey, device)
-		lctx.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey, device)
+	// Sync down secrets for future offline login attempts to work.
+	// This will largely just download what we just uploaded, but it's
+	// easy to do this way.
+	w := m.ActiveDevice().SyncSecrets(m)
+	if w != nil {
+		m.CWarningf("Error sync secrets: %s", w.Error())
+	}
+	return nil
+}
+
+// Run starts the engine.
+func (e *DeviceWrap) Run(m libkb.MetaContext) (err error) {
+
+	defer m.CTrace("DeviceWrap#Run", func() error { return err })()
+
+	if err = e.registerDevice(m); err != nil {
+		return err
+	}
+
+	if err = e.genKeys(m); err != nil {
+		return err
+	}
+
+	if err = e.setActiveDevice(m); err != nil {
+		return err
 	}
 
 	return nil
@@ -126,4 +162,8 @@ func (e *DeviceWrap) SigningKey() libkb.GenericKey {
 
 func (e *DeviceWrap) EncryptionKey() libkb.NaclDHKeyPair {
 	return e.encryptionKey
+}
+
+func (e *DeviceWrap) DeviceID() keybase1.DeviceID {
+	return e.deviceID
 }

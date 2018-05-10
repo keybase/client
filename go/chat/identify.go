@@ -36,7 +36,7 @@ func NewSimpleIdentifyNotifier(g *globals.Context) *SimpleIdentifyNotifier {
 	return &SimpleIdentifyNotifier{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "SimpleIdentifyNotifier", false),
-		storage:      storage.New(g),
+		storage:      storage.New(g, g.ConvSource),
 	}
 }
 
@@ -65,7 +65,7 @@ func NewCachingIdentifyNotifier(g *globals.Context) *CachingIdentifyNotifier {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingIdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
-		storage:      storage.New(g),
+		storage:      storage.New(g, g.ConvSource),
 	}
 }
 

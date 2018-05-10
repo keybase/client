@@ -12,7 +12,7 @@ type Props = {
 }
 
 const SendForm = ({bannerInfo, isProcessing, onClick}: Props) => (
-  <Box2 direction="vertical">
+  <Box2 direction="vertical" style={styles.container}>
     <Header />
     <Body bannerInfo={bannerInfo} isProcessing={isProcessing} onClick={onClick} />
     <Text type="BodySmallSemibold" style={styles.text}>
@@ -25,6 +25,9 @@ const SendForm = ({bannerInfo, isProcessing, onClick}: Props) => (
 )
 
 const styles = styleSheetCreate({
+  container: {
+    maxWidth: 360,
+  },
   text: {
     position: 'relative',
     textAlign: 'center',

@@ -156,6 +156,7 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 		ctx = context.Background()
 	}
 	ctx = WithLogTag(ctx, "SELF")
+	arg = arg.WithNetContext(ctx)
 
 	m.G().Log.CDebugf(ctx, "+ CachedFullSelf#WithUser(%+v)", arg)
 	m.Lock()

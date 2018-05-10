@@ -165,6 +165,10 @@ func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	return metadata, nil
 }
 
+func ForcePublishNewTeamEKForTesting(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
+	return publishNewTeamEK(ctx, g, teamID, merkleRoot)
+}
+
 func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadata map[keybase1.UID]keybase1.UserEkMetadata, teamEK keybase1.TeamEk) (teamBoxes *[]keybase1.TeamEkBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
 	defer g.CTrace(ctx, "boxTeamEKForUsers", func() error { return err })()
 

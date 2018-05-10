@@ -196,9 +196,10 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		inboxSynced:    make(chan chat1.ChatSyncResult, 10),
 		ephemeralPurge: make(chan chat1.EphemeralPurgeNotifInfo, 10),
 	}
-	chatStorage := storage.New(g)
+	chatStorage := storage.New(g, nil)
 	chatStorage.SetClock(world.Fc)
 	g.ConvSource = NewHybridConversationSource(g, boxer, chatStorage, getRI)
+	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.InboxSource = NewHybridInboxSource(g, getRI)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	g.NotifyRouter.SetListener(&listener)
@@ -966,7 +967,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	}
 
 	// Nuke the body cache
-	require.NoError(t, storage.New(tc.Context()).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
+	require.NoError(t, storage.New(tc.Context(), tc.ChatG.ConvSource).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
 
 	// Fetch a subset into the cache
 	_, _, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, nil, &chat1.Pagination{
