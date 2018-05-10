@@ -19,10 +19,19 @@ const enterKeyProps = {
   view: 'enter-key',
 }
 
+const enterNameProps = {
+  ...actions,
+  name: '',
+  secretKey: '',
+  view: 'enter-name',
+}
+
 const load = () => {
   storiesOf('Wallets/Link existing', module)
-    .addDecorator(story => <Box style={{maxWidth: 360}}>{story()}</Box>)
-    .add('Paste key', () => <LinkExisting {...enterKeyProps} />)
+    .addDecorator(story => <Box style={{height: 525, maxWidth: 360}}>{story()}</Box>)
+    .add('Enter key', () => <LinkExisting {...enterKeyProps} />)
+    .add('Enter name', () => <LinkExisting {...enterNameProps} />)
+    .add('Prefilled name', () => <LinkExisting {...enterNameProps} name="mikem's third wallet" />)
 }
 
 export default load

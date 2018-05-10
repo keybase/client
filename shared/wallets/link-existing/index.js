@@ -12,7 +12,6 @@ type Props = {
   onKeyChange: string => void,
   onViewChange: View => void,
   name: string,
-  secretKey: string,
   view: View,
 }
 
@@ -23,7 +22,6 @@ const LinkWallet = (props: Props) => {
         onCancel={props.onCancel}
         onKeyChange={props.onKeyChange}
         onNext={() => props.onViewChange('enter-name')}
-        secretKey={props.secretKey}
       />
     )
   }
@@ -41,7 +39,6 @@ type EnterKeyProps = {
   onCancel: () => void,
   onKeyChange: string => void,
   onNext: () => void,
-  secretKey: string,
 }
 
 const EnterKey = (props: EnterKeyProps) => (
@@ -60,12 +57,12 @@ const EnterKey = (props: EnterKeyProps) => (
           Paste your secret key
         </Text>
         <Input
+          hideLabel={true}
           multiline={true}
           rowsMin={2}
           rowsMax={2}
           hideUnderline={true}
           inputStyle={styles.inputElement}
-          small={true}
           style={styles.input}
           onChangeText={props.onKeyChange}
         />
@@ -96,7 +93,44 @@ type EnterNameProps = {
   onDone: () => void,
 }
 
-const EnterName = (props: EnterNameProps) => {}
+const EnterName = (props: EnterNameProps) => (
+  <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+    <Box2
+      direction="vertical"
+      gap="medium"
+      fullWidth={true}
+      fullHeight={true}
+      style={styles.contentContainer}
+    >
+      <Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
+      <Text type="Header">Name your wallet</Text>
+      <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
+        <Text type="BodySmall" style={{color: globalColors.blue}}>
+          Wallet name
+        </Text>
+        <Input
+          hideLabel={true}
+          hideUnderline={true}
+          inputStyle={styles.inputElement}
+          style={styles.input}
+          value={props.name}
+          onChangeText={props.onNameChange}
+        />
+      </Box2>
+      <InfoNote>
+        <Box2 direction="vertical" fullWidth={true}>
+          <Text type="BodySmall" style={styles.textCenter}>
+            Your wallet name is encrypted and only visible to you.
+          </Text>
+        </Box2>
+      </InfoNote>
+    </Box2>
+    <ButtonBar>
+      <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
+      <Button type="Wallet" onClick={props.onDone} label="Done" />
+    </ButtonBar>
+  </Box2>
+)
 
 const styles = styleSheetCreate({
   container: {
