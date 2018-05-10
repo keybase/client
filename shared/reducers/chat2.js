@@ -331,7 +331,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
-      return state.withMutations((s: State) => {
+      return state.withMutations(_s => {
+        const s = (_s: Types.State)
         s.set('pendingMode', action.payload.pendingMode)
         if (action.payload.pendingMode === 'none') {
           s.setIn(['metaMap', Constants.pendingConversationIDKey, 'participants'], I.OrderedSet())
@@ -339,7 +340,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             ['metaMap', Constants.pendingConversationIDKey, 'conversationIDKey'],
             Constants.noConversationIDKey
           )
-          s.set('pendingStatus', 'none')
           s.deleteIn(['messageOrdinals', Constants.pendingConversationIDKey])
           s.deleteIn(['pendingOutboxToOrdinal', Constants.pendingConversationIDKey])
           s.deleteIn(['messageMap', Constants.pendingConversationIDKey])

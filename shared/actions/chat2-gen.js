@@ -22,7 +22,6 @@ export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
-export const clearPendingConversation = 'chat2:clearPendingConversation'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -156,7 +155,6 @@ export const createBlockConversation = (
 ) => ({error: false, payload, type: blockConversation})
 export const createClearLoading = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: clearLoading})
 export const createClearOrdinals = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: clearOrdinals})
-export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
 export const createDesktopNotification = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -406,7 +404,6 @@ export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type BlockConversationPayload = More.ReturnType<typeof createBlockConversation>
 export type ClearLoadingPayload = More.ReturnType<typeof createClearLoading>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
-export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
 export type CreateConversationPayload = More.ReturnType<typeof createCreateConversation>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
@@ -475,7 +472,6 @@ export type Actions =
   | More.ReturnType<typeof createBlockConversation>
   | More.ReturnType<typeof createClearLoading>
   | More.ReturnType<typeof createClearOrdinals>
-  | More.ReturnType<typeof createClearPendingConversation>
   | More.ReturnType<typeof createCreateConversation>
   | More.ReturnType<typeof createDesktopNotification>
   | More.ReturnType<typeof createInboxRefresh>

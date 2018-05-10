@@ -253,8 +253,6 @@
         "More.ReturnType<typeof createAttachmentUpload>"
       ]
     },
-    // We've made a new conversation successfully and want to clean up the pending info now
-    "clearPendingConversation": {},
     // We want to save an attachment to the local disk
     "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",
