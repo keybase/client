@@ -7,7 +7,6 @@ import {
   Icon,
   NativeScrollView,
   List,
-  NativeTouchableWithoutFeedback,
   HOCTimers,
   type PropsWithTimer,
 } from '../../common-adapters/index.native'
@@ -78,7 +77,7 @@ class GlobalError extends Component<Props, State> {
     return {
       Big: 500,
       Closed: 0,
-      Small: 35 + 20 + (isIPhoneX ? globalMargins.medium : 0),
+      Small: 35 + 66 + (isIPhoneX ? globalMargins.medium : 0),
     }[size]
   }
 
@@ -103,15 +102,20 @@ class GlobalError extends Component<Props, State> {
 
     return (
       <Box style={{...containerStyle, maxHeight}}>
-        <NativeTouchableWithoutFeedback onPress={this._onExpandClick}>
-          <Box style={summaryRowStyle}>
+        <Box style={globalStyles.flexBoxColumn}>
+          <Box style={{...summaryRowStyle, paddingTop: globalMargins.medium}}>
             <Icon
               type="iconfont-exclamation"
               style={{marginRight: globalMargins.tiny}}
               color={globalColors.white}
+              onClick={this._onExpandClick}
             />
-            <Text type="BodySmall" style={{color: globalColors.white, flex: 1, textAlign: 'center'}}>
-              {summary}
+            <Text
+              type="BodySmall"
+              style={{color: globalColors.white, flex: 1, textAlign: 'center'}}
+              onClick={this._onExpandClick}
+            >
+              An error occurred
             </Text>
             <Icon
               type="iconfont-close"
@@ -120,7 +124,18 @@ class GlobalError extends Component<Props, State> {
               color={globalColors.white_75}
             />
           </Box>
-        </NativeTouchableWithoutFeedback>
+          <Box style={summaryRowStyle}>
+            <Button
+              backgroundMode="Terminal"
+              fullWidth={true}
+              label="Please tell us"
+              onClick={this.props.onFeedback}
+              small={true}
+              style={{width: '100%'}}
+              type="Secondary"
+            />
+          </Box>
+        </Box>
         {this.props.debugDump.length ? (
           <Box style={{flex: 1}}>
             <Button
@@ -155,20 +170,19 @@ const containerStyle = {
   backgroundColor: globalColors.black_75,
   left: 0,
   overflow: 'hidden',
+  paddingTop: isIPhoneX ? globalMargins.medium : undefined,
   position: 'absolute',
   right: 0,
   top: 0,
-  paddingTop: isIPhoneX ? globalMargins.medium : undefined,
 }
 
 const summaryRowStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  justifyContent: 'flex-start',
   flexShrink: 0,
-  minHeight: GlobalError.maxHeightForSize('Small'),
+  justifyContent: 'flex-start',
+  // minHeight: GlobalError.maxHeightForSize('Small'),
   padding: globalMargins.tiny,
-  paddingTop: globalMargins.medium,
 }
 
 const detailStyle = {
