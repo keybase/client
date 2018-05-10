@@ -6,7 +6,6 @@ import {peopleTab} from '../constants/tabs'
 import {serviceIdToService} from './search'
 import {parseUserId} from '../util/platforms'
 import {searchResultSelector} from './selectors'
-import {type PropsPath} from '../route-tree'
 
 const initialState: State = {
   errorCode: null,

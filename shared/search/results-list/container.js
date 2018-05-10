@@ -31,7 +31,7 @@ const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableListBuilding}: OwnProps): * => ({
+const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableListBuilding}: OwnProps) => ({
   onClick: (id: string) => {
     !disableListBuilding && dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]}))
     onClick && onClick(id)

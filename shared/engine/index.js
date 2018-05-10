@@ -22,17 +22,17 @@ import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKe
 import type {TypedState} from '../constants/reducer'
 
 class EngineChannel {
-  _map: ChannelMap<*>
+  _map: ChannelMap<any>
   _sessionID: SessionID
   _configKeys: Array<string>
 
-  constructor(map: ChannelMap<*>, sessionID: SessionID, configKeys: Array<string>) {
+  constructor(map: ChannelMap<any>, sessionID: SessionID, configKeys: Array<string>) {
     this._map = map
     this._sessionID = sessionID
     this._configKeys = configKeys
   }
 
-  getMap(): ChannelMap<*> {
+  getMap(): ChannelMap<any> {
     return this._map
   }
 

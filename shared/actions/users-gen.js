@@ -1,32 +1,33 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of users but is handled by every reducer
 export const updateBrokenState = 'users:updateBrokenState'
 export const updateFullnames = 'users:updateFullnames'
 
+// Payload Types
+type _UpdateBrokenStatePayload = $ReadOnly<{|
+  newlyBroken: Array<string>,
+  newlyFixed: Array<string>,
+|}>
+type _UpdateFullnamesPayload = $ReadOnly<{|usernameToFullname: {[username: string]: string}|}>
+
 // Action Creators
-export const createUpdateBrokenState = (
-  payload: $ReadOnly<{|
-    newlyBroken: Array<string>,
-    newlyFixed: Array<string>,
-  |}>
-) => ({error: false, payload, type: updateBrokenState})
-export const createUpdateFullnames = (payload: $ReadOnly<{|usernameToFullname: {[username: string]: string}|}>) => ({error: false, payload, type: updateFullnames})
+export const createUpdateBrokenState = (payload: _UpdateBrokenStatePayload) => ({error: false, payload, type: updateBrokenState})
+export const createUpdateFullnames = (payload: _UpdateFullnamesPayload) => ({error: false, payload, type: updateFullnames})
 
 // Action Payloads
-export type UpdateBrokenStatePayload = More.ReturnType<typeof createUpdateBrokenState>
-export type UpdateFullnamesPayload = More.ReturnType<typeof createUpdateFullnames>
+export type UpdateBrokenStatePayload = $Call<typeof createUpdateBrokenState, _UpdateBrokenStatePayload>
+export type UpdateFullnamesPayload = $Call<typeof createUpdateFullnames, _UpdateFullnamesPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createUpdateBrokenState>
-  | More.ReturnType<typeof createUpdateFullnames>
+  | UpdateBrokenStatePayload
+  | UpdateFullnamesPayload
   | {type: 'common:resetStore', payload: void}

@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of kbfs but is handled by every reducer
@@ -25,66 +24,84 @@ export const openInFileUI = 'kbfs:openInFileUI'
 export const uninstallKBFS = 'kbfs:uninstallKBFS'
 export const uninstallKBFSResult = 'kbfs:uninstallKBFSResult'
 
+// Payload Types
+type _ClearFuseInstallPayload = void
+type _FuseStatusPayload = void
+type _FuseStatusUpdatePayload = $ReadOnly<{|
+  prevStatus: ?RPCTypes.FuseStatus,
+  status: RPCTypes.FuseStatus,
+|}>
+type _InstallFuseFinishedPayload = void
+type _InstallFusePayload = void
+type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
+type _InstallKBFSFinishedPayload = void
+type _InstallKBFSPayload = void
+type _InstallKBFSResultPayload = $ReadOnly<{|result: RPCTypes.InstallResult|}>
+type _ListPayload = $ReadOnly<{|path: string|}>
+type _ListedPayload = $ReadOnly<{|result: RPCTypes.ListResult|}>
+type _ListedPayloadError = $ReadOnly<{|error: Error|}>
+type _OpenDefaultPathPayload = $ReadOnly<{|opening: boolean|}>
+type _OpenInFileUIPayload = $ReadOnly<{|path: string|}>
+type _OpenPayload = $ReadOnly<{|path?: string|}>
+type _UninstallKBFSPayload = void
+type _UninstallKBFSResultPayload = $ReadOnly<{|result: RPCTypes.UninstallResult|}>
+
 // Action Creators
-export const createClearFuseInstall = () => ({error: false, payload: undefined, type: clearFuseInstall})
-export const createFuseStatus = () => ({error: false, payload: undefined, type: fuseStatus})
-export const createFuseStatusUpdate = (
-  payload: $ReadOnly<{|
-    prevStatus: ?RPCTypes.FuseStatus,
-    status: RPCTypes.FuseStatus,
-  |}>
-) => ({error: false, payload, type: fuseStatusUpdate})
-export const createInstallFuse = () => ({error: false, payload: undefined, type: installFuse})
-export const createInstallFuseFinished = () => ({error: false, payload: undefined, type: installFuseFinished})
-export const createInstallFuseResult = (payload: $ReadOnly<{|kextPermissionError: boolean|}>) => ({error: false, payload, type: installFuseResult})
-export const createInstallKBFS = () => ({error: false, payload: undefined, type: installKBFS})
-export const createInstallKBFSFinished = () => ({error: false, payload: undefined, type: installKBFSFinished})
-export const createInstallKBFSResult = (payload: $ReadOnly<{|result: RPCTypes.InstallResult|}>) => ({error: false, payload, type: installKBFSResult})
-export const createList = (payload: $ReadOnly<{|path: string|}>) => ({error: false, payload, type: list})
-export const createListed = (payload: $ReadOnly<{|result: RPCTypes.ListResult|}>) => ({error: false, payload, type: listed})
-export const createListedError = (payload: $ReadOnly<{|error: Error|}>) => ({error: true, payload, type: listed})
-export const createOpen = (payload: $ReadOnly<{|path?: string|}>) => ({error: false, payload, type: open})
-export const createOpenDefaultPath = (payload: $ReadOnly<{|opening: boolean|}>) => ({error: false, payload, type: openDefaultPath})
-export const createOpenInFileUI = (payload: $ReadOnly<{|path: string|}>) => ({error: false, payload, type: openInFileUI})
-export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
-export const createUninstallKBFSResult = (payload: $ReadOnly<{|result: RPCTypes.UninstallResult|}>) => ({error: false, payload, type: uninstallKBFSResult})
+export const createClearFuseInstall = (payload: _ClearFuseInstallPayload) => ({error: false, payload, type: clearFuseInstall})
+export const createFuseStatus = (payload: _FuseStatusPayload) => ({error: false, payload, type: fuseStatus})
+export const createFuseStatusUpdate = (payload: _FuseStatusUpdatePayload) => ({error: false, payload, type: fuseStatusUpdate})
+export const createInstallFuse = (payload: _InstallFusePayload) => ({error: false, payload, type: installFuse})
+export const createInstallFuseFinished = (payload: _InstallFuseFinishedPayload) => ({error: false, payload, type: installFuseFinished})
+export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
+export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
+export const createInstallKBFSFinished = (payload: _InstallKBFSFinishedPayload) => ({error: false, payload, type: installKBFSFinished})
+export const createInstallKBFSResult = (payload: _InstallKBFSResultPayload) => ({error: false, payload, type: installKBFSResult})
+export const createList = (payload: _ListPayload) => ({error: false, payload, type: list})
+export const createListed = (payload: _ListedPayload) => ({error: false, payload, type: listed})
+export const createListedError = (payload: _ListedPayloadError) => ({error: true, payload, type: listed})
+export const createOpen = (payload: _OpenPayload) => ({error: false, payload, type: open})
+export const createOpenDefaultPath = (payload: _OpenDefaultPathPayload) => ({error: false, payload, type: openDefaultPath})
+export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
+export const createUninstallKBFS = (payload: _UninstallKBFSPayload) => ({error: false, payload, type: uninstallKBFS})
+export const createUninstallKBFSResult = (payload: _UninstallKBFSResultPayload) => ({error: false, payload, type: uninstallKBFSResult})
 
 // Action Payloads
-export type ClearFuseInstallPayload = More.ReturnType<typeof createClearFuseInstall>
-export type FuseStatusPayload = More.ReturnType<typeof createFuseStatus>
-export type FuseStatusUpdatePayload = More.ReturnType<typeof createFuseStatusUpdate>
-export type InstallFuseFinishedPayload = More.ReturnType<typeof createInstallFuseFinished>
-export type InstallFusePayload = More.ReturnType<typeof createInstallFuse>
-export type InstallFuseResultPayload = More.ReturnType<typeof createInstallFuseResult>
-export type InstallKBFSFinishedPayload = More.ReturnType<typeof createInstallKBFSFinished>
-export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
-export type InstallKBFSResultPayload = More.ReturnType<typeof createInstallKBFSResult>
-export type ListPayload = More.ReturnType<typeof createList>
-export type ListedPayload = More.ReturnType<typeof createListed>
-export type OpenDefaultPathPayload = More.ReturnType<typeof createOpenDefaultPath>
-export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
-export type OpenPayload = More.ReturnType<typeof createOpen>
-export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
-export type UninstallKBFSResultPayload = More.ReturnType<typeof createUninstallKBFSResult>
+export type ClearFuseInstallPayload = $Call<typeof createClearFuseInstall, _ClearFuseInstallPayload>
+export type FuseStatusPayload = $Call<typeof createFuseStatus, _FuseStatusPayload>
+export type FuseStatusUpdatePayload = $Call<typeof createFuseStatusUpdate, _FuseStatusUpdatePayload>
+export type InstallFuseFinishedPayload = $Call<typeof createInstallFuseFinished, _InstallFuseFinishedPayload>
+export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePayload>
+export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
+export type InstallKBFSFinishedPayload = $Call<typeof createInstallKBFSFinished, _InstallKBFSFinishedPayload>
+export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
+export type InstallKBFSResultPayload = $Call<typeof createInstallKBFSResult, _InstallKBFSResultPayload>
+export type ListPayload = $Call<typeof createList, _ListPayload>
+export type ListedPayload = $Call<typeof createListed, _ListedPayload>
+export type ListedPayloadError = $Call<typeof createListedError, _ListedPayloadError>
+export type OpenDefaultPathPayload = $Call<typeof createOpenDefaultPath, _OpenDefaultPathPayload>
+export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
+export type OpenPayload = $Call<typeof createOpen, _OpenPayload>
+export type UninstallKBFSPayload = $Call<typeof createUninstallKBFS, _UninstallKBFSPayload>
+export type UninstallKBFSResultPayload = $Call<typeof createUninstallKBFSResult, _UninstallKBFSResultPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createClearFuseInstall>
-  | More.ReturnType<typeof createFuseStatus>
-  | More.ReturnType<typeof createFuseStatusUpdate>
-  | More.ReturnType<typeof createInstallFuse>
-  | More.ReturnType<typeof createInstallFuseFinished>
-  | More.ReturnType<typeof createInstallFuseResult>
-  | More.ReturnType<typeof createInstallKBFS>
-  | More.ReturnType<typeof createInstallKBFSFinished>
-  | More.ReturnType<typeof createInstallKBFSResult>
-  | More.ReturnType<typeof createList>
-  | More.ReturnType<typeof createListed>
-  | More.ReturnType<typeof createListedError>
-  | More.ReturnType<typeof createOpen>
-  | More.ReturnType<typeof createOpenDefaultPath>
-  | More.ReturnType<typeof createOpenInFileUI>
-  | More.ReturnType<typeof createUninstallKBFS>
-  | More.ReturnType<typeof createUninstallKBFSResult>
+  | ClearFuseInstallPayload
+  | FuseStatusPayload
+  | FuseStatusUpdatePayload
+  | InstallFuseFinishedPayload
+  | InstallFusePayload
+  | InstallFuseResultPayload
+  | InstallKBFSFinishedPayload
+  | InstallKBFSPayload
+  | InstallKBFSResultPayload
+  | ListPayload
+  | ListedPayload
+  | ListedPayloadError
+  | OpenDefaultPathPayload
+  | OpenInFileUIPayload
+  | OpenPayload
+  | UninstallKBFSPayload
+  | UninstallKBFSResultPayload
   | {type: 'common:resetStore', payload: void}

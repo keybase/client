@@ -44,7 +44,7 @@ const _MaybePopupHoc: any = (cover: boolean) => {
 type MaybePopupHocType<P> = (
   cover: boolean
 ) => (WrappedComponent: React.ComponentType<P>) => React.ComponentType<P>
-const MaybePopupHoc: MaybePopupHocType<*> = (cover: boolean) => Component =>
+const MaybePopupHoc: MaybePopupHocType<any> = (cover: boolean) => Component =>
   DispatchNavUpHoc(_MaybePopupHoc(cover)(Component))
 
 const _styleCover = {

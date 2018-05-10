@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Constants from '../constants/unlock-folders'
 
 // Constants
@@ -21,52 +20,65 @@ export const registerRekeyListener = 'unlock-folders:registerRekeyListener'
 export const toPaperKeyInput = 'unlock-folders:toPaperKeyInput'
 export const waiting = 'unlock-folders:waiting'
 
+// Payload Types
+type _CheckPaperKeyDonePayload = void
+type _CheckPaperKeyDonePayloadError = $ReadOnly<{|error: string|}>
+type _CheckPaperKeyPayload = $ReadOnly<{|paperKey: string|}>
+type _CloseDonePayload = void
+type _ClosePopupPayload = void
+type _FinishPayload = void
+type _NewRekeyPopupPayload = $ReadOnly<{|
+  sessionID: number,
+  devices: Array<RPCTypes.Device>,
+  problemSet: RPCTypes.ProblemSet,
+|}>
+type _OnBackFromPaperKeyPayload = void
+type _OpenPopupPayload = void
+type _RegisterRekeyListenerPayload = void
+type _ToPaperKeyInputPayload = void
+type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
+
 // Action Creators
-export const createCheckPaperKey = (payload: $ReadOnly<{|paperKey: string|}>) => ({error: false, payload, type: checkPaperKey})
-export const createCheckPaperKeyDone = () => ({error: false, payload: undefined, type: checkPaperKeyDone})
-export const createCheckPaperKeyDoneError = (payload: $ReadOnly<{|error: string|}>) => ({error: true, payload, type: checkPaperKeyDone})
-export const createCloseDone = () => ({error: false, payload: undefined, type: closeDone})
-export const createClosePopup = () => ({error: false, payload: undefined, type: closePopup})
-export const createFinish = () => ({error: false, payload: undefined, type: finish})
-export const createNewRekeyPopup = (
-  payload: $ReadOnly<{|
-    sessionID: number,
-    devices: Array<RPCTypes.Device>,
-    problemSet: RPCTypes.ProblemSet,
-  |}>
-) => ({error: false, payload, type: newRekeyPopup})
-export const createOnBackFromPaperKey = () => ({error: false, payload: undefined, type: onBackFromPaperKey})
-export const createOpenPopup = () => ({error: false, payload: undefined, type: openPopup})
-export const createRegisterRekeyListener = () => ({error: false, payload: undefined, type: registerRekeyListener})
-export const createToPaperKeyInput = () => ({error: false, payload: undefined, type: toPaperKeyInput})
-export const createWaiting = (payload: $ReadOnly<{|waiting: boolean|}>) => ({error: false, payload, type: waiting})
+export const createCheckPaperKey = (payload: _CheckPaperKeyPayload) => ({error: false, payload, type: checkPaperKey})
+export const createCheckPaperKeyDone = (payload: _CheckPaperKeyDonePayload) => ({error: false, payload, type: checkPaperKeyDone})
+export const createCheckPaperKeyDoneError = (payload: _CheckPaperKeyDonePayloadError) => ({error: true, payload, type: checkPaperKeyDone})
+export const createCloseDone = (payload: _CloseDonePayload) => ({error: false, payload, type: closeDone})
+export const createClosePopup = (payload: _ClosePopupPayload) => ({error: false, payload, type: closePopup})
+export const createFinish = (payload: _FinishPayload) => ({error: false, payload, type: finish})
+export const createNewRekeyPopup = (payload: _NewRekeyPopupPayload) => ({error: false, payload, type: newRekeyPopup})
+export const createOnBackFromPaperKey = (payload: _OnBackFromPaperKeyPayload) => ({error: false, payload, type: onBackFromPaperKey})
+export const createOpenPopup = (payload: _OpenPopupPayload) => ({error: false, payload, type: openPopup})
+export const createRegisterRekeyListener = (payload: _RegisterRekeyListenerPayload) => ({error: false, payload, type: registerRekeyListener})
+export const createToPaperKeyInput = (payload: _ToPaperKeyInputPayload) => ({error: false, payload, type: toPaperKeyInput})
+export const createWaiting = (payload: _WaitingPayload) => ({error: false, payload, type: waiting})
 
 // Action Payloads
-export type CheckPaperKeyDonePayload = More.ReturnType<typeof createCheckPaperKeyDone>
-export type CheckPaperKeyPayload = More.ReturnType<typeof createCheckPaperKey>
-export type CloseDonePayload = More.ReturnType<typeof createCloseDone>
-export type ClosePopupPayload = More.ReturnType<typeof createClosePopup>
-export type FinishPayload = More.ReturnType<typeof createFinish>
-export type NewRekeyPopupPayload = More.ReturnType<typeof createNewRekeyPopup>
-export type OnBackFromPaperKeyPayload = More.ReturnType<typeof createOnBackFromPaperKey>
-export type OpenPopupPayload = More.ReturnType<typeof createOpenPopup>
-export type RegisterRekeyListenerPayload = More.ReturnType<typeof createRegisterRekeyListener>
-export type ToPaperKeyInputPayload = More.ReturnType<typeof createToPaperKeyInput>
-export type WaitingPayload = More.ReturnType<typeof createWaiting>
+export type CheckPaperKeyDonePayload = $Call<typeof createCheckPaperKeyDone, _CheckPaperKeyDonePayload>
+export type CheckPaperKeyDonePayloadError = $Call<typeof createCheckPaperKeyDoneError, _CheckPaperKeyDonePayloadError>
+export type CheckPaperKeyPayload = $Call<typeof createCheckPaperKey, _CheckPaperKeyPayload>
+export type CloseDonePayload = $Call<typeof createCloseDone, _CloseDonePayload>
+export type ClosePopupPayload = $Call<typeof createClosePopup, _ClosePopupPayload>
+export type FinishPayload = $Call<typeof createFinish, _FinishPayload>
+export type NewRekeyPopupPayload = $Call<typeof createNewRekeyPopup, _NewRekeyPopupPayload>
+export type OnBackFromPaperKeyPayload = $Call<typeof createOnBackFromPaperKey, _OnBackFromPaperKeyPayload>
+export type OpenPopupPayload = $Call<typeof createOpenPopup, _OpenPopupPayload>
+export type RegisterRekeyListenerPayload = $Call<typeof createRegisterRekeyListener, _RegisterRekeyListenerPayload>
+export type ToPaperKeyInputPayload = $Call<typeof createToPaperKeyInput, _ToPaperKeyInputPayload>
+export type WaitingPayload = $Call<typeof createWaiting, _WaitingPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createCheckPaperKey>
-  | More.ReturnType<typeof createCheckPaperKeyDone>
-  | More.ReturnType<typeof createCheckPaperKeyDoneError>
-  | More.ReturnType<typeof createCloseDone>
-  | More.ReturnType<typeof createClosePopup>
-  | More.ReturnType<typeof createFinish>
-  | More.ReturnType<typeof createNewRekeyPopup>
-  | More.ReturnType<typeof createOnBackFromPaperKey>
-  | More.ReturnType<typeof createOpenPopup>
-  | More.ReturnType<typeof createRegisterRekeyListener>
-  | More.ReturnType<typeof createToPaperKeyInput>
-  | More.ReturnType<typeof createWaiting>
+  | CheckPaperKeyDonePayload
+  | CheckPaperKeyDonePayloadError
+  | CheckPaperKeyPayload
+  | CloseDonePayload
+  | ClosePopupPayload
+  | FinishPayload
+  | NewRekeyPopupPayload
+  | OnBackFromPaperKeyPayload
+  | OpenPopupPayload
+  | RegisterRekeyListenerPayload
+  | ToPaperKeyInputPayload
+  | WaitingPayload
   | {type: 'common:resetStore', payload: void}

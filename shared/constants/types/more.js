@@ -46,13 +46,13 @@ export const PlatformsExpanded = Object.keys(platformsExpandedMap).reduce((arr, 
   return arr
 }, [])
 
-export type Exact<X> = $Shape<X> & X
+// export type Exact<X> = $Shape<X> & X
 
 // eslint-disable-next-line
-type _ExtractReturn<B, F: (...args: any[]) => B> = B
-export type ReturnType<F> = _ExtractReturn<*, F>
-export type PayloadType<F> = $PropertyType<ReturnType<F>, 'payload'>
+// type _ExtractReturn<B, F: (...args: any[]) => B> = B
+// export type ReturnType<F> = _ExtractReturn<*, F>
+// export type PayloadType<F> = $PropertyType<ReturnType<F>, 'payload'>
 
-// eslint-disable-next-line
-export type _PropsOf<Props, C: Component<Props, *>> = Props
-export type PropsOf<C> = _PropsOf<*, C>
+// // eslint-disable-next-line
+// export type _PropsOf<Props, C: Component<Props, *>> = Props
+// export type PropsOf<C> = _PropsOf<*, C>
