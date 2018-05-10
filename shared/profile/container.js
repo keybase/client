@@ -4,6 +4,7 @@ import * as KBFSGen from '../actions/kbfs-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
+import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
@@ -77,6 +78,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
     ),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onChat: username => dispatch(Chat2Gen.createStartConversation({participants: [username]})),
+  onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
@@ -90,7 +92,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
     dispatch(
       KBFSGen.createOpen({
-        path: pathFromFolder({isPublic: false, isTeam: false, users: [{username: theirUsername}, {username: myUsername}]}).path,
+        path: pathFromFolder({
+          isPublic: false,
+          isTeam: false,
+          users: [{username: theirUsername}, {username: myUsername}],
+        }).path,
       })
     ),
   onRecheckProof: (proof: TrackerTypes.Proof) => dispatch(ProfileGen.createCheckProof()),
@@ -159,6 +165,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
     onBrowsePublicFolder: () => dispatchProps.onBrowsePublicFolder(username),
     onChat: () => dispatchProps.onChat(username),
+    onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
     onClickAvatar: () => dispatchProps.onClickAvatar(username),
     onClickFollowers: () => dispatchProps.onClickFollowers(username),
     onClickFollowing: () => dispatchProps.onClickFollowing(username),

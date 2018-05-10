@@ -343,8 +343,8 @@ class ProfileRender extends PureComponent<Props, State> {
     return (
       <Box style={styleOuterContainer}>
         {!!this.props.addUserToTeamsResults && (
-          <Box style={{...styleScrollHeaderBg, backgroundColor: globalColors.green, zIndex: 15}}>
-            <Box style={globalStyles.flexBoxRow}>
+          <Box style={{...globalStyles.flexBoxRow, ...styleScrollHeaderBg, backgroundColor: globalColors.green, zIndex: 15}}>
+            <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
               <Text
                 style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
                 type="BodySemibold"
@@ -352,6 +352,14 @@ class ProfileRender extends PureComponent<Props, State> {
               >
                 {this.props.addUserToTeamsResults}
               </Text>
+            </Box>
+            <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', flexShrink: 1}}>
+              <Icon
+                color={globalColors.black_40}
+                onClick={this.props.onClearAddUserToTeamsResults}
+                style={{padding: globalMargins.tiny}}
+                type="iconfont-close"
+              />
             </Box>
           </Box>
         )}

@@ -21,22 +21,21 @@ import {type TeamRoleType} from '../../constants/types/teams'
 import type {RowProps, Props} from './index'
 
 const TeamRow = ({
-  canShowcase,
+  canAddThem,
   checked,
   name,
   isOpen,
-  membercount,
   memberIsInTeam,
   onCheck,
-  onPromote,
-  showcased,
   them,
+  youCanAddPeople,
   waiting,
-  isExplicitMember,
 }: RowProps) => {
-  const memberStatus = memberIsInTeam ? `${them} is already a member` : ''
+  const memberStatus = memberIsInTeam
+    ? `${them} is already a member.`
+    : youCanAddPeople ? '' : 'Only admins can add people.'
   return (
-    <Box style={globalStyles.flexBoxColumn}>
+    <ClickableBox onClick={onCheck} style={globalStyles.flexBoxColumn}>
       <Box
         style={{
           ...globalStyles.flexBoxRow,
@@ -49,7 +48,7 @@ const TeamRow = ({
           alignItems: 'center',
         }}
       >
-        <Checkbox onCheck={onCheck} disabled={memberIsInTeam} checked={checked} />
+        <Checkbox disabled={!canAddThem} checked={checked} />
         <Box style={{display: 'flex', position: 'relative'}}>
           <Avatar
             isTeam={true}
@@ -58,27 +57,29 @@ const TeamRow = ({
             teamname={name}
           />
         </Box>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <Box style={globalStyles.flexBoxRow}>
-            <Text
-              style={{color: memberIsInTeam ? globalColors.black_40 : globalColors.black}}
-              type="BodySemibold"
-            >
-              {name}
-            </Text>
-            {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
+        {waiting ? (
+          <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+            <ProgressIndicator style={{width: 16}} white={false} />
           </Box>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            {waiting ? (
-              <ProgressIndicator style={{width: 16}} white={false} />
-            ) : (
+        ) : (
+          <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+            <Box style={globalStyles.flexBoxRow}>
+              <Text
+                style={{color: canAddThem ? globalColors.black : globalColors.black_40}}
+                type="BodySemibold"
+              >
+                {name}
+              </Text>
+              {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
+            </Box>
+            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
               <Text type="BodySmall">{memberStatus}</Text>
-            )}
+            </Box>
           </Box>
-        </Box>
+        )}
+        {!isMobile && <Divider style={{marginLeft: 48}} />}
       </Box>
-      {!isMobile && <Divider style={{marginLeft: 48}} />}
-    </Box>
+    </ClickableBox>
   )
 }
 
@@ -109,26 +110,36 @@ const AddToTeam = (props: Props) => (
     <ScrollView>
       <Box style={{flexShrink: 1, width: '100%'}}>
         {props.teamnames &&
-          props.teamnames.map(name => (
-            <TeamRow
-              canShowcase={
-                (props.teamNameToRole[name] !== 'none' && props.teamNameToAllowPromote[name]) ||
-                ['admin', 'owner'].indexOf(props.teamNameToRole[name]) !== -1
-              }
-              checked={props.selectedTeams[name]}
-              isExplicitMember={props.teamNameToRole[name] !== 'none'}
-              key={name}
-              name={name}
-              isOpen={props.teamNameToIsOpen[name]}
-              membercount={props.teammembercounts[name]}
-              memberIsInTeam={props.teamNameToMembers[name] && props.teamNameToMembers[name].get(props.them)}
-              onCheck={() => props.onToggle(name)}
-              onPromote={promoted => props.onPromote(name, promoted)}
-              showcased={props.teamNameToIsShowcasing[name]}
-              them={props.them}
-              waiting={!props.teamNameToMembers[name]}
-            />
-          ))}
+          props.teamnames.map(name => {
+            const youCanAddPeople =
+              props.teamNameToCanPerform &&
+              props.teamNameToCanPerform[name] &&
+              props.teamNameToCanPerform[name].manageMembers
+            const memberIsInTeam =
+              props.teamNameToMembers &&
+              props.teamNameToMembers[name] &&
+              props.teamNameToMembers[name].get(props.them)
+            const canAddThem = youCanAddPeople && !memberIsInTeam
+            const waiting =
+              !props.teamNameToMembers ||
+              !props.teamNameToMembers[name] ||
+              !props.teamNameToCanPerform ||
+              !props.teamNameToCanPerform[name]
+            return (
+              <TeamRow
+                canAddThem={canAddThem}
+                checked={props.selectedTeams[name]}
+                key={name}
+                name={name}
+                isOpen={props.teamNameToIsOpen[name]}
+                memberIsInTeam={memberIsInTeam}
+                onCheck={() => props.onToggle(name)}
+                them={props.them}
+                youCanAddPeople={youCanAddPeople}
+                waiting={waiting}
+              />
+            )
+          })}
       </Box>
     </ScrollView>
     <Box

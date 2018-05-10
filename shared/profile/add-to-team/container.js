@@ -27,7 +27,6 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     _teamNameToIsShowcasing: state.teams.getIn(['teamNameToIsShowcasing'], I.Map()),
     _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
     _them: routeProps.get('username'),
-    _waiting: state.waiting,
     teamnames: getSortedTeamnames(state),
   }
 }
@@ -65,12 +64,12 @@ const mergeProps = (stateProps, dispatchProps) => {
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teammembercounts: stateProps._teammembercounts.toObject(),
     teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
+    teamNameToCanPerform: stateProps._teamNameToCanPerform.toObject(),
     teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),
     teamNameToMembers: stateProps._teamNameToMembers.toObject(),
     teamNameToRole: stateProps._teamNameToRole.toObject(),
     them: stateProps._them,
-    title: 'Publish your teams',
-    waiting: stateProps._waiting.toObject(),
+    title: `Add ${stateProps._them} to teams`,
   }
 }
 
@@ -78,7 +77,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   compose(
     withStateHandlers(
-      {selectedTeams: {}, role: 'writer', sendNotification: true},
+      {role: 'writer', selectedTeams: {}, sendNotification: true},
       {
         setSendNotification: () => sendNotification => ({sendNotification}),
         onRoleChange: () => role => ({role}),
