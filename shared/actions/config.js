@@ -19,7 +19,7 @@ import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
 import {createGetPeopleData} from './people-gen'
 import {defaultNumFollowSuggestions} from '../constants/people'
-import {getAppState, setAppState} from './platform-specific'
+import {getAppState, setAppState, checkRPCOwnership} from './platform-specific'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
@@ -126,6 +126,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
     logger.info('[bootstrap] performing bootstrap...')
     Promise.all([
       dispatch(getBootstrapStatus()),
+      checkRPCOwnership(),
       dispatch(waitForKBFS()),
       dispatch(KBFSGen.createFuseStatus()),
       dispatch(FsGen.createFuseStatus()),
