@@ -71,10 +71,11 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	g := e.G()
 
-	_, ok := adminWhitelist[e.G().Env.GetUID()]
+	uid := g.Env.GetUID()
+	_, ok := adminWhitelist[uid]
 	willRun := ok || g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 	if !willRun {
-		e.G().Log.CDebugf(ctx, "EKLib skipping run")
+		e.G().Log.CDebugf(ctx, "EKLib skipping run uid: %v", uid)
 		return false
 	}
 
@@ -200,8 +201,7 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 	defer e.G().CTrace(ctx, "newUserEKNeeded", func() error { return err })()
 
 	// Let's see what the latest server statement is.
-	myUID := e.G().Env.GetUID()
-	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), myUID)
+	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), e.G().Env.GetUID())
 	if err != nil {
 		return false, err
 	}

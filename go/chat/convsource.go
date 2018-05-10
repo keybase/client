@@ -54,7 +54,7 @@ func (s *baseConversationSource) Sign(payload []byte) ([]byte, error) {
 // DeleteAssets implements github.com/keybase/go/chat/storage/storage.AssetDeleter interface.
 func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, assets []chat1.Asset) {
-	defer s.Trace(ctx, func() error { return nil }, "DeleteAssets", assets)()
+	defer s.Trace(ctx, func() error { return nil }, "DeleteAssets: %v", assets)()
 
 	if len(assets) == 0 {
 		return
