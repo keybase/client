@@ -60,6 +60,9 @@ func newKBPConfigEditor(kbpConfigDir string) (*kbpConfigEditor, error) {
 }
 
 func (e *kbpConfigEditor) confirmAndWrite() error {
+	if err := e.kbpConfig.Validate(); err != nil {
+		return fmt.Errorf("new config would not be valid: %v", err)
+	}
 	return confirmAndWrite(
 		e.originalConfigStr, e.kbpConfig, e.kbpConfigPath, e.prompter)
 }
