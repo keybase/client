@@ -48,8 +48,6 @@ func (s *Storage) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) (allPurg
 }
 
 func (s *Storage) QueueEphemeralBackgroundPurges(ctx context.Context, uid gregor1.UID) (expiredConvs map[string]chat1.EphemeralPurgeInfo, err Error) {
-	defer s.Trace(ctx, func() error { return err }, "QueueEphemeralBackgroundPurges")()
-
 	allPurgeInfo, err := s.ephemeralTracker.getAllPurgeInfo(ctx, uid)
 	if err != nil {
 		return nil, err

@@ -562,7 +562,7 @@ func (d *Service) writeServiceInfo() error {
 }
 
 func (d *Service) chatEphemeralPurgeChecks() {
-	ticker := libkb.NewBgTicker(5 * time.Minute)
+	ticker := time.NewTicker(1 * time.Second)
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping chatEphemeralPurgeChecks loop")
 		ticker.Stop()
@@ -576,13 +576,11 @@ func (d *Service) chatEphemeralPurgeChecks() {
 				continue
 			}
 			gregorUID := gregor1.UID(uid.ToBytes())
-			d.G().Log.Debug("+ chat ephemeral purge loop")
 			g := globals.NewContext(d.G(), d.ChatG())
 			// Purge any conversations that have expired ephemeral messages
 			storage.New(g, g.ConvSource).QueueEphemeralBackgroundPurges(context.Background(), gregorUID)
 			// Check the outbox for stuck ephemeral messages that need purging
 			storage.NewOutbox(g, gregorUID).EphemeralPurge(context.Background())
-			d.G().Log.Debug("- chat ephemeral chat loop")
 		}
 	}()
 }

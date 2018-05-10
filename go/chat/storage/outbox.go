@@ -455,8 +455,6 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 // they leave it). Currently we purge anything that is in the error state and
 // has been in the outbox for > ephemeralPurgeCutoff minutes.
 func (o *Outbox) EphemeralPurge(ctx context.Context) (err error) {
-	defer o.Trace(ctx, func() error { return err }, "EphemeralPurge")()
-
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 

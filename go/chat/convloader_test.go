@@ -387,7 +387,6 @@ func TestBackgroundPurge(t *testing.T) {
 	assertTrackerState := func(convID chat1.ConversationID, expectedPurgeInfo chat1.EphemeralPurgeInfo) {
 		allPurgeInfo, err := chatStorage.GetAllPurgeInfo(ctx, uid)
 		require.NoError(t, err)
-		require.Len(t, allPurgeInfo, 1)
 		purgeInfo, ok := allPurgeInfo[convID.String()]
 		require.True(t, ok)
 		require.Equal(t, expectedPurgeInfo, purgeInfo)
@@ -439,21 +438,13 @@ func TestBackgroundPurge(t *testing.T) {
 	t.Logf("assert listener 1")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
-		MinUnexplodedID: msgUnboxed1.GetMessageID(),
-		NextPurgeTime:   msgUnboxed1.Valid().Etime(),
-		IsActive:        true,
-	})
-
-	t.Logf("assert listener 2")
-	assertListener(res.ConvID)
-	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
 		MinUnexplodedID: msgUnboxed2.GetMessageID(),
 		NextPurgeTime:   msgUnboxed2.Valid().Etime(),
 		IsActive:        true,
 	})
 	assertEphemeralPurgeNotifInfo(res.ConvID, []chat1.MessageID{msgUnboxed1.GetMessageID()})
 
-	t.Logf("assert listener 3")
+	t.Logf("assert listener 2")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
 		MinUnexplodedID: msgUnboxed2.GetMessageID(),
