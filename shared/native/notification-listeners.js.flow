@@ -1,7 +1,0 @@
-// @flow
-import type {Dispatch} from '../constants/types/flux'
-import type {TypedState} from '../constants/reducer'
-
-export default function(dispatch: Dispatch, getState: () => TypedState, notify: any): Object {
-  return {}
-}
