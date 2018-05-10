@@ -9,6 +9,7 @@ const load = () => {
     .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
     .add('Default wallet to Keybase User', () => (
       <Transaction
+        large={true}
         timestamp={new Date()}
         yourRole="sender"
         counterparty="paul"
@@ -20,6 +21,7 @@ const load = () => {
     ))
     .add('Keybase User to Default wallet', () => (
       <Transaction
+        large={false}
         timestamp={new Date()}
         yourRole="receiver"
         counterparty="paul"
@@ -31,6 +33,7 @@ const load = () => {
     ))
     .add('Default wallet to Stellar Public Key', () => (
       <Transaction
+        large={true}
         timestamp={new Date()}
         yourRole="sender"
         counterparty="G43289XXXXX34OPL"
@@ -44,6 +47,7 @@ const load = () => {
     .add('Anonymous wallet to Stellar public key', () => <Text type="BodyBig">TBD</Text>)
     .add('Pending', () => (
       <Transaction
+        large={true}
         timestamp={null}
         yourRole="receiver"
         counterparty="paul"
@@ -55,6 +59,7 @@ const load = () => {
     ))
     .add('Wallet to Wallet', () => (
       <Transaction
+        large={true}
         timestamp={new Date()}
         yourRole="sender"
         counterparty="Second wallet"

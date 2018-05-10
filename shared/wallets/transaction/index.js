@@ -9,6 +9,7 @@ type Role = 'sender' | 'receiver'
 type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
 
 type IconProps = {|
+  large: boolean,
   counterparty: string,
   counterpartyType: CounterpartyType,
 |}
@@ -16,7 +17,7 @@ type IconProps = {|
 const Icon = (props: IconProps) => {
   switch (props.counterpartyType) {
     case 'keybaseUser':
-      return <Avatar username={props.counterparty} size={48} />
+      return <Avatar username={props.counterparty} size={props.large ? 48 : 32} />
     case 'stellarPublicKey':
       // TODO: Return anonymous user icon.
       return null
@@ -29,6 +30,7 @@ const Icon = (props: IconProps) => {
 }
 
 type DetailProps = {|
+  large: boolean,
   yourRole: Role,
   counterparty: string,
   counterpartyType: CounterpartyType,
@@ -36,30 +38,33 @@ type DetailProps = {|
 |}
 
 const Detail = (props: DetailProps) => {
+  const textType = props.large ? 'Body' : 'BodySmall'
+  const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
+
   let counterparty
   switch (props.counterpartyType) {
     case 'keybaseUser':
       // TODO: Color counterparty based on following status.
-      counterparty = <Text type="BodySemibold">{props.counterparty}</Text>
+      counterparty = <Text type={textTypeSemibold}>{props.counterparty}</Text>
       break
     case 'stellarPublicKey':
       const counterpartyStr = props.counterparty.substr(0, 6) + '...' + props.counterparty.substr(-5)
-      counterparty = <Text type="Body">{counterpartyStr}</Text>
+      counterparty = <Text type={textType}>{counterpartyStr}</Text>
       break
     case 'wallet':
-      counterparty = <Text type="Body">{props.counterparty}</Text>
+      counterparty = <Text type={textType}>{props.counterparty}</Text>
       break
     default:
-      counterparty = <Text type="BodySemibold">TODO {props.counterparty}</Text>
+      counterparty = <Text type={textTypeSemibold}>TODO {props.counterparty}</Text>
       break
   }
 
   if (props.counterpartyType === 'wallet') {
     if (props.yourRole === 'sender') {
       return (
-        <Text type="Body">
+        <Text type={textType}>
           You transferred Lumens worth
-          <Text type="BodySemibold"> {props.amountUser} </Text>
+          <Text type={textTypeSemibold}> {props.amountUser} </Text>
           from this wallet to
           {counterparty}.
         </Text>
@@ -67,9 +72,9 @@ const Detail = (props: DetailProps) => {
     }
 
     return (
-      <Text type="Body">
+      <Text type={textType}>
         You transferred Lumens worth
-        <Text type="BodySemibold"> {props.amountUser} </Text>
+        <Text type={textTypeSemibold}> {props.amountUser} </Text>
         from {counterparty} to this wallet.
       </Text>
     )
@@ -77,9 +82,9 @@ const Detail = (props: DetailProps) => {
 
   if (props.yourRole === 'sender') {
     return (
-      <Text type="Body">
+      <Text type={textType}>
         You sent Lumens worth
-        <Text type="BodySemibold"> {props.amountUser} </Text>
+        <Text type={textTypeSemibold}> {props.amountUser} </Text>
         to
         {counterparty}.
       </Text>
@@ -87,10 +92,10 @@ const Detail = (props: DetailProps) => {
   }
 
   return (
-    <Text type="Body">
+    <Text type={textType}>
       {counterparty}
       sent you Lumens worth
-      <Text type="BodySemibold"> {props.amountUser}</Text>.
+      <Text type={textTypeSemibold}> {props.amountUser}</Text>.
     </Text>
   )
 }
@@ -117,6 +122,7 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 export type Props = {|
   ...$Exact<DetailProps>,
+  ...$Exact<IconProps>,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
   amountXLM: string,
@@ -125,20 +131,23 @@ export type Props = {|
 
 export const Transaction = (props: Props) => (
   <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-    <Icon counterparty={props.counterparty} counterpartyType={props.counterpartyType} />
+    <Icon counterparty={props.counterparty} counterpartyType={props.counterpartyType} large={props.large} />
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.rightContainer}>
       <Text type="BodySmall">{props.timestamp ? formatTimeForPopup(props.timestamp) : 'Pending'}</Text>
       <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.rightDownContainer}>
         <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.detailContainer}>
           <Detail
+            large={props.large}
             yourRole={props.yourRole}
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
             amountUser={props.amountUser}
           />
-          <Text style={styles.note} type="Body">
-            {props.note}
-          </Text>
+          {props.large && (
+            <Text style={styles.note} type="Body">
+              {props.note}
+            </Text>
+          )}
         </Box2>
         <AmountXLM pending={!props.timestamp} yourRole={props.yourRole} amountXLM={props.amountXLM} />
       </Box2>
