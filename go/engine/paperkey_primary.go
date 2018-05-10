@@ -10,7 +10,6 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // PaperKeyPrimary is an engine.
@@ -21,11 +20,9 @@ type PaperKeyPrimary struct {
 }
 
 type PaperKeyPrimaryArgs struct {
-	SigningKey    libkb.GenericKey
-	EncryptionKey libkb.NaclDHKeyPair
-	Me            *libkb.User
-
-	LoginContext   libkb.LoginContext    // optional
+	SigningKey     libkb.GenericKey
+	EncryptionKey  libkb.NaclDHKeyPair
+	Me             *libkb.User
 	PerUserKeyring *libkb.PerUserKeyring // optional
 }
 
@@ -62,7 +59,7 @@ func (e *PaperKeyPrimary) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PaperKeyPrimary) Run(ctx *Context) error {
+func (e *PaperKeyPrimary) Run(m libkb.MetaContext) error {
 	var err error
 	e.passphrase, err = libkb.MakePaperKeyPhrase(libkb.PaperKeyVersion)
 	if err != nil {
@@ -74,19 +71,18 @@ func (e *PaperKeyPrimary) Run(ctx *Context) error {
 		Me:             e.args.Me,
 		SigningKey:     e.args.SigningKey,
 		EncryptionKey:  e.args.EncryptionKey,
-		LoginContext:   e.args.LoginContext,
 		PerUserKeyring: e.args.PerUserKeyring,
 	}
-	kgeng := NewPaperKeyGen(kgarg, e.G())
-	if err := RunEngine(kgeng, ctx); err != nil {
+	kgeng := NewPaperKeyGen(e.G(), kgarg)
+	if err := RunEngine2(m, kgeng); err != nil {
 		return err
 	}
 
 	// If they refuse to write down their key, don't kill the login flow, just print an
 	// ugly warning, which likely they won't see...
-	w := ctx.LoginUI.DisplayPrimaryPaperKey(context.TODO(), keybase1.DisplayPrimaryPaperKeyArg{Phrase: e.passphrase.String()})
+	w := m.UIs().LoginUI.DisplayPrimaryPaperKey(m.Ctx(), keybase1.DisplayPrimaryPaperKeyArg{Phrase: e.passphrase.String()})
 	if w != nil {
-		e.G().Log.Errorf("Display paper key failure: %s", w.Error())
+		m.G().Log.Errorf("Display paper key failure: %s", w.Error())
 	}
 
 	return nil

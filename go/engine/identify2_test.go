@@ -239,6 +239,10 @@ func (i *Identify2WithUIDTester) Shutdown() {}
 
 var _ libkb.Identify2Cacher = (*Identify2WithUIDTester)(nil)
 
+func identify2MetaContext(tc libkb.TestContext, i libkb.IdentifyUI) libkb.MetaContext {
+	return NewMetaContextForTest(tc).WithUIs(libkb.UIs{IdentifyUI: i})
+}
+
 func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
 	defer tc.Cleanup()
@@ -249,9 +253,7 @@ func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
-	ctx := Context{IdentifyUI: i}
-
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -292,10 +294,8 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 		tcl:  importTrackingLink(t, tc.G),
 	}
 
-	ctx := Context{IdentifyUI: i}
 	waiter := launchWaiter(t, i.finishCh)
-
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -320,8 +320,7 @@ func TestIdentify2WithUIDWithTrackAndSuppress(t *testing.T) {
 		tcl:  importTrackingLink(t, tc.G),
 	}
 
-	ctx := Context{IdentifyUI: i}
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -358,9 +357,8 @@ func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Ident
 		}
 		return nil
 	}
-	ctx := Context{IdentifyUI: i}
 	waiter := launchWaiter(t, i.finishCh)
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	return waiter, err
 }
 
@@ -403,8 +401,7 @@ func TestIdentify2WithUIDWithUntrackedFastPath(t *testing.T) {
 			cache: tester,
 			allowUntrackedFastPath: true,
 		}
-		ctx := Context{IdentifyUI: tester}
-		err := eng.Run(&ctx)
+		err := eng.Run(identify2MetaContext(tc, tester))
 		require.NoError(t, err)
 		require.Equal(t, expectFastPath, (eng.testArgs.stats.untrackedFastPaths == 1), "right number of untracked fast paths")
 	}
@@ -465,10 +462,8 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 			allowUntrackedFastPath: true,
 		}
 
-		ctx := Context{IdentifyUI: tester}
-
 		waiter := launchWaiter(t, tester.finishCh)
-		err := eng.Run(&ctx)
+		err := eng.Run(identify2MetaContext(tc, tester))
 		// Since we threw away the test UI, we have to manually complete the UI here,
 		// otherwise the waiter() will block indefinitely.
 		origUI.Finish()
@@ -494,10 +489,8 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 			tcl:   importTrackingLink(t, tc.G),
 		}
 
-		ctx := Context{IdentifyUI: tester}
-
 		waiter := launchWaiter(t, tester.finishCh)
-		err := eng.Run(&ctx)
+		err := eng.Run(identify2MetaContext(tc, tester))
 		waiter()
 		if err == nil {
 			t.Fatalf("Expected a break with running ID2 in standard mode")
@@ -569,9 +562,7 @@ func TestIdentify2WithUIDWithAssertion(t *testing.T) {
 		noMe: true,
 	}
 
-	ctx := Context{IdentifyUI: i}
-
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -595,9 +586,7 @@ func TestIdentify2WithUIDWithAssertions(t *testing.T) {
 		noMe: true,
 	}
 
-	ctx := Context{IdentifyUI: i}
-
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -621,8 +610,6 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 		noMe: true,
 	}
 
-	ctx := Context{IdentifyUI: i}
-
 	done := make(chan bool)
 	starts := 0
 	go func() {
@@ -634,7 +621,7 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 		}
 	}()
 
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -664,8 +651,6 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 		noMe: true,
 	}
 
-	ctx := Context{IdentifyUI: i}
-
 	starts := 0
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -685,7 +670,7 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 		return nil
 	}
 
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 
 	if err == nil {
 		t.Fatal(err)
@@ -716,8 +701,6 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 		noMe: true,
 	}
 
-	ctx := Context{IdentifyUI: i}
-
 	var wg sync.WaitGroup
 	wg.Add(1)
 
@@ -738,7 +721,7 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 		}
 	}
 
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 
 	if err != nil {
 		t.Fatal(err)
@@ -768,8 +751,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 			cache: i,
 			clock: func() time.Time { return i.now },
 		}
-		ctx := Context{IdentifyUI: i}
-		err := eng.Run(&ctx)
+		err := eng.Run(identify2MetaContext(tc, i))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -843,8 +825,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 		}
 		eng := NewIdentify2WithUID(tc.G, arg)
 		eng.testArgs = testArgs
-		ctx := Context{IdentifyUI: i}
-		err := eng.Run(&ctx)
+		err := eng.Run(identify2MetaContext(tc, i))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -919,8 +900,7 @@ func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
 	eng.testArgs = &Identify2WithUIDTestArgs{
 		noMe: true,
 	}
-	ctx := Context{IdentifyUI: i}
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -942,9 +922,7 @@ func TestIdentify2NoSigchain(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewResolveThenIdentify2(tc.G, arg)
-	ctx := Context{IdentifyUI: i}
-
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err != nil {
 		t.Fatalf("identify2 failed on user with no keys: %s", err)
 	}
@@ -980,10 +958,8 @@ func TestIdentifyAfterDbNuke(t *testing.T) {
 		eng.testArgs = &Identify2WithUIDTestArgs{
 			noCache: true,
 		}
-		ctx := Context{IdentifyUI: i}
 		waiter := launchWaiter(t, i.finishCh)
-
-		if err := eng.Run(&ctx); err != nil {
+		if err := eng.Run(identify2MetaContext(tc, i)); err != nil {
 			t.Fatal(err)
 		}
 		waiter()
@@ -1043,12 +1019,11 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 		eng.testArgs = &Identify2WithUIDTestArgs{
 			noMe: false,
 		}
-		ctx := Context{IdentifyUI: i}
 		var waiter func()
 		if !identifyBehavior.ShouldSuppressTrackerPopups() {
 			waiter = launchWaiter(t, i.finishCh)
 		}
-		err = eng.Run(&ctx)
+		err := eng.Run(identify2MetaContext(tc, i))
 		require.NoError(t, err)
 		require.Equal(t, checked, shouldCheck)
 		if waiter != nil {

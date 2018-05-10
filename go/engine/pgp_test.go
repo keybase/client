@@ -21,15 +21,15 @@ func TestGenerateNewPGPKey(t *testing.T) {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
-		Ctx: tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
-	eng := NewPGPKeyImportEngine(arg)
-	err := RunEngine(eng, &ctx)
+	eng := NewPGPKeyImportEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,7 +165,7 @@ func (p *pgpPair) isTracking(meContext libkb.TestContext, username string) bool 
 }
 
 func (p *pgpPair) encrypt(sign bool) (string, int) {
-	ctx := &Context{IdentifyUI: &FakeIdentifyUI{}, SecretUI: p.sender.NewSecretUI()}
+	uis := libkb.UIs{IdentifyUI: &FakeIdentifyUI{}, SecretUI: p.sender.NewSecretUI()}
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Recips: []string{p.recipient.Username},
@@ -174,14 +174,15 @@ func (p *pgpPair) encrypt(sign bool) (string, int) {
 		NoSign: !sign,
 	}
 
-	eng := NewPGPEncrypt(arg, p.tcS.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewPGPEncrypt(p.tcS.G, arg)
+	m := NewMetaContextForTest(p.tcS).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		p.t.Fatal(err)
 	}
 
 	out := sink.Bytes()
 
-	return string(out), p.idc(ctx)
+	return string(out), p.idc(m)
 }
 
 func (p *pgpPair) decrypt(msg string) (int, int) {
@@ -202,8 +203,8 @@ func (p *pgpPair) decryptSelf(msg string) (int, int) {
 		Source: strings.NewReader(msg),
 		Sink:   libkb.NewBufferCloser(),
 	}
-	dec := NewPGPDecrypt(arg, p.tcS.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(p.tcS.G, arg)
+	if err := RunEngine2(ctx, dec); err != nil {
 		p.t.Fatal(err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
@@ -216,8 +217,8 @@ func (p *pgpPair) decryptAssertSignedBySelf(msg string) (int, int) {
 		Sink:     libkb.NewBufferCloser(),
 		SignedBy: p.sender.Username,
 	}
-	dec := NewPGPDecrypt(arg, p.tcS.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(p.tcS.G, arg)
+	if err := RunEngine2(ctx, dec); err != nil {
 		p.t.Fatal(err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
@@ -227,8 +228,8 @@ func (p *pgpPair) doDecrypt(msg string, arg *PGPDecryptArg) (int, int) {
 	ctx := decengctx(p.recipient, p.tcR)
 	arg.Source = strings.NewReader(msg)
 	arg.Sink = libkb.NewBufferCloser()
-	dec := NewPGPDecrypt(arg, p.tcR.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(p.tcR.G, arg)
+	if err := RunEngine2(ctx, dec); err != nil {
 		debug.PrintStack()
 		p.t.Fatal(err)
 	}
@@ -240,8 +241,8 @@ func (p *pgpPair) verify(msg string) (int, int) {
 	arg := &PGPVerifyArg{
 		Source: strings.NewReader(msg),
 	}
-	eng := NewPGPVerify(arg, p.tcR.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewPGPVerify(p.tcR.G, arg)
+	if err := RunEngine2(ctx, eng); err != nil {
 		p.t.Fatal(err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
@@ -253,8 +254,8 @@ func (p *pgpPair) verifyAssertSignedBySender(msg string) (int, int) {
 		Source:   strings.NewReader(msg),
 		SignedBy: p.sender.Username,
 	}
-	eng := NewPGPVerify(arg, p.tcR.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewPGPVerify(p.tcR.G, arg)
+	if err := RunEngine2(ctx, eng); err != nil {
 		p.t.Fatal(err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
@@ -265,8 +266,8 @@ func (p *pgpPair) verifySelf(msg string) (int, int) {
 	arg := &PGPVerifyArg{
 		Source: strings.NewReader(msg),
 	}
-	eng := NewPGPVerify(arg, p.tcS.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewPGPVerify(p.tcS.G, arg)
+	if err := RunEngine2(ctx, eng); err != nil {
 		p.t.Fatal(err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
@@ -278,26 +279,26 @@ func (p *pgpPair) verifyAssertSignedBySelf(msg string) (int, int) {
 		Source:   strings.NewReader(msg),
 		SignedBy: p.sender.Username,
 	}
-	eng := NewPGPVerify(arg, p.tcS.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewPGPVerify(p.tcS.G, arg)
+	if err := RunEngine2(ctx, eng); err != nil {
 		p.t.Fatal(err)
 	}
 	return p.idc(ctx), p.sigc(ctx)
 }
 
-func (p *pgpPair) idc(ctx *Context) int {
-	ui, ok := ctx.IdentifyUI.(*FakeIdentifyUI)
+func (p *pgpPair) idc(m libkb.MetaContext) int {
+	ui, ok := m.UIs().IdentifyUI.(*FakeIdentifyUI)
 	if !ok {
-		p.t.Fatalf("not FakeIdentifyUI: %T", ctx.IdentifyUI)
+		p.t.Fatalf("not FakeIdentifyUI: %T", m.UIs().IdentifyUI)
 	}
 	p.t.Logf("FakeIdentifyUI: %+v", ui)
 	return ui.StartCount
 }
 
-func (p *pgpPair) sigc(ctx *Context) int {
-	ui, ok := ctx.PgpUI.(*TestPgpUI)
+func (p *pgpPair) sigc(m libkb.MetaContext) int {
+	ui, ok := m.UIs().PgpUI.(*TestPgpUI)
 	if !ok {
-		p.t.Fatalf("not TestPgpUI: %T", ctx.PgpUI)
+		p.t.Fatalf("not TestPgpUI: %T", m.UIs().PgpUI)
 	}
 	return ui.OutputCount
 }

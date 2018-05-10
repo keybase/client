@@ -158,23 +158,10 @@ func TestPushAppState(t *testing.T) {
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
 	case <-list.incoming:
-		require.Fail(t, "not message should be sent")
-	default:
-	}
-
-	select {
-	case <-handler.orderer.WaitForTurn(context.TODO(), uid, 2):
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "turn never happened")
+		require.Fail(t, "no message received")
 	}
-
 	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
-	select {
-	case <-list.threadsStale:
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no stale message")
-	}
-
 	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {

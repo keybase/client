@@ -14,14 +14,15 @@ func TestSecretKeys(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "sk")
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
 
 	// Get the secret keys.
 	e := NewSecretKeysEngine(tc.G)
-	err := RunEngine(e, ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, e)
 	if err != nil {
 		t.Fatal(err)
 	}

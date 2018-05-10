@@ -369,7 +369,8 @@ protocol local {
     MISC_0,
     BADVERSION_CRITICAL_1,
     BADVERSION_2,
-    IDENTIFY_3
+    IDENTIFY_3,
+    EPHEMERAL_4
   }
 
   record MessageUnboxedError {
@@ -378,6 +379,12 @@ protocol local {
     MessageID messageID;
     MessageType messageType;
     gregor1.Time ctime;
+    @mpackkey("ie") @jsonkey("ie")
+    boolean isEphemeral;
+    @mpackkey("iex") @jsonkey("iex")
+    boolean isEphemeralExpired;
+    @mpackkey("e") @jsonkey("e")
+    gregor1.Time etime;
   }
 
   record MessageUnboxedPlaceholder {

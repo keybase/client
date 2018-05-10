@@ -27,26 +27,27 @@ func NewFavoriteHandler(xp rpc.Transporter, g *libkb.GlobalContext) *FavoriteHan
 }
 
 // FavoriteAdd handles the favoriteAdd RPC.
-func (h *FavoriteHandler) FavoriteAdd(_ context.Context, arg keybase1.FavoriteAddArg) error {
-	eng := engine.NewFavoriteAdd(&arg, h.G())
-	ctx := &engine.Context{
+func (h *FavoriteHandler) FavoriteAdd(ctx context.Context, arg keybase1.FavoriteAddArg) error {
+	eng := engine.NewFavoriteAdd(h.G(), &arg)
+	uis := libkb.UIs{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 	}
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 // FavoriteIgnore handles the favoriteIgnore RPC.
-func (h *FavoriteHandler) FavoriteIgnore(_ context.Context, arg keybase1.FavoriteIgnoreArg) error {
-	eng := engine.NewFavoriteIgnore(&arg, h.G())
-	ctx := &engine.Context{}
-	return engine.RunEngine(eng, ctx)
+func (h *FavoriteHandler) FavoriteIgnore(ctx context.Context, arg keybase1.FavoriteIgnoreArg) error {
+	eng := engine.NewFavoriteIgnore(h.G(), &arg)
+	m := libkb.NewMetaContext(ctx, h.G())
+	return engine.RunEngine2(m, eng)
 }
 
 // FavoriteList handles the favoriteList RPC.
-func (h *FavoriteHandler) GetFavorites(_ context.Context, sessionID int) (keybase1.FavoritesResult, error) {
+func (h *FavoriteHandler) GetFavorites(ctx context.Context, sessionID int) (keybase1.FavoritesResult, error) {
 	eng := engine.NewFavoriteList(h.G())
-	ctx := &engine.Context{}
-	if err := engine.RunEngine(eng, ctx); err != nil {
+	m := libkb.NewMetaContext(ctx, h.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
 		return keybase1.FavoritesResult{}, err
 	}
 	return eng.Result(), nil

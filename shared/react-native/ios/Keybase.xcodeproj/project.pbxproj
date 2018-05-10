@@ -11,6 +11,7 @@
 		272DA236209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */; };
 		272DA237209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
+		27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */; };
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
@@ -401,6 +402,8 @@
 		272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-ExtraBold.ttf"; sourceTree = "<group>"; };
 		274AFB721E972F5300615A64 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		27DDEEF0AE72483E8BF08ED2 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNFetchBlob.xcodeproj; path = "../../node_modules/react-native-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; };
+		27EE26A720A140EF00F92CD1 /* Pusher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Pusher.m; sourceTree = "<group>"; };
+		27EE26A920A1466300F92CD1 /* Pusher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pusher.h; sourceTree = "<group>"; };
 		370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MessageUIManager.m; sourceTree = "<group>"; };
 		3724B72A1FB491F000A12CE6 /* MessageUIManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageUIManager.h; sourceTree = "<group>"; };
 		375CA6641FFD40D300210B11 /* Storybook.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Storybook.m; sourceTree = "<group>"; };
@@ -825,6 +828,8 @@
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
 				DB7539311D77753600AFA61B /* Keybase_For_Tests-Bridging-Header.h */,
 				0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */,
+				27EE26A720A140EF00F92CD1 /* Pusher.m */,
+				27EE26A920A1466300F92CD1 /* Pusher.h */,
 			);
 			path = Keybase;
 			sourceTree = "<group>";
@@ -1475,6 +1480,7 @@
 				DBEE30821FE8511F0020EBA5 /* DDASLLogger.m in Sources */,
 				DBEE30831FE8511F0020EBA5 /* DDLog.m in Sources */,
 				DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */,
+				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,
 				A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */,
 				370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,

@@ -29,8 +29,8 @@ func _testListTrackers2(t *testing.T, sigVersion libkb.SigVersion) {
 	defer untrackAlice(tc, fu, sigVersion)
 
 	e := NewListTrackers2(tc.G, keybase1.ListTrackers2Arg{Assertion: "t_alice"})
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
-	if err := RunEngine(e, ctx); err != nil {
+	m := NewMetaContextForTestWithLogUI(tc)
+	if err := RunEngine2(m, e); err != nil {
 		t.Fatal(err)
 	}
 	res := e.GetResults()

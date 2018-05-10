@@ -69,6 +69,18 @@ func (s *Session) IsLoggedInAndProvisioned() bool {
 	return true
 }
 
+func (s *Session) Clone() *Session {
+	if s == nil {
+		return nil
+	}
+	ret := *s
+	if ret.username != nil {
+		un := *ret.username
+		ret.username = &un
+	}
+	return &ret
+}
+
 func (s *Session) GetUsername() *NormalizedUsername {
 	return s.username
 }

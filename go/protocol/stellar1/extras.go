@@ -60,6 +60,10 @@ func (a AccountID) Eq(b AccountID) bool {
 	return a == b
 }
 
+func (a AccountID) IsNil() bool {
+	return len(a) == 0
+}
+
 func (a AccountID) LossyAbbreviation() string {
 	if len(a) != 56 {
 		return "[invalid account id]"

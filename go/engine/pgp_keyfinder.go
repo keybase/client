@@ -21,7 +21,7 @@ type PGPKeyfinderArg struct {
 }
 
 // NewPGPKeyfinder creates a PGPKeyfinder engine.
-func NewPGPKeyfinder(arg *PGPKeyfinderArg, g *libkb.GlobalContext) *PGPKeyfinder {
+func NewPGPKeyfinder(g *libkb.GlobalContext, arg *PGPKeyfinderArg) *PGPKeyfinder {
 	return &PGPKeyfinder{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -49,9 +49,9 @@ func (e *PGPKeyfinder) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPKeyfinder) Run(ctx *Context) error {
-	e.loadUsers(ctx)
-	e.loadKeys(ctx)
+func (e *PGPKeyfinder) Run(m libkb.MetaContext) error {
+	e.loadUsers(m)
+	e.loadKeys(m)
 	return e.runerr
 }
 
@@ -62,7 +62,7 @@ func (e *PGPKeyfinder) UsersPlusKeys() []*UserPlusKeys {
 }
 
 // don't identify or track, just load the users
-func (e *PGPKeyfinder) loadUsers(ctx *Context) {
+func (e *PGPKeyfinder) loadUsers(m libkb.MetaContext) {
 	if e.runerr != nil {
 		return
 	}
@@ -79,7 +79,7 @@ func (e *PGPKeyfinder) loadUsers(ctx *Context) {
 
 }
 
-func (e *PGPKeyfinder) loadKeys(ctx *Context) {
+func (e *PGPKeyfinder) loadKeys(m libkb.MetaContext) {
 	if e.runerr != nil {
 		return
 	}

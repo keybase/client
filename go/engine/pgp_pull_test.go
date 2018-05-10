@@ -27,7 +27,7 @@ func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string, sigVersion
 
 func untrackUserList(tc libkb.TestContext, fu *FakeUser, trackedUsers []string, sigVersion libkb.SigVersion) {
 	for _, trackedUser := range trackedUsers {
-		if err := runUntrack(tc.G, fu, trackedUser, sigVersion); err != nil {
+		if err := runUntrack(tc, fu, trackedUser, sigVersion); err != nil {
 			tc.T.Fatal("Error while untracking", trackedUser, err)
 		}
 	}
@@ -64,22 +64,18 @@ func assertKeysMissing(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []str
 }
 
 func runPGPPull(tc libkb.TestContext, arg PGPPullEngineArg) {
-	eng := NewPGPPullEngine(&arg, tc.G)
-	ctx := Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-	err := RunEngine(eng, &ctx)
+	eng := NewPGPPullEngine(tc.G, &arg)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		tc.T.Fatal("Error in PGPPullEngine:", err)
 	}
 }
 
 func runPGPPullExpectingError(tc libkb.TestContext, arg PGPPullEngineArg) {
-	eng := NewPGPPullEngine(&arg, tc.G)
-	ctx := Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-	err := RunEngine(eng, &ctx)
+	eng := NewPGPPullEngine(tc.G, &arg)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	if err == nil {
 		tc.T.Fatal("PGPPullEngine should have failed.")
 	}

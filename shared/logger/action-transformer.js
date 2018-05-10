@@ -73,7 +73,18 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
   [Chat2Gen.metaUpdatePagination]: fullOutput,
   [Chat2Gen.setConversationOffline]: fullOutput,
-  [ConfigGen.globalError]: fullOutput,
+  [ConfigGen.globalError]: a => {
+    let err = {}
+    const ge = a.payload.globalError
+    if (ge) {
+      err = {err: `Global Error: ${ge.message} ${ge.stack || ''}`}
+    }
+
+    return {
+      payload: err,
+      type: a.type,
+    }
+  },
   [Chat2Gen.setPendingSelected]: fullOutput,
   [Chat2Gen.setPendingMode]: fullOutput,
   [Chat2Gen.setPendingConversationUsers]: fullOutput,

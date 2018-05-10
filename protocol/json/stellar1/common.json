@@ -124,6 +124,16 @@
     },
     {
       "type": "record",
+      "name": "RelayClaimResult",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "claimStellarID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "EncryptedNote",
       "fields": [
         {

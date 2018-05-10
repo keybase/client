@@ -26,7 +26,7 @@ func TestLoginWithPaperKeyAlreadyIn(t *testing.T) {
 	AssertDeviceKeysLock(&tc, true)
 
 	t.Logf("running LoginWithPaperKey")
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI: tc.G.UI.GetLogUI(),
 		SecretUI: &TestSecretUIPaperKey{
 			T:                         t,
@@ -35,7 +35,8 @@ func TestLoginWithPaperKeyAlreadyIn(t *testing.T) {
 		},
 	}
 	eng := NewLoginWithPaperKey(tc.G)
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	t.Logf("checking logged in status [after]")
@@ -62,7 +63,7 @@ func TestLoginWithPaperKeyFromScratch(t *testing.T) {
 	AssertDeviceKeysLock(&tc, false)
 
 	t.Logf("running LoginWithPaperKey")
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI: tc.G.UI.GetLogUI(),
 		SecretUI: &TestSecretUIPaperKey{
 			T:                         t,
@@ -71,7 +72,8 @@ func TestLoginWithPaperKeyFromScratch(t *testing.T) {
 		},
 	}
 	eng := NewLoginWithPaperKey(tc.G)
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	t.Logf("checking logged in status [after]")
@@ -104,7 +106,7 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 	AssertDeviceKeysLock(&tc, false)
 
 	t.Logf("running LoginWithPaperKey")
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI: tc.G.UI.GetLogUI(),
 		SecretUI: &TestSecretUIPaperKey{
 			T:                         t,
@@ -113,7 +115,8 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 		},
 	}
 	eng := NewLoginWithPaperKey(tc.G)
-	err = RunEngine(eng, ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	t.Logf("checking logged in status [after]")
@@ -126,13 +129,14 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 func CreateAndSigunpLPK(tc libkb.TestContext, prefix string) (*FakeUser, string) {
 	u := CreateAndSignupFakeUser(tc, prefix)
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	beng := NewPaperKey(tc.G)
-	if err := RunEngine(beng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, beng); err != nil {
 		tc.T.Fatal(err)
 	}
 

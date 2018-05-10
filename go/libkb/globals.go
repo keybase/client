@@ -134,7 +134,9 @@ type GlobalContext struct {
 	TestOptions GlobalTestOptions
 
 	// It is threadsafe to call methods on ActiveDevice which will always be non-nil.
-	// But don't access its members directly.
+	// But don't access its members directly. If you're going to be changing out the
+	// user (and resetting the ActiveDevice), then you should hold the switchUserMu
+	switchUserMu *sync.Mutex
 	ActiveDevice *ActiveDevice
 
 	NetContext context.Context
@@ -185,6 +187,7 @@ func NewGlobalContext() *GlobalContext {
 		secretStoreMu:      new(sync.Mutex),
 		NewTriplesec:       NewSecureTriplesec,
 		ActiveDevice:       new(ActiveDevice),
+		switchUserMu:       new(sync.Mutex),
 		NetContext:         context.TODO(),
 	}
 }

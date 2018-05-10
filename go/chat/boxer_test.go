@@ -95,7 +95,7 @@ func getSigningKeyPairForTest(t *testing.T, tc *kbtest.ChatTestContext, u *kbtes
 			t.Fatal(err)
 		}
 	}
-	kp, err := tc.G.Keyrings.GetSecretKeyWithPassphrase(nil, u.User, u.Passphrase, nil)
+	kp, err := tc.G.Keyrings.GetSecretKeyWithPassphrase(kbtest.NewMetaContextForTest(*tc), u.User, u.Passphrase, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,12 +125,13 @@ func getActiveDevicesAndKeys(tc *kbtest.ChatTestContext, u *kbtest.FakeUser) ([]
 }
 
 func doRevokeDevice(tc *kbtest.ChatTestContext, u *kbtest.FakeUser, id keybase1.DeviceID, force bool) error {
-	revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: id, ForceSelf: force}, tc.G)
-	ctx := &engine.Context{
+	revokeEngine := engine.NewRevokeDeviceEngine(tc.G, engine.RevokeDeviceEngineArgs{ID: id, ForceSelf: force})
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
-	err := engine.RunEngine(revokeEngine, ctx)
+	m := libkb.NewMetaContextTODO(tc.G).WithUIs(uis)
+	err := engine.RunEngine2(m, revokeEngine)
 	return err
 }
 
@@ -1564,7 +1565,7 @@ func TestExplodingMessageUnbox(t *testing.T) {
 	}
 	require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 	require.NotNil(t, unboxed.BodyHash)
-	require.True(t, unboxed.IsExploding())
+	require.True(t, unboxed.IsEphemeral())
 	require.NotNil(t, unboxed.EphemeralMetadata())
 	require.Equal(t, msg.EphemeralMetadata().Lifetime, unboxed.EphemeralMetadata().Lifetime)
 }

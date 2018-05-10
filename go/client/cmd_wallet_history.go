@@ -73,6 +73,8 @@ func (c *cmdWalletHistory) Run() (err error) {
 	line := func(format string, args ...interface{}) {
 		dui.Printf(format+"\n", args...)
 	}
+	// `payments` is sorted most recent first.
+	// Print most recent at the bottom.
 	for i := len(payments) - 1; i >= 0; i-- {
 		printPayment(c.G(), payments[i], c.verbose, dui)
 		line("")

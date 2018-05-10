@@ -36,7 +36,7 @@ func NewSimpleIdentifyNotifier(g *globals.Context) *SimpleIdentifyNotifier {
 	return &SimpleIdentifyNotifier{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "SimpleIdentifyNotifier", false),
-		storage:      storage.New(g),
+		storage:      storage.New(g, g.ConvSource),
 	}
 }
 
@@ -65,7 +65,7 @@ func NewCachingIdentifyNotifier(g *globals.Context) *CachingIdentifyNotifier {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingIdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
-		storage:      storage.New(g),
+		storage:      storage.New(g, g.ConvSource),
 	}
 }
 
@@ -351,13 +351,12 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 		IdentifyBehavior: idBehavior,
 	}
 
-	ectx := engine.Context{
+	uis := libkb.UIs{
 		IdentifyUI: chatNullIdentifyUI{},
-		NetContext: ctx,
 	}
-
 	eng := engine.NewResolveThenIdentify2(t.G().ExternalG(), &arg)
-	err := engine.RunEngine(eng, &ectx)
+	m := libkb.NewMetaContext(ctx, t.G().ExternalG()).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
 	if err != nil {
 		// Ignore these errors
 		if _, ok := err.(libkb.NotFoundError); ok {

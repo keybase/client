@@ -41,6 +41,8 @@ func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 	switch err := e.inner.(type) {
 	case VersionError:
 		return err.ExportType()
+	case EphemeralUnboxingError:
+		return chat1.MessageUnboxedErrorType_EPHEMERAL
 	default:
 		return chat1.MessageUnboxedErrorType_MISC
 	}
@@ -62,6 +64,18 @@ func (e TransientUnboxingError) Inner() error { return e.inner }
 
 func (e TransientUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 	return chat1.MessageUnboxedErrorType_MISC
+}
+
+//=============================================================================
+
+type EphemeralUnboxingError struct{}
+
+func NewEphemeralUnboxingError() EphemeralUnboxingError {
+	return EphemeralUnboxingError{}
+}
+
+func (e EphemeralUnboxingError) Error() string {
+	return "Unable to decrypt exploding message. Missing keys"
 }
 
 //=============================================================================

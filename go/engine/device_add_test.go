@@ -27,11 +27,10 @@ func TestDeviceAddPUK(t *testing.T) {
 func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret) {
 	defer wg.Done()
 	f := func(lctx libkb.LoginContext) error {
-		ctx := &Context{
-			ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
-			LoginContext: lctx,
-			NetContext:   context.TODO(),
+		uis := libkb.UIs{
+			ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 		}
+		m := NewMetaContextForTest(*tcY).WithLoginContext(lctx).WithUIs(uis)
 		deviceID, err := libkb.NewDeviceID()
 		if err != nil {
 			t.Errorf("provisionee device id error: %s", err)
@@ -49,7 +48,7 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 			Type:        libkb.DeviceTypeDesktop,
 		}
 		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
-		if err := RunEngine(provisionee, ctx); err != nil {
+		if err := RunEngine2(m, provisionee); err != nil {
 			t.Errorf("provisionee error: %s", err)
 			return err
 		}
@@ -87,13 +86,13 @@ func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 	go runDeviceAddTest(t, &wg, &tcY, secretY)
 
 	// run DeviceAdd engine on device X
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI:    userX.NewSecretUI(),
 		ProvisionUI: &testXProvisionUI{secret: secretY},
-		NetContext:  context.TODO(),
 	}
 	eng := NewDeviceAdd(tcX.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tcX).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Errorf("device add error: %s", err)
 	}
 
@@ -124,13 +123,13 @@ func TestDeviceAddPhrase(t *testing.T) {
 	go runDeviceAddTest(t, &wg, &tcY, secretY.Secret())
 
 	// run DeviceAdd engine on device X
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI:    userX.NewSecretUI(),
 		ProvisionUI: &testPhraseProvisionUI{phrase: secretY.Phrase()},
-		NetContext:  context.TODO(),
 	}
 	eng := NewDeviceAdd(tcX.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tcX).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Errorf("device add error: %s", err)
 	}
 
@@ -163,13 +162,13 @@ func TestDeviceAddStoredSecret(t *testing.T) {
 	testSecretUI := userX.NewSecretUI()
 
 	// run DeviceAdd engine on device X
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI:    testSecretUI,
 		ProvisionUI: &testXProvisionUI{secret: secretY},
-		NetContext:  context.TODO(),
 	}
 	eng := NewDeviceAdd(tcX.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tcX).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Errorf("device add error: %s", err)
 	}
 
