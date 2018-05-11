@@ -602,6 +602,20 @@ func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []types.
 	return ibox.InboxVersion, ibox.Conversations, nil
 }
 
+func (i *Inbox) GetConversation(ctx context.Context, convID chat1.ConversationID) (res types.RemoteConversation, err Error) {
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("GetConversation(%s,%s)", i.uid, convID))()
+	_, iboxRes, _, err := i.Read(ctx, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
+	if err != nil {
+		return res, err
+	}
+	if len(iboxRes) != 1 {
+		return res, MissError{}
+	}
+	return iboxRes[0], nil
+}
+
 func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.Pagination) (vers chat1.InboxVers, res []types.RemoteConversation, pagination *chat1.Pagination, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()

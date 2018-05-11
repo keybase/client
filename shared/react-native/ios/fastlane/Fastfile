@@ -11,7 +11,7 @@
 
 # This is the minimum version number required.
 # Update this, if you use features of a newer version
-fastlane_version "1.81.0"
+fastlane_version "2.94.0"
 
 default_platform :ios
 
@@ -25,9 +25,9 @@ platform :ios do
   desc "Submit a new Beta Build to Apple TestFlight"
   desc "This will also make sure the profile is up to date"
   lane :beta do
-  version = get_version_number
+  version = get_version_number(xcodeproj: ENV['XCODEPROJ_NAME'], target: 'Keybase')
     increment_build_number({
-      build_number: latest_testflight_build_number(version: version) + 7
+      build_number: latest_testflight_build_number(version: version) + 3
     })
 
     # match(type: "appstore") # more information: https://codesigning.guide

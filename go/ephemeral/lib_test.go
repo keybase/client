@@ -116,7 +116,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		expectedUserEKGen = 1
 	}
 
-	keygen := func(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen keybase1.EkGeneration) {
+	assertKeyGenerations := func(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen keybase1.EkGeneration) {
 		teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 		require.NoError(t, err)
 
@@ -150,8 +150,8 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	}
 
 	// If we retry keygen, we don't regenerate keys
-	keygen(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
-	keygen(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
 
 	rawDeviceEKStorage := NewDeviceEKStorage(tc.G)
 	rawUserEKBoxStorage := NewUserEKBoxStorage(tc.G)
@@ -162,14 +162,14 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	err = rawTeamEKBoxStorage.Delete(context.Background(), teamID, expectedTeamEKGen)
 	require.NoError(t, err)
 	teamEKBoxStorage.ClearCache()
-	keygen(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
 
 	// Now let's kill our userEK, we should gracefully not regenerate
 	// since we can still fetch the userEK from the server.
 	err = rawUserEKBoxStorage.Delete(context.Background(), expectedUserEKGen)
 	require.NoError(t, err)
 	tc.G.GetDeviceEKStorage().ClearCache()
-	keygen(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
 
 	// Now let's kill our deviceEK as well, and we should generate all new keys
 	err = rawDeviceEKStorage.Delete(context.Background(), expectedDeviceEKGen)
@@ -178,7 +178,29 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	expectedDeviceEKGen++
 	expectedUserEKGen++
 	expectedTeamEKGen++
-	keygen(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+
+	// If we try to access an older teamEK that we cannot access, we don't
+	// create a new teamEK
+	teamEK, err := ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen-1)
+	require.Error(t, err)
+	require.Equal(t, teamEK, keybase1.TeamEk{})
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+
+	// Now let's kill our deviceEK, so we can no longer access the latest teamEK
+	// and will generate a new one and verify it is the new valid max.
+	err = rawDeviceEKStorage.Delete(context.Background(), expectedDeviceEKGen)
+	require.NoError(t, err)
+	tc.G.GetDeviceEKStorage().ClearCache()
+
+	teamEK, err = ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen)
+	require.Error(t, err)
+	require.Equal(t, teamEK, keybase1.TeamEk{})
+
+	expectedDeviceEKGen++
+	expectedUserEKGen++
+	expectedTeamEKGen++
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
 }
 
 func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {

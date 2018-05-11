@@ -835,6 +835,21 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		}
 	}()
 
+	// Fetch the inbox max message ID as well to compare against the local stored max messages
+	// if the caller is ok with receiving placeholders
+	var iboxMaxMsgID chat1.MessageID
+	if maxPlaceholders > 0 {
+		iboxRes, err := storage.NewInbox(s.G(), uid).GetConversation(ctx, convID)
+		if err != nil {
+			s.Debug(ctx, "PullLocalOnly: failed to read inbox for conv, not using: %s", err)
+		} else if iboxRes.Conv.ReaderInfo == nil {
+			s.Debug(ctx, "PullLocalOnly: no reader infoconv returned for conv, not using")
+		} else {
+			iboxMaxMsgID = iboxRes.Conv.ReaderInfo.MaxMsgid
+			s.Debug(ctx, "PullLocalOnly: found ibox max msgid: %d", iboxMaxMsgID)
+		}
+	}
+
 	// A number < 0 means it will fetch until it hits the end of the local copy. Our special
 	// result collector will suppress any miss errors
 	num := -1
@@ -842,7 +857,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		num = pagination.Num
 	}
 	rc := storage.NewHoleyResultCollector(maxPlaceholders, newPullLocalResultCollector(num))
-	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, rc, query, pagination)
+	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, rc, iboxMaxMsgID, query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err

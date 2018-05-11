@@ -61,6 +61,8 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.memberOutFromReset(ctx, cli, item)
 	case "team.abandoned":
 		return true, r.abandonTeam(ctx, cli, item)
+	case "team.newly_added_to_team":
+		return true, nil
 	default:
 		if strings.HasPrefix(category, "team.") {
 			return false, fmt.Errorf("unknown teamHandler category: %q", category)
