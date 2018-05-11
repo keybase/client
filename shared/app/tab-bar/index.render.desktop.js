@@ -1,6 +1,7 @@
 // @flow
 import * as Tabs from '../../constants/tabs'
 import * as React from 'react'
+import {isDarwin} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
@@ -79,7 +80,7 @@ const stylesTabBar = {
   backgroundColor: globalColors.darkBlue2,
   justifyContent: 'flex-start',
   paddingBottom: globalMargins.tiny,
-  paddingTop: 36,
+  paddingTop: isDarwin ? 36 : globalMargins.small,
   width: 80,
 }
 
