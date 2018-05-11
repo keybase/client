@@ -1376,21 +1376,21 @@ func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
 	return nil
 }
 
-func (u UserPlusKeysV2) FindSigningDeviceKey(d DeviceID) (*PublicKeyV2NaCl, string) {
+func (u UserPlusKeysV2) FindSigningDeviceKey(d DeviceID) *PublicKeyV2NaCl {
 	for _, k := range u.DeviceKeys {
 		if k.DeviceID.Eq(d) && k.Base.IsSibkey {
-			return &k, k.DeviceDescription
+			return &k
 		}
 	}
-	return nil, ""
+	return nil
 }
 
 func (u UserPlusKeysV2) FindSigningDeviceKID(d DeviceID) (KID, string) {
-	key, name := u.FindSigningDeviceKey(d)
+	key := u.FindSigningDeviceKey(d)
 	if key == nil {
-		return KID(""), name
+		return KID(""), ""
 	}
-	return key.Base.Kid, name
+	return key.Base.Kid, key.DeviceDescription
 }
 
 func (u UserPlusKeysV2) FindEncryptionDeviceKey(parent KID) *PublicKeyV2NaCl {

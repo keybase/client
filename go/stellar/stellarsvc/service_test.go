@@ -436,6 +436,17 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.Equal(t, "hey", relaySecrets.Note)
 }
 
+func TestGetAvailableCurrencies(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	stellar.ServiceInit(tcs[0].G)
+	conf, err := tcs[0].G.GetStellar().GetServerDefinitions(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, conf.Currencies["USD"].Name, "US Dollar")
+	require.Equal(t, conf.Currencies["EUR"].Name, "Euro")
+}
+
 type TestContext struct {
 	libkb.TestContext
 	Fu     *kbtest.FakeUser

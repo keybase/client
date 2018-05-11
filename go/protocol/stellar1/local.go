@@ -152,6 +152,14 @@ type ExchangeRateLocalArg struct {
 	Currency OutsideCurrencyCode `codec:"currency" json:"currency"`
 }
 
+type GetAvailableLocalCurrenciesArg struct {
+}
+
+type FormatLocalCurrencyStringArg struct {
+	Amount string              `codec:"amount" json:"amount"`
+	Code   OutsideCurrencyCode `codec:"code" json:"code"`
+}
+
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
@@ -165,6 +173,8 @@ type LocalInterface interface {
 	ExportSecretKeyLocal(context.Context, AccountID) (SecretKey, error)
 	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
 	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
+	GetAvailableLocalCurrencies(context.Context) (map[OutsideCurrencyCode]OutsideCurrencyDefinition, error)
+	FormatLocalCurrencyString(context.Context, FormatLocalCurrencyStringArg) (string, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -348,6 +358,33 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getAvailableLocalCurrencies": {
+				MakeArg: func() interface{} {
+					ret := make([]GetAvailableLocalCurrenciesArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetAvailableLocalCurrencies(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"formatLocalCurrencyString": {
+				MakeArg: func() interface{} {
+					ret := make([]FormatLocalCurrencyStringArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FormatLocalCurrencyStringArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FormatLocalCurrencyStringArg)(nil), args)
+						return
+					}
+					ret, err = i.FormatLocalCurrencyString(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -419,5 +456,15 @@ func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCur
 func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency OutsideCurrencyCode) (res OutsideExchangeRate, err error) {
 	__arg := ExchangeRateLocalArg{Currency: currency}
 	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetAvailableLocalCurrencies(ctx context.Context) (res map[OutsideCurrencyCode]OutsideCurrencyDefinition, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getAvailableLocalCurrencies", []interface{}{GetAvailableLocalCurrenciesArg{}}, &res)
+	return
+}
+
+func (c LocalClient) FormatLocalCurrencyString(ctx context.Context, __arg FormatLocalCurrencyStringArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.formatLocalCurrencyString", []interface{}{__arg}, &res)
 	return
 }
