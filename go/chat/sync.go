@@ -389,9 +389,11 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				s.G().ConvSource.ClearFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID())
 			} else if expunge, ok := expunges[conv.GetConvID().String()]; ok {
 				// Run expunges on the background loader
+				s.Debug(ctx, "Sync: queueing expunge background loader job: convID: %s", conv.GetConvID())
 				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
 					types.ConvLoaderPriorityHighest,
 					func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+						s.Debug(ctx, "Sync: executing expunge from a sync run: convID: %s", conv.GetConvID())
 						err := s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, expunge)
 						if err != nil {
 							s.Debug(ctx, "Sync: failed to expunge: %v", err)

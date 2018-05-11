@@ -472,6 +472,16 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	_, iconvs, err := ibox.ReadAll(ctx)
 	require.NoError(t, err)
 	require.Len(t, iconvs, 1)
+	// Field two of these here, since newConv reads and triggers a background load, as does the real read
+	for i := 0; i < 2; i++ {
+		select {
+		case cid := <-list.bgConvLoads:
+			require.Equal(t, mconv.GetConvID(), cid)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no background conv loaded")
+		}
+	}
+
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		mconv.Expunge = chat1.Expunge{Upto: 12}
 		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
