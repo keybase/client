@@ -449,7 +449,6 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 		b.Debug(ctx, "load: failed to load job: %s", job)
 		return nil
 	}
-	b.Debug(ctx, "load: tv.pag: %s", tv.Pagination)
 	b.Debug(ctx, "load: loaded job: %s", job)
 	if job.PostLoadHook != nil {
 		b.Debug(ctx, "load: invoking post load hook on job: %s", job)
