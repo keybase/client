@@ -2,7 +2,6 @@
 import {Component} from 'react'
 
 import type {SimpleProofState, UserInfo, Proof} from '../constants/types/tracker'
-import type {Exact} from '../constants/types/more'
 
 // TODO we don't need both of these props
 export type TrackerProps = {
@@ -38,7 +37,7 @@ export type TrackerProps = {
   onRetry: ?() => void,
 }
 
-export type RenderPropsUnshaped = {
+export type Props = {|
   loading: boolean,
   currentlyFollowing: boolean,
   inviteLink?: ?string,
@@ -93,8 +92,6 @@ export type RenderPropsUnshaped = {
   teamname?: string,
   youAreInTeam?: boolean,
   youHaveRequestedAccess?: boolean,
-}
+|}
 
-export type RenderProps = Exact<RenderPropsUnshaped>
-
-export default class Render extends Component<RenderProps> {}
+export default class Render extends Component<Props> {}

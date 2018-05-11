@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	clockwork "github.com/keybase/clockwork"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -158,6 +159,8 @@ type ConfigReader interface {
 	GetDeviceID() keybase1.DeviceID
 	GetDeviceIDForUsername(nu NormalizedUsername) keybase1.DeviceID
 	GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID
+	GetUsernameForUID(u keybase1.UID) NormalizedUsername
+	GetUIDForUsername(n NormalizedUsername) keybase1.UID
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
 	GetUID() keybase1.UID
@@ -257,8 +260,8 @@ type ExternalAPIRes struct {
 
 type API interface {
 	Get(APIArg) (*APIRes, error)
-	GetResp(APIArg) (*http.Response, func(), error)
 	GetDecode(APIArg, APIResponseWrapper) error
+	GetResp(APIArg) (*http.Response, func(), error)
 	Post(APIArg) (*APIRes, error)
 	PostJSON(APIArg) (*APIRes, error)
 	PostDecode(APIArg, APIResponseWrapper) error
@@ -620,6 +623,8 @@ type Stellar interface {
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	OnLogout()
+
+	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 }
 
 type DeviceEKStorage interface {
@@ -650,6 +655,7 @@ type TeamEKBoxStorage interface {
 type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
+	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
 	PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair

@@ -13,7 +13,7 @@ import {
 } from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<*, *>
+type OwnProps = RouteProps<void, void>
 
 const mapStateToProps = (state: TypedState) => ({
   errorText: upperFirst(state.teams.teamJoinError),

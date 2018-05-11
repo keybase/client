@@ -40,6 +40,7 @@ export type Props = {
   rowsMax?: number,
   maxLength?: number,
   rowsMin?: number,
+  hideLabel?: boolean,
   small?: boolean,
   smallLabel?: string,
   smallLabelStyle?: StylesCrossPlatform,

@@ -18,7 +18,7 @@ const _icons = {
   [Tabs.teamsTab]: 'iconfont-nav-teams',
   [Tabs.gitTab]: 'iconfont-nav-git',
   [Tabs.fsTab]: 'iconfont-nav-files',
-  [Tabs.walletsTab]: 'iconfont-hand-wave',
+  [Tabs.walletsTab]: 'iconfont-nav-wallets',
 }
 
 const _labels = {

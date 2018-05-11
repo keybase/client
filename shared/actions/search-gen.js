@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Types from '../constants/types/search'
 
 // Constants
@@ -19,82 +18,77 @@ export const setUserInputItems = 'search:setUserInputItems'
 export const updateSelectedSearchResult = 'search:updateSelectedSearchResult'
 export const userInputItemsUpdated = 'search:userInputItemsUpdated'
 
+// Payload Types
+type _AddResultsToUserInputPayload = $ReadOnly<{|
+  searchKey: string,
+  searchResults: Array<Types.SearchResultId>,
+|}>
+type _ClearSearchResultsPayload = $ReadOnly<{|searchKey: string|}>
+type _FinishedSearchPayload = $ReadOnly<{|
+  searchResults: Array<Types.SearchResultId>,
+  searchResultTerm: string,
+  service: Types.Service,
+  searchKey: string,
+  searchShowingSuggestions?: boolean,
+|}>
+type _RemoveResultsToUserInputPayload = $ReadOnly<{|
+  searchKey: string,
+  searchResults: Array<Types.SearchResultId>,
+|}>
+type _SearchPayload = $ReadOnly<{|
+  term: string,
+  service: Types.Service,
+  searchKey: string,
+|}>
+type _SearchSuggestionsPayload = $ReadOnly<{|
+  maxUsers?: number,
+  searchKey: string,
+|}>
+type _SetUserInputItemsPayload = $ReadOnly<{|
+  searchKey: string,
+  searchResults: Array<Types.SearchResultId>,
+|}>
+type _UpdateSelectedSearchResultPayload = $ReadOnly<{|
+  searchKey: string,
+  id: ?Types.SearchResultId,
+|}>
+type _UserInputItemsUpdatedPayload = $ReadOnly<{|
+  searchKey: string,
+  userInputItemIds: Array<Types.SearchResultId>,
+|}>
+
 // Action Creators
-export const createAddResultsToUserInput = (
-  payload: $ReadOnly<{|
-    searchKey: string,
-    searchResults: Array<Types.SearchResultId>,
-  |}>
-) => ({error: false, payload, type: addResultsToUserInput})
-export const createClearSearchResults = (payload: $ReadOnly<{|searchKey: string|}>) => ({error: false, payload, type: clearSearchResults})
-export const createFinishedSearch = (
-  payload: $ReadOnly<{|
-    searchResults: Array<Types.SearchResultId>,
-    searchResultTerm: string,
-    service: Types.Service,
-    searchKey: string,
-    searchShowingSuggestions?: boolean,
-  |}>
-) => ({error: false, payload, type: finishedSearch})
-export const createRemoveResultsToUserInput = (
-  payload: $ReadOnly<{|
-    searchKey: string,
-    searchResults: Array<Types.SearchResultId>,
-  |}>
-) => ({error: false, payload, type: removeResultsToUserInput})
-export const createSearch = (
-  payload: $ReadOnly<{|
-    term: string,
-    service: Types.Service,
-    searchKey: string,
-  |}>
-) => ({error: false, payload, type: search})
-export const createSearchSuggestions = (
-  payload: $ReadOnly<{|
-    maxUsers?: number,
-    searchKey: string,
-  |}>
-) => ({error: false, payload, type: searchSuggestions})
-export const createSetUserInputItems = (
-  payload: $ReadOnly<{|
-    searchKey: string,
-    searchResults: Array<Types.SearchResultId>,
-  |}>
-) => ({error: false, payload, type: setUserInputItems})
-export const createUpdateSelectedSearchResult = (
-  payload: $ReadOnly<{|
-    searchKey: string,
-    id: ?Types.SearchResultId,
-  |}>
-) => ({error: false, payload, type: updateSelectedSearchResult})
-export const createUserInputItemsUpdated = (
-  payload: $ReadOnly<{|
-    searchKey: string,
-    userInputItemIds: Array<Types.SearchResultId>,
-  |}>
-) => ({error: false, payload, type: userInputItemsUpdated})
+export const createAddResultsToUserInput = (payload: _AddResultsToUserInputPayload) => ({error: false, payload, type: addResultsToUserInput})
+export const createClearSearchResults = (payload: _ClearSearchResultsPayload) => ({error: false, payload, type: clearSearchResults})
+export const createFinishedSearch = (payload: _FinishedSearchPayload) => ({error: false, payload, type: finishedSearch})
+export const createRemoveResultsToUserInput = (payload: _RemoveResultsToUserInputPayload) => ({error: false, payload, type: removeResultsToUserInput})
+export const createSearch = (payload: _SearchPayload) => ({error: false, payload, type: search})
+export const createSearchSuggestions = (payload: _SearchSuggestionsPayload) => ({error: false, payload, type: searchSuggestions})
+export const createSetUserInputItems = (payload: _SetUserInputItemsPayload) => ({error: false, payload, type: setUserInputItems})
+export const createUpdateSelectedSearchResult = (payload: _UpdateSelectedSearchResultPayload) => ({error: false, payload, type: updateSelectedSearchResult})
+export const createUserInputItemsUpdated = (payload: _UserInputItemsUpdatedPayload) => ({error: false, payload, type: userInputItemsUpdated})
 
 // Action Payloads
-export type AddResultsToUserInputPayload = More.ReturnType<typeof createAddResultsToUserInput>
-export type ClearSearchResultsPayload = More.ReturnType<typeof createClearSearchResults>
-export type FinishedSearchPayload = More.ReturnType<typeof createFinishedSearch>
-export type RemoveResultsToUserInputPayload = More.ReturnType<typeof createRemoveResultsToUserInput>
-export type SearchPayload = More.ReturnType<typeof createSearch>
-export type SearchSuggestionsPayload = More.ReturnType<typeof createSearchSuggestions>
-export type SetUserInputItemsPayload = More.ReturnType<typeof createSetUserInputItems>
-export type UpdateSelectedSearchResultPayload = More.ReturnType<typeof createUpdateSelectedSearchResult>
-export type UserInputItemsUpdatedPayload = More.ReturnType<typeof createUserInputItemsUpdated>
+export type AddResultsToUserInputPayload = $Call<typeof createAddResultsToUserInput, _AddResultsToUserInputPayload>
+export type ClearSearchResultsPayload = $Call<typeof createClearSearchResults, _ClearSearchResultsPayload>
+export type FinishedSearchPayload = $Call<typeof createFinishedSearch, _FinishedSearchPayload>
+export type RemoveResultsToUserInputPayload = $Call<typeof createRemoveResultsToUserInput, _RemoveResultsToUserInputPayload>
+export type SearchPayload = $Call<typeof createSearch, _SearchPayload>
+export type SearchSuggestionsPayload = $Call<typeof createSearchSuggestions, _SearchSuggestionsPayload>
+export type SetUserInputItemsPayload = $Call<typeof createSetUserInputItems, _SetUserInputItemsPayload>
+export type UpdateSelectedSearchResultPayload = $Call<typeof createUpdateSelectedSearchResult, _UpdateSelectedSearchResultPayload>
+export type UserInputItemsUpdatedPayload = $Call<typeof createUserInputItemsUpdated, _UserInputItemsUpdatedPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createAddResultsToUserInput>
-  | More.ReturnType<typeof createClearSearchResults>
-  | More.ReturnType<typeof createFinishedSearch>
-  | More.ReturnType<typeof createRemoveResultsToUserInput>
-  | More.ReturnType<typeof createSearch>
-  | More.ReturnType<typeof createSearchSuggestions>
-  | More.ReturnType<typeof createSetUserInputItems>
-  | More.ReturnType<typeof createUpdateSelectedSearchResult>
-  | More.ReturnType<typeof createUserInputItemsUpdated>
+  | AddResultsToUserInputPayload
+  | ClearSearchResultsPayload
+  | FinishedSearchPayload
+  | RemoveResultsToUserInputPayload
+  | SearchPayload
+  | SearchSuggestionsPayload
+  | SetUserInputItemsPayload
+  | UpdateSelectedSearchResultPayload
+  | UserInputItemsUpdatedPayload
   | {type: 'common:resetStore', payload: void}

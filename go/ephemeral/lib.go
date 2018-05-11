@@ -12,6 +12,14 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// While  under development, this whitelist will allow ephemeral code to work
+// (useful for enabling on mobile builds)
+var adminWhitelist = map[keybase1.UID]bool{
+	"d1b3a5fa977ce53da2c2142a4511bc00": true, // joshblum
+	"41b1f75fb55046d370608425a3208100": true, // oconnor663
+	"95e88f2087e480cae28f08d81554bc00": true, // mikem
+}
+
 const cacheEntryLifetimeSecs = 60 * 5 // 5 minutes
 const lruSize = 200
 
@@ -63,15 +71,16 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	g := e.G()
 
-	// TODO -- when we launch, remove the feature flagging on Prod
-	willRun := g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
+	_, ok := adminWhitelist[e.G().Env.GetUID()]
+	willRun := ok || g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 	if !willRun {
 		e.G().Log.CDebugf(ctx, "EKLib skipping run")
 		return false
 	}
+
 	oneshot, err := g.IsOneshot(ctx)
 	if err != nil {
-		e.G().Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s", err)
+		g.Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s", err)
 		return false
 	}
 	return !oneshot
@@ -223,7 +232,7 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 	if err != nil {
 		return false, err
 	}
-	statement, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
 	if err != nil {
 		return false, err
 	}
@@ -290,35 +299,12 @@ func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
-	// There are plenty of race conditions where the PTK or teamEK or
-	// membership list can change out from under us while we're in the middle
-	// of posting a new key, causing the post to fail. Detect these conditions
-	// and retry.
 	defer e.G().CTrace(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
-	tries := 0
-	maxTries := 3
-	knownRaceConditions := []keybase1.StatusCode{
-		keybase1.StatusCode_SCSigWrongKey,
-		keybase1.StatusCode_SCSigOldSeqno,
-		keybase1.StatusCode_SCEphemeralKeyBadGeneration,
-		keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
-		keybase1.StatusCode_SCEphemeralKeyMissingBox,
-		keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys,
-	}
-	for {
-		tries++
+	err = teamEKRetryWrapper(ctx, e.G(), func() error {
 		teamEK, err = e.getOrCreateLatestTeamEKInner(ctx, teamID)
-		retryableError := false
-		for _, code := range knownRaceConditions {
-			if libkb.IsAppStatusCode(err, code) {
-				e.G().Log.CDebugf(ctx, "GetOrCreateLatestTeamEK found a retryable error on try %d: %s", tries, err)
-				retryableError = true
-			}
-		}
-		if err == nil || !retryableError || tries >= maxTries {
-			return teamEK, err
-		}
-	}
+		return err
+	})
+	return teamEK, err
 }
 
 func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
@@ -353,7 +339,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		return teamEK, err
 	}
 
-	statement, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
 	if err != nil {
 		return teamEK, err
 	}
@@ -377,6 +363,23 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	// Cache the latest generation
 	e.teamEKGenCache.Add(key, e.newCacheEntry(publishedMetadata.Generation))
 	return teamEK, nil
+}
+
+// Try to get the TeamEK for the given `generation`. If this fails and the
+// `generation` is also the current maxGeneration, create a new teamEK.
+func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	defer e.G().CTrace(ctx, "GetTeamEK", func() error { return err })()
+
+	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation)
+	if err != nil {
+		switch err.(type) {
+		case *EKUnboxErr, *EKMissingBoxErr:
+			if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
+				e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
+			}
+		}
+	}
+	return teamEK, err
 }
 
 func (e *EKLib) NewEphemeralSeed() (seed keybase1.Bytes32, err error) {

@@ -10,8 +10,9 @@ import (
 func HandleNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) (err error) {
 	defer g.CTrace(ctx, "HandleNewTeamEK", func() error { return err })()
 
-	ekLib := g.GetEKLib()
-	ekLib.PurgeTeamEKGenCache(teamID, generation)
+	if ekLib := g.GetEKLib(); ekLib != nil {
+		ekLib.PurgeTeamEKGenCache(teamID, generation)
+	}
 	g.NotifyRouter.HandleNewTeamEK(ctx, teamID, generation)
 	return nil
 }

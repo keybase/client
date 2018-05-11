@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Types from '../constants/types/settings'
 import HiddenString from '../util/hidden-string'
 
@@ -43,121 +42,155 @@ export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const trace = 'settings:trace'
 export const waitingForResponse = 'settings:waitingForResponse'
 
+// Payload Types
+type _DbNukePayload = void
+type _DeleteAccountForeverPayload = void
+type _InvitesClearErrorPayload = void
+type _InvitesReclaimPayload = $ReadOnly<{|inviteId: string|}>
+type _InvitesReclaimedPayload = void
+type _InvitesReclaimedPayloadError = $ReadOnly<{|errorText: string|}>
+type _InvitesRefreshPayload = void
+type _InvitesRefreshedPayload = $ReadOnly<{|invites: Types.InvitesState|}>
+type _InvitesSendPayload = $ReadOnly<{|
+  email: string,
+  message: ?string,
+|}>
+type _InvitesSentPayload = void
+type _InvitesSentPayloadError = $ReadOnly<{|error: Error|}>
+type _LoadRememberPassphrasePayload = void
+type _LoadSettingsPayload = void
+type _LoadedRememberPassphrasePayload = $ReadOnly<{|remember: boolean|}>
+type _LoadedSettingsPayload = $ReadOnly<{|emailState: Types.EmailState|}>
+type _NotificationsRefreshPayload = void
+type _NotificationsRefreshedPayload = $ReadOnly<{|notifications: Types.NotificationsState|}>
+type _NotificationsSavedPayload = void
+type _NotificationsTogglePayload = $ReadOnly<{|
+  group: Types.NotificationGroups,
+  name?: ?string,
+|}>
+type _OnChangeNewEmailPayload = $ReadOnly<{|email: string|}>
+type _OnChangeNewPassphraseConfirmPayload = $ReadOnly<{|passphrase: HiddenString|}>
+type _OnChangeNewPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
+type _OnChangeRememberPassphrasePayload = $ReadOnly<{|remember: boolean|}>
+type _OnChangeShowPassphrasePayload = void
+type _OnSubmitNewEmailPayload = void
+type _OnSubmitNewPassphrasePayload = void
+type _OnUpdateEmailErrorPayload = $ReadOnly<{|error: Error|}>
+type _OnUpdatePGPSettingsPayload = void
+type _OnUpdatePassphraseErrorPayload = $ReadOnly<{|error: Error|}>
+type _OnUpdatedPGPSettingsPayload = $ReadOnly<{|hasKeys: boolean|}>
+type _ProcessorProfilePayload = $ReadOnly<{|durationSeconds: number|}>
+type _SetAllowDeleteAccountPayload = $ReadOnly<{|allow: boolean|}>
+type _TracePayload = $ReadOnly<{|durationSeconds: number|}>
+type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
+
 // Action Creators
-export const createDbNuke = () => ({error: false, payload: undefined, type: dbNuke})
-export const createDeleteAccountForever = () => ({error: false, payload: undefined, type: deleteAccountForever})
-export const createInvitesClearError = () => ({error: false, payload: undefined, type: invitesClearError})
-export const createInvitesReclaim = (payload: $ReadOnly<{|inviteId: string|}>) => ({error: false, payload, type: invitesReclaim})
-export const createInvitesReclaimed = () => ({error: false, payload: undefined, type: invitesReclaimed})
-export const createInvitesReclaimedError = (payload: $ReadOnly<{|errorText: string|}>) => ({error: true, payload, type: invitesReclaimed})
-export const createInvitesRefresh = () => ({error: false, payload: undefined, type: invitesRefresh})
-export const createInvitesRefreshed = (payload: $ReadOnly<{|invites: Types.InvitesState|}>) => ({error: false, payload, type: invitesRefreshed})
-export const createInvitesSend = (
-  payload: $ReadOnly<{|
-    email: string,
-    message: ?string,
-  |}>
-) => ({error: false, payload, type: invitesSend})
-export const createInvitesSent = () => ({error: false, payload: undefined, type: invitesSent})
-export const createInvitesSentError = (payload: $ReadOnly<{|error: Error|}>) => ({error: true, payload, type: invitesSent})
-export const createLoadRememberPassphrase = () => ({error: false, payload: undefined, type: loadRememberPassphrase})
-export const createLoadSettings = () => ({error: false, payload: undefined, type: loadSettings})
-export const createLoadedRememberPassphrase = (payload: $ReadOnly<{|remember: boolean|}>) => ({error: false, payload, type: loadedRememberPassphrase})
-export const createLoadedSettings = (payload: $ReadOnly<{|emailState: Types.EmailState|}>) => ({error: false, payload, type: loadedSettings})
-export const createNotificationsRefresh = () => ({error: false, payload: undefined, type: notificationsRefresh})
-export const createNotificationsRefreshed = (payload: $ReadOnly<{|notifications: Types.NotificationsState|}>) => ({error: false, payload, type: notificationsRefreshed})
-export const createNotificationsSaved = () => ({error: false, payload: undefined, type: notificationsSaved})
-export const createNotificationsToggle = (
-  payload: $ReadOnly<{|
-    group: Types.NotificationGroups,
-    name?: ?string,
-  |}>
-) => ({error: false, payload, type: notificationsToggle})
-export const createOnChangeNewEmail = (payload: $ReadOnly<{|email: string|}>) => ({error: false, payload, type: onChangeNewEmail})
-export const createOnChangeNewPassphrase = (payload: $ReadOnly<{|passphrase: HiddenString|}>) => ({error: false, payload, type: onChangeNewPassphrase})
-export const createOnChangeNewPassphraseConfirm = (payload: $ReadOnly<{|passphrase: HiddenString|}>) => ({error: false, payload, type: onChangeNewPassphraseConfirm})
-export const createOnChangeRememberPassphrase = (payload: $ReadOnly<{|remember: boolean|}>) => ({error: false, payload, type: onChangeRememberPassphrase})
-export const createOnChangeShowPassphrase = () => ({error: false, payload: undefined, type: onChangeShowPassphrase})
-export const createOnSubmitNewEmail = () => ({error: false, payload: undefined, type: onSubmitNewEmail})
-export const createOnSubmitNewPassphrase = () => ({error: false, payload: undefined, type: onSubmitNewPassphrase})
-export const createOnUpdateEmailError = (payload: $ReadOnly<{|error: Error|}>) => ({error: false, payload, type: onUpdateEmailError})
-export const createOnUpdatePGPSettings = () => ({error: false, payload: undefined, type: onUpdatePGPSettings})
-export const createOnUpdatePassphraseError = (payload: $ReadOnly<{|error: Error|}>) => ({error: false, payload, type: onUpdatePassphraseError})
-export const createOnUpdatedPGPSettings = (payload: $ReadOnly<{|hasKeys: boolean|}>) => ({error: false, payload, type: onUpdatedPGPSettings})
-export const createProcessorProfile = (payload: $ReadOnly<{|durationSeconds: number|}>) => ({error: false, payload, type: processorProfile})
-export const createSetAllowDeleteAccount = (payload: $ReadOnly<{|allow: boolean|}>) => ({error: false, payload, type: setAllowDeleteAccount})
-export const createTrace = (payload: $ReadOnly<{|durationSeconds: number|}>) => ({error: false, payload, type: trace})
-export const createWaitingForResponse = (payload: $ReadOnly<{|waiting: boolean|}>) => ({error: false, payload, type: waitingForResponse})
+export const createDbNuke = (payload: _DbNukePayload) => ({error: false, payload, type: dbNuke})
+export const createDeleteAccountForever = (payload: _DeleteAccountForeverPayload) => ({error: false, payload, type: deleteAccountForever})
+export const createInvitesClearError = (payload: _InvitesClearErrorPayload) => ({error: false, payload, type: invitesClearError})
+export const createInvitesReclaim = (payload: _InvitesReclaimPayload) => ({error: false, payload, type: invitesReclaim})
+export const createInvitesReclaimed = (payload: _InvitesReclaimedPayload) => ({error: false, payload, type: invitesReclaimed})
+export const createInvitesReclaimedError = (payload: _InvitesReclaimedPayloadError) => ({error: true, payload, type: invitesReclaimed})
+export const createInvitesRefresh = (payload: _InvitesRefreshPayload) => ({error: false, payload, type: invitesRefresh})
+export const createInvitesRefreshed = (payload: _InvitesRefreshedPayload) => ({error: false, payload, type: invitesRefreshed})
+export const createInvitesSend = (payload: _InvitesSendPayload) => ({error: false, payload, type: invitesSend})
+export const createInvitesSent = (payload: _InvitesSentPayload) => ({error: false, payload, type: invitesSent})
+export const createInvitesSentError = (payload: _InvitesSentPayloadError) => ({error: true, payload, type: invitesSent})
+export const createLoadRememberPassphrase = (payload: _LoadRememberPassphrasePayload) => ({error: false, payload, type: loadRememberPassphrase})
+export const createLoadSettings = (payload: _LoadSettingsPayload) => ({error: false, payload, type: loadSettings})
+export const createLoadedRememberPassphrase = (payload: _LoadedRememberPassphrasePayload) => ({error: false, payload, type: loadedRememberPassphrase})
+export const createLoadedSettings = (payload: _LoadedSettingsPayload) => ({error: false, payload, type: loadedSettings})
+export const createNotificationsRefresh = (payload: _NotificationsRefreshPayload) => ({error: false, payload, type: notificationsRefresh})
+export const createNotificationsRefreshed = (payload: _NotificationsRefreshedPayload) => ({error: false, payload, type: notificationsRefreshed})
+export const createNotificationsSaved = (payload: _NotificationsSavedPayload) => ({error: false, payload, type: notificationsSaved})
+export const createNotificationsToggle = (payload: _NotificationsTogglePayload) => ({error: false, payload, type: notificationsToggle})
+export const createOnChangeNewEmail = (payload: _OnChangeNewEmailPayload) => ({error: false, payload, type: onChangeNewEmail})
+export const createOnChangeNewPassphrase = (payload: _OnChangeNewPassphrasePayload) => ({error: false, payload, type: onChangeNewPassphrase})
+export const createOnChangeNewPassphraseConfirm = (payload: _OnChangeNewPassphraseConfirmPayload) => ({error: false, payload, type: onChangeNewPassphraseConfirm})
+export const createOnChangeRememberPassphrase = (payload: _OnChangeRememberPassphrasePayload) => ({error: false, payload, type: onChangeRememberPassphrase})
+export const createOnChangeShowPassphrase = (payload: _OnChangeShowPassphrasePayload) => ({error: false, payload, type: onChangeShowPassphrase})
+export const createOnSubmitNewEmail = (payload: _OnSubmitNewEmailPayload) => ({error: false, payload, type: onSubmitNewEmail})
+export const createOnSubmitNewPassphrase = (payload: _OnSubmitNewPassphrasePayload) => ({error: false, payload, type: onSubmitNewPassphrase})
+export const createOnUpdateEmailError = (payload: _OnUpdateEmailErrorPayload) => ({error: false, payload, type: onUpdateEmailError})
+export const createOnUpdatePGPSettings = (payload: _OnUpdatePGPSettingsPayload) => ({error: false, payload, type: onUpdatePGPSettings})
+export const createOnUpdatePassphraseError = (payload: _OnUpdatePassphraseErrorPayload) => ({error: false, payload, type: onUpdatePassphraseError})
+export const createOnUpdatedPGPSettings = (payload: _OnUpdatedPGPSettingsPayload) => ({error: false, payload, type: onUpdatedPGPSettings})
+export const createProcessorProfile = (payload: _ProcessorProfilePayload) => ({error: false, payload, type: processorProfile})
+export const createSetAllowDeleteAccount = (payload: _SetAllowDeleteAccountPayload) => ({error: false, payload, type: setAllowDeleteAccount})
+export const createTrace = (payload: _TracePayload) => ({error: false, payload, type: trace})
+export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({error: false, payload, type: waitingForResponse})
 
 // Action Payloads
-export type DbNukePayload = More.ReturnType<typeof createDbNuke>
-export type DeleteAccountForeverPayload = More.ReturnType<typeof createDeleteAccountForever>
-export type InvitesClearErrorPayload = More.ReturnType<typeof createInvitesClearError>
-export type InvitesReclaimPayload = More.ReturnType<typeof createInvitesReclaim>
-export type InvitesReclaimedPayload = More.ReturnType<typeof createInvitesReclaimed>
-export type InvitesRefreshPayload = More.ReturnType<typeof createInvitesRefresh>
-export type InvitesRefreshedPayload = More.ReturnType<typeof createInvitesRefreshed>
-export type InvitesSendPayload = More.ReturnType<typeof createInvitesSend>
-export type InvitesSentPayload = More.ReturnType<typeof createInvitesSent>
-export type LoadRememberPassphrasePayload = More.ReturnType<typeof createLoadRememberPassphrase>
-export type LoadSettingsPayload = More.ReturnType<typeof createLoadSettings>
-export type LoadedRememberPassphrasePayload = More.ReturnType<typeof createLoadedRememberPassphrase>
-export type LoadedSettingsPayload = More.ReturnType<typeof createLoadedSettings>
-export type NotificationsRefreshPayload = More.ReturnType<typeof createNotificationsRefresh>
-export type NotificationsRefreshedPayload = More.ReturnType<typeof createNotificationsRefreshed>
-export type NotificationsSavedPayload = More.ReturnType<typeof createNotificationsSaved>
-export type NotificationsTogglePayload = More.ReturnType<typeof createNotificationsToggle>
-export type OnChangeNewEmailPayload = More.ReturnType<typeof createOnChangeNewEmail>
-export type OnChangeNewPassphraseConfirmPayload = More.ReturnType<typeof createOnChangeNewPassphraseConfirm>
-export type OnChangeNewPassphrasePayload = More.ReturnType<typeof createOnChangeNewPassphrase>
-export type OnChangeRememberPassphrasePayload = More.ReturnType<typeof createOnChangeRememberPassphrase>
-export type OnChangeShowPassphrasePayload = More.ReturnType<typeof createOnChangeShowPassphrase>
-export type OnSubmitNewEmailPayload = More.ReturnType<typeof createOnSubmitNewEmail>
-export type OnSubmitNewPassphrasePayload = More.ReturnType<typeof createOnSubmitNewPassphrase>
-export type OnUpdateEmailErrorPayload = More.ReturnType<typeof createOnUpdateEmailError>
-export type OnUpdatePGPSettingsPayload = More.ReturnType<typeof createOnUpdatePGPSettings>
-export type OnUpdatePassphraseErrorPayload = More.ReturnType<typeof createOnUpdatePassphraseError>
-export type OnUpdatedPGPSettingsPayload = More.ReturnType<typeof createOnUpdatedPGPSettings>
-export type ProcessorProfilePayload = More.ReturnType<typeof createProcessorProfile>
-export type SetAllowDeleteAccountPayload = More.ReturnType<typeof createSetAllowDeleteAccount>
-export type TracePayload = More.ReturnType<typeof createTrace>
-export type WaitingForResponsePayload = More.ReturnType<typeof createWaitingForResponse>
+export type DbNukePayload = $Call<typeof createDbNuke, _DbNukePayload>
+export type DeleteAccountForeverPayload = $Call<typeof createDeleteAccountForever, _DeleteAccountForeverPayload>
+export type InvitesClearErrorPayload = $Call<typeof createInvitesClearError, _InvitesClearErrorPayload>
+export type InvitesReclaimPayload = $Call<typeof createInvitesReclaim, _InvitesReclaimPayload>
+export type InvitesReclaimedPayload = $Call<typeof createInvitesReclaimed, _InvitesReclaimedPayload>
+export type InvitesReclaimedPayloadError = $Call<typeof createInvitesReclaimedError, _InvitesReclaimedPayloadError>
+export type InvitesRefreshPayload = $Call<typeof createInvitesRefresh, _InvitesRefreshPayload>
+export type InvitesRefreshedPayload = $Call<typeof createInvitesRefreshed, _InvitesRefreshedPayload>
+export type InvitesSendPayload = $Call<typeof createInvitesSend, _InvitesSendPayload>
+export type InvitesSentPayload = $Call<typeof createInvitesSent, _InvitesSentPayload>
+export type InvitesSentPayloadError = $Call<typeof createInvitesSentError, _InvitesSentPayloadError>
+export type LoadRememberPassphrasePayload = $Call<typeof createLoadRememberPassphrase, _LoadRememberPassphrasePayload>
+export type LoadSettingsPayload = $Call<typeof createLoadSettings, _LoadSettingsPayload>
+export type LoadedRememberPassphrasePayload = $Call<typeof createLoadedRememberPassphrase, _LoadedRememberPassphrasePayload>
+export type LoadedSettingsPayload = $Call<typeof createLoadedSettings, _LoadedSettingsPayload>
+export type NotificationsRefreshPayload = $Call<typeof createNotificationsRefresh, _NotificationsRefreshPayload>
+export type NotificationsRefreshedPayload = $Call<typeof createNotificationsRefreshed, _NotificationsRefreshedPayload>
+export type NotificationsSavedPayload = $Call<typeof createNotificationsSaved, _NotificationsSavedPayload>
+export type NotificationsTogglePayload = $Call<typeof createNotificationsToggle, _NotificationsTogglePayload>
+export type OnChangeNewEmailPayload = $Call<typeof createOnChangeNewEmail, _OnChangeNewEmailPayload>
+export type OnChangeNewPassphraseConfirmPayload = $Call<typeof createOnChangeNewPassphraseConfirm, _OnChangeNewPassphraseConfirmPayload>
+export type OnChangeNewPassphrasePayload = $Call<typeof createOnChangeNewPassphrase, _OnChangeNewPassphrasePayload>
+export type OnChangeRememberPassphrasePayload = $Call<typeof createOnChangeRememberPassphrase, _OnChangeRememberPassphrasePayload>
+export type OnChangeShowPassphrasePayload = $Call<typeof createOnChangeShowPassphrase, _OnChangeShowPassphrasePayload>
+export type OnSubmitNewEmailPayload = $Call<typeof createOnSubmitNewEmail, _OnSubmitNewEmailPayload>
+export type OnSubmitNewPassphrasePayload = $Call<typeof createOnSubmitNewPassphrase, _OnSubmitNewPassphrasePayload>
+export type OnUpdateEmailErrorPayload = $Call<typeof createOnUpdateEmailError, _OnUpdateEmailErrorPayload>
+export type OnUpdatePGPSettingsPayload = $Call<typeof createOnUpdatePGPSettings, _OnUpdatePGPSettingsPayload>
+export type OnUpdatePassphraseErrorPayload = $Call<typeof createOnUpdatePassphraseError, _OnUpdatePassphraseErrorPayload>
+export type OnUpdatedPGPSettingsPayload = $Call<typeof createOnUpdatedPGPSettings, _OnUpdatedPGPSettingsPayload>
+export type ProcessorProfilePayload = $Call<typeof createProcessorProfile, _ProcessorProfilePayload>
+export type SetAllowDeleteAccountPayload = $Call<typeof createSetAllowDeleteAccount, _SetAllowDeleteAccountPayload>
+export type TracePayload = $Call<typeof createTrace, _TracePayload>
+export type WaitingForResponsePayload = $Call<typeof createWaitingForResponse, _WaitingForResponsePayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createDbNuke>
-  | More.ReturnType<typeof createDeleteAccountForever>
-  | More.ReturnType<typeof createInvitesClearError>
-  | More.ReturnType<typeof createInvitesReclaim>
-  | More.ReturnType<typeof createInvitesReclaimed>
-  | More.ReturnType<typeof createInvitesReclaimedError>
-  | More.ReturnType<typeof createInvitesRefresh>
-  | More.ReturnType<typeof createInvitesRefreshed>
-  | More.ReturnType<typeof createInvitesSend>
-  | More.ReturnType<typeof createInvitesSent>
-  | More.ReturnType<typeof createInvitesSentError>
-  | More.ReturnType<typeof createLoadRememberPassphrase>
-  | More.ReturnType<typeof createLoadSettings>
-  | More.ReturnType<typeof createLoadedRememberPassphrase>
-  | More.ReturnType<typeof createLoadedSettings>
-  | More.ReturnType<typeof createNotificationsRefresh>
-  | More.ReturnType<typeof createNotificationsRefreshed>
-  | More.ReturnType<typeof createNotificationsSaved>
-  | More.ReturnType<typeof createNotificationsToggle>
-  | More.ReturnType<typeof createOnChangeNewEmail>
-  | More.ReturnType<typeof createOnChangeNewPassphrase>
-  | More.ReturnType<typeof createOnChangeNewPassphraseConfirm>
-  | More.ReturnType<typeof createOnChangeRememberPassphrase>
-  | More.ReturnType<typeof createOnChangeShowPassphrase>
-  | More.ReturnType<typeof createOnSubmitNewEmail>
-  | More.ReturnType<typeof createOnSubmitNewPassphrase>
-  | More.ReturnType<typeof createOnUpdateEmailError>
-  | More.ReturnType<typeof createOnUpdatePGPSettings>
-  | More.ReturnType<typeof createOnUpdatePassphraseError>
-  | More.ReturnType<typeof createOnUpdatedPGPSettings>
-  | More.ReturnType<typeof createProcessorProfile>
-  | More.ReturnType<typeof createSetAllowDeleteAccount>
-  | More.ReturnType<typeof createTrace>
-  | More.ReturnType<typeof createWaitingForResponse>
+  | DbNukePayload
+  | DeleteAccountForeverPayload
+  | InvitesClearErrorPayload
+  | InvitesReclaimPayload
+  | InvitesReclaimedPayload
+  | InvitesReclaimedPayloadError
+  | InvitesRefreshPayload
+  | InvitesRefreshedPayload
+  | InvitesSendPayload
+  | InvitesSentPayload
+  | InvitesSentPayloadError
+  | LoadRememberPassphrasePayload
+  | LoadSettingsPayload
+  | LoadedRememberPassphrasePayload
+  | LoadedSettingsPayload
+  | NotificationsRefreshPayload
+  | NotificationsRefreshedPayload
+  | NotificationsSavedPayload
+  | NotificationsTogglePayload
+  | OnChangeNewEmailPayload
+  | OnChangeNewPassphraseConfirmPayload
+  | OnChangeNewPassphrasePayload
+  | OnChangeRememberPassphrasePayload
+  | OnChangeShowPassphrasePayload
+  | OnSubmitNewEmailPayload
+  | OnSubmitNewPassphrasePayload
+  | OnUpdateEmailErrorPayload
+  | OnUpdatePGPSettingsPayload
+  | OnUpdatePassphraseErrorPayload
+  | OnUpdatedPGPSettingsPayload
+  | ProcessorProfilePayload
+  | SetAllowDeleteAccountPayload
+  | TracePayload
+  | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: void}

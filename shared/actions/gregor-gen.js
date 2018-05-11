@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Types from '../constants/types/gregor'
 import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 
@@ -17,40 +16,44 @@ export const pushState = 'gregor:pushState'
 export const updateReachability = 'gregor:updateReachability'
 export const updateSeenMsgs = 'gregor:updateSeenMsgs'
 
+// Payload Types
+type _CheckReachabilityPayload = void
+type _InjectItemPayload = $ReadOnly<{|
+  category: string,
+  body: string,
+  dtime?: ?Date,
+|}>
+type _PushOOBMPayload = $ReadOnly<{|messages: Array<RPCTypesGregor.OutOfBandMessage>|}>
+type _PushStatePayload = $ReadOnly<{|
+  state: RPCTypesGregor.State,
+  reason: RPCTypes.PushReason,
+|}>
+type _UpdateReachabilityPayload = $ReadOnly<{|reachability: RPCTypes.Reachability|}>
+type _UpdateSeenMsgsPayload = $ReadOnly<{|seenMsgs: Array<Types.NonNullGregorItem>|}>
+
 // Action Creators
-export const createCheckReachability = () => ({error: false, payload: undefined, type: checkReachability})
-export const createInjectItem = (
-  payload: $ReadOnly<{|
-    category: string,
-    body: string,
-    dtime?: ?Date,
-  |}>
-) => ({error: false, payload, type: injectItem})
-export const createPushOOBM = (payload: $ReadOnly<{|messages: Array<RPCTypesGregor.OutOfBandMessage>|}>) => ({error: false, payload, type: pushOOBM})
-export const createPushState = (
-  payload: $ReadOnly<{|
-    state: RPCTypesGregor.State,
-    reason: RPCTypes.PushReason,
-  |}>
-) => ({error: false, payload, type: pushState})
-export const createUpdateReachability = (payload: $ReadOnly<{|reachability: RPCTypes.Reachability|}>) => ({error: false, payload, type: updateReachability})
-export const createUpdateSeenMsgs = (payload: $ReadOnly<{|seenMsgs: Array<Types.NonNullGregorItem>|}>) => ({error: false, payload, type: updateSeenMsgs})
+export const createCheckReachability = (payload: _CheckReachabilityPayload) => ({error: false, payload, type: checkReachability})
+export const createInjectItem = (payload: _InjectItemPayload) => ({error: false, payload, type: injectItem})
+export const createPushOOBM = (payload: _PushOOBMPayload) => ({error: false, payload, type: pushOOBM})
+export const createPushState = (payload: _PushStatePayload) => ({error: false, payload, type: pushState})
+export const createUpdateReachability = (payload: _UpdateReachabilityPayload) => ({error: false, payload, type: updateReachability})
+export const createUpdateSeenMsgs = (payload: _UpdateSeenMsgsPayload) => ({error: false, payload, type: updateSeenMsgs})
 
 // Action Payloads
-export type CheckReachabilityPayload = More.ReturnType<typeof createCheckReachability>
-export type InjectItemPayload = More.ReturnType<typeof createInjectItem>
-export type PushOOBMPayload = More.ReturnType<typeof createPushOOBM>
-export type PushStatePayload = More.ReturnType<typeof createPushState>
-export type UpdateReachabilityPayload = More.ReturnType<typeof createUpdateReachability>
-export type UpdateSeenMsgsPayload = More.ReturnType<typeof createUpdateSeenMsgs>
+export type CheckReachabilityPayload = $Call<typeof createCheckReachability, _CheckReachabilityPayload>
+export type InjectItemPayload = $Call<typeof createInjectItem, _InjectItemPayload>
+export type PushOOBMPayload = $Call<typeof createPushOOBM, _PushOOBMPayload>
+export type PushStatePayload = $Call<typeof createPushState, _PushStatePayload>
+export type UpdateReachabilityPayload = $Call<typeof createUpdateReachability, _UpdateReachabilityPayload>
+export type UpdateSeenMsgsPayload = $Call<typeof createUpdateSeenMsgs, _UpdateSeenMsgsPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createCheckReachability>
-  | More.ReturnType<typeof createInjectItem>
-  | More.ReturnType<typeof createPushOOBM>
-  | More.ReturnType<typeof createPushState>
-  | More.ReturnType<typeof createUpdateReachability>
-  | More.ReturnType<typeof createUpdateSeenMsgs>
+  | CheckReachabilityPayload
+  | InjectItemPayload
+  | PushOOBMPayload
+  | PushStatePayload
+  | UpdateReachabilityPayload
+  | UpdateSeenMsgsPayload
   | {type: 'common:resetStore', payload: void}

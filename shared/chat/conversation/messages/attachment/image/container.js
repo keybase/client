@@ -49,7 +49,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onClick: () => dispatchProps._onClick(message),
     onShowInFinder:
       !isMobile && message.downloadPath
-        ? (e: SyntheticEvent<*>) => {
+        ? (e: SyntheticEvent<any>) => {
             e.preventDefault()
             e.stopPropagation()
             dispatchProps._onShowInFinder(message)

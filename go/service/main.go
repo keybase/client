@@ -368,10 +368,11 @@ func (d *Service) createChatModules() {
 
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
-	chatStorage := storage.New(g)
+	chatStorage := storage.New(g, nil)
 	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
+	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.Searcher = chat.NewSearcher(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
@@ -577,7 +578,7 @@ func (d *Service) chatEphemeralPurgeChecks() {
 			d.G().Log.Debug("+ chat ephemeral purge loop")
 			g := globals.NewContext(d.G(), d.ChatG())
 			// Purge any conversations that have expired ephemeral messages
-			storage.New(g).QueueEphemeralBackgroundPurges(context.Background(), gregorUID)
+			storage.New(g, g.ConvSource).QueueEphemeralBackgroundPurges(context.Background(), gregorUID)
 			// Check the outbox for stuck ephemeral messages that need purging
 			storage.NewOutbox(g, gregorUID).EphemeralPurge(context.Background())
 			d.G().Log.Debug("- chat ephemeral chat loop")

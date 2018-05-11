@@ -1,7 +1,7 @@
 // @flow
 import * as Saga from '../../util/saga'
 
-export function copyToDownloadDir(path: string, mime: string): Promise<*> {
+export function copyToDownloadDir(path: string, mime: string) {
   return new Promise((resolve, reject) => resolve())
 }
 

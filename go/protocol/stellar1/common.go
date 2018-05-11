@@ -179,6 +179,16 @@ func (o PaymentResult) DeepCopy() PaymentResult {
 	}
 }
 
+type RelayClaimResult struct {
+	ClaimStellarID TransactionID `codec:"claimStellarID" json:"claimStellarID"`
+}
+
+func (o RelayClaimResult) DeepCopy() RelayClaimResult {
+	return RelayClaimResult{
+		ClaimStellarID: o.ClaimStellarID.DeepCopy(),
+	}
+}
+
 type EncryptedNote struct {
 	V         int               `codec:"v" json:"v"`
 	E         []byte            `codec:"e" json:"e"`
@@ -282,6 +292,55 @@ func (o OutsideExchangeRate) DeepCopy() OutsideExchangeRate {
 	return OutsideExchangeRate{
 		Currency: o.Currency.DeepCopy(),
 		Rate:     o.Rate,
+	}
+}
+
+type CurrencySymbol struct {
+	Symbol    string `codec:"symbol" json:"str"`
+	Ambigious bool   `codec:"ambigious" json:"ambigious"`
+	Postfix   bool   `codec:"postfix" json:"postfix"`
+}
+
+func (o CurrencySymbol) DeepCopy() CurrencySymbol {
+	return CurrencySymbol{
+		Symbol:    o.Symbol,
+		Ambigious: o.Ambigious,
+		Postfix:   o.Postfix,
+	}
+}
+
+type OutsideCurrencyDefinition struct {
+	Name   string         `codec:"name" json:"name"`
+	Symbol CurrencySymbol `codec:"symbol" json:"symbol"`
+}
+
+func (o OutsideCurrencyDefinition) DeepCopy() OutsideCurrencyDefinition {
+	return OutsideCurrencyDefinition{
+		Name:   o.Name,
+		Symbol: o.Symbol.DeepCopy(),
+	}
+}
+
+type StellarServerDefinitions struct {
+	Revision   int                                               `codec:"revision" json:"revision"`
+	Currencies map[OutsideCurrencyCode]OutsideCurrencyDefinition `codec:"currencies" json:"currencies"`
+}
+
+func (o StellarServerDefinitions) DeepCopy() StellarServerDefinitions {
+	return StellarServerDefinitions{
+		Revision: o.Revision,
+		Currencies: (func(x map[OutsideCurrencyCode]OutsideCurrencyDefinition) map[OutsideCurrencyCode]OutsideCurrencyDefinition {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[OutsideCurrencyCode]OutsideCurrencyDefinition)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Currencies),
 	}
 }
 

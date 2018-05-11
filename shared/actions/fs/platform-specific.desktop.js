@@ -33,7 +33,7 @@ function pathToURL(path: string): string {
   return encodeURI('file://' + goodPath).replace(/#/g, '%23')
 }
 
-function openInDefaultDirectory(openPath: string): Promise<*> {
+function openInDefaultDirectory(openPath: string) {
   return new Promise((resolve, reject) => {
     // Paths in directories might be symlinks, so resolve using
     // realpath.
@@ -81,7 +81,7 @@ function getPathType(openPath: string): Promise<pathType> {
   })
 }
 
-function _open(openPath: string): Promise<*> {
+function _open(openPath: string) {
   return new Promise((resolve, reject) => {
     getPathType(openPath).then(typ => {
       if (typ === 'directory') {
@@ -118,7 +118,7 @@ function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: T
   }
 }
 
-function waitForMount(attempt: number): Promise<*> {
+function waitForMount(attempt: number) {
   return new Promise((resolve, reject) => {
     // Read the KBFS path waiting for files to exist, which means it's mounted
     // TODO: should handle current mount directory
@@ -232,7 +232,7 @@ function openSecurityPreferences() {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-function installCachedDokan(): Promise<*> {
+function installCachedDokan() {
   return new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')

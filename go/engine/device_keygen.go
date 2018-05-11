@@ -334,14 +334,6 @@ func (e *DeviceKeygen) pushLKS(m libkb.MetaContext) {
 	if e.pushErr != nil {
 		return
 	}
-
-	// Sync the LKS stuff back from the server, so that subsequent
-	// attempts to use public key login will work.
-	if lctx := m.LoginContext(); lctx != nil {
-		e.pushErr = lctx.RunSecretSyncer(e.args.Me.GetUID())
-	} else {
-		e.pushErr = m.G().LoginState().RunSecretSyncer(e.args.Me.GetUID())
-	}
 }
 
 func (e *DeviceKeygen) newNaclKeyGen(m libkb.MetaContext, gen libkb.NaclGenerator, device *libkb.Device, expire int) *libkb.NaclKeyGen {

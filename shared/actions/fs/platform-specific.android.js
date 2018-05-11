@@ -6,7 +6,7 @@ import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
 import {share, save} from './common'
 
-function copyToDownloadDir(path: string, mime: string): Promise<*> {
+function copyToDownloadDir(path: string, mime: string) {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
   const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`
   return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {

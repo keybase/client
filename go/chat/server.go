@@ -323,11 +323,10 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	}
 
 	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
-	_, readRes, _, err := storage.NewInbox(h.G(), uid).Read(ctx, &chat1.GetInboxQuery{
-		ConvID: &arg.ConversationID,
-	}, nil)
-	if err == nil && len(readRes) > 0 && readRes[0].GetConvID().Eq(arg.ConversationID) &&
-		readRes[0].Conv.ReaderInfo.ReadMsgid == readRes[0].Conv.ReaderInfo.MaxMsgid {
+
+	readRes, err := storage.NewInbox(h.G(), uid).GetConversation(ctx, arg.ConversationID)
+	if err == nil && readRes.GetConvID().Eq(arg.ConversationID) &&
+		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
 		h.Debug(ctx, "MarkAsReadLocal: conversation fully read: %s, not sending remote call",
 			arg.ConversationID)
 		return chat1.MarkAsReadLocalRes{
@@ -2113,30 +2112,6 @@ func (h *Server) uploadAsset(ctx context.Context, sessionID int, params chat1.S3
 		Progress:       progress,
 	}
 	return h.store.UploadAsset(ctx, &task)
-}
-
-func (h *Server) deleteAssets(ctx context.Context, conversationID chat1.ConversationID, assets []chat1.Asset) {
-	if len(assets) == 0 {
-		return
-	}
-
-	// get s3 params from server
-	params, err := h.remoteClient().GetS3Params(ctx, conversationID)
-	if err != nil {
-		h.Debug(ctx, "error getting s3 params: %s", err)
-		return
-	}
-
-	if err := h.store.DeleteAssets(ctx, params, h, assets); err != nil {
-		h.Debug(ctx, "error deleting assets: %s", err)
-
-		// there's no way to get asset information after this point.
-		// any assets not deleted will be stranded on s3.
-
-		return
-	}
-
-	h.Debug(ctx, "deleted %d assets", len(assets))
 }
 
 func (h *Server) FindConversationsLocal(ctx context.Context,

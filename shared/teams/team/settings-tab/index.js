@@ -48,7 +48,7 @@ type State = {|
 type SettingProps = {|
   ...Props,
   ...State,
-  setBoolSettings: (key: *) => (newSetting: boolean) => void,
+  setBoolSettings: (key: any) => (newSetting: boolean) => void,
   onSetOpenTeamRole?: () => void,
 |}
 
@@ -216,7 +216,7 @@ export class Settings extends React.Component<Props, State> {
     })
   }
 
-  setBoolSettings = (key: *) => (newSetting: boolean) => {
+  setBoolSettings = (key: any) => (newSetting: boolean) => {
     this.setState({[key]: newSetting})
   }
 

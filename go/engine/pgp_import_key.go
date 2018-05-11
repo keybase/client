@@ -75,21 +75,6 @@ func (e *PGPKeyImportEngine) loadMe() (err error) {
 	return err
 }
 
-func (e *PGPKeyImportEngine) loadLoginSession(m libkb.MetaContext) error {
-	var err error
-	if lctx := m.LoginContext(); lctx != nil {
-		err = lctx.LoadLoginSession(e.me.GetName())
-	} else {
-		aerr := m.G().LoginState().Account(func(a *libkb.Account) {
-			err = a.LoadLoginSession(e.me.GetName())
-		}, "PGPKeyImportEngine - loadLoginSession")
-		if aerr != nil {
-			return aerr
-		}
-	}
-	return err
-}
-
 func (e *PGPKeyImportEngine) generateKey(m libkb.MetaContext) (err error) {
 	gen := e.arg.Gen
 	if err = gen.CreatePGPIDs(); err != nil {
@@ -171,10 +156,6 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if err = e.loadMe(); err != nil {
-		return err
-	}
-
-	if err = e.loadLoginSession(m); err != nil {
 		return err
 	}
 

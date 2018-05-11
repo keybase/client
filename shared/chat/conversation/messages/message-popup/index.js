@@ -6,7 +6,7 @@ import TextMessage from './text/container'
 import type {Position} from '../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
-  attachTo: ?React.Component<*, *>,
+  attachTo: ?React.Component<any, any>,
   message: Types.MessageText | Types.MessageAttachment,
   onHidden: () => void,
   position: Position,

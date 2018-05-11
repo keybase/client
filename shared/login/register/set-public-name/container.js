@@ -90,7 +90,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   clearDeviceNameError: () => dispatch(SignupGen.createClearDeviceNameError()),
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (deviceName: string) => {

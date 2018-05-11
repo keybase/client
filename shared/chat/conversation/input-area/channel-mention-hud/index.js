@@ -5,7 +5,7 @@ import {Box, ClickableBox, List, Text} from '../../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
 
 type Props<D: {channelName: string, selected: boolean}> = {
-  rowRenderer: (i: number, d: D) => React$Element<*>,
+  rowRenderer: (i: number, d: D) => React$Element<any>,
   data: Array<D>,
   style: Object,
   selectedIndex: number,
@@ -39,7 +39,7 @@ const MentionRowRenderer = ({channelName, selected, onClick, onHover}: MentionDa
 
 // We want to render Hud even if there's no data so we can still have lifecycle methods so we can still do things
 // This is important if you type a filter that gives you no results and you press enter for instance
-const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
+const Hud = ({style, data, rowRenderer, selectedIndex}: Props<any>) =>
   data.length ? (
     <Box style={collapseStyles([hudStyle, style])}>
       <List

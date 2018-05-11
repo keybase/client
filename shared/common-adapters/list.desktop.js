@@ -5,7 +5,7 @@ import {globalStyles} from '../styles'
 
 import type {Props} from './list'
 
-class List extends PureComponent<Props<*>, void> {
+class List extends PureComponent<Props<any>, void> {
   _list: ?ReactList
   _itemRender = index => {
     const item = this.props.items[index]
@@ -16,7 +16,7 @@ class List extends PureComponent<Props<*>, void> {
     this._list = r
   }
 
-  componentDidUpdate(prevProps: Props<*>) {
+  componentDidUpdate(prevProps: Props<any>) {
     if (this.props.selectedIndex !== -1 && this.props.selectedIndex !== prevProps.selectedIndex) {
       this._list && this._list.scrollAround(this.props.selectedIndex)
     }
