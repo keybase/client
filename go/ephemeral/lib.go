@@ -24,6 +24,7 @@ var adminWhitelist = map[keybase1.UID]bool{
 	"23260c2ce19420f97b58d7d95b68ca00": true, // chris
 	"eb08cb06e608ea41bd893946445d7919": true, // mlsteele
 	"69da56f622a2ac750b8e590c3658a700": true, // jzila
+	"1563ec26dc20fd162a4f783551141200": true, // patrick
 }
 
 const cacheEntryLifetimeSecs = 60 * 5 // 5 minutes
