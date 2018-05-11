@@ -1672,7 +1672,7 @@ const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.Leav
   return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
 }
 const navigateToThread = (_: any, state: TypedState) => {
-  if (state.chat2.selectedConversation) {
+  if (Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
     return Saga.put(
       Route.navigateTo(
         isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]

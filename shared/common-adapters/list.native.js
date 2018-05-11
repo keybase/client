@@ -6,6 +6,9 @@ import {globalStyles} from '../styles'
 import type {Props} from './list'
 
 class List extends PureComponent<Props<any>, void> {
+  static defaultProps = {
+    keyboardShouldPersistTaps: 'always',
+  }
   _itemRender = ({item, index}) => {
     return this.props.renderItem(index, item)
   }

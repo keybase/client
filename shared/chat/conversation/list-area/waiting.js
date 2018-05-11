@@ -11,7 +11,7 @@ const Waiting = () => (
 const styles = styleSheetCreate({
   container: {
     alignItems: 'center',
-    flow: 1,
+    flex: 1,
     justifyContent: 'center',
   },
   spinner: {width: 14},

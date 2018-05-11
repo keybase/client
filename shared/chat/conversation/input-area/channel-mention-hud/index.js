@@ -47,7 +47,6 @@ const Hud = ({style, data, rowRenderer, selectedIndex}: Props<any>) =>
         renderItem={rowRenderer}
         selectedIndex={selectedIndex}
         fixedHeight={40}
-        keyboardShouldPersistTaps="always"
       />
     </Box>
   ) : null
