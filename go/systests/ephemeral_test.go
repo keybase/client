@@ -254,9 +254,10 @@ func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 
 	// Revoke it.
 	revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
-		ID:                   newDevice.deviceKey.DeviceID,
-		ForceSelf:            true,
-		ForceLast:            false,
+		ID:        newDevice.deviceKey.DeviceID,
+		ForceSelf: true,
+		ForceLast: false,
+		// We don't need a UserEK here since we force generate it below
 		SkipUserEKForTesting: true,
 	})
 	uis := libkb.UIs{

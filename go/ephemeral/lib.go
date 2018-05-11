@@ -299,35 +299,12 @@ func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
-	// There are plenty of race conditions where the PTK or teamEK or
-	// membership list can change out from under us while we're in the middle
-	// of posting a new key, causing the post to fail. Detect these conditions
-	// and retry.
 	defer e.G().CTrace(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
-	tries := 0
-	maxTries := 3
-	knownRaceConditions := []keybase1.StatusCode{
-		keybase1.StatusCode_SCSigWrongKey,
-		keybase1.StatusCode_SCSigOldSeqno,
-		keybase1.StatusCode_SCEphemeralKeyBadGeneration,
-		keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
-		keybase1.StatusCode_SCEphemeralKeyMissingBox,
-		keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys,
-	}
-	for {
-		tries++
+	err = teamEKRetryWrapper(ctx, e.G(), func() error {
 		teamEK, err = e.getOrCreateLatestTeamEKInner(ctx, teamID)
-		retryableError := false
-		for _, code := range knownRaceConditions {
-			if libkb.IsAppStatusCode(err, code) {
-				e.G().Log.CDebugf(ctx, "GetOrCreateLatestTeamEK found a retryable error on try %d: %s", tries, err)
-				retryableError = true
-			}
-		}
-		if err == nil || !retryableError || tries >= maxTries {
-			return teamEK, err
-		}
-	}
+		return err
+	})
+	return teamEK, err
 }
 
 func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
