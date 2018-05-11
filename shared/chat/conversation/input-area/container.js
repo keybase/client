@@ -12,14 +12,14 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   let noInput = !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy
   let conversationIDKeyToShow = conversationIDKey
 
-  if (conversationIDKeyToShow === Constants.pendingConversationIDKey) {
+  if (conversationIDKey === Constants.pendingConversationIDKey) {
     const meta = Constants.getMeta(state, conversationIDKey)
-    if (meta.conversationIDKey === Constants.noConversationIDKey) {
+    if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
       noInput = true
     } else {
       conversationIDKeyToShow = meta.conversationIDKey
     }
-  } else if (conversationIDKeyToShow === Constants.pendingWaitingConversationIDKey) {
+  } else if (conversationIDKey === Constants.pendingWaitingConversationIDKey) {
     noInput = true
   }
 
