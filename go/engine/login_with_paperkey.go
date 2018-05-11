@@ -51,17 +51,15 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	kp, err := findDeviceKeys(m, me)
-	if err == nil {
+	if loggedIn, _ := isLoggedIn(m); loggedIn {
 		// Device keys are unlocked. Just log in with them.
-		m.CDebugf("Logging in with unlocked device key")
-		err = e.G().LoginState().LoginWithKey(m, me, kp.sigKey, nil)
-		return err
+		m.CDebugf("Already logged in with unlocked device keys")
+		return nil
 	}
 
 	// Prompts for a paper key.
 	m.CDebugf("No device keys available; getting paper key")
-	kp, err = findPaperKeys(m, me)
+	kp, err := findPaperKeys(m, me)
 	if err != nil {
 		return err
 	}
@@ -73,10 +71,10 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 
 	// Convert our paper keys into a provisional active device, to use for
 	// API session authentication. BAM! We're "logged in".
-	m = m.WithActiveDevice(kp.toActiveDevice(m, me.GetUID()))
+	m = m.WithPaperKeyActiveDevice(kp, me.GetUID())
 
 	// Get the LKS client half.
-	gen, clientLKS, err := fetchLKS(m, kp.encKey)
+	gen, clientLKS, err := fetchLKS(m, kp.EncryptionKey())
 	if err != nil {
 		return err
 	}

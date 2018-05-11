@@ -62,9 +62,15 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *Login) Run(m libkb.MetaContext) error {
+func (e *Login) Run(m libkb.MetaContext) (err error) {
+
+	m = m.WithLogTag("LOGIN")
+
+	defer m.CTrace("Login#Run", func() error { return err })()
 	// check to see if already logged in
-	loggedInOK, err := e.checkLoggedInAndNotRevoked(m)
+
+	var loggedInOK bool
+	loggedInOK, err = e.checkLoggedInAndNotRevoked(m)
 	if err != nil {
 		m.CDebugf("Login: error checking if user is logged in: %s", err)
 		return err
@@ -98,7 +104,18 @@ func (e *Login) Run(m libkb.MetaContext) error {
 	m.CDebugf("clearing any existing login session with Logout before loading user for login")
 	m.G().Logout()
 
-	// run the LoginLoadUser sub-engine to load a user
+	// Set up a provisional login context for the purposes of running provisioning.
+	// This is where we'll store temporary session tokens, etc, that are useful
+	// in the context of this provisioning session.
+	m = m.WithNewProvisionalLoginContext()
+	defer func() {
+		if err == nil {
+			// resets the LoginContext to be nil, and also commits cacheable
+			// data like the passphrase stream into the global context.
+			m = m.CommitProvisionalLogin()
+		}
+	}()
+
 	m.CDebugf("loading login user for %q", e.usernameOrEmail)
 	ueng := newLoginLoadUser(m.G(), e.usernameOrEmail)
 	if err := RunEngine2(m, ueng); err != nil {

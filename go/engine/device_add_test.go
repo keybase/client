@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeviceAdd(t *testing.T) {
@@ -26,19 +27,17 @@ func TestDeviceAddPUK(t *testing.T) {
 
 func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret) {
 	defer wg.Done()
-	f := func(lctx libkb.LoginContext) error {
+	err := (func() error {
 		uis := libkb.UIs{
 			ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 		}
-		m := NewMetaContextForTest(*tcY).WithLoginContext(lctx).WithUIs(uis)
+		m := NewMetaContextForTest(*tcY).WithUIs(uis).WithNewProvisionalLoginContext()
 		deviceID, err := libkb.NewDeviceID()
 		if err != nil {
-			t.Errorf("provisionee device id error: %s", err)
 			return err
 		}
 		suffix, err := libkb.RandBytes(5)
 		if err != nil {
-			t.Errorf("provisionee device suffix error: %s", err)
 			return err
 		}
 		dname := fmt.Sprintf("device_%x", suffix)
@@ -47,17 +46,13 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 			Description: &dname,
 			Type:        libkb.DeviceTypeDesktop,
 		}
-		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
+		provisionee := NewKex2Provisionee(tcY.G, device, secretY, fakeSalt())
 		if err := RunEngine2(m, provisionee); err != nil {
-			t.Errorf("provisionee error: %s", err)
 			return err
 		}
 		return nil
-	}
-
-	if err := tcY.G.LoginState().ExternalFunc(f, "Test - DeviceAdd"); err != nil {
-		t.Errorf("kex2 provisionee error: %s", err)
-	}
+	})()
+	require.NoError(t, err, "kex2 provisionee")
 }
 
 func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
@@ -167,7 +162,7 @@ func TestDeviceAddStoredSecret(t *testing.T) {
 		ProvisionUI: &testXProvisionUI{secret: secretY},
 	}
 	eng := NewDeviceAdd(tcX.G)
-	m := NewMetaContextForTest(tcX).WithUIs(uis)
+	m := NewMetaContextForTest(tcX).WithUIs(uis).WithNewProvisionalLoginContext()
 	if err := RunEngine2(m, eng); err != nil {
 		t.Errorf("device add error: %s", err)
 	}

@@ -30,7 +30,7 @@ func pplGetEmailOrUsername(m MetaContext, usernameOrEmail string) (string, error
 		return "", err
 	}
 	if len(usernameOrEmail) == 0 {
-		return "", NoUsernameError{}
+		return "", NewNoUsernameError()
 	}
 	return usernameOrEmail, nil
 }

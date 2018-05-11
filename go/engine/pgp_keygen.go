@@ -139,5 +139,5 @@ func (e *PGPKeyGen) push(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, pushPr
 		del.EncodedPrivateKey = armored
 	}
 
-	return del.Run(m.LoginContext())
+	return del.Run(m)
 }

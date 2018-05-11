@@ -174,6 +174,9 @@ func (ss *SecretSyncer) store(uid keybase1.UID) (err error) {
 // FindActiveKey examines the synced keys, looking for one that's currently active.
 // Returns ret=nil if none was found.
 func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
+	ss.Lock()
+	defer ss.Unlock()
+
 	if ss.keys == nil {
 		return nil, nil
 	}
@@ -187,6 +190,8 @@ func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err err
 
 // AllActiveKeys returns all the active synced PGP keys.
 func (ss *SecretSyncer) AllActiveKeys(ckf *ComputedKeyFamily) []*SKB {
+	ss.Lock()
+	defer ss.Unlock()
 	var res []*SKB
 	for _, key := range ss.keys.PrivateKeys {
 		if ret, _ := key.FindActiveKey(ss.G(), ckf); ret != nil {
@@ -197,6 +202,8 @@ func (ss *SecretSyncer) AllActiveKeys(ckf *ComputedKeyFamily) []*SKB {
 }
 
 func (ss *SecretSyncer) FindPrivateKey(kid string) (ServerPrivateKey, bool) {
+	ss.Lock()
+	defer ss.Unlock()
 	k, ok := ss.keys.PrivateKeys[kid]
 	return k, ok
 }
@@ -219,6 +226,8 @@ func (k *ServerPrivateKey) FindActiveKey(g *GlobalContext, ckf *ComputedKeyFamil
 }
 
 func (ss *SecretSyncer) FindDevice(id keybase1.DeviceID) (DeviceKey, error) {
+	ss.Lock()
+	defer ss.Unlock()
 	if ss.keys == nil {
 		return DeviceKey{}, DeviceNotFoundError{"SecretSyncer", id, false}
 	}
@@ -230,6 +239,8 @@ func (ss *SecretSyncer) FindDevice(id keybase1.DeviceID) (DeviceKey, error) {
 }
 
 func (ss *SecretSyncer) AllDevices() DeviceKeyMap {
+	ss.Lock()
+	defer ss.Unlock()
 	if ss.keys == nil {
 		return nil
 	}
@@ -244,6 +255,8 @@ func (ss *SecretSyncer) HasDevices() bool {
 }
 
 func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
+	ss.Lock()
+	defer ss.Unlock()
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")
 	}
@@ -251,6 +264,8 @@ func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
 }
 
 func (ss *SecretSyncer) dumpDevices() {
+	ss.Lock()
+	defer ss.Unlock()
 	ss.G().Log.Warning("dumpDevices:")
 	if ss.keys == nil {
 		ss.G().Log.Warning("dumpDevices -- ss.keys == nil")
@@ -288,6 +303,8 @@ func (ss *SecretSyncer) HasActiveDevice(includeTypesSet DeviceTypeSet) (bool, er
 
 // ActiveDevices returns all the active desktop and mobile devices.
 func (ss *SecretSyncer) ActiveDevices(includeTypesSet DeviceTypeSet) (DeviceKeyMap, error) {
+	ss.Lock()
+	defer ss.Unlock()
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")
 	}
@@ -310,6 +327,8 @@ func (ss *SecretSyncer) ActiveDevices(includeTypesSet DeviceTypeSet) (DeviceKeyM
 }
 
 func (ss *SecretSyncer) DumpPrivateKeys() {
+	ss.Lock()
+	defer ss.Unlock()
 	for s, key := range ss.keys.PrivateKeys {
 		ss.G().Log.Info("Private key: %s", s)
 		ss.G().Log.Info("  -- kid: %s, keytype: %d, bits: %d, algo: %d", key.Kid, key.KeyType, key.KeyBits, key.KeyAlgo)

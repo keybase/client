@@ -56,6 +56,7 @@ type LoginContext interface {
 	GetUsername() NormalizedUsername
 	EnsureUsername(username NormalizedUsername)
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
+	SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error
 
 	Keyring() (*SKBKeyringFile, error)
 	ClearKeyring()
@@ -65,10 +66,6 @@ type LoginContext interface {
 	RunSecretSyncer(uid keybase1.UID) error
 
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error
-	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
-
-	GetUnlockedPaperEncKey() GenericKey
-	GetUnlockedPaperSigKey() GenericKey
 }
 
 type LoggedInHelper interface {
@@ -735,7 +732,7 @@ func (s *LoginState) getEmailOrUsername(m MetaContext, username *string, loginUI
 	}
 
 	if len(*username) == 0 {
-		err = NoUsernameError{}
+		err = NewNoUsernameError()
 	}
 
 	if err != nil {

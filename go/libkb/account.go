@@ -288,7 +288,7 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 
 	// not sure how this could happen, but just in case:
 	if un.IsNil() {
-		return nil, NoUsernameError{}
+		return nil, NewNoUsernameError()
 	}
 
 	if a.skbKeyring != nil && a.skbKeyring.IsForUsername(un) {
@@ -539,26 +539,6 @@ func (a *Account) deviceNameLookup(device *Device, me *User, key GenericKey) str
 	return *device.Description
 }
 
-func (a *Account) SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error {
-	a.paperSigKey = newTimedGenericKey(a.G(), sig, "paper signing key")
-	a.paperEncKey = newTimedGenericKey(a.G(), enc, "paper encryption key")
-	return nil
-}
-
-func (a *Account) GetUnlockedPaperSigKey() GenericKey {
-	if a.paperSigKey == nil {
-		return nil
-	}
-	return a.paperSigKey.getKey()
-}
-
-func (a *Account) GetUnlockedPaperEncKey() GenericKey {
-	if a.paperEncKey == nil {
-		return nil
-	}
-	return a.paperEncKey.getKey()
-}
-
 func (a *Account) ClearCachedSecretKeys() {
 	a.G().Log.Debug("clearing cached secret keys")
 	a.ClearPaperKeys()
@@ -612,4 +592,8 @@ func (a *Account) SecretPromptCanceled() {
 
 func (a *Account) SetDeviceName(name string) error {
 	return a.G().ActiveDevice.setDeviceName(a, a.G().Env.GetUID(), a.localSession.GetDeviceID(), name)
+}
+
+func (a *Account) SetUsernameUID(n NormalizedUsername, u keybase1.UID) error {
+	return errors.New("cannot call SetUsernameUID on legacy Account object")
 }
