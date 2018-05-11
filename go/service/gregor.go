@@ -731,7 +731,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		if _, ok := err.(libkb.BadSessionError); ok {
 			g.chatLog.Debug(ctx, "bad session from SyncAll(): forcing session check on next attempt")
 			g.forceSessionCheck = true
-			nist.DidFail()
+			nist.MarkFailure()
 		}
 		return fmt.Errorf("error running SyncAll: %s", err.Error())
 	}
