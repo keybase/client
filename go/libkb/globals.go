@@ -22,7 +22,6 @@ import (
 	"io"
 	"os"
 	"runtime"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -367,7 +366,7 @@ func (g *GlobalContext) ConfigureLogging() error {
 	if logFile == "" {
 		filePrefix := g.Env.GetLogPrefix()
 		if filePrefix != "" {
-			filePrefix = filePrefix + strings.Replace(time.Now().Format(time.RFC3339Nano), ":", "-", -1)
+			filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
 			logFile = filePrefix + ".log"
 		}
 	}
