@@ -100,6 +100,7 @@
     "emoji-datasource": "4.0.3",
     "emoji-datasource-apple": "4.0.3",
     "emoji-mart": "2.5.0",
+    "flow-coverage-report": "^0.5.0",
     "framed-msgpack-rpc": "1.1.13",
     "getenv": "0.7.0",
     "glamor": "2.20.40",
