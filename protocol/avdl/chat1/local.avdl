@@ -547,7 +547,11 @@ protocol local {
     GENERAL_0,
     PUSH_1
   }
-  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadNonblockReason reason, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  enum GetThreadNonblockPgMode {
+    DEFAULT_0,
+    SERVER_1
+  }
+  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadNonblockReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;

@@ -797,6 +797,7 @@ const loadMoreMessages = (
         markAsRead: false,
         messageTypes: loadThreadMessageTypes,
       },
+      pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
       reason:
         reason === 'push'
           ? RPCChatTypes.localGetThreadNonblockReason.push

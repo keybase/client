@@ -2255,6 +2255,32 @@ func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res
 	return res
 }
 
+func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvGetThreadNonblockIncremental", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+		threadCb := make(chan kbtest.NonblockThreadResult, 100)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ctc.as(t, users[0]).h.mockChatUI = ui
+
+		query := chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}
+		ctx := ctc.as(t, users[0]).startCtx
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+
+		t.Logf("send a bunch of messages")
+		numMsgs := 20
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+		for i := 0; i < numMsgs; i++ {
+			mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		}
+	})
+}
+
 func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "TestChatSrvGetThreadNonblockIncremental", 1)
