@@ -20,7 +20,7 @@ import (
 
 // Function to run periodically.
 // The error is logged but otherwise ignored.
-type TaskFunc func(g *libkb.GlobalContext, ectx *Context) error
+type TaskFunc func(m libkb.MetaContext) error
 
 type BackgroundTaskSettings struct {
 	// Wait after starting the app
@@ -91,12 +91,12 @@ func (e *BackgroundTask) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 // Returns immediately, kicks off a background goroutine.
-func (e *BackgroundTask) Run(ectx *Context) (err error) {
-	defer e.G().CTrace(ectx.GetNetContext(), e.Name(), func() error { return err })()
+func (e *BackgroundTask) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace(e.Name(), func() error { return err })()
 
 	// use a new background context with a saved cancel function
-	ectx = ectx.WithNetContext(context.Background())
-	ectx, cancel := ectx.WithCancel()
+	var cancel func()
+	m, cancel = m.BackgroundWithCancel()
 
 	e.Lock()
 	defer e.Unlock()
@@ -111,9 +111,9 @@ func (e *BackgroundTask) Run(ectx *Context) (err error) {
 
 	// start the loop and return
 	go func() {
-		err := e.loop(ectx)
+		err := e.loop(m)
 		if err != nil {
-			e.log(ectx.GetNetContext(), "loop error: %s", err)
+			e.log(m, "loop error: %s", err)
 		}
 		cancel()
 		e.meta("loop-exit")
@@ -131,52 +131,53 @@ func (e *BackgroundTask) Shutdown() {
 	}
 }
 
-func (e *BackgroundTask) loop(ectx *Context) error {
+func (e *BackgroundTask) loop(m libkb.MetaContext) error {
 	// wakeAt times are calculated before a meta before their corresponding sleep.
 	// To avoid the race where the testing goroutine calls advance before
 	// this routine decides when to wake up. That led to this routine never waking.
-	wakeAt := e.G().Clock().Now().Add(e.args.Settings.Start)
+	wakeAt := m.G().Clock().Now().Add(e.args.Settings.Start)
 	e.meta("loop-start")
-	if err := libkb.SleepUntilWithContext(ectx.GetNetContext(), e.G().Clock(), wakeAt); err != nil {
+	if err := libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt); err != nil {
 		return err
 	}
 	e.meta("woke-start")
 	var i int
 	for {
 		i++
-		e.log(ectx.GetNetContext(), "round(%v) start", i)
-		err := e.round(ectx)
+		e.log(m, "round(%v) start", i)
+		err := e.round(m)
 		if err != nil {
-			e.log(ectx.GetNetContext(), "round(%v) error: %s", i, err)
+			e.log(m, "round(%v) error: %s", i, err)
 		} else {
-			e.log(ectx.GetNetContext(), "round(%v) complete", i)
+			e.log(m, "round(%v) complete", i)
 		}
 		if e.args.testingRoundResCh != nil {
 			e.args.testingRoundResCh <- err
 		}
-		wakeAt = e.G().Clock().Now().Add(e.args.Settings.Interval)
+		wakeAt = m.G().Clock().Now().Add(e.args.Settings.Interval)
 		e.meta("loop-round-complete")
-		if err := libkb.SleepUntilWithContext(ectx.GetNetContext(), e.G().Clock(), wakeAt); err != nil {
+		if err := libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt); err != nil {
 			return err
 		}
-		wakeAt = e.G().Clock().Now().Add(e.args.Settings.WakeUp)
+		wakeAt = m.G().Clock().Now().Add(e.args.Settings.WakeUp)
 		e.meta("woke-interval")
-		if err := libkb.SleepUntilWithContext(ectx.GetNetContext(), e.G().Clock(), wakeAt); err != nil {
+		if err := libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt); err != nil {
 			return err
 		}
 		e.meta("woke-wakeup")
 	}
 }
 
-func (e *BackgroundTask) round(ectx *Context) error {
-	ectx, cancel := ectx.WithTimeout(e.args.Settings.Limit)
+func (e *BackgroundTask) round(m libkb.MetaContext) error {
+	var cancel func()
+	m, cancel = m.WithTimeout(e.args.Settings.Limit)
 	defer cancel()
 
 	// Run the function.
 	if e.args.F == nil {
 		return fmt.Errorf("nil task function")
 	}
-	return e.args.F(e.G(), ectx)
+	return e.args.F(m)
 }
 
 func (e *BackgroundTask) meta(s string) {
@@ -185,7 +186,7 @@ func (e *BackgroundTask) meta(s string) {
 	}
 }
 
-func (e *BackgroundTask) log(ctx context.Context, format string, args ...interface{}) {
+func (e *BackgroundTask) log(m libkb.MetaContext, format string, args ...interface{}) {
 	content := fmt.Sprintf(format, args...)
-	e.G().Log.CDebugf(ctx, "%s %s", e.Name(), content)
+	m.CDebugf("%s %s", e.Name(), content)
 }

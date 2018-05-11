@@ -27,9 +27,9 @@ func _testListTracking(t *testing.T, sigVersion libkb.SigVersion) {
 	defer untrackAlice(tc, fu, sigVersion)
 
 	arg := ListTrackingEngineArg{}
-	eng := NewListTrackingEngine(&arg, tc.G)
-	ctx := Context{}
-	err := RunEngine(eng, &ctx)
+	eng := NewListTrackingEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
@@ -71,9 +71,9 @@ func TestListTrackingJSON(t *testing.T) {
 	defer untrackAlice(tc, fu, sigVersion)
 
 	arg := ListTrackingEngineArg{JSON: true, Verbose: true}
-	eng := NewListTrackingEngine(&arg, tc.G)
-	ctx := Context{}
-	err := RunEngine(eng, &ctx)
+	eng := NewListTrackingEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
@@ -107,9 +107,9 @@ func TestListTrackingLocal(t *testing.T) {
 	defer untrackBob(tc, fu, sigVersion)
 
 	arg := ListTrackingEngineArg{}
-	eng := NewListTrackingEngine(&arg, tc.G)
-	ctx := Context{}
-	err := RunEngine(eng, &ctx)
+	eng := NewListTrackingEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}

@@ -27,18 +27,19 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err
 	if err != nil {
 		return dump, err
 	}
+	mctx := libkb.NewMetaContext(ctx, s.G())
 
 	// verify passphrase
 	username := s.G().GetEnv().GetUsername().String()
 
-	arg := libkb.DefaultPassphrasePromptArg(s.G(), username)
+	arg := libkb.DefaultPassphrasePromptArg(mctx, username)
 	secretUI := s.uiSource.SecretUI(s.G(), 0)
 	res, err := secretUI.GetPassphrase(arg, nil)
 	if err != nil {
 		return dump, err
 	}
 	pwdOk := false
-	_, err = s.G().LoginState().VerifyPlaintextPassphrase(res.Passphrase, func(lctx libkb.LoginContext) error {
+	_, err = s.G().LoginState().VerifyPlaintextPassphrase(mctx, res.Passphrase, func(lctx libkb.LoginContext) error {
 		pwdOk = true
 
 		return nil

@@ -115,7 +115,12 @@ protocol chatUi {
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
-    union { null, MsgEphemeralMetadata } ephemeralMetadata;
+    @mpackkey("ie") @jsonkey("ie")
+    boolean isEphemeral;
+    @mpackkey("iex") @jsonkey("iex")
+    boolean isEphemeralExpired;
+    @mpackkey("e") @jsonkey("e")
+    gregor1.Time etime;
   }
 
   record UIMessageOutbox {

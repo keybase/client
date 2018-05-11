@@ -469,7 +469,7 @@ func (o *Outbox) EphemeralPurge(ctx context.Context) (err error) {
 	var purged, recs []chat1.OutboxRecord
 	now := o.clock.Now()
 	for _, obr := range obox.Records {
-		if obr.Msg.IsExploding() {
+		if obr.Msg.IsEphemeral() {
 			st, err := obr.State.State()
 			if err != nil {
 				o.Debug(ctx, "purging ephemeral message from outbox with error getting state: %s", err)

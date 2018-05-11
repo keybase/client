@@ -59,6 +59,8 @@ func postNewUserEK(ctx context.Context, g *libkb.GlobalContext, sig string, boxe
 // userEK with the new PUK to upload both together. This helper covers the
 // steps common to both cases.
 func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot, pukSigning *libkb.NaclSigningKeyPair) (sig string, boxes []keybase1.UserEkBoxMetadata, newMetadata keybase1.UserEkMetadata, myBox *keybase1.UserEkBoxed, err error) {
+	defer g.CTrace(ctx, "prepareNewUserEK", func() error { return err })()
+
 	seed, err := newUserEphemeralSeed()
 	if err != nil {
 		return "", nil, newMetadata, nil, err
@@ -137,7 +139,7 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	if err != nil {
 		return metadata, err
 	}
-	pukSigning, err := pukKeyring.GetLatestSigningKey(ctx)
+	pukSigning, err := pukKeyring.GetLatestSigningKey(libkb.NewMetaContext(ctx, g))
 	if err != nil {
 		return metadata, err
 	}
@@ -160,6 +162,11 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 		err = storage.Put(ctx, newMetadata.Generation, *myBox)
 	}
 	return newMetadata, err
+}
+
+func ForcePublishNewUserEKForTesting(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata keybase1.UserEkMetadata, err error) {
+	defer g.CTrace(ctx, "ForcePublishNewUserEKForTesting", func() error { return err })()
+	return publishNewUserEK(ctx, g, merkleRoot)
 }
 
 func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot, seed UserEKSeed, userMetadata keybase1.UserEkMetadata) (boxes []keybase1.UserEkBoxMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {

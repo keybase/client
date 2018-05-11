@@ -58,7 +58,7 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) (newPrevsForRegul
 			knownMessages[id] = msg
 			unprevedIDsForExploding[id] = struct{}{}
 			// The regular prev view only sees regular messages.
-			if !msg.IsExploding() {
+			if !msg.IsEphemeral() {
 				unprevedIDsForRegular[id] = struct{}{}
 			}
 		}
@@ -100,7 +100,7 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) (newPrevsForRegul
 				// to".
 				delete(unprevedIDsForExploding, prev.Id)
 				// The regular prev view doesn't respect exploding prevs.
-				if !msg.IsExploding() {
+				if !msg.IsEphemeral() {
 					delete(unprevedIDsForRegular, prev.Id)
 				}
 			}

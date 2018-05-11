@@ -28,6 +28,14 @@ type APIArg struct {
 	RetryMultiplier float64       // optional
 	RetryCount      int           // optional
 	NetContext      context.Context
+	MetaContext     MetaContext
+}
+
+func (a APIArg) GetMetaContext(g *GlobalContext) MetaContext {
+	if a.MetaContext.g != nil {
+		return a.MetaContext
+	}
+	return NewMetaContext(a.NetContext, g)
 }
 
 // NewAPIArg creates a standard APIArg that will result

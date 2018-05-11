@@ -5,20 +5,23 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // LoginProvisionedDevice is an engine that tries to login using the
 // current device, if there is an existing provisioned device.
 type LoginProvisionedDevice struct {
 	libkb.Contextified
-	username        string
+	username        libkb.NormalizedUsername
+	uid             keybase1.UID
+	deviceID        keybase1.DeviceID
 	SecretStoreOnly bool // this should only be set by the service on its startup login attempt
 }
 
 // newLoginCurrentDevice creates a loginProvisionedDevice engine.
 func NewLoginProvisionedDevice(g *libkb.GlobalContext, username string) *LoginProvisionedDevice {
 	return &LoginProvisionedDevice{
-		username:     username,
+		username:     libkb.NewNormalizedUsername(username),
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -50,152 +53,212 @@ func (e *LoginProvisionedDevice) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *LoginProvisionedDevice) Run(ctx *Context) error {
-	if err := e.run(ctx); err != nil {
+func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
+	if err := e.run(m); err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("LoginProvisionedDevice success, sending login notification")
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
-	e.G().Log.Debug("LoginProvisionedDevice success, calling login hooks")
-	e.G().CallLoginHooks()
+	m.CDebugf("LoginProvisionedDevice success, sending login notification")
+	m.G().NotifyRouter.HandleLogin(e.username.String())
+	m.CDebugf("LoginProvisionedDevice success, calling login hooks")
+	m.G().CallLoginHooks()
 
 	return nil
 }
 
-func (e *LoginProvisionedDevice) run(ctx *Context) error {
-	// already logged in?
-	in, err := e.G().LoginState().LoggedInProvisioned(ctx.GetNetContext())
-	if err == nil && in {
-		if len(e.username) == 0 || e.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
-			// already logged in, make sure to unlock device keys
-			var partialCopy *libkb.User
-			err = e.G().GetFullSelfer().WithSelf(ctx.NetContext, func(user *libkb.User) error {
-
-				// We don't want to hold onto the full cached user during
-				// the whole `unlockDeviceKey` run below, which touches
-				// a lot of (potentially reentrant) code. A partial copy
-				// will suffice. We won't need the non-copied fields
-				// (like the sigchain and ID table).
-				partialCopy = user.PartialCopy()
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-			return e.unlockDeviceKeys(ctx, partialCopy)
-		}
-	}
+func (e *LoginProvisionedDevice) loadMe(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginProvisionedDevice#loadMe", func() error { return err })()
 
 	var config *libkb.UserConfig
-	loadUserArg := libkb.NewLoadUserArg(e.G()).WithPublicKeyOptional().WithForceReload()
 	var nu libkb.NormalizedUsername
+	loadUserArg := libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional().WithForcePoll(true)
 	if len(e.username) == 0 {
-		e.G().Log.Debug("| using current username")
-		config, err = e.G().Env.GetConfig().GetUserConfig()
-		loadUserArg = loadUserArg.WithSelf(true)
+		m.CDebugf("| using current username")
+		config, err = m.G().Env.GetConfig().GetUserConfig()
+		if config == nil {
+			m.CDebugf("user config is nil")
+			return errNoConfig
+		}
+		loadUserArg = loadUserArg.WithSelf(true).WithUID(config.GetUID())
 	} else {
-		e.G().Log.Debug("| using new username %s", e.username)
-		nu = libkb.NewNormalizedUsername(e.username)
-		config, err = e.G().Env.GetConfig().GetUserConfigForUsername(nu)
-		loadUserArg = loadUserArg.WithName(e.username)
+		m.CDebugf("| using new username %s", e.username)
+		nu = e.username
+		config, err = m.G().Env.GetConfig().GetUserConfigForUsername(nu)
+		loadUserArg = loadUserArg.WithName(e.username.String())
+		if config == nil {
+			m.CDebugf("user config is nil for %s", e.username)
+			return errNoConfig
+		}
 	}
 	if err != nil {
-		e.G().Log.Debug("error getting user config: %s (%T)", err, err)
-		return errNoConfig
-	}
-	if config == nil {
-		e.G().Log.Debug("user config is nil")
+		m.CDebugf("error getting user config: %s (%T)", err, err)
 		return errNoConfig
 	}
 	deviceID := config.GetDeviceID()
 	if deviceID.IsNil() {
-		e.G().Log.Debug("no device in user config")
+		m.CDebugf("no device in user config")
 		return errNoDevice
 	}
 
 	// Make sure the device ID is still valid.
-	me, err := libkb.LoadUser(loadUserArg)
+	upak, _, err := m.G().GetUPAKLoader().LoadV2(loadUserArg)
 	if err != nil {
-		e.G().Log.Debug("error loading user profile: %#v", err)
+		m.CDebugf("error loading user profile: %#v", err)
 		return err
 	}
-	if !me.HasDeviceInCurrentInstall(deviceID) {
-		e.G().Log.Debug("current device is not valid")
+	if upak.Current.Status == keybase1.StatusCode_SCDeleted {
+		m.CDebugf("User %s was deleted", upak.Current.Uid)
+		return libkb.UserDeletedError{}
+	}
 
+	nu = libkb.NewNormalizedUsername(upak.Current.Username)
+	device := upak.Current.FindSigningDeviceKey(deviceID)
+
+	nukeDevice := false
+	if device == nil {
+		m.CDebugf("Current device %s not found", deviceID)
+		nukeDevice = true
+	} else if device.Base.Revocation != nil {
+		m.CDebugf("Current device %s has been revoked", deviceID)
+		nukeDevice = true
+	}
+
+	if nukeDevice {
 		// If our config file is showing that we have a bogus
 		// deviceID (maybe from our account before an account reset),
 		// then we'll delete it from the config file here, so later parts
 		// of provisioning aren't confused by this device ID.
-		err := e.G().Env.GetConfigWriter().NukeUser(nu)
-		if err != nil {
-			e.G().Log.Warning("Error clearing user config: %s", err)
+		tmp := m.SwitchUserNukeConfig(nu)
+		if tmp != nil {
+			m.CWarningf("Error clearing user config: %s", tmp)
 		}
 		return errNoDevice
 	}
 
-	// set e.username so that LoginUI never needs to ask for it
-	e.username = me.GetName()
+	e.username = nu
+	e.deviceID = deviceID
+	e.uid = upak.Current.Uid
+	return nil
+}
 
-	// at this point, there is a user config either for the current user or for e.username
-	// and it has a device id, so this should be a provisioned device.  Thus, they should
-	// just login normally.
+func (e *LoginProvisionedDevice) reattemptUnlockIfDifferentUID(m libkb.MetaContext, loggedInUID keybase1.UID) (success bool, err error) {
+	defer m.CTrace("LoginProvisionedDevice#reattemptUnlockIfDifferentUID", func() error { return err })()
+	if loggedInUID.Equal(e.uid) {
+		m.CDebugf("no reattempting unlock; already tried for same UID")
+		return false, nil
+	}
+	return e.reattemptUnlock(m)
+}
 
-	var afterLogin = func(lctx libkb.LoginContext) error {
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
-			// not a fatal error, session will stay in memory
-			e.G().Log.Warning("error saving session file: %s", err)
-		}
+// reattemptUnlock reattempts to unlock the device's device keys. We already tried implicitly
+// early on in the run() function via `isLoggedIn`, which calls `Bootstrap...`. We try the whole
+// shebang again twice more: once after switching users (if there is indeeed a switch). And again
+// after asking the user for a passphrase login.
+func (e *LoginProvisionedDevice) reattemptUnlock(m libkb.MetaContext) (success bool, err error) {
+	defer m.CTrace("LoginProvisionedDevice#reattemptUnlock", func() error { return err })()
+	ad, err := libkb.LoadProvisionalActiveDevice(m, e.uid, e.deviceID, true)
+	if err != nil {
+		m.CDebugf("Failed to load provisional device for user, but swallowing error: %s", err.Error())
+		return false, nil
+	}
+	if ad == nil {
+		m.CDebugf("Unexpected nil active device from LoadProvisionalActiveDevice without error")
+		return false, nil
+	}
+	err = m.SwitchUserToActiveDevice(e.username, ad)
+	if err != nil {
+		m.CDebugf("Error switching to new active device: %s", err.Error())
+		return false, err
+	}
+	return true, nil
+}
+
+// tryPassphraseLogin tries a username/passphrase login to the server, and makes a global
+// side effect: to store the user's full LKSec secret into the secret store. After which point,
+// usual attempts to run LoadProvisionalActiveDevice or BootstrapActiveDevice will succeed
+// without a prompt.
+func (e *LoginProvisionedDevice) tryPassphraseLogin(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginProvisionedDevice#tryPassphraseLogin", func() error { return err })()
+	err = libkb.PassphraseLoginPrompt(m, e.username.String(), 3)
+	if err != nil {
+		return err
+	}
+
+	// A failure here is just a warning, since we still can use the app for this
+	// session. But it will undoubtedly cause pain.
+	w := libkb.StoreSecretAfterLogin(m, e.username, e.uid, e.deviceID)
+	if w != nil {
+		m.CWarningf("Secret store failed: %s", w.Error())
+	}
+
+	return nil
+}
+
+func (e *LoginProvisionedDevice) runBug3964Repairman(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginProvisionedDevice#runBug3964Repairman", func() error { return err })()
+	return libkb.RunBug3964Repairman(m)
+}
+
+func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginProvisionedDevice#run", func() error { return err })()
+
+	// already logged in?
+	in, loggedInUID := isLoggedIn(m)
+	if in && (len(e.username) == 0 || m.G().Env.GetUsernameForUID(loggedInUID).Eq(e.username)) {
+		m.CDebugf("user %s already logged in; short-circuting", loggedInUID)
+		return nil
+	}
+
+	err = e.loadMe(m)
+	if err != nil {
+		return err
+	}
+
+	var success bool
+	success, err = e.reattemptUnlockIfDifferentUID(m, loggedInUID)
+	if err != nil {
+		return err
+	}
+	if success {
 		return nil
 	}
 
 	if e.SecretStoreOnly {
-		if err := e.G().LoginState().LoginWithStoredSecret(e.username, afterLogin); err != nil {
-			return err
-		}
-
-	} else {
-		if err := e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin); err != nil {
-			return err
-		}
+		return libkb.NewLoginRequiredError("explicit login is required")
 	}
 
-	// login was successful, unlock the device keys
-	err = e.unlockDeviceKeys(ctx, me)
+	e.connectivityWarning(m)
+
+	m = m.WithNewProvisionalLoginContext()
+	err = e.tryPassphraseLogin(m)
 	if err != nil {
 		return err
+	}
+
+	e.runBug3964Repairman(m)
+
+	success, err = e.reattemptUnlock(m)
+	if err != nil {
+		return err
+	}
+	if !success {
+		return libkb.NewLoginRequiredError("login failed after passphrase verified")
 	}
 	return nil
 }
 
-func (e *LoginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
+func (e *LoginProvisionedDevice) connectivityWarning(m libkb.MetaContext) {
 
 	// CORE-5876 idea that lksec will be unusable if reachability state is NO
 	// and the user changed passphrase with a different device since it won't
 	// be able to sync the new server half.
-	if e.G().ConnectivityMonitor.IsConnected(ctx.NetContext) != libkb.ConnectivityMonitorYes {
-		e.G().Log.Debug("LoginProvisionedDevice: in unlockDeviceKeys, ConnectivityMonitor says not reachable, check to make sure")
-		if err := e.G().ConnectivityMonitor.CheckReachability(ctx.NetContext); err != nil {
-			e.G().Log.Debug("error checking reachability: %s", err)
+	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) != libkb.ConnectivityMonitorYes {
+		m.CDebugf("LoginProvisionedDevice: in unlockDeviceKeys, ConnectivityMonitor says not reachable, check to make sure")
+		if err := m.G().ConnectivityMonitor.CheckReachability(m.Ctx()); err != nil {
+			m.CDebugf("error checking reachability: %s", err)
 		} else {
-			connected := e.G().ConnectivityMonitor.IsConnected(ctx.NetContext)
-			e.G().Log.Debug("after CheckReachability(), IsConnected() => %v (connected? %v)", connected, connected == libkb.ConnectivityMonitorYes)
+			connected := m.G().ConnectivityMonitor.IsConnected(m.Ctx())
+			m.CDebugf("after CheckReachability(), IsConnected() => %v (connected? %v)", connected, connected == libkb.ConnectivityMonitorYes)
 		}
 	}
-
-	ska := libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceSigningKeyType,
-	}
-	_, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
-	if err != nil {
-		return err
-	}
-	ska.KeyType = libkb.DeviceEncryptionKeyType
-	_, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

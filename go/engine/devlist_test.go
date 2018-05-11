@@ -11,9 +11,9 @@ func TestDeviceList(t *testing.T) {
 
 	CreateAndSignupFakeUserPaper(tc, "login")
 
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
 	eng := NewDevList(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTestWithLogUI(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	if len(eng.List()) != 2 {

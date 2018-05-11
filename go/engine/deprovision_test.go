@@ -62,14 +62,14 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	arg.StoreSecret = tc.G.SecretStore() != nil
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -103,13 +103,14 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 	if targ.makeAndRevokePaperKey {
 		t := tc.T
 		t.Logf("generate a paper key (targ)")
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:    tc.G.UI.GetLogUI(),
 			LoginUI:  &libkb.TestLoginUI{},
 			SecretUI: &libkb.TestSecretUI{},
 		}
 		eng := NewPaperKey(tc.G)
-		err := RunEngine(eng, ctx)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err)
 		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
 
@@ -123,11 +124,12 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 	}
 
 	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
-	ctx = &Context{
+	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	if err := RunEngine(e, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, e); err != nil {
 		tc.T.Fatal(err)
 	}
 	expectedNumKeys -= 2
@@ -215,14 +217,14 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	arg := MakeTestSignupEngineRunArg(fu)
 
 	arg.StoreSecret = tc.G.SecretStore() != nil
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -258,11 +260,12 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	tc.G.Logout()
 
 	e := NewDeprovisionEngine(tc.G, fu.Username, false /* doRevoke */)
-	ctx = &Context{
+	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	if err := RunEngine(e, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, e); err != nil {
 		tc.T.Fatal(err)
 	}
 
@@ -314,14 +317,14 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	arg.StoreSecret = tc.G.SecretStore() != nil
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -359,11 +362,12 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	}
 
 	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
-	ctx = &Context{
+	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	if err := RunEngine(e, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, e); err != nil {
 		tc.T.Fatal(err)
 	}
 

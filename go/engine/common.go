@@ -10,70 +10,50 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// IsLoggedInWithError conveys if the user is in a logged-in state or not.
-// If this function returns `true`, it's because the user is logged in,
-// is on a provisioned device, and has an unlocked device key, If this
-// function returns `false`, it's because either no one has ever logged onto
-// this device, or someone has, and then clicked `logout`. If the return
-// value is `false`, and `err` is `nil`, then the service is in one of
-// those expected "logged out" states.  If the return value is `false`
-// and `err` is non-`nil`, then something went wrong, and the app is in some
-// sort of unexpected state. If `ret` is `true`, then `uid` will convey
-// which user is logged in.
-//
-// Under the hood, IsLoggedIn is going through the BootstrapActiveDevice
-// flow and therefore will try its best to unlocked locked keys if it can
-// without user interaction.
-func IsLoggedInWithError(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {
-	ret, uid, err = bootstrap(e, ctx)
-	return ret, uid, err
-}
-
-func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID) {
-	ret, uid, _ = IsLoggedInWithError(e, ctx)
-	return ret, uid
-}
-
-func bootstrap(e Engine, ctx *Context) (ok bool, uid keybase1.UID, err error) {
-	return libkb.BootstrapActiveDeviceWithLoginContext(ctx.GetNetContext(), e.G(), ctx.LoginContext)
-}
-
 type keypair struct {
-	encKey libkb.GenericKey
-	sigKey libkb.GenericKey
+	encKey     libkb.GenericKey
+	sigKey     libkb.GenericKey
+	deviceID   keybase1.DeviceID
+	deviceName string
+}
+
+func (k *keypair) toActiveDevice(m libkb.MetaContext, u keybase1.UID) *libkb.ActiveDevice {
+	if k == nil {
+		return nil
+	}
+	return libkb.NewProvisionalActiveDevice(m, u, k.deviceID, k.sigKey, k.encKey, k.deviceName)
 }
 
 // findDeviceKeys looks for device keys and unlocks them.
-func findDeviceKeys(ctx *Context, e Engine, me *libkb.User) (*keypair, error) {
+func findDeviceKeys(m libkb.MetaContext, me *libkb.User) (*keypair, error) {
 	// need to be logged in to get a device key (unlocked)
-	lin, _ := IsLoggedIn(e, ctx)
+	lin, _ := isLoggedIn(m)
 	if !lin {
 		return nil, libkb.LoginRequiredError{}
 	}
 
 	// Get unlocked device for decryption and signing
 	// passing in nil SecretUI since we don't know the passphrase.
-	e.G().Log.Debug("findDeviceKeys: getting device encryption key")
+	m.CDebugf("findDeviceKeys: getting device encryption key")
 	parg := libkb.SecretKeyPromptArg{
-		LoginContext: ctx.LoginContext,
 		Ska: libkb.SecretKeyArg{
 			Me:      me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		},
 		Reason: "change passphrase",
 	}
-	encKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(parg)
+	encKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, parg)
 	if err != nil {
 		return nil, err
 	}
-	e.G().Log.Debug("findDeviceKeys: got device encryption key")
-	e.G().Log.Debug("findDeviceKeys: getting device signing key")
+	m.CDebugf("findDeviceKeys: got device encryption key")
+	m.CDebugf("findDeviceKeys: getting device signing key")
 	parg.Ska.KeyType = libkb.DeviceSigningKeyType
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(parg)
+	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, parg)
 	if err != nil {
 		return nil, err
 	}
-	e.G().Log.Debug("findDeviceKeys: got device signing key")
+	m.CDebugf("findDeviceKeys: got device signing key")
 
 	return &keypair{encKey: encKey, sigKey: sigKey}, nil
 }
@@ -82,7 +62,7 @@ func findDeviceKeys(ctx *Context, e Engine, me *libkb.User) (*keypair, error) {
 // does, it prompts for a paperkey phrase.  This is used to
 // regenerate paper keys, which are then matched against the
 // paper keys found in the keyfamily.
-func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypair, error) {
+func findPaperKeys(m libkb.MetaContext, me *libkb.User) (*keypair, error) {
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
 		return nil, fmt.Errorf("no computed key infos")
@@ -92,17 +72,17 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 		return nil, libkb.NoPaperKeysError{}
 	}
 
-	passphrase, err := libkb.GetPaperKeyPassphrase(g, ctx.SecretUI, me.GetName(), nil)
+	passphrase, err := libkb.GetPaperKeyPassphrase(m, m.UIs().SecretUI, me.GetName(), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return matchPaperKey(ctx, g, me, passphrase)
+	return matchPaperKey(m, me, passphrase)
 }
 
 // matchPaperKey checks to make sure paper is a valid paper phrase and that it exists
 // in the user's keyfamily.
-func matchPaperKey(ctx *Context, g *libkb.GlobalContext, me *libkb.User, paper string) (*keypair, error) {
+func matchPaperKey(m libkb.MetaContext, me *libkb.User, paper string) (*keypair, error) {
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
 		return nil, fmt.Errorf("no computed key infos")
@@ -113,7 +93,7 @@ func matchPaperKey(ctx *Context, g *libkb.GlobalContext, me *libkb.User, paper s
 	}
 
 	pc := new(libkb.PaperChecker)
-	if err := pc.Check(g, paper); err != nil {
+	if err := pc.Check(m, paper); err != nil {
 		return nil, err
 	}
 
@@ -126,65 +106,70 @@ func matchPaperKey(ctx *Context, g *libkb.GlobalContext, me *libkb.User, paper s
 		SkipPush:   true,
 		Me:         me,
 	}
-	bkeng := NewPaperKeyGen(bkarg, g)
-	if err := RunEngine(bkeng, ctx); err != nil {
+	bkeng := NewPaperKeyGen(m.G(), bkarg)
+	if err := RunEngine2(m, bkeng); err != nil {
 		return nil, err
 	}
 
 	sigKey := bkeng.SigKey()
 	encKey := bkeng.EncKey()
+	var device *libkb.Device
 
-	g.Log.Debug("generated paper key signing kid: %s", sigKey.GetKID())
-	g.Log.Debug("generated paper key encryption kid: %s", encKey.GetKID())
+	m.CDebugf("generated paper key signing kid: %s", sigKey.GetKID())
+	m.CDebugf("generated paper key encryption kid: %s", encKey.GetKID())
 
-	var match bool
 	ckf := me.GetComputedKeyFamily()
 	for _, bdev := range bdevs {
 		sk, err := ckf.GetSibkeyForDevice(bdev.ID)
 		if err != nil {
-			g.Log.Debug("ckf.GetSibkeyForDevice(%s) error: %s", bdev.ID, err)
+			m.CDebugf("ckf.GetSibkeyForDevice(%s) error: %s", bdev.ID, err)
 			continue
 		}
-		g.Log.Debug("paper key device %s signing kid: %s", bdev.ID, sk.GetKID())
+		m.CDebugf("paper key device %s signing kid: %s", bdev.ID, sk.GetKID())
 		ek, err := ckf.GetEncryptionSubkeyForDevice(bdev.ID)
 		if err != nil {
-			g.Log.Debug("ckf.GetEncryptionSubkeyForDevice(%s) error: %s", bdev.ID, err)
+			m.CDebugf("ckf.GetEncryptionSubkeyForDevice(%s) error: %s", bdev.ID, err)
 			continue
 		}
-		g.Log.Debug("paper key device %s encryption kid: %s", bdev.ID, ek.GetKID())
+		m.CDebugf("paper key device %s encryption kid: %s", bdev.ID, ek.GetKID())
 
 		if sk.GetKID().Equal(sigKey.GetKID()) && ek.GetKID().Equal(encKey.GetKID()) {
-			g.Log.Debug("paper key device %s matches generated paper key", bdev.ID)
-			match = true
+			m.CDebugf("paper key device %s matches generated paper key", bdev.ID)
+			device = bdev
 			break
 		}
 
-		g.Log.Debug("paper key device %s does not match generated paper key", bdev.ID)
+		m.CDebugf("paper key device %s does not match generated paper key", bdev.ID)
 	}
 
-	if !match {
-		g.Log.Debug("no matching paper keys found")
+	if device == nil {
+		m.CDebugf("no matching paper keys found")
 		return nil, libkb.PassphraseError{Msg: "no matching paper backup keys found"}
 	}
 
-	return &keypair{sigKey: sigKey, encKey: encKey}, nil
+	var deviceName string
+	if device.Description != nil {
+		deviceName = *device.Description
+	}
+	return &keypair{sigKey: sigKey, encKey: encKey, deviceID: device.ID, deviceName: deviceName}, nil
 }
 
 // fetchLKS gets the encrypted LKS client half from the server.
 // It uses encKey to decrypt it.  It also returns the passphrase
 // generation.
-func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (libkb.PassphraseGeneration, libkb.LKSecClientHalf, error) {
+func fetchLKS(m libkb.MetaContext, encKey libkb.GenericKey) (libkb.PassphraseGeneration, libkb.LKSecClientHalf, error) {
 	arg := libkb.APIArg{
 		Endpoint:    "passphrase/recover",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"kid": encKey.GetKID(),
 		},
+		MetaContext: m,
 	}
-	if ctx.LoginContext != nil {
-		arg.SessionR = ctx.LoginContext.LocalSession()
+	if lctx := m.LoginContext(); lctx != nil {
+		arg.SessionR = lctx.LocalSession()
 	}
-	res, err := g.API.Get(arg)
+	res, err := m.G().API.Get(arg)
 	var dummy libkb.LKSecClientHalf
 	if err != nil {
 		return 0, dummy, err

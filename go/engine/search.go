@@ -22,7 +22,7 @@ type SearchEngineArgs struct {
 	NumWanted int
 }
 
-func NewSearchEngine(args SearchEngineArgs, g *libkb.GlobalContext) *SearchEngine {
+func NewSearchEngine(g *libkb.GlobalContext, args SearchEngineArgs) *SearchEngine {
 	return &SearchEngine{
 		query:        args.Query,
 		numWanted:    args.NumWanted,
@@ -48,16 +48,17 @@ func (e *SearchEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *SearchEngine) Run(ctx *Context) error {
+func (e *SearchEngine) Run(m libkb.MetaContext) error {
 	APIArgs := libkb.HTTPArgs{
 		"q": libkb.S{Val: e.query},
 	}
 	if e.numWanted > 0 {
 		APIArgs["num_wanted"] = libkb.I{Val: e.numWanted}
 	}
-	res, err := e.G().API.Get(libkb.APIArg{
-		Endpoint: "user/autocomplete",
-		Args:     APIArgs,
+	res, err := m.G().API.Get(libkb.APIArg{
+		Endpoint:   "user/autocomplete",
+		Args:       APIArgs,
+		NetContext: m.Ctx(),
 	})
 	if err != nil {
 		return err

@@ -6,6 +6,7 @@ package keybase
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -17,11 +18,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
+
 	"strings"
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
@@ -34,10 +40,15 @@ import (
 )
 
 var kbCtx *libkb.GlobalContext
+var kbChatCtx *globals.ChatContext
 var conn net.Conn
 var startOnce sync.Once
 var logSendContext libkb.LogSendContext
 var kbfsConfig libkbfs.Config
+
+type PushNotifier interface {
+	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
+}
 
 type ExternalDNSNSFetcher interface {
 	GetServers() []byte
@@ -139,6 +150,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 	svc.SetupCriticalSubServices()
 	svc.RunBackgroundOperations(uir)
+	kbChatCtx = svc.ChatContextified.ChatG()
 
 	serviceLog := config.GetLogFile()
 	logs := libkb.Logs{
@@ -310,6 +322,47 @@ func BackgroundSync() {
 		}
 	}()
 	<-doneCh
+}
+
+func HandleBackgroundNotification(strConvID string, intMembersType int, intMessageID int,
+	pushID string, badgeCount int, unixTime int, body string, pusher PushNotifier) (err error) {
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	ctx := chat.Context(context.Background(), gc,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%d,%d,%s,%d,%d)",
+		strConvID, intMembersType, intMessageID, pushID, badgeCount, unixTime),
+		func() error { return err })()
+	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
+	if !kbCtx.ActiveDevice.HaveKeys() {
+		return libkb.LoginRequiredError{}
+	}
+	age := time.Since(time.Unix(int64(unixTime), 0))
+	if age >= 15*time.Second {
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
+		return errors.New("stale notification")
+	}
+
+	bConvID, err := hex.DecodeString(strConvID)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID,
+			err)
+		return err
+	}
+	convID := chat1.ConversationID(bConvID)
+	membersType := chat1.ConversationMembersType(intMembersType)
+	msg, err := kbCtx.ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, membersType, []string{pushID},
+		body)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: failed to unbox: %s", err)
+		return err
+	}
+
+	// Send up the local notification with our message
+	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
+	pusher.LocalNotification(id, msg, badgeCount, "keybasemessage.wav", strConvID, "chat.newmessage")
+	// Hit the remote server to let it know we succeeded in showing something useful
+	kbCtx.ChatHelper.AckMobileNotificationSuccess(ctx, []string{pushID})
+	return nil
 }
 
 // AppWillExit is called reliably on iOS when the app is about to terminate

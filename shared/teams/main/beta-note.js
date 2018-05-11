@@ -1,35 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, desktopStyles, platformStyles} from '../../styles'
+import {InfoNote, Text} from '../../common-adapters'
+import {globalMargins, desktopStyles, platformStyles, styleSheetCreate} from '../../styles'
 
 export type Props = {
   onReadMore: () => void,
 }
 
 const BetaNote = (props: Props) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      marginBottom: globalMargins.small,
-      marginLeft: globalMargins.medium,
-      marginRight: globalMargins.medium,
-      marginTop: globalMargins.small,
-    }}
-  >
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.tiny}}>
-      <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
-      <Icon
-        style={{
-          paddingLeft: globalMargins.tiny,
-          paddingRight: globalMargins.tiny,
-        }}
-        color={globalColors.black_10}
-        type="iconfont-info"
-      />
-      <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
-    </Box>
+  <InfoNote containerStyle={styles.container}>
     <Text
       type="BodySmallSemibold"
       className="hover-underline"
@@ -38,7 +17,16 @@ const BetaNote = (props: Props) => (
     >
       Read more about teams here
     </Text>
-  </Box>
+  </InfoNote>
 )
+
+const styles = styleSheetCreate({
+  container: {
+    marginBottom: globalMargins.small,
+    marginLeft: globalMargins.medium,
+    marginRight: globalMargins.medium,
+    marginTop: globalMargins.small,
+  },
+})
 
 export default BetaNote

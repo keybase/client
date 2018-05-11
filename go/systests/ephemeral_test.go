@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -232,4 +233,49 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	maxGeneration, err := storage.MaxGeneration(context.Background(), teamID)
 	require.NoError(t, err)
 	require.Equal(t, maxGeneration, expectedMaxGeneration)
+}
+
+func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUserWithPaper("alice")
+
+	teamID, _ := alice.createTeam2()
+
+	ephemeral.ServiceInit(alice.tc.G)
+	ekLib := alice.tc.G.GetEKLib()
+
+	_, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	require.NoError(t, err)
+
+	// Provision a new device that we can revoke.
+	newDevice := alice.provisionNewDevice()
+
+	// Revoke it.
+	revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
+		ID:        newDevice.deviceKey.DeviceID,
+		ForceSelf: true,
+		ForceLast: false,
+		// We don't need a UserEK here since we force generate it below
+		SkipUserEKForTesting: true,
+	})
+	uis := libkb.UIs{
+		LogUI:    alice.tc.G.Log,
+		SecretUI: alice.newSecretUI(),
+	}
+	m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
+	err = engine.RunEngine2(m, revokeEngine)
+	require.NoError(t, err)
+
+	// Now provision a new userEK. This makes sure that we don't get confused
+	// by the revoked device's deviceEKs.
+	merkleRoot, err := alice.tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	require.NoError(t, err)
+	_, err = ephemeral.ForcePublishNewUserEKForTesting(context.Background(), alice.tc.G, *merkleRoot)
+	require.NoError(t, err)
+
+	// And do the same for the teamEK, just to be sure.
+	_, err = ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), alice.tc.G, teamID, *merkleRoot)
+	require.NoError(t, err)
 }

@@ -280,11 +280,9 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 				CanSuppressUI:    true,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 			}
-			ectx := &engine.Context{
-				NetContext: ctx,
-			}
 			eng := engine.NewResolveThenIdentify2(g, &arg)
-			if err := engine.RunEngine(eng, ectx); err != nil {
+			m := libkb.NewMetaContext(ctx, g)
+			if err := engine.RunEngine2(m, eng); err != nil {
 				return err
 			}
 		case keybase1.TeamInviteCategory_EMAIL:

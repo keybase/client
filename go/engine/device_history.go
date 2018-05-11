@@ -60,11 +60,11 @@ func (e *DeviceHistory) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *DeviceHistory) Run(ctx *Context) error {
+func (e *DeviceHistory) Run(m libkb.MetaContext) error {
 
-	arg := e.loadUserArg()
-	err := e.G().GetFullSelfer().WithUser(arg, func(u *libkb.User) error {
-		return e.loadDevices(u)
+	arg := e.loadUserArg(m)
+	err := m.G().GetFullSelfer().WithUser(arg, func(u *libkb.User) error {
+		return e.loadDevices(m, u)
 	})
 	return err
 }
@@ -73,8 +73,8 @@ func (e *DeviceHistory) Devices() []keybase1.DeviceDetail {
 	return e.devices
 }
 
-func (e *DeviceHistory) loadUserArg() libkb.LoadUserArg {
-	arg := libkb.NewLoadUserPubOptionalArg(e.G())
+func (e *DeviceHistory) loadUserArg(m libkb.MetaContext) libkb.LoadUserArg {
+	arg := libkb.NewLoadUserPubOptionalArg(m.G())
 	if len(e.username) == 0 {
 		arg = arg.WithSelf(true)
 	} else {
@@ -83,7 +83,7 @@ func (e *DeviceHistory) loadUserArg() libkb.LoadUserArg {
 	return arg
 }
 
-func (e *DeviceHistory) loadDevices(user *libkb.User) error {
+func (e *DeviceHistory) loadDevices(m libkb.MetaContext, user *libkb.User) error {
 	ckf := user.GetComputedKeyFamily()
 	if ckf == nil {
 		return errors.New("nil ComputedKeyFamily for user")
@@ -103,7 +103,7 @@ func (e *DeviceHistory) loadDevices(user *libkb.User) error {
 		if cki.Eldest {
 			exp.Eldest = true
 		} else {
-			prov, err := e.provisioner(d, ckis, cki)
+			prov, err := e.provisioner(m, d, ckis, cki)
 			if err != nil {
 				return err
 			}
@@ -127,7 +127,7 @@ func (e *DeviceHistory) loadDevices(user *libkb.User) error {
 			}
 		}
 
-		if e.G().Env.GetDeviceIDForUsername(user.GetNormalizedName()).Eq(d.ID) {
+		if m.G().Env.GetDeviceIDForUsername(user.GetNormalizedName()).Eq(d.ID) {
 			exp.CurrentDevice = true
 		}
 
@@ -136,8 +136,8 @@ func (e *DeviceHistory) loadDevices(user *libkb.User) error {
 
 	// Load the last used times, but only if these are your own devices. The
 	// API won't give you those times for other people's devices.
-	if user.GetNormalizedName().Eq(e.G().Env.GetUsername()) {
-		lastUsedTimes, err := e.getLastUsedTimes()
+	if user.GetNormalizedName().Eq(m.G().Env.GetUsername()) {
+		lastUsedTimes, err := e.getLastUsedTimes(m)
 		if err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func (e *DeviceHistory) loadDevices(user *libkb.User) error {
 	return nil
 }
 
-func (e *DeviceHistory) provisioner(d *libkb.Device, ckis *libkb.ComputedKeyInfos, info *libkb.ComputedKeyInfo) (*libkb.Device, error) {
+func (e *DeviceHistory) provisioner(m libkb.MetaContext, d *libkb.Device, ckis *libkb.ComputedKeyInfos, info *libkb.ComputedKeyInfo) (*libkb.Device, error) {
 	for _, v := range info.Delegations {
 		if v.GetKeyType() != libkb.KIDNaclEddsa {
 			// only concerned with device history, not pgp provisioners
@@ -179,11 +179,11 @@ func (e *DeviceHistory) provisioner(d *libkb.Device, ckis *libkb.ComputedKeyInfo
 	return nil, nil
 }
 
-func (e *DeviceHistory) getLastUsedTimes() (map[keybase1.DeviceID]time.Time, error) {
-	uid := e.G().GetMyUID()
+func (e *DeviceHistory) getLastUsedTimes(m libkb.MetaContext) (map[keybase1.DeviceID]time.Time, error) {
+	uid := m.G().GetMyUID()
 	var err error
 	var devs libkb.DeviceKeyMap
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+	aerr := m.G().LoginState().Account(func(a *libkb.Account) {
 		if err = libkb.RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}

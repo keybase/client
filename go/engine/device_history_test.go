@@ -16,9 +16,9 @@ func TestDeviceHistoryBasic(t *testing.T) {
 
 	CreateAndSignupFakeUserPaper(tc, "dhst")
 
-	ctx := &Context{}
 	eng := NewDeviceHistorySelf(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	devs := eng.Devices()
@@ -64,9 +64,9 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 
 	u := CreateAndSignupFakeUserPaper(tc, "dhst")
 
-	ctx := &Context{}
 	eng := NewDeviceHistorySelf(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -95,16 +95,19 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 	}
 
 	// revoke the paper device
-	ctx.SecretUI = u.NewSecretUI()
-	ctx.LogUI = tc.G.UI.GetLogUI()
-	reng := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: paper.Device.DeviceID}, tc.G)
-	if err := RunEngine(reng, ctx); err != nil {
+	uis := libkb.UIs{
+		SecretUI: u.NewSecretUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
+	}
+	m = NewMetaContextForTest(tc).WithUIs(uis)
+	reng := NewRevokeDeviceEngine(tc.G, RevokeDeviceEngineArgs{ID: paper.Device.DeviceID})
+	if err := RunEngine2(m, reng); err != nil {
 		t.Fatal(err)
 	}
 
 	// get history after revoke
 	eng = NewDeviceHistorySelf(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -162,7 +165,7 @@ func TestDeviceHistoryPGP(t *testing.T) {
 	tc = SetupEngineTest(t, "devhist")
 	defer tc.Cleanup()
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 		LogUI:       tc.G.UI.GetLogUI(),
@@ -170,13 +173,13 @@ func TestDeviceHistoryPGP(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
-	ctx = &Context{}
 	heng := NewDeviceHistorySelf(tc.G)
-	if err := RunEngine(heng, ctx); err != nil {
+	if err := RunEngine2(m, heng); err != nil {
 		t.Fatal(err)
 	}
 	devs := heng.Devices()
