@@ -121,6 +121,9 @@ const config = (_, {mode}) => {
                 new UglifyJSPlugin({
                   sourceMap: true,
                   uglifyOptions: {
+                    compress: {
+                      inline: false, // uglify has issues inlining code and handling variables https://github.com/mishoo/UglifyJS2/issues/2842
+                    },
                     output: {
                       comments: false,
                     },

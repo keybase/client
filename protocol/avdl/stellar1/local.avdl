@@ -54,4 +54,7 @@ protocol local {
   void setDisplayCurrency(AccountID accountID, string currency);
 
   OutsideExchangeRate exchangeRateLocal(OutsideCurrencyCode currency);
+
+  map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
+  string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
 }
