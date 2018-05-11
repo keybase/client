@@ -1,5 +1,5 @@
 // @flow
-import sharedNotificationActions from './notification-listeners.shared'
+import sharedNotificationActions, {sharedBadgeStateActions} from './notification-listeners.shared'
 import RNPN from 'react-native-push-notification'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import engine from '../engine'
@@ -8,11 +8,11 @@ import engine from '../engine'
 export default (): void => {
   sharedNotificationActions()
 
-  engine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({badgeState}) => {
-    // const sharedBadgeState = fromShared['keybase.1.NotifyBadges.badgeState']
-    // if (sharedBadgeState) {
-    //   sharedBadgeState({badgeState})
-    // }
+  engine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({badgeState}, _, dispatch) => {
+    const sharedActions = sharedBadgeStateActions(badgeState, dispatch)
+    if (sharedActions.length) {
+      sharedActions[0]({badgeState})
+    }
 
     const count = (badgeState.conversations || []).reduce(
       (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total),
