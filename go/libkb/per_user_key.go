@@ -547,7 +547,7 @@ func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 		SessionType: APISessionTypeREQUIRED,
 		SessionR:    sessionR,
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
-		NetContext:  m.Ctx(),
+		MetaContext: m,
 	}, &resp)
 	if err != nil {
 		return nil, nil, err

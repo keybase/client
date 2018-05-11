@@ -67,8 +67,10 @@ func (m MetaContext) CInfof(f string, args ...interface{}) {
 
 func (m MetaContext) ActiveDevice() *ActiveDevice {
 	if m.activeDevice != nil {
+		m.CDebugf("MetaContext#ActiveDevice: thread local")
 		return m.activeDevice
 	}
+	m.CDebugf("MetaContext#ActiveDevice: global")
 	return m.G().ActiveDevice
 }
 
@@ -165,6 +167,10 @@ func (m MetaContext) WithActiveDevice(a *ActiveDevice) MetaContext {
 	return m
 }
 
+func (m MetaContext) WithPaperKeyActiveDevice(d *DeviceWithKeys, u keybase1.UID) MetaContext {
+	return m.WithActiveDevice(d.ToPaperKeyActiveDevice(m, u))
+}
+
 func (m MetaContext) WithGlobalActiveDevice() MetaContext {
 	m.activeDevice = nil
 	return m
@@ -183,16 +189,24 @@ func (m MetaContext) WithNewProvisionalLoginContext() MetaContext {
 }
 
 func (m MetaContext) CommitProvisionalLogin() MetaContext {
+	m.CDebugf("MetaContext#CommitProvisionalLogin")
 	lctx := m.loginContext
-	// For now, simply propagate the PassphraseStreamCache and Session
-	// back into login state. Eventually we're going to move it
-	// into G or ActiveDevice.
 	m.loginContext = nil
 	if lctx != nil {
+		ppsc := lctx.PassphraseStreamCache()
+		// For now, simply propagate the PassphraseStreamCache and Session
+		// back into login state. Eventually we're going to move it
+		// into G or ActiveDevice.
 		m.G().LoginState().Account(func(a *Account) {
-			a.streamCache = lctx.PassphraseStreamCache()
+			a.streamCache = ppsc
 			a.localSession = lctx.LocalSession()
 		}, "CommitProvisionalLogin")
+
+		// Going forward, also hold onto the passphrase stream cache
+		// in the active device.
+		if ppsc != nil {
+			m.ActiveDevice().CachePassphraseStream(ppsc)
+		}
 	}
 	return m
 }
@@ -263,6 +277,10 @@ func NewMetaContextified(m MetaContext) MetaContextified {
 // global ActiveDevice at the same time. We follow the same pattern here and elsewhere: atomically
 // mutate the `current_user` of the config file as we set the global ActiveDevice.
 func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, salt []byte, d keybase1.DeviceID) error {
+	return m.switchUserNewConfig(u, n, salt, d, nil)
+}
+
+func (m MetaContext) switchUserNewConfig(u keybase1.UID, n NormalizedUsername, salt []byte, d keybase1.DeviceID, ad *ActiveDevice) error {
 	g := m.G()
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
@@ -276,8 +294,15 @@ func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 	if err != nil {
 		return err
 	}
-	g.ActiveDevice.Clear(nil)
+	g.ActiveDevice.SetOrClear(m, ad)
 	return nil
+}
+
+// SwitchUserNewConfigActiveDevice creates a new config file stanza and an active device
+// for the given user, all while holding the switchUserMu lock.
+func (m MetaContext) SwitchUserNewConfigActiveDevice(u keybase1.UID, n NormalizedUsername, salt []byte, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) error {
+	ad := NewProvisionalActiveDevice(m, u, d, sigKey, encKey, deviceName)
+	return m.switchUserNewConfig(u, n, salt, d, ad)
 }
 
 // SwitchUserNukeConfig removes the given username from the config file, and then switches
@@ -403,4 +428,46 @@ func (m MetaContext) LogoutIfRevoked() (err error) {
 	}
 
 	return nil
+}
+
+func (m MetaContext) PassphraseStream() *PassphraseStream {
+	if m.LoginContext() == nil {
+		return nil
+	}
+	if m.LoginContext().PassphraseStreamCache() == nil {
+		return nil
+	}
+	return m.LoginContext().PassphraseStreamCache().PassphraseStream()
+}
+
+func (m MetaContext) CurrentUsername() NormalizedUsername {
+	if m.LoginContext() != nil {
+		return m.LoginContext().GetUsername()
+	}
+	return m.ActiveDevice().Username(m)
+}
+
+func (m MetaContext) CurrentUID() keybase1.UID {
+	if m.LoginContext() != nil {
+		return m.LoginContext().GetUID()
+	}
+	return m.ActiveDevice().UID()
+}
+
+func (m MetaContext) HasAnySession() (ret bool) {
+	defer m.CTraceOK("MetaContext#HasAnySession", func() bool { return ret })()
+	if m.LoginContext() != nil {
+		ok, _ := m.LoginContext().LoggedInLoad()
+		if ok {
+			m.CDebugf("| has temporary login session")
+			return true
+		}
+	}
+
+	if m.ActiveDevice().Valid() {
+		m.CDebugf("| has valid device")
+		return true
+	}
+
+	return false
 }

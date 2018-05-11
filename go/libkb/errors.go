@@ -707,6 +707,8 @@ func (e NoUsernameError) Error() string {
 	return "No username known"
 }
 
+func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
+
 //=============================================================================
 
 type UnmarshalError struct {

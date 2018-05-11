@@ -80,6 +80,10 @@ func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 	return e.encKey
 }
 
+func (e *PaperKeyGen) DeviceWithKeys() *libkb.DeviceWithKeys {
+	return libkb.NewDeviceWithKeysOnly(e.sigKey, e.encKey)
+}
+
 // Run starts the engine.
 func (e *PaperKeyGen) Run(m libkb.MetaContext) error {
 	if !e.arg.SkipPush {
@@ -289,7 +293,7 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) error {
 	if lctx := m.LoginContext(); lctx != nil {
 		sr = lctx.LocalSession()
 	}
-	if err := libkb.PostDeviceLKS(m.Ctx(), e.G(), sr, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(m, sr, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 
@@ -321,7 +325,7 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) error {
 	}
 
 	m.CDebugf("PaperKeyGen#push running delegators")
-	return libkb.DelegatorAggregator(m.LoginContext(), []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil)
+	return libkb.DelegatorAggregator(m, []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil)
 }
 
 func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {

@@ -33,7 +33,10 @@ func plcErr(s string) error {
 }
 
 func (p *ProvisionalLoginContext) LoggedInLoad() (bool, error) {
-	return false, plcErr("LoggedInLoad")
+	if p.localSession != nil {
+		return p.localSession.IsLoggedIn(), nil
+	}
+	return false, nil
 }
 func (p *ProvisionalLoginContext) LoggedInProvisioned(context.Context) (bool, error) {
 	return false, plcErr("LoggedInProvisioned")
@@ -100,10 +103,26 @@ func (p *ProvisionalLoginContext) GetUsername() NormalizedUsername {
 func (p *ProvisionalLoginContext) EnsureUsername(username NormalizedUsername) {
 }
 
-func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
+func (p *ProvisionalLoginContext) SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error {
+	if err := p.assertUnsaved(); err != nil {
+		return err
+	}
+	p.username = username
+	p.uid = uid
+	return nil
+}
 
+func (p *ProvisionalLoginContext) assertUnsaved() error {
 	if wasSaved := !p.uid.IsNil(); wasSaved {
 		return errors.New("can't reuse a ProvisionalLoginContext!")
+	}
+	return nil
+}
+
+func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
+	defer p.M().CTrace("ProvisionalLoginContext#SaveState", func() error { return err })()
+	if err := p.assertUnsaved(); err != nil {
+		return err
 	}
 	p.uid = uid
 	p.username = username
@@ -115,7 +134,8 @@ func (p *ProvisionalLoginContext) Keyring() (ret *SKBKeyringFile, err error) {
 		return p.skbKeyring, nil
 	}
 	if p.username.IsNil() {
-		return nil, NoUsernameError{}
+		p.M().CInfof("ProvisionalLoginContext#Keyring: no username set")
+		return nil, NewNoUsernameError()
 	}
 	p.M().CDebugf("Account: loading keyring for %s", p.username)
 	ret, err = LoadSKBKeyring(p.username, p.M().G())
