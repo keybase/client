@@ -14,12 +14,12 @@ let lastBadgeStateVersion = -1
 
 // TODO: DESKTOP-6662 - Move notification listeners to their own actions
 export default (): void => {
-  // const throttledDispatch = throttle(action => dispatch(action), 1000, {
-  //   leading: false,
-  //   trailing: true,
-  // })
+  const throttledDispatch = throttle((dispatch, action) => dispatch(action), 1000, {
+    leading: false,
+    trailing: true,
+  })
 
-  engine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({badgeState}) => {
+  engine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({badgeState}, _, dispatch) => {
     if (badgeState.inboxVers < lastBadgeStateVersion) {
       logger.info(
         `Ignoring older badgeState, got ${badgeState.inboxVers} but have seen ${lastBadgeStateVersion}`
@@ -34,10 +34,10 @@ export default (): void => {
     const action = NotificationsGen.createReceivedBadgeState({badgeState})
     if (totalChats > 0) {
       // Defer this slightly so we don't get flashing if we're quickly receiving and reading
-      // throttledDispatch(action)
+      throttledDispatch(dispatch, action)
     } else {
       // If clearing go immediately
-      // throttledDispatch.cancel()
+      throttledDispatch.cancel()
       return [action]
     }
   })
@@ -63,7 +63,7 @@ export default (): void => {
     }
   })
 
-  engine().setIncomingActionCreators('keybase.1.NotifyTracking.trackingChanged', ({isTracking, username}) => {
-    return [ConfigGen.createUpdateFollowing({isTracking, username})]
-  })
+  engine().setIncomingActionCreators('keybase.1.NotifyTracking.trackingChanged', ({isTracking, username}) => [
+    ConfigGen.createUpdateFollowing({isTracking, username}),
+  ])
 }

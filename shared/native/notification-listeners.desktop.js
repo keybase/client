@@ -17,9 +17,9 @@ export default (): void => {
     return [remote.app.exit(0)]
   })
 
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', ({notification}, _, __, getState) => {
-    return [kbfsNotification(notification, NotifyPopup, getState)]
-  })
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', ({notification}, _, __, getState) => [
+    kbfsNotification(notification, NotifyPopup, getState),
+  ])
 
   engine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => [
     RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
