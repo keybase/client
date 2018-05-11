@@ -694,10 +694,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			}
 			sJSONPt := string(jsonPt)
 			pthread = &sJSONPt
+			h.applyPagerModeOutgoing(bctx, arg.ConversationID, resThread.Pagination, pagination, arg.Pgmode)
 		} else {
 			h.Debug(ctx, "GetThreadNonblock: sending nil cached response")
 		}
-		h.applyPagerModeOutgoing(bctx, arg.ConversationID, resThread.Pagination, pagination, arg.Pgmode)
 		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
 			Thread:    pthread,
