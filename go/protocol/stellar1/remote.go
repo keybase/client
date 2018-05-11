@@ -4,6 +4,7 @@
 package stellar1
 
 import (
+	"errors"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -81,63 +82,195 @@ func (o RelayClaimPost) DeepCopy() RelayClaimPost {
 	}
 }
 
+type PaymentSummaryType int
+
+const (
+	PaymentSummaryType_NONE    PaymentSummaryType = 0
+	PaymentSummaryType_STELLAR PaymentSummaryType = 1
+	PaymentSummaryType_DIRECT  PaymentSummaryType = 2
+	PaymentSummaryType_RELAY   PaymentSummaryType = 3
+)
+
+func (o PaymentSummaryType) DeepCopy() PaymentSummaryType { return o }
+
+var PaymentSummaryTypeMap = map[string]PaymentSummaryType{
+	"NONE":    0,
+	"STELLAR": 1,
+	"DIRECT":  2,
+	"RELAY":   3,
+}
+
+var PaymentSummaryTypeRevMap = map[PaymentSummaryType]string{
+	0: "NONE",
+	1: "STELLAR",
+	2: "DIRECT",
+	3: "RELAY",
+}
+
+func (e PaymentSummaryType) String() string {
+	if v, ok := PaymentSummaryTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PaymentSummary struct {
-	Stellar     *PaymentSummaryStellar `codec:"stellar,omitempty" json:"stellar,omitempty"`
-	Keybase     *PaymentSummaryKeybase `codec:"keybase,omitempty" json:"keybase,omitempty"`
-	StellarTxID TransactionID          `codec:"stellarTxID" json:"stellarTxID"`
-	From        AccountID              `codec:"from" json:"from"`
-	To          AccountID              `codec:"to" json:"to"`
-	Amount      string                 `codec:"amount" json:"amount"`
-	Asset       Asset                  `codec:"asset" json:"asset"`
+	Typ__     PaymentSummaryType     `codec:"typ" json:"typ"`
+	Stellar__ *PaymentSummaryStellar `codec:"stellar,omitempty" json:"stellar,omitempty"`
+	Direct__  *PaymentSummaryDirect  `codec:"direct,omitempty" json:"direct,omitempty"`
+	Relay__   *PaymentSummaryRelay   `codec:"relay,omitempty" json:"relay,omitempty"`
+}
+
+func (o *PaymentSummary) Typ() (ret PaymentSummaryType, err error) {
+	switch o.Typ__ {
+	case PaymentSummaryType_STELLAR:
+		if o.Stellar__ == nil {
+			err = errors.New("unexpected nil value for Stellar__")
+			return ret, err
+		}
+	case PaymentSummaryType_DIRECT:
+		if o.Direct__ == nil {
+			err = errors.New("unexpected nil value for Direct__")
+			return ret, err
+		}
+	case PaymentSummaryType_RELAY:
+		if o.Relay__ == nil {
+			err = errors.New("unexpected nil value for Relay__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o PaymentSummary) Stellar() (res PaymentSummaryStellar) {
+	if o.Typ__ != PaymentSummaryType_STELLAR {
+		panic("wrong case accessed")
+	}
+	if o.Stellar__ == nil {
+		return
+	}
+	return *o.Stellar__
+}
+
+func (o PaymentSummary) Direct() (res PaymentSummaryDirect) {
+	if o.Typ__ != PaymentSummaryType_DIRECT {
+		panic("wrong case accessed")
+	}
+	if o.Direct__ == nil {
+		return
+	}
+	return *o.Direct__
+}
+
+func (o PaymentSummary) Relay() (res PaymentSummaryRelay) {
+	if o.Typ__ != PaymentSummaryType_RELAY {
+		panic("wrong case accessed")
+	}
+	if o.Relay__ == nil {
+		return
+	}
+	return *o.Relay__
+}
+
+func NewPaymentSummaryWithStellar(v PaymentSummaryStellar) PaymentSummary {
+	return PaymentSummary{
+		Typ__:     PaymentSummaryType_STELLAR,
+		Stellar__: &v,
+	}
+}
+
+func NewPaymentSummaryWithDirect(v PaymentSummaryDirect) PaymentSummary {
+	return PaymentSummary{
+		Typ__:    PaymentSummaryType_DIRECT,
+		Direct__: &v,
+	}
+}
+
+func NewPaymentSummaryWithRelay(v PaymentSummaryRelay) PaymentSummary {
+	return PaymentSummary{
+		Typ__:   PaymentSummaryType_RELAY,
+		Relay__: &v,
+	}
 }
 
 func (o PaymentSummary) DeepCopy() PaymentSummary {
 	return PaymentSummary{
-		Stellar: (func(x *PaymentSummaryStellar) *PaymentSummaryStellar {
+		Typ__: o.Typ__.DeepCopy(),
+		Stellar__: (func(x *PaymentSummaryStellar) *PaymentSummaryStellar {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.Stellar),
-		Keybase: (func(x *PaymentSummaryKeybase) *PaymentSummaryKeybase {
+		})(o.Stellar__),
+		Direct__: (func(x *PaymentSummaryDirect) *PaymentSummaryDirect {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.Keybase),
-		StellarTxID: o.StellarTxID.DeepCopy(),
+		})(o.Direct__),
+		Relay__: (func(x *PaymentSummaryRelay) *PaymentSummaryRelay {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Relay__),
+	}
+}
+
+type PaymentSummaryStellar struct {
+	TxID        TransactionID `codec:"txID" json:"txID"`
+	From        AccountID     `codec:"from" json:"from"`
+	To          AccountID     `codec:"to" json:"to"`
+	Amount      string        `codec:"amount" json:"amount"`
+	Asset       Asset         `codec:"asset" json:"asset"`
+	OperationID uint64        `codec:"operationID" json:"operationID"`
+	Ctime       TimeMs        `codec:"ctime" json:"ctime"`
+}
+
+func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
+	return PaymentSummaryStellar{
+		TxID:        o.TxID.DeepCopy(),
 		From:        o.From.DeepCopy(),
 		To:          o.To.DeepCopy(),
 		Amount:      o.Amount,
 		Asset:       o.Asset.DeepCopy(),
+		OperationID: o.OperationID,
+		Ctime:       o.Ctime.DeepCopy(),
 	}
 }
 
-type PaymentSummaryKeybase struct {
+type PaymentSummaryDirect struct {
 	KbTxID          KeybaseTransactionID  `codec:"kbTxID" json:"kbTxID"`
-	Status          TransactionStatus     `codec:"status" json:"status"`
-	SubmitErrMsg    string                `codec:"submitErrMsg" json:"submitErrMsg"`
-	Ctime           TimeMs                `codec:"ctime" json:"ctime"`
-	Rtime           TimeMs                `codec:"rtime" json:"rtime"`
+	TxID            TransactionID         `codec:"txID" json:"txID"`
+	TxStatus        TransactionStatus     `codec:"txStatus" json:"txStatus"`
+	TxErrMsg        string                `codec:"txErrMsg" json:"txErrMsg"`
+	FromStellar     AccountID             `codec:"fromStellar" json:"fromStellar"`
 	From            keybase1.UserVersion  `codec:"from" json:"from"`
 	FromDeviceID    keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
+	ToStellar       AccountID             `codec:"toStellar" json:"toStellar"`
 	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	Amount          string                `codec:"amount" json:"amount"`
+	Asset           Asset                 `codec:"asset" json:"asset"`
 	DisplayAmount   *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
 	DisplayCurrency *string               `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
 	NoteB64         string                `codec:"noteB64" json:"noteB64"`
+	Ctime           TimeMs                `codec:"ctime" json:"ctime"`
+	Rtime           TimeMs                `codec:"rtime" json:"rtime"`
 }
 
-func (o PaymentSummaryKeybase) DeepCopy() PaymentSummaryKeybase {
-	return PaymentSummaryKeybase{
+func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
+	return PaymentSummaryDirect{
 		KbTxID:       o.KbTxID.DeepCopy(),
-		Status:       o.Status.DeepCopy(),
-		SubmitErrMsg: o.SubmitErrMsg,
-		Ctime:        o.Ctime.DeepCopy(),
-		Rtime:        o.Rtime.DeepCopy(),
+		TxID:         o.TxID.DeepCopy(),
+		TxStatus:     o.TxStatus.DeepCopy(),
+		TxErrMsg:     o.TxErrMsg,
+		FromStellar:  o.FromStellar.DeepCopy(),
 		From:         o.From.DeepCopy(),
 		FromDeviceID: o.FromDeviceID.DeepCopy(),
+		ToStellar:    o.ToStellar.DeepCopy(),
 		To: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
 			if x == nil {
 				return nil
@@ -145,6 +278,8 @@ func (o PaymentSummaryKeybase) DeepCopy() PaymentSummaryKeybase {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.To),
+		Amount: o.Amount,
+		Asset:  o.Asset.DeepCopy(),
 		DisplayAmount: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -160,18 +295,94 @@ func (o PaymentSummaryKeybase) DeepCopy() PaymentSummaryKeybase {
 			return &tmp
 		})(o.DisplayCurrency),
 		NoteB64: o.NoteB64,
+		Ctime:   o.Ctime.DeepCopy(),
+		Rtime:   o.Rtime.DeepCopy(),
 	}
 }
 
-type PaymentSummaryStellar struct {
-	OperationID uint64 `codec:"operationID" json:"operationID"`
-	Ctime       TimeMs `codec:"ctime" json:"ctime"`
+type PaymentSummaryRelay struct {
+	KbTxID          KeybaseTransactionID  `codec:"kbTxID" json:"kbTxID"`
+	TxID            TransactionID         `codec:"txID" json:"txID"`
+	TxStatus        TransactionStatus     `codec:"txStatus" json:"txStatus"`
+	TxErrMsg        string                `codec:"txErrMsg" json:"txErrMsg"`
+	FromStellar     AccountID             `codec:"fromStellar" json:"fromStellar"`
+	From            keybase1.UserVersion  `codec:"from" json:"from"`
+	FromDeviceID    keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
+	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	RelayAccount    AccountID             `codec:"relayAccount" json:"relayAccount"`
+	Amount          string                `codec:"amount" json:"amount"`
+	DisplayAmount   *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
+	DisplayCurrency *string               `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
+	Ctime           TimeMs                `codec:"ctime" json:"ctime"`
+	Rtime           TimeMs                `codec:"rtime" json:"rtime"`
+	BoxB64          string                `codec:"boxB64" json:"boxB64"`
+	TeamID          keybase1.TeamID       `codec:"teamID" json:"teamID"`
+	Claim           *ClaimSummary         `codec:"claim,omitempty" json:"claim,omitempty"`
 }
 
-func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
-	return PaymentSummaryStellar{
-		OperationID: o.OperationID,
-		Ctime:       o.Ctime.DeepCopy(),
+func (o PaymentSummaryRelay) DeepCopy() PaymentSummaryRelay {
+	return PaymentSummaryRelay{
+		KbTxID:       o.KbTxID.DeepCopy(),
+		TxID:         o.TxID.DeepCopy(),
+		TxStatus:     o.TxStatus.DeepCopy(),
+		TxErrMsg:     o.TxErrMsg,
+		FromStellar:  o.FromStellar.DeepCopy(),
+		From:         o.From.DeepCopy(),
+		FromDeviceID: o.FromDeviceID.DeepCopy(),
+		To: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.To),
+		RelayAccount: o.RelayAccount.DeepCopy(),
+		Amount:       o.Amount,
+		DisplayAmount: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.DisplayAmount),
+		DisplayCurrency: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.DisplayCurrency),
+		Ctime:  o.Ctime.DeepCopy(),
+		Rtime:  o.Rtime.DeepCopy(),
+		BoxB64: o.BoxB64,
+		TeamID: o.TeamID.DeepCopy(),
+		Claim: (func(x *ClaimSummary) *ClaimSummary {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Claim),
+	}
+}
+
+type ClaimSummary struct {
+	TxID      TransactionID        `codec:"txID" json:"txID"`
+	TxStatus  TransactionStatus    `codec:"txStatus" json:"txStatus"`
+	TxErrMsg  string               `codec:"txErrMsg" json:"txErrMsg"`
+	Dir       RelayDirection       `codec:"dir" json:"dir"`
+	ToStellar AccountID            `codec:"toStellar" json:"toStellar"`
+	To        keybase1.UserVersion `codec:"to" json:"to"`
+}
+
+func (o ClaimSummary) DeepCopy() ClaimSummary {
+	return ClaimSummary{
+		TxID:      o.TxID.DeepCopy(),
+		TxStatus:  o.TxStatus.DeepCopy(),
+		TxErrMsg:  o.TxErrMsg,
+		Dir:       o.Dir.DeepCopy(),
+		ToStellar: o.ToStellar.DeepCopy(),
+		To:        o.To.DeepCopy(),
 	}
 }
 
