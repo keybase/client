@@ -166,6 +166,7 @@ func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 }
 
 func ForcePublishNewTeamEKForTesting(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
+	defer g.CTrace(ctx, "ForcePublishNewTeamEKForTesting", func() error { return err })()
 	return publishNewTeamEK(ctx, g, teamID, merkleRoot)
 }
 
