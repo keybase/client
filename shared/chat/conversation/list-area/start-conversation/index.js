@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, Text, Button} from '../../../../common-adapters'
-import {styleSheetCreate} from '../../../../styles'
+import {styleSheetCreate, platformStyles} from '../../../../styles'
 
 type Props = {
   participants: string,
@@ -17,7 +17,7 @@ const StartConversation = (props: Props) => (
       Start an end-to-end encrypted chat?
     </Text>
     <Box2 direction="vertical" style={styles.spacer} />
-    <Text type="BodySmall">
+    <Text type="BodySmall" style={styles.addMore}>
       (or add some more participants{' '}
       <Text type="Header" style={styles.arrow}>
         ☝️
@@ -28,12 +28,21 @@ const StartConversation = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
-  arrow: {
-    fontSize: 30,
-  },
+  addMore: platformStyles({
+    common: {
+      lineHeight: 30,
+    },
+  }),
+  arrow: platformStyles({
+    common: {
+      fontSize: 30,
+      lineHeight: 30,
+    },
+  }),
   container: {
     alignItems: 'center',
-    height: '100%',
+    height: '80%',
+    padding: 8,
     width: '100%',
   },
   header: {

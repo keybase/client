@@ -1685,6 +1685,12 @@ const navigateToThread = (_: any, state: TypedState) => {
   }
 }
 
+const mobileNavigateToThread = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
+  if (Constants.isValidConversationIDKey(action.payload.conversationIDKey)) {
+    return Saga.put(Chat2Gen.createNavigateToThread())
+  }
+}
+
 const mobileChangeSelection = (_: any, state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === chatTab
@@ -1870,7 +1876,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation
-    // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
+    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, mobileNavigateToThread)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
     // Unselect the conversation when we go to the inbox
