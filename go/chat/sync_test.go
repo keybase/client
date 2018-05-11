@@ -646,13 +646,10 @@ func TestSyncerBackgroundLoader(t *testing.T) {
 		}), nil
 	}
 	doSync(t, syncer, ri, uid)
-	// Pick up two conv loader runs for the expunge and the normal load
-	for i := 0; i < 2; i++ {
-		select {
-		case <-list.bgConvLoads:
-		case <-time.After(2 * time.Second):
-			require.Fail(t, "no conv load on sync")
-		}
+	select {
+	case <-list.bgConvLoads:
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "no conv load on sync")
 	}
 	time.Sleep(400 * time.Millisecond)
 	select {
