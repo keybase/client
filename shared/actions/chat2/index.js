@@ -631,7 +631,7 @@ const loadMoreMessages = (
     | Chat2Gen.MetasReceivedPayload,
   state: TypedState
 ) => {
-  const numMessagesOnInitialLoad = isMobile ? 20 : 100
+  const numMessagesOnInitialLoad = isMobile ? 20 : 500
   const numMessagesOnScrollback = isMobile ? 100 : 500
 
   // Get the conversationIDKey
@@ -797,6 +797,7 @@ const loadMoreMessages = (
         markAsRead: false,
         messageTypes: loadThreadMessageTypes,
       },
+      pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
       reason:
         reason === 'push'
           ? RPCChatTypes.localGetThreadNonblockReason.push
