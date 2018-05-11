@@ -19,7 +19,6 @@ export type _Props = {
   error?: boolean,
   hideBorder?: boolean,
   icon?: IconType,
-  onEnterKeyDown?: () => void,
 }
 type Props = PropsWithInput<_Props>
 
@@ -29,6 +28,7 @@ type State = {
 
 class NewInput extends React.Component<Props, State> {
   state = {
+    flexable: true,
     focused: false,
   }
 
@@ -70,7 +70,7 @@ class NewInput extends React.Component<Props, State> {
             />
           </Box>
         )}
-        <PlainInput flexable={true} {...this.props} onFocus={this._onFocus} onBlur={this._onBlur} />
+        <PlainInput {...this.props} onFocus={this._onFocus} onBlur={this._onBlur} />
         {this.props.decoration}
       </Box2>
     )
