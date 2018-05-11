@@ -47,6 +47,27 @@
         }
       ],
       "response": null
+    },
+    "updateItem": {
+      "request": [
+        {
+          "name": "msgID",
+          "type": "gregor1.MsgID"
+        },
+        {
+          "name": "cat",
+          "type": "string"
+        },
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "dtime",
+          "type": "gregor1.TimeOrOffset"
+        }
+      ],
+      "response": "gregor1.MsgID"
     }
   },
   "namespace": "keybase.1"

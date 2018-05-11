@@ -88,11 +88,14 @@ func (b *Boxer) log() logger.Logger {
 
 func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
-		ErrType:     err.ExportType(),
-		ErrMsg:      err.Error(),
-		MessageID:   msg.GetMessageID(),
-		MessageType: msg.GetMessageType(),
-		Ctime:       msg.ServerHeader.Ctime,
+		ErrType:            err.ExportType(),
+		ErrMsg:             err.Error(),
+		MessageID:          msg.GetMessageID(),
+		MessageType:        msg.GetMessageType(),
+		Ctime:              msg.ServerHeader.Ctime,
+		IsEphemeral:        msg.IsEphemeral(),
+		IsEphemeralExpired: msg.IsEphemeralExpired(b.clock.Now()),
+		Etime:              msg.Etime(),
 	})
 }
 
@@ -280,13 +283,13 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 
 	// If the message is exploding, load the ephemeral key.
 	var ephemeralSeed *keybase1.TeamEk
-	if boxed.IsExploding() {
+	if boxed.IsEphemeral() {
 		ek, ekErr := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
 			ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
 			boxed.EphemeralMetadata().Generation)
 		if ekErr != nil {
-			b.Debug(ctx, "failed to get a key for exploding message: msgID: %d err: %s", boxed.ServerHeader.MessageID, ekErr.Error())
-			return b.makeErrorMessage(boxed, NewPermanentUnboxingError(ekErr)), nil
+			b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %s", boxed.ServerHeader.MessageID, ekErr.Error())
+			return b.makeErrorMessage(boxed, NewPermanentUnboxingError(NewEphemeralUnboxingError())), nil
 		}
 		ephemeralSeed = &ek
 	}
@@ -395,6 +398,12 @@ func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
 		return res, err
 	// V3 is the same as V2, except that it indicates exploding message support.
 	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3:
+		// Disable reading exploding messages until fully we release support
+		if boxed.Version == chat1.MessageBoxedVersion_V3 {
+			if ekLib := b.G().GetEKLib(); ekLib != nil && !ekLib.ShouldRun(ctx) {
+				return nil, NewPermanentUnboxingError(NewMessageBoxedVersionError(boxed.Version))
+			}
+		}
 		res, err := b.unboxV2orV3(ctx, boxed, membersType, encryptionKey, ephemeralSeed)
 		if err != nil {
 			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
@@ -631,7 +640,7 @@ func (b *Boxer) unboxV2orV3(ctx context.Context, boxed chat1.MessageBoxed,
 		return nil, NewPermanentUnboxingError(err)
 	}
 	bodyEncryptionKey := headerEncryptionKey
-	if boxed.IsExploding() {
+	if boxed.IsEphemeral() {
 		bodyEncryptionKey, err = libkb.DeriveFromSecret(ephemeralSeed.Seed, libkb.DeriveReasonTeamEKExplodingChat)
 		if err != nil {
 			return nil, NewPermanentUnboxingError(err)
@@ -1115,7 +1124,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		version = *b.boxVersionForTesting
 	}
 
-	if msg.IsExploding() && version == chat1.MessageBoxedVersion_V1 {
+	if msg.IsEphemeral() && version == chat1.MessageBoxedVersion_V1 {
 		return nil, fmt.Errorf("cannot use exploding messages with V1")
 	}
 
@@ -1146,7 +1155,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	// version. Make sure we're not using MessageBoxedVersion_V1, since that
 	// doesn't support exploding messages.
 	var ephemeralSeed *keybase1.TeamEk
-	if msg.IsExploding() {
+	if msg.IsEphemeral() {
 		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForEncryption(
 			ctx, tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
 		if err != nil {
@@ -1338,7 +1347,7 @@ func (b *Boxer) boxV2orV3(messagePlaintext chat1.MessagePlaintext, baseEncryptio
 	// Regular messages use the same encryption key for the header and for the
 	// body. Exploding messages use a derived ephemeral key for the body.
 	bodyEncryptionKey := headerEncryptionKey
-	if messagePlaintext.IsExploding() {
+	if messagePlaintext.IsEphemeral() {
 		bodyEncryptionKey, err = libkb.DeriveFromSecret(ephemeralSeed.Seed, libkb.DeriveReasonTeamEKExplodingChat)
 		if err != nil {
 			return nil, err
@@ -1375,7 +1384,7 @@ func (b *Boxer) boxV2orV3(messagePlaintext chat1.MessagePlaintext, baseEncryptio
 		OutboxInfo:        messagePlaintext.ClientHeader.OutboxInfo,
 		OutboxID:          messagePlaintext.ClientHeader.OutboxID,
 		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
-		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata, // TODO only for v3
+		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata,
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
 	})

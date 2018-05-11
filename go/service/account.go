@@ -25,13 +25,14 @@ func NewAccountHandler(xp rpc.Transporter, g *libkb.GlobalContext) *AccountHandl
 	}
 }
 
-func (h *AccountHandler) PassphraseChange(_ context.Context, arg keybase1.PassphraseChangeArg) error {
-	eng := engine.NewPassphraseChange(&arg, h.G())
-	ctx := &engine.Context{
+func (h *AccountHandler) PassphraseChange(ctx context.Context, arg keybase1.PassphraseChangeArg) error {
+	eng := engine.NewPassphraseChange(h.G(), &arg)
+	uis := libkb.UIs{
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.PassphrasePromptArg) (keybase1.GetPassphraseRes, error) {
@@ -51,23 +52,20 @@ func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.Passph
 }
 
 func (h *AccountHandler) EmailChange(nctx context.Context, arg keybase1.EmailChangeArg) error {
-	ctx := &engine.Context{
-		SessionID:  arg.SessionID,
-		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
-		NetContext: nctx,
+	uis := libkb.UIs{
+		SessionID: arg.SessionID,
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 	}
-	eng := engine.NewEmailChange(&arg, h.G())
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(nctx, h.G()).WithUIs(uis)
+	eng := engine.NewEmailChange(h.G(), &arg)
+	return engine.RunEngine2(m, eng)
 }
 
-func (h *AccountHandler) HasServerKeys(_ context.Context, sessionID int) (keybase1.HasServerKeysRes, error) {
+func (h *AccountHandler) HasServerKeys(ctx context.Context, sessionID int) (res keybase1.HasServerKeysRes, err error) {
 	arg := keybase1.HasServerKeysArg{SessionID: sessionID}
-	var res keybase1.HasServerKeysRes
-	eng := engine.NewHasServerKeys(&arg, h.G())
-	ctx := &engine.Context{
-		SessionID: arg.SessionID,
-	}
-	err := engine.RunEngine(eng, ctx)
+	eng := engine.NewHasServerKeys(h.G())
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(libkb.UIs{SessionID: arg.SessionID})
+	err = engine.RunEngine2(m, eng)
 	if err != nil {
 		return res, err
 	}
@@ -79,17 +77,19 @@ func (h *AccountHandler) ResetAccount(ctx context.Context, sessionID int) error 
 		return errors.New("ResetAccount only supported in devel run mode")
 	}
 
-	username := h.G().GetEnv().GetUsername().String()
-	h.G().Log.Debug("resetting account for %s", username)
+	m := libkb.NewMetaContext(ctx, h.G())
 
-	arg := libkb.DefaultPassphrasePromptArg(h.G(), username)
+	username := h.G().GetEnv().GetUsername().String()
+	m.CDebugf("resetting account for %s", username)
+
+	arg := libkb.DefaultPassphrasePromptArg(m, username)
 	secretUI := h.getSecretUI(sessionID, h.G())
 	res, err := secretUI.GetPassphrase(arg, nil)
 	if err != nil {
 		return err
 	}
-	_, err = h.G().LoginState().VerifyPlaintextPassphrase(res.Passphrase, func(lctx libkb.LoginContext) error {
-		return libkb.ResetAccountWithContext(h.G(), lctx, username)
+	_, err = h.G().LoginState().VerifyPlaintextPassphrase(m, res.Passphrase, func(lctx libkb.LoginContext) error {
+		return libkb.ResetAccountWithContext(m.WithLoginContext(lctx), username)
 	})
 	if err != nil {
 		return err

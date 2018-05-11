@@ -95,7 +95,7 @@ type ScanProofsEngine struct {
 	ignorefile string
 }
 
-var _ Engine = (*ScanProofsEngine)(nil)
+var _ Engine2 = (*ScanProofsEngine)(nil)
 
 func NewScanProofsEngine(infile string, indices string, sigid string, ratelimit int, cachefile string, ignorefile string, g *libkb.GlobalContext) *ScanProofsEngine {
 	return &ScanProofsEngine{
@@ -127,8 +127,8 @@ func (e *ScanProofsEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
-	defer e.G().Trace("ScanProofsEngine#Run", func() error { return err })()
+func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("ScanProofsEngine#Run", func() error { return err })()
 
 	var cache *ScanProofsCache
 	saveevery := 10
@@ -137,10 +137,10 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 	if len(e.cachefile) > 0 {
 		lcache, err := LoadScanProofsCache(e.cachefile)
 		if err == nil {
-			e.G().Log.Info("Using cache: %v (%v entries)", e.cachefile, len(lcache.data.Proofs))
+			m.CInfof("Using cache: %v (%v entries)", e.cachefile, len(lcache.data.Proofs))
 			cache = lcache
 		} else {
-			e.G().Log.Warning("Could not load cache: %v", err)
+			m.CWarningf("Could not load cache: %v", err)
 			cache = NewScanProofsCache()
 		}
 	}
@@ -150,7 +150,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 		if err != nil {
 			return fmt.Errorf("Could not open ignore file: %v", err)
 		}
-		e.G().Log.Info("Using ignore file: %v (%v entries)", e.ignorefile, len(ignored))
+		m.CInfof("Using ignore file: %v (%v entries)", e.ignorefile, len(ignored))
 	}
 
 	if len(e.sigid) > 0 && len(e.indices) > 0 {
@@ -159,7 +159,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 
 	// One ticker for each proof type.
 	var tickers = make(map[keybase1.ProofType]*time.Ticker)
-	e.G().Log.Info("Running with ratelimit: %v ms", e.ratelimit)
+	m.CInfof("Running with ratelimit: %v ms", e.ratelimit)
 	if e.ratelimit < 0 {
 		return fmt.Errorf("Ratelimit value can not be negative: %v", e.ratelimit)
 	}
@@ -194,7 +194,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 		return fmt.Errorf("Could not read header: %v", err)
 	}
 
-	e.G().Log.Debug("Reading csv... ")
+	m.CDebugf("Reading csv... ")
 	for {
 		rec, err := r.Read()
 		if err == io.EOF {
@@ -209,7 +209,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 		}
 		records = append(records, record)
 	}
-	e.G().Log.Debug("done")
+	m.CDebugf("done")
 
 	startindex := 0
 	endindex := len(records)
@@ -236,43 +236,43 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 			continue
 		}
 
-		e.G().Log.Info("i:%v user:%v type:%v sigid:%v", i, rec["username"], rec["proof_type"], rec["sig_id"])
+		m.CInfof("i:%v user:%v type:%v sigid:%v", i, rec["username"], rec["proof_type"], rec["sig_id"])
 
-		err := e.ProcessOne(ctx, i, rec, cache, ignored, tickers)
+		err := e.ProcessOne(m, i, rec, cache, ignored, tickers)
 		nrun++
 		if err == nil {
-			e.G().Log.Info("Ok\n")
+			m.CInfof("Ok\n")
 			nok++
 			if cache != nil {
 				cache.Set(rec["sig_id"])
 				if i%saveevery == 0 {
 					saveerr := cache.Save(e.cachefile)
 					if saveerr != nil {
-						e.G().Log.Warning("Could not save cache: %v", saveerr)
+						m.CWarningf("Could not save cache: %v", saveerr)
 					}
 				}
 			}
 		} else {
-			e.G().Log.Errorf("%v FAILED: %v\n", i, err)
+			m.CErrorf("%v FAILED: %v\n", i, err)
 		}
 	}
 
-	e.G().Log.Info("---")
-	e.G().Log.Info("proofs checked  : %v", nrun)
-	e.G().Log.Info("oks             : %v", nok)
-	e.G().Log.Info("fails           : %v", nrun-nok)
+	m.CInfof("---")
+	m.CInfof("proofs checked  : %v", nrun)
+	m.CInfof("oks             : %v", nok)
+	m.CInfof("fails           : %v", nrun-nok)
 
 	if cache != nil {
 		saveerr := cache.Save(e.cachefile)
 		if saveerr != nil {
-			e.G().Log.Warning("Could not save cache: %v", saveerr)
+			m.CWarningf("Could not save cache: %v", saveerr)
 		}
 	}
 
 	return nil
 }
 
-func (e *ScanProofsEngine) ProcessOne(ctx *Context, i int, rec map[string]string, cache *ScanProofsCache, ignored []string, tickers ScanProofsTickers) error {
+func (e *ScanProofsEngine) ProcessOne(m libkb.MetaContext, i int, rec map[string]string, cache *ScanProofsCache, ignored []string, tickers ScanProofsTickers) error {
 	serverstate, err := strconv.Atoi(rec["state"])
 	if err != nil {
 		return fmt.Errorf("Could not read server state: %v", err)
@@ -326,21 +326,21 @@ func (e *ScanProofsEngine) ProcessOne(ctx *Context, i int, rec map[string]string
 	}
 
 	if skip {
-		e.G().Log.Info("skipping: %v", skipreason)
+		m.CInfof("skipping: %v", skipreason)
 		return nil
 	}
 
 	deluserstr := "Error loading user: Deleted"
-	perr1, foundhint1, err := e.CheckOne(ctx, rec, tickers)
+	perr1, foundhint1, err := e.CheckOne(m, rec, tickers)
 	if err != nil {
 		if err.Error() == deluserstr {
-			e.G().Log.Info("deleted user")
+			m.CInfof("deleted user")
 			return nil
 		}
 		return err
 	}
 	// Skip the rate limit on the second check.
-	perr2, foundhint2, err := e.CheckOne(ctx, rec, nil)
+	perr2, foundhint2, err := e.CheckOne(m, rec, nil)
 	if err != nil {
 		return err
 	}
@@ -366,12 +366,12 @@ func (e *ScanProofsEngine) ProcessOne(ctx *Context, i int, rec map[string]string
 // CheckOne checks one proof using two checkers (default, pvl).
 // NOTE: This doesn't make sense anymore because pvl is the default.
 // Returns nil or an error, whether a hint was found, and any more serious error
-func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, tickers ScanProofsTickers) (libkb.ProofError, bool, error) {
+func (e *ScanProofsEngine) CheckOne(m libkb.MetaContext, rec map[string]string, tickers ScanProofsTickers) (libkb.ProofError, bool, error) {
 	uid := keybase1.UID(rec["uid"])
 	sigid := keybase1.SigID(rec["sig_id"])
 
 	foundhint := false
-	hint, err := e.GetSigHint(ctx, uid, sigid)
+	hint, err := e.GetSigHint(m, uid, sigid)
 	if err != nil {
 		return nil, foundhint, err
 	}
@@ -380,12 +380,12 @@ func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, tickers
 	}
 	foundhint = true
 
-	link, err := e.GetRemoteProofChainLink(ctx, uid, sigid)
+	link, err := e.GetRemoteProofChainLink(m, uid, sigid)
 	if err != nil {
 		return nil, foundhint, err
 	}
 
-	pc, err := libkb.MakeProofChecker(e.G().Services, link)
+	pc, err := libkb.MakeProofChecker(m.G().Services, link)
 	if err != nil {
 		return nil, foundhint, err
 	}
@@ -393,20 +393,20 @@ func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, tickers
 	// Beyond this point, external requests will occur, and rate limiting is used
 	ptype := link.GetProofType()
 	if tickers[ptype] != nil {
-		e.G().Log.Info("Waiting for ticker: %v (%v)", keybase1.ProofTypeRevMap[ptype], ptype)
+		m.CInfof("Waiting for ticker: %v (%v)", keybase1.ProofTypeRevMap[ptype], ptype)
 		<-tickers[ptype].C
 	}
 
-	pvlSource := e.G().GetPvlSource()
+	pvlSource := m.G().GetPvlSource()
 	if pvlSource == nil {
 		return nil, foundhint, fmt.Errorf("no pvl source for proof verification")
 	}
-	pvlU, err := pvlSource.GetPVL(ctx.GetNetContext())
+	pvlU, err := pvlSource.GetPVL(m.Ctx())
 	if err != nil {
 		return nil, foundhint, fmt.Errorf("error getting pvl: %s", err)
 	}
 
-	perr := pc.CheckStatus(e.G(), *hint, libkb.ProofCheckerModeActive, pvlU)
+	perr := pc.CheckStatus(m.G(), *hint, libkb.ProofCheckerModeActive, pvlU)
 	if perr != nil {
 		return perr, foundhint, nil
 	}
@@ -415,8 +415,8 @@ func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, tickers
 }
 
 // GetSigHint gets the SigHint. This can return (nil, nil) if nothing goes wrong but there is no hint.
-func (e *ScanProofsEngine) GetSigHint(ctx *Context, uid keybase1.UID, sigid keybase1.SigID) (*libkb.SigHint, error) {
-	sighints, err := libkb.LoadAndRefreshSigHints(ctx.GetNetContext(), uid, e.G())
+func (e *ScanProofsEngine) GetSigHint(m libkb.MetaContext, uid keybase1.UID, sigid keybase1.SigID) (*libkb.SigHint, error) {
+	sighints, err := libkb.LoadAndRefreshSigHints(m.Ctx(), uid, m.G())
 	if err != nil {
 		return nil, err
 	}
@@ -428,8 +428,8 @@ func (e *ScanProofsEngine) GetSigHint(ctx *Context, uid keybase1.UID, sigid keyb
 	return sighint, nil
 }
 
-func (e *ScanProofsEngine) GetRemoteProofChainLink(ctx *Context, uid keybase1.UID, sigid keybase1.SigID) (libkb.RemoteProofChainLink, error) {
-	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), uid))
+func (e *ScanProofsEngine) GetRemoteProofChainLink(m libkb.MetaContext, uid keybase1.UID, sigid keybase1.SigID) (libkb.RemoteProofChainLink, error) {
+	user, err := libkb.LoadUser(libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid))
 	if err != nil {
 		return nil, fmt.Errorf("Error loading user: %v", err)
 	}

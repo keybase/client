@@ -41,8 +41,8 @@ func (g *NaclKeyGen) Generate() (err error) {
 	return
 }
 
-func (g *NaclKeyGen) SaveLKS(gc *GlobalContext, lks *LKSec, lctx LoginContext) error {
-	_, err := WriteLksSKBToKeyring(gc, g.pair, lks, lctx)
+func (g *NaclKeyGen) SaveLKS(m MetaContext, lks *LKSec) error {
+	_, err := WriteLksSKBToKeyring(m, g.pair, lks)
 	return err
 }
 

@@ -160,14 +160,14 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	}
 
-	engCtx := engine.Context{
+	uis := libkb.UIs{
 		// Send a nil IdentifyUI, this IdentifyBehavior should not use it anyway.
 		IdentifyUI: nil,
-		NetContext: ctx,
 	}
 
 	eng := engine.NewIdentify2WithUID(g, &id2arg)
-	err = engine.RunEngine(eng, &engCtx)
+	m := libkb.NewMetaContext(ctx, g).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
 	if err != nil {
 		idRes := eng.Result()
 		g.Log.CDebugf(ctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)

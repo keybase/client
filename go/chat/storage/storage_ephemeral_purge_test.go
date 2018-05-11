@@ -98,10 +98,19 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		require.Equal(t, expectedPurgeInfo, purgeInfo)
 	}
 
-	ephemeralPurgeAndVerify := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo) {
+	ephemeralPurgeAndVerify := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo, msgIDs []chat1.MessageID) {
 		purgeInfo, _ := storage.ephemeralTracker.getPurgeInfo(context.Background(), convID, uid)
-		newPurgeInfo, err := storage.EphemeralPurge(context.Background(), convID, uid, purgeInfo)
+		newPurgeInfo, purgedMsgs, err := storage.EphemeralPurge(context.Background(), convID, uid, purgeInfo)
 		require.NoError(t, err)
+		if msgIDs == nil {
+			require.Nil(t, purgedMsgs)
+		} else {
+			purgedIDs := []chat1.MessageID{}
+			for _, purgedMsg := range purgedMsgs {
+				purgedIDs = append(purgedIDs, purgedMsg.GetMessageID())
+			}
+			require.Equal(t, msgIDs, purgedIDs)
+		}
 		require.Equal(t, expectedPurgeInfo, newPurgeInfo)
 		verifyTrackerState(expectedPurgeInfo)
 	}
@@ -128,8 +137,8 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		IsActive:        true,
 	}
 	verifyTrackerState(expectedPurgeInfo)
-	// Running purge has not effect since nothing is expired
-	ephemeralPurgeAndVerify(expectedPurgeInfo)
+	// Running purge has no effect since nothing is expired
+	ephemeralPurgeAndVerify(expectedPurgeInfo, nil)
 
 	setExpected("A", msgA, false, 0) // TLFNAME messages have no body
 	setExpected("B", msgB, true, 0)
@@ -158,7 +167,8 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		MinUnexplodedID: msgE.GetMessageID(),
 		IsActive:        true,
 	}
-	ephemeralPurgeAndVerify(expectedPurgeInfo)
+	// msgIDs is nil since assertState pulled the conversation and exploded msgC on load.
+	ephemeralPurgeAndVerify(expectedPurgeInfo, nil)
 
 	t.Logf("mergeH")
 	// We add msgH, which is already expired, so it should get purged on entry,
@@ -178,7 +188,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		MinUnexplodedID: msgE.GetMessageID(),
 		IsActive:        true,
 	}
-	ephemeralPurgeAndVerify(expectedPurgeInfo)
+	ephemeralPurgeAndVerify(expectedPurgeInfo, nil)
 	setExpected("F", msgF, false, dontCare)
 	assertState(msgH.GetMessageID())
 
@@ -189,15 +199,27 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		MinUnexplodedID: msgH.GetMessageID(),
 		IsActive:        false,
 	}
-	ephemeralPurgeAndVerify(expectedPurgeInfo)
+	ephemeralPurgeAndVerify(expectedPurgeInfo, []chat1.MessageID{msgE.GetMessageID()})
 	setExpected("E", msgE, false, dontCare)
 	assertState(msgH.GetMessageID())
 
 	t.Logf("purge with no effect")
-	ephemeralPurgeAndVerify(expectedPurgeInfo)
+	ephemeralPurgeAndVerify(expectedPurgeInfo, nil)
 	assertState(msgH.GetMessageID())
 
 	t.Logf("another purge with no effect")
-	ephemeralPurgeAndVerify(expectedPurgeInfo)
+	ephemeralPurgeAndVerify(expectedPurgeInfo, nil)
 	assertState(msgH.GetMessageID())
+
+	// Force a purge with 0 messages, and make sure we process it correctly.
+	newPurgeInfo, purgedMsgs, err := storage.EphemeralPurge(context.Background(), convID, uid,
+		&chat1.EphemeralPurgeInfo{
+			NextPurgeTime:   0,
+			MinUnexplodedID: msgH.GetMessageID() + 1,
+			IsActive:        false,
+		})
+	require.NoError(t, err)
+	require.Nil(t, newPurgeInfo)
+	require.EqualValues(t, []chat1.MessageUnboxed(nil), purgedMsgs)
+	verifyTrackerState(expectedPurgeInfo)
 }

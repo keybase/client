@@ -92,6 +92,24 @@
     },
     {
       "type": "record",
+      "name": "RelayClaimPost",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "keybaseID"
+        },
+        {
+          "type": "RelayDirection",
+          "name": "dir"
+        },
+        {
+          "type": "string",
+          "name": "signedTransaction"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PaymentSummary",
       "fields": [
         {
@@ -292,6 +310,19 @@
         }
       ],
       "response": "PaymentResult"
+    },
+    "submitRelayClaim": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "claim",
+          "type": "RelayClaimPost"
+        }
+      ],
+      "response": "RelayClaimResult"
     },
     "isMasterKeyActive": {
       "request": [

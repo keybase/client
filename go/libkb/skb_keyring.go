@@ -336,24 +336,24 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	return 0, nil
 }
 
-func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm DeviceKeyMap) (ret *SKBKeyringFile, serverHalfSet *LKSecServerHalfSet, err error) {
-	defer k.G().Trace("SKBKeyringFile#Bug3964Repair", func() error { return err })()
+func (k *SKBKeyringFile) Bug3964Repair(m MetaContext, lks *LKSec, dkm DeviceKeyMap) (ret *SKBKeyringFile, serverHalfSet *LKSecServerHalfSet, err error) {
+	defer m.CTrace("SKBKeyringFile#Bug3964Repair", func() error { return err })()
 
 	var newBlocks []*SKB
 	var hitBug3964 bool
 
-	k.G().Log.Debug("| # of blocks=%d", len(k.Blocks))
+	m.CDebugf("| # of blocks=%d", len(k.Blocks))
 
 	for i, b := range k.Blocks {
 
 		if b.Priv.Data == nil {
-			k.G().Log.Debug("| Null private data at block=%d", i)
+			m.CDebugf("| Null private data at block=%d", i)
 			newBlocks = append(newBlocks, b)
 			continue
 		}
 
 		if b.Priv.Encryption != LKSecVersion {
-			k.G().Log.Debug("| Skipping non-LKSec encryption (%d) at block=%d", b.Priv.Encryption, i)
+			m.CDebugf("| Skipping non-LKSec encryption (%d) at block=%d", b.Priv.Encryption, i)
 			newBlocks = append(newBlocks, b)
 			continue
 		}
@@ -362,32 +362,32 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 		var badMask LKSecServerHalf
 		decryption, badMask, err = lks.decryptForBug3964Repair(b.Priv.Data, dkm)
 		if err != nil {
-			k.G().Log.Debug("| Decryption failed at block=%d; keeping as is (%s)", i, err)
+			m.CDebugf("| Decryption failed at block=%d; keeping as is (%s)", i, err)
 			newBlocks = append(newBlocks, b)
 			continue
 		}
 
 		if badMask.IsNil() {
-			k.G().Log.Debug("| Nil badmask at block=%d", i)
+			m.CDebugf("| Nil badmask at block=%d", i)
 			newBlocks = append(newBlocks, b)
 			continue
 		}
 
 		hitBug3964 = true
-		k.G().Log.Debug("| Hit bug 3964 at SKB block=%d", i)
+		m.CDebugf("| Hit bug 3964 at SKB block=%d", i)
 		if serverHalfSet == nil {
 			serverHalfSet = NewLKSecServerHalfSet()
 		}
 		serverHalfSet.Add(badMask)
 
-		reencryption, err = lks.Encrypt(decryption)
+		reencryption, err = lks.Encrypt(m, decryption)
 		if err != nil {
-			k.G().Log.Debug("| reencryption bug at block=%d", i)
+			m.CDebugf("| reencryption bug at block=%d", i)
 			return nil, nil, err
 		}
 
 		newSKB := &SKB{
-			Contextified: NewContextified(k.G()),
+			Contextified: NewContextified(m.G()),
 			Pub:          b.Pub,
 			Type:         b.Type,
 			Priv: SKBPriv{

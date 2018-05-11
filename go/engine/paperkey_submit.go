@@ -45,18 +45,18 @@ func (e *PaperKeySubmit) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PaperKeySubmit) Run(ctx *Context) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+func (e *PaperKeySubmit) Run(m libkb.MetaContext) error {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {
 		return err
 	}
 
-	e.pair, err = matchPaperKey(ctx, e.G(), me, e.paperPhrase)
+	e.pair, err = matchPaperKey(m, me, e.paperPhrase)
 	if err != nil {
 		return err
 	}
 
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+	aerr := m.G().LoginState().Account(func(a *libkb.Account) {
 		err = a.SetUnlockedPaperKey(e.pair.sigKey, e.pair.encKey)
 	}, "PaperKeySubmit - cache paper key")
 	if aerr != nil {
@@ -68,10 +68,10 @@ func (e *PaperKeySubmit) Run(ctx *Context) error {
 
 	// send a notification that a paper key has been cached
 	// for rekey purposes
-	e.G().NotifyRouter.HandlePaperKeyCached(me.GetUID(), e.pair.encKey.GetKID(), e.pair.sigKey.GetKID())
+	m.G().NotifyRouter.HandlePaperKeyCached(me.GetUID(), e.pair.encKey.GetKID(), e.pair.sigKey.GetKID())
 
 	// XXX - this is temporary until KBFS handles the above notification
-	e.G().UserChanged(me.GetUID())
+	m.G().UserChanged(me.GetUID())
 
 	return nil
 }

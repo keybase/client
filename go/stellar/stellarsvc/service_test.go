@@ -93,10 +93,10 @@ func TestUpkeep(t *testing.T) {
 	require.Equal(t, originalPukGen, pukGen)
 
 	t.Logf("rotate puk")
-	engCtx := &engine.Context{NetContext: context.Background()}
 	engArg := &engine.PerUserKeyRollArgs{}
 	eng := engine.NewPerUserKeyRoll(tcs[0].G, engArg)
-	err = engine.RunEngine(eng, engCtx)
+	m := libkb.NewMetaContextTODO(tcs[0].G)
+	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
 	require.True(t, eng.DidNewKey)
 
@@ -434,6 +434,17 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.Equal(t, out.RelayAccountID, accountID)
 	require.Len(t, relaySecrets.StellarID, 64)
 	require.Equal(t, "hey", relaySecrets.Note)
+}
+
+func TestGetAvailableCurrencies(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	stellar.ServiceInit(tcs[0].G)
+	conf, err := tcs[0].G.GetStellar().GetServerDefinitions(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, conf.Currencies["USD"].Name, "US Dollar")
+	require.Equal(t, conf.Currencies["EUR"].Name, "Euro")
 }
 
 type TestContext struct {

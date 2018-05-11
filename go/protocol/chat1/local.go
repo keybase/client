@@ -2230,6 +2230,7 @@ const (
 	MessageUnboxedErrorType_BADVERSION_CRITICAL MessageUnboxedErrorType = 1
 	MessageUnboxedErrorType_BADVERSION          MessageUnboxedErrorType = 2
 	MessageUnboxedErrorType_IDENTIFY            MessageUnboxedErrorType = 3
+	MessageUnboxedErrorType_EPHEMERAL           MessageUnboxedErrorType = 4
 )
 
 func (o MessageUnboxedErrorType) DeepCopy() MessageUnboxedErrorType { return o }
@@ -2239,6 +2240,7 @@ var MessageUnboxedErrorTypeMap = map[string]MessageUnboxedErrorType{
 	"BADVERSION_CRITICAL": 1,
 	"BADVERSION":          2,
 	"IDENTIFY":            3,
+	"EPHEMERAL":           4,
 }
 
 var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
@@ -2246,6 +2248,7 @@ var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
 	1: "BADVERSION_CRITICAL",
 	2: "BADVERSION",
 	3: "IDENTIFY",
+	4: "EPHEMERAL",
 }
 
 func (e MessageUnboxedErrorType) String() string {
@@ -2256,20 +2259,26 @@ func (e MessageUnboxedErrorType) String() string {
 }
 
 type MessageUnboxedError struct {
-	ErrType     MessageUnboxedErrorType `codec:"errType" json:"errType"`
-	ErrMsg      string                  `codec:"errMsg" json:"errMsg"`
-	MessageID   MessageID               `codec:"messageID" json:"messageID"`
-	MessageType MessageType             `codec:"messageType" json:"messageType"`
-	Ctime       gregor1.Time            `codec:"ctime" json:"ctime"`
+	ErrType            MessageUnboxedErrorType `codec:"errType" json:"errType"`
+	ErrMsg             string                  `codec:"errMsg" json:"errMsg"`
+	MessageID          MessageID               `codec:"messageID" json:"messageID"`
+	MessageType        MessageType             `codec:"messageType" json:"messageType"`
+	Ctime              gregor1.Time            `codec:"ctime" json:"ctime"`
+	IsEphemeral        bool                    `codec:"ie" json:"ie"`
+	IsEphemeralExpired bool                    `codec:"iex" json:"iex"`
+	Etime              gregor1.Time            `codec:"e" json:"e"`
 }
 
 func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 	return MessageUnboxedError{
-		ErrType:     o.ErrType.DeepCopy(),
-		ErrMsg:      o.ErrMsg,
-		MessageID:   o.MessageID.DeepCopy(),
-		MessageType: o.MessageType.DeepCopy(),
-		Ctime:       o.Ctime.DeepCopy(),
+		ErrType:            o.ErrType.DeepCopy(),
+		ErrMsg:             o.ErrMsg,
+		MessageID:          o.MessageID.DeepCopy(),
+		MessageType:        o.MessageType.DeepCopy(),
+		Ctime:              o.Ctime.DeepCopy(),
+		IsEphemeral:        o.IsEphemeral,
+		IsEphemeralExpired: o.IsEphemeralExpired,
+		Etime:              o.Etime.DeepCopy(),
 	}
 }
 

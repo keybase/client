@@ -343,7 +343,7 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 	return m.MessageBody.Deletehistory(), nil
 }
 
-func (m MessagePlaintext) IsExploding() bool {
+func (m MessagePlaintext) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
 
@@ -358,7 +358,7 @@ func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
 	return (o == nil) && (r == nil)
 }
 
-func (m MessageUnboxedValid) IsExploding() bool {
+func (m MessageUnboxedValid) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
 
@@ -366,22 +366,29 @@ func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
 }
 
-func (m MessageUnboxedValid) Etime() gregor1.Time {
-	// The server sends us (untrusted) ctime of the message and server's view
-	// of now. We use these to calculate the remaining lifetime on an ephemeral
-	// message, returning an etime based on our received time.
-	metadata := m.EphemeralMetadata()
-	header := m.ServerHeader
-	originalLifetime := time.Second * time.Duration(metadata.Lifetime)
-	elapsedLifetime := header.Ctime.Time().Sub(header.Now.Time())
+func Etime(lifetime gregor1.DurationSec, ctime, rtime, now gregor1.Time) gregor1.Time {
+	originalLifetime := time.Second * time.Duration(lifetime)
+	elapsedLifetime := ctime.Time().Sub(now.Time())
 	remainingLifetime := originalLifetime - elapsedLifetime
 	// If the server's view doesn't make sense, just use the signed lifetime
 	// from the message.
 	if remainingLifetime > originalLifetime {
 		remainingLifetime = originalLifetime
 	}
-	etime := m.ClientHeader.Rtime.Time().Add(remainingLifetime)
+	etime := rtime.Time().Add(remainingLifetime)
 	return gregor1.ToTime(etime)
+}
+
+func (m MessageUnboxedValid) Etime() gregor1.Time {
+	// The server sends us (untrusted) ctime of the message and server's view
+	// of now. We use these to calculate the remaining lifetime on an ephemeral
+	// message, returning an etime based on our received time.
+	metadata := m.EphemeralMetadata()
+	if metadata == nil {
+		return 0
+	}
+	header := m.ServerHeader
+	return Etime(metadata.Lifetime, header.Ctime, m.ClientHeader.Rtime, header.Now)
 }
 
 func (m MessageUnboxedValid) RemainingLifetime() time.Duration {
@@ -390,7 +397,7 @@ func (m MessageUnboxedValid) RemainingLifetime() time.Duration {
 }
 
 func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
-	if !m.IsExploding() {
+	if !m.IsEphemeral() {
 		return false
 	}
 	etime := m.Etime().Time()
@@ -398,15 +405,11 @@ func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 }
 
 func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
-	if !m.IsExploding() {
+	if !m.IsEphemeral() {
 		return false
 	}
 	etime := m.Etime()
 	return etime.Time().Add(explosionLifetime).Before(now)
-}
-
-func (m UIMessageValid) IsExploding() bool {
-	return m.EphemeralMetadata != nil
 }
 
 func (b MessageBody) IsNil() bool {
@@ -489,8 +492,35 @@ func (m MessageBoxed) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
 }
 
-func (m MessageBoxed) IsExploding() bool {
+func (m MessageBoxed) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
+}
+
+func (m MessageBoxed) Etime() gregor1.Time {
+	// The server sends us (untrusted) ctime of the message and server's view
+	// of now. We use these to calculate the remaining lifetime on an ephemeral
+	// message, returning an etime based on the current time.
+	metadata := m.EphemeralMetadata()
+	if metadata == nil {
+		return 0
+	}
+	return Etime(metadata.Lifetime, m.ServerHeader.Ctime, gregor1.ToTime(time.Now()), m.ServerHeader.Now)
+}
+
+func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
+	if !m.IsEphemeral() {
+		return false
+	}
+	etime := m.Etime().Time()
+	return etime.Before(now) || etime.Equal(now)
+}
+
+func (m MessageBoxed) HideExplosion(now time.Time) bool {
+	if !m.IsEphemeral() {
+		return false
+	}
+	etime := m.Etime()
+	return etime.Time().Add(explosionLifetime).Before(now)
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{

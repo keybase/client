@@ -31,7 +31,7 @@ func _testProveCheck(t *testing.T, sigVersion libkb.SigVersion) {
 		SigVersion:   &sv,
 	}
 
-	eng := NewProve(&arg, tc.G)
+	eng := NewProve(tc.G, &arg)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
@@ -51,19 +51,20 @@ func _testProveCheck(t *testing.T, sigVersion libkb.SigVersion) {
 
 	proveUI := &ProveUIMock{hook: hook}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	err := RunEngine(eng, &ctx)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	checkEng := NewProveCheck(tc.G, eng.sigID)
-	err = RunEngine(checkEng, &ctx)
+	err = RunEngine2(m, checkEng)
 	if err != nil {
 		t.Fatal(err)
 	}

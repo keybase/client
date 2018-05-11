@@ -5,12 +5,15 @@ import {storiesOf} from '../stories/storybook'
 import asset from './asset/index.stories'
 import walletList from './wallet-list/index.stories'
 import wallet from './wallet/index.stories'
+import sendForm from './send-form/index.stories'
 
 const load = () => {
   asset()
-  // these should actually be implemented in their own files Aka walletlist/index. Stories. Js
+  sendForm()
   walletList()
   wallet()
+
+  /* Still TODO */
   storiesOf('Wallets', module).add('Wallet Onboarding', () => (
     <Text type="BodyBig">Wallet Onboarding TBD</Text>
   ))

@@ -218,7 +218,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	require.True(tt.t, u.device.deviceKey.KID.Exists())
 	if paper {
 		require.Len(tt.t, backups, 1, "backup keys")
-		u.backupKey = backups[0]
+		u.backupKey = &backups[0]
 		u.backupKey.secret = signupUI.info.displayedPaperKey
 	} else {
 		require.Len(tt.t, backups, 0, "backup keys")
@@ -239,7 +239,7 @@ type userPlusDevice struct {
 	username                 string
 	passphrase               string
 	userInfo                 *signupInfo
-	backupKey                backupKey
+	backupKey                *backupKey
 	device                   *deviceWrapper
 	tc                       *libkb.TestContext
 	deviceClient             keybase1.DeviceClient
@@ -665,7 +665,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	require.NotNil(t, u.backupKey, "Add user with paper key to use provisionNewDevice")
 
 	// ui for provisioning
-	ui := &rekeyProvisionUI{username: u.username, backupKey: u.backupKey}
+	ui := &rekeyProvisionUI{username: u.username, backupKey: *u.backupKey}
 	{
 		_, xp, err := client.GetRPCClientWithContext(g)
 		require.NoError(t, err)
@@ -695,6 +695,8 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	require.NoError(t, err)
 	device.deviceKey.KID = skey.GetKID()
 	require.True(t, device.deviceKey.KID.Exists())
+	device.deviceKey.DeviceID = g.ActiveDevice.DeviceID()
+	require.True(t, device.deviceKey.DeviceID.Exists())
 
 	return device
 }
@@ -781,10 +783,11 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 	g := u.device.tctx.G
 	arg := &engine.PerUserKeyUpgradeArgs{}
 	eng := engine.NewPerUserKeyUpgrade(g, arg)
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI: u.tc.G.Log,
 	}
-	err := engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
 	require.NoError(t, err, "Run engine.NewPerUserKeyUpgrade")
 }
 
@@ -929,16 +932,17 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 		require.NotNil(t, target)
 		revokedKID = target.Kid
 
-		revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{
+		revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
 			ID:        target.ID,
 			ForceSelf: true,
 			ForceLast: false,
-		}, alice.tc.G)
-		ectx := &engine.Context{
+		})
+		uis := libkb.UIs{
 			LogUI:    alice.tc.G.Log,
 			SecretUI: alice.newSecretUI(),
 		}
-		err := engine.RunEngine(revokeEngine, ectx)
+		m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
+		err := engine.RunEngine2(m, revokeEngine)
 		require.NoError(t, err)
 	}
 
@@ -1010,16 +1014,17 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 		}
 		require.NotNil(t, target)
 
-		revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{
+		revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
 			ID:        target.ID,
 			ForceSelf: true,
 			ForceLast: false,
-		}, alice.tc.G)
-		ectx := &engine.Context{
+		})
+		uis := libkb.UIs{
 			LogUI:    alice.tc.G.Log,
 			SecretUI: alice.newSecretUI(),
 		}
-		err := engine.RunEngine(revokeEngine, ectx)
+		m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
+		err := engine.RunEngine2(m, revokeEngine)
 		require.NoError(t, err)
 	}
 

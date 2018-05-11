@@ -174,6 +174,14 @@ func (m *mockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convI
 	return nil, nil
 }
 
+func (m *mockChatHelper) AckMobileNotificationSuccess(ctx context.Context, pushIDs []string) {
+}
+
+func (m *mockChatHelper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, membersType chat1.ConversationMembersType, pushIDs []string, payload string) (string, error) {
+	return "", nil
+}
+
 func (m *mockChatHelper) convKey(name string, topicName *string) string {
 	if topicName == nil {
 		return name + ":general"

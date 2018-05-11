@@ -47,10 +47,12 @@ func (s *CmdTestPassphrase) Run() (err error) {
 		return err
 	}
 
+	ctx := context.Background()
+
 	arg := keybase1.PassphrasePromptArg{
-		GuiArg: libkb.DefaultPassphraseArg(s.G()),
+		GuiArg: libkb.DefaultPassphraseArg(libkb.NewMetaContext(ctx, s.G())),
 	}
-	res, err := cli.PassphrasePrompt(context.TODO(), arg)
+	res, err := cli.PassphrasePrompt(ctx, arg)
 	if err != nil {
 		return err
 	}

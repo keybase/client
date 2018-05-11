@@ -173,7 +173,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 			{Kid: kp.GetKID(), Ciphertext: encryptedBytes32, Nonce: nonce, PublicKey: peersPublicKey},
 		},
 	}
-	res, err := UnboxBytes32Any(context.TODO(), tc.G, f, arg)
+	res, err := UnboxBytes32Any(NewMetaContextForTest(tc), f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -303,13 +303,14 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 	u := CreateAndSignupFakeUser(tc, "fu")
 
 	// create a paper key and cache it
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: u.NewSecretUI(),
 	}
 	peng := NewPaperKey(tc.G)
-	if err := RunEngine(peng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, peng); err != nil {
 		t.Fatal(err)
 	}
 	err := tc.G.LoginState().Account(func(a *libkb.Account) {
@@ -368,7 +369,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		},
 		PromptPaper: true,
 	}
-	res, err := UnboxBytes32Any(context.TODO(), tc.G, f, arg)
+	res, err := UnboxBytes32Any(NewMetaContextForTest(tc), f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -394,7 +395,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		return secretUI
 	}
 
-	res, err = UnboxBytes32Any(context.TODO(), tc.G, f, arg)
+	res, err = UnboxBytes32Any(NewMetaContextForTest(tc), f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}

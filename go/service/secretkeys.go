@@ -25,17 +25,18 @@ func NewSecretKeysHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SecretKey
 	}
 }
 
-func (h *SecretKeysHandler) GetSecretKeys(_ context.Context, sessionID int) (keybase1.SecretKeys, error) {
+func (h *SecretKeysHandler) GetSecretKeys(ctx context.Context, sessionID int) (keybase1.SecretKeys, error) {
 	if h.G().Env.GetRunMode() == libkb.ProductionRunMode {
 		return keybase1.SecretKeys{}, errors.New("GetSecretKeys is a devel-only RPC")
 	}
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),
 		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: sessionID,
 	}
 	eng := engine.NewSecretKeysEngine(h.G())
-	err := engine.RunEngine(eng, &ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
 	if err != nil {
 		return keybase1.SecretKeys{}, err
 	}

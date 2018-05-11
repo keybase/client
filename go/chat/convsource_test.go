@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -457,6 +456,10 @@ func (f failingUpak) LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid ke
 	require.Fail(f.t, "LoadV2WithKID call")
 	return nil, nil
 }
+func (f failingUpak) CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n libkb.NormalizedUsername) error {
+	require.Fail(f.t, "CheckDeviceForUIDAndUsername call")
+	return nil
+}
 
 func TestGetThreadCaching(t *testing.T) {
 	ctx, world, ri, _, sender, _ := setupTest(t, 1)
@@ -883,8 +886,8 @@ func TestClearFromDelete(t *testing.T) {
 	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2})
 	require.NoError(t, err)
 	tv, err := hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil, 0)
-	require.Error(t, err)
-	require.IsType(t, storage.MissError{}, err)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(tv.Messages))
 
 	hcs.numExpungeReload = 1
 	hcs.ClearFromDelete(ctx, uid, conv.GetConvID(), 4)

@@ -6,7 +6,6 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 type card struct {
@@ -31,17 +30,17 @@ func (c *card) GetAppStatus() *libkb.AppStatus {
 	return &c.Status
 }
 
-func getUserCard(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
-	defer g.CTrace(ctx, "getUserCard", func() error { return err })()
+func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
+	defer m.CTrace("getUserCard", func() error { return err })()
 
-	cached, err := g.CardCache.Get(uid, useSession)
+	cached, err := m.G().CardCache.Get(uid, useSession)
 	if err != nil {
-		g.Log.CDebugf(ctx, "CardCache.Get error: %s", err)
+		m.CDebugf("CardCache.Get error: %s", err)
 	} else if cached != nil {
-		g.Log.CDebugf(ctx, "CardCache.Get hit for %s", uid)
+		m.CDebugf("CardCache.Get hit for %s", uid)
 		return cached, nil
 	}
-	g.Log.CDebugf(ctx, "CardCache.Get miss for %s", uid)
+	m.CDebugf("CardCache.Get miss for %s", uid)
 
 	sessionType := libkb.APISessionTypeNONE
 	if useSession {
@@ -51,13 +50,13 @@ func getUserCard(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, 
 		Endpoint:    "user/card",
 		SessionType: sessionType,
 		Args:        libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
-		NetContext:  ctx,
+		NetContext:  m.Ctx(),
 	}
 
 	var card card
 
-	if err = g.API.GetDecode(arg, &card); err != nil {
-		g.Log.CWarningf(ctx, "error getting user/card for %s: %s\n", uid, err)
+	if err = m.G().API.GetDecode(arg, &card); err != nil {
+		m.CWarningf("error getting user/card for %s: %s\n", uid, err)
 		return nil, err
 	}
 
@@ -75,15 +74,15 @@ func getUserCard(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, 
 		TeamShowcase:  card.TeamShowcase,
 	}
 
-	if err := g.CardCache.Set(ret, useSession); err != nil {
-		g.Log.CDebugf(ctx, "CardCache.Set error: %s", err)
+	if err := m.G().CardCache.Set(ret, useSession); err != nil {
+		m.CDebugf("CardCache.Set error: %s", err)
 	}
 
 	return ret, nil
 }
 
-func displayUserCard(ctx context.Context, g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) error {
-	card, err := getUserCard(ctx, g, uid, useSession)
+func displayUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) error {
+	card, err := getUserCard(m, uid, useSession)
 	if err != nil {
 		return err
 	}
@@ -91,19 +90,19 @@ func displayUserCard(ctx context.Context, g *libkb.GlobalContext, iui libkb.Iden
 		return nil
 	}
 
-	return iui.DisplayUserCard(*card)
+	return m.UIs().IdentifyUI.DisplayUserCard(*card)
 }
 
-func displayUserCardAsync(ctx context.Context, g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) <-chan error {
+func displayUserCardAsync(m libkb.MetaContext, uid keybase1.UID, useSession bool) <-chan error {
 	ch := make(chan error)
 	go func() {
-		ch <- displayUserCard(ctx, g, iui, uid, useSession)
+		ch <- displayUserCard(m, uid, useSession)
 	}()
 	return ch
 }
 
-func GetFullName(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (string, error) {
-	card, err := getUserCard(ctx, g, uid, false)
+func GetFullName(m libkb.MetaContext, uid keybase1.UID) (string, error) {
+	card, err := getUserCard(m, uid, false)
 	if err != nil {
 		return "", err
 	}
