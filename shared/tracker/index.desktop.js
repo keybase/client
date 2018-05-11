@@ -10,9 +10,9 @@ import NonUser from './non-user'
 import {autoResize} from '../desktop/remote/util'
 import TrackerError from './error.desktop'
 
-import type {RenderProps} from '.'
+import type {Props} from '.'
 
-export default class TrackerRender extends PureComponent<RenderProps> {
+export default class TrackerRender extends PureComponent<Props> {
   componentDidMount() {
     autoResize()
   }

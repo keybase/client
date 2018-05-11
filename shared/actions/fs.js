@@ -249,7 +249,9 @@ function cancelTransfer({payload: {key}}: FsGen.CancelTransferPayload, state: Ty
     console.log(`unknown transfer: ${key}`)
     return
   }
-  const {meta: {opID}} = transfer
+  const {
+    meta: {opID},
+  } = transfer
   return Saga.call(RPCTypes.SimpleFSSimpleFSCancelRpcPromise, {opID})
 }
 

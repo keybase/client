@@ -20,7 +20,9 @@ const mapStateToProps = (state: TypedState, ownProps: {}) => {
     }
   }
 
-  const {planBilling: {availablePlans, usage, plan, paymentInfo}} = state
+  const {
+    planBilling: {availablePlans, usage, plan, paymentInfo},
+  } = state
   let planProps
   if (plan && usage) {
     const freeSpaceGB = plan.gigabytes - usage.gigabytes

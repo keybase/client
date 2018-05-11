@@ -140,7 +140,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         })
         dispatch(NotificationsGen.createListenForKBFSNotifications())
         if (!opts.isReconnect) {
-          dispatch(async (): Promise<*> => {
+          dispatch(async () => {
             await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             if (getState().config.loggedIn) {
               // If we're logged in, restore any saved route state and

@@ -288,7 +288,11 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
   const showBold = !isSelected && hasUnread
   const subColor = isError
     ? globalColors.red
-    : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
+    : isSelected
+      ? globalColors.white
+      : hasUnread
+        ? globalColors.black_75
+        : globalColors.black_40
   const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
   const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 

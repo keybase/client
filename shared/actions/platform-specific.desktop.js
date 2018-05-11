@@ -23,7 +23,7 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
 
-function requestPushPermissions(): Promise<*> {
+function requestPushPermissions() {
   throw new Error('Push permissions unsupported on this platform')
 }
 
@@ -35,7 +35,7 @@ function setAppState(toMerge: Object) {
   ipcRenderer.send('setAppState', toMerge)
 }
 
-function getAppState(): Promise<*> {
+function getAppState() {
   return new Promise((resolve, reject) => {
     ipcRenderer.once('getAppStateReply', (event, data) => resolve(data))
     ipcRenderer.send('getAppState')
@@ -56,11 +56,11 @@ function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
-function checkPermissions(): Promise<*> {
+function checkPermissions() {
   throw new Error('Push permissions unsupported on this platform')
 }
 
-function setShownPushPrompt(): Promise<*> {
+function setShownPushPrompt() {
   throw new Error('Push permissions unsupported on this platform')
 }
 

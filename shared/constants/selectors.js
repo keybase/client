@@ -8,11 +8,22 @@ const usernameSelector = (state: TypedState) => state.config.username
 const loggedInSelector = (state: TypedState) => state.config.loggedIn
 
 const cachedSearchResults = (
-  {entities: {search: {searchQueryToResult}}}: TypedState,
+  {
+    entities: {
+      search: {searchQueryToResult},
+    },
+  }: TypedState,
   searchQuery: SearchQuery
 ) => searchQueryToResult.get(searchQuery)
 
-const searchResultSelector = ({entities: {search: {searchResults}}}: TypedState, username: string) => {
+const searchResultSelector = (
+  {
+    entities: {
+      search: {searchResults},
+    },
+  }: TypedState,
+  username: string
+) => {
   return searchResults.get(username)
 }
 
@@ -20,7 +31,11 @@ const amIFollowing = (state: TypedState, otherUser: string) => state.config.foll
 const amIBeingFollowed = (state: TypedState, otherUser: string) => state.config.followers.has(otherUser)
 
 const searchResultMapSelector = createSelector(
-  ({entities: {search: {searchResults}}}: TypedState) => searchResults,
+  ({
+    entities: {
+      search: {searchResults},
+    },
+  }: TypedState) => searchResults,
   searchResults => searchResults
 )
 

@@ -298,22 +298,22 @@ type Fn1<T1, R> = (t1: T1) => R
 type Fn2<T1, T2, R> = (t1: T1, t2: T2) => R
 type Fn3<T1, T2, T3, R> = (t1: T1, t2: T2, t3: T3) => R
 
-type CallAndWrap = (<R, Fn: Fn0<Promise<R>>, WR: Result<R, *>, WFn: Fn0<WR>>(
+type CallAndWrap = (<R, Fn: Fn0<Promise<R>>, WR: Result<R, any>, WFn: Fn0<WR>>(
   fn: Fn
   // $FlowIssue gives expected polymorphic type error
 ) => $Call<call<WR, WFn>>) &
-  (<R, T1, Fn: Fn1<T1, Promise<R>>, WR: Result<R, *>, WFn: Fn1<T1, WR>>(
+  (<R, T1, Fn: Fn1<T1, Promise<R>>, WR: Result<R, any>, WFn: Fn1<T1, WR>>(
     fn: Fn,
     t1: T1
     // $FlowIssue gives expected polymorphic type error
   ) => $Call<call<T1, WR, WFn>>) &
-  (<R, T1, T2, Fn: Fn2<T1, T2, Promise<R>>, WR: Result<R, *>, WFn: Fn2<T1, T2, WR>>(
+  (<R, T1, T2, Fn: Fn2<T1, T2, Promise<R>>, WR: Result<R, any>, WFn: Fn2<T1, T2, WR>>(
     fn: Fn,
     t1: T1,
     t2: T2
     // $FlowIssue gives expected polymorphic type error
   ) => $Call<call<T1, T2, WR, WFn>>) &
-  (<R, T1, T2, T3, Fn: Fn3<T1, T2, T3, Promise<R>>, WR: Result<R, *>, WFn: Fn3<T1, T2, T3, WR>>(
+  (<R, T1, T2, T3, Fn: Fn3<T1, T2, T3, Promise<R>>, WR: Result<R, any>, WFn: Fn3<T1, T2, T3, WR>>(
     fn: Fn,
     t1: T1,
     t2: T2,

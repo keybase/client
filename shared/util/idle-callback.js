@@ -52,15 +52,17 @@ const useFallback = typeof window === 'undefined' || isAndroid || !window.reques
 const requestIdleCallback = forceImmediateLogging
   ? immediateCallback
   : useFallback
-    ? isMobile ? runAfterInteractionsFallback : timeoutFallback
+    ? isMobile
+      ? runAfterInteractionsFallback
+      : timeoutFallback
     : window.requestIdleCallback.bind(window)
 const cancelIdleCallback = useFallback
-  ? isMobile ? cancelRunAfterInteractionsFallback : cancelIdleCallbackFallback
+  ? isMobile
+    ? cancelRunAfterInteractionsFallback
+    : cancelIdleCallbackFallback
   : window.cancelIdleCallback.bind(window)
 
-const onIdlePromise = (timeout: number = 100) => {
-  const p: Promise<*> = new Promise(resolve => requestIdleCallback(resolve, {timeout}))
-  return p
-}
+const onIdlePromise = (timeout: number = 100) =>
+  new Promise(resolve => requestIdleCallback(resolve, {timeout}))
 
 export {requestIdleCallback, cancelIdleCallback, onIdlePromise}

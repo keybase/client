@@ -158,7 +158,7 @@ func TestResetMember(t *testing.T) {
 	ann.addWriter(team, bob)
 	ann.addWriter(team, joe)
 
-	// Ann now makes a new teamEk which joe can access but bob cannot
+	// ann now makes a new teamEk which joe can access but bob cannot
 	teamEK2, err := annEkLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
 
@@ -235,45 +235,85 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	require.Equal(t, maxGeneration, expectedMaxGeneration)
 }
 
+func TestRotateSkipTeamEKRoll(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUserWithPaper("bob")
+
+	annG := ann.tc.G
+	ephemeral.ServiceInit(annG)
+	bobG := bob.tc.G
+	ephemeral.ServiceInit(bobG)
+
+	teamID, teamName := ann.createTeam2()
+
+	// After rotate, we should have rolled the teamEK if one existed.
+	ekLib := annG.GetEKLib()
+	teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	require.NoError(t, err)
+
+	// This is a hack to skip the teamEK generation during the PTK roll.
+	// We want to validate that we can create a new teamEK after this roll even
+	// though our existing teamEK is signed by a (now) invalid PTK
+	annG.SetEKLib(nil)
+
+	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER)
+
+	bob.revokePaperKey()
+	ann.waitForRotateByID(teamID, keybase1.Seqno(3))
+	annG.SetEKLib(ekLib)
+
+	// After rotating, ensure we can create a new TeamEK without issue.
+	merkleRoot, err := ann.tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	require.NoError(t, err)
+	metadata, err := ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), ann.tc.G, teamID, *merkleRoot)
+	require.NoError(t, err)
+	require.Equal(t, teamEK.Metadata.Generation+1, metadata.Generation)
+}
+
 func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	alice := tt.addUserWithPaper("alice")
+	ann := tt.addUserWithPaper("ann")
 
-	teamID, _ := alice.createTeam2()
+	teamID, _ := ann.createTeam2()
 
-	ephemeral.ServiceInit(alice.tc.G)
-	ekLib := alice.tc.G.GetEKLib()
+	ephemeral.ServiceInit(ann.tc.G)
+	ekLib := ann.tc.G.GetEKLib()
 
 	_, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
 
 	// Provision a new device that we can revoke.
-	newDevice := alice.provisionNewDevice()
+	newDevice := ann.provisionNewDevice()
 
 	// Revoke it.
-	revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
+	revokeEngine := engine.NewRevokeDeviceEngine(ann.tc.G, engine.RevokeDeviceEngineArgs{
 		ID:        newDevice.deviceKey.DeviceID,
 		ForceSelf: true,
 		ForceLast: false,
+		// We don't need a UserEK here since we force generate it below
+		SkipUserEKForTesting: true,
 	})
 	uis := libkb.UIs{
-		LogUI:    alice.tc.G.Log,
-		SecretUI: alice.newSecretUI(),
+		LogUI:    ann.tc.G.Log,
+		SecretUI: ann.newSecretUI(),
 	}
-	m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
+	m := libkb.NewMetaContextForTest(*ann.tc).WithUIs(uis)
 	err = engine.RunEngine2(m, revokeEngine)
 	require.NoError(t, err)
 
 	// Now provision a new userEK. This makes sure that we don't get confused
 	// by the revoked device's deviceEKs.
-	merkleRoot, err := alice.tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	merkleRoot, err := ann.tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
-	_, err = ephemeral.ForcePublishNewUserEKForTesting(context.Background(), alice.tc.G, *merkleRoot)
+	_, err = ephemeral.ForcePublishNewUserEKForTesting(context.Background(), ann.tc.G, *merkleRoot)
 	require.NoError(t, err)
 
 	// And do the same for the teamEK, just to be sure.
-	_, err = ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), alice.tc.G, teamID, *merkleRoot)
+	_, err = ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), ann.tc.G, teamID, *merkleRoot)
 	require.NoError(t, err)
 }
