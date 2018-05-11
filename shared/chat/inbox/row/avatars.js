@@ -29,13 +29,21 @@ const MutedIcon = ({isMuted, isSelected, isLocked}) => {
   let icon = null
   if (isMuted) {
     const type = isSelected
-      ? isMobile ? 'icon-shh-active-24' : 'icon-shh-active-16'
-      : isMobile ? 'icon-shh-24' : 'icon-shh-16'
+      ? isMobile
+        ? 'icon-shh-active-24'
+        : 'icon-shh-active-16'
+      : isMobile
+        ? 'icon-shh-24'
+        : 'icon-shh-16'
     icon = <Icon type={type} style={avatarMutedIconStyle} />
   } else if (isLocked) {
     const type = isSelected
-      ? isMobile ? 'icon-addon-lock-active-12' : 'icon-addon-lock-active-8'
-      : isMobile ? 'icon-addon-lock-12' : 'icon-addon-lock-8'
+      ? isMobile
+        ? 'icon-addon-lock-active-12'
+        : 'icon-addon-lock-active-8'
+      : isMobile
+        ? 'icon-addon-lock-12'
+        : 'icon-addon-lock-8'
     icon = <Icon type={type} style={avatarLockIconStyle} />
   }
   return icon
