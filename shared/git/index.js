@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import Row from './row/container'
 import {
   Box,
+  Box2,
   Text,
   Icon,
   ClickableBox,
@@ -13,7 +14,7 @@ import {
   FloatingMenu,
 } from '../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
-import {desktopStyles, globalStyles, globalColors, globalMargins, isMobile} from '../styles'
+import {desktopStyles, globalStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../styles'
 import {branch} from 'recompose'
 
 type Props = {
@@ -51,19 +52,21 @@ class _Git extends React.Component<Props & FloatingMenuParentProps, {}> {
   render() {
     return (
       <Box style={_gitStyle}>
-        <ClickableBox
-          ref={this.props.setAttachmentRef}
-          style={_headerStyle}
-          onClick={this.props.toggleShowingMenu}
-        >
-          <Icon
-            type="iconfont-new"
-            style={{marginRight: globalMargins.tiny}}
-            color={globalColors.blue}
-            fontSize={isMobile ? 20 : 16}
-          />
-          <Text type="BodyBigLink">New encrypted git repository...</Text>
-        </ClickableBox>
+        <Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+          <ClickableBox
+            ref={this.props.setAttachmentRef}
+            style={_headerStyle}
+            onClick={this.props.toggleShowingMenu}
+          >
+            <Icon
+              type="iconfont-new"
+              style={{marginRight: globalMargins.tiny}}
+              color={globalColors.blue}
+              fontSize={isMobile ? 20 : 16}
+            />
+            <Text type="BodyBigLink">New encrypted git repository...</Text>
+          </ClickableBox>
+        </Box2>
         <ScrollView>
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Personal</Text>
@@ -108,7 +111,6 @@ const _sectionHeaderStyle = {
 }
 
 const _headerStyle = {
-  ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxCenter,
   ...globalStyles.flexBoxRow,
   flexShrink: 0,
@@ -121,5 +123,12 @@ const _gitStyle = {
   position: 'relative',
   width: '100%',
 }
+
+const styles = styleSheetCreate({
+  header: {
+    ...desktopStyles.windowDragging,
+    ...globalStyles.flexBoxCenter,
+  },
+})
 
 export default branch(() => isMobile, HeaderHoc)(Git)

@@ -22,7 +22,7 @@ export type Props = {
 }
 
 const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
-  <ClickableBox onClick={onAddNew} style={{...desktopStyles.windowDragging}}>
+  <ClickableBox onClick={onAddNew}>
     <Box ref={setAttachmentRef} style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
       {waiting && (
         <ProgressIndicator style={{position: 'absolute', width: 20, top: isMobile ? 22 : 14, left: 12}} />
@@ -109,6 +109,7 @@ class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
           setAttachmentRef={this.props.setAttachmentRef}
           onAddNew={this.props.toggleShowingMenu}
           waiting={this.props.waiting}
+          style={{...desktopStyles.windowDragging}}
         />
         <List items={items} renderItem={this._renderRow} />
         <FloatingMenu
