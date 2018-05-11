@@ -18,7 +18,7 @@ repos:
     -   id: prettier
         name: prettier
         entry: shared/node_modules/.bin/prettier
-        lanuage: node
+        language: node
         files: \.js$
 -   repo: https://github.com/keybase/pre-commit-golang.git
     sha: b3408a42cc77ece991924d5f477ee3ae94371f9a
