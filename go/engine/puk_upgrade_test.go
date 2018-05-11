@@ -27,10 +27,11 @@ func TestPerUserKeyUpgrade(t *testing.T) {
 	upgrade := func() *PerUserKeyUpgrade {
 		arg := &PerUserKeyUpgradeArgs{}
 		eng := NewPerUserKeyUpgrade(tc.G, arg)
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI: tc.G.UI.GetLogUI(),
 		}
-		err := RunEngine(eng, ctx)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err)
 		return eng
 	}

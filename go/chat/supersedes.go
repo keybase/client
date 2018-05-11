@@ -180,20 +180,13 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				continue
 			}
 			if !newMsg.IsValidFull() {
-				// Drop the message. It has been deleted locally but not
-				// superseded by anything.  Could have been deleted by a
-				// delete-history, retention expunge, or was an exploding
-				// message.
-				if newMsg.IsValid() {
-					// If we want to show the GUI that the message is exploded,
-					// don't hide these yet
-					mvalid := newMsg.Valid()
-					if !mvalid.IsExploding() || mvalid.HideExplosion(time.Now()) {
-						t.Debug(ctx, "skipping: %d because not valid full", msg.GetMessageID())
-						continue
-					}
-				} else {
-					t.Debug(ctx, "skipping: %d because it is not valid", msg.GetMessageID())
+				// Drop the message unless it is ephemeral. It has been deleted
+				// locally but not superseded by anything.  Could have been
+				// deleted by a delete-history, retention expunge, or was an
+				// exploding message.
+				mvalid := newMsg.Valid()
+				if !mvalid.IsEphemeral() || mvalid.HideExplosion(time.Now()) {
+					t.Debug(ctx, "skipping: %d because not valid full", msg.GetMessageID())
 					continue
 				}
 			}

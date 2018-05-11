@@ -3,6 +3,7 @@ package engine
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -25,10 +26,10 @@ func TestProfileEdit(t *testing.T) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewIdentify2WithUID(tc.G, arg)
-		ctx := Context{IdentifyUI: i}
-
+		uis := libkb.UIs{IdentifyUI: i}
 		waiter := launchWaiter(t, i.finishCh)
-		err := eng.Run(&ctx)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err := eng.Run(m)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -38,8 +39,8 @@ func TestProfileEdit(t *testing.T) {
 
 	update := func(b, n, l string) {
 		eng := NewProfileEdit(tc.G, keybase1.ProfileEditArg{Location: l, FullName: n, Bio: b})
-		ctx := Context{}
-		err := eng.Run(&ctx)
+		m := NewMetaContextForTest(tc)
+		err := eng.Run(m)
 		if err != nil {
 			t.Fatal(err)
 		}

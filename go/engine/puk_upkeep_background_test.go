@@ -37,11 +37,8 @@ func TestPerUserKeyUpkeepBackgroundUnnecessary(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
@@ -74,10 +71,6 @@ func TestPerUserKeyUpkeepBackgroundWork(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "pukup")
 
-	// Get a second device which will deprovision itself.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
 	t.Logf("provision second device")
 	tcY, cleanup := provisionNewDeviceKex(&tc, fu)
 	defer cleanup()
@@ -85,11 +78,12 @@ func TestPerUserKeyUpkeepBackgroundWork(t *testing.T) {
 	t.Logf("second device deprovisions itself")
 	{
 		eng := NewDeprovisionEngine(tcY.G, fu.Username, true /* doRevoke */)
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:    tcY.G.UI.GetLogUI(),
 			SecretUI: fu.NewSecretUI(),
 		}
-		err := RunEngine(eng, ctx)
+		m := libkb.NewMetaContextTODO(tcY.G).WithUIs(uis)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err, "deprovision")
 	}
 
@@ -120,11 +114,8 @@ func TestPerUserKeyUpkeepBackgroundWork(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpkeepBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-
-	err = RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")

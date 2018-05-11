@@ -27,7 +27,7 @@ export type NewFollow = Types.FollowedNotification
 
 export type Props = Types._FollowedNotificationItem & {onClickUser: (username: string) => void}
 
-export default (props: *) => {
+export default (props: any) => {
   if (props.newFollows.length === 1) {
     return <FollowNotification {...props} />
   }

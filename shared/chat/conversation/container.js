@@ -37,7 +37,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
   }
 }
 
-const mapStateToProps = (state: TypedState): * => {
+const mapStateToProps = (state: TypedState) => {
   let conversationIDKey = Constants.getSelectedConversation(state)
   let _meta = Constants.getMeta(state, conversationIDKey)
 

@@ -14,7 +14,7 @@ type Props = {
   users: I.OrderedSet<string>,
 }
 
-const mapStateToProps = (state: TypedState): * => {
+const mapStateToProps = (state: TypedState) => {
   const _you = state.config.username
   const conversationIDKey = Constants.getSelectedConversation(state)
   const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)

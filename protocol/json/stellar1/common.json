@@ -124,6 +124,16 @@
     },
     {
       "type": "record",
+      "name": "RelayClaimResult",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "claimStellarID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "EncryptedNote",
       "fields": [
         {
@@ -236,6 +246,57 @@
         {
           "type": "string",
           "name": "rate"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CurrencySymbol",
+      "fields": [
+        {
+          "type": "string",
+          "name": "symbol",
+          "jsonkey": "str"
+        },
+        {
+          "type": "boolean",
+          "name": "ambigious"
+        },
+        {
+          "type": "boolean",
+          "name": "postfix"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OutsideCurrencyDefinition",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "CurrencySymbol",
+          "name": "symbol"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StellarServerDefinitions",
+      "fields": [
+        {
+          "type": "int",
+          "name": "revision"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "OutsideCurrencyDefinition",
+            "keys": "OutsideCurrencyCode"
+          },
+          "name": "currencies"
         }
       ]
     }

@@ -49,6 +49,7 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
   const onlyProfilesPath = Constants.getProfilePath(peopleRouteProps, username, me, state)
+  // $FlowIssue
   return Saga.put(navigateTo(onlyProfilesPath))
 }
 

@@ -78,15 +78,15 @@ func TestSoftSnooze(t *testing.T) {
 		NeedProofSet:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   fu.NewSecretUI(),
 	}
-
 	// Identify tracy; all proofs should work
 	eng := NewResolveThenIdentify2(tc.G, arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
@@ -96,17 +96,17 @@ func TestSoftSnooze(t *testing.T) {
 	}
 
 	// Track tracy
-	teng := NewTrackToken(&targ, tc.G)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc.G, fu, username, sigVersion)
+	defer runUntrack(tc, fu, username, sigVersion)
 
 	// Now make her Rooter proof flakey / fail with a 429
 	flakeyAPI.flakeOut = true
 	idUI = &FakeIdentifyUI{}
-	ctx.IdentifyUI = idUI
+	m = m.WithIdentifyUI(idUI)
 
 	// Advance so that our previous cached success is out of
 	// cache on its own, but still can override a 429-like soft failure.
@@ -115,7 +115,7 @@ func TestSoftSnooze(t *testing.T) {
 	eng = NewResolveThenIdentify2(tc.G, arg)
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	// Should not get an error
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	result, found := idUI.ProofResults["rooter"]
@@ -132,8 +132,8 @@ func TestSoftSnooze(t *testing.T) {
 	eng = NewResolveThenIdentify2(tc.G, arg)
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	idUI = &FakeIdentifyUI{}
-	ctx.IdentifyUI = idUI
-	if err := RunEngine(eng, ctx); err == nil {
+	m = m.WithIdentifyUI(idUI)
+	if err := RunEngine2(m, eng); err == nil {
 		t.Fatal("Expected a failure in our proof")
 	}
 

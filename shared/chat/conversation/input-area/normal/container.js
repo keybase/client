@@ -54,7 +54,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch): * => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
     dispatch(
       RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])

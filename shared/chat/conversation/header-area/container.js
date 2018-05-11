@@ -32,7 +32,7 @@ class HeaderArea extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const isSearching =
     state.chat2.pendingMode === 'searchingForUsers' &&
     conversationIDKey === Constants.pendingConversationIDKey

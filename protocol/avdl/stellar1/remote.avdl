@@ -25,6 +25,12 @@ protocol remote {
     string signedTransaction; // Funding tx
   }
 
+  record RelayClaimPost {
+    KeybaseTransactionID keybaseID;
+    RelayDirection dir;
+    string signedTransaction; // Claim or yank tx
+  }
+
   record PaymentSummary {
     // One or the other or both.
     union { null, PaymentSummaryStellar } stellar; // Info from stellar network
@@ -70,6 +76,8 @@ protocol remote {
   PaymentResult submitPayment(keybase1.UserVersion caller, PaymentDirectPost payment);
 
   PaymentResult submitRelayPayment(keybase1.UserVersion caller, PaymentRelayPost payment);
+
+  RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
 
   // ask the stellar network whether the master key for the account has power
   boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);

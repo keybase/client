@@ -17,5 +17,5 @@ func (k KeychainSecretStore) synchronizable() keychain.Synchronizable {
 }
 
 func (k KeychainSecretStore) accessible() keychain.Accessible {
-	return keychain.AccessibleWhenUnlockedThisDeviceOnly
+	return keychain.AccessibleAfterFirstUnlockThisDeviceOnly
 }

@@ -54,7 +54,7 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: state.signup.waiting,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   requestInvite: (email, name) => dispatch(requestInvite(email, name)),
   restartSignup: () => dispatch(restartSignup()),
 })

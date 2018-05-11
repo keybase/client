@@ -14,15 +14,12 @@ func TestSetPrimaryPictureSource(t *testing.T) {
 
 	// TODO Setup pictures with multiple sources
 
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-
-	eng := NewUserConfigEngine(&UserConfigEngineArg{
+	m := NewMetaContextForTestWithLogUI(tc)
+	eng := NewUserConfigEngine(tc.G, &UserConfigEngineArg{
 		Key:   "picture.source",
 		Value: "github",
-	}, tc.G)
-	err := RunEngine(eng, ctx)
+	})
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}

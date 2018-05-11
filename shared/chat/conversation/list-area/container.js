@@ -48,7 +48,7 @@ class ListArea extends React.PureComponent<Props> {
 
 const searchResultStyle = {...desktopStyles.scrollable, flexGrow: 1}
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   let type
   let conversationIDKeyToShow = conversationIDKey
   if (

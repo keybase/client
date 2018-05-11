@@ -53,55 +53,54 @@ func (e *PerUserKeyUpgrade) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PerUserKeyUpgrade) Run(ctx *Context) (err error) {
-	defer e.G().CTrace(ctx.GetNetContext(), "PerUserKeyUpgrade", func() error { return err })()
-	return e.inner(ctx)
+func (e *PerUserKeyUpgrade) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("PerUserKeyUpgrade", func() error { return err })()
+	return e.inner(m)
 }
 
-func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
-	if !e.G().Env.GetUpgradePerUserKey() {
+func (e *PerUserKeyUpgrade) inner(m libkb.MetaContext) error {
+	if !m.G().Env.GetUpgradePerUserKey() {
 		return fmt.Errorf("per-user-key upgrade is disabled")
 	}
 
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade load self")
+	m.CDebugf("PerUserKeyUpgrade load self")
 
-	uid := e.G().GetMyUID()
+	uid := m.G().GetMyUID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
 
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade upgrading: %d", uid)
+	m.CDebugf("PerUserKeyUpgrade upgrading: %d", uid)
 
-	loadArg := libkb.NewLoadUserArg(e.G()).
-		WithNetContext(ctx.GetNetContext()).
+	loadArg := libkb.NewLoadUserArgWithMetaContext(m).
 		WithUID(uid).
 		WithSelf(true).
 		WithPublicKeyOptional()
-	upak, me, err := e.G().GetUPAKLoader().LoadV2(loadArg)
+	upak, me, err := m.G().GetUPAKLoader().LoadV2(loadArg)
 	if err != nil {
 		return err
 	}
 	// `me` could be nil. Use the upak for quick checks and then pass maybe-nil `me` to the next engine.
 
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade check for key")
+	m.CDebugf("PerUserKeyUpgrade check for key")
 	if len(upak.Current.PerUserKeys) > 0 {
-		e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade already has per-user-key")
+		m.CDebugf("PerUserKeyUpgrade already has per-user-key")
 		e.DidNewKey = false
 		return nil
 	}
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade has no per-user-key")
+	m.CDebugf("PerUserKeyUpgrade has no per-user-key")
 
 	// Make the key
 	arg := &PerUserKeyRollArgs{
 		Me: me,
 	}
-	eng := NewPerUserKeyRoll(e.G(), arg)
-	err = RunEngine(eng, ctx)
+	eng := NewPerUserKeyRoll(m.G(), arg)
+	err = RunEngine2(m, eng)
 	e.DidNewKey = eng.DidNewKey
 
 	if eng.DidNewKey {
 		go func() {
-			e.G().GetStellar().CreateWalletSoft(context.Background())
+			m.G().GetStellar().CreateWalletSoft(context.Background())
 		}()
 	}
 

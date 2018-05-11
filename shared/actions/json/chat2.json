@@ -249,8 +249,8 @@
     "sendToPendingConversation": {
       "users": "Array<string>",
       "sendingAction": [
-        "More.ReturnType<typeof createMessageSend>",
-        "More.ReturnType<typeof createAttachmentUpload>"
+        "MessageSendPayload",
+        "AttachmentUploadPayload"
       ]
     },
     // We want to save an attachment to the local disk

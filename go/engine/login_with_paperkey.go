@@ -45,99 +45,80 @@ func (e *LoginWithPaperKey) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *LoginWithPaperKey) Run(ctx *Context) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserForceArg(e.G()))
+func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload())
 	if err != nil {
 		return err
 	}
 
-	kp, err := findDeviceKeys(ctx, e, me)
+	kp, err := findDeviceKeys(m, me)
 	if err == nil {
 		// Device keys are unlocked. Just log in with them.
-		e.G().Log.Debug("Logging in with unlocked device key")
-		err = e.G().LoginState().LoginWithKey(ctx.LoginContext, me, kp.sigKey, nil)
+		m.CDebugf("Logging in with unlocked device key")
+		err = e.G().LoginState().LoginWithKey(m, me, kp.sigKey, nil)
 		return err
 	}
 
 	// Prompts for a paper key.
-	e.G().Log.Debug("No device keys available; getting paper key")
-	kp, err = findPaperKeys(ctx, e.G(), me)
+	m.CDebugf("No device keys available; getting paper key")
+	kp, err = findPaperKeys(m, me)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("Logging in")
-	err = e.G().LoginState().LoginWithKey(ctx.LoginContext, me, kp.sigKey, func(lctx libkb.LoginContext) error {
-		// Now we're logged in.
-		e.G().Log.Debug("Logged in")
-		ctx.LoginContext = lctx
-
-		// Get the LKS client half.
-		gen, clientLKS, err := fetchLKS(ctx, e.G(), kp.encKey)
-		if err != nil {
-			return err
-		}
-		lks := libkb.NewLKSecWithClientHalf(clientLKS, gen, me.GetUID(), e.G())
-		e.G().Log.Debug("Got LKS client half")
-
-		// Get the LKS server half.
-		err = lks.Load(lctx)
-		if err != nil {
-			return err
-		}
-		e.G().Log.Debug("Got LKS full")
-
-		secretStore := libkb.NewSecretStore(e.G(), me.GetNormalizedName())
-		e.G().Log.Debug("Got secret store")
-
-		// Extract the LKS secret
-		secret, err := lks.GetSecret(lctx)
-		if err != nil {
-			return err
-		}
-		e.G().Log.Debug("Got LKS secret")
-
-		err = secretStore.StoreSecret(secret)
-		if err != nil {
-			return err
-		}
-		e.G().Log.Debug("Stored secret with LKS from paperkey")
-
-		// This could prompt but shouldn't because of the secret store.
-		err = e.unlockDeviceKeys(ctx, me)
-		if err != nil {
-			return err
-		}
-		e.G().Log.Debug("Unlocked device keys")
-
-		return nil
-	})
-	if err != nil {
+	// Switch config file to our new user, and zero out the current active device.
+	if err = m.SwitchUser(me.GetNormalizedName()); err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("LoginWithPaperkey success, sending login notification")
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
-	e.G().Log.Debug("LoginWithPaperkey success, calling login hooks")
-	e.G().CallLoginHooks()
+	// Convert our paper keys into a provisional active device, to use for
+	// API session authentication. BAM! We're "logged in".
+	m = m.WithActiveDevice(kp.toActiveDevice(m, me.GetUID()))
 
-	return nil
-}
-
-func (e *LoginWithPaperKey) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
-	ska := libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceSigningKeyType,
-	}
-	_, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	// Get the LKS client half.
+	gen, clientLKS, err := fetchLKS(m, kp.encKey)
 	if err != nil {
 		return err
 	}
-	ska.KeyType = libkb.DeviceEncryptionKeyType
-	_, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	lks := libkb.NewLKSecWithClientHalf(clientLKS, gen, me.GetUID(), m.G())
+	m.CDebugf("Got LKS client half")
+
+	// Get the LKS server half.
+	err = lks.Load(m)
 	if err != nil {
 		return err
 	}
+	m.CDebugf("Got LKS full")
+
+	secretStore := libkb.NewSecretStore(m.G(), me.GetNormalizedName())
+	m.CDebugf("Got secret store")
+
+	// Extract the LKS secret
+	secret, err := lks.GetSecret(m)
+	if err != nil {
+		return err
+	}
+	m.CDebugf("Got LKS secret")
+
+	err = secretStore.StoreSecret(secret)
+	if err != nil {
+		return err
+	}
+	m.CDebugf("Stored secret with LKS from paperkey")
+
+	// Remove our provisional active device, and fall back to global device
+	m = m.WithGlobalActiveDevice()
+
+	// This could prompt but shouldn't because of the secret store.
+	if _, err = libkb.BootstrapActiveDeviceFromConfig(m, true); err != nil {
+		return err
+	}
+	m.CDebugf("Unlocked device keys")
+
+	m.CDebugf("LoginWithPaperkey success, sending login notification")
+	m.G().NotifyRouter.HandleLogin(string(m.G().Env.GetUsername()))
+	m.CDebugf("LoginWithPaperkey success, calling login hooks")
+	m.G().CallLoginHooks()
 
 	return nil
 }

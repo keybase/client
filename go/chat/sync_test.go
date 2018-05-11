@@ -101,7 +101,7 @@ func TestSyncerConnected(t *testing.T) {
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
 	ibox := storage.NewInbox(tc.Context(), uid)
-	store := storage.New(tc.Context())
+	store := storage.New(tc.Context(), tc.ChatG.ConvSource)
 
 	var convs []chat1.Conversation
 	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username))
@@ -362,7 +362,7 @@ func TestSyncerMembersTypeChanged(t *testing.T) {
 		}),
 	}, 0, nil)
 	require.NoError(t, err)
-	s := storage.New(tc.Context())
+	s := storage.New(tc.Context(), tc.ChatG.ConvSource)
 	storedMsgs, err := s.FetchMessages(ctx, convID, uid, []chat1.MessageID{msg.GetMessageID()})
 	require.NoError(t, err)
 	require.Len(t, storedMsgs, 1)
@@ -460,7 +460,7 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
 	ibox := storage.NewInbox(tc.Context(), uid)
-	store := storage.New(tc.Context())
+	store := storage.New(tc.Context(), tc.ChatG.ConvSource)
 
 	mconv := newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username)
 

@@ -11,8 +11,8 @@ type Props = {|
   username: ?string,
   icon: ?IconType,
   avatarSize: AvatarSize,
-  style?: *,
-  fontSize?: *,
+  style?: any,
+  fontSize?: number,
 |}
 
 const IconOrAvatar = ({service, username, icon, avatarSize, style, fontSize}: Props) =>

@@ -56,10 +56,10 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 
 		f := func(lctx libkb.LoginContext) error {
 
-			ctx := &Context{
-				ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
-				LoginContext: lctx,
+			uis := libkb.UIs{
+				ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 			}
+			m := NewMetaContextForTest(tcY).WithLoginContext(lctx).WithUIs(uis)
 			deviceID, err := libkb.NewDeviceID()
 			if err != nil {
 				t.Errorf("provisionee device id error: %s", err)
@@ -77,7 +77,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 				Type:        libkb.DeviceTypeDesktop,
 			}
 			provisionee := NewKex2Provisionee(tcY.G, device, secretY)
-			if err := RunEngine(provisionee, ctx); err != nil {
+			if err := RunEngine2(m, provisionee); err != nil {
 				t.Errorf("provisionee error: %s", err)
 				return err
 			}
@@ -93,13 +93,14 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: &testProvisionUI{},
 		}
 		provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		go provisioner.AddSecret(secretY)
-		if err := RunEngine(provisioner, ctx); err != nil {
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -141,11 +142,10 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 		defer wg.Done()
 
 		f := func(lctx libkb.LoginContext) error {
-
-			ctx := &Context{
-				ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
-				LoginContext: lctx,
+			uis := libkb.UIs{
+				ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 			}
+			m := NewMetaContextForTest(tcY).WithLoginContext(lctx).WithUIs(uis)
 			deviceID, err := libkb.NewDeviceID()
 			if err != nil {
 				t.Errorf("provisionee device id error: %s", err)
@@ -163,7 +163,7 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 				Type:        libkb.DeviceTypeDesktop,
 			}
 			provisionee := NewKex2Provisionee(tcY.G, device, secretY)
-			if err := RunEngine(provisionee, ctx); err != nil {
+			if err := RunEngine2(m, provisionee); err != nil {
 				t.Errorf("provisionee error: %s", err)
 				return err
 			}
@@ -179,13 +179,14 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: &testProvisionUI{},
 		}
 		provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 		go provisioner.AddSecret(secretY)
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(*tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}

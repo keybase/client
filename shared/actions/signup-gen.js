@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import HiddenString from '../util/hidden-string'
 
 // Constants
@@ -23,84 +22,101 @@ export const startRequestInvite = 'signup:startRequestInvite'
 export const submitDeviceName = 'signup:submitDeviceName'
 export const waiting = 'signup:waiting'
 
+// Payload Types
+type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
+type _CheckInviteCodePayloadError = $ReadOnly<{|errorText: string|}>
+type _CheckPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
+type _CheckPassphrasePayloadError = $ReadOnly<{|passphraseError: HiddenString|}>
+type _CheckUsernameEmailPayload = $ReadOnly<{|
+  username: string,
+  email: string,
+|}>
+type _CheckUsernameEmailPayloadError = $ReadOnly<{|
+  emailError: ?Error,
+  usernameError: ?Error,
+  email: ?string,
+  username: ?string,
+|}>
+type _ClearDeviceNameErrorPayload = void
+type _RequestInvitePayload = $ReadOnly<{|
+  email: string,
+  name: string,
+|}>
+type _RequestInvitePayloadError = $ReadOnly<{|
+  emailError: ?Error,
+  nameError: ?Error,
+  email: ?string,
+  name: ?string,
+|}>
+type _ResetSignupPayload = void
+type _RestartSignupPayload = void
+type _SetDeviceNameErrorPayload = $ReadOnly<{|deviceNameError: string|}>
+type _ShowPaperKeyPayload = $ReadOnly<{|paperkey: HiddenString|}>
+type _SignupErrorPayload = $ReadOnly<{|signupError: HiddenString|}>
+type _StartRequestInvitePayload = void
+type _SubmitDeviceNamePayload = $ReadOnly<{|deviceName: string|}>
+type _SubmitDeviceNamePayloadError = $ReadOnly<{|deviceNameError: string|}>
+type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
+
 // Action Creators
-export const createCheckInviteCode = (payload: $ReadOnly<{|inviteCode: string|}>) => ({error: false, payload, type: checkInviteCode})
-export const createCheckInviteCodeError = (payload: $ReadOnly<{|errorText: string|}>) => ({error: true, payload, type: checkInviteCode})
-export const createCheckPassphrase = (payload: $ReadOnly<{|passphrase: HiddenString|}>) => ({error: false, payload, type: checkPassphrase})
-export const createCheckPassphraseError = (payload: $ReadOnly<{|passphraseError: HiddenString|}>) => ({error: true, payload, type: checkPassphrase})
-export const createCheckUsernameEmail = (
-  payload: $ReadOnly<{|
-    username: string,
-    email: string,
-  |}>
-) => ({error: false, payload, type: checkUsernameEmail})
-export const createCheckUsernameEmailError = (
-  payload: $ReadOnly<{|
-    emailError: ?Error,
-    usernameError: ?Error,
-    email: ?string,
-    username: ?string,
-  |}>
-) => ({error: true, payload, type: checkUsernameEmail})
-export const createClearDeviceNameError = () => ({error: false, payload: undefined, type: clearDeviceNameError})
-export const createRequestInvite = (
-  payload: $ReadOnly<{|
-    email: string,
-    name: string,
-  |}>
-) => ({error: false, payload, type: requestInvite})
-export const createRequestInviteError = (
-  payload: $ReadOnly<{|
-    emailError: ?Error,
-    nameError: ?Error,
-    email: ?string,
-    name: ?string,
-  |}>
-) => ({error: true, payload, type: requestInvite})
-export const createResetSignup = () => ({error: false, payload: undefined, type: resetSignup})
-export const createRestartSignup = () => ({error: false, payload: undefined, type: restartSignup})
-export const createSetDeviceNameError = (payload: $ReadOnly<{|deviceNameError: string|}>) => ({error: false, payload, type: setDeviceNameError})
-export const createShowPaperKey = (payload: $ReadOnly<{|paperkey: HiddenString|}>) => ({error: false, payload, type: showPaperKey})
-export const createSignupError = (payload: $ReadOnly<{|signupError: HiddenString|}>) => ({error: false, payload, type: signupError})
-export const createStartRequestInvite = () => ({error: false, payload: undefined, type: startRequestInvite})
-export const createSubmitDeviceName = (payload: $ReadOnly<{|deviceName: string|}>) => ({error: false, payload, type: submitDeviceName})
-export const createSubmitDeviceNameError = (payload: $ReadOnly<{|deviceNameError: string|}>) => ({error: true, payload, type: submitDeviceName})
-export const createWaiting = (payload: $ReadOnly<{|waiting: boolean|}>) => ({error: false, payload, type: waiting})
+export const createCheckInviteCode = (payload: _CheckInviteCodePayload) => ({error: false, payload, type: checkInviteCode})
+export const createCheckInviteCodeError = (payload: _CheckInviteCodePayloadError) => ({error: true, payload, type: checkInviteCode})
+export const createCheckPassphrase = (payload: _CheckPassphrasePayload) => ({error: false, payload, type: checkPassphrase})
+export const createCheckPassphraseError = (payload: _CheckPassphrasePayloadError) => ({error: true, payload, type: checkPassphrase})
+export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload) => ({error: false, payload, type: checkUsernameEmail})
+export const createCheckUsernameEmailError = (payload: _CheckUsernameEmailPayloadError) => ({error: true, payload, type: checkUsernameEmail})
+export const createClearDeviceNameError = (payload: _ClearDeviceNameErrorPayload) => ({error: false, payload, type: clearDeviceNameError})
+export const createRequestInvite = (payload: _RequestInvitePayload) => ({error: false, payload, type: requestInvite})
+export const createRequestInviteError = (payload: _RequestInvitePayloadError) => ({error: true, payload, type: requestInvite})
+export const createResetSignup = (payload: _ResetSignupPayload) => ({error: false, payload, type: resetSignup})
+export const createRestartSignup = (payload: _RestartSignupPayload) => ({error: false, payload, type: restartSignup})
+export const createSetDeviceNameError = (payload: _SetDeviceNameErrorPayload) => ({error: false, payload, type: setDeviceNameError})
+export const createShowPaperKey = (payload: _ShowPaperKeyPayload) => ({error: false, payload, type: showPaperKey})
+export const createSignupError = (payload: _SignupErrorPayload) => ({error: false, payload, type: signupError})
+export const createStartRequestInvite = (payload: _StartRequestInvitePayload) => ({error: false, payload, type: startRequestInvite})
+export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
+export const createSubmitDeviceNameError = (payload: _SubmitDeviceNamePayloadError) => ({error: true, payload, type: submitDeviceName})
+export const createWaiting = (payload: _WaitingPayload) => ({error: false, payload, type: waiting})
 
 // Action Payloads
-export type CheckInviteCodePayload = More.ReturnType<typeof createCheckInviteCode>
-export type CheckPassphrasePayload = More.ReturnType<typeof createCheckPassphrase>
-export type CheckUsernameEmailPayload = More.ReturnType<typeof createCheckUsernameEmail>
-export type ClearDeviceNameErrorPayload = More.ReturnType<typeof createClearDeviceNameError>
-export type RequestInvitePayload = More.ReturnType<typeof createRequestInvite>
-export type ResetSignupPayload = More.ReturnType<typeof createResetSignup>
-export type RestartSignupPayload = More.ReturnType<typeof createRestartSignup>
-export type SetDeviceNameErrorPayload = More.ReturnType<typeof createSetDeviceNameError>
-export type ShowPaperKeyPayload = More.ReturnType<typeof createShowPaperKey>
-export type SignupErrorPayload = More.ReturnType<typeof createSignupError>
-export type StartRequestInvitePayload = More.ReturnType<typeof createStartRequestInvite>
-export type SubmitDeviceNamePayload = More.ReturnType<typeof createSubmitDeviceName>
-export type WaitingPayload = More.ReturnType<typeof createWaiting>
+export type CheckInviteCodePayload = $Call<typeof createCheckInviteCode, _CheckInviteCodePayload>
+export type CheckInviteCodePayloadError = $Call<typeof createCheckInviteCodeError, _CheckInviteCodePayloadError>
+export type CheckPassphrasePayload = $Call<typeof createCheckPassphrase, _CheckPassphrasePayload>
+export type CheckPassphrasePayloadError = $Call<typeof createCheckPassphraseError, _CheckPassphrasePayloadError>
+export type CheckUsernameEmailPayload = $Call<typeof createCheckUsernameEmail, _CheckUsernameEmailPayload>
+export type CheckUsernameEmailPayloadError = $Call<typeof createCheckUsernameEmailError, _CheckUsernameEmailPayloadError>
+export type ClearDeviceNameErrorPayload = $Call<typeof createClearDeviceNameError, _ClearDeviceNameErrorPayload>
+export type RequestInvitePayload = $Call<typeof createRequestInvite, _RequestInvitePayload>
+export type RequestInvitePayloadError = $Call<typeof createRequestInviteError, _RequestInvitePayloadError>
+export type ResetSignupPayload = $Call<typeof createResetSignup, _ResetSignupPayload>
+export type RestartSignupPayload = $Call<typeof createRestartSignup, _RestartSignupPayload>
+export type SetDeviceNameErrorPayload = $Call<typeof createSetDeviceNameError, _SetDeviceNameErrorPayload>
+export type ShowPaperKeyPayload = $Call<typeof createShowPaperKey, _ShowPaperKeyPayload>
+export type SignupErrorPayload = $Call<typeof createSignupError, _SignupErrorPayload>
+export type StartRequestInvitePayload = $Call<typeof createStartRequestInvite, _StartRequestInvitePayload>
+export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
+export type SubmitDeviceNamePayloadError = $Call<typeof createSubmitDeviceNameError, _SubmitDeviceNamePayloadError>
+export type WaitingPayload = $Call<typeof createWaiting, _WaitingPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createCheckInviteCode>
-  | More.ReturnType<typeof createCheckInviteCodeError>
-  | More.ReturnType<typeof createCheckPassphrase>
-  | More.ReturnType<typeof createCheckPassphraseError>
-  | More.ReturnType<typeof createCheckUsernameEmail>
-  | More.ReturnType<typeof createCheckUsernameEmailError>
-  | More.ReturnType<typeof createClearDeviceNameError>
-  | More.ReturnType<typeof createRequestInvite>
-  | More.ReturnType<typeof createRequestInviteError>
-  | More.ReturnType<typeof createResetSignup>
-  | More.ReturnType<typeof createRestartSignup>
-  | More.ReturnType<typeof createSetDeviceNameError>
-  | More.ReturnType<typeof createShowPaperKey>
-  | More.ReturnType<typeof createSignupError>
-  | More.ReturnType<typeof createStartRequestInvite>
-  | More.ReturnType<typeof createSubmitDeviceName>
-  | More.ReturnType<typeof createSubmitDeviceNameError>
-  | More.ReturnType<typeof createWaiting>
+  | CheckInviteCodePayload
+  | CheckInviteCodePayloadError
+  | CheckPassphrasePayload
+  | CheckPassphrasePayloadError
+  | CheckUsernameEmailPayload
+  | CheckUsernameEmailPayloadError
+  | ClearDeviceNameErrorPayload
+  | RequestInvitePayload
+  | RequestInvitePayloadError
+  | ResetSignupPayload
+  | RestartSignupPayload
+  | SetDeviceNameErrorPayload
+  | ShowPaperKeyPayload
+  | SignupErrorPayload
+  | StartRequestInvitePayload
+  | SubmitDeviceNamePayload
+  | SubmitDeviceNamePayloadError
+  | WaitingPayload
   | {type: 'common:resetStore', payload: void}

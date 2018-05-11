@@ -6,6 +6,7 @@
 package engine
 
 import (
+	"github.com/keybase/client/go/libkb"
 	"testing"
 )
 
@@ -21,13 +22,14 @@ func TestDeviceKeyfinder(t *testing.T) {
 		Proofs: make(map[string]string),
 	}
 
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
+	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
 	arg := DeviceKeyfinderArg{
 		Users:           []string{u1.Username, u2.Username, u3.Username},
 		NeedEncryptKeys: true,
 	}
 	eng := NewDeviceKeyfinder(tc.G, arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 

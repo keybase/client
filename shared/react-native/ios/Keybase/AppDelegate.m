@@ -14,6 +14,7 @@
 #import "LogSend.h"
 #import "RCTLinkingManager.h"
 #import <keybase/keybase.h>
+#import "Pusher.h"
 
 // Systrace is busted due to the new bridge. Uncomment this to force the old bridge.
 // You'll also have to edit the React.xcodeproj. Instructions here:
@@ -93,7 +94,7 @@ const BOOL isDebug = NO;
   [self createBackgroundReadableDirectory:chatLevelDBPath];
   [self createBackgroundReadableDirectory:levelDBPath];
   [self createBackgroundReadableDirectory:logPath];
-
+  
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"prod",
@@ -129,7 +130,7 @@ const BOOL isDebug = NO;
   // that). If you're building onto a phone, you'll have to change
   // localhost:8081 to point to the bundler running on your computer.
   //
-  // jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
+//   jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 #ifdef SYSTRACING
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
@@ -158,8 +159,22 @@ const BOOL isDebug = NO;
   self.resignImageView.backgroundColor = [UIColor whiteColor];
   [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
   [self.window addSubview:self.resignImageView];
+  
+  [[UIApplication sharedApplication]
+   setMinimumBackgroundFetchInterval:
+   UIApplicationBackgroundFetchIntervalMinimum];
 
   return YES;
+}
+
+-(void) application:(UIApplication *)application performFetchWithCompletionHandler:
+(void (^)(UIBackgroundFetchResult))completionHandler {
+  NSLog(@"Background fetch started...");
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+    KeybaseBackgroundSync();
+    completionHandler(UIBackgroundFetchResultNewData);
+    NSLog(@"Background fetch completed...");
+  });
 }
 
 // Required to register for notifications
@@ -184,18 +199,32 @@ const BOOL isDebug = NO;
 }
 // Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
-
-  // Mark a background task so we don't get insta killed by the OS
-  if (!self.backgroundTask || self.backgroundTask == UIBackgroundTaskInvalid) {
-    self.backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-      [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTask];
-      self.backgroundTask = UIBackgroundTaskInvalid;
-    }];
+  NSString* type = notification[@"type"];
+  if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+      NSLog(@"Remote notification handle started...");
+      NSString* convID = notification[@"c"];
+      int membersType = [notification[@"t"] intValue];
+      int messageID = [notification[@"d"] intValue];
+      int badgeCount = [notification[@"b"] intValue];
+      int unixTime = [notification[@"x"] intValue];
+      NSString* pushID = [notification[@"p"] objectAtIndex:0];
+      NSString* body = notification[@"m"];
+      PushNotifier* pusher = [[PushNotifier alloc] init];
+      NSError* err = nil;
+      KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, pusher, &err);
+      if (err != nil) {
+        NSLog(@"Failed to handle in engine: %@", err);
+      }
+      completionHandler(UIBackgroundFetchResultNewData);
+      NSLog(@"Remote notification handle finished...");
+    });
+  } else {
+    [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+    completionHandler(UIBackgroundFetchResultNewData);
   }
-
-  [RCTPushNotificationManager didReceiveRemoteNotification:notification];
-  completionHandler(UIBackgroundFetchResultNewData);
-  }
+}
+  
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {

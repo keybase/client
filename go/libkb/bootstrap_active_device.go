@@ -3,42 +3,46 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
-func loadAndUnlockKey(ctx context.Context, g *GlobalContext, lctx LoginContext, kr *SKBKeyringFile, secretStore SecretStore, uid keybase1.UID, kid keybase1.KID) (key GenericKey, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("loadAndUnlockKey(%s)", kid), func() error { return err })()
+func loadAndUnlockKey(m MetaContext, kr *SKBKeyringFile, secretStore SecretStore, uid keybase1.UID, kid keybase1.KID) (key GenericKey, err error) {
+	defer m.CTrace(fmt.Sprintf("loadAndUnlockKey(%s)", kid), func() error { return err })()
 
 	locked := kr.LookupByKid(kid)
 	if locked == nil {
-		g.Log.CDebugf(ctx, "loadAndUnlockKey: no locked key for %s", kid)
+		m.CDebugf("loadAndUnlockKey: no locked key for %s", kid)
 		return nil, NoKeyError{fmt.Sprintf("no key for %s", kid)}
 	}
 	locked.SetUID(uid)
-	unlocked, err := locked.UnlockNoPrompt(lctx, secretStore)
+	unlocked, err := locked.UnlockNoPrompt(m, secretStore)
 	if err != nil {
-		g.Log.CDebugf(ctx, "Failed to unlock key %s: %s", kid, err)
+		m.CDebugf("Failed to unlock key %s: %s", kid, err)
 		return nil, err
 	}
 	return unlocked, err
 }
 
-func BootstrapActiveDeviceFromConfig(ctx context.Context, g *GlobalContext, lctx LoginContext, online bool) (uid keybase1.UID, err error) {
-	uid, err = bootstrapActiveDeviceFromConfigReturnRawError(ctx, g, lctx, online)
+// BootstrapActiveDevice takes the user's config.json, keys.mpack file and
+// secret store to populate ActiveDevice, and to have all credentials necessary
+// to sign NIST tokens, allowing the user to act as if "logged in". Will return
+// nil if everything work, LoginRequiredError if a real "login" in required to
+// make the app work, and various errors on unexpected failures.
+func BootstrapActiveDeviceFromConfig(m MetaContext, online bool) (uid keybase1.UID, err error) {
+	uid, err = bootstrapActiveDeviceFromConfigReturnRawError(m, online)
 	err = fixupBootstrapError(err)
 	return uid, err
 }
 
-func bootstrapActiveDeviceFromConfigReturnRawError(ctx context.Context, g *GlobalContext, lctx LoginContext, online bool) (uid keybase1.UID, err error) {
-	uid = g.Env.GetUID()
+func bootstrapActiveDeviceFromConfigReturnRawError(m MetaContext, online bool) (uid keybase1.UID, err error) {
+	uid = m.G().Env.GetUID()
 	if uid.IsNil() {
 		return uid, NoUIDError{}
 	}
-	deviceID := g.Env.GetDeviceIDForUID(uid)
+	deviceID := m.G().Env.GetDeviceIDForUID(uid)
 	if deviceID.IsNil() {
 		return uid, NoDeviceError{fmt.Sprintf("no device in config for UID=%s", uid)}
 	}
-	err = BootstrapActiveDevice(ctx, g, lctx, uid, deviceID, online)
+	err = bootstrapActiveDeviceReturnRawError(m, uid, deviceID, online)
 	return uid, err
 }
 
@@ -62,93 +66,106 @@ func fixupBootstrapError(err error) error {
 	return err
 }
 
-// BootstrapActiveDevice takes the user's config.json, keys.mpack file and
-// secret store to populate ActiveDevice, and to have all credentials necessary
-// to sign NIST tokens, allowing the user to act as if "logged in". Will return
-// nil if everything work, LoginRequiredError if a real "login" in required to
-// make the app work, and various errors on unexpected failures.
-func BootstrapActiveDevice(ctx context.Context, g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) error {
-	err := bootstrapActiveDeviceReturnRawError(ctx, g, lctx, uid, deviceID, online)
-	return fixupBootstrapError(err)
-}
+func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (err error) {
+	defer m.CTrace("bootstrapActiveDeviceReturnRawError", func() error { return err })()
 
-func bootstrapActiveDeviceReturnRawError(ctx context.Context, g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (err error) {
-	defer g.CTrace(ctx, "BootstrapActiveDevice", func() error { return err })()
-
-	ad := g.ActiveDevice
-
+	ad := m.ActiveDevice()
 	if ad.IsValidFor(uid, deviceID) {
-		g.Log.CDebugf(ctx, "active device is current")
+		m.CDebugf("active device is current")
 		return nil
 	}
+	sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, online)
+	if err != nil {
+		return err
+	}
+	err = m.SetActiveDevice(uid, deviceID, sib, sub, deviceName)
+	return err
+}
+
+func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (sib GenericKey, sub GenericKey, deviceName string, err error) {
+	defer m.CTrace("LoadUnlockedDeviceKeys", func() error { return err })()
+
 	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
-	arg := NewLoadUserByUIDArg(ctx, g, uid).WithPublicKeyOptional()
+	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional()
 	if !online {
 		arg = arg.WithStaleOK(true).WithCachedOnly()
 	}
-	if lctx != nil {
-		arg = arg.WithLoginContext(lctx)
-	}
-	upak, _, err := g.GetUPAKLoader().LoadV2(arg)
+	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
-		g.Log.CDebugf(ctx, "BootstrapActiveDevice: upak.Load err: %s", err)
-		return err
+		m.CDebugf("BootstrapActiveDevice: upak.Load err: %s", err)
+		return nil, nil, deviceName, err
 	}
 
 	if upak.Current.Status == keybase1.StatusCode_SCDeleted {
-		g.Log.CDebugf(ctx, "User %s was deleted", uid)
-		return UserDeletedError{}
+		m.CDebugf("User %s was deleted", uid)
+		return nil, nil, deviceName, UserDeletedError{}
 	}
 
-	// find the sibkey
-	sibkeyKID, deviceName := upak.Current.FindSigningDeviceKID(deviceID)
-	if sibkeyKID.IsNil() {
-		g.Log.CDebugf(ctx, "BootstrapActiveDevice: no sibkey found for device %s", deviceID)
-		return NoKeyError{"no signing device key found for user"}
+	device := upak.Current.FindSigningDeviceKey(deviceID)
+	if device == nil {
+		m.CDebugf("BootstrapActiveDevice: no sibkey found for device %s", deviceID)
+		return nil, nil, deviceName, NoKeyError{"no signing device key found for user"}
 	}
+
+	if device.Base.Revocation != nil {
+		m.CDebugf("BootstrapActiveDevice: device %s was revoked", deviceID)
+		return nil, nil, deviceName, NewKeyRevokedError("active device")
+	}
+
+	sibkeyKID := device.Base.Kid
+	deviceName = device.DeviceDescription
 
 	subkeyKID := upak.Current.FindEncryptionDeviceKID(sibkeyKID)
 	if subkeyKID.IsNil() {
-		g.Log.CDebugf(ctx, "BootstrapActiveDevice: no subkey found for device: %s", deviceID)
-		return NoKeyError{"no encryption device key found for user"}
+		m.CDebugf("BootstrapActiveDevice: no subkey found for device: %s", deviceID)
+		return nil, nil, deviceName, NoKeyError{"no encryption device key found for user"}
 	}
 
 	// load the keyring file
 	username := NewNormalizedUsername(upak.Current.Username)
-	kr, err := LoadSKBKeyring(username, g)
+	kr, err := LoadSKBKeyring(username, m.G())
 	if err != nil {
-		g.Log.CDebugf(ctx, "BootstrapActiveDevice: error loading keyring for %s: %s", username, err)
-		return err
+		m.CDebugf("BootstrapActiveDevice: error loading keyring for %s: %s", username, err)
+		return nil, nil, deviceName, err
 	}
 
-	secretStore := NewSecretStore(g, username)
-	sib, err := loadAndUnlockKey(ctx, g, lctx, kr, secretStore, uid, sibkeyKID)
+	secretStore := NewSecretStore(m.G(), username)
+	sib, err = loadAndUnlockKey(m, kr, secretStore, uid, sibkeyKID)
 	if err != nil {
-		return err
+		return nil, nil, deviceName, err
 	}
-	sub, err := loadAndUnlockKey(ctx, g, lctx, kr, secretStore, uid, subkeyKID)
+	sub, err = loadAndUnlockKey(m, kr, secretStore, uid, subkeyKID)
 	if err != nil {
-		return err
+		return nil, nil, deviceName, err
 	}
 
-	err = ad.Set(g, lctx, uid, deviceID, sib, sub, deviceName)
-	return err
+	return sib, sub, deviceName, nil
+}
+
+func LoadProvisionalActiveDevice(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (ret *ActiveDevice, err error) {
+	defer m.CTrace("LoadProvisionalActiveDevice", func() error { return err })()
+	sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, online)
+	if err != nil {
+		return nil, err
+	}
+	ret = NewProvisionalActiveDevice(m, uid, deviceID, sib, sub, deviceName)
+	return ret, nil
 }
 
 // BootstrapActiveDeviceWithLoginConext will setup an ActiveDevice with a NIST Factory
-// for the caller. The LoginContext passed through isn't really needed
+// for the caller. The m.loginContext passed through isn't really needed
 // for anything aside from assertions, but as we phase out LoginState, we'll
 // leave it here so that assertions in LoginState can still pass.
-func BootstrapActiveDeviceWithLoginContext(ctx context.Context, g *GlobalContext, lctx LoginContext) (ok bool, uid keybase1.UID, err error) {
+func BootstrapActiveDeviceWithMetaContext(m MetaContext) (ok bool, uid keybase1.UID, err error) {
 	run := func(lctx LoginContext) (keybase1.UID, error) {
-		return BootstrapActiveDeviceFromConfig(ctx, g, lctx, true)
+		return BootstrapActiveDeviceFromConfig(m.WithLoginContext(lctx), true)
 	}
-	if lctx == nil {
-		aerr := g.LoginState().Account(func(lctx *Account) {
+	if lctx := m.LoginContext(); lctx == nil {
+		aerr := m.G().LoginState().Account(func(lctx *Account) {
 			uid, err = run(lctx)
 		}, "BootstrapActiveDevice")
 		if err == nil && aerr != nil {
-			g.Log.CDebugf(ctx, "LoginOffline: LoginState account error: %s", aerr)
+			m.CDebugf("LoginOffline: LoginState account error: %s", aerr)
 			err = aerr
 		}
 	} else {

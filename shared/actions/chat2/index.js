@@ -1789,8 +1789,8 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
     logger.info('Trying to save chat attachment to camera roll')
     yield Saga.call(saveAttachmentToCameraRoll, message.fileURL, message.fileType)
   } catch (err) {
-    logger.info('Failed to save attachment: ' + err)
-    throw new Error('Save attachment failed. Enable photo access in privacy settings.')
+    logger.error('Failed to save attachment: ' + err)
+    throw new Error('Failed to save attachment: ' + err)
   }
 }
 

@@ -794,6 +794,10 @@ export const gregorUIPushReason = {
   newData: 2,
 }
 
+export const gregorUpdateItemRpcChannelMap = (configKeys: Array<string>, request: GregorUpdateItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.updateItem', request)
+
+export const gregorUpdateItemRpcPromise = (request: GregorUpdateItemRpcParam): Promise<GregorUpdateItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.updateItem', request, (error: RPCError, result: GregorUpdateItemResult) => (error ? reject(error) : resolve(result))))
+
 export const homeHomeActionTakenRpcChannelMap = (configKeys: Array<string>, request: HomeHomeActionTakenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeActionTaken', request)
 
 export const homeHomeActionTakenRpcPromise = (request: HomeHomeActionTakenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeActionTaken', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -1790,6 +1794,13 @@ export const teamsTeamSetSettingsRpcChannelMap = (configKeys: Array<string>, req
 
 export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const teamsTeamStatus = {
+  none: 0,
+  live: 1,
+  deleted: 2,
+  abandoned: 3,
+}
+
 export const teamsTeamTreeRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamTreeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamTree', request)
 
 export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => (error ? reject(error) : resolve(result))))
@@ -2496,6 +2507,8 @@ export type GregorInjectItemRpcParam = $ReadOnly<{cat: String, body: String, dti
 export type GregorUIPushOutOfBandMessagesRpcParam = $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason: PushReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type GregorUpdateItemRpcParam = $ReadOnly<{msgID: Gregor1.MsgID, cat: String, body: String, dtime: Gregor1.TimeOrOffset, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
 
@@ -3850,6 +3863,12 @@ export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?Strin
 
 export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}}>
 
+export type TeamStatus =
+  | 0 // NONE_0
+  | 1 // LIVE_1
+  | 2 // DELETED_2
+  | 3 // ABANDONED_3
+
 export type TeamTreeEntry = $ReadOnly<{name: TeamName, admin: Boolean}>
 
 export type TeamTreeResult = $ReadOnly<{entries?: ?Array<TeamTreeEntry>}>
@@ -4188,6 +4207,7 @@ type GpgUiSignResult = String
 type GpgUiWantToAddGPGKeyResult = Boolean
 type GregorGetStateResult = Gregor1.State
 type GregorInjectItemResult = Gregor1.MsgID
+type GregorUpdateItemResult = Gregor1.MsgID
 type HomeHomeGetScreenResult = HomeScreen
 type IdentifyIdentify2Result = Identify2Res
 type IdentifyIdentifyLiteResult = IdentifyLiteRes

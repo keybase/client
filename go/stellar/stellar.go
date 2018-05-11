@@ -86,7 +86,7 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 	if err != nil {
 		return err
 	}
-	err = pukring.Sync(ctx)
+	err = pukring.Sync(libkb.NewMetaContext(ctx, g))
 	if err != nil {
 		return err
 	}

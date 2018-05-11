@@ -8,7 +8,7 @@ import Preview from './preview/container'
 import {connect} from '../../../util/container'
 import type {TypedState} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   // const isPendingConversation = conversationIDKey === Constants.pendingConversationIDKey
   // const pendingStatus = state.chat2.pendingStatus
