@@ -364,7 +364,8 @@ type GetUPAKArg struct {
 }
 
 type UploadUserAvatarArg struct {
-	Filename string `codec:"filename" json:"filename"`
+	Filename string         `codec:"filename" json:"filename"`
+	Crop     *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
 }
 
 type UserInterface interface {
@@ -405,7 +406,7 @@ type UserInterface interface {
 	MeUserVersion(context.Context, MeUserVersionArg) (UserVersion, error)
 	// getUPAK returns a UPAK. Used mainly for debugging.
 	GetUPAK(context.Context, UID) (UPAKVersioned, error)
-	UploadUserAvatar(context.Context, string) error
+	UploadUserAvatar(context.Context, UploadUserAvatarArg) error
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -759,7 +760,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]UploadUserAvatarArg)(nil), args)
 						return
 					}
-					err = i.UploadUserAvatar(ctx, (*typedArgs)[0].Filename)
+					err = i.UploadUserAvatar(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -899,8 +900,7 @@ func (c UserClient) GetUPAK(ctx context.Context, uid UID) (res UPAKVersioned, er
 	return
 }
 
-func (c UserClient) UploadUserAvatar(ctx context.Context, filename string) (err error) {
-	__arg := UploadUserAvatarArg{Filename: filename}
+func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatarArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []interface{}{__arg}, nil)
 	return
 }

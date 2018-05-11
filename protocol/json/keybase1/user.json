@@ -596,6 +596,13 @@
         {
           "name": "filename",
           "type": "string"
+        },
+        {
+          "name": "crop",
+          "type": [
+            null,
+            "ImageCropRect"
+          ]
         }
       ],
       "response": null

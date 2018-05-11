@@ -507,5 +507,5 @@ func (h *TeamsHandler) UploadTeamAvatar(ctx context.Context, arg keybase1.Upload
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadTeamAvatar(%s,%s)", arg.Teamname, arg.Filename), func() error { return err })()
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
-	return avatars.UploadImage(mctx, arg.Filename, &arg.Teamname)
+	return avatars.UploadImage(mctx, arg.Filename, &arg.Teamname, arg.Crop)
 }

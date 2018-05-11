@@ -75,7 +75,10 @@ func (c *cmdUploadAvatar) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.UploadUserAvatar(context.Background(), c.filename)
+	arg := keybase1.UploadUserAvatarArg{
+		Filename: c.filename,
+	}
+	return cli.UploadUserAvatar(context.Background(), arg)
 }
 
 func (c *cmdUploadAvatar) GetUsage() libkb.Usage {

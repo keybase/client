@@ -355,10 +355,10 @@ func (h *UserHandler) GetUPAK(ctx context.Context, uid keybase1.UID) (ret keybas
 	return ret, err
 }
 
-func (h *UserHandler) UploadUserAvatar(ctx context.Context, filename string) (err error) {
+func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadUserAvatarArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "US")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadUserAvatar(%s)", filename), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadUserAvatar(%s)", arg.Filename), func() error { return err })()
 
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	return avatars.UploadImage(mctx, filename, nil /* teamname */)
+	return avatars.UploadImage(mctx, arg.Filename, nil /* teamname */, arg.Crop)
 }

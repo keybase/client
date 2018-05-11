@@ -31,11 +31,7 @@ func addFile(mpart *multipart.Writer, param, filename string) error {
 	return err
 }
 
-type imageCropParams struct {
-	x0, y0, x1, y1 int
-}
-
-func postAvatarImage(mctx libkb.MetaContext, filename string, crop *imageCropParams, teamID *keybase1.TeamID) (err error) {
+func postAvatarImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamID, crop *keybase1.ImageCropRect) (err error) {
 	var body bytes.Buffer
 	mpart := multipart.NewWriter(&body)
 
@@ -49,10 +45,11 @@ func postAvatarImage(mctx libkb.MetaContext, filename string, crop *imageCropPar
 	}
 
 	if crop != nil {
-		mpart.WriteField("x0", fmt.Sprintf("%d", crop.x0))
-		mpart.WriteField("y0", fmt.Sprintf("%d", crop.y0))
-		mpart.WriteField("x1", fmt.Sprintf("%d", crop.x1))
-		mpart.WriteField("y1", fmt.Sprintf("%d", crop.y1))
+		mctx.CDebugf("Adding crop fields: %+v", crop)
+		mpart.WriteField("x0", fmt.Sprintf("%d", crop.X0))
+		mpart.WriteField("y0", fmt.Sprintf("%d", crop.Y0))
+		mpart.WriteField("x1", fmt.Sprintf("%d", crop.X1))
+		mpart.WriteField("y1", fmt.Sprintf("%d", crop.Y1))
 	}
 
 	if err := mpart.Close(); err != nil {
@@ -82,7 +79,7 @@ func postAvatarImage(mctx libkb.MetaContext, filename string, crop *imageCropPar
 	return nil
 }
 
-func UploadImage(mctx libkb.MetaContext, filename string, teamname *string) error {
+func UploadImage(mctx libkb.MetaContext, filename string, teamname *string, crop *keybase1.ImageCropRect) error {
 	var teamID *keybase1.TeamID
 	if teamname != nil {
 		team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
@@ -96,5 +93,5 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamname *string) erro
 		}
 		teamID = &team.ID
 	}
-	return postAvatarImage(mctx, filename, nil, teamID)
+	return postAvatarImage(mctx, filename, teamID, crop)
 }

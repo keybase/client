@@ -2645,6 +2645,8 @@ export type IdentifyUiStartRpcParam = $ReadOnly<{username: String, reason: Ident
 
 export type Identity = $ReadOnly<{status?: ?Status, whenLastTracked: Time, proofs?: ?Array<IdentifyRow>, cryptocurrency?: ?Array<Cryptocurrency>, revoked?: ?Array<TrackDiff>, revokedDetails?: ?Array<RevokedProof>, breaksTracking: Boolean}>
 
+export type ImageCropRect = $ReadOnly<{x0: Int, y0: Int, x1: Int, y1: Int}>
+
 export type ImplicitRole = $ReadOnly<{role: TeamRole, ancestor: TeamID}>
 
 export type ImplicitTeamConflictInfo = $ReadOnly<{generation: ConflictGeneration, time: Time}>
@@ -3970,7 +3972,7 @@ export type TeamsUiConfirmRootTeamDeleteRpcParam = $ReadOnly<{teamName: String, 
 
 export type TeamsUiConfirmSubteamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsUploadTeamAvatarRpcParam = $ReadOnly<{teamname: String, filename: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsUploadTeamAvatarRpcParam = $ReadOnly<{teamname: String, filename: String, crop?: ?ImageCropRect, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type Test = $ReadOnly<{reply: String}>
 
@@ -4151,7 +4153,7 @@ export type UserSummary2Set = $ReadOnly<{users?: ?Array<UserSummary2>, time: Tim
 
 export type UserTeamShowcase = $ReadOnly<{fqName: String, open: Boolean, teamIsShowcased: Boolean, description: String, role: TeamRole, publicAdmins?: ?Array<String>, numMembers: Int}>
 
-export type UserUploadUserAvatarRpcParam = $ReadOnly<{filename: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserUploadUserAvatarRpcParam = $ReadOnly<{filename: String, crop?: ?ImageCropRect, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserVersion = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
 
