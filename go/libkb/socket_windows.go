@@ -32,10 +32,13 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 	if log == nil {
 		log = logger.NewNull()
 	}
+
+	// ownership tests fail when server is in same proces, as in tests
 	return SocketInfo{
 		log:       log,
 		bindFile:  s,
 		dialFiles: []string{s},
+		testOwner: g.Env.Test == nil,
 	}, nil
 }
 
@@ -70,14 +73,15 @@ func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
 	}
 
 	// Test ownership
-	owner, err := Pipeowner(s.dialFiles[0])
-	if err != nil {
-		return nil, err
+	if s.testOwner {
+		owner, err := Pipeowner(s.dialFiles[0])
+		if err != nil {
+			return nil, err
+		}
+		if !owner {
+			return nil, errors.New("failed to verify pipe ownership")
+		}
 	}
-	if !owner {
-		return nil, errors.New("failed to verify pipe ownership")
-	}
-
 	// Success case
 	return pipe, err
 }

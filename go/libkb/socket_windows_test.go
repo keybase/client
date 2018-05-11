@@ -30,9 +30,6 @@ func setupTest(t *testing.T, nm string) *TestContext {
 // only processes in the same user account are supposed to be able to
 // open each other's named pipes.
 func TestWindowsNamedPipe(t *testing.T) {
-
-	t.Skip("skipping test; incompatible with Pipeowner")
-
 	tc := setupTest(t, "socket_windows_test")
 
 	defer tc.Cleanup()
