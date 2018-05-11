@@ -21,7 +21,9 @@ const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
   _onAction: (path: Types.Path, type: Types.PathType, evt?: SyntheticEvent<>) =>
-    dispatch(FsGen.createOnAction({path, type, targetRect: Constants.syntheticEventToTargetRect(evt)})),
+    dispatch(
+      FsGen.createFileActionPopup({path, type, targetRect: Constants.syntheticEventToTargetRect(evt)})
+    ),
 })
 
 const mergeProps = ({path, _pathItem}, {onBack, _onAction}) => ({

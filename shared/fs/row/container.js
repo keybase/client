@@ -31,7 +31,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
   _onAction: (path: Types.Path, type: Types.PathType, evt?: SyntheticEvent<>) =>
-    dispatch(FsGen.createOnAction({path, type, targetRect: Constants.syntheticEventToTargetRect(evt)})),
+    dispatch(
+      FsGen.createFileActionPopup({path, type, targetRect: Constants.syntheticEventToTargetRect(evt)})
+    ),
   _openFinderPopup: (evt?: SyntheticEvent<>) =>
     dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt)})),
 })

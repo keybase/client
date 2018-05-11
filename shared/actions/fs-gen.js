@@ -17,6 +17,7 @@ export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
+export const fileActionPopup = 'fs:fileActionPopup'
 export const filePreviewLoad = 'fs:filePreviewLoad'
 export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const folderListLoad = 'fs:folderListLoad'
@@ -28,7 +29,6 @@ export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
-export const onAction = 'fs:onAction'
 export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
@@ -68,6 +68,11 @@ type _FavoriteIgnoreErrorPayload = $ReadOnly<{|
 type _FavoriteIgnorePayload = $ReadOnly<{|path: Types.Path|}>
 type _FavoritesLoadPayload = void
 type _FavoritesLoadedPayload = $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>
+type _FileActionPopupPayload = $ReadOnly<{|
+  path: Types.Path,
+  type: Types.PathType,
+  targetRect: ?ClientRect,
+|}>
 type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path|}>
 type _FilePreviewLoadedPayload = $ReadOnly<{|
   path: Types.Path,
@@ -90,11 +95,6 @@ type _InstallKBFSPayload = void
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
-|}>
-type _OnActionPayload = $ReadOnly<{|
-  path: Types.Path,
-  type: Types.PathType,
-  targetRect: ?ClientRect,
 |}>
 type _OpenFinderPopupPayload = $ReadOnly<{|targetRect: ?ClientRect|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
@@ -134,6 +134,7 @@ export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({error
 export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({error: false, payload, type: favoriteIgnoreError})
 export const createFavoritesLoad = (payload: _FavoritesLoadPayload) => ({error: false, payload, type: favoritesLoad})
 export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload) => ({error: false, payload, type: favoritesLoaded})
+export const createFileActionPopup = (payload: _FileActionPopupPayload) => ({error: false, payload, type: fileActionPopup})
 export const createFilePreviewLoad = (payload: _FilePreviewLoadPayload) => ({error: false, payload, type: filePreviewLoad})
 export const createFilePreviewLoaded = (payload: _FilePreviewLoadedPayload) => ({error: false, payload, type: filePreviewLoaded})
 export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({error: false, payload, type: folderListLoad})
@@ -145,7 +146,6 @@ export const createInstallFuse = (payload: _InstallFusePayload) => ({error: fals
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
-export const createOnAction = (payload: _OnActionPayload) => ({error: false, payload, type: onAction})
 export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({error: false, payload, type: openFinderPopup})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
@@ -169,6 +169,7 @@ export type FavoriteIgnoreErrorPayload = $Call<typeof createFavoriteIgnoreError,
 export type FavoriteIgnorePayload = $Call<typeof createFavoriteIgnore, _FavoriteIgnorePayload>
 export type FavoritesLoadPayload = $Call<typeof createFavoritesLoad, _FavoritesLoadPayload>
 export type FavoritesLoadedPayload = $Call<typeof createFavoritesLoaded, _FavoritesLoadedPayload>
+export type FileActionPopupPayload = $Call<typeof createFileActionPopup, _FileActionPopupPayload>
 export type FilePreviewLoadPayload = $Call<typeof createFilePreviewLoad, _FilePreviewLoadPayload>
 export type FilePreviewLoadedPayload = $Call<typeof createFilePreviewLoaded, _FilePreviewLoadedPayload>
 export type FolderListLoadPayload = $Call<typeof createFolderListLoad, _FolderListLoadPayload>
@@ -180,7 +181,6 @@ export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePay
 export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
-export type OnActionPayload = $Call<typeof createOnAction, _OnActionPayload>
 export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFinderPopupPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
@@ -206,6 +206,7 @@ export type Actions =
   | FavoriteIgnorePayload
   | FavoritesLoadPayload
   | FavoritesLoadedPayload
+  | FileActionPopupPayload
   | FilePreviewLoadPayload
   | FilePreviewLoadedPayload
   | FolderListLoadPayload
@@ -217,7 +218,6 @@ export type Actions =
   | InstallFuseResultPayload
   | InstallKBFSPayload
   | LocalHTTPServerInfoPayload
-  | OnActionPayload
   | OpenFinderPopupPayload
   | OpenInFileUIPayload
   | OpenSecurityPreferencesPayload

@@ -286,7 +286,7 @@ function* metaSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openFinderPopup, openFinderPopup)
 }
 
-function* subSaga(): Saga.SagaGenerator<any, any> {
+function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
@@ -304,4 +304,4 @@ function* subSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(metaSaga)
 }
 
-export {copyToDownloadDir, subSaga}
+export {copyToDownloadDir, platformSpecificSaga}

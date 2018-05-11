@@ -8,7 +8,7 @@ import * as Saga from '../../util/saga'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
-import {subSaga, copyToDownloadDir} from './platform-specific'
+import {platformSpecificSaga, copyToDownloadDir} from './platform-specific'
 import {isMobile} from '../../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {type TypedState} from '../../util/container'
@@ -303,9 +303,8 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
   }
 }
 
-function* onAction(action: FsGen.OnActionPayload): Saga.SagaGenerator<any, any> {
+function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenerator<any, any> {
   const {path, type, targetRect} = action.payload
-  console.log(action.payload)
   // We may not have the folder loaded yet, but will need metadata to know
   // folder entry types in the popup. So dispatch an action now to load it.
   type === 'folder' && (yield Saga.put(FsGen.createFolderListLoad({path})))
@@ -322,10 +321,6 @@ function* onAction(action: FsGen.OnActionPayload): Saga.SagaGenerator<any, any> 
       },
     ])
   )
-}
-
-function* metaSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(FsGen.onAction, onAction)
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
@@ -347,10 +342,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
   }
 
-  yield Saga.fork(subSaga)
+  yield Saga.fork(platformSpecificSaga)
 
-  // Should come after others.
-  yield Saga.fork(metaSaga)
+  // These are saga tasks that may use actions above.
+  yield Saga.safeTakeEvery(FsGen.fileActionPopup, fileActionPopup)
 }
 
 export default fsSaga

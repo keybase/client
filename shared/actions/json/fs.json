@@ -101,7 +101,7 @@
     "save": {
       "path": "Types.Path",
     },
-    "onAction": {
+    "fileActionPopup": {
       "path": "Types.Path",
       "type": "Types.PathType",
       "targetRect": "?ClientRect"

@@ -137,7 +137,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.share:
     case FsGen.save:
-    case FsGen.onAction:
+    case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
       return state
     default:
