@@ -17,12 +17,14 @@ func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *Storage, u
 			g.GetLog().CDebugf(ctx, "ephemeralPurge: %s", err)
 		} else {
 			if len(explodedMsgs) > 0 {
-				convs, err := g.ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{job.ConvID})
-				if err != nil || len(convs) != 1 {
-					g.GetLog().CDebugf(ctx, "FindConversationsByID: convs: %v err: %v", convs, err)
+				ib, _, err := g.InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{job.ConvID},
+				}, nil)
+				if err != nil || len(ib.Convs) != 1 {
+					g.GetLog().CDebugf(ctx, "FindConversationsByID: convs: %v err: %v", ib.Convs, err)
 					return
 				}
-				inboxUIItem := utils.PresentConversationLocal(convs[0], g.Env.GetUsername().String())
+				inboxUIItem := utils.PresentConversationLocal(ib.Convs[0], g.Env.GetUsername().String())
 
 				purgedMsgs := []chat1.UIMessage{}
 				for _, msg := range explodedMsgs {
