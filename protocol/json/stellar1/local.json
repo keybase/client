@@ -239,6 +239,27 @@
         }
       ],
       "response": "OutsideExchangeRate"
+    },
+    "getAvailableLocalCurrencies": {
+      "request": [],
+      "response": {
+        "type": "map",
+        "values": "OutsideCurrencyDefinition",
+        "keys": "OutsideCurrencyCode"
+      }
+    },
+    "formatLocalCurrencyString": {
+      "request": [
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "code",
+          "type": "OutsideCurrencyCode"
+        }
+      ],
+      "response": "string"
     }
   },
   "namespace": "stellar.1"

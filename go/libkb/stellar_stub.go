@@ -3,6 +3,8 @@ package libkb
 import (
 	"context"
 	"fmt"
+
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 )
 
 type nullStellar struct {
@@ -28,3 +30,7 @@ func (n *nullStellar) Upkeep(ctx context.Context) error {
 }
 
 func (n *nullStellar) OnLogout() {}
+
+func (n *nullStellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
+	return ret, fmt.Errorf("null stellar impl")
+}

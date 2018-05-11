@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Checkbox, PlatformIcon, StandardScreen, Text} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import type {Props} from './finished-generating-pgp'
 
 import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'
@@ -26,13 +26,14 @@ class FinishedGeneratedPgp extends Component<Props, State> {
 
   render() {
     return (
-      <StandardScreen
-        notification={{type: 'success', message: 'Your PGP key was generated!'}}
-        style={{alignSelf: 'stretch'}}
-      >
+      <StandardScreen notification={{type: 'success', message: 'Success!'}} style={{alignSelf: 'stretch'}}>
         <PlatformIcon style={styleIcon} platform="pgp" overlay="icon-proof-success" />
         <Text style={styleTitle} type="Header">
           Here is your unique public key!
+        </Text>
+        <Text style={collapseStyles([styleTitle, styleTextSpacing])} type="Body">
+          Your private key has been written to Keybase’s local keychain. You can learn to use it with `keybase
+          pgp help` from your terminal. If you have GPG installed, it has also been written to GPG’s keychain.
         </Text>
         <Box style={{...globalStyles.flexBoxRow, alignSelf: 'stretch'}}>
           <textinput style={stylePgpKeyString} readOnly={true}>
@@ -43,7 +44,7 @@ class FinishedGeneratedPgp extends Component<Props, State> {
           <Checkbox
             onCheck={newVal => this._onCheckToggle(newVal)}
             checked={this.state.shouldStoreKeyOnServer}
-            label="Store encrypted private key on Keybase's server (recommended)"
+            label="Store encrypted private key on Keybase's server"
           />
           <Text style={styleUploadTextSublabel} type="BodySmall">
             {'Allows you to download & import your key to other devices.'}
@@ -68,6 +69,11 @@ const styleTitle = {
   marginBottom: globalMargins.medium,
 }
 
+const styleTextSpacing = {
+  paddingLeft: globalMargins.large,
+  paddingRight: globalMargins.large,
+}
+
 const stylePgpKeyString = platformStyles({
   common: {
     ...globalStyles.fontTerminal,
@@ -85,6 +91,7 @@ const stylePgpKeyString = platformStyles({
     border: `solid 1px ${globalColors.black_10}`,
     overflowX: 'hidden',
     overflowY: 'auto',
+    userSelect: 'all',
     whiteSpace: 'pre-wrap',
     wordWrap: 'break-word',
   },
