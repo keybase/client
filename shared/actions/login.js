@@ -127,7 +127,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
       if (url) {
         yield Saga.put(AppGen.createLink({link: url}))
       } else if (tab && isValidInitialTab(tab)) {
-        if (tab === chatTab && ChatConstants.isValidConversationIDKey(conversation)) {
+        if (tab === chatTab && conversation && ChatConstants.isValidConversationIDKey(conversation)) {
           yield Saga.put(
             Chat2Gen.createSelectConversation({
               conversationIDKey: ChatTypes.stringToConversationIDKey(conversation),

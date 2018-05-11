@@ -1183,8 +1183,7 @@ const previewConversationFindExisting = (
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
-// Handle changing the current selection as a side effect
-const desktopChangeSelection = (
+const changeSelectedConversation = (
   action:
     | Chat2Gen.MetasReceivedPayload
     | Chat2Gen.LeaveConversationPayload
@@ -1199,12 +1198,15 @@ const desktopChangeSelection = (
   switch (action.type) {
     case Chat2Gen.setPendingMode: {
       if (action.payload.pendingMode !== 'none') {
-        return Saga.put(
-          Chat2Gen.createSelectConversation({
-            conversationIDKey: Constants.pendingConversationIDKey,
-            reason: 'searching',
-          })
-        )
+        return Saga.sequentially([
+          Saga.put(
+            Chat2Gen.createSelectConversation({
+              conversationIDKey: Constants.pendingConversationIDKey,
+              reason: 'searching',
+            })
+          ),
+          ...(isMobile ? [Saga.put(Chat2Gen.createNavigateToThread())] : []),
+        ])
       }
       break
     }
@@ -1224,7 +1226,9 @@ const desktopChangeSelection = (
       }
   }
 
-  return _maybeAutoselectNewestConversation(action, state)
+  if (!isMobile) {
+    return _maybeAutoselectNewestConversation(action, state)
+  }
 }
 
 const _maybeAutoselectNewestConversation = (
@@ -1672,7 +1676,7 @@ const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.Leav
   return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
 }
 const navigateToThread = (_: any, state: TypedState) => {
-  if (Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
+  if (isMobile || Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
     return Saga.put(
       Route.navigateTo(
         isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
@@ -1866,7 +1870,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation
-    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
+    // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
     // Unselect the conversation when we go to the inbox
@@ -1876,20 +1880,21 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     )
   } else {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
-    yield Saga.safeTakeEveryPure(
-      [
-        Chat2Gen.metasReceived,
-        Chat2Gen.leaveConversation,
-        Chat2Gen.metaDelete,
-        Chat2Gen.setPendingMode,
-        Chat2Gen.messageSend,
-        Chat2Gen.attachmentUpload,
-        TeamsGen.leaveTeam,
-      ],
-      desktopChangeSelection
-    )
   }
 
+  // Sometimes change the selection
+  yield Saga.safeTakeEveryPure(
+    [
+      Chat2Gen.metasReceived,
+      Chat2Gen.leaveConversation,
+      Chat2Gen.metaDelete,
+      Chat2Gen.setPendingMode,
+      Chat2Gen.messageSend,
+      Chat2Gen.attachmentUpload,
+      TeamsGen.leaveTeam,
+    ],
+    changeSelectedConversation
+  )
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(Chat2Gen.inboxRefresh, inboxRefresh)
   // Load teams

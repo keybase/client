@@ -34,7 +34,10 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 export const getResolvedPendingConversationIDKey = (state: TypedState) =>
   getMeta(state, pendingConversationIDKey).conversationIDKey
 export const isValidConversationIDKey = (id: Types.ConversationIDKey) =>
-  id !== pendingConversationIDKey && id !== noConversationIDKey && id !== pendingWaitingConversationIDKey
+  id &&
+  id !== pendingConversationIDKey &&
+  id !== noConversationIDKey &&
+  id !== pendingWaitingConversationIDKey
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.SortedSet())
 export const getMessageMap = (state: TypedState, id: Types.ConversationIDKey) =>
