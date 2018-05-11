@@ -12,6 +12,8 @@ type Source interface {
 	LoadUsers(context.Context, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
 	LoadTeams(context.Context, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
 
+	ClearCacheForName(context.Context, string, []keybase1.AvatarFormat) error
+
 	StartBackgroundTasks()
 	StopBackgroundTasks()
 }

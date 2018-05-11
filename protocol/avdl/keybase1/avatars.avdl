@@ -11,4 +11,9 @@ protocol avatars {
 
     LoadAvatarsRes loadUserAvatars(array<string> names, array<AvatarFormat> formats);
     LoadAvatarsRes loadTeamAvatars(array<string> names, array<AvatarFormat> formats);
+
+    record AvatarClearCacheMsg {
+        @jsonkey("name")
+        string name;
+    }
 }

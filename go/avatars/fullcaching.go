@@ -333,6 +333,16 @@ func (c *FullCachingSource) loadNames(ctx context.Context, names []string, forma
 	return res, nil
 }
 
+func (c *FullCachingSource) clearName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
+	for _, format := range formats {
+		key := c.avatarKey(name, format)
+		if err := c.diskLRU.Remove(ctx, c.G(), key); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (c *FullCachingSource) LoadUsers(ctx context.Context, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer c.G().Trace("FullCachingSource.LoadUsers", func() error { return err })()
 	return c.loadNames(ctx, usernames, formats, c.simpleSource.LoadUsers)
@@ -341,4 +351,9 @@ func (c *FullCachingSource) LoadUsers(ctx context.Context, usernames []string, f
 func (c *FullCachingSource) LoadTeams(ctx context.Context, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer c.G().Trace("FullCachingSource.LoadTeams", func() error { return err })()
 	return c.loadNames(ctx, teams, formats, c.simpleSource.LoadTeams)
+}
+
+func (c *FullCachingSource) ClearCacheForName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
+	defer c.G().Trace("FullCachingSource.ClearCacheForUser", func() error { return err })()
+	return c.clearName(ctx, name, formats)
 }

@@ -1,10 +1,16 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/keybase/client/go/avatars"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+
 	"golang.org/x/net/context"
 )
 
@@ -29,4 +35,62 @@ func (h *AvatarHandler) LoadUserAvatars(ctx context.Context, arg keybase1.LoadUs
 
 func (h *AvatarHandler) LoadTeamAvatars(ctx context.Context, arg keybase1.LoadTeamAvatarsArg) (keybase1.LoadAvatarsRes, error) {
 	return h.source.LoadTeams(ctx, arg.Names, arg.Formats)
+}
+
+const avatarGregorHandlerName = "avatarHandler"
+
+type avatarGregorHandler struct {
+	libkb.Contextified
+	source avatars.Source
+}
+
+var _ libkb.GregorInBandMessageHandler = (*avatarGregorHandler)(nil)
+
+func newAvatarGregorHandler(g *libkb.GlobalContext, source avatars.Source) *avatarGregorHandler {
+	return &avatarGregorHandler{
+		Contextified: libkb.NewContextified(g),
+		source:       source,
+	}
+}
+
+func (r *avatarGregorHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+	switch category {
+	case "avatar.clear_cache_for_name":
+		return true, r.clearName(ctx, cli, item)
+	default:
+		return false, fmt.Errorf("unknown avatarGregorHandler category: %q", category)
+	}
+}
+
+func (r *avatarGregorHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+	return false, nil
+}
+
+func (r *avatarGregorHandler) IsAlive() bool {
+	return true
+}
+
+func (r *avatarGregorHandler) Name() string {
+	return avatarGregorHandlerName
+}
+
+func (r *avatarGregorHandler) clearName(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	r.G().Log.CDebugf(ctx, "avatarGregorHandler: avatar.clear_cache_for_name received")
+	var msg keybase1.AvatarClearCacheMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		r.G().Log.CDebugf(ctx, "error unmarshaling avatar.clear_cache_for_name item: %s", err)
+		return err
+	}
+
+	r.G().Log.CDebugf(ctx, "avatar.clear_cache_for_name unmarshaled: %+v", msg)
+
+	formats := []keybase1.AvatarFormat{
+		"square_200", "square_360", "square_40",
+	}
+
+	if err := r.source.ClearCacheForName(ctx, msg.Name, formats); err != nil {
+		return err
+	}
+
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }

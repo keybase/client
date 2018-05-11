@@ -94,5 +94,6 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamname *string, crop
 		}
 		teamID = &team.ID
 	}
+
 	return postAvatarImage(mctx, filename, teamID, crop)
 }
