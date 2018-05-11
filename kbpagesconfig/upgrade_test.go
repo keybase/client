@@ -37,13 +37,14 @@ func TestUpgrade(t *testing.T) {
 
 	t.Logf("testing upgrade")
 
-	nextResponse := make(chan string, 4)
+	nextResponse := make(chan string, 5)
 	prompter := &fakePrompterForTest{
 		nextResponse: nextResponse,
 	}
 
 	nextResponse <- "y"
 	nextResponse <- "123"
+	nextResponse <- "n"
 	nextResponse <- "ecila"
 	nextResponse <- "y"
 

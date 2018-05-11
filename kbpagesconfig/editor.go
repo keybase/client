@@ -67,9 +67,13 @@ func (e *kbpConfigEditor) confirmAndWrite() error {
 		e.originalConfigStr, e.kbpConfig, e.kbpConfigPath, e.prompter)
 }
 
-func (e *kbpConfigEditor) addUser(username string) error {
-	if _, ok := e.kbpConfig.Users[username]; ok {
+func (e *kbpConfigEditor) setUser(username string, isAdd bool) error {
+	_, userExists := e.kbpConfig.Users[username]
+	if userExists && isAdd {
 		return fmt.Errorf("user %s already exists", username)
+	}
+	if !userExists && !isAdd {
+		return fmt.Errorf("user %s doesn't exist", username)
 	}
 	confirmedRandom, err := promptConfirm(e.prompter, fmt.Sprintf(
 		"We can generate a random password for %s, or you can enter "+

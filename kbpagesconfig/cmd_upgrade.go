@@ -28,11 +28,21 @@ func migrateUserToSHA256Hash(p prompter, username string, oldConfig config.Confi
 			fmt.Fprintf(os.Stderr, "empty password\n")
 			continue
 		}
-		if !oldConfig.Authenticate(context.Background(), username, password) {
-			fmt.Fprintf(os.Stderr, "wrong password for %s\n", username)
+		if oldConfig.Authenticate(context.Background(), username, password) {
+			return config.GenerateSHA256PasswordHash(password)
+		}
+		fmt.Fprintf(os.Stderr, "password for %s doesn't match what's in the old config file\n", username)
+		confirmed, err := promptConfirm(p, fmt.Sprintf(
+			"The password you entered for %s doesn't match what's "+
+				"currently in the old config file. Still use it?\n",
+			username), false)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "getting confirmation error: %v\n", err)
 			continue
 		}
-		return config.GenerateSHA256PasswordHash(password)
+		if confirmed {
+			return config.GenerateSHA256PasswordHash(password)
+		}
 	}
 }
 
@@ -54,8 +64,10 @@ func upgradeToV2WithPrompter(kbpConfigDir string, prompter prompter) (err error)
 			confirmed, err := promptConfirm(prompter, fmt.Sprintf(
 				"You are about to upgrade your kbpages config file from "+
 					"%s to %s. If you had username/password pairs in your "+
-					"old config file, you will be prompted to enter them "+
-					"one by one. Continue?",
+					"old config file, you will be prompted to enter "+
+					"passwords for each user one by one. If you don't know "+
+					"the password for any user(s), you may enter new "+
+					"passwords for them. Continue?",
 				config.Version1Str, config.Version2Str), true)
 			if err != nil {
 				return err

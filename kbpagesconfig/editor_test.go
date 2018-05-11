@@ -53,11 +53,11 @@ func TestEditor(t *testing.T) {
 	// "54321".
 	nextResponse <- "n"
 	nextResponse <- "12345"
-	err = editor.addUser("alice")
+	err = editor.setUser("alice", true)
 	require.NoError(t, err)
 	nextResponse <- "n"
 	nextResponse <- "54321"
-	err = editor.addUser("bob")
+	err = editor.setUser("bob", true)
 	require.NoError(t, err)
 	nextResponse <- "y"
 	err = editor.confirmAndWrite()

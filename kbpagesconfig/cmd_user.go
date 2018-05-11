@@ -27,8 +27,38 @@ var userAddCmd = cli.Command{
 			os.Exit(1)
 		}
 		for _, username := range c.Args() {
-			if err := editor.addUser(username); err != nil {
-				fmt.Fprintf(os.Stderr, "adding user error: %v\n", err)
+			if err := editor.setUser(username, true); err != nil {
+				fmt.Fprintf(os.Stderr,
+					"adding user (%s) error: %v\n", username, err)
+				os.Exit(1)
+			}
+		}
+		if err := editor.confirmAndWrite(); err != nil {
+			fmt.Fprintf(os.Stderr, "writing new config error: %v\n", err)
+			os.Exit(1)
+		}
+	},
+}
+
+var userChangeCmd = cli.Command{
+	Name:      "change",
+	Usage:     "change password(s) for user(s) in the config",
+	UsageText: "change <username> [username ...]",
+	Action: func(c *cli.Context) {
+		if len(c.Args()) < 1 {
+			fmt.Fprintln(os.Stderr, "empty username")
+			os.Exit(1)
+		}
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
+		if err != nil {
+			fmt.Fprintf(os.Stderr,
+				"creating config editor error: %v\n", err)
+			os.Exit(1)
+		}
+		for _, username := range c.Args() {
+			if err := editor.setUser(username, false); err != nil {
+				fmt.Fprintf(os.Stderr,
+					"change user (%s) password error: %v\n", username, err)
 				os.Exit(1)
 			}
 		}
@@ -70,6 +100,7 @@ var userCmd = cli.Command{
 	UsageText: "user <add|remove> <args>",
 	Subcommands: []cli.Command{
 		userAddCmd,
+		userChangeCmd,
 		userRemoveCmd,
 	},
 }
