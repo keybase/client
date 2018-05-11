@@ -5,7 +5,7 @@ import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} fro
 import FloatingMenu from '../../common-adapters/floating-menu'
 
 export type Props = {
-  attachTo: ?React.Component<*, *>,
+  attachTo: ?React.Component<any, any>,
   description: string,
   following: {[key: string]: true},
   memberCount: number,

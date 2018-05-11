@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Types from '../constants/types/fs'
 
 // Constants
@@ -39,163 +38,172 @@ export const transferProgress = 'fs:transferProgress'
 export const uninstallKBFS = 'fs:uninstallKBFS'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 
+// Payload Types
+type _CancelTransferPayload = $ReadOnly<{|key: string|}>
+type _DismissTransferPayload = $ReadOnly<{|key: string|}>
+type _DownloadFinishedPayload = $ReadOnly<{|
+  key: string,
+  error?: string,
+|}>
+type _DownloadPayload = $ReadOnly<{|
+  intent: Types.TransferIntent,
+  path: Types.Path,
+  localPath?: string,
+|}>
+type _DownloadStartedPayload = $ReadOnly<{|
+  key: string,
+  path: Types.Path,
+  localPath: Types.LocalPath,
+  intent: Types.TransferIntent,
+  opID: RPCTypes.OpID,
+|}>
+type _FavoriteIgnoreErrorPayload = $ReadOnly<{|
+  path: Types.Path,
+  errorText: string,
+|}>
+type _FavoriteIgnorePayload = $ReadOnly<{|path: Types.Path|}>
+type _FavoritesLoadPayload = void
+type _FavoritesLoadedPayload = $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>
+type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path|}>
+type _FilePreviewLoadedPayload = $ReadOnly<{|
+  path: Types.Path,
+  meta: Types.PathItem,
+|}>
+type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path|}>
+type _FolderListLoadedPayload = $ReadOnly<{|
+  path: Types.Path,
+  pathItems: I.Map<Types.Path, Types.PathItem>,
+|}>
+type _FsActivityPayload = void
+type _FuseStatusPayload = void
+type _FuseStatusResultPayload = $ReadOnly<{|
+  prevStatus: ?RPCTypes.FuseStatus,
+  status: RPCTypes.FuseStatus,
+|}>
+type _InstallFusePayload = void
+type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
+type _InstallKBFSPayload = void
+type _LocalHTTPServerInfoPayload = $ReadOnly<{|
+  address: string,
+  token: string,
+|}>
+type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
+type _OpenSecurityPreferencesPayload = void
+type _RefreshLocalHTTPServerInfoPayload = void
+type _SetFlagsPayload = $ReadOnly<{|
+  kbfsOpening?: boolean,
+  kbfsInstalling?: boolean,
+  fuseInstalling?: boolean,
+  kextPermissionError?: boolean,
+  securityPrefsPropmted?: boolean,
+  showBanner?: boolean,
+  syncing?: boolean,
+|}>
+type _SetupFSHandlersPayload = void
+type _SortSettingPayload = $ReadOnly<{|
+  path: Types.Path,
+  sortSetting: Types.SortSetting,
+|}>
+type _TransferProgressPayload = $ReadOnly<{|
+  key: string,
+  completePortion: number,
+  endEstimate?: number,
+|}>
+type _UninstallKBFSConfirmPayload = $ReadOnly<{|onSuccess: () => void|}>
+type _UninstallKBFSPayload = void
+
 // Action Creators
-export const createCancelTransfer = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: cancelTransfer})
-export const createDismissTransfer = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: dismissTransfer})
-export const createDownload = (
-  payload: $ReadOnly<{|
-    intent: Types.TransferIntent,
-    path: Types.Path,
-    localPath?: string,
-  |}>
-) => ({error: false, payload, type: download})
-export const createDownloadFinished = (
-  payload: $ReadOnly<{|
-    key: string,
-    error?: string,
-  |}>
-) => ({error: false, payload, type: downloadFinished})
-export const createDownloadStarted = (
-  payload: $ReadOnly<{|
-    key: string,
-    path: Types.Path,
-    localPath: Types.LocalPath,
-    intent: Types.TransferIntent,
-    opID: RPCTypes.OpID,
-  |}>
-) => ({error: false, payload, type: downloadStarted})
-export const createFavoriteIgnore = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: favoriteIgnore})
-export const createFavoriteIgnoreError = (
-  payload: $ReadOnly<{|
-    path: Types.Path,
-    errorText: string,
-  |}>
-) => ({error: false, payload, type: favoriteIgnoreError})
-export const createFavoritesLoad = () => ({error: false, payload: undefined, type: favoritesLoad})
-export const createFavoritesLoaded = (payload: $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>) => ({error: false, payload, type: favoritesLoaded})
-export const createFilePreviewLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: filePreviewLoad})
-export const createFilePreviewLoaded = (
-  payload: $ReadOnly<{|
-    path: Types.Path,
-    meta: Types.PathItem,
-  |}>
-) => ({error: false, payload, type: filePreviewLoaded})
-export const createFolderListLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: folderListLoad})
-export const createFolderListLoaded = (
-  payload: $ReadOnly<{|
-    path: Types.Path,
-    pathItems: I.Map<Types.Path, Types.PathItem>,
-  |}>
-) => ({error: false, payload, type: folderListLoaded})
-export const createFsActivity = () => ({error: false, payload: undefined, type: fsActivity})
-export const createFuseStatus = () => ({error: false, payload: undefined, type: fuseStatus})
-export const createFuseStatusResult = (
-  payload: $ReadOnly<{|
-    prevStatus: ?RPCTypes.FuseStatus,
-    status: RPCTypes.FuseStatus,
-  |}>
-) => ({error: false, payload, type: fuseStatusResult})
-export const createInstallFuse = () => ({error: false, payload: undefined, type: installFuse})
-export const createInstallFuseResult = (payload: $ReadOnly<{|kextPermissionError: boolean|}>) => ({error: false, payload, type: installFuseResult})
-export const createInstallKBFS = () => ({error: false, payload: undefined, type: installKBFS})
-export const createLocalHTTPServerInfo = (
-  payload: $ReadOnly<{|
-    address: string,
-    token: string,
-  |}>
-) => ({error: false, payload, type: localHTTPServerInfo})
-export const createOpenInFileUI = (payload: $ReadOnly<{|path?: string|}>) => ({error: false, payload, type: openInFileUI})
-export const createOpenSecurityPreferences = () => ({error: false, payload: undefined, type: openSecurityPreferences})
-export const createRefreshLocalHTTPServerInfo = () => ({error: false, payload: undefined, type: refreshLocalHTTPServerInfo})
-export const createSetFlags = (
-  payload: $ReadOnly<{|
-    kbfsOpening?: boolean,
-    kbfsInstalling?: boolean,
-    fuseInstalling?: boolean,
-    kextPermissionError?: boolean,
-    securityPrefsPropmted?: boolean,
-    showBanner?: boolean,
-    syncing?: boolean,
-  |}>
-) => ({error: false, payload, type: setFlags})
-export const createSetupFSHandlers = () => ({error: false, payload: undefined, type: setupFSHandlers})
-export const createSortSetting = (
-  payload: $ReadOnly<{|
-    path: Types.Path,
-    sortSetting: Types.SortSetting,
-  |}>
-) => ({error: false, payload, type: sortSetting})
-export const createTransferProgress = (
-  payload: $ReadOnly<{|
-    key: string,
-    completePortion: number,
-    endEstimate?: number,
-  |}>
-) => ({error: false, payload, type: transferProgress})
-export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
-export const createUninstallKBFSConfirm = (payload: $ReadOnly<{|onSuccess: () => void|}>) => ({error: false, payload, type: uninstallKBFSConfirm})
+export const createCancelTransfer = (payload: _CancelTransferPayload) => ({error: false, payload, type: cancelTransfer})
+export const createDismissTransfer = (payload: _DismissTransferPayload) => ({error: false, payload, type: dismissTransfer})
+export const createDownload = (payload: _DownloadPayload) => ({error: false, payload, type: download})
+export const createDownloadFinished = (payload: _DownloadFinishedPayload) => ({error: false, payload, type: downloadFinished})
+export const createDownloadStarted = (payload: _DownloadStartedPayload) => ({error: false, payload, type: downloadStarted})
+export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({error: false, payload, type: favoriteIgnore})
+export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({error: false, payload, type: favoriteIgnoreError})
+export const createFavoritesLoad = (payload: _FavoritesLoadPayload) => ({error: false, payload, type: favoritesLoad})
+export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload) => ({error: false, payload, type: favoritesLoaded})
+export const createFilePreviewLoad = (payload: _FilePreviewLoadPayload) => ({error: false, payload, type: filePreviewLoad})
+export const createFilePreviewLoaded = (payload: _FilePreviewLoadedPayload) => ({error: false, payload, type: filePreviewLoaded})
+export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({error: false, payload, type: folderListLoad})
+export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({error: false, payload, type: folderListLoaded})
+export const createFsActivity = (payload: _FsActivityPayload) => ({error: false, payload, type: fsActivity})
+export const createFuseStatus = (payload: _FuseStatusPayload) => ({error: false, payload, type: fuseStatus})
+export const createFuseStatusResult = (payload: _FuseStatusResultPayload) => ({error: false, payload, type: fuseStatusResult})
+export const createInstallFuse = (payload: _InstallFusePayload) => ({error: false, payload, type: installFuse})
+export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
+export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
+export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
+export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
+export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
+export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({error: false, payload, type: refreshLocalHTTPServerInfo})
+export const createSetFlags = (payload: _SetFlagsPayload) => ({error: false, payload, type: setFlags})
+export const createSetupFSHandlers = (payload: _SetupFSHandlersPayload) => ({error: false, payload, type: setupFSHandlers})
+export const createSortSetting = (payload: _SortSettingPayload) => ({error: false, payload, type: sortSetting})
+export const createTransferProgress = (payload: _TransferProgressPayload) => ({error: false, payload, type: transferProgress})
+export const createUninstallKBFS = (payload: _UninstallKBFSPayload) => ({error: false, payload, type: uninstallKBFS})
+export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({error: false, payload, type: uninstallKBFSConfirm})
 
 // Action Payloads
-export type CancelTransferPayload = More.ReturnType<typeof createCancelTransfer>
-export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfer>
-export type DownloadFinishedPayload = More.ReturnType<typeof createDownloadFinished>
-export type DownloadPayload = More.ReturnType<typeof createDownload>
-export type DownloadStartedPayload = More.ReturnType<typeof createDownloadStarted>
-export type FavoriteIgnoreErrorPayload = More.ReturnType<typeof createFavoriteIgnoreError>
-export type FavoriteIgnorePayload = More.ReturnType<typeof createFavoriteIgnore>
-export type FavoritesLoadPayload = More.ReturnType<typeof createFavoritesLoad>
-export type FavoritesLoadedPayload = More.ReturnType<typeof createFavoritesLoaded>
-export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoad>
-export type FilePreviewLoadedPayload = More.ReturnType<typeof createFilePreviewLoaded>
-export type FolderListLoadPayload = More.ReturnType<typeof createFolderListLoad>
-export type FolderListLoadedPayload = More.ReturnType<typeof createFolderListLoaded>
-export type FsActivityPayload = More.ReturnType<typeof createFsActivity>
-export type FuseStatusPayload = More.ReturnType<typeof createFuseStatus>
-export type FuseStatusResultPayload = More.ReturnType<typeof createFuseStatusResult>
-export type InstallFusePayload = More.ReturnType<typeof createInstallFuse>
-export type InstallFuseResultPayload = More.ReturnType<typeof createInstallFuseResult>
-export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
-export type LocalHTTPServerInfoPayload = More.ReturnType<typeof createLocalHTTPServerInfo>
-export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
-export type OpenSecurityPreferencesPayload = More.ReturnType<typeof createOpenSecurityPreferences>
-export type RefreshLocalHTTPServerInfoPayload = More.ReturnType<typeof createRefreshLocalHTTPServerInfo>
-export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
-export type SetupFSHandlersPayload = More.ReturnType<typeof createSetupFSHandlers>
-export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
-export type TransferProgressPayload = More.ReturnType<typeof createTransferProgress>
-export type UninstallKBFSConfirmPayload = More.ReturnType<typeof createUninstallKBFSConfirm>
-export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
+export type CancelTransferPayload = $Call<typeof createCancelTransfer, _CancelTransferPayload>
+export type DismissTransferPayload = $Call<typeof createDismissTransfer, _DismissTransferPayload>
+export type DownloadFinishedPayload = $Call<typeof createDownloadFinished, _DownloadFinishedPayload>
+export type DownloadPayload = $Call<typeof createDownload, _DownloadPayload>
+export type DownloadStartedPayload = $Call<typeof createDownloadStarted, _DownloadStartedPayload>
+export type FavoriteIgnoreErrorPayload = $Call<typeof createFavoriteIgnoreError, _FavoriteIgnoreErrorPayload>
+export type FavoriteIgnorePayload = $Call<typeof createFavoriteIgnore, _FavoriteIgnorePayload>
+export type FavoritesLoadPayload = $Call<typeof createFavoritesLoad, _FavoritesLoadPayload>
+export type FavoritesLoadedPayload = $Call<typeof createFavoritesLoaded, _FavoritesLoadedPayload>
+export type FilePreviewLoadPayload = $Call<typeof createFilePreviewLoad, _FilePreviewLoadPayload>
+export type FilePreviewLoadedPayload = $Call<typeof createFilePreviewLoaded, _FilePreviewLoadedPayload>
+export type FolderListLoadPayload = $Call<typeof createFolderListLoad, _FolderListLoadPayload>
+export type FolderListLoadedPayload = $Call<typeof createFolderListLoaded, _FolderListLoadedPayload>
+export type FsActivityPayload = $Call<typeof createFsActivity, _FsActivityPayload>
+export type FuseStatusPayload = $Call<typeof createFuseStatus, _FuseStatusPayload>
+export type FuseStatusResultPayload = $Call<typeof createFuseStatusResult, _FuseStatusResultPayload>
+export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePayload>
+export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
+export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
+export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
+export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
+export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
+export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
+export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
+export type SetupFSHandlersPayload = $Call<typeof createSetupFSHandlers, _SetupFSHandlersPayload>
+export type SortSettingPayload = $Call<typeof createSortSetting, _SortSettingPayload>
+export type TransferProgressPayload = $Call<typeof createTransferProgress, _TransferProgressPayload>
+export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfirm, _UninstallKBFSConfirmPayload>
+export type UninstallKBFSPayload = $Call<typeof createUninstallKBFS, _UninstallKBFSPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createCancelTransfer>
-  | More.ReturnType<typeof createDismissTransfer>
-  | More.ReturnType<typeof createDownload>
-  | More.ReturnType<typeof createDownloadFinished>
-  | More.ReturnType<typeof createDownloadStarted>
-  | More.ReturnType<typeof createFavoriteIgnore>
-  | More.ReturnType<typeof createFavoriteIgnoreError>
-  | More.ReturnType<typeof createFavoritesLoad>
-  | More.ReturnType<typeof createFavoritesLoaded>
-  | More.ReturnType<typeof createFilePreviewLoad>
-  | More.ReturnType<typeof createFilePreviewLoaded>
-  | More.ReturnType<typeof createFolderListLoad>
-  | More.ReturnType<typeof createFolderListLoaded>
-  | More.ReturnType<typeof createFsActivity>
-  | More.ReturnType<typeof createFuseStatus>
-  | More.ReturnType<typeof createFuseStatusResult>
-  | More.ReturnType<typeof createInstallFuse>
-  | More.ReturnType<typeof createInstallFuseResult>
-  | More.ReturnType<typeof createInstallKBFS>
-  | More.ReturnType<typeof createLocalHTTPServerInfo>
-  | More.ReturnType<typeof createOpenInFileUI>
-  | More.ReturnType<typeof createOpenSecurityPreferences>
-  | More.ReturnType<typeof createRefreshLocalHTTPServerInfo>
-  | More.ReturnType<typeof createSetFlags>
-  | More.ReturnType<typeof createSetupFSHandlers>
-  | More.ReturnType<typeof createSortSetting>
-  | More.ReturnType<typeof createTransferProgress>
-  | More.ReturnType<typeof createUninstallKBFS>
-  | More.ReturnType<typeof createUninstallKBFSConfirm>
+  | CancelTransferPayload
+  | DismissTransferPayload
+  | DownloadFinishedPayload
+  | DownloadPayload
+  | DownloadStartedPayload
+  | FavoriteIgnoreErrorPayload
+  | FavoriteIgnorePayload
+  | FavoritesLoadPayload
+  | FavoritesLoadedPayload
+  | FilePreviewLoadPayload
+  | FilePreviewLoadedPayload
+  | FolderListLoadPayload
+  | FolderListLoadedPayload
+  | FsActivityPayload
+  | FuseStatusPayload
+  | FuseStatusResultPayload
+  | InstallFusePayload
+  | InstallFuseResultPayload
+  | InstallKBFSPayload
+  | LocalHTTPServerInfoPayload
+  | OpenInFileUIPayload
+  | OpenSecurityPreferencesPayload
+  | RefreshLocalHTTPServerInfoPayload
+  | SetFlagsPayload
+  | SetupFSHandlersPayload
+  | SortSettingPayload
+  | TransferProgressPayload
+  | UninstallKBFSConfirmPayload
+  | UninstallKBFSPayload
   | {type: 'common:resetStore', payload: void}

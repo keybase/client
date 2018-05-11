@@ -11,7 +11,7 @@ export type OwnProps = {
   teamname: string,
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps): * => {
+const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   const publicitySettings = Constants.getTeamPublicitySettings(state, teamname)
   const publicityAnyMember = publicitySettings.anyMemberShowcase
   const publicityMember = publicitySettings.member

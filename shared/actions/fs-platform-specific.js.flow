@@ -11,8 +11,8 @@ declare export function installFuseSaga(): Saga.SagaGenerator<any, any>
 declare export function installDokanSaga(): void
 declare export function installKBFS(): void
 declare export function installKBFSSuccess(RPCTypes.InstallResult): void
-declare export function uninstallKBFSConfirmSaga(): Promise<*>
+declare export function uninstallKBFSConfirmSaga(): Promise<void>
 declare export function uninstallKBFS(): void
 declare export function uninstallKBFSSuccess(result: RPCTypes.UninstallResult): void
 declare export function openSecurityPreferences(): Saga.SagaGenerator<any, any>
-declare export function copyToDownloadDir(path: string): Promise<*>
+declare export function copyToDownloadDir(path: string): Promise<void>

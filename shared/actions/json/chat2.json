@@ -262,8 +262,8 @@
     "sendToPendingConversation": {
       "users": "Array<string>",
       "sendingAction": [
-        "More.ReturnType<typeof createMessageSend>",
-        "More.ReturnType<typeof createAttachmentUpload>"
+        "MessageSendPayload",
+        "AttachmentUploadPayload"
       ]
     },
     // We've made a new conversation successfully and want to clean up the pending info now

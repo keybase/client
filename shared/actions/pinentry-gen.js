@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Constants from '../constants/pinentry'
 
 // Constants
@@ -18,71 +17,69 @@ export const registerPinentryListener = 'pinentry:registerPinentryListener'
 export const replaceEntity = 'pinentry:replaceEntity'
 export const subtractEntity = 'pinentry:subtractEntity'
 
+// Payload Types
+type _DeleteEntityPayload = $ReadOnly<{|
+  keyPath: Array<string>,
+  ids: Iterable<any>,
+|}>
+type _MergeEntityPayload = $ReadOnly<{|
+  keyPath: Array<string>,
+  entities: I.Map<any, any> | I.List<any>,
+|}>
+type _NewPinentryPayload = $ReadOnly<{|
+  showTyping: RPCTypes.Feature,
+  type: RPCTypes.PassphraseType,
+  sessionID: number,
+  prompt: string,
+  windowTitle: string,
+  submitLabel: ?string,
+  cancelLabel: ?string,
+  retryLabel: ?string,
+|}>
+type _OnCancelPayload = $ReadOnly<{|sessionID: number|}>
+type _OnSubmitPayload = $ReadOnly<{|
+  sessionID: number,
+  passphrase: string,
+|}>
+type _RegisterPinentryListenerPayload = void
+type _ReplaceEntityPayload = $ReadOnly<{|
+  keyPath: Array<string>,
+  entities: I.Map<any, any> | I.List<any>,
+|}>
+type _SubtractEntityPayload = $ReadOnly<{|
+  keyPath: Array<string>,
+  entities: I.List<any>,
+|}>
+
 // Action Creators
-export const createDeleteEntity = (
-  payload: $ReadOnly<{|
-    keyPath: Array<string>,
-    ids: Iterable<any>,
-  |}>
-) => ({error: false, payload, type: deleteEntity})
-export const createMergeEntity = (
-  payload: $ReadOnly<{|
-    keyPath: Array<string>,
-    entities: I.Map<any, any> | I.List<any>,
-  |}>
-) => ({error: false, payload, type: mergeEntity})
-export const createNewPinentry = (
-  payload: $ReadOnly<{|
-    showTyping: RPCTypes.Feature,
-    type: RPCTypes.PassphraseType,
-    sessionID: number,
-    prompt: string,
-    windowTitle: string,
-    submitLabel: ?string,
-    cancelLabel: ?string,
-    retryLabel: ?string,
-  |}>
-) => ({error: false, payload, type: newPinentry})
-export const createOnCancel = (payload: $ReadOnly<{|sessionID: number|}>) => ({error: false, payload, type: onCancel})
-export const createOnSubmit = (
-  payload: $ReadOnly<{|
-    sessionID: number,
-    passphrase: string,
-  |}>
-) => ({error: false, payload, type: onSubmit})
-export const createRegisterPinentryListener = () => ({error: false, payload: undefined, type: registerPinentryListener})
-export const createReplaceEntity = (
-  payload: $ReadOnly<{|
-    keyPath: Array<string>,
-    entities: I.Map<any, any> | I.List<any>,
-  |}>
-) => ({error: false, payload, type: replaceEntity})
-export const createSubtractEntity = (
-  payload: $ReadOnly<{|
-    keyPath: Array<string>,
-    entities: I.List<any>,
-  |}>
-) => ({error: false, payload, type: subtractEntity})
+export const createDeleteEntity = (payload: _DeleteEntityPayload) => ({error: false, payload, type: deleteEntity})
+export const createMergeEntity = (payload: _MergeEntityPayload) => ({error: false, payload, type: mergeEntity})
+export const createNewPinentry = (payload: _NewPinentryPayload) => ({error: false, payload, type: newPinentry})
+export const createOnCancel = (payload: _OnCancelPayload) => ({error: false, payload, type: onCancel})
+export const createOnSubmit = (payload: _OnSubmitPayload) => ({error: false, payload, type: onSubmit})
+export const createRegisterPinentryListener = (payload: _RegisterPinentryListenerPayload) => ({error: false, payload, type: registerPinentryListener})
+export const createReplaceEntity = (payload: _ReplaceEntityPayload) => ({error: false, payload, type: replaceEntity})
+export const createSubtractEntity = (payload: _SubtractEntityPayload) => ({error: false, payload, type: subtractEntity})
 
 // Action Payloads
-export type DeleteEntityPayload = More.ReturnType<typeof createDeleteEntity>
-export type MergeEntityPayload = More.ReturnType<typeof createMergeEntity>
-export type NewPinentryPayload = More.ReturnType<typeof createNewPinentry>
-export type OnCancelPayload = More.ReturnType<typeof createOnCancel>
-export type OnSubmitPayload = More.ReturnType<typeof createOnSubmit>
-export type RegisterPinentryListenerPayload = More.ReturnType<typeof createRegisterPinentryListener>
-export type ReplaceEntityPayload = More.ReturnType<typeof createReplaceEntity>
-export type SubtractEntityPayload = More.ReturnType<typeof createSubtractEntity>
+export type DeleteEntityPayload = $Call<typeof createDeleteEntity, _DeleteEntityPayload>
+export type MergeEntityPayload = $Call<typeof createMergeEntity, _MergeEntityPayload>
+export type NewPinentryPayload = $Call<typeof createNewPinentry, _NewPinentryPayload>
+export type OnCancelPayload = $Call<typeof createOnCancel, _OnCancelPayload>
+export type OnSubmitPayload = $Call<typeof createOnSubmit, _OnSubmitPayload>
+export type RegisterPinentryListenerPayload = $Call<typeof createRegisterPinentryListener, _RegisterPinentryListenerPayload>
+export type ReplaceEntityPayload = $Call<typeof createReplaceEntity, _ReplaceEntityPayload>
+export type SubtractEntityPayload = $Call<typeof createSubtractEntity, _SubtractEntityPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createDeleteEntity>
-  | More.ReturnType<typeof createMergeEntity>
-  | More.ReturnType<typeof createNewPinentry>
-  | More.ReturnType<typeof createOnCancel>
-  | More.ReturnType<typeof createOnSubmit>
-  | More.ReturnType<typeof createRegisterPinentryListener>
-  | More.ReturnType<typeof createReplaceEntity>
-  | More.ReturnType<typeof createSubtractEntity>
+  | DeleteEntityPayload
+  | MergeEntityPayload
+  | NewPinentryPayload
+  | OnCancelPayload
+  | OnSubmitPayload
+  | RegisterPinentryListenerPayload
+  | ReplaceEntityPayload
+  | SubtractEntityPayload
   | {type: 'common:resetStore', payload: void}

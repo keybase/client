@@ -11,7 +11,7 @@ const updateStore = 'remoteStore:update'
 
 class RemoteStore {
   _window: ?BrowserWindow
-  _store: Store<*, *, *>
+  _store: Store<any, any, any>
   _gotPropsCallback: ?() => void // let component know it loaded once so it can show itself. Set to null after calling once
 
   getStore = () => this._store
@@ -65,7 +65,6 @@ class RemoteStore {
 }
 
 const sendToRemoteMiddleware = ({getState, dispatch}) => next => action => {
-  // $FlowIssue
   if (action.constructor === Function) {
     throw new Error('pure actions only allowed in remote store2')
   } else if (action.type === updateStore) {
