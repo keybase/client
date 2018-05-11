@@ -235,7 +235,9 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
     .join(path.sep)
 
   const state: TypedState = yield Saga.select()
-  let {config: {kbfsPath}} = state
+  let {
+    config: {kbfsPath},
+  } = state
 
   if (!kbfsPath) {
     kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)

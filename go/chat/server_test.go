@@ -2255,6 +2255,116 @@ func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res
 	return res
 }
 
+func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvGetThreadNonblockIncremental", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+		threadCb := make(chan kbtest.NonblockThreadResult, 100)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ctc.as(t, users[0]).h.mockChatUI = ui
+
+		query := chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}
+		ctx := ctc.as(t, users[0]).startCtx
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+
+		t.Logf("send a bunch of messages")
+		numMsgs := 5
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+		for i := 0; i < numMsgs; i++ {
+			mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		}
+
+		// Basic
+		delay := 10 * time.Minute
+		clock := clockwork.NewFakeClock()
+		ctc.as(t, users[0]).h.clock = clock
+		ctc.as(t, users[0]).h.remoteThreadDelay = &delay
+		cb := make(chan struct{})
+		p := utils.PresentPagination(&chat1.Pagination{
+			Num: 1,
+		})
+		go func() {
+			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+				chat1.GetThreadNonblockArg{
+					ConversationID:   conv.Id,
+					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+					Query:            &query,
+					Pagination:       p,
+					Pgmode:           chat1.GetThreadNonblockPgMode_SERVER,
+				},
+			)
+			require.NoError(t, err)
+			close(cb)
+		}()
+		select {
+		case res := <-threadCb:
+			require.False(t, res.Full)
+			require.Equal(t, 1, len(res.Thread.Messages))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		clock.Advance(20 * time.Minute)
+		select {
+		case res := <-threadCb:
+			require.True(t, res.Full)
+			require.Equal(t, 1, len(res.Thread.Messages))
+			require.Equal(t, chat1.MessageID(6), res.Thread.Messages[0].GetMessageID())
+			p = res.Thread.Pagination
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "GetThread never finished")
+		}
+
+		cb = make(chan struct{})
+		p.Num = 1
+		p.Next = "deadbeef"
+		go func() {
+			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+				chat1.GetThreadNonblockArg{
+					ConversationID:   conv.Id,
+					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+					Query:            &query,
+					Pagination:       p,
+					Pgmode:           chat1.GetThreadNonblockPgMode_SERVER,
+				},
+			)
+			require.NoError(t, err)
+			close(cb)
+		}()
+		select {
+		case res := <-threadCb:
+			require.False(t, res.Full)
+			require.Equal(t, 1, len(res.Thread.Messages))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		clock.Advance(20 * time.Minute)
+		select {
+		case res := <-threadCb:
+			require.True(t, res.Full)
+			require.Equal(t, 1, len(res.Thread.Messages))
+			require.Equal(t, chat1.MessageID(5), res.Thread.Messages[0].GetMessageID())
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "GetThread never finished")
+		}
+
+	})
+}
+
 func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "TestChatSrvGetThreadNonblockIncremental", 1)

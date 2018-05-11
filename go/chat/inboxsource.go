@@ -531,11 +531,6 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		if expunge != nil {
 			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
 		}
-		// Delete message expunge
-		if delMsg, err := conv.GetMaxMessage(chat1.MessageType_DELETE); err == nil {
-			s.G().ConvSource.ClearFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID())
-		}
-
 		// Queue all these convs up to be loaded by the background loader
 		// Only load first 100 so we don't get the conv loader too backed up
 		if index < 100 {

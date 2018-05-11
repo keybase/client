@@ -21,7 +21,9 @@ class FoldersRender extends Component<Props> {
           opacity: isSelected ? 1 : 0.6,
           borderBottomWidth: 2,
           borderBottomColor: isSelected
-            ? isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue2
+            ? isPublic
+              ? globalColors.yellowGreen2
+              : globalColors.darkBlue2
             : globalColors.transparent,
         }}
         styleBadge={styleBadge}
