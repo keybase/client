@@ -82,3 +82,7 @@ func (t *msgIDTracker) getMaxMessageID(
 
 	return maxMsgID, nil
 }
+
+func (t *msgIDTracker) clear(convID chat1.ConversationID, uid gregor1.UID) error {
+	return t.G().LocalChatDb.Delete(t.makeDbKey(convID, uid))
+}

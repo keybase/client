@@ -36,6 +36,30 @@ func NewProvisionalActiveDevice(m MetaContext, u keybase1.UID, d keybase1.Device
 	}
 }
 
+// Copy ActiveDevice info from the given ActiveDevice.
+func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
+
+	// Take a consistent snapshot of the src device. Be careful not to hold
+	// locks on both devices at once.
+	src.Lock()
+	uid := src.uid
+	deviceID := src.deviceID
+	sigKey := src.signingKey
+	encKey := src.encryptionKey
+	name := src.deviceName
+	src.Unlock()
+
+	return a.Set(m, uid, deviceID, sigKey, encKey, name)
+}
+
+func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
+	if a2 == nil {
+		a.Clear(nil)
+		return nil
+	}
+	return a.Copy(m, a2)
+}
+
 // Set acquires the write lock and sets all the fields in ActiveDevice.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
@@ -230,6 +254,10 @@ func (a *ActiveDevice) Valid() bool {
 	a.RLock()
 	defer a.RUnlock()
 
+	return a.valid()
+}
+
+func (a *ActiveDevice) valid() bool {
 	return a.signingKey != nil && a.encryptionKey != nil && !a.uid.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
 }
 
@@ -273,4 +301,16 @@ func (a *ActiveDevice) SyncSecrets(m MetaContext) (err error) {
 		return fmt.Errorf("Can't sync secrets: nil secret syncer")
 	}
 	return RunSyncer(s, uid, true, nil)
+}
+
+func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername) (err error) {
+	a.RLock()
+	uid := a.UID()
+	deviceID := a.DeviceID()
+	valid := a.valid()
+	a.RUnlock()
+	if !valid {
+		return NoActiveDeviceError{}
+	}
+	return m.G().GetUPAKLoader().CheckDeviceForUIDAndUsername(m.Ctx(), uid, deviceID, n)
 }

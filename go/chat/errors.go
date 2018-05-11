@@ -75,7 +75,7 @@ func NewEphemeralUnboxingError() EphemeralUnboxingError {
 }
 
 func (e EphemeralUnboxingError) Error() string {
-	return "Unable to decrypt exploding message. Missing keys."
+	return "Unable to decrypt exploding message. Missing keys"
 }
 
 //=============================================================================
