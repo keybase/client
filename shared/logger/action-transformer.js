@@ -83,10 +83,6 @@ const actionTransformMap = {
   [Chat2Gen.setPendingMode]: fullOutput,
   [Chat2Gen.setPendingConversationUsers]: fullOutput,
 
-  [Chat2Gen.sendToPendingConversation]: a => ({
-    payload: {users: a.payload.users},
-    type: a.type,
-  }),
   [Chat2Gen.messageSend]: a => ({
     payload: {conversationIDKey: a.payload.conversationIDKey},
     type: a.type,

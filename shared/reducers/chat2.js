@@ -686,7 +686,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.openFolder:
     case Chat2Gen.resetChatWithoutThem:
     case Chat2Gen.resetLetThemIn:
-    case Chat2Gen.sendToPendingConversation:
     case Chat2Gen.sendTyping:
     case Chat2Gen.setConvRetentionPolicy:
     case Chat2Gen.setupChatHandlers:

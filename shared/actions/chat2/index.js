@@ -1044,47 +1044,8 @@ const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) =
 const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => {
   const {conversationIDKey, text} = action.payload
   const outboxID = Constants.generateOutboxID()
-
-  let participants
-  // Sending to pending
-  if (conversationIDKey === Constants.pendingConversationIDKey) {
-    participants = Constants.getMeta(state, Constants.pendingConversationIDKey).participants
-    if (participants.isEmpty()) {
-      logger.warn('Sending to pending w/ no pending?')
-      return
-    }
-    const you = state.config.username
-    if (!you) {
-      logger.warn('Sending to pending while logged out?')
-      return
-    }
-
-    // placeholder then try and make / send
-    return Saga.sequentially([
-      Saga.put(
-        Chat2Gen.createMessagesAdd({
-          context: {type: 'sent'},
-          messages: [
-            Constants.makePendingTextMessage(
-              state,
-              conversationIDKey,
-              text,
-              Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
-            ),
-          ],
-        })
-      ),
-      Saga.put(
-        Chat2Gen.createSendToPendingConversation({
-          sendingAction: action,
-          users: participants.concat([you]).toArray(),
-        })
-      ),
-    ])
-  }
-
   const meta = Constants.getMeta(state, conversationIDKey)
-  const tlfName = meta.tlfname // TODO non existant convo
+  const tlfName = meta.tlfname
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
 
   // Inject pending message and make the call
@@ -1490,45 +1451,6 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   const state: TypedState = yield Saga.select()
 
   const outboxID = Constants.generateOutboxID()
-
-  // Sending to pending
-  if (conversationIDKey === Constants.pendingConversationIDKey) {
-    const participants = Constants.getMeta(state, Constants.pendingConversationIDKey).participants
-    if (participants.isEmpty()) {
-      logger.warn('Sending to pending w/ no pending?')
-      return
-    }
-    const you = state.config.username
-    if (!you) {
-      logger.warn('Sending to pending while logged out?')
-      return
-    }
-
-    yield Saga.sequentially([
-      Saga.put(
-        Chat2Gen.createMessagesAdd({
-          context: {type: 'sent'},
-          messages: [
-            Constants.makePendingAttachmentMessage(
-              state,
-              conversationIDKey,
-              Constants.pathToAttachmentType(path),
-              title,
-              path, // store path here for retry
-              Types.stringToOutboxID(outboxID.toString('hex') || '')
-            ),
-          ],
-        })
-      ),
-      Saga.put(
-        Chat2Gen.createSendToPendingConversation({
-          sendingAction: action,
-          users: participants.concat([you]).toArray(),
-        })
-      ),
-    ])
-    return
-  }
 
   // Make the preview
   const preview: ?RPCChatTypes.MakePreviewRes = yield Saga.call(

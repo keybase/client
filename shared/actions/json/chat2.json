@@ -245,14 +245,6 @@
       "users": "Array<string>",
       "fromSearch": "boolean"
     },
-    // Actually starting a conversation from a search. SendingAction is what happens after the chat is created
-    "sendToPendingConversation": {
-      "users": "Array<string>",
-      "sendingAction": [
-        "MessageSendPayload",
-        "AttachmentUploadPayload"
-      ]
-    },
     // We want to save an attachment to the local disk
     "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",

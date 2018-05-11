@@ -61,7 +61,6 @@ export const previewConversation = 'chat2:previewConversation'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
-export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
@@ -255,10 +254,6 @@ type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'searching' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'pendingModeChange' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
 |}>
-type _SendToPendingConversationPayload = $ReadOnly<{|
-  users: Array<string>,
-  sendingAction: MessageSendPayload | AttachmentUploadPayload,
-|}>
 type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   typing: boolean,
@@ -363,7 +358,6 @@ export const createPreviewConversation = (payload: _PreviewConversationPayload) 
 export const createResetChatWithoutThem = (payload: _ResetChatWithoutThemPayload) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (payload: _ResetLetThemInPayload) => ({error: false, payload, type: resetLetThemIn})
 export const createSelectConversation = (payload: _SelectConversationPayload) => ({error: false, payload, type: selectConversation})
-export const createSendToPendingConversation = (payload: _SendToPendingConversationPayload) => ({error: false, payload, type: sendToPendingConversation})
 export const createSendTyping = (payload: _SendTypingPayload) => ({error: false, payload, type: sendTyping})
 export const createSetConversationOffline = (payload: _SetConversationOfflinePayload) => ({error: false, payload, type: setConversationOffline})
 export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({error: false, payload, type: setInboxFilter})
@@ -425,7 +419,6 @@ export type PreviewConversationPayload = $Call<typeof createPreviewConversation,
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
-export type SendToPendingConversationPayload = $Call<typeof createSendToPendingConversation, _SendToPendingConversationPayload>
 export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayload>
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
 export type SetConversationOfflinePayload = $Call<typeof createSetConversationOffline, _SetConversationOfflinePayload>
@@ -493,7 +486,6 @@ export type Actions =
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | SelectConversationPayload
-  | SendToPendingConversationPayload
   | SendTypingPayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
