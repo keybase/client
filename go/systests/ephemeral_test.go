@@ -257,6 +257,8 @@ func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 		ID:        newDevice.deviceKey.DeviceID,
 		ForceSelf: true,
 		ForceLast: false,
+		// We don't need a UserEK here since we force generate it below
+		SkipUserEKForTesting: true,
 	})
 	uis := libkb.UIs{
 		LogUI:    alice.tc.G.Log,
