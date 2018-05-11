@@ -27,13 +27,12 @@ type State = {
 }
 
 class NewInput extends React.Component<Props, State> {
-  state = {
-    flexable: true,
-    focused: false,
-  }
-
   static defaultProps = {
+    flexable: true,
     textType: 'BodySemibold',
+  }
+  state: State = {
+    focused: false,
   }
 
   _onFocus = () => {
