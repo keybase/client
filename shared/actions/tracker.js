@@ -64,7 +64,7 @@ function _getMyProfile(action: TrackerGen.GetMyProfilePayload, state: TypedState
 const triggerIdentify = (uid: string = '', userAssertion: string = '', forceDisplay: boolean = false) => (
   dispatch: Dispatch,
   getState: () => TypedState
-): Promise<*> =>
+) =>
   new Promise((resolve, reject) => {
     dispatch(TrackerGen.createIdentifyStarted({username: uid || userAssertion}))
     RPCTypes.identifyIdentify2RpcPromise({

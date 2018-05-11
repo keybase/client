@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 
 // Constants
@@ -22,76 +21,80 @@ export const setError = 'git:setError'
 export const setLoading = 'git:setLoading'
 export const setTeamRepoSettings = 'git:setTeamRepoSettings'
 
+// Payload Types
+type _BadgeAppForGitPayload = $ReadOnly<{|ids: Array<string>|}>
+type _CreatePersonalRepoPayload = $ReadOnly<{|name: string|}>
+type _CreateTeamRepoPayload = $ReadOnly<{|
+  name: string,
+  teamname: string,
+  notifyTeam: boolean,
+|}>
+type _DeletePersonalRepoPayload = $ReadOnly<{|name: string|}>
+type _DeleteTeamRepoPayload = $ReadOnly<{|
+  name: string,
+  teamname: string,
+  notifyTeam: boolean,
+|}>
+type _HandleIncomingGregorPayload = $ReadOnly<{|messages: Array<RPCTypesGregor.OutOfBandMessage>|}>
+type _LoadGitPayload = void
+type _LoadGitRepoPayload = $ReadOnly<{|
+  username: ?string,
+  teamname: ?string,
+|}>
+type _NavigateToTeamRepoPayload = $ReadOnly<{|
+  repoID: string,
+  teamname: string,
+|}>
+type _SetErrorPayload = $ReadOnly<{|error: ?Error|}>
+type _SetLoadingPayload = $ReadOnly<{|loading: boolean|}>
+type _SetTeamRepoSettingsPayload = $ReadOnly<{|
+  chatDisabled: boolean,
+  channelName: ?string,
+  teamname: string,
+  repoID: string,
+|}>
+
 // Action Creators
-export const createBadgeAppForGit = (payload: $ReadOnly<{|ids: Array<string>|}>) => ({error: false, payload, type: badgeAppForGit})
-export const createCreatePersonalRepo = (payload: $ReadOnly<{|name: string|}>) => ({error: false, payload, type: createPersonalRepo})
-export const createCreateTeamRepo = (
-  payload: $ReadOnly<{|
-    name: string,
-    teamname: string,
-    notifyTeam: boolean,
-  |}>
-) => ({error: false, payload, type: createTeamRepo})
-export const createDeletePersonalRepo = (payload: $ReadOnly<{|name: string|}>) => ({error: false, payload, type: deletePersonalRepo})
-export const createDeleteTeamRepo = (
-  payload: $ReadOnly<{|
-    name: string,
-    teamname: string,
-    notifyTeam: boolean,
-  |}>
-) => ({error: false, payload, type: deleteTeamRepo})
-export const createHandleIncomingGregor = (payload: $ReadOnly<{|messages: Array<RPCTypesGregor.OutOfBandMessage>|}>) => ({error: false, payload, type: handleIncomingGregor})
-export const createLoadGit = () => ({error: false, payload: undefined, type: loadGit})
-export const createLoadGitRepo = (
-  payload: $ReadOnly<{|
-    username: ?string,
-    teamname: ?string,
-  |}>
-) => ({error: false, payload, type: loadGitRepo})
-export const createNavigateToTeamRepo = (
-  payload: $ReadOnly<{|
-    repoID: string,
-    teamname: string,
-  |}>
-) => ({error: false, payload, type: navigateToTeamRepo})
-export const createSetError = (payload: $ReadOnly<{|error: ?Error|}>) => ({error: false, payload, type: setError})
-export const createSetLoading = (payload: $ReadOnly<{|loading: boolean|}>) => ({error: false, payload, type: setLoading})
-export const createSetTeamRepoSettings = (
-  payload: $ReadOnly<{|
-    chatDisabled: boolean,
-    channelName: ?string,
-    teamname: string,
-    repoID: string,
-  |}>
-) => ({error: false, payload, type: setTeamRepoSettings})
+export const createBadgeAppForGit = (payload: _BadgeAppForGitPayload) => ({error: false, payload, type: badgeAppForGit})
+export const createCreatePersonalRepo = (payload: _CreatePersonalRepoPayload) => ({error: false, payload, type: createPersonalRepo})
+export const createCreateTeamRepo = (payload: _CreateTeamRepoPayload) => ({error: false, payload, type: createTeamRepo})
+export const createDeletePersonalRepo = (payload: _DeletePersonalRepoPayload) => ({error: false, payload, type: deletePersonalRepo})
+export const createDeleteTeamRepo = (payload: _DeleteTeamRepoPayload) => ({error: false, payload, type: deleteTeamRepo})
+export const createHandleIncomingGregor = (payload: _HandleIncomingGregorPayload) => ({error: false, payload, type: handleIncomingGregor})
+export const createLoadGit = (payload: _LoadGitPayload) => ({error: false, payload, type: loadGit})
+export const createLoadGitRepo = (payload: _LoadGitRepoPayload) => ({error: false, payload, type: loadGitRepo})
+export const createNavigateToTeamRepo = (payload: _NavigateToTeamRepoPayload) => ({error: false, payload, type: navigateToTeamRepo})
+export const createSetError = (payload: _SetErrorPayload) => ({error: false, payload, type: setError})
+export const createSetLoading = (payload: _SetLoadingPayload) => ({error: false, payload, type: setLoading})
+export const createSetTeamRepoSettings = (payload: _SetTeamRepoSettingsPayload) => ({error: false, payload, type: setTeamRepoSettings})
 
 // Action Payloads
-export type BadgeAppForGitPayload = More.ReturnType<typeof createBadgeAppForGit>
-export type CreatePersonalRepoPayload = More.ReturnType<typeof createCreatePersonalRepo>
-export type CreateTeamRepoPayload = More.ReturnType<typeof createCreateTeamRepo>
-export type DeletePersonalRepoPayload = More.ReturnType<typeof createDeletePersonalRepo>
-export type DeleteTeamRepoPayload = More.ReturnType<typeof createDeleteTeamRepo>
-export type HandleIncomingGregorPayload = More.ReturnType<typeof createHandleIncomingGregor>
-export type LoadGitPayload = More.ReturnType<typeof createLoadGit>
-export type LoadGitRepoPayload = More.ReturnType<typeof createLoadGitRepo>
-export type NavigateToTeamRepoPayload = More.ReturnType<typeof createNavigateToTeamRepo>
-export type SetErrorPayload = More.ReturnType<typeof createSetError>
-export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
-export type SetTeamRepoSettingsPayload = More.ReturnType<typeof createSetTeamRepoSettings>
+export type BadgeAppForGitPayload = $Call<typeof createBadgeAppForGit, _BadgeAppForGitPayload>
+export type CreatePersonalRepoPayload = $Call<typeof createCreatePersonalRepo, _CreatePersonalRepoPayload>
+export type CreateTeamRepoPayload = $Call<typeof createCreateTeamRepo, _CreateTeamRepoPayload>
+export type DeletePersonalRepoPayload = $Call<typeof createDeletePersonalRepo, _DeletePersonalRepoPayload>
+export type DeleteTeamRepoPayload = $Call<typeof createDeleteTeamRepo, _DeleteTeamRepoPayload>
+export type HandleIncomingGregorPayload = $Call<typeof createHandleIncomingGregor, _HandleIncomingGregorPayload>
+export type LoadGitPayload = $Call<typeof createLoadGit, _LoadGitPayload>
+export type LoadGitRepoPayload = $Call<typeof createLoadGitRepo, _LoadGitRepoPayload>
+export type NavigateToTeamRepoPayload = $Call<typeof createNavigateToTeamRepo, _NavigateToTeamRepoPayload>
+export type SetErrorPayload = $Call<typeof createSetError, _SetErrorPayload>
+export type SetLoadingPayload = $Call<typeof createSetLoading, _SetLoadingPayload>
+export type SetTeamRepoSettingsPayload = $Call<typeof createSetTeamRepoSettings, _SetTeamRepoSettingsPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createBadgeAppForGit>
-  | More.ReturnType<typeof createCreatePersonalRepo>
-  | More.ReturnType<typeof createCreateTeamRepo>
-  | More.ReturnType<typeof createDeletePersonalRepo>
-  | More.ReturnType<typeof createDeleteTeamRepo>
-  | More.ReturnType<typeof createHandleIncomingGregor>
-  | More.ReturnType<typeof createLoadGit>
-  | More.ReturnType<typeof createLoadGitRepo>
-  | More.ReturnType<typeof createNavigateToTeamRepo>
-  | More.ReturnType<typeof createSetError>
-  | More.ReturnType<typeof createSetLoading>
-  | More.ReturnType<typeof createSetTeamRepoSettings>
+  | BadgeAppForGitPayload
+  | CreatePersonalRepoPayload
+  | CreateTeamRepoPayload
+  | DeletePersonalRepoPayload
+  | DeleteTeamRepoPayload
+  | HandleIncomingGregorPayload
+  | LoadGitPayload
+  | LoadGitRepoPayload
+  | NavigateToTeamRepoPayload
+  | SetErrorPayload
+  | SetLoadingPayload
+  | SetTeamRepoSettingsPayload
   | {type: 'common:resetStore', payload: void}

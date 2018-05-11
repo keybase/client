@@ -28,16 +28,18 @@ const reservedPayloadKeys = ['_description']
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 ${prelude.join('\n')}
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer
 ${compileActions(ns, actions, compileReduxTypeConstant)}
+
+// Payload Types
+${compileActions(ns, actions, compilePayloadTypes)}
 
 // Action Creators
 ${compileActions(ns, actions, compileActionCreator)}
@@ -54,8 +56,7 @@ function compileAllActionsType(ns: ActionNS, actions: Actions): string {
   const actionsTypes = Object.keys(actions)
     .map(
       (name: ActionName) =>
-        `More.ReturnType<typeof create${capitalize(name)}>` +
-        (actions[name].canError ? `\n  | More.ReturnType<typeof create${capitalize(name)}Error>` : '')
+        `${capitalize(name)}Payload` + (actions[name].canError ? `\n  | ${capitalize(name)}PayloadError` : '')
     )
     .sort()
     .join('\n  | ')
@@ -86,37 +87,52 @@ function payloadKeys(p: Object) {
 
 function printPayload(p: Object) {
   return payloadKeys(p).length
-    ? '(payload: $ReadOnly<{|' +
+    ? '$ReadOnly<{|' +
         payloadKeys(p)
           .map(key => `${key}: ${Array.isArray(p[key]) ? p[key].join(' | ') : p[key]}`)
           .join(',\n') +
-        '|}>)'
-    : '()'
+        '|}>'
+    : 'void'
 }
 
 function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return `export type ${capitalize(actionName)}Payload = More.ReturnType<typeof create${capitalize(
-    actionName
-  )}>`
+  return (
+    `export type ${capitalize(actionName)}Payload = $Call<typeof create${capitalize(
+      actionName
+    )}, _${capitalize(actionName)}Payload>` +
+    (desc.canError
+      ? `\n export type ${capitalize(actionName)}PayloadError = $Call<typeof create${capitalize(
+          actionName
+        )}Error, _${capitalize(actionName)}PayloadError>`
+      : '')
+  )
 }
 
-function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+function compilePayloadTypes(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
   const {canError, ...noErrorPayload} = desc
 
   return (
-    (noErrorPayload._description
+    `type _${capitalize(actionName)}Payload = ${printPayload(noErrorPayload)}` +
+    (canError ? `\n type _${capitalize(actionName)}PayloadError = ${printPayload(canError)}` : '')
+  )
+}
+
+function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+  return (
+    (desc._description
       ? `/**
-     * ${noErrorPayload._description}
+     * ${desc._description}
      */
     `
       : '') +
-    `export const create${capitalize(actionName)} = ${printPayload(noErrorPayload)} => (
-  { error: false, payload${payloadKeys(noErrorPayload).length ? '' : ': undefined'}, type: ${actionName}, }
+    `export const create${capitalize(actionName)} = (payload: _${capitalize(actionName)}Payload) => (
+  { error: false, payload, type: ${actionName}, }
 )` +
-    (canError
-      ? `
-  export const create${capitalize(actionName)}Error = ${printPayload(canError)} => (
-    { error: true, payload${payloadKeys(canError).length ? '' : ': undefined'}, type: ${actionName}, }
+    (desc.canError
+      ? `\n export const create${capitalize(actionName)}Error = (payload: _${capitalize(
+          actionName
+        )}PayloadError) => (
+    { error: true, payload, type: ${actionName}, }
   )`
       : '')
   )

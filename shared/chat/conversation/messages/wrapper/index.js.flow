@@ -6,7 +6,7 @@ export type Props = {
   author: string,
   failureDescription: string,
   includeHeader: boolean,
-  innerClass: React.ComponentType<*>,
+  innerClass: React.ComponentType<any>,
   isBroken: boolean,
   isEdited: boolean,
   isEditing: boolean,

@@ -33,8 +33,8 @@ export const makeLeafTags: I.RecordFactory<_LeafTags> = I.Record({
 
 // TODO type this properly. component and container component are mutually exclusive
 export type RouteDefParams = {
-  component?: ?React.ComponentType<*>,
-  containerComponent?: ?React.ComponentType<*>,
+  component?: ?React.ComponentType<any>,
+  containerComponent?: ?React.ComponentType<any>,
   defaultSelected?: ?string,
   tags?: ?LeafTags,
   initialState?: ?Object,
@@ -43,8 +43,8 @@ export type RouteDefParams = {
 }
 
 type _RouteDefNode = {
-  component: ?React.ComponentType<*>,
-  containerComponent: ?React.ComponentType<*>,
+  component: ?React.ComponentType<any>,
+  containerComponent: ?React.ComponentType<any>,
   defaultSelected: ?string,
   tags: LeafTags,
   initialState: ?I.Map<any, any>,
@@ -108,7 +108,7 @@ type _RouteState = {
   selected: ?string,
   props: I.Map<string, any>,
   state: I.Map<string, any>,
-  children: I.Map<string, *>,
+  children: I.Map<string, any>,
 }
 
 export type RouteStateNode = I.RecordOf<
@@ -141,7 +141,7 @@ const _makeRouteStateNode: I.RecordFactory<
 })
 
 class MakeRouteStateNode extends _makeRouteStateNode {
-  children: I.Map<string, *>
+  children: I.Map<string, any>
 
   getChild(name: string): ?RouteStateNode {
     return this.children.get(name)
@@ -183,7 +183,7 @@ type PathSetSpec<P> = I.Collection.Indexed<{type: 'traverse' | 'navigate', next:
 function _routeSet(
   routeDef: RouteDefNode,
   routeState: ?RouteStateNode,
-  pathSpec: PathSetSpec<*>
+  pathSpec: PathSetSpec<any>
 ): RouteStateNode {
   const pathHead = pathSpec && pathSpec.first()
 
@@ -225,7 +225,7 @@ function _routeSet(
 export function routeSetProps(
   routeDef: ?RouteDefNode,
   routeState: ?RouteStateNode,
-  pathProps: PathParam<*>,
+  pathProps: PathParam<any>,
   parentPath: ?Path
 ): RouteStateNode {
   const pathSeq = I.Seq(pathProps).map(item => {
@@ -245,7 +245,7 @@ export function routeSetProps(
 export function routeNavigate(
   routeDef: ?RouteDefNode,
   routeState: ?RouteStateNode,
-  pathProps: PathParam<*>,
+  pathProps: PathParam<any>,
   parentPath: ?Path
 ): RouteStateNode {
   return routeSetProps(routeDef, routeState, I.List(pathProps).push({selected: null, props: {}}), parentPath)
