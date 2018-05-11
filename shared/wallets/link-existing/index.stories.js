@@ -17,14 +17,14 @@ const enterKeyProps = {
   ...actions,
   name: '',
   secretKey: '',
-  view: 'enter-key',
+  view: 'key',
 }
 
 const enterNameProps = {
   ...actions,
   name: '',
   secretKey: '',
-  view: 'enter-name',
+  view: 'name',
 }
 
 const load = () => {

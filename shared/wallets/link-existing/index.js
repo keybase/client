@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Box2, Button, ButtonBar, Icon, InfoNote, Text, Input} from '../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../styles'
 
-type View = 'enter-key' | 'enter-name'
+type View = 'key' | 'name'
 
 type Props = {
   onCancel: () => void,
@@ -16,23 +16,31 @@ type Props = {
 }
 
 const LinkWallet = (props: Props) => {
-  if (props.view === 'enter-key') {
-    return (
-      <EnterKey
-        onCancel={props.onCancel}
-        onKeyChange={props.onKeyChange}
-        onNext={() => props.onViewChange('enter-name')}
-      />
-    )
+  switch (props.view) {
+    case 'key':
+      return (
+        <EnterKey
+          onCancel={props.onCancel}
+          onKeyChange={props.onKeyChange}
+          onNext={() => props.onViewChange('name')}
+        />
+      )
+    case 'name':
+      return (
+        <EnterName
+          name={props.name}
+          onCancel={props.onCancel}
+          onNameChange={props.onNameChange}
+          onDone={props.onDone}
+        />
+      )
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(props.view);
+      */
+      throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + props.view)
   }
-  return (
-    <EnterName
-      name={props.name}
-      onCancel={props.onCancel}
-      onNameChange={props.onNameChange}
-      onDone={props.onDone}
-    />
-  )
 }
 
 type EnterKeyProps = {
