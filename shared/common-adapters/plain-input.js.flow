@@ -40,11 +40,14 @@ export type Props = {
   type?: 'password' | 'text' | 'number',
 
   // NOTE: Setting this prop will make the input controlled, which
-  // can impair performance badle on some platforms
+  // can impair performance badly on some platforms
   value?: ?string,
 
+  /* Platform discrepancies */
   // Maps to onKeyPress on native
   onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+  // Maps to onSubmitEditing on native
+  onEnterKeyDown?: () => void,
 
   // Desktop only
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
@@ -56,8 +59,13 @@ export type Props = {
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
   onEndEditing?: () => void,
-  onSubmitEditing?: () => void,
 }
+
+// Use this to mix your props with input props like type Props = PropsWithInput<{foo: number}>
+export type PropsWithInput<P> = {|
+  ...$Exact<P>,
+  ...$Exact<Props>,
+|}
 
 export type Selection = {start: number, end: number}
 

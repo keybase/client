@@ -14,6 +14,7 @@ import listItem from './list-item.stories'
 import markdown from './markdown.stories'
 import meta from './meta.stories'
 import nameWithIcon from './name-with-icon.stories'
+import newInput from './new-input.stories'
 import plainInput from './plain-input.stories'
 import popupMenu from './popup-menu.stories'
 import popupDialog from './popup-dialog.stories'
@@ -39,6 +40,7 @@ const load = () => {
     markdown,
     meta,
     nameWithIcon,
+    newInput,
     plainInput,
     popupDialog,
     popupMenu,

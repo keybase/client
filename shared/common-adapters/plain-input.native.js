@@ -215,7 +215,7 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
       onChangeText: this._onChangeText,
       onFocus: this._onFocus,
       onSelectionChange: this._onSelectionChange,
-      onSubmitEditing: this.props.onSubmitEditing,
+      onSubmitEditing: this.props.onEnterKeyDown,
       onEndEditing: this.props.onEndEditing,
       placeholder: this.props.placeholder,
       ref: this._setInputRef,

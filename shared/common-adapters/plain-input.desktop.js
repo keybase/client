@@ -146,6 +146,9 @@ class PlainInput extends React.PureComponent<Props, State> {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e, this._isComposingIME)
     }
+    if (this.props.onEnterKeyDown && e.key === 'Enter' && !(e.shiftKey || e.ctrlKey || e.altKey)) {
+      this.props.onEnterKeyDown()
+    }
   }
 
   _onKeyUp = (e: SyntheticKeyboardEvent<>) => {
