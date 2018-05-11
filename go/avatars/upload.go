@@ -22,7 +22,8 @@ func addFile(mpart *multipart.Writer, param, filename string) error {
 	}
 	defer file.Close()
 
-	part, err := mpart.CreateFormFile(param, filename)
+	// do not disclose our filename to the server
+	part, err := mpart.CreateFormFile(param, "image" /* filename */)
 	if err != nil {
 		return err
 	}
