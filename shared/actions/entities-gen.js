@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Constants from '../constants/entities'
 
 // Constants
@@ -14,43 +13,41 @@ export const mergeEntity = 'entities:mergeEntity'
 export const replaceEntity = 'entities:replaceEntity'
 export const subtractEntity = 'entities:subtractEntity'
 
+// Payload Types
+type _DeleteEntityPayload = $ReadOnly<{|
+  keyPath: Array<string>,
+  ids: I.List<string>,
+|}>
+type _MergeEntityPayload = $ReadOnly<{|
+  keyPath: Array<string>,
+  entities: I.Map<any, any> | I.List<any>,
+|}>
+type _ReplaceEntityPayload = $ReadOnly<{|
+  keyPath: Array<string>,
+  entities: I.Map<any, any> | I.List<any>,
+|}>
+type _SubtractEntityPayload = $ReadOnly<{|
+  keyPath: Array<string>,
+  entities: I.List<any>,
+|}>
+
 // Action Creators
-export const createDeleteEntity = (
-  payload: $ReadOnly<{|
-    keyPath: Array<string>,
-    ids: I.List<string>,
-  |}>
-) => ({error: false, payload, type: deleteEntity})
-export const createMergeEntity = (
-  payload: $ReadOnly<{|
-    keyPath: Array<string>,
-    entities: I.Map<any, any> | I.List<any>,
-  |}>
-) => ({error: false, payload, type: mergeEntity})
-export const createReplaceEntity = (
-  payload: $ReadOnly<{|
-    keyPath: Array<string>,
-    entities: I.Map<any, any> | I.List<any>,
-  |}>
-) => ({error: false, payload, type: replaceEntity})
-export const createSubtractEntity = (
-  payload: $ReadOnly<{|
-    keyPath: Array<string>,
-    entities: I.List<any>,
-  |}>
-) => ({error: false, payload, type: subtractEntity})
+export const createDeleteEntity = (payload: _DeleteEntityPayload) => ({error: false, payload, type: deleteEntity})
+export const createMergeEntity = (payload: _MergeEntityPayload) => ({error: false, payload, type: mergeEntity})
+export const createReplaceEntity = (payload: _ReplaceEntityPayload) => ({error: false, payload, type: replaceEntity})
+export const createSubtractEntity = (payload: _SubtractEntityPayload) => ({error: false, payload, type: subtractEntity})
 
 // Action Payloads
-export type DeleteEntityPayload = More.ReturnType<typeof createDeleteEntity>
-export type MergeEntityPayload = More.ReturnType<typeof createMergeEntity>
-export type ReplaceEntityPayload = More.ReturnType<typeof createReplaceEntity>
-export type SubtractEntityPayload = More.ReturnType<typeof createSubtractEntity>
+export type DeleteEntityPayload = $Call<typeof createDeleteEntity, _DeleteEntityPayload>
+export type MergeEntityPayload = $Call<typeof createMergeEntity, _MergeEntityPayload>
+export type ReplaceEntityPayload = $Call<typeof createReplaceEntity, _ReplaceEntityPayload>
+export type SubtractEntityPayload = $Call<typeof createSubtractEntity, _SubtractEntityPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createDeleteEntity>
-  | More.ReturnType<typeof createMergeEntity>
-  | More.ReturnType<typeof createReplaceEntity>
-  | More.ReturnType<typeof createSubtractEntity>
+  | DeleteEntityPayload
+  | MergeEntityPayload
+  | ReplaceEntityPayload
+  | SubtractEntityPayload
   | {type: 'common:resetStore', payload: void}

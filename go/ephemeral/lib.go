@@ -18,6 +18,13 @@ var adminWhitelist = map[keybase1.UID]bool{
 	"d1b3a5fa977ce53da2c2142a4511bc00": true, // joshblum
 	"41b1f75fb55046d370608425a3208100": true, // oconnor663
 	"95e88f2087e480cae28f08d81554bc00": true, // mikem
+	"8c7c57995cd14780e351fc90ca7dc819": true, // ayoubd
+	"08abe80bd2da8984534b2d8f7b12c700": true, // songgao
+	"d95f137b3b4a3600bc9e39350adba819": true, // cecileb
+	"23260c2ce19420f97b58d7d95b68ca00": true, // chris
+	"eb08cb06e608ea41bd893946445d7919": true, // mlsteele
+	"69da56f622a2ac750b8e590c3658a700": true, // jzila
+	"1563ec26dc20fd162a4f783551141200": true, // patrick
 }
 
 const cacheEntryLifetimeSecs = 60 * 5 // 5 minutes
@@ -232,7 +239,7 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 	if err != nil {
 		return false, err
 	}
-	statement, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
 	if err != nil {
 		return false, err
 	}
@@ -339,7 +346,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		return teamEK, err
 	}
 
-	statement, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
 	if err != nil {
 		return teamEK, err
 	}

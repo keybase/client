@@ -62,9 +62,7 @@ const cancelIdleCallback = useFallback
     : cancelIdleCallbackFallback
   : window.cancelIdleCallback.bind(window)
 
-const onIdlePromise = (timeout: number = 100) => {
-  const p: Promise<*> = new Promise(resolve => requestIdleCallback(resolve, {timeout}))
-  return p
-}
+const onIdlePromise = (timeout: number = 100) =>
+  new Promise(resolve => requestIdleCallback(resolve, {timeout}))
 
 export {requestIdleCallback, cancelIdleCallback, onIdlePromise}

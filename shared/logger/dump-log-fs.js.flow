@@ -1,2 +1,2 @@
 // @flow
-declare export default function dumpLogs(): Promise<*>
+declare export default function dumpLogs(): Promise<void>
