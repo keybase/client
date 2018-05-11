@@ -232,7 +232,7 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 	if err != nil {
 		return false, err
 	}
-	statement, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
 	if err != nil {
 		return false, err
 	}
@@ -339,7 +339,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		return teamEK, err
 	}
 
-	statement, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
 	if err != nil {
 		return teamEK, err
 	}

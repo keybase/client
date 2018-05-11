@@ -35,14 +35,14 @@ func TestNewTeamEK(t *testing.T) {
 	teamID := createTeam(tc)
 
 	// Before we've published any teamEK's, fetchTeamEKStatement should return nil.
-	nilStatement, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
+	nilStatement, _, _, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Nil(t, nilStatement)
 
 	publishedMetadata, err := publishNewTeamEK(context.Background(), tc.G, teamID, merkleRoot)
 	require.NoError(t, err)
 
-	statementPtr, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
+	statementPtr, _, _, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
 	require.NoError(t, err)
 	require.NotNil(t, statementPtr)
 	statement := *statementPtr
