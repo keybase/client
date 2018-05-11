@@ -1,6 +1,6 @@
 #!groovy
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+def helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
 helpers.rootLinuxNode(env, {
     helpers.slackOnError("client", env, currentBuild)
