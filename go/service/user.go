@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
@@ -352,4 +353,12 @@ func (h *UserHandler) GetUPAK(ctx context.Context, uid keybase1.UID) (ret keybas
 	}
 	ret = keybase1.NewUPAKVersionedWithV2(*upak)
 	return ret, err
+}
+
+func (h *UserHandler) UploadUserAvatar(ctx context.Context, filename string) (err error) {
+	ctx = libkb.WithLogTag(ctx, "US")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadUserAvatar(%s)", filename), func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	return avatars.UploadImage(mctx, filename, nil /* teamname */)
 }

@@ -2529,6 +2529,19 @@
         }
       ],
       "response": null
+    },
+    "uploadTeamAvatar": {
+      "request": [
+        {
+          "name": "teamname",
+          "type": "string"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

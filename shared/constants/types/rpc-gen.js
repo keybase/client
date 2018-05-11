@@ -1805,6 +1805,10 @@ export const teamsTeamTreeRpcChannelMap = (configKeys: Array<string>, request: T
 
 export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => (error ? reject(error) : resolve(result))))
 
+export const teamsUploadTeamAvatarRpcChannelMap = (configKeys: Array<string>, request: TeamsUploadTeamAvatarRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.uploadTeamAvatar', request)
+
+export const teamsUploadTeamAvatarRpcPromise = (request: TeamsUploadTeamAvatarRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.uploadTeamAvatar', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const testPanicRpcChannelMap = (configKeys: Array<string>, request: TestPanicRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.panic', request)
 
 export const testPanicRpcPromise = (request: TestPanicRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.panic', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -1985,6 +1989,10 @@ export const userResetUserRpcPromise = (request: UserResetUserRpcParam): Promise
 export const userSearchRpcChannelMap = (configKeys: Array<string>, request: UserSearchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.search', request)
 
 export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => (error ? reject(error) : resolve(result))))
+
+export const userUploadUserAvatarRpcChannelMap = (configKeys: Array<string>, request: UserUploadUserAvatarRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.uploadUserAvatar', request)
+
+export const userUploadUserAvatarRpcPromise = (request: UserUploadUserAvatarRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.uploadUserAvatar', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export type APIRes = $ReadOnly<{status: String, body: String, httpStatus: Int, appStatus: String}>
 
@@ -3962,6 +3970,8 @@ export type TeamsUiConfirmRootTeamDeleteRpcParam = $ReadOnly<{teamName: String, 
 
 export type TeamsUiConfirmSubteamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type TeamsUploadTeamAvatarRpcParam = $ReadOnly<{teamname: String, filename: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type Test = $ReadOnly<{reply: String}>
 
 export type TestPanicRpcParam = $ReadOnly<{message: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4140,6 +4150,8 @@ export type UserSummary2 = $ReadOnly<{uid: UID, username: String, thumbnail: Str
 export type UserSummary2Set = $ReadOnly<{users?: ?Array<UserSummary2>, time: Time, version: Int}>
 
 export type UserTeamShowcase = $ReadOnly<{fqName: String, open: Boolean, teamIsShowcased: Boolean, description: String, role: TeamRole, publicAdmins?: ?Array<String>, numMembers: Int}>
+
+export type UserUploadUserAvatarRpcParam = $ReadOnly<{filename: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserVersion = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
 
