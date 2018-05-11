@@ -3,11 +3,10 @@
 
 package libkb
 
-
 import (
+	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
-	"golang.org/x/sys/windows"
 )
 
 var (
@@ -16,7 +15,9 @@ var (
 )
 
 const ERROR_PIPE_BUSY = 231
+
 type _PipeBusyError struct{}
+
 var PipeBusyError _PipeBusyError
 
 func (e _PipeBusyError) Error() string {
@@ -68,7 +69,7 @@ func GetFileUserSid(name string) (*windows.SID, error) {
 	return userSID, nil
 }
 
-func Pipeowner(name string) (bool, error){
+func Pipeowner(name string) (bool, error) {
 	userSid, err := currentProcessUserSid()
 	if err != nil {
 		return false, err
@@ -83,7 +84,7 @@ func Pipeowner(name string) (bool, error){
 		// If this returns with no error, there is a pipe available.
 		err2 := waitNamedPipe(name, 1000)
 		if err2 != nil {
-			return false, err	// return original busy error
+			return false, err // return original busy error
 		}
 		fileSid, err = GetFileUserSid(name)
 	}

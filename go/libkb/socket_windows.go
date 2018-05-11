@@ -74,10 +74,10 @@ func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
 	if err != nil {
 		return nil, err
 	}
-	if ! owner {
+	if !owner {
 		return nil, errors.New("failed to verify pipe ownership")
 	}
-	
+
 	// Success case
 	return pipe, err
 }

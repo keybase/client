@@ -44,11 +44,11 @@ func (s *CmdPipeOwner) Run() error {
 	if err == nil {
 		dui := s.G().UI.GetDumbOutputUI()
 		dui.Printf("%v\n", owner)
-		if ! owner {
+		if !owner {
 			err = errors.New("failed to establish pipe ownership")
 		}
 	}
-	
+
 	return err
 }
 

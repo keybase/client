@@ -44,11 +44,10 @@ const (
 	UNPROTECTED_SACL_SECURITY_INFORMATION = 0x10000000
 )
 
-
 var (
-	advapi32 = windows.MustLoadDLL("advapi32.dll")
+	advapi32                  = windows.MustLoadDLL("advapi32.dll")
 	procGetNamedSecurityInfoW = advapi32.MustFindProc("GetNamedSecurityInfoW")
-	procGetSecurityInfo = advapi32.MustFindProc("GetSecurityInfo")
+	procGetSecurityInfo       = advapi32.MustFindProc("GetSecurityInfo")
 )
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa446645.aspx
@@ -69,6 +68,6 @@ func GetNamedSecurityInfo(objectName string, objectType int32, secInfo uint32, o
 		}
 		return syscall.Errno(ret)
 	}
-	
+
 	return nil
 }
