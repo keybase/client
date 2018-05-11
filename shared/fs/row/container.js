@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
 
 const isBare = (path: Types.Path) => isMobile && ['image'].includes(Constants.viewTypeFromPath(path))
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   _onOpen: (type: Types.PathType, path: Types.Path) => {
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
@@ -32,10 +32,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
   _onAction: (path: Types.Path, type: Types.PathType, evt?: SyntheticEvent<>) =>
     dispatch(
-      FsGen.createFileActionPopup({path, type, targetRect: Constants.syntheticEventToTargetRect(evt)})
+      FsGen.createFileActionPopup({
+        path,
+        type,
+        targetRect: Constants.syntheticEventToTargetRect(evt),
+        routePath,
+      })
     ),
   _openFinderPopup: (evt?: SyntheticEvent<>) =>
-    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt)})),
+    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

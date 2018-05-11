@@ -72,6 +72,7 @@ type _FileActionPopupPayload = $ReadOnly<{|
   path: Types.Path,
   type: Types.PathType,
   targetRect: ?ClientRect,
+  routePath: I.List<string>,
 |}>
 type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path|}>
 type _FilePreviewLoadedPayload = $ReadOnly<{|
@@ -96,11 +97,17 @@ type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
 |}>
-type _OpenFinderPopupPayload = $ReadOnly<{|targetRect: ?ClientRect|}>
+type _OpenFinderPopupPayload = $ReadOnly<{|
+  targetRect: ?ClientRect,
+  routePath: I.List<string>,
+|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenSecurityPreferencesPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
-type _SavePayload = $ReadOnly<{|path: Types.Path|}>
+type _SavePayload = $ReadOnly<{|
+  path: Types.Path,
+  routePath: I.List<string>,
+|}>
 type _SetFlagsPayload = $ReadOnly<{|
   kbfsOpening?: boolean,
   kbfsInstalling?: boolean,
@@ -111,7 +118,10 @@ type _SetFlagsPayload = $ReadOnly<{|
   syncing?: boolean,
 |}>
 type _SetupFSHandlersPayload = void
-type _SharePayload = $ReadOnly<{|path: Types.Path|}>
+type _SharePayload = $ReadOnly<{|
+  path: Types.Path,
+  routePath: I.List<string>,
+|}>
 type _SortSettingPayload = $ReadOnly<{|
   path: Types.Path,
   sortSetting: Types.SortSetting,

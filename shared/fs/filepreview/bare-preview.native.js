@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
@@ -18,22 +19,29 @@ const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   onBack: () => dispatch(navigateUp()),
   _onAction: (path: Types.Path, type: Types.PathType, evt?: SyntheticEvent<>) =>
     dispatch(
-      FsGen.createFileActionPopup({path, type, targetRect: Constants.syntheticEventToTargetRect(evt)})
+      FsGen.createFileActionPopup({
+        path,
+        type,
+        targetRect: Constants.syntheticEventToTargetRect(evt),
+        routePath,
+      })
     ),
 })
 
-const mergeProps = ({path, _pathItem}, {onBack, _onAction}) => ({
+const mergeProps = ({path, _pathItem}, {onBack, _onAction}, {routePath}) => ({
   path,
+  routePath,
   onBack,
   onAction: (event: SyntheticEvent<>) => _onAction(path, _pathItem.type, event),
 })
 
 type ConnectedBarePreviewProps = {
   path: Types.Path,
+  routePath: I.List<string>,
 
   onBack: () => void,
   onAction: (evt?: SyntheticEvent<>) => void,
@@ -49,7 +57,7 @@ const BarePreview = (props: ConnectedBarePreviewProps) => (
       </ClickableBox>
     </Box>
     <Box style={stylesContentContainer}>
-      <View path={props.path} />
+      <View path={props.path} routePath={props.routePath} />
     </Box>
     <Box style={stylesFooter}>
       <Icon type="iconfont-ellipsis" onClick={props.onAction} color={globalColors.white} />

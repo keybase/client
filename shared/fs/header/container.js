@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState) => ({
   kbfsEnabled: StateMappers.mapStateToKBFSEnabled(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   _onOpenBreadcrumb: (path: string, evt?: SyntheticEvent<>) => {
     dispatch(navigateTo([fsTab, {props: {path: Types.stringToPath(path)}, selected: 'folder'}]))
     evt && evt.stopPropagation()
@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     ),
   _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
   _openFinderPopup: (evt?: SyntheticEvent<>) =>
-    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt)})),
+    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
   onBack: () => dispatch(navigateUp()),
 })
 

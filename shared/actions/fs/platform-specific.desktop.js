@@ -9,12 +9,11 @@ import * as Electron from 'electron'
 import fs from 'fs'
 import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
-import {navigateTo} from '../route-tree'
 import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
 import {spawn, execFileSync} from 'child_process'
 import path from 'path'
-import {navigateAppend, navigateUp} from '../../actions/route-tree'
+import {putActionIfOnPath, navigateTo, navigateAppend, navigateUp} from '../route-tree'
 
 import {copyToDownloadDir} from './platform-specific'
 
@@ -266,24 +265,23 @@ function installDokanSaga() {
 }
 
 function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
-  const {targetRect} = action.payload
+  const {targetRect, routePath} = action.payload
   return Saga.put(
-    navigateAppend([
-      {
-        props: {
-          targetRect,
-          position: 'bottom right',
-          onHidden: () => Saga.put(navigateUp()),
-          onInstall: () => Saga.put(FsGen.createInstallFuse()),
+    putActionIfOnPath(
+      routePath,
+      navigateAppend([
+        {
+          props: {
+            targetRect,
+            position: 'bottom right',
+            onHidden: () => Saga.put(navigateUp()),
+            onInstall: () => Saga.put(FsGen.createInstallFuse()),
+          },
+          selected: 'finderAction',
         },
-        selected: 'finderAction',
-      },
-    ])
+      ])
+    )
   )
-}
-
-function* metaSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(FsGen.openFinderPopup, openFinderPopup)
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
@@ -300,8 +298,8 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   }
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
 
-  // Should come after others.
-  yield Saga.fork(metaSaga)
+  // These are saga tasks that may use actions above.
+  yield Saga.safeTakeEveryPure(FsGen.openFinderPopup, openFinderPopup)
 }
 
 export {copyToDownloadDir, platformSpecificSaga}

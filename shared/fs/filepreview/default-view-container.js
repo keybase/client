@@ -17,12 +17,12 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   _download: (path: Types.Path) => dispatch(FsGen.createDownload({path, intent: 'none'})),
   _openFinderPopup: (evt?: SyntheticEvent<>) =>
-    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt)})),
-  _save: (path: Types.Path) => dispatch(FsGen.createSave({path})),
-  _share: (path: Types.Path) => dispatch(FsGen.createShare({path})),
+    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
+  _save: (path: Types.Path) => dispatch(FsGen.createSave({path, routePath})),
+  _share: (path: Types.Path) => dispatch(FsGen.createShare({path, routePath})),
   _openAsText: (path: Types.Path) =>
     dispatch(
       navigateAppend([
