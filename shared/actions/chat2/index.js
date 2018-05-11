@@ -1266,7 +1266,17 @@ const desktopChangeSelection = (
   return _maybeAutoselectNewestConversation(action, state)
 }
 
-const _maybeAutoselectNewestConversation = (action: *, state: *) => {
+const _maybeAutoselectNewestConversation = (
+  action:
+    | Chat2Gen.MetasReceivedPayload
+    | Chat2Gen.LeaveConversationPayload
+    | Chat2Gen.MetaDeletePayload
+    | Chat2Gen.MessageSendPayload
+    | Chat2Gen.SetPendingModePayload
+    | Chat2Gen.AttachmentUploadPayload
+    | TeamsGen.LeaveTeamPayload,
+  state: TypedState
+) => {
   const selected = Constants.getSelectedConversation(state)
   if (action.type === Chat2Gen.metaDelete) {
     if (!action.payload.selectSomethingElse) {

@@ -7141,9 +7141,9 @@ immutable@^3.8.1:
   version "3.8.1"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.1.tgz#200807f11ab0f72710ea485542de088075f68cd2"
 
-"immutable@git://github.com/keybase/immutable-sorted#58fa578bebcf19da76a9575655c4d6ec6f72762d":
+"immutable@git://github.com/keybase/immutable-sorted#2a5895d4a5b36e632f833aec2cc84d2ad319bf71":
   version "0.2.4"
-  resolved "git://github.com/keybase/immutable-sorted#58fa578bebcf19da76a9575655c4d6ec6f72762d"
+  resolved "git://github.com/keybase/immutable-sorted#2a5895d4a5b36e632f833aec2cc84d2ad319bf71"
 
 import-local@^1.0.0:
   version "1.0.0"

@@ -605,7 +605,6 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 
 export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'text' && m.type === 'text') {
-    // $ForceType
     return m.withMutations((ret: Types.MessageText) => {
       ret.set('ordinal', old.ordinal)
     })
@@ -618,7 +617,6 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       // jump in the conversation view
       return m.set('ordinal', old.ordinal)
     }
-    // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
       // We got an attachment-uploaded message. Hold on to the old ID
       // because that's what the service expects to delete this message
