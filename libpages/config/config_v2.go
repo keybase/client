@@ -30,7 +30,7 @@ type V2 struct {
 	Users map[string]string `json:"users"`
 
 	// username -> sha256 hash
-	users map[string][]byte `json:"users"`
+	users map[string][]byte
 
 	// ACLs is a path -> AccessControlV1 map that defines ACLs for different
 	// paths.
