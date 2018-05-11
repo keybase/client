@@ -5,6 +5,14 @@ import Text from './text'
 import Icon from './icon'
 import {globalStyles, desktopStyles, collapseStyles} from '../styles'
 
+const blah = () => {
+  return (
+    <>
+      ' \' \' \' \' '<Icon type="blah" />' '
+    </>
+  )
+}
+
 class BackButton extends Component<Props> {
   onClick(event: SyntheticEvent<>) {
     event.preventDefault()

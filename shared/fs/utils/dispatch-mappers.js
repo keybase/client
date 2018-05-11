@@ -47,7 +47,9 @@ export const mapDispatchToOnAction = (dispatch: Dispatch) => (
           isShare: false,
           targetRect: isMobile
             ? undefined
-            : evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null,
+            : evt
+              ? (evt.target: window.HTMLElement).getBoundingClientRect()
+              : null,
         },
         selected: 'pathItemAction',
       },
