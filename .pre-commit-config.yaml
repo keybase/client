@@ -17,7 +17,7 @@ repos:
         args: [-c, cd shared && node_modules/.bin/flow]
     -   id: prettier
         name: prettier
-        entry: shared/node_modules/.bin/prettier
+        entry: shared/node_modules/.bin/prettier --write
         language: node
         files: \.js$
 -   repo: https://github.com/keybase/pre-commit-golang.git

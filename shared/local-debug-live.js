@@ -14,4 +14,4 @@ export const dumbFullscreen: boolean = false
 // Mobile only settings
 export const dumbIndex: number = 0
 
-    const a = 3
+     const a = 3
