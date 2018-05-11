@@ -97,9 +97,6 @@
       "path": "Types.Path",
       "errorText": "string"
     },
-
-    "setupFSHandlers": {},
-
     "share": {
       "path": "Types.Path",
       "routePath": "I.List<string>"
@@ -117,6 +114,9 @@
     "openFinderPopup": {
       "targetRect": "?ClientRect",
       "routePath": "I.List<string>"
-    }
+    },
+    "getResetMetadata": {},
+
+    "setupFSHandlers": {}
   }
 }

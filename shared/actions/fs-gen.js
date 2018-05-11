@@ -25,6 +25,7 @@ export const folderListLoaded = 'fs:folderListLoaded'
 export const fsActivity = 'fs:fsActivity'
 export const fuseStatus = 'fs:fuseStatus'
 export const fuseStatusResult = 'fs:fuseStatusResult'
+export const getResetMetadata = 'fs:getResetMetadata'
 export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
@@ -92,6 +93,7 @@ type _FuseStatusResultPayload = $ReadOnly<{|
   prevStatus: ?RPCTypes.FuseStatus,
   status: RPCTypes.FuseStatus,
 |}>
+type _GetResetMetadataPayload = void
 type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
@@ -159,6 +161,7 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({e
 export const createFsActivity = (payload: _FsActivityPayload) => ({error: false, payload, type: fsActivity})
 export const createFuseStatus = (payload: _FuseStatusPayload) => ({error: false, payload, type: fuseStatus})
 export const createFuseStatusResult = (payload: _FuseStatusResultPayload) => ({error: false, payload, type: fuseStatusResult})
+export const createGetResetMetadata = (payload: _GetResetMetadataPayload) => ({error: false, payload, type: getResetMetadata})
 export const createInstallFuse = (payload: _InstallFusePayload) => ({error: false, payload, type: installFuse})
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
@@ -196,6 +199,7 @@ export type FolderListLoadedPayload = $Call<typeof createFolderListLoaded, _Fold
 export type FsActivityPayload = $Call<typeof createFsActivity, _FsActivityPayload>
 export type FuseStatusPayload = $Call<typeof createFuseStatus, _FuseStatusPayload>
 export type FuseStatusResultPayload = $Call<typeof createFuseStatusResult, _FuseStatusResultPayload>
+export type GetResetMetadataPayload = $Call<typeof createGetResetMetadata, _GetResetMetadataPayload>
 export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePayload>
 export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
@@ -235,6 +239,7 @@ export type Actions =
   | FsActivityPayload
   | FuseStatusPayload
   | FuseStatusResultPayload
+  | GetResetMetadataPayload
   | InstallFusePayload
   | InstallFuseResultPayload
   | InstallKBFSPayload
