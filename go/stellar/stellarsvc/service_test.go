@@ -367,27 +367,29 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	_, err = srvSender.SendLocal(context.Background(), arg)
 	require.NoError(t, err)
 
-	checkPayment := func(payment stellar1.PaymentCLILocal) {
-		require.Equal(t, accountIDSender, payment.FromStellar)
-		require.Equal(t, accountIDRecip, payment.ToStellar)
-		require.NotNil(t, payment.ToUsername)
-		require.Equal(t, tcs[1].Fu.Username, *(payment.ToUsername))
-		require.Equal(t, "100.0000000", payment.Amount)
+	checkPayment := func(p stellar1.PaymentCLILocal) {
+		require.Equal(t, accountIDSender, p.FromStellar)
+		require.Equal(t, accountIDRecip, *p.ToStellar)
+		require.NotNil(t, p.ToUsername)
+		require.Equal(t, tcs[1].Fu.Username, *(p.ToUsername))
+		require.Equal(t, "100.0000000", p.Amount)
 	}
 	senderPayments, err := srvSender.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, senderPayments, 1)
-	checkPayment(senderPayments[0])
+	require.NotNil(t, senderPayments[0].Payment, senderPayments[0].Err)
+	checkPayment(*senderPayments[0].Payment)
 
 	recipPayments, err := srvRecip.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, recipPayments, 1)
-	checkPayment(recipPayments[0])
+	require.NotNil(t, senderPayments[0].Payment, senderPayments[0].Err)
+	checkPayment(*recipPayments[0].Payment)
 
-	payment, err := srvSender.PaymentDetailCLILocal(context.Background(), senderPayments[0].StellarTxID.String())
+	payment, err := srvSender.PaymentDetailCLILocal(context.Background(), senderPayments[0].Payment.TxID.String())
 	require.NoError(t, err)
 	checkPayment(payment)
-	payment, err = srvRecip.PaymentDetailCLILocal(context.Background(), senderPayments[0].StellarTxID.String())
+	payment, err = srvRecip.PaymentDetailCLILocal(context.Background(), senderPayments[0].Payment.TxID.String())
 	require.NoError(t, err)
 	checkPayment(payment)
 }
@@ -425,9 +427,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.True(t, len(out.FundTx.Signed) > 100)
 
 	t.Logf("decrypt")
-	appKey, err = stellar.RelayTransferKeyForDecryption(context.Background(), tcs[0].G, teamID, appKey.KeyGeneration)
-	require.NoError(t, err)
-	relaySecrets, err := stellar.DecryptRelaySecretB64(out.EncryptedB64, appKey)
+	relaySecrets, err := stellar.DecryptRelaySecretB64(context.Background(), tcs[0].G, teamID, out.EncryptedB64)
 	require.NoError(t, err)
 	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecrets.Sk.SecureNoLogString())
 	require.NoError(t, err)

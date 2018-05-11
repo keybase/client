@@ -51,7 +51,7 @@ func RelayTransferKey(ctx context.Context, g *libkb.GlobalContext,
 	return key, team.ID, err
 }
 
-func RelayTransferKeyForDecryption(ctx context.Context, g *libkb.GlobalContext,
+func relayTransferKeyForDecryption(ctx context.Context, g *libkb.GlobalContext,
 	teamID keybase1.TeamID, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
 	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
 		ID:      teamID,
@@ -147,19 +147,22 @@ func encryptRelaySecret(relay stellar1.RelayContents, encryptFor keybase1.TeamAp
 	}, nil
 }
 
-// TODO CORE-7718 make this private
-// `box` should be a stellar1.EncryptedRelaySecret
-func DecryptRelaySecretB64(boxB64 string, key keybase1.TeamApplicationKey) (res stellar1.RelayContents, err error) {
+// `boxB64` should be a stellar1.EncryptedRelaySecret
+func DecryptRelaySecretB64(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, boxB64 string) (res stellar1.RelayContents, err error) {
 	pack, err := base64.StdEncoding.DecodeString(boxB64)
 	if err != nil {
-		return res, err
+		return res, fmt.Errorf("error decoding relay box: %v", err)
 	}
 	var box stellar1.EncryptedRelaySecret
 	err = libkb.MsgpackDecode(&box, pack)
 	if err != nil {
 		return res, err
 	}
-	return decryptRelaySecret(box, key)
+	appKey, err := relayTransferKeyForDecryption(ctx, g, teamID, box.Gen)
+	if err != nil {
+		return res, err
+	}
+	return decryptRelaySecret(box, appKey)
 }
 
 func decryptRelaySecret(box stellar1.EncryptedRelaySecret, key keybase1.TeamApplicationKey) (res stellar1.RelayContents, err error) {
