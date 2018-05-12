@@ -206,13 +206,23 @@ const unboxRows = (
   }
   const onFailed = function*({convID, error}: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
     const state: TypedState = yield Saga.select()
-    yield Saga.put(
-      Chat2Gen.createMetaReceivedError({
-        conversationIDKey: Types.conversationIDToKey(convID),
-        error,
-        username: state.config.username || '',
-      })
-    )
+    const conversationIDKey = Types.conversationIDToKey(convID)
+    switch (error.typ) {
+      case RPCChatTypes.localConversationErrorType.transient:
+        logger.info(
+          `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+        )
+        break
+      default:
+        logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
+        yield Saga.put(
+          Chat2Gen.createMetaReceivedError({
+            conversationIDKey: conversationIDKey,
+            error,
+            username: state.config.username || '',
+          })
+        )
+    }
     return EngineRpc.rpcResult()
   }
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
