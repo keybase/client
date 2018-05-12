@@ -966,7 +966,6 @@ func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 	return &RPCLogFactory{Contextified: NewContextified(g)}
 }
 
-
 // LogoutSelfCheck checks with the API server to see if this uid+device pair should
 // logout.
 func (g *GlobalContext) LogoutSelfCheck() error {
