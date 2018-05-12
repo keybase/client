@@ -26,25 +26,26 @@ func newUserHandler(g *libkb.GlobalContext) *userHandler {
 }
 
 func (r *userHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+	m := libkb.NewMetaContext(ctx, r.G())
 	switch category {
 	case "user.key_change":
-		return true, r.keyChange()
+		return true, r.keyChange(m)
 	case "user.identity_change":
-		return true, r.identityChange()
+		return true, r.identityChange(m)
 	default:
 		return false, fmt.Errorf("unknown userHandler category: %q", category)
 	}
 }
 
-func (r *userHandler) keyChange() error {
-	r.G().KeyfamilyChanged(r.G().Env.GetUID())
+func (r *userHandler) keyChange(m libkb.MetaContext) error {
+	m.G().KeyfamilyChanged(m.G().Env.GetUID())
 
 	// check if this device was just revoked and if so, log out
-	return r.G().LogoutIfRevoked()
+	return m.LogoutIfRevoked()
 }
 
-func (r *userHandler) identityChange() error {
-	r.G().UserChanged(r.G().Env.GetUID())
+func (r *userHandler) identityChange(m libkb.MetaContext) error {
+	m.G().UserChanged(m.G().Env.GetUID())
 	return nil
 }
 
