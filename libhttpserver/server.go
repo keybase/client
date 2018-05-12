@@ -146,43 +146,8 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 		s.handleBadRequest(w)
 		return
 	}
-	http.StripPrefix(toStrip, http.FileServer(fs)).ServeHTTP(w, req)
-}
-
-func overrideMimeType(ext, mimeType string) (newExt, newMimeType string) {
-	// Send text/plain for all HTML and JS files to avoid them being executed
-	// by the frontend WebView.
-	lower := strings.ToLower(mimeType)
-	if strings.Contains(lower, "javascript") ||
-		strings.Contains(lower, "html") {
-		return ext, "text/plain"
-	}
-	return ext, mimeType
-}
-
-// NOTE: if you change anything here, make sure to change
-// keybase/client:shared/fs/utils/ext-list.js:patchedExtToFileViewTypes too.
-var additionalMimeTypes = map[string]string{
-	".go":    "text/plain",
-	".py":    "text/plain",
-	".zsh":   "text/plain",
-	".fish":  "text/plain",
-	".cs":    "text/plain",
-	".rb":    "text/plain",
-	".m":     "text/plain",
-	".mm":    "text/plain",
-	".swift": "text/plain",
-	".flow":  "text/plain",
-	".php":   "text/plain",
-	".pl":    "text/plain",
-	".sh":    "text/plain",
-	".js":    "text/plain",
-	".json":  "text/plain",
-	".sql":   "text/plain",
-	".rs":    "text/plain",
-	".xml":   "text/plain",
-	".tex":   "text/plain",
-	".pub":   "text/plain",
+	http.StripPrefix(toStrip, http.FileServer(fs)).ServeHTTP(
+		newContentTypeOverridingResponseWriter(w), req)
 }
 
 const portStart = 16723
@@ -235,7 +200,7 @@ func New(g *libkb.GlobalContext, config libkbfs.Config) (
 	ctx, cancel := context.WithCancel(context.Background())
 	go s.monitorAppState(ctx)
 	s.cancel = cancel
-	libmime.Patch(additionalMimeTypes, overrideMimeType)
+	libmime.Patch(additionalMimeTypes)
 	return s, nil
 }
 

@@ -564,7 +564,7 @@ func ListenAndServe(ctx context.Context,
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	libmime.Patch(nil, nil)
+	libmime.Patch(nil)
 
 	server := &Server{
 		config:     config,
