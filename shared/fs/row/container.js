@@ -1,11 +1,11 @@
 // @flow
+import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
 import {Row} from './row'
-import * as DispatchMappers from '../utils/dispatch-mappers'
 import * as StateMappers from '../utils/state-mappers'
 
 const mapStateToProps = (state: TypedState, {path}) => {
@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
 
 const isBare = (path: Types.Path) => isMobile && ['image'].includes(Constants.viewTypeFromPath(path))
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   _onOpen: (type: Types.PathType, path: Types.Path) => {
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
@@ -29,9 +29,18 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(navigateAppend([{props: {path}, selected: isBare(path) ? 'barePreview' : 'preview'}]))
     }
   },
-  _openInFileUI: DispatchMappers.mapDispatchToShowInFileUI(dispatch),
-  _onAction: DispatchMappers.mapDispatchToOnAction(dispatch),
-  _openFinderPopup: DispatchMappers.mapDispatchToOpenFinderPopup(dispatch),
+  _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+  _onAction: (path: Types.Path, type: Types.PathType, evt?: SyntheticEvent<>) =>
+    dispatch(
+      FsGen.createFileActionPopup({
+        path,
+        type,
+        targetRect: Constants.syntheticEventToTargetRect(evt),
+        routePath,
+      })
+    ),
+  _openFinderPopup: (evt?: SyntheticEvent<>) =>
+    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
