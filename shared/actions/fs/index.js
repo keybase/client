@@ -4,7 +4,9 @@ import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Saga from '../../util/saga'
+import * as EngineRpc from '../../constants/engine'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
@@ -305,6 +307,7 @@ function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenera
   )
 }
 
+<<<<<<< HEAD
 function loadMimeType(action: FsGen.MimeTypeLoadPayload, state: TypedState) {
   const {path} = action.payload
   const {address, token} = state.fs.localHTTPServerInfo
@@ -320,6 +323,64 @@ const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload)
     })
   )
 
+||||||| merged common ancestors
+=======
+const inboxQuery = {
+  computeActiveList: false,
+  readOnly: false,
+  status: Object.keys(RPCChatTypes.commonConversationStatus)
+    .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
+    .map(k => RPCChatTypes.commonConversationStatus[k]),
+  tlfVisibility: RPCTypes.commonTLFVisibility.any,
+  topicType: RPCChatTypes.commonTopicType.chat,
+  unreadOnly: false,
+}
+
+function* getResetMetadata(action: FsGen.GetResetMetadataPayload): Saga.SagaGenerator<any, any> {
+  // TODO: maybe uncomment?
+  // const conversations = yield Saga.call(
+  //   RpcChatTypes.localFindConversationsLocalRpcPromise,
+  //   action.payload.tlfName
+  // )
+  const untrustedInboxRpc = new EngineRpc.EngineRpcCall(
+    {
+      'chat.1.chatUi.chatInboxUnverified': function*({
+        inbox,
+      }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
+        const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+        // whatever
+        if (!result || !result.items) return EngineRpc.rpcResult()
+        const tlfs = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
+          item &&
+            item.localMetadata &&
+            item.localMetadata.resetParticipants &&
+            // Only teams
+            [1, 2, 3].includes(item.membersType) &&
+            filtered.push({
+              convID: item.convID,
+              name: item.name,
+              visibility: item.visibility,
+              resetParticipants: item.localMetadata.resetParticipants,
+            })
+          return filtered
+        }, [])
+        return EngineRpc.rpcResult()
+      },
+    },
+    RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+    'tlfCall',
+    {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      maxUnbox: 0,
+      query: inboxQuery,
+      skipUnverified: false,
+    },
+    false,
+    loading => {}
+  )
+}
+
+>>>>>>> fs: implement basic reset retrieval action
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -332,7 +393,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
+<<<<<<< HEAD
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType, loadMimeTypeResult)
+||||||| merged common ancestors
+=======
+  yield Saga.safeTakeEvery(FsGen.getResetMetadata, getResetMetadata)
+>>>>>>> fs: implement basic reset retrieval action
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.
