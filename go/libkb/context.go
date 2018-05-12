@@ -380,3 +380,32 @@ func (m MetaContext) SetActiveDevice(uid keybase1.UID, deviceID keybase1.DeviceI
 	}
 	return nil
 }
+
+// LogoutIfRevoked loads the user and checks if the current device keys
+// have been revoked.  If so, it calls Logout.
+func (m MetaContext) LogoutIfRevoked() (err error) {
+	defer m.CTrace("GlobalContext#LogoutIfRevoked", func() error { return err })()
+
+	in, err := m.G().LoginState().LoggedInLoad()
+	if err != nil {
+		return err
+	}
+	if !in {
+		m.CDebugf("LogoutIfRevoked: skipping check (not logged in)")
+		return nil
+	}
+
+	if m.G().Env.GetSkipLogoutIfRevokedCheck() {
+		m.CDebugf("LogoutIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
+		return nil
+	}
+
+	err = CheckCurrentUIDDeviceID(m)
+	if err != nil {
+		m.CDebugf("LogoutIfRevoked: cannot load curent UID/device pair, calling logout (%s)", err)
+		return m.G().Logout()
+	}
+
+	m.CDebugf("LogoutIfRevoked: current device ok")
+	return nil
+}
