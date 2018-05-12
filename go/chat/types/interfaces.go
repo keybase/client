@@ -76,7 +76,7 @@ type ConversationSource interface {
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error
 	ClearFromDelete(ctx context.Context, uid gregor1.UID,
-		convID chat1.ConversationID, deleteID chat1.MessageID)
+		convID chat1.ConversationID, deleteID chat1.MessageID) bool
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 	DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, assets []chat1.Asset)
