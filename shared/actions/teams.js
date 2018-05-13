@@ -526,7 +526,6 @@ function _getDetailsForAllTeams(action: TeamsGen.GetDetailsForAllTeamsPayload, s
 function* _addUserToTeams(action: TeamsGen.AddUserToTeamsPayload, state: TypedState) {
   const {role, teams, user} = action.payload
   const collectedResults = []
-  console.warn(role, teams, user)
   for (const team of teams) {
     try {
       yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {

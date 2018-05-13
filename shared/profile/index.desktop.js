@@ -37,6 +37,7 @@ export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 const BACK_ZINDEX = 12
 const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
+
 type State = {
   searchHovered: boolean,
   foldersExpanded: boolean,

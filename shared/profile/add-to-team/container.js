@@ -35,8 +35,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   loadAllTeams: () => dispatch(TeamsGen.createGetDetailsForAllTeams()),
   loadTeamList: () => dispatch(TeamsGen.createGetTeams()),
-  _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) =>
-    dispatch(TeamsGen.createAddUserToTeams({role, teams, user})),
+  _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
+    dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
+    dispatch(navigateUp())
+  },
   onBack: () => dispatch(navigateUp()),
   onOpenRolePicker: (role: TeamRoleType, onComplete: (string, boolean) => void) => {
     dispatch(
@@ -66,7 +68,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     teamNameToCanPerform: stateProps._teamNameToCanPerform.toObject(),
     teamNameToMembers: stateProps._teamNameToMembers.toObject(),
     them: stateProps._them,
-    title: `Add ${stateProps._them} to teams`,
+    title: `Add ${stateProps._them} to...`,
   }
 }
 

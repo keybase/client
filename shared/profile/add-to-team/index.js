@@ -95,11 +95,13 @@ const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(ite
 
 const AddToTeam = (props: Props) => (
   <Box style={styleContainer}>
-    <Box style={collapseStyles([globalStyles.flexBoxRow, {paddingBottom: globalMargins.large}])}>
-      <Text type="Header">Add</Text>
-      <Avatar isTeam={false} size={16} style={{marginLeft: globalMargins.tiny}} username={props.them} />
-      <Text type="Header">{props.them} to...</Text>
-    </Box>
+    {!isMobile && (
+      <Box style={collapseStyles([globalStyles.flexBoxRow, {paddingBottom: globalMargins.large}])}>
+        <Text type="Header">Add</Text>
+        <Avatar isTeam={false} size={16} style={{marginLeft: globalMargins.tiny}} username={props.them} />
+        <Text type="Header">{props.them} to...</Text>
+      </Box>
+    )}
 
     <ScrollView>
       <Box style={{flexShrink: 1, width: '100%'}}>
@@ -199,7 +201,7 @@ const styleTeamRow = {
   marginLeft: globalMargins.medium,
   marginRight: globalMargins.tiny,
   minHeight: isMobile ? 64 : 48,
-  minWidth: isMobile ? undefined : 500,
+  minWidth: isMobile ? '100%' : 500,
   paddingBottom: globalMargins.tiny,
   paddingTop: globalMargins.tiny,
 }
