@@ -279,6 +279,7 @@ class Profile extends Component<Props, State> {
               trackerState={this.props.trackerState}
               currentlyFollowing={this.props.currentlyFollowing}
               onAddToTeam={this.props.onAddToTeam}
+              onBrowsePublicFolder={this.props.onBrowsePublicFolder}
               onChat={this.props.onChat}
               onFollow={this.props.onFollow}
               onOpenPrivateFolder={this.props.onOpenPrivateFolder}

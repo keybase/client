@@ -142,6 +142,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
 
     // Saga-only actions
     case TeamsGen.addPeopleToTeam:
+    case TeamsGen.addUserToTeams:
     case TeamsGen.addToTeam:
     case TeamsGen.badgeAppForTeams:
     case TeamsGen.checkRequestedAccess:
@@ -153,6 +154,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.editTeamDescription:
     case TeamsGen.getChannels:
     case TeamsGen.getDetails:
+    case TeamsGen.getDetailsForAllTeams:
     case TeamsGen.getTeamOperations:
     case TeamsGen.getTeamPublicity:
     case TeamsGen.getTeamRetentionPolicy:

@@ -15,6 +15,7 @@ import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {getSortedTeamnames} from '../../constants/teams'
 import {navigateAppend} from '../../actions/route-tree'
+import type {TeamRoleType} from '../../constants/types/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
@@ -34,10 +35,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   loadAllTeams: () => dispatch(TeamsGen.createGetDetailsForAllTeams()),
   loadTeamList: () => dispatch(TeamsGen.createGetTeams()),
-  _onAddToTeams: (role: string, teams: Array<string>, user: string) =>
+  _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) =>
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user})),
   onBack: () => dispatch(navigateUp()),
-  onOpenRolePicker: (role: string, onComplete: (string, boolean) => void) => {
+  onOpenRolePicker: (role: TeamRoleType, onComplete: (string, boolean) => void) => {
     dispatch(
       navigateAppend([
         {
@@ -59,15 +60,11 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    onAddToTeams: (role: string, teams: Array<string>) =>
+    onAddToTeams: (role: TeamRoleType, teams: Array<string>) =>
       dispatchProps._onAddToTeams(role, teams, stateProps._them),
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
-    teammembercounts: stateProps._teammembercounts.toObject(),
-    teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
     teamNameToCanPerform: stateProps._teamNameToCanPerform.toObject(),
-    teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),
     teamNameToMembers: stateProps._teamNameToMembers.toObject(),
-    teamNameToRole: stateProps._teamNameToRole.toObject(),
     them: stateProps._them,
     title: `Add ${stateProps._them} to teams`,
   }

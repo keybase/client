@@ -4,29 +4,32 @@ import * as React from 'react'
 import * as Types from '../../constants/types/teams'
 
 export type RowProps = {
-  canShowcase: boolean,
+  canAddThem: boolean,
+  checked: boolean,
   name: Types.Teamname,
   isOpen: boolean,
-  membercount: number,
-  onPromote: (promote: boolean) => void,
-  showcased: boolean,
+  memberIsInTeam: boolean,
+  onCheck: () => void,
+  them: string,
+  youCanAddPeople: boolean,
   waiting: boolean,
-  isExplicitMember: boolean,
 }
 
 export type Props = {
-  customComponent?: ?React.Node,
-  headerStyle?: ?Object,
   onBack: () => void,
   onCancel?: () => void,
-  onPromote: (name: Types.Teamname, promote: boolean) => void,
-  teammembercounts: {[string]: number},
+  onOpenRolePicker: (role: string, selectedRole: Types.TeamRoleType => void) => void,
+  onRoleChange: string => void,
+  onSave: (role: string, selectedTeams: {[string]: boolean}) => void,
+  onToggle: string => void,
+  role: Types.TeamRoleType,
+  selectedTeams: {[string]: boolean},
+  setSelectedTeams: ({[string]: boolean}) => void,
   teamnames: Array<Types.Teamname>,
+  teamNameToCanPerform: any,
+  teamNameToMembers: any,
   teamNameToIsOpen: {[string]: boolean},
-  teamNameToAllowPromote: {[string]: boolean},
-  teamNameToIsShowcasing: {[string]: boolean},
-  teamNameToRole: {[string]: boolean},
-  waiting: {[string]: number},
+  them: string,
 }
 
 export default class AddToTeam extends Component<Props> {}

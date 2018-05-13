@@ -36,7 +36,7 @@ const HEADER_TOP_SPACE = 48
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 const BACK_ZINDEX = 12
 const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
-
+const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
 type State = {
   searchHovered: boolean,
   foldersExpanded: boolean,
@@ -343,7 +343,14 @@ class ProfileRender extends PureComponent<Props, State> {
     return (
       <Box style={styleOuterContainer}>
         {!!this.props.addUserToTeamsResults && (
-          <Box style={{...globalStyles.flexBoxRow, ...styleScrollHeaderBg, backgroundColor: globalColors.green, zIndex: 15}}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              ...styleScrollHeaderBg,
+              backgroundColor: globalColors.green,
+              zIndex: ADD_TO_TEAM_ZINDEX,
+            }}
+          >
             <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
               <Text
                 style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}

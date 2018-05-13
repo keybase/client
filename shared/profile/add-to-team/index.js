@@ -35,20 +35,14 @@ const TeamRow = ({
     ? `${them} is already a member.`
     : youCanAddPeople ? '' : 'Only admins can add people.'
   return (
-    <ClickableBox onClick={onCheck} style={globalStyles.flexBoxColumn}>
+    <ClickableBox onClick={onCheck}>
       <Box
         style={{
           ...globalStyles.flexBoxRow,
-          minHeight: isMobile ? 64 : 48,
-          minWidth: isMobile ? undefined : 500,
-          marginLeft: globalMargins.medium,
-          marginRight: globalMargins.tiny,
-          paddingTop: globalMargins.tiny,
-          paddingBottom: globalMargins.tiny,
-          alignItems: 'center',
+          ...styleTeamRow,
         }}
       >
-        <Checkbox disabled={!canAddThem} checked={checked} />
+        <Checkbox disabled={!canAddThem} checked={checked} onCheck={onCheck} />
         <Box style={{display: 'flex', position: 'relative'}}>
           <Avatar
             isTeam={true}
@@ -198,6 +192,16 @@ const styleMeta = {
   borderRadius: 1,
   marginLeft: globalMargins.xtiny,
   marginTop: 2,
+}
+
+const styleTeamRow = {
+  alignItems: 'center',
+  marginLeft: globalMargins.medium,
+  marginRight: globalMargins.tiny,
+  minHeight: isMobile ? 64 : 48,
+  minWidth: isMobile ? undefined : 500,
+  paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
 }
 
 const PopupWrapped = (props: Props) => (

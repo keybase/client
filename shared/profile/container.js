@@ -170,7 +170,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     onClickFollowers: () => dispatchProps.onClickFollowers(username),
     onClickFollowing: () => dispatchProps.onClickFollowing(username),
     onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
-    onOpenPrivateFolder: () => dispatchProps.onOpenPrivateFolder(stateProps.myUsername, username),
+    onOpenPrivateFolder: () =>
+      stateProps.myUsername && dispatchProps.onOpenPrivateFolder(stateProps.myUsername, username),
     onFollow: () => dispatchProps.onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
     onUnfollow: () => dispatchProps.onUnfollow(username),
