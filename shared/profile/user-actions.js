@@ -15,6 +15,7 @@ type Props = {
   onChat: () => void,
   onFollow: () => void,
   onOpenPrivateFolder: () => void,
+  onRefresh: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
   waiting: boolean,
@@ -29,6 +30,7 @@ function UserActions({
   onChat,
   onFollow,
   onOpenPrivateFolder,
+  onRefresh,
   onUnfollow,
   onAcceptProofs,
   waiting,
@@ -57,12 +59,13 @@ function UserActions({
     } else {
       return (
         <ButtonBar style={style}>
-          <Button type="Secondary" label="Unfollow" onClick={onUnfollow} waiting={waiting} />
+          <Button type="Secondary" label="Refresh" onClick={onRefresh} />
           <Button type="PrimaryGreen" label="Accept" onClick={onAcceptProofs} />
           <DropdownButton
             onAddToTeam={onAddToTeam}
             onOpenPrivateFolder={onOpenPrivateFolder}
             onBrowsePublicFolder={onBrowsePublicFolder}
+            onUnfollow={onUnfollow}
           />{' '}
         </ButtonBar>
       )
@@ -94,6 +97,7 @@ type DropdownProps = {
   onAddToTeam: () => void,
   onBrowsePublicFolder: () => void,
   onOpenPrivateFolder: () => void,
+  onUnfollow?: () => void,
 }
 
 class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuParentProps> {
@@ -111,6 +115,14 @@ class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuPa
       title: 'Browse public folder',
     },
   ]
+
+  componentDidMount() {
+    this.props.onUnfollow &&
+      this._menuItems.push({
+        onClick: () => this.props.onUnfollow && this.props.onUnfollow(),
+        title: 'Unfollow',
+      })
+  }
 
   render() {
     return (
