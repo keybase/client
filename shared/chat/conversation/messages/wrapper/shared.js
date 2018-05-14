@@ -30,7 +30,7 @@ const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBr
 
 const UserAvatar = ({author, showImage, onAuthorClick}) => (
   <Box style={styles.userAvatar}>
-    {showImage && <Avatar size={24} username={author} skipBackground={true} onClick={onAuthorClick} />}
+    {showImage && <Avatar size={32} username={author} skipBackground={true} onClick={onAuthorClick} />}
   </Box>
 )
 
@@ -195,14 +195,14 @@ const styles = styleSheetCreate({
     marginLeft: globalMargins.tiny,
     paddingBottom: 2,
     paddingRight: globalMargins.tiny,
-    paddingTop: 6,
+    paddingTop: globalMargins.tiny,
   },
   selected: {backgroundColor: globalColors.black_05},
   textContainer: {
     ...globalStyles.flexBoxRow,
     borderRadius: 4,
     flex: 1,
-    marginLeft: -globalMargins.xtiny,
+    marginLeft: globalMargins.xtiny,
     marginRight: globalMargins.xtiny,
     paddingLeft: globalMargins.xtiny,
     paddingRight: globalMargins.xtiny,
@@ -214,11 +214,12 @@ const styles = styleSheetCreate({
     justifyContent: 'flex-end',
     width: 32,
   },
-  userAvatar: {marginTop: isMobile ? -4 : -5, width: 32},
+  userAvatar: {width: 32},
   username: {
     alignSelf: 'flex-start',
     backgroundColor: globalColors.fastBlank,
-    marginBottom: 2,
+    marginBottom: 0,
+    marginLeft: globalMargins.tiny,
   },
   usernameYou: {
     ...globalStyles.italic,

@@ -198,7 +198,7 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
     case 'large':
       if (isUser) {
         return {
-          iconSize: 112,
+          iconSize: 128,
           metaMargin: 8,
           metaOneType: 'BodySemibold',
           titleType: 'HeaderBig',
