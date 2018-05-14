@@ -3,7 +3,7 @@
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Box2, Icon, Input, Text} from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
 import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
@@ -168,7 +168,7 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
       </Text>
     </Box>
   ) : (
-    <Box2 direction="horizontal" gap="tiny" gapEnd={true}>
+    <Box2 direction="horizontal" gap="small">
       <Icon
         onClick={pendingWaiting ? undefined : insertMentionMarker}
         type="iconfont-mention"
@@ -178,7 +178,7 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
       <Icon
         onClick={pendingWaiting ? undefined : openFilePicker}
         type="iconfont-camera"
-        style={styles.actionButton}
+        style={collapseStyles([styles.actionButton, styles.tinyMarginRight])}
         fontSize={21}
       />
     </Box2>
@@ -207,6 +207,9 @@ const styles = styleSheetCreate({
     paddingBottom: 6,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
+  },
+  tinyMarginRight: {
+    marginRight: globalMargins.tiny,
   },
   container: {
     ...globalStyles.flexBoxRow,
