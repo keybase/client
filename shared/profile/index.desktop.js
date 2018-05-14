@@ -365,7 +365,7 @@ class ProfileRender extends PureComponent<Props, State> {
                 {this.props.addUserToTeamsResults}
               </Text>
             </Box2>
-            <Box2 direction="column" style={{justifyContent: 'center', flexShrink: 1}}>
+            <Box2 direction="vertical" style={{justifyContent: 'center', flexShrink: 1}}>
               <Icon
                 color={globalColors.black_40}
                 onClick={this.props.onClearAddUserToTeamsResults}

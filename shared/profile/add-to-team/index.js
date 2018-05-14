@@ -49,7 +49,7 @@ const TeamRow = ({
     <ClickableBox onClick={onCheck}>
       <Box2 direction="horizontal" style={styleTeamRow}>
         <Checkbox disabled={!canAddThem} checked={checked} onCheck={onCheck} />
-        <Box2 style={{display: 'flex', position: 'relative'}}>
+        <Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
           <Avatar
             isTeam={true}
             size={isMobile ? 48 : 32}
@@ -115,7 +115,7 @@ const AddToTeam = (props: Props) => (
     )}
 
     <ScrollView>
-      <Box2 style={{flexShrink: 1, width: '100%'}}>
+      <Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
         {props.teamnames &&
           props.teamnames.map(name => {
             const youCanAddPeople =
