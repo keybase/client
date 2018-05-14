@@ -155,7 +155,6 @@ const confirmLabelStyle = platformStyles({
   },
   isMobile: {
     marginBottom: globalMargins.small,
-    marginLeft: globalMargins.tiny,
   },
   isElectron: {
     marginBottom: globalMargins.xlarge,

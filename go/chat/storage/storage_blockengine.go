@@ -67,7 +67,7 @@ func (be *blockEngine) getMsgID(blockNum, blockPos int) chat1.MessageID {
 }
 
 func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
-	convID chat1.ConversationID, uid gregor1.UID) (blockIndex, Error) {
+	convID chat1.ConversationID, uid gregor1.UID) (bi blockIndex, err Error) {
 
 	be.Debug(ctx, "createBlockIndex: creating new block index: convID: %s uid: %s", convID, uid)
 
@@ -78,26 +78,21 @@ func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
 			NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to get server versions: %s", serr.Error())
 	}
 
-	bi := blockIndex{
+	bi = blockIndex{
 		Version:       blockIndexVersion,
 		ServerVersion: srvVers.BodiesVers,
 		ConvID:        convID,
 		UID:           uid,
-		MaxBlock:      0,
+		MaxBlock:      -1,
 		BlockSize:     blockSize,
 	}
 
-	var err Error
-	if _, err = be.createBlock(ctx, &bi, 0); err != nil {
-		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to create block: %s", err.Message())
+	dat, ierr := encode(bi)
+	if ierr != nil {
+		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to encode %s", ierr)
 	}
-
-	dat, rerr := encode(bi)
-	if rerr != nil {
-		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to encode %s", err.Error())
-	}
-	if rerr = be.G().LocalChatDb.PutRaw(key, dat); rerr != nil {
-		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to write: %s", rerr.Error())
+	if ierr = be.G().LocalChatDb.PutRaw(key, dat); ierr != nil {
+		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to write: %s", ierr)
 	}
 	return bi, nil
 }
@@ -189,7 +184,7 @@ func (be *blockEngine) createBlock(ctx context.Context, bi *blockIndex, blockID 
 
 	// Create all the blocks up to the one we want
 	var b block
-	for i := bi.MaxBlock; i <= blockID; i++ {
+	for i := bi.MaxBlock + 1; i <= blockID; i++ {
 		b, err := be.createBlockSingle(ctx, *bi, i)
 		if err != nil {
 			return b, err

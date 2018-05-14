@@ -11,12 +11,10 @@ import android.view.KeyEvent;
 import android.view.Window;
 
 import com.facebook.react.ReactActivity;
-import com.facebook.react.modules.core.PermissionListener;
-import com.rt2zz.reactnativecontacts.ContactsManager;
 import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.ReactRootView;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.modules.core.PermissionListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,11 +23,11 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
+import io.keybase.ossifrage.util.DNSNSFetcher;
 import keybase.Keybase;
 
-import static android.os.Build.VERSION_CODES.O;
 import static keybase.Keybase.initOnce;
 
 public class MainActivity extends ReactActivity {
@@ -68,6 +66,9 @@ public class MainActivity extends ReactActivity {
         initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
+
+        // Setup a background job
+        BackgroundSyncJob.scheduleJob();
 
         Intent intent = getIntent();
         if (intent != null) {

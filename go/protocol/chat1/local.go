@@ -2261,6 +2261,8 @@ func (e MessageUnboxedErrorType) String() string {
 type MessageUnboxedError struct {
 	ErrType            MessageUnboxedErrorType `codec:"errType" json:"errType"`
 	ErrMsg             string                  `codec:"errMsg" json:"errMsg"`
+	Sender             gregor1.UID             `codec:"sender" json:"sender"`
+	SenderDevice       gregor1.DeviceID        `codec:"senderDevice" json:"senderDevice"`
 	MessageID          MessageID               `codec:"messageID" json:"messageID"`
 	MessageType        MessageType             `codec:"messageType" json:"messageType"`
 	Ctime              gregor1.Time            `codec:"ctime" json:"ctime"`
@@ -2273,6 +2275,8 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 	return MessageUnboxedError{
 		ErrType:            o.ErrType.DeepCopy(),
 		ErrMsg:             o.ErrMsg,
+		Sender:             o.Sender.DeepCopy(),
+		SenderDevice:       o.SenderDevice.DeepCopy(),
 		MessageID:          o.MessageID.DeepCopy(),
 		MessageType:        o.MessageType.DeepCopy(),
 		Ctime:              o.Ctime.DeepCopy(),
