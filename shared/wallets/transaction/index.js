@@ -20,9 +20,9 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
     case 'keybaseUser':
       return <Avatar username={props.counterparty} size={size} />
     case 'stellarPublicKey':
-      return <Icon type="icon-placeholder-secret-user-48" style={{width: size, height: size}} />
+      return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
     case 'wallet':
-      return <Icon type="icon-wallet-add-48" style={{width: size, height: size}} />
+      return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -58,7 +58,11 @@ const Detail = (props: DetailProps) => {
       )
       break
     case 'stellarPublicKey':
-      counterparty = props.counterparty.substr(0, 6) + '...' + props.counterparty.substr(-5)
+      counterparty = (
+        <Text type={textType} title={props.counterparty}>
+          {props.counterparty.substr(0, 6) + '...' + props.counterparty.substr(-5)}
+        </Text>
+      )
       break
     case 'wallet':
       counterparty = props.large ? (
@@ -170,9 +174,9 @@ const styles = styleSheetCreate({
   },
   note: platformStyles({
     common: {
-      marginTop: globalMargins.xtiny,
       borderLeftColor: globalColors.lightGrey2,
       borderLeftWidth: 3,
+      marginTop: globalMargins.xtiny,
       paddingLeft: 8,
     },
     isElectron: {
