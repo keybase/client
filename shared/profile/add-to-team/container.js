@@ -40,7 +40,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     dispatch(navigateUp())
   },
   onBack: () => dispatch(navigateUp()),
-  onOpenRolePicker: (role: TeamRoleType, onComplete: (string, boolean) => void) => {
+  onOpenRolePicker: (role: TeamRoleType, onComplete: (string, boolean) => void, styleCover?: Object) => {
     dispatch(
       navigateAppend([
         {
@@ -50,6 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
             selectedRole: role,
             sendNotificationChecked: true,
             showNotificationCheckbox: false,
+            styleCover,
           },
           selected: 'controlledRolePicker',
         },

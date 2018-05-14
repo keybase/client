@@ -38,6 +38,7 @@ export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
+export const ROLE_PICKER_ZINDEX = ADD_TO_TEAM_ZINDEX + 1
 
 type State = {
   currentFriendshipsTab: Types.FriendshipsTab,

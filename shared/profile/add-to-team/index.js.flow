@@ -18,7 +18,7 @@ export type RowProps = {
 export type Props = {
   onBack: () => void,
   onCancel?: () => void,
-  onOpenRolePicker: (role: string, selectedRole: Types.TeamRoleType => void) => void,
+  onOpenRolePicker: (role: string, selectedRole: Types.TeamRoleType => void, styleCover?: Object) => void,
   onRoleChange: string => void,
   onSave: (role: string, selectedTeams: {[string]: boolean}) => void,
   onToggle: string => void,

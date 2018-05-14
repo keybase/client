@@ -17,6 +17,8 @@ import {
 } from '../../common-adapters'
 import {teamRoleTypes} from '../../constants/teams'
 import {capitalize} from 'lodash-es'
+// $FlowIssue Flow wants a ".desktop" on the end.
+import {ROLE_PICKER_ZINDEX} from '../index'
 import {type TeamRoleType} from '../../constants/types/teams'
 import type {RowProps, Props} from './index'
 
@@ -33,7 +35,9 @@ const TeamRow = ({
 }: RowProps) => {
   const memberStatus = memberIsInTeam
     ? `${them} is already a member.`
-    : youCanAddPeople ? '' : 'Only admins can add people.'
+    : youCanAddPeople
+      ? ''
+      : 'Only admins can add people.'
   return (
     <ClickableBox onClick={onCheck}>
       <Box
@@ -98,7 +102,12 @@ const AddToTeam = (props: Props) => (
     {!isMobile && (
       <Box style={collapseStyles([globalStyles.flexBoxRow, {paddingBottom: globalMargins.large}])}>
         <Text type="Header">Add</Text>
-        <Avatar isTeam={false} size={16} style={{marginLeft: globalMargins.tiny, marginRight: 2}} username={props.them} />
+        <Avatar
+          isTeam={false}
+          size={16}
+          style={{marginLeft: globalMargins.tiny, marginRight: 2}}
+          username={props.them}
+        />
         <Text type="Header">{props.them} to...</Text>
       </Box>
     )}
@@ -150,7 +159,11 @@ const AddToTeam = (props: Props) => (
       </Text>
       <ClickableBox
         onClick={() =>
-          props.onOpenRolePicker(props.role, (selectedRole: TeamRoleType) => props.onRoleChange(selectedRole))
+          props.onOpenRolePicker(
+            props.role,
+            (selectedRole: TeamRoleType) => props.onRoleChange(selectedRole),
+            {zIndex: ROLE_PICKER_ZINDEX}
+          )
         }
         underlayColor="rgba(0, 0, 0, 0)"
       >
@@ -207,7 +220,7 @@ const styleTeamRow = {
 }
 
 const PopupWrapped = (props: Props) => (
-  <PopupDialog styleCover={{zIndex: 20}} onClose={props.onBack}>
+  <PopupDialog styleCover={{zIndex: ROLE_PICKER_ZINDEX}} onClose={props.onBack}>
     <AddToTeam {...props} />
   </PopupDialog>
 )
