@@ -27,6 +27,7 @@ type State = {
 
 type Props = PropsWithTimer<{
   status: Object,
+  heading: ?string,
   chat: Object,
 }>
 
