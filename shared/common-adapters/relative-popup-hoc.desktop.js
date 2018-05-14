@@ -178,6 +178,7 @@ type ModalPositionRelativeProps<PP> = {
   targetRect: ?ClientRect,
   position: Position,
   onClosePopup: () => void,
+  propagateOutsideClicks?: boolean,
   style?: StylesCrossPlatform,
 } & PP
 
@@ -215,6 +216,7 @@ function ModalPositionRelative<PP>(
 
     _handleClick = (e: MouseEvent) => {
       if (this.popupNode && e.target instanceof HTMLElement && !this.popupNode.contains(e.target)) {
+        !this.props.propagateOutsideClicks && e.stopPropagation()
         this.props.onClosePopup()
       }
     }
