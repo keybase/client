@@ -402,14 +402,23 @@ func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res st
 	return primary.AccountID, nil
 }
 
-func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentCLILocal, err error) {
+func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.RecentPaymentsCLILocal", func() error { return err })()
 	payments, err := remoter.RecentPayments(ctx, accountID, 0)
 	if err != nil {
 		return nil, err
 	}
 	for _, p := range payments {
-		res = append(res, localizePayment(ctx, g, p))
+		lp, err := localizePayment(ctx, g, p)
+		if err == nil {
+			res = append(res, stellar1.PaymentCLIOptionLocal{
+				Payment: &lp,
+			})
+		} else {
+			res = append(res, stellar1.PaymentCLIOptionLocal{
+				Err: err.Error(),
+			})
+		}
 	}
 	return res, nil
 }
@@ -420,70 +429,143 @@ func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter 
 	if err != nil {
 		return res, err
 	}
-	return localizePayment(ctx, g, payment), nil
+	return localizePayment(ctx, g, payment)
 }
 
-func localizePayment(ctx context.Context, g *libkb.GlobalContext, x stellar1.PaymentSummary) stellar1.PaymentCLILocal {
-	y := stellar1.PaymentCLILocal{
-		StellarTxID: x.StellarTxID,
-		Status:      "pending",
-		Amount:      x.Amount,
-		Asset:       x.Asset,
-		FromStellar: x.From,
-		ToStellar:   x.To,
+func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {
+	typ, err := p.Typ()
+	if err != nil {
+		return res, fmt.Errorf("malformed payment summary: %v", err)
 	}
-	if x.Stellar != nil {
-		y.Status = "completed"
-	}
-	if x.Keybase != nil {
-		y.Time = x.Keybase.Ctime
-		switch x.Keybase.Status {
+	status := func(txStatus stellar1.TransactionStatus, txErrMsg string) (status, statusDetail string) {
+		switch txStatus {
 		case stellar1.TransactionStatus_PENDING:
-			y.Status = "pending"
+			status = "pending"
 		case stellar1.TransactionStatus_SUCCESS:
-			y.Status = "completed"
-		case stellar1.TransactionStatus_ERROR_TRANSIENT:
-			y.Status = "error"
-			y.StatusDetail = x.Keybase.SubmitErrMsg
-		case stellar1.TransactionStatus_ERROR_PERMANENT:
-			y.Status = "error"
-			y.StatusDetail = x.Keybase.SubmitErrMsg
+			status = "completed"
+		case stellar1.TransactionStatus_ERROR_TRANSIENT, stellar1.TransactionStatus_ERROR_PERMANENT:
+			status = "error"
+			statusDetail = txErrMsg
 		default:
-			y.Status = "unknown"
-			y.StatusDetail = x.Keybase.SubmitErrMsg
+			status = "unknown"
+			statusDetail = txErrMsg
 		}
-		y.DisplayAmount = x.Keybase.DisplayAmount
-		y.DisplayCurrency = x.Keybase.DisplayCurrency
-		fromUsername, err := g.GetUPAKLoader().LookupUsername(ctx, x.Keybase.From.Uid)
-		if err == nil {
-			tmp := fromUsername.String()
-			y.FromUsername = &tmp
+		return status, statusDetail
+	}
+	username := func(uid keybase1.UID) (username *string, err error) {
+		uname, err := g.GetUPAKLoader().LookupUsername(ctx, uid)
+		if err != nil {
+			return nil, err
 		}
-		if x.Keybase.To != nil {
-			toUsername, err := g.GetUPAKLoader().LookupUsername(ctx, x.Keybase.To.Uid)
-			if err == nil {
-				tmp := toUsername.String()
-				y.ToUsername = &tmp
+		tmp := uname.String()
+		return &tmp, nil
+	}
+	switch typ {
+	case stellar1.PaymentSummaryType_STELLAR:
+		p := p.Stellar()
+		return stellar1.PaymentCLILocal{
+			TxID:        p.TxID,
+			Time:        p.Ctime,
+			Status:      "completed",
+			Amount:      p.Amount,
+			Asset:       p.Asset,
+			FromStellar: p.From,
+			ToStellar:   &p.To,
+		}, nil
+	case stellar1.PaymentSummaryType_DIRECT:
+		p := p.Direct()
+		res = stellar1.PaymentCLILocal{
+			TxID:            p.TxID,
+			Time:            p.Ctime,
+			Amount:          p.Amount,
+			Asset:           p.Asset,
+			DisplayAmount:   p.DisplayAmount,
+			DisplayCurrency: p.DisplayCurrency,
+			FromStellar:     p.FromStellar,
+			ToStellar:       &p.ToStellar,
+		}
+		res.Status, res.StatusDetail = status(p.TxStatus, p.TxErrMsg)
+		res.FromUsername, err = username(p.From.Uid)
+		if err != nil {
+			return res, err
+		}
+		if p.To != nil {
+			res.ToUsername, err = username(p.To.Uid)
+			if err != nil {
+				return res, err
 			}
 		}
-		if len(x.Keybase.NoteB64) > 0 {
-			note, err := NoteDecryptB64(ctx, g, x.Keybase.NoteB64)
+		if len(p.NoteB64) > 0 {
+			note, err := NoteDecryptB64(ctx, g, p.NoteB64)
 			if err != nil {
-				y.NoteErr = fmt.Sprintf("failed to decrypt payment note: %v", err)
+				res.NoteErr = fmt.Sprintf("failed to decrypt payment note: %v", err)
 			} else {
-				if note.StellarID != x.StellarTxID {
-					y.NoteErr = "discarded note for wrong txid"
+				if note.StellarID != p.TxID {
+					res.NoteErr = "discarded note for wrong transaction ID"
 				} else {
-					y.Note = note.Note
+					res.Note = note.Note
 				}
 			}
-			if len(y.NoteErr) > 0 {
-				g.Log.CWarningf(ctx, y.NoteErr)
+			if len(res.NoteErr) > 0 {
+				g.Log.CWarningf(ctx, res.NoteErr)
 			}
 		}
+		return res, nil
+	case stellar1.PaymentSummaryType_RELAY:
+		p := p.Relay()
+		res = stellar1.PaymentCLILocal{
+			TxID:            p.TxID,
+			Time:            p.Ctime,
+			Amount:          p.Amount,
+			Asset:           stellar1.AssetNative(),
+			DisplayAmount:   p.DisplayAmount,
+			DisplayCurrency: p.DisplayCurrency,
+			FromStellar:     p.FromStellar,
+		}
+		if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
+			// If the funding tx is not complete
+			res.Status, res.StatusDetail = status(p.TxStatus, p.TxErrMsg)
+		} else {
+			res.Status = "claimable"
+			res.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to yank."
+		}
+		res.FromUsername, err = username(p.From.Uid)
+		if err != nil {
+			return res, err
+		}
+		if p.To != nil {
+			res.ToUsername, err = username(p.To.Uid)
+			if err != nil {
+				return res, err
+			}
+		}
+		// Override status with claim status
+		if p.Claim != nil {
+			if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+				// If the claim succeeded, the relay payment is done.
+				res.Status = "completed"
+				res.ToStellar = &p.Claim.ToStellar
+				res.ToUsername, err = username(p.Claim.To.Uid)
+				if err != nil {
+					return res, err
+				}
+			} else {
+				claimantUsername, err := username(p.Claim.To.Uid)
+				if err != nil {
+					return res, err
+				}
+				res.Status, res.StatusDetail = status(p.Claim.TxStatus, p.Claim.TxErrMsg)
+				res.Status = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, res.Status)
+			}
+		}
+		relaySecrets, err := DecryptRelaySecretB64(ctx, g, p.TeamID, p.BoxB64)
+		if err == nil {
+			res.Note = relaySecrets.Note
+		} else {
+			res.NoteErr = fmt.Sprintf("error decrypting note box: %v", err)
+		}
+		return res, nil
+	default:
+		return res, fmt.Errorf("unrecognized payment summary type: %v", typ)
 	}
-	if x.Stellar != nil {
-		y.Time = x.Stellar.Ctime
-	}
-	return y
 }

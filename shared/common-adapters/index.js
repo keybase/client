@@ -44,7 +44,7 @@ const _MaybePopupHoc: any = (cover: boolean) => {
 type MaybePopupHocType<P> = (
   cover: boolean
 ) => (WrappedComponent: React.ComponentType<P>) => React.ComponentType<P>
-const MaybePopupHoc: MaybePopupHocType<*> = (cover: boolean) => Component =>
+const MaybePopupHoc: MaybePopupHocType<any> = (cover: boolean) => Component =>
   DispatchNavUpHoc(_MaybePopupHoc(cover)(Component))
 
 const _styleCover = {
@@ -82,6 +82,7 @@ export {default as Header} from './header'
 export {default as HeaderHoc} from './header-hoc'
 export {default as Icon} from './icon'
 export {default as Image} from './image'
+export {default as InfoNote} from './info-note'
 export {default as Input} from './input'
 export {default as List} from './list'
 export {default as LoadingLine} from './loading-line'

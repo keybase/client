@@ -368,7 +368,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	}
 
 	// This should log out tc1:
-	if err := tc1.G.LogoutIfRevoked(); err != nil {
+	if err := NewMetaContextForTest(tc1).LogoutIfRevoked(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -395,7 +395,7 @@ func TestLogoutIfRevokedNoop(t *testing.T) {
 
 	AssertLoggedIn(tc)
 
-	if err := tc.G.LogoutIfRevoked(); err != nil {
+	if err := NewMetaContextForTest(tc).LogoutIfRevoked(); err != nil {
 		t.Fatal(err)
 	}
 

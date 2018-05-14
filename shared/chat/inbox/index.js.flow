@@ -32,7 +32,7 @@ export type RouteState = I.RecordOf<{
 }>
 
 export type Props = {
-  children?: React$Element<*>,
+  children?: React$Element<any>,
   filter: string,
   filterFocusCount: number,
   isLoading: boolean,

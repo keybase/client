@@ -41,8 +41,12 @@ function proofColor(proof: Proof, forIcon: boolean): string {
   switch (proof.state) {
     case proofNormal: {
       color = proof.isTracked
-        ? forIcon ? globalColors.green : globalColors.green2
-        : forIcon ? globalColors.blue2 : globalColors.blue
+        ? forIcon
+          ? globalColors.green
+          : globalColors.green2
+        : forIcon
+          ? globalColors.blue2
+          : globalColors.blue
       break
     }
     case proofChecking:

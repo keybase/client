@@ -32,7 +32,7 @@ function stat(filepath: string): Promise<StatResult> {
   return RNFetchBlob.fs.stat(filepath).then(stats => ({size: stats.size, lastModified: stats.lastModified}))
 }
 
-function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
+function writeStream(filepath: string, encoding: string, append?: boolean): Promise<void> {
   return RNFetchBlob.fs.writeStream(filepath, encoding, append)
 }
 

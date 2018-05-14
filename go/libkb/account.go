@@ -79,6 +79,17 @@ func (a *Account) GetUID() (ret keybase1.UID) {
 	return ret
 }
 
+func (a *Account) GetUsername() (ret NormalizedUsername) {
+	if a.localSession == nil {
+		return ret
+	}
+	if a.localSession.username == nil {
+		return ret
+	}
+	ret = *a.localSession.username
+	return ret
+}
+
 func (a *Account) GetDeviceID() (ret keybase1.DeviceID) {
 	if a.localSession != nil {
 		ret = a.localSession.GetDeviceID()

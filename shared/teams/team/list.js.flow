@@ -2,8 +2,8 @@
 import * as React from 'react'
 
 export type Props = {
-  rows: Array<*>,
-  renderRow: (row: *) => React.Node,
+  rows: Array<any>,
+  renderRow: (row: any) => React.Node,
 }
 
 export default (props: Props): React.Node => null

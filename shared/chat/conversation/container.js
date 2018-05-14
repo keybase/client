@@ -38,7 +38,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
   }
 }
 
-const mapStateToProps = (state: TypedState): * => {
+const mapStateToProps = (state: TypedState) => {
   let _conversationIDKey
   let _pendingConversationUsers
 

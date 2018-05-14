@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
-import type {Exact} from '../constants/types/more'
 import type {IconType} from './icon'
 
-export type ItemProps = Exact<{
+export type ItemProps = {|
   tabBarButton?: React.Node,
   label?: string,
   selected: boolean,
@@ -15,15 +14,15 @@ export type ItemProps = Exact<{
   children?: React.Node,
   onBottom?: boolean,
   underlined?: boolean,
-}>
+|}
 
-export type Props = Exact<{
+export type Props = {|
   style?: ?Object,
   styleTabBar?: Object,
   children?: Array<React.Element<React.ComponentType<ItemProps>>>,
   tabBarOnBottom?: boolean,
   underlined?: boolean,
-}>
+|}
 
 export default class TabBar extends React.Component<Props> {}
 
@@ -36,7 +35,7 @@ export type TabBarButtonSource =
 
 export type TabBadgePosition = 'top-right'
 
-export type TabBarButtonProps = Exact<{
+export type TabBarButtonProps = {|
   className?: string,
   underlined?: ?boolean,
   isNav?: boolean,
@@ -53,6 +52,6 @@ export type TabBarButtonProps = Exact<{
   styleIcon?: any,
   styleBadgeNumber?: any,
   styleLabel?: any,
-}>
+|}
 
 export class TabBarButton extends React.Component<TabBarButtonProps> {}

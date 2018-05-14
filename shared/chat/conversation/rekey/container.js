@@ -17,7 +17,7 @@ type Props = {
   youRekey: boolean,
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}): * => ({
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
   _you: state.config.username || '',
   rekeyers: Constants.getMeta(state, conversationIDKey).rekeyers,
 })

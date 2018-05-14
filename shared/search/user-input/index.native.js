@@ -141,7 +141,11 @@ class UserInput extends Component<Props, State> {
     this.props.onChangeText(text.replace(ZERO_WIDTH_SPACE, ''))
   }
 
-  _onSelectionChange = ({nativeEvent: {selection: {start, end}}}) => {
+  _onSelectionChange = ({
+    nativeEvent: {
+      selection: {start, end},
+    },
+  }) => {
     this.setState({selectionStart: start, selectionEnd: end})
   }
 

@@ -5,8 +5,10 @@ package libkb
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -137,4 +139,15 @@ func TestLocalDataDir(t *testing.T) {
 	exists, err := FileExists(dir)
 	require.NoError(t, err)
 	require.True(t, exists)
+}
+
+func hasMonotonicClock(t time.Time) bool {
+	re := regexp.MustCompile(" m=[-+]([.0-9]+)$")
+	return re.FindString(t.String()) != ""
+}
+
+func TestForceWallClock(t *testing.T) {
+	n := time.Now()
+	require.True(t, hasMonotonicClock(n))
+	require.False(t, hasMonotonicClock(ForceWallClock(n)))
 }
