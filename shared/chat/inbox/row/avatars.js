@@ -68,7 +68,7 @@ class Avatars extends React.Component<AvatarProps> {
     const avatarProps = participants.slice(0, 2).map((username, idx) => ({
       borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
       loadingColor: globalColors.lightGrey,
-      size: isMobile ? 24 : 32,
+      size: 32,
       skipBackground: isMobile,
       skipBackgroundAfterLoaded: isMobile,
       username,

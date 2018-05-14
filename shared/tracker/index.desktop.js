@@ -135,13 +135,13 @@ export default class TrackerRender extends PureComponent<Props> {
                         ...globalStyles.flexBoxRow,
                         alignItems: 'center',
                         alignSelf: 'center',
-                        height: 24,
-                        minHeight: 24,
-                        minWidth: 24,
-                        width: 24,
+                        height: 32,
+                        minHeight: 32,
+                        minWidth: 32,
+                        width: 32,
                       }}
                     >
-                      <Avatar teamname={team.fqName} size={24} />
+                      <Avatar teamname={team.fqName} size={32} />
                     </Box>
                     <Box
                       style={{

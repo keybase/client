@@ -63,22 +63,28 @@ class DeleteRepo extends React.Component<Props, State> {
             Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}repository?
           </Text>
           <Icon type={this.props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: 27}}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
+              marginBottom: globalMargins.medium,
+            }}
+          >
             {!!this.props.teamname && (
               <Avatar
                 isTeam={true}
                 teamname={this.props.teamname}
-                size={12}
+                size={16}
                 style={{marginRight: globalMargins.xtiny}}
               />
             )}
-            <Text type="BodyError" style={{textDecorationLine: 'line-through'}}>
+            <Text type="BodySemibold" style={{color: globalColors.red, textDecorationLine: 'line-through'}}>
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Text>
           </Box>
-          <Text type="Body" style={{marginBottom: 27}}>
+          <Text type="Body" style={{marginBottom: globalMargins.medium, textAlign: 'center'}}>
             {this.props.teamname
-              ? 'This will permanently delete your remote files and history, and all members of the team will be notified. This action cannot be undone.'
+              ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
               : 'This will permanently delete your remote files and history. This action cannot be undone.'}
           </Text>
           <Text type="BodySemibold">Please type in the name of the repository to confirm:</Text>
@@ -94,7 +100,7 @@ class DeleteRepo extends React.Component<Props, State> {
               label="Notify the team"
               checked={this.state.notifyTeam}
               onCheck={notifyTeam => this.setState({notifyTeam})}
-              style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
+              style={{marginBottom: globalMargins.small, marginTop: globalMargins.xlarge}}
             />
           )}
           <Box style={{flex: 1}} />
@@ -124,7 +130,7 @@ const _containerStyle = {
   alignItems: 'center',
   flex: 1,
   height: '100%',
-  padding: globalMargins.large,
+  padding: globalMargins.xlarge,
 }
 
 export default DeleteRepo

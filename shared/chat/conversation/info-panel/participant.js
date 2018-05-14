@@ -30,8 +30,13 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
             marginRight: globalMargins.tiny,
           }}
         >
-          <Avatar size={isMobile ? 40 : 32} username={username} />
-          <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
+          <Avatar size={isMobile ? 48 : 32} username={username} />
+          <Box
+            style={{
+              ...globalStyles.flexBoxColumn,
+              marginLeft: isMobile ? globalMargins.small : globalMargins.tiny,
+            }}
+          >
             <ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
             {fullname !== '' && <Text type="BodySmall">{fullname}</Text>}
           </Box>

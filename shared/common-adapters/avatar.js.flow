@@ -3,7 +3,7 @@
 import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
 
-export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
+export type AvatarSize = 176 | 112 | 96 | 80 | 64 | 48 | 32 | 16
 
 export type Props = {|
   borderColor?: string,

@@ -87,7 +87,7 @@ const _ShowcasedTeamRow = (
       visible={props.showingMenu}
     />
     <Box style={styleShowcasedTeamAvatar}>
-      <Avatar teamname={props.team.fqName} size={24} />
+      <Avatar teamname={props.team.fqName} size={32} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
@@ -615,18 +615,20 @@ const styleSearchText = {
 const styleShowcasedTeamContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
+  cursor: 'pointer',
   justifyContent: 'flex-start',
   minHeight: 32,
+  marginTop: globalMargins.xtiny,
 }
 
 const styleShowcasedTeamAvatar = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'center',
-  height: globalMargins.medium,
-  minHeight: globalMargins.medium,
-  minWidth: globalMargins.medium,
-  width: globalMargins.medium,
+  height: 32,
+  minHeight: 32,
+  minWidth: 32,
+  width: 32,
 }
 
 const styleShowcasedTeamName = {
