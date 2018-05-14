@@ -168,7 +168,7 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
       </Text>
     </Box>
   ) : (
-    <Box2 direction="horizontal" gap="small">
+    <Box2 direction="horizontal" gap="small" gapEnd={true}>
       <Icon
         onClick={pendingWaiting ? undefined : insertMentionMarker}
         type="iconfont-mention"
@@ -178,7 +178,7 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
       <Icon
         onClick={pendingWaiting ? undefined : openFilePicker}
         type="iconfont-camera"
-        style={collapseStyles([styles.actionButton, styles.tinyMarginRight])}
+        style={collapseStyles([styles.actionButton])}
         fontSize={21}
       />
     </Box2>
@@ -207,9 +207,6 @@ const styles = styleSheetCreate({
     paddingBottom: 6,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
-  },
-  tinyMarginRight: {
-    marginRight: globalMargins.tiny,
   },
   container: {
     ...globalStyles.flexBoxRow,

@@ -18,7 +18,7 @@ const ChannelHeader = (props: Props) => (
       onClick={props.onBack}
       iconColor={globalColors.black_40}
       textStyle={{color: globalColors.blue}}
-      style={{flexShrink: 0, padding: globalMargins.tiny}}
+      style={styles.backButton}
     />
     <Box
       style={{
@@ -68,7 +68,7 @@ const UsernameHeader = (props: Props) => (
       onClick={props.onBack}
       iconColor={globalColors.black_40}
       textStyle={{color: globalColors.blue}}
-      style={{flexShrink: 0, padding: globalMargins.tiny}}
+      style={styles.backButton}
     />
     <Box
       style={{
@@ -103,6 +103,7 @@ const UsernameHeader = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
+  backButton: {flexShrink: 0, padding: globalMargins.tiny, marginLeft: globalMargins.tiny},
   center: {
     justifyContent: 'center',
     textAlign: 'center',
@@ -120,7 +121,7 @@ const styles = styleSheetCreate({
     marginLeft: globalMargins.xtiny,
   },
   right: {
-    marginRight: globalMargins.xtiny,
+    marginRight: globalMargins.tiny,
   },
 })
 const shhIconColor = globalColors.black_20
