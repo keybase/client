@@ -14,7 +14,7 @@ export default (): void => {
 
   engine().setIncomingActionCreators('keybase.1.NotifyApp.exit', () => {
     console.log('App exit requested')
-    return [remote.app.exit(0)]
+    remote.app.exit(0)
   })
 
   engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', ({notification}, _, __, getState) => [
@@ -31,7 +31,7 @@ export default (): void => {
     if (isWindows) {
       console.log('Quitting due to service shutdown')
       // Quit just the app, not the service
-      return [remote.app.quit(true)]
+      remote.app.quit(true)
     }
   })
 
