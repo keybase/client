@@ -65,8 +65,10 @@ public class ShareFiles extends ReactContextBaseJavaModule {
             Uri fileUri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file);
             intent.putExtra(Intent.EXTRA_STREAM, fileUri);
         }
-        Intent chooser = Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to));
         if (intent.resolveActivity(reactContext.getPackageManager()) != null) {
+            Intent chooser = Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to));
+            // Android 5.1.1 fails `startActivity` below without this flag in the Intent.
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             reactContext.startActivity(chooser);
             promise.resolve(true);
         } else {
