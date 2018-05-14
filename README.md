@@ -102,6 +102,13 @@ to see how we build it.
 
 See our [kbfsdokan](kbfsdokan/) documentation.
 
+#### On FreeBSD:
+
+There are instructions for getting KBFS running on FreeBSD
+[here](https://wiki.freebsd.org/Ports/security/kbfs).  This is a
+user-supported effort, which is not officially supported by the
+Keybase team at the moment.
+
 ### To run from source against local in-memory servers
 
 ```bash
