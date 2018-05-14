@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -173,6 +174,38 @@ func StoreSecretAfterLogin(m MetaContext, n NormalizedUsername, uid keybase1.UID
 	defer m.CTrace("StoreSecretAfterLogin", func() error { return err })()
 	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID, m.G())
 	return StoreSecretAfterLoginWithLKS(m, n, lksec)
+}
+
+func pplSecretStore(m MetaContext) (err error) {
+	lctx := m.LoginContext()
+	uid := lctx.GetUID()
+	if uid.IsNil() {
+		return NoUIDError{}
+	}
+	deviceID := m.G().Env.GetDeviceIDForUID(uid)
+	if deviceID.IsNil() {
+		return NewNoDeviceError(fmt.Sprintf("no device for %s", uid))
+	}
+	return StoreSecretAfterLogin(m, lctx.GetUsername(), uid, deviceID)
+}
+
+func PassphraseLoginPromptThenSecretStore(m MetaContext, usernameOrEmail string, maxAttempts int, failOnStoreError bool) (err error) {
+	defer m.CTrace("PassphraseLoginPromptThenSecretStore", func() error { return err })()
+
+	err = PassphraseLoginPrompt(m, usernameOrEmail, maxAttempts)
+	if err != nil {
+		return err
+	}
+
+	storeErr := pplSecretStore(m)
+	if storeErr == nil {
+		return nil
+	}
+	if failOnStoreError {
+		return storeErr
+	}
+	m.CWarningf("Secret store failure: %s", storeErr)
+	return nil
 }
 
 func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSec) (err error) {
