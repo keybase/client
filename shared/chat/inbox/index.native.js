@@ -201,6 +201,7 @@ class Inbox extends React.PureComponent<Props, State> {
             ref={this._setRef}
             onViewableItemsChanged={this._onViewChanged}
             windowSize={5}
+            keyboardShouldPersistTaps="handled"
             getItemLayout={this._getItemLayout}
             removeClippedSubviews={true}
           />

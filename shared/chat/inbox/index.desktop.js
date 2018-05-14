@@ -184,7 +184,6 @@ const _containerStyle = {
 const _scrollableStyle = {
   flex: 1,
   overflowY: 'auto',
-  willChange: 'transform',
 }
 
 export default Inbox

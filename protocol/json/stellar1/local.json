@@ -9,11 +9,28 @@
   "types": [
     {
       "type": "record",
+      "name": "PaymentCLIOptionLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "PaymentCLILocal"
+          ],
+          "name": "payment"
+        },
+        {
+          "type": "string",
+          "name": "err"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PaymentCLILocal",
       "fields": [
         {
           "type": "TransactionID",
-          "name": "stellarTxID"
+          "name": "txID"
         },
         {
           "type": "TimeMs",
@@ -54,7 +71,10 @@
           "name": "fromStellar"
         },
         {
-          "type": "AccountID",
+          "type": [
+            null,
+            "AccountID"
+          ],
           "name": "toStellar"
         },
         {
@@ -160,7 +180,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "PaymentCLILocal"
+        "items": "PaymentCLIOptionLocal"
       }
     },
     "paymentDetailCLILocal": {

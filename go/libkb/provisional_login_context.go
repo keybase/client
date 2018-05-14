@@ -93,7 +93,9 @@ func (p *ProvisionalLoginContext) LocalSession() *Session {
 }
 func (p *ProvisionalLoginContext) GetUID() keybase1.UID {
 	return p.uid
-
+}
+func (p *ProvisionalLoginContext) GetUsername() NormalizedUsername {
+	return p.username
 }
 func (p *ProvisionalLoginContext) EnsureUsername(username NormalizedUsername) {
 }

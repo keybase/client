@@ -675,6 +675,13 @@ func PluckConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
 	return res
 }
 
+func PluckConvIDsRC(convs []types.RemoteConversation) (res []chat1.ConversationID) {
+	for _, conv := range convs {
+		res = append(res, conv.GetConvID())
+	}
+	return res
+}
+
 func SanitizeTopicName(topicName string) string {
 	return strings.TrimPrefix(topicName, "#")
 }
