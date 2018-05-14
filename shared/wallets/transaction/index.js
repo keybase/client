@@ -20,8 +20,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
     case 'keybaseUser':
       return <Avatar username={props.counterparty} size={size} />
     case 'stellarPublicKey':
-      // TODO: Use anonymous user icon.
-      return <Icon type="icon-placeholder-avatar-48" style={{width: size, height: size}} />
+      return <Icon type="icon-placeholder-secret-user-48" style={{width: size, height: size}} />
     case 'wallet':
       return <Icon type="icon-wallet-add-48" style={{width: size, height: size}} />
     default:
