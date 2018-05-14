@@ -67,7 +67,7 @@ func (be *blockEngine) getMsgID(blockNum, blockPos int) chat1.MessageID {
 }
 
 func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
-	convID chat1.ConversationID, uid gregor1.UID) (blockIndex, Error) {
+	convID chat1.ConversationID, uid gregor1.UID) (bi blockIndex, err Error) {
 
 	be.Debug(ctx, "createBlockIndex: creating new block index: convID: %s uid: %s", convID, uid)
 
@@ -78,28 +78,14 @@ func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
 			NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to get server versions: %s", serr.Error())
 	}
 
-	bi := blockIndex{
+	return blockIndex{
 		Version:       blockIndexVersion,
 		ServerVersion: srvVers.BodiesVers,
 		ConvID:        convID,
 		UID:           uid,
 		MaxBlock:      -1,
 		BlockSize:     blockSize,
-	}
-
-	var err Error
-	if _, err = be.createBlock(ctx, &bi, 0); err != nil {
-		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to create block: %s", err.Message())
-	}
-
-	dat, rerr := encode(bi)
-	if rerr != nil {
-		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to encode %s", err.Error())
-	}
-	if rerr = be.G().LocalChatDb.PutRaw(key, dat); rerr != nil {
-		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to write: %s", rerr.Error())
-	}
-	return bi, nil
+	}, nil
 }
 
 func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (blockIndex, Error) {
