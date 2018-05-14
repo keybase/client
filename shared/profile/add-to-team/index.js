@@ -1,9 +1,16 @@
 // @flow
 import * as React from 'react'
-import {collapseStyles, globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  isMobile,
+  platformStyles,
+} from '../../styles'
 import {
   Avatar,
-  Box,
+  Box2,
   Button,
   Checkbox,
   ClickableBox,
@@ -40,28 +47,23 @@ const TeamRow = ({
       : 'Only admins can add people.'
   return (
     <ClickableBox onClick={onCheck}>
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          ...styleTeamRow,
-        }}
-      >
+      <Box2 direction="horizontal" style={styleTeamRow}>
         <Checkbox disabled={!canAddThem} checked={checked} onCheck={onCheck} />
-        <Box style={{display: 'flex', position: 'relative'}}>
+        <Box2 style={{display: 'flex', position: 'relative'}}>
           <Avatar
             isTeam={true}
             size={isMobile ? 48 : 32}
             style={{marginRight: globalMargins.tiny}}
             teamname={name}
           />
-        </Box>
+        </Box2>
         {waiting ? (
-          <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+          <Box2 direction="vertical">
             <ProgressIndicator style={{width: 16}} white={false} />
-          </Box>
+          </Box2>
         ) : (
-          <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-            <Box style={globalStyles.flexBoxRow}>
+          <Box2 direction="vertical">
+            <Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
               <Text
                 style={{color: canAddThem ? globalColors.black : globalColors.black_40}}
                 type="BodySemibold"
@@ -69,38 +71,38 @@ const TeamRow = ({
                 {name}
               </Text>
               {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
-            </Box>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            </Box2>
+            <Box2 direction="horizontal" style={{alignItems: 'center'}}>
               <Text type="BodySmall">{memberStatus}</Text>
-            </Box>
-          </Box>
+            </Box2>
+          </Box2>
         )}
         {!isMobile && <Divider style={{marginLeft: 48}} />}
-      </Box>
+      </Box2>
     </ClickableBox>
   )
 }
 
 const _makeDropdownItem = (item: string) => (
-  <Box
+  <Box2
+    direction="horizontal"
     key={item}
     style={{
-      ...globalStyles.flexBoxRow,
       alignItems: 'center',
       paddingLeft: globalMargins.small,
       paddingRight: globalMargins.small,
     }}
   >
     <Text type="Body">{capitalize(item)}</Text>
-  </Box>
+  </Box2>
 )
 
 const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(item))
 
 const AddToTeam = (props: Props) => (
-  <Box style={styleContainer}>
+  <Box2 direction="vertical" style={styleContainer}>
     {!isMobile && (
-      <Box style={collapseStyles([globalStyles.flexBoxRow, {paddingBottom: globalMargins.large}])}>
+      <Box2 direction="horizontal" style={{paddingBottom: globalMargins.large}}>
         <Text type="Header">Add</Text>
         <Avatar
           isTeam={false}
@@ -109,11 +111,11 @@ const AddToTeam = (props: Props) => (
           username={props.them}
         />
         <Text type="Header">{props.them} to...</Text>
-      </Box>
+      </Box2>
     )}
 
     <ScrollView>
-      <Box style={{flexShrink: 1, width: '100%'}}>
+      <Box2 style={{flexShrink: 1, width: '100%'}}>
         {props.teamnames &&
           props.teamnames.map(name => {
             const youCanAddPeople =
@@ -145,11 +147,11 @@ const AddToTeam = (props: Props) => (
               />
             )
           })}
-      </Box>
+      </Box2>
     </ScrollView>
-    <Box
+    <Box2
+      direction={isMobile ? 'vertical' : 'horizontal'}
       style={{
-        ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
         alignItems: 'center',
         margin: isMobile ? 0 : globalMargins.small,
       }}
@@ -177,7 +179,7 @@ const AddToTeam = (props: Props) => (
           }}
         />
       </ClickableBox>
-    </Box>
+    </Box2>
     <ClickableBox
       onClick={props.onBack}
       style={collapseStyles([globalStyles.flexBoxRow, {flexGrow: 1, paddingTop: globalMargins.small}])}
@@ -190,17 +192,23 @@ const AddToTeam = (props: Props) => (
         label="Add to team"
       />
     </ClickableBox>
-  </Box>
+  </Box2>
 )
 
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  marginTop: 35,
-  marginBottom: isMobile ? globalMargins.xtiny : globalMargins.medium,
-  width: isMobile ? undefined : 500,
-}
+const styleContainer = platformStyles({
+  common: {
+    alignItems: 'center',
+    flex: 1,
+    marginTop: 35,
+  },
+  isElectron: {
+    marginBottom: globalMargins.medium,
+    width: 500,
+  },
+  isMobile: {
+    marginBottom: globalMargins.xtiny,
+  },
+})
 
 const styleMeta = {
   alignSelf: 'center',
@@ -209,15 +217,23 @@ const styleMeta = {
   marginTop: 2,
 }
 
-const styleTeamRow = {
-  alignItems: 'center',
-  marginLeft: globalMargins.medium,
-  marginRight: globalMargins.tiny,
-  minHeight: isMobile ? 64 : 48,
-  minWidth: isMobile ? '100%' : 500,
-  paddingBottom: globalMargins.tiny,
-  paddingTop: globalMargins.tiny,
-}
+const styleTeamRow = platformStyles({
+  common: {
+    alignItems: 'center',
+    marginLeft: globalMargins.medium,
+    marginRight: globalMargins.tiny,
+    paddingBottom: globalMargins.tiny,
+    paddingTop: globalMargins.tiny,
+  },
+  isMobile: {
+    minHeight: 64,
+    minWidth: '100%',
+  },
+  isElectron: {
+    minHeight: 48,
+    minWidth: 500,
+  },
+})
 
 const PopupWrapped = (props: Props) => (
   <PopupDialog styleCover={{zIndex: ROLE_PICKER_ZINDEX}} onClose={props.onBack}>

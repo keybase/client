@@ -8,6 +8,7 @@ import moment from 'moment'
 import {
   Avatar,
   Box,
+  Box2,
   ClickableBox,
   Icon,
   Meta,
@@ -24,7 +25,7 @@ import {PopupHeaderText} from '../common-adapters/popup-menu'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {findDOMNode} from 'react-dom'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
+import {collapseStyles, desktopStyles, globalColors, globalMargins, globalStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
@@ -345,15 +346,17 @@ class ProfileRender extends PureComponent<Props, State> {
     return (
       <Box style={styleOuterContainer}>
         {!!this.props.addUserToTeamsResults && (
-          <Box
-            style={{
-              ...globalStyles.flexBoxRow,
-              ...styleScrollHeaderBg,
-              backgroundColor: globalColors.green,
-              zIndex: ADD_TO_TEAM_ZINDEX,
-            }}
+          <Box2
+            direction="horizontal"
+            style={collapseStyles([
+              styleScrollHeaderBg,
+              {
+                backgroundColor: globalColors.green,
+                zIndex: ADD_TO_TEAM_ZINDEX,
+              },
+            ])}
           >
-            <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
+            <Box2 direction="vertical" style={{flexGrow: 1}}>
               <Text
                 style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
                 type="BodySemibold"
@@ -361,16 +364,16 @@ class ProfileRender extends PureComponent<Props, State> {
               >
                 {this.props.addUserToTeamsResults}
               </Text>
-            </Box>
-            <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', flexShrink: 1}}>
+            </Box2>
+            <Box2 direction="column" style={{justifyContent: 'center', flexShrink: 1}}>
               <Icon
                 color={globalColors.black_40}
                 onClick={this.props.onClearAddUserToTeamsResults}
                 style={{padding: globalMargins.tiny}}
                 type="iconfont-close"
               />
-            </Box>
-          </Box>
+            </Box2>
+          </Box2>
         )}
         <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
