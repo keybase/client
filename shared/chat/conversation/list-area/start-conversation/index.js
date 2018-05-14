@@ -30,13 +30,13 @@ const StartConversation = (props: Props) => (
 const styles = styleSheetCreate({
   addMore: platformStyles({
     common: {
-      lineHeight: 30,
+      lineHeight: 40,
     },
   }),
   arrow: platformStyles({
     common: {
       fontSize: 30,
-      lineHeight: 30,
+      lineHeight: 40,
     },
   }),
   container: {
