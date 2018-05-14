@@ -1,4 +1,5 @@
 // @flow
+/* eslint-disabled */
 // Don't import reducer here as it causes a cyclical dependency
 export type LogTransformer = any
 
