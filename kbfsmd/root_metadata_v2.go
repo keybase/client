@@ -57,8 +57,8 @@ type WriterMetadataV2 struct {
 	MDRefBytes uint64 `codec:",omitempty"`
 
 	// TODO: Remove omitemptycheckstruct once we use a version of
-	// go-codec that supports omitemptyrecursive.
-	Extra WriterMetadataExtraV2 `codec:"x,omitemptyrecursive,omitemptycheckstruct"`
+	// go-codec that supports omitempty for structs.
+	Extra WriterMetadataExtraV2 `codec:"x,omitempty,omitemptycheckstruct"`
 }
 
 // ToWriterMetadataV3 converts the WriterMetadataV2 to a
