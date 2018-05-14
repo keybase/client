@@ -1,6 +1,7 @@
 package io.keybase.ossifrage;
 
 import android.app.Application;
+import com.evernote.android.job.JobManager;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import io.keybase.ossifrage.modules.StorybookConstants;
+import io.keybase.ossifrage.modules.BackgroundJobCreator;
 
 public class MainApplication extends Application implements ReactApplication {
   private File logFile;
@@ -29,6 +31,7 @@ public class MainApplication extends Application implements ReactApplication {
   public void onCreate () {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
+    JobManager.create(this).addJobCreator(new BackgroundJobCreator());
 
     logFile = this.getFileStreamPath("android.log");
   }

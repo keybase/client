@@ -1,10 +1,6 @@
 package io.keybase.ossifrage;
 
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
 import android.annotation.TargetApi;
-import android.content.Context;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -15,12 +11,10 @@ import android.view.KeyEvent;
 import android.view.Window;
 
 import com.facebook.react.ReactActivity;
-import com.facebook.react.modules.core.PermissionListener;
-import com.rt2zz.reactnativecontacts.ContactsManager;
 import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.ReactRootView;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.modules.core.PermissionListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,16 +23,14 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-import io.keybase.ossifrage.modules.BackgroundJobService;
-import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
+import io.keybase.ossifrage.util.DNSNSFetcher;
 import keybase.Keybase;
 
-import static android.os.Build.VERSION_CODES.O;
 import static keybase.Keybase.initOnce;
 
 public class MainActivity extends ReactActivity {
-    private static final int JOB_ID = 0x34;
     private static final String TAG = MainActivity.class.getName();
     private PermissionListener listener;
 
@@ -75,13 +67,8 @@ public class MainActivity extends ReactActivity {
 
         super.onCreate(savedInstanceState);
 
-        // Setup a background job with the JobSchedule
-        JobInfo job = new JobInfo.Builder(JOB_ID, new ComponentName(this, BackgroundJobService.class))
-            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-            .setPeriodic(1000*60*10) // Run this job at least once every 10 min
-            .build();
-        JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        jobScheduler.schedule(job);
+        // Setup a background job
+        BackgroundSyncJob.scheduleJob();
 
         Intent intent = getIntent();
         if (intent != null) {
