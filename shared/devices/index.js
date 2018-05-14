@@ -7,7 +7,7 @@ import FloatingMenu, {
   type FloatingMenuParentProps,
 } from '../common-adapters/floating-menu'
 import {RowConnector} from './row'
-import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
+import {desktopStyles, globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
 import {branch} from 'recompose'
 
 import type {MenuItem} from '../common-adapters/popup-menu.js'
@@ -109,6 +109,7 @@ class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
           setAttachmentRef={this.props.setAttachmentRef}
           onAddNew={this.props.toggleShowingMenu}
           waiting={this.props.waiting}
+          style={{...desktopStyles.windowDragging}}
         />
         <List items={items} renderItem={this._renderRow} />
         <FloatingMenu

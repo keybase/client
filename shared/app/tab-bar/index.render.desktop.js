@@ -1,10 +1,11 @@
 // @flow
 import * as Tabs from '../../constants/tabs'
 import * as React from 'react'
+import {isDarwin} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {desktopStyles, globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index.render'
 
@@ -74,11 +75,12 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
 )
 
 const stylesTabBar = {
+  ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue2,
   justifyContent: 'flex-start',
   paddingBottom: globalMargins.tiny,
-  paddingTop: globalMargins.small,
+  paddingTop: isDarwin ? 36 : globalMargins.small,
   width: 80,
 }
 
