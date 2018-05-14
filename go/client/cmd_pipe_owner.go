@@ -41,12 +41,13 @@ func (s *CmdPipeOwner) ParseArgv(ctx *cli.Context) error {
 
 func (s *CmdPipeOwner) Run() error {
 	owner, err := libkb.Pipeowner(s.arg)
-	if err == nil {
-		dui := s.G().UI.GetDumbOutputUI()
-		dui.Printf("%v\n", owner)
-		if !owner {
-			err = errors.New("failed to establish pipe ownership")
-		}
+	if err != nil {
+		return err
+	}
+	dui := s.G().UI.GetDumbOutputUI()
+	dui.Printf("%v\n", owner)
+	if !owner {
+		err = errors.New("failed to establish pipe ownership")
 	}
 
 	return err

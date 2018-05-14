@@ -7,6 +7,7 @@ package libkb
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"sync"
@@ -29,9 +30,7 @@ func setupTest(t *testing.T, nm string) *TestContext {
 // Another property of named pipes that is NOT tested here is security:
 // only processes in the same user account are supposed to be able to
 // open each other's named pipes.
-func TestWindowsNamedPipe(t *testing.T) {
-
-	t.Skip("skipping test; incompatible with Pipeowner")
+func TestWindowsNamedPipe(t *testing.T) {B
 
 	tc := setupTest(t, "socket_windows_test")
 
@@ -80,4 +79,21 @@ func namedPipeClient(sendSocket Socket, t *testing.T) {
 	if _, err := fmt.Fprintln(conn, "Hi server!"); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestWindowsPipeOwner(t *testing.T) {
+
+	tc := setupTest(t, "socket_windows_test")
+
+	defer tc.Cleanup()
+
+	// Test ownership
+	owner, err := Pipeowner("name_of_nonexistent_pipe")
+	if err == nil {
+		t.Fatal(errors.New("Expected error getting owner of nonexistent pipe"))
+	}
+	if owner {
+		t.Fatal(errors.New("Expected false getting owner of nonexistent pipe"))
+	}
+	
 }
