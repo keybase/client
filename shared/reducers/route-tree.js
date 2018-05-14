@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import logger from '../logger'
 import * as I from 'immutable'
 import * as CommonConstants from '../constants/common'
