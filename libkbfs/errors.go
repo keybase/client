@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -1170,8 +1171,8 @@ type RevokedDeviceVerificationError struct {
 
 // Error implements the Error interface for RevokedDeviceVerificationError.
 func (e RevokedDeviceVerificationError) Error() string {
-	return fmt.Sprintf("Device was revoked at time %d, root seqno %d",
-		e.info.Time, e.info.MerkleRoot.Seqno)
+	return fmt.Sprintf("Device was revoked at time %s, root seqno %d",
+		e.info.Time.Time().Format(time.RFC3339Nano), e.info.MerkleRoot.Seqno)
 }
 
 // MDWrittenAfterRevokeError indicates that we failed to verify an MD
