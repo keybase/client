@@ -40,7 +40,7 @@ class ListArea extends React.PureComponent<Props> {
 
 const searchResultStyle = {...desktopStyles.scrollable, flexGrow: 1}
 
-const mapStateToProps = (state: TypedState): * => ({
+const mapStateToProps = (state: TypedState) => ({
   showSearchResults:
     state.chat2.pendingSelected &&
     state.chat2.pendingMode === 'searchingForUsers' &&

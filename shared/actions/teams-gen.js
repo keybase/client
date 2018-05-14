@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/teams'
 
@@ -66,389 +65,380 @@ export const setupTeamHandlers = 'teams:setupTeamHandlers'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
 
+// Payload Types
+type _AddParticipantPayload = $ReadOnly<{|
+  teamname: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  participant: string,
+|}>
+type _AddPeopleToTeamPayload = $ReadOnly<{|
+  destSubPath: I.List<string>,
+  role: string,
+  rootPath: I.List<string>,
+  sendChatNotification: boolean,
+  sourceSubPath: I.List<string>,
+  teamname: string,
+|}>
+type _AddTeamWithChosenChannelsPayload = $ReadOnly<{|teamname: string|}>
+type _AddToTeamPayload = $ReadOnly<{|
+  teamname: string,
+  username: string,
+  role: Types.TeamRoleType,
+  sendChatNotification: boolean,
+|}>
+type _BadgeAppForTeamsPayload = $ReadOnly<{|
+  newTeamNames: Array<string>,
+  newTeamAccessRequests: Array<string>,
+  teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string}>>,
+|}>
+type _CheckRequestedAccessPayload = $ReadOnly<{|teamname: string|}>
+type _ClearTeamRequestsPayload = $ReadOnly<{|teamname: string|}>
+type _CreateChannelPayload = $ReadOnly<{|
+  teamname: string,
+  channelname: string,
+  description: ?string,
+  rootPath: I.List<string>,
+  sourceSubPath: I.List<string>,
+  destSubPath: I.List<string>,
+|}>
+type _CreateNewTeamFromConversationPayload = $ReadOnly<{|
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  teamname: string,
+|}>
+type _CreateNewTeamPayload = $ReadOnly<{|
+  joinSubteam: boolean,
+  teamname: string,
+  rootPath: I.List<string>,
+  sourceSubPath: I.List<string>,
+  destSubPath: I.List<string>,
+|}>
+type _DeleteChannelConfirmedPayload = $ReadOnly<{|
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+|}>
+type _DeleteChannelInfoPayload = $ReadOnly<{|
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+|}>
+type _EditMembershipPayload = $ReadOnly<{|
+  teamname: string,
+  username: string,
+  role: Types.TeamRoleType,
+|}>
+type _EditTeamDescriptionPayload = $ReadOnly<{|
+  teamname: string,
+  description: string,
+|}>
+type _GetChannelsPayload = $ReadOnly<{|teamname: string|}>
+type _GetDetailsPayload = $ReadOnly<{|teamname: string|}>
+type _GetTeamOperationsPayload = $ReadOnly<{|teamname: string|}>
+type _GetTeamPublicityPayload = $ReadOnly<{|teamname: string|}>
+type _GetTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string|}>
+type _GetTeamsPayload = void
+type _IgnoreRequestPayload = $ReadOnly<{|
+  teamname: string,
+  username: string,
+|}>
+type _InviteToTeamByEmailPayload = $ReadOnly<{|
+  teamname: string,
+  role: Types.TeamRoleType,
+  invitees: string,
+|}>
+type _InviteToTeamByPhonePayload = $ReadOnly<{|
+  teamname: string,
+  role: Types.TeamRoleType,
+  phoneNumber: string,
+  fullName: string,
+|}>
+type _JoinTeamPayload = $ReadOnly<{|teamname: string|}>
+type _LeaveTeamPayload = $ReadOnly<{|teamname: string|}>
+type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|
+  email: string,
+  teamname: string,
+  username: string,
+  inviteID: string,
+|}>
+type _RemoveParticipantPayload = $ReadOnly<{|
+  teamname: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  participant: string,
+|}>
+type _SaveChannelMembershipPayload = $ReadOnly<{|
+  teamname: string,
+  oldChannelState: Types.ChannelMembershipState,
+  newChannelState: Types.ChannelMembershipState,
+  you: string,
+|}>
+type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|
+  teamname: string,
+  policy: Types.RetentionPolicy,
+|}>
+type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>
+type _SetLoadedPayload = $ReadOnly<{|loaded: boolean|}>
+type _SetMemberPublicityPayload = $ReadOnly<{|
+  teamname: string,
+  showcase: boolean,
+|}>
+type _SetNewTeamInfoPayload = $ReadOnly<{|
+  newTeams: I.Set<string>,
+  newTeamRequests: I.List<string>,
+  teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>,
+|}>
+type _SetPublicityPayload = $ReadOnly<{|
+  teamname: string,
+  settings: Types.PublicitySettings,
+|}>
+type _SetTeamAccessRequestsPendingPayload = $ReadOnly<{|accessRequestsPending: I.Set<Types.Teamname>|}>
+type _SetTeamCanPerformPayload = $ReadOnly<{|
+  teamname: string,
+  teamOperation: Types.TeamOperations,
+|}>
+type _SetTeamChannelsPayload = $ReadOnly<{|
+  teamname: string,
+  channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>,
+|}>
+type _SetTeamCreationErrorPayload = $ReadOnly<{|error: string|}>
+type _SetTeamCreationPendingPayload = $ReadOnly<{|pending: boolean|}>
+type _SetTeamDetailsPayload = $ReadOnly<{|
+  teamname: string,
+  members: I.Map<string, Types.MemberInfo>,
+  settings: Types.TeamSettings,
+  invites: I.Set<Types.InviteInfo>,
+  subteams: I.Set<Types.Teamname>,
+  requests: I.Map<string, I.Set<Types.RequestInfo>>,
+|}>
+type _SetTeamInfoPayload = $ReadOnly<{|
+  teamnames: I.Set<Types.Teamname>,
+  teammembercounts: I.Map<Types.Teamname, number>,
+  teamNameToIsOpen: I.Map<Types.Teamname, boolean>,
+  teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>,
+  teamNameToAllowPromote: I.Map<Types.Teamname, boolean>,
+  teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>,
+  teamNameToID: I.Map<Types.Teamname, string>,
+|}>
+type _SetTeamInviteErrorPayload = $ReadOnly<{|error: string|}>
+type _SetTeamJoinErrorPayload = $ReadOnly<{|error: string|}>
+type _SetTeamJoinSuccessPayload = $ReadOnly<{|
+  success: boolean,
+  teamname: string,
+|}>
+type _SetTeamLoadingInvitesPayload = $ReadOnly<{|
+  teamname: string,
+  invitees: string,
+  loadingInvites: boolean,
+|}>
+type _SetTeamPublicitySettingsPayload = $ReadOnly<{|
+  teamname: string,
+  publicity: Types._PublicitySettings,
+|}>
+type _SetTeamRetentionPolicyPayload = $ReadOnly<{|
+  teamname: string,
+  retentionPolicy: Types.RetentionPolicy,
+|}>
+type _SetTeamSawChatBannerPayload = void
+type _SetTeamSawSubteamsBannerPayload = void
+type _SetTeamsWithChosenChannelsPayload = $ReadOnly<{|teamsWithChosenChannels: I.Set<Types.Teamname>|}>
+type _SetUpdatedChannelNamePayload = $ReadOnly<{|
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  newChannelName: string,
+|}>
+type _SetUpdatedTopicPayload = $ReadOnly<{|
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  newTopic: string,
+|}>
+type _SetupTeamHandlersPayload = void
+type _UpdateChannelNamePayload = $ReadOnly<{|
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  newChannelName: string,
+|}>
+type _UpdateTopicPayload = $ReadOnly<{|
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  newTopic: string,
+|}>
+
 // Action Creators
 /**
  * Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.
  */
-export const createGetChannels = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getChannels})
+export const createGetChannels = (payload: _GetChannelsPayload) => ({error: false, payload, type: getChannels})
 /**
  * Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.
  */
-export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamRetentionPolicy})
+export const createGetTeamRetentionPolicy = (payload: _GetTeamRetentionPolicyPayload) => ({error: false, payload, type: getTeamRetentionPolicy})
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
  */
-export const createSaveTeamRetentionPolicy = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    policy: Types.RetentionPolicy,
-  |}>
-) => ({error: false, payload, type: saveTeamRetentionPolicy})
-export const createAddParticipant = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    conversationIDKey: ChatTypes.ConversationIDKey,
-    participant: string,
-  |}>
-) => ({error: false, payload, type: addParticipant})
-export const createAddPeopleToTeam = (
-  payload: $ReadOnly<{|
-    destSubPath: I.List<string>,
-    role: string,
-    rootPath: I.List<string>,
-    sendChatNotification: boolean,
-    sourceSubPath: I.List<string>,
-    teamname: string,
-  |}>
-) => ({error: false, payload, type: addPeopleToTeam})
-export const createAddTeamWithChosenChannels = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: addTeamWithChosenChannels})
-export const createAddToTeam = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    username: string,
-    role: Types.TeamRoleType,
-    sendChatNotification: boolean,
-  |}>
-) => ({error: false, payload, type: addToTeam})
-export const createBadgeAppForTeams = (
-  payload: $ReadOnly<{|
-    newTeamNames: Array<string>,
-    newTeamAccessRequests: Array<string>,
-    teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string}>>,
-  |}>
-) => ({error: false, payload, type: badgeAppForTeams})
-export const createCheckRequestedAccess = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: checkRequestedAccess})
-export const createClearTeamRequests = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: clearTeamRequests})
-export const createCreateChannel = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    channelname: string,
-    description: ?string,
-    rootPath: I.List<string>,
-    sourceSubPath: I.List<string>,
-    destSubPath: I.List<string>,
-  |}>
-) => ({error: false, payload, type: createChannel})
-export const createCreateNewTeam = (
-  payload: $ReadOnly<{|
-    joinSubteam: boolean,
-    teamname: string,
-    rootPath: I.List<string>,
-    sourceSubPath: I.List<string>,
-    destSubPath: I.List<string>,
-  |}>
-) => ({error: false, payload, type: createNewTeam})
-export const createCreateNewTeamFromConversation = (
-  payload: $ReadOnly<{|
-    conversationIDKey: ChatTypes.ConversationIDKey,
-    teamname: string,
-  |}>
-) => ({error: false, payload, type: createNewTeamFromConversation})
-export const createDeleteChannelConfirmed = (
-  payload: $ReadOnly<{|
-    teamname: Types.Teamname,
-    conversationIDKey: ChatTypes.ConversationIDKey,
-  |}>
-) => ({error: false, payload, type: deleteChannelConfirmed})
-export const createDeleteChannelInfo = (
-  payload: $ReadOnly<{|
-    teamname: Types.Teamname,
-    conversationIDKey: ChatTypes.ConversationIDKey,
-  |}>
-) => ({error: false, payload, type: deleteChannelInfo})
-export const createEditMembership = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    username: string,
-    role: Types.TeamRoleType,
-  |}>
-) => ({error: false, payload, type: editMembership})
-export const createEditTeamDescription = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    description: string,
-  |}>
-) => ({error: false, payload, type: editTeamDescription})
-export const createGetDetails = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getDetails})
-export const createGetTeamOperations = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamOperations})
-export const createGetTeamPublicity = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamPublicity})
-export const createGetTeams = () => ({error: false, payload: undefined, type: getTeams})
-export const createIgnoreRequest = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    username: string,
-  |}>
-) => ({error: false, payload, type: ignoreRequest})
-export const createInviteToTeamByEmail = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    role: Types.TeamRoleType,
-    invitees: string,
-  |}>
-) => ({error: false, payload, type: inviteToTeamByEmail})
-export const createInviteToTeamByPhone = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    role: Types.TeamRoleType,
-    phoneNumber: string,
-    fullName: string,
-  |}>
-) => ({error: false, payload, type: inviteToTeamByPhone})
-export const createJoinTeam = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: joinTeam})
-export const createLeaveTeam = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: leaveTeam})
-export const createRemoveMemberOrPendingInvite = (
-  payload: $ReadOnly<{|
-    email: string,
-    teamname: string,
-    username: string,
-    inviteID: string,
-  |}>
-) => ({error: false, payload, type: removeMemberOrPendingInvite})
-export const createRemoveParticipant = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    conversationIDKey: ChatTypes.ConversationIDKey,
-    participant: string,
-  |}>
-) => ({error: false, payload, type: removeParticipant})
-export const createSaveChannelMembership = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    oldChannelState: Types.ChannelMembershipState,
-    newChannelState: Types.ChannelMembershipState,
-    you: string,
-  |}>
-) => ({error: false, payload, type: saveChannelMembership})
-export const createSetChannelCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setChannelCreationError})
-export const createSetLoaded = (payload: $ReadOnly<{|loaded: boolean|}>) => ({error: false, payload, type: setLoaded})
-export const createSetMemberPublicity = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    showcase: boolean,
-  |}>
-) => ({error: false, payload, type: setMemberPublicity})
-export const createSetNewTeamInfo = (
-  payload: $ReadOnly<{|
-    newTeams: I.Set<string>,
-    newTeamRequests: I.List<string>,
-    teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>,
-  |}>
-) => ({error: false, payload, type: setNewTeamInfo})
-export const createSetPublicity = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    settings: Types.PublicitySettings,
-  |}>
-) => ({error: false, payload, type: setPublicity})
-export const createSetTeamAccessRequestsPending = (payload: $ReadOnly<{|accessRequestsPending: I.Set<Types.Teamname>|}>) => ({error: false, payload, type: setTeamAccessRequestsPending})
-export const createSetTeamCanPerform = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    teamOperation: Types.TeamOperations,
-  |}>
-) => ({error: false, payload, type: setTeamCanPerform})
-export const createSetTeamChannels = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>,
-  |}>
-) => ({error: false, payload, type: setTeamChannels})
-export const createSetTeamCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamCreationError})
-export const createSetTeamCreationPending = (payload: $ReadOnly<{|pending: boolean|}>) => ({error: false, payload, type: setTeamCreationPending})
-export const createSetTeamDetails = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    members: I.Map<string, Types.MemberInfo>,
-    settings: Types.TeamSettings,
-    invites: I.Set<Types.InviteInfo>,
-    subteams: I.Set<Types.Teamname>,
-    requests: I.Map<string, I.Set<Types.RequestInfo>>,
-  |}>
-) => ({error: false, payload, type: setTeamDetails})
-export const createSetTeamInfo = (
-  payload: $ReadOnly<{|
-    teamnames: I.Set<Types.Teamname>,
-    teammembercounts: I.Map<Types.Teamname, number>,
-    teamNameToIsOpen: I.Map<Types.Teamname, boolean>,
-    teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>,
-    teamNameToAllowPromote: I.Map<Types.Teamname, boolean>,
-    teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>,
-    teamNameToID: I.Map<Types.Teamname, string>,
-  |}>
-) => ({error: false, payload, type: setTeamInfo})
-export const createSetTeamInviteError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamInviteError})
-export const createSetTeamJoinError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamJoinError})
-export const createSetTeamJoinSuccess = (
-  payload: $ReadOnly<{|
-    success: boolean,
-    teamname: string,
-  |}>
-) => ({error: false, payload, type: setTeamJoinSuccess})
-export const createSetTeamLoadingInvites = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    invitees: string,
-    loadingInvites: boolean,
-  |}>
-) => ({error: false, payload, type: setTeamLoadingInvites})
-export const createSetTeamPublicitySettings = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    publicity: Types._PublicitySettings,
-  |}>
-) => ({error: false, payload, type: setTeamPublicitySettings})
-export const createSetTeamRetentionPolicy = (
-  payload: $ReadOnly<{|
-    teamname: string,
-    retentionPolicy: Types.RetentionPolicy,
-  |}>
-) => ({error: false, payload, type: setTeamRetentionPolicy})
-export const createSetTeamSawChatBanner = () => ({error: false, payload: undefined, type: setTeamSawChatBanner})
-export const createSetTeamSawSubteamsBanner = () => ({error: false, payload: undefined, type: setTeamSawSubteamsBanner})
-export const createSetTeamsWithChosenChannels = (payload: $ReadOnly<{|teamsWithChosenChannels: I.Set<Types.Teamname>|}>) => ({error: false, payload, type: setTeamsWithChosenChannels})
-export const createSetUpdatedChannelName = (
-  payload: $ReadOnly<{|
-    teamname: Types.Teamname,
-    conversationIDKey: ChatTypes.ConversationIDKey,
-    newChannelName: string,
-  |}>
-) => ({error: false, payload, type: setUpdatedChannelName})
-export const createSetUpdatedTopic = (
-  payload: $ReadOnly<{|
-    teamname: Types.Teamname,
-    conversationIDKey: ChatTypes.ConversationIDKey,
-    newTopic: string,
-  |}>
-) => ({error: false, payload, type: setUpdatedTopic})
-export const createSetupTeamHandlers = () => ({error: false, payload: undefined, type: setupTeamHandlers})
-export const createUpdateChannelName = (
-  payload: $ReadOnly<{|
-    teamname: Types.Teamname,
-    conversationIDKey: ChatTypes.ConversationIDKey,
-    newChannelName: string,
-  |}>
-) => ({error: false, payload, type: updateChannelName})
-export const createUpdateTopic = (
-  payload: $ReadOnly<{|
-    teamname: Types.Teamname,
-    conversationIDKey: ChatTypes.ConversationIDKey,
-    newTopic: string,
-  |}>
-) => ({error: false, payload, type: updateTopic})
+export const createSaveTeamRetentionPolicy = (payload: _SaveTeamRetentionPolicyPayload) => ({error: false, payload, type: saveTeamRetentionPolicy})
+export const createAddParticipant = (payload: _AddParticipantPayload) => ({error: false, payload, type: addParticipant})
+export const createAddPeopleToTeam = (payload: _AddPeopleToTeamPayload) => ({error: false, payload, type: addPeopleToTeam})
+export const createAddTeamWithChosenChannels = (payload: _AddTeamWithChosenChannelsPayload) => ({error: false, payload, type: addTeamWithChosenChannels})
+export const createAddToTeam = (payload: _AddToTeamPayload) => ({error: false, payload, type: addToTeam})
+export const createBadgeAppForTeams = (payload: _BadgeAppForTeamsPayload) => ({error: false, payload, type: badgeAppForTeams})
+export const createCheckRequestedAccess = (payload: _CheckRequestedAccessPayload) => ({error: false, payload, type: checkRequestedAccess})
+export const createClearTeamRequests = (payload: _ClearTeamRequestsPayload) => ({error: false, payload, type: clearTeamRequests})
+export const createCreateChannel = (payload: _CreateChannelPayload) => ({error: false, payload, type: createChannel})
+export const createCreateNewTeam = (payload: _CreateNewTeamPayload) => ({error: false, payload, type: createNewTeam})
+export const createCreateNewTeamFromConversation = (payload: _CreateNewTeamFromConversationPayload) => ({error: false, payload, type: createNewTeamFromConversation})
+export const createDeleteChannelConfirmed = (payload: _DeleteChannelConfirmedPayload) => ({error: false, payload, type: deleteChannelConfirmed})
+export const createDeleteChannelInfo = (payload: _DeleteChannelInfoPayload) => ({error: false, payload, type: deleteChannelInfo})
+export const createEditMembership = (payload: _EditMembershipPayload) => ({error: false, payload, type: editMembership})
+export const createEditTeamDescription = (payload: _EditTeamDescriptionPayload) => ({error: false, payload, type: editTeamDescription})
+export const createGetDetails = (payload: _GetDetailsPayload) => ({error: false, payload, type: getDetails})
+export const createGetTeamOperations = (payload: _GetTeamOperationsPayload) => ({error: false, payload, type: getTeamOperations})
+export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload) => ({error: false, payload, type: getTeamPublicity})
+export const createGetTeams = (payload: _GetTeamsPayload) => ({error: false, payload, type: getTeams})
+export const createIgnoreRequest = (payload: _IgnoreRequestPayload) => ({error: false, payload, type: ignoreRequest})
+export const createInviteToTeamByEmail = (payload: _InviteToTeamByEmailPayload) => ({error: false, payload, type: inviteToTeamByEmail})
+export const createInviteToTeamByPhone = (payload: _InviteToTeamByPhonePayload) => ({error: false, payload, type: inviteToTeamByPhone})
+export const createJoinTeam = (payload: _JoinTeamPayload) => ({error: false, payload, type: joinTeam})
+export const createLeaveTeam = (payload: _LeaveTeamPayload) => ({error: false, payload, type: leaveTeam})
+export const createRemoveMemberOrPendingInvite = (payload: _RemoveMemberOrPendingInvitePayload) => ({error: false, payload, type: removeMemberOrPendingInvite})
+export const createRemoveParticipant = (payload: _RemoveParticipantPayload) => ({error: false, payload, type: removeParticipant})
+export const createSaveChannelMembership = (payload: _SaveChannelMembershipPayload) => ({error: false, payload, type: saveChannelMembership})
+export const createSetChannelCreationError = (payload: _SetChannelCreationErrorPayload) => ({error: false, payload, type: setChannelCreationError})
+export const createSetLoaded = (payload: _SetLoadedPayload) => ({error: false, payload, type: setLoaded})
+export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload) => ({error: false, payload, type: setMemberPublicity})
+export const createSetNewTeamInfo = (payload: _SetNewTeamInfoPayload) => ({error: false, payload, type: setNewTeamInfo})
+export const createSetPublicity = (payload: _SetPublicityPayload) => ({error: false, payload, type: setPublicity})
+export const createSetTeamAccessRequestsPending = (payload: _SetTeamAccessRequestsPendingPayload) => ({error: false, payload, type: setTeamAccessRequestsPending})
+export const createSetTeamCanPerform = (payload: _SetTeamCanPerformPayload) => ({error: false, payload, type: setTeamCanPerform})
+export const createSetTeamChannels = (payload: _SetTeamChannelsPayload) => ({error: false, payload, type: setTeamChannels})
+export const createSetTeamCreationError = (payload: _SetTeamCreationErrorPayload) => ({error: false, payload, type: setTeamCreationError})
+export const createSetTeamCreationPending = (payload: _SetTeamCreationPendingPayload) => ({error: false, payload, type: setTeamCreationPending})
+export const createSetTeamDetails = (payload: _SetTeamDetailsPayload) => ({error: false, payload, type: setTeamDetails})
+export const createSetTeamInfo = (payload: _SetTeamInfoPayload) => ({error: false, payload, type: setTeamInfo})
+export const createSetTeamInviteError = (payload: _SetTeamInviteErrorPayload) => ({error: false, payload, type: setTeamInviteError})
+export const createSetTeamJoinError = (payload: _SetTeamJoinErrorPayload) => ({error: false, payload, type: setTeamJoinError})
+export const createSetTeamJoinSuccess = (payload: _SetTeamJoinSuccessPayload) => ({error: false, payload, type: setTeamJoinSuccess})
+export const createSetTeamLoadingInvites = (payload: _SetTeamLoadingInvitesPayload) => ({error: false, payload, type: setTeamLoadingInvites})
+export const createSetTeamPublicitySettings = (payload: _SetTeamPublicitySettingsPayload) => ({error: false, payload, type: setTeamPublicitySettings})
+export const createSetTeamRetentionPolicy = (payload: _SetTeamRetentionPolicyPayload) => ({error: false, payload, type: setTeamRetentionPolicy})
+export const createSetTeamSawChatBanner = (payload: _SetTeamSawChatBannerPayload) => ({error: false, payload, type: setTeamSawChatBanner})
+export const createSetTeamSawSubteamsBanner = (payload: _SetTeamSawSubteamsBannerPayload) => ({error: false, payload, type: setTeamSawSubteamsBanner})
+export const createSetTeamsWithChosenChannels = (payload: _SetTeamsWithChosenChannelsPayload) => ({error: false, payload, type: setTeamsWithChosenChannels})
+export const createSetUpdatedChannelName = (payload: _SetUpdatedChannelNamePayload) => ({error: false, payload, type: setUpdatedChannelName})
+export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload) => ({error: false, payload, type: setUpdatedTopic})
+export const createSetupTeamHandlers = (payload: _SetupTeamHandlersPayload) => ({error: false, payload, type: setupTeamHandlers})
+export const createUpdateChannelName = (payload: _UpdateChannelNamePayload) => ({error: false, payload, type: updateChannelName})
+export const createUpdateTopic = (payload: _UpdateTopicPayload) => ({error: false, payload, type: updateTopic})
 
 // Action Payloads
-export type AddParticipantPayload = More.ReturnType<typeof createAddParticipant>
-export type AddPeopleToTeamPayload = More.ReturnType<typeof createAddPeopleToTeam>
-export type AddTeamWithChosenChannelsPayload = More.ReturnType<typeof createAddTeamWithChosenChannels>
-export type AddToTeamPayload = More.ReturnType<typeof createAddToTeam>
-export type BadgeAppForTeamsPayload = More.ReturnType<typeof createBadgeAppForTeams>
-export type CheckRequestedAccessPayload = More.ReturnType<typeof createCheckRequestedAccess>
-export type ClearTeamRequestsPayload = More.ReturnType<typeof createClearTeamRequests>
-export type CreateChannelPayload = More.ReturnType<typeof createCreateChannel>
-export type CreateNewTeamFromConversationPayload = More.ReturnType<typeof createCreateNewTeamFromConversation>
-export type CreateNewTeamPayload = More.ReturnType<typeof createCreateNewTeam>
-export type DeleteChannelConfirmedPayload = More.ReturnType<typeof createDeleteChannelConfirmed>
-export type DeleteChannelInfoPayload = More.ReturnType<typeof createDeleteChannelInfo>
-export type EditMembershipPayload = More.ReturnType<typeof createEditMembership>
-export type EditTeamDescriptionPayload = More.ReturnType<typeof createEditTeamDescription>
-export type GetChannelsPayload = More.ReturnType<typeof createGetChannels>
-export type GetDetailsPayload = More.ReturnType<typeof createGetDetails>
-export type GetTeamOperationsPayload = More.ReturnType<typeof createGetTeamOperations>
-export type GetTeamPublicityPayload = More.ReturnType<typeof createGetTeamPublicity>
-export type GetTeamRetentionPolicyPayload = More.ReturnType<typeof createGetTeamRetentionPolicy>
-export type GetTeamsPayload = More.ReturnType<typeof createGetTeams>
-export type IgnoreRequestPayload = More.ReturnType<typeof createIgnoreRequest>
-export type InviteToTeamByEmailPayload = More.ReturnType<typeof createInviteToTeamByEmail>
-export type InviteToTeamByPhonePayload = More.ReturnType<typeof createInviteToTeamByPhone>
-export type JoinTeamPayload = More.ReturnType<typeof createJoinTeam>
-export type LeaveTeamPayload = More.ReturnType<typeof createLeaveTeam>
-export type RemoveMemberOrPendingInvitePayload = More.ReturnType<typeof createRemoveMemberOrPendingInvite>
-export type RemoveParticipantPayload = More.ReturnType<typeof createRemoveParticipant>
-export type SaveChannelMembershipPayload = More.ReturnType<typeof createSaveChannelMembership>
-export type SaveTeamRetentionPolicyPayload = More.ReturnType<typeof createSaveTeamRetentionPolicy>
-export type SetChannelCreationErrorPayload = More.ReturnType<typeof createSetChannelCreationError>
-export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
-export type SetMemberPublicityPayload = More.ReturnType<typeof createSetMemberPublicity>
-export type SetNewTeamInfoPayload = More.ReturnType<typeof createSetNewTeamInfo>
-export type SetPublicityPayload = More.ReturnType<typeof createSetPublicity>
-export type SetTeamAccessRequestsPendingPayload = More.ReturnType<typeof createSetTeamAccessRequestsPending>
-export type SetTeamCanPerformPayload = More.ReturnType<typeof createSetTeamCanPerform>
-export type SetTeamChannelsPayload = More.ReturnType<typeof createSetTeamChannels>
-export type SetTeamCreationErrorPayload = More.ReturnType<typeof createSetTeamCreationError>
-export type SetTeamCreationPendingPayload = More.ReturnType<typeof createSetTeamCreationPending>
-export type SetTeamDetailsPayload = More.ReturnType<typeof createSetTeamDetails>
-export type SetTeamInfoPayload = More.ReturnType<typeof createSetTeamInfo>
-export type SetTeamInviteErrorPayload = More.ReturnType<typeof createSetTeamInviteError>
-export type SetTeamJoinErrorPayload = More.ReturnType<typeof createSetTeamJoinError>
-export type SetTeamJoinSuccessPayload = More.ReturnType<typeof createSetTeamJoinSuccess>
-export type SetTeamLoadingInvitesPayload = More.ReturnType<typeof createSetTeamLoadingInvites>
-export type SetTeamPublicitySettingsPayload = More.ReturnType<typeof createSetTeamPublicitySettings>
-export type SetTeamRetentionPolicyPayload = More.ReturnType<typeof createSetTeamRetentionPolicy>
-export type SetTeamSawChatBannerPayload = More.ReturnType<typeof createSetTeamSawChatBanner>
-export type SetTeamSawSubteamsBannerPayload = More.ReturnType<typeof createSetTeamSawSubteamsBanner>
-export type SetTeamsWithChosenChannelsPayload = More.ReturnType<typeof createSetTeamsWithChosenChannels>
-export type SetUpdatedChannelNamePayload = More.ReturnType<typeof createSetUpdatedChannelName>
-export type SetUpdatedTopicPayload = More.ReturnType<typeof createSetUpdatedTopic>
-export type SetupTeamHandlersPayload = More.ReturnType<typeof createSetupTeamHandlers>
-export type UpdateChannelNamePayload = More.ReturnType<typeof createUpdateChannelName>
-export type UpdateTopicPayload = More.ReturnType<typeof createUpdateTopic>
+export type AddParticipantPayload = $Call<typeof createAddParticipant, _AddParticipantPayload>
+export type AddPeopleToTeamPayload = $Call<typeof createAddPeopleToTeam, _AddPeopleToTeamPayload>
+export type AddTeamWithChosenChannelsPayload = $Call<typeof createAddTeamWithChosenChannels, _AddTeamWithChosenChannelsPayload>
+export type AddToTeamPayload = $Call<typeof createAddToTeam, _AddToTeamPayload>
+export type BadgeAppForTeamsPayload = $Call<typeof createBadgeAppForTeams, _BadgeAppForTeamsPayload>
+export type CheckRequestedAccessPayload = $Call<typeof createCheckRequestedAccess, _CheckRequestedAccessPayload>
+export type ClearTeamRequestsPayload = $Call<typeof createClearTeamRequests, _ClearTeamRequestsPayload>
+export type CreateChannelPayload = $Call<typeof createCreateChannel, _CreateChannelPayload>
+export type CreateNewTeamFromConversationPayload = $Call<typeof createCreateNewTeamFromConversation, _CreateNewTeamFromConversationPayload>
+export type CreateNewTeamPayload = $Call<typeof createCreateNewTeam, _CreateNewTeamPayload>
+export type DeleteChannelConfirmedPayload = $Call<typeof createDeleteChannelConfirmed, _DeleteChannelConfirmedPayload>
+export type DeleteChannelInfoPayload = $Call<typeof createDeleteChannelInfo, _DeleteChannelInfoPayload>
+export type EditMembershipPayload = $Call<typeof createEditMembership, _EditMembershipPayload>
+export type EditTeamDescriptionPayload = $Call<typeof createEditTeamDescription, _EditTeamDescriptionPayload>
+export type GetChannelsPayload = $Call<typeof createGetChannels, _GetChannelsPayload>
+export type GetDetailsPayload = $Call<typeof createGetDetails, _GetDetailsPayload>
+export type GetTeamOperationsPayload = $Call<typeof createGetTeamOperations, _GetTeamOperationsPayload>
+export type GetTeamPublicityPayload = $Call<typeof createGetTeamPublicity, _GetTeamPublicityPayload>
+export type GetTeamRetentionPolicyPayload = $Call<typeof createGetTeamRetentionPolicy, _GetTeamRetentionPolicyPayload>
+export type GetTeamsPayload = $Call<typeof createGetTeams, _GetTeamsPayload>
+export type IgnoreRequestPayload = $Call<typeof createIgnoreRequest, _IgnoreRequestPayload>
+export type InviteToTeamByEmailPayload = $Call<typeof createInviteToTeamByEmail, _InviteToTeamByEmailPayload>
+export type InviteToTeamByPhonePayload = $Call<typeof createInviteToTeamByPhone, _InviteToTeamByPhonePayload>
+export type JoinTeamPayload = $Call<typeof createJoinTeam, _JoinTeamPayload>
+export type LeaveTeamPayload = $Call<typeof createLeaveTeam, _LeaveTeamPayload>
+export type RemoveMemberOrPendingInvitePayload = $Call<typeof createRemoveMemberOrPendingInvite, _RemoveMemberOrPendingInvitePayload>
+export type RemoveParticipantPayload = $Call<typeof createRemoveParticipant, _RemoveParticipantPayload>
+export type SaveChannelMembershipPayload = $Call<typeof createSaveChannelMembership, _SaveChannelMembershipPayload>
+export type SaveTeamRetentionPolicyPayload = $Call<typeof createSaveTeamRetentionPolicy, _SaveTeamRetentionPolicyPayload>
+export type SetChannelCreationErrorPayload = $Call<typeof createSetChannelCreationError, _SetChannelCreationErrorPayload>
+export type SetLoadedPayload = $Call<typeof createSetLoaded, _SetLoadedPayload>
+export type SetMemberPublicityPayload = $Call<typeof createSetMemberPublicity, _SetMemberPublicityPayload>
+export type SetNewTeamInfoPayload = $Call<typeof createSetNewTeamInfo, _SetNewTeamInfoPayload>
+export type SetPublicityPayload = $Call<typeof createSetPublicity, _SetPublicityPayload>
+export type SetTeamAccessRequestsPendingPayload = $Call<typeof createSetTeamAccessRequestsPending, _SetTeamAccessRequestsPendingPayload>
+export type SetTeamCanPerformPayload = $Call<typeof createSetTeamCanPerform, _SetTeamCanPerformPayload>
+export type SetTeamChannelsPayload = $Call<typeof createSetTeamChannels, _SetTeamChannelsPayload>
+export type SetTeamCreationErrorPayload = $Call<typeof createSetTeamCreationError, _SetTeamCreationErrorPayload>
+export type SetTeamCreationPendingPayload = $Call<typeof createSetTeamCreationPending, _SetTeamCreationPendingPayload>
+export type SetTeamDetailsPayload = $Call<typeof createSetTeamDetails, _SetTeamDetailsPayload>
+export type SetTeamInfoPayload = $Call<typeof createSetTeamInfo, _SetTeamInfoPayload>
+export type SetTeamInviteErrorPayload = $Call<typeof createSetTeamInviteError, _SetTeamInviteErrorPayload>
+export type SetTeamJoinErrorPayload = $Call<typeof createSetTeamJoinError, _SetTeamJoinErrorPayload>
+export type SetTeamJoinSuccessPayload = $Call<typeof createSetTeamJoinSuccess, _SetTeamJoinSuccessPayload>
+export type SetTeamLoadingInvitesPayload = $Call<typeof createSetTeamLoadingInvites, _SetTeamLoadingInvitesPayload>
+export type SetTeamPublicitySettingsPayload = $Call<typeof createSetTeamPublicitySettings, _SetTeamPublicitySettingsPayload>
+export type SetTeamRetentionPolicyPayload = $Call<typeof createSetTeamRetentionPolicy, _SetTeamRetentionPolicyPayload>
+export type SetTeamSawChatBannerPayload = $Call<typeof createSetTeamSawChatBanner, _SetTeamSawChatBannerPayload>
+export type SetTeamSawSubteamsBannerPayload = $Call<typeof createSetTeamSawSubteamsBanner, _SetTeamSawSubteamsBannerPayload>
+export type SetTeamsWithChosenChannelsPayload = $Call<typeof createSetTeamsWithChosenChannels, _SetTeamsWithChosenChannelsPayload>
+export type SetUpdatedChannelNamePayload = $Call<typeof createSetUpdatedChannelName, _SetUpdatedChannelNamePayload>
+export type SetUpdatedTopicPayload = $Call<typeof createSetUpdatedTopic, _SetUpdatedTopicPayload>
+export type SetupTeamHandlersPayload = $Call<typeof createSetupTeamHandlers, _SetupTeamHandlersPayload>
+export type UpdateChannelNamePayload = $Call<typeof createUpdateChannelName, _UpdateChannelNamePayload>
+export type UpdateTopicPayload = $Call<typeof createUpdateTopic, _UpdateTopicPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createAddParticipant>
-  | More.ReturnType<typeof createAddPeopleToTeam>
-  | More.ReturnType<typeof createAddTeamWithChosenChannels>
-  | More.ReturnType<typeof createAddToTeam>
-  | More.ReturnType<typeof createBadgeAppForTeams>
-  | More.ReturnType<typeof createCheckRequestedAccess>
-  | More.ReturnType<typeof createClearTeamRequests>
-  | More.ReturnType<typeof createCreateChannel>
-  | More.ReturnType<typeof createCreateNewTeam>
-  | More.ReturnType<typeof createCreateNewTeamFromConversation>
-  | More.ReturnType<typeof createDeleteChannelConfirmed>
-  | More.ReturnType<typeof createDeleteChannelInfo>
-  | More.ReturnType<typeof createEditMembership>
-  | More.ReturnType<typeof createEditTeamDescription>
-  | More.ReturnType<typeof createGetChannels>
-  | More.ReturnType<typeof createGetDetails>
-  | More.ReturnType<typeof createGetTeamOperations>
-  | More.ReturnType<typeof createGetTeamPublicity>
-  | More.ReturnType<typeof createGetTeamRetentionPolicy>
-  | More.ReturnType<typeof createGetTeams>
-  | More.ReturnType<typeof createIgnoreRequest>
-  | More.ReturnType<typeof createInviteToTeamByEmail>
-  | More.ReturnType<typeof createInviteToTeamByPhone>
-  | More.ReturnType<typeof createJoinTeam>
-  | More.ReturnType<typeof createLeaveTeam>
-  | More.ReturnType<typeof createRemoveMemberOrPendingInvite>
-  | More.ReturnType<typeof createRemoveParticipant>
-  | More.ReturnType<typeof createSaveChannelMembership>
-  | More.ReturnType<typeof createSaveTeamRetentionPolicy>
-  | More.ReturnType<typeof createSetChannelCreationError>
-  | More.ReturnType<typeof createSetLoaded>
-  | More.ReturnType<typeof createSetMemberPublicity>
-  | More.ReturnType<typeof createSetNewTeamInfo>
-  | More.ReturnType<typeof createSetPublicity>
-  | More.ReturnType<typeof createSetTeamAccessRequestsPending>
-  | More.ReturnType<typeof createSetTeamCanPerform>
-  | More.ReturnType<typeof createSetTeamChannels>
-  | More.ReturnType<typeof createSetTeamCreationError>
-  | More.ReturnType<typeof createSetTeamCreationPending>
-  | More.ReturnType<typeof createSetTeamDetails>
-  | More.ReturnType<typeof createSetTeamInfo>
-  | More.ReturnType<typeof createSetTeamInviteError>
-  | More.ReturnType<typeof createSetTeamJoinError>
-  | More.ReturnType<typeof createSetTeamJoinSuccess>
-  | More.ReturnType<typeof createSetTeamLoadingInvites>
-  | More.ReturnType<typeof createSetTeamPublicitySettings>
-  | More.ReturnType<typeof createSetTeamRetentionPolicy>
-  | More.ReturnType<typeof createSetTeamSawChatBanner>
-  | More.ReturnType<typeof createSetTeamSawSubteamsBanner>
-  | More.ReturnType<typeof createSetTeamsWithChosenChannels>
-  | More.ReturnType<typeof createSetUpdatedChannelName>
-  | More.ReturnType<typeof createSetUpdatedTopic>
-  | More.ReturnType<typeof createSetupTeamHandlers>
-  | More.ReturnType<typeof createUpdateChannelName>
-  | More.ReturnType<typeof createUpdateTopic>
+  | AddParticipantPayload
+  | AddPeopleToTeamPayload
+  | AddTeamWithChosenChannelsPayload
+  | AddToTeamPayload
+  | BadgeAppForTeamsPayload
+  | CheckRequestedAccessPayload
+  | ClearTeamRequestsPayload
+  | CreateChannelPayload
+  | CreateNewTeamFromConversationPayload
+  | CreateNewTeamPayload
+  | DeleteChannelConfirmedPayload
+  | DeleteChannelInfoPayload
+  | EditMembershipPayload
+  | EditTeamDescriptionPayload
+  | GetChannelsPayload
+  | GetDetailsPayload
+  | GetTeamOperationsPayload
+  | GetTeamPublicityPayload
+  | GetTeamRetentionPolicyPayload
+  | GetTeamsPayload
+  | IgnoreRequestPayload
+  | InviteToTeamByEmailPayload
+  | InviteToTeamByPhonePayload
+  | JoinTeamPayload
+  | LeaveTeamPayload
+  | RemoveMemberOrPendingInvitePayload
+  | RemoveParticipantPayload
+  | SaveChannelMembershipPayload
+  | SaveTeamRetentionPolicyPayload
+  | SetChannelCreationErrorPayload
+  | SetLoadedPayload
+  | SetMemberPublicityPayload
+  | SetNewTeamInfoPayload
+  | SetPublicityPayload
+  | SetTeamAccessRequestsPendingPayload
+  | SetTeamCanPerformPayload
+  | SetTeamChannelsPayload
+  | SetTeamCreationErrorPayload
+  | SetTeamCreationPendingPayload
+  | SetTeamDetailsPayload
+  | SetTeamInfoPayload
+  | SetTeamInviteErrorPayload
+  | SetTeamJoinErrorPayload
+  | SetTeamJoinSuccessPayload
+  | SetTeamLoadingInvitesPayload
+  | SetTeamPublicitySettingsPayload
+  | SetTeamRetentionPolicyPayload
+  | SetTeamSawChatBannerPayload
+  | SetTeamSawSubteamsBannerPayload
+  | SetTeamsWithChosenChannelsPayload
+  | SetUpdatedChannelNamePayload
+  | SetUpdatedTopicPayload
+  | SetupTeamHandlersPayload
+  | UpdateChannelNamePayload
+  | UpdateTopicPayload
   | {type: 'common:resetStore', payload: void}

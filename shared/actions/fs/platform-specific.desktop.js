@@ -1,19 +1,21 @@
 // @flow
-import * as FsGen from './fs-gen'
-import * as Saga from '../util/saga'
-import * as Config from '../constants/config'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/fs'
-import * as Constants from '../constants/fs'
+import * as FsGen from '../fs-gen'
+import * as Saga from '../../util/saga'
+import * as Config from '../../constants/config'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as Electron from 'electron'
 import fs from 'fs'
-import type {TypedState} from '../constants/reducer'
-import {fileUIName, isLinux, isWindows} from '../constants/platform'
-import {navigateTo} from './route-tree'
-import {fsTab} from '../constants/tabs'
-import logger from '../logger'
+import type {TypedState} from '../../constants/reducer'
+import {fileUIName, isLinux, isWindows} from '../../constants/platform'
+import {fsTab} from '../../constants/tabs'
+import logger from '../../logger'
 import {spawn, execFileSync} from 'child_process'
 import path from 'path'
+import {putActionIfOnPath, navigateTo, navigateAppend, navigateUp} from '../route-tree'
+
+import {copyToDownloadDir} from './platform-specific'
 
 type pathType = 'file' | 'directory'
 
@@ -30,7 +32,7 @@ function pathToURL(path: string): string {
   return encodeURI('file://' + goodPath).replace(/#/g, '%23')
 }
 
-function openInDefaultDirectory(openPath: string): Promise<*> {
+function openInDefaultDirectory(openPath: string) {
   return new Promise((resolve, reject) => {
     // Paths in directories might be symlinks, so resolve using
     // realpath.
@@ -78,7 +80,7 @@ function getPathType(openPath: string): Promise<pathType> {
   })
 }
 
-function _open(openPath: string): Promise<*> {
+function _open(openPath: string) {
   return new Promise((resolve, reject) => {
     getPathType(openPath).then(typ => {
       if (typ === 'directory') {
@@ -105,7 +107,7 @@ function _open(openPath: string): Promise<*> {
   })
 }
 
-export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
+function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
   const openPath = path || Config.defaultKBFSPath
   const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
@@ -115,7 +117,7 @@ export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, s
   }
 }
 
-function waitForMount(attempt: number): Promise<*> {
+function waitForMount(attempt: number) {
   return new Promise((resolve, reject) => {
     // Read the KBFS path waiting for files to exist, which means it's mounted
     // TODO: should handle current mount directory
@@ -133,21 +135,21 @@ function waitForMount(attempt: number): Promise<*> {
   })
 }
 
-export const installKBFS = () => Saga.call(RPCTypes.installInstallKBFSRpcPromise)
-export const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
+const installKBFS = () => Saga.call(RPCTypes.installInstallKBFSRpcPromise)
+const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
   Saga.sequentially([
     Saga.call(waitForMount, 0),
     Saga.put(FsGen.createSetFlags({kbfsInstalling: false, showBanner: true})),
   ])
 
-export function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
+function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
     return Saga.call(installKBFS)
   }
 }
 
-export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
+function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const prevStatus = state.favorite.fuseStatus
 
@@ -164,7 +166,7 @@ export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createFuseStatusResult({prevStatus, status}))
 }
 
-export function* installFuseSaga(): Saga.SagaGenerator<any, any> {
+function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
   const fuseResults =
     result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
@@ -182,7 +184,7 @@ export function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createSetFlags({fuseInstalling: false}))
 }
 
-export function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
+function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
   const dialog = Electron.dialog || Electron.remote.dialog
   dialog.showMessageBox(
     {
@@ -195,18 +197,18 @@ export function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPaylo
   )
 }
 
-export function uninstallKBFS() {
+function uninstallKBFS() {
   return Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
 }
 
-export function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
+function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
   const app = Electron.remote.app
   app.relaunch()
   app.exit(0)
 }
 
-export function openSecurityPreferences() {
+function openSecurityPreferences() {
   return Saga.call(
     () =>
       new Promise((resolve, reject) => {
@@ -229,7 +231,7 @@ export function openSecurityPreferences() {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-function installCachedDokan(): Promise<*> {
+function installCachedDokan() {
   return new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
@@ -258,10 +260,46 @@ function installCachedDokan(): Promise<*> {
   })
 }
 
-export function installDokanSaga() {
+function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-export function copyToDownloadDir(path: string): Promise<*> {
-  return new Promise((resolve, reject) => resolve())
+function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
+  const {targetRect, routePath} = action.payload
+  return Saga.put(
+    putActionIfOnPath(
+      routePath,
+      navigateAppend([
+        {
+          props: {
+            targetRect,
+            position: 'bottom right',
+            onHidden: () => Saga.put(navigateUp()),
+            onInstall: () => Saga.put(FsGen.createInstallFuse()),
+          },
+          selected: 'finderAction',
+        },
+      ])
+    )
+  )
 }
+
+function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
+  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
+  yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
+  if (isWindows) {
+    yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
+  } else {
+    yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
+  }
+  yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
+
+  // These are saga tasks that may use actions above.
+  yield Saga.safeTakeEveryPure(FsGen.openFinderPopup, openFinderPopup)
+}
+
+export {copyToDownloadDir, platformSpecificSaga}

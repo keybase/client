@@ -472,6 +472,16 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	_, iconvs, err := ibox.ReadAll(ctx)
 	require.NoError(t, err)
 	require.Len(t, iconvs, 1)
+	// Field two of these here, since newConv reads and triggers a background load, as does the real read
+	for i := 0; i < 2; i++ {
+		select {
+		case cid := <-list.bgConvLoads:
+			require.Equal(t, mconv.GetConvID(), cid)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no background conv loaded")
+		}
+	}
+
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		mconv.Expunge = chat1.Expunge{Upto: 12}
 		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
@@ -636,18 +646,64 @@ func TestSyncerBackgroundLoader(t *testing.T) {
 		}), nil
 	}
 	doSync(t, syncer, ri, uid)
-	// Pick up two conv loader runs for the expunge and the normal load
-	for i := 0; i < 2; i++ {
-		select {
-		case <-list.bgConvLoads:
-		case <-time.After(2 * time.Second):
-			require.Fail(t, "no conv load on sync")
-		}
+	select {
+	case <-list.bgConvLoads:
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "no conv load on sync")
 	}
 	time.Sleep(400 * time.Millisecond)
 	select {
 	case <-list.bgConvLoads:
 		require.Fail(t, "no conv load here")
+	default:
+	}
+}
+
+func TestSyncerBackgroundLoaderRemoved(t *testing.T) {
+	ctx, world, ri2, _, sender, list := setupTest(t, 2)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+
+	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	select {
+	case <-list.bgConvLoads:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no conv load on sync")
+	}
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		sconv := conv.DeepCopy()
+		sconv.ReaderInfo.Status = chat1.ConversationMemberStatus_REMOVED
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  100,
+			Convs: []chat1.Conversation{sconv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	time.Sleep(400 * time.Millisecond)
+	select {
+	case <-list.bgConvLoads:
+		require.Fail(t, "no sync should happen")
+	default:
+	}
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		sconv := conv.DeepCopy()
+		sconv.Metadata.Existence = chat1.ConversationExistence_ARCHIVED
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  100,
+			Convs: []chat1.Conversation{sconv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	time.Sleep(400 * time.Millisecond)
+	select {
+	case <-list.bgConvLoads:
+		require.Fail(t, "no sync should happen")
 	default:
 	}
 }

@@ -1,3 +1,4 @@
+repos:
 -   repo: local
     hooks:
     -   id: eslint
@@ -14,8 +15,13 @@
         language: system
         files: \.(js|flow)$
         args: [-c, cd shared && node_modules/.bin/flow]
+    -   id: prettier
+        name: prettier
+        entry: shared/node_modules/.bin/prettier --write
+        language: node
+        files: \.js$
 -   repo: https://github.com/keybase/pre-commit-golang.git
-    sha: 06cb541d5ec2ec6adc218f7862098c55b5b24fc1
+    sha: b3408a42cc77ece991924d5f477ee3ae94371f9a
     hooks:
     -   id: go-fmt
     -   id: go-vet

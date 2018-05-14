@@ -79,6 +79,17 @@ func (a *Account) GetUID() (ret keybase1.UID) {
 	return ret
 }
 
+func (a *Account) GetUsername() (ret NormalizedUsername) {
+	if a.localSession == nil {
+		return ret
+	}
+	if a.localSession.username == nil {
+		return ret
+	}
+	ret = *a.localSession.username
+	return ret
+}
+
 func (a *Account) GetDeviceID() (ret keybase1.DeviceID) {
 	if a.localSession != nil {
 		ret = a.localSession.GetDeviceID()
@@ -119,8 +130,8 @@ func (a *Account) LoadLoginSession(emailOrUsername string) error {
 		return nil
 	}
 
-	ls := NewLoginSession(emailOrUsername, a.G())
-	if err := ls.Load(); err != nil {
+	ls := NewLoginSession(a.G(), emailOrUsername)
+	if err := ls.Load(NewMetaContextBackground(a.G())); err != nil {
 		return err
 	}
 	a.setLoginSession(ls)
@@ -132,7 +143,7 @@ func (a *Account) CreateLoginSessionWithSalt(emailOrUsername string, salt []byte
 		return fmt.Errorf("CreateLoginSessionWithSalt called, but Account already has LoginSession")
 	}
 
-	ls := NewLoginSessionWithSalt(emailOrUsername, salt, a.G())
+	ls := NewLoginSessionWithSalt(a.G(), emailOrUsername, salt)
 	a.setLoginSession(ls)
 	return nil
 }

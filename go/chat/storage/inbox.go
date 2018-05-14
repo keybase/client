@@ -602,6 +602,20 @@ func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []types.
 	return ibox.InboxVersion, ibox.Conversations, nil
 }
 
+func (i *Inbox) GetConversation(ctx context.Context, convID chat1.ConversationID) (res types.RemoteConversation, err Error) {
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("GetConversation(%s,%s)", i.uid, convID))()
+	_, iboxRes, _, err := i.Read(ctx, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
+	if err != nil {
+		return res, err
+	}
+	if len(iboxRes) != 1 {
+		return res, MissError{}
+	}
+	return iboxRes[0], nil
+}
+
 func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.Pagination) (vers chat1.InboxVers, res []types.RemoteConversation, pagination *chat1.Pagination, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
@@ -1253,6 +1267,7 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 }
 
 type InboxSyncRes struct {
+	FilteredConvs      []types.RemoteConversation
 	TeamTypeChanged    bool
 	MembersTypeChanged []chat1.ConversationID
 	Expunges           []InboxSyncResExpunge
@@ -1335,6 +1350,11 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
 		return res, err
 	}
+
+	// Filter the conversations for the result
+	res.FilteredConvs = i.applyQuery(ctx, &chat1.GetInboxQuery{
+		ConvIDs: utils.PluckConvIDs(convs),
+	}, utils.RemoteConvs(convs))
 
 	return res, nil
 }

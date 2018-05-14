@@ -62,8 +62,8 @@ func (e *DeviceWrap) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *DeviceWrap) registerDevice(m libkb.MetaContext) (err error) {
-
 	defer m.CTrace("DeviceWrap#registerDevice", func() error { return err })()
+	var salt []byte
 
 	if e.args.Me.HasCurrentDeviceInCurrentInstall() {
 		return libkb.DeviceAlreadyProvisionedError{}
@@ -81,7 +81,10 @@ func (e *DeviceWrap) registerDevice(m libkb.MetaContext) (err error) {
 	m.CDebugf("Device ID: %s", e.deviceID)
 
 	m.UIs().LogUI.Debug("Setting Device ID to %s", e.deviceID)
-	if err = m.SetDeviceIDWithinRegistration(e.deviceID); err != nil {
+	if salt, err = e.args.Me.GetSalt(); err != nil {
+		return err
+	}
+	if err = m.SwitchUserNewConfig(e.args.Me.GetUID(), e.args.Me.GetNormalizedName(), salt, e.deviceID); err != nil {
 		return err
 	}
 	return nil

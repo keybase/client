@@ -95,8 +95,8 @@ helpers.rootLinuxNode(env, {
             }
         }
 
-        def hasGoChanges = hasChanges('go')
-        def hasJSChanges = hasChanges('shared')
+        def hasGoChanges = helpers.hasChanges('go', env)
+        def hasJSChanges = helpers.hasChanges('shared', env)
         println "Has go changes: " + hasGoChanges
         println "Has JS changes: " + hasJSChanges
 
@@ -202,9 +202,8 @@ helpers.rootLinuxNode(env, {
                         }
                     },
                     test_macos: {
-                        // TODO: If we re-enable tests other than Go tests on
-                        // macOS, this check should go away.
-                        if (hasGoChanges) {
+                        // TODO: Currently we only run macos tests on master builds.
+                        if (env.BRANCH_NAME == "master") {
                             def mountDir='/Volumes/untitled/client'
                             helpers.nodeWithCleanup('macstadium', {}, {
                                     sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
@@ -262,18 +261,6 @@ helpers.rootLinuxNode(env, {
                 println "Not pushing docker"
             }
         }
-    }
-}
-
-def hasChanges(subdir) {
-    dir(subdir) {
-        def changes = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET)
-        println "Number of changes: " + changes.size()
-        if (changes.size() == 0) {
-            println "No ${subdir} changes, skipping tests."
-            return false
-        }
-        return true
     }
 }
 

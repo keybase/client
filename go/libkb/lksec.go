@@ -153,6 +153,7 @@ type LKSec struct {
 	secret     LKSecFullSecret
 	ppGen      PassphraseGeneration
 	uid        keybase1.UID
+	deviceID   keybase1.DeviceID
 	Contextified
 }
 
@@ -184,8 +185,13 @@ func (c LKSecClientHalf) ComputeMask(c2 LKSecClientHalf) LKSecMask {
 }
 
 func NewLKSec(pps *PassphraseStream, uid keybase1.UID, gc *GlobalContext) *LKSec {
+	return NewLKSecWithDeviceID(pps, uid, keybase1.DeviceID(""), gc)
+}
+
+func NewLKSecWithDeviceID(pps *PassphraseStream, uid keybase1.UID, deviceID keybase1.DeviceID, gc *GlobalContext) *LKSec {
 	res := &LKSec{
 		uid:          uid,
+		deviceID:     deviceID,
 		Contextified: NewContextified(gc),
 	}
 
@@ -300,7 +306,10 @@ func (s *LKSec) LoadServerHalf(m MetaContext) (err error) {
 func (s *LKSec) LoadServerDetails(m MetaContext) (ret DeviceKeyMap, err error) {
 	defer m.CTrace("LKSec#LoadServerDetails", func() error { return err })()
 
-	devid := m.G().Env.GetDeviceIDForUID(s.uid)
+	devid := s.deviceID
+	if devid.IsNil() {
+		devid = m.G().Env.GetDeviceIDForUID(s.uid)
+	}
 	if devid.IsNil() {
 		return ret, fmt.Errorf("lksec load: no device id set, thus can't fetch server half")
 	}

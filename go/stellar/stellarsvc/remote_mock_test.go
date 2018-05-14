@@ -2,6 +2,7 @@ package stellarsvc
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/xdr"
@@ -22,6 +24,7 @@ import (
 type txlogger struct {
 	transactions []stellar1.PaymentSummary
 	sync.Mutex
+	T testing.TB
 }
 
 func (t *txlogger) Add(tx stellar1.PaymentSummary) {
@@ -40,13 +43,35 @@ func (t *txlogger) Filter(accountID stellar1.AccountID, limit int) []stellar1.Pa
 			break
 		}
 
-		if tx.From == accountID {
-			res = append(res, tx)
-			continue
+		var addrs []stellar1.AccountID
+
+		typ, err := tx.Typ()
+		require.NoError(t.T, err)
+		switch typ {
+		case stellar1.PaymentSummaryType_STELLAR:
+			p := tx.Stellar()
+			addrs = append(addrs, []stellar1.AccountID{p.From, p.To}...)
+		case stellar1.PaymentSummaryType_DIRECT:
+			p := tx.Direct()
+			addrs = append(addrs, []stellar1.AccountID{p.FromStellar, p.ToStellar}...)
+		case stellar1.PaymentSummaryType_RELAY:
+			p := tx.Relay()
+			addrs = append(addrs, []stellar1.AccountID{p.FromStellar, p.RelayAccount}...)
+			if p.Claim != nil {
+				addrs = append(addrs, p.Claim.ToStellar)
+			}
+		default:
+			require.Fail(t.T, "unrecognized variant", "%v", typ)
 		}
-		if tx.To == accountID {
+
+		var found bool
+		for _, acc := range addrs {
+			if acc.Eq(accountID) {
+				found = true
+			}
+		}
+		if found {
 			res = append(res, tx)
-			continue
 		}
 	}
 
@@ -55,11 +80,25 @@ func (t *txlogger) Filter(accountID stellar1.AccountID, limit int) []stellar1.Pa
 
 func (t *txlogger) Find(txID string) *stellar1.PaymentSummary {
 	for _, tx := range t.transactions {
-		if tx.StellarTxID.String() == txID {
-			return &tx
-		}
-		if tx.Keybase != nil && tx.Keybase.KbTxID.String() == txID {
-			return &tx
+
+		typ, err := tx.Typ()
+		require.NoError(t.T, err)
+		switch typ {
+		case stellar1.PaymentSummaryType_STELLAR:
+			if tx.Stellar().TxID.String() == txID {
+				return &tx
+			}
+		case stellar1.PaymentSummaryType_DIRECT:
+			p := tx.Direct()
+			if p.TxID.String() == txID || p.KbTxID.String() == txID {
+				return &tx
+			}
+		case stellar1.PaymentSummaryType_RELAY:
+			if tx.Relay().TxID.String() == txID || tx.Relay().KbTxID.String() == txID {
+				return &tx
+			}
+		default:
+			require.Fail(t.T, "unrecognized variant", "%v", typ)
 		}
 	}
 	return nil
@@ -149,6 +188,7 @@ func (r *RemoteMock) SubmitPayment(ctx context.Context, post stellar1.PaymentDir
 	if err != nil {
 		return stellar1.PaymentResult{}, err
 	}
+	kbTxID := randomKeybaseTransactionID(r.t)
 
 	a, ok := r.accounts[txd.from]
 	if !ok {
@@ -169,28 +209,31 @@ func (r *RemoteMock) SubmitPayment(ctx context.Context, post stellar1.PaymentDir
 	}
 
 	result := stellar1.PaymentResult{
-		StellarID: "",
-		KeybaseID: "",
+		StellarID: txd.txID,
+		KeybaseID: kbTxID,
 	}
 
 	from, err := r.G().GetMeUV(ctx)
 	if err != nil {
 		return stellar1.PaymentResult{}, fmt.Errorf("could not get self UV: %v", err)
 	}
-	summary := stellar1.PaymentSummary{
-		Keybase: &stellar1.PaymentSummaryKeybase{
-			Status:          stellar1.TransactionStatus_SUCCESS,
-			From:            from,
-			FromDeviceID:    post.FromDeviceID,
-			To:              post.To,
-			DisplayAmount:   &post.DisplayAmount,
-			DisplayCurrency: &post.DisplayCurrency,
-		},
-		From:   txd.from,
-		To:     txd.to,
-		Amount: txd.amount,
-		Asset:  txd.asset,
-	}
+	summary := stellar1.NewPaymentSummaryWithDirect(stellar1.PaymentSummaryDirect{
+		KbTxID:          kbTxID,
+		TxID:            txd.txID,
+		TxStatus:        stellar1.TransactionStatus_SUCCESS,
+		FromStellar:     txd.from,
+		From:            from,
+		FromDeviceID:    post.FromDeviceID,
+		ToStellar:       txd.to,
+		To:              post.To,
+		Amount:          txd.amount,
+		Asset:           txd.asset,
+		DisplayAmount:   &post.DisplayAmount,
+		DisplayCurrency: &post.DisplayCurrency,
+		NoteB64:         post.NoteB64,
+		Ctime:           stellar1.ToTimeMs(time.Now()),
+		Rtime:           stellar1.ToTimeMs(time.Now()),
+	})
 	r.addTransaction(summary)
 
 	return result, nil
@@ -266,6 +309,7 @@ func (r *RemoteMock) SecretKey(t *testing.T, accountID stellar1.AccountID) stell
 
 type txDetailsT struct {
 	tx     xdr.Transaction
+	txID   stellar1.TransactionID
 	from   stellar1.AccountID
 	to     stellar1.AccountID
 	amount string
@@ -279,6 +323,11 @@ func txDetails(txEnvelopeB64 string) (res txDetailsT, err error) {
 		return res, fmt.Errorf("decoding tx: %v", err)
 	}
 	res.tx = tx.Tx
+	txID, err := stellarnet.HashTx(tx.Tx)
+	if err != nil {
+		return res, fmt.Errorf("error hashing tx: %v", err)
+	}
+	res.txID = stellar1.TransactionID(txID)
 	res.from = stellar1.AccountID(tx.Tx.SourceAccount.Address())
 	if len(tx.Tx.Operations) != 1 {
 		return res, fmt.Errorf("unexpected number of operations in tx %v != 1", len(tx.Tx.Operations))
@@ -333,4 +382,12 @@ func balanceXdrToProto(amountXdr xdr.Int64, assetXdr xdr.Asset) (amt string, ass
 	default:
 		return amt, asset, fmt.Errorf("unsupported asset type: %v", assetXdr.Type)
 	}
+}
+
+func randomKeybaseTransactionID(t testing.TB) stellar1.KeybaseTransactionID {
+	b, err := libkb.RandBytesWithSuffix(stellar1.KeybaseTransactionIDLen, stellar1.KeybaseTransactionIDSuffix)
+	require.NoError(t, err)
+	res, err := stellar1.KeybaseTransactionIDFromString(hex.EncodeToString(b))
+	require.NoError(t, err)
+	return res
 }

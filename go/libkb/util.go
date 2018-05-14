@@ -857,3 +857,9 @@ func NoiseXOR(secret [32]byte, noise NoiseBytes) ([]byte, error) {
 
 	return xor, nil
 }
+
+// ForceWallClock takes a multi-personality Go time and converts it to
+// a regular old WallClock time.
+func ForceWallClock(t time.Time) time.Time {
+	return t.Round(0)
+}

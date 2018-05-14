@@ -65,7 +65,9 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate']))
 
   const state: TypedState = yield Saga.select()
-  const {profile: {pgpInfo}} = state
+  const {
+    profile: {pgpInfo},
+  } = state
   const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(email => !!email).map(email => ({
     comment: '',
     email: email || '',

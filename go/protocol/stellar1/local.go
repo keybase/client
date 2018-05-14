@@ -8,8 +8,26 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type PaymentCLIOptionLocal struct {
+	Payment *PaymentCLILocal `codec:"payment,omitempty" json:"payment,omitempty"`
+	Err     string           `codec:"err" json:"err"`
+}
+
+func (o PaymentCLIOptionLocal) DeepCopy() PaymentCLIOptionLocal {
+	return PaymentCLIOptionLocal{
+		Payment: (func(x *PaymentCLILocal) *PaymentCLILocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Payment),
+		Err: o.Err,
+	}
+}
+
 type PaymentCLILocal struct {
-	StellarTxID     TransactionID `codec:"stellarTxID" json:"stellarTxID"`
+	TxID            TransactionID `codec:"txID" json:"txID"`
 	Time            TimeMs        `codec:"time" json:"time"`
 	Status          string        `codec:"status" json:"status"`
 	StatusDetail    string        `codec:"statusDetail" json:"statusDetail"`
@@ -18,7 +36,7 @@ type PaymentCLILocal struct {
 	DisplayAmount   *string       `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
 	DisplayCurrency *string       `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
 	FromStellar     AccountID     `codec:"fromStellar" json:"fromStellar"`
-	ToStellar       AccountID     `codec:"toStellar" json:"toStellar"`
+	ToStellar       *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
 	FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
 	ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
 	Note            string        `codec:"note" json:"note"`
@@ -27,7 +45,7 @@ type PaymentCLILocal struct {
 
 func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 	return PaymentCLILocal{
-		StellarTxID:  o.StellarTxID.DeepCopy(),
+		TxID:         o.TxID.DeepCopy(),
 		Time:         o.Time.DeepCopy(),
 		Status:       o.Status,
 		StatusDetail: o.StatusDetail,
@@ -48,7 +66,13 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 			return &tmp
 		})(o.DisplayCurrency),
 		FromStellar: o.FromStellar.DeepCopy(),
-		ToStellar:   o.ToStellar.DeepCopy(),
+		ToStellar: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ToStellar),
 		FromUsername: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -152,10 +176,18 @@ type ExchangeRateLocalArg struct {
 	Currency OutsideCurrencyCode `codec:"currency" json:"currency"`
 }
 
+type GetAvailableLocalCurrenciesArg struct {
+}
+
+type FormatLocalCurrencyStringArg struct {
+	Amount string              `codec:"amount" json:"amount"`
+	Code   OutsideCurrencyCode `codec:"code" json:"code"`
+}
+
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
-	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLILocal, error)
+	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLIOptionLocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
@@ -165,6 +197,8 @@ type LocalInterface interface {
 	ExportSecretKeyLocal(context.Context, AccountID) (SecretKey, error)
 	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
 	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
+	GetAvailableLocalCurrencies(context.Context) (map[OutsideCurrencyCode]OutsideCurrencyDefinition, error)
+	FormatLocalCurrencyString(context.Context, FormatLocalCurrencyStringArg) (string, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -348,6 +382,33 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getAvailableLocalCurrencies": {
+				MakeArg: func() interface{} {
+					ret := make([]GetAvailableLocalCurrenciesArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetAvailableLocalCurrencies(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"formatLocalCurrencyString": {
+				MakeArg: func() interface{} {
+					ret := make([]FormatLocalCurrencyStringArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FormatLocalCurrencyStringArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FormatLocalCurrencyStringArg)(nil), args)
+						return
+					}
+					ret, err = i.FormatLocalCurrencyString(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -367,7 +428,7 @@ func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res Pay
 	return
 }
 
-func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentCLILocal, err error) {
+func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentCLIOptionLocal, err error) {
 	__arg := RecentPaymentsCLILocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res)
 	return
@@ -419,5 +480,15 @@ func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCur
 func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency OutsideCurrencyCode) (res OutsideExchangeRate, err error) {
 	__arg := ExchangeRateLocalArg{Currency: currency}
 	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetAvailableLocalCurrencies(ctx context.Context) (res map[OutsideCurrencyCode]OutsideCurrencyDefinition, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getAvailableLocalCurrencies", []interface{}{GetAvailableLocalCurrenciesArg{}}, &res)
+	return
+}
+
+func (c LocalClient) FormatLocalCurrencyString(ctx context.Context, __arg FormatLocalCurrencyStringArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.formatLocalCurrencyString", []interface{}{__arg}, &res)
 	return
 }

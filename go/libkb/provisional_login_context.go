@@ -15,6 +15,7 @@ type ProvisionalLoginContext struct {
 	streamCache  *PassphraseStreamCache
 	localSession *Session
 	skbKeyring   *SKBKeyringFile
+	secretSyncer *SecretSyncer
 }
 
 var _ LoginContext = (*ProvisionalLoginContext)(nil)
@@ -23,6 +24,7 @@ func newProvisionalLoginContext(m MetaContext) *ProvisionalLoginContext {
 	return &ProvisionalLoginContext{
 		MetaContextified: NewMetaContextified(m),
 		localSession:     newSession(m.G()),
+		secretSyncer:     NewSecretSyncer(m.G()),
 	}
 }
 
@@ -91,7 +93,9 @@ func (p *ProvisionalLoginContext) LocalSession() *Session {
 }
 func (p *ProvisionalLoginContext) GetUID() keybase1.UID {
 	return p.uid
-
+}
+func (p *ProvisionalLoginContext) GetUsername() NormalizedUsername {
+	return p.username
 }
 func (p *ProvisionalLoginContext) EnsureUsername(username NormalizedUsername) {
 }
@@ -128,10 +132,10 @@ func (p *ProvisionalLoginContext) LockedLocalSecretKey(ska SecretKeyArg) (*SKB, 
 	return nil, plcErr("LockedLocalSecretKey")
 }
 func (p *ProvisionalLoginContext) SecretSyncer() *SecretSyncer {
-	return nil
+	return p.secretSyncer
 }
 func (p *ProvisionalLoginContext) RunSecretSyncer(uid keybase1.UID) error {
-	return plcErr("RunSecretSyncer")
+	return RunSyncer(p.secretSyncer, uid, (p.localSession != nil), p.localSession)
 }
 func (p *ProvisionalLoginContext) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
 	return plcErr("SetCachedSecretKey")

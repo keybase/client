@@ -119,7 +119,7 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note)
 }
 
-func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLILocal, err error) {
+func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "RecentPaymentsCLILocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
@@ -259,4 +259,40 @@ func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.Outsid
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, fmt.Sprintf("ExchangeRateLocal(%s)", string(currency)), func() error { return err })()
 	return remote.ExchangeRate(ctx, s.G(), string(currency))
+}
+
+func (s *Server) GetAvailableLocalCurrencies(ctx context.Context) (ret map[stellar1.OutsideCurrencyCode]stellar1.OutsideCurrencyDefinition, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetAvailableCurrencies", func() error { return err })()
+
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return ret, err
+	}
+
+	return conf.Currencies, nil
+}
+
+func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.FormatLocalCurrencyStringArg) (res string, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "FormatCurrencyString", func() error { return err })()
+
+	res = arg.Amount
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	currency, ok := conf.Currencies[arg.Code]
+	if !ok {
+		return res, fmt.Errorf("Could not find currency %q", arg.Code)
+	}
+
+	if currency.Symbol.Postfix {
+		res = fmt.Sprintf("%s %s", arg.Amount, currency.Symbol.Symbol)
+	} else {
+		res = fmt.Sprintf("%s%s", currency.Symbol.Symbol, arg.Amount)
+	}
+
+	return res, nil
 }

@@ -13,8 +13,9 @@ export type Props = {
   header?: MenuItem,
   onHidden: () => void,
   visible: boolean,
-  attachTo?: ?React.Component<*, *>,
+  attachTo?: ?React.Component<any, any>,
   position?: Position,
+  propagateOutsideClicks?: boolean,
 }
 
 export default (props: Props) => {
@@ -29,6 +30,7 @@ export default (props: Props) => {
       visible={props.visible}
       attachTo={props.attachTo}
       containerStyle={props.containerStyle}
+      propagateOutsideClicks={props.propagateOutsideClicks}
     >
       <PopupComponent
         header={props.header}
@@ -41,15 +43,15 @@ export default (props: Props) => {
 }
 
 export type FloatingMenuParentProps = {
-  attachmentRef: ?React.Component<*, *>,
+  attachmentRef: ?React.Component<any, any>,
   showingMenu: boolean,
-  setAttachmentRef: ?(?React.Component<*, *>) => void,
+  setAttachmentRef: ?(?React.Component<any, any>) => void,
   setShowingMenu: boolean => void,
   toggleShowingMenu: () => void,
 }
 
 type State = {|
-  attachmentRef: ?React.Component<*, *>,
+  attachmentRef: ?React.Component<any, any>,
   showingMenu: boolean,
 |}
 
@@ -58,7 +60,7 @@ type Callbacks = {|
   toggleShowingMenu: () => void,
   // WARNING: Only use setAttachmentRef on class components. Otherwise the ref will be
   // optimized out in production code!
-  setAttachmentRef: ?(?React.Component<*, *>) => void,
+  setAttachmentRef: ?(?React.Component<any, any>) => void,
 |}
 
 export const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(

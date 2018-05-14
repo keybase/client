@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -145,6 +146,6 @@ func ColorBytes(g *libkb.GlobalContext, which string, text []byte) []byte {
 	}
 }
 
-func ColorString(g *libkb.GlobalContext, which, text string) string {
-	return string(ColorBytes(g, which, []byte(text)))
+func ColorString(g *libkb.GlobalContext, which, format string, args ...interface{}) string {
+	return string(ColorBytes(g, which, []byte(fmt.Sprintf(format, args...))))
 }

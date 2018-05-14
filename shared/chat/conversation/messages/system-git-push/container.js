@@ -15,4 +15,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default connect((): * => ({}), mapDispatchToProps)(Git)
+export default connect(() => ({}), mapDispatchToProps)(Git)

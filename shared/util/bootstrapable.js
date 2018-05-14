@@ -6,7 +6,7 @@ import {globalStyles} from '../styles'
 export type BootstrapableProp<P: Object> =
   | {
       bootstrapDone: false,
-      onBootstrap: () => *,
+      onBootstrap: () => any,
     }
   | {
       bootstrapDone: true,

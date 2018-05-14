@@ -54,7 +54,7 @@ func (s *baseConversationSource) Sign(payload []byte) ([]byte, error) {
 // DeleteAssets implements github.com/keybase/go/chat/storage/storage.AssetDeleter interface.
 func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, assets []chat1.Asset) {
-	defer s.Trace(ctx, func() error { return nil }, "DeleteAssets", assets)()
+	defer s.Trace(ctx, func() error { return nil }, "DeleteAssets: %v", assets)()
 
 	if len(assets) == 0 {
 		return
@@ -281,7 +281,8 @@ func (s *RemoteConversationSource) Expunge(ctx context.Context,
 }
 
 func (s *RemoteConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID) {
+	convID chat1.ConversationID, msgID chat1.MessageID) bool {
+	return false
 }
 
 var errConvLockTabDeadlock = errors.New("timeout reading thread")
@@ -835,6 +836,21 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		}
 	}()
 
+	// Fetch the inbox max message ID as well to compare against the local stored max messages
+	// if the caller is ok with receiving placeholders
+	var iboxMaxMsgID chat1.MessageID
+	if maxPlaceholders > 0 {
+		iboxRes, err := storage.NewInbox(s.G(), uid).GetConversation(ctx, convID)
+		if err != nil {
+			s.Debug(ctx, "PullLocalOnly: failed to read inbox for conv, not using: %s", err)
+		} else if iboxRes.Conv.ReaderInfo == nil {
+			s.Debug(ctx, "PullLocalOnly: no reader infoconv returned for conv, not using")
+		} else {
+			iboxMaxMsgID = iboxRes.Conv.ReaderInfo.MaxMsgid
+			s.Debug(ctx, "PullLocalOnly: found ibox max msgid: %d", iboxMaxMsgID)
+		}
+	}
+
 	// A number < 0 means it will fetch until it hits the end of the local copy. Our special
 	// result collector will suppress any miss errors
 	num := -1
@@ -842,7 +858,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		num = pagination.Num
 	}
 	rc := storage.NewHoleyResultCollector(maxPlaceholders, newPullLocalResultCollector(num))
-	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, rc, query, pagination)
+	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, rc, iboxMaxMsgID, query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err
@@ -1041,8 +1057,10 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	return nil
 }
 
+// ClearFromDelete clears the current cache if there is a delete that we don't know about
+// and returns true to the caller if it schedule a background loader job
 func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, deleteID chat1.MessageID) {
+	convID chat1.ConversationID, deleteID chat1.MessageID) bool {
 	defer s.Trace(ctx, func() error { return nil }, "ClearFromDelete")()
 
 	// Check to see if we have the message stored
@@ -1050,7 +1068,7 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	if err == nil && stored[0] != nil {
 		// Any error is grounds to load this guy into the conv loader aggressively
 		s.Debug(ctx, "ClearFromDelete: delete message stored, doing nothing")
-		return
+		return false
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
@@ -1058,11 +1076,15 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	p := &chat1.Pagination{Num: s.numExpungeReload}
 	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+			if len(tv.Messages) == 0 {
+				return
+			}
 			bound := tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID())
 			if err := s.storage.ClearBefore(ctx, convID, uid, bound); err != nil {
 				s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
 			}
 		}))
+	return true
 }
 
 func NewConversationSource(g *globals.Context, typ string, boxer *Boxer, storage *storage.Storage,
