@@ -55,6 +55,7 @@ type AttachmentHTTPSrv struct {
 	utils.DebugLabeler
 
 	endpoint string
+	serveMux *http.ServeMux
 	httpSrv  *libkb.HTTPSrv
 	urlMap   *lru.Cache
 	fetcher  types.AttachmentFetcher
@@ -71,12 +72,14 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	r := &AttachmentHTTPSrv{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
+		serveMux:     http.NewServeMux(),
 		httpSrv:      libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(16423, 18000)),
 		endpoint:     "at",
 		ri:           ri,
 		urlMap:       l,
 		fetcher:      fetcher,
 	}
+	r.serveMux.HandleFunc("/"+r.endpoint, r.serve)
 	r.startHTTPSrv()
 	g.PushShutdownHook(func() error {
 		r.httpSrv.Stop()
@@ -103,11 +106,10 @@ func (r *AttachmentHTTPSrv) monitorAppState() {
 }
 
 func (r *AttachmentHTTPSrv) startHTTPSrv() {
-	if err := r.httpSrv.Start(); err != nil {
+	if _, err := r.httpSrv.EnsureActive(r.serveMux); err != nil {
 		r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %", err)
 		return
 	}
-	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {

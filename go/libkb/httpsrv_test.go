@@ -15,10 +15,12 @@ func TestHTTPSrv(t *testing.T) {
 
 	test := func(s HTTPSrvListenerSource) {
 		srv := NewHTTPSrv(tc.G, s)
-		require.NoError(t, srv.Start())
-		srv.HandleFunc("/test", func(resp http.ResponseWriter, req *http.Request) {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/test", func(resp http.ResponseWriter, req *http.Request) {
 			fmt.Fprintf(resp, "success")
 		})
+		_, err := srv.EnsureActive(mux)
+		require.NoError(t, err)
 		addr, err := srv.Addr()
 		require.NoError(t, err)
 		url := fmt.Sprintf("http://%s/test", addr)
