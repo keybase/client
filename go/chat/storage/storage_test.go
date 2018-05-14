@@ -328,9 +328,27 @@ func TestStorageLargeList(t *testing.T) {
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
-	for i := 0; i < len(res.Messages); i++ {
-		require.Equal(t, msgs[i].GetMessageID(), res.Messages[i].GetMessageID(), "msg mismatch")
-	}
+	require.Equal(t, utils.PluckMUMessageIDs(msgs), utils.PluckMUMessageIDs(res.Messages))
+
+}
+
+func TestStorageBlockBoundary(t *testing.T) {
+	_, storage, uid := setupStorageTest(t, "block boundary")
+	msgs := makeMsgRange(blockSize - 1)
+	conv := makeConversation(msgs[0].GetMessageID())
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
+	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
+	require.Equal(t, utils.PluckMUMessageIDs(msgs), utils.PluckMUMessageIDs(res.Messages))
+	appendMsg := makeText(chat1.MessageID(blockSize), "COMBOBREAKER")
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, []chat1.MessageUnboxed{appendMsg})
+	conv.ReaderInfo.MaxMsgid = chat1.MessageID(blockSize)
+	res, err = storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
+	msgs = append([]chat1.MessageUnboxed{appendMsg}, msgs...)
+	require.NoError(t, err)
+	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
+	require.Equal(t, utils.PluckMUMessageIDs(msgs), utils.PluckMUMessageIDs(res.Messages))
 }
 
 func TestStorageSupersedes(t *testing.T) {
