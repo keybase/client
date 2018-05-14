@@ -54,10 +54,6 @@ func (c *cmdUploadAvatar) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *cmdUploadAvatar) Run() error {
-
-	// arg := keybase1.UploadUserAvatarArg{
-	// 	Filename: c.filename,
-	// }
 	if c.teamname != "" {
 		cli, err := GetTeamsClient(c.G())
 		if err != nil {
