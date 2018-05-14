@@ -78,14 +78,23 @@ func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
 			NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to get server versions: %s", serr.Error())
 	}
 
-	return blockIndex{
+	bi = blockIndex{
 		Version:       blockIndexVersion,
 		ServerVersion: srvVers.BodiesVers,
 		ConvID:        convID,
 		UID:           uid,
 		MaxBlock:      -1,
 		BlockSize:     blockSize,
-	}, nil
+	}
+
+	dat, ierr := encode(bi)
+	if ierr != nil {
+		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to encode %s", ierr)
+	}
+	if ierr = be.G().LocalChatDb.PutRaw(key, dat); ierr != nil {
+		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to write: %s", ierr)
+	}
+	return bi, nil
 }
 
 func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (blockIndex, Error) {
