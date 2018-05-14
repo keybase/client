@@ -54,7 +54,7 @@ const ChannelHeader = (props: Props) => (
     </Box>
     <Icon
       type="iconfont-info"
-      style={collapseStyles([styles.left, {flexShrink: 0, padding: globalMargins.tiny}])}
+      style={collapseStyles([styles.left, styles.right, {flexShrink: 0, padding: globalMargins.tiny}])}
       fontSize={21}
       onClick={props.onToggleInfoPanel}
     />
@@ -94,7 +94,7 @@ const UsernameHeader = (props: Props) => (
     {props.canOpenInfoPanel && (
       <Icon
         type="iconfont-info"
-        style={collapseStyles([styles.left, {flexShrink: 0, padding: globalMargins.tiny}])}
+        style={collapseStyles([styles.left, styles.right, {flexShrink: 0, padding: globalMargins.tiny}])}
         fontSize={21}
         onClick={props.onToggleInfoPanel}
       />
@@ -118,6 +118,9 @@ const styles = styleSheetCreate({
   },
   left: {
     marginLeft: globalMargins.xtiny,
+  },
+  right: {
+    marginRight: globalMargins.xtiny,
   },
 })
 const shhIconColor = globalColors.black_20
