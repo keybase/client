@@ -392,9 +392,6 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 			err = res.Error(err)
 		}
 	}()
-	if maxID == 0 {
-		return nil
-	}
 
 	// Get block index
 	bi, err := be.fetchBlockIndex(ctx, convID, uid)
@@ -450,7 +447,7 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 	}
 
 	// Check if we read anything, otherwise move to another block and try again
-	if !res.Done() && b.BlockID > 0 {
+	if !res.Done() && b.BlockID > 1 {
 		return be.ReadMessages(ctx, res, convID, uid, lastAdded-1)
 	}
 	return nil
