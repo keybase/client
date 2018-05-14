@@ -94,4 +94,20 @@ protocol common {
     string rate; // Example: "0.9389014463" = PLN / XLM
   }
 
+  record CurrencySymbol {
+    @jsonkey("str")
+    string symbol; // Example: "$"
+    boolean ambigious; // whether the symbol is used by multiple currencies
+    boolean postfix; // whether symbol goes after the number
+  }
+
+  record OutsideCurrencyDefinition {
+    string name; // Example: "US Dollar"
+    CurrencySymbol symbol;
+  }
+
+  record StellarServerDefinitions {
+    int revision;
+    map<OutsideCurrencyCode, OutsideCurrencyDefinition> currencies;
+  }
 }

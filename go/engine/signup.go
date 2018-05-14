@@ -258,19 +258,7 @@ func (s *SignupEngine) storeSecret(m libkb.MetaContext) (err error) {
 		return nil
 	}
 
-	secretStore := libkb.NewSecretStore(m.G(), s.me.GetNormalizedName())
-	if secretStore == nil {
-		m.CDebugf("not storing secret; no secret store available")
-		return nil
-	}
-
-	secret, err := s.lks.GetSecret(m)
-	if err != nil {
-		return err
-	}
-
-	// Ignore any errors storing the secret.
-	w := secretStore.StoreSecret(secret)
+	w := libkb.StoreSecretAfterLoginWithLKS(m, s.me.GetNormalizedName(), s.lks)
 	if w != nil {
 		m.CWarningf("StoreSecret error: %s", w)
 	}

@@ -1633,6 +1633,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "GetThreadNonblockPgMode",
+      "symbols": [
+        "DEFAULT_0",
+        "SERVER_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "GetInboxLocalRes",
       "fields": [
@@ -2378,6 +2386,10 @@
         {
           "name": "reason",
           "type": "GetThreadNonblockReason"
+        },
+        {
+          "name": "pgmode",
+          "type": "GetThreadNonblockPgMode"
         },
         {
           "name": "query",

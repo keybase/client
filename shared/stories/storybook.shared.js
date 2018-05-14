@@ -28,10 +28,10 @@ const createPropProvider = (map: SelectorMap) => (story: () => React.Node) => (
 )
 
 class StorybookErrorBoundary extends React.Component<
-  *,
+  any,
   {hasError: boolean, error: ?Error, info: ?{componentStack: string}}
 > {
-  constructor(props: *) {
+  constructor(props: any) {
     super(props)
     this.state = {hasError: false, error: null, info: null}
   }

@@ -456,6 +456,10 @@ func (f failingUpak) LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid ke
 	require.Fail(f.t, "LoadV2WithKID call")
 	return nil, nil
 }
+func (f failingUpak) CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n libkb.NormalizedUsername) error {
+	require.Fail(f.t, "CheckDeviceForUIDAndUsername call")
+	return nil
+}
 
 func TestGetThreadCaching(t *testing.T) {
 	ctx, world, ri, _, sender, _ := setupTest(t, 1)

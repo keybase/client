@@ -12,7 +12,7 @@ type Props = {
   users: I.Set<string>,
 }
 
-const mapStateToProps = (state: TypedState): * => {
+const mapStateToProps = (state: TypedState) => {
   const users = state.chat2.pendingConversationUsers
   const _you = state.config.username
 

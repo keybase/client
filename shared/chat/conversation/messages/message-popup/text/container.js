@@ -12,7 +12,7 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Text from '.'
 
 type OwnProps = {
-  attachTo: ?Component<*, *>,
+  attachTo: ?Component<any, any>,
   message: Types.MessageText,
   onHidden: () => void,
   position: Position,

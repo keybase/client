@@ -70,12 +70,12 @@ type RenderRouteNodeProps<S> = {
 
 // Helper to render a component based on route state and use
 // shouldComponentUpdate (via PureComponent).
-class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<*>, *> {
+class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<any>, any> {
   _setRouteState = partialState => this.props.setRouteState(this.props.path, partialState)
   _navigateUp = () => putActionIfOnPath(this.props.path, navigateUp())
   _navigateAppend = (...args) => putActionIfOnPath(this.props.path, navigateAppend(...args))
 
-  static defaultProps: *
+  static defaultProps: any
   render() {
     const {shouldRender, isContainer, routeDef, routeState, path, leafTags, stack, children} = this.props
     const RouteComponent: any = isContainer ? routeDef.containerComponent : routeDef.component
@@ -115,7 +115,7 @@ function renderRouteStack({
   routeState,
   setRouteState,
   path,
-}: _RenderRouteProps<*>): RouteRenderStack {
+}: _RenderRouteProps<any>): RouteRenderStack {
   if (!routeDef) {
     throw new Error(`Undefined route: ${pathToString(path)}`)
   } else if (!routeState) {
@@ -206,8 +206,8 @@ type RenderRouteProps<S> = {
   setRouteState: (partialState: $Shape<S>) => void,
 }
 
-export default class RenderRoute extends React.PureComponent<RenderRouteProps<*>, *> {
-  static defaultProps: *
+export default class RenderRoute extends React.PureComponent<RenderRouteProps<any>, any> {
+  static defaultProps: any
   render() {
     // renderRouteStack gives us a stack of all views down the current route path.
     // This component renders the bottom (currently visible) one.

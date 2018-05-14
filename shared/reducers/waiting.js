@@ -9,14 +9,18 @@ function reducer(state: Types.State = Constants.initialState, action: Waiting.Ac
       return Constants.initialState
     }
     case Waiting.decrementWaiting: {
-      const {payload: {key}} = action
+      const {
+        payload: {key},
+      } = action
       const keys = typeof key === 'string' ? [key] : key
       return state.withMutations(st => {
         keys.forEach(k => st.update(k, 1, n => n - 1))
       })
     }
     case Waiting.incrementWaiting: {
-      const {payload: {key}} = action
+      const {
+        payload: {key},
+      } = action
       const keys = typeof key === 'string' ? [key] : key
       return state.withMutations(st => {
         keys.forEach(k => st.update(k, 0, n => n + 1))

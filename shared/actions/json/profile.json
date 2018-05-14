@@ -1,6 +1,7 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/profile'"
+    "import * as Types from '../constants/types/profile'",
+    "import * as More from '../constants/types/more'"
   ],
   "actions": {
     "addProof": {
