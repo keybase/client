@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box2, Icon, Text, ConnectedUsernames} from '../../common-adapters'
+import {Avatar, Box2, Icon, ConnectedUsernames} from '../../common-adapters'
+import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 // TODO: Format relative dates.
 import {formatTimeForPopup} from '../../util/timestamp'
@@ -32,6 +33,20 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
   }
 }
 
+type StellarPublicKeyProps = {|
+  publicKey: string,
+  textType: TextType,
+|}
+
+const StellarPublicKey = (props: StellarPublicKeyProps) => {
+  const key = props.publicKey
+  return (
+    <Text type={props.textType} title={key}>
+      {key.substr(0, 6) + '...' + key.substr(-5)}
+    </Text>
+  )
+}
+
 type DetailProps = {|
   large: boolean,
   yourRole: Role,
@@ -58,11 +73,7 @@ const Detail = (props: DetailProps) => {
       )
       break
     case 'stellarPublicKey':
-      counterparty = (
-        <Text type={textType} title={props.counterparty}>
-          {props.counterparty.substr(0, 6) + '...' + props.counterparty.substr(-5)}
-        </Text>
-      )
+      counterparty = <StellarPublicKey publicKey={props.counterparty} textType={textType} />
       break
     case 'wallet':
       counterparty = props.large ? (
