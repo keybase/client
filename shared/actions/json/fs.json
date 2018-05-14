@@ -115,8 +115,8 @@
       "targetRect": "?ClientRect",
       "routePath": "I.List<string>"
     },
-    "getResetMetadata": {},
-    "resetMetadataResult": {
+    "loadResets": {},
+    "loadResetsResult": {
       "tlfs": "Array<Types.ResetMetadata>"
     },
 

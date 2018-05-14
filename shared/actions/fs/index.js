@@ -307,7 +307,6 @@ function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenera
   )
 }
 
-<<<<<<< HEAD
 function loadMimeType(action: FsGen.MimeTypeLoadPayload, state: TypedState) {
   const {path} = action.payload
   const {address, token} = state.fs.localHTTPServerInfo
@@ -323,8 +322,6 @@ const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload)
     })
   )
 
-||||||| merged common ancestors
-=======
 const inboxQuery = {
   computeActiveList: false,
   readOnly: false,
@@ -336,7 +333,7 @@ const inboxQuery = {
   unreadOnly: false,
 }
 
-function* getResetMetadata(action: FsGen.GetResetMetadataPayload): Saga.SagaGenerator<any, any> {
+function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, any> {
   // TODO: maybe uncomment?
   // const conversations = yield Saga.call(
   //   RpcChatTypes.localFindConversationsLocalRpcPromise,
@@ -368,7 +365,7 @@ function* getResetMetadata(action: FsGen.GetResetMetadataPayload): Saga.SagaGene
             })
           return filtered
         }, [])
-        yield Saga.put(FsGen.createResetMetadataResult({tlfs}))
+        yield Saga.put(FsGen.createLoadResetsResult({tlfs}))
         return EngineRpc.rpcResult()
       },
     },
@@ -386,7 +383,6 @@ function* getResetMetadata(action: FsGen.GetResetMetadataPayload): Saga.SagaGene
   yield Saga.call(untrustedInboxRpc.run)
 }
 
->>>>>>> fs: implement basic reset retrieval action
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -399,12 +395,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
-<<<<<<< HEAD
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType, loadMimeTypeResult)
-||||||| merged common ancestors
-=======
-  yield Saga.safeTakeEvery(FsGen.getResetMetadata, getResetMetadata)
->>>>>>> fs: implement basic reset retrieval action
+  yield Saga.safeTakeEvery(FsGen.loadResets, loadResets)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

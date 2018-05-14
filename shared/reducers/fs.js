@@ -142,6 +142,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['pathItems', action.payload.path],
         pathItem => (pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem)
       )
+    case FsGen.loadResetsResult:
+      // TODO: fill in
+      return state
     case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
     case FsGen.download:
@@ -158,7 +161,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:
-    case FsGen.getResetMetadata:
+    case FsGen.loadResets:
       return state
     default:
       /*::

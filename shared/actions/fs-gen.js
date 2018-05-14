@@ -25,10 +25,11 @@ export const folderListLoaded = 'fs:folderListLoaded'
 export const fsActivity = 'fs:fsActivity'
 export const fuseStatus = 'fs:fuseStatus'
 export const fuseStatusResult = 'fs:fuseStatusResult'
-export const getResetMetadata = 'fs:getResetMetadata'
 export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
+export const loadResets = 'fs:loadResets'
+export const loadResetsResult = 'fs:loadResetsResult'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
@@ -36,7 +37,6 @@ export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
-export const resetMetadataResult = 'fs:resetMetadataResult'
 export const save = 'fs:save'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
@@ -94,10 +94,11 @@ type _FuseStatusResultPayload = $ReadOnly<{|
   prevStatus: ?RPCTypes.FuseStatus,
   status: RPCTypes.FuseStatus,
 |}>
-type _GetResetMetadataPayload = void
 type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
+type _LoadResetsPayload = void
+type _LoadResetsResultPayload = $ReadOnly<{|tlfs: Array<Types.ResetMetadata>|}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
@@ -114,7 +115,6 @@ type _OpenFinderPopupPayload = $ReadOnly<{|
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenSecurityPreferencesPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
-type _ResetMetadataResultPayload = $ReadOnly<{|tlfs: Array<Types.ResetMetadata>|}>
 type _SavePayload = $ReadOnly<{|
   path: Types.Path,
   routePath: I.List<string>,
@@ -163,10 +163,11 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({e
 export const createFsActivity = (payload: _FsActivityPayload) => ({error: false, payload, type: fsActivity})
 export const createFuseStatus = (payload: _FuseStatusPayload) => ({error: false, payload, type: fuseStatus})
 export const createFuseStatusResult = (payload: _FuseStatusResultPayload) => ({error: false, payload, type: fuseStatusResult})
-export const createGetResetMetadata = (payload: _GetResetMetadataPayload) => ({error: false, payload, type: getResetMetadata})
 export const createInstallFuse = (payload: _InstallFusePayload) => ({error: false, payload, type: installFuse})
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
+export const createLoadResets = (payload: _LoadResetsPayload) => ({error: false, payload, type: loadResets})
+export const createLoadResetsResult = (payload: _LoadResetsResultPayload) => ({error: false, payload, type: loadResetsResult})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
 export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: false, payload, type: mimeTypeLoad})
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
@@ -174,7 +175,6 @@ export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({err
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({error: false, payload, type: refreshLocalHTTPServerInfo})
-export const createResetMetadataResult = (payload: _ResetMetadataResultPayload) => ({error: false, payload, type: resetMetadataResult})
 export const createSave = (payload: _SavePayload) => ({error: false, payload, type: save})
 export const createSetFlags = (payload: _SetFlagsPayload) => ({error: false, payload, type: setFlags})
 export const createSetupFSHandlers = (payload: _SetupFSHandlersPayload) => ({error: false, payload, type: setupFSHandlers})
@@ -202,10 +202,11 @@ export type FolderListLoadedPayload = $Call<typeof createFolderListLoaded, _Fold
 export type FsActivityPayload = $Call<typeof createFsActivity, _FsActivityPayload>
 export type FuseStatusPayload = $Call<typeof createFuseStatus, _FuseStatusPayload>
 export type FuseStatusResultPayload = $Call<typeof createFuseStatusResult, _FuseStatusResultPayload>
-export type GetResetMetadataPayload = $Call<typeof createGetResetMetadata, _GetResetMetadataPayload>
 export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePayload>
 export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
+export type LoadResetsPayload = $Call<typeof createLoadResets, _LoadResetsPayload>
+export type LoadResetsResultPayload = $Call<typeof createLoadResetsResult, _LoadResetsResultPayload>
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
 export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
 export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
@@ -213,7 +214,6 @@ export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFi
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
 export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
-export type ResetMetadataResultPayload = $Call<typeof createResetMetadataResult, _ResetMetadataResultPayload>
 export type SavePayload = $Call<typeof createSave, _SavePayload>
 export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
 export type SetupFSHandlersPayload = $Call<typeof createSetupFSHandlers, _SetupFSHandlersPayload>
@@ -243,10 +243,11 @@ export type Actions =
   | FsActivityPayload
   | FuseStatusPayload
   | FuseStatusResultPayload
-  | GetResetMetadataPayload
   | InstallFusePayload
   | InstallFuseResultPayload
   | InstallKBFSPayload
+  | LoadResetsPayload
+  | LoadResetsResultPayload
   | LocalHTTPServerInfoPayload
   | MimeTypeLoadPayload
   | MimeTypeLoadedPayload
@@ -254,7 +255,6 @@ export type Actions =
   | OpenInFileUIPayload
   | OpenSecurityPreferencesPayload
   | RefreshLocalHTTPServerInfoPayload
-  | ResetMetadataResultPayload
   | SavePayload
   | SetFlagsPayload
   | SetupFSHandlersPayload
