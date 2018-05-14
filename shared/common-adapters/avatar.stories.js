@@ -6,7 +6,7 @@ import Box from './box'
 import {globalStyles} from '../styles'
 import {storiesOf, action} from '../stories/storybook'
 
-const sizes = [176, 112, 80, 64, 48, 32, 16]
+const sizes = [128, 96, 64, 48, 32, 16]
 
 const load = () => {
   storiesOf('Common', module).add('Avatar', () =>
