@@ -66,7 +66,7 @@ export default class TrackerRender extends PureComponent<Props> {
           <UserBio
             type="Tracker"
             style={{marginTop: 50}}
-            avatarSize={80}
+            avatarSize={96}
             loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}

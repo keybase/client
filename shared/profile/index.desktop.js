@@ -31,7 +31,7 @@ import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
 
-export const AVATAR_SIZE = 112
+export const AVATAR_SIZE = 128
 const HEADER_TOP_SPACE = 48
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 const BACK_ZINDEX = 12
@@ -57,7 +57,7 @@ const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShow
 )
 
 const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
-  <Box onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
+  <ClickableBox onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
     <Box style={styleShowcasedTeamAvatar}>
       <Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
     </Box>
@@ -66,7 +66,7 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
         Publish the teams you're in
       </Text>
     </Box>
-  </Box>
+  </ClickableBox>
 )
 
 const _ShowcasedTeamRow = (
@@ -615,7 +615,6 @@ const styleSearchText = {
 const styleShowcasedTeamContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  cursor: 'pointer',
   justifyContent: 'flex-start',
   minHeight: 32,
   marginTop: globalMargins.xtiny,

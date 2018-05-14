@@ -207,7 +207,7 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
   }
   // default
   return {
-    iconSize: isUser ? 80 : 64,
+    iconSize: isUser ? 96 : 64,
     metaMargin: isMobile ? 6 : 8,
     metaOneType: isUser ? 'BodySemibold' : 'BodySmall',
     titleType: 'HeaderBig',
