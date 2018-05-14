@@ -603,7 +603,9 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	if arg.Reason == chat1.GetThreadNonblockReason_PUSH {
 		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
 		// to reset any delay checks or timers
-		if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
+		switch h.G().AppState.State() {
+		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
+		default:
 			h.G().Syncer.Disconnected(ctx)
 		}
 		h.G().AppState.Update(keybase1.AppState_FOREGROUND)
