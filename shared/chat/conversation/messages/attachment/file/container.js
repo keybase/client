@@ -29,13 +29,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const message = ownProps.message
   const arrowColor = message.downloadPath
     ? globalColors.green
-    : message.transferState === 'downloading' ? globalColors.blue : ''
+    : message.transferState === 'downloading'
+      ? globalColors.blue
+      : ''
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
       : message.transferState === 'uploading'
         ? 'Encrypting'
-        : message.transferState === 'remoteUploading' ? 'waiting...' : ''
+        : message.transferState === 'remoteUploading'
+          ? 'waiting...'
+          : ''
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,

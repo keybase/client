@@ -10,7 +10,9 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
     : `Since you're out of invites, ${name} will need to request a signup on Keybase.io. Encourage them to join.`
   const icon = inviteLink
     ? 'icon-invite-link-negative-48'
-    : isPrivate ? 'icon-folder-private-success-negative-48' : 'icon-folder-public-success-negative-48'
+    : isPrivate
+      ? 'icon-folder-private-success-negative-48'
+      : 'icon-folder-public-success-negative-48'
 
   let textRef
   return (

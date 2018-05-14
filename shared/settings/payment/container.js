@@ -69,7 +69,9 @@ class PaymentStateHolder extends Component<Props, State> {
 
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
-    const {planBilling: {plan, errorMessage}} = state
+    const {
+      planBilling: {plan, errorMessage},
+    } = state
     if (!plan) {
       return {
         bootstrapDone: false,

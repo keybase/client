@@ -32,7 +32,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-const mergeProps = stateProps => {
+const mergeProps = (stateProps, dispatchProps, {routePath}) => {
   const itemNames = stateProps._itemChildren.union(stateProps._itemFavoriteChildren)
   const pathItems = itemNames.map(name => {
     return (
@@ -46,6 +46,7 @@ const mergeProps = stateProps => {
     .map(({name}) => Types.pathConcat(stateProps.path, name))
     .toArray()
   return {
+    routePath,
     items,
     progress: stateProps.progress,
     path: stateProps.path,
@@ -61,7 +62,8 @@ const FilesLoadingHoc = compose(
     loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
     loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
   })),
-  mapProps(({routeProps, loadFolderList, loadFavorites}) => ({
+  mapProps(({routePath, routeProps, loadFolderList, loadFavorites}) => ({
+    routePath,
     path: routeProps.get('path', Constants.defaultPath),
     loadFolderList,
     loadFavorites,

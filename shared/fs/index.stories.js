@@ -94,6 +94,7 @@ const load = () => {
       <Files
         path={Types.stringToPath('/keybase')}
         progress="loaded"
+        routePath={I.List([])}
         items={[
           Types.stringToPath('/keybase/private'),
           Types.stringToPath('/keybase/public'),
@@ -101,7 +102,9 @@ const load = () => {
         ]}
       />
     ))
-    .add('Preview', () => <NormalPreview routeProps={I.Map({path: '/keybase/private/foo/bar.jpb'})} />)
+    .add('Preview', () => (
+      <NormalPreview routePath={I.List([])} routeProps={I.Map({path: '/keybase/private/foo/bar.jpb'})} />
+    ))
 }
 
 export default load

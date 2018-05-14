@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Types from '../constants/types/push'
 
 // Constants
@@ -23,60 +22,71 @@ export const savePushToken = 'push:savePushToken'
 export const setHasPermissions = 'push:setHasPermissions'
 export const updatePushToken = 'push:updatePushToken'
 
+// Payload Types
+type _CheckIOSPushPayload = void
+type _ConfigurePushPayload = void
+type _ErrorPayload = $ReadOnly<{|error: Error|}>
+type _NotificationPayload = $ReadOnly<{|notification: Types.PushNotification|}>
+type _PermissionsNoPayload = void
+type _PermissionsPromptPayload = $ReadOnly<{|prompt: boolean|}>
+type _PermissionsRequestPayload = void
+type _PermissionsRequestingPayload = $ReadOnly<{|requesting: boolean|}>
+type _PushTokenPayload = $ReadOnly<{|
+  token: string,
+  tokenType: Types.TokenType,
+|}>
+type _RegistrationErrorPayload = $ReadOnly<{|error: Error|}>
+type _SavePushTokenPayload = void
+type _SetHasPermissionsPayload = $ReadOnly<{|hasPermissions: boolean|}>
+type _UpdatePushTokenPayload = $ReadOnly<{|
+  token: string,
+  tokenType: Types.TokenType,
+|}>
+
 // Action Creators
-export const createCheckIOSPush = () => ({error: false, payload: undefined, type: checkIOSPush})
-export const createConfigurePush = () => ({error: false, payload: undefined, type: configurePush})
-export const createError = (payload: $ReadOnly<{|error: Error|}>) => ({error: false, payload, type: error})
-export const createNotification = (payload: $ReadOnly<{|notification: Types.PushNotification|}>) => ({error: false, payload, type: notification})
-export const createPermissionsNo = () => ({error: false, payload: undefined, type: permissionsNo})
-export const createPermissionsPrompt = (payload: $ReadOnly<{|prompt: boolean|}>) => ({error: false, payload, type: permissionsPrompt})
-export const createPermissionsRequest = () => ({error: false, payload: undefined, type: permissionsRequest})
-export const createPermissionsRequesting = (payload: $ReadOnly<{|requesting: boolean|}>) => ({error: false, payload, type: permissionsRequesting})
-export const createPushToken = (
-  payload: $ReadOnly<{|
-    token: string,
-    tokenType: Types.TokenType,
-  |}>
-) => ({error: false, payload, type: pushToken})
-export const createRegistrationError = (payload: $ReadOnly<{|error: Error|}>) => ({error: false, payload, type: registrationError})
-export const createSavePushToken = () => ({error: false, payload: undefined, type: savePushToken})
-export const createSetHasPermissions = (payload: $ReadOnly<{|hasPermissions: boolean|}>) => ({error: false, payload, type: setHasPermissions})
-export const createUpdatePushToken = (
-  payload: $ReadOnly<{|
-    token: string,
-    tokenType: Types.TokenType,
-  |}>
-) => ({error: false, payload, type: updatePushToken})
+export const createCheckIOSPush = (payload: _CheckIOSPushPayload) => ({error: false, payload, type: checkIOSPush})
+export const createConfigurePush = (payload: _ConfigurePushPayload) => ({error: false, payload, type: configurePush})
+export const createError = (payload: _ErrorPayload) => ({error: false, payload, type: error})
+export const createNotification = (payload: _NotificationPayload) => ({error: false, payload, type: notification})
+export const createPermissionsNo = (payload: _PermissionsNoPayload) => ({error: false, payload, type: permissionsNo})
+export const createPermissionsPrompt = (payload: _PermissionsPromptPayload) => ({error: false, payload, type: permissionsPrompt})
+export const createPermissionsRequest = (payload: _PermissionsRequestPayload) => ({error: false, payload, type: permissionsRequest})
+export const createPermissionsRequesting = (payload: _PermissionsRequestingPayload) => ({error: false, payload, type: permissionsRequesting})
+export const createPushToken = (payload: _PushTokenPayload) => ({error: false, payload, type: pushToken})
+export const createRegistrationError = (payload: _RegistrationErrorPayload) => ({error: false, payload, type: registrationError})
+export const createSavePushToken = (payload: _SavePushTokenPayload) => ({error: false, payload, type: savePushToken})
+export const createSetHasPermissions = (payload: _SetHasPermissionsPayload) => ({error: false, payload, type: setHasPermissions})
+export const createUpdatePushToken = (payload: _UpdatePushTokenPayload) => ({error: false, payload, type: updatePushToken})
 
 // Action Payloads
-export type CheckIOSPushPayload = More.ReturnType<typeof createCheckIOSPush>
-export type ConfigurePushPayload = More.ReturnType<typeof createConfigurePush>
-export type ErrorPayload = More.ReturnType<typeof createError>
-export type NotificationPayload = More.ReturnType<typeof createNotification>
-export type PermissionsNoPayload = More.ReturnType<typeof createPermissionsNo>
-export type PermissionsPromptPayload = More.ReturnType<typeof createPermissionsPrompt>
-export type PermissionsRequestPayload = More.ReturnType<typeof createPermissionsRequest>
-export type PermissionsRequestingPayload = More.ReturnType<typeof createPermissionsRequesting>
-export type PushTokenPayload = More.ReturnType<typeof createPushToken>
-export type RegistrationErrorPayload = More.ReturnType<typeof createRegistrationError>
-export type SavePushTokenPayload = More.ReturnType<typeof createSavePushToken>
-export type SetHasPermissionsPayload = More.ReturnType<typeof createSetHasPermissions>
-export type UpdatePushTokenPayload = More.ReturnType<typeof createUpdatePushToken>
+export type CheckIOSPushPayload = $Call<typeof createCheckIOSPush, _CheckIOSPushPayload>
+export type ConfigurePushPayload = $Call<typeof createConfigurePush, _ConfigurePushPayload>
+export type ErrorPayload = $Call<typeof createError, _ErrorPayload>
+export type NotificationPayload = $Call<typeof createNotification, _NotificationPayload>
+export type PermissionsNoPayload = $Call<typeof createPermissionsNo, _PermissionsNoPayload>
+export type PermissionsPromptPayload = $Call<typeof createPermissionsPrompt, _PermissionsPromptPayload>
+export type PermissionsRequestPayload = $Call<typeof createPermissionsRequest, _PermissionsRequestPayload>
+export type PermissionsRequestingPayload = $Call<typeof createPermissionsRequesting, _PermissionsRequestingPayload>
+export type PushTokenPayload = $Call<typeof createPushToken, _PushTokenPayload>
+export type RegistrationErrorPayload = $Call<typeof createRegistrationError, _RegistrationErrorPayload>
+export type SavePushTokenPayload = $Call<typeof createSavePushToken, _SavePushTokenPayload>
+export type SetHasPermissionsPayload = $Call<typeof createSetHasPermissions, _SetHasPermissionsPayload>
+export type UpdatePushTokenPayload = $Call<typeof createUpdatePushToken, _UpdatePushTokenPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createCheckIOSPush>
-  | More.ReturnType<typeof createConfigurePush>
-  | More.ReturnType<typeof createError>
-  | More.ReturnType<typeof createNotification>
-  | More.ReturnType<typeof createPermissionsNo>
-  | More.ReturnType<typeof createPermissionsPrompt>
-  | More.ReturnType<typeof createPermissionsRequest>
-  | More.ReturnType<typeof createPermissionsRequesting>
-  | More.ReturnType<typeof createPushToken>
-  | More.ReturnType<typeof createRegistrationError>
-  | More.ReturnType<typeof createSavePushToken>
-  | More.ReturnType<typeof createSetHasPermissions>
-  | More.ReturnType<typeof createUpdatePushToken>
+  | CheckIOSPushPayload
+  | ConfigurePushPayload
+  | ErrorPayload
+  | NotificationPayload
+  | PermissionsNoPayload
+  | PermissionsPromptPayload
+  | PermissionsRequestPayload
+  | PermissionsRequestingPayload
+  | PushTokenPayload
+  | RegistrationErrorPayload
+  | SavePushTokenPayload
+  | SetHasPermissionsPayload
+  | UpdatePushTokenPayload
   | {type: 'common:resetStore', payload: void}

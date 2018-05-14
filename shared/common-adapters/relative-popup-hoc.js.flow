@@ -19,8 +19,7 @@ export type RelativePopupProps<PP: {}> = {
 
 export type RelativePopupHocType<PP> = (
   PopupComponent: React.ComponentType<PP>
-) => React.ComponentType<RelativePopupProps<PP>>;
+) => React.ComponentType<RelativePopupProps<PP>>
 
-declare var RelativePopupHoc: RelativePopupHocType<*>;
-
+declare var RelativePopupHoc: RelativePopupHocType<any>
 export default RelativePopupHoc

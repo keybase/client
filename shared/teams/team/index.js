@@ -23,14 +23,14 @@ export type Props = {
   loading: boolean,
   selectedTab: string,
   resetUserCount: number,
-  rows: Array<*>,
+  rows: Array<any>,
   setSelectedTab: (?Types.TabKey) => void,
   yourOperations: Types.TeamOperations,
   onShowMenu: any => void,
 }
 
 class Team extends React.Component<Props> {
-  _renderItem = (row: *) => {
+  _renderItem = (row: any) => {
     switch (row.type) {
       case 'header':
         return <TeamHeader key="header" teamname={this.props.teamname} />

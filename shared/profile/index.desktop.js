@@ -103,7 +103,7 @@ const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
 class ProfileRender extends PureComponent<Props, State> {
   state: State
   _proofList: ?UserProofs
-  _scrollContainer: ?React.Component<*, *>
+  _scrollContainer: ?React.Component<any, any>
 
   constructor(props: Props) {
     super(props)

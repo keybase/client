@@ -75,7 +75,7 @@ export function switchTo(path: Path, parentPath?: Path): Types.SwitchTo {
 // If parentPath is provided, the path will be navigated to relative to
 // parentPath without navigating to it.
 export function navigateTo(
-  path: PropsPath<*>,
+  path: PropsPath<any>,
   parentPath?: ?Path,
   navigationSource: Types.NavigationSource = 'user'
 ): Types.NavigateTo {
@@ -88,7 +88,7 @@ export function navigateTo(
 // Navigate to a path relative to the current path.
 // If parentPath is provided, the path will be appended relative to parentPath
 // without navigating to it.
-export function navigateAppend(path: PropsPath<*>, parentPath?: Path): Types.NavigateAppend {
+export function navigateAppend(path: PropsPath<any>, parentPath?: Path): Types.NavigateAppend {
   return {
     type: Constants.navigateAppend,
     payload: {path, parentPath},
@@ -104,7 +104,7 @@ export function navigateUp(): Types.NavigateUp {
 }
 
 // Do a navigate action if the path is still what is expected
-export function putActionIfOnPath<T: TypedAction<*, *, *>>(
+export function putActionIfOnPath<T: TypedAction<any, any, any>>(
   expectedPath: Path,
   otherAction: T,
   parentPath?: Path
@@ -134,7 +134,9 @@ export function resetRoute(path: Path): Types.ResetRoute {
   }
 }
 
-function* _putActionIfOnPath({payload: {otherAction, expectedPath, parentPath}}: Types.PutActionIfOnPath<*>) {
+function* _putActionIfOnPath({
+  payload: {otherAction, expectedPath, parentPath},
+}: Types.PutActionIfOnPath<any>) {
   const state: TypedState = yield Saga.select()
   const currentPath = pathSelector(state, parentPath)
   if (I.is(I.List(expectedPath), currentPath)) {

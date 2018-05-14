@@ -20,16 +20,16 @@ export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, par
 export type NavigationSource = 'initial-default' | 'initial-restore' | 'user'
 export type NavigateTo = NoErrorTypedAction<
   'routeTree:navigateTo',
-  {path: PropsPath<*>, parentPath: ?Path, navigationSource: NavigationSource}
+  {path: PropsPath<any>, parentPath: ?Path, navigationSource: NavigationSource}
 >
 
 export type NavigateAppend = NoErrorTypedAction<
   'routeTree:navigateAppend',
-  {path: PropsPath<*>, parentPath: ?Path}
+  {path: PropsPath<any>, parentPath: ?Path}
 >
 
 export type NavigateUp = NoErrorTypedAction<'routeTree:navigateUp', null>
-export type PutActionIfOnPath<T: TypedAction<*, *, *>> = NoErrorTypedAction<
+export type PutActionIfOnPath<T: TypedAction<any, any, any>> = NoErrorTypedAction<
   'routeTree:putActionIfOnPath',
   {expectedPath: Path, parentPath?: Path, otherAction: T}
 >

@@ -12,11 +12,11 @@ export function installDokanSaga() {}
 export function installKBFS() {}
 export function installKBFSSuccess(payload: RPCTypes.InstallResult) {}
 export function openSecurityPreferences() {}
-export function uninstallKBFSConfirmSaga(): Promise<*> {
+export function uninstallKBFSConfirmSaga(): Promise<void> {
   return new Promise((resolve, reject) => reject(new Error('unimplemented')))
 }
 export function uninstallKBFSSaga() {}
 export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {}
-export function copyToDownloadDir(path: string, mime: string): Promise<*> {
+export function copyToDownloadDir(path: string, mime: string): Promise<void> {
   return new Promise((resolve, reject) => resolve())
 }

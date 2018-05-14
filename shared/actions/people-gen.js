@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Types from '../constants/types/people'
 
 // Constants
@@ -15,39 +14,42 @@ export const peopleDataProcessed = 'people:peopleDataProcessed'
 export const setupPeopleHandlers = 'people:setupPeopleHandlers'
 export const skipTodo = 'people:skipTodo'
 
+// Payload Types
+type _GetPeopleDataPayload = $ReadOnly<{|
+  markViewed: boolean,
+  numFollowSuggestionsWanted: number,
+|}>
+type _MarkViewedPayload = void
+type _PeopleDataProcessedPayload = $ReadOnly<{|
+  oldItems: I.List<Types.PeopleScreenItem>,
+  newItems: I.List<Types.PeopleScreenItem>,
+  followSuggestions: I.List<Types.FollowSuggestion>,
+  lastViewed: Date,
+  version: number,
+|}>
+type _SetupPeopleHandlersPayload = void
+type _SkipTodoPayload = $ReadOnly<{|type: Types.TodoType|}>
+
 // Action Creators
-export const createGetPeopleData = (
-  payload: $ReadOnly<{|
-    markViewed: boolean,
-    numFollowSuggestionsWanted: number,
-  |}>
-) => ({error: false, payload, type: getPeopleData})
-export const createMarkViewed = () => ({error: false, payload: undefined, type: markViewed})
-export const createPeopleDataProcessed = (
-  payload: $ReadOnly<{|
-    oldItems: I.List<Types.PeopleScreenItem>,
-    newItems: I.List<Types.PeopleScreenItem>,
-    followSuggestions: I.List<Types.FollowSuggestion>,
-    lastViewed: Date,
-    version: number,
-  |}>
-) => ({error: false, payload, type: peopleDataProcessed})
-export const createSetupPeopleHandlers = () => ({error: false, payload: undefined, type: setupPeopleHandlers})
-export const createSkipTodo = (payload: $ReadOnly<{|type: Types.TodoType|}>) => ({error: false, payload, type: skipTodo})
+export const createGetPeopleData = (payload: _GetPeopleDataPayload) => ({error: false, payload, type: getPeopleData})
+export const createMarkViewed = (payload: _MarkViewedPayload) => ({error: false, payload, type: markViewed})
+export const createPeopleDataProcessed = (payload: _PeopleDataProcessedPayload) => ({error: false, payload, type: peopleDataProcessed})
+export const createSetupPeopleHandlers = (payload: _SetupPeopleHandlersPayload) => ({error: false, payload, type: setupPeopleHandlers})
+export const createSkipTodo = (payload: _SkipTodoPayload) => ({error: false, payload, type: skipTodo})
 
 // Action Payloads
-export type GetPeopleDataPayload = More.ReturnType<typeof createGetPeopleData>
-export type MarkViewedPayload = More.ReturnType<typeof createMarkViewed>
-export type PeopleDataProcessedPayload = More.ReturnType<typeof createPeopleDataProcessed>
-export type SetupPeopleHandlersPayload = More.ReturnType<typeof createSetupPeopleHandlers>
-export type SkipTodoPayload = More.ReturnType<typeof createSkipTodo>
+export type GetPeopleDataPayload = $Call<typeof createGetPeopleData, _GetPeopleDataPayload>
+export type MarkViewedPayload = $Call<typeof createMarkViewed, _MarkViewedPayload>
+export type PeopleDataProcessedPayload = $Call<typeof createPeopleDataProcessed, _PeopleDataProcessedPayload>
+export type SetupPeopleHandlersPayload = $Call<typeof createSetupPeopleHandlers, _SetupPeopleHandlersPayload>
+export type SkipTodoPayload = $Call<typeof createSkipTodo, _SkipTodoPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createGetPeopleData>
-  | More.ReturnType<typeof createMarkViewed>
-  | More.ReturnType<typeof createPeopleDataProcessed>
-  | More.ReturnType<typeof createSetupPeopleHandlers>
-  | More.ReturnType<typeof createSkipTodo>
+  | GetPeopleDataPayload
+  | MarkViewedPayload
+  | PeopleDataProcessedPayload
+  | SetupPeopleHandlersPayload
+  | SkipTodoPayload
   | {type: 'common:resetStore', payload: void}

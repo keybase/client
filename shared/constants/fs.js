@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
+import {isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
@@ -513,3 +514,6 @@ export const showIgnoreFolder = (path: Types.Path, pathItem: Types.PathItem, use
   !!pathItem.tlfMeta &&
   ['public', 'private'].includes(Types.getPathVisibility(path)) &&
   Types.getPathName(path) !== username
+
+export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect =>
+  isMobile ? null : evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null
