@@ -1127,6 +1127,14 @@
           "name": "errMsg"
         },
         {
+          "type": "gregor1.UID",
+          "name": "sender"
+        },
+        {
+          "type": "gregor1.DeviceID",
+          "name": "senderDevice"
+        },
+        {
           "type": "MessageID",
           "name": "messageID"
         },

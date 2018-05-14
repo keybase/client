@@ -88,6 +88,8 @@ func (b *Boxer) log() logger.Logger {
 
 func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+		Sender:             msg.ClientHeader.Sender,
+		SenderDevice:       msg.ClientHeader.SenderDevice,
 		ErrType:            err.ExportType(),
 		ErrMsg:             err.Error(),
 		MessageID:          msg.GetMessageID(),
