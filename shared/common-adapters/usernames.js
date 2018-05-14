@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import Text from './text'
 import shallowEqual from 'shallowequal'
-import {globalStyles, globalColors} from '../styles'
+import {collapseStyles, globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 import {connect} from 'react-redux'
 import {type TypedState} from '../constants/reducer'
@@ -26,14 +26,14 @@ function usernameText({
   showAnd = false,
 }: Props) {
   return users.map((u, i) => {
-    const userStyle = {
-      ...style,
+    let userStyle = {
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
       ...(colorFollowing && !u.you ? {color: u.following ? globalColors.green2 : globalColors.blue} : null),
       ...(colorBroken && u.broken && !u.you ? {color: redColor || globalColors.red} : null),
       ...(inline && !isMobile ? {display: 'inline'} : null),
       ...(u.you ? globalStyles.italic : null),
     }
+    userStyle = collapseStyles([style, userStyle])
 
     // Make sure onClick is undefined when _onUsernameClicked is, so
     // as to not override any existing onClick handler from containers
@@ -56,12 +56,14 @@ function usernameText({
             <Text
               type={type}
               backgroundMode={backgroundMode}
-              style={{
-                ...style,
-                color: commaColor,
-                marginRight: 1,
-                ...(isMobile ? {} : {textDecoration: 'none'}),
-              }}
+              style={collapseStyles([
+                style,
+                {
+                  color: commaColor,
+                  marginRight: 1,
+                  ...(isMobile ? {} : {textDecoration: 'none'}),
+                },
+              ])}
             >
               ,
             </Text>
@@ -108,7 +110,7 @@ class Usernames extends Component<Props> {
       <Text
         type={this.props.type}
         backgroundMode={this.props.backgroundMode}
-        style={{...containerStyle, ...this.props.containerStyle}}
+        style={collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         {...(this.props.inline ? inlineProps : {})}
       >
@@ -122,7 +124,7 @@ class Usernames extends Component<Props> {
           <Text
             type={this.props.type}
             backgroundMode={this.props.backgroundMode}
-            style={{...this.props.style, marginRight: 1}}
+            style={collapseStyles([this.props.style, {marginRight: 1}])}
           >
             #
           </Text>
@@ -158,7 +160,7 @@ class PlaintextUsernames extends Component<PlaintextProps> {
       <Text
         type={this.props.type}
         backgroundMode={this.props.backgroundMode}
-        style={{...containerStyle, ...this.props.containerStyle}}
+        style={collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         {...inlineProps}
       >
