@@ -41,6 +41,13 @@ func postAvatarImage(mctx libkb.MetaContext, filename string, teamID *keybase1.T
 		return err
 	}
 
+	// Server checks upload size as well.
+	const maxUploadSize = 20 * 1024 * 1024
+	if bodyLen := body.Len(); bodyLen > maxUploadSize {
+		return fmt.Errorf("Image is too big: tried to upload %d bytes, max size is %d bytes.",
+			bodyLen, maxUploadSize)
+	}
+
 	if teamID != nil {
 		mpart.WriteField("team_id", string(*teamID))
 	}
