@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box2, Text} from '../../common-adapters'
+import {Avatar, Box2, Icon, Text} from '../../common-adapters'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 // TODO: Format relative dates.
 import {formatTimeForPopup} from '../../util/timestamp'
@@ -8,22 +8,22 @@ import {formatTimeForPopup} from '../../util/timestamp'
 type Role = 'sender' | 'receiver'
 type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
 
-type IconProps = {|
+type CounterpartyIconProps = {|
   large: boolean,
   counterparty: string,
   counterpartyType: CounterpartyType,
 |}
 
-const Icon = (props: IconProps) => {
+const CounterpartyIcon = (props: CounterpartyIconProps) => {
+  const size = props.large ? 48 : 32
   switch (props.counterpartyType) {
     case 'keybaseUser':
-      return <Avatar username={props.counterparty} size={props.large ? 48 : 32} />
+      return <Avatar username={props.counterparty} size={size} />
     case 'stellarPublicKey':
       // TODO: Return anonymous user icon.
       return null
     case 'wallet':
-      // TODO: Return wallet icon.
-      return null
+      return <Icon type="icon-wallet-add-48" style={{width: size, height: size}} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -126,7 +126,7 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 export type Props = {|
   ...$Exact<DetailProps>,
-  ...$Exact<IconProps>,
+  ...$Exact<CounterpartyIconProps>,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
   amountXLM: string,
@@ -135,7 +135,11 @@ export type Props = {|
 
 export const Transaction = (props: Props) => (
   <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-    <Icon counterparty={props.counterparty} counterpartyType={props.counterpartyType} large={props.large} />
+    <CounterpartyIcon
+      counterparty={props.counterparty}
+      counterpartyType={props.counterpartyType}
+      large={props.large}
+    />
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.rightContainer}>
       <Text type="BodySmall">{props.timestamp ? formatTimeForPopup(props.timestamp) : 'Pending'}</Text>
       <Detail
