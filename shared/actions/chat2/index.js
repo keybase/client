@@ -175,6 +175,7 @@ const unboxRows = (
 
   const onUnboxed = function*({conv}: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
     const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
+    // We allow empty conversations now since we create them and they're empty now
     const allowEmpty = action.type === Chat2Gen.selectConversation
     const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem, allowEmpty)
     if (meta) {
@@ -1164,7 +1165,6 @@ const previewConversationFindExisting = (
   let updatePendingMode
   if (action.type === Chat2Gen.previewConversation) {
     // it's a fixed set of users so it's not a search (aka you can't add people to it)
-    // // TODO maybe move to pending hnadliner
     updatePendingMode = Saga.put(
       Chat2Gen.createSetPendingMode({
         pendingMode: action.payload.fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers',
@@ -1314,48 +1314,6 @@ const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
       : privateFolderWithUsers(meta.participants.toArray())
   return Saga.put(KBFSGen.createOpen({path}))
 }
-
-// either select the special pending converationidkey or select the preview conversation
-// const selectPendingConversation = (action: Chat2Gen.SetPendingModePayload, state: TypedState) => {
-// if (action.payload.pendingMode === 'none') {
-// // pending isn't selected so ignore
-// const selected = Constants.getSelectedConversation(state)
-// if (selected !== Constants.pendingConversationIDKey) {
-// return
-// }
-// const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
-// if (Constants.isValidConversationIDKey(meta.conversationIDKey)) {
-// return Saga.put(
-// Chat2Gen.createSelectConversation({
-// conversationIDKey: meta.conversationIDKey,
-// reason: 'existingSearch',
-// })
-// )
-// } else return
-// }
-
-// return Saga.put(
-// Chat2Gen.createSelectConversation({
-// conversationIDKey: Constants.pendingConversationIDKey,
-// reason: 'pendingModeChange',
-// })
-// )
-// }
-
-// Did we select a real conversation and yet have an empty search?
-// const hideEmptySearch = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
-// if (state.chat2.pendingMode === 'none') {
-// return
-// }
-// if (action.payload.conversationIDKey === Constants.pendingConversationIDKey) {
-// return
-// }
-
-// const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
-// if (meta.participants.isEmpty()) {
-// return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
-// }
-// }
 
 const getRecommendations = (
   action: Chat2Gen.SelectConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
