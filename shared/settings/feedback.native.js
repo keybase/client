@@ -93,7 +93,7 @@ class Feedback extends Component<Props> {
           }}
         >
           <Text style={{textAlign: 'center'}} type="HeaderBig">
-            {heading || 'Your feedback is welcomed!'}
+            {heading}
           </Text>
           <Box
             style={{
