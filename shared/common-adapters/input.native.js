@@ -179,7 +179,7 @@ class Input extends Component<Props, State> {
   _lineHeight = () => {
     if (this.props.small) {
       return 20
-    } else if (isAndroid) {
+    } else if (this.props.multiline && isAndroid) {
       return 34
     } else return 28
   }
