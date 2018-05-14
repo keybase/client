@@ -36,6 +36,7 @@ export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
+export const resetMetadataResult = 'fs:resetMetadataResult'
 export const save = 'fs:save'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
@@ -113,6 +114,7 @@ type _OpenFinderPopupPayload = $ReadOnly<{|
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenSecurityPreferencesPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
+type _ResetMetadataResultPayload = $ReadOnly<{|tlfs: Array<Types.ResetMetadata>|}>
 type _SavePayload = $ReadOnly<{|
   path: Types.Path,
   routePath: I.List<string>,
@@ -172,6 +174,7 @@ export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({err
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({error: false, payload, type: refreshLocalHTTPServerInfo})
+export const createResetMetadataResult = (payload: _ResetMetadataResultPayload) => ({error: false, payload, type: resetMetadataResult})
 export const createSave = (payload: _SavePayload) => ({error: false, payload, type: save})
 export const createSetFlags = (payload: _SetFlagsPayload) => ({error: false, payload, type: setFlags})
 export const createSetupFSHandlers = (payload: _SetupFSHandlersPayload) => ({error: false, payload, type: setupFSHandlers})
@@ -210,6 +213,7 @@ export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFi
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
 export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
+export type ResetMetadataResultPayload = $Call<typeof createResetMetadataResult, _ResetMetadataResultPayload>
 export type SavePayload = $Call<typeof createSave, _SavePayload>
 export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
 export type SetupFSHandlersPayload = $Call<typeof createSetupFSHandlers, _SetupFSHandlersPayload>
@@ -250,6 +254,7 @@ export type Actions =
   | OpenInFileUIPayload
   | OpenSecurityPreferencesPayload
   | RefreshLocalHTTPServerInfoPayload
+  | ResetMetadataResultPayload
   | SavePayload
   | SetFlagsPayload
   | SetupFSHandlersPayload

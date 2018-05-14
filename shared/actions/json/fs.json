@@ -116,6 +116,9 @@
       "routePath": "I.List<string>"
     },
     "getResetMetadata": {},
+    "resetMetadataResult": {
+      "tlfs": "Array<Types.ResetMetadata>"
+    },
 
     "setupFSHandlers": {}
   }

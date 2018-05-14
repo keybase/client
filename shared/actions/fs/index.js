@@ -350,20 +350,25 @@ function* getResetMetadata(action: FsGen.GetResetMetadataPayload): Saga.SagaGene
         const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
         // whatever
         if (!result || !result.items) return EngineRpc.rpcResult()
-        const tlfs = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
+        const tlfs: Array<Types.ResetMetadata> = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
           item &&
             item.localMetadata &&
             item.localMetadata.resetParticipants &&
-            // Only teams
+            // Only teams (ignore KBFS-backed TLFs)
             [1, 2, 3].includes(item.membersType) &&
+            // visibility + team type gives us the TLF locator info we need.
             filtered.push({
-              convID: item.convID,
               name: item.name,
-              visibility: item.visibility,
-              resetParticipants: item.localMetadata.resetParticipants,
+              visibility: item.visibility === 2 // private
+                ? item.membersType === 1 // simple team
+                  ? 'team'
+                  : 'private'
+                : 'public',
+              resetParticipants: item.localMetadata.resetParticipants || [],
             })
           return filtered
         }, [])
+        yield Saga.put(FsGen.createResetMetadataResult({tlfs}))
         return EngineRpc.rpcResult()
       },
     },
@@ -378,6 +383,7 @@ function* getResetMetadata(action: FsGen.GetResetMetadataPayload): Saga.SagaGene
     false,
     loading => {}
   )
+  yield Saga.call(untrustedInboxRpc.run)
 }
 
 >>>>>>> fs: implement basic reset retrieval action

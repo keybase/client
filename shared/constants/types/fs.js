@@ -347,3 +347,9 @@ export type FavoriteFolder = {
 }
 
 export type FileViewType = 'text' | 'image' | 'video' | 'pdf' | 'default'
+
+export type ResetMetadata = {
+  name: string,
+  visibility: Visibility,
+  resetParticipants: Array<string>,
+}
