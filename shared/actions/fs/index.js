@@ -1,30 +1,18 @@
 // @flow
-import logger from '../logger'
-import * as Constants from '../constants/fs'
-import * as FsGen from './fs-gen'
+import logger from '../../logger'
+import * as Constants from '../../constants/fs'
+import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
-import engine from '../engine'
-import * as NotificationsGen from './notifications-gen'
-import * as Types from '../constants/types/fs'
-import {
-  openInFileUISaga,
-  fuseStatusSaga,
-  fuseStatusResultSaga,
-  installKBFS,
-  installKBFSSuccess,
-  installFuseSaga,
-  installDokanSaga,
-  openSecurityPreferences,
-  uninstallKBFSConfirmSaga,
-  uninstallKBFS,
-  uninstallKBFSSuccess,
-  copyToDownloadDir,
-} from './fs-platform-specific'
-import {isMobile, isWindows} from '../constants/platform'
-import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
-import {type TypedState} from '../util/container'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Saga from '../../util/saga'
+import engine from '../../engine'
+import * as NotificationsGen from '../notifications-gen'
+import * as Types from '../../constants/types/fs'
+import {platformSpecificSaga, copyToDownloadDir} from './platform-specific'
+import {isMobile} from '../../constants/platform'
+import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
+import {type TypedState} from '../../util/container'
+import {putActionIfOnPath, navigateAppend} from '../route-tree'
 
 function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
@@ -317,6 +305,29 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
   }
 }
 
+function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenerator<any, any> {
+  const {path, type, targetRect, routePath} = action.payload
+  // We may not have the folder loaded yet, but will need metadata to know
+  // folder entry types in the popup. So dispatch an action now to load it.
+  type === 'folder' && (yield Saga.put(FsGen.createFolderListLoad({path})))
+  yield Saga.put(
+    putActionIfOnPath(
+      routePath,
+      navigateAppend([
+        {
+          props: {
+            path,
+            position: 'bottom right',
+            isShare: false,
+            targetRect,
+          },
+          selected: 'pathItemAction',
+        },
+      ])
+    )
+  )
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -328,26 +339,18 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
-  yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
-  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
-  yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
-  if (isWindows) {
-    yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
-  } else {
-    yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
-  }
-  yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
 
   if (!isMobile) {
-    yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
-
     // TODO: enable these when we need it on mobile.
     yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
     yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
   }
+
+  yield Saga.fork(platformSpecificSaga)
+
+  // These are saga tasks that may use actions above.
+  yield Saga.safeTakeEvery(FsGen.fileActionPopup, fileActionPopup)
 }
 
 export default fsSaga

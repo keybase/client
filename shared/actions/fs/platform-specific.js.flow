@@ -1,0 +1,8 @@
+// @flow
+import * as Saga from '../../util/saga'
+
+export function copyToDownloadDir(path: string, mime: string) {
+  return new Promise((resolve, reject) => resolve())
+}
+
+export function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {}

@@ -281,7 +281,8 @@ func (s *RemoteConversationSource) Expunge(ctx context.Context,
 }
 
 func (s *RemoteConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID) {
+	convID chat1.ConversationID, msgID chat1.MessageID) bool {
+	return false
 }
 
 var errConvLockTabDeadlock = errors.New("timeout reading thread")
@@ -1056,8 +1057,10 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	return nil
 }
 
+// ClearFromDelete clears the current cache if there is a delete that we don't know about
+// and returns true to the caller if it schedule a background loader job
 func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, deleteID chat1.MessageID) {
+	convID chat1.ConversationID, deleteID chat1.MessageID) bool {
 	defer s.Trace(ctx, func() error { return nil }, "ClearFromDelete")()
 
 	// Check to see if we have the message stored
@@ -1065,7 +1068,7 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	if err == nil && stored[0] != nil {
 		// Any error is grounds to load this guy into the conv loader aggressively
 		s.Debug(ctx, "ClearFromDelete: delete message stored, doing nothing")
-		return
+		return false
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
@@ -1073,11 +1076,15 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	p := &chat1.Pagination{Num: s.numExpungeReload}
 	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+			if len(tv.Messages) == 0 {
+				return
+			}
 			bound := tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID())
 			if err := s.storage.ClearBefore(ctx, convID, uid, bound); err != nil {
 				s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
 			}
 		}))
+	return true
 }
 
 func NewConversationSource(g *globals.Context, typ string, boxer *Boxer, storage *storage.Storage,
