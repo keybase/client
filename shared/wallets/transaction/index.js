@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box2, Icon, Text, Usernames} from '../../common-adapters'
+import {Avatar, Box2, Icon, Text, ConnectedUsernames} from '../../common-adapters'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 // TODO: Format relative dates.
 import {formatTimeForPopup} from '../../util/timestamp'
@@ -48,7 +48,13 @@ const Detail = (props: DetailProps) => {
   switch (props.counterpartyType) {
     case 'keybaseUser':
       counterparty = (
-        <Usernames inline={true} type={textTypeSemibold} users={[{username: props.counterparty}]} />
+        <ConnectedUsernames
+          colorFollowing={true}
+          colorBroken={true}
+          inline={true}
+          type={textTypeSemibold}
+          usernames={[props.counterparty]}
+        />
       )
       break
     case 'stellarPublicKey':
@@ -111,7 +117,9 @@ type AmountXLMProps = {|
 const AmountXLM = (props: AmountXLMProps) => {
   const color = props.pending
     ? globalColors.black_20
-    : props.yourRole === 'sender' ? globalColors.red : globalColors.green
+    : props.yourRole === 'sender'
+      ? globalColors.red
+      : globalColors.green
   const amount = `${props.yourRole === 'sender' ? '-' : '+'} ${props.amountXLM}`
   return (
     <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">

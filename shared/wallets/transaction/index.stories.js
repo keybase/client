@@ -1,11 +1,15 @@
 // @flow
 import * as React from 'react'
+import * as PropProviders from '../../stories/prop-providers'
 import {Box2} from '../../common-adapters'
 import {storiesOf} from '../../stories/storybook'
 import Transaction from '.'
 
+const provider = PropProviders.compose(PropProviders.Usernames(['paul'], 'john'))
+
 const load = () => {
   storiesOf('Wallets/Transaction', module)
+    .addDecorator(provider)
     .addDecorator(story => (
       <Box2 direction="horizontal" style={{maxWidth: 520}}>
         {story()}
@@ -28,7 +32,7 @@ const load = () => {
         large={false}
         timestamp={new Date()}
         yourRole="receiver"
-        counterparty="paul"
+        counterparty="james"
         counterpartyType="keybaseUser"
         amountUser="$100"
         amountXLM="42.535091 XLM"
