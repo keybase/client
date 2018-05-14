@@ -98,7 +98,7 @@ const AddToTeam = (props: Props) => (
     {!isMobile && (
       <Box style={collapseStyles([globalStyles.flexBoxRow, {paddingBottom: globalMargins.large}])}>
         <Text type="Header">Add</Text>
-        <Avatar isTeam={false} size={16} style={{marginLeft: globalMargins.tiny}} username={props.them} />
+        <Avatar isTeam={false} size={16} style={{marginLeft: globalMargins.tiny, marginRight: 2}} username={props.them} />
         <Text type="Header">{props.them} to...</Text>
       </Box>
     )}
