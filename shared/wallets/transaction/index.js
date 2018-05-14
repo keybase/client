@@ -169,12 +169,15 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.small,
   },
   note: platformStyles({
-    // TODO: Consider using markdown quoting.
     common: {
       marginTop: globalMargins.xtiny,
+      borderLeftColor: globalColors.lightGrey2,
+      borderLeftWidth: 3,
+      paddingLeft: 8,
     },
-    isElectron: {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 8},
-    isMobile: {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8},
+    isElectron: {
+      borderLeftStyle: 'solid',
+    },
   }),
   rightContainer: {
     marginLeft: globalMargins.tiny,
