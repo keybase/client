@@ -107,6 +107,7 @@ class FeedbackContainer extends Component<Props, State> {
         onSendFeedbackContained={this._onSendFeedback}
         onChangeFeedback={this._onChangeFeedback}
         feedback={this.state.feedback}
+        heading={this.props.heading}
         sending={this.state.sending}
         sendError={this.state.sendError}
         sendLogs={this.state.sendLogs}
@@ -150,9 +151,10 @@ const extraChatLogs = (state: TypedState) => {
 }
 
 // TODO really shouldn't be doing this in connect, should do this with an action
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     chat: extraChatLogs(state),
+    heading: routeProps.get('heading'),
     status: {
       appVersionCode,
       appVersionName,

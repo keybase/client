@@ -19,8 +19,18 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   onFeedback: () => {
     dispatch(ConfigGen.createGlobalError({globalError: null}))
-    dispatch(navigateTo([feedbackTab], [settingsTab]))
     dispatch(switchTo([settingsTab]))
+    dispatch(
+      navigateTo(
+        [
+          {
+            props: {heading: 'Oh no, a bug!'},
+            selected: feedbackTab,
+          },
+        ],
+        [settingsTab]
+      )
+    )
   },
 })
 

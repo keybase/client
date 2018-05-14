@@ -27,6 +27,7 @@ type Props = {
   showSuccessBanner: boolean,
   sendLogs: boolean,
   feedback: ?string,
+  heading: ?string,
   sending: boolean,
   sendError: ?Error,
   onChangeSendLogs: (nextValue: boolean) => void,
@@ -59,6 +60,7 @@ class Feedback extends Component<Props> {
       sendLogs,
       onChangeSendLogs,
       feedback,
+      heading,
       onChangeFeedback,
       sending,
       sendError,
@@ -91,7 +93,7 @@ class Feedback extends Component<Props> {
           }}
         >
           <Text style={{textAlign: 'center'}} type="HeaderBig">
-            Oh no, a bug!
+            {heading || 'Your feedback is welcomed!'}
           </Text>
           <Box
             style={{
