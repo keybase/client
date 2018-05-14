@@ -24,13 +24,15 @@ func TestAvatarsFullCaching(t *testing.T) {
 	tc.G.SetClock(clock)
 
 	testSrv := libkb.NewHTTPSrv(tc.G, libkb.NewPortRangeListenerSource(7000, 8000))
-	require.NoError(t, testSrv.Start())
-	testSrv.HandleFunc("/p", func(w http.ResponseWriter, req *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/p", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "hi")
 	})
-	testSrv.HandleFunc("/p2", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("/p2", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "hi2")
 	})
+	_, err := testSrv.EnsureActive(mux)
+	require.NoError(t, err)
 
 	ctx := context.TODO()
 	cb := make(chan struct{}, 5)
