@@ -59,7 +59,7 @@ const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShow
 const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
   <Box onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
     <Box style={styleShowcasedTeamAvatar}>
-      <Icon type="icon-team-placeholder-avatar-24" size={24} style={{borderRadius: 5}} />
+      <Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_20}} type="BodyPrimaryLink">
