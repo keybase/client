@@ -16,9 +16,11 @@ import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {chatTab} from '../../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const _participants = meta.teamname ? I.Set() : meta.participants
   const _isPending = conversationIDKey === Constants.pendingConversationIDKey
+  const meta = _isPending
+    ? Constants.getMeta(state, Constants.getResolvedPendingConversationIDKey(state))
+    : Constants.getMeta(state, conversationIDKey)
+  const _participants = meta.teamname ? I.Set() : meta.participants
 
   return {
     _conversationIDKey: conversationIDKey,
