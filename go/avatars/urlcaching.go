@@ -182,6 +182,6 @@ func (c *URLCachingSource) LoadTeams(ctx context.Context, teams []string, format
 }
 
 func (c *URLCachingSource) ClearCacheForName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
-	defer c.G().Trace("URLCachingSource.ClearCacheForUser", func() error { return err })()
+	defer c.G().Trace(fmt.Sprintf("URLCachingSource.ClearCacheForUser(%s,%v)", name, formats), func() error { return err })()
 	return c.clearName(ctx, name, formats)
 }

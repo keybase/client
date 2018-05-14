@@ -15,5 +15,7 @@ protocol avatars {
     record AvatarClearCacheMsg {
         @jsonkey("name")
         string name;
+        @jsonkey("formats")
+        array<AvatarFormat> formats;
     }
 }

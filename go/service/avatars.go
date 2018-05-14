@@ -76,20 +76,18 @@ func (r *avatarGregorHandler) Name() string {
 
 func (r *avatarGregorHandler) clearName(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	r.G().Log.CDebugf(ctx, "avatarGregorHandler: avatar.clear_cache_for_name received")
-	var msg keybase1.AvatarClearCacheMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+	var msgs []keybase1.AvatarClearCacheMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msgs); err != nil {
 		r.G().Log.CDebugf(ctx, "error unmarshaling avatar.clear_cache_for_name item: %s", err)
 		return err
 	}
 
-	r.G().Log.CDebugf(ctx, "avatar.clear_cache_for_name unmarshaled: %+v", msg)
+	r.G().Log.CDebugf(ctx, "avatar.clear_cache_for_name unmarshaled: %+v", msgs)
 
-	formats := []keybase1.AvatarFormat{
-		"square_200", "square_360", "square_40",
-	}
-
-	if err := r.source.ClearCacheForName(ctx, msg.Name, formats); err != nil {
-		return err
+	for _, msg := range msgs {
+		if err := r.source.ClearCacheForName(ctx, msg.Name, msg.Formats); err != nil {
+			return err
+		}
 	}
 
 	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())

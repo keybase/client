@@ -2040,7 +2040,7 @@ export type AsyncOps =
   | 5 // MOVE_5
   | 6 // REMOVE_6
 
-export type AvatarClearCacheMsg = $ReadOnly<{name: String}>
+export type AvatarClearCacheMsg = $ReadOnly<{name: String, formats?: ?Array<AvatarFormat>}>
 
 export type AvatarFormat = String
 
