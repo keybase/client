@@ -20,13 +20,8 @@ import type {TeamRoleType} from '../../constants/types/teams'
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
-    _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
     _teamNameToCanPerform: state.teams.getIn(['teamNameToCanPerform'], I.Map()),
     _teamNameToMembers: state.teams.getIn(['teamNameToMembers'], I.Map()),
-    _teamNameToPublicitySettings: state.teams.getIn(['teamNameToPublicitySettings'], I.Map()),
-    _teamNameToAllowPromote: state.teams.getIn(['teamNameToAllowPromote'], I.Map()),
-    _teamNameToIsShowcasing: state.teams.getIn(['teamNameToIsShowcasing'], I.Map()),
-    _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
     _them: routeProps.get('username'),
     teamnames: getSortedTeamnames(state),
   }
