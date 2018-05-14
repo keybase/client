@@ -111,12 +111,14 @@ type AmountXLMProps = {|
 const AmountXLM = (props: AmountXLMProps) => {
   const color = props.pending
     ? globalColors.black_20
-    : props.yourRole === 'sender' ? globalColors.red : globalColors.green
+    : props.yourRole === 'sender'
+      ? globalColors.red
+      : globalColors.green
   const amount = `${props.yourRole === 'sender' ? '-' : '+'} ${props.amountXLM}`
     // Replace spaces with non-breaking spaces.
     .replace(/ /g, '\u00a0')
   return (
-    <Text style={{color}} type="BodyExtrabold">
+    <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
       {amount}
     </Text>
   )
@@ -136,23 +138,19 @@ export const Transaction = (props: Props) => (
     <Icon counterparty={props.counterparty} counterpartyType={props.counterpartyType} large={props.large} />
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.rightContainer}>
       <Text type="BodySmall">{props.timestamp ? formatTimeForPopup(props.timestamp) : 'Pending'}</Text>
-      <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.rightDownContainer}>
-        <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.detailContainer}>
-          <Detail
-            large={props.large}
-            yourRole={props.yourRole}
-            counterparty={props.counterparty}
-            counterpartyType={props.counterpartyType}
-            amountUser={props.amountUser}
-          />
-          {props.large && (
-            <Text style={styles.note} type="Body">
-              {props.note}
-            </Text>
-          )}
-        </Box2>
-        <AmountXLM pending={!props.timestamp} yourRole={props.yourRole} amountXLM={props.amountXLM} />
-      </Box2>
+      <Detail
+        large={props.large}
+        yourRole={props.yourRole}
+        counterparty={props.counterparty}
+        counterpartyType={props.counterpartyType}
+        amountUser={props.amountUser}
+      />
+      {props.large && (
+        <Text style={styles.note} type="Body">
+          {props.note}
+        </Text>
+      )}
+      <AmountXLM pending={!props.timestamp} yourRole={props.yourRole} amountXLM={props.amountXLM} />
     </Box2>
   </Box2>
 )
@@ -162,7 +160,6 @@ const styles = styleSheetCreate({
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
-  detailContainer: {},
   note: platformStyles({
     // TODO: Consider using markdown quoting.
     common: {
@@ -174,7 +171,6 @@ const styles = styleSheetCreate({
   rightContainer: {
     marginLeft: globalMargins.tiny,
   },
-  rightDownContainer: {},
 })
 
 export default Transaction
