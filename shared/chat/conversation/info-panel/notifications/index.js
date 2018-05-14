@@ -19,7 +19,7 @@ export type Props = {
 }
 
 const UnmutedNotificationPrefs = (props: Props) => {
-  const fullyEnabled = props.desktop === 'onAnyActivity' && props.mobile === 'onAnyActivity'
+  const allNotifsEnabled = props.desktop === 'onAnyActivity' && props.mobile === 'onAnyActivity'
   let ignoreMentionsSuffix = ''
   if (props.desktop === 'onAnyActivity' && props.mobile !== 'onAnyActivity') {
     ignoreMentionsSuffix = '(mobile)'
@@ -29,8 +29,8 @@ const UnmutedNotificationPrefs = (props: Props) => {
   return (
     <React.Fragment>
       <Checkbox
-        checked={!props.channelWide && !fullyEnabled}
-        disabled={fullyEnabled}
+        checked={!props.channelWide && !allNotifsEnabled}
+        disabled={allNotifsEnabled}
         label=""
         labelComponent={
           <Text type="Body">
