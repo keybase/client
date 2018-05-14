@@ -42,12 +42,7 @@ const MentionRowRenderer = ({channelName, selected, onClick, onHover}: MentionDa
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<any>) =>
   data.length ? (
     <Box style={collapseStyles([hudStyle, style])}>
-      <List
-        items={data}
-        renderItem={rowRenderer}
-        selectedIndex={selectedIndex}
-        fixedHeight={40}
-      />
+      <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
     </Box>
   ) : null
 

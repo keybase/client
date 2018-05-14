@@ -53,6 +53,7 @@ type LoginContext interface {
 
 	LocalSession() *Session
 	GetUID() keybase1.UID
+	GetUsername() NormalizedUsername
 	EnsureUsername(username NormalizedUsername)
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
 

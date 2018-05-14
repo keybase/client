@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles} from '../styles'
@@ -11,11 +12,14 @@ import Footer from './footer/container'
 type FolderProps = {
   items: Array<Types.Path>,
   path: Types.Path,
+  routePath: I.List<string>,
   progress: 'pending' | 'loaded',
 }
 
 class Files extends React.PureComponent<FolderProps> {
-  _renderRow = (index, item) => <Row key={Types.pathToString(item)} path={item} />
+  _renderRow = (index, item) => (
+    <Row key={Types.pathToString(item)} path={item} routePath={this.props.routePath} />
+  )
   _renderRowPlaceholder = index => <Placeholder key={index} />
 
   render() {
@@ -32,7 +36,7 @@ class Files extends React.PureComponent<FolderProps> {
     return (
       <Box style={styleOuterContainer}>
         <Box style={stylesContainer}>
-          <FolderHeader path={this.props.path} />
+          <FolderHeader path={this.props.path} routePath={this.props.routePath} />
           <SortBar path={this.props.path} />
           {content}
           <Footer />

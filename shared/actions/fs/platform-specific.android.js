@@ -1,26 +1,12 @@
 // @flow
-import * as FsGen from './fs-gen'
-import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import type {TypedState} from '../constants/reducer'
+import * as Saga from '../../util/saga'
+import * as FsGen from '../fs-gen'
 import RNFetchBlob from 'react-native-fetch-blob'
-import {copy, unlink} from '../util/file'
+import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
+import {share, save} from './common.native'
 
-export function openInFileUISaga(payload: FsGen.OpenInFileUIPayload, state: TypedState) {}
-export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {}
-export function fuseStatusResultSaga() {}
-export function* installFuseSaga(): Saga.SagaGenerator<any, any> {}
-export function installDokanSaga() {}
-export function installKBFS() {}
-export function installKBFSSuccess(payload: RPCTypes.InstallResult) {}
-export function openSecurityPreferences() {}
-export function uninstallKBFSConfirmSaga() {
-  return new Promise((resolve, reject) => reject(new Error('unimplemented')))
-}
-export function uninstallKBFSSaga() {}
-export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {}
-export function copyToDownloadDir(path: string, mime: string) {
+function copyToDownloadDir(path: string, mime: string) {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
   const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`
   return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
@@ -49,3 +35,10 @@ export function copyToDownloadDir(path: string, mime: string) {
       throw err
     })
 }
+
+function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(FsGen.share, share)
+  yield Saga.safeTakeEvery(FsGen.save, save)
+}
+
+export {copyToDownloadDir, platformSpecificSaga}

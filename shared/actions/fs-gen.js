@@ -17,6 +17,7 @@ export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
+export const fileActionPopup = 'fs:fileActionPopup'
 export const filePreviewLoad = 'fs:filePreviewLoad'
 export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const folderListLoad = 'fs:folderListLoad'
@@ -28,11 +29,14 @@ export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
+export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
+export const save = 'fs:save'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
+export const share = 'fs:share'
 export const sortSetting = 'fs:sortSetting'
 export const transferProgress = 'fs:transferProgress'
 export const uninstallKBFS = 'fs:uninstallKBFS'
@@ -64,6 +68,12 @@ type _FavoriteIgnoreErrorPayload = $ReadOnly<{|
 type _FavoriteIgnorePayload = $ReadOnly<{|path: Types.Path|}>
 type _FavoritesLoadPayload = void
 type _FavoritesLoadedPayload = $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>
+type _FileActionPopupPayload = $ReadOnly<{|
+  path: Types.Path,
+  type: Types.PathType,
+  targetRect: ?ClientRect,
+  routePath: I.List<string>,
+|}>
 type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path|}>
 type _FilePreviewLoadedPayload = $ReadOnly<{|
   path: Types.Path,
@@ -87,9 +97,17 @@ type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
 |}>
+type _OpenFinderPopupPayload = $ReadOnly<{|
+  targetRect: ?ClientRect,
+  routePath: I.List<string>,
+|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenSecurityPreferencesPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
+type _SavePayload = $ReadOnly<{|
+  path: Types.Path,
+  routePath: I.List<string>,
+|}>
 type _SetFlagsPayload = $ReadOnly<{|
   kbfsOpening?: boolean,
   kbfsInstalling?: boolean,
@@ -100,6 +118,10 @@ type _SetFlagsPayload = $ReadOnly<{|
   syncing?: boolean,
 |}>
 type _SetupFSHandlersPayload = void
+type _SharePayload = $ReadOnly<{|
+  path: Types.Path,
+  routePath: I.List<string>,
+|}>
 type _SortSettingPayload = $ReadOnly<{|
   path: Types.Path,
   sortSetting: Types.SortSetting,
@@ -122,6 +144,7 @@ export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({error
 export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({error: false, payload, type: favoriteIgnoreError})
 export const createFavoritesLoad = (payload: _FavoritesLoadPayload) => ({error: false, payload, type: favoritesLoad})
 export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload) => ({error: false, payload, type: favoritesLoaded})
+export const createFileActionPopup = (payload: _FileActionPopupPayload) => ({error: false, payload, type: fileActionPopup})
 export const createFilePreviewLoad = (payload: _FilePreviewLoadPayload) => ({error: false, payload, type: filePreviewLoad})
 export const createFilePreviewLoaded = (payload: _FilePreviewLoadedPayload) => ({error: false, payload, type: filePreviewLoaded})
 export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({error: false, payload, type: folderListLoad})
@@ -133,11 +156,14 @@ export const createInstallFuse = (payload: _InstallFusePayload) => ({error: fals
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
+export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({error: false, payload, type: openFinderPopup})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({error: false, payload, type: refreshLocalHTTPServerInfo})
+export const createSave = (payload: _SavePayload) => ({error: false, payload, type: save})
 export const createSetFlags = (payload: _SetFlagsPayload) => ({error: false, payload, type: setFlags})
 export const createSetupFSHandlers = (payload: _SetupFSHandlersPayload) => ({error: false, payload, type: setupFSHandlers})
+export const createShare = (payload: _SharePayload) => ({error: false, payload, type: share})
 export const createSortSetting = (payload: _SortSettingPayload) => ({error: false, payload, type: sortSetting})
 export const createTransferProgress = (payload: _TransferProgressPayload) => ({error: false, payload, type: transferProgress})
 export const createUninstallKBFS = (payload: _UninstallKBFSPayload) => ({error: false, payload, type: uninstallKBFS})
@@ -153,6 +179,7 @@ export type FavoriteIgnoreErrorPayload = $Call<typeof createFavoriteIgnoreError,
 export type FavoriteIgnorePayload = $Call<typeof createFavoriteIgnore, _FavoriteIgnorePayload>
 export type FavoritesLoadPayload = $Call<typeof createFavoritesLoad, _FavoritesLoadPayload>
 export type FavoritesLoadedPayload = $Call<typeof createFavoritesLoaded, _FavoritesLoadedPayload>
+export type FileActionPopupPayload = $Call<typeof createFileActionPopup, _FileActionPopupPayload>
 export type FilePreviewLoadPayload = $Call<typeof createFilePreviewLoad, _FilePreviewLoadPayload>
 export type FilePreviewLoadedPayload = $Call<typeof createFilePreviewLoaded, _FilePreviewLoadedPayload>
 export type FolderListLoadPayload = $Call<typeof createFolderListLoad, _FolderListLoadPayload>
@@ -164,11 +191,14 @@ export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePay
 export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
+export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFinderPopupPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
 export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
+export type SavePayload = $Call<typeof createSave, _SavePayload>
 export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
 export type SetupFSHandlersPayload = $Call<typeof createSetupFSHandlers, _SetupFSHandlersPayload>
+export type SharePayload = $Call<typeof createShare, _SharePayload>
 export type SortSettingPayload = $Call<typeof createSortSetting, _SortSettingPayload>
 export type TransferProgressPayload = $Call<typeof createTransferProgress, _TransferProgressPayload>
 export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfirm, _UninstallKBFSConfirmPayload>
@@ -186,6 +216,7 @@ export type Actions =
   | FavoriteIgnorePayload
   | FavoritesLoadPayload
   | FavoritesLoadedPayload
+  | FileActionPopupPayload
   | FilePreviewLoadPayload
   | FilePreviewLoadedPayload
   | FolderListLoadPayload
@@ -197,11 +228,14 @@ export type Actions =
   | InstallFuseResultPayload
   | InstallKBFSPayload
   | LocalHTTPServerInfoPayload
+  | OpenFinderPopupPayload
   | OpenInFileUIPayload
   | OpenSecurityPreferencesPayload
   | RefreshLocalHTTPServerInfoPayload
+  | SavePayload
   | SetFlagsPayload
   | SetupFSHandlersPayload
+  | SharePayload
   | SortSettingPayload
   | TransferProgressPayload
   | UninstallKBFSConfirmPayload

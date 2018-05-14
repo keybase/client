@@ -26,8 +26,12 @@ class BigTeamChannel extends PureComponent<Props> {
                 this.props.isError
                   ? textStyleError
                   : this.props.isSelected
-                    ? this.props.hasUnread ? textStyleSelectedBold : textStyleSelected
-                    : this.props.hasUnread ? textStylePlainBold : textStylePlain
+                    ? this.props.hasUnread
+                      ? textStyleSelectedBold
+                      : textStyleSelected
+                    : this.props.hasUnread
+                      ? textStylePlainBold
+                      : textStylePlain
               }
             >
               #{this.props.channelname}
@@ -64,8 +68,12 @@ const MutedIcon = ({isSelected}) => (
   <Icon
     type={
       isSelected
-        ? isMobile ? 'icon-shh-active-24' : 'icon-shh-active-16'
-        : isMobile ? 'icon-shh-24' : 'icon-shh-16'
+        ? isMobile
+          ? 'icon-shh-active-24'
+          : 'icon-shh-active-16'
+        : isMobile
+          ? 'icon-shh-24'
+          : 'icon-shh-16'
     }
     style={mutedStyle}
   />

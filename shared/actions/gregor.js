@@ -142,7 +142,9 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
   if (!pushAction.error) {
-    const {payload: {state}} = pushAction
+    const {
+      payload: {state},
+    } = pushAction
     const nonNullItems = toNonNullGregorItems(state)
     if (nonNullItems.length !== (state.items || []).length) {
       logger.warn('Lost some messages in filtering out nonNull gregor items')
@@ -184,7 +186,9 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
 function _handlePushOOBM(pushOOBM: GregorGen.PushOOBMPayload) {
   const actions = []
   if (!pushOOBM.error) {
-    const {payload: {messages}} = pushOOBM
+    const {
+      payload: {messages},
+    } = pushOOBM
 
     // Filter first so we don't dispatch unnecessary actions
     const gitMessages = messages.filter(i => i.system === 'git')

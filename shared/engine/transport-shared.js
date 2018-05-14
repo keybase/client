@@ -7,7 +7,10 @@ import {requestIdleCallback} from '../util/idle-callback'
 
 import type {rpcLogType} from './index.platform'
 
-const {transport: {RobustTransport}, client: {Client: RpcClient}} = rpc
+const {
+  transport: {RobustTransport},
+  client: {Client: RpcClient},
+} = rpc
 const KEYBASE_RPC_DELAY_RESULT: number = process.env.KEYBASE_RPC_DELAY_RESULT
   ? parseInt(process.env.KEYBASE_RPC_DELAY_RESULT)
   : 0

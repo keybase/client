@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/pager"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -467,6 +469,14 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 	}
 	if arg.Query != nil && arg.Query.MarkAsRead {
 		m.readMsgid[arg.ConversationID.String()] = msgs[0].ServerHeader.MessageID
+	}
+	var pmsgs []pager.Message
+	for _, m := range res.Thread.Messages {
+		pmsgs = append(pmsgs, m)
+	}
+	res.Thread.Pagination, err = pager.NewThreadPager().MakePage(pmsgs, arg.Pagination.Num, 0)
+	if err != nil {
+		return res, err
 	}
 	return res, nil
 }

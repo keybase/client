@@ -15,6 +15,7 @@ export type Props = {
   visible: boolean,
   attachTo?: ?React.Component<any, any>,
   position?: Position,
+  propagateOutsideClicks?: boolean,
 }
 
 export default (props: Props) => {
@@ -29,6 +30,7 @@ export default (props: Props) => {
       visible={props.visible}
       attachTo={props.attachTo}
       containerStyle={props.containerStyle}
+      propagateOutsideClicks={props.propagateOutsideClicks}
     >
       <PopupComponent
         header={props.header}
