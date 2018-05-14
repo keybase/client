@@ -13,11 +13,11 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   let conversationIDKeyToShow = conversationIDKey
 
   if (conversationIDKey === Constants.pendingConversationIDKey) {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
+    const resolved = Constants.getResolvedPendingConversationIDKey(state)
+    if (!Constants.isValidConversationIDKey(resolved)) {
       noInput = true
     } else {
-      conversationIDKeyToShow = meta.conversationIDKey
+      conversationIDKeyToShow = resolved
     }
   } else if (conversationIDKey === Constants.pendingWaitingConversationIDKey) {
     noInput = true

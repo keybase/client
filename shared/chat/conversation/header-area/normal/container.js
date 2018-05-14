@@ -17,9 +17,13 @@ import {chatTab} from '../../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) => {
   const _isPending = conversationIDKey === Constants.pendingConversationIDKey
-  const meta = _isPending
-    ? Constants.getMeta(state, Constants.getResolvedPendingConversationIDKey(state))
-    : Constants.getMeta(state, conversationIDKey)
+  let meta = Constants.getMeta(state, conversationIDKey)
+  if (_isPending) {
+    const resolved = Constants.getResolvedPendingConversationIDKey(state)
+    if (Constants.isValidConversationIDKey(resolved)) {
+      meta = Constants.getMeta(state, resolved)
+    }
+  }
   const _participants = meta.teamname ? I.Set() : meta.participants
 
   return {
