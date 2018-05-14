@@ -115,8 +115,6 @@ const AmountXLM = (props: AmountXLMProps) => {
       ? globalColors.red
       : globalColors.green
   const amount = `${props.yourRole === 'sender' ? '-' : '+'} ${props.amountXLM}`
-    // Replace spaces with non-breaking spaces.
-    .replace(/ /g, '\u00a0')
   return (
     <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
       {amount}
