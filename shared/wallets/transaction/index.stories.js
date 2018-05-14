@@ -47,9 +47,9 @@ const load = () => {
         note="Short note."
       />
     ))
-    .add('Stellar Public Key to Default wallet', () => (
+    .add('Stellar Public Key to Default wallet (small)', () => (
       <Transaction
-        large={true}
+        large={false}
         timestamp={new Date()}
         yourRole="receiver"
         counterparty="G43289XXXXX34OPL"
