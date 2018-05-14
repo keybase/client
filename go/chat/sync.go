@@ -383,7 +383,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		}
 
 		// Dispatch background jobs
-		for _, conv := range incr.Convs {
+		for _, rc := range iboxSyncRes.FilteredConvs {
+			conv := rc.Conv
 			if delMsg, err := conv.GetMaxMessage(chat1.MessageType_DELETE); err == nil {
 				// Any conversation with a delete in it needs to be checked for expunge
 				if s.G().ConvSource.ClearFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID()) {
