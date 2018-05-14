@@ -1,12 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box, Text} from '../../common-adapters'
+import {Box2} from '../../common-adapters'
 import {storiesOf} from '../../stories/storybook'
 import Transaction from '.'
 
 const load = () => {
   storiesOf('Wallets/Transaction', module)
-    .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
+    .addDecorator(story => (
+      <Box2 direction="horizontal" style={{maxWidth: 520}}>
+        {story()}
+      </Box2>
+    ))
     .add('Default wallet to Keybase User', () => (
       <Transaction
         large={true}
@@ -19,7 +23,7 @@ const load = () => {
         note="Short note."
       />
     ))
-    .add('Keybase User to Default wallet', () => (
+    .add('Keybase User to Default wallet (small)', () => (
       <Transaction
         large={false}
         timestamp={new Date()}
@@ -43,8 +47,18 @@ const load = () => {
         note="Short note."
       />
     ))
-    .add('Anonymous wallet to Keybase User', () => <Text type="BodyBig">TBD</Text>)
-    .add('Anonymous wallet to Stellar public key', () => <Text type="BodyBig">TBD</Text>)
+    .add('Stellar Public Key to Default wallet', () => (
+      <Transaction
+        large={true}
+        timestamp={new Date()}
+        yourRole="receiver"
+        counterparty="G43289XXXXX34OPL"
+        counterpartyType="stellarPublicKey"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+        note="Short note."
+      />
+    ))
     .add('Pending', () => (
       <Transaction
         large={true}
