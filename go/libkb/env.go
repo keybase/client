@@ -1055,10 +1055,6 @@ func (e *Env) GetSecretKeyringTemplate() string {
 	)
 }
 
-func (e *Env) GetSalt() []byte {
-	return e.GetConfig().GetSalt()
-}
-
 func (e *Env) GetLocalRPCDebug() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLocalRPCDebug() },

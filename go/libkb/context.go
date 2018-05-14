@@ -344,25 +344,6 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	return nil
 }
 
-// SetDeviceIDWithRegistration sets the DeviceID for a user's config section during
-// device registration. It atomically clears out the global ActiveDevice, since the ActiveDevice
-// should be nil if the deviceID for the current user is unset (as it was jus before the call).
-func (m MetaContext) SetDeviceIDWithinRegistration(d keybase1.DeviceID) error {
-	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
-	cw := g.Env.GetConfigWriter()
-	if cw == nil {
-		return NoConfigWriterError{}
-	}
-	err := cw.SetDeviceID(d)
-	if err != nil {
-		return err
-	}
-	g.ActiveDevice.Clear(nil)
-	return nil
-}
-
 // SetActiveDevice sets the active device to have the UID, deviceID, sigKey, encKey and deviceName
 // as specified, and does so while grabbing the global switchUser lock, since it should be sycnhronized
 // with attempts to switch the global logged in user. It does not, however, change the `current_user`
@@ -378,5 +359,34 @@ func (m MetaContext) SetActiveDevice(uid keybase1.UID, deviceID keybase1.DeviceI
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// LogoutIfRevoked loads the user and checks if the current device keys
+// have been revoked.  If so, it calls Logout.
+func (m MetaContext) LogoutIfRevoked() (err error) {
+	defer m.CTrace("GlobalContext#LogoutIfRevoked", func() error { return err })()
+
+	in, err := m.G().LoginState().LoggedInLoad()
+	if err != nil {
+		return err
+	}
+	if !in {
+		m.CDebugf("LogoutIfRevoked: skipping check (not logged in)")
+		return nil
+	}
+
+	if m.G().Env.GetSkipLogoutIfRevokedCheck() {
+		m.CDebugf("LogoutIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
+		return nil
+	}
+
+	err = CheckCurrentUIDDeviceID(m)
+	if err != nil {
+		m.CDebugf("LogoutIfRevoked: cannot load curent UID/device pair, calling logout (%s)", err)
+		return m.G().Logout()
+	}
+
+	m.CDebugf("LogoutIfRevoked: current device ok")
 	return nil
 }

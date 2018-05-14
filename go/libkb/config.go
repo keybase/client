@@ -542,12 +542,6 @@ func (f JSONConfigFile) GetUsername() (ret NormalizedUsername) {
 	}
 	return ret
 }
-func (f JSONConfigFile) GetSalt() (ret []byte) {
-	if uc, _ := f.GetUserConfig(); uc != nil {
-		ret = uc.GetSalt()
-	}
-	return ret
-}
 func (f JSONConfigFile) GetUID() (ret keybase1.UID) {
 	if uc, _ := f.GetUserConfig(); uc != nil {
 		ret = uc.GetUID()

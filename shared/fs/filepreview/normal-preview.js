@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import {mapProps} from '../../util/container'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
@@ -11,15 +12,16 @@ import View from './view-container'
 
 type NormalPreviewProps = {
   path: Types.Path,
+  routePath: I.List<string>,
   fileViewType?: Types.FileViewType, // can be set by default-view-container.js for type override
 }
 
-const NormalPreview = ({path, fileViewType}: NormalPreviewProps) => (
+const NormalPreview = ({path, fileViewType, routePath}: NormalPreviewProps) => (
   <Box style={styleOuterContainer}>
-    <Header path={path} />
+    <Header path={path} routePath={routePath} />
     <Box style={stylesGreyContainer}>
       <Box style={stylesContentContainer}>
-        <View path={path} fileViewType={fileViewType} />
+        <View path={path} fileViewType={fileViewType} routePath={routePath} />
       </Box>
     </Box>
     <Footer />
@@ -54,7 +56,8 @@ const stylesContentContainer = platformStyles({
   },
 })
 
-export default mapProps(({routeProps}): NormalPreviewProps => ({
+export default mapProps(({routePath, routeProps}): NormalPreviewProps => ({
   path: Types.stringToPath(routeProps.get('path') || Constants.defaultPath),
   fileViewType: routeProps.get('fileViewType'),
+  routePath,
 }))(NormalPreview)

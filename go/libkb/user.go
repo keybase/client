@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -109,6 +110,18 @@ func (u *User) GetNormalizedName() NormalizedUsername { return NewNormalizedUser
 func (u *User) GetName() string                       { return u.name }
 func (u *User) GetUID() keybase1.UID                  { return u.id }
 func (u *User) GetStatus() keybase1.StatusCode        { return u.status }
+
+func (u *User) GetSalt() (salt []byte, err error) {
+	saltHex, err := u.basics.AtKey("salt").GetString()
+	if err != nil {
+		return nil, err
+	}
+	salt, err = hex.DecodeString(saltHex)
+	if err != nil {
+		return nil, err
+	}
+	return salt, nil
+}
 
 func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()

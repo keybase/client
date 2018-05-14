@@ -3,7 +3,6 @@ import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as DispatchMappers from '../utils/dispatch-mappers'
 import DefaultView from './default-view'
 import {navigateAppend} from '../../actions/route-tree'
 
@@ -18,11 +17,12 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   _download: (path: Types.Path) => dispatch(FsGen.createDownload({path, intent: 'none'})),
-  _openFinderPopup: DispatchMappers.mapDispatchToOpenFinderPopup(dispatch),
-  _save: DispatchMappers.mapDispatchToSave(dispatch),
-  _share: DispatchMappers.mapDispatchToShare(dispatch),
+  _openFinderPopup: (evt?: SyntheticEvent<>) =>
+    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
+  _save: (path: Types.Path) => dispatch(FsGen.createSave({path, routePath})),
+  _share: (path: Types.Path) => dispatch(FsGen.createShare({path, routePath})),
   _openAsText: (path: Types.Path) =>
     dispatch(
       navigateAppend([
@@ -32,7 +32,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         },
       ])
     ),
-  _showInFileUI: DispatchMappers.mapDispatchToShowInFileUI(dispatch),
+  _showInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

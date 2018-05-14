@@ -1267,6 +1267,7 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 }
 
 type InboxSyncRes struct {
+	FilteredConvs      []types.RemoteConversation
 	TeamTypeChanged    bool
 	MembersTypeChanged []chat1.ConversationID
 	Expunges           []InboxSyncResExpunge
@@ -1349,6 +1350,11 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
 		return res, err
 	}
+
+	// Filter the conversations for the result
+	res.FilteredConvs = i.applyQuery(ctx, &chat1.GetInboxQuery{
+		ConvIDs: utils.PluckConvIDs(convs),
+	}, utils.RemoteConvs(convs))
 
 	return res, nil
 }
