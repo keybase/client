@@ -44,12 +44,11 @@ export type Props = {
   value?: ?string,
 
   /* Platform discrepancies */
-  // Maps to onKeyPress on native
-  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   // Maps to onSubmitEditing on native
   onEnterKeyDown?: () => void,
 
   // Desktop only
+  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 
   // Mobile only
@@ -67,20 +66,8 @@ export type PropsWithInput<P> = {|
   ...$Exact<Props>,
 |}
 
-export type Selection = {start: number, end: number}
-
-export type TextInfo = {
-  text: string,
-  selection: Selection,
-}
-
 declare export default class Input extends Component<Props> {
   blur: () => void;
   focus: () => void;
-  select: () => void;
-  getValue: () => string;
-  selection: () => Selection;
-  // transformText must be called only on uncontrolled Input
-  // components. The transformation may be done asynchronously.
-  transformText: (fn: (TextInfo) => TextInfo) => void;
+  setValue: string => void;
 }

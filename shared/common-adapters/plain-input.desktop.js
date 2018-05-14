@@ -3,61 +3,28 @@ import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, styleSheetCreate} from '../styles'
 
-import type {Props, Selection, TextInfo} from './plain-input'
-import {checkTextInfo} from './plain-input.shared'
-
-type State = {
-  value: string,
-}
+import type {Props} from './plain-input'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling
-class PlainInput extends React.PureComponent<Props, State> {
-  state: State
+class PlainInput extends React.PureComponent<Props> {
   _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
-
-  constructor(props: Props) {
-    super(props)
-    const value = props.value || ''
-    this.state = ({
-      value,
-    }: State)
-  }
+  _value: string = ''
 
   _setInputRef = (ref: HTMLTextAreaElement | HTMLInputElement | null) => {
     this._input = ref
   }
 
-  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
-    const value = nextProps.value
-    if (value === prevState.value) {
-      return null
-    }
-    return {value}
-  }
-
-  getValue = (): string => {
-    return this.state.value
-  }
-
-  selection = (): Selection => {
-    const n = this._input
-    if (!n) {
-      return {start: 0, end: 0}
-    }
-    const {selectionStart, selectionEnd} = n
-    return {start: selectionStart, end: selectionEnd}
-  }
-
   _onChangeTextDone = () => {
-    const value = this.getValue()
+    const value = this._value
     this.props.onChangeText && this.props.onChangeText(value)
     this._autoResize()
   }
 
   _onChangeText = (text: string) => {
-    this.setState({value: text}, this._onChangeTextDone)
+    this._value = text
+    this._onChangeTextDone()
   }
 
   _onChange = (event: {target: {value: ?string}}) => {
@@ -79,7 +46,7 @@ class PlainInput extends React.PureComponent<Props, State> {
       return
     }
 
-    const value = this.getValue()
+    const value = this._value
 
     // Smart auto resize algorithm from `Input`, use it by default here
     const rect = n.getBoundingClientRect()
@@ -107,31 +74,14 @@ class PlainInput extends React.PureComponent<Props, State> {
     this._input && this._input.focus()
   }
 
-  select = () => {
-    this._input && this._input.select()
-  }
-
   blur = () => {
     this._input && this._input.blur()
   }
 
-  transformText = (fn: TextInfo => TextInfo) => {
-    const n = this._input
-    if (n) {
-      const textInfo: TextInfo = {
-        text: n.value,
-        selection: {
-          start: n.selectionStart,
-          end: n.selectionEnd,
-        },
-      }
-      const newTextInfo = fn(textInfo)
-      checkTextInfo(newTextInfo)
-      n.value = newTextInfo.text
-      n.selectionStart = newTextInfo.selection.start
-      n.selectionEnd = newTextInfo.selection.end
+  setValue = (text: string) => {
+    if (this._input) {
+      this._input.value = text
     }
-    this._onChangeTextDone()
   }
 
   _onCompositionStart = () => {
@@ -181,11 +131,6 @@ class PlainInput extends React.PureComponent<Props, State> {
       ref: this._setInputRef,
       ...(this.props.disabled ? {readOnly: 'readonly'} : null),
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
-    }
-
-    const value = this.getValue()
-    if (this.props.value) {
-      commonProps.value = value
     }
 
     const textStyle = getTextStyle(this.props.textType || 'Body')

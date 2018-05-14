@@ -6,15 +6,13 @@ import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {collapseStyles, globalColors} from '../styles'
 import {isIOS} from '../constants/platform'
 
-import type {Props, Selection, TextInfo} from './plain-input'
-import {checkTextInfo} from './plain-input.shared'
+import type {Props} from './plain-input'
 
 const defaultTextType = 'Body'
 
 type State = {
   focused: boolean,
   height: ?number,
-  value: string,
 }
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
@@ -22,16 +20,13 @@ type State = {
 class _PlainInput extends Component<PropsWithTimer<Props>, State> {
   state: State
   _input: NativeTextInput | null
-  _lastNativeSelection: ?{start: number, end: number}
 
   constructor(props: PropsWithTimer<Props>) {
     super(props)
 
-    const value = props.value || ''
     this.state = ({
       focused: false,
       height: null,
-      value,
     }: State)
   }
 
@@ -39,20 +34,10 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
     this._input = ref
   }
 
-  // Does nothing on mobile
-  select = () => {}
-
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
     this._input && this._input.setNativeProps(nativeProps)
-  }
-
-  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
-    if (nextProps.value === prevState.value) {
-      return
-    }
-    return {value: nextProps.value || ''}
   }
 
   _onContentSizeChange = event => {
@@ -89,23 +74,6 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
     return textStyle.fontSize
   }
 
-  getValue = (): string => {
-    return this.state.value || ''
-  }
-
-  selection = (): Selection => {
-    return this._lastNativeSelection || {start: 0, end: 0}
-  }
-
-  _onChangeTextDone = () => {
-    const value = this.getValue()
-    this.props.onChangeText && this.props.onChangeText(value)
-  }
-
-  _onChangeText = (text: string) => {
-    this.setState({value: text}, this._onChangeTextDone)
-  }
-
   focus = () => {
     this._input && this._input.focus()
   }
@@ -114,29 +82,8 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
     this._input && this._input.blur()
   }
 
-  transformText = (fn: TextInfo => TextInfo) => {
-    const textInfo: TextInfo = {
-      text: this.getValue(),
-      selection: this.selection(),
-    }
-    const newTextInfo = fn(textInfo)
-    checkTextInfo(newTextInfo)
-    this.setNativeProps({text: newTextInfo.text})
-    // Setting both the text and the selection at the same time
-    // doesn't seem to work, but setting a short timeout to set the
-    // selection does.
-    this.props.setTimeout(() => {
-      // It's possible that, by the time this runs, the selection is
-      // out of bounds with respect to the current text value. So fix
-      // it up if necessary.
-      const text = this.getValue()
-      let {start, end} = newTextInfo.selection
-      end = Math.max(0, Math.min(end, text.length))
-      start = Math.max(0, Math.min(start, end))
-      const selection = {start, end}
-      this.setNativeProps({selection})
-      this._lastNativeSelection = selection
-    }, 0)
+  setValue = (text: string) => {
+    this.setNativeProps({text})
   }
 
   _onFocus = () => {
@@ -147,21 +94,6 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
   _onBlur = () => {
     this.setState({focused: false})
     this.props.onBlur && this.props.onBlur()
-  }
-
-  _onSelectionChange = (event: {nativeEvent: {selection: {start: number, end: number}}}) => {
-    let {start: _start, end: _end} = event.nativeEvent.selection
-    // Work around Android bug which sometimes puts end before start:
-    // https://github.com/facebook/react-native/issues/18579 .
-    const start = Math.min(_start, _end)
-    const end = Math.max(_start, _end)
-    this._lastNativeSelection = {start, end}
-    // Bit of a hack here: Unlike the desktop case, where the text and
-    // selection are updated simultaneously, on mobile the text gets
-    // updated first, so handlers that rely on an updated selection
-    // will get strange results. So trigger a text change notification
-    // when the selection changes.
-    this._onChangeTextDone()
   }
 
   render = () => {
@@ -198,8 +130,6 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
       multilineStyle.height = this.state.height
     }
 
-    const value = this.getValue()
-
     const keyboardType = this.props.keyboardType || 'default'
 
     // We want to be able to set the selection property,
@@ -212,9 +142,8 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
       keyboardType,
       autoFocus: this.props.autoFocus,
       onBlur: this._onBlur,
-      onChangeText: this._onChangeText,
+      onChangeText: this.props.onChangeText,
       onFocus: this._onFocus,
-      onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       onEndEditing: this.props.onEndEditing,
       placeholder: this.props.placeholder,
@@ -223,10 +152,6 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
       secureTextEntry: this.props.type === 'password',
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
-    }
-
-    if (this.props.value) {
-      commonProps.value = value
     }
 
     const singlelineProps = {
