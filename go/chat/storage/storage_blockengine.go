@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"runtime/debug"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -217,7 +216,6 @@ func (be *blockEngine) createBlock(ctx context.Context, bi *blockIndex, blockID 
 
 func (be *blockEngine) getBlock(ctx context.Context, bi blockIndex, id chat1.MessageID) (block, Error) {
 	if id == 0 {
-		debug.PrintStack()
 		return block{}, NewInternalError(ctx, be.DebugLabeler, "getBlock: invalid block id: %d", id)
 	}
 	bn := be.getBlockNumber(id)
