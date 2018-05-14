@@ -109,26 +109,53 @@
       ]
     },
     {
-      "type": "record",
+      "type": "enum",
+      "name": "PaymentSummaryType",
+      "symbols": [
+        "NONE_0",
+        "STELLAR_1",
+        "DIRECT_2",
+        "RELAY_3"
+      ]
+    },
+    {
+      "type": "variant",
       "name": "PaymentSummary",
+      "switch": {
+        "type": "PaymentSummaryType",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "STELLAR",
+            "def": false
+          },
+          "body": "PaymentSummaryStellar"
+        },
+        {
+          "label": {
+            "name": "DIRECT",
+            "def": false
+          },
+          "body": "PaymentSummaryDirect"
+        },
+        {
+          "label": {
+            "name": "RELAY",
+            "def": false
+          },
+          "body": "PaymentSummaryRelay"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentSummaryStellar",
       "fields": [
         {
-          "type": [
-            null,
-            "PaymentSummaryStellar"
-          ],
-          "name": "stellar"
-        },
-        {
-          "type": [
-            null,
-            "PaymentSummaryKeybase"
-          ],
-          "name": "keybase"
-        },
-        {
           "type": "TransactionID",
-          "name": "stellarTxID"
+          "name": "txID"
         },
         {
           "type": "AccountID",
@@ -145,32 +172,40 @@
         {
           "type": "Asset",
           "name": "asset"
+        },
+        {
+          "type": "uint64",
+          "name": "operationID"
+        },
+        {
+          "type": "TimeMs",
+          "name": "ctime"
         }
       ]
     },
     {
       "type": "record",
-      "name": "PaymentSummaryKeybase",
+      "name": "PaymentSummaryDirect",
       "fields": [
         {
           "type": "KeybaseTransactionID",
           "name": "kbTxID"
         },
         {
+          "type": "TransactionID",
+          "name": "txID"
+        },
+        {
           "type": "TransactionStatus",
-          "name": "status"
+          "name": "txStatus"
         },
         {
           "type": "string",
-          "name": "submitErrMsg"
+          "name": "txErrMsg"
         },
         {
-          "type": "TimeMs",
-          "name": "ctime"
-        },
-        {
-          "type": "TimeMs",
-          "name": "rtime"
+          "type": "AccountID",
+          "name": "fromStellar"
         },
         {
           "type": "keybase1.UserVersion",
@@ -181,11 +216,23 @@
           "name": "fromDeviceID"
         },
         {
+          "type": "AccountID",
+          "name": "toStellar"
+        },
+        {
           "type": [
             null,
             "keybase1.UserVersion"
           ],
           "name": "to"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "Asset",
+          "name": "asset"
         },
         {
           "type": [
@@ -204,20 +251,130 @@
         {
           "type": "string",
           "name": "noteB64"
+        },
+        {
+          "type": "TimeMs",
+          "name": "ctime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "rtime"
         }
       ]
     },
     {
       "type": "record",
-      "name": "PaymentSummaryStellar",
+      "name": "PaymentSummaryRelay",
       "fields": [
         {
-          "type": "uint64",
-          "name": "operationID"
+          "type": "KeybaseTransactionID",
+          "name": "kbTxID"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        },
+        {
+          "type": "TransactionStatus",
+          "name": "txStatus"
+        },
+        {
+          "type": "string",
+          "name": "txErrMsg"
+        },
+        {
+          "type": "AccountID",
+          "name": "fromStellar"
+        },
+        {
+          "type": "keybase1.UserVersion",
+          "name": "from"
+        },
+        {
+          "type": "keybase1.DeviceID",
+          "name": "fromDeviceID"
+        },
+        {
+          "type": [
+            null,
+            "keybase1.UserVersion"
+          ],
+          "name": "to"
+        },
+        {
+          "type": "AccountID",
+          "name": "relayAccount"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayCurrency"
         },
         {
           "type": "TimeMs",
           "name": "ctime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "rtime"
+        },
+        {
+          "type": "string",
+          "name": "boxB64"
+        },
+        {
+          "type": "keybase1.TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": [
+            null,
+            "ClaimSummary"
+          ],
+          "name": "claim"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ClaimSummary",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        },
+        {
+          "type": "TransactionStatus",
+          "name": "txStatus"
+        },
+        {
+          "type": "string",
+          "name": "txErrMsg"
+        },
+        {
+          "type": "RelayDirection",
+          "name": "dir"
+        },
+        {
+          "type": "AccountID",
+          "name": "toStellar"
+        },
+        {
+          "type": "keybase1.UserVersion",
+          "name": "to"
         }
       ]
     }

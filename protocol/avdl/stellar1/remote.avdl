@@ -31,36 +31,80 @@ protocol remote {
     string signedTransaction; // Claim or yank tx
   }
 
-  record PaymentSummary {
-    // One or the other or both.
-    union { null, PaymentSummaryStellar } stellar; // Info from stellar network
-    union { null, PaymentSummaryKeybase } keybase; // Info from keybase storage
-
-    // Common values
-    TransactionID stellarTxID;
-    AccountID from;
-    AccountID to;
-    string amount; // amount of asset transfered
-    Asset asset;
+  enum PaymentSummaryType {
+    NONE_0,
+    STELLAR_1,
+    DIRECT_2,
+    RELAY_3
   }
 
-  record PaymentSummaryKeybase {
+  variant PaymentSummary switch (PaymentSummaryType typ) {
+    case STELLAR: PaymentSummaryStellar; // The only record of this tx is from horizon
+    case DIRECT: PaymentSummaryDirect;
+    case RELAY: PaymentSummaryRelay;
+  }
+
+  // Info from horizon
+  record PaymentSummaryStellar {
+    TransactionID txID;
+    AccountID from;
+    AccountID to;
+    string amount; // amount of asset
+    Asset asset;
+    uint64 operationID;
+    TimeMs ctime; // time on the network
+  }
+
+  record PaymentSummaryDirect {
     KeybaseTransactionID kbTxID;
-    TransactionStatus status;
-    string submitErrMsg;
-    TimeMs ctime;
-    TimeMs rtime; // time of last status update
+    TransactionID txID;
+    TransactionStatus txStatus;
+    string txErrMsg;
+    AccountID fromStellar;
     keybase1.UserVersion from;
     keybase1.DeviceID fromDeviceID;
+    AccountID toStellar;
     union { null, keybase1.UserVersion } to;
+    string amount; // amount of asset
+    Asset asset;
     union { null, string } displayAmount;
     union { null, string } displayCurrency;
     string noteB64; // b64-encoded EncryptedNote or empty string.
+    TimeMs ctime; // ctime in keybase db
+    TimeMs rtime; // time of last status update
   }
 
-  record PaymentSummaryStellar {
-    uint64 operationID;
-    TimeMs ctime;
+  record PaymentSummaryRelay {
+    KeybaseTransactionID kbTxID;
+
+    // Funding tx info.
+    TransactionID txID;
+    TransactionStatus txStatus;
+    string txErrMsg;
+
+    AccountID fromStellar;
+    keybase1.UserVersion from;
+    keybase1.DeviceID fromDeviceID;
+    union { null, keybase1.UserVersion } to;
+    AccountID relayAccount;
+    string amount; // amount of XLM
+    union { null, string } displayAmount;
+    union { null, string } displayCurrency;
+    TimeMs ctime; // ctime in keybase db
+    TimeMs rtime; // time of last status update of fund tx
+    string boxB64; // b64-encoded EncryptedRelaySecret
+    keybase1.TeamID teamID; // Impteam ID
+    // Summary of the most relevant claim. Either the successful one or latest pending.
+    union { null, ClaimSummary } claim;
+  }
+
+  record ClaimSummary {
+    TransactionID txID;
+    TransactionStatus txStatus;
+    string txErrMsg;
+    RelayDirection dir;
+    AccountID toStellar;
+    keybase1.UserVersion to; // who claimed it
   }
 
   array<Balance> balances(keybase1.UserVersion caller, AccountID accountID);
