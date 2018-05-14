@@ -88,7 +88,6 @@ if (enableStoreLogging) {
 } else if (enableActionLogging) {
   middlewares.push(actionLogger)
 }
-middlewares.push(createLogger())
 
 if (__DEV__ && typeof window !== 'undefined') {
   window.debugActionLoop = () => {
