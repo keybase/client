@@ -424,6 +424,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	})
 	require.NoError(t, err)
 	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())
+	require.NoError(t, err)
 	require.True(t, len(out.FundTx.Signed) > 100)
 
 	t.Logf("decrypt")

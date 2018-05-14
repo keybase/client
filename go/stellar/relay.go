@@ -114,6 +114,9 @@ func CreateRelayTransfer(in RelayPaymentInput) (res RelayPaymentOutput, err erro
 		Sk:        stellar1.SecretKey(relayKp.Seed()),
 		Note:      in.Note,
 	}, in.EncryptFor)
+	if err != nil {
+		return res, err
+	}
 	pack, err := libkb.MsgpackEncode(enc)
 	if err != nil {
 		return res, err
