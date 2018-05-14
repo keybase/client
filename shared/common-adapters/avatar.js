@@ -351,6 +351,7 @@ const mockOwnToViewProps = (props: Props) => {
   }
 }
 const mock = compose(withProps(mockOwnToViewProps))(Render)
+console.log('NOJIMA test to just get codecov to run')
 
 export {ConnectedAvatar, mockOwnToViewProps}
 export default (isTesting ? mock : real)
