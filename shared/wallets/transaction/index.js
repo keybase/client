@@ -174,7 +174,7 @@ export const Transaction = (props: Props) => (
       counterpartyType={props.counterpartyType}
       large={props.large}
     />
-    <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.rightContainer}>
+    <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
       <Timestamp timestamp={props.timestamp} />
       <Detail
         large={props.large}
@@ -208,6 +208,7 @@ const styles = styleSheetCreate({
     },
   }),
   rightContainer: {
+    flex: 1,
     marginLeft: globalMargins.tiny,
   },
 })
