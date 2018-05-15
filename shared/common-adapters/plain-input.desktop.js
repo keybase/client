@@ -145,7 +145,7 @@ class PlainInput extends React.PureComponent<Props> {
 
   _getMultilineProps = () => {
     const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
-    const textStyle = getTextStyle(this.props.textType || 'Body')
+    const textStyle = getTextStyle(this.props.textType)
     const heightStyles: _StylesDesktop = {
       minHeight: rows * (textStyle.fontSize || 20),
     }
@@ -168,7 +168,7 @@ class PlainInput extends React.PureComponent<Props> {
   }
 
   _getSinglelineProps = () => {
-    const textStyle = getTextStyle(this.props.textType || 'Body')
+    const textStyle = getTextStyle(this.props.textType)
     return {
       ...this._getCommonProps(),
       style: collapseStyles([

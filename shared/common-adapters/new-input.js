@@ -29,6 +29,7 @@ type State = {
 class NewInput extends React.Component<Props, State> {
   static defaultProps = {
     flexable: true,
+    keyboardType: 'default',
     textType: 'BodySemibold',
   }
   state: State = {
