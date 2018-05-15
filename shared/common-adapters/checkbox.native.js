@@ -73,7 +73,7 @@ class Checkbox extends Component<Props, State> {
           <NativeAnimated.View style={{...styleOuter, ...outerOverride}}>
             <NativeAnimated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
           </NativeAnimated.View>
-          {this.props.labelComponent}
+          {!!this.props.labelComponent && <Box style={styleLabel}>{this.props.labelComponent}</Box>}
           {!this.props.labelComponent && (
             <Text type="Body" style={styleText}>
               {this.props.label}
@@ -110,11 +110,15 @@ const styleInner = {
   borderRadius: 16,
 }
 
-const styleText = {
+const styleLabel = {
   marginLeft: globalMargins.tiny,
   marginTop: globalMargins.xtiny,
-  color: globalColors.black_75,
   flexShrink: 1,
+}
+
+const styleText = {
+  ...styleLabel,
+  color: globalColors.black_75,
 }
 
 export default Checkbox

@@ -489,7 +489,10 @@ const errorUIMessagetoMessage = (
   o: RPCChatTypes.MessageUnboxedError
 ) => {
   return makeMessageText({
+    author: o.senderUsername,
     conversationIDKey,
+    deviceName: o.senderDeviceName,
+    deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
     errorReason: o.errMsg,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),

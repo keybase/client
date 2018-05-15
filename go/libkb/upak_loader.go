@@ -680,7 +680,7 @@ func (u *CachedUPAKLoader) CheckDeviceForUIDAndUsername(ctx context.Context, uid
 	foundDevice := false
 	isRevoked := false
 	var foundUsername NormalizedUsername
-	u.loadWithInfo(arg, nil, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
+	_, _, err = u.loadWithInfo(arg, nil, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 		if upak == nil {
 			return nil
 		}
@@ -694,6 +694,9 @@ func (u *CachedUPAKLoader) CheckDeviceForUIDAndUsername(ctx context.Context, uid
 		}
 		return nil
 	}, false)
+	if err != nil {
+		return err
+	}
 	if !foundUser {
 		return UserNotFoundError{UID: uid}
 	}
