@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import logger from '../logger'
 import * as AppGen from './app-gen'
 import * as Chat2Gen from './chat2-gen'
