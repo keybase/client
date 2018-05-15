@@ -28,14 +28,7 @@ type ephemeralTrackerEntry struct {
 
 const ephemeralTrackerDiskVersion = 1
 
-var addPurgeHookOnce sync.Once
-
 func newEphemeralTracker(g *globals.Context) *ephemeralTracker {
-	// add a logout hook to clear the in-memory purge cache, but only add it once:
-	addPurgeHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(ephemeralPurgeCache)
-	})
-
 	return &ephemeralTracker{Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ephemeralTracker", false),
 	}
@@ -49,10 +42,6 @@ func (t *ephemeralTracker) makeDbKey(uid gregor1.UID) libkb.DbKey {
 }
 
 func (t *ephemeralTracker) dbGet(ctx context.Context, uid gregor1.UID) (info allPurgeInfo, err Error) {
-	if info := ephemeralPurgeCache.Get(); info != nil {
-		return info, nil
-	}
-
 	dbKey := t.makeDbKey(uid)
 	raw, found, lerr := t.G().LocalChatDb.GetRaw(dbKey)
 
@@ -60,9 +49,7 @@ func (t *ephemeralTracker) dbGet(ctx context.Context, uid gregor1.UID) (info all
 		return nil, NewInternalError(ctx, t.DebugLabeler, "GetRaw error: %s", lerr.Error())
 	}
 	if !found {
-		info = make(allPurgeInfo)
-		ephemeralPurgeCache.Put(info)
-		return info, nil
+		return make(allPurgeInfo), nil
 	}
 
 	var dbRes ephemeralTrackerEntry
@@ -77,7 +64,6 @@ func (t *ephemeralTracker) dbGet(ctx context.Context, uid gregor1.UID) (info all
 		// ignore other versions
 		info = make(allPurgeInfo)
 	}
-	ephemeralPurgeCache.Put(info)
 	return info, nil
 }
 
@@ -94,7 +80,6 @@ func (t *ephemeralTracker) dbSet(ctx context.Context, uid gregor1.UID, newInfo a
 	if err := t.G().LocalChatDb.PutRaw(dbKey, data); err != nil {
 		return NewInternalError(ctx, t.DebugLabeler, "PutRaw error: %s", err.Error())
 	}
-	ephemeralPurgeCache.Put(newInfo)
 	return nil
 }
 
@@ -138,7 +123,13 @@ func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
 	}
 	allPurgeInfo[convID.String()] = *purgeInfo
 	t.Debug(ctx, "setPurgeInfo setting info: %v", *purgeInfo)
-	return t.dbSet(ctx, uid, allPurgeInfo)
+	if err = t.dbSet(ctx, uid, allPurgeInfo); err == nil {
+		// Let our background monitor know about the new info.
+		if purger := t.G().EphemeralPurger; purger != nil {
+			purger.Queue(ctx, *purgeInfo)
+		}
+	}
+	return err
 }
 
 // When we are filtering new messages coming in/out of storage, we maybe update
@@ -173,7 +164,13 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	}
 	t.Debug(ctx, "maybeUpdatePurgeInfo setting info: %v", purgeInfo)
 	allPurgeInfo[convID.String()] = *purgeInfo
-	return t.dbSet(ctx, uid, allPurgeInfo)
+	if err = t.dbSet(ctx, uid, allPurgeInfo); err == nil {
+		// Let our background monitor know about the new info.
+		if purger := t.G().EphemeralPurger; purger != nil {
+			purger.Queue(ctx, *purgeInfo)
+		}
+	}
+	return err
 }
 
 func (t *ephemeralTracker) inactivatePurgeInfo(ctx context.Context,
@@ -192,5 +189,11 @@ func (t *ephemeralTracker) inactivatePurgeInfo(ctx context.Context,
 		return nil
 	}
 	purgeInfo.IsActive = false
-	return t.dbSet(ctx, uid, allPurgeInfo)
+	if err = t.dbSet(ctx, uid, allPurgeInfo); err == nil {
+		// Let our background monitor know about the new info.
+		if purger := t.G().EphemeralPurger; purger != nil {
+			purger.Queue(ctx, purgeInfo)
+		}
+	}
+	return err
 }

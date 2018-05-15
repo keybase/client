@@ -1056,13 +1056,15 @@ func (o MsgEphemeralMetadata) DeepCopy() MsgEphemeralMetadata {
 }
 
 type EphemeralPurgeInfo struct {
-	IsActive        bool         `codec:"a" json:"a"`
-	NextPurgeTime   gregor1.Time `codec:"n" json:"n"`
-	MinUnexplodedID MessageID    `codec:"e" json:"e"`
+	ConvID          ConversationID `codec:"c" json:"c"`
+	IsActive        bool           `codec:"a" json:"a"`
+	NextPurgeTime   gregor1.Time   `codec:"n" json:"n"`
+	MinUnexplodedID MessageID      `codec:"e" json:"e"`
 }
 
 func (o EphemeralPurgeInfo) DeepCopy() EphemeralPurgeInfo {
 	return EphemeralPurgeInfo{
+		ConvID:          o.ConvID.DeepCopy(),
 		IsActive:        o.IsActive,
 		NextPurgeTime:   o.NextPurgeTime.DeepCopy(),
 		MinUnexplodedID: o.MinUnexplodedID.DeepCopy(),
