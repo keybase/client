@@ -19,27 +19,27 @@ const beforeLastWeek = moment(now)
   .subtract(8, 'days')
   .toDate()
 
-const singleEmojiNote = '🎁'
-const shortNote = 'Short note.'
-const longNote =
+const singleEmojiMemo = '🎁'
+const shortMemo = 'Short memo.'
+const longMemo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
 const addConfigs = (stories, namePrefix, storyFn) => {
   const roles = [{yourRole: 'sender'}, {yourRole: 'receiver'}]
   const sizes = [{large: true}, {large: false}]
-  const notesAndTimes = [
-    {note: shortNote, timestamp: yesterday},
-    {note: longNote, timestamp: lastWeek},
-    {note: singleEmojiNote, timestamp: beforeLastWeek},
+  const memosAndTimes = [
+    {memo: shortMemo, timestamp: yesterday},
+    {memo: longMemo, timestamp: lastWeek},
+    {memo: singleEmojiMemo, timestamp: beforeLastWeek},
     // Pending.
-    {note: shortNote, timestamp: null},
+    {memo: shortMemo, timestamp: null},
   ]
 
   roles.forEach(r => {
     sizes.forEach(s => {
       stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
         const components = []
-        notesAndTimes.forEach(t => {
+        memosAndTimes.forEach(t => {
           components.push(storyFn({key: components.length, ...r, ...s, ...t}))
         })
         return components

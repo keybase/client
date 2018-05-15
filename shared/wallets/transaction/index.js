@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import moment from 'moment'
-import {Avatar, Box2, Icon, ConnectedUsernames} from '../../common-adapters'
+import {Avatar, Box2, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
-import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
+import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
 type Role = 'sender' | 'receiver'
 type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
@@ -171,7 +171,7 @@ export type Props = {|
   counterpartyType: CounterpartyType,
   amountUser: string,
   amountXLM: string,
-  note: string,
+  memo: string,
 |}
 
 export const Transaction = (props: Props) => {
@@ -193,11 +193,13 @@ export const Transaction = (props: Props) => {
           counterpartyType={props.counterpartyType}
           amountUser={props.amountUser}
         />
-        {// TODO: Detect single emoji case and use big emoji.
+        {// TODO: Consolidate memo display code below with
+        // chat/conversation/messages/wallet-payment/index.js.
         props.large && (
-          <Text style={styles.note} type="Body">
-            {props.note}
-          </Text>
+          <Box2 direction="horizontal" gap="small" fullWidth={true}>
+            <Divider vertical={true} style={styles.quoteMarker} />
+            <Markdown allowFontScaling={true}>{props.memo}</Markdown>
+          </Box2>
         )}
         <AmountXLM pending={pending} yourRole={props.yourRole} amountXLM={props.amountXLM} />
       </Box2>
@@ -210,15 +212,7 @@ const styles = styleSheetCreate({
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
-  note: platformStyles({
-    common: {
-      borderLeftColor: globalColors.lightGrey2,
-      borderLeftWidth: 3,
-      borderStyle: 'solid',
-      marginTop: globalMargins.xtiny,
-      paddingLeft: 8,
-    },
-  }),
+  quoteMarker: {maxWidth: 3, minWidth: 3},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,
