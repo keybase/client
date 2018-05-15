@@ -78,7 +78,7 @@ class Input extends React.PureComponent<Props, State> {
     if (this.props.uncontrolled) {
       this._onChangeTextDone()
     } else {
-      this.setState({value: text}, this._onChangeTextDone)
+      this.setState({value: text || ''}, this._onChangeTextDone)
     }
   }
 

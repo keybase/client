@@ -23,7 +23,7 @@ machine:
     ANDROID_NDK_HOME: ${ANDROID_NDK}
 general:
   build_dir: shared
-dependencies:
+test:
   pre:
     # - nvm ls-remote
     - sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
@@ -70,30 +70,32 @@ dependencies:
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
     - yarn run rn-gobuild-android
     - ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
+    - mkdir -p $CIRCLE_TEST_REPORTS/flow-coverage
     # Build a debug version of the app
     # Bundle JS separately because doing it in the gradle build is buggy
     - mkdir -p react-native/android/app/build/intermediates/assets/releaseUnsigned
     - mkdir -p react-native/android/app/build/intermediates/res/merged/releaseUnsigned
-    - react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned:
-        environment:
-          PATH: $HOME/.yarn/bin:$PATH
+    - alias cmd1="PATH=$HOME/.yarn/bin:$PATH react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned"
+    - alias cmd2="if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi"
+    - case $CIRCLE_NODE_INDEX in 0) cmd1 ;; 1) cmd2 ;; esac:
+        parallel: true
     # Build app
     - ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets:
         pwd:
           react-native/android
-test:
-  override:
-    - mkdir -p $CIRCLE_TEST_REPORTS/flow-coverage
-    - "true"
-    # TODO(mm) uncomment these device tests (see todo above)
-    # wait for it to have booted
-    # - circle-android wait-for-boot
-    # run tests  against the emulator.
-    # - (cd android && ./gradlew connectedAndroidTest)
-    # copy the build outputs to artifacts
-    # - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
-    # copy the test results to the test results directory.
-    # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
-  post:
-      # Only run coverage if there were changes to the shared folder
-    - if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi
+# test:
+#   override:
+#     - mkdir -p $CIRCLE_TEST_REPORTS/flow-coverage
+#     - "true"
+#     - if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi
+#       -
+#     # TODO(mm) uncomment these device tests (see todo above)
+#     # wait for it to have booted
+#     # - circle-android wait-for-boot
+#     # run tests  against the emulator.
+#     # - (cd android && ./gradlew connectedAndroidTest)
+#     # copy the build outputs to artifacts
+#     # - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
+#     # copy the test results to the test results directory.
+#     # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
+    
