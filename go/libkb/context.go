@@ -383,15 +383,11 @@ func (m MetaContext) LogoutIfRevoked() (err error) {
 		return nil
 	}
 
-	err = CheckCurrentUIDDeviceID(m)
-	if err == nil {
-		m.CDebugf("LogoutIfRevoked: current device ok")
-		return nil
-	}
-
 	doLogout := false
-
+	err = CheckCurrentUIDDeviceID(m)
 	switch err.(type) {
+	case nil:
+		m.CDebugf("LogoutIfRevoked: current device ok")
 	case DeviceNotFoundError:
 		m.CDebugf("LogoutIfRevoked: device not found error; user was likely reset; calling logout (%s)", err)
 		doLogout = true
