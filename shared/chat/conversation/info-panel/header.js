@@ -3,7 +3,14 @@ import * as React from 'react'
 import {Box, ClickableBox, Icon, NameWithIcon, Text} from '../../../common-adapters'
 import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../common-adapters/floating-menu'
 import InfoPanelMenu from './menu/container'
-import {glamorous, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
+import {
+  glamorous,
+  globalMargins,
+  globalStyles,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../styles'
 
 type SmallProps = {
   teamname: string,
@@ -108,19 +115,25 @@ const BigTeamHeader = (props: BigProps) => {
         )}
       </Box>
       {!!props.description && (
-        <Text
-          style={{
-            paddingLeft: 4,
-            paddingRight: 4,
-            textAlign: 'center',
-          }}
-          type="Body"
-        >
+        <Text style={styles.description} type="Body">
           {props.description}
         </Text>
       )}
     </Box>
   )
 }
+
+const styles = styleSheetCreate({
+  description: platformStyles({
+    common: {
+      paddingLeft: 4,
+      paddingRight: 4,
+      textAlign: 'center',
+    },
+    isElectron: {
+      wordWrap: 'break-word',
+    },
+  }),
+})
 
 export {SmallTeamHeader, BigTeamHeader}
