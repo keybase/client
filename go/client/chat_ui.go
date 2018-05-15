@@ -142,28 +142,31 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 		return nil
 	}
 	searchHit := arg.SearchHit
-	getMsgPrefix := func(uiMsg *chat1.UIMessage) string {
-		m := uiMsg.Valid()
+	getMsgPrefix := func(msg chat1.UIMessage) string {
+		m := msg.Valid()
 		t := gregor1.FromTime(m.Ctime)
 		return fmt.Sprintf("[%s %s] ", m.SenderUsername, shortDurationFromNow(t))
 	}
 
-	getContext := func(uiMsg *chat1.UIMessage) string {
-		if uiMsg != nil && uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
-			msgBody := uiMsg.Valid().MessageBody.Text().Body
-			return getMsgPrefix(uiMsg) + msgBody + "\n"
+	getContext := func(msgs []chat1.UIMessage) string {
+		ctx := []string{}
+		for _, msg := range msgs {
+			if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
+				msgBody := msg.Valid().MessageBody.Text().Body
+				ctx = append(ctx, getMsgPrefix(msg)+msgBody+"\n")
+			}
 		}
-		return ""
+		return strings.Join(ctx, "")
 	}
 
-	highlightHits := func(uiMsg *chat1.UIMessage, hits []string) string {
-		if uiMsg != nil && uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
-			msgBody := uiMsg.Valid().MessageBody.Text().Body
+	highlightHits := func(msg chat1.UIMessage, hits []string) string {
+		if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
+			msgBody := msg.Valid().MessageBody.Text().Body
 			var hitText string
 			for _, hit := range hits {
 				hitText = strings.Replace(msgBody, hit, ColorString(c.G(), "red", hit), -1)
 			}
-			return getMsgPrefix(uiMsg) + hitText
+			return getMsgPrefix(msg) + hitText
 		}
 		return ""
 	}
@@ -173,9 +176,9 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 	hitText := highlightHits(searchHit.HitMessage, searchHit.Matches)
 	if hitText != "" {
 		w := c.terminal.OutputWriter()
-		fmt.Fprintf(w, getContext(searchHit.PrevMessage))
+		fmt.Fprintf(w, getContext(searchHit.BeforeMessages))
 		fmt.Fprintln(w, hitText)
-		fmt.Fprintf(w, getContext(searchHit.NextMessage))
+		fmt.Fprintf(w, getContext(searchHit.AfterMessages))
 		fmt.Fprintln(w, "")
 	}
 	return nil
