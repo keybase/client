@@ -149,7 +149,7 @@ type TimestampProps = {|
 
 const Timestamp = (props: TimestampProps) => {
   if (!props.timestamp) {
-    return <Text type="BodySmall">'Pending'</Text>
+    return <Text type="BodySmall">Pending</Text>
   }
   const m = moment(props.timestamp)
   return (
