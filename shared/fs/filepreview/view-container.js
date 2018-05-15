@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {connect, pure, type Dispatch, type TypedState} from '../../util/container'
+import {connect, type Dispatch, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -33,20 +33,25 @@ const mergeProps = ({_serverInfo}, {onInvalidToken}, {path}) => ({
 
 const httpConnect = connect(mapStateToProps, mapDispatchToProps, mergeProps)
 
-export default pure(({path, fileViewType, routePath}: Props) => {
+const textViewComponent = httpConnect(TextView)
+const imageViewComponent = httpConnect(ImageView)
+const videoViewComponent = httpConnect(VideoView)
+const pdfViewComponent = httpConnect(PdfView)
+
+export default ({path, fileViewType, routePath}: Props) => {
   const ft = fileViewType || Constants.viewTypeFromPath(path)
   switch (ft) {
     case 'default':
       return <DefaultView path={path} routePath={routePath} />
     case 'text':
-      return React.createElement(httpConnect(TextView), {path, routePath})
+      return React.createElement(textViewComponent, {path, routePath})
     case 'image':
-      return React.createElement(httpConnect(ImageView), {path, routePath})
+      return React.createElement(imageViewComponent, {path, routePath})
     case 'video':
-      return React.createElement(httpConnect(VideoView), {path, routePath})
+      return React.createElement(videoViewComponent, {path, routePath})
     case 'pdf':
-      return React.createElement(httpConnect(PdfView), {path, routePath})
+      return React.createElement(pdfViewComponent, {path, routePath})
     default:
       return <Text type="BodyError">This shouldn't happen</Text>
   }
-})
+}
