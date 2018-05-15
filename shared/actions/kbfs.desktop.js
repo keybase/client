@@ -153,16 +153,14 @@ function installCachedDokan(): Promise<void> {
       reject(err)
       return
     }
-    // restart the servie, particularly kbfsdokan
+    // restart the service, particularly kbfsdokan
     // based on desktop/app/start-win-service.js
     const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
     if (!binPath) {
       return
     }
     const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
-    const wdLogPath = binPath.replace('keybase.exe', 'watchdog.')
-    const args = [binPath, '--log-format=file', '--log-prefix=' + wdLogPath, 'ctl', 'watchdog2']
-
+    const args = [binPath, 'ctl', 'restart']
     spawn(rqPath, args, {
       detached: true,
       stdio: 'ignore',
