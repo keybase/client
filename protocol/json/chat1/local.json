@@ -1127,6 +1127,18 @@
           "name": "errMsg"
         },
         {
+          "type": "string",
+          "name": "senderUsername"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceName"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceType"
+        },
+        {
           "type": "MessageID",
           "name": "messageID"
         },

@@ -208,7 +208,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 6,
+    paddingBottom: 12,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
@@ -220,20 +220,19 @@ const styles = styleSheetCreate({
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
-    paddingBottom: containerPadding,
     paddingRight: containerPadding,
-    paddingTop: containerPadding,
   },
   editingTabStyle: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
     backgroundColor: globalColors.yellow_60,
     height: '100%',
+    padding: 3,
   },
   input: {
     marginLeft: globalMargins.tiny,
-    paddingBottom: 6,
-    paddingTop: 6,
+    paddingBottom: 12,
+    paddingTop: 12,
     ...(isIOS
       ? {}
       : {
