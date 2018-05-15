@@ -19,6 +19,10 @@ const beforeLastWeek = moment(now)
   .subtract(8, 'days')
   .toDate()
 
+const shortNote = 'Short note.'
+const longNote =
+  'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
+
 const load = () => {
   storiesOf('Wallets/Transaction', module)
     .addDecorator(provider)
@@ -36,7 +40,7 @@ const load = () => {
         counterpartyType="keybaseUser"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        note="Short note."
+        note={shortNote}
       />
     ))
     .add('Keybase User to Default wallet (small)', () => (
@@ -60,7 +64,7 @@ const load = () => {
         counterpartyType="stellarPublicKey"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        note="Short note."
+        note={longNote}
       />
     ))
     .add('Stellar Public Key to Default wallet (small)', () => (
@@ -72,7 +76,7 @@ const load = () => {
         counterpartyType="stellarPublicKey"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        note="Short note."
+        note={longNote}
       />
     ))
     .add('Pending', () => (
@@ -84,7 +88,7 @@ const load = () => {
         counterpartyType="keybaseUser"
         amountUser="$100"
         amountXLM="42.535091 XLM"
-        note="Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah."
+        note={longNote}
       />
     ))
     .add('Wallet to Wallet', () => (
@@ -96,7 +100,7 @@ const load = () => {
         counterpartyType="wallet"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        note="Short note."
+        note={shortNote}
       />
     ))
     .add('Wallet to Wallet (small)', () => (
@@ -108,7 +112,7 @@ const load = () => {
         counterpartyType="wallet"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        note="Short note."
+        note={shortNote}
       />
     ))
 }

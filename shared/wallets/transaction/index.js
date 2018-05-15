@@ -48,6 +48,7 @@ const StellarPublicKey = (props: StellarPublicKeyProps) => {
 
 type DetailProps = {|
   large: boolean,
+  pending: boolean,
   yourRole: Role,
   counterparty: string,
   counterpartyType: CounterpartyType,
@@ -92,32 +93,35 @@ const Detail = (props: DetailProps) => {
   const amount = <Text type={textTypeSemibold}>{props.amountUser}</Text>
 
   if (props.counterpartyType === 'wallet') {
+    const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (
         <Text type={textType}>
-          You transferred Lumens worth {amount} from this wallet to {counterparty}.
+          {verbPhrase} Lumens worth {amount} from this wallet to {counterparty}.
         </Text>
       )
     }
 
     return (
       <Text type={textType}>
-        You transferred Lumens worth {amount} from {counterparty} to this wallet.
+        {verbPhrase} Lumens worth {amount} from {counterparty} to this wallet.
       </Text>
     )
   }
 
   if (props.yourRole === 'sender') {
+    const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
       <Text type={textType}>
-        You sent Lumens worth {amount} to {counterparty}.
+        {verbPhrase} Lumens worth {amount} to {counterparty}.
       </Text>
     )
   }
 
+  const verbPhrase = props.pending ? 'sending' : 'sent you'
   return (
     <Text type={textType}>
-      {counterparty} sent you Lumens worth {amount}.
+      {counterparty} {verbPhrase} Lumens worth {amount}.
     </Text>
   )
 }
@@ -143,7 +147,6 @@ const AmountXLM = (props: AmountXLMProps) => {
 }
 
 type TimestampProps = {|
-  // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
 |}
 
@@ -160,38 +163,46 @@ const Timestamp = (props: TimestampProps) => {
 }
 
 export type Props = {|
-  ...$Exact<DetailProps>,
-  ...$Exact<CounterpartyIconProps>,
-  ...$Exact<TimestampProps>,
+  large: boolean,
+  // A null timestamp means the transaction is still pending.
+  timestamp: Date | null,
+  yourRole: Role,
+  counterparty: string,
+  counterpartyType: CounterpartyType,
+  amountUser: string,
   amountXLM: string,
   note: string,
 |}
 
-export const Transaction = (props: Props) => (
-  <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-    <CounterpartyIcon
-      counterparty={props.counterparty}
-      counterpartyType={props.counterpartyType}
-      large={props.large}
-    />
-    <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
-      <Timestamp timestamp={props.timestamp} />
-      <Detail
-        large={props.large}
-        yourRole={props.yourRole}
+export const Transaction = (props: Props) => {
+  const pending = !props.timestamp
+  return (
+    <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      <CounterpartyIcon
         counterparty={props.counterparty}
         counterpartyType={props.counterpartyType}
-        amountUser={props.amountUser}
+        large={props.large}
       />
-      {props.large && (
-        <Text style={styles.note} type="Body">
-          {props.note}
-        </Text>
-      )}
-      <AmountXLM pending={!props.timestamp} yourRole={props.yourRole} amountXLM={props.amountXLM} />
+      <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
+        <Timestamp timestamp={props.timestamp} />
+        <Detail
+          large={props.large}
+          pending={pending}
+          yourRole={props.yourRole}
+          counterparty={props.counterparty}
+          counterpartyType={props.counterpartyType}
+          amountUser={props.amountUser}
+        />
+        {props.large && (
+          <Text style={styles.note} type="Body">
+            {props.note}
+          </Text>
+        )}
+        <AmountXLM pending={pending} yourRole={props.yourRole} amountXLM={props.amountXLM} />
+      </Box2>
     </Box2>
-  </Box2>
-)
+  )
+}
 
 const styles = styleSheetCreate({
   container: {
