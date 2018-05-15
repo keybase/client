@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Avatar, {ConnectedAvatar} from './avatar'
+import Avatar from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
@@ -46,7 +46,7 @@ const NameWithIconVertical = (props: Props) => {
       style={collapseStyles([styles.vContainerStyle, props.containerStyle])}
     >
       {isAvatar && (
-        <ConnectedAvatar size={adapterProps.iconSize} username={props.username} teamname={props.teamname} />
+        <Avatar size={adapterProps.iconSize} username={props.username} teamname={props.teamname} />
       )}
       {!isAvatar &&
         !!props.icon && (

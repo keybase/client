@@ -6,8 +6,7 @@ import ClickableBox from './clickable-box'
 import Box from './box'
 import {Image} from 'react-native'
 
-import type {AvatarSize} from './avatar'
-import type {IconType} from './icon'
+import type {AvatarSize, Props} from './avatar.render'
 
 type ImageProps = {
   onLoadEnd: () => void,
@@ -15,23 +14,6 @@ type ImageProps = {
   size: AvatarSize,
   url: string,
   borderRadius: any,
-}
-
-type Props = {
-  borderColor: ?string,
-  children: any,
-  followIconStyle: ?Object,
-  followIconType: ?IconType,
-  followIconSize: number,
-  isTeam?: boolean,
-  loadingColor: ?string,
-  onClick?: ?(event: SyntheticEvent<>) => void,
-  opacity: ?number,
-  skipBackground?: boolean,
-  skipBackgroundAfterLoaded?: boolean,
-  size: AvatarSize,
-  style?: ?Object,
-  url: ?string,
 }
 
 type State = {
