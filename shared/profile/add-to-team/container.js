@@ -9,7 +9,7 @@ import {
   withStateHandlers,
   type TypedState,
 } from '../../util/container'
-import {mapKeys, mapValues, zipObject} from 'lodash-es'
+import {mapValues, zipObject} from 'lodash-es'
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
