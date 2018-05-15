@@ -130,7 +130,10 @@ func signAndPostDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation
 	err = postNewDeviceEK(ctx, g, signedStatement)
 	if err != nil {
 		storage.ClearCache()
-		NewDeviceEKStorage(g).Delete(ctx, generation)
+		serr := NewDeviceEKStorage(g).Delete(ctx, generation)
+		if serr != nil {
+			g.Log.CDebugf(ctx, "DeviceEK deletion failed %v", err)
+		}
 	}
 
 	return metadata, err
