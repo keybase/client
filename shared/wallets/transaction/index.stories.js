@@ -1,11 +1,23 @@
 // @flow
 import * as React from 'react'
+import moment from 'moment'
 import * as PropProviders from '../../stories/prop-providers'
 import {Box2} from '../../common-adapters'
 import {storiesOf} from '../../stories/storybook'
 import Transaction from '.'
 
 const provider = PropProviders.compose(PropProviders.Usernames(['paul'], 'john'))
+
+const now = new Date()
+const yesterday = moment(now)
+  .subtract(1, 'days')
+  .toDate()
+const lastWeek = moment(now)
+  .subtract(6, 'days')
+  .toDate()
+const beforeLastWeek = moment(now)
+  .subtract(8, 'days')
+  .toDate()
 
 const load = () => {
   storiesOf('Wallets/Transaction', module)
@@ -18,7 +30,7 @@ const load = () => {
     .add('Default wallet to Keybase User', () => (
       <Transaction
         large={true}
-        timestamp={new Date()}
+        timestamp={yesterday}
         yourRole="sender"
         counterparty="paul"
         counterpartyType="keybaseUser"
@@ -30,7 +42,7 @@ const load = () => {
     .add('Keybase User to Default wallet (small)', () => (
       <Transaction
         large={false}
-        timestamp={new Date()}
+        timestamp={lastWeek}
         yourRole="receiver"
         counterparty="james"
         counterpartyType="keybaseUser"
@@ -42,7 +54,7 @@ const load = () => {
     .add('Default wallet to Stellar Public Key', () => (
       <Transaction
         large={true}
-        timestamp={new Date()}
+        timestamp={beforeLastWeek}
         yourRole="sender"
         counterparty="G43289XXXXX34OPL"
         counterpartyType="stellarPublicKey"
@@ -54,7 +66,7 @@ const load = () => {
     .add('Stellar Public Key to Default wallet (small)', () => (
       <Transaction
         large={false}
-        timestamp={new Date()}
+        timestamp={lastWeek}
         yourRole="receiver"
         counterparty="G43289XXXXX34OPL"
         counterpartyType="stellarPublicKey"
@@ -78,7 +90,7 @@ const load = () => {
     .add('Wallet to Wallet', () => (
       <Transaction
         large={true}
-        timestamp={new Date()}
+        timestamp={yesterday}
         yourRole="sender"
         counterparty="Second wallet"
         counterpartyType="wallet"
@@ -90,7 +102,7 @@ const load = () => {
     .add('Wallet to Wallet (small)', () => (
       <Transaction
         large={false}
-        timestamp={new Date()}
+        timestamp={lastWeek}
         yourRole="sender"
         counterparty="Second wallet"
         counterpartyType="wallet"

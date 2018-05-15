@@ -1,10 +1,9 @@
 // @flow
 import * as React from 'react'
+import moment from 'moment'
 import {Avatar, Box2, Icon, ConnectedUsernames} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
-// TODO: Format relative dates.
-import {formatTimeForPopup} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
 type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
@@ -143,11 +142,27 @@ const AmountXLM = (props: AmountXLMProps) => {
   )
 }
 
+type TimestampProps = {|
+  // A null timestamp means the transaction is still pending.
+  timestamp: Date | null,
+|}
+
+const Timestamp = (props: TimestampProps) => {
+  if (!props.timestamp) {
+    return <Text type="BodySmall">'Pending'</Text>
+  }
+  const m = moment(props.timestamp)
+  return (
+    <Text title={m.format()} type="BodySmall">
+      {m.calendar()}
+    </Text>
+  )
+}
+
 export type Props = {|
   ...$Exact<DetailProps>,
   ...$Exact<CounterpartyIconProps>,
-  // A null timestamp means the transaction is still pending.
-  timestamp: Date | null,
+  ...$Exact<TimestampProps>,
   amountXLM: string,
   note: string,
 |}
@@ -160,7 +175,7 @@ export const Transaction = (props: Props) => (
       large={props.large}
     />
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.rightContainer}>
-      <Text type="BodySmall">{props.timestamp ? formatTimeForPopup(props.timestamp) : 'Pending'}</Text>
+      <Timestamp timestamp={props.timestamp} />
       <Detail
         large={props.large}
         yourRole={props.yourRole}
