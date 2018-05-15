@@ -18,7 +18,7 @@ import "mime"
 //
 // Note that due to unpredictibility of what's on the device's file system,
 // merely using this function may not be enough if you want to override a
-// particularly mime type (e.g. text/javascript). To do so you should check the
+// particular mime type (e.g. text/javascript). To do so you should check the
 // determined mime type at a later time, e.g. before writing the HTTP response.
 func Patch(additional map[string]string) {
 	for ext, mimeType := range mimeTypes {
