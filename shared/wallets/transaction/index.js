@@ -164,18 +164,25 @@ const Timestamp = (props: TimestampProps) => {
 
 export type Props = {|
   large: boolean,
+
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
+
   yourRole: Role,
   counterparty: string,
   counterpartyType: CounterpartyType,
   amountUser: string,
   amountXLM: string,
+
+  // Ignored if yourRole is receiver and counterpartyType is
+  // stellarPublicKey.
   memo: string,
 |}
 
 export const Transaction = (props: Props) => {
   const pending = !props.timestamp
+  const showMemo =
+    props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
   return (
     <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
       <CounterpartyIcon
@@ -195,7 +202,7 @@ export const Transaction = (props: Props) => {
         />
         {// TODO: Consolidate memo display code below with
         // chat/conversation/messages/wallet-payment/index.js.
-        props.large && (
+        showMemo && (
           <Box2 direction="horizontal" gap="small" fullWidth={true}>
             <Divider vertical={true} style={styles.quoteMarker} />
             <Markdown allowFontScaling={true}>{props.memo}</Markdown>
