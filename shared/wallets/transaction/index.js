@@ -148,6 +148,7 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 type TimestampProps = {|
   timestamp: Date | null,
+  referenceTime: Date,
 |}
 
 const Timestamp = (props: TimestampProps) => {
@@ -157,7 +158,7 @@ const Timestamp = (props: TimestampProps) => {
   const m = moment(props.timestamp)
   return (
     <Text title={m.format()} type="BodySmall">
-      {m.calendar()}
+      {m.calendar(props.referenceTime)}
     </Text>
   )
 }
@@ -167,6 +168,8 @@ export type Props = {|
 
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
+
+  referenceTime: Date,
 
   yourRole: Role,
   counterparty: string,
@@ -191,7 +194,7 @@ export const Transaction = (props: Props) => {
         large={props.large}
       />
       <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
-        <Timestamp timestamp={props.timestamp} />
+        <Timestamp timestamp={props.timestamp} referenceTime={props.referenceTime} />
         <Detail
           large={props.large}
           pending={pending}

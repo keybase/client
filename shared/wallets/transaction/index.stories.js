@@ -8,14 +8,14 @@ import Transaction from '.'
 
 const provider = PropProviders.compose(PropProviders.Usernames(['paul'], 'john'))
 
-const now = new Date()
-const yesterday = moment(now)
+const referenceTime = new Date('May 15, 2018 13:54:03')
+const yesterday = moment(referenceTime)
   .subtract(1, 'days')
   .toDate()
-const lastWeek = moment(now)
+const lastWeek = moment(referenceTime)
   .subtract(6, 'days')
   .toDate()
-const beforeLastWeek = moment(now)
+const beforeLastWeek = moment(referenceTime)
   .subtract(8, 'days')
   .toDate()
 
@@ -40,7 +40,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
       stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
         const components = []
         memosAndTimes.forEach(t => {
-          components.push(storyFn({key: components.length, ...r, ...s, ...t}))
+          components.push(storyFn({key: components.length, referenceTime, ...r, ...s, ...t}))
         })
         return components
       })
