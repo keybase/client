@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import moment from 'moment'
 import {Avatar, Box2, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {formatTimeForStellarTransaction} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
 type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
@@ -155,10 +155,10 @@ const Timestamp = (props: TimestampProps) => {
   if (!props.timestamp) {
     return <Text type="BodySmall">Pending</Text>
   }
-  const m = moment(props.timestamp)
+  const {human, tooltip} = formatTimeForStellarTransaction(props.timestamp)
   return (
-    <Text title={m.format()} type="BodySmall">
-      {m.calendar(props.referenceTime)}
+    <Text title={tooltip} type="BodySmall">
+      {human}
     </Text>
   )
 }
