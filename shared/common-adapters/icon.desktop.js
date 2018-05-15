@@ -142,6 +142,15 @@ export function iconTypeToImgSet(type: IconType) {
   return `-webkit-image-set(${imgs})`
 }
 
+const idealSizeMultMap = {
+  '128': {'1': 256, '2': 256, '3': 960},
+  '16': {'1': 256, '2': 256, '3': 192},
+  '32': {'1': 256, '2': 256, '3': 192},
+  '48': {'1': 192, '2': 192, '3': 960},
+  '64': {'1': 256, '2': 256, '3': 192},
+  '96': {'1': 192, '2': 192, '3': 960},
+}
+
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
   let sizes: any = Object.keys(imgMap)
 
@@ -151,10 +160,6 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
 
   sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
 
-  // We used to just generate whatever the multiple was based on the imgMap but this would create multiples like
-  // 1.5x 5.7x 20x and the browser wouldn't ever choose a higher multiple so it'd often fall back to 1.5x and
-  // show non retina images. Instead lets generate our own 1/2/3x ones
-
   const multsMap: any = {
     '1': null,
     '2': null,
@@ -162,8 +167,18 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
   }
 
   Object.keys(multsMap).forEach(mult => {
+    // find ideal size if it exist
+    const level1 = idealSizeMultMap[String(targetSize)]
+    if (level1) {
+      const level2 = level1[String(mult)]
+      if (level2) {
+        multsMap[mult] = level2
+        return
+      }
+    }
+
+    // fallback
     const ideal = parseInt(mult, 10) * targetSize
-    // Find a larger than ideal size or just the largest possible
     const size = sizes.find(size => size >= ideal)
     multsMap[mult] = size || sizes[sizes.length - 1]
   })
