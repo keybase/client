@@ -130,3 +130,35 @@ func SendTeamChatCreateMessage(ctx context.Context, g *libkb.GlobalContext, team
 
 	return true
 }
+
+func SendTeamChatChangeAvatar(mctx libkb.MetaContext, team, username string) bool {
+	var err error
+
+	if !mctx.G().Env.SendSystemChatMessages() {
+		mctx.CDebugf("Skipping SendTeamChatChangeAvatar via environment flag")
+		return false
+	}
+
+	defer func() {
+		if err != nil {
+			mctx.CWarningf("failed to send team change avatar message: %s", err.Error())
+		}
+	}()
+
+	subBody := chat1.NewMessageSystemWithChangeavatar(chat1.MessageSystemChangeAvatar{
+		Team: team,
+		User: username,
+	})
+	body := chat1.NewMessageBodyWithSystem(subBody)
+
+	// Ensure we have chat available
+	mctx.G().StartStandaloneChat()
+
+	if err = mctx.G().ChatHelper.SendMsgByName(mctx.Ctx(), team, &globals.DefaultTeamTopic,
+		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
+		chat1.MessageType_SYSTEM); err != nil {
+		return false
+	}
+
+	return true
+}

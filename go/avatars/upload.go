@@ -12,7 +12,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 )
 
 func addFile(mpart *multipart.Writer, param, filename string) error {
@@ -32,7 +31,7 @@ func addFile(mpart *multipart.Writer, param, filename string) error {
 	return err
 }
 
-func postAvatarImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamID, crop *keybase1.ImageCropRect) (err error) {
+func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamID, crop *keybase1.ImageCropRect) (err error) {
 	var body bytes.Buffer
 	mpart := multipart.NewWriter(&body)
 
@@ -85,22 +84,4 @@ func postAvatarImage(mctx libkb.MetaContext, filename string, teamID *keybase1.T
 	}
 
 	return nil
-}
-
-func UploadImage(mctx libkb.MetaContext, filename string, teamname *string, crop *keybase1.ImageCropRect) error {
-	var teamID *keybase1.TeamID
-	if teamname != nil {
-		team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-			Name:        *teamname,
-			Public:      false,
-			ForceRepoll: false,
-			NeedAdmin:   true,
-		})
-		if err != nil {
-			return err
-		}
-		teamID = &team.ID
-	}
-
-	return postAvatarImage(mctx, filename, teamID, crop)
 }
