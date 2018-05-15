@@ -46,7 +46,6 @@ class NewInput extends React.Component<Props, State> {
   }
 
   render() {
-    // $FlowIssue doesn't see that default props is set
     const textStyle = getTextStyle(this.props.textType)
     return (
       <Box2

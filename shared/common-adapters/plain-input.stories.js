@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
-import PlainInput, {type Props} from './plain-input'
+import PlainInput from './plain-input'
 import Box, {Box2} from './box'
 import Text from './text'
 import {action, storiesOf} from '../stories/storybook'
 import {globalColors} from '../styles'
 
-const commonProps: Props = {
+const commonProps = {
   onBlur: action('onBlur'),
   onChangeText: action('onChangeText'),
   onClick: action('onClick'),

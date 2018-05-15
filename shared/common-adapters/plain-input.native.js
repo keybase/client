@@ -6,9 +6,7 @@ import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {collapseStyles, globalColors} from '../styles'
 import {isIOS} from '../constants/platform'
 
-import type {Props} from './plain-input'
-
-const defaultTextType = 'Body'
+import type {Props, DefaultProps} from './plain-input'
 
 type State = {
   focused: boolean,
@@ -20,6 +18,9 @@ type State = {
 class _PlainInput extends Component<PropsWithTimer<Props>, State> {
   state: State
   _input: NativeTextInput | null
+  static defaultProps: DefaultProps = {
+    textType: 'Body',
+  }
 
   constructor(props: PropsWithTimer<Props>) {
     super(props)
@@ -65,12 +66,12 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
   }
 
   _lineHeight = () => {
-    const textStyle = getTextStyle(this.props.textType || defaultTextType)
+    const textStyle = getTextStyle(this.props.textType)
     return textStyle.lineHeight
   }
 
   _fontSize = () => {
-    const textStyle = getTextStyle(this.props.textType || defaultTextType)
+    const textStyle = getTextStyle(this.props.textType)
     return textStyle.fontSize
   }
 

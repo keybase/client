@@ -3,7 +3,8 @@ import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, styleSheetCreate} from '../styles'
 
-import type {Props} from './plain-input'
+import type {_StylesDesktop} from '../styles/css'
+import type {Props, DefaultProps} from './plain-input'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling
@@ -11,6 +12,10 @@ class PlainInput extends React.PureComponent<Props> {
   _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
   _value: string = ''
+
+  static defaultProps: DefaultProps = {
+    textType: 'Body',
+  }
 
   _setInputRef = (ref: HTMLTextAreaElement | HTMLInputElement | null) => {
     this._input = ref
@@ -27,8 +32,8 @@ class PlainInput extends React.PureComponent<Props> {
     this._onChangeTextDone()
   }
 
-  _onChange = (event: {target: {value: ?string}}) => {
-    this._onChangeText(event.target.value || '')
+  _onChange = ({target: {value = ''}}) => {
+    this._onChangeText(value)
   }
 
   _smartAutoresize = {
@@ -38,18 +43,17 @@ class PlainInput extends React.PureComponent<Props> {
 
   _autoResize = () => {
     if (!this.props.multiline) {
+      // no resizing height on single-line inputs
       return
     }
-
     const n = this._input
-    if (!n || !n.style) {
+    if (!n) {
       return
     }
-
-    const value = this._value
 
     // Smart auto resize algorithm from `Input`, use it by default here
     const rect = n.getBoundingClientRect()
+    const value = this._value
     // width changed so throw out our data
     if (rect.width !== this._smartAutoresize.width) {
       this._smartAutoresize.width = rect.width
@@ -115,62 +119,80 @@ class PlainInput extends React.PureComponent<Props> {
     this.props.onBlur && this.props.onBlur()
   }
 
-  render = () => {
-    const commonProps: {value?: string} = {
+  _getCommonProps = () => {
+    let commonProps: any = {
       autoFocus: this.props.autoFocus,
       className: this.props.className,
       onBlur: this._onBlur,
-      onClick: this.props.onClick,
       onChange: this._onChange,
+      onClick: this.props.onClick,
+      onCompositionEnd: this._onCompositionEnd,
+      onCompositionStart: this._onCompositionStart,
       onFocus: this._onFocus,
       onKeyDown: this._onKeyDown,
       onKeyUp: this._onKeyUp,
-      onCompositionStart: this._onCompositionStart,
-      onCompositionEnd: this._onCompositionEnd,
       placeholder: this.props.placeholder,
       ref: this._setInputRef,
-      ...(this.props.disabled ? {readOnly: 'readonly'} : null),
-      ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
+    if (this.props.disabled) {
+      commonProps.readOnly = 'readonly'
+    }
+    if (this.props.maxLength) {
+      commonProps.maxlength = this.props.maxLength
+    }
+    return commonProps
+  }
 
+  _getMultilineProps = () => {
+    const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
     const textStyle = getTextStyle(this.props.textType || 'Body')
+    const heightStyles: _StylesDesktop = {
+      minHeight: rows * (textStyle.fontSize || 20),
+    }
+    if (this.props.rowsMax) {
+      heightStyles.maxHeight = this.props.rowsMax * (parseInt(textStyle.lineHeight, 10) || 20)
+    } else {
+      heightStyles.overflowY = 'hidden'
+    }
+    return {
+      ...this._getCommonProps(),
+      rows,
+      style: collapseStyles([
+        styles.noChrome, // noChrome comes before because we want lineHeight set in multiline
+        textStyle,
+        styles.multiline,
+        heightStyles,
+        this.props.style,
+      ]),
+    }
+  }
 
-    const singlelineProps = {
-      ...commonProps,
+  _getSinglelineProps = () => {
+    const textStyle = getTextStyle(this.props.textType || 'Body')
+    return {
+      ...this._getCommonProps(),
       style: collapseStyles([
         textStyle,
-        styles.noChrome, // noChrome comes after to unset lineHeight
+        styles.noChrome, // noChrome comes after to unset lineHeight in singleline
         this.props.flexable && styles.flexable,
         this.props.style,
       ]),
       type: this.props.type,
     }
+  }
 
-    const defaultRows = Math.min(2, this.props.rowsMax || 2)
-    const multilineProps = {
-      ...commonProps,
-      rows: this.props.rowsMin || defaultRows,
-      style: collapseStyles([
-        styles.noChrome, // noChrome comes before because we want lineHeight set
-        textStyle,
-        styles.multiline,
-        {
-          minHeight: (this.props.rowsMin || defaultRows) * (textStyle.fontSize || 20),
-          ...(this.props.rowsMax
-            ? {maxHeight: this.props.rowsMax * (parseInt(textStyle.lineHeight, 10) || 20)}
-            : {overflowY: 'hidden'}),
-        },
-        this.props.style,
-      ]),
-    }
+  _getInputProps = () => {
+    return this.props.multiline ? this._getMultilineProps() : this._getSinglelineProps()
+  }
 
+  render = () => {
+    const inputProps = this._getInputProps()
     const css = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
                  ::-webkit-outer-spin-button, ::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}`
-
     return (
       <React.Fragment>
         <style>{css}</style>
-        {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
+        {this.props.multiline ? <textarea {...inputProps} /> : <input {...inputProps} />}
       </React.Fragment>
     )
   }
@@ -178,17 +200,17 @@ class PlainInput extends React.PureComponent<Props> {
 
 const styles = styleSheetCreate({
   flexable: {
+    flex: 1,
     minWidth: 0,
     width: '100%',
-    flex: 1,
   },
   multiline: {
     height: 'initial',
-    width: '100%',
-    resize: 'none',
-    wrap: 'off',
-    paddingTop: 0,
     paddingBottom: 0,
+    paddingTop: 0,
+    resize: 'none',
+    width: '100%',
+    wrap: 'off',
   },
   noChrome: {borderWidth: 0, lineHeight: 'unset', outline: 'none'},
 })

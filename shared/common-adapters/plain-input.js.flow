@@ -36,7 +36,7 @@ export type Props = {
   rowsMin?: number,
   rowsMax?: number,
   style?: StylesCrossPlatform,
-  textType?: TextType,
+  textType: TextType,
   type?: 'password' | 'text' | 'number',
 
   // NOTE: Setting this prop will make the input controlled, which
@@ -66,7 +66,12 @@ export type PropsWithInput<P> = {|
   ...$Exact<Props>,
 |}
 
-declare export default class Input extends Component<Props> {
+export type DefaultProps = {|
+  textType: $PropertyType<Props, 'textType'>,
+|}
+
+declare export default class PlainInput extends Component<Props> {
+  static defaultProps: DefaultProps;
   blur: () => void;
   focus: () => void;
   setValue: string => void;
