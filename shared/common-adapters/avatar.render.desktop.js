@@ -1,7 +1,7 @@
 // @flow
 import Icon from './icon'
 import * as React from 'react'
-import {globalColors, glamorous, desktopStyles} from '../styles'
+import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
 
 import type {AvatarSize, Props} from './avatar.render'
 
@@ -108,15 +108,17 @@ class AvatarRender extends React.PureComponent<Props, State> {
     return (
       <div
         onClick={this.props.onClick}
-        style={{
-          ...desktopStyles.noSelect,
-          height: this.props.size,
-          maxWidth: this.props.size,
-          minHeight: this.props.size,
-          minWidth: this.props.size,
-          position: 'relative',
-          ...this.props.style,
-        }}
+        style={collapseStyles([
+          desktopStyles.noSelect,
+          {
+            height: this.props.size,
+            maxWidth: this.props.size,
+            minHeight: this.props.size,
+            minWidth: this.props.size,
+            position: 'relative',
+          },
+          this.props.style,
+        ])}
       >
         {!this.props.skipBackground && <Background borderRadius={borderRadius} />}
         {this.props.url && (

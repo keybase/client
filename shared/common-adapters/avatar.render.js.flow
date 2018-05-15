@@ -1,26 +1,25 @@
 // @flow
 import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
+import {type IconType, type Props as IconProps} from './icon'
 
-type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
-type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
+export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
 
 export type Props = {|
   borderColor?: string,
   children?: React.Node,
   followIconSize: number,
-  following?: ?boolean,
-  followsYou?: ?boolean,
+  followIconType: ?IconType,
+  followIconStyle: ?$PropertyType<IconProps, 'style'>,
   isTeam: boolean,
-  isPlaceholder: boolean,
   loadingColor?: string,
-  onAvatarLoaded?: () => void,
   onClick?: ?() => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,
+  skipBackgroundAfterLoaded?: boolean,
   style?: StylesCrossPlatform,
-  url: URLType,
+  url: any,
 |}
 
 export default class Avatar extends React.Component<Props> {}

@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as PropProviders from '../../stories/prop-providers'
 import Login, {type Props} from '.'
 import {action, storiesOf} from '../../stories/storybook'
 
@@ -24,8 +25,14 @@ const commonProps: Props = {
   waitingForResponse: false,
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Login/Login', module)
+    .addDecorator(provider)
     .add('Single previous user', () => <Login {...commonProps} />)
     .add('Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
     .add('Multiple previous users', () => (

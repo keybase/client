@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Render from './avatar.render'
 import {pickBy, debounce} from 'lodash-es'
-import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'
+import {iconTypeToImgSet, urlsToImgSet, type IconType, type Props as IconProps} from './icon'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {setDisplayName, connect, type TypedState, compose} from '../util/container'
 import {
@@ -15,7 +15,7 @@ import {
 import * as ConfigGen from '../actions/config-gen'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
-type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
+type URLType = any
 type DisallowedStyles = {
   borderStyle?: empty,
 }
@@ -39,13 +39,13 @@ type Props = PropsWithTimer<{
   borderColor?: string,
   children?: React.Node,
   followIconSize: number,
+  followIconType: ?IconType,
+  followIconStyle: ?$PropertyType<IconProps, 'style'>,
   following: boolean,
   followsYou: boolean,
-  isPlaceholder: boolean,
   isTeam: boolean,
   loadingColor?: string,
   name: string,
-  onAvatarLoaded?: () => void,
   onClick?: () => void,
   opacity?: number,
   size: AvatarSize,
@@ -160,16 +160,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 
   let url
-  let isPlaceholder
   if (stateProps._urlMap) {
     url = urlsToImgSet(pickBy(stateProps._urlMap, value => value), ownProps.size)
-    isPlaceholder = false
   }
 
   if (!url) {
     const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
     url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
-    isPlaceholder = true
   }
 
   let askForUserData = null
@@ -188,11 +185,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     borderColor: ownProps.borderColor,
     children: ownProps.children,
     followIconSize: _followIconSize(ownProps.size, stateProps.followsYou, stateProps.following),
-    followIconStyle: followSizeToStyle[ownProps.size],
+    followIconStyle: followSizeToStyle[ownProps.size] || null,
     followIconType: _followIconType(ownProps.size, stateProps.followsYou, stateProps.following),
     following: stateProps.following,
     followsYou: stateProps.followsYou,
-    isPlaceholder,
     isTeam,
     loadingColor: ownProps.loadingColor,
     name,
@@ -235,13 +231,11 @@ class AvatarConnector extends React.PureComponent<Props> {
         skipBackground={this.props.skipBackground}
         borderColor={this.props.borderColor}
         children={this.props.children}
-        following={this.props.following}
-        followsYou={this.props.followsYou}
         followIconSize={this.props.followIconSize}
-        isPlaceholder={this.props.isPlaceholder}
+        followIconStyle={this.props.followIconStyle}
+        followIconType={this.props.followIconType}
         isTeam={this.props.isTeam}
         loadingColor={this.props.loadingColor}
-        onAvatarLoaded={this.props.onAvatarLoaded}
         onClick={this.props.onClick}
         opacity={this.props.opacity}
         size={this.props.size}
@@ -258,7 +252,7 @@ const Avatar = compose(
   HOCTimers
 )(AvatarConnector)
 
-const mockOwnToViewProps = (props: OwnProps) => {
+const mockOwnToViewProps = (props: OwnProps, following: boolean, followsYou: boolean) => {
   const isTeam = !!props.teamname
   const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
   const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
@@ -277,10 +271,9 @@ const mockOwnToViewProps = (props: OwnProps) => {
   return {
     borderColor: props.borderColor,
     children: props.children,
-    followIconSize: _followIconSize(props.size, !!props.followsYou, !!props.following),
+    followIconSize: _followIconSize(props.size, followsYou, following),
     followIconStyle: followSizeToStyle[props.size],
-    followIconType: _followIconType(props.size, !!props.followsYou, !!props.following),
-    isPlaceholder: true,
+    followIconType: _followIconType(props.size, followsYou, following),
     isTeam,
     loadingColor: props.loadingColor,
     onClick: props.onClick,

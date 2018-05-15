@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as PropProviders from '../../stories/prop-providers'
 import Invites from '.'
 import {action, storiesOf} from '../../stories/storybook'
 
@@ -50,8 +51,14 @@ const props = {
   waitingForResponse: false,
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Settings/Invites', module)
+    .addDecorator(provider)
     .add('Empty', () => (
       <Invites
         {...props}

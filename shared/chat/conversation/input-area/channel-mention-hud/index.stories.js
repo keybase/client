@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import {MentionRowRenderer, MentionHud} from '.'
+import * as PropProviders from '../../../../stories/prop-providers'
 import {compose, withStateHandlers} from '../../../../util/container'
 import {Box, Button, Input, ButtonBar} from '../../../../common-adapters'
 import {storiesOf, action} from '../../../../stories/storybook'
@@ -31,8 +32,14 @@ const UpDownFilterHoc = compose(
   )
 )
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Chat/Channel Heads up Display', module)
+    .addDecorator(provider)
     .add('Mention Row', () => (
       <Box style={{width: 240}}>
         <MentionRowRenderer

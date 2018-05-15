@@ -10,7 +10,7 @@ import * as PropProviders from '../stories/prop-providers'
 const sizes = [128, 96, 64, 48, 32, 16]
 const provider = PropProviders.compose(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['chrisnojima'], ['chris'])
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )
 
 const load = () => {
@@ -24,7 +24,7 @@ const load = () => {
           onClick: action('Avatar clicked'),
           size: size,
           style: avatarStyle,
-          username: 'chris',
+          username: 'nofollow-following',
         }
         return (
           <Box key={size}>
@@ -32,9 +32,9 @@ const load = () => {
             <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
               <Avatar {...commonProps} />
               <Avatar {...commonProps} borderColor="blue" />
-              <Avatar {...commonProps} />
-              <Avatar {...commonProps} />
-              <Avatar {...commonProps} />
+              <Avatar {...commonProps} username="following" />
+              <Avatar {...commonProps} username="followers" />
+              <Avatar {...commonProps} username="both" />
               <Avatar {...commonProps} username={undefined} teamname={'keybase'} />
             </Box>
           </Box>
