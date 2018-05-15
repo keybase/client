@@ -4,7 +4,8 @@ import {Avatar, BackButton, Box, Button, Icon, Text} from '../../common-adapters
 import {capitalize} from 'lodash-es'
 import {globalColors, globalStyles, globalMargins, platformStyles, desktopStyles} from '../../styles'
 import {platformToLogo24} from '../../constants/search'
-import {AVATAR_SIZE, HEADER_SIZE} from '../../profile/index.desktop'
+import {AVATAR_SIZE} from '../../constants/profile'
+import {HEADER_SIZE} from '../../profile/index.desktop'
 import type {Props} from '.'
 
 const NonUserRender = (props: Props) => (

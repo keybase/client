@@ -27,16 +27,14 @@ import ShowcasedTeamInfo from './showcased-team-info/container'
 import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} from '../styles'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
+import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
 
-export const AVATAR_SIZE = 128
 const HEADER_TOP_SPACE = 96
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
-export const BACK_ZINDEX = 12
-export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 
 type State = {
   currentFriendshipsTab: Types.FriendshipsTab,
@@ -255,6 +253,33 @@ class Profile extends Component<Props, State> {
             </Text>
           </Box>
         )}
+        {!!this.props.addUserToTeamsResults && (
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              backgroundColor: globalColors.green,
+              zIndex: ADD_TO_TEAM_ZINDEX,
+            }}
+          >
+            <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
+              <Text
+                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                type="BodySemibold"
+                backgroundMode="HighRisk"
+              >
+                {this.props.addUserToTeamsResults}
+              </Text>
+            </Box>
+            <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', flexShrink: 1}}>
+              <Icon
+                color={globalColors.black_40}
+                onClick={this.props.onClearAddUserToTeamsResults}
+                style={{padding: globalMargins.tiny}}
+                type="iconfont-close"
+              />
+            </Box>
+          </Box>
+        )}
         <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
           <Box
             style={{
@@ -278,8 +303,12 @@ class Profile extends Component<Props, State> {
               style={styleActions}
               trackerState={this.props.trackerState}
               currentlyFollowing={this.props.currentlyFollowing}
+              onAddToTeam={this.props.onAddToTeam}
+              onBrowsePublicFolder={this.props.onBrowsePublicFolder}
               onChat={this.props.onChat}
               onFollow={this.props.onFollow}
+              onOpenPrivateFolder={this.props.onOpenPrivateFolder}
+              onRefresh={this.props.refresh}
               onUnfollow={this.props.onUnfollow}
               onAcceptProofs={this.props.onAcceptProofs}
               waiting={this.props.waiting}

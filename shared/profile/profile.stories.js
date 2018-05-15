@@ -159,6 +159,7 @@ const folders = [
 
 const props = {
   ...mockUserInfo,
+  addUserToTeamsResults: '',
   bioEditFns: null,
   currentFriendshipsTab: 'Followers',
   currentlyFollowing: false,
@@ -169,9 +170,12 @@ const props = {
   isYou: false,
   loading: false,
   onAcceptProofs: action('onAcceptProofs'),
+  onAddToTeam: action('onAddToTeam'),
   onBack: action('onBack'),
+  onBrowsePublicFolder: action('onBrowsePublicFolder'),
   onChangeFriendshipsTab: action('onChangeFriendshipsTab'),
   onChat: action('onChat'),
+  onClearAddUserToTeamsResults: action('onClearAddUserToTeamsResults'),
   onClickAvatar: action('onClickAvatar'),
   onClickFollowers: action('onClickFollowers'),
   onClickFollowing: action('onClickFollowing'),
@@ -180,6 +184,7 @@ const props = {
   onFolderClick: action('onFolderClick'),
   onFollow: action('onFollow'),
   onMissingProofClick: action(`Prove`),
+  onOpenPrivateFolder: action('onOpenPrivateFolder'),
   onPushProfile: action('onPushProfile'),
   onRecheckProof: action('onRecheckProof'),
   onRevokeProof: action('onRevokeProof'),

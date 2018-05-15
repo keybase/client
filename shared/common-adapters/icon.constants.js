@@ -1071,6 +1071,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-80.png'),
   },
+  'icon-placeholder-secret-user-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-secret-user-48.png'),
+  },
   'icon-play-64': {
     isFont: false,
     extension: 'png',

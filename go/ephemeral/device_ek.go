@@ -64,7 +64,6 @@ func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot 
 	if err != nil {
 		return metadata, err
 	}
-	dhKeypair := seed.DeriveDHKey()
 
 	storage := g.GetDeviceEKStorage()
 	generation, err := storage.MaxGeneration(ctx)
@@ -82,7 +81,7 @@ func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot 
 	}
 	generation++
 
-	metadata, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, merkleRoot)
+	metadata, err = signAndPostDeviceEK(ctx, g, generation, seed, merkleRoot)
 	if err != nil {
 		g.Log.CDebugf(ctx, "Error posting deviceEK, retrying with server maxGeneration")
 		// Let's retry posting with the server given max
@@ -91,21 +90,17 @@ func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot 
 			return metadata, err
 		}
 		generation++
-		metadata, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, merkleRoot)
+		metadata, err = signAndPostDeviceEK(ctx, g, generation, seed, merkleRoot)
 		if err != nil {
 			return metadata, err
 		}
 	}
 
-	err = storage.Put(ctx, generation, keybase1.DeviceEk{
-		Seed:     keybase1.Bytes32(seed),
-		Metadata: metadata,
-	})
 	return metadata, err
 }
 
-func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, merkleRoot libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
-	defer g.CTrace(ctx, "signAndPublishDeviceEK", func() error { return err })()
+func signAndPostDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, seed DeviceEKSeed, merkleRoot libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
+	defer g.CTrace(ctx, "signAndPostDeviceEK", func() error { return err })()
 
 	storage := g.GetDeviceEKStorage()
 	existingMetadata, err := storage.GetAllActive(ctx, merkleRoot)
@@ -119,14 +114,29 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 		return metadata, err
 	}
 
+	dhKeypair := seed.DeriveDHKey()
 	statement, signedStatement, err := signDeviceEKStatement(generation, dhKeypair, signingKey, existingMetadata, merkleRoot)
 
-	err = postNewDeviceEK(ctx, g, signedStatement)
-	if err != nil {
+	metadata = statement.CurrentDeviceEkMetadata
+	// Ensure we successfully write the secret to disk before posting to the
+	// server since the secret never leaves the device.
+	if err = storage.Put(ctx, generation, keybase1.DeviceEk{
+		Seed:     keybase1.Bytes32(seed),
+		Metadata: metadata,
+	}); err != nil {
 		return metadata, err
 	}
 
-	return statement.CurrentDeviceEkMetadata, nil
+	err = postNewDeviceEK(ctx, g, signedStatement)
+	if err != nil {
+		storage.ClearCache()
+		serr := NewDeviceEKStorage(g).Delete(ctx, generation)
+		if serr != nil {
+			g.Log.CDebugf(ctx, "DeviceEK deletion failed %v", err)
+		}
+	}
+
+	return metadata, err
 }
 
 func signDeviceEKStatement(generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, signingKey libkb.GenericKey, existingMetadata []keybase1.DeviceEkMetadata, merkleRoot libkb.MerkleRoot) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {

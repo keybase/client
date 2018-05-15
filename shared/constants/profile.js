@@ -37,7 +37,12 @@ const initialState: State = {
   searchShowingSuggestions: false,
 }
 
-const maxProfileBioChars = 256
+export const maxProfileBioChars = 256
+export const AVATAR_SIZE = 128
+export const BACK_ZINDEX = 12
+export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
+export const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
+export const ROLE_PICKER_ZINDEX = ADD_TO_TEAM_ZINDEX + 1
 
 // A simple check, the server does a fuller check
 function checkBTC(address: string): boolean {
@@ -184,4 +189,4 @@ const getProfilePath = (
   return onlyProfilesPath
 }
 
-export {checkUsernameValid, cleanupUsername, getProfilePath, initialState, maxProfileBioChars, urlToUsername}
+export {checkUsernameValid, cleanupUsername, getProfilePath, initialState, urlToUsername}
