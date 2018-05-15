@@ -88,90 +88,87 @@ const DropdownItem = ({item}: {item: string}) => (
 
 const _makeDropdownItems = () => teamRoleTypes.map(item => <DropdownItem key={item} item={item} />)
 
-const AddToTeam = (props: Props) => {
-  console.warn(props)
-  return (
-    <Box2 direction="vertical" style={styleContainer}>
-      {!isMobile && (
-        <Box2 direction="horizontal" style={{paddingBottom: globalMargins.large}}>
-          <Text type="Header">Add</Text>
-          <Avatar
-            isTeam={false}
-            size={16}
-            style={{marginLeft: globalMargins.tiny, marginRight: 2}}
-            username={props.them}
-          />
-          <Text type="Header">{props.them} to...</Text>
-        </Box2>
-      )}
-
-      <ScrollView>
-        <Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
-          {props.teamnames &&
-            props.teamnames.map(team => {
-              return (
-                <TeamRow
-                  canAddThem={props.canAddThem[team]}
-                  checked={props.selectedTeams[team]}
-                  key={team}
-                  name={team}
-                  isOpen={props.teamNameToIsOpen[team]}
-                  memberIsInTeam={props.memberIsInTeam[team]}
-                  onCheck={() => props.onToggle(team)}
-                  them={props.them}
-                  youCanAddPeople={props.youCanAddPeople[team]}
-                  waiting={!props.loaded[team]}
-                />
-              )
-            })}
-        </Box2>
-      </ScrollView>
-      <Box2
-        direction={isMobile ? 'vertical' : 'horizontal'}
-        style={{
-          alignItems: 'center',
-          margin: isMobile ? 0 : globalMargins.small,
-        }}
-      >
-        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">
-          {props.them} will be added as a
-        </Text>
-        <ClickableBox
-          onClick={() =>
-            props.onOpenRolePicker(
-              props.role,
-              (selectedRole: TeamRoleType) => props.onRoleChange(selectedRole),
-              {zIndex: ROLE_PICKER_ZINDEX}
-            )
-          }
-          underlayColor="rgba(0, 0, 0, 0)"
-        >
-          <Dropdown
-            items={_makeDropdownItems()}
-            selected={<DropdownItem item={props.role} />}
-            onChanged={(node: React.Node) => {
-              // $FlowIssue doesn't understand key will be string
-              const selectedRole: TeamRoleType = (node && node.key) || null
-              props.onRoleChange(selectedRole)
-            }}
-          />
-        </ClickableBox>
+const AddToTeam = (props: Props) => (
+  <Box2 direction="vertical" style={styleContainer}>
+    {!isMobile && (
+      <Box2 direction="horizontal" style={{paddingBottom: globalMargins.large}}>
+        <Text type="Header">Add</Text>
+        <Avatar
+          isTeam={false}
+          size={16}
+          style={{marginLeft: globalMargins.tiny, marginRight: 2}}
+          username={props.them}
+        />
+        <Text type="Header">{props.them} to...</Text>
       </Box2>
+    )}
+
+    <ScrollView>
+      <Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
+        {props.teamnames &&
+          props.teamnames.map(team => {
+            return (
+              <TeamRow
+                canAddThem={props.canAddThem[team]}
+                checked={props.selectedTeams[team]}
+                key={team}
+                name={team}
+                isOpen={props.teamNameToIsOpen[team]}
+                memberIsInTeam={props.memberIsInTeam[team]}
+                onCheck={() => props.onToggle(team)}
+                them={props.them}
+                youCanAddPeople={props.youCanAddPeople[team]}
+                waiting={!props.loaded[team]}
+              />
+            )
+          })}
+      </Box2>
+    </ScrollView>
+    <Box2
+      direction={isMobile ? 'vertical' : 'horizontal'}
+      style={{
+        alignItems: 'center',
+        margin: isMobile ? 0 : globalMargins.small,
+      }}
+    >
+      <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">
+        {props.them} will be added as a
+      </Text>
       <ClickableBox
-        onClick={props.onBack}
-        style={collapseStyles([globalStyles.flexBoxRow, {flexGrow: 1, paddingTop: globalMargins.small}])}
+        onClick={() =>
+          props.onOpenRolePicker(
+            props.role,
+            (selectedRole: TeamRoleType) => props.onRoleChange(selectedRole),
+            {zIndex: ROLE_PICKER_ZINDEX}
+          )
+        }
+        underlayColor="rgba(0, 0, 0, 0)"
       >
-        <Button style={{margin: globalMargins.small}} type="Secondary" onClick={props.onBack} label="Close" />
-        <Button
-          style={{margin: globalMargins.small}}
-          type="Primary"
-          onClick={() => props.onSave(props.role, props.selectedTeams)}
-          label="Add to team"
+        <Dropdown
+          items={_makeDropdownItems()}
+          selected={<DropdownItem item={props.role} />}
+          onChanged={(node: React.Node) => {
+            // $FlowIssue doesn't understand key will be string
+            const selectedRole: TeamRoleType = (node && node.key) || null
+            props.onRoleChange(selectedRole)
+          }}
         />
       </ClickableBox>
     </Box2>
-  )
-}
+    <ClickableBox
+      onClick={props.onBack}
+      style={collapseStyles([globalStyles.flexBoxRow, {flexGrow: 1, paddingTop: globalMargins.small}])}
+    >
+      <Button style={{margin: globalMargins.small}} type="Secondary" onClick={props.onBack} label="Close" />
+      <Button
+        style={{margin: globalMargins.small}}
+        type="Primary"
+        onClick={() => props.onSave(props.role, props.selectedTeams)}
+        label="Add to team"
+      />
+    </ClickableBox>
+  </Box2>
+)
 
 const styleContainer = platformStyles({
   common: {
