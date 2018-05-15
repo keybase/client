@@ -187,11 +187,9 @@ const styles = styleSheetCreate({
     common: {
       borderLeftColor: globalColors.lightGrey2,
       borderLeftWidth: 3,
+      borderStyle: 'solid',
       marginTop: globalMargins.xtiny,
       paddingLeft: 8,
-    },
-    isElectron: {
-      borderLeftStyle: 'solid',
     },
   }),
   rightContainer: {
