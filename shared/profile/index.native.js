@@ -27,18 +27,14 @@ import ShowcasedTeamInfo from './showcased-team-info/container'
 import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} from '../styles'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
+import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
 
-export const AVATAR_SIZE = 112
 const HEADER_TOP_SPACE = 96
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
-export const BACK_ZINDEX = 12
-export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
-const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
-export const ROLE_PICKER_ZINDEX = ADD_TO_TEAM_ZINDEX + 1
 
 type State = {
   currentFriendshipsTab: Types.FriendshipsTab,

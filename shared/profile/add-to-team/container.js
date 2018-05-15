@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import Render from './index'
 import {
-  branch,
   compose,
   connect,
   lifecycle,
@@ -10,6 +9,7 @@ import {
   withStateHandlers,
   type TypedState,
 } from '../../util/container'
+import {mapKeys, mapValues, zipObject} from 'lodash-es'
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
@@ -19,9 +19,9 @@ import type {TeamRoleType} from '../../constants/types/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
-    _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
-    _teamNameToCanPerform: state.teams.getIn(['teamNameToCanPerform'], I.Map()),
-    _teamNameToMembers: state.teams.getIn(['teamNameToMembers'], I.Map()),
+    _teamNameToIsOpen: state.teams.get('teamNameToIsOpen', I.Map()),
+    _teamNameToCanPerform: state.teams.get('teamNameToCanPerform', I.Map()),
+    _teamNameToMembers: state.teams.get('teamNameToMembers', I.Map()),
     _them: routeProps.get('username'),
     teamnames: getSortedTeamnames(state),
   }
@@ -55,30 +55,54 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
+  const teamnames = stateProps.teamnames
+  const them = stateProps._them
+
+  const teamNameToIsOpen = stateProps._teamNameToIsOpen.toObject()
+  const teamNameToCanPerform = stateProps._teamNameToCanPerform.toObject()
+  const youCanAddPeople = mapValues(teamNameToCanPerform, team => team.manageMembers)
+  const teamNameToMembers = stateProps._teamNameToMembers.toObject()
+  const memberIsInTeam = mapValues(teamNameToMembers, team => !!team.get(them))
+  const canAddThem = teamnames.reduce((teams, team) => {
+    teams[team] = youCanAddPeople[team] && !memberIsInTeam[team]
+    return teams
+  }, {})
+  const loaded =
+    teamnames &&
+    zipObject(teamnames, teamnames.map(team => teamNameToMembers[team] && teamNameToCanPerform[team]))
+  const title = `Add ${them} to...`
+
   return {
     ...stateProps,
     ...dispatchProps,
+    canAddThem,
+    loaded,
+    memberIsInTeam,
     onAddToTeams: (role: TeamRoleType, teams: Array<string>) =>
       dispatchProps._onAddToTeams(role, teams, stateProps._them),
-    teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
-    teamNameToCanPerform: stateProps._teamNameToCanPerform.toObject(),
-    teamNameToMembers: stateProps._teamNameToMembers.toObject(),
-    them: stateProps._them,
-    title: `Add ${stateProps._them} to...`,
+    onBack: dispatchProps.onBack,
+    teamNameToIsOpen,
+    them,
+    title,
+    youCanAddPeople,
   }
 }
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  compose(
-    withStateHandlers(
-      {role: 'writer', selectedTeams: {}, sendNotification: true},
-      {
-        setSendNotification: () => sendNotification => ({sendNotification}),
-        onRoleChange: () => role => ({role}),
-        setSelectedTeams: () => selectedTeams => ({selectedTeams}),
-      }
-    )
+  lifecycle({
+    componentDidMount() {
+      this.props.loadTeamList()
+      this.props.loadAllTeams()
+    },
+  }),
+  withStateHandlers(
+    {role: 'writer', selectedTeams: {}, sendNotification: true},
+    {
+      setSendNotification: () => sendNotification => ({sendNotification}),
+      onRoleChange: () => role => ({role}),
+      setSelectedTeams: () => selectedTeams => ({selectedTeams}),
+    }
   ),
   withHandlers({
     onToggle: props => (teamname: string) =>
@@ -87,12 +111,5 @@ export default compose(
         [teamname]: !props.selectedTeams[teamname],
       }),
     onSave: props => () => props.onAddToTeams(props.role, Object.keys(props.selectedTeams)),
-  }),
-  lifecycle({
-    componentDidMount() {
-      this.props.loadTeamList()
-      this.props.loadAllTeams()
-    },
-  }),
-  branch(() => isMobile, HeaderHoc)
-)(Render)
+  })
+)(isMobile ? HeaderHoc(Render) : Render)

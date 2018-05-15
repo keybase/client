@@ -27,18 +27,14 @@ import ShowcasedTeamInfo from './showcased-team-info/container'
 import {findDOMNode} from 'react-dom'
 import {collapseStyles, desktopStyles, globalColors, globalMargins, globalStyles} from '../styles'
 import {stateColors} from '../util/tracker'
+import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
 
-export const AVATAR_SIZE = 112
 const HEADER_TOP_SPACE = 48
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
-const BACK_ZINDEX = 12
-const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
-const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
-export const ROLE_PICKER_ZINDEX = ADD_TO_TEAM_ZINDEX + 1
 
 type State = {
   searchHovered: boolean,

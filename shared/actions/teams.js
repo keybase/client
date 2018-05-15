@@ -991,7 +991,7 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
   }
 
-  return Saga.sequentially([
+  return Saga.all([
     Saga.call(RPCChatTypes.localPostHeadlineRpcPromise, param),
     Saga.put(TeamsGen.createSetUpdatedTopic({teamname, conversationIDKey, newTopic})),
   ])

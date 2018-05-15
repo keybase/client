@@ -24,40 +24,29 @@ import {
 } from '../../common-adapters'
 import {teamRoleTypes} from '../../constants/teams'
 import {capitalize} from 'lodash-es'
-// $FlowIssue Flow wants a ".desktop" on the end.
-import {ROLE_PICKER_ZINDEX} from '../index'
+import {ROLE_PICKER_ZINDEX} from '../../constants/profile'
 import {type TeamRoleType} from '../../constants/types/teams'
 import type {RowProps, Props} from './index'
 
-const TeamRow = ({
-  canAddThem,
-  checked,
-  name,
-  isOpen,
-  memberIsInTeam,
-  onCheck,
-  them,
-  youCanAddPeople,
-  waiting,
-}: RowProps) => {
-  const memberStatus = memberIsInTeam
-    ? `${them} is already a member.`
-    : youCanAddPeople
+const TeamRow = (props: RowProps) => {
+  const memberStatus = props.memberIsInTeam
+    ? `${props.them} is already a member.`
+    : props.youCanAddPeople
       ? ''
       : 'Only admins can add people.'
   return (
-    <ClickableBox onClick={onCheck}>
+    <ClickableBox onClick={props.onCheck}>
       <Box2 direction="horizontal" style={styleTeamRow}>
-        <Checkbox disabled={!canAddThem} checked={checked} onCheck={onCheck} />
+        <Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
         <Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
           <Avatar
             isTeam={true}
             size={isMobile ? 48 : 32}
             style={{marginRight: globalMargins.tiny}}
-            teamname={name}
+            teamname={props.name}
           />
         </Box2>
-        {waiting ? (
+        {props.waiting ? (
           <Box2 direction="vertical">
             <ProgressIndicator style={{width: 16}} white={false} />
           </Box2>
@@ -65,12 +54,12 @@ const TeamRow = ({
           <Box2 direction="vertical">
             <Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
               <Text
-                style={{color: canAddThem ? globalColors.black : globalColors.black_40}}
+                style={{color: props.canAddThem ? globalColors.black : globalColors.black_40}}
                 type="BodySemibold"
               >
-                {name}
+                {props.name}
               </Text>
-              {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
+              {props.isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
             </Box2>
             <Box2 direction="horizontal" style={{alignItems: 'center'}}>
               <Text type="BodySmall">{memberStatus}</Text>
@@ -83,7 +72,7 @@ const TeamRow = ({
   )
 }
 
-const _makeDropdownItem = (item: string) => (
+const DropdownItem = ({item}: {item: string}) => (
   <Box2
     direction="horizontal"
     key={item}
@@ -97,103 +86,92 @@ const _makeDropdownItem = (item: string) => (
   </Box2>
 )
 
-const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(item))
+const _makeDropdownItems = () => teamRoleTypes.map(item => <DropdownItem key={item} item={item} />)
 
-const AddToTeam = (props: Props) => (
-  <Box2 direction="vertical" style={styleContainer}>
-    {!isMobile && (
-      <Box2 direction="horizontal" style={{paddingBottom: globalMargins.large}}>
-        <Text type="Header">Add</Text>
-        <Avatar
-          isTeam={false}
-          size={16}
-          style={{marginLeft: globalMargins.tiny, marginRight: 2}}
-          username={props.them}
-        />
-        <Text type="Header">{props.them} to...</Text>
-      </Box2>
-    )}
+const AddToTeam = (props: Props) => {
+  console.warn(props)
+  return (
+    <Box2 direction="vertical" style={styleContainer}>
+      {!isMobile && (
+        <Box2 direction="horizontal" style={{paddingBottom: globalMargins.large}}>
+          <Text type="Header">Add</Text>
+          <Avatar
+            isTeam={false}
+            size={16}
+            style={{marginLeft: globalMargins.tiny, marginRight: 2}}
+            username={props.them}
+          />
+          <Text type="Header">{props.them} to...</Text>
+        </Box2>
+      )}
 
-    <ScrollView>
-      <Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
-        {props.teamnames &&
-          props.teamnames.map(name => {
-            const youCanAddPeople =
-              props.teamNameToCanPerform &&
-              props.teamNameToCanPerform[name] &&
-              props.teamNameToCanPerform[name].manageMembers
-            const memberIsInTeam =
-              props.teamNameToMembers &&
-              props.teamNameToMembers[name] &&
-              props.teamNameToMembers[name].get(props.them)
-            const canAddThem = youCanAddPeople && !memberIsInTeam
-            const waiting =
-              !props.teamNameToMembers ||
-              !props.teamNameToMembers[name] ||
-              !props.teamNameToCanPerform ||
-              !props.teamNameToCanPerform[name]
-            return (
-              <TeamRow
-                canAddThem={canAddThem}
-                checked={props.selectedTeams[name]}
-                key={name}
-                name={name}
-                isOpen={props.teamNameToIsOpen[name]}
-                memberIsInTeam={memberIsInTeam}
-                onCheck={() => props.onToggle(name)}
-                them={props.them}
-                youCanAddPeople={youCanAddPeople}
-                waiting={waiting}
-              />
-            )
-          })}
-      </Box2>
-    </ScrollView>
-    <Box2
-      direction={isMobile ? 'vertical' : 'horizontal'}
-      style={{
-        alignItems: 'center',
-        margin: isMobile ? 0 : globalMargins.small,
-      }}
-    >
-      <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">
-        {props.them} will be added as a
-      </Text>
-      <ClickableBox
-        onClick={() =>
-          props.onOpenRolePicker(
-            props.role,
-            (selectedRole: TeamRoleType) => props.onRoleChange(selectedRole),
-            {zIndex: ROLE_PICKER_ZINDEX}
-          )
-        }
-        underlayColor="rgba(0, 0, 0, 0)"
+      <ScrollView>
+        <Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
+          {props.teamnames &&
+            props.teamnames.map(team => {
+              return (
+                <TeamRow
+                  canAddThem={props.canAddThem[team]}
+                  checked={props.selectedTeams[team]}
+                  key={team}
+                  name={team}
+                  isOpen={props.teamNameToIsOpen[team]}
+                  memberIsInTeam={props.memberIsInTeam[team]}
+                  onCheck={() => props.onToggle(team)}
+                  them={props.them}
+                  youCanAddPeople={props.youCanAddPeople[team]}
+                  waiting={!props.loaded[team]}
+                />
+              )
+            })}
+        </Box2>
+      </ScrollView>
+      <Box2
+        direction={isMobile ? 'vertical' : 'horizontal'}
+        style={{
+          alignItems: 'center',
+          margin: isMobile ? 0 : globalMargins.small,
+        }}
       >
-        <Dropdown
-          items={_makeDropdownItems()}
-          selected={_makeDropdownItem(props.role)}
-          onChanged={(node: React.Node) => {
-            // $FlowIssue doesn't understand key will be string
-            const selectedRole: TeamRoleType = (node && node.key) || null
-            props.onRoleChange(selectedRole)
-          }}
+        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">
+          {props.them} will be added as a
+        </Text>
+        <ClickableBox
+          onClick={() =>
+            props.onOpenRolePicker(
+              props.role,
+              (selectedRole: TeamRoleType) => props.onRoleChange(selectedRole),
+              {zIndex: ROLE_PICKER_ZINDEX}
+            )
+          }
+          underlayColor="rgba(0, 0, 0, 0)"
+        >
+          <Dropdown
+            items={_makeDropdownItems()}
+            selected={<DropdownItem item={props.role} />}
+            onChanged={(node: React.Node) => {
+              // $FlowIssue doesn't understand key will be string
+              const selectedRole: TeamRoleType = (node && node.key) || null
+              props.onRoleChange(selectedRole)
+            }}
+          />
+        </ClickableBox>
+      </Box2>
+      <ClickableBox
+        onClick={props.onBack}
+        style={collapseStyles([globalStyles.flexBoxRow, {flexGrow: 1, paddingTop: globalMargins.small}])}
+      >
+        <Button style={{margin: globalMargins.small}} type="Secondary" onClick={props.onBack} label="Close" />
+        <Button
+          style={{margin: globalMargins.small}}
+          type="Primary"
+          onClick={() => props.onSave(props.role, props.selectedTeams)}
+          label="Add to team"
         />
       </ClickableBox>
     </Box2>
-    <ClickableBox
-      onClick={props.onBack}
-      style={collapseStyles([globalStyles.flexBoxRow, {flexGrow: 1, paddingTop: globalMargins.small}])}
-    >
-      <Button style={{margin: globalMargins.small}} type="Secondary" onClick={props.onBack} label="Close" />
-      <Button
-        style={{margin: globalMargins.small}}
-        type="Primary"
-        onClick={() => props.onSave(props.role, props.selectedTeams)}
-        label="Add to team"
-      />
-    </ClickableBox>
-  </Box2>
-)
+  )
+}
 
 const styleContainer = platformStyles({
   common: {

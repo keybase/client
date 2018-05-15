@@ -2,6 +2,7 @@
 import {Component} from 'react'
 import * as React from 'react'
 import * as Types from '../../constants/types/teams'
+import {type StylesCrossPlatform} from '../../styles'
 
 export type RowProps = {
   canAddThem: boolean,
@@ -16,6 +17,11 @@ export type RowProps = {
 }
 
 export type Props = {
+  canAddThem: {[string]: boolean},
+  customComponent?: ?React.Node,
+  headerStyle?: StylesCrossPlatform,
+  loaded: {[string]: boolean},
+  memberIsInTeam: {[string]: boolean},
   onBack: () => void,
   onCancel?: () => void,
   onOpenRolePicker: (role: string, selectedRole: Types.TeamRoleType => void, styleCover?: Object) => void,
@@ -26,10 +32,9 @@ export type Props = {
   selectedTeams: {[string]: boolean},
   setSelectedTeams: ({[string]: boolean}) => void,
   teamnames: Array<Types.Teamname>,
-  teamNameToCanPerform: any,
-  teamNameToMembers: any,
   teamNameToIsOpen: {[string]: boolean},
   them: string,
+  youCanAddPeople: {[string]: boolean},
 }
 
 export default class AddToTeam extends Component<Props> {}
