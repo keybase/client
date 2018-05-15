@@ -336,8 +336,15 @@ func (c *FullCachingSource) loadNames(ctx context.Context, names []string, forma
 func (c *FullCachingSource) clearName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
 	for _, format := range formats {
 		key := c.avatarKey(name, format)
-		if err := c.diskLRU.Remove(ctx, c.G(), key); err != nil {
+		found, ent, err := c.diskLRU.Get(ctx, c.G(), key)
+		if err != nil {
 			return err
+		}
+		if found {
+			c.removeFile(ctx, &ent)
+			if err := c.diskLRU.Remove(ctx, c.G(), key); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
