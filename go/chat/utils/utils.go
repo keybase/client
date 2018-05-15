@@ -647,6 +647,13 @@ func PluckUIMessageIDs(msgs []chat1.UIMessage) (res []chat1.MessageID) {
 	return res
 }
 
+func PluckMUMessageIDs(msgs []chat1.MessageUnboxed) (res []chat1.MessageID) {
+	for _, m := range msgs {
+		res = append(res, m.GetMessageID())
+	}
+	return res
+}
+
 func IsConvEmpty(conv chat1.Conversation) bool {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
@@ -669,6 +676,13 @@ func PluckConvIDsLocal(convs []chat1.ConversationLocal) (res []chat1.Conversatio
 }
 
 func PluckConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
+	for _, conv := range convs {
+		res = append(res, conv.GetConvID())
+	}
+	return res
+}
+
+func PluckConvIDsRC(convs []types.RemoteConversation) (res []chat1.ConversationID) {
 	for _, conv := range convs {
 		res = append(res, conv.GetConvID())
 	}

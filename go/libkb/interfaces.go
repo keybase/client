@@ -155,7 +155,6 @@ type ConfigReader interface {
 	GetProofCacheShortDur() (time.Duration, bool)
 	GetLinkCacheCleanDur() (time.Duration, bool)
 	GetNoPinentry() (bool, bool)
-	GetSalt() []byte
 	GetDeviceID() keybase1.DeviceID
 	GetDeviceIDForUsername(nu NormalizedUsername) keybase1.DeviceID
 	GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID

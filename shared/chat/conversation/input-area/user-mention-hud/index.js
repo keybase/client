@@ -69,13 +69,7 @@ const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: Me
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
   data.length ? (
     <Box style={collapseStyles([hudStyle, style])}>
-      <List
-        items={data}
-        renderItem={rowRenderer}
-        selectedIndex={selectedIndex}
-        fixedHeight={40}
-        keyboardShouldPersistTaps="always"
-      />
+      <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
     </Box>
   ) : null
 

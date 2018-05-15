@@ -96,4 +96,4 @@ test:
     # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
   post:
       # Only run coverage if there were changes to the shared folder
-    - if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn coverage-report-helper -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi
+    - if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi

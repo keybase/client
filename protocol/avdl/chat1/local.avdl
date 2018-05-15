@@ -376,6 +376,9 @@ protocol local {
   record MessageUnboxedError {
     MessageUnboxedErrorType errType;
     string errMsg;
+    string senderUsername;
+    string senderDeviceName;
+    string senderDeviceType;
     MessageID messageID;
     MessageType messageType;
     gregor1.Time ctime;

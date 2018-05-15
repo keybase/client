@@ -8,8 +8,26 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type PaymentCLIOptionLocal struct {
+	Payment *PaymentCLILocal `codec:"payment,omitempty" json:"payment,omitempty"`
+	Err     string           `codec:"err" json:"err"`
+}
+
+func (o PaymentCLIOptionLocal) DeepCopy() PaymentCLIOptionLocal {
+	return PaymentCLIOptionLocal{
+		Payment: (func(x *PaymentCLILocal) *PaymentCLILocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Payment),
+		Err: o.Err,
+	}
+}
+
 type PaymentCLILocal struct {
-	StellarTxID     TransactionID `codec:"stellarTxID" json:"stellarTxID"`
+	TxID            TransactionID `codec:"txID" json:"txID"`
 	Time            TimeMs        `codec:"time" json:"time"`
 	Status          string        `codec:"status" json:"status"`
 	StatusDetail    string        `codec:"statusDetail" json:"statusDetail"`
@@ -18,7 +36,7 @@ type PaymentCLILocal struct {
 	DisplayAmount   *string       `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
 	DisplayCurrency *string       `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
 	FromStellar     AccountID     `codec:"fromStellar" json:"fromStellar"`
-	ToStellar       AccountID     `codec:"toStellar" json:"toStellar"`
+	ToStellar       *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
 	FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
 	ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
 	Note            string        `codec:"note" json:"note"`
@@ -27,7 +45,7 @@ type PaymentCLILocal struct {
 
 func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 	return PaymentCLILocal{
-		StellarTxID:  o.StellarTxID.DeepCopy(),
+		TxID:         o.TxID.DeepCopy(),
 		Time:         o.Time.DeepCopy(),
 		Status:       o.Status,
 		StatusDetail: o.StatusDetail,
@@ -48,7 +66,13 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 			return &tmp
 		})(o.DisplayCurrency),
 		FromStellar: o.FromStellar.DeepCopy(),
-		ToStellar:   o.ToStellar.DeepCopy(),
+		ToStellar: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ToStellar),
 		FromUsername: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -163,7 +187,7 @@ type FormatLocalCurrencyStringArg struct {
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
-	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLILocal, error)
+	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLIOptionLocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
@@ -404,7 +428,7 @@ func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res Pay
 	return
 }
 
-func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentCLILocal, err error) {
+func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentCLIOptionLocal, err error) {
 	__arg := RecentPaymentsCLILocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res)
 	return
