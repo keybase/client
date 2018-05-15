@@ -2316,6 +2316,14 @@ type UploadTeamAvatarArg struct {
 	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
+type TryDecryptWithTeamKeyArg struct {
+	TeamID         TeamID               `codec:"teamID" json:"teamID"`
+	EncryptedData  []byte               `codec:"encryptedData" json:"encryptedData"`
+	Nonce          BoxNonce             `codec:"nonce" json:"nonce"`
+	PeersPublicKey BoxPublicKey         `codec:"peersPublicKey" json:"peersPublicKey"`
+	MinGeneration  PerTeamKeyGeneration `codec:"minGeneration" json:"minGeneration"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2361,6 +2369,7 @@ type TeamsInterface interface {
 	GetTarsDisabled(context.Context, string) (bool, error)
 	SetTarsDisabled(context.Context, SetTarsDisabledArg) error
 	UploadTeamAvatar(context.Context, UploadTeamAvatarArg) error
+	TryDecryptWithTeamKey(context.Context, TryDecryptWithTeamKeyArg) ([]byte, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -3023,6 +3032,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"tryDecryptWithTeamKey": {
+				MakeArg: func() interface{} {
+					ret := make([]TryDecryptWithTeamKeyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TryDecryptWithTeamKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TryDecryptWithTeamKeyArg)(nil), args)
+						return
+					}
+					ret, err = i.TryDecryptWithTeamKey(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3243,5 +3268,10 @@ func (c TeamsClient) SetTarsDisabled(ctx context.Context, __arg SetTarsDisabledA
 
 func (c TeamsClient) UploadTeamAvatar(ctx context.Context, __arg UploadTeamAvatarArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.uploadTeamAvatar", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TryDecryptWithTeamKey(ctx context.Context, __arg TryDecryptWithTeamKeyArg) (res []byte, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.tryDecryptWithTeamKey", []interface{}{__arg}, &res)
 	return
 }
