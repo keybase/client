@@ -2935,7 +2935,7 @@ export type NotifyPGPPgpKeyInSecretStoreFileRpcParam = ?$ReadOnly<{incomingCallM
 
 export type NotifyPaperKeyPaperKeyCachedRpcParam = $ReadOnly<{uid: UID, encKID: KID, sigKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyServiceShutdownRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyServiceShutdownRpcParam = $ReadOnly<{code: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4391,7 +4391,7 @@ export type IncomingCallMapType = {|
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $ReadOnly<{uid: UID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $ReadOnly<{uid: UID, encKID: KID, sigKID: KID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyService.shutdown'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyService.shutdown'?: (params: $ReadOnly<{code: Int}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifySession.loggedOut'?: (params: $ReadOnly<{}>) => void,
   'keybase.1.NotifySession.loggedIn'?: (params: $ReadOnly<{username: String}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifySession.clientOutOfDate'?: (params: $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String}>, response: CommonResponseHandler) => void,
