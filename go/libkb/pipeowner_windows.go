@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	modkernel32        = syscall.NewLazyDLL("kernel32.dll")
+	modkernel32        = windows.NewLazyDLL("kernel32.dll")
 	procWaitNamedPipeW = modkernel32.NewProc("WaitNamedPipeW")
 )
 
@@ -33,13 +33,9 @@ func waitNamedPipe(name string, timeout uint32) (err error) {
 		return e1
 	}
 
-	r1, _, e2 := syscall.Syscall(procWaitNamedPipeW.Addr(), 2, uintptr(unsafe.Pointer(rawName)), uintptr(timeout), 0)
+	r1, _, e2 := procWaitNamedPipeW.Call(2, uintptr(unsafe.Pointer(rawName)), uintptr(timeout), 0)
 	if r1 == 0 {
-		if e2 != 0 {
-			err = error(e2)
-		} else {
-			err = syscall.EINVAL
-		}
+		return e2
 	}
 	return
 }
@@ -72,7 +68,7 @@ func GetFileUserSid(name string) (*windows.SID, error) {
 	return userSID, nil
 }
 
-func Pipeowner(name string) (bool, error) {
+func IsPipeowner(name string) (bool, error) {
 	userSid, err := currentProcessUserSid()
 	if err != nil {
 		return false, err
