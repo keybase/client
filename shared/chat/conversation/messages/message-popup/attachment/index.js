@@ -19,6 +19,7 @@ type Props = {
   onSaveAttachment: null | (() => void),
   onShareAttachment: null | (() => void),
   onShowInFinder: null | (() => void),
+  pending: boolean,
   position: Position,
   style?: Object,
   timestamp: number,
@@ -52,9 +53,13 @@ const AttachmentPopupMenu = (props: Props) => {
       : []),
     'Divider',
     ...(props.onShowInFinder ? [{onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
-    ...(props.onSaveAttachment ? [{onClick: props.onSaveAttachment, title: 'Save'}] : []),
-    ...(props.onShareAttachment ? [{onClick: props.onShareAttachment, title: 'Share'}] : []),
-    ...(props.onDownload ? [{onClick: props.onDownload, title: 'Download'}] : []),
+    ...(props.onSaveAttachment
+      ? [{disabled: props.pending, onClick: props.onSaveAttachment, title: 'Save'}]
+      : []),
+    ...(props.onShareAttachment
+      ? [{disabled: props.pending, onClick: props.onShareAttachment, title: 'Share'}]
+      : []),
+    ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
   ]
 
   const header = {
