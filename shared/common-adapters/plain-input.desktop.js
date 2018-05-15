@@ -4,7 +4,7 @@ import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, styleSheetCreate} from '../styles'
 
 import type {_StylesDesktop} from '../styles/css'
-import type {Props, DefaultProps} from './plain-input'
+import type {Props} from './plain-input'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling
@@ -13,7 +13,7 @@ class PlainInput extends React.PureComponent<Props> {
   _isComposingIME: boolean = false
   _value: string = ''
 
-  static defaultProps: DefaultProps = {
+  static defaultProps = {
     textType: 'Body',
   }
 

@@ -3,10 +3,12 @@ import React, {Component} from 'react'
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
-import {collapseStyles, globalColors} from '../styles'
+import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 
-import type {Props, DefaultProps} from './plain-input'
+import type {Props} from './plain-input'
+
+type ContentSizeChangeEvent = {nativeEvent: {contentSize: {width: number, height: number}}}
 
 type State = {
   focused: boolean,
@@ -16,22 +18,18 @@ type State = {
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling
 class _PlainInput extends Component<PropsWithTimer<Props>, State> {
-  state: State
-  _input: NativeTextInput | null
-  static defaultProps: DefaultProps = {
+  static defaultProps = {
+    keyboardType: 'default',
     textType: 'Body',
   }
 
-  constructor(props: PropsWithTimer<Props>) {
-    super(props)
-
-    this.state = ({
-      focused: false,
-      height: null,
-    }: State)
+  state: State = {
+    focused: false,
+    height: null,
   }
 
-  _setInputRef = (ref: NativeTextInput | null) => {
+  _input: ?NativeTextInput
+  _setInputRef = (ref: ?NativeTextInput) => {
     this._input = ref
   }
 
@@ -41,15 +39,8 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
     this._input && this._input.setNativeProps(nativeProps)
   }
 
-  _onContentSizeChange = event => {
-    if (
-      this.props.multiline &&
-      event &&
-      event.nativeEvent &&
-      event.nativeEvent.contentSize &&
-      event.nativeEvent.contentSize.height &&
-      event.nativeEvent.contentSize.width
-    ) {
+  _onContentSizeChange = (event: ContentSizeChangeEvent) => {
+    if (this.props.multiline) {
       let height = event.nativeEvent.contentSize.height
       const minHeight = this.props.rowsMin && this.props.rowsMin * this._lineHeight()
       const maxHeight = this.props.rowsMax && this.props.rowsMax * this._lineHeight()
@@ -97,82 +88,87 @@ class _PlainInput extends Component<PropsWithTimer<Props>, State> {
     this.props.onBlur && this.props.onBlur()
   }
 
-  render = () => {
-    const textStyle = getTextStyle(this.props.textType || 'Body')
-    const lineHeight = this._lineHeight()
+  _getCommonStyle = () => {
+    const textStyle = getTextStyle(this.props.textType)
+    return collapseStyles([{lineHeight: this._lineHeight()}, styles.common, textStyle])
+  }
+
+  _getMultilineStyle = () => {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
+    const lineHeight = this._lineHeight()
+    return collapseStyles([
+      styles.multiline,
+      {
+        minHeight: (this.props.rowsMin || defaultRowsToShow) * lineHeight,
+      },
+      !!this.props.rowsMax && {maxHeight: this.props.rowsMax * lineHeight},
+      isIOS && !!this.state.height && {height: this.state.height},
+    ])
+  }
 
-    const commonInputStyle = {
-      lineHeight: lineHeight,
-      backgroundColor: globalColors.fastBlank,
-      flexGrow: 1,
-      borderWidth: 0,
-      ...textStyle,
-    }
+  _getSinglelineStyle = () => {
+    const lineHeight = this._lineHeight()
+    return collapseStyles([styles.singleline, {minHeight: lineHeight, maxHeight: lineHeight}])
+  }
 
-    const singlelineStyle = {
-      ...commonInputStyle,
-      maxHeight: lineHeight, // ensure it doesn't grow or shrink
-      minHeight: lineHeight,
-      padding: 0,
-    }
+  _getStyle = () => {
+    return collapseStyles([
+      this._getCommonStyle(),
+      this.props.multiline && this._getMultilineStyle(),
+      !this.props.multiline && this._getSinglelineStyle(),
+      this.props.style,
+    ])
+  }
 
-    const multilineStyle = {
-      ...commonInputStyle,
-      height: undefined,
-      minHeight: (this.props.rowsMin || defaultRowsToShow) * this._lineHeight(),
-      paddingBottom: 0,
-      paddingTop: 0,
-      ...(this.props.rowsMax ? {maxHeight: this.props.rowsMax * lineHeight} : null),
-    }
-
-    // Override height if we received an onContentSizeChange() earlier.
-    if (isIOS && this.state.height) {
-      multilineStyle.height = this.state.height
-    }
-
-    const keyboardType = this.props.keyboardType || 'default'
-
-    // We want to be able to set the selection property,
-    // too. Unfortunately, that triggers an Android crash:
-    // https://github.com/facebook/react-native/issues/18316 .
-    const commonProps: {value?: string} = {
-      autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
+  _getProps = () => {
+    const common: any = {
       autoCapitalize: this.props.autoCapitalize || 'none',
-      editable: !this.props.disabled,
-      keyboardType,
+      autoCorrect: !!this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
+      editable: !this.props.disabled,
+      keyboardType: this.props.keyboardType,
+      multiline: false,
       onBlur: this._onBlur,
       onChangeText: this.props.onChangeText,
+      onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
       onSubmitEditing: this.props.onEnterKeyDown,
-      onEndEditing: this.props.onEndEditing,
       placeholder: this.props.placeholder,
       ref: this._setInputRef,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
+      style: this._getStyle(),
       underlineColorAndroid: 'transparent',
-      ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
-
-    const singlelineProps = {
-      ...commonProps,
-      multiline: false,
-      style: collapseStyles([singlelineStyle, this.props.style]),
+    if (this.props.maxLength) {
+      common.maxLength = this.props.maxLength
     }
-
-    const multilineProps = {
-      ...commonProps,
-      multiline: true,
-      blurOnSubmit: false,
-      onContentSizeChange: this._onContentSizeChange,
-      style: collapseStyles([multilineStyle, this.props.style]),
-      ...(this.props.rowsMax ? {maxHeight: this.props.rowsMax * this._lineHeight()} : {}),
+    if (this.props.multiline) {
+      return {
+        ...common,
+        blurOnSubmit: false,
+        multiline: true,
+        onContentSizeChange: this._onContentSizeChange,
+      }
     }
+    return common
+  }
 
-    return <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
+  render = () => {
+    const props = this._getProps()
+    return <NativeTextInput {...props} />
   }
 }
 const PlainInput = HOCTimers(_PlainInput)
+
+const styles = styleSheetCreate({
+  common: {backgroundColor: globalColors.fastBlank, flexGrow: 1, borderWidth: 0},
+  multiline: {
+    height: undefined,
+    paddingBottom: 0,
+    paddingTop: 0,
+  },
+  singleline: {padding: 0},
+})
 
 export default PlainInput

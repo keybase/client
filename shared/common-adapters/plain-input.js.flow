@@ -29,7 +29,6 @@ export type Props = {
   maxLength?: number,
   multiline?: boolean,
   onBlur?: () => void,
-  onClick?: (event: Event) => void,
   onChangeText?: (text: string) => void,
   onFocus?: () => void,
   placeholder?: string,
@@ -48,13 +47,14 @@ export type Props = {
   onEnterKeyDown?: () => void,
 
   // Desktop only
+  onClick?: (event: Event) => void,
   onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 
   // Mobile only
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoCorrect?: boolean,
-  keyboardType?: KeyboardType,
+  keyboardType: KeyboardType,
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
   onEndEditing?: () => void,
@@ -67,6 +67,7 @@ export type PropsWithInput<P> = {|
 |}
 
 export type DefaultProps = {|
+  keyboardType: $PropertyType<Props, 'keyboardType'>,
   textType: $PropertyType<Props, 'textType'>,
 |}
 
