@@ -103,7 +103,12 @@ const UsernameHeader = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
-  backButton: {flexShrink: 0, padding: globalMargins.tiny, marginLeft: globalMargins.tiny},
+  backButton: {
+    flexShrink: 0,
+    marginLeft: globalMargins.small - 4,
+    padding: globalMargins.tiny,
+    paddingLeft: 0,
+  },
   center: {
     justifyContent: 'center',
     textAlign: 'center',

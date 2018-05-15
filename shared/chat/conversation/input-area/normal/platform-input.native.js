@@ -168,7 +168,7 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
       </Text>
     </Box>
   ) : (
-    <Box2 direction="horizontal" gap="small" gapEnd={true}>
+    <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
       <Icon
         onClick={pendingWaiting ? undefined : insertMentionMarker}
         type="iconfont-mention"
@@ -184,6 +184,7 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
     </Box2>
   )
 
+const containerPadding = 6
 const styles = styleSheetCreate({
   accessory: {
     bottom: 1,
@@ -199,6 +200,9 @@ const styles = styleSheetCreate({
   actionButton: {
     alignSelf: isIOS ? 'flex-end' : 'center',
     paddingBottom: 2,
+  },
+  actionIconsContainer: {
+    paddingRight: globalMargins.small - containerPadding,
   },
   actionText: {
     ...globalStyles.flexBoxColumn,
@@ -216,9 +220,9 @@ const styles = styleSheetCreate({
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
-    paddingBottom: 6,
-    paddingRight: 6,
-    paddingTop: 6,
+    paddingBottom: containerPadding,
+    paddingRight: containerPadding,
+    paddingTop: containerPadding,
   },
   editingTabStyle: {
     ...globalStyles.flexBoxColumn,
