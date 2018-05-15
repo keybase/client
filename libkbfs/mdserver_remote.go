@@ -1267,7 +1267,7 @@ func (md *MDServerRemote) FindNextMD(
 
 	if response.KbfsRoot.Version != 1 {
 		return nil, nil, 0, keybase1.HashMeta{},
-			kbfsmd.NewMerkleVersionError{response.KbfsRoot.Version}
+			kbfsmd.NewMerkleVersionError{Version: response.KbfsRoot.Version}
 	}
 
 	var kbfsRoot kbfsmd.MerkleRoot
