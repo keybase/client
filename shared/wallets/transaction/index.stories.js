@@ -70,8 +70,8 @@ const load = () => {
     <Transaction
       counterparty="G43289XXXXX34OPL"
       counterpartyType="stellarPublicKey"
-      amountUser="$12.50"
-      amountXLM="53.1688643 XLM"
+      amountUser="$15.65"
+      amountXLM="42.535091 XLM"
       {...config}
     />
   ))
@@ -79,8 +79,8 @@ const load = () => {
     <Transaction
       counterparty="Second wallet"
       counterpartyType="wallet"
-      amountUser="$12.50"
-      amountXLM="53.1688643 XLM"
+      amountUser="$100"
+      amountXLM="545.2562704 XLM"
       {...config}
     />
   ))
