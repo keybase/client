@@ -8,7 +8,7 @@ import Transaction from '.'
 
 const provider = PropProviders.compose(PropProviders.Usernames(['paul'], 'john'))
 
-const referenceTime = new Date('May 15, 2018 13:54:03')
+const referenceTime = new Date('May 15, 2018 13:54:03 +0700')
 const yesterday = moment(referenceTime)
   .subtract(1, 'days')
   .toDate()
