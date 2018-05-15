@@ -17,7 +17,6 @@ export {
   compose,
   defaultProps,
   lifecycle,
-  pure,
   renderComponent,
   renderNothing,
   withHandlers,
