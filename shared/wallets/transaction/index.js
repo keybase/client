@@ -193,7 +193,8 @@ export const Transaction = (props: Props) => {
           counterpartyType={props.counterpartyType}
           amountUser={props.amountUser}
         />
-        {props.large && (
+        {// TODO: Detect single emoji case and use big emoji.
+        props.large && (
           <Text style={styles.note} type="Body">
             {props.note}
           </Text>
