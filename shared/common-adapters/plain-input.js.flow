@@ -35,7 +35,7 @@ export type Props = {
   rowsMin?: number,
   rowsMax?: number,
   style?: StylesCrossPlatform,
-  textType: TextType,
+  textType?: TextType,
   type?: 'password' | 'text' | 'number',
 
   // NOTE: Setting this prop will make the input controlled, which
@@ -54,21 +54,16 @@ export type Props = {
   // Mobile only
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoCorrect?: boolean,
-  keyboardType: KeyboardType,
+  keyboardType?: KeyboardType,
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
   onEndEditing?: () => void,
 }
 
-type MixProps = {|
-  ...$Exact<Props>,
-  keyboardType?: $PropertyType<Props, 'keyboardType'>,
-  textType?: $PropertyType<Props, 'textType'>,
-|}
 // Use this to mix your props with input props like type Props = PropsWithInput<{foo: number}>
 export type PropsWithInput<P> = {|
+  ...$Exact<Props>,
   ...$Exact<P>,
-  ...$Exact<MixProps>,
 |}
 
 /**
@@ -77,20 +72,21 @@ export type PropsWithInput<P> = {|
  * effectively use it we have to either:
  * 1. Set the same defaultProps on components with props that use
  *    PropsWithInput to pass props to this component. This is because
- *    Props has to be changed to make the defaultProps non-nullable
- *    as far as Flow is concerned.
+ *    type Props has to be changed to make the properties non-nullable
+ *    on the inside of the component.
  * 2. Setting the defaultProps keys as optional and sticking $ FlowIssues
  *    everywhere in these implementations to defy the way Flow has
  *    decided to handle this.
  *
  * I chose option 1 because it preserves the most typing and makes this
- * whole fiasco opaque to users of the API.
+ * whole fiasco opaque to view-layer users of the API.
  * See more discussion here: https://github.com/facebook/flow/issues/1660
  */
-export type DefaultProps = {|
-  keyboardType: $PropertyType<Props, 'keyboardType'>,
-  textType: $PropertyType<Props, 'textType'>,
-|}
+export type DefaultProps = {
+  keyboardType: KeyboardType,
+  textType: TextType,
+}
+export type InternalProps = DefaultProps & Props
 declare export default class PlainInput extends React.Component<Props> {
   static defaultProps: DefaultProps;
   blur: () => void;

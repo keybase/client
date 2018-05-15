@@ -4,11 +4,11 @@ import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, styleSheetCreate} from '../styles'
 
 import type {_StylesDesktop} from '../styles/css'
-import type {Props} from './plain-input'
+import type {InternalProps} from './plain-input'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling
-class PlainInput extends React.PureComponent<Props> {
+class PlainInput extends React.PureComponent<InternalProps> {
   _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
   _value: string = ''

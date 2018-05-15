@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import PlainInput, {type PropsWithInput} from './plain-input'
+import PlainInput, {type PropsWithInput, type KeyboardType} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {type IconType} from './icon'
-import {getStyle as getTextStyle} from './text'
+import {getStyle as getTextStyle, type TextType} from './text'
 import {
   type StylesCrossPlatform,
   collapseStyles,
@@ -20,13 +20,19 @@ export type _Props = {
   hideBorder?: boolean,
   icon?: IconType,
 }
+
+type DefaultProps = {
+  flexable: boolean,
+  keyboardType: KeyboardType,
+  textType: TextType,
+}
 type Props = PropsWithInput<_Props>
 
 type State = {
   focused: boolean,
 }
 
-class NewInput extends React.Component<Props, State> {
+class NewInput extends React.Component<DefaultProps & Props, State> {
   static defaultProps = {
     flexable: true,
     keyboardType: 'default',

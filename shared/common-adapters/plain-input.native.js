@@ -6,7 +6,7 @@ import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 
-import type {Props} from './plain-input'
+import type {Props, DefaultProps} from './plain-input'
 
 type ContentSizeChangeEvent = {nativeEvent: {contentSize: {width: number, height: number}}}
 
@@ -15,9 +15,12 @@ type State = {
   height: ?number,
 }
 
+// PropsWithTimer really doesn't like having a intersection as a type param
+type InternalProps = DefaultProps & PropsWithTimer<Props>
+
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling
-class _PlainInput extends Component<PropsWithTimer<Props>, State> {
+class _PlainInput extends Component<InternalProps, State> {
   static defaultProps = {
     keyboardType: 'default',
     textType: 'Body',
