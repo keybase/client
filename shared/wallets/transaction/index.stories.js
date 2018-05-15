@@ -23,98 +23,76 @@ const shortNote = 'Short note.'
 const longNote =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
+const makeConfigs = () => {
+  const roles = [{yourRole: 'sender'}, {yourRole: 'receiver'}]
+  const times = [
+    {timestamp: yesterday},
+    {timestamp: lastWeek},
+    {timestamp: beforeLastWeek},
+    {timestamp: null},
+  ]
+  const notes = [{note: shortNote}, {note: longNote}]
+  const sizes = [{large: true}, {large: false}]
+
+  const configs = []
+  roles.forEach(r => {
+    times.forEach(t => {
+      notes.forEach(n => {
+        sizes.forEach(s => {
+          configs.push({...r, ...t, ...n, ...s})
+        })
+      })
+    })
+  })
+  return configs
+}
+
+const configs = makeConfigs()
+
 const load = () => {
   storiesOf('Wallets/Transaction', module)
     .addDecorator(provider)
     .addDecorator(story => (
-      <Box2 direction="horizontal" style={{maxWidth: 520}}>
+      <Box2 direction="vertical" style={{maxWidth: 520}}>
         {story()}
       </Box2>
     ))
-    .add('Default wallet to Keybase User', () => (
-      <Transaction
-        large={true}
-        timestamp={yesterday}
-        yourRole="sender"
-        counterparty="paul"
-        counterpartyType="keybaseUser"
-        amountUser="$12.50"
-        amountXLM="53.1688643 XLM"
-        note={shortNote}
-      />
-    ))
-    .add('Keybase User to Default wallet (small)', () => (
-      <Transaction
-        large={false}
-        timestamp={lastWeek}
-        yourRole="receiver"
-        counterparty="james"
-        counterpartyType="keybaseUser"
-        amountUser="$100"
-        amountXLM="42.535091 XLM"
-        note="Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah."
-      />
-    ))
-    .add('Default wallet to Stellar Public Key', () => (
-      <Transaction
-        large={true}
-        timestamp={beforeLastWeek}
-        yourRole="sender"
-        counterparty="G43289XXXXX34OPL"
-        counterpartyType="stellarPublicKey"
-        amountUser="$12.50"
-        amountXLM="53.1688643 XLM"
-        note={longNote}
-      />
-    ))
-    .add('Stellar Public Key to Default wallet (small)', () => (
-      <Transaction
-        large={false}
-        timestamp={lastWeek}
-        yourRole="receiver"
-        counterparty="G43289XXXXX34OPL"
-        counterpartyType="stellarPublicKey"
-        amountUser="$12.50"
-        amountXLM="53.1688643 XLM"
-        note={longNote}
-      />
-    ))
-    .add('Pending', () => (
-      <Transaction
-        large={true}
-        timestamp={null}
-        yourRole="receiver"
-        counterparty="paul"
-        counterpartyType="keybaseUser"
-        amountUser="$100"
-        amountXLM="42.535091 XLM"
-        note={longNote}
-      />
-    ))
-    .add('Wallet to Wallet', () => (
-      <Transaction
-        large={true}
-        timestamp={yesterday}
-        yourRole="sender"
-        counterparty="Second wallet"
-        counterpartyType="wallet"
-        amountUser="$12.50"
-        amountXLM="53.1688643 XLM"
-        note={shortNote}
-      />
-    ))
-    .add('Wallet to Wallet (small)', () => (
-      <Transaction
-        large={false}
-        timestamp={lastWeek}
-        yourRole="sender"
-        counterparty="Second wallet"
-        counterpartyType="wallet"
-        amountUser="$12.50"
-        amountXLM="53.1688643 XLM"
-        note={shortNote}
-      />
-    ))
+    .add('Keybase User', () =>
+      configs.map((config, i) => (
+        <Transaction
+          key={i}
+          counterparty="paul"
+          counterpartyType="keybaseUser"
+          amountUser="$12.50"
+          amountXLM="53.1688643 XLM"
+          {...config}
+        />
+      ))
+    )
+    .add('Stellar Public Key', () =>
+      configs.map((config, i) => (
+        <Transaction
+          key={i}
+          counterparty="G43289XXXXX34OPL"
+          counterpartyType="stellarPublicKey"
+          amountUser="$12.50"
+          amountXLM="53.1688643 XLM"
+          {...config}
+        />
+      ))
+    )
+    .add('Wallet', () =>
+      configs.map((config, i) => (
+        <Transaction
+          key={i}
+          counterparty="Second wallet"
+          counterpartyType="wallet"
+          amountUser="$12.50"
+          amountXLM="53.1688643 XLM"
+          {...config}
+        />
+      ))
+    )
 }
 
 export default load
