@@ -8,6 +8,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -499,4 +500,12 @@ func (h *TeamsHandler) SetTarsDisabled(ctx context.Context, arg keybase1.SetTars
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTarsDisabled(%s,%t)", arg.Name, arg.Disabled), func() error { return err })()
 
 	return teams.SetTarsDisabled(ctx, h.G().ExternalG(), arg.Name, arg.Disabled)
+}
+
+func (h *TeamsHandler) UploadTeamAvatar(ctx context.Context, arg keybase1.UploadTeamAvatarArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadTeamAvatar(%s,%s)", arg.Teamname, arg.Filename), func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return avatars.UploadImage(mctx, arg.Filename, &arg.Teamname, arg.Crop)
 }

@@ -2529,6 +2529,26 @@
         }
       ],
       "response": null
+    },
+    "uploadTeamAvatar": {
+      "request": [
+        {
+          "name": "teamname",
+          "type": "string"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "crop",
+          "type": [
+            null,
+            "ImageCropRect"
+          ]
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
