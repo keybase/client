@@ -38,6 +38,8 @@ type mdServerDiskShared struct {
 	// after a restart.
 	truncateLockManager  *mdServerLocalTruncateLockManager
 	implicitTeamsEnabled bool
+	// In-memory only, for now.
+	merkleRoots map[keybase1.MerkleTreeID]*kbfsmd.MerkleRoot
 
 	updateManager *mdServerLocalUpdateManager
 
@@ -78,6 +80,7 @@ func newMDServerDisk(config mdServerLocalConfig, dirPath string,
 		truncateLockManager: &truncateLockManager,
 		updateManager:       newMDServerLocalUpdateManager(),
 		shutdownFunc:        shutdownFunc,
+		merkleRoots:         make(map[keybase1.MerkleTreeID]*kbfsmd.MerkleRoot),
 	}
 	mdserv := &MDServerDisk{config, log, &shared}
 	return mdserv, nil
@@ -122,6 +125,13 @@ func (md *MDServerDisk) enableImplicitTeams() {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	md.implicitTeamsEnabled = true
+}
+
+func (md *MDServerDisk) setKbfsMerkleRoot(
+	treeID keybase1.MerkleTreeID, root *kbfsmd.MerkleRoot) {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	md.merkleRoots[treeID] = root
 }
 
 func (md *MDServerDisk) getStorage(tlfID tlf.ID) (*mdServerTlfStorage, error) {
@@ -753,5 +763,7 @@ func (md *MDServerDisk) FindNextMD(
 func (md *MDServerDisk) GetMerkleRootLatest(
 	ctx context.Context, treeID keybase1.MerkleTreeID) (
 	root *kbfsmd.MerkleRoot, err error) {
-	return nil, nil
+	md.lock.RLock()
+	defer md.lock.RUnlock()
+	return md.merkleRoots[treeID], nil
 }

@@ -1004,11 +1004,16 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)
 
-	SetGlobalMerkleRootOrBust(t, config1, keybase1.MerkleRootV2{}, clock.Now())
-	SetGlobalMerkleRootOrBust(
+	SetGlobalMerkleRootForTestOrBust(
+		t, config1, keybase1.MerkleRootV2{}, clock.Now())
+	SetGlobalMerkleRootForTestOrBust(
 		t, config2Dev2, keybase1.MerkleRootV2{}, clock.Now())
-	SetGlobalMerkleRootOrBust(
+	SetGlobalMerkleRootForTestOrBust(
 		t, config2Dev3, keybase1.MerkleRootV2{}, clock.Now())
+	SetKbfsMerkleRootForTestOrBust(
+		t, config1, keybase1.MerkleTreeID_KBFS_PRIVATE, &kbfsmd.MerkleRoot{
+			Timestamp: clock.Now().Unix(),
+		})
 
 	// First request a rekey from the new device, which will only be
 	// able to set the rekey bit (copying the root MD).
@@ -2060,8 +2065,12 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	clock.Add(1 * time.Minute)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid1, 0)
 
-	SetGlobalMerkleRootOrBust(
+	SetGlobalMerkleRootForTestOrBust(
 		t, config2Dev2, keybase1.MerkleRootV2{}, clock.Now())
+	SetKbfsMerkleRootForTestOrBust(
+		t, config2Dev2, keybase1.MerkleTreeID_KBFS_PRIVATE, &kbfsmd.MerkleRoot{
+			Timestamp: clock.Now().Unix(),
+		})
 
 	t.Log("Doing first rekey")
 

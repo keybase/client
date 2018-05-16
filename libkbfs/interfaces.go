@@ -1594,6 +1594,7 @@ type mdServerLocal interface {
 	isShutdown() bool
 	copy(config mdServerLocalConfig) mdServerLocal
 	enableImplicitTeams()
+	setKbfsMerkleRoot(treeID keybase1.MerkleTreeID, root *kbfsmd.MerkleRoot)
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

@@ -89,6 +89,7 @@ type mdServerMemShared struct {
 	lockIDs              map[mdLockMemKey]mdLockMemVal
 	implicitTeamsEnabled bool
 	iTeamMigrationLocks  map[tlf.ID]bool
+	merkleRoots          map[keybase1.MerkleTreeID]*kbfsmd.MerkleRoot
 
 	updateManager *mdServerLocalUpdateManager
 }
@@ -125,6 +126,7 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 		lockIDs:             make(map[mdLockMemKey]mdLockMemVal),
 		iTeamMigrationLocks: make(map[tlf.ID]bool),
 		updateManager:       newMDServerLocalUpdateManager(),
+		merkleRoots:         make(map[keybase1.MerkleTreeID]*kbfsmd.MerkleRoot),
 	}
 	mdserv := &MDServerMemory{config, log, &shared}
 	return mdserv, nil
@@ -147,6 +149,13 @@ func (md *MDServerMemory) enableImplicitTeams() {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	md.implicitTeamsEnabled = true
+}
+
+func (md *MDServerMemory) setKbfsMerkleRoot(
+	treeID keybase1.MerkleTreeID, root *kbfsmd.MerkleRoot) {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	md.merkleRoots[treeID] = root
 }
 
 func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
@@ -1104,5 +1113,7 @@ func (md *MDServerMemory) FindNextMD(
 func (md *MDServerMemory) GetMerkleRootLatest(
 	ctx context.Context, treeID keybase1.MerkleTreeID) (
 	root *kbfsmd.MerkleRoot, err error) {
-	return nil, nil
+	md.lock.RLock()
+	defer md.lock.RUnlock()
+	return md.merkleRoots[treeID], nil
 }

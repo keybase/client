@@ -639,8 +639,8 @@ func ChangeTeamNameForTestOrBust(t logger.TestLogBackend, config Config,
 	}
 }
 
-// SetGlobalMerkleRoot sets the global Merkle root and time.
-func SetGlobalMerkleRoot(
+// SetGlobalMerkleRootForTest sets the global Merkle root and time.
+func SetGlobalMerkleRootForTest(
 	config Config, root keybase1.MerkleRootV2, rootTime time.Time) error {
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
@@ -651,12 +651,35 @@ func SetGlobalMerkleRoot(
 	return nil
 }
 
-// SetGlobalMerkleRootOrBust is like SetGlobalMerkleRoot, but dies
-// if there's an error.
-func SetGlobalMerkleRootOrBust(
+// SetGlobalMerkleRootForTestOrBust is like
+// SetGlobalMerkleRootForTest, but dies if there's an error.
+func SetGlobalMerkleRootForTestOrBust(
 	t logger.TestLogBackend, config Config, root keybase1.MerkleRootV2,
 	rootTime time.Time) {
-	err := SetGlobalMerkleRoot(config, root, rootTime)
+	err := SetGlobalMerkleRootForTest(config, root, rootTime)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// SetKbfsMerkleRootForTest sets a Merkle root for the given KBFS tree ID.
+func SetKbfsMerkleRootForTest(
+	config Config, treeID keybase1.MerkleTreeID,
+	root *kbfsmd.MerkleRoot) error {
+	md, ok := config.MDServer().(mdServerLocal)
+	if !ok {
+		return errors.New("Bad md server")
+	}
+	md.setKbfsMerkleRoot(treeID, root)
+	return nil
+}
+
+// SetKbfsMerkleRootForTestOrBust is like SetKbfsMerkleRootForTest,
+// but dies if there's an error.
+func SetKbfsMerkleRootForTestOrBust(
+	t logger.TestLogBackend, config Config, treeID keybase1.MerkleTreeID,
+	root *kbfsmd.MerkleRoot) {
+	err := SetKbfsMerkleRootForTest(config, treeID, root)
 	if err != nil {
 		t.Fatal(err)
 	}
