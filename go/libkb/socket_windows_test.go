@@ -12,8 +12,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sync"
-	"time"
 	"testing"
+	"time"
 )
 
 func setupTest(t *testing.T, nm string) *TestContext {
@@ -94,10 +94,10 @@ func TestWindowsPipeOwner(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer serverCmd.Process.Kill()
-	
+
 	// Give the server time to open the pipe
 	time.Sleep(200 * time.Millisecond)
-	
+
 	// Test existing pipe
 	owner, err := IsPipeowner(testPipeName)
 	if err != nil {
@@ -114,5 +114,5 @@ func TestWindowsPipeOwner(t *testing.T) {
 	}
 	if owner {
 		t.Fatal(errors.New("Expected false getting owner of nonexistent pipe"))
-	}	
+	}
 }
