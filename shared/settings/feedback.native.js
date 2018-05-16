@@ -134,11 +134,12 @@ class Feedback extends Component<Props> {
           </Box>
           <ButtonBar>
             <Button
+              fullWidth={true}
               label="Send"
-              type="Primary"
               onClick={this._onSubmit}
-              waiting={sending}
               style={{width: '100%'}}
+              type="Primary"
+              waiting={sending}
             />
           </ButtonBar>
           {sendError && (
