@@ -683,35 +683,37 @@ func (o UIMessages) DeepCopy() UIMessages {
 }
 
 type ChatSearchHit struct {
-	PrevMessage *UIMessage `codec:"prevMessage,omitempty" json:"prevMessage,omitempty"`
-	HitMessage  *UIMessage `codec:"hitMessage,omitempty" json:"hitMessage,omitempty"`
-	NextMessage *UIMessage `codec:"nextMessage,omitempty" json:"nextMessage,omitempty"`
-	Matches     []string   `codec:"matches" json:"matches"`
+	BeforeMessages []UIMessage `codec:"beforeMessages" json:"beforeMessages"`
+	HitMessage     UIMessage   `codec:"hitMessage" json:"hitMessage"`
+	AfterMessages  []UIMessage `codec:"afterMessages" json:"afterMessages"`
+	Matches        []string    `codec:"matches" json:"matches"`
 }
 
 func (o ChatSearchHit) DeepCopy() ChatSearchHit {
 	return ChatSearchHit{
-		PrevMessage: (func(x *UIMessage) *UIMessage {
+		BeforeMessages: (func(x []UIMessage) []UIMessage {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.PrevMessage),
-		HitMessage: (func(x *UIMessage) *UIMessage {
+			var ret []UIMessage
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.BeforeMessages),
+		HitMessage: o.HitMessage.DeepCopy(),
+		AfterMessages: (func(x []UIMessage) []UIMessage {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.HitMessage),
-		NextMessage: (func(x *UIMessage) *UIMessage {
-			if x == nil {
-				return nil
+			var ret []UIMessage
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
 			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.NextMessage),
+			return ret
+		})(o.AfterMessages),
 		Matches: (func(x []string) []string {
 			if x == nil {
 				return nil

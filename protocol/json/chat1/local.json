@@ -3492,6 +3492,14 @@
           "type": "int"
         },
         {
+          "name": "beforeContext",
+          "type": "int"
+        },
+        {
+          "name": "afterContext",
+          "type": "int"
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
