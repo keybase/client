@@ -4823,6 +4823,19 @@ func (mr *MockMDServerMockRecorder) FindNextMD(ctx, tlfID, rootSeqno interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindNextMD", reflect.TypeOf((*MockMDServer)(nil).FindNextMD), ctx, tlfID, rootSeqno)
 }
 
+// GetMerkleRootLatest mocks base method
+func (m *MockMDServer) GetMerkleRootLatest(ctx context.Context, treeID keybase1.MerkleTreeID) (*kbfsmd.MerkleRoot, error) {
+	ret := m.ctrl.Call(m, "GetMerkleRootLatest", ctx, treeID)
+	ret0, _ := ret[0].(*kbfsmd.MerkleRoot)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMerkleRootLatest indicates an expected call of GetMerkleRootLatest
+func (mr *MockMDServerMockRecorder) GetMerkleRootLatest(ctx, treeID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMerkleRootLatest", reflect.TypeOf((*MockMDServer)(nil).GetMerkleRootLatest), ctx, treeID)
+}
+
 // MockmdServerLocal is a mock of mdServerLocal interface
 type MockmdServerLocal struct {
 	ctrl     *gomock.Controller
@@ -5122,6 +5135,19 @@ func (m *MockmdServerLocal) FindNextMD(ctx context.Context, tlfID tlf.ID, rootSe
 // FindNextMD indicates an expected call of FindNextMD
 func (mr *MockmdServerLocalMockRecorder) FindNextMD(ctx, tlfID, rootSeqno interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindNextMD", reflect.TypeOf((*MockmdServerLocal)(nil).FindNextMD), ctx, tlfID, rootSeqno)
+}
+
+// GetMerkleRootLatest mocks base method
+func (m *MockmdServerLocal) GetMerkleRootLatest(ctx context.Context, treeID keybase1.MerkleTreeID) (*kbfsmd.MerkleRoot, error) {
+	ret := m.ctrl.Call(m, "GetMerkleRootLatest", ctx, treeID)
+	ret0, _ := ret[0].(*kbfsmd.MerkleRoot)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMerkleRootLatest indicates an expected call of GetMerkleRootLatest
+func (mr *MockmdServerLocalMockRecorder) GetMerkleRootLatest(ctx, treeID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMerkleRootLatest", reflect.TypeOf((*MockmdServerLocal)(nil).GetMerkleRootLatest), ctx, treeID)
 }
 
 // addNewAssertionForTest mocks base method

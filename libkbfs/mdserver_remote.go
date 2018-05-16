@@ -1295,6 +1295,38 @@ func (md *MDServerRemote) FindNextMD(
 	return &kbfsRoot, response.MerkleNodes, response.RootSeqno, nil
 }
 
+// GetMerkleRootLatest implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) GetMerkleRootLatest(
+	ctx context.Context, treeID keybase1.MerkleTreeID) (
+	root *kbfsmd.MerkleRoot, err error) {
+	ctx = rpc.WithFireNow(ctx)
+	md.log.LazyTrace(ctx, "KeyServer: GetMerkleRootLatest %d", treeID)
+	md.log.CDebugf(ctx, "KeyServer: GetMerkleRootLatest %d", treeID)
+	defer func() {
+		md.deferLog.LazyTrace(ctx,
+			"KeyServer: GetMerkleRootLatest %d done (err=%v)", treeID, err)
+		md.deferLog.CDebugf(ctx,
+			"KeyServer: GetMerkleRootLatest %d done (err=%v)", treeID, err)
+	}()
+
+	res, err := md.getClient().GetMerkleRootLatest(ctx, treeID)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Version != 1 {
+		return nil, kbfsmd.NewMerkleVersionError{Version: res.Version}
+	}
+
+	var kbfsRoot kbfsmd.MerkleRoot
+	err = md.config.Codec().Decode(res.Root, &kbfsRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kbfsRoot, nil
+}
+
 func (md *MDServerRemote) resetRekeyTimer() {
 	md.rekeyTimer.Reset(nextRekeyTime())
 }

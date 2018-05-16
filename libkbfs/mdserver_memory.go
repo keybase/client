@@ -1099,3 +1099,10 @@ func (md *MDServerMemory) FindNextMD(
 	nextRootSeqno keybase1.Seqno, err error) {
 	return nil, nil, 0, nil
 }
+
+// GetMerkleRootLatest implements the MDServer interface for MDServerMemory.
+func (md *MDServerMemory) GetMerkleRootLatest(
+	ctx context.Context, treeID keybase1.MerkleTreeID) (
+	root *kbfsmd.MerkleRoot, err error) {
+	return nil, nil
+}
