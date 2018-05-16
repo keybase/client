@@ -381,7 +381,6 @@ class Input extends React.PureComponent<Props, State> {
             </Text>
           )}
         {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
-        {this.props.placeholderImage && this.props.placeholderImage}
         {!!this.props.errorText &&
           !this.props.small && (
             <Text type="BodyError" style={collapseStyles([_errorStyle, this.props.errorStyle])}>

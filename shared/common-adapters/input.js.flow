@@ -1,5 +1,5 @@
 // @flow
-import {Component, type Node} from 'react'
+import {Component} from 'react'
 import {type StylesCrossPlatform} from '../styles'
 
 export type KeyboardType =
@@ -41,7 +41,6 @@ export type Props = {
   maxLength?: number,
   rowsMin?: number,
   hideLabel?: boolean,
-  placeholderImage?: ?Node,
   small?: boolean,
   smallLabel?: string,
   smallLabelStyle?: StylesCrossPlatform,

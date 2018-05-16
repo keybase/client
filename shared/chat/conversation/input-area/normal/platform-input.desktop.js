@@ -7,6 +7,7 @@ import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
+import flags from '../../../../util/feature-flags'
 
 import type {PlatformInputProps} from './types'
 
@@ -22,6 +23,7 @@ const MentionCatcher = ({onClick}) => (
 
 type State = {
   emojiPickerOpen: boolean,
+  hasText: boolean,
 }
 
 class PlatformInput extends Component<PlatformInputProps, State> {
@@ -32,6 +34,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     super(props)
     this.state = {
       emojiPickerOpen: false,
+      hasText: false,
     }
   }
 
@@ -66,11 +69,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     return this._input ? this._input.getValue() : ''
   }
 
-  _onKeyUp = (e: SyntheticKeyboardEvent<>) => {
-    // const text = this._getText()
-    // hide placeholderImage
-  }
-
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (this.props.pendingWaiting) {
       return
@@ -96,6 +94,11 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     }
   }
 
+  _onChangeText = (text: string) => {
+    this.setState({hasText: !!text})
+    this.props.onChangeText(text)
+  }
+
   componentDidMount = () => {
     this._registerBodyEvents(true)
   }
@@ -103,23 +106,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   componentWillUnmount = () => {
     this._registerBodyEvents(false)
   }
-
-  _placeholderImage = (visible?: boolean = true) =>
-    this.props.isExploding &&
-    visible && (
-      <Icon
-        color={globalColors.black_20}
-        fontSize={34}
-        hoverColor={globalColors.black_20}
-        onClick={this._inputFocus}
-        style={{
-          left: 183,
-          marginTop: -5,
-          position: 'absolute',
-        }}
-        type="iconfont-boom"
-      />
-    )
 
   _registerBodyEvents = (add: boolean) => {
     const body = document.body
@@ -281,16 +267,30 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               ref={this._inputSetRef}
               hintText={hintText}
               hideUnderline={true}
-              onChangeText={this.props.onChangeText}
+              onChangeText={this._onChangeText}
               uncontrolled={true}
               multiline={true}
               rowsMin={1}
               rowsMax={5}
-              placeholderImage={this._placeholderImage()}
-              onKeyUp={this._onKeyUp}
               onKeyDown={this._onKeyDown}
               onEnterKeyDown={this._onEnterKeyDown}
             />
+            {flags.explodingMessagesEnabled &&
+              this.props.isExploding &&
+              !this.state.hasText && (
+                <Icon
+                  color={globalColors.black_20}
+                  fontSize={34}
+                  hoverColor={globalColors.black_20}
+                  onClick={this._inputFocus}
+                  style={{
+                    left: 183,
+                    marginTop: -12,
+                    position: 'absolute',
+                  }}
+                  type="iconfont-boom"
+                />
+              )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
