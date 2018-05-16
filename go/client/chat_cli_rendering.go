@@ -461,6 +461,8 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 			return fmt.Sprintf("[git (%s) %s pushed %d commits to %s]", body.Gitpush().RepoName,
 				body.Gitpush().Pusher, total, names)
 		}
+	case chat1.MessageSystemType_CHANGEAVATAR:
+		return fmt.Sprintf("[%s changed team avatar]", body.Changeavatar().User)
 	}
 	return "<unknown system message>"
 }

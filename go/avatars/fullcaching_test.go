@@ -73,6 +73,7 @@ func TestAvatarsFullCaching(t *testing.T) {
 		path = convertPath(path)
 		file, err := os.Open(path)
 		require.NoError(t, err)
+		defer file.Close()
 		dat, err := ioutil.ReadAll(file)
 		require.NoError(t, err)
 		return string(dat)

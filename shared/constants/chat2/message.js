@@ -258,6 +258,13 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
         team,
       })
     }
+    case RPCChatTypes.localMessageSystemType.changeavatar: {
+      const {user = '???'} = body.changeavatar || {}
+      return makeMessageSystemText({
+        text: new HiddenString(`${user} changed team avatar`),
+        ...minimum,
+      })
+    }
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any

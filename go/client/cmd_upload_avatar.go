@@ -15,8 +15,9 @@ import (
 
 type cmdUploadAvatar struct {
 	libkb.Contextified
-	filename string
-	teamname string
+	Filename             string
+	Team                 string
+	SkipChatNotification bool
 }
 
 func newCmdUploadAvatar(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -33,6 +34,10 @@ func newCmdUploadAvatar(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "team",
 				Usage: "Uploads avatar for given team instead of user.",
 			},
+			cli.BoolFlag{
+				Name:  "s, skip-chat-message",
+				Usage: "skip chat message when changing avatar for a team",
+			},
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "upload-avatar", c)
@@ -48,21 +53,23 @@ func (c *cmdUploadAvatar) ParseArgv(ctx *cli.Context) error {
 		return errors.New("filename argument not found")
 	}
 
-	c.filename = args[0]
-	c.teamname = ctx.String("team")
+	c.Filename = args[0]
+	c.Team = ctx.String("team")
+	c.SkipChatNotification = ctx.Bool("skip-chat-message")
 	return nil
 }
 
 func (c *cmdUploadAvatar) Run() error {
-	if c.teamname != "" {
+	if c.Team != "" {
 		cli, err := GetTeamsClient(c.G())
 		if err != nil {
 			return err
 		}
 
 		arg := keybase1.UploadTeamAvatarArg{
-			Teamname: c.teamname,
-			Filename: c.filename,
+			Teamname:             c.Team,
+			Filename:             c.Filename,
+			SendChatNotification: !c.SkipChatNotification,
 		}
 		return cli.UploadTeamAvatar(context.Background(), arg)
 	}
@@ -72,7 +79,7 @@ func (c *cmdUploadAvatar) Run() error {
 		return err
 	}
 	arg := keybase1.UploadUserAvatarArg{
-		Filename: c.filename,
+		Filename: c.Filename,
 	}
 	return cli.UploadUserAvatar(context.Background(), arg)
 }
