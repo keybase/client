@@ -137,6 +137,7 @@ class Feedback extends Component<Props> {
               fullWidth={true}
               label="Send"
               onClick={this._onSubmit}
+              // TODO: Remove this style when fullWidth does it.
               style={{width: '100%'}}
               type="Primary"
               waiting={sending}
