@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import Icon from './icon'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
