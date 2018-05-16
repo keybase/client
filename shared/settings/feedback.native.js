@@ -133,7 +133,13 @@ class Feedback extends Component<Props> {
             </Box>
           </Box>
           <ButtonBar>
-            <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
+            <Button
+              label="Send"
+              type="Primary"
+              onClick={this._onSubmit}
+              waiting={sending}
+              style={{width: '100%'}}
+            />
           </ButtonBar>
           {sendError && (
             <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>
