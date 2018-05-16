@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
 import PeopleItem from '../item'
-import {Box, Button, Icon, Text} from '../../common-adapters'
-import {type IconType} from '../../common-adapters/icon.constants'
+import {Box, Button, Icon, Text, type IconType} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 export type Props = {

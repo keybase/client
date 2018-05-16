@@ -1,9 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import Row from './row'
-import type {IconType} from '../common-adapters/icon'
 import type {Props} from './list'
-import {Box, Text, Icon, ClickableBox, NativeListView} from '../common-adapters/index.native'
+import {Box, Text, Icon, ClickableBox, NativeListView, type IconType} from '../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 const rowKey = users => users && users.map(u => u.username).join('-')

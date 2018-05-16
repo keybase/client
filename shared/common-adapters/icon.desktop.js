@@ -7,7 +7,6 @@ import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import Box from './box'
-
 import type {Props, IconType} from './icon'
 
 const StyledSpan = glamorous.span(props => ({
