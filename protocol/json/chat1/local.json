@@ -1127,6 +1127,18 @@
           "name": "errMsg"
         },
         {
+          "type": "string",
+          "name": "senderUsername"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceName"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceType"
+        },
+        {
           "type": "MessageID",
           "name": "messageID"
         },
@@ -1630,6 +1642,14 @@
       "symbols": [
         "GENERAL_0",
         "PUSH_1"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "GetThreadNonblockPgMode",
+      "symbols": [
+        "DEFAULT_0",
+        "SERVER_1"
       ]
     },
     {
@@ -2378,6 +2398,10 @@
         {
           "name": "reason",
           "type": "GetThreadNonblockReason"
+        },
+        {
+          "name": "pgmode",
+          "type": "GetThreadNonblockPgMode"
         },
         {
           "name": "query",

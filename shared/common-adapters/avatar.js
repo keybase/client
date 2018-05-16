@@ -290,7 +290,7 @@ const autoMapStateToProps = (state: TypedState, ownProps: Props) => {
   }
 }
 
-const autoMergeProps = (stateProps, _, ownProps): Props => {
+const autoMergeProps = (stateProps, _, ownProps) => {
   if (stateProps._followers && ownProps.username) {
     const following = stateProps._following.some(user => user.username === ownProps.username)
     const followsYou = stateProps._followers.some(user => user.username === ownProps.username)
@@ -300,8 +300,8 @@ const autoMergeProps = (stateProps, _, ownProps): Props => {
       ...ownProps,
     }
   } else if (stateProps._cFollowers && ownProps.username) {
-    const following = stateProps._cFollowing.has(ownProps.username)
-    const followsYou = stateProps._cFollowers.has(ownProps.username)
+    const following = stateProps._cFollowing.has(ownProps.username || '')
+    const followsYou = stateProps._cFollowers.has(ownProps.username || '')
     return {
       following,
       followsYou,

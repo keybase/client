@@ -70,9 +70,9 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	if ekLib.ShouldRun(context.TODO()) {
 		flags = append(flags, cli.DurationFlag{
 			Name: "exploding-lifetime",
-			Usage: fmt.Sprintf(`Make this message an exploding message and set the
-				lifetime for the given duration.  The maximum lifetime is %v
-				(one week) and the minimum lifetime is %v.`, maxEphemeralLifetime, minEphemeralLifetime),
+			Usage: fmt.Sprintf(`Make this message an exploding message and set the lifetime for the given duration.
+	The maximum lifetime is %v (one week) and the minimum lifetime is %v.`,
+				maxEphemeralLifetime, minEphemeralLifetime),
 		})
 	}
 	return cli.Command{

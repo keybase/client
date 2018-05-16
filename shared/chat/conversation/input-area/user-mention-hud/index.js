@@ -14,7 +14,7 @@ import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} fro
 import {isSpecialMention} from '../../../../constants/chat2'
 
 type Props<D: {key: string, selected: boolean}> = {
-  rowRenderer: (i: number, d: D) => React$Element<*>,
+  rowRenderer: (i: number, d: D) => React$Element<any>,
   data: Array<D>,
   style: Object,
   selectedIndex: number,
@@ -65,16 +65,11 @@ const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: Me
 
 // We want to render Hud even if there's no data so we can still have lifecycle methods so we can still do things
 // This is important if you type a filter that gives you no results and you press enter for instance
+// $FlowIssue doens't like star now
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
   data.length ? (
     <Box style={collapseStyles([hudStyle, style])}>
-      <List
-        items={data}
-        renderItem={rowRenderer}
-        selectedIndex={selectedIndex}
-        fixedHeight={40}
-        keyboardShouldPersistTaps="always"
-      />
+      <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
     </Box>
   ) : null
 

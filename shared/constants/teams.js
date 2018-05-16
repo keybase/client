@@ -79,6 +79,7 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  addUserToTeamsResults: '',
   channelCreationError: '',
   teamsWithChosenChannels: I.Set(),
   loaded: false,

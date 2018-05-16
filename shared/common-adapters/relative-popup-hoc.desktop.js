@@ -12,7 +12,7 @@ import type {Position, RelativePopupHocType, RelativePopupProps} from './relativ
 
 class DOMNodeFinder extends React.Component<{
   setNode: (node: HTMLElement) => void,
-  children: React.Element<*>,
+  children: React.Element<any>,
 }> {
   componentDidMount() {
     const {setNode} = this.props
@@ -28,7 +28,7 @@ class DOMNodeFinder extends React.Component<{
   }
 }
 const getModalRoot = () => document.getElementById('modal-root')
-class Modal extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<*>}> {
+class Modal extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<any>}> {
   el: HTMLElement
   constructor() {
     super()
@@ -178,6 +178,7 @@ type ModalPositionRelativeProps<PP> = {
   targetRect: ?ClientRect,
   position: Position,
   onClosePopup: () => void,
+  propagateOutsideClicks?: boolean,
   style?: StylesCrossPlatform,
 } & PP
 
@@ -215,6 +216,7 @@ function ModalPositionRelative<PP>(
 
     _handleClick = (e: MouseEvent) => {
       if (this.popupNode && e.target instanceof HTMLElement && !this.popupNode.contains(e.target)) {
+        !this.props.propagateOutsideClicks && e.stopPropagation()
         this.props.onClosePopup()
       }
     }
@@ -260,12 +262,12 @@ function ModalPositionRelative<PP>(
   return ModalPositionRelativeClass
 }
 
-const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
-  const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<*>> = ModalPositionRelative(
+const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
+  const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<any>> = ModalPositionRelative(
     PopupComponent
   )
 
-  const C: React.ComponentType<RelativePopupProps<*>> = connect(
+  const C: React.ComponentType<RelativePopupProps<any>> = connect(
     undefined,
     (dispatch: Dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {
@@ -276,9 +278,9 @@ const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
       targetRect: routeProps.get('targetRect'),
       position: routeProps.get('position'),
     })
-  )((props: RelativePopupProps<*> & {onClosePopup: () => void}) => {
+  )((props: RelativePopupProps<any> & {onClosePopup: () => void}) => {
     // $FlowIssue
-    return <ModalPopupComponent {...(props: RelativePopupProps<*>)} onClosePopup={props.onClosePopup} />
+    return <ModalPopupComponent {...(props: RelativePopupProps<any>)} onClosePopup={props.onClosePopup} />
   })
 
   return C

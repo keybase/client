@@ -1,0 +1,5 @@
+// @flow
+import * as Saga from '../../util/saga'
+
+declare export function copyToDownloadDir(path: string, mime: string): Promise<void>
+declare export function platformSpecificSaga(): Saga.SagaGenerator<any, any>

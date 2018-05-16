@@ -1,12 +1,12 @@
 // @flow
-declare export function checkPermissions(): Promise<*>
-declare export function setShownPushPrompt(): Promise<*>
+declare export function checkPermissions(): Promise<boolean>
+declare export function setShownPushPrompt(): Promise<void>
 declare export function getShownPushPrompt(): Promise<string>
 declare export function openAppSettings(): void
-declare export function requestPushPermissions(): Promise<*>
+declare export function requestPushPermissions(): Promise<void>
 declare export function configurePush(): void
 declare export function showMainWindow(): void
-declare export function getAppState(): Promise<*>
+declare export function getAppState(): Promise<Object>
 declare export function setAppState(toMerge: Object): void
 declare export function showShareActionSheet(options: {url?: ?any, message?: ?any}): Promise<{
   completed: boolean,

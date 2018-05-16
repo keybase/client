@@ -129,7 +129,7 @@ func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.Team
 	// Before we store anything, let's verify that the server returned
 	// signature is valid and the KID it has signed matches the boxed seed.
 	// Otherwise something's fishy..
-	teamEKStatement, wrongKID, err := verifySigWithLatestPTK(ctx, s.G(), teamID, result.Result.Sig)
+	teamEKStatement, _, wrongKID, err := verifySigWithLatestPTK(ctx, s.G(), teamID, result.Result.Sig)
 
 	// Check the wrongKID condition before checking the error, since an error
 	// is still returned in this case. TODO: Turn this warning into an error

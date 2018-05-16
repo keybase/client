@@ -18,6 +18,13 @@ var adminWhitelist = map[keybase1.UID]bool{
 	"d1b3a5fa977ce53da2c2142a4511bc00": true, // joshblum
 	"41b1f75fb55046d370608425a3208100": true, // oconnor663
 	"95e88f2087e480cae28f08d81554bc00": true, // mikem
+	"8c7c57995cd14780e351fc90ca7dc819": true, // ayoubd
+	"08abe80bd2da8984534b2d8f7b12c700": true, // songgao
+	"d95f137b3b4a3600bc9e39350adba819": true, // cecileb
+	"23260c2ce19420f97b58d7d95b68ca00": true, // chris
+	"eb08cb06e608ea41bd893946445d7919": true, // mlsteele
+	"69da56f622a2ac750b8e590c3658a700": true, // jzila
+	"1563ec26dc20fd162a4f783551141200": true, // patrick
 }
 
 const cacheEntryLifetimeSecs = 60 * 5 // 5 minutes
@@ -71,10 +78,11 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	g := e.G()
 
-	_, ok := adminWhitelist[e.G().Env.GetUID()]
+	uid := g.Env.GetUID()
+	_, ok := adminWhitelist[uid]
 	willRun := ok || g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 	if !willRun {
-		e.G().Log.CDebugf(ctx, "EKLib skipping run")
+		e.G().Log.CDebugf(ctx, "EKLib skipping run uid: %v", uid)
 		return false
 	}
 
@@ -200,8 +208,7 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 	defer e.G().CTrace(ctx, "newUserEKNeeded", func() error { return err })()
 
 	// Let's see what the latest server statement is.
-	myUID := e.G().Env.GetUID()
-	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), myUID)
+	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), e.G().Env.GetUID())
 	if err != nil {
 		return false, err
 	}
@@ -232,7 +239,7 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 	if err != nil {
 		return false, err
 	}
-	statement, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
 	if err != nil {
 		return false, err
 	}
@@ -299,35 +306,12 @@ func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
-	// There are plenty of race conditions where the PTK or teamEK or
-	// membership list can change out from under us while we're in the middle
-	// of posting a new key, causing the post to fail. Detect these conditions
-	// and retry.
 	defer e.G().CTrace(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
-	tries := 0
-	maxTries := 3
-	knownRaceConditions := []keybase1.StatusCode{
-		keybase1.StatusCode_SCSigWrongKey,
-		keybase1.StatusCode_SCSigOldSeqno,
-		keybase1.StatusCode_SCEphemeralKeyBadGeneration,
-		keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
-		keybase1.StatusCode_SCEphemeralKeyMissingBox,
-		keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys,
-	}
-	for {
-		tries++
+	err = teamEKRetryWrapper(ctx, e.G(), func() error {
 		teamEK, err = e.getOrCreateLatestTeamEKInner(ctx, teamID)
-		retryableError := false
-		for _, code := range knownRaceConditions {
-			if libkb.IsAppStatusCode(err, code) {
-				e.G().Log.CDebugf(ctx, "GetOrCreateLatestTeamEK found a retryable error on try %d: %s", tries, err)
-				retryableError = true
-			}
-		}
-		if err == nil || !retryableError || tries >= maxTries {
-			return teamEK, err
-		}
-	}
+		return err
+	})
+	return teamEK, err
 }
 
 func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
@@ -362,7 +346,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		return teamEK, err
 	}
 
-	statement, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
 	if err != nil {
 		return teamEK, err
 	}

@@ -306,6 +306,13 @@ func SetAppStateBackgroundActive() {
 
 func BackgroundSync() {
 	defer kbCtx.Trace("BackgroundSync", func() error { return nil })()
+
+	// Skip the sync if we aren't in the background
+	if state := kbCtx.AppState.State(); state != keybase1.AppState_BACKGROUND {
+		kbCtx.Log.Debug("BackgroundSync: skipping, app not in background state: %v", state)
+		return
+	}
+
 	nextState := keybase1.AppState_BACKGROUNDACTIVE
 	kbCtx.AppState.Update(nextState)
 	doneCh := make(chan struct{})

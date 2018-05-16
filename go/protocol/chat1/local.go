@@ -2261,6 +2261,9 @@ func (e MessageUnboxedErrorType) String() string {
 type MessageUnboxedError struct {
 	ErrType            MessageUnboxedErrorType `codec:"errType" json:"errType"`
 	ErrMsg             string                  `codec:"errMsg" json:"errMsg"`
+	SenderUsername     string                  `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName   string                  `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType   string                  `codec:"senderDeviceType" json:"senderDeviceType"`
 	MessageID          MessageID               `codec:"messageID" json:"messageID"`
 	MessageType        MessageType             `codec:"messageType" json:"messageType"`
 	Ctime              gregor1.Time            `codec:"ctime" json:"ctime"`
@@ -2273,6 +2276,9 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 	return MessageUnboxedError{
 		ErrType:            o.ErrType.DeepCopy(),
 		ErrMsg:             o.ErrMsg,
+		SenderUsername:     o.SenderUsername,
+		SenderDeviceName:   o.SenderDeviceName,
+		SenderDeviceType:   o.SenderDeviceType,
 		MessageID:          o.MessageID.DeepCopy(),
 		MessageType:        o.MessageType.DeepCopy(),
 		Ctime:              o.Ctime.DeepCopy(),
@@ -2954,6 +2960,32 @@ var GetThreadNonblockReasonRevMap = map[GetThreadNonblockReason]string{
 
 func (e GetThreadNonblockReason) String() string {
 	if v, ok := GetThreadNonblockReasonRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type GetThreadNonblockPgMode int
+
+const (
+	GetThreadNonblockPgMode_DEFAULT GetThreadNonblockPgMode = 0
+	GetThreadNonblockPgMode_SERVER  GetThreadNonblockPgMode = 1
+)
+
+func (o GetThreadNonblockPgMode) DeepCopy() GetThreadNonblockPgMode { return o }
+
+var GetThreadNonblockPgModeMap = map[string]GetThreadNonblockPgMode{
+	"DEFAULT": 0,
+	"SERVER":  1,
+}
+
+var GetThreadNonblockPgModeRevMap = map[GetThreadNonblockPgMode]string{
+	0: "DEFAULT",
+	1: "SERVER",
+}
+
+func (e GetThreadNonblockPgMode) String() string {
+	if v, ok := GetThreadNonblockPgModeRevMap[e]; ok {
 		return v
 	}
 	return ""
@@ -3828,6 +3860,7 @@ type GetThreadNonblockArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	CbMode           GetThreadNonblockCbMode      `codec:"cbMode" json:"cbMode"`
 	Reason           GetThreadNonblockReason      `codec:"reason" json:"reason"`
+	Pgmode           GetThreadNonblockPgMode      `codec:"pgmode" json:"pgmode"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`

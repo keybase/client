@@ -8,7 +8,7 @@ import PendingFailed from './pending-failed/container'
 import {connect} from '../../../util/container'
 import type {TypedState} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const isPendingConversation = state.chat2.pendingSelected
   const pendingStatus = state.chat2.pendingStatus

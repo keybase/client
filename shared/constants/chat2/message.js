@@ -489,7 +489,10 @@ const errorUIMessagetoMessage = (
   o: RPCChatTypes.MessageUnboxedError
 ) => {
   return makeMessageText({
+    author: o.senderUsername,
     conversationIDKey,
+    deviceName: o.senderDeviceName,
+    deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
     errorReason: o.errMsg,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
@@ -613,9 +616,11 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
     if (old.submitState === 'pending') {
       // we sent an attachment, service replied
       // with the real message. replace our placeholder but
-      // only hold on to the ordinal so it doesn't
+      // hold on to the ordinal so it doesn't
       // jump in the conversation view
-      return m.set('ordinal', old.ordinal)
+      // hold on to the previewURL so that we
+      // don't show the gray box.
+      return m.set('ordinal', old.ordinal).set('previewURL', old.previewURL)
     }
     // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {

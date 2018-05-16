@@ -79,6 +79,7 @@ const BOOL isDebug = NO;
   NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
   NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
   NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
+  NSString * eraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore" stringByExpandingTildeInPath];
   NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
   NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
   NSFileManager* fm = [NSFileManager defaultManager];
@@ -94,6 +95,7 @@ const BOOL isDebug = NO;
   [self createBackgroundReadableDirectory:chatLevelDBPath];
   [self createBackgroundReadableDirectory:levelDBPath];
   [self createBackgroundReadableDirectory:logPath];
+  [self createBackgroundReadableDirectory:eraseableKVPath];
   
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
@@ -130,7 +132,7 @@ const BOOL isDebug = NO;
   // that). If you're building onto a phone, you'll have to change
   // localhost:8081 to point to the bundler running on your computer.
   //
-  // jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
+//   jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 #ifdef SYSTRACING
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self

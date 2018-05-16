@@ -966,38 +966,6 @@ func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 	return &RPCLogFactory{Contextified: NewContextified(g)}
 }
 
-// LogoutIfRevoked loads the user and checks if the current device keys
-// have been revoked.  If so, it calls Logout.
-func (g *GlobalContext) LogoutIfRevoked() error {
-	in, err := g.LoginState().LoggedInLoad()
-	if err != nil {
-		return err
-	}
-	if !in {
-		g.Log.Debug("LogoutIfRevoked: skipping check (not logged in)")
-		return nil
-	}
-
-	if g.Env.GetSkipLogoutIfRevokedCheck() {
-		g.Log.Debug("LogoutIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
-		return nil
-	}
-
-	me, err := LoadMe(NewLoadUserForceArg(g))
-	if err != nil {
-		return err
-	}
-
-	if !me.HasCurrentDeviceInCurrentInstall() {
-		g.Log.Debug("LogoutIfRevoked: current device revoked, calling logout")
-		return g.Logout()
-	}
-
-	g.Log.Debug("LogoutIfRevoked: current device ok")
-
-	return nil
-}
-
 // LogoutSelfCheck checks with the API server to see if this uid+device pair should
 // logout.
 func (g *GlobalContext) LogoutSelfCheck() error {
