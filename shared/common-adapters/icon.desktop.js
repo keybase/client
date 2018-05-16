@@ -140,11 +140,14 @@ export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: n
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
   const sets = Object.keys(multsMap)
     .map(mult => {
-      const url = resolveImageAsURL('icons', imgMap[multsMap[mult]])
+      const img = imgMap[multsMap[mult]]
+      if (!img) return null
+      const url = resolveImageAsURL('icons', img)
       return `url('${url}.png') ${mult}x`
     })
+    .filter(Boolean)
     .join(', ')
-  return `-webkit-image-set(${sets})`
+  return sets ? `-webkit-image-set(${sets})` : null
 }
 
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
@@ -152,10 +155,14 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
   const sets = Object.keys(multsMap)
     .map(mult => {
       const url = imgMap[multsMap[mult]]
+      if (!url) {
+        return null
+      }
       return `url(${url}) ${mult}x`
     })
+    .filter(Boolean)
     .join(', ')
-  return `-webkit-image-set(${sets})`
+  return sets ? `-webkit-image-set(${sets})` : null
 }
 
 export const styles = {

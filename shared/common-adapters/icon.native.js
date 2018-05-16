@@ -151,11 +151,19 @@ export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize:
 
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
-  return Object.keys(multsMap).map(mult => ({
-    height: parseInt(mult, 10) * targetSize,
-    uri: imgMap[multsMap[mult]],
-    width: parseInt(mult, 10) * targetSize,
-  }))
+  return Object.keys(multsMap)
+    .map(mult => {
+      const uri = imgMap[multsMap[mult]]
+      if (!uri) {
+        return null
+      }
+      return {
+        height: parseInt(mult, 10) * targetSize,
+        uri,
+        width: parseInt(mult, 10) * targetSize,
+      }
+    })
+    .filter(Boolean)
 }
 
 export default Icon
