@@ -14,18 +14,4 @@ const validTeamname = (s: string): boolean => {
   return s.split('.').every(validTeamnamePart)
 }
 
-// The type below is copied from ..teams. Can't import it because
-// doing so yields an error, possibly because of an import cycle.
-
-type Teamname = string
-
-const baseTeamname = (teamname: Teamname): ?Teamname => {
-  const i = teamname.lastIndexOf('.')
-  if (i < 0) {
-    return teamname
-  }
-
-  return teamname.substring(0, i)
-}
-
-export {validTeamnamePart, validTeamname, baseTeamname}
+export {validTeamnamePart, validTeamname}

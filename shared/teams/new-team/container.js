@@ -10,7 +10,6 @@ import {
   withHandlers,
   type TypedState,
 } from '../../util/container'
-import {baseTeamname} from '../../constants/teamname'
 
 const mapStateToProps = (state: TypedState) => ({
   errorText: upperFirst(state.teams.teamCreationError),
@@ -32,8 +31,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSubteam = ownProps.routeProps.get('makeSubteam') || false
-  const routeName = ownProps.routeProps.get('name') || ''
-  const baseTeam = baseTeamname(routeName)
+  const baseTeam = ownProps.routeProps.get('name') || ''
   return {
     ...stateProps,
     ...dispatchProps,
