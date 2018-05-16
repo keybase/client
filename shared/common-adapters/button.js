@@ -56,7 +56,6 @@ class Button extends React.Component<Props> {
       : ''
 
     let containerStyle = containerStyles[this.props.type + backgroundModeName]
-
     let labelStyle = labelStyles[this.props.type + 'Label' + backgroundModeName]
 
     if (this.props.fullWidth) {
@@ -68,11 +67,11 @@ class Button extends React.Component<Props> {
     }
 
     if (this.props.disabled || this.props.waiting) {
-      containerStyle = collapseStyles([containerStyle, {opacity: 0.3}])
+      containerStyle = collapseStyles([containerStyle, styles.opacity30])
     }
 
     if (!isMobile && this.props.waiting) {
-      labelStyle = collapseStyles([labelStyle, {opacity: 0}])
+      labelStyle = collapseStyles([labelStyle, styles.opacity0])
     }
 
     containerStyle = collapseStyles([containerStyle, this.props.style])
@@ -84,11 +83,7 @@ class Button extends React.Component<Props> {
     return (
       <ClickableBox style={containerStyle} onClick={onClick}>
         <Box
-          style={collapseStyles([
-            globalStyles.flexBoxRow,
-            globalStyles.flexBoxCenter,
-            {height: '100%', position: 'relative'},
-          ])}
+          style={collapseStyles([globalStyles.flexBoxRow, globalStyles.flexBoxCenter, styles.labelContainer])}
         >
           {!this.props.waiting && this.props.children}
           {!this.props.waiting && (
@@ -141,6 +136,9 @@ const styles = styleSheetCreate({
     height: fullWidthHeight,
     width: null,
   },
+  labelContainer: {height: '100%', position: 'relative'},
+  opacity0: {opacity: 0},
+  opacity30: {opacity: 0.3},
   progress: platformStyles({
     isElectron: collapseStyles([globalStyles.fillAbsolute, globalStyles.flexBoxCenter]),
   }),
