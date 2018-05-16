@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
@@ -37,6 +38,9 @@ type Server struct {
 
 	tokens *lru.Cache
 	fs     *lru.Cache
+
+	startedLock sync.RWMutex
+	started     bool
 }
 
 const tokenByteSize = 16
@@ -154,15 +158,19 @@ const portStart = 16723
 const portEnd = 18000
 const requestPathRoot = "/files/"
 
-func (s *Server) startServer() (err error) {
-	s.server = libkb.NewHTTPSrv(
-		s.g, libkb.NewPortRangeListenerSource(portStart, portEnd))
+func (s *Server) idempotentlyStart() (err error) {
+	s.startedLock.Lock()
+	defer s.startedLock.Unlock()
+	if s.started {
+		return nil
+	}
 	// Have to start this first to populate the ServeMux object.
 	if err = s.server.Start(); err != nil {
 		return err
 	}
 	s.server.Handle(requestPathRoot,
 		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
+	s.started = true
 	return nil
 }
 
@@ -175,9 +183,14 @@ func (s *Server) monitorAppState(ctx context.Context) {
 		case state = <-s.g.AppState.NextUpdate(&state):
 			switch state {
 			case keybase1.AppState_FOREGROUND:
-				s.startServer()
+				s.idempotentlyStart()
 			case keybase1.AppState_BACKGROUND:
-				s.server.Stop()
+				func() {
+					s.startedLock.Lock()
+					defer s.startedLock.Unlock()
+					s.started = false
+					s.server.Stop()
+				}()
 			}
 		}
 	}
@@ -186,15 +199,20 @@ func (s *Server) monitorAppState(ctx context.Context) {
 // New creates and starts a new server.
 func New(g *libkb.GlobalContext, config libkbfs.Config) (
 	s *Server, err error) {
-	s = &Server{g: g, config: config}
-	s.logger = config.MakeLogger("HTTP")
+	s = &Server{
+		g:      g,
+		config: config,
+		logger: config.MakeLogger("HTTP"),
+		server: libkb.NewHTTPSrv(
+			g, libkb.NewPortRangeListenerSource(portStart, portEnd)),
+	}
 	if s.tokens, err = lru.New(tokenCacheSize); err != nil {
 		return nil, err
 	}
 	if s.fs, err = lru.New(fsCacheSize); err != nil {
 		return nil, err
 	}
-	if err = s.startServer(); err != nil {
+	if err = s.idempotentlyStart(); err != nil {
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -206,6 +224,9 @@ func New(g *libkb.GlobalContext, config libkbfs.Config) (
 
 // Address returns the address that the server is listening on.
 func (s *Server) Address() (string, error) {
+	if err := s.idempotentlyStart(); err != nil {
+		return "", err
+	}
 	return s.server.Addr()
 }
 
