@@ -838,5 +838,5 @@ protocol teams {
   boolean getTarsDisabled(string name);
   void setTarsDisabled(string name, boolean disabled);
 
-  void uploadTeamAvatar(string teamname, string filename, union { null, ImageCropRect } crop);
+  void uploadTeamAvatar(string teamname, string filename, union { null, ImageCropRect } crop, boolean sendChatNotification);
 }

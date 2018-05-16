@@ -3974,7 +3974,7 @@ export type TeamsUiConfirmRootTeamDeleteRpcParam = $ReadOnly<{teamName: String, 
 
 export type TeamsUiConfirmSubteamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsUploadTeamAvatarRpcParam = $ReadOnly<{teamname: String, filename: String, crop?: ?ImageCropRect, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsUploadTeamAvatarRpcParam = $ReadOnly<{teamname: String, filename: String, crop?: ?ImageCropRect, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type Test = $ReadOnly<{reply: String}>
 

@@ -2310,9 +2310,10 @@ type SetTarsDisabledArg struct {
 }
 
 type UploadTeamAvatarArg struct {
-	Teamname string         `codec:"teamname" json:"teamname"`
-	Filename string         `codec:"filename" json:"filename"`
-	Crop     *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
+	Teamname             string         `codec:"teamname" json:"teamname"`
+	Filename             string         `codec:"filename" json:"filename"`
+	Crop                 *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
+	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
 type TeamsInterface interface {

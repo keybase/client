@@ -2546,6 +2546,10 @@
             null,
             "ImageCropRect"
           ]
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
         }
       ],
       "response": null

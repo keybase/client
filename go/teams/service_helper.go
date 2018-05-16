@@ -1526,6 +1526,8 @@ func ChangeTeamAvatar(mctx libkb.MetaContext, arg keybase1.UploadTeamAvatarArg) 
 		return err
 	}
 
-	SendTeamChatChangeAvatar(mctx, team.Name().String(), mctx.G().Env.GetUsername().String())
+	if arg.SendChatNotification {
+		SendTeamChatChangeAvatar(mctx, team.Name().String(), mctx.G().Env.GetUsername().String())
+	}
 	return nil
 }
