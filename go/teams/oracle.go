@@ -46,6 +46,7 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 				continue
 			}
 
+			mctx.CDebugf("Success! Decrypted using encryption key gen=%d", gen)
 			return decryptedData, true, nil
 		}
 
@@ -57,7 +58,8 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 	if err != nil {
 		// Error during key searching.
 		return nil, err
-	} else if found {
+	}
+	if found {
 		// Success - found the right key.
 		return ret, nil
 	}
@@ -81,7 +83,8 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 	ret, found, err = tryKeys(lastGen + 1)
 	if err != nil {
 		return nil, err
-	} else if found {
+	}
+	if found {
 		return ret, nil
 	}
 	return nil, libkb.DecryptionError{}
