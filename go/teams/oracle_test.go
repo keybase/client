@@ -12,10 +12,12 @@ import (
 )
 
 func encryptWithTeamKey(t *testing.T, team *Team, data []byte, nonce [24]byte,
-	gen keybase1.PerTeamKeyGeneration) []byte {
+	gen keybase1.PerTeamKeyGeneration) (ciphertext []byte, pubkey libkb.NaclDHKeyPublic) {
 	kp, err := team.encryptionKeyAtGen(gen)
 	require.NoError(t, err)
-	return box.Seal(nil, data, &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(kp.Private))
+	ciphertext = box.Seal(nil, data, &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(kp.Private))
+	pubkey = kp.Public
+	return ciphertext, pubkey
 }
 
 func TestTeamUnboxOracle(t *testing.T) {
@@ -45,19 +47,38 @@ func TestTeamUnboxOracle(t *testing.T) {
 
 	mctx := libkb.NewMetaContextBackground(tc.G)
 
-	kp, err := team.encryptionKeyAtGen(keybase1.PerTeamKeyGeneration(2))
-	require.NoError(t, err)
-
 	clearText := []byte{0, 1, 2, 3, 4, 5}
 	nonce := [24]byte{6, 7, 8, 9, 10}
-	buf := encryptWithTeamKey(t, team, clearText, nonce, keybase1.PerTeamKeyGeneration(2))
+	buf, pub := encryptWithTeamKey(t, team, clearText, nonce, keybase1.PerTeamKeyGeneration(2))
 	arg := keybase1.TryDecryptWithTeamKeyArg{
 		TeamID:         team.ID,
 		EncryptedData:  buf,
 		Nonce:          nonce,
-		PeersPublicKey: (keybase1.BoxPublicKey)(kp.Public),
+		PeersPublicKey: (keybase1.BoxPublicKey)(pub),
 	}
 	ret, err := TryDecryptWithTeamKey(mctx, arg)
+	require.NoError(t, err)
+	require.ElementsMatch(t, ret, clearText)
+
+	// Try again with MinGeneration argument.
+	arg.MinGeneration = keybase1.PerTeamKeyGeneration(2)
+	ret, err = TryDecryptWithTeamKey(mctx, arg)
+	require.NoError(t, err)
+	require.ElementsMatch(t, ret, clearText)
+
+	// MinGeneration too high should break it, as oracle will miss the
+	// key.
+	arg.MinGeneration = keybase1.PerTeamKeyGeneration(3)
+	ret, err = TryDecryptWithTeamKey(mctx, arg)
+	require.Error(t, err)
+	require.IsType(t, libkb.DecryptionError{}, err)
+
+	// Do same encryption scheme but with generation 1.
+	buf, pub = encryptWithTeamKey(t, team, clearText, nonce, keybase1.PerTeamKeyGeneration(1))
+	arg.EncryptedData = buf
+	arg.MinGeneration = keybase1.PerTeamKeyGeneration(0) // default
+	arg.PeersPublicKey = (keybase1.BoxPublicKey)(pub)
+	ret, err = TryDecryptWithTeamKey(mctx, arg)
 	require.NoError(t, err)
 	require.ElementsMatch(t, ret, clearText)
 }

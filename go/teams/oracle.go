@@ -11,17 +11,26 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 		ID:          arg.TeamID,
 		Public:      arg.TeamID.IsPublic(),
 		ForceRepoll: false,
+		Refreshers: keybase1.TeamRefreshers{
+			NeedKeyGeneration: arg.MinGeneration,
+		},
 	}
 	team, err := Load(mctx.Ctx(), mctx.G(), loadArg)
 	if err != nil {
 		return nil, err
 	}
-	currentGen := team.Generation()
 
-	tryKeys := func(min, max keybase1.PerTeamKeyGeneration) ([]byte, bool, error) {
-		for gen := min; gen <= max; gen++ {
+	mctx.CDebugf("Loaded team %q, max key generation is %d", team.ID, team.Generation())
+
+	tryKeys := func(min keybase1.PerTeamKeyGeneration) (ret []byte, found bool, err error) {
+		if min == 0 {
+			// per team keys start from generation 1.
+			min = 1
+		}
+		for gen := min; gen <= team.Generation(); gen++ {
 			key, err := team.encryptionKeyAtGen(gen)
 			if err != nil {
+				mctx.CDebugf("Failed to get key gen %d: %v", gen, err)
 				switch err.(type) {
 				case libkb.NotFoundError:
 					continue
@@ -30,44 +39,49 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 				}
 			}
 
+			mctx.CDebugf("Trying to unbox with key gen %d", gen)
 			decryptedData, ok := box.Open(nil, arg.EncryptedData[:], (*[24]byte)(&arg.Nonce),
 				(*[32]byte)(&arg.PeersPublicKey), (*[32]byte)(key.Private))
 			if !ok {
 				continue
 			}
 
-			return decryptedData, false, nil
+			return decryptedData, true, nil
 		}
 
-		return nil, true, libkb.DecryptionError{}
+		// No error, but didn't find the right key either.
+		return nil, false, nil
 	}
 
-	// NOTE: If MinGeneration is already higher than currently known
-	// generation, tryKeys exits immediately and tells us to retry
-	// after repolling team.
-	ret, retry, err := tryKeys(arg.MinGeneration, currentGen)
-	if err != nil && retry {
-		loadArg.ForceRepoll = true
-		team, err = Load(mctx.Ctx(), mctx.G(), loadArg)
-		if err != nil {
-			return nil, err
-		}
-		if team.Generation() == currentGen {
-			// There are no new keys to try
-			return nil, libkb.DecryptionError{}
-		}
-		if arg.MinGeneration > currentGen {
-			// In case we had to repoll to even get the key at
-			// generation=MinGeneration.
-			currentGen = arg.MinGeneration
-		}
-		ret, _, err = tryKeys(currentGen+1, team.Generation())
-		if err != nil {
-			return nil, err
-		}
-
+	ret, found, err := tryKeys(arg.MinGeneration)
+	if err != nil {
+		// Error during key searching.
+		return nil, err
+	} else if found {
+		// Success - found the right key.
 		return ret, nil
 	}
 
-	return ret, nil
+	mctx.CDebugf("Repolling team")
+
+	// Repoll the team and if we get more keys, try again.
+	lastGen := team.Generation()
+	loadArg.Refreshers = keybase1.TeamRefreshers{}
+	loadArg.ForceRepoll = true
+	team, err = Load(mctx.Ctx(), mctx.G(), loadArg)
+	if err != nil {
+		return nil, err
+	}
+	if team.Generation() == lastGen {
+		// There are no new keys to try
+		mctx.CDebugf("Repolling team did not yield any new keys")
+		return nil, libkb.DecryptionError{}
+	}
+	ret, found, err = tryKeys(lastGen + 1)
+	if err != nil {
+		return nil, err
+	} else if found {
+		return ret, nil
+	}
+	return nil, libkb.DecryptionError{}
 }
