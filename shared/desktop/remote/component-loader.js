@@ -3,8 +3,7 @@
 // Also protects it with an error boundary
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-// $FlowIssue
-import RemoteStore from './store'
+import RemoteStore from './store.desktop'
 import Root from '../renderer/container'
 import Menubar from '../../menubar/remote-container.desktop'
 import Pinentry from '../../pinentry/remote-container.desktop'

@@ -46,7 +46,12 @@ const NameWithIconVertical = (props: Props) => {
       style={collapseStyles([styles.vContainerStyle, props.containerStyle])}
     >
       {isAvatar && (
-        <Avatar size={adapterProps.iconSize} username={props.username} teamname={props.teamname} />
+        <Avatar
+          showFollowingStatus={true}
+          size={adapterProps.iconSize}
+          username={props.username}
+          teamname={props.teamname}
+        />
       )}
       {!isAvatar &&
         !!props.icon && (

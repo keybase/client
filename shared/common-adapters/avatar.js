@@ -20,9 +20,10 @@ type DisallowedStyles = {
   borderStyle?: empty,
 }
 
-export type OwnProps = {
+export type OwnProps = {|
   borderColor?: string,
   children?: React.Node,
+  isTeam?: boolean,
   loadingColor?: string,
   onClick?: () => void,
   opacity?: number,
@@ -32,7 +33,8 @@ export type OwnProps = {
   style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
   teamname?: ?string,
   username?: ?string,
-}
+  showFollowingStatus?: boolean, // show the green dots or not
+|}
 
 type Props = PropsWithTimer<{
   askForUserData?: () => void,
@@ -91,10 +93,10 @@ const followStateToSize = {
 }
 
 const followSizeToStyle = {
-  '128': {bottom: 0, left: 80, position: 'absolute'},
-  '48': {bottom: 0, left: 32, position: 'absolute'},
-  '64': {bottom: 0, left: 45, position: 'absolute'},
-  '96': {bottom: 0, left: 57, position: 'absolute'},
+  '128': {bottom: 0, left: 88, position: 'absolute'},
+  '48': {bottom: 0, left: 30, position: 'absolute'},
+  '64': {bottom: 0, left: 44, position: 'absolute'},
+  '96': {bottom: 0, left: 65, position: 'absolute'},
 }
 
 function _followIconType(size: number, followsYou: boolean, following: boolean) {
@@ -134,8 +136,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const name = ownProps.username || ownProps.teamname
   return {
     _urlMap: name ? state.config.avatars[name] : undefined,
-    following: state.config.following.has(ownProps.username || ''),
-    followsYou: state.config.followers.has(ownProps.username || ''),
+    following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
+    followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
   }
 }
 
@@ -146,7 +148,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const isTeam = !!ownProps.teamname
+  const isTeam = ownProps.isTeam || !!ownProps.teamname
 
   let style
   if (ownProps.style) {

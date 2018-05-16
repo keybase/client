@@ -6,6 +6,7 @@
 import {remote, BrowserWindow} from 'electron'
 import {sendToMainWindow} from './util'
 import {createStore, applyMiddleware, type Store} from 'redux'
+import * as I from 'immutable'
 
 const updateStore = 'remoteStore:update'
 
@@ -41,10 +42,32 @@ class RemoteStore {
     sendToMainWindow('remoteWindowWantsProps', props.windowComponent, props.windowParam)
   }
 
+  // Some shared inner components needs immutable structures (Avatar), we can likely fix this longer term but for now lets just
+  // map these types back to immutable so the components aren't aware we're doing this over-the-wire store stuff which requires
+  // things to not be immutable. We have very little stuff in remote windows so i think this is simpler than some larger overhaul
+  // to enable embedded connected components
+  _makeImmutable = (props: any) => {
+    if (
+      !props.hasOwnProperty('config') ||
+      (!props.config.hasOwnProperty('followers') && !props.config.hasOwnProperty('followering'))
+    ) {
+      return props
+    }
+
+    return {
+      ...props,
+      config: {
+        ...props.config,
+        followers: I.Set(props.config ? props.config.followers : []),
+        following: I.Set(props.config ? props.config.following : []),
+      },
+    }
+  }
+
   _reducer = (state: any, action: any) => {
     switch (action.type) {
       case updateStore: {
-        const props = JSON.parse(action.payload.propsStr)
+        const props = this._makeImmutable(JSON.parse(action.payload.propsStr))
         // We get diffs of the top level props so we always overwrite
         return {
           ...state,

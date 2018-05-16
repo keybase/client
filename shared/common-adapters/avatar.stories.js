@@ -19,9 +19,8 @@ const load = () => {
     .add('Avatar', () =>
       sizes.map(size => {
         const commonProps = {
-          following: false,
-          followsYou: false,
           onClick: action('Avatar clicked'),
+          showFollowingStatus: true,
           size: size,
           style: avatarStyle,
           username: 'nofollow-following',
@@ -33,6 +32,7 @@ const load = () => {
               <Avatar {...commonProps} />
               <Avatar {...commonProps} borderColor="blue" />
               <Avatar {...commonProps} username="following" />
+              <Avatar {...commonProps} username="following" showFollowingStatus={false} />
               <Avatar {...commonProps} username="followers" />
               <Avatar {...commonProps} username="both" />
               <Avatar {...commonProps} username={undefined} teamname={'keybase'} />

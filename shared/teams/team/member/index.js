@@ -30,19 +30,7 @@ export type Props = {
 }
 
 export const TeamMember = (props: Props) => {
-  const {
-    admin,
-    follower,
-    following,
-    loading,
-    user,
-    teamname,
-    onOpenProfile,
-    onChat,
-    onEditMembership,
-    onRemoveMember,
-    you,
-  } = props
+  const {user, you} = props
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
       <Box
@@ -61,11 +49,10 @@ export const TeamMember = (props: Props) => {
           }}
         >
           <Avatar
-            onClick={onOpenProfile}
+            onClick={props.onOpenProfile}
             style={{marginRight: globalMargins.tiny, alignSelf: 'center'}}
             username={user.username}
-            following={following}
-            followsYou={follower}
+            showFollowingStatus={true}
             size={64}
           />
           {user.type &&
@@ -82,27 +69,27 @@ export const TeamMember = (props: Props) => {
           <Avatar
             style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}
             isTeam={true}
-            teamname={teamname}
+            teamname={props.teamname}
             size={64}
           />
         </Box>
         <Box
           style={{...globalStyles.flexBoxRow, alignItems: 'center', margin: globalMargins.small, height: 20}}
         >
-          {loading && <ProgressIndicator style={{alignSelf: 'center', width: 20, height: 20}} />}
+          {props.loading && <ProgressIndicator style={{alignSelf: 'center', width: 20, height: 20}} />}
         </Box>
         <Usernames
           type="HeaderBig"
           colorFollowing={!(you && you.username === user.username)} // De-colorize if this is own member page
-          users={[{username: user.username, following}]}
-          onUsernameClicked={onOpenProfile}
+          users={[{username: user.username, following: props.following}]}
+          onUsernameClicked={props.onOpenProfile}
         />
         <Text type="BodySmall">
-          {user.type} in {teamname}
+          {user.type} in {props.teamname}
         </Text>
       </Box>
       <ButtonBar direction={isMobile ? 'column' : 'row'}>
-        <Button label="Chat" type="Primary" onClick={onChat}>
+        <Button label="Chat" type="Primary" onClick={props.onChat}>
           <Icon
             type="iconfont-chat"
             style={{
@@ -111,12 +98,12 @@ export const TeamMember = (props: Props) => {
             color={globalColors.white}
           />
         </Button>
-        {admin && <Button type="Secondary" label="Edit role" onClick={onEditMembership} />}
-        {admin && (
+        {props.admin && <Button type="Secondary" label="Edit role" onClick={props.onEditMembership} />}
+        {props.admin && (
           <Button
             type="Danger"
             label={you && you.username === user.username ? 'Leave team' : 'Remove'}
-            onClick={onRemoveMember}
+            onClick={props.onRemoveMember}
           />
         )}
       </ButtonBar>
