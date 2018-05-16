@@ -322,7 +322,10 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	chatSyncer := NewSyncer(g)
 	g.Syncer = chatSyncer
 	g.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
-	g.Searcher = NewSearcher(g)
+	searcher := NewSearcher(g)
+	// Force small pages during tests to ensure we fetch context from new pages
+	searcher.pageSize = 3
+	g.Searcher = searcher
 
 	h.setTestRemoteClient(ri)
 
@@ -4502,6 +4505,15 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 
 func TestChatSrvGetSearchRegexp(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+
+		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
+		// with using Pagination Next/Prev and we don't need to triple test
+		// here.
+		switch mt {
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_TEAM:
+			return
+		}
+
 		ctc := makeChatTestContext(t, "GetSearchRegexp", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
@@ -4521,25 +4533,29 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			return res.MessageID
 		}
 
-		verifyHit := func(beforeMsgsIDs []chat1.MessageID, hitMessageID chat1.MessageID, afterMsgsIDs []chat1.MessageID, matches []string, searchHit chat1.ChatSearchHit) {
+		verifyHit := func(beforeMsgIDs []chat1.MessageID, hitMessageID chat1.MessageID, afterMsgIDs []chat1.MessageID, matches []string, searchHit chat1.ChatSearchHit) {
 			_verifyHit := func(searchHit chat1.ChatSearchHit) {
-				if beforeMsgsIDs == nil {
+				if beforeMsgIDs == nil {
 					require.Nil(t, searchHit.BeforeMessages)
 				} else {
-					for i, msg := range searchHit.BeforeMessages {
+					require.Equal(t, len(beforeMsgIDs), len(searchHit.BeforeMessages))
+					for i, msgID := range beforeMsgIDs {
+						msg := searchHit.BeforeMessages[i]
 						require.True(t, msg.IsValid())
-						require.Equal(t, msg.Valid().MessageID, beforeMsgsIDs[i])
+						require.Equal(t, msgID, msg.GetMessageID())
 					}
 				}
-				require.EqualValues(t, searchHit.HitMessage.Valid().MessageID, hitMessageID)
-				require.Equal(t, searchHit.Matches, matches)
+				require.EqualValues(t, hitMessageID, searchHit.HitMessage.Valid().MessageID)
+				require.Equal(t, matches, searchHit.Matches)
 
-				if afterMsgsIDs == nil {
+				if afterMsgIDs == nil {
 					require.Nil(t, searchHit.AfterMessages)
 				} else {
-					for i, msg := range searchHit.AfterMessages {
+					require.Equal(t, len(afterMsgIDs), len(searchHit.AfterMessages))
+					for i, msgID := range afterMsgIDs {
+						msg := searchHit.AfterMessages[i]
 						require.True(t, msg.IsValid())
-						require.EqualValues(t, msg.Valid().MessageID, afterMsgsIDs[i])
+						require.Equal(t, msgID, msg.GetMessageID())
 					}
 				}
 
@@ -4555,7 +4571,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		verifySearchDone := func(numHits int) {
 			select {
 			case searchDone := <-searchDoneCb:
-				require.Equal(t, searchDone.NumHits, numHits)
+				require.Equal(t, numHits, searchDone.NumHits)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no search result received")
 			}
@@ -4576,23 +4592,24 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		}
 
 		isRegex := false
-		maxHits := 1
-		beforeContext := 5
-		afterContext := 5
+		maxHits := 5
+		beforeContext := 2
+		afterContext := 2
 		maxMessages := 1000
+
 		// Test basic equality match
 		query := "hi"
 		msgBody := "hi"
 		messageID1 := sendMessage(msgBody)
 		res := search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, len(res.Hits), 1)
+		require.Equal(t, 1, len(res.Hits))
 		verifyHit(nil, messageID1, nil, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
 		query = "hey"
 		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, len(res.Hits), 0)
+		require.Equal(t, 0, len(res.Hits))
 		verifySearchDone(0)
 
 		// Test maxHits
@@ -4600,20 +4617,20 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		query = "hi"
 		messageID2 := sendMessage(msgBody)
 		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, len(res.Hits), 1)
+		require.Equal(t, 1, len(res.Hits))
 		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		maxHits = 5
 		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, len(res.Hits), 2)
+		require.Equal(t, 2, len(res.Hits))
 		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{msgBody}, res.Hits[0])
 		verifyHit(nil, messageID1, []chat1.MessageID{messageID2}, []string{msgBody}, res.Hits[1])
 		verifySearchDone(2)
 
 		messageID3 := sendMessage(msgBody)
 		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, len(res.Hits), 3)
+		require.Equal(t, 3, len(res.Hits))
 		verifyHit([]chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{msgBody}, res.Hits[0])
 		verifyHit([]chat1.MessageID{messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{msgBody}, res.Hits[1])
 		verifyHit(nil, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{msgBody}, res.Hits[2])
@@ -4627,8 +4644,8 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		query = `约.*`
 		messageID4 := sendMessage(msgBody)
 		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, len(res.Hits), 1)
-		verifyHit([]chat1.MessageID{messageID1, messageID2, messageID3}, messageID4, nil, []string{msgBody}, res.Hits[0])
+		require.Equal(t, 1, len(res.Hits))
+		verifyHit([]chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		query = "h.*"
@@ -4638,18 +4655,18 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		}
 		maxHits = len(lowercase)
 		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, len(res.Hits), maxHits)
+		require.Equal(t, maxHits, len(res.Hits))
 		verifySearchDone(maxHits)
 
 		query = `h\..*`
 		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, len(res.Hits), maxHits)
+		require.Equal(t, maxHits, len(res.Hits))
 		verifySearchDone(maxHits)
 
 		// Test maxMessages
 		maxMessages = 2
 		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, len(res.Hits), maxMessages)
+		require.Equal(t, maxMessages, len(res.Hits))
 		verifySearchDone(maxMessages)
 
 		// Test invalid regex
