@@ -66,6 +66,11 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     return this._input ? this._input.getValue() : ''
   }
 
+  _onKeyUp = (e: SyntheticKeyboardEvent<>) => {
+    // const text = this._getText()
+    // hide placeholderImage
+  }
+
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (this.props.pendingWaiting) {
       return
@@ -98,6 +103,23 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   componentWillUnmount = () => {
     this._registerBodyEvents(false)
   }
+
+  _placeholderImage = (visible?: boolean = true) =>
+    this.props.isExploding &&
+    visible && (
+      <Icon
+        color={globalColors.black_20}
+        fontSize={34}
+        hoverColor={globalColors.black_20}
+        onClick={this._inputFocus}
+        style={{
+          left: 183,
+          marginTop: -5,
+          position: 'absolute',
+        }}
+        type="iconfont-boom"
+      />
+    )
 
   _registerBodyEvents = (add: boolean) => {
     const body = document.body
@@ -191,7 +213,9 @@ class PlatformInput extends Component<PlatformInputProps, State> {
 
   render = () => {
     let hintText = 'Write a message'
-    if (this.props.isEditing) {
+    if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
+    } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.pendingWaiting) {
       hintText = 'Creating conversation...'
@@ -262,6 +286,8 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               multiline={true}
               rowsMin={1}
               rowsMax={5}
+              placeholderImage={this._placeholderImage()}
+              onKeyUp={this._onKeyUp}
               onKeyDown={this._onKeyDown}
               onEnterKeyDown={this._onEnterKeyDown}
             />

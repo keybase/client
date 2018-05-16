@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
+import Icon from './icon'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
@@ -381,6 +382,7 @@ class Input extends React.PureComponent<Props, State> {
             </Text>
           )}
         {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
+        {this.props.placeholderImage && this.props.placeholderImage}
         {!!this.props.errorText &&
           !this.props.small && (
             <Text type="BodyError" style={collapseStyles([_errorStyle, this.props.errorStyle])}>
