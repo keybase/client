@@ -10,7 +10,7 @@ import {
   HOCTimers,
   type PropsWithTimer,
 } from '../../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins, isAndroid, isIPhoneX} from '../../styles'
+import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'
 
@@ -107,7 +107,7 @@ class GlobalError extends Component<Props, State> {
           >
             <Icon
               type="iconfont-exclamation"
-              style={{fontWeight: 100, marginRight: globalMargins.tiny}}
+              style={{marginRight: globalMargins.tiny}}
               color={globalColors.white_75}
               onClick={this._onExpandClick}
               fontSize={21}
