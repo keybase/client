@@ -17,14 +17,12 @@ const throttledDispatch = throttle((dispatch, action) => dispatch(action), 1000,
   trailing: true,
 })
 
-export const sharedBadgeStateActions = (badgeState: Object, dispatch: Function): Array<any> => {
-  const actions = []
-
+export const sharedBadgeState = (badgeState: Object, dispatch: Function): void => {
   if (badgeState.inboxVers < lastBadgeStateVersion) {
     logger.info(
       `Ignoring older badgeState, got ${badgeState.inboxVers} but have seen ${lastBadgeStateVersion}`
     )
-    return actions
+    return
   }
 
   lastBadgeStateVersion = badgeState.inboxVers
@@ -38,16 +36,14 @@ export const sharedBadgeStateActions = (badgeState: Object, dispatch: Function):
   } else {
     // If clearing go immediately
     throttledDispatch.cancel()
-    actions.push(action)
+    dispatch(action)
   }
-
-  return actions
 }
 
 // TODO: DESKTOP-6662 - Move notification listeners to their own actions
 export default (): void => {
   engine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({badgeState}, _, dispatch) =>
-    sharedBadgeStateActions(badgeState, dispatch)
+    sharedBadgeState(badgeState, dispatch)
   )
 
   engine().setIncomingActionCreators('keybase.1.NotifySession.loggedIn', ({username}, response) => {
