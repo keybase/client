@@ -4,7 +4,14 @@ import ClickableBox from './clickable-box'
 import ProgressIndicator from './progress-indicator'
 import * as React from 'react'
 import Text from './text'
-import {type StylesCrossPlatform, globalColors, globalStyles, globalMargins, isMobile} from '../styles'
+import {
+  type StylesCrossPlatform,
+  collapseStyles,
+  globalColors,
+  globalStyles,
+  globalMargins,
+  isMobile,
+} from '../styles'
 
 export type Props = {
   children?: React.Node,
@@ -86,7 +93,7 @@ class Button extends React.Component<Props> {
       labelStyle = {...labelStyle, opacity: 0}
     }
 
-    containerStyle = {...containerStyle, ...this.props.style}
+    containerStyle = collapseStyles([containerStyle, this.props.style])
 
     const onClick = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
 
@@ -106,7 +113,7 @@ class Button extends React.Component<Props> {
           {!this.props.waiting && (
             <Text
               type={this.props.small ? 'BodySemibold' : 'BodyBig'}
-              style={{...labelStyle, ...this.props.labelStyle}}
+              style={collapseStyles([labelStyle, this.props.labelStyle])}
             >
               {this.props.label}
             </Text>
