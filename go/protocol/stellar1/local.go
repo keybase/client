@@ -131,10 +131,12 @@ type BalancesLocalArg struct {
 }
 
 type SendLocalArg struct {
-	Recipient string `codec:"recipient" json:"recipient"`
-	Amount    string `codec:"amount" json:"amount"`
-	Asset     Asset  `codec:"asset" json:"asset"`
-	Note      string `codec:"note" json:"note"`
+	Recipient       string `codec:"recipient" json:"recipient"`
+	Amount          string `codec:"amount" json:"amount"`
+	Asset           Asset  `codec:"asset" json:"asset"`
+	Note            string `codec:"note" json:"note"`
+	DisplayAmount   string `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency string `codec:"displayCurrency" json:"displayCurrency"`
 }
 
 type RecentPaymentsCLILocalArg struct {

@@ -116,7 +116,11 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	if !arg.Asset.IsNativeXLM() {
 		return stellar1.PaymentResult{}, fmt.Errorf("sending non-XLM assets is not supported")
 	}
-	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note)
+	displayAmount := stellar.DisplayAmount{
+		Amount:   arg.DisplayAmount,
+		Currency: arg.DisplayCurrency,
+	}
+	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayAmount)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
