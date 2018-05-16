@@ -453,6 +453,10 @@ func (a *Account) Dump() {
 	a.streamCache.Dump()
 }
 
+func (a *Account) SetLoginSession(l *LoginSession) {
+	a.setLoginSession(l)
+}
+
 func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
 	if key == nil {
 		return errors.New("cache of nil secret key attempted")

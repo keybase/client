@@ -41,6 +41,13 @@ func pplGetLoginSession(m MetaContext, usernameOrEmail string) (*LoginSession, e
 	if err != nil {
 		ret = nil
 	}
+	// Update the LoginContext() so that other downstream calls can use this LoginContext.
+	// In particular, DeleteAccountWithContext needs this login context. We might choose
+	// to plumb it all the way back, this system is way more convenient (though harder to
+	// follow).
+	if ret != nil {
+		m.LoginContext().SetLoginSession(ret)
+	}
 	return ret, err
 }
 

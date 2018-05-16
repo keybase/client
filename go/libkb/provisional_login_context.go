@@ -14,6 +14,7 @@ type ProvisionalLoginContext struct {
 	salt         []byte
 	streamCache  *PassphraseStreamCache
 	localSession *Session
+	loginSession *LoginSession
 	skbKeyring   *SKBKeyringFile
 	secretSyncer *SecretSyncer
 }
@@ -83,11 +84,21 @@ func (p *ProvisionalLoginContext) CreateLoginSessionWithSalt(emailOrUsername str
 	}
 	return nil
 }
-func (p *ProvisionalLoginContext) LoadLoginSession(emailOrUsername string) error {
-	return plcErr("LoadLoginSession")
+func (p *ProvisionalLoginContext) LoadLoginSession(username string) error {
+	nun := NewNormalizedUsername(username)
+	if !p.username.Eq(nun) {
+		return LoggedInWrongUserError{p.username, nun}
+	}
+	if p.loginSession == nil {
+		return LoginSessionNotFound{}
+	}
+	return nil
 }
 func (p *ProvisionalLoginContext) LoginSession() *LoginSession {
-	return nil
+	return p.loginSession
+}
+func (p *ProvisionalLoginContext) SetLoginSession(l *LoginSession) {
+	p.loginSession = l
 }
 func (p *ProvisionalLoginContext) ClearLoginSession() {
 }

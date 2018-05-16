@@ -50,6 +50,7 @@ type LoginContext interface {
 	LoadLoginSession(emailOrUsername string) error
 	LoginSession() *LoginSession
 	ClearLoginSession()
+	SetLoginSession(l *LoginSession)
 
 	LocalSession() *Session
 	GetUID() keybase1.UID
