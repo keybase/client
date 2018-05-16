@@ -38,10 +38,6 @@ export type Props = {
   textType?: TextType,
   type?: 'password' | 'text' | 'number',
 
-  // NOTE: Setting this prop will make the input controlled, which
-  // can impair performance badly on some platforms
-  value?: ?string,
-
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native
   onEnterKeyDown?: () => void,

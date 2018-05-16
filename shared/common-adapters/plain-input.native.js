@@ -2,11 +2,10 @@
 import React, {Component} from 'react'
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
-import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 
-import type {Props, DefaultProps} from './plain-input'
+import type {InternalProps} from './plain-input'
 
 type ContentSizeChangeEvent = {nativeEvent: {contentSize: {width: number, height: number}}}
 
@@ -15,12 +14,9 @@ type State = {
   height: ?number,
 }
 
-// PropsWithTimer really doesn't like having a intersection as a type param
-type InternalProps = DefaultProps & PropsWithTimer<Props>
-
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling
-class _PlainInput extends Component<InternalProps, State> {
+class PlainInput extends Component<InternalProps, State> {
   static defaultProps = {
     keyboardType: 'default',
     textType: 'Body',
@@ -162,7 +158,6 @@ class _PlainInput extends Component<InternalProps, State> {
     return <NativeTextInput {...props} />
   }
 }
-const PlainInput = HOCTimers(_PlainInput)
 
 const styles = styleSheetCreate({
   common: {backgroundColor: globalColors.fastBlank, flexGrow: 1, borderWidth: 0},

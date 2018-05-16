@@ -11,7 +11,6 @@ import type {InternalProps} from './plain-input'
 class PlainInput extends React.PureComponent<InternalProps> {
   _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
-  _value: string = ''
 
   static defaultProps = {
     textType: 'Body',
@@ -21,15 +20,13 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._input = ref
   }
 
-  _onChangeTextDone = () => {
-    const value = this._value
-    this.props.onChangeText && this.props.onChangeText(value)
+  _onChangeTextDone = (text: string) => {
+    this.props.onChangeText && this.props.onChangeText(text)
     this._autoResize()
   }
 
   _onChangeText = (text: string) => {
-    this._value = text
-    this._onChangeTextDone()
+    this._onChangeTextDone(text)
   }
 
   _onChange = ({target: {value = ''}}) => {
@@ -53,7 +50,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
     // Smart auto resize algorithm from `Input`, use it by default here
     const rect = n.getBoundingClientRect()
-    const value = this._value
+    const value = n.value
     // width changed so throw out our data
     if (rect.width !== this._smartAutoresize.width) {
       this._smartAutoresize.width = rect.width
