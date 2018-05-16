@@ -15,7 +15,7 @@ type State = {
 }
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
-// adds no styling
+// adds no styling.
 class PlainInput extends Component<InternalProps, State> {
   static defaultProps = {
     keyboardType: 'default',
@@ -109,8 +109,7 @@ class PlainInput extends Component<InternalProps, State> {
   _getStyle = () => {
     return collapseStyles([
       this._getCommonStyle(),
-      this.props.multiline && this._getMultilineStyle(),
-      !this.props.multiline && this._getSinglelineStyle(),
+      this.props.multiline ? this._getMultilineStyle() : this._getSinglelineStyle(),
       this.props.style,
     ])
   }

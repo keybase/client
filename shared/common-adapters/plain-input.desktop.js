@@ -7,7 +7,7 @@ import type {_StylesDesktop} from '../styles/css'
 import type {InternalProps} from './plain-input'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
-// adds no styling
+// adds no styling.
 class PlainInput extends React.PureComponent<InternalProps> {
   _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
@@ -20,17 +20,9 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._input = ref
   }
 
-  _onChangeTextDone = (text: string) => {
-    this.props.onChangeText && this.props.onChangeText(text)
-    this._autoResize()
-  }
-
-  _onChangeText = (text: string) => {
-    this._onChangeTextDone(text)
-  }
-
   _onChange = ({target: {value = ''}}) => {
-    this._onChangeText(value)
+    this.props.onChangeText && this.props.onChangeText(value)
+    this._autoResize()
   }
 
   _smartAutoresize = {
