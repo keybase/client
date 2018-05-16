@@ -421,10 +421,10 @@ type notifyServiceHandler struct {
 	log    logger.Logger
 }
 
-func (s *notifyServiceHandler) Shutdown(_ context.Context) error {
+func (s *notifyServiceHandler) Shutdown(_ context.Context, code int) error {
 	s.log.Warning("NotifyService: Shutdown")
 	if runtime.GOOS == "windows" {
-		os.Exit(0)
+		os.Exit(code)
 	}
 	return nil
 }
