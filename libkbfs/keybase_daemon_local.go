@@ -514,6 +514,14 @@ func (k *KeybaseDaemonLocal) VerifyMerkleRoot(
 	return nil
 }
 
+func (k *KeybaseDaemonLocal) setCurrentMerkleRoot(
+	root keybase1.MerkleRootV2, rootTime time.Time) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	k.merkleRoot = root
+	k.merkleTime = rootTime
+}
+
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {

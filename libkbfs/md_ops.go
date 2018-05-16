@@ -20,6 +20,15 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	// Our contract with the server states that it won't accept KBFS
+	// writes if more than 3 hours have passed since the last Merkle
+	// roots (both global and KBFS) were published.  Add some padding
+	// to that, and if we see any gaps larger than this, we will know
+	// we shouldn't be trusting the server.
+	maxAllowedMerkleGap = 3*time.Hour + 15*time.Minute
+)
+
 // MDOpsStandard provides plaintext RootMetadata objects to upper
 // layers, and processes RootMetadataSigned objects (encrypted and
 // signed) suitable for passing to/from the MDServer backend.
@@ -242,10 +251,26 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 			}
 		}
 
-		// TODO(KBFS-2956): check the most recent global merkle root
-		// and KBFS merkle root ctimes and make sure they fall within
-		// the expected error window with respect to the revocation.
-		// Also eventually check the blockchain-published merkles to
+		// Check the most recent global merkle root and KBFS merkle
+		// root ctimes and make sure they fall within the expected
+		// error window with respect to the revocation.
+		serverOffset, _ := md.config.MDServer().OffsetFromServerTime()
+		currServerTime := md.config.Clock().Now().Add(-serverOffset)
+		_, latestRootTime, err := md.config.KBPKI().GetCurrentMerkleRoot(ctx)
+		if err != nil {
+			return false, err
+		}
+		// If it's been too long since the last published Merkle root,
+		// we can't trust what the server told us.
+		if currServerTime.After(latestRootTime.Add(maxAllowedMerkleGap)) {
+			return false, errors.Errorf("No Merkle info found to verify "+
+				"revocation, but it's been too long since the last global "+
+				"Merkle root: currServerTime=%s, latestRootTime=%s",
+				currServerTime.Format(time.RFC3339Nano),
+				latestRootTime.Format(time.RFC3339Nano))
+		}
+
+		// TODO: Also eventually check the blockchain-published merkles to
 		// make sure the server isn't lying (though that will have a
 		// much larger error window).
 		return nil

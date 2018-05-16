@@ -639,6 +639,29 @@ func ChangeTeamNameForTestOrBust(t logger.TestLogBackend, config Config,
 	}
 }
 
+// SetGlobalMerkleRoot sets the global Merkle root and time.
+func SetGlobalMerkleRoot(
+	config Config, root keybase1.MerkleRootV2, rootTime time.Time) error {
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
+	if !ok {
+		return errors.New("Bad keybase daemon")
+	}
+
+	kbd.setCurrentMerkleRoot(root, rootTime)
+	return nil
+}
+
+// SetGlobalMerkleRootOrBust is like SetGlobalMerkleRoot, but dies
+// if there's an error.
+func SetGlobalMerkleRootOrBust(
+	t logger.TestLogBackend, config Config, root keybase1.MerkleRootV2,
+	rootTime time.Time) {
+	err := SetGlobalMerkleRoot(config, root, rootTime)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 // EnableImplicitTeamsForTest causes the mdserver to stop returning
 // random TLF IDs for new TLFs.
 func EnableImplicitTeamsForTest(config Config) error {

@@ -1004,6 +1004,12 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)
 
+	SetGlobalMerkleRootOrBust(t, config1, keybase1.MerkleRootV2{}, clock.Now())
+	SetGlobalMerkleRootOrBust(
+		t, config2Dev2, keybase1.MerkleRootV2{}, clock.Now())
+	SetGlobalMerkleRootOrBust(
+		t, config2Dev3, keybase1.MerkleRootV2{}, clock.Now())
+
 	// First request a rekey from the new device, which will only be
 	// able to set the rekey bit (copying the root MD).
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
@@ -2053,6 +2059,9 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	// Revoke some previous device
 	clock.Add(1 * time.Minute)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid1, 0)
+
+	SetGlobalMerkleRootOrBust(
+		t, config2Dev2, keybase1.MerkleRootV2{}, clock.Now())
 
 	t.Log("Doing first rekey")
 
