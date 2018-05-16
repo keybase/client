@@ -9,6 +9,7 @@ import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import {platformSpecificSaga, platformSpecificIntentEffect} from './platform-specific'
+import {getMimeTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
@@ -308,6 +309,21 @@ function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenera
   )
 }
 
+function loadMimeType(action: FsGen.MimeTypeLoadPayload, state: TypedState) {
+  const {path} = action.payload
+  const {address, token} = state.fs.localHTTPServerInfo
+  const url = Constants.generateFileURL(path, address, token)
+  return getMimeTypeFromURL(url) // TODO: refresh address/token on 403
+}
+
+const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload) =>
+  Saga.put(
+    FsGen.createMimeTypeLoaded({
+      path: action.payload.path,
+      mimeType,
+    })
+  )
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -320,6 +336,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
+  yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType, loadMimeTypeResult)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

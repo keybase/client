@@ -44,6 +44,7 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   size: 0,
   progress: 'pending',
   type: 'file',
+  mimeType: '',
 })
 
 export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
@@ -483,6 +484,22 @@ export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
   return 'default'
 }
 
+export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
+  if (mimeType.startsWith('text/')) {
+    return 'text'
+  }
+  if (mimeType.startsWith('image/')) {
+    return 'image'
+  }
+  if (mimeType.startsWith('video/')) {
+    return 'video'
+  }
+  if (mimeType === 'application/pdf') {
+    return 'pdf'
+  }
+  return 'default'
+}
+
 export const generateFileURL = (path: Types.Path, address: string, token: string): string => {
   const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
   return `http://${address}/files${stripKeybase}?token=${token}`
@@ -517,3 +534,19 @@ export const showIgnoreFolder = (path: Types.Path, pathItem: Types.PathItem, use
 
 export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect =>
   isMobile ? null : evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null
+
+// shouldUseOldMimeType determines if mimeType from newItem should reuse
+// what's in oldItem.
+export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
+  if (oldItem.mimeType === '' || newItem.mimeType !== '') {
+    return false
+  }
+
+  return (
+    oldItem.type === newItem.type &&
+    oldItem.lastModifiedTimestamp === newItem.lastModifiedTimestamp &&
+    oldItem.lastWriter.uid === newItem.lastWriter.uid &&
+    oldItem.name === newItem.name &&
+    oldItem.size === newItem.size
+  )
+}

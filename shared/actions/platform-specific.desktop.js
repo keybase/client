@@ -72,6 +72,19 @@ function openAppSettings(): void {
   throw new Error('Cannot open app settings on desktop')
 }
 
+const getMimeTypeFromURL = (url: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    function listener(event, res) {
+      if (!res || res.url !== url) {
+        return
+      }
+      res.error ? reject(res.error) : resolve(res.contentType.length ? res.contentType[0] : '')
+      ipcRenderer.removeListener('getMimeTypeFromURLResult', listener)
+    }
+    ipcRenderer.on('getMimeTypeFromURLResult', listener)
+    ipcRenderer.send('getMimeTypeFromURL', url)
+  })
+
 export {
   checkPermissions,
   setShownPushPrompt,
@@ -88,4 +101,5 @@ export {
   downloadAndShowShareActionSheet,
   displayNewMessageNotification,
   clearAllNotifications,
+  getMimeTypeFromURL,
 }
