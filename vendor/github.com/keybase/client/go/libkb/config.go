@@ -117,6 +117,10 @@ func (f JSONConfigFile) GetUpgradePerUserKey() (bool, bool) {
 	return false, false
 }
 
+func (f JSONConfigFile) GetAutoWallet() (bool, bool) {
+	return false, false
+}
+
 func (f JSONConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
 	f.jw.AtKey(s).GetStringVoid(&ret, &e)
@@ -229,6 +233,28 @@ func (f JSONConfigFile) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID {
 		return empty
 	}
 	return ret.GetDeviceID()
+}
+
+func (f JSONConfigFile) GetUsernameForUID(u keybase1.UID) NormalizedUsername {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	ret, err := f.GetUserConfigForUID(u)
+	var empty NormalizedUsername
+	if err != nil || ret == nil {
+		return empty
+	}
+	return ret.GetUsername()
+}
+
+func (f JSONConfigFile) GetUIDForUsername(n NormalizedUsername) keybase1.UID {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	ret, err := f.GetUserConfigForUsername(n)
+	var empty keybase1.UID
+	if err != nil || ret == nil {
+		return empty
+	}
+	return ret.GetUID()
 }
 
 func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
@@ -513,12 +539,6 @@ func (f JSONConfigFile) GetNoPinentry() (bool, bool) {
 func (f JSONConfigFile) GetUsername() (ret NormalizedUsername) {
 	if uc, _ := f.GetUserConfig(); uc != nil {
 		ret = uc.GetUsername()
-	}
-	return ret
-}
-func (f JSONConfigFile) GetSalt() (ret []byte) {
-	if uc, _ := f.GetUserConfig(); uc != nil {
-		ret = uc.GetSalt()
 	}
 	return ret
 }

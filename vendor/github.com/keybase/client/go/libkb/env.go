@@ -31,6 +31,7 @@ func (n NullConfiguration) GetPvlKitFilename() string                           
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
+func (n NullConfiguration) GetAutoWallet() (bool, bool)                                    { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
@@ -62,37 +63,43 @@ func (n NullConfiguration) GetDeviceID() keybase1.DeviceID                      
 func (n NullConfiguration) GetDeviceIDForUsername(un NormalizedUsername) keybase1.DeviceID { return "" }
 func (n NullConfiguration) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID             { return "" }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error)                             { return nil, nil }
-func (n NullConfiguration) GetAutoFork() (bool, bool)                                      { return false, false }
-func (n NullConfiguration) GetRunMode() (RunMode, error)                                   { return NoRunMode, nil }
-func (n NullConfiguration) GetNoAutoFork() (bool, bool)                                    { return false, false }
-func (n NullConfiguration) GetLogFile() string                                             { return "" }
-func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)                       { return 0, false }
-func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)                           { return 0, false }
-func (n NullConfiguration) GetTorMode() (TorMode, error)                                   { return TorNone, nil }
-func (n NullConfiguration) GetTorHiddenAddress() string                                    { return "" }
-func (n NullConfiguration) GetTorProxy() string                                            { return "" }
-func (n NullConfiguration) GetUpdatePreferenceAuto() (bool, bool)                          { return false, false }
-func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time                  { return keybase1.Time(0) }
-func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time                            { return keybase1.Time(0) }
-func (n NullConfiguration) GetUpdatePreferenceSkip() string                                { return "" }
-func (n NullConfiguration) GetUpdateURL() string                                           { return "" }
-func (n NullConfiguration) GetUpdateDisabled() (bool, bool)                                { return false, false }
-func (n NullConfiguration) GetVDebugSetting() string                                       { return "" }
-func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)                     { return 0, false }
-func (n NullConfiguration) GetGregorURI() string                                           { return "" }
-func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)                   { return 0, false }
-func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)                   { return 0, false }
-func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)                    { return 0, false }
-func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool)                { return 0, false }
-func (n NullConfiguration) GetGregorDisabled() (bool, bool)                                { return false, false }
-func (n NullConfiguration) GetMountDir() string                                            { return "" }
-func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)                          { return false, false }
-func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)                         { return FeatureFlags{}, nil }
-func (n NullConfiguration) GetAppType() AppType                                            { return NoAppType }
-func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                                { return false, false }
-func (n NullConfiguration) GetRememberPassphrase() (bool, bool)                            { return false, false }
-func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                                { return 0, false }
-func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)                 { return 1, false }
+func (n NullConfiguration) GetUsernameForUID(u keybase1.UID) NormalizedUsername {
+	return NormalizedUsername("")
+}
+func (n NullConfiguration) GetUIDForUsername(u NormalizedUsername) keybase1.UID {
+	return keybase1.UID("")
+}
+func (n NullConfiguration) GetAutoFork() (bool, bool)                       { return false, false }
+func (n NullConfiguration) GetRunMode() (RunMode, error)                    { return NoRunMode, nil }
+func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
+func (n NullConfiguration) GetLogFile() string                              { return "" }
+func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)        { return 0, false }
+func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)            { return 0, false }
+func (n NullConfiguration) GetTorMode() (TorMode, error)                    { return TorNone, nil }
+func (n NullConfiguration) GetTorHiddenAddress() string                     { return "" }
+func (n NullConfiguration) GetTorProxy() string                             { return "" }
+func (n NullConfiguration) GetUpdatePreferenceAuto() (bool, bool)           { return false, false }
+func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time   { return keybase1.Time(0) }
+func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time             { return keybase1.Time(0) }
+func (n NullConfiguration) GetUpdatePreferenceSkip() string                 { return "" }
+func (n NullConfiguration) GetUpdateURL() string                            { return "" }
+func (n NullConfiguration) GetUpdateDisabled() (bool, bool)                 { return false, false }
+func (n NullConfiguration) GetVDebugSetting() string                        { return "" }
+func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)      { return 0, false }
+func (n NullConfiguration) GetGregorURI() string                            { return "" }
+func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)    { return 0, false }
+func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)    { return 0, false }
+func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)     { return 0, false }
+func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool) { return 0, false }
+func (n NullConfiguration) GetGregorDisabled() (bool, bool)                 { return false, false }
+func (n NullConfiguration) GetMountDir() string                             { return "" }
+func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)           { return false, false }
+func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)          { return FeatureFlags{}, nil }
+func (n NullConfiguration) GetAppType() AppType                             { return NoAppType }
+func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { return false, false }
+func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
+func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
+func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -158,6 +165,7 @@ type TestParameters struct {
 	DevelName                string
 	RuntimeDir               string
 	DisableUpgradePerUserKey bool
+	DisableAutoWallet        bool
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
@@ -713,6 +721,11 @@ func (e *Env) GetUpgradePerUserKey() bool {
 	return !e.Test.DisableUpgradePerUserKey
 }
 
+// Automatically create a wallet for the logged-in user.
+func (e *Env) GetAutoWallet() bool {
+	return !e.Test.DisableAutoWallet
+}
+
 // If true, do not logout after user.key_change notification handler
 // decides that current device has been revoked.
 func (e *Env) GetSkipLogoutIfRevokedCheck() bool {
@@ -1042,10 +1055,6 @@ func (e *Env) GetSecretKeyringTemplate() string {
 	)
 }
 
-func (e *Env) GetSalt() []byte {
-	return e.GetConfig().GetSalt()
-}
-
 func (e *Env) GetLocalRPCDebug() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLocalRPCDebug() },
@@ -1114,6 +1123,10 @@ func (e *Env) GetDeviceIDForUsername(u NormalizedUsername) keybase1.DeviceID {
 
 func (e *Env) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID {
 	return e.GetConfig().GetDeviceIDForUID(u)
+}
+
+func (e *Env) GetUsernameForUID(u keybase1.UID) NormalizedUsername {
+	return e.GetConfig().GetUsernameForUID(u)
 }
 
 func (e *Env) GetInstallID() (ret InstallID) {

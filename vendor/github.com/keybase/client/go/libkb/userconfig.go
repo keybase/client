@@ -42,6 +42,14 @@ func NormalizedUsernamesToStrings(names []NormalizedUsername) []string {
 	return y
 }
 
+func (n NormalizedUsername) CheckValid() error {
+	s := n.String()
+	if !CheckUsername.F(s) {
+		return NewBadUsernameError(s)
+	}
+	return nil
+}
+
 //==================================================================
 
 type UserConfig struct {
@@ -61,7 +69,6 @@ type UserConfig struct {
 
 func (u UserConfig) GetUID() keybase1.UID            { return u.importedID }
 func (u UserConfig) GetUsername() NormalizedUsername { return u.Name }
-func (u UserConfig) GetSalt() []byte                 { return u.importedSalt }
 func (u UserConfig) GetDeviceID() keybase1.DeviceID  { return u.importedDeviceID }
 func (u UserConfig) IsOneshot() bool                 { return u.isOneshot }
 

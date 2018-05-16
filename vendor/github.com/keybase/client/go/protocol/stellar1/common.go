@@ -112,17 +112,80 @@ func (e TransactionStatus) String() string {
 	return ""
 }
 
+type PaymentStrategy int
+
+const (
+	PaymentStrategy_NONE   PaymentStrategy = 0
+	PaymentStrategy_DIRECT PaymentStrategy = 1
+	PaymentStrategy_RELAY  PaymentStrategy = 2
+)
+
+func (o PaymentStrategy) DeepCopy() PaymentStrategy { return o }
+
+var PaymentStrategyMap = map[string]PaymentStrategy{
+	"NONE":   0,
+	"DIRECT": 1,
+	"RELAY":  2,
+}
+
+var PaymentStrategyRevMap = map[PaymentStrategy]string{
+	0: "NONE",
+	1: "DIRECT",
+	2: "RELAY",
+}
+
+func (e PaymentStrategy) String() string {
+	if v, ok := PaymentStrategyRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type RelayDirection int
+
+const (
+	RelayDirection_CLAIM RelayDirection = 0
+	RelayDirection_YANK  RelayDirection = 1
+)
+
+func (o RelayDirection) DeepCopy() RelayDirection { return o }
+
+var RelayDirectionMap = map[string]RelayDirection{
+	"CLAIM": 0,
+	"YANK":  1,
+}
+
+var RelayDirectionRevMap = map[RelayDirection]string{
+	0: "CLAIM",
+	1: "YANK",
+}
+
+func (e RelayDirection) String() string {
+	if v, ok := RelayDirectionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PaymentResult struct {
-	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
 	KeybaseID KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
-	Ledger    int                  `codec:"Ledger" json:"Ledger"`
+	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
 }
 
 func (o PaymentResult) DeepCopy() PaymentResult {
 	return PaymentResult{
-		StellarID: o.StellarID.DeepCopy(),
 		KeybaseID: o.KeybaseID.DeepCopy(),
-		Ledger:    o.Ledger,
+		StellarID: o.StellarID.DeepCopy(),
+	}
+}
+
+type RelayClaimResult struct {
+	ClaimStellarID TransactionID `codec:"claimStellarID" json:"claimStellarID"`
+}
+
+func (o RelayClaimResult) DeepCopy() RelayClaimResult {
+	return RelayClaimResult{
+		ClaimStellarID: o.ClaimStellarID.DeepCopy(),
 	}
 }
 
@@ -168,16 +231,49 @@ func (o NoteRecipient) DeepCopy() NoteRecipient {
 }
 
 type NoteContents struct {
-	Version   int           `codec:"version" json:"version"`
 	Note      string        `codec:"note" json:"note"`
 	StellarID TransactionID `codec:"stellarID" json:"stellarID"`
 }
 
 func (o NoteContents) DeepCopy() NoteContents {
 	return NoteContents{
-		Version:   o.Version,
 		Note:      o.Note,
 		StellarID: o.StellarID.DeepCopy(),
+	}
+}
+
+type EncryptedRelaySecret struct {
+	V   int                           `codec:"v" json:"v"`
+	E   []byte                        `codec:"e" json:"e"`
+	N   keybase1.BoxNonce             `codec:"n" json:"n"`
+	Gen keybase1.PerTeamKeyGeneration `codec:"gen" json:"gen"`
+}
+
+func (o EncryptedRelaySecret) DeepCopy() EncryptedRelaySecret {
+	return EncryptedRelaySecret{
+		V: o.V,
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.E),
+		N:   o.N.DeepCopy(),
+		Gen: o.Gen.DeepCopy(),
+	}
+}
+
+type RelayContents struct {
+	StellarID TransactionID `codec:"stellarID" json:"stellarID"`
+	Sk        SecretKey     `codec:"sk" json:"sk"`
+	Note      string        `codec:"note" json:"note"`
+}
+
+func (o RelayContents) DeepCopy() RelayContents {
+	return RelayContents{
+		StellarID: o.StellarID.DeepCopy(),
+		Sk:        o.Sk.DeepCopy(),
+		Note:      o.Note,
 	}
 }
 
@@ -196,6 +292,55 @@ func (o OutsideExchangeRate) DeepCopy() OutsideExchangeRate {
 	return OutsideExchangeRate{
 		Currency: o.Currency.DeepCopy(),
 		Rate:     o.Rate,
+	}
+}
+
+type CurrencySymbol struct {
+	Symbol    string `codec:"symbol" json:"str"`
+	Ambigious bool   `codec:"ambigious" json:"ambigious"`
+	Postfix   bool   `codec:"postfix" json:"postfix"`
+}
+
+func (o CurrencySymbol) DeepCopy() CurrencySymbol {
+	return CurrencySymbol{
+		Symbol:    o.Symbol,
+		Ambigious: o.Ambigious,
+		Postfix:   o.Postfix,
+	}
+}
+
+type OutsideCurrencyDefinition struct {
+	Name   string         `codec:"name" json:"name"`
+	Symbol CurrencySymbol `codec:"symbol" json:"symbol"`
+}
+
+func (o OutsideCurrencyDefinition) DeepCopy() OutsideCurrencyDefinition {
+	return OutsideCurrencyDefinition{
+		Name:   o.Name,
+		Symbol: o.Symbol.DeepCopy(),
+	}
+}
+
+type StellarServerDefinitions struct {
+	Revision   int                                               `codec:"revision" json:"revision"`
+	Currencies map[OutsideCurrencyCode]OutsideCurrencyDefinition `codec:"currencies" json:"currencies"`
+}
+
+func (o StellarServerDefinitions) DeepCopy() StellarServerDefinitions {
+	return StellarServerDefinitions{
+		Revision: o.Revision,
+		Currencies: (func(x map[OutsideCurrencyCode]OutsideCurrencyDefinition) map[OutsideCurrencyCode]OutsideCurrencyDefinition {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[OutsideCurrencyCode]OutsideCurrencyDefinition)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Currencies),
 	}
 }
 

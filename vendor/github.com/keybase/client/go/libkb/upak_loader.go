@@ -28,6 +28,7 @@ type UPAKLoader interface {
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
 	PutUserToCache(ctx context.Context, user *User) error
 	LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
+	CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n NormalizedUsername) error
 }
 
 // CachedUPAKLoader is a UPAKLoader implementation that can cache results both
@@ -673,6 +674,44 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 	return NormalizedUsername(""), "", "", err
 }
 
+func (u *CachedUPAKLoader) CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n NormalizedUsername) (err error) {
+	arg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithForcePoll(true).WithPublicKeyOptional()
+	foundUser := false
+	foundDevice := false
+	isRevoked := false
+	var foundUsername NormalizedUsername
+	_, _, err = u.loadWithInfo(arg, nil, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
+		if upak == nil {
+			return nil
+		}
+		foundUser = true
+		foundUsername = NewNormalizedUsername(upak.Current.Username)
+		if pk := upak.FindDevice(did); pk != nil {
+			foundDevice = true
+			if pk.Base.Revocation != nil {
+				isRevoked = true
+			}
+		}
+		return nil
+	}, false)
+	if err != nil {
+		return err
+	}
+	if !foundUser {
+		return UserNotFoundError{UID: uid}
+	}
+	if !foundDevice {
+		return DeviceNotFoundError{Where: "UPAKLoader", ID: did, Loaded: false}
+	}
+	if isRevoked {
+		return NewKeyRevokedError(did.String())
+	}
+	if !n.IsNil() && !foundUsername.Eq(n) {
+		return LoggedInWrongUserError{ExistingName: foundUsername, AttemptedName: foundUsername}
+	}
+	return nil
+}
+
 func (u *CachedUPAKLoader) loadUserWithKIDAndInfo(ctx context.Context, uid keybase1.UID, kid keybase1.KID, info *CachedUserLoadInfo) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
 	argBase := NewLoadUserArg(u.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx)
 
@@ -750,4 +789,22 @@ func (u *CachedUPAKLoader) removeMemCache(ctx context.Context, uid keybase1.UID)
 
 func (u *CachedUPAKLoader) purgeMemCache() {
 	u.cache.Purge()
+}
+
+func checkDeviceValidForUID(ctx context.Context, u UPAKLoader, uid keybase1.UID, did keybase1.DeviceID) error {
+	var nnu NormalizedUsername
+	return u.CheckDeviceForUIDAndUsername(ctx, uid, did, nnu)
+}
+
+func CheckCurrentUIDDeviceID(m MetaContext) (err error) {
+	defer m.CTrace("CheckCurrentUIDDeviceID", func() error { return err })()
+	uid := m.G().Env.GetUID()
+	if uid.IsNil() {
+		return NoUIDError{}
+	}
+	did := m.G().Env.GetDeviceIDForUID(uid)
+	if did.IsNil() {
+		return NoDeviceError{fmt.Sprintf("for UID %s", uid)}
+	}
+	return checkDeviceValidForUID(m.Ctx(), m.G().GetUPAKLoader(), uid, did)
 }

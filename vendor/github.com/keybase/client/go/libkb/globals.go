@@ -134,7 +134,9 @@ type GlobalContext struct {
 	TestOptions GlobalTestOptions
 
 	// It is threadsafe to call methods on ActiveDevice which will always be non-nil.
-	// But don't access its members directly.
+	// But don't access its members directly. If you're going to be changing out the
+	// user (and resetting the ActiveDevice), then you should hold the switchUserMu
+	switchUserMu *sync.Mutex
 	ActiveDevice *ActiveDevice
 
 	NetContext context.Context
@@ -185,6 +187,7 @@ func NewGlobalContext() *GlobalContext {
 		secretStoreMu:      new(sync.Mutex),
 		NewTriplesec:       NewSecureTriplesec,
 		ActiveDevice:       new(ActiveDevice),
+		switchUserMu:       new(sync.Mutex),
 		NetContext:         context.TODO(),
 	}
 }
@@ -963,38 +966,6 @@ func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 	return &RPCLogFactory{Contextified: NewContextified(g)}
 }
 
-// LogoutIfRevoked loads the user and checks if the current device keys
-// have been revoked.  If so, it calls Logout.
-func (g *GlobalContext) LogoutIfRevoked() error {
-	in, err := g.LoginState().LoggedInLoad()
-	if err != nil {
-		return err
-	}
-	if !in {
-		g.Log.Debug("LogoutIfRevoked: skipping check (not logged in)")
-		return nil
-	}
-
-	if g.Env.GetSkipLogoutIfRevokedCheck() {
-		g.Log.Debug("LogoutIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
-		return nil
-	}
-
-	me, err := LoadMe(NewLoadUserForceArg(g))
-	if err != nil {
-		return err
-	}
-
-	if !me.HasCurrentDeviceInCurrentInstall() {
-		g.Log.Debug("LogoutIfRevoked: current device revoked, calling logout")
-		return g.Logout()
-	}
-
-	g.Log.Debug("LogoutIfRevoked: current device ok")
-
-	return nil
-}
-
 // LogoutSelfCheck checks with the API server to see if this uid+device pair should
 // logout.
 func (g *GlobalContext) LogoutSelfCheck() error {
@@ -1304,4 +1275,22 @@ func (g *GlobalContext) IsOneshot(ctx context.Context) (bool, error) {
 		return false, nil
 	}
 	return uc.IsOneshot(), nil
+}
+
+func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, err error) {
+	meUID := g.ActiveDevice.UID()
+	if meUID.IsNil() {
+		return res, LoginRequiredError{}
+	}
+	loadMeArg := NewLoadUserArgWithContext(ctx, g).
+		WithUID(meUID).
+		WithSelf(true)
+	upkv2, _, err := g.GetUPAKLoader().LoadV2(loadMeArg)
+	if err != nil {
+		return res, err
+	}
+	if upkv2 == nil {
+		return res, fmt.Errorf("could not load logged-in user")
+	}
+	return upkv2.Current.ToUserVersion(), nil
 }

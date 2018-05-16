@@ -5,8 +5,9 @@ package libkb
 
 import (
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type SessionReader interface {
@@ -66,6 +67,18 @@ func (s *Session) IsLoggedInAndProvisioned() bool {
 	}
 
 	return true
+}
+
+func (s *Session) Clone() *Session {
+	if s == nil {
+		return nil
+	}
+	ret := *s
+	if ret.username != nil {
+		un := *ret.username
+		ret.username = &un
+	}
+	return &ret
 }
 
 func (s *Session) GetUsername() *NormalizedUsername {

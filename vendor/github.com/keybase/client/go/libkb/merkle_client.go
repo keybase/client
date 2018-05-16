@@ -313,6 +313,10 @@ type MerkleRootPayloadUnpacked struct {
 				Root    *string `json:"root"`
 				Version *int    `json:"version"`
 			} `json:"public"`
+			PrivateTeam struct {
+				Root    *string `json:"root"`
+				Version *int    `json:"version"`
+			} `json:"privateteam"`
 		} `json:"kbfs"`
 		LegacyUIDRoot NodeHashShort  `json:"legacy_uid_root"`
 		Prev          NodeHashLong   `json:"prev"`
@@ -1719,6 +1723,27 @@ func (mr *MerkleRoot) Fetched() time.Time {
 	return mr.fetched
 }
 
+func (mr *MerkleRoot) KBFSPrivate() (*string, *int) {
+	if mr == nil {
+		return nil, nil
+	}
+	return mr.payload.kbfsPrivate()
+}
+
+func (mr *MerkleRoot) KBFSPublic() (*string, *int) {
+	if mr == nil {
+		return nil, nil
+	}
+	return mr.payload.kbfsPublic()
+}
+
+func (mr *MerkleRoot) KBFSPrivateTeam() (*string, *int) {
+	if mr == nil {
+		return nil, nil
+	}
+	return mr.payload.kbfsPrivateTeam()
+}
+
 func (mrp MerkleRootPayload) skipToSeqno(s keybase1.Seqno) NodeHash {
 	if mrp.unpacked.Body.Skips == nil {
 		return nil
@@ -1731,3 +1756,12 @@ func (mrp MerkleRootPayload) rootHash() NodeHash          { return mrp.unpacked.
 func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.Body.LegacyUIDRoot }
 func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }
 func (mrp MerkleRootPayload) ctime() int64                { return mrp.unpacked.Ctime }
+func (mrp MerkleRootPayload) kbfsPrivate() (*string, *int) {
+	return mrp.unpacked.Body.Kbfs.Private.Root, mrp.unpacked.Body.Kbfs.Private.Version
+}
+func (mrp MerkleRootPayload) kbfsPublic() (*string, *int) {
+	return mrp.unpacked.Body.Kbfs.Public.Root, mrp.unpacked.Body.Kbfs.Public.Version
+}
+func (mrp MerkleRootPayload) kbfsPrivateTeam() (*string, *int) {
+	return mrp.unpacked.Body.Kbfs.PrivateTeam.Root, mrp.unpacked.Body.Kbfs.PrivateTeam.Version
+}
