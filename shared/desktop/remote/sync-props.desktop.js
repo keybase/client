@@ -2,7 +2,6 @@
 // This HOC wraps a RemoteWindow so it can send props over the wire
 // Listens for requests from the main process (which proxies requests from other windows) to kick off an update
 // If asked we'll send all props, otherwise we do a shallow compare and send the different ones
-// ALL PROPS should be plain and not immutable, if you need to transform do it in your remote-container file
 import * as React from 'react'
 import electron, {remote} from 'electron'
 
