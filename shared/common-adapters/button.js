@@ -11,6 +11,8 @@ import {
   globalStyles,
   globalMargins,
   isMobile,
+  platformStyles,
+  styleSheetCreate,
 } from '../styles'
 
 export type Props = {
@@ -53,29 +55,9 @@ class Button extends React.Component<Props> {
         }[this.props.backgroundMode]
       : ''
 
-    let containerStyle = {
-      Custom,
-      Danger,
-      Primary,
-      PrimaryGreen,
-      PrimaryGreenActive,
-      PrimaryPrivate,
-      Secondary,
-      SecondaryOnTerminal,
-      Wallet,
-    }[this.props.type + backgroundModeName]
+    let containerStyle = containerStyles[this.props.type + backgroundModeName]
 
-    let labelStyle = {
-      CustomLabel,
-      DangerLabel,
-      PrimaryGreenActiveLabel,
-      PrimaryGreenLabel,
-      PrimaryLabel,
-      PrimaryPrivateLabel,
-      SecondaryLabel,
-      SecondaryLabelOnTerminal,
-      WalletLabel,
-    }[this.props.type + 'Label' + backgroundModeName]
+    let labelStyle = labelStyles[this.props.type + 'Label' + backgroundModeName]
 
     if (this.props.fullWidth) {
       containerStyle = {...containerStyle, ...fullWidth}
@@ -169,30 +151,36 @@ const smallStyle = {
   paddingRight: globalMargins.small,
 }
 
-const Primary = {...common, backgroundColor: globalColors.blue}
-const PrimaryLabel = commonLabel
-const PrimaryGreen = {...common, backgroundColor: globalColors.green}
-const PrimaryGreenLabel = commonLabel
-const PrimaryGreenActive = {
-  ...common,
-  backgroundColor: globalColors.white,
-  borderColor: globalColors.green,
-  borderWidth: 2,
-  ...(isMobile ? {} : {borderStyle: 'solid'}),
-}
-const PrimaryGreenActiveLabel = {...commonLabel, color: globalColors.green}
-const PrimaryPrivate = {...common, backgroundColor: globalColors.darkBlue2}
-const PrimaryPrivateLabel = commonLabel
-const Secondary = {...common, backgroundColor: globalColors.lightGrey2}
-const SecondaryOnTerminal = {...Secondary, backgroundColor: globalColors.blue_30}
-const SecondaryLabel = {...commonLabel, color: globalColors.black_75}
-const SecondaryLabelOnTerminal = {...SecondaryLabel, color: globalColors.white}
-const Wallet = {...common, backgroundColor: globalColors.purple2}
-const WalletLabel = commonLabel
-const Danger = {...common, backgroundColor: globalColors.red}
-const DangerLabel = commonLabel
-const Custom = {}
-const CustomLabel = {color: globalColors.black_75, textAlign: 'center'}
+const containerStyles = styleSheetCreate({
+  Custom: {},
+  Danger: collapseStyles([common, {backgroundColor: globalColors.red}]),
+  Primary: collapseStyles([common, {backgroundColor: globalColors.blue}]),
+  PrimaryGreen: collapseStyles([common, {backgroundColor: globalColors.green}]),
+  PrimaryGreenActive: collapseStyles([
+    common,
+    platformStyles({
+      common: {backgroundColor: globalColors.white, borderColor: globalColors.green, borderWidth: 2},
+      isElectron: {borderStyle: 'solid'},
+    }),
+  ]),
+  PrimaryPrivate: collapseStyles([common, {backgroundColor: globalColors.darkBlue2}]),
+  Secondary: collapseStyles([common, {backgroundColor: globalColors.lightGrey2}]),
+  SecondaryOnTerminal: collapseStyles([common, {backgroundColor: globalColors.blue_30}]),
+  Wallet: collapseStyles([common, {backgroundColor: globalColors.purple2}]),
+})
+
+const labelStyles = styleSheetCreate({
+  CustomLabel: {color: globalColors.black_75, textAlign: 'center'},
+  DangerLabel: commonLabel,
+  PrimaryGreenActiveLabel: collapseStyles([commonLabel, {color: globalColors.green}]),
+  PrimaryGreenLabel: commonLabel,
+  PrimaryLabel: commonLabel,
+  PrimaryPrivateLabel: commonLabel,
+  SecondaryLabel: collapseStyles([commonLabel, {color: globalColors.black_75}]),
+  SecondaryLabelOnTerminal: collapseStyles([commonLabel, {color: globalColors.white}]),
+  WalletLabel: commonLabel,
+})
+
 const progressStyle = small => (isMobile ? undefined : {height: small ? 20 : 20})
 const progress = isMobile ? null : {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter}
 
