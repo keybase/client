@@ -231,7 +231,7 @@ const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
  *  Gets the number of channels you're subscribed to on a team
  */
 const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamname): number =>
-  state.chat2.metaMap.filter(c => c.teamname === teamname).count()
+  state.chat2.metaMap.count(c => c.teamname === teamname)
 
 /**
  * Gets whether the team is big or small for teams you are a member of
