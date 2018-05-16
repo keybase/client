@@ -590,6 +590,22 @@
       "response": "UPAKVersioned",
       "doc": "getUPAK returns a UPAK. Used mainly for debugging.",
       "lint": "ignore"
+    },
+    "uploadUserAvatar": {
+      "request": [
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "crop",
+          "type": [
+            null,
+            "ImageCropRect"
+          ]
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

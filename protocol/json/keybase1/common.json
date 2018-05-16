@@ -729,6 +729,28 @@
           "name": "cachedAt"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ImageCropRect",
+      "fields": [
+        {
+          "type": "int",
+          "name": "x0"
+        },
+        {
+          "type": "int",
+          "name": "y0"
+        },
+        {
+          "type": "int",
+          "name": "x1"
+        },
+        {
+          "type": "int",
+          "name": "y1"
+        }
+      ]
     }
   ],
   "messages": {},

@@ -18,90 +18,101 @@ export type Props = {
   toggleChannelWide: () => void,
 }
 
-const UnmutedNotificationPrefs = (props: Props) => (
-  <React.Fragment>
-    <Checkbox
-      checked={!props.channelWide}
-      label=""
-      labelComponent={
-        <Text type="Body">
-          Ignore <Text type="BodySemibold">@here</Text> and <Text type="BodySemibold">@channel</Text> mentions
-        </Text>
-      }
-      onCheck={props.toggleChannelWide}
-    />
+const UnmutedNotificationPrefs = (props: Props) => {
+  const allNotifsEnabled = props.desktop === 'onAnyActivity' && props.mobile === 'onAnyActivity'
+  let ignoreMentionsSuffix = ''
+  if (props.desktop === 'onAnyActivity' && props.mobile !== 'onAnyActivity') {
+    ignoreMentionsSuffix = '(mobile)'
+  } else if (props.mobile === 'onAnyActivity' && props.desktop !== 'onAnyActivity') {
+    ignoreMentionsSuffix = '(desktop)'
+  }
+  return (
+    <React.Fragment>
+      <Checkbox
+        checked={!props.channelWide && !allNotifsEnabled}
+        disabled={allNotifsEnabled}
+        label=""
+        labelComponent={
+          <Text type="Body">
+            Ignore <Text type="BodySemibold">@here</Text> and <Text type="BodySemibold">@channel</Text>{' '}
+            mentions {ignoreMentionsSuffix}
+          </Text>
+        }
+        onCheck={props.toggleChannelWide}
+      />
 
-    <Box style={isMobile ? styleHeaderMobile : styleHeader}>
-      <Text type="BodySmallSemibold">Desktop notifications</Text>
-      <Icon
-        style={{paddingLeft: globalMargins.xtiny}}
-        fontSize={isMobile ? 20 : 16}
-        color={globalColors.black_20}
-        type="iconfont-notifications-desktop"
-      />
-    </Box>
+      <Box style={isMobile ? styleHeaderMobile : styleHeader}>
+        <Text type="BodySmallSemibold">Desktop notifications</Text>
+        <Icon
+          style={{paddingLeft: globalMargins.xtiny}}
+          fontSize={isMobile ? 20 : 16}
+          color={globalColors.black_20}
+          type="iconfont-notifications-desktop"
+        />
+      </Box>
 
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateDesktop('onAnyActivity')}
-        selected={props.desktop === 'onAnyActivity'}
-        label={'On any activity'}
-      />
-    </Box>
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateDesktop('onWhenAtMentioned')}
-        selected={props.desktop === 'onWhenAtMentioned'}
-        label={'Only when @mentioned'}
-      />
-    </Box>
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateDesktop('never')}
-        selected={props.desktop === 'never'}
-        label={'Never'}
-      />
-    </Box>
+      <Box style={styleRadioButton}>
+        <RadioButton
+          style={{marginTop: globalMargins.xtiny}}
+          onSelect={() => props.updateDesktop('onAnyActivity')}
+          selected={props.desktop === 'onAnyActivity'}
+          label={'On any activity'}
+        />
+      </Box>
+      <Box style={styleRadioButton}>
+        <RadioButton
+          style={{marginTop: globalMargins.xtiny}}
+          onSelect={() => props.updateDesktop('onWhenAtMentioned')}
+          selected={props.desktop === 'onWhenAtMentioned'}
+          label={'Only when @mentioned'}
+        />
+      </Box>
+      <Box style={styleRadioButton}>
+        <RadioButton
+          style={{marginTop: globalMargins.xtiny}}
+          onSelect={() => props.updateDesktop('never')}
+          selected={props.desktop === 'never'}
+          label={'Never'}
+        />
+      </Box>
 
-    <Box style={styleHeader}>
-      <Text type="BodySmallSemibold">Mobile notifications</Text>
-      <Icon
-        style={{paddingLeft: globalMargins.xtiny}}
-        fontSize={isMobile ? 20 : 16}
-        type="iconfont-notifications-mobile"
-        color={globalColors.black_20}
-      />
-    </Box>
+      <Box style={styleHeader}>
+        <Text type="BodySmallSemibold">Mobile notifications</Text>
+        <Icon
+          style={{paddingLeft: globalMargins.xtiny}}
+          fontSize={isMobile ? 20 : 16}
+          type="iconfont-notifications-mobile"
+          color={globalColors.black_20}
+        />
+      </Box>
 
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateMobile('onAnyActivity')}
-        selected={props.mobile === 'onAnyActivity'}
-        label={'On any activity'}
-      />
-    </Box>
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateMobile('onWhenAtMentioned')}
-        selected={props.mobile === 'onWhenAtMentioned'}
-        label={'Only when @mentioned'}
-      />
-    </Box>
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateMobile('never')}
-        selected={props.mobile === 'never'}
-        label={'Never'}
-      />
-    </Box>
-  </React.Fragment>
-)
+      <Box style={styleRadioButton}>
+        <RadioButton
+          style={{marginTop: globalMargins.xtiny}}
+          onSelect={() => props.updateMobile('onAnyActivity')}
+          selected={props.mobile === 'onAnyActivity'}
+          label={'On any activity'}
+        />
+      </Box>
+      <Box style={styleRadioButton}>
+        <RadioButton
+          style={{marginTop: globalMargins.xtiny}}
+          onSelect={() => props.updateMobile('onWhenAtMentioned')}
+          selected={props.mobile === 'onWhenAtMentioned'}
+          label={'Only when @mentioned'}
+        />
+      </Box>
+      <Box style={styleRadioButton}>
+        <RadioButton
+          style={{marginTop: globalMargins.xtiny}}
+          onSelect={() => props.updateMobile('never')}
+          selected={props.mobile === 'never'}
+          label={'Never'}
+        />
+      </Box>
+    </React.Fragment>
+  )
+}
 
 export const Notifications = (props: Props) => (
   <Box

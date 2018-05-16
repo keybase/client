@@ -915,6 +915,22 @@ func (o FullNamePackage) DeepCopy() FullNamePackage {
 	}
 }
 
+type ImageCropRect struct {
+	X0 int `codec:"x0" json:"x0"`
+	Y0 int `codec:"y0" json:"y0"`
+	X1 int `codec:"x1" json:"x1"`
+	Y1 int `codec:"y1" json:"y1"`
+}
+
+func (o ImageCropRect) DeepCopy() ImageCropRect {
+	return ImageCropRect{
+		X0: o.X0,
+		Y0: o.Y0,
+		X1: o.X1,
+		Y1: o.Y1,
+	}
+}
+
 type CommonInterface interface {
 }
 

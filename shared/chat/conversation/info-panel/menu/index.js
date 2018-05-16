@@ -8,6 +8,8 @@ type Props = {
   badgeSubscribe: boolean,
   canAddPeople: boolean,
   isSmallTeam: boolean,
+  manageChannelsSubtitle: string,
+  manageChannelsTitle: string,
   memberCount: number,
   teamname: string,
   visible: boolean,
@@ -43,16 +45,16 @@ const InfoPanelMenu = (props: Props) => {
   const channelItem = props.isSmallTeam
     ? {
         onClick: props.onManageChannels,
-        subTitle: 'Turns this into a big team',
-        title: 'Make chat channels...',
+        subTitle: props.manageChannelsSubtitle,
+        title: props.manageChannelsTitle,
       }
     : {
         onClick: props.onManageChannels,
-        title: 'Subscribe to channels...',
+        title: props.manageChannelsTitle,
         view: (
           <Box style={globalStyles.flexBoxRow}>
             <Text style={styleText} type={isMobile ? 'BodyBig' : 'Body'}>
-              Subscribe to channels...
+              {props.manageChannelsTitle}
             </Text>
             {props.badgeSubscribe && (
               <Box style={collapseStyles([styleBadge, !isMobile && styleBadgeDesktop])} />

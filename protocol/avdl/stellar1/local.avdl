@@ -6,8 +6,13 @@ protocol local {
 
   PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
 
+  record PaymentCLIOptionLocal {
+    // Pointer or error
+    union { null, PaymentCLILocal } payment;
+    string err;
+  }
   record PaymentCLILocal {
-    TransactionID stellarTxID;
+    TransactionID txID; // For relay payments, the funding tx.
     TimeMs time;
     string status;
     string statusDetail;
@@ -17,13 +22,13 @@ protocol local {
     union { null, string } displayCurrency;
 
     AccountID fromStellar;
-    AccountID toStellar;
+    union { null, AccountID } toStellar;
     union { null, string } fromUsername;
     union { null, string } toUsername;
     string note;
     string noteErr;
   }
-  array<PaymentCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
+  array<PaymentCLIOptionLocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
 
   // txID can be either a keybase or stellar transaction ID.
   PaymentCLILocal paymentDetailCLILocal(string txID);

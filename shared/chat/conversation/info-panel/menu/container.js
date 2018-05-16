@@ -20,12 +20,22 @@ const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) =
   // We can get here without loading canPerform
   const _hasCanPerform = Constants.hasCanPerform(state, teamname)
   const badgeSubscribe = !Constants.isTeamWithChosenChannels(state, teamname)
+  const numberOfSubscribedChannels = Constants.getNumberOfSubscribedChannels(state, teamname)
+  const manageChannelsTitle = isSmallTeam
+    ? 'Create chat channels...'
+    : numberOfSubscribedChannels > 1
+      ? 'Manage chat channels'
+      : 'Subscribe to channels...'
+  const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
   return {
     _hasCanPerform,
     badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
     isSmallTeam,
+    manageChannelsSubtitle,
+    manageChannelsTitle,
     memberCount: Constants.getTeamMemberCount(state, teamname),
+    numberOfSubscribedChannels,
     teamname,
   }
 }

@@ -81,6 +81,7 @@ const (
 	MessageSystemType_COMPLEXTEAM       MessageSystemType = 2
 	MessageSystemType_CREATETEAM        MessageSystemType = 3
 	MessageSystemType_GITPUSH           MessageSystemType = 4
+	MessageSystemType_CHANGEAVATAR      MessageSystemType = 5
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -91,6 +92,7 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"COMPLEXTEAM":       2,
 	"CREATETEAM":        3,
 	"GITPUSH":           4,
+	"CHANGEAVATAR":      5,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
@@ -99,6 +101,7 @@ var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	2: "COMPLEXTEAM",
 	3: "CREATETEAM",
 	4: "GITPUSH",
+	5: "CHANGEAVATAR",
 }
 
 func (e MessageSystemType) String() string {
@@ -242,6 +245,18 @@ func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
 	}
 }
 
+type MessageSystemChangeAvatar struct {
+	Team string `codec:"team" json:"team"`
+	User string `codec:"user" json:"user"`
+}
+
+func (o MessageSystemChangeAvatar) DeepCopy() MessageSystemChangeAvatar {
+	return MessageSystemChangeAvatar{
+		Team: o.Team,
+		User: o.User,
+	}
+}
+
 type MessageSystem struct {
 	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
 	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
@@ -249,6 +264,7 @@ type MessageSystem struct {
 	Complexteam__       *MessageSystemComplexTeam       `codec:"complexteam,omitempty" json:"complexteam,omitempty"`
 	Createteam__        *MessageSystemCreateTeam        `codec:"createteam,omitempty" json:"createteam,omitempty"`
 	Gitpush__           *MessageSystemGitPush           `codec:"gitpush,omitempty" json:"gitpush,omitempty"`
+	Changeavatar__      *MessageSystemChangeAvatar      `codec:"changeavatar,omitempty" json:"changeavatar,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -276,6 +292,11 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 	case MessageSystemType_GITPUSH:
 		if o.Gitpush__ == nil {
 			err = errors.New("unexpected nil value for Gitpush__")
+			return ret, err
+		}
+	case MessageSystemType_CHANGEAVATAR:
+		if o.Changeavatar__ == nil {
+			err = errors.New("unexpected nil value for Changeavatar__")
 			return ret, err
 		}
 	}
@@ -332,6 +353,16 @@ func (o MessageSystem) Gitpush() (res MessageSystemGitPush) {
 	return *o.Gitpush__
 }
 
+func (o MessageSystem) Changeavatar() (res MessageSystemChangeAvatar) {
+	if o.SystemType__ != MessageSystemType_CHANGEAVATAR {
+		panic("wrong case accessed")
+	}
+	if o.Changeavatar__ == nil {
+		return
+	}
+	return *o.Changeavatar__
+}
+
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_ADDEDTOTEAM,
@@ -364,6 +395,13 @@ func NewMessageSystemWithGitpush(v MessageSystemGitPush) MessageSystem {
 	return MessageSystem{
 		SystemType__: MessageSystemType_GITPUSH,
 		Gitpush__:    &v,
+	}
+}
+
+func NewMessageSystemWithChangeavatar(v MessageSystemChangeAvatar) MessageSystem {
+	return MessageSystem{
+		SystemType__:   MessageSystemType_CHANGEAVATAR,
+		Changeavatar__: &v,
 	}
 }
 
@@ -405,6 +443,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Gitpush__),
+		Changeavatar__: (func(x *MessageSystemChangeAvatar) *MessageSystemChangeAvatar {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Changeavatar__),
 	}
 }
 
@@ -2261,6 +2306,9 @@ func (e MessageUnboxedErrorType) String() string {
 type MessageUnboxedError struct {
 	ErrType            MessageUnboxedErrorType `codec:"errType" json:"errType"`
 	ErrMsg             string                  `codec:"errMsg" json:"errMsg"`
+	SenderUsername     string                  `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName   string                  `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType   string                  `codec:"senderDeviceType" json:"senderDeviceType"`
 	MessageID          MessageID               `codec:"messageID" json:"messageID"`
 	MessageType        MessageType             `codec:"messageType" json:"messageType"`
 	Ctime              gregor1.Time            `codec:"ctime" json:"ctime"`
@@ -2273,6 +2321,9 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 	return MessageUnboxedError{
 		ErrType:            o.ErrType.DeepCopy(),
 		ErrMsg:             o.ErrMsg,
+		SenderUsername:     o.SenderUsername,
+		SenderDeviceName:   o.SenderDeviceName,
+		SenderDeviceType:   o.SenderDeviceType,
 		MessageID:          o.MessageID.DeepCopy(),
 		MessageType:        o.MessageType.DeepCopy(),
 		Ctime:              o.Ctime.DeepCopy(),

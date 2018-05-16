@@ -266,6 +266,7 @@ export const localMessageSystemType = {
   complexteam: 2,
   createteam: 3,
   gitpush: 4,
+  changeavatar: 5,
 }
 
 export const localMessageUnboxedErrorType = {
@@ -762,7 +763,7 @@ export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
 export type EphemeralPurgeInfo = $ReadOnly<{isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
 
-export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>}>
+export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>, conv?: ?InboxUIItem}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
@@ -1041,9 +1042,11 @@ export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy:
 
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 
-export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush}
+export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar}
 
 export type MessageSystemAddedToTeam = $ReadOnly<{team: String, adder: String, addee: String, owners?: ?Array<String>, admins?: ?Array<String>, writers?: ?Array<String>, readers?: ?Array<String>}>
+
+export type MessageSystemChangeAvatar = $ReadOnly<{team: String, user: String}>
 
 export type MessageSystemComplexTeam = $ReadOnly<{team: String}>
 
@@ -1059,6 +1062,7 @@ export type MessageSystemType =
   | 2 // COMPLEXTEAM_2
   | 3 // CREATETEAM_3
   | 4 // GITPUSH_4
+  | 5 // CHANGEAVATAR_5
 
 export type MessageText = $ReadOnly<{body: String}>
 
@@ -1079,7 +1083,7 @@ export type MessageType =
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 
-export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
+export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
 
 export type MessageUnboxedErrorType =
   | 0 // MISC_0
