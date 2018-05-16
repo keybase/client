@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {IconType} from './icon.constants'
-import {type StylesCrossPlatformWithSomeDisallowed, type Color} from '../styles'
+import {type StylesCrossPlatform, type StylesCrossPlatformWithSomeDisallowed, type Color} from '../styles'
 
 // These must be passed as props
 type DisallowedStyles = {
@@ -30,5 +30,8 @@ export type Props = {
 declare export default class Icon extends React.Component<Props> {}
 declare export function iconTypeToImgSet(type: IconType, size: number): string
 declare export function urlsToImgSet(imgMap: {[size: string]: string}, size: number): ?string
+declare export function castPlatformStyles(
+  styles: StylesCrossPlatform
+): StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
 
 export type {IconType} from './icon.constants'

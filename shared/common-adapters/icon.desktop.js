@@ -180,4 +180,8 @@ export const styles = {
   },
 }
 
+export function castPlatformStyles(styles: any) {
+  return shared.castPlatformStyles(styles)
+}
+
 export default Icon

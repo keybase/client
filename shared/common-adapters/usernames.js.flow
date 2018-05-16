@@ -15,9 +15,9 @@ export type UserList = Array<UserListItem>
 export type Props = {
   type: TextType,
   backgroundMode?: Background,
-  style?: Object,
+  style?: any,
   commaColor?: string,
-  containerStyle?: Object,
+  containerStyle?: any,
   inline?: boolean,
   redColor?: string,
   title?: string,
@@ -35,9 +35,9 @@ export type Props = {
 export type ConnectedProps = {
   type: TextType,
   backgroundMode?: Background,
-  style?: Object,
+  style?: any,
   commaColor?: string,
-  containerStyle?: Object,
+  containerStyle?: any,
   inline?: boolean,
   redColor?: string,
   title?: string,
@@ -56,7 +56,7 @@ export type PlaintextProps = {
   type: TextType,
   users: UserList,
   backgroundMode?: Background,
-  containerStyle?: Object,
+  containerStyle?: any,
   title?: string,
 }
 
