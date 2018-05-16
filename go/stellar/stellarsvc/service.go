@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/stellar/go/amount"
 )
 
@@ -136,7 +137,7 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	return stellar.SendPayment(m, s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
+	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {

@@ -13,7 +13,9 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/client/go/teams"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stellar/go/keypair"
@@ -392,9 +394,6 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	checkPayment(payment)
 }
 
-// TODO CORE-7718 delete this test.
-// The functions it uses will be made private.
-// Use the exposed RPCs and inspection of the remote mock instead.
 func TestRelayTransferInnards(t *testing.T) {
 	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingWalletless})
 	defer cleanup()
@@ -413,11 +412,11 @@ func TestRelayTransferInnards(t *testing.T) {
 		IdentifyUI: tcs[0].Srv.uiSource.IdentifyUI(tcs[0].G, 0),
 	}
 	m := libkb.NewMetaContextBackground(tcs[0].G).WithUIs(uis)
-	recipient, err := stellar.LookupRecipient(m, stellar.RecipientInput(u1.GetNormalizedName()))
+	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(u1.GetNormalizedName()))
 	require.NoError(t, err)
-	appKey, teamID, err := stellar.RelayTransferKey(context.Background(), tcs[0].G, recipient)
+	appKey, teamID, err := relays.GetKey(context.Background(), tcs[0].G, recipient)
 	require.NoError(t, err)
-	out, err := stellar.CreateRelayTransfer(stellar.RelayPaymentInput{
+	out, err := relays.Create(relays.Input{
 		From:          stellarSender.Signers[0],
 		AmountXLM:     "10.0005",
 		Note:          "hey",
@@ -430,7 +429,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.True(t, len(out.FundTx.Signed) > 100)
 
 	t.Logf("decrypt")
-	relaySecrets, err := stellar.DecryptRelaySecretB64(context.Background(), tcs[0].G, teamID, out.EncryptedB64)
+	relaySecrets, err := relays.DecryptB64(context.Background(), tcs[0].G, teamID, out.EncryptedB64)
 	require.NoError(t, err)
 	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecrets.Sk.SecureNoLogString())
 	require.NoError(t, err)
