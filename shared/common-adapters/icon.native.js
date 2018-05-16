@@ -1,6 +1,6 @@
 // @flow
 import logger from '../logger'
-import * as shared from './icon.shared'
+import * as Shared from './icon.shared'
 import ClickableBox from './clickable-box'
 import * as React from 'react'
 import {globalColors, glamorous, collapseStyles} from '../styles'
@@ -37,7 +37,7 @@ const Text = glamorous.text(
         }
       : null,
   props => {
-    const color = props.color || shared.defaultColor(props.type) || (props.opacity && globalColors.lightGrey)
+    const color = props.color || Shared.defaultColor(props.type) || (props.opacity && globalColors.lightGrey)
     if (color) {
       return {color}
     } else return null
@@ -53,7 +53,7 @@ const Text = glamorous.text(
       return {fontSize: props.fontSize || props.style.width}
     }
 
-    const temp = shared.fontSize(shared.typeToIconMapper(props.type))
+    const temp = Shared.fontSize(Shared.typeToIconMapper(props.type))
     if (temp) {
       return styles[temp.fontSize]
     }
@@ -89,7 +89,7 @@ class Icon extends React.PureComponent<Props> {
     // Only apply props.style to icon if there is no onClick
     const hasContainer = props.onClick && props.style
     let iconStyle = hasContainer ? null : props.style
-    let iconType = shared.typeToIconMapper(props.type)
+    let iconType = Shared.typeToIconMapper(props.type)
 
     if (!iconType) {
       logger.warn('Null iconType passed')
@@ -131,35 +131,26 @@ class Icon extends React.PureComponent<Props> {
   }
 }
 
-export function iconTypeToImgSet(type: IconType) {
-  return iconMeta[type].require
+export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+  const idealMults = [2, 3, 1]
+  for (let mult of idealMults) {
+    if (multsMap[mult]) {
+      return iconMeta[imgMap[multsMap[mult]]].require
+    }
+  }
+  return null
+  // Ideally it'd do this but RN won't let you specify multiple required() sources and give it a multplier, it really
+  // wants @2x etc. So instead of this we'll just supply 2x
+  // return Object.keys(multsMap).map(mult => ({
+  // height: parseInt(mult, 10) * targetSize,
+  // uri: iconMeta[imgMap[multsMap[mult]]].require,
+  // width: parseInt(mult, 10) * targetSize,
+  // }))
 }
 
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
-  let sizes: any = Object.keys(imgMap)
-
-  if (!sizes.length) {
-    return null
-  }
-
-  sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
-
-  // RCTImageView finds a 'fit' ratio of image size to targetSize and finds the largest one that isn't over, which
-  // too often chooses a low res image, this uses similar logic to the icon.desktop
-
-  const multsMap: any = {
-    '1': null,
-    '2': null,
-    '3': null,
-  }
-
-  Object.keys(multsMap).forEach(mult => {
-    const ideal = parseInt(mult, 10) * targetSize
-    // Find a larger than ideal size or just the largest possible
-    const size = sizes.find(size => size >= ideal)
-    multsMap[mult] = size || sizes[sizes.length - 1]
-  })
-
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
   return Object.keys(multsMap).map(mult => ({
     height: parseInt(mult, 10) * targetSize,
     uri: imgMap[multsMap[mult]],

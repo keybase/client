@@ -2,7 +2,7 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as React from 'react'
 import Render from './avatar.render'
-import {pickBy, debounce} from 'lodash-es'
+import {debounce} from 'lodash-es'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type Props as IconProps} from './icon'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {setDisplayName, connect, type TypedState, compose} from '../util/container'
@@ -60,21 +60,15 @@ type Props = PropsWithTimer<{
 }>
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
-  '128': 'icon-placeholder-avatar-112',
-  '16': 'icon-placeholder-avatar-16',
-  '32': 'icon-placeholder-avatar-32',
-  '48': 'icon-placeholder-avatar-48',
-  '64': 'icon-placeholder-avatar-64',
-  '96': 'icon-placeholder-avatar-80',
+  '192': 'icon-placeholder-avatar-192',
+  '256': 'icon-placeholder-avatar-256',
+  '960': 'icon-placeholder-avatar-960',
 }
 
 const teamPlaceHolders: {[key: string]: IconType} = {
-  '128': 'icon-team-placeholder-avatar-112',
-  '16': 'icon-team-placeholder-avatar-16',
-  '32': 'icon-team-placeholder-avatar-32',
-  '48': 'icon-team-placeholder-avatar-48',
-  '64': 'icon-team-placeholder-avatar-64',
-  '96': 'icon-team-placeholder-avatar-80',
+  '192': 'icon-team-placeholder-avatar-192',
+  '256': 'icon-team-placeholder-avatar-256',
+  '960': 'icon-team-placeholder-avatar-960',
 }
 
 // prettier-ignore
@@ -135,7 +129,7 @@ const _reallyAskForUserData: () => void = debounce(() => {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const name = ownProps.username || ownProps.teamname
   return {
-    _urlMap: name ? state.config.avatars[name] : undefined,
+    _urlMap: name ? state.config.avatars[name] : null,
     following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
     followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
   }
@@ -149,36 +143,19 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const isTeam = ownProps.isTeam || !!ownProps.teamname
+  const style = collapseStyles([
+    ownProps.style,
+    ownProps.onClick && platformStyles({isElectron: desktopStyles.clickable}),
+  ])
 
-  let style
-  if (ownProps.style) {
-    if (ownProps.onClick) {
-      style = collapseStyles([ownProps.style, platformStyles({isElectron: desktopStyles.clickable})])
-    } else {
-      style = ownProps.style
-    }
-  } else if (ownProps.onClick) {
-    style = platformStyles({isElectron: desktopStyles.clickable})
-  }
-
-  let url
-  if (stateProps._urlMap) {
-    url = urlsToImgSet(pickBy(stateProps._urlMap, value => value), ownProps.size)
-  }
-
+  let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap, ownProps.size) : null
   if (!url) {
-    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
-    url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
+    url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
   }
 
-  let askForUserData = null
-  if (isTeam) {
-    const teamname = ownProps.teamname
-    askForUserData = teamname ? () => dispatchProps._askForTeamUserData(teamname) : undefined
-  } else {
-    const username = ownProps.username
-    askForUserData = username ? () => dispatchProps._askForUserData(username) : undefined
-  }
+  const askForUserData = isTeam
+    ? () => ownProps.teamname && dispatchProps._askForTeamUserData(ownProps.teamname)
+    : () => ownProps.username && dispatchProps._askForUserData(ownProps.username)
 
   const name = isTeam ? ownProps.teamname : ownProps.username
 
@@ -254,33 +231,25 @@ const Avatar = compose(
   HOCTimers
 )(AvatarConnector)
 
-const mockOwnToViewProps = (props: OwnProps, following: boolean, followsYou: boolean) => {
-  const isTeam = !!props.teamname
-  const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
-  const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
-
-  let style
-  if (props.style) {
-    if (props.onClick) {
-      style = collapseStyles([props.style, desktopStyles.clickable])
-    } else {
-      style = props.style
-    }
-  } else if (props.onClick) {
-    style = desktopStyles.clickable
-  }
+const mockOwnToViewProps = (ownProps: OwnProps, following: boolean, followsYou: boolean) => {
+  const isTeam = ownProps.isTeam || !!ownProps.teamname
+  const style = collapseStyles([
+    ownProps.style,
+    ownProps.onClick && platformStyles({isElectron: desktopStyles.clickable}),
+  ])
+  const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
 
   return {
-    borderColor: props.borderColor,
-    children: props.children,
-    followIconSize: _followIconSize(props.size, followsYou, following),
-    followIconStyle: followSizeToStyle[props.size],
-    followIconType: _followIconType(props.size, followsYou, following),
+    borderColor: ownProps.borderColor,
+    children: ownProps.children,
+    followIconSize: _followIconSize(ownProps.size, followsYou, following),
+    followIconStyle: followSizeToStyle[ownProps.size],
+    followIconType: _followIconType(ownProps.size, followsYou, following),
     isTeam,
-    loadingColor: props.loadingColor,
-    onClick: props.onClick,
-    opacity: props.opacity,
-    size: props.size,
+    loadingColor: ownProps.loadingColor,
+    onClick: ownProps.onClick,
+    opacity: ownProps.opacity,
+    size: ownProps.size,
     style,
     url,
   }

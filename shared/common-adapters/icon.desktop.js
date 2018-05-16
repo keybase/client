@@ -1,5 +1,5 @@
 // @flow
-import * as shared from './icon.shared'
+import * as Shared from './icon.shared'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
@@ -32,9 +32,9 @@ class Icon extends Component<Props, void> {
   }
 
   render() {
-    let color = shared.defaultColor(this.props.type)
-    let hoverColor = shared.defaultHoverColor(this.props.type)
-    let iconType = shared.typeToIconMapper(this.props.type)
+    let color = Shared.defaultColor(this.props.type)
+    let hoverColor = Shared.defaultHoverColor(this.props.type)
+    let iconType = Shared.typeToIconMapper(this.props.type)
 
     if (!iconType) {
       logger.warn('Null iconType passed')
@@ -54,7 +54,7 @@ class Icon extends Component<Props, void> {
     }
 
     const isFontIcon = iconType.startsWith('iconfont-')
-    const fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : shared.fontSize(iconType)
+    const fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : Shared.fontSize(iconType)
     const onClick = this.props.onClick
       ? e => {
           e.stopPropagation()
@@ -132,61 +132,30 @@ const imgName = (type: IconType, ext: string, mult: number, prefix: ?string, pos
     ''} ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
-  const ext = shared.typeExtension(type)
+  const ext = Shared.typeExtension(type)
   return [1, 2].map(mult => imgName(type, ext, mult)).join(', ')
 }
 
-export function iconTypeToImgSet(type: IconType) {
-  const ext = shared.typeExtension(type)
-  const imgs = [1, 2].map(mult => `url${imgName(type, ext, mult, "('", "')")}`).join(', ')
-  return `-webkit-image-set(${imgs})`
-}
-
-const idealSizeMultMap = {
-  '128': {'1': 256, '2': 256, '3': 960},
-  '16': {'1': 256, '2': 256, '3': 192},
-  '32': {'1': 256, '2': 256, '3': 192},
-  '48': {'1': 192, '2': 192, '3': 960},
-  '64': {'1': 256, '2': 256, '3': 192},
-  '96': {'1': 192, '2': 192, '3': 960},
+export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+  const sets = Object.keys(multsMap)
+    .map(mult => {
+      const url = resolveImageAsURL('icons', imgMap[multsMap[mult]])
+      return `url('${url}.png') ${mult}x`
+    })
+    .join(', ')
+  return `-webkit-image-set(${sets})`
 }
 
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
-  let sizes: any = Object.keys(imgMap)
-
-  if (!sizes.length) {
-    return null
-  }
-
-  sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
-
-  const multsMap: any = {
-    '1': null,
-    '2': null,
-    '3': null,
-  }
-
-  Object.keys(multsMap).forEach(mult => {
-    // find ideal size if it exist
-    const level1 = idealSizeMultMap[String(targetSize)]
-    if (level1) {
-      const level2 = level1[String(mult)]
-      if (level2) {
-        multsMap[mult] = level2
-        return
-      }
-    }
-
-    // fallback
-    const ideal = parseInt(mult, 10) * targetSize
-    const size = sizes.find(size => size >= ideal)
-    multsMap[mult] = size || sizes[sizes.length - 1]
-  })
-
-  const str = Object.keys(multsMap)
-    .map(mult => `url(${imgMap[multsMap[mult]]}) ${mult}x`)
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+  const sets = Object.keys(multsMap)
+    .map(mult => {
+      const url = imgMap[multsMap[mult]]
+      return `url(${url}) ${mult}x`
+    })
     .join(', ')
-  return `-webkit-image-set(${str})`
+  return `-webkit-image-set(${sets})`
 }
 
 export const styles = {
