@@ -152,4 +152,6 @@ protocol user {
   */
   @lint("ignore")
   UPAKVersioned getUPAK(UID uid);
+
+  void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
 }

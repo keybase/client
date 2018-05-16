@@ -2309,6 +2309,13 @@ type SetTarsDisabledArg struct {
 	Disabled bool   `codec:"disabled" json:"disabled"`
 }
 
+type UploadTeamAvatarArg struct {
+	Teamname             string         `codec:"teamname" json:"teamname"`
+	Filename             string         `codec:"filename" json:"filename"`
+	Crop                 *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
+	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2353,6 +2360,7 @@ type TeamsInterface interface {
 	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
 	GetTarsDisabled(context.Context, string) (bool, error)
 	SetTarsDisabled(context.Context, SetTarsDisabledArg) error
+	UploadTeamAvatar(context.Context, UploadTeamAvatarArg) error
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -2999,6 +3007,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"uploadTeamAvatar": {
+				MakeArg: func() interface{} {
+					ret := make([]UploadTeamAvatarArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UploadTeamAvatarArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UploadTeamAvatarArg)(nil), args)
+						return
+					}
+					err = i.UploadTeamAvatar(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3214,5 +3238,10 @@ func (c TeamsClient) GetTarsDisabled(ctx context.Context, name string) (res bool
 
 func (c TeamsClient) SetTarsDisabled(ctx context.Context, __arg SetTarsDisabledArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.setTarsDisabled", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) UploadTeamAvatar(ctx context.Context, __arg UploadTeamAvatarArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.uploadTeamAvatar", []interface{}{__arg}, nil)
 	return
 }

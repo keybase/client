@@ -32,7 +32,8 @@ protocol local {
     INVITEADDEDTOTEAM_1,
     COMPLEXTEAM_2,
     CREATETEAM_3,
-    GITPUSH_4
+    GITPUSH_4,
+    CHANGEAVATAR_5
   }
 
   record MessageSystemAddedToTeam {
@@ -72,12 +73,18 @@ protocol local {
     string previousRepoName;
   }
 
+  record MessageSystemChangeAvatar {
+    string team;
+    string user;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
     case COMPLEXTEAM: MessageSystemComplexTeam;
     case CREATETEAM: MessageSystemCreateTeam;
     case GITPUSH: MessageSystemGitPush;
+    case CHANGEAVATAR: MessageSystemChangeAvatar;
   }
 
   record MessageDeleteHistory {
