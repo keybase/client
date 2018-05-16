@@ -2595,17 +2595,22 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 	if len(iboxRes.Convs) != 1 {
 		return errors.New("failed to find conversation to add reset user back into")
 	}
+	var teamID keybase1.TeamID
 	conv := iboxRes.Convs[0]
 	switch conv.Info.MembersType {
-	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
-		chat1.ConversationMembersType_TEAM:
-		// this is ok for these convs
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		team, err := NewTeamLoader(h.G().ExternalG()).loadTeam(ctx, conv.Info.Triple.Tlfid, conv.Info.TlfName,
+			conv.Info.MembersType, conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC, nil)
+		if err != nil {
+			return err
+		}
+		teamID = team.ID
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_TEAM:
+		teamID = keybase1.TeamID(conv.Info.Triple.Tlfid.String())
 	default:
 		return fmt.Errorf("unable to add member back to non team conversation: %v",
 			conv.Info.MembersType)
 	}
-
-	teamID := keybase1.TeamID(conv.Info.Triple.Tlfid.String())
 	return teams.ReAddMemberAfterReset(ctx, h.G().ExternalG(), teamID, arg.Username)
 }
 
