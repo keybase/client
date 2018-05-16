@@ -4230,6 +4230,8 @@ type GetSearchRegexpArg struct {
 	IsRegex          bool                         `codec:"isRegex" json:"isRegex"`
 	MaxHits          int                          `codec:"maxHits" json:"maxHits"`
 	MaxMessages      int                          `codec:"maxMessages" json:"maxMessages"`
+	BeforeContext    int                          `codec:"beforeContext" json:"beforeContext"`
+	AfterContext     int                          `codec:"afterContext" json:"afterContext"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
