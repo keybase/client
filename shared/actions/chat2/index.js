@@ -1259,6 +1259,9 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   let users: Array<string> = []
   let conversationIDKey
 
+  const foo = true
+  if (foo) throw new Error('hello')
+
   // we handled participants or tlfs
   if (participants) {
     users = participants
