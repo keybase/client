@@ -81,5 +81,4 @@ declare export default class PlainInput extends React.Component<Props> {
   static defaultProps: DefaultProps;
   blur: () => void;
   focus: () => void;
-  setValue: string => void;
 }

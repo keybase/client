@@ -79,12 +79,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._input && this._input.blur()
   }
 
-  setValue = (text: string) => {
-    if (this._input) {
-      this._input.value = text
-    }
-  }
-
   _onCompositionStart = () => {
     this._isComposingIME = true
   }

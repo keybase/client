@@ -73,10 +73,6 @@ class PlainInput extends Component<InternalProps, State> {
     this._input && this._input.blur()
   }
 
-  setValue = (text: string) => {
-    this.setNativeProps({text})
-  }
-
   _onFocus = () => {
     this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
