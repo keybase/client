@@ -74,9 +74,10 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 	}
 	if team.Generation() == lastGen {
 		// There are no new keys to try
-		mctx.CDebugf("Repolling team did not yield any new keys")
+		mctx.CDebugf("Reloading team did not yield any new keys")
 		return nil, libkb.DecryptionError{}
 	}
+	mctx.CDebugf("Reloaded team %q, max key generation is %d", team.ID, team.Generation())
 	ret, found, err = tryKeys(lastGen + 1)
 	if err != nil {
 		return nil, err

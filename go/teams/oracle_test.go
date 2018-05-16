@@ -82,3 +82,46 @@ func TestTeamUnboxOracle(t *testing.T) {
 	require.NoError(t, err)
 	require.ElementsMatch(t, ret, clearText)
 }
+
+func TestTeamOracleRepolling(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	teamName, teamID := createTeam2(*tcs[0])
+	t.Logf("Created team %s", teamName)
+
+	_, err := AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	// Issue a team load as user 1 to get this version of the team to cache.
+	_, err = Load(context.Background(), tcs[1].G, keybase1.LoadTeamArg{
+		Name:        teamName.String(),
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	// Rotate team as user 0 and encrypt with key 2.
+	require.NoError(t, RotateKey(context.Background(), tcs[0].G, teamID))
+	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
+		Name:        teamName.String(),
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	clearText := []byte{0, 1, 2, 3, 4, 5}
+	nonce := [24]byte{6, 7, 8, 9, 10}
+	buf, pub := encryptWithTeamKey(t, team, clearText, nonce, keybase1.PerTeamKeyGeneration(2))
+
+	// Try to decrypt as user 1. User 1 does not have team with gen=2
+	// in cache, so `TryDecryptWithTeamKey` will have to take slower
+	// repoll path.
+	arg := keybase1.TryDecryptWithTeamKeyArg{
+		TeamID:         teamID,
+		EncryptedData:  buf,
+		Nonce:          nonce,
+		PeersPublicKey: (keybase1.BoxPublicKey)(pub),
+	}
+	ret, err := TryDecryptWithTeamKey(libkb.NewMetaContextBackground(tcs[1].G), arg)
+	require.NoError(t, err)
+	require.ElementsMatch(t, ret, clearText)
+}
