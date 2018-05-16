@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -64,6 +65,13 @@ func (c *cmdWalletSend) ParseArgv(ctx *cli.Context) error {
 func (c *cmdWalletSend) Run() error {
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
+		return err
+	}
+
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 
