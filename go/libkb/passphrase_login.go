@@ -50,7 +50,14 @@ func pplPromptOnce(m MetaContext, usernameOrEmail string, ls *LoginSession, retr
 	if err != nil {
 		return err
 	}
-	tsec, pps, err := StretchPassphrase(m.G(), ppres.Passphrase, ls.salt)
+
+	return pplGotPassphrase(m, usernameOrEmail, ppres.Passphrase, ls)
+}
+
+func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, ls *LoginSession) (err error) {
+	defer m.CTrace("pplGotPassphrase", func() error { return err })()
+
+	tsec, pps, err := StretchPassphrase(m.G(), passphrase, ls.salt)
 	if err != nil {
 		return err
 	}
@@ -147,6 +154,37 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 		username:  res.Me.Basics.Username,
 		ppGen:     res.Me.Basics.PassphraseGeneration,
 	}, nil
+}
+
+func PassphraseLoginNoPrompt(m MetaContext, usernameOrEmail string, passphrase string) (err error) {
+	defer m.CTrace("PassphraseLoginNoPrompt", func() error { return err })()
+
+	var loginSession *LoginSession
+	if loginSession, err = pplGetLoginSession(m, usernameOrEmail); err != nil {
+		return err
+	}
+	if err = pplGotPassphrase(m, usernameOrEmail, passphrase, loginSession); err != nil {
+		return err
+	}
+	return nil
+}
+
+func PassphraseLoginNoPromptThenSecretStore(m MetaContext, usernameOrEmail string, passphrase string, failOnStoreError bool) (err error) {
+	defer m.CTrace("PassphraseLoginPromptThenSecretStore", func() error { return err })()
+
+	err = PassphraseLoginNoPrompt(m, usernameOrEmail, passphrase)
+	if err != nil {
+		return err
+	}
+	storeErr := pplSecretStore(m)
+	if storeErr == nil {
+		return nil
+	}
+	if failOnStoreError {
+		return storeErr
+	}
+	m.CWarningf("Secret store failure: %s", storeErr)
+	return nil
 }
 
 func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts int) (err error) {

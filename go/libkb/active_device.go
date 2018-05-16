@@ -387,3 +387,9 @@ func (a *ActiveDevice) CachePassphraseStream(c *PassphraseStreamCache) {
 	defer a.Unlock()
 	a.passphrase = c
 }
+
+func (a *ActiveDevice) ClearPassphraseStreamCache() {
+	a.Lock()
+	defer a.Unlock()
+	a.passphrase = nil
+}
