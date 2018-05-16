@@ -36,7 +36,7 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 }
 
 func TestCreateWallet(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 2)
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingWalletless, usettingFull})
 	defer cleanup()
 
 	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
@@ -75,9 +75,8 @@ func TestUpkeep(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
-	require.True(t, created)
 
 	bundle, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
@@ -224,8 +223,7 @@ func TestGetLocalAccounts(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.True(t, created)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
 	tcs[0].Remote.ImportAccountsForUser(t, tcs[0].G)
