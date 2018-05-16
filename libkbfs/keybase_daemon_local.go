@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -165,6 +166,7 @@ type KeybaseDaemonLocal struct {
 	implicitAsserts    map[string]keybase1.TeamID
 	favoriteStore      favoriteStore
 	merkleRoot         keybase1.MerkleRootV2
+	merkleTime         time.Time
 }
 
 var _ KeybaseService = &KeybaseDaemonLocal{}
@@ -496,14 +498,14 @@ func (k *KeybaseDaemonLocal) GetTeamSettings(
 // GetCurrentMerkleRoot implements the KeybaseService interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) GetCurrentMerkleRoot(ctx context.Context) (
-	keybase1.MerkleRootV2, error) {
+	keybase1.MerkleRootV2, time.Time, error) {
 	if err := checkContext(ctx); err != nil {
-		return keybase1.MerkleRootV2{}, err
+		return keybase1.MerkleRootV2{}, time.Time{}, err
 	}
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	return k.merkleRoot, nil
+	return k.merkleRoot, k.merkleTime, nil
 }
 
 // VerifyMerkleRoot implements the KBPKI interface for KeybaseDaemonLocal.

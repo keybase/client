@@ -224,7 +224,7 @@ func (k *KBPKIClient) GetTeamTLFCryptKeys(
 
 // GetCurrentMerkleRoot implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentMerkleRoot(ctx context.Context) (
-	keybase1.MerkleRootV2, error) {
+	keybase1.MerkleRootV2, time.Time, error) {
 	return k.serviceOwner.KeybaseService().GetCurrentMerkleRoot(ctx)
 }
 

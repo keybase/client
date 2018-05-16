@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -167,11 +169,11 @@ func (k KeybaseServiceMeasured) GetTeamSettings(
 // GetCurrentMerkleRoot implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) GetCurrentMerkleRoot(ctx context.Context) (
-	root keybase1.MerkleRootV2, err error) {
+	root keybase1.MerkleRootV2, updateTime time.Time, err error) {
 	k.getCurrentMerkleRootTimer.Time(func() {
-		root, err = k.delegate.GetCurrentMerkleRoot(ctx)
+		root, updateTime, err = k.delegate.GetCurrentMerkleRoot(ctx)
 	})
-	return root, err
+	return root, updateTime, err
 }
 
 // VerifyMerkleRoot implements the KBPKI interface for

@@ -111,8 +111,8 @@ type constMerkleRootGetter struct{}
 var _ merkleRootGetter = constMerkleRootGetter{}
 
 func (cmrg constMerkleRootGetter) GetCurrentMerkleRoot(
-	ctx context.Context) (keybase1.MerkleRootV2, error) {
-	return keybase1.MerkleRootV2{}, nil
+	ctx context.Context) (keybase1.MerkleRootV2, time.Time, error) {
+	return keybase1.MerkleRootV2{}, time.Time{}, nil
 }
 
 func (cmrg constMerkleRootGetter) VerifyMerkleRoot(

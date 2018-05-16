@@ -66,7 +66,7 @@ type keybaseServiceMerkleGetter struct {
 var _ merkleRootGetter = (*keybaseServiceMerkleGetter)(nil)
 
 func (k *keybaseServiceMerkleGetter) GetCurrentMerkleRoot(
-	ctx context.Context) (keybase1.MerkleRootV2, error) {
+	ctx context.Context) (keybase1.MerkleRootV2, time.Time, error) {
 	return k.k.getCurrentMerkleRoot(ctx)
 }
 
@@ -868,25 +868,26 @@ func (k *KeybaseServiceBase) GetTeamSettings(
 }
 
 func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (
-	keybase1.MerkleRootV2, error) {
+	keybase1.MerkleRootV2, time.Time, error) {
 	const merkleFreshnessMs = int(time.Second * 60 / time.Millisecond)
 	res, err := k.merkleClient.GetCurrentMerkleRoot(ctx, merkleFreshnessMs)
 	if err != nil {
-		return keybase1.MerkleRootV2{}, err
+		return keybase1.MerkleRootV2{}, time.Time{}, err
 	}
 
-	return res.Root, nil
+	return res.Root, keybase1.FromTime(res.UpdateTime), nil
 }
 
 // GetCurrentMerkleRoot implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
-	keybase1.MerkleRootV2, error) {
+	keybase1.MerkleRootV2, time.Time, error) {
 	// Refresh the cached value in the background if the cached value
 	// is older than 30s; if our cached value is more than 60s old,
 	// block.
-	_, root, err := k.merkleRoot.Get(ctx, 30*time.Second, 60*time.Second)
-	return root, err
+	_, root, rootTime, err := k.merkleRoot.Get(
+		ctx, 30*time.Second, 60*time.Second)
+	return root, rootTime, err
 }
 
 // VerifyMerkleRoot implements the KBPKI interface for KeybaseServiceBase.

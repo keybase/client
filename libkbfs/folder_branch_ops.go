@@ -2840,7 +2840,7 @@ func (fbo *folderBranchOps) signalWrite() {
 		go func() {
 			defer fbo.merkleFetches.Done()
 			newCtx := fbo.ctxWithFBOID(context.Background())
-			_, err := fbo.config.KBPKI().GetCurrentMerkleRoot(newCtx)
+			_, _, err := fbo.config.KBPKI().GetCurrentMerkleRoot(newCtx)
 			if err != nil {
 				fbo.log.CDebugf(newCtx, "Couldn't fetch merkle root: %+v", err)
 			}

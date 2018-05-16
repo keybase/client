@@ -26,6 +26,7 @@ const ECMRID = "ECMR"
 type cachedMerkleRoot struct {
 	timestamp time.Time
 	root      keybase1.MerkleRootV2
+	rootTime  time.Time
 }
 
 // EventuallyConsistentMerkleRoot keeps tracks of the current global
@@ -60,7 +61,7 @@ func (ecmr *EventuallyConsistentMerkleRoot) getAndCache(
 	defer func() {
 		ecmr.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
-	bareRoot, err := ecmr.getter.GetCurrentMerkleRoot(ctx)
+	bareRoot, rootTime, err := ecmr.getter.GetCurrentMerkleRoot(ctx)
 	if err != nil {
 		return err
 	}
@@ -68,6 +69,7 @@ func (ecmr *EventuallyConsistentMerkleRoot) getAndCache(
 	ecmr.mu.Lock()
 	defer ecmr.mu.Unlock()
 	ecmr.cached.root = bareRoot
+	ecmr.cached.rootTime = rootTime
 	ecmr.cached.timestamp = ecmr.config.Clock().Now()
 
 	return nil
@@ -79,11 +81,12 @@ func (ecmr *EventuallyConsistentMerkleRoot) getCached() cachedMerkleRoot {
 	return ecmr.cached
 }
 
-// Get returns the current merkle root. To help avoid having too
-// frequent calls into the API server, caller can provide a positive
-// tolerance, to accept stale LimitBytes and UsageBytes data. If
-// tolerance is 0 or negative, this always makes a blocking RPC to
-// bserver and return latest quota usage.
+// Get returns the current merkle root, and the server timestamp of
+// that root. To help avoid having too frequent calls into the API
+// server, caller can provide a positive tolerance, to accept stale
+// LimitBytes and UsageBytes data. If tolerance is 0 or negative, this
+// always makes a blocking RPC to bserver and return latest quota
+// usage.
 //
 // 1) If the age of cached data is more than blockTolerance, a blocking RPC is
 // issued and the function only returns after RPC finishes, with the newest
@@ -94,12 +97,13 @@ func (ecmr *EventuallyConsistentMerkleRoot) getCached() cachedMerkleRoot {
 // 3) Otherwise, the cached stale data is returned immediately.
 func (ecmr *EventuallyConsistentMerkleRoot) Get(
 	ctx context.Context, bgTolerance, blockTolerance time.Duration) (
-	timestamp time.Time, root keybase1.MerkleRootV2, err error) {
+	timestamp time.Time, root keybase1.MerkleRootV2,
+	rootTime time.Time, err error) {
 	c := ecmr.getCached()
 	err = ecmr.fetcher.Do(ctx, bgTolerance, blockTolerance, c.timestamp)
 	if err != nil {
-		return time.Time{}, keybase1.MerkleRootV2{}, err
+		return time.Time{}, keybase1.MerkleRootV2{}, time.Time{}, err
 	}
 	c = ecmr.getCached()
-	return c.timestamp, c.root, nil
+	return c.timestamp, c.root, c.rootTime, nil
 }

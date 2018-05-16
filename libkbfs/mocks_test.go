@@ -1449,11 +1449,12 @@ func (m *MockmerkleRootGetter) EXPECT() *MockmerkleRootGetterMockRecorder {
 }
 
 // GetCurrentMerkleRoot mocks base method
-func (m *MockmerkleRootGetter) GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRootV2, error) {
+func (m *MockmerkleRootGetter) GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRootV2, time.Time, error) {
 	ret := m.ctrl.Call(m, "GetCurrentMerkleRoot", ctx)
 	ret0, _ := ret[0].(keybase1.MerkleRootV2)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(time.Time)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetCurrentMerkleRoot indicates an expected call of GetCurrentMerkleRoot
@@ -1532,11 +1533,12 @@ func (m *MockKeybaseService) EXPECT() *MockKeybaseServiceMockRecorder {
 }
 
 // GetCurrentMerkleRoot mocks base method
-func (m *MockKeybaseService) GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRootV2, error) {
+func (m *MockKeybaseService) GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRootV2, time.Time, error) {
 	ret := m.ctrl.Call(m, "GetCurrentMerkleRoot", ctx)
 	ret0, _ := ret[0].(keybase1.MerkleRootV2)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(time.Time)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetCurrentMerkleRoot indicates an expected call of GetCurrentMerkleRoot
@@ -2319,11 +2321,12 @@ func (mr *MockKBPKIMockRecorder) GetNormalizedUsername(ctx, id interface{}) *gom
 }
 
 // GetCurrentMerkleRoot mocks base method
-func (m *MockKBPKI) GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRootV2, error) {
+func (m *MockKBPKI) GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRootV2, time.Time, error) {
 	ret := m.ctrl.Call(m, "GetCurrentMerkleRoot", ctx)
 	ret0, _ := ret[0].(keybase1.MerkleRootV2)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(time.Time)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetCurrentMerkleRoot indicates an expected call of GetCurrentMerkleRoot

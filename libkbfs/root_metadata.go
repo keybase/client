@@ -276,7 +276,7 @@ func (md *RootMetadata) MakeSuccessor(
 	}
 	newMd.SetRevision(md.Revision() + 1)
 
-	merkleRoot, err := merkleGetter.GetCurrentMerkleRoot(ctx)
+	merkleRoot, _, err := merkleGetter.GetCurrentMerkleRoot(ctx)
 	if err != nil {
 		return nil, err
 	}
