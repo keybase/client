@@ -40,7 +40,7 @@ func (s *CmdPipeOwner) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPipeOwner) Run() error {
-	owner, err := libkb.Pipeowner(s.arg)
+	owner, err := libkb.IsPipeowner(s.arg)
 	if err != nil {
 		return err
 	}
