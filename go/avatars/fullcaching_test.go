@@ -59,14 +59,21 @@ func TestAvatarsFullCaching(t *testing.T) {
 	}
 
 	t.Log("cache hit")
-	getFile := func(path string) string {
+
+	convertPath := func(path string) string {
 		path = strings.TrimPrefix(path, "file://")
 		if runtime.GOOS == "windows" {
 			path = strings.Replace(path, `/`, `\`, -1)
 			path = path[1:]
 		}
+		return path
+	}
+
+	getFile := func(path string) string {
+		path = convertPath(path)
 		file, err := os.Open(path)
 		require.NoError(t, err)
+		defer file.Close()
 		dat, err := ioutil.ReadAll(file)
 		require.NoError(t, err)
 		return string(dat)
@@ -121,4 +128,11 @@ func TestAvatarsFullCaching(t *testing.T) {
 	val2 = res.Picmap["mike"]["square"].String()
 	require.Equal(t, val2, val)
 	require.Equal(t, "hi2", getFile(val2))
+
+	err = source.ClearCacheForName(context.Background(), "mike", []keybase1.AvatarFormat{"square"})
+	require.NoError(t, err)
+
+	_, err = os.Stat(convertPath(val2))
+	require.Error(t, err)
+	require.True(t, os.IsNotExist(err))
 }

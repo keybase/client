@@ -274,7 +274,6 @@ func TestRotateSkipTeamEKRoll(t *testing.T) {
 }
 
 func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
-	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
