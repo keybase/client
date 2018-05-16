@@ -43,6 +43,7 @@ func TestLoginOneshot(t *testing.T) {
 	err = AssertProvisioned(tc2)
 	require.NoError(t, err)
 	testSign(t, tc2)
+	trackAlice(tc2, fu, 2)
 	err = m.LogoutIfRevoked()
 	require.NoError(t, err)
 	testSign(t, tc2)

@@ -393,3 +393,12 @@ func (a *ActiveDevice) ClearPassphraseStreamCache() {
 	defer a.Unlock()
 	a.passphrase = nil
 }
+
+func (a *ActiveDevice) SigningKeyForUID(u keybase1.UID) GenericKey {
+	a.RLock()
+	defer a.RUnlock()
+	if !a.UID().Equal(u) {
+		return nil
+	}
+	return a.signingKey
+}

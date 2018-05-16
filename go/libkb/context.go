@@ -369,6 +369,52 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	return nil
 }
 
+// SetActiveOneshotDevice acquires the switchUserMu mutex, setting the active device
+// to one that corresponds to the given UID and DeviceWithKeys, and also sets the config
+// file to a temporary in-memory config (not writing to disk) to satisfy local requests for
+// g.Env.*
+func (m MetaContext) SwitchUserToActiveOneshotDevice(uid keybase1.UID, nun NormalizedUsername, d *DeviceWithKeys) (err error) {
+	defer m.CTrace("MetaContext#SwitchUserToActiveOneshotDevice", func() error { return err })()
+
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	ad := d.ToPaperKeyActiveDevice(m, uid)
+	err = g.ActiveDevice.Copy(m, ad)
+	if err != nil {
+		return err
+	}
+	uc := NewOneshotUserConfig(uid, nun, nil, d.DeviceID())
+	err = cw.SetUserConfig(uc, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SiwtchUserLoggedOut clears the active device and the current_user stanza
+// of the config file, all while holding the switchUserMu
+func (m MetaContext) SwitchUserLoggedOut() (err error) {
+	defer m.CTrace("MetaContext#SwitchUserLoggedOut", func() error { return err })()
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	g.ActiveDevice.Clear(nil)
+	err = cw.SetUserConfig(nil, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // SetActiveDevice sets the active device to have the UID, deviceID, sigKey, encKey and deviceName
 // as specified, and does so while grabbing the global switchUser lock, since it should be sycnhronized
 // with attempts to switch the global logged in user. It does not, however, change the `current_user`
