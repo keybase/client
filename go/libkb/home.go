@@ -42,7 +42,14 @@ func (b Base) Unsplit(v []string) string {
 		copy(v2, v)
 		v[0] = string(filepath.Separator)
 	}
-	return filepath.Join(v...)
+	result := filepath.Join(v...)
+	// filepath.Join doesn't add a separator on Windows after the drive
+	if len(v) > 0 && result[len(v[0])] != filepath.Separator {
+		v = append(v[:1], v...)
+		v[1] = string(filepath.Separator)
+		result = filepath.Join(v...)
+	}
+	return result
 }
 
 func (b Base) Join(elem ...string) string { return filepath.Join(elem...) }
@@ -195,6 +202,31 @@ func (w Win32) InfoDir() string                  { return w.RuntimeDir() }
 func (w Win32) ServiceSpawnDir() (string, error) { return w.RuntimeDir(), nil }
 func (w Win32) LogDir() string                   { return w.Home(false) }
 
+func (w Win32) deriveFromTemp() (ret string) {
+	tmp := os.Getenv("TEMP")
+	if len(tmp) == 0 {
+		w.getLog().Info("No 'TEMP' environment variable found")
+		tmp = os.Getenv("TMP")
+		if len(tmp) == 0 {
+			w.getLog().Fatalf("No 'TMP' environment variable found")
+		}
+	}
+	v := w.Split(tmp)
+	if len(v) < 2 {
+		w.getLog().Fatalf("Bad 'TEMP' variable found, no directory separators!")
+	}
+	last := strings.ToLower(v[len(v)-1])
+	rest := v[0 : len(v)-1]
+	if last != "temp" && last != "tmp" {
+		w.getLog().Warning("TEMP directory didn't end in \\Temp: %s", last)
+	}
+	if strings.ToLower(rest[len(rest)-1]) == "local" {
+		rest[len(rest)-1] = "Roaming"
+	}
+	ret = w.Unsplit(rest)
+	return
+}
+
 func (w Win32) Home(emptyOk bool) string {
 	var ret string
 
@@ -209,27 +241,7 @@ func (w Win32) Home(emptyOk bool) string {
 
 	}
 	if len(ret) == 0 && !emptyOk {
-		tmp := os.Getenv("TEMP")
-		if len(tmp) == 0 {
-			w.getLog().Info("No 'TEMP' environment variable found")
-			tmp = os.Getenv("TMP")
-			if len(tmp) == 0 {
-				w.getLog().Fatalf("No 'TMP' environment variable found")
-			}
-		}
-		v := w.Split(tmp)
-		if len(v) < 2 {
-			w.getLog().Fatalf("Bad 'TEMP' variable found, no directory separators!")
-		}
-		last := strings.ToLower(v[len(v)-1])
-		rest := v[0 : len(v)-1]
-		if last != "temp" && last != "tmp" {
-			w.getLog().Warning("TEMP directory didn't end in \\Temp: %s", last)
-		}
-		if strings.ToLower(rest[len(rest)-1]) == "local" {
-			rest[len(rest)-1] = "Roaming"
-		}
-		ret = w.Unsplit(rest)
+		ret = w.deriveFromTemp()
 	}
 
 	packageName := "Keybase"

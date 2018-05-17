@@ -87,7 +87,7 @@ func TestWindowsPipeOwner(t *testing.T) {
 	tc := setupTest(t, "socket_windows_test")
 	defer tc.Cleanup()
 
-	testPipeName := "\\\\.\\pipe\\keybase\\test\\pipe"
+	testPipeName := "\\\\.\\pipe\\kbservice\\test_pipe"
 	serverCmd := exec.Command("go", "run", "testfixtures\\npipe\\main.go", testPipeName)
 	err := serverCmd.Start()
 	if err != nil {
@@ -96,7 +96,7 @@ func TestWindowsPipeOwner(t *testing.T) {
 	defer serverCmd.Process.Kill()
 
 	// Give the server time to open the pipe
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	// Test existing pipe
 	owner, err := IsPipeowner(testPipeName)
