@@ -229,7 +229,7 @@ func pplSecretStore(m MetaContext) (err error) {
 	}
 	deviceID := m.G().Env.GetDeviceIDForUID(uid)
 	if deviceID.IsNil() {
-		return NewNoDeviceError(fmt.Sprintf("no device for %s", uid))
+		return NewNoDeviceError(fmt.Sprintf("UID=%s", uid))
 	}
 	return StoreSecretAfterLogin(m, lctx.GetUsername(), uid, deviceID)
 }
@@ -249,7 +249,7 @@ func PassphraseLoginPromptThenSecretStore(m MetaContext, usernameOrEmail string,
 	if failOnStoreError {
 		return storeErr
 	}
-	m.CWarningf("Secret store failure: %s", storeErr)
+	m.CDebugf("Secret store failure: %s", storeErr)
 	return nil
 }
 
