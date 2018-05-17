@@ -1225,6 +1225,8 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	config.SetMetadataVersion(ver)
+	clock := newTestClockNow()
+	config.SetClock(clock)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -1262,6 +1264,7 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdServer.nextGetRange = allRMDSs[1 : len(allRMDSs)-1]
 
 	t.Log("Make a merkle leaf using the new generation")
+	clock.Add(1 * time.Second)
 	root, rootNodeBytes, _, leafBytes := makeEncryptedMerkleLeafForTesting(
 		t, config, rmd)
 	mdServer.nextMerkleRoot = root
@@ -1278,6 +1281,39 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 		allRMDSs[0].SigInfo.VerifyingKey, irmd)
 	require.NoError(t, err)
 	require.True(t, cacheable)
+
+	t.Log("Make the server return no information, but within the max gap")
+	SetGlobalMerkleRootForTestOrBust(
+		t, config, keybase1.MerkleRootV2{}, clock.Now())
+	clock.Add(1 * time.Minute)
+	mdServer.nextMerkleRoot = nil
+	mdServer.nextMerkleNodes = nil
+	mdServer.nextMerkleRootSeqno = 0
+	mdLocal, ok := mdServer.MDServer.(mdServerLocal)
+	require.True(t, ok)
+	mdLocal.setKbfsMerkleRoot(keybase1.MerkleTreeID_KBFS_PRIVATE, root)
+	cacheable, err = mdOps.verifyKey(
+		ctx, allRMDSs[0], allRMDSs[0].MD.GetLastModifyingUser(),
+		allRMDSs[0].SigInfo.VerifyingKey, irmd)
+	require.NoError(t, err)
+	require.True(t, cacheable)
+
+	t.Log("Make the server return no information, but outside the max gap")
+	clock.Add(maxAllowedMerkleGap) // already added one minute above
+	_, err = mdOps.verifyKey(
+		ctx, allRMDSs[0], allRMDSs[0].MD.GetLastModifyingUser(),
+		allRMDSs[0].SigInfo.VerifyingKey, irmd)
+	require.Error(t, err)
+
+	t.Log("Make the server return a root, but which is outside the max gap")
+	root.Timestamp = clock.Now().Unix()
+	mdServer.nextMerkleRoot = root
+	mdServer.nextMerkleNodes = [][]byte{leafBytes}
+	mdServer.nextMerkleRootSeqno = 100
+	_, err = mdOps.verifyKey(
+		ctx, allRMDSs[0], allRMDSs[0].MD.GetLastModifyingUser(),
+		allRMDSs[0].SigInfo.VerifyingKey, irmd)
+	require.Error(t, err)
 }
 
 func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {

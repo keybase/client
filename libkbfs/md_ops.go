@@ -28,6 +28,8 @@ const (
 	// to that, and if we see any gaps larger than this, we will know
 	// we shouldn't be trusting the server.
 	maxAllowedMerkleGap = 3*time.Hour + 15*time.Minute
+
+	merkleGapEnforcementStartString = "2018-May-17"
 )
 
 // MDOpsStandard provides plaintext RootMetadata objects to upper
@@ -230,7 +232,7 @@ func mdToMerkleTreeID(irmd ImmutableRootMetadata) keybase1.MerkleTreeID {
 	}
 }
 
-func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
+func (md *MDOpsStandard) checkMerkleTimesAreRecent(ctx context.Context,
 	latestRootTime time.Time, kbfsRoot *kbfsmd.MerkleRoot,
 	timeToCheck time.Time) error {
 	var latestKbfsTime time.Time
@@ -243,7 +245,7 @@ func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
 	if timeToCheck.After(latestRootTime.Add(maxAllowedMerkleGap)) {
 		return errors.Errorf("No Merkle info found to verify "+
 			"revocation, but it's been too long since the last global "+
-			"Merkle root: currServerTime=%s, latestRootTime=%s",
+			"Merkle root: currServerTime=%s, latestRootTime+gap=%s",
 			timeToCheck.Format(time.RFC3339Nano),
 			latestRootTime.Format(time.RFC3339Nano))
 	}
@@ -251,6 +253,53 @@ func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
 		return errors.Errorf("No Merkle info found to verify "+
 			"revocation, but it's been too long since the last KBFS "+
 			"Merkle root: currServerTime=%s, latestRootTime=%s",
+			timeToCheck.Format(time.RFC3339Nano),
+			latestKbfsTime.Format(time.RFC3339Nano))
+	}
+	return nil
+}
+
+func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
+	latestRootTime time.Time, kbfsRoot *kbfsmd.MerkleRoot,
+	timeToCheck time.Time, allowedGapSinceMerkle time.Duration) error {
+	var latestKbfsTime time.Time
+	if kbfsRoot != nil {
+		latestKbfsTime = time.Unix(kbfsRoot.Timestamp, 0)
+	}
+
+	rootGap := timeToCheck.Sub(latestRootTime)
+	kbfsGap := timeToCheck.Sub(latestKbfsTime)
+	gapBound := allowedGapSinceMerkle
+
+	// A negative gap means that we expect the merkle roots to have
+	// happened second.
+	if allowedGapSinceMerkle < 0 {
+		if rootGap > 0 || kbfsGap > 0 {
+			return errors.Errorf(
+				"Roots were unexpectedly made before event being checked, "+
+					"timeToCheck=%s, latestRootTime=%s, latestKbfsTime=%s",
+				timeToCheck.Format(time.RFC3339Nano),
+				latestRootTime.Format(time.RFC3339Nano),
+				latestKbfsTime.Format(time.RFC3339Nano))
+		}
+		rootGap = -rootGap
+		kbfsGap = -kbfsGap
+		gapBound = -gapBound
+	}
+
+	// If it's been too long since the last published Merkle root,
+	// we can't trust what the server told us.
+	if rootGap > gapBound {
+		return errors.Errorf("Gap too large between event and global Merkle "+
+			"roots: gap=%s, timeToCheck=%s, latestRootTime=%s",
+			allowedGapSinceMerkle,
+			timeToCheck.Format(time.RFC3339Nano),
+			latestRootTime.Format(time.RFC3339Nano))
+	}
+	if kbfsGap > gapBound {
+		return errors.Errorf("Gap too large between event and KBFS Merkle "+
+			"roots: gap=%s, timeToCheck=%s, latestRootTime=%s",
+			allowedGapSinceMerkle,
 			timeToCheck.Format(time.RFC3339Nano),
 			latestKbfsTime.Format(time.RFC3339Nano))
 	}
@@ -293,7 +342,8 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 		serverOffset, _ := md.config.MDServer().OffsetFromServerTime()
 		currServerTime := md.config.Clock().Now().Add(-serverOffset)
 		err = md.checkMerkleTimes(
-			ctx, latestRootTime, latestKbfsRoot, currServerTime)
+			ctx, latestRootTime, latestKbfsRoot, currServerTime,
+			maxAllowedMerkleGap)
 		if err != nil {
 			return false, err
 		}
@@ -324,13 +374,27 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 
 	// Check the gap between the revocation and the global/KBFS roots
 	// that include the revocation, to make sure they fall within the
-	// expected error window. TODO(KBFS-2954): get the right root time
-	// for the corresponding global root.
-	latestRootTime := time.Unix(kbfsRoot.Timestamp, 0)
-	err = md.checkMerkleTimes(
-		ctx, latestRootTime, kbfsRoot, keybase1.FromTime(info.Time))
+	// expected error window.  The server didn't begin enforcing this
+	// until some time into KBFS's existence though.
+	revokeTime := keybase1.FromTime(info.Time)
+	merkleGapEnforcementStart, err := time.Parse(
+		"2006-Jan-02", merkleGapEnforcementStartString)
 	if err != nil {
-		return false, err
+		// Can never happen without a bad global const string.
+		panic(err)
+	}
+	if revokeTime.After(merkleGapEnforcementStart) {
+		// TODO(KBFS-2954): get the right root time for the
+		// corresponding global root.
+		latestRootTime := time.Unix(kbfsRoot.Timestamp, 0)
+		err = md.checkMerkleTimes(
+			ctx, latestRootTime, kbfsRoot, revokeTime,
+			// Check the gap from the reverse direction, to make sure the
+			// roots were made _after_ the revoke within the gap.
+			-maxAllowedMerkleGap)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	md.log.CDebugf(ctx,
