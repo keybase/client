@@ -34,10 +34,10 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
 
   const channels = channelInfos
     .map((info, convID) => ({
-      description: info.description,
+      description: info.description || '',
       convID,
-      name: info.channelname,
-      selected: you && info.participants.has(you),
+      name: info.channelname || '',
+      selected: you && info.participants && info.participants.has(you),
     }))
     .valueSeq()
     .toArray()

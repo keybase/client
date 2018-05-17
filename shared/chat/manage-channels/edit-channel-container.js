@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
-import {getMeta} from '../../constants/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
 import {type ConversationIDKey} from '../../constants/types/chat2'
 import EditChannel, {type Props} from './edit-channel'
@@ -19,25 +18,15 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     throw new Error('teamname unexpectedly empty')
   }
 
-  // If we're being loaded from the manage channels page, then
-  // getChannelInfoFromConvID should return a non-null ChannelInfo
-  // object. Otherwise, we're being loaded from the info pane of a
-  // channel we belong to, so fetch the meta from the chat store
-  // instead.
-  const channelInfo =
-    Constants.getChannelInfoFromConvID(state, teamname, conversationIDKey) ||
-    getMeta(state, conversationIDKey)
-
-  const channelName = channelInfo ? channelInfo.channelname : ''
-  const topic = channelInfo ? channelInfo.description : ''
+  const {channelName, topic} = Constants.getChannelNameAndTopicFromConvID(state, teamname, conversationIDKey)
   const yourRole = Constants.getRole(state, teamname)
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   return {
+    canDelete,
+    channelName,
     conversationIDKey,
     teamname,
-    channelName,
     topic,
-    canDelete,
   }
 }
 

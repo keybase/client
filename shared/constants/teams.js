@@ -5,6 +5,7 @@ import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import {getPathProps} from '../route-tree'
+import {getMeta} from './chat2'
 import {teamsTab} from './tabs'
 
 import type {Service} from './types/search'
@@ -194,6 +195,35 @@ const getChannelInfoFromConvID = (
   teamname: Types.Teamname,
   conversationIDKey: ChatTypes.ConversationIDKey
 ): ?Types.ChannelInfo => getTeamChannelInfos(state, teamname).get(conversationIDKey)
+
+const getChannelNameAndTopicFromConvID = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey
+): {channelName: string, topic: string} => {
+  // There are two ways to get the name and desc for a channel.
+  //
+  // We can be on the manage channels page, and it can be a channel that
+  // we aren't subscribed to, in which case the name/desc are only in the
+  // teams store.  Or we can be subscribed, and it's only in our inbox.
+  //
+  // But! If we edit the channel name from the info pane, it ends up in
+  // both places, but the copy in the teams store is incomplete -- it
+  // only knows about the edited field, so e.g. name but not description.
+  //
+  // A safe algorithm appears to be:
+  // * prefer the inbox entry if it exists, since it will be complete
+  // * unless it hasn't been unboxed yet, in which case we won't have
+  //   the description.
+  let channelInfo = getMeta(state, conversationIDKey)
+  if (!channelInfo || channelInfo.trustedState !== 'trusted') {
+    channelInfo = getChannelInfoFromConvID(state, teamname, conversationIDKey)
+  }
+  return {
+    channelName: channelInfo ? channelInfo.channelname : '',
+    topic: channelInfo ? channelInfo.description : '',
+  }
+}
 
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.getIn(['teamNameToRole', teamname], 'none')
@@ -396,6 +426,7 @@ export {
   userIsActiveInTeamHelper,
   getTeamChannelInfos,
   getChannelInfoFromConvID,
+  getChannelNameAndTopicFromConvID,
   getTeamID,
   getTeamRetentionPolicy,
   getTeamMembers,
