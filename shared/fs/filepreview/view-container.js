@@ -23,6 +23,7 @@ const mapStateToProps = (state: TypedState, {path}: Props) => {
   return {
     _serverInfo: state.fs.localHTTPServerInfo,
     mimeType: _pathItem.type === 'file' ? _pathItem.mimeType : '',
+    isSymlink: _pathItem.type === 'symlink',
   }
 }
 
@@ -31,14 +32,20 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: Props) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
 })
 
-const mergeProps = ({_serverInfo, mimeType}, {onInvalidToken, loadMimeType}, {path}) => ({
+const mergeProps = ({_serverInfo, mimeType, isSymlink}, {onInvalidToken, loadMimeType}, {path}) => ({
   url: Constants.generateFileURL(path, _serverInfo.address, _serverInfo.token),
   mimeType,
+  isSymlink,
+  path,
   onInvalidToken,
   loadMimeType,
 })
 
-const Renderer = ({mimeType, url, path, routePath, onInvalidToken, loadMimeType}) => {
+const Renderer = ({mimeType, isSymlink, url, path, routePath, onInvalidToken, loadMimeType}) => {
+  if (isSymlink) {
+    return <DefaultView path={path} routePath={routePath} />
+  }
+
   if (mimeType === '') {
     return (
       <Box style={stylesLoadingContainer}>
@@ -81,13 +88,13 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount() {
-      if (this.props.mimeType === '') {
+      if (!this.props.isSymlink && this.props.mimeType === '') {
         this.props.loadMimeType()
       }
     },
     componentDidUpdate(prevProps) {
       // Only call loadMimeType if we haven't called previously.
-      if (this.props.mimeType === '' && prevProps.mimeType !== '') {
+      if (!this.props.isSymlink && this.props.mimeType === '' && prevProps.mimeType !== '') {
         this.props.loadMimeType()
       }
     },
