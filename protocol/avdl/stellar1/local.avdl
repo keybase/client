@@ -2,6 +2,22 @@
 protocol local {
   import idl "common.avdl";
 
+  // -------------------------------------------------------
+  // frontend protocol
+  // -------------------------------------------------------
+
+  record WalletAccountLocal {
+    AccountID accountID;  // string "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K"
+    boolean isDefault;          // true if this is the default sending/receiving account
+    string name;                // the user-given name for the account
+    string balanceDescription;  // example: "56.0227002 XLM"
+  }
+  array<WalletAccountLocal> GetWalletAccountsLocal(int sessionID);
+
+  // -------------------------------------------------------
+  // CLI protocol
+  // -------------------------------------------------------
+
   array<Balance> balancesLocal(AccountID accountID);
 
   PaymentResult sendLocal(string recipient, string amount, Asset asset, string note, string displayAmount, string displayCurrency);
@@ -38,7 +54,7 @@ protocol local {
   Bundle walletDumpLocal();
 
   // Account balance and its current value in selected currency.
-  record LocalOwnAccount {
+  record OwnAccountCLILocal {
     AccountID accountID;
     boolean isPrimary;
     string name;
@@ -46,7 +62,7 @@ protocol local {
     union { null, OutsideExchangeRate } exchangeRate;
   }
 
-  array<LocalOwnAccount> walletGetLocalAccounts();
+  array<OwnAccountCLILocal> walletGetAccountsCLILocal();
 
   // Whether this account is one of this user's.
   boolean ownAccountLocal(AccountID accountID);

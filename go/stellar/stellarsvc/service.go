@@ -200,7 +200,7 @@ const defaultOutsideCurrency = "USD"
 // for accountID and fetches exchange rate is set.
 //
 // Arguments `account` and `exchangeRates` may end up mutated.
-func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, account *stellar1.LocalOwnAccount, exchangeRates exchangeRateMap) error {
+func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, account *stellar1.OwnAccountCLILocal, exchangeRates exchangeRateMap) error {
 	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, g, account.AccountID)
 	if err != nil {
 		return err
@@ -223,9 +223,9 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 	return nil
 }
 
-func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.LocalOwnAccount, err error) {
+func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.OwnAccountCLILocal, err error) {
 	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "WalletGetLocalAccounts", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "WalletGetAccountsCLILocal", func() error { return err })()
 	err = s.assertLoggedIn(ctx)
 	if err != nil {
 		return nil, err
@@ -240,7 +240,7 @@ func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.Loc
 	exchangeRates := make(exchangeRateMap)
 	for _, account := range dump.Accounts {
 		accID := account.AccountID
-		acc := stellar1.LocalOwnAccount{
+		acc := stellar1.OwnAccountCLILocal{
 			AccountID: accID,
 			IsPrimary: account.IsPrimary,
 			Name:      account.Name,
