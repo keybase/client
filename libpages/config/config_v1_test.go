@@ -92,8 +92,8 @@ func TestConfigV1Full(t *testing.T) {
 			Version: Version1Str,
 		},
 		Users: map[string]string{
-			"alice": string(generatePasswordHashForTestOrBust(t, "12345")),
-			"bob":   string(generatePasswordHashForTestOrBust(t, "54321")),
+			"alice": string(generateBcryptPasswordHashForTestOrBust(t, "12345")),
+			"bob":   string(GenerateSHA256PasswordHash("54321")),
 		},
 		ACLs: map[string]AccessControlV1{
 			"/": AccessControlV1{
@@ -126,7 +126,13 @@ func TestConfigV1Full(t *testing.T) {
 
 	ctx := context.Background()
 
-	authenticated := config.Authenticate(ctx, "alice", "12345")
+	authenticated := config.Authenticate(ctx, "alice", "54321")
+	require.False(t, authenticated)
+	authenticated = config.Authenticate(ctx, "bob", "12345")
+	require.False(t, authenticated)
+	authenticated = config.Authenticate(ctx, "alice", "12345")
+	require.True(t, authenticated)
+	authenticated = config.Authenticate(ctx, "bob", "54321")
 	require.True(t, authenticated)
 
 	read, list, possibleRead, possibleList,

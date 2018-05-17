@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/time/rate"
 )
 
@@ -30,10 +29,7 @@ type V1 struct {
 	// users should be authenticated.
 	Users map[string]string `json:"users"`
 
-	cleartextPasswordCacheLock sync.RWMutex
-	// [username -> password] map. Only available when a user has been
-	// authenticated.
-	cleartextPasswordCache map[string]string
+	users map[string]password
 
 	bcryptLimiter *rate.Limiter
 
@@ -69,8 +65,17 @@ const bcryptRateLimitInterval = time.Second / 2
 
 func (c *V1) init() {
 	c.bcryptLimiter = rate.NewLimiter(rate.Every(bcryptRateLimitInterval), 1)
-	c.cleartextPasswordCache = make(map[string]string)
 	c.aclChecker, c.aclCheckerInitErr = makeACLCheckerV1(c.ACLs, c.Users)
+	if c.aclCheckerInitErr != nil {
+		return
+	}
+	c.users = make(map[string]password)
+	for username, passwordHash := range c.Users {
+		c.users[username], c.aclCheckerInitErr = newPassword(passwordHash)
+		if c.aclCheckerInitErr != nil {
+			return
+		}
+	}
 }
 
 // EnsureInit initializes c, and returns any error encountered during the
@@ -86,49 +91,18 @@ func (c *V1) Version() Version {
 	return Version1
 }
 
-func (c *V1) getCachedCleartextPassword(username string) (cleartext string, ok bool) {
-	c.cleartextPasswordCacheLock.RLock()
-	defer c.cleartextPasswordCacheLock.RUnlock()
-	cleartext, ok = c.cleartextPasswordCache[username]
-	return cleartext, ok
-}
-
-func (c *V1) cacheCleartextPassword(username string, cleartext string) {
-	c.cleartextPasswordCacheLock.Lock()
-	defer c.cleartextPasswordCacheLock.Unlock()
-	c.cleartextPasswordCache[username] = cleartext
-}
-
 // Authenticate implements the Config interface.
 func (c *V1) Authenticate(ctx context.Context, username, cleartextPassword string) bool {
 	if c.EnsureInit() != nil {
 		return false
 	}
 
-	if cleartext, ok := c.getCachedCleartextPassword(username); ok {
-		return cleartext == cleartextPassword
-	}
-
-	passwordHash, ok := c.Users[username]
+	p, ok := c.users[username]
 	if !ok {
 		return false
 	}
-
-	c.bcryptLimiter.Wait(ctx)
-
-	select {
-	case <-ctx.Done():
-		return false
-	default:
-	}
-
-	match := bcrypt.CompareHashAndPassword(
-		[]byte(passwordHash), []byte(cleartextPassword)) == nil
-	if match {
-		c.cacheCleartextPassword(username, cleartextPassword)
-	}
-
-	return match
+	match, err := p.check(ctx, c.bcryptLimiter, cleartextPassword)
+	return err == nil && match
 }
 
 // GetPermissions implements the Config interface.
@@ -166,4 +140,18 @@ func (c *V1) Encode(w io.Writer, prettify bool) error {
 func (c *V1) Validate() error {
 	_, err := makeACLCheckerV1(c.ACLs, c.Users)
 	return err
+}
+
+// HasBcryptPasswords checks if any password hash in the config is a bcrypt
+// hash. This method is temporary for migration and will go away.
+func (c *V1) HasBcryptPasswords() (bool, error) {
+	if err := c.EnsureInit(); err != nil {
+		return false, err
+	}
+	for _, pass := range c.users {
+		if pass.passwordType() == passwordTypeBcrypt {
+			return true, nil
+		}
+	}
+	return false, nil
 }

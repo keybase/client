@@ -32,18 +32,22 @@ func newKBPConfigEditorWithPrompter(kbpConfigDir string, p prompter) (
 		}
 		switch cfg.Version() {
 		case config.Version1:
-			return nil, fmt.Errorf(
-				"config version %s is obsolete. Please run "+
-					"`kbpagesconfig upgrade` to upgrade your config file.",
-				cfg.Version())
-		case config.Version2:
-			editor.kbpConfig = cfg.(*config.V2)
+			editor.kbpConfig = cfg.(*config.V1)
+			needsUpgrade, err := editor.kbpConfig.HasBcryptPasswords()
+			if err != nil {
+				return nil, err
+			}
+			if needsUpgrade {
+				return nil, errors.New(
+					"config has bcrypt password hashes. Please run " +
+						"`kbpagesconfig upgrade` to migrate to sha256")
+			}
 		default:
 			return nil, fmt.Errorf(
 				"unsupported config version %s", cfg.Version())
 		}
 	case os.IsNotExist(err):
-		editor.kbpConfig = config.DefaultV2()
+		editor.kbpConfig = config.DefaultV1()
 	default:
 		return nil, fmt.Errorf(
 			"open file %s error: %v", kbpConfigPath, err)

@@ -113,13 +113,6 @@ func ParseConfig(reader io.Reader) (config Config, err error) {
 			return nil, err
 		}
 		return &v1, (&v1).EnsureInit()
-	case Version2:
-		var v2 V2
-		err = json.NewDecoder(buf).Decode(&v2)
-		if err != nil {
-			return nil, err
-		}
-		return &v2, (&v2).EnsureInit()
 	default:
 		return nil, ErrInvalidVersion{}
 	}

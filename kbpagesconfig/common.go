@@ -27,7 +27,7 @@ type prompter interface {
 // not go-routine safe!
 type kbpConfigEditor struct {
 	kbpConfigPath     string
-	kbpConfig         *config.V2
+	kbpConfig         *config.V1
 	originalConfigStr string
 	prompter          prompter
 }

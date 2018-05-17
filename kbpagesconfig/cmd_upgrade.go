@@ -46,7 +46,7 @@ func migrateUserToSHA256Hash(p prompter, username string, oldConfig config.Confi
 	}
 }
 
-func upgradeToV2WithPrompter(kbpConfigDir string, prompter prompter) (err error) {
+func upgradeToSHA256WithPrompter(kbpConfigDir string, prompter prompter) (err error) {
 	kbpConfigPath, err := kbpConfigPath(kbpConfigDir)
 	if err != nil {
 		return err
@@ -59,52 +59,55 @@ func upgradeToV2WithPrompter(kbpConfigDir string, prompter prompter) (err error)
 			return fmt.Errorf(
 				"reading config file %s error: %v", kbpConfigPath, err)
 		}
-		switch cfg.Version() {
-		case config.Version1:
-			confirmed, err := promptConfirm(prompter, fmt.Sprintf(
-				"You are about to upgrade your kbpages config file from "+
-					"%s to %s. If you had username/password pairs in your "+
-					"old config file, you will be prompted to enter "+
-					"passwords for each user one by one. If you don't know "+
-					"the password for any user(s), you may enter new "+
-					"passwords for them. Continue?",
-				config.Version1Str, config.Version2Str), true)
-			if err != nil {
-				return err
-			}
-			if !confirmed {
-				return fmt.Errorf("not confirmed")
-			}
-
-			oldConfig := cfg.(*config.V1)
-			newConfig := config.DefaultV2()
-			for p, acl := range oldConfig.ACLs {
-				if newConfig.ACLs == nil {
-					newConfig.ACLs = make(map[string]config.AccessControlV1)
-				}
-				// shadow copy since oldConfig is on-time use anyway
-				newConfig.ACLs[p] = acl
-			}
-			for user := range oldConfig.Users {
-				if newConfig.Users == nil {
-					newConfig.Users = make(map[string]string)
-				}
-				newConfig.Users[user] = migrateUserToSHA256Hash(
-					prompter, user, oldConfig)
-			}
-			if err = confirmAndWrite(originalConfigStr, newConfig,
-				kbpConfigPath, prompter); err != nil {
-				return err
-			}
-			return nil
-		case config.Version2:
-			fmt.Printf("Config file %s is already the latest version (%s).\n",
-				kbpConfigPath, cfg.Version())
-			return nil
-		default:
+		if cfg.Version() != config.Version1 {
 			return fmt.Errorf(
 				"unsupported config version %s", cfg.Version())
 		}
+
+		oldConfig := cfg.(*config.V1)
+		needsUpgrade, err := oldConfig.HasBcryptPasswords()
+		if err != nil {
+			return err
+		}
+		if !needsUpgrade {
+			fmt.Printf("Config file %s is already the latest version (%s).\n",
+				kbpConfigPath, cfg.Version())
+			return nil
+		}
+
+		confirmed, err := promptConfirm(prompter,
+			"You are about to migrate some password hashes in your "+
+				"kbpages config file from bcrypt to sha256. You will be "+
+				"prompted to enter passwords for each user one by one. "+
+				"If you don't know the password for any user(s), you may "+
+				"enter new passwords for them. Continue?", true)
+		if err != nil {
+			return err
+		}
+		if !confirmed {
+			return fmt.Errorf("not confirmed")
+		}
+
+		newConfig := config.DefaultV1()
+		for p, acl := range oldConfig.ACLs {
+			if newConfig.ACLs == nil {
+				newConfig.ACLs = make(map[string]config.AccessControlV1)
+			}
+			// shadow copy since oldConfig is on-time use anyway
+			newConfig.ACLs[p] = acl
+		}
+		for user := range oldConfig.Users {
+			if newConfig.Users == nil {
+				newConfig.Users = make(map[string]string)
+			}
+			newConfig.Users[user] = migrateUserToSHA256Hash(
+				prompter, user, oldConfig)
+		}
+		if err = confirmAndWrite(originalConfigStr, newConfig,
+			kbpConfigPath, prompter); err != nil {
+			return err
+		}
+		return nil
 	case os.IsNotExist(err):
 		return fmt.Errorf("no kbpages config file exists in %s", kbpConfigDir)
 	default:
@@ -112,14 +115,14 @@ func upgradeToV2WithPrompter(kbpConfigDir string, prompter prompter) (err error)
 	}
 }
 
-func upgradeToV2(c *cli.Context) {
+func upgradeToSHA256(c *cli.Context) {
 	term, err := minterm.New()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "opening terminal error: %s\n", err)
 		os.Exit(1)
 	}
-	if err = upgradeToV2WithPrompter(c.GlobalString("dir"), term); err != nil {
-		fmt.Fprintf(os.Stderr, "upgrading to V2 error: %s\n", err)
+	if err = upgradeToSHA256WithPrompter(c.GlobalString("dir"), term); err != nil {
+		fmt.Fprintf(os.Stderr, "upgrading to SHA256 error: %s\n", err)
 		os.Exit(1)
 	}
 }
@@ -128,5 +131,5 @@ var upgradeCmd = cli.Command{
 	Name:      "upgrade",
 	Usage:     "upgrade config file to the latest version",
 	UsageText: "upgrade",
-	Action:    upgradeToV2,
+	Action:    upgradeToSHA256,
 }

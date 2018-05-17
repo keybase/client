@@ -11,11 +11,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func generatePasswordHashForTestOrBust(t *testing.T, password string) []byte {
+func generateBcryptPasswordHashForTestOrBust(t *testing.T, password string) string {
 	passwordHash, err := bcrypt.GenerateFromPassword(
 		[]byte(password), bcrypt.MinCost)
 	require.NoError(t, err)
-	return passwordHash
+	return string(passwordHash)
 }
 
 func stringPtr(str string) *string {

@@ -48,6 +48,6 @@ func TestUpgrade(t *testing.T) {
 	nextResponse <- "ecila"
 	nextResponse <- "y"
 
-	err = upgradeToV2WithPrompter(configDir, prompter)
+	err = upgradeToSHA256WithPrompter(configDir, prompter)
 	require.NoError(t, err)
 }
