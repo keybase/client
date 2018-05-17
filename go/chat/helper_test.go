@@ -55,7 +55,7 @@ func TestRecentConversationParticipants(t *testing.T) {
 	}
 
 	require.NoError(t, storage.NewInbox(tc.Context(), uid).Clear(ctx))
-	_, _, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	_, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, err)
 
 	res, err := RecentConversationParticipants(ctx, tc.Context(), uid)
@@ -84,15 +84,15 @@ func TestSendTextByName(t *testing.T) {
 		helper := NewHelper(tc.Context(), getRi)
 		require.NoError(t, helper.SendTextByName(ctx, name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI"))
-		inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		inbox, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
 		require.NoError(t, helper.SendTextByName(ctx, name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI"))
-		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		inbox, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
-		tv, _, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
+		tv, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
 		require.NoError(t, err)
@@ -103,7 +103,7 @@ func TestSendTextByName(t *testing.T) {
 		err = helper.SendTextByName(ctx, name, &topicName,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI")
 		require.NoError(t, err)
-		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		inbox, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:

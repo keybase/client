@@ -369,7 +369,7 @@ func TestBackgroundPurge(t *testing.T) {
 	}
 
 	sendEphemeral := func(lifetime gregor1.DurationSec) {
-		_, _, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		_, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:              trip,
 				Sender:            uid,
@@ -428,7 +428,7 @@ func TestBackgroundPurge(t *testing.T) {
 	sendEphemeral(lifetime * 2)
 	sendEphemeral(lifetime * 3)
 
-	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, &chat1.GetThreadQuery{
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, &chat1.GetThreadQuery{
 		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 	}, nil)
 	require.NoError(t, err)

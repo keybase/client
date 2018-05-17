@@ -189,24 +189,23 @@ func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, convID chat1
 }
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
 
 	if convID.IsNil() {
-		return chat1.ThreadView{}, []*chat1.RateLimit{}, errors.New("RemoteConversationSource.Pull called with empty convID")
+		return chat1.ThreadView{}, errors.New("RemoteConversationSource.Pull called with empty convID")
 	}
 
 	// Insta fail if we are offline
 	if s.IsOffline(ctx) {
-		return chat1.ThreadView{}, []*chat1.RateLimit{}, OfflineError{}
+		return chat1.ThreadView{}, OfflineError{}
 	}
 
 	var rl []*chat1.RateLimit
 
 	// Get conversation metadata
-	conv, ratelim, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
-	rl = append(rl, ratelim)
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	if err != nil {
-		return chat1.ThreadView{}, rl, err
+		return chat1.ThreadView{}, err
 	}
 
 	// Fetch thread
@@ -218,20 +217,20 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
 	rl = append(rl, boxed.RateLimit)
 	if err != nil {
-		return chat1.ThreadView{}, rl, err
+		return chat1.ThreadView{}, err
 	}
 
 	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv)
 	if err != nil {
-		return chat1.ThreadView{}, rl, err
+		return chat1.ThreadView{}, err
 	}
 
 	// Post process thread before returning
 	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, false); err != nil {
-		return chat1.ThreadView{}, nil, err
+		return chat1.ThreadView{}, err
 	}
 
-	return thread, rl, nil
+	return thread, nil
 }
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
@@ -496,7 +495,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Grab conversation information before pushing
-	conv, _, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -664,20 +663,18 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 var maxHolesForPull = 10
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, rl []*chat1.RateLimit, err error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Pull(%s)", convID)()
 	if convID.IsNil() {
-		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
+		return chat1.ThreadView{}, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
-		return thread, rl, err
+		return thread, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
-	conv, ratelim, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
-	rl = append(rl, ratelim)
-
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	var unboxConv types.UnboxConversationInfo
 	if err == nil {
 		unboxConv = conv
@@ -699,25 +696,23 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				// Identify this TLF by running crypt keys
 				if ierr := s.identifyTLF(ctx, conv, uid, thread.Messages); ierr != nil {
 					s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
-					return chat1.ThreadView{}, rl, ierr
+					return chat1.ThreadView{}, ierr
 				}
 
 				// Before returning the stuff, send remote request to mark as read if
 				// requested.
 				if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
 					readMsgID := thread.Messages[0].GetMessageID()
-					res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
+					_, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
 						ConversationID: convID,
 						MsgID:          readMsgID,
 					})
 					if err != nil {
-						return chat1.ThreadView{}, nil, err
+						return chat1.ThreadView{}, err
 					}
 					if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
-						return chat1.ThreadView{}, nil, err
+						return chat1.ThreadView{}, err
 					}
-
-					rl = append(rl, res.RateLimit)
 				} else {
 					s.Debug(ctx, "Pull: skipping mark as read call")
 				}
@@ -725,9 +720,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 			// Run post process stuff
 			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, true); err != nil {
-				return thread, rl, err
+				return thread, err
 			}
-			return thread, rl, nil
+			return thread, nil
 		}
 		s.Debug(ctx, "Pull: cache miss: err: %s", err.Error())
 	} else {
@@ -737,7 +732,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 	// Insta fail if we are offline
 	if s.IsOffline(ctx) {
-		return chat1.ThreadView{}, rl, OfflineError{}
+		return chat1.ThreadView{}, OfflineError{}
 	}
 
 	// Fetch the entire request on failure
@@ -747,9 +742,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		Pagination:     pagination,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
-	rl = append(rl, boxed.RateLimit)
 	if err != nil {
-		return chat1.ThreadView{}, rl, err
+		return chat1.ThreadView{}, err
 	}
 
 	// Set up public inbox info if we don't have one with members type from remote call. Assume this is a
@@ -761,7 +755,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Unbox
 	thread, err = s.boxer.UnboxThread(ctx, boxed.Thread, unboxConv)
 	if err != nil {
-		return chat1.ThreadView{}, rl, err
+		return chat1.ThreadView{}, err
 	}
 
 	// Store locally (just warn on error, don't abort the whole thing)
@@ -771,9 +765,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 	// Run post process stuff
 	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, true, true); err != nil {
-		return thread, rl, err
+		return thread, err
 	}
-	return thread, rl, nil
+	return thread, nil
 }
 
 type pullLocalResultCollector struct {
