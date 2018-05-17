@@ -96,8 +96,8 @@ function resetClient(client: createClientType) {
   nativeBridge.reset()
 }
 
-function checkRPCOwnership(): Promise<*> {
-  return Promise.resolve({})
+function checkRPCOwnership(): Promise<void> {
+  return Promise.resolve()
 }
 
 export {resetClient, createClient, rpcLog, checkRPCOwnership}
