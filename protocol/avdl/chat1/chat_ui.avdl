@@ -171,9 +171,9 @@ protocol chatUi {
   void chatThreadFull(int sessionID, string thread) oneway;
 
   record ChatSearchHit {
-    union{ null, UIMessage } prevMessage;
-    union{ null, UIMessage } hitMessage;
-    union{ null, UIMessage } nextMessage;
+    array<UIMessage> beforeMessages;
+    UIMessage hitMessage;
+    array<UIMessage> afterMessages;
     array<string>  matches;
   }
 

@@ -7,10 +7,13 @@ package libkb
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"sync"
 	"testing"
+	"time"
 )
 
 func setupTest(t *testing.T, nm string) *TestContext {
@@ -30,7 +33,6 @@ func setupTest(t *testing.T, nm string) *TestContext {
 // only processes in the same user account are supposed to be able to
 // open each other's named pipes.
 func TestWindowsNamedPipe(t *testing.T) {
-
 	tc := setupTest(t, "socket_windows_test")
 
 	defer tc.Cleanup()
@@ -77,5 +79,40 @@ func namedPipeClient(sendSocket Socket, t *testing.T) {
 	}
 	if _, err := fmt.Fprintln(conn, "Hi server!"); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestWindowsPipeOwner(t *testing.T) {
+
+	tc := setupTest(t, "socket_windows_test")
+	defer tc.Cleanup()
+
+	testPipeName := "\\\\.\\pipe\\keybase\\test\\pipe"
+	serverCmd := exec.Command("go", "run", "testfixtures\\npipe\\main.go", testPipeName)
+	err := serverCmd.Start()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer serverCmd.Process.Kill()
+
+	// Give the server time to open the pipe
+	time.Sleep(200 * time.Millisecond)
+
+	// Test existing pipe
+	owner, err := IsPipeowner(testPipeName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !owner {
+		t.Fatal(errors.New("Expected true getting owner of test pipe"))
+	}
+
+	// Test nonexisting
+	owner, err = IsPipeowner(testPipeName + "_nonexistent")
+	if err == nil {
+		t.Fatal(errors.New("Expected error getting owner of nonexistent pipe"))
+	}
+	if owner {
+		t.Fatal(errors.New("Expected false getting owner of nonexistent pipe"))
 	}
 }

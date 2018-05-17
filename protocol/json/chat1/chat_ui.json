@@ -588,25 +588,22 @@
       "name": "ChatSearchHit",
       "fields": [
         {
-          "type": [
-            null,
-            "UIMessage"
-          ],
-          "name": "prevMessage"
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "beforeMessages"
         },
         {
-          "type": [
-            null,
-            "UIMessage"
-          ],
+          "type": "UIMessage",
           "name": "hitMessage"
         },
         {
-          "type": [
-            null,
-            "UIMessage"
-          ],
-          "name": "nextMessage"
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "afterMessages"
         },
         {
           "type": {
