@@ -9,7 +9,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
-	context "golang.org/x/net/context"
 )
 
 type SignupEngine struct {
@@ -124,9 +123,11 @@ func (s *SignupEngine) Run(m libkb.MetaContext) error {
 	// For instance, setup gregor and friends...
 	m.G().CallLoginHooks()
 
-	go func() {
-		m.G().GetStellar().CreateWalletSoft(context.Background())
-	}()
+	// TODO: debug why this fails when autowallet is enabled. Something is amiss with sigchain guard.
+	// go func() {
+	// 	m.G().GetStellar().CreateWalletSoft(m.BackgroundWithLogTags())
+	// }()
+	m.G().GetStellar().CreateWalletSoft(m)
 
 	return nil
 }

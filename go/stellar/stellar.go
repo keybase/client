@@ -21,14 +21,14 @@ import (
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
 // Safe to call even if the user has a bundle already.
-func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.CreateWallet", func() error { return err })()
+func CreateWallet(m libkb.MetaContext) (created bool, err error) {
+	defer m.CTraceTimed("Stellar.CreateWallet", func() error { return err })()
 	// TODO: short-circuit if the user has a bundle already
 	clearBundle, err := bundle.NewInitialBundle()
 	if err != nil {
 		return created, err
 	}
-	err = remote.PostWithChainlink(ctx, g, clearBundle)
+	err = remote.PostWithChainlink(m.Ctx(), m.G(), clearBundle)
 	switch e := err.(type) {
 	case nil:
 		// ok
@@ -37,7 +37,7 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 		case keybase1.StatusCode_SCStellarWrongRevision:
 			// Assume this happened because a bundle already existed.
 			// And suppress the error.
-			g.Log.CDebugf(ctx, "suppressing error: %v", err)
+			m.CDebugf("suppressing error: %v", err)
 			return false, nil
 		}
 		return false, err
@@ -47,59 +47,59 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	return true, err
 }
 
-func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (created bool, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.CreateWalletGated", func() error { return err })()
+func CreateWalletGated(m libkb.MetaContext) (created bool, err error) {
+	defer m.CTraceTimed("Stellar.CreateWalletGated", func() error { return err })()
 	// TODO: short-circuit if the user has a bundle already
-	if !g.Env.GetAutoWallet() {
-		g.Log.CDebugf(ctx, "CreateWalletGated disabled by env setting")
+	if !m.G().Env.GetAutoWallet() {
+		m.CDebugf("CreateWalletGated disabled by env setting")
 		return false, nil
 	}
-	should, err := remote.ShouldCreate(ctx, g)
+	should, err := remote.ShouldCreate(m.Ctx(), m.G())
 	if err != nil {
 		return false, err
 	}
 	if !should {
-		g.Log.CDebugf(ctx, "server did not recommend wallet creation")
+		m.CDebugf("server did not recommend wallet creation")
 		return false, nil
 	}
-	return CreateWallet(ctx, g)
+	return CreateWallet(m)
 }
 
 // CreateWalletSoft creates a user's initial wallet if they don't already have one.
 // Does not get in the way of intentional user actions.
-func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
+func CreateWalletSoft(m libkb.MetaContext) {
 	var err error
-	defer g.CTraceTimed(ctx, "CreateWalletSoft", func() error { return err })()
-	if !g.LocalSigchainGuard().IsAvailable(ctx, "CreateWalletSoft") {
+	defer m.CTraceTimed("CreateWalletSoft", func() error { return err })()
+	if !m.G().LocalSigchainGuard().IsAvailable(m.Ctx(), "CreateWalletSoft") {
 		err = fmt.Errorf("yielding to guard")
 		return
 	}
-	_, err = CreateWalletGated(ctx, g)
+	_, err = CreateWalletGated(m)
 	return
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
-func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
-	defer g.CTraceTimed(ctx, "Stellar.Upkeep", func() error { return err })()
-	prevBundle, prevPukGen, err := remote.Fetch(ctx, g)
+func Upkeep(m libkb.MetaContext) (err error) {
+	defer m.CTraceTimed("Stellar.Upkeep", func() error { return err })()
+	prevBundle, prevPukGen, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
 	}
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := m.G().GetPerUserKeyring()
 	if err != nil {
 		return err
 	}
-	err = pukring.Sync(libkb.NewMetaContext(ctx, g))
+	err = pukring.Sync(m)
 	if err != nil {
 		return err
 	}
 	pukGen := pukring.CurrentGeneration()
 	if pukGen <= prevPukGen {
-		g.Log.CDebugf(ctx, "Stellar.Upkeep: early out prevPukGen:%v < pukGen:%v", prevPukGen, pukGen)
+		m.CDebugf("Stellar.Upkeep: early out prevPukGen:%v < pukGen:%v", prevPukGen, pukGen)
 		return nil
 	}
 	nextBundle := bundle.Advance(prevBundle)
-	return remote.Post(ctx, g, nextBundle)
+	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
 func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool) (err error) {

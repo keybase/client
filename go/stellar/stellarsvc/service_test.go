@@ -338,7 +338,7 @@ func TestRecentPaymentsLocal(t *testing.T) {
 
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
-	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
+	_, err = stellar.CreateWalletSlow(context.Background(), tcs[1].G)
 	require.NoError(t, err)
 
 	srvSender := tcs[0].Srv

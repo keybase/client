@@ -88,21 +88,21 @@ func (e *WalletUpkeepBackground) Shutdown() {
 }
 
 func WalletUpkeepBackgroundRound(m libkb.MetaContext) error {
-	g := m.G()
-	if g.ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
+	m = m.WithLogTag("WBG")
+	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
 		m.CDebugf("WalletUpkeepBackgroundRound giving up offline")
 		return nil
 	}
 
-	if !g.ActiveDevice.Valid() {
+	if !m.G().ActiveDevice.Valid() {
 		m.CDebugf("WalletUpkeepBackgroundRound not logged in")
 		return nil
 	}
 
-	if !g.LocalSigchainGuard().IsAvailable(m.Ctx(), "WalletUpkeepBackgroundRound") {
+	if !m.G().LocalSigchainGuard().IsAvailable(m.Ctx(), "WalletUpkeepBackgroundRound") {
 		m.CDebugf("WalletUpkeepBackgroundRound yielding to guard")
 		return nil
 	}
 
-	return g.GetStellar().Upkeep(m.Ctx())
+	return m.G().GetStellar().Upkeep(m)
 }

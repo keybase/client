@@ -1,7 +1,8 @@
 package stellar
 
+// Stellar functions callable from G
+
 import (
-	"context"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
@@ -10,46 +11,42 @@ import (
 )
 
 func ServiceInit(g *libkb.GlobalContext) {
-	g.SetStellar(NewStellar(g))
+	g.SetStellar(NewStellar())
 }
 
 type Stellar struct {
-	libkb.Contextified
-
 	serverConfLock   sync.Mutex
 	cachedServerConf stellar1.StellarServerDefinitions
 }
 
 var _ libkb.Stellar = (*Stellar)(nil)
 
-func NewStellar(g *libkb.GlobalContext) *Stellar {
-	return &Stellar{
-		Contextified: libkb.NewContextified(g),
-	}
+func NewStellar() *Stellar {
+	return &Stellar{}
 }
 
-func (s *Stellar) CreateWalletGated(ctx context.Context) (bool, error) {
-	return CreateWalletGated(ctx, s.G())
+func (s *Stellar) CreateWalletGated(m libkb.MetaContext) (bool, error) {
+	return CreateWalletGated(m)
 }
 
-func (s *Stellar) CreateWalletSoft(ctx context.Context) {
-	CreateWalletSoft(ctx, s.G())
+func (s *Stellar) CreateWalletSoft(m libkb.MetaContext) {
+	CreateWalletSoft(m)
 }
 
-func (s *Stellar) Upkeep(ctx context.Context) error {
-	return Upkeep(ctx, s.G())
+func (s *Stellar) Upkeep(m libkb.MetaContext) error {
+	return Upkeep(m)
 }
 
 func (s *Stellar) OnLogout() {}
 
-func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
+func (s *Stellar) GetServerDefinitions(m libkb.MetaContext) (ret stellar1.StellarServerDefinitions, err error) {
 	if s.cachedServerConf.Revision == 0 {
 		s.serverConfLock.Lock()
 		defer s.serverConfLock.Unlock()
 		if s.cachedServerConf.Revision == 0 {
 			// check if still 0, we might have waited for other thread
 			// to finish fetching.
-			if ret, err = remote.FetchServerConfig(ctx, s.G()); err != nil {
+			if ret, err = remote.FetchServerConfig(m.Ctx(), m.G()); err != nil {
 				return ret, err
 			}
 

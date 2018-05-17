@@ -5,9 +5,10 @@ package engine
 
 import (
 	"fmt"
+	"runtime/debug"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"runtime/debug"
 )
 
 type Prereqs struct {
@@ -92,6 +93,7 @@ func runPrereqs(m libkb.MetaContext, e Engine2) error {
 }
 
 func RunEngine2(m libkb.MetaContext, e Engine2) (err error) {
+	m = m.WithLogTag("ENG")
 	defer m.CTrace(fmt.Sprintf("RunEngine(%s)", e.Name()), func() error { return err })()
 
 	if m, err = delegateUIs(m, e); err != nil {
