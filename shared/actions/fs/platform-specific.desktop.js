@@ -5,7 +5,7 @@ import * as Config from '../../constants/config'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as Electron from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import fs from 'fs'
 import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
@@ -48,7 +48,7 @@ function openInDefaultDirectory(openPath: string) {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      Electron.shell.openExternal(url, {}, err => {
+      SafeElectron.getShell().openExternal(url, {activate: true}, err => {
         if (err) {
           reject(err)
           return
@@ -83,7 +83,7 @@ function _open(openPath: string) {
     getPathType(openPath).then(typ => {
       if (typ === 'directory') {
         if (isWindows) {
-          if (!Electron.shell.openItem(openPath)) {
+          if (!SafeElectron.getShell().openItem(openPath)) {
             reject(new Error(`Unable to open item: ${openPath}`))
             return
           }
@@ -92,7 +92,7 @@ function _open(openPath: string) {
           return
         }
       } else if (typ === 'file') {
-        if (!Electron.shell.showItemInFolder(openPath)) {
+        if (!SafeElectron.getShell().showItemInFolder(openPath)) {
           reject(new Error(`Unable to open item in folder: ${openPath}`))
           return
         }
@@ -183,8 +183,8 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
-  const dialog = Electron.dialog || Electron.remote.dialog
-  dialog.showMessageBox(
+  SafeElectron.getDialog().showMessageBox(
+    undefined,
     {
       buttons: ['Remove & Restart', 'Cancel'],
       detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
@@ -201,18 +201,17 @@ function uninstallKBFS() {
 
 function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-  const app = Electron.remote.app
-  app.relaunch()
-  app.exit(0)
+  SafeElectron.getApp().relaunch()
+  SafeElectron.getApp().exit(0)
 }
 
 function openSecurityPreferences() {
   return Saga.call(
     () =>
       new Promise((resolve, reject) => {
-        Electron.shell.openExternal(
+        SafeElectron.getShell().openExternal(
           'x-apple.systempreferences:com.apple.preference.security?General',
-          {},
+          {activate: true},
           err => {
             if (err) {
               reject(err)

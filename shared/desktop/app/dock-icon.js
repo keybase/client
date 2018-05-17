@@ -1,19 +1,22 @@
 // @flow
-import electron from 'electron'
-const app = electron.app || electron.remote.app
+import * as SafeElectron from '../../util/safe-electron.desktop'
 
 export function showDockIcon() {
-  if (app.dock && !app.dock.isVisible()) {
+  const app = SafeElectron.getApp()
+  const dock = app.dock
+  if (dock && !dock.isVisible()) {
     // Be aware that app.dock.isVisible() won't be true immediately
     // after app.dock.show() since there is a slight delay there.
-    app.dock.show()
+    dock.show()
     app.emit('-keybase-dock-showing', {}, this)
   }
 }
 
 export function hideDockIcon() {
-  if (app.dock && app.dock.isVisible()) {
-    app.dock.hide()
+  const app = SafeElectron.getApp()
+  const dock = app.dock
+  if (dock && dock.isVisible()) {
+    dock.hide()
     app.emit('-keybase-dock-hide', {}, this)
   }
 }

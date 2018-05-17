@@ -3,15 +3,12 @@
 // Listens for requests from the main process (which proxies requests from other windows) to kick off an update
 // If asked we'll send all props, otherwise we do a shallow compare and send the different ones
 import * as React from 'react'
-import electron, {remote} from 'electron'
-
-const ipcRenderer = electron.ipcRenderer
-const BrowserWindow = remote.BrowserWindow
+import * as SafeElectron from '../../util/safe-electron.desktop'
 
 type Props = {
   windowParam: ?string,
   windowComponent: string,
-  remoteWindow: ?BrowserWindow,
+  remoteWindow: ?SafeElectron.BrowserWindowType,
 }
 
 function SyncProps(ComposedComponent: any) {
@@ -58,10 +55,10 @@ function SyncProps(ComposedComponent: any) {
     }
 
     componentDidMount() {
-      ipcRenderer.on('remoteWindowWantsProps', this._onNeedProps)
+      SafeElectron.getIpcRenderer().on('remoteWindowWantsProps', this._onNeedProps)
     }
     componentWillUnmount() {
-      ipcRenderer.removeListener('remoteWindowWantsProps', this._onNeedProps)
+      SafeElectron.getIpcRenderer().removeListener('remoteWindowWantsProps', this._onNeedProps)
     }
 
     render() {

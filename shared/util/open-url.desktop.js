@@ -1,12 +1,12 @@
 // @flow
-import {shell} from 'electron'
+import * as SafeElectron from './safe-electron.desktop'
 
 const openURL = (url: ?string) => {
   if (!url) {
     console.warn('openURL received empty url')
     return
   }
-  shell.openExternal(url)
+  SafeElectron.getShell().openExternal(url)
 }
 
 export default openURL

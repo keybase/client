@@ -7,7 +7,7 @@ import type {IconType} from '../common-adapters/icon'
 import {fsTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
-import {remote} from 'electron'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
 
 export type Props = {
@@ -44,7 +44,9 @@ class MenubarRender extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    remote.getCurrentWindow().on('show', this._onShow)
+    SafeElectron.getRemote()
+      .getCurrentWindow()
+      .on('show', this._onShow)
   }
 
   render() {

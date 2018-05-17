@@ -1,7 +1,7 @@
 // @flow
 import {showDockIcon} from '../desktop/app/dock-icon'
 import {getMainWindow} from '../desktop/remote/util'
-import {ipcRenderer} from 'electron'
+import * as SafeElectron from '../util/safe-electron.desktop'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -32,13 +32,13 @@ function configurePush() {
 }
 
 function setAppState(toMerge: Object) {
-  ipcRenderer.send('setAppState', toMerge)
+  SafeElectron.getIpcRenderer().send('setAppState', toMerge)
 }
 
 function getAppState() {
   return new Promise((resolve, reject) => {
-    ipcRenderer.once('getAppStateReply', (event, data) => resolve(data))
-    ipcRenderer.send('getAppState')
+    SafeElectron.getIpcRenderer().once('getAppStateReply', (event, data) => resolve(data))
+    SafeElectron.getIpcRenderer().send('getAppState')
   })
 }
 

@@ -3,14 +3,14 @@
 // This acts as a fake store for remote windows
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send a 'remoteWindowWantsProps' to the main window which then sends us 'props'
-import {remote, BrowserWindow} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {sendToMainWindow} from './util'
 import {createStore, applyMiddleware, type Store} from 'redux'
 
 const updateStore = 'remoteStore:update'
 
 class RemoteStore {
-  _window: ?BrowserWindow
+  _window: ?SafeElectron.BrowserWindowType
   _store: Store<any, any, any>
   _gotPropsCallback: ?() => void // let component know it loaded once so it can show itself. Set to null after calling once
 
@@ -32,7 +32,7 @@ class RemoteStore {
   }
 
   _registerForRemoteUpdate = () => {
-    this._window = remote.getCurrentWindow()
+    this._window = SafeElectron.getRemote().getCurrentWindow()
     this._window.on('props', this._onPropsUpdated)
   }
 

@@ -2,7 +2,7 @@
 import * as RPCTypes from '../constants/types/rpc-gen'
 import shared from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
-import {remote} from 'electron'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import dumpLogs from '../logger/dump-log-fs'
 
@@ -16,7 +16,7 @@ export default function(
   const handlers: RPCTypes.IncomingCallMapType = {
     'keybase.1.NotifyApp.exit': () => {
       console.log('App exit requested')
-      remote.app.exit(0)
+      SafeElectron.getApp().exit(0)
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) => {
       kbfsNotification(notification, notify, getState)
@@ -30,7 +30,7 @@ export default function(
       if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
         console.log('Quitting due to service shutdown')
         // Quit just the app, not the service
-        remote.app.quit(true)
+        SafeElectron.getApp().quit()
       }
     },
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
