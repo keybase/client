@@ -42,7 +42,12 @@ class NewConversation extends React.PureComponent<Props> {
               )}
             </Box>
           </Box>
-          <Icon type="iconfont-remove" onClick={this.props.onCancel} color={globalColors.white} />
+          <Icon
+            type="iconfont-remove"
+            onClick={this.props.onCancel}
+            color={globalColors.white}
+            style={this.props.isSelected ? closeIconSelectedStyle : closeIconStyle}
+          />
         </Box>
       </ClickableBox>
     )
@@ -86,7 +91,7 @@ const container2Style = {
 const container3Style = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.blue2,
+  backgroundColor: globalColors.blue3_40,
   borderRadius: globalMargins.large,
   height: globalMargins.large,
   justifyContent: 'center',
@@ -103,4 +108,13 @@ const textSelectedStyle = {
   color: globalColors.white,
 }
 
+const closeIconStyle = {
+  color: globalColors.black_20,
+  marginRight: globalMargins.tiny,
+}
+
+const closeIconSelectedStyle = {
+  ...closeIconStyle,
+  color: globalColors.white,
+}
 export default NewConversation

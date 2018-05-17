@@ -31,9 +31,9 @@ const stylesDesktopContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   backgroundColor: globalColors.blue,
-  height: 56,
+  paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
   justifyContent: 'center',
-  minHeight: 56,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
 }

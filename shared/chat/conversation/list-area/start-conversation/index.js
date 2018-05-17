@@ -13,7 +13,7 @@ const StartConversation = (props: Props) => (
     <Text type="BodySemibold" style={styles.header}>
       You don't have a conversation with {props.participants} yet.
     </Text>
-    <Button type="Primary" label="Start an end-to-end encrypted chat" onClick={props.onStart}>
+    <Button type="Primary" label="Start a chat" onClick={props.onStart}>
       <Icon
         type="iconfont-chat"
         style={{
@@ -23,7 +23,7 @@ const StartConversation = (props: Props) => (
       />
     </Button>
     <Text type="BodySmall" style={styles.addMore}>
-      or add some more participants.
+      or add more participants.
     </Text>
   </Box2>
 )
@@ -40,6 +40,7 @@ const styles = styleSheetCreate({
   }),
   container: {
     alignItems: 'center',
+    backgroundColor: globalColors.white,
     height: '100%',
     justifyContent: 'center',
     padding: 8,
