@@ -10,7 +10,7 @@ const commonProps = {
   onBlur: action('onBlur'),
   onChangeText: action('onChangeText'),
   onClick: action('onClick'),
-  onSubmitEditing: action('onSubmitEditing'),
+  onEnterKeyDown: action('onEnterKeyDown'),
   onFocus: action('onFocus'),
   onKeyDown: action('onKeyDown'),
   onKeyUp: action('onKeyUp'),
