@@ -515,7 +515,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 	if len(names) == 0 {
 		return nil
 	}
-	chanResponse, _, err := ts.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT)
+	chanResponse, err := ts.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT)
 	if err != nil {
 		return nil
 	}
@@ -641,6 +641,13 @@ func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 }
 
 func PluckUIMessageIDs(msgs []chat1.UIMessage) (res []chat1.MessageID) {
+	for _, m := range msgs {
+		res = append(res, m.GetMessageID())
+	}
+	return res
+}
+
+func PluckMUMessageIDs(msgs []chat1.MessageUnboxed) (res []chat1.MessageID) {
 	for _, m := range msgs {
 		res = append(res, m.GetMessageID())
 	}
@@ -774,6 +781,8 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 		return fmt.Sprintf("%s added to team", msg.Inviteaddedtoteam().Invitee)
 	case chat1.MessageSystemType_GITPUSH:
 		return fmt.Sprintf("%s pushed to %s", msg.Gitpush().Pusher, msg.Gitpush().RepoName)
+	case chat1.MessageSystemType_CHANGEAVATAR:
+		return fmt.Sprintf("%s changed team avatar", msg.Changeavatar().User)
 	default:
 		return ""
 	}

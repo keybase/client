@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -274,8 +275,15 @@ func (c *FullCachingSource) dispatchPopulateFromRes(ctx context.Context, res key
 	}
 }
 
-func (c *FullCachingSource) makeURL(path string) keybase1.AvatarUrl {
-	return keybase1.MakeAvatarURL(fmt.Sprintf("file://%s", fileUrlize(path)))
+func (c *FullCachingSource) makeURL(ctx context.Context, path string) keybase1.AvatarUrl {
+	raw := fmt.Sprintf("file://%s", fileUrlize(path))
+	u, err := url.Parse(raw)
+	if err != nil {
+		c.debug(ctx, "makeURL: invalid URL: %s", err)
+		return keybase1.MakeAvatarURL("")
+	}
+	final := fmt.Sprintf("file://%s", u.EscapedPath())
+	return keybase1.MakeAvatarURL(final)
 }
 
 func (c *FullCachingSource) mergeRes(res *keybase1.LoadAvatarsRes, m keybase1.LoadAvatarsRes) {
@@ -298,11 +306,11 @@ func (c *FullCachingSource) loadNames(ctx context.Context, names []string, forma
 	// Fill in the hits
 	allocRes(&res, names)
 	for _, hit := range loadSpec.hits {
-		res.Picmap[hit.name][hit.format] = c.makeURL(hit.path)
+		res.Picmap[hit.name][hit.format] = c.makeURL(ctx, hit.path)
 	}
 	// Fill in stales
 	for _, stale := range loadSpec.stales {
-		res.Picmap[stale.name][stale.format] = c.makeURL(stale.path)
+		res.Picmap[stale.name][stale.format] = c.makeURL(ctx, stale.path)
 	}
 
 	// Go get the misses
@@ -333,6 +341,23 @@ func (c *FullCachingSource) loadNames(ctx context.Context, names []string, forma
 	return res, nil
 }
 
+func (c *FullCachingSource) clearName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
+	for _, format := range formats {
+		key := c.avatarKey(name, format)
+		found, ent, err := c.diskLRU.Get(ctx, c.G(), key)
+		if err != nil {
+			return err
+		}
+		if found {
+			c.removeFile(ctx, &ent)
+			if err := c.diskLRU.Remove(ctx, c.G(), key); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (c *FullCachingSource) LoadUsers(ctx context.Context, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer c.G().Trace("FullCachingSource.LoadUsers", func() error { return err })()
 	return c.loadNames(ctx, usernames, formats, c.simpleSource.LoadUsers)
@@ -341,4 +366,9 @@ func (c *FullCachingSource) LoadUsers(ctx context.Context, usernames []string, f
 func (c *FullCachingSource) LoadTeams(ctx context.Context, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer c.G().Trace("FullCachingSource.LoadTeams", func() error { return err })()
 	return c.loadNames(ctx, teams, formats, c.simpleSource.LoadTeams)
+}
+
+func (c *FullCachingSource) ClearCacheForName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
+	defer c.G().Trace(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
+	return c.clearName(ctx, name, formats)
 }

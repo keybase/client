@@ -307,6 +307,8 @@ type searchRegexpOptionsV1 struct {
 	IsRegex        bool   `json:"is_regex"`
 	MaxHits        int    `json:"max_hits"`
 	MaxMessages    int    `json:"max_messages"`
+	BeforeContext  int    `json:"before_context"`
+	AfterContext   int    `json:"after_context"`
 }
 
 func (o searchRegexpOptionsV1) Check() error {

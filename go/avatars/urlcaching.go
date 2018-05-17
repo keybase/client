@@ -161,6 +161,16 @@ func (c *URLCachingSource) loadNames(ctx context.Context, names []string, format
 	return res, nil
 }
 
+func (c *URLCachingSource) clearName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
+	for _, format := range formats {
+		key := c.avatarKey(name, format)
+		if err := c.diskLRU.Remove(ctx, c.G(), key); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (c *URLCachingSource) LoadUsers(ctx context.Context, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer c.G().Trace("URLCachingSource.LoadUsers", func() error { return err })()
 	return c.loadNames(ctx, usernames, formats, c.simpleSource.LoadUsers)
@@ -169,4 +179,9 @@ func (c *URLCachingSource) LoadUsers(ctx context.Context, usernames []string, fo
 func (c *URLCachingSource) LoadTeams(ctx context.Context, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer c.G().Trace("URLCachingSource.LoadTeams", func() error { return err })()
 	return c.loadNames(ctx, teams, formats, c.simpleSource.LoadTeams)
+}
+
+func (c *URLCachingSource) ClearCacheForName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
+	defer c.G().Trace(fmt.Sprintf("URLCachingSource.ClearCacheForUser(%s,%v)", name, formats), func() error { return err })()
+	return c.clearName(ctx, name, formats)
 }

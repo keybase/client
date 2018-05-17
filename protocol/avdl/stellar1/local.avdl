@@ -4,7 +4,7 @@ protocol local {
 
   array<Balance> balancesLocal(AccountID accountID);
 
-  PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
+  PaymentResult sendLocal(string recipient, string amount, Asset asset, string note, string displayAmount, string displayCurrency);
 
   record PaymentCLIOptionLocal {
     // Pointer or error

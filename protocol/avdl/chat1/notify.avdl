@@ -73,6 +73,7 @@ protocol NotifyChat {
   record EphemeralPurgeNotifInfo {
     ConversationID convID;
     array<UIMessage> msgs;
+    union { null, InboxUIItem } conv;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {

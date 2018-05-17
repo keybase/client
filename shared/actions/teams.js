@@ -402,7 +402,7 @@ const _createNewTeamFromConversation = function*(
 }
 
 const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGenerator<any, any> {
-  const teamname = action.payload.teamname
+  const {teamname} = action.payload
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
@@ -514,6 +514,33 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   } finally {
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
+}
+
+function _getDetailsForAllTeams(action: TeamsGen.GetDetailsForAllTeamsPayload, state: TypedState) {
+  const actions = state.teams.teamnames
+    .toArray()
+    .map(teamname => Saga.put(TeamsGen.createGetDetails({teamname})))
+  return Saga.sequentially(actions)
+}
+
+function* _addUserToTeams(action: TeamsGen.AddUserToTeamsPayload, state: TypedState) {
+  const {role, teams, user} = action.payload
+  const collectedResults = []
+  for (const team of teams) {
+    try {
+      yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
+        name: team,
+        email: '',
+        username: user,
+        role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+        sendChatNotification: true,
+      })
+      collectedResults.push(`Added ${user} to ${team}.`)
+    } catch (error) {
+      collectedResults.push(`Error adding ${user}: ${error.desc}  `)
+    }
+  }
+  yield Saga.put(TeamsGen.createSetAddUserToTeamsResults({results: collectedResults.join('\n')}))
 }
 
 const _getTeamOperations = function*(
@@ -964,7 +991,7 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
   }
 
-  return Saga.sequentially([
+  return Saga.all([
     Saga.call(RPCChatTypes.localPostHeadlineRpcPromise, param),
     Saga.put(TeamsGen.createSetUpdatedTopic({teamname, conversationIDKey, newTopic})),
   ])
@@ -1108,6 +1135,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)
   yield Saga.safeTakeEvery(TeamsGen.getDetails, _getDetails)
+  yield Saga.safeTakeEveryPure(TeamsGen.getDetailsForAllTeams, _getDetailsForAllTeams)
   yield Saga.safeTakeEvery(TeamsGen.getTeamPublicity, _getTeamPublicity)
   yield Saga.safeTakeEvery(TeamsGen.getTeamOperations, _getTeamOperations)
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
@@ -1118,6 +1146,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.setupTeamHandlers, _setupTeamHandlers)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)
   yield Saga.safeTakeEvery(TeamsGen.addPeopleToTeam, _addPeopleToTeam)
+  yield Saga.safeTakeEvery(TeamsGen.addUserToTeams, _addUserToTeams)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByEmail, _inviteByEmail)
   yield Saga.safeTakeEvery(TeamsGen.ignoreRequest, _ignoreRequest)
   yield Saga.safeTakeEvery(TeamsGen.editTeamDescription, _editDescription)

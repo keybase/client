@@ -13,6 +13,7 @@ export const addParticipant = 'teams:addParticipant'
 export const addPeopleToTeam = 'teams:addPeopleToTeam'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
+export const addUserToTeams = 'teams:addUserToTeams'
 export const badgeAppForTeams = 'teams:badgeAppForTeams'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearTeamRequests = 'teams:clearTeamRequests'
@@ -25,6 +26,7 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
+export const getDetailsForAllTeams = 'teams:getDetailsForAllTeams'
 export const getTeamOperations = 'teams:getTeamOperations'
 export const getTeamPublicity = 'teams:getTeamPublicity'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
@@ -38,6 +40,7 @@ export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const removeParticipant = 'teams:removeParticipant'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
+export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setLoaded = 'teams:setLoaded'
 export const setMemberPublicity = 'teams:setMemberPublicity'
@@ -86,6 +89,11 @@ type _AddToTeamPayload = $ReadOnly<{|
   role: Types.TeamRoleType,
   sendChatNotification: boolean,
 |}>
+type _AddUserToTeamsPayload = $ReadOnly<{|
+  role: Types.TeamRoleType,
+  teams: Array<string>,
+  user: string,
+|}>
 type _BadgeAppForTeamsPayload = $ReadOnly<{|
   newTeamNames: Array<string>,
   newTeamAccessRequests: Array<string>,
@@ -130,6 +138,7 @@ type _EditTeamDescriptionPayload = $ReadOnly<{|
   description: string,
 |}>
 type _GetChannelsPayload = $ReadOnly<{|teamname: string|}>
+type _GetDetailsForAllTeamsPayload = void
 type _GetDetailsPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamOperationsPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamPublicityPayload = $ReadOnly<{|teamname: string|}>
@@ -173,6 +182,7 @@ type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|
   teamname: string,
   policy: Types.RetentionPolicy,
 |}>
+type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|results: string|}>
 type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>
 type _SetLoadedPayload = $ReadOnly<{|loaded: boolean|}>
 type _SetMemberPublicityPayload = $ReadOnly<{|
@@ -277,6 +287,7 @@ export const createAddParticipant = (payload: _AddParticipantPayload) => ({error
 export const createAddPeopleToTeam = (payload: _AddPeopleToTeamPayload) => ({error: false, payload, type: addPeopleToTeam})
 export const createAddTeamWithChosenChannels = (payload: _AddTeamWithChosenChannelsPayload) => ({error: false, payload, type: addTeamWithChosenChannels})
 export const createAddToTeam = (payload: _AddToTeamPayload) => ({error: false, payload, type: addToTeam})
+export const createAddUserToTeams = (payload: _AddUserToTeamsPayload) => ({error: false, payload, type: addUserToTeams})
 export const createBadgeAppForTeams = (payload: _BadgeAppForTeamsPayload) => ({error: false, payload, type: badgeAppForTeams})
 export const createCheckRequestedAccess = (payload: _CheckRequestedAccessPayload) => ({error: false, payload, type: checkRequestedAccess})
 export const createClearTeamRequests = (payload: _ClearTeamRequestsPayload) => ({error: false, payload, type: clearTeamRequests})
@@ -288,6 +299,7 @@ export const createDeleteChannelInfo = (payload: _DeleteChannelInfoPayload) => (
 export const createEditMembership = (payload: _EditMembershipPayload) => ({error: false, payload, type: editMembership})
 export const createEditTeamDescription = (payload: _EditTeamDescriptionPayload) => ({error: false, payload, type: editTeamDescription})
 export const createGetDetails = (payload: _GetDetailsPayload) => ({error: false, payload, type: getDetails})
+export const createGetDetailsForAllTeams = (payload: _GetDetailsForAllTeamsPayload) => ({error: false, payload, type: getDetailsForAllTeams})
 export const createGetTeamOperations = (payload: _GetTeamOperationsPayload) => ({error: false, payload, type: getTeamOperations})
 export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload) => ({error: false, payload, type: getTeamPublicity})
 export const createGetTeams = (payload: _GetTeamsPayload) => ({error: false, payload, type: getTeams})
@@ -299,6 +311,7 @@ export const createLeaveTeam = (payload: _LeaveTeamPayload) => ({error: false, p
 export const createRemoveMemberOrPendingInvite = (payload: _RemoveMemberOrPendingInvitePayload) => ({error: false, payload, type: removeMemberOrPendingInvite})
 export const createRemoveParticipant = (payload: _RemoveParticipantPayload) => ({error: false, payload, type: removeParticipant})
 export const createSaveChannelMembership = (payload: _SaveChannelMembershipPayload) => ({error: false, payload, type: saveChannelMembership})
+export const createSetAddUserToTeamsResults = (payload: _SetAddUserToTeamsResultsPayload) => ({error: false, payload, type: setAddUserToTeamsResults})
 export const createSetChannelCreationError = (payload: _SetChannelCreationErrorPayload) => ({error: false, payload, type: setChannelCreationError})
 export const createSetLoaded = (payload: _SetLoadedPayload) => ({error: false, payload, type: setLoaded})
 export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload) => ({error: false, payload, type: setMemberPublicity})
@@ -331,6 +344,7 @@ export type AddParticipantPayload = $Call<typeof createAddParticipant, _AddParti
 export type AddPeopleToTeamPayload = $Call<typeof createAddPeopleToTeam, _AddPeopleToTeamPayload>
 export type AddTeamWithChosenChannelsPayload = $Call<typeof createAddTeamWithChosenChannels, _AddTeamWithChosenChannelsPayload>
 export type AddToTeamPayload = $Call<typeof createAddToTeam, _AddToTeamPayload>
+export type AddUserToTeamsPayload = $Call<typeof createAddUserToTeams, _AddUserToTeamsPayload>
 export type BadgeAppForTeamsPayload = $Call<typeof createBadgeAppForTeams, _BadgeAppForTeamsPayload>
 export type CheckRequestedAccessPayload = $Call<typeof createCheckRequestedAccess, _CheckRequestedAccessPayload>
 export type ClearTeamRequestsPayload = $Call<typeof createClearTeamRequests, _ClearTeamRequestsPayload>
@@ -342,6 +356,7 @@ export type DeleteChannelInfoPayload = $Call<typeof createDeleteChannelInfo, _De
 export type EditMembershipPayload = $Call<typeof createEditMembership, _EditMembershipPayload>
 export type EditTeamDescriptionPayload = $Call<typeof createEditTeamDescription, _EditTeamDescriptionPayload>
 export type GetChannelsPayload = $Call<typeof createGetChannels, _GetChannelsPayload>
+export type GetDetailsForAllTeamsPayload = $Call<typeof createGetDetailsForAllTeams, _GetDetailsForAllTeamsPayload>
 export type GetDetailsPayload = $Call<typeof createGetDetails, _GetDetailsPayload>
 export type GetTeamOperationsPayload = $Call<typeof createGetTeamOperations, _GetTeamOperationsPayload>
 export type GetTeamPublicityPayload = $Call<typeof createGetTeamPublicity, _GetTeamPublicityPayload>
@@ -356,6 +371,7 @@ export type RemoveMemberOrPendingInvitePayload = $Call<typeof createRemoveMember
 export type RemoveParticipantPayload = $Call<typeof createRemoveParticipant, _RemoveParticipantPayload>
 export type SaveChannelMembershipPayload = $Call<typeof createSaveChannelMembership, _SaveChannelMembershipPayload>
 export type SaveTeamRetentionPolicyPayload = $Call<typeof createSaveTeamRetentionPolicy, _SaveTeamRetentionPolicyPayload>
+export type SetAddUserToTeamsResultsPayload = $Call<typeof createSetAddUserToTeamsResults, _SetAddUserToTeamsResultsPayload>
 export type SetChannelCreationErrorPayload = $Call<typeof createSetChannelCreationError, _SetChannelCreationErrorPayload>
 export type SetLoadedPayload = $Call<typeof createSetLoaded, _SetLoadedPayload>
 export type SetMemberPublicityPayload = $Call<typeof createSetMemberPublicity, _SetMemberPublicityPayload>
@@ -390,6 +406,7 @@ export type Actions =
   | AddPeopleToTeamPayload
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload
+  | AddUserToTeamsPayload
   | BadgeAppForTeamsPayload
   | CheckRequestedAccessPayload
   | ClearTeamRequestsPayload
@@ -401,6 +418,7 @@ export type Actions =
   | EditMembershipPayload
   | EditTeamDescriptionPayload
   | GetChannelsPayload
+  | GetDetailsForAllTeamsPayload
   | GetDetailsPayload
   | GetTeamOperationsPayload
   | GetTeamPublicityPayload
@@ -415,6 +433,7 @@ export type Actions =
   | RemoveParticipantPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
+  | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
   | SetLoadedPayload
   | SetMemberPublicityPayload

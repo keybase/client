@@ -15,6 +15,7 @@ import * as Saga from '../util/saga'
 import * as PinentryGen from '../actions/pinentry-gen'
 import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
+import {checkRPCOwnership} from '../engine/index.platform'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
 import {createGetPeopleData} from './people-gen'
@@ -127,6 +128,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
     logger.info('[bootstrap] performing bootstrap...')
     Promise.all([
       dispatch(getBootstrapStatus()),
+      checkRPCOwnership(),
       dispatch(waitForKBFS()),
       dispatch(KBFSGen.createFuseStatus()),
       dispatch(FsGen.createFuseStatus()),

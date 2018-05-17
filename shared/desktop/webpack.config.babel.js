@@ -119,6 +119,8 @@ const config = (_, {mode}) => {
             optimization: {
               minimizer: [
                 new UglifyJSPlugin({
+                  cache: true,
+                  parallel: true,
                   sourceMap: true,
                   uglifyOptions: {
                     compress: {

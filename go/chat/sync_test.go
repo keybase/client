@@ -43,7 +43,7 @@ func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.C
 	require.NoError(t, err)
 
 	// Check that the initial message stored as a success.
-	tv, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, nil, nil)
+	tv, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tv.Messages))
 	require.True(t, tv.Messages[0].IsValid(), "initial message invalid")
@@ -60,7 +60,7 @@ func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.C
 func newConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid gregor1.UID,
 	ri chat1.RemoteInterface, sender types.Sender, tlfName string) chat1.Conversation {
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, tlfName)
-	_, _, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+	_, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
@@ -143,9 +143,9 @@ func TestSyncerConnected(t *testing.T) {
 
 	t.Logf("test incremental")
 	mconv := convs[1]
-	_, _, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, nil, nil)
+	_, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, nil, nil)
 	require.NoError(t, cerr)
-	_, _, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	_, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, serr)
 	_, iconvs, err := ibox.ReadAll(ctx)
 	require.NoError(t, err)
@@ -223,7 +223,7 @@ func TestSyncerConnected(t *testing.T) {
 	_, cerr = store.Fetch(ctx, mconv, uid, nil, nil, nil)
 	require.Error(t, cerr)
 	require.IsType(t, storage.MissError{}, cerr)
-	_, _, serr = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	_, serr = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, serr)
 	_, iconvs, err = ibox.ReadAll(ctx)
 	require.NoError(t, err)
@@ -349,7 +349,7 @@ func TestSyncerMembersTypeChanged(t *testing.T) {
 	t.Logf("convID: %s", conv.GetConvID())
 	convID := conv.GetConvID()
 
-	_, msg, _, err := sender.Send(ctx, convID, chat1.MessagePlaintext{
+	_, msg, err := sender.Send(ctx, convID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
@@ -465,9 +465,9 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	mconv := newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username)
 
 	t.Logf("test incremental")
-	_, _, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, nil, nil)
+	_, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, nil, nil)
 	require.NoError(t, cerr)
-	_, _, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	_, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, serr)
 	_, iconvs, err := ibox.ReadAll(ctx)
 	require.NoError(t, err)
@@ -538,7 +538,7 @@ func TestSyncerTeamFilter(t *testing.T) {
 	tconv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username,
 		chat1.ConversationMembersType_TEAM)
 
-	_, _, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	_, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, err)
 	_, iconvs, err := ibox.ReadAll(ctx)
 	require.NoError(t, err)
@@ -622,7 +622,7 @@ func TestSyncerBackgroundLoader(t *testing.T) {
 	default:
 	}
 
-	_, delMsg, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),

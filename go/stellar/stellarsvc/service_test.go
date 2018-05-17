@@ -13,7 +13,9 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/client/go/teams"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stellar/go/keypair"
@@ -36,7 +38,7 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 }
 
 func TestCreateWallet(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 2)
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingWalletless, usettingFull})
 	defer cleanup()
 
 	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
@@ -75,9 +77,8 @@ func TestUpkeep(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
-	require.True(t, created)
 
 	bundle, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
@@ -121,10 +122,10 @@ func TestImportExport(t *testing.T) {
 
 	mustAskForPassphrase := func(f func()) {
 		ui := tcs[0].Fu.NewSecretUI()
-		tcs[0].Srv.uiSource.(*testUISource).secret = ui
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = ui
 		f()
 		require.True(t, ui.CalledGetPassphrase, "operation should ask for passphrase")
-		tcs[0].Srv.uiSource.(*testUISource).secret = nullSecretUI{}
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = nullSecretUI{}
 	}
 
 	mustAskForPassphrase(func() {
@@ -224,8 +225,7 @@ func TestGetLocalAccounts(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.True(t, created)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
 	tcs[0].Remote.ImportAccountsForUser(t, tcs[0].G)
@@ -394,9 +394,6 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	checkPayment(payment)
 }
 
-// TODO CORE-7718 delete this test.
-// The functions it uses will be made private.
-// Use the exposed RPCs and inspection of the remote mock instead.
 func TestRelayTransferInnards(t *testing.T) {
 	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingWalletless})
 	defer cleanup()
@@ -411,11 +408,15 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("create relay transfer")
-	recipient, err := stellar.LookupRecipient(context.Background(), tcs[0].G, stellar.RecipientInput(u1.GetNormalizedName()))
+	uis := libkb.UIs{
+		IdentifyUI: tcs[0].Srv.uiSource.IdentifyUI(tcs[0].G, 0),
+	}
+	m := libkb.NewMetaContextBackground(tcs[0].G).WithUIs(uis)
+	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(u1.GetNormalizedName()))
 	require.NoError(t, err)
-	appKey, teamID, err := stellar.RelayTransferKey(context.Background(), tcs[0].G, recipient)
+	appKey, teamID, err := relays.GetKey(context.Background(), tcs[0].G, recipient)
 	require.NoError(t, err)
-	out, err := stellar.CreateRelayTransfer(stellar.RelayPaymentInput{
+	out, err := relays.Create(relays.Input{
 		From:          stellarSender.Signers[0],
 		AmountXLM:     "10.0005",
 		Note:          "hey",
@@ -428,7 +429,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.True(t, len(out.FundTx.Signed) > 100)
 
 	t.Logf("decrypt")
-	relaySecrets, err := stellar.DecryptRelaySecretB64(context.Background(), tcs[0].G, teamID, out.EncryptedB64)
+	relaySecrets, err := relays.DecryptB64(context.Background(), tcs[0].G, teamID, out.EncryptedB64)
 	require.NoError(t, err)
 	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecrets.Sk.SecureNoLogString())
 	require.NoError(t, err)
@@ -521,14 +522,26 @@ func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg
 }
 
 type testUISource struct {
-	secret libkb.SecretUI
+	secretUI   libkb.SecretUI
+	identifyUI libkb.IdentifyUI
+}
+
+func newTestUISource() *testUISource {
+	return &testUISource{
+		secretUI:   nullSecretUI{},
+		identifyUI: &kbtest.FakeIdentifyUI{},
+	}
 }
 
 func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI {
-	return t.secret
+	return t.secretUI
+}
+
+func (t *testUISource) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI {
+	return t.identifyUI
 }
 
 func newTestServer(t testing.TB, g *libkb.GlobalContext) (*Server, *RemoteMock) {
 	m := NewRemoteMock(t, g)
-	return New(g, &testUISource{nullSecretUI{}}, m), m
+	return New(g, newTestUISource(), m), m
 }
