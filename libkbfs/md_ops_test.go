@@ -1053,15 +1053,16 @@ func makeEncryptedMerkleLeafForTesting(
 	var nonce [24]byte
 	_, err = rand.Read(nonce[:])
 	require.NoError(t, err)
+	now := config.Clock().Now().Unix()
 	root = &kbfsmd.MerkleRoot{
-		EPubKey: &ePubKey,
-		Nonce:   &nonce,
+		EPubKey:   &ePubKey,
+		Nonce:     &nonce,
+		Timestamp: now,
 	}
 
-	now := config.Clock().Now()
 	mLeaf = kbfsmd.MerkleLeaf{
 		Revision:  1,
-		Timestamp: now.Unix(),
+		Timestamp: now,
 	}
 	var pubKey kbfscrypto.TLFPublicKey
 	if rmd.TypeForKeying() == tlf.TeamKeying {

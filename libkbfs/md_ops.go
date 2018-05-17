@@ -230,6 +230,33 @@ func mdToMerkleTreeID(irmd ImmutableRootMetadata) keybase1.MerkleTreeID {
 	}
 }
 
+func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
+	latestRootTime time.Time, kbfsRoot *kbfsmd.MerkleRoot,
+	timeToCheck time.Time) error {
+	var latestKbfsTime time.Time
+	if kbfsRoot != nil {
+		latestKbfsTime = time.Unix(kbfsRoot.Timestamp, 0)
+	}
+
+	// If it's been too long since the last published Merkle root,
+	// we can't trust what the server told us.
+	if timeToCheck.After(latestRootTime.Add(maxAllowedMerkleGap)) {
+		return errors.Errorf("No Merkle info found to verify "+
+			"revocation, but it's been too long since the last global "+
+			"Merkle root: currServerTime=%s, latestRootTime=%s",
+			timeToCheck.Format(time.RFC3339Nano),
+			latestRootTime.Format(time.RFC3339Nano))
+	}
+	if timeToCheck.After(latestKbfsTime.Add(maxAllowedMerkleGap)) {
+		return errors.Errorf("No Merkle info found to verify "+
+			"revocation, but it's been too long since the last KBFS "+
+			"Merkle root: currServerTime=%s, latestRootTime=%s",
+			timeToCheck.Format(time.RFC3339Nano),
+			latestKbfsTime.Format(time.RFC3339Nano))
+	}
+	return nil
+}
+
 func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	ctx context.Context, rmds *RootMetadataSigned,
 	verifyingKey kbfscrypto.VerifyingKey, irmd ImmutableRootMetadata,
@@ -248,6 +275,29 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 		// the server could be lying to us.
 		md.log.CDebugf(ctx, "The server claims there haven't been any "+
 			"KBFS merkle trees published since the merkle root")
+
+		// Check the most recent global merkle root and KBFS merkle
+		// root ctimes and make sure they fall within the expected
+		// error window with respect to the revocation.
+		_, latestRootTime, err := md.config.KBPKI().GetCurrentMerkleRoot(ctx)
+		if err != nil {
+			return false, err
+		}
+		treeID := mdToMerkleTreeID(irmd)
+		// TODO: cache the latest KBFS merkle root somewhere for a while?
+		latestKbfsRoot, err := md.config.MDServer().GetMerkleRootLatest(
+			ctx, treeID)
+		if err != nil {
+			return false, err
+		}
+		serverOffset, _ := md.config.MDServer().OffsetFromServerTime()
+		currServerTime := md.config.Clock().Now().Add(-serverOffset)
+		err = md.checkMerkleTimes(
+			ctx, latestRootTime, latestKbfsRoot, currServerTime)
+		if err != nil {
+			return false, err
+		}
+
 		// Verify the chain up to the current head.  By using `ctx`,
 		// we'll avoid infinite loops in the writer-key-checking code
 		// by skipping revoked key verification.  This is ok, because
@@ -266,46 +316,21 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 			}
 		}
 
-		// Check the most recent global merkle root and KBFS merkle
-		// root ctimes and make sure they fall within the expected
-		// error window with respect to the revocation.
-		_, latestRootTime, err := md.config.KBPKI().GetCurrentMerkleRoot(ctx)
-		if err != nil {
-			return false, err
-		}
-		treeID := mdToMerkleTreeID(irmd)
-		kbfsRoot, err := md.config.MDServer().GetMerkleRootLatest(ctx, treeID)
-		if err != nil {
-			return false, err
-		}
-		var latestKbfsTime time.Time
-		if kbfsRoot != nil {
-			latestKbfsTime = time.Unix(kbfsRoot.Timestamp, 0)
-		}
-
-		serverOffset, _ := md.config.MDServer().OffsetFromServerTime()
-		currServerTime := md.config.Clock().Now().Add(-serverOffset)
-		// If it's been too long since the last published Merkle root,
-		// we can't trust what the server told us.
-		if currServerTime.After(latestRootTime.Add(maxAllowedMerkleGap)) {
-			return false, errors.Errorf("No Merkle info found to verify "+
-				"revocation, but it's been too long since the last global "+
-				"Merkle root: currServerTime=%s, latestRootTime=%s",
-				currServerTime.Format(time.RFC3339Nano),
-				latestRootTime.Format(time.RFC3339Nano))
-		}
-		if currServerTime.After(latestKbfsTime.Add(maxAllowedMerkleGap)) {
-			return false, errors.Errorf("No Merkle info found to verify "+
-				"revocation, but it's been too long since the last KBFS "+
-				"Merkle root: currServerTime=%s, latestRootTime=%s",
-				currServerTime.Format(time.RFC3339Nano),
-				latestKbfsTime.Format(time.RFC3339Nano))
-		}
-
 		// TODO: Also eventually check the blockchain-published merkles to
 		// make sure the server isn't lying (though that will have a
 		// much larger error window).
 		return nil
+	}
+
+	// Check the gap between the revocation and the global/KBFS roots
+	// that include the revocation, to make sure they fall within the
+	// expected error window. TODO(KBFS-2954): get the right root time
+	// for the corresponding global root.
+	latestRootTime := time.Unix(kbfsRoot.Timestamp, 0)
+	err = md.checkMerkleTimes(
+		ctx, latestRootTime, kbfsRoot, keybase1.FromTime(info.Time))
+	if err != nil {
+		return false, err
 	}
 
 	md.log.CDebugf(ctx,
