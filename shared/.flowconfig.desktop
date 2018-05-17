@@ -1,4 +1,8 @@
+; Desktop VERSION
 [ignore]
+.*/*[.]android.js
+.*/*[.]ios.js
+.*/node_modules/.*/node_modules/fbjs/.*
 .*/node_modules/metro-bundler.*
 .*/node_modules/electron-packager.*
 .*/node_modules/react-native.*
@@ -25,9 +29,9 @@ esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
 experimental.const_params=true
 
-module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
-module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> 'RelativeImageStub'
-module.name_mapper='^\..*resolve-root' -> 'resolveRoot'
+module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> '<PROJECT_ROOT>/__mocks__/global-image-stub.js'
+
+module.system=haste
 
 suppress_type=$FlowIssue
 suppress_type=$ForceType
@@ -51,4 +55,4 @@ untyped-import=off
 deprecated-type=error
 
 [version]
-0.72.0
+^0.72.0

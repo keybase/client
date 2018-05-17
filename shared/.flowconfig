@@ -1,7 +1,7 @@
-; IOS VERSION
+; Desktop VERSION
 [ignore]
-; IOS changes: ignore android
 .*/*[.]android.js
+.*/*[.]ios.js
 .*/node_modules/.*/node_modules/fbjs/.*
 .*/node_modules/metro-bundler.*
 .*/node_modules/electron-packager.*
@@ -55,4 +55,4 @@ untyped-import=off
 deprecated-type=error
 
 [version]
-0.72.0
+^0.72.0
