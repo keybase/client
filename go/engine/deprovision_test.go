@@ -179,7 +179,7 @@ func testDeprovision(t *testing.T, upgradePerUserKey bool) {
 	assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{})
 
 	// Now, test deprovision codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
+	tc.G.SetSecretStoreNilForTests()
 	assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{})
 }
 
@@ -203,7 +203,7 @@ func testDeprovisionAfterRevokePaper(t *testing.T, upgradePerUserKey bool) {
 	})
 
 	// Now, test deprovision codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
+	tc.G.SetSecretStoreNilForTests()
 	assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{
 		makeAndRevokePaperKey: true,
 	})
@@ -305,7 +305,7 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 	assertDeprovisionLoggedOut(tc)
 
 	// Now, test codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
+	tc.G.SetSecretStoreNilForTests()
 	assertDeprovisionLoggedOut(tc)
 }
 
@@ -407,7 +407,7 @@ func TestCurrentDeviceRevoked(t *testing.T) {
 	assertCurrentDeviceRevoked(tc)
 
 	// Now, test codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
+	tc.G.SetSecretStoreNilForTests()
 	assertCurrentDeviceRevoked(tc)
 }
 
@@ -433,7 +433,7 @@ func testDeprovisionLastDevice(t *testing.T, upgradePerUserKey bool) {
 	assertNumDevicesAndKeys(tc, fu, 0, 0)
 
 	// Now, test deprovision codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
+	tc.G.SetSecretStoreNilForTests()
 	fu = assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{
 		revokePaperKey: true,
 	})

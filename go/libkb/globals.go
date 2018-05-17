@@ -23,7 +23,6 @@ import (
 	"os"
 	"runtime"
 	"sync"
-	"testing"
 	"time"
 
 	logger "github.com/keybase/client/go/logger"
@@ -1234,9 +1233,7 @@ func (g *GlobalContext) ReplaceSecretStore() error {
 // It doesn't make much sense since it is impossible for g.secretStore
 // to be nil in the real world, but keeping it for backwards
 // compatibility.
-// This takes t *testing.T as a parameter just to make sure only
-// tests call it.
-func (g *GlobalContext) SetSecretStoreNilForTests(t *testing.T) {
+func (g *GlobalContext) SetSecretStoreNilForTests() {
 	g.secretStoreMu.Lock()
 	defer g.secretStoreMu.Unlock()
 
