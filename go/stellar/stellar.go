@@ -11,7 +11,9 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/bundle"
+	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/amount"
 )
@@ -175,20 +177,9 @@ func LookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.
 	return primary, nil
 }
 
-type RecipientInput string
-
-type Recipient struct {
-	Input RecipientInput
-	// These 3 fields are nullable.
-	User      *libkb.User
-	Assertion *keybase1.SocialAssertion
-	// Recipient may not have a stellar wallet ready to receive
-	AccountID *stellarnet.AddressStr // User entered G... OR target has receiving address
-}
-
 // TODO: handle stellar federation address rebecca*keybase.io (or rebecca*anything.wow)
-func LookupRecipient(m libkb.MetaContext, to RecipientInput) (Recipient, error) {
-	res := Recipient{
+func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (stellarcommon.Recipient, error) {
+	res := stellarcommon.Recipient{
 		Input: to,
 	}
 
@@ -266,7 +257,7 @@ type DisplayBalance struct {
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to RecipientInput, amount string, note string, displayBalance DisplayBalance) (stellar1.PaymentResult, error) {
+func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance) (stellar1.PaymentResult, error) {
 	var err error
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
@@ -282,7 +273,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to RecipientInput,
 	}
 
 	if recipient.AccountID == nil {
-		return sendRelayPayment(m.Ctx(), m.G(), remoter, primarySeed, recipient, amount, note, displayBalance)
+		return sendRelayPayment(m, remoter, primarySeed, recipient, amount, note, displayBalance)
 	}
 
 	primarySeed2, err := stellarnet.NewSeedStr(primarySeed.SecureNoLogString())
@@ -350,25 +341,25 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to RecipientInput,
 
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
-func sendRelayPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
-	from stellar1.SecretKey, recipient Recipient, amount, note string, displayBalance DisplayBalance) (res stellar1.PaymentResult, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.sendRelayPayment", func() error { return err })()
-	appKey, teamID, err := RelayTransferKey(ctx, g, recipient)
+func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
+	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount, note string, displayBalance DisplayBalance) (res stellar1.PaymentResult, err error) {
+	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
+	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
 	if err != nil {
 		return res, err
 	}
-	relay, err := CreateRelayTransfer(RelayPaymentInput{
+	relay, err := relays.Create(relays.Input{
 		From:          from,
 		AmountXLM:     amount,
 		Note:          note,
 		EncryptFor:    appKey,
-		SeqnoProvider: NewSeqnoProvider(ctx, remoter),
+		SeqnoProvider: NewSeqnoProvider(m.Ctx(), remoter),
 	})
 	if err != nil {
 		return res, err
 	}
 	post := stellar1.PaymentRelayPost{
-		FromDeviceID:      g.ActiveDevice.DeviceID(),
+		FromDeviceID:      m.G().ActiveDevice.DeviceID(),
 		ToAssertion:       string(recipient.Input),
 		RelayAccount:      relay.RelayAccountID,
 		TeamID:            teamID,
@@ -381,7 +372,7 @@ func sendRelayPayment(ctx context.Context, g *libkb.GlobalContext, remoter remot
 		tmp := recipient.User.ToUserVersion()
 		post.To = &tmp
 	}
-	return remoter.SubmitRelayPayment(ctx, post)
+	return remoter.SubmitRelayPayment(m.Ctx(), post)
 }
 
 func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (funded bool, err error) {
@@ -571,7 +562,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				res.Status = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, res.Status)
 			}
 		}
-		relaySecrets, err := DecryptRelaySecretB64(ctx, g, p.TeamID, p.BoxB64)
+		relaySecrets, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
 		if err == nil {
 			res.Note = relaySecrets.Note
 		} else {
