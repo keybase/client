@@ -301,6 +301,8 @@ def testGo(prefix) {
                 [ -z "$lint" -o "$lint" = "Lint-free!" ]
             '''
             sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
+            // Make sure we don't accidentally pull in the testing package.
+            sh '! go list -f \'{{ join .Imports \"\n\" }}\' github.com/keybase/client/go/libkb | grep testing'
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
