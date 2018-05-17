@@ -82,7 +82,7 @@ func (c *CachingTeamChannelSource) invalidate(ctx context.Context, teamID chat1.
 }
 
 func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, teamID chat1.TLFID,
-	topicType chat1.TopicType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+	topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
 	var convs []chat1.Conversation
 	tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
 		TlfID:            teamID,
@@ -90,10 +90,7 @@ func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid greg
 		SummarizeMaxMsgs: false,
 	})
 	if err != nil {
-		return res, rl, err
-	}
-	if tlfRes.RateLimit != nil {
-		rl = append(rl, *tlfRes.RateLimit)
+		return res, err
 	}
 	convs = tlfRes.Conversations
 
@@ -103,20 +100,19 @@ func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid greg
 	})
 	if err != nil {
 		c.Debug(ctx, "GetChannelsFull: failed to localize conversations: %s", err.Error())
-		return res, rl, err
+		return res, err
 	}
 	sort.Sort(utils.ConvLocalByTopicName(res))
-	rl = utils.AggRateLimits(rl)
-	return res, rl, nil
+	return res, nil
 }
 
 func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, rl []chat1.RateLimit, err error) {
+	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, err error) {
 
 	var ok bool
 	if res, ok = c.fetchFromCache(ctx, teamID, topicType); ok {
 		c.Debug(ctx, "GetChannelsTopicName: cache hit")
-		return res, rl, nil
+		return res, nil
 	}
 
 	var convs []chat1.Conversation
@@ -127,10 +123,7 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 	})
 	if err != nil {
 		c.Debug(ctx, "GetChannelsTopicName: failed to get TLF convos: %s", err)
-		return res, rl, err
-	}
-	if tlfRes.RateLimit != nil {
-		rl = append(rl, *tlfRes.RateLimit)
+		return res, err
 	}
 	convs = tlfRes.Conversations
 
@@ -184,24 +177,24 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 	}
 
 	c.writeToCache(ctx, teamID, topicType, res)
-	return res, rl, nil
+	return res, nil
 }
 
 func (c *CachingTeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
-	topicType chat1.TopicType, convID chat1.ConversationID) (topicName string, rl []chat1.RateLimit, err error) {
-	convs, rl, err := c.GetChannelsTopicName(ctx, uid, tlfID, topicType)
+	topicType chat1.TopicType, convID chat1.ConversationID) (topicName string, err error) {
+	convs, err := c.GetChannelsTopicName(ctx, uid, tlfID, topicType)
 	if err != nil {
-		return topicName, rl, err
+		return topicName, err
 	}
 	if len(convs) == 0 {
-		return topicName, rl, fmt.Errorf("no convs found")
+		return topicName, fmt.Errorf("no convs found")
 	}
 	for _, conv := range convs {
 		if conv.ConvID.Eq(convID) {
-			return conv.TopicName, rl, nil
+			return conv.TopicName, nil
 		}
 	}
-	return topicName, rl, fmt.Errorf("no convs found with conv ID")
+	return topicName, fmt.Errorf("no convs found with conv ID")
 }
 
 func (c *CachingTeamChannelSource) ChannelsChanged(ctx context.Context, teamID chat1.TLFID) {

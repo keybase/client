@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -20,12 +21,14 @@ type identifyNotifierKey int
 type chatTrace int
 type identifyModeKey int
 type upakfinderKey int
+type rateLimitKey int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
 var chatTraceKey chatTrace
 var identModeKey identifyModeKey
 var upKey upakfinderKey
+var rlKey rateLimitKey
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -77,6 +80,25 @@ func CtxUPAKFinder(ctx context.Context, g *globals.Context) types.UPAKFinder {
 		return up
 	}
 	return NewCachingUPAKFinder(g)
+}
+
+func CtxAddRateLimit(ctx context.Context, rl []chat1.RateLimit) {
+	val := ctx.Value(rlKey)
+	if existingRL, ok := val.(map[string]chat1.RateLimit); ok {
+		for _, r := range rl {
+			existingRL[r.Name] = r
+		}
+	}
+}
+
+func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
+	val := ctx.Value(rlKey)
+	if existingRL, ok := val.(map[string]chat1.RateLimit); ok {
+		for _, rl := range existingRL {
+			res = append(res, rl)
+		}
+	}
+	return res
 }
 
 func CtxModifyIdentifyNotifier(ctx context.Context, notifier types.IdentifyNotifier) context.Context {
@@ -133,6 +155,10 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 	val = res.Value(upKey)
 	if _, ok := val.(types.UPAKFinder); !ok {
 		res = context.WithValue(res, upKey, NewCachingUPAKFinder(g))
+	}
+	val = res.Value(rlKey)
+	if _, ok := val.(map[string]chat1.RateLimit); !ok {
+		res = context.WithValue(res, rlKey, make(map[string]chat1.RateLimit))
 	}
 	if _, ok = CtxTrace(res); !ok {
 		res = CtxAddLogTags(res, g.GetEnv())

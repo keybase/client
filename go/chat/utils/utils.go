@@ -515,7 +515,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 	if len(names) == 0 {
 		return nil
 	}
-	chanResponse, _, err := ts.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT)
+	chanResponse, err := ts.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT)
 	if err != nil {
 		return nil
 	}
