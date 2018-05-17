@@ -1,7 +1,7 @@
 // @flow
 import {showDockIcon} from '../desktop/app/dock-icon'
 import {getMainWindow} from '../desktop/remote/util'
-import {ipcRenderer} from 'electron'
+import {ipcRenderer, remote} from 'electron'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -74,15 +74,13 @@ function openAppSettings(): void {
 
 const getMimeTypeFromURL = (url: string): Promise<string> =>
   new Promise((resolve, reject) => {
-    function listener(event, res) {
-      if (!res || res.url !== url) {
-        return
-      }
-      res.error ? reject(res.error) : resolve(res.contentType.length ? res.contentType[0] : '')
-      ipcRenderer.removeListener('getMimeTypeFromURLResult', listener)
-    }
-    ipcRenderer.on('getMimeTypeFromURLResult', listener)
-    ipcRenderer.send('getMimeTypeFromURL', url)
+    const req = remote.net.request({url, method: 'HEAD'})
+    req.on('response', response => {
+      const contentType = response.headers['content-type']
+      resolve(Array.isArray(contentType) && contentType.length ? contentType[0] : '')
+    })
+    req.on('error', err => reject(err))
+    req.end()
   })
 
 export {

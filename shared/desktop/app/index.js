@@ -6,7 +6,7 @@ import menuBar from './menu-bar'
 import os from 'os'
 import semver from 'semver'
 import windowHelper from './window-helper'
-import {BrowserWindow, app, ipcMain, dialog, crashReporter, net} from 'electron'
+import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
@@ -115,15 +115,6 @@ function start() {
       console.log('kb-service-check: starting keybase.exe')
       startWinService()
     }
-  })
-
-  ipcMain.on('getMimeTypeFromURL', (event, url) => {
-    const req = net.request({url, method: 'HEAD'})
-    req.on('response', response => {
-      event.sender.send('getMimeTypeFromURLResult', {url, contentType: response.headers['content-type']})
-    })
-    req.on('error', err => event.sender.send('getMimeTypeFromURLResult', {url, error: err}))
-    req.end()
   })
 
   // Called when the user clicks the dock icon

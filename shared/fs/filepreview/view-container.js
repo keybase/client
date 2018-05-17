@@ -38,7 +38,7 @@ const mergeProps = ({_serverInfo, mimeType}, {onInvalidToken, loadMimeType}, {pa
   loadMimeType,
 })
 
-const renderer = ({mimeType, url, path, routePath, onInvalidToken, loadMimeType}) => {
+const Renderer = ({mimeType, url, path, routePath, onInvalidToken, loadMimeType}) => {
   if (mimeType === '') {
     return (
       <Box style={stylesLoadingContainer}>
@@ -92,4 +92,4 @@ export default compose(
       }
     },
   })
-)(renderer)
+)(Renderer)
