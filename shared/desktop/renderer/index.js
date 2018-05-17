@@ -17,7 +17,6 @@ import configureStore from '../../store/configure-store'
 import electron, {ipcRenderer} from 'electron'
 import {makeEngine} from '../../engine'
 import hello from '../../util/hello'
-import loadPerf from '../../util/load-perf'
 import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {throttle, merge} from 'lodash-es'
@@ -43,7 +42,6 @@ function setupStore() {
 function setupApp(store) {
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
-  loadPerf()
 
   if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
     require('devtron').install()
