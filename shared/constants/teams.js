@@ -79,6 +79,7 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  addUserToTeamsResults: '',
   channelCreationError: '',
   teamsWithChosenChannels: I.Set(),
   loaded: false,
@@ -225,6 +226,12 @@ const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
     return res
   }, [])
 }
+
+/**
+ *  Gets the number of channels you're subscribed to on a team
+ */
+const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamname): number =>
+  state.chat2.metaMap.count(c => c.teamname === teamname)
 
 /**
  * Gets whether the team is big or small for teams you are a member of
@@ -381,6 +388,7 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 })
 
 export {
+  getNumberOfSubscribedChannels,
   getRole,
   getCanPerform,
   hasCanPerform,

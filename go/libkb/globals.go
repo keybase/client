@@ -364,6 +364,13 @@ func (g *GlobalContext) ConfigureLogging() error {
 	debug := g.Env.GetDebug()
 	logFile := g.Env.GetLogFile()
 	if logFile == "" {
+		filePrefix := g.Env.GetLogPrefix()
+		if filePrefix != "" {
+			filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
+			logFile = filePrefix + ".log"
+		}
+	}
+	if logFile == "" {
 		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
 	} else {
 		g.Log.Configure(style, debug, logFile)

@@ -25,15 +25,16 @@ import (
 
 // Logs is the struct to specify the path of log files
 type Logs struct {
-	Desktop string
-	Kbfs    string
-	Service string
-	Updater string
-	Start   string
-	Install string
-	System  string
-	Git     string
-	Trace   string
+	Desktop  string
+	Kbfs     string
+	Service  string
+	Updater  string
+	Start    string
+	Install  string
+	System   string
+	Git      string
+	Trace    string
+	Watchdog string
 }
 
 // LogSendContext for LogSend
@@ -71,7 +72,7 @@ func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error
 	return gz.Close()
 }
 
-func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog string, traceBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
+func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
 	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -114,6 +115,9 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 		return "", err
 	}
 	if err := addGzippedFile(mpart, "git_log_gz", "git_log.gz", gitLog); err != nil {
+		return "", err
+	}
+	if err := addGzippedFile(mpart, "watchdog_log_gz", "watchdog_log.gz", watchdogLog); err != nil {
 		return "", err
 	}
 
@@ -462,6 +466,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	var systemLog string
 	var gitLog string
 	var traceBundle []byte
+	var watchdogLog string
 
 	if sendLogs {
 		svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
@@ -480,6 +485,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		installLog = tail(l.G().Log, "install", logs.Install, numBytes)
 		systemLog = tail(l.G().Log, "system", logs.System, numBytes)
 		gitLog = tail(l.G().Log, "git", logs.Git, numBytes)
+		watchdogLog = tail(l.G().Log, "watchdog", logs.Watchdog, numBytes)
 		if logs.Trace != "" {
 			traceBundle = getTraceBundle(l.G().Log, logs.Trace)
 		}
@@ -492,7 +498,8 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		installLog = ""
 		systemLog = ""
 		gitLog = ""
+		watchdogLog = ""
 	}
 
-	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, traceBundle, uid, installID)
+	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, uid, installID)
 }

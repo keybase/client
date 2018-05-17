@@ -15,8 +15,6 @@ import {spawn, execFileSync} from 'child_process'
 import path from 'path'
 import {putActionIfOnPath, navigateTo, navigateAppend, navigateUp} from '../route-tree'
 
-import {copyToDownloadDir} from './platform-specific'
-
 type pathType = 'file' | 'directory'
 
 // pathToURL takes path and converts to (file://) url.
@@ -249,7 +247,7 @@ function installCachedDokan() {
       return
     }
     const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
-    const args = [binPath, 'ctl', 'watchdog2']
+    const args = [binPath, 'ctl', 'restart']
 
     spawn(rqPath, args, {
       detached: true,
@@ -282,6 +280,10 @@ function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
       ])
     )
   )
+}
+
+function copyToDownloadDir(path: string, mime: string) {
+  return new Promise((resolve, reject) => resolve())
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {

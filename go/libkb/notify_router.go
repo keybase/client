@@ -1022,7 +1022,7 @@ func (n *NotifyRouter) HandleServiceShutdown() {
 			go func() {
 				(keybase1.NotifyServiceClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).Shutdown(context.Background())
+				}).Shutdown(context.Background(), int(n.G().ExitCode))
 				wg.Done()
 			}()
 		}

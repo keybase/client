@@ -575,7 +575,6 @@ func (g *gregorHandler) IsShutdown() bool {
 }
 
 func (g *gregorHandler) IsConnected() bool {
-	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "IsConnected")()
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 	return g.conn != nil && g.conn.IsConnected()

@@ -266,6 +266,7 @@ export const localMessageSystemType = {
   complexteam: 2,
   createteam: 3,
   gitpush: 4,
+  changeavatar: 5,
 }
 
 export const localMessageUnboxedErrorType = {
@@ -634,7 +635,7 @@ export type ChatActivityType =
   | 9 // EXPUNGE_9
   | 10 // EPHEMERAL_PURGE_10
 
-export type ChatSearchHit = $ReadOnly<{prevMessage?: ?UIMessage, hitMessage?: ?UIMessage, nextMessage?: ?UIMessage, matches?: ?Array<String>}>
+export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<String>}>
 
 export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>}>
 
@@ -915,7 +916,7 @@ export type LocalGetInboxSummaryForCLILocalRpcParam = $ReadOnly<{query: GetInbox
 
 export type LocalGetMessagesLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, disableResolveSupersedes: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, isRegex: Boolean, maxHits: Int, maxMessages: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, isRegex: Boolean, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1041,9 +1042,11 @@ export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy:
 
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 
-export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush}
+export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar}
 
 export type MessageSystemAddedToTeam = $ReadOnly<{team: String, adder: String, addee: String, owners?: ?Array<String>, admins?: ?Array<String>, writers?: ?Array<String>, readers?: ?Array<String>}>
+
+export type MessageSystemChangeAvatar = $ReadOnly<{team: String, user: String}>
 
 export type MessageSystemComplexTeam = $ReadOnly<{team: String}>
 
@@ -1059,6 +1062,7 @@ export type MessageSystemType =
   | 2 // COMPLEXTEAM_2
   | 3 // CREATETEAM_3
   | 4 // GITPUSH_4
+  | 5 // CHANGEAVATAR_5
 
 export type MessageText = $ReadOnly<{body: String}>
 

@@ -47,7 +47,7 @@ class _SimpleTopLine extends React.Component<Props> {
             visible={this.props.showingMenu}
             attachTo={this.props.attachmentRef}
             onHidden={this.props.toggleShowingMenu}
-            isSmallTeam={false}
+            isSmallTeam={true}
             teamname={(this.props.participants.length && this.props.participants[0]) || ''}
           />
         )}
