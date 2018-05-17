@@ -10,7 +10,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -19,10 +18,11 @@ import (
 // CryptoClient is a keybase1.CryptoInterface based implementation for Crypto.
 type CryptoClient struct {
 	CryptoCommon
-	log        logger.Logger
-	deferLog   logger.Logger
-	client     keybase1.CryptoInterface
-	shutdownFn func()
+	log         logger.Logger
+	deferLog    logger.Logger
+	client      keybase1.CryptoInterface
+	teamsClient keybase1.TeamsInterface
+	shutdownFn  func()
 }
 
 // cryptoWarningTime says how long we should wait before logging a
@@ -30,17 +30,6 @@ type CryptoClient struct {
 const cryptoWarningTime = 2 * time.Minute
 
 var _ Crypto = (*CryptoClient)(nil)
-
-// NewCryptoClient constructs a crypto client for a keybase1.CryptoInterface.
-func NewCryptoClient(codec kbfscodec.Codec, client keybase1.CryptoInterface, log logger.Logger) *CryptoClient {
-	deferLog := log.CloneWithAddedDepth(1)
-	return &CryptoClient{
-		CryptoCommon: MakeCryptoCommon(codec),
-		client:       client,
-		log:          log,
-		deferLog:     deferLog,
-	}
-}
 
 func (c *CryptoClient) logAboutTooLongUnlessCancelled(ctx context.Context,
 	method string) *time.Timer {
@@ -231,6 +220,39 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	}
 	return kbfscrypto.MakeTLFCryptKeyClientHalf(res.Plaintext),
 		indexLookup[res.Index], nil
+}
+
+// DecryptTeamMerkleLeaf implements the Crypto interface for
+// CryptoClient.
+func (c *CryptoClient) DecryptTeamMerkleLeaf(
+	ctx context.Context, teamID keybase1.TeamID,
+	publicKey kbfscrypto.TLFEphemeralPublicKey,
+	encryptedMerkleLeaf kbfscrypto.EncryptedMerkleLeaf,
+	minKeyGen keybase1.PerTeamKeyGeneration) (decryptedData []byte, err error) {
+	c.log.CDebugf(ctx, "Decrypting team Merkle leaf")
+	defer func() {
+		c.deferLog.CDebugf(ctx, "Decrypted team Merkle leaf: %+v", err)
+	}()
+	nonce, err := kbfscrypto.PrepareMerkleLeaf(
+		encryptedMerkleLeaf)
+	if err != nil {
+		return nil, err
+	}
+
+	timer := c.logAboutTooLongUnlessCancelled(ctx, "DecryptTeamMerkleLeaf")
+	defer timer.Stop()
+	decryptedData, err = c.teamsClient.TryDecryptWithTeamKey(ctx,
+		keybase1.TryDecryptWithTeamKeyArg{
+			TeamID:         teamID,
+			EncryptedData:  encryptedMerkleLeaf.EncryptedData,
+			Nonce:          nonce,
+			PeersPublicKey: keybase1.BoxPublicKey(publicKey.Data()),
+			MinGeneration:  minKeyGen,
+		})
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return decryptedData, nil
 }
 
 // Shutdown implements the Crypto interface for CryptoClient.

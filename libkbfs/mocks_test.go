@@ -3878,6 +3878,19 @@ func (mr *MockCryptoMockRecorder) DecryptTLFCryptKeyClientHalfAny(ctx, keys, pro
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptTLFCryptKeyClientHalfAny", reflect.TypeOf((*MockCrypto)(nil).DecryptTLFCryptKeyClientHalfAny), ctx, keys, promptPaper)
 }
 
+// DecryptTeamMerkleLeaf mocks base method
+func (m *MockCrypto) DecryptTeamMerkleLeaf(ctx context.Context, teamID keybase1.TeamID, publicKey kbfscrypto.TLFEphemeralPublicKey, encryptedMerkleLeaf kbfscrypto.EncryptedMerkleLeaf, minKeyGen keybase1.PerTeamKeyGeneration) ([]byte, error) {
+	ret := m.ctrl.Call(m, "DecryptTeamMerkleLeaf", ctx, teamID, publicKey, encryptedMerkleLeaf, minKeyGen)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DecryptTeamMerkleLeaf indicates an expected call of DecryptTeamMerkleLeaf
+func (mr *MockCryptoMockRecorder) DecryptTeamMerkleLeaf(ctx, teamID, publicKey, encryptedMerkleLeaf, minKeyGen interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptTeamMerkleLeaf", reflect.TypeOf((*MockCrypto)(nil).DecryptTeamMerkleLeaf), ctx, teamID, publicKey, encryptedMerkleLeaf, minKeyGen)
+}
+
 // Shutdown mocks base method
 func (m *MockCrypto) Shutdown() {
 	m.ctrl.Call(m, "Shutdown")

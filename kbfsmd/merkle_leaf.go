@@ -5,11 +5,9 @@
 package kbfsmd
 
 import (
-	"github.com/keybase/client/go/libkb"
 	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -66,16 +64,11 @@ func (l MerkleLeaf) Encrypt(codec kbfscodec.Codec,
 func (el EncryptedMerkleLeaf) Decrypt(codec kbfscodec.Codec,
 	privKey kbfscrypto.TLFPrivateKey, nonce *[24]byte,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey) (MerkleLeaf, error) {
-	if el.Version != kbfscrypto.EncryptionSecretbox {
-		return MerkleLeaf{}, errors.WithStack(
-			kbfscrypto.UnknownEncryptionVer{Ver: el.Version})
-	}
-	pubKeyData := ePubKey.Data()
-	privKeyData := privKey.Data()
-	leafBytes, ok := box.Open(
-		nil, el.EncryptedData[:], nonce, &pubKeyData, &privKeyData)
-	if !ok {
-		return MerkleLeaf{}, errors.WithStack(libkb.DecryptionError{})
+	eLeaf := kbfscrypto.MakeEncryptedMerkleLeaf(
+		el.Version, el.EncryptedData, nonce)
+	leafBytes, err := kbfscrypto.DecryptMerkleLeaf(privKey, ePubKey, eLeaf)
+	if err != nil {
+		return MerkleLeaf{}, err
 	}
 	// decode the leaf
 	var leaf MerkleLeaf

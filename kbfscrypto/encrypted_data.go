@@ -228,3 +228,59 @@ func DecryptTLFCryptKeys(
 
 	return oldKeys, nil
 }
+
+// EncryptedMerkleLeaf is an encrypted MerkleLeaf object.
+type EncryptedMerkleLeaf struct {
+	encryptedData
+}
+
+// MakeEncryptedMerkleLeaf constructs an EncryptedMerkleLeaf.
+func MakeEncryptedMerkleLeaf(
+	version EncryptionVer, data []byte, nonce *[24]byte) EncryptedMerkleLeaf {
+	return EncryptedMerkleLeaf{
+		encryptedData{
+			Version:       version,
+			EncryptedData: data,
+			Nonce:         nonce[:],
+		},
+	}
+}
+
+// PrepareMerkleLeaf verifies the correctness of the given leaf, and
+// returns its nonce.
+func PrepareMerkleLeaf(encryptedMerkleLeaf EncryptedMerkleLeaf) (
+	nonce [24]byte, err error) {
+	if encryptedMerkleLeaf.Version != EncryptionSecretbox {
+		return [24]byte{},
+			errors.WithStack(UnknownEncryptionVer{
+				Ver: encryptedMerkleLeaf.Version})
+	}
+
+	if len(encryptedMerkleLeaf.Nonce) != len(nonce) {
+		return [24]byte{},
+			errors.WithStack(InvalidNonceError{
+				Nonce: encryptedMerkleLeaf.Nonce})
+	}
+	copy(nonce[:], encryptedMerkleLeaf.Nonce)
+	return nonce, nil
+}
+
+// DecryptMerkleLeaf decrypts an EncryptedMerkleLeaf
+// using the given device private key and ephemeral public key.
+func DecryptMerkleLeaf(
+	privateKey TLFPrivateKey, publicKey TLFEphemeralPublicKey,
+	encryptedMerkleLeaf EncryptedMerkleLeaf) ([]byte, error) {
+	nonce, err := PrepareMerkleLeaf(encryptedMerkleLeaf)
+	if err != nil {
+		return nil, err
+	}
+
+	publicKeyData := publicKey.Data()
+	privateKeyData := privateKey.Data()
+	decryptedData, ok := box.Open(nil, encryptedMerkleLeaf.EncryptedData,
+		&nonce, &publicKeyData, &privateKeyData)
+	if !ok {
+		return nil, errors.WithStack(libkb.DecryptionError{})
+	}
+	return decryptedData, nil
+}

@@ -6,11 +6,14 @@ package libkbfs
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
+
+type perTeamPrivateKeys map[keybase1.PerTeamKeyGeneration]kbfscrypto.TLFPrivateKey
 
 // CryptoLocal implements the Crypto interface by using a local
 // signing key and a local crypt private key.
@@ -18,6 +21,7 @@ type CryptoLocal struct {
 	CryptoCommon
 	kbfscrypto.SigningKeySigner
 	cryptPrivateKey kbfscrypto.CryptPrivateKey
+	teamPrivateKeys map[keybase1.TeamID]perTeamPrivateKeys
 }
 
 var _ Crypto = CryptoLocal{}
@@ -31,6 +35,7 @@ func NewCryptoLocal(codec kbfscodec.Codec,
 		MakeCryptoCommon(codec),
 		kbfscrypto.SigningKeySigner{Key: signingKey},
 		cryptPrivateKey,
+		make(map[keybase1.TeamID]perTeamPrivateKeys),
 	}
 }
 
@@ -78,6 +83,36 @@ func (c CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	}
 	return kbfscrypto.TLFCryptKeyClientHalf{}, -1,
 		errors.WithStack(libkb.DecryptionError{})
+}
+
+func (c CryptoLocal) addTeamKeyGeneration(
+	teamID keybase1.TeamID, keyGen keybase1.PerTeamKeyGeneration,
+	privKey kbfscrypto.TLFPrivateKey) {
+	if c.teamPrivateKeys[teamID] == nil {
+		c.teamPrivateKeys[teamID] = make(perTeamPrivateKeys)
+	}
+
+	c.teamPrivateKeys[teamID][keyGen] = privKey
+}
+
+// DecryptTeamMerkleLeaf implements the Crypto interface for
+// CryptoLocal.
+func (c CryptoLocal) DecryptTeamMerkleLeaf(
+	ctx context.Context, teamID keybase1.TeamID,
+	publicKey kbfscrypto.TLFEphemeralPublicKey,
+	encryptedMerkleLeaf kbfscrypto.EncryptedMerkleLeaf,
+	minKeyGen keybase1.PerTeamKeyGeneration) (decryptedData []byte, err error) {
+	perTeamKeys := c.teamPrivateKeys[teamID]
+	maxKeyGen := keybase1.PerTeamKeyGeneration(len(perTeamKeys))
+	for i := minKeyGen; i <= maxKeyGen; i++ {
+		decryptedData, err := kbfscrypto.DecryptMerkleLeaf(
+			perTeamKeys[i], publicKey, encryptedMerkleLeaf)
+		if err == nil {
+			return decryptedData, nil
+		}
+	}
+
+	return nil, errors.WithStack(libkb.DecryptionError{})
 }
 
 // Shutdown implements the Crypto interface for CryptoLocal.

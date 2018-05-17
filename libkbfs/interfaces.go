@@ -1162,6 +1162,14 @@ type Crypto interface {
 		promptPaper bool) (
 		kbfscrypto.TLFCryptKeyClientHalf, int, error)
 
+	// DecryptTeamMerkleLeaf decrypts a team-encrypted Merkle leaf
+	// using some team key generation greater than `minKeyGen`, and
+	// the provided ephemeral public key.
+	DecryptTeamMerkleLeaf(ctx context.Context, teamID keybase1.TeamID,
+		publicKey kbfscrypto.TLFEphemeralPublicKey,
+		encryptedMerkleLeaf kbfscrypto.EncryptedMerkleLeaf,
+		minKeyGen keybase1.PerTeamKeyGeneration) ([]byte, error)
+
 	// Shutdown frees any resources associated with this instance.
 	Shutdown()
 }
