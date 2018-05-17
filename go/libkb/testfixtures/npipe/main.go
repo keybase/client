@@ -65,7 +65,6 @@ func main() {
 		name = flag.Args()[0]
 	}
 
-	
 	if *dial {
 		fmt.Printf("dialing pipe name %s\n", name)
 		DoDial(name)
