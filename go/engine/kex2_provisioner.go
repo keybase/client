@@ -86,7 +86,7 @@ func (e *Kex2Provisioner) Run(m libkb.MetaContext) error {
 	// get current passphrase stream if necessary:
 	if e.pps.PassphraseStream == nil {
 		m.CDebugf("kex2 provisioner needs passphrase stream, getting it from LoginState")
-		pps, err := m.G().LoginState().GetPassphraseStreamStored(m, m.UIs().SecretUI)
+		pps, err := libkb.GetPassphraseStreamStored(m)
 		if err != nil {
 			return err
 		}

@@ -179,24 +179,19 @@ func (e *DeviceHistory) provisioner(m libkb.MetaContext, d *libkb.Device, ckis *
 	return nil, nil
 }
 
-func (e *DeviceHistory) getLastUsedTimes(m libkb.MetaContext) (map[keybase1.DeviceID]time.Time, error) {
-	uid := m.G().GetMyUID()
-	var err error
+func (e *DeviceHistory) getLastUsedTimes(m libkb.MetaContext) (ret map[keybase1.DeviceID]time.Time, err error) {
+	defer m.CTrace("DeviceHistory#getLastUsedTimes", func() error { return err })()
 	var devs libkb.DeviceKeyMap
-	aerr := m.G().LoginState().Account(func(a *libkb.Account) {
-		if err = libkb.RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.LocalSession()); err != nil {
-			return
-		}
-		devs, err = a.SecretSyncer().ActiveDevices(libkb.AllDeviceTypes)
-	}, "DeviceHistory - ")
-	if aerr != nil {
-		return nil, aerr
-	}
+	var ss *libkb.SecretSyncer
+	ss, err = m.ActiveDevice().SyncSecrets(m)
 	if err != nil {
 		return nil, err
 	}
-
-	ret := map[keybase1.DeviceID]time.Time{}
+	devs, err = ss.ActiveDevices(libkb.AllDeviceTypes)
+	if err != nil {
+		return nil, err
+	}
+	ret = map[keybase1.DeviceID]time.Time{}
 	for deviceID, dev := range devs {
 		ret[deviceID] = time.Unix(dev.LastUsedTime, 0)
 	}

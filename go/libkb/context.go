@@ -15,6 +15,20 @@ type MetaContext struct {
 	uis          UIs
 }
 
+func (m MetaContext) Dump() {
+	m.CDebugf("MetaContext#Dump:")
+	if m.activeDevice != nil {
+		m.CDebugf("- Local ActiveDevice:")
+		m.activeDevice.Dump(m, "-- ")
+	}
+	m.CDebugf("- Global ActiveDevice:")
+	m.g.ActiveDevice.Dump(m, "-- ")
+	if m.loginContext != nil {
+		m.CDebugf("- Login Context:")
+		m.loginContext.Dump(m, "-- ")
+	}
+}
+
 func NewMetaContext(ctx context.Context, g *GlobalContext) MetaContext {
 	return MetaContext{ctx: ctx, g: g}
 }

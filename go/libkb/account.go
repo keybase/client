@@ -447,7 +447,7 @@ func (a *Account) saveUserConfig(username NormalizedUsername, uid keybase1.UID, 
 	return cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), true /* overwrite */)
 }
 
-func (a *Account) Dump() {
+func (a *Account) Dump(m MetaContext, prefix string) {
 	fmt.Printf("Account dump:\n")
 	a.loginSession.Dump()
 	a.streamCache.Dump()
