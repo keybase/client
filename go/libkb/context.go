@@ -491,13 +491,13 @@ func (m MetaContext) LogoutIfRevoked() (err error) {
 }
 
 func (m MetaContext) PassphraseStream() *PassphraseStream {
-	if m.LoginContext() == nil {
-		return nil
+	if m.LoginContext() != nil {
+		if m.LoginContext().PassphraseStreamCache() == nil {
+			return nil
+		}
+		return m.LoginContext().PassphraseStreamCache().PassphraseStream()
 	}
-	if m.LoginContext().PassphraseStreamCache() == nil {
-		return nil
-	}
-	return m.LoginContext().PassphraseStreamCache().PassphraseStream()
+	return m.ActiveDevice().PassphraseStream()
 }
 
 func (m MetaContext) CurrentUsername() NormalizedUsername {
