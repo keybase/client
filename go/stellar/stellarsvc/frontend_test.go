@@ -13,7 +13,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	_, err := stellar.CreateWallet(tcs[0].G.Bg())
 	require.NoError(t, err)
 
 	accountID := tcs[0].Remote.AddAccount(t)
