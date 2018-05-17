@@ -3,7 +3,16 @@ import * as React from 'react'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box2, Icon, Text, FloatingPicker} from '../../../../common-adapters/native'
 import {globalColors, globalMargins} from '../../../../styles'
-import type {Props} from '.'
+
+type Props = {
+  attachTo: ?React.Component<any, any>,
+  visible: boolean,
+  onHidden: () => void,
+  isNew: boolean,
+  selected: ?MessageExplodeDescription,
+  onSelect: MessageExplodeDescription => void,
+  items: MessageExplodeDescription[],
+}
 
 const Announcement = () => (
   <Box2 direction="vertical" fullWidth={true} style={announcementContainerStyle}>

@@ -8,7 +8,25 @@ import EscapeHandler from '../util/escape-handler'
 import {connect, type Dispatch} from '../util/container'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
 
-import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
+export type Position =
+  | 'top left'
+  | 'top right'
+  | 'bottom right'
+  | 'bottom left'
+  | 'right center'
+  | 'left center'
+  | 'top center'
+  | 'bottom center'
+
+export type RelativePopupProps<PP: {}> = {
+  targetRect: ?ClientRect,
+  position: Position,
+  style?: Object,
+} & PP
+
+export type RelativePopupHocType<PP> = (
+  PopupComponent: React.ComponentType<PP>
+) => React.ComponentType<RelativePopupProps<PP>>
 
 class DOMNodeFinder extends React.Component<{
   setNode: (node: HTMLElement) => void,

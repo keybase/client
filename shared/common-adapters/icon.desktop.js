@@ -3,12 +3,42 @@ import * as shared from './icon.shared'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
+import {
+  globalColors,
+  glamorous,
+  desktopStyles,
+  collapseStyles,
+  type StylesCrossPlatformWithSomeDisallowed,
+  type Color,
+} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import Box from './box'
+import type {IconType} from './icon.constants'
 
-import type {Props, IconType} from './icon'
+// These must be passed as props
+type DisallowedStyles = {
+  color?: empty,
+  hoverColor?: empty,
+  fontSize?: empty,
+}
+
+export type Props = {
+  type: IconType,
+  hint?: string,
+  onClick?: (event: SyntheticEvent<Element>) => void,
+  onPress?: void,
+  onMouseEnter?: () => void,
+  onMouseLeave?: () => void,
+  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  opacity?: boolean,
+  inheritColor?: boolean,
+  underlayColor?: string,
+  className?: string,
+  color?: Color,
+  hoverColor?: string,
+  fontSize?: number,
+}
 
 const StyledSpan = glamorous.span(props => ({
   color: props.color,
@@ -181,3 +211,4 @@ export const styles = {
 }
 
 export default Icon
+export type {IconType} from './icon.constants'

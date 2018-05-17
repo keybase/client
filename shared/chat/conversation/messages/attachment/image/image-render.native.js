@@ -2,7 +2,11 @@
 import * as React from 'react'
 import {NativeImage, NativeDimensions} from '../../../../../common-adapters/native-wrappers.native'
 
-import type {ImageRenderProps} from './image-render'
+type ImageRenderProps = {
+  onLoad: () => void,
+  src: string,
+  style: Object,
+}
 
 export function ImageRender({onLoad, style, src}: ImageRenderProps) {
   const source = typeof src === 'string' ? {uri: src} : src

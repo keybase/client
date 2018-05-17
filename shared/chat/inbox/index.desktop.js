@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
 import {ErrorBoundary} from '../../common-adapters'
@@ -11,8 +12,56 @@ import {debounce} from 'lodash-es'
 import {isDarwin} from '../../constants/platform'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
+import type {ConversationIDKey} from '../../constants/types/chat2'
 
-import type {Props} from './'
+export type RowItemSmall = {|
+  type: 'small',
+  conversationIDKey: ConversationIDKey,
+|}
+export type RowItemBigTeamsLabel = {|
+  type: 'bigTeamsLabel',
+  isFiltered: boolean,
+|}
+export type RowItemBigHeader = {|
+  type: 'bigHeader',
+  teamname: string,
+|}
+export type RowItemBig = {|
+  type: 'big',
+  conversationIDKey: ConversationIDKey,
+  teamname: string,
+  channelname: string,
+|}
+export type RowItemDivider = {|
+  type: 'divider',
+|}
+
+export type RowItem = RowItemSmall | RowItemBigTeamsLabel | RowItemBigHeader | RowItemBig | RowItemDivider
+
+export type RouteState = I.RecordOf<{
+  smallTeamsExpanded: boolean,
+}>
+
+export type Props = {
+  children?: React$Element<any>,
+  filter: string,
+  filterFocusCount: number,
+  isLoading: boolean,
+  nowOverride?: number, // just for dumb rendering
+  onNewChat: () => void,
+  onSelectUp: () => void,
+  onSelectDown: () => void,
+  onHotkey: (cmd: string) => void,
+  onSetFilter: (filter: string) => void,
+  onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
+  rows: Array<RowItem>,
+  showBuildATeam: boolean,
+  showNewConversation: boolean,
+  showSmallTeamsExpandDivider: boolean,
+  smallTeamsExpanded: boolean,
+  smallIDsHidden: Array<ConversationIDKey>,
+  toggleSmallTeamsExpanded: () => void,
+}
 
 type State = {
   showFloating: boolean,

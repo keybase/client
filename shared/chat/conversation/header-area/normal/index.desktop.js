@@ -3,7 +3,20 @@ import * as React from 'react'
 import {Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 
-import type {Props} from '.'
+type Props = {|
+  badgeNumber?: number,
+  canOpenInfoPanel: boolean,
+  channelName: ?string,
+  muted: boolean,
+  onBack: () => void,
+  onOpenFolder: () => void,
+  onShowProfile: (user: string) => void,
+  onToggleInfoPanel: () => void,
+  infoPanelOpen: boolean,
+  teamName: ?string,
+  participants: Array<string>,
+  smallTeam: boolean,
+|}
 
 const ShhIcon = () => (
   <Box style={{height: 0, position: 'relative', width: 0, alignSelf: 'flex-start'}}>

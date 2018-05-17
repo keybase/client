@@ -1,7 +1,11 @@
 // @flow
 import * as React from 'react'
 
-import type {ImageRenderProps} from './image-render'
+type ImageRenderProps = {
+  onLoad: () => void,
+  src: string,
+  style: Object,
+}
 
 export function ImageRender({onLoad, style, src}: ImageRenderProps) {
   return <img onLoad={onLoad} draggable="false" src={src} style={style} />

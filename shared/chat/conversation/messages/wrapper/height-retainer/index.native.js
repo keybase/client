@@ -1,8 +1,13 @@
 // @flow
 import * as React from 'react'
 import {Box, NativeImage} from '../../../../../common-adapters/native'
-import {collapseStyles} from '../../../../../styles'
-import type {Props} from '.'
+import {collapseStyles, type StylesCrossPlatform} from '../../../../../styles'
+
+type Props = {
+  children?: React.Node,
+  style?: StylesCrossPlatform,
+  retainHeight: boolean,
+}
 
 const explodedUllustrationURL = require('../../../../../images/icons/pattern-ashes-mobile-400-80.png')
 

@@ -1,13 +1,7 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
-import {
-  Text,
-  Icon,
-  Box,
-  NativeDimensions,
-  NativeFlatList,
-  ErrorBoundary,
-} from '../../common-adapters/native'
+import {Text, Icon, Box, NativeDimensions, NativeFlatList, ErrorBoundary} from '../../common-adapters/native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'
@@ -16,7 +10,56 @@ import Divider from './row/divider/container'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 
-import type {Props, RowItem} from './'
+import type {ConversationIDKey} from '../../constants/types/chat2'
+
+export type RowItemSmall = {|
+  type: 'small',
+  conversationIDKey: ConversationIDKey,
+|}
+export type RowItemBigTeamsLabel = {|
+  type: 'bigTeamsLabel',
+  isFiltered: boolean,
+|}
+export type RowItemBigHeader = {|
+  type: 'bigHeader',
+  teamname: string,
+|}
+export type RowItemBig = {|
+  type: 'big',
+  conversationIDKey: ConversationIDKey,
+  teamname: string,
+  channelname: string,
+|}
+export type RowItemDivider = {|
+  type: 'divider',
+|}
+
+export type RowItem = RowItemSmall | RowItemBigTeamsLabel | RowItemBigHeader | RowItemBig | RowItemDivider
+
+export type RouteState = I.RecordOf<{
+  smallTeamsExpanded: boolean,
+}>
+
+export type Props = {
+  children?: React$Element<any>,
+  filter: string,
+  filterFocusCount: number,
+  isLoading: boolean,
+  nowOverride?: number, // just for dumb rendering
+  onNewChat: () => void,
+  onSelectUp: () => void,
+  onSelectDown: () => void,
+  onHotkey: (cmd: string) => void,
+  onSetFilter: (filter: string) => void,
+  onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
+  rows: Array<RowItem>,
+  showBuildATeam: boolean,
+  showNewConversation: boolean,
+  showSmallTeamsExpandDivider: boolean,
+  smallTeamsExpanded: boolean,
+  smallIDsHidden: Array<ConversationIDKey>,
+  toggleSmallTeamsExpanded: () => void,
+}
 
 const NoChats = () => (
   <Box

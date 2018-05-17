@@ -4,7 +4,17 @@ import {Avatar, Box, Button, HeaderHoc, Input, Text, ButtonBar} from '../../comm
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
-import type {Props} from '.'
+type Props = {
+  channelname: string,
+  description: string,
+  errorText: string,
+  onBack: () => void,
+  onClose: () => void,
+  onSubmit: () => void,
+  onDescriptionChange: (description: string) => void,
+  onChannelnameChange: (channelname: string) => void,
+  teamname: string,
+}
 
 const errorHeader = (errorText: string) => {
   if (!errorText) {
