@@ -86,7 +86,8 @@
         "INVITEADDEDTOTEAM_1",
         "COMPLEXTEAM_2",
         "CREATETEAM_3",
-        "GITPUSH_4"
+        "GITPUSH_4",
+        "CHANGEAVATAR_5"
       ]
     },
     {
@@ -223,6 +224,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemChangeAvatar",
+      "fields": [
+        {
+          "type": "string",
+          "name": "team"
+        },
+        {
+          "type": "string",
+          "name": "user"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -264,6 +279,13 @@
             "def": false
           },
           "body": "MessageSystemGitPush"
+        },
+        {
+          "label": {
+            "name": "CHANGEAVATAR",
+            "def": false
+          },
+          "body": "MessageSystemChangeAvatar"
         }
       ]
     },
@@ -3467,6 +3489,14 @@
         },
         {
           "name": "maxMessages",
+          "type": "int"
+        },
+        {
+          "name": "beforeContext",
+          "type": "int"
+        },
+        {
+          "name": "afterContext",
           "type": "int"
         },
         {

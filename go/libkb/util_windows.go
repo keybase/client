@@ -43,9 +43,11 @@ var (
 var (
 	modShell32               = windows.NewLazySystemDLL("Shell32.dll")
 	modOle32                 = windows.NewLazySystemDLL("Ole32.dll")
+	kernel32                 = windows.NewLazySystemDLL("kernel32.dll")
 	procSHGetKnownFolderPath = modShell32.NewProc("SHGetKnownFolderPath")
 	procCoTaskMemFree        = modOle32.NewProc("CoTaskMemFree")
 	shChangeNotifyProc       = modShell32.NewProc("SHChangeNotify")
+	procCreateMutex          = kernel32.NewProc("CreateMutexW")
 )
 
 // LookPath searches for an executable binary named file
@@ -362,4 +364,23 @@ func ChangeMountIcon(oldMount string, newMount string) error {
 	err = k2.SetStringValue("", "Keybase")
 	notifyShell(newMount)
 	return err
+}
+
+// CheckInstance returns true if no other instance is found
+// see https://stackoverflow.com/questions/23162986/restricting-to-single-instance-of-executable-with-golang
+func CheckInstance(name string) bool {
+	namep, err := syscall.UTF16PtrFromString(name)
+	if err != nil {
+		return true // should never happen
+	}
+	_, _, err = procCreateMutex.Call(
+		0,
+		0,
+		uintptr(unsafe.Pointer(namep)),
+	)
+
+	if int(err.(syscall.Errno)) == 0 {
+		return true
+	}
+	return false
 }

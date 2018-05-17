@@ -505,6 +505,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
+		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
@@ -603,17 +604,19 @@ func (d *Service) hourlyChecks() {
 		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
-			m.CDebugf("+ hourly check loop")
-			m.CDebugf("| checking tracks on an hour timer")
-			libkb.CheckTracking(m.G())
-
-			ekLib := m.G().GetEKLib()
-			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
-			ekLib.KeygenIfNeeded(m.Ctx())
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutIfRevoked(); err != nil {
 				m.CDebugf("LogoutIfRevoked error: %s", err)
 			}
+
+			ekLib := m.G().GetEKLib()
+			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
+			ekLib.KeygenIfNeeded(m.Ctx())
+
+			m.CDebugf("+ hourly check loop")
+			m.CDebugf("| checking tracks on an hour timer")
+			libkb.CheckTracking(m.G())
+
 			m.CDebugf("- hourly check loop")
 		}
 	}()

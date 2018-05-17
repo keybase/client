@@ -3,7 +3,7 @@ import AppState from './app-state'
 import Window from './window'
 import getenv from 'getenv'
 import hotPath from '../hot-path'
-import {app, ipcMain} from 'electron'
+import {app, ipcMain, session} from 'electron'
 import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon'
 import {injectReactQueryParams} from '../../util/dev'
@@ -12,6 +12,11 @@ import {windowStyle} from '../../styles'
 import {isWindows} from '../../constants/platform'
 
 export default function() {
+  // We are not using partitions on webviews, so this essentially disables
+  // download for webviews. If we decide to start using partitions for
+  // webviews, we should make sure to attach this to those partitions too.
+  session.defaultSession.on('will-download', event => event.preventDefault())
+
   let appState = new AppState()
   appState.checkOpenAtLogin()
 

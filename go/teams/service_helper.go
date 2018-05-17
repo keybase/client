@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -1507,5 +1508,26 @@ func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 		return err
 	}
 	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	return nil
+}
+
+func ChangeTeamAvatar(mctx libkb.MetaContext, arg keybase1.UploadTeamAvatarArg) error {
+	team, err := Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
+		Name:        arg.Teamname,
+		Public:      false,
+		ForceRepoll: false,
+		NeedAdmin:   true,
+	})
+	if err != nil {
+		return fixupTeamGetError(mctx.Ctx(), mctx.G(), err, arg.Teamname, false /* public */)
+	}
+
+	if err := avatars.UploadImage(mctx, arg.Filename, &team.ID, arg.Crop); err != nil {
+		return err
+	}
+
+	if arg.SendChatNotification {
+		SendTeamChatChangeAvatar(mctx, team.Name().String(), mctx.G().Env.GetUsername().String())
+	}
 	return nil
 }

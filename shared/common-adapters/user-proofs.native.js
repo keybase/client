@@ -37,7 +37,7 @@ function MissingProofRow({missingProof, style}: {missingProof: MissingProof, sty
           </Box>
         </Box>
         <Box style={styleStatusIconContainer}>
-          <Icon type={'iconfont-proof-placeholder'} color={globalColors.black_10} fontSIze="26" />
+          <Icon type={'iconfont-proof-placeholder'} color={globalColors.black_10} fontSize={26} />
         </Box>
       </Box>
     </ClickableBox>
