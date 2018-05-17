@@ -114,6 +114,11 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetLogFile() string {
 	return p.GetGString("log-file")
 }
+
+func (p CommandLine) GetLogPrefix() string {
+	return p.GetGString("log-prefix")
+}
+
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")
 }
@@ -477,6 +482,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "log-format",
 			Usage: "Log format (default, plain, file, fancy).",
+		},
+		cli.StringFlag{
+			Name:  "log-prefix",
+			Usage: "Specify a prefix for a unique log file name.",
 		},
 		cli.StringFlag{
 			Name:  "merkle-kids",

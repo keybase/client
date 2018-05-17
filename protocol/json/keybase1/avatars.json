@@ -36,6 +36,25 @@
           "name": "picmap"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AvatarClearCacheMsg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name",
+          "jsonkey": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AvatarFormat"
+          },
+          "name": "formats",
+          "jsonkey": "formats"
+        }
+      ]
     }
   ],
   "messages": {

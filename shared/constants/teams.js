@@ -228,6 +228,12 @@ const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
 }
 
 /**
+ *  Gets the number of channels you're subscribed to on a team
+ */
+const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamname): number =>
+  state.chat2.metaMap.count(c => c.teamname === teamname)
+
+/**
  * Gets whether the team is big or small for teams you are a member of
  */
 const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
@@ -382,6 +388,7 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 })
 
 export {
+  getNumberOfSubscribedChannels,
   getRole,
   getCanPerform,
   hasCanPerform,

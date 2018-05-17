@@ -1805,6 +1805,10 @@ export const teamsTeamTreeRpcChannelMap = (configKeys: Array<string>, request: T
 
 export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => (error ? reject(error) : resolve(result))))
 
+export const teamsUploadTeamAvatarRpcChannelMap = (configKeys: Array<string>, request: TeamsUploadTeamAvatarRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.uploadTeamAvatar', request)
+
+export const teamsUploadTeamAvatarRpcPromise = (request: TeamsUploadTeamAvatarRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.uploadTeamAvatar', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const testPanicRpcChannelMap = (configKeys: Array<string>, request: TestPanicRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.panic', request)
 
 export const testPanicRpcPromise = (request: TestPanicRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.panic', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -1986,6 +1990,10 @@ export const userSearchRpcChannelMap = (configKeys: Array<string>, request: User
 
 export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => (error ? reject(error) : resolve(result))))
 
+export const userUploadUserAvatarRpcChannelMap = (configKeys: Array<string>, request: UserUploadUserAvatarRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.uploadUserAvatar', request)
+
+export const userUploadUserAvatarRpcPromise = (request: UserUploadUserAvatarRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.uploadUserAvatar', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export type APIRes = $ReadOnly<{status: String, body: String, httpStatus: Int, appStatus: String}>
 
 export type AccountEmailChangeRpcParam = $ReadOnly<{newEmail: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -2031,6 +2039,8 @@ export type AsyncOps =
   | 4 // COPY_4
   | 5 // MOVE_5
   | 6 // REMOVE_6
+
+export type AvatarClearCacheMsg = $ReadOnly<{name: String, formats?: ?Array<AvatarFormat>}>
 
 export type AvatarFormat = String
 
@@ -2637,6 +2647,8 @@ export type IdentifyUiStartRpcParam = $ReadOnly<{username: String, reason: Ident
 
 export type Identity = $ReadOnly<{status?: ?Status, whenLastTracked: Time, proofs?: ?Array<IdentifyRow>, cryptocurrency?: ?Array<Cryptocurrency>, revoked?: ?Array<TrackDiff>, revokedDetails?: ?Array<RevokedProof>, breaksTracking: Boolean}>
 
+export type ImageCropRect = $ReadOnly<{x0: Int, y0: Int, x1: Int, y1: Int}>
+
 export type ImplicitRole = $ReadOnly<{role: TeamRole, ancestor: TeamID}>
 
 export type ImplicitTeamConflictInfo = $ReadOnly<{generation: ConflictGeneration, time: Time}>
@@ -2935,7 +2947,7 @@ export type NotifyPGPPgpKeyInSecretStoreFileRpcParam = ?$ReadOnly<{incomingCallM
 
 export type NotifyPaperKeyPaperKeyCachedRpcParam = $ReadOnly<{uid: UID, encKID: KID, sigKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyServiceShutdownRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyServiceShutdownRpcParam = $ReadOnly<{code: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3962,6 +3974,8 @@ export type TeamsUiConfirmRootTeamDeleteRpcParam = $ReadOnly<{teamName: String, 
 
 export type TeamsUiConfirmSubteamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type TeamsUploadTeamAvatarRpcParam = $ReadOnly<{teamname: String, filename: String, crop?: ?ImageCropRect, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type Test = $ReadOnly<{reply: String}>
 
 export type TestPanicRpcParam = $ReadOnly<{message: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4140,6 +4154,8 @@ export type UserSummary2 = $ReadOnly<{uid: UID, username: String, thumbnail: Str
 export type UserSummary2Set = $ReadOnly<{users?: ?Array<UserSummary2>, time: Time, version: Int}>
 
 export type UserTeamShowcase = $ReadOnly<{fqName: String, open: Boolean, teamIsShowcased: Boolean, description: String, role: TeamRole, publicAdmins?: ?Array<String>, numMembers: Int}>
+
+export type UserUploadUserAvatarRpcParam = $ReadOnly<{filename: String, crop?: ?ImageCropRect, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserVersion = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
 
@@ -4391,7 +4407,7 @@ export type IncomingCallMapType = {|
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $ReadOnly<{uid: UID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $ReadOnly<{uid: UID, encKID: KID, sigKID: KID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyService.shutdown'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyService.shutdown'?: (params: $ReadOnly<{code: Int}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifySession.loggedOut'?: (params: $ReadOnly<{}>) => void,
   'keybase.1.NotifySession.loggedIn'?: (params: $ReadOnly<{username: String}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifySession.clientOutOfDate'?: (params: $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String}>, response: CommonResponseHandler) => void,

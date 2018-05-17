@@ -500,3 +500,11 @@ func (h *TeamsHandler) SetTarsDisabled(ctx context.Context, arg keybase1.SetTars
 
 	return teams.SetTarsDisabled(ctx, h.G().ExternalG(), arg.Name, arg.Disabled)
 }
+
+func (h *TeamsHandler) UploadTeamAvatar(ctx context.Context, arg keybase1.UploadTeamAvatarArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadTeamAvatar(%s,%s)", arg.Teamname, arg.Filename), func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.ChangeTeamAvatar(mctx, arg)
+}
