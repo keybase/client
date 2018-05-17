@@ -23,16 +23,14 @@ const StartConversation = (props: Props) => (
       />
     </Button>
     <Text type="BodySmall" style={styles.addMore}>
-      (or add some more participants)
+      or add some more participants.
     </Text>
   </Box2>
 )
 
 const styles = styleSheetCreate({
   addMore: platformStyles({
-    common: {
-      lineHeight: 40,
-    },
+    common: {},
   }),
   arrow: platformStyles({
     common: {
