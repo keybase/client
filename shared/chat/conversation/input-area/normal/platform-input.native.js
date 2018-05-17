@@ -63,7 +63,9 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     const multilineOpts = {rowsMax: 3, rowsMin: 1}
 
     let hintText = 'Write a message'
-    if (this.props.isEditing) {
+    if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
+    } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.pendingWaiting) {
       hintText = 'Creating conversation...'
