@@ -48,7 +48,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	require.NoError(t, err)
 
 	t.Logf("basic test")
-	_, msgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -62,7 +62,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	}, 0, nil)
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
-	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -70,7 +70,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	require.Equal(t, 1, len(thread.Messages), "wrong length")
 	require.Equal(t, msgID, thread.Messages[0].GetMessageID(), "wrong msgID")
 
-	_, editMsgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	_, editMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -88,7 +88,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	editMsgID := editMsgBoxed.GetMessageID()
 
 	t.Logf("testing an edit")
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -113,7 +113,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 		delBody = chat1.NewMessageBodyWithDeletehistory(*delHeader)
 		delSupersedes = 0
 	}
-	_, deleteMsgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	_, deleteMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:          trip,
 			Sender:        u.User.GetUID().ToBytes(),
@@ -127,7 +127,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	}, 0, nil)
 	require.NoError(t, err)
 	deleteMsgID := deleteMsgBoxed.GetMessageID()
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -135,7 +135,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	require.Equal(t, 0, len(thread.Messages), "wrong length")
 
 	t.Logf("testing disabling resolve")
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{
 				chat1.MessageType_TEXT,
@@ -486,7 +486,7 @@ func TestGetThreadCaching(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, msgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -505,7 +505,7 @@ func TestGetThreadCaching(t *testing.T) {
 	tc.ChatG.ConvSource.Disconnected(ctx)
 	tc.ChatG.InboxSource.Disconnected(ctx)
 	t.Logf("make sure we get offline error")
-	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -515,7 +515,7 @@ func TestGetThreadCaching(t *testing.T) {
 	t.Logf("read to populate caches")
 	tc.ChatG.ConvSource.Connected(ctx)
 	tc.ChatG.InboxSource.Connected(ctx)
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -534,7 +534,7 @@ func TestGetThreadCaching(t *testing.T) {
 	tc.G.OverrideUPAKLoader(newFailingUpak(t))
 
 	ctx = newTestContextWithTlfMock(tc, failingTI)
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -621,7 +621,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	tc.Context().ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 		return newNoGetThreadRemote(ri)
 	})
-	thread, _, err := tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
+	thread, err := tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, holes+2, len(thread.Messages))
 	require.Equal(t, msg.GetMessageID(), thread.Messages[0].GetMessageID())
@@ -629,7 +629,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 
 	// Make sure we don't consider it a hit if we end the fetch with a hole
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, convID, uid))
-	_, _, err = tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
+	_, err = tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
 	require.Error(t, err)
 }
 
@@ -861,7 +861,7 @@ func TestClearFromDelete(t *testing.T) {
 	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
 		u.Username, "hi2"))
 
-	_, delMsg, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),

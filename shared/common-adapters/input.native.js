@@ -168,6 +168,7 @@ class Input extends Component<Props, State> {
   _onFocus = () => {
     this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
+    this.setNativeProps({style: {textAlignVertical: 'top'}})
   }
 
   _onBlur = () => {
@@ -178,6 +179,8 @@ class Input extends Component<Props, State> {
   _lineHeight = () => {
     if (this.props.small) {
       return 20
+    } else if (this.props.multiline && isAndroid) {
+      return 34
     } else return 28
   }
 

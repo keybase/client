@@ -108,7 +108,7 @@ func (u *UIDMap) findFullNameLocally(ctx context.Context, g libkb.UIDMapperConte
 		} else if when, expired := isStale(g, tmp, fullNameFreshness); expired {
 			staleFullName = &tmp
 			staleExpired = when
-			g.GetLog().CDebugf(ctx, "fullName memory mapping %s -> %+v is expired (%s ago)", uid, tmp, when)
+			g.GetVDebugLog().CLogf(ctx, libkb.VLog0, "fullName memory mapping %s -> %+v is expired (%s ago)", uid, tmp, when)
 		} else {
 			ret = &tmp
 			return ret, foundInMem
@@ -132,7 +132,7 @@ func (u *UIDMap) findFullNameLocally(ctx context.Context, g libkb.UIDMapperConte
 	}
 
 	if when, expired := isStale(g, tmp, fullNameFreshness); expired {
-		g.GetLog().CDebugf(ctx, "fullName disk mapping %s -> %+v is expired (%s ago)", uid, tmp, when)
+		g.GetVDebugLog().CLogf(ctx, libkb.VLog0, "fullName disk mapping %s -> %+v is expired (%s ago)", uid, tmp, when)
 		if when < staleExpired {
 			staleFullName = &tmp
 		}
@@ -394,10 +394,10 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 			for i, row := range apiResults {
 				uid := uidsToLookup[i]
 				if row.FullName != nil {
-					g.GetLog().CDebugf(ctx, "| API server resolution %s -> (%s, %v, %v)", uid,
+					g.GetVDebugLog().CLogf(ctx, libkb.VLog0, "| API server resolution %s -> (%s, %v, %v)", uid,
 						row.NormalizedUsername, row.FullName.FullName, row.FullName.EldestSeqno)
 				} else {
-					g.GetLog().CDebugf(ctx, "| API server resolution %s -> (%s, <no fn res>)", uid,
+					g.GetVDebugLog().CLogf(ctx, libkb.VLog0, "| API server resolution %s -> (%s, <no fn res>)", uid,
 						row.NormalizedUsername)
 				}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -67,10 +68,19 @@ func (c *cmdWalletSend) Run() error {
 		return err
 	}
 
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
+
 	ui := c.G().UI.GetTerminalUI()
 
 	amount := c.amount
 	amountDesc := fmt.Sprintf("%s XLM", amount)
+
+	var displayAmount, displayCurrency string
 
 	if c.localCurrency != "" && c.localCurrency != "XLM" {
 		exchangeRate, err := cli.ExchangeRateLocal(context.Background(), stellar1.OutsideCurrencyCode(c.localCurrency))
@@ -85,6 +95,8 @@ func (c *cmdWalletSend) Run() error {
 
 		ui.Printf("Current exchange rate: ~ %s %s / XLM\n", exchangeRate.Rate, c.localCurrency)
 		amountDesc = fmt.Sprintf("%s XLM (~%s %s)", amount, c.amount, c.localCurrency)
+		displayAmount = c.amount
+		displayCurrency = c.localCurrency
 	}
 
 	if err := ui.PromptForConfirmation(fmt.Sprintf("Send %s to %s?", ColorString(c.G(), "green", amountDesc), ColorString(c.G(), "yellow", c.recipient))); err != nil {
@@ -92,10 +104,12 @@ func (c *cmdWalletSend) Run() error {
 	}
 
 	arg := stellar1.SendLocalArg{
-		Recipient: c.recipient,
-		Amount:    amount,
-		Asset:     stellar1.AssetNative(),
-		Note:      c.note,
+		Recipient:       c.recipient,
+		Amount:          amount,
+		Asset:           stellar1.AssetNative(),
+		Note:            c.note,
+		DisplayAmount:   displayAmount,
+		DisplayCurrency: displayCurrency,
 	}
 	res, err := cli.SendLocal(context.Background(), arg)
 	if err != nil {

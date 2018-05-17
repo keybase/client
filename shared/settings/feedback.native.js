@@ -7,7 +7,6 @@ import {
   Button,
   ButtonBar,
   Checkbox,
-  Icon,
   Text,
   Input,
   NativeScrollView,
@@ -28,6 +27,7 @@ type Props = {
   showSuccessBanner: boolean,
   sendLogs: boolean,
   feedback: ?string,
+  heading: ?string,
   sending: boolean,
   sendError: ?Error,
   onChangeSendLogs: (nextValue: boolean) => void,
@@ -60,6 +60,7 @@ class Feedback extends Component<Props> {
       sendLogs,
       onChangeSendLogs,
       feedback,
+      heading,
       onChangeFeedback,
       sending,
       sendError,
@@ -91,12 +92,8 @@ class Feedback extends Component<Props> {
             padding: globalMargins.tiny,
           }}
         >
-          <Icon
-            type="icon-fancy-feedback-96"
-            style={{height: 96, width: 96, alignSelf: 'center', marginBottom: globalMargins.tiny}}
-          />
-          <Text style={{textAlign: 'center'}} type="BodySemibold">
-            Please send us any feedback or describe any bugs you’ve encountered.
+          <Text style={{textAlign: 'center'}} type="HeaderBig">
+            {heading}
           </Text>
           <Box
             style={{
@@ -109,12 +106,13 @@ class Feedback extends Component<Props> {
             <Input
               autoCapitalize="sentences"
               autoCorrect={true}
+              autoFocus={true}
               style={{flex: 1}}
+              hideLabel={true}
               inputStyle={{textAlign: 'left'}}
               multiline={true}
-              small={true}
-              rowsMin={2}
-              hintText="Write a comment"
+              rowsMin={3}
+              hintText="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
               value={feedback}
               onChangeText={onChangeFeedback}
             />
@@ -135,7 +133,15 @@ class Feedback extends Component<Props> {
             </Box>
           </Box>
           <ButtonBar>
-            <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
+            <Button
+              fullWidth={true}
+              label="Send"
+              onClick={this._onSubmit}
+              // TODO: Remove this style when fullWidth does it.
+              style={{width: '100%'}}
+              type="Primary"
+              waiting={sending}
+            />
           </ButtonBar>
           {sendError && (
             <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>
