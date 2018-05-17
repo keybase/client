@@ -15,6 +15,20 @@ type MetaContext struct {
 	uis          UIs
 }
 
+func (m MetaContext) Dump() {
+	m.CDebugf("MetaContext#Dump:")
+	if m.activeDevice != nil {
+		m.CDebugf("- Local ActiveDevice:")
+		m.activeDevice.Dump(m, "-- ")
+	}
+	m.CDebugf("- Global ActiveDevice:")
+	m.g.ActiveDevice.Dump(m, "-- ")
+	if m.loginContext != nil {
+		m.CDebugf("- Login Context:")
+		m.loginContext.Dump(m, "-- ")
+	}
+}
+
 func NewMetaContext(ctx context.Context, g *GlobalContext) MetaContext {
 	return MetaContext{ctx: ctx, g: g}
 }
@@ -369,6 +383,52 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	return nil
 }
 
+// SetActiveOneshotDevice acquires the switchUserMu mutex, setting the active device
+// to one that corresponds to the given UID and DeviceWithKeys, and also sets the config
+// file to a temporary in-memory config (not writing to disk) to satisfy local requests for
+// g.Env.*
+func (m MetaContext) SwitchUserToActiveOneshotDevice(uid keybase1.UID, nun NormalizedUsername, d *DeviceWithKeys) (err error) {
+	defer m.CTrace("MetaContext#SwitchUserToActiveOneshotDevice", func() error { return err })()
+
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	ad := d.ToPaperKeyActiveDevice(m, uid)
+	err = g.ActiveDevice.Copy(m, ad)
+	if err != nil {
+		return err
+	}
+	uc := NewOneshotUserConfig(uid, nun, nil, d.DeviceID())
+	err = cw.SetUserConfig(uc, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SiwtchUserLoggedOut clears the active device and the current_user stanza
+// of the config file, all while holding the switchUserMu
+func (m MetaContext) SwitchUserLoggedOut() (err error) {
+	defer m.CTrace("MetaContext#SwitchUserLoggedOut", func() error { return err })()
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	g.ActiveDevice.Clear(nil)
+	err = cw.SetUserConfig(nil, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // SetActiveDevice sets the active device to have the UID, deviceID, sigKey, encKey and deviceName
 // as specified, and does so while grabbing the global switchUser lock, since it should be sycnhronized
 // with attempts to switch the global logged in user. It does not, however, change the `current_user`
@@ -431,13 +491,13 @@ func (m MetaContext) LogoutIfRevoked() (err error) {
 }
 
 func (m MetaContext) PassphraseStream() *PassphraseStream {
-	if m.LoginContext() == nil {
-		return nil
+	if m.LoginContext() != nil {
+		if m.LoginContext().PassphraseStreamCache() == nil {
+			return nil
+		}
+		return m.LoginContext().PassphraseStreamCache().PassphraseStream()
 	}
-	if m.LoginContext().PassphraseStreamCache() == nil {
-		return nil
-	}
-	return m.LoginContext().PassphraseStreamCache().PassphraseStream()
+	return m.ActiveDevice().PassphraseStream()
 }
 
 func (m MetaContext) CurrentUsername() NormalizedUsername {

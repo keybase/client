@@ -275,3 +275,70 @@ func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSe
 
 	return nil
 }
+
+func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {
+	fullSecret, err := m.G().SecretStore().RetrieveSecret(m.CurrentUsername())
+	if err != nil {
+		return nil, err
+	}
+	lks := NewLKSecWithFullSecret(fullSecret, m.CurrentUID(), m.G())
+	if err = lks.LoadServerHalf(m); err != nil {
+		return nil, err
+	}
+	stream, err := NewPassphraseStreamLKSecOnly(lks)
+	if err != nil {
+		return nil, err
+	}
+	return stream, nil
+}
+
+// GetPassphraseStreamStored either returns a cached, verified passphrase
+// stream from a previous login, the secret store, or generates a new one via
+// login.
+func GetPassphraseStreamStored(m MetaContext) (pps *PassphraseStream, err error) {
+	defer m.CTrace("GetPassphraseStreamStored", func() error { return err })()
+
+	// 1. try cached
+	m.CDebugf("| trying cached passphrase stream")
+	if pps = m.PassphraseStream(); pps != nil {
+		m.CDebugf("| cached passphrase stream ok, using it")
+		return pps, nil
+	}
+
+	// 2. try from secret store
+	if m.G().SecretStore() != nil {
+		m.CDebugf("| trying to get passphrase stream from secret store")
+		pps, err = getStoredPassphraseStream(m)
+		if err == nil {
+			m.CDebugf("| got passphrase stream from secret store")
+			return pps, nil
+		}
+		m.CInfof("| failed to get passphrase stream from secret store: %s", err)
+	}
+
+	// 3. login and get it
+	m.CDebugf("| using full GetPassphraseStream")
+	pps, err = GetPassphraseStreamViaPrompt(m)
+	if pps != nil {
+		m.CDebugf("| success using full GetPassphraseStream")
+	}
+	return pps, err
+}
+
+func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, err error) {
+
+	// We have to get the current username before we install the new provisional login context,
+	// which will shadow the logged in username.
+	nun := m.CurrentUsername()
+	defer m.CTrace(fmt.Sprintf("GetPassphraseStreamViaPrompt(%s)", nun), func() error { return err })()
+
+	m = m.WithNewProvisionalLoginContext()
+	err = PassphraseLoginPromptThenSecretStore(m, nun.String(), 5, false /* failOnStoreError */)
+	if err != nil {
+		return nil, err
+	}
+	pps = m.PassphraseStream()
+	m.CommitProvisionalLogin()
+
+	return pps, nil
+}

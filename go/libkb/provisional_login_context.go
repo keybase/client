@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -27,6 +28,17 @@ func newProvisionalLoginContext(m MetaContext) *ProvisionalLoginContext {
 		localSession:     newSession(m.G()),
 		secretSyncer:     NewSecretSyncer(m.G()),
 	}
+}
+
+func (p *ProvisionalLoginContext) Dump(m MetaContext, prefix string) {
+	m.CDebugf("%sUsername: %s", prefix, p.username)
+	m.CDebugf("%sUID: %s", prefix, p.uid)
+	if p.salt != nil {
+		m.CDebugf("%sSalt: %s", prefix, hex.EncodeToString(p.salt))
+	}
+	m.CDebugf("%sPassphraseCache: %v", prefix, (p.streamCache != nil))
+	m.CDebugf("%sLocalSession: %v", prefix, (p.localSession != nil))
+	m.CDebugf("%sLoginSession: %v", prefix, (p.loginSession != nil))
 }
 
 func plcErr(s string) error {
@@ -70,6 +82,9 @@ func (p *ProvisionalLoginContext) SetStreamGeneration(gen PassphraseGeneration, 
 	}
 }
 func (p *ProvisionalLoginContext) PassphraseStream() *PassphraseStream {
+	if p.PassphraseStreamCache() == nil {
+		return nil
+	}
 	return p.PassphraseStreamCache().PassphraseStream()
 }
 func (p *ProvisionalLoginContext) GetStreamGeneration() (ret PassphraseGeneration) {

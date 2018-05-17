@@ -13,12 +13,9 @@ import (
 // but the existence of the login won't hit the user's sigchain.
 type LoginOneshot struct {
 	libkb.Contextified
-	arg        keybase1.LoginOneshotArg
-	upak       keybase1.UserPlusKeysV2
-	sigKey     libkb.GenericKey
-	encKey     libkb.NaclDHKeyPair
-	deviceID   keybase1.DeviceID
-	deviceName string
+	arg    keybase1.LoginOneshotArg
+	upak   keybase1.UserPlusKeysV2
+	device *libkb.DeviceWithKeys
 }
 
 func NewLoginOneshot(g *libkb.GlobalContext, arg keybase1.LoginOneshotArg) *LoginOneshot {
@@ -63,17 +60,16 @@ func (e *LoginOneshot) loadKey(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	e.sigKey = eng.SigKey()
-	e.encKey = eng.EncKey()
-	device := e.upak.FindDeviceKey(e.sigKey.GetKID())
-	if device == nil {
+	e.device = eng.DeviceWithKeys()
+	kid := e.device.SigningKey().GetKID()
+	deviceInfo := e.upak.FindDeviceKey(kid)
+	if deviceInfo == nil {
 		return libkb.NewNoDeviceError("no device found for paper key")
 	}
-	if device.Base.Revocation != nil {
-		return libkb.NewKeyRevokedError(e.sigKey.GetKID().String())
+	if deviceInfo.Base.Revocation != nil {
+		return libkb.NewKeyRevokedError(kid.String())
 	}
-	e.deviceID = device.DeviceID
-	e.deviceName = device.DeviceDescription
+	e.device.SetDeviceInfo(deviceInfo.DeviceID, deviceInfo.DeviceDescription)
 	return nil
 }
 
@@ -87,21 +83,8 @@ func (e *LoginOneshot) checkLogin(m libkb.MetaContext) (err error) {
 
 func (e *LoginOneshot) makeLoginChanges(m libkb.MetaContext) (err error) {
 	defer m.CTrace("LoginOneshot#makeLoginChanges", func() error { return err })()
-	var gerr error
-	err = m.G().LoginState().Account(func(a *libkb.Account) {
-		gerr = m.ActiveDevice().Set(m.WithLoginContext(a), e.upak.GetUID(), e.deviceID, e.sigKey, e.encKey, e.deviceName)
-	}, "LoginOneshot#makeLoginChanges")
-	if err != nil {
-		return err
-	}
-	err = gerr
-	if err != nil {
-		return err
-	}
-	uc := libkb.NewOneshotUserConfig(e.upak.GetUID(), libkb.NewNormalizedUsername(e.upak.GetName()), nil, e.deviceID)
-	m.G().Env.GetConfigWriter().SetUserConfig(uc, false)
-
-	return nil
+	nun := libkb.NewNormalizedUsername(e.upak.GetName())
+	return m.SwitchUserToActiveOneshotDevice(e.upak.GetUID(), nun, e.device)
 }
 
 func (e *LoginOneshot) commitLoginChanges(m libkb.MetaContext) (err error) {
@@ -113,19 +96,7 @@ func (e *LoginOneshot) commitLoginChanges(m libkb.MetaContext) (err error) {
 
 func (e *LoginOneshot) rollbackLoginChanges(m libkb.MetaContext) (err error) {
 	defer m.CTrace("LoginOneshot#rollbackLoginChanges", func() error { return err })()
-	var gerr error
-	err = m.G().LoginState().Account(func(a *libkb.Account) {
-		gerr = m.ActiveDevice().Clear(a)
-	}, "LoginOneshot#rollbackLoginChanges")
-	if err != nil {
-		return err
-	}
-	err = gerr
-	if err != nil {
-		return err
-	}
-	m.G().Env.GetConfigWriter().SetUserConfig(nil, false)
-	return nil
+	return m.SwitchUserLoggedOut()
 }
 
 func (e *LoginOneshot) finish(m libkb.MetaContext) (err error) {

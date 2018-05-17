@@ -31,6 +31,10 @@ func (d DeviceWithKeys) DeviceID() keybase1.DeviceID {
 func (d DeviceWithKeys) DeviceName() string {
 	return d.deviceName
 }
+func (d *DeviceWithKeys) SetDeviceInfo(i keybase1.DeviceID, n string) {
+	d.deviceID = i
+	d.deviceName = n
+}
 
 func (d DeviceWithKeys) HasBothKeys() bool {
 	return d.signingKey != nil && d.encryptionKey != nil
