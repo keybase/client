@@ -164,6 +164,14 @@
         {
           "name": "note",
           "type": "string"
+        },
+        {
+          "name": "displayAmount",
+          "type": "string"
+        },
+        {
+          "name": "displayCurrency",
+          "type": "string"
         }
       ],
       "response": "PaymentResult"

@@ -72,6 +72,8 @@ func (c *cmdWalletSend) Run() error {
 	amount := c.amount
 	amountDesc := fmt.Sprintf("%s XLM", amount)
 
+	var displayAmount, displayCurrency string
+
 	if c.localCurrency != "" && c.localCurrency != "XLM" {
 		exchangeRate, err := cli.ExchangeRateLocal(context.Background(), stellar1.OutsideCurrencyCode(c.localCurrency))
 		if err != nil {
@@ -85,6 +87,8 @@ func (c *cmdWalletSend) Run() error {
 
 		ui.Printf("Current exchange rate: ~ %s %s / XLM\n", exchangeRate.Rate, c.localCurrency)
 		amountDesc = fmt.Sprintf("%s XLM (~%s %s)", amount, c.amount, c.localCurrency)
+		displayAmount = c.amount
+		displayCurrency = c.localCurrency
 	}
 
 	if err := ui.PromptForConfirmation(fmt.Sprintf("Send %s to %s?", ColorString(c.G(), "green", amountDesc), ColorString(c.G(), "yellow", c.recipient))); err != nil {
@@ -92,10 +96,12 @@ func (c *cmdWalletSend) Run() error {
 	}
 
 	arg := stellar1.SendLocalArg{
-		Recipient: c.recipient,
-		Amount:    amount,
-		Asset:     stellar1.AssetNative(),
-		Note:      c.note,
+		Recipient:       c.recipient,
+		Amount:          amount,
+		Asset:           stellar1.AssetNative(),
+		Note:            c.note,
+		DisplayAmount:   displayAmount,
+		DisplayCurrency: displayCurrency,
 	}
 	res, err := cli.SendLocal(context.Background(), arg)
 	if err != nil {

@@ -250,6 +250,11 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 	return res, err
 }
 
+type DisplayBalance struct {
+	Amount   string
+	Currency string
+}
+
 // SendPayment sends XLM
 // `note` is optional. An empty string will not attach a note.
 // Recipient:
@@ -257,7 +262,7 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, to RecipientInput, amount string, note string) (stellar1.PaymentResult, error) {
+func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, to RecipientInput, amount string, note string, displayBalance DisplayBalance) (stellar1.PaymentResult, error) {
 	var err error
 	defer g.CTraceTimed(ctx, "Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
@@ -273,7 +278,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 	}
 
 	if recipient.AccountID == nil {
-		return sendRelayPayment(ctx, g, remoter, primarySeed, recipient, amount, note)
+		return sendRelayPayment(ctx, g, remoter, primarySeed, recipient, amount, note, displayBalance)
 	}
 
 	primarySeed2, err := stellarnet.NewSeedStr(primarySeed.SecureNoLogString())
@@ -282,7 +287,9 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 	}
 
 	post := stellar1.PaymentDirectPost{
-		FromDeviceID: g.ActiveDevice.DeviceID(),
+		FromDeviceID:    g.ActiveDevice.DeviceID(),
+		DisplayAmount:   displayBalance.Amount,
+		DisplayCurrency: displayBalance.Currency,
 	}
 	if recipient.User != nil {
 		tmp := recipient.User.ToUserVersion()
@@ -340,7 +347,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
 func sendRelayPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
-	from stellar1.SecretKey, recipient Recipient, amount, note string) (res stellar1.PaymentResult, err error) {
+	from stellar1.SecretKey, recipient Recipient, amount, note string, displayBalance DisplayBalance) (res stellar1.PaymentResult, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := RelayTransferKey(ctx, g, recipient)
 	if err != nil {
@@ -363,6 +370,8 @@ func sendRelayPayment(ctx context.Context, g *libkb.GlobalContext, remoter remot
 		TeamID:            teamID,
 		BoxB64:            relay.EncryptedB64,
 		SignedTransaction: relay.FundTx.Signed,
+		DisplayAmount:     displayBalance.Amount,
+		DisplayCurrency:   displayBalance.Currency,
 	}
 	if recipient.User != nil {
 		tmp := recipient.User.ToUserVersion()
