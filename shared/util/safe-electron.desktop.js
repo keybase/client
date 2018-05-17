@@ -106,6 +106,14 @@ export const getCrashReporter = () => {
 }
 
 // Expose classes
-export const BrowserWindow = Electron.BrowserWindow || Electron.remote.BrowserWindow
-export const Menu = Electron.Menu || Electron.remote.Menu
+const _BrowserWindow = Electron.BrowserWindow || (Electron.remote && Electron.remote.BrowserWindow)
+if (!_BrowserWindow) {
+  throw new Error('Should be impossible')
+}
+export const BrowserWindow = _BrowserWindow
+const _Menu = Electron.Menu || (Electron.remote && Electron.remote.Menu)
+if (!_Menu) {
+  throw new Error('Should be impossible')
+}
+export const Menu = _Menu
 export type BrowserWindowType = electron$BrowserWindow

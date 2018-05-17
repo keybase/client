@@ -24,11 +24,13 @@ export default class Window {
     })
 
     ipcMain.on('listenForRemoteWindowClosed', (event, remoteWindowId) => {
-      SafeElectron.BrowserWindow.fromId(remoteWindowId).on('close', () => {
-        try {
-          event.sender.send('remoteWindowClosed', remoteWindowId)
-        } catch (_) {}
-      })
+      const w = SafeElectron.BrowserWindow.fromId(remoteWindowId)
+      w &&
+        w.on('close', () => {
+          try {
+            event.sender.send('remoteWindowClosed', remoteWindowId)
+          } catch (_) {}
+        })
     })
 
     ipcMain.on('registerRemoteUnmount', (remoteComponentLoaderEvent, remoteWindowId) => {

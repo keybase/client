@@ -18,7 +18,7 @@ function setupOpenDevtools() {
     SafeElectron.getGlobalShortcut().register('CommandOrControl+Alt+k+b', () => {
       devToolsState = !devToolsState
       SafeElectron.BrowserWindow.getAllWindows().map(
-        bw => (devToolsState ? bw.webContents.openDevTools('detach') : bw.webContents.closeDevTools())
+        bw => (devToolsState ? bw.webContents.openDevTools({mode: 'detach'}) : bw.webContents.closeDevTools())
       )
     })
   }
