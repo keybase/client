@@ -8,15 +8,15 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type WalletAccount struct {
+type WalletAccountLocal struct {
 	AccountID          AccountID `codec:"accountID" json:"accountID"`
 	IsDefault          bool      `codec:"isDefault" json:"isDefault"`
 	Name               string    `codec:"name" json:"name"`
 	BalanceDescription string    `codec:"balanceDescription" json:"balanceDescription"`
 }
 
-func (o WalletAccount) DeepCopy() WalletAccount {
-	return WalletAccount{
+func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
+	return WalletAccountLocal{
 		AccountID:          o.AccountID.DeepCopy(),
 		IsDefault:          o.IsDefault,
 		Name:               o.Name,
@@ -207,7 +207,7 @@ type FormatLocalCurrencyStringArg struct {
 }
 
 type LocalInterface interface {
-	GetWalletAccountsLocal(context.Context, int) ([]WalletAccount, error)
+	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLIOptionLocal, error)
@@ -456,7 +456,7 @@ type LocalClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) (res []WalletAccount, err error) {
+func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) (res []WalletAccountLocal, err error) {
 	__arg := GetWalletAccountsLocalArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "stellar.1.local.GetWalletAccountsLocal", []interface{}{__arg}, &res)
 	return

@@ -9,7 +9,7 @@
   "types": [
     {
       "type": "record",
-      "name": "WalletAccount",
+      "name": "WalletAccountLocal",
       "fields": [
         {
           "type": "AccountID",
@@ -166,7 +166,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "WalletAccount"
+        "items": "WalletAccountLocal"
       }
     },
     "balancesLocal": {

@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 )
 
-func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (accts []stellar1.WalletAccount, err error) {
+func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (accts []stellar1.WalletAccountLocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetWalletAccountsLocal", func() error { return err })()
 	err = s.assertLoggedIn(ctx)
@@ -25,7 +25,7 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 	}
 
 	for _, account := range bundle.Accounts {
-		acct := stellar1.WalletAccount{
+		acct := stellar1.WalletAccountLocal{
 			AccountID: account.AccountID,
 			IsDefault: account.IsPrimary,
 			Name:      account.Name,
