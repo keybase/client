@@ -26,12 +26,13 @@ export default function(
         console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
       })
     },
-    'keybase.1.NotifyService.shutdown': ({code}) => {
+    'keybase.1.NotifyService.shutdown': ({code}, response) => {
       if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
         console.log('Quitting due to service shutdown')
         // Quit just the app, not the service
         remote.app.quit(true)
       }
+      response.result()
     },
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
