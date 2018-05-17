@@ -136,7 +136,7 @@ const styles = styleSheetCreate({
   fullWidth: {
     alignSelf: undefined,
     height: fullWidthHeight,
-    width: null,
+    width: undefined,
   },
   labelContainer: {height: '100%', position: 'relative'},
   opacity0: {opacity: 0},
