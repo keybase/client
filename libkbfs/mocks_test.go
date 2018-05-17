@@ -5209,6 +5209,16 @@ func (mr *MockmdServerLocalMockRecorder) enableImplicitTeams() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "enableImplicitTeams", reflect.TypeOf((*MockmdServerLocal)(nil).enableImplicitTeams))
 }
 
+// setKbfsMerkleRoot mocks base method
+func (m *MockmdServerLocal) setKbfsMerkleRoot(treeID keybase1.MerkleTreeID, root *kbfsmd.MerkleRoot) {
+	m.ctrl.Call(m, "setKbfsMerkleRoot", treeID, root)
+}
+
+// setKbfsMerkleRoot indicates an expected call of setKbfsMerkleRoot
+func (mr *MockmdServerLocalMockRecorder) setKbfsMerkleRoot(treeID, root interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "setKbfsMerkleRoot", reflect.TypeOf((*MockmdServerLocal)(nil).setKbfsMerkleRoot), treeID, root)
+}
+
 // MockBlockServer is a mock of BlockServer interface
 type MockBlockServer struct {
 	ctrl     *gomock.Controller
