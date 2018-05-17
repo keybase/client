@@ -67,6 +67,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    e.preventDefault()
     if (this.props.pendingWaiting) {
       return
     }
