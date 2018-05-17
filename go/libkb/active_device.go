@@ -51,6 +51,13 @@ func NewPaperKeyActiveDevice(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *
 	}
 }
 
+func (a *ActiveDevice) ClearCaches() {
+	a.Lock()
+	defer a.Unlock()
+	a.passphrase = nil
+	a.paperKey = nil
+}
+
 // Copy ActiveDevice info from the given ActiveDevice.
 func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
 
