@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -186,7 +187,7 @@ type Recipient struct {
 }
 
 // TODO: handle stellar federation address rebecca*keybase.io (or rebecca*anything.wow)
-func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientInput) (Recipient, error) {
+func LookupRecipient(m libkb.MetaContext, to RecipientInput) (Recipient, error) {
 	res := Recipient{
 		Input: to,
 	}
@@ -209,35 +210,38 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 		return res, nil
 	}
 
-	expr, err := externals.AssertionParse(string(to))
+	idRes, err := identifyRecipient(m, string(to))
 	if err != nil {
-		g.Log.CDebugf(ctx, "error parsing assertion")
-		return res, fmt.Errorf("invalid recipient '%v': %v", to, err)
+		return res, err
 	}
-	socExpr, err := expr.ToSocialAssertion()
-	if err == nil {
-		res.Assertion = &socExpr
-	}
-	username := string(to)
-	switch expr := expr.(type) {
-	case libkb.AssertionKeybase:
-		k, v, err := expr.ToLookup()
-		if !(err == nil && k == "username") {
-			g.Log.CDebugf(ctx, "error unpacking keybase assertion: key:'%v' err:%v", k, err)
-			return res, fmt.Errorf("invalid recipient '%v'", to)
-		}
-		username = v
-	default:
-		// TODO CORE-7781 support resolving non-keybase assertions
-		//                If expr does not resolve use it as SBS.
-		//                If expr resolves and verifies use the user.
-		//                If expr resolves but fails verification ERROR OUT. Do not use as SBS.
-		//                   We don't want to cause impteam conflicts and confusion.
-		g.Log.CDebugf(ctx, "non-keybase resolution %T", expr)
-		return res, fmt.Errorf("invalid recipient '%v'", to)
+	m.CDebugf("identifyRecipient: identify result for %s: %+v", to, idRes)
+	if idRes.Breaks != nil {
+		m.CDebugf("identifyRecipient: TrackBreaks = %+v", idRes.Breaks)
+		return res, libkb.TrackingBrokeError{}
 	}
 
-	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(g, username).WithNetContext(ctx))
+	if idRes.User.Username == "" {
+		expr, err := externals.AssertionParse(string(to))
+		if err != nil {
+			m.CDebugf("error parsing assertion: %s", err)
+			return res, fmt.Errorf("invalid recipient %q: %s", to, err)
+		}
+
+		// valid assertion, but not a user yet
+		m.CDebugf("assertion %s (%s) is valid, but not a user yet", to, expr)
+		social, err := expr.ToSocialAssertion()
+		if err != nil {
+			m.CDebugf("not a social assertion: %s (%s)", to, expr)
+			return res, fmt.Errorf("invalid recipient %q: %s", to, err)
+		}
+		res.Assertion = &social
+		return res, nil
+	}
+
+	username := idRes.User.Username
+
+	// load the user to get its wallet
+	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(m.G(), username).WithNetContext(m.Ctx()))
 	if err != nil {
 		return res, err
 	}
@@ -262,23 +266,23 @@ type DisplayBalance struct {
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, to RecipientInput, amount string, note string, displayBalance DisplayBalance) (stellar1.PaymentResult, error) {
+func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to RecipientInput, amount string, note string, displayBalance DisplayBalance) (stellar1.PaymentResult, error) {
 	var err error
-	defer g.CTraceTimed(ctx, "Stellar.SendPayment", func() error { return err })()
+	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
-	primary, err := LookupSenderPrimary(ctx, g)
+	primary, err := LookupSenderPrimary(m.Ctx(), m.G())
 	if err != nil {
 		return stellar1.PaymentResult{}, err
 	}
 	primarySeed := primary.Signers[0]
 	// look up recipient
-	recipient, err := LookupRecipient(ctx, g, to)
+	recipient, err := LookupRecipient(m, to)
 	if err != nil {
 		return stellar1.PaymentResult{}, err
 	}
 
 	if recipient.AccountID == nil {
-		return sendRelayPayment(ctx, g, remoter, primarySeed, recipient, amount, note, displayBalance)
+		return sendRelayPayment(m.Ctx(), m.G(), remoter, primarySeed, recipient, amount, note, displayBalance)
 	}
 
 	primarySeed2, err := stellarnet.NewSeedStr(primarySeed.SecureNoLogString())
@@ -287,7 +291,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 	}
 
 	post := stellar1.PaymentDirectPost{
-		FromDeviceID:    g.ActiveDevice.DeviceID(),
+		FromDeviceID:    m.G().ActiveDevice.DeviceID(),
 		DisplayAmount:   displayBalance.Amount,
 		DisplayCurrency: displayBalance.Currency,
 	}
@@ -296,11 +300,11 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 		post.To = &tmp
 	}
 
-	sp := NewSeqnoProvider(ctx, remoter)
+	sp := NewSeqnoProvider(m.Ctx(), remoter)
 
 	// check if recipient account exists
 	var txID string
-	funded, err := isAccountFunded(ctx, remoter, stellar1.AccountID(recipient.AccountID.String()))
+	funded, err := isAccountFunded(m.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		return stellar1.PaymentResult{}, fmt.Errorf("error checking destination account balance: %v", err)
 	}
@@ -334,14 +338,14 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 			tmp := recipient.User.ToUserVersion()
 			recipientUv = &tmp
 		}
-		post.NoteB64, err = NoteEncryptB64(ctx, g, noteClear, recipientUv)
+		post.NoteB64, err = NoteEncryptB64(m.Ctx(), m.G(), noteClear, recipientUv)
 		if err != nil {
 			return stellar1.PaymentResult{}, fmt.Errorf("error encrypting note: %v", err)
 		}
 	}
 
 	// submit the transaction
-	return remoter.SubmitPayment(ctx, post)
+	return remoter.SubmitPayment(m.Ctx(), post)
 }
 
 // sendRelayPayment sends XLM through a relay account.
@@ -577,4 +581,42 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 	default:
 		return res, fmt.Errorf("unrecognized payment summary type: %v", typ)
 	}
+}
+
+func identifyRecipient(m libkb.MetaContext, assertion string) (keybase1.TLFIdentifyFailure, error) {
+	reason := fmt.Sprintf("Find transaction recipient for %s", assertion)
+	arg := keybase1.Identify2Arg{
+		UserAssertion:    assertion,
+		UseDelegateUI:    true,
+		Reason:           keybase1.IdentifyReason{Reason: reason},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI, // XXX needs adjusting?
+	}
+
+	eng := engine.NewResolveThenIdentify2(m.G(), &arg)
+	err := engine.RunEngine2(m, eng)
+	if err != nil {
+		// Ignore these errors
+		if _, ok := err.(libkb.NotFoundError); ok {
+			m.CDebugf("identifyRecipient: not found %s: %s", assertion, err)
+			return keybase1.TLFIdentifyFailure{}, nil
+		}
+		if _, ok := err.(libkb.ResolutionError); ok {
+			m.CDebugf("identifyRecipient: resolution error %s: %s", assertion, err)
+			return keybase1.TLFIdentifyFailure{}, nil
+		}
+	}
+
+	resp := eng.Result()
+	m.CDebugf("identifyRecipient: resp: %+v", resp)
+
+	var frep keybase1.TLFIdentifyFailure
+	if resp != nil {
+		frep.User = keybase1.User{
+			Uid:      resp.Upk.Uid,
+			Username: resp.Upk.Username,
+		}
+		frep.Breaks = resp.TrackBreaks
+	}
+
+	return frep, nil
 }

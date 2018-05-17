@@ -16,6 +16,7 @@ import (
 
 type UISource interface {
 	SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI
+	IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI
 }
 
 type Server struct {
@@ -130,7 +131,12 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 		Amount:   arg.DisplayAmount,
 		Currency: arg.DisplayCurrency,
 	}
-	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
+	uis := libkb.UIs{
+		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
+	}
+	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
+
+	return stellar.SendPayment(m, s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
