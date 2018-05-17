@@ -20,7 +20,7 @@ func encryptWithTeamKey(t *testing.T, team *Team, data []byte, nonce [24]byte,
 	return ciphertext, pubkey
 }
 
-func TestTeamUnboxOracle(t *testing.T) {
+func TestTeamOracleUnbox(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
