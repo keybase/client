@@ -15,6 +15,20 @@ type MetaContext struct {
 	uis          UIs
 }
 
+func (m MetaContext) Dump() {
+	m.CDebugf("MetaContext#Dump:")
+	if m.activeDevice != nil {
+		m.CDebugf("- Local ActiveDevice:")
+		m.activeDevice.Dump(m, "-- ")
+	}
+	m.CDebugf("- Global ActiveDevice:")
+	m.g.ActiveDevice.Dump(m, "-- ")
+	if m.loginContext != nil {
+		m.CDebugf("- Login Context:")
+		m.loginContext.Dump(m, "-- ")
+	}
+}
+
 func NewMetaContext(ctx context.Context, g *GlobalContext) MetaContext {
 	return MetaContext{ctx: ctx, g: g}
 }
@@ -477,13 +491,13 @@ func (m MetaContext) LogoutIfRevoked() (err error) {
 }
 
 func (m MetaContext) PassphraseStream() *PassphraseStream {
-	if m.LoginContext() == nil {
-		return nil
+	if m.LoginContext() != nil {
+		if m.LoginContext().PassphraseStreamCache() == nil {
+			return nil
+		}
+		return m.LoginContext().PassphraseStreamCache().PassphraseStream()
 	}
-	if m.LoginContext().PassphraseStreamCache() == nil {
-		return nil
-	}
-	return m.LoginContext().PassphraseStreamCache().PassphraseStream()
+	return m.ActiveDevice().PassphraseStream()
 }
 
 func (m MetaContext) CurrentUsername() NormalizedUsername {
