@@ -1229,17 +1229,6 @@ func (g *GlobalContext) ReplaceSecretStore() error {
 	return nil
 }
 
-// engine/deprovision_test calls this to set g.secretStore to nil.
-// It doesn't make much sense since it is impossible for g.secretStore
-// to be nil in the real world, but keeping it for backwards
-// compatibility.
-func (g *GlobalContext) SetSecretStoreNilForTests() {
-	g.secretStoreMu.Lock()
-	defer g.secretStoreMu.Unlock()
-
-	g.secretStore = nil
-}
-
 // AssertTemporarySession asserts that the user has an old-fashioned
 // session token. Should only be necessary on login/provisioning flow.
 func (g *GlobalContext) AssertTemporarySession(lctx LoginContext) error {
