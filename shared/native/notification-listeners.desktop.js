@@ -26,8 +26,8 @@ export default function(
         console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
       })
     },
-    'keybase.1.NotifyService.shutdown': () => {
-      if (isWindows) {
+    'keybase.1.NotifyService.shutdown': ({code}) => {
+      if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
         console.log('Quitting due to service shutdown')
         // Quit just the app, not the service
         remote.app.quit(true)

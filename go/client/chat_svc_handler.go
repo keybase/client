@@ -681,6 +681,8 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 		IsRegex:          opts.IsRegex,
 		MaxHits:          opts.MaxHits,
 		MaxMessages:      opts.MaxMessages,
+		BeforeContext:    opts.BeforeContext,
+		AfterContext:     opts.AfterContext,
 	}
 
 	res, err := client.GetSearchRegexp(ctx, arg)

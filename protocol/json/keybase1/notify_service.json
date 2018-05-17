@@ -9,7 +9,12 @@
   "types": [],
   "messages": {
     "shutdown": {
-      "request": [],
+      "request": [
+        {
+          "name": "code",
+          "type": "int"
+        }
+      ],
       "response": null
     }
   },

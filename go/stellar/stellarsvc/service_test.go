@@ -36,7 +36,7 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 }
 
 func TestCreateWallet(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 2)
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingWalletless, usettingFull})
 	defer cleanup()
 
 	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
@@ -75,9 +75,8 @@ func TestUpkeep(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
-	require.True(t, created)
 
 	bundle, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
@@ -121,10 +120,10 @@ func TestImportExport(t *testing.T) {
 
 	mustAskForPassphrase := func(f func()) {
 		ui := tcs[0].Fu.NewSecretUI()
-		tcs[0].Srv.uiSource.(*testUISource).secret = ui
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = ui
 		f()
 		require.True(t, ui.CalledGetPassphrase, "operation should ask for passphrase")
-		tcs[0].Srv.uiSource.(*testUISource).secret = nullSecretUI{}
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = nullSecretUI{}
 	}
 
 	mustAskForPassphrase(func() {
@@ -224,8 +223,7 @@ func TestGetLocalAccounts(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.True(t, created)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
 	tcs[0].Remote.ImportAccountsForUser(t, tcs[0].G)
@@ -411,7 +409,11 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("create relay transfer")
-	recipient, err := stellar.LookupRecipient(context.Background(), tcs[0].G, stellar.RecipientInput(u1.GetNormalizedName()))
+	uis := libkb.UIs{
+		IdentifyUI: tcs[0].Srv.uiSource.IdentifyUI(tcs[0].G, 0),
+	}
+	m := libkb.NewMetaContextBackground(tcs[0].G).WithUIs(uis)
+	recipient, err := stellar.LookupRecipient(m, stellar.RecipientInput(u1.GetNormalizedName()))
 	require.NoError(t, err)
 	appKey, teamID, err := stellar.RelayTransferKey(context.Background(), tcs[0].G, recipient)
 	require.NoError(t, err)
@@ -521,14 +523,26 @@ func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg
 }
 
 type testUISource struct {
-	secret libkb.SecretUI
+	secretUI   libkb.SecretUI
+	identifyUI libkb.IdentifyUI
+}
+
+func newTestUISource() *testUISource {
+	return &testUISource{
+		secretUI:   nullSecretUI{},
+		identifyUI: &kbtest.FakeIdentifyUI{},
+	}
 }
 
 func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI {
-	return t.secret
+	return t.secretUI
+}
+
+func (t *testUISource) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI {
+	return t.identifyUI
 }
 
 func newTestServer(t testing.TB, g *libkb.GlobalContext) (*Server, *RemoteMock) {
 	m := NewRemoteMock(t, g)
-	return New(g, &testUISource{nullSecretUI{}}, m), m
+	return New(g, newTestUISource(), m), m
 }
