@@ -9,6 +9,28 @@
   "types": [
     {
       "type": "record",
+      "name": "WalletAccount",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "boolean",
+          "name": "isDefault"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "balanceDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PaymentCLIOptionLocal",
       "fields": [
         {
@@ -135,6 +157,18 @@
     }
   ],
   "messages": {
+    "GetWalletAccountsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "WalletAccount"
+      }
+    },
     "balancesLocal": {
       "request": [
         {

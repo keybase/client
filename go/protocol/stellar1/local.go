@@ -8,6 +8,22 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type WalletAccount struct {
+	AccountID          AccountID `codec:"accountID" json:"accountID"`
+	IsDefault          bool      `codec:"isDefault" json:"isDefault"`
+	Name               string    `codec:"name" json:"name"`
+	BalanceDescription string    `codec:"balanceDescription" json:"balanceDescription"`
+}
+
+func (o WalletAccount) DeepCopy() WalletAccount {
+	return WalletAccount{
+		AccountID:          o.AccountID.DeepCopy(),
+		IsDefault:          o.IsDefault,
+		Name:               o.Name,
+		BalanceDescription: o.BalanceDescription,
+	}
+}
+
 type PaymentCLIOptionLocal struct {
 	Payment *PaymentCLILocal `codec:"payment,omitempty" json:"payment,omitempty"`
 	Err     string           `codec:"err" json:"err"`
@@ -126,6 +142,10 @@ func (o LocalOwnAccount) DeepCopy() LocalOwnAccount {
 	}
 }
 
+type GetWalletAccountsLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -187,6 +207,7 @@ type FormatLocalCurrencyStringArg struct {
 }
 
 type LocalInterface interface {
+	GetWalletAccountsLocal(context.Context, int) ([]WalletAccount, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLIOptionLocal, error)
@@ -207,6 +228,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "stellar.1.local",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"GetWalletAccountsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetWalletAccountsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetWalletAccountsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetWalletAccountsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetWalletAccountsLocal(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]BalancesLocalArg, 1)
@@ -417,6 +454,12 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 
 type LocalClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) (res []WalletAccount, err error) {
+	__arg := GetWalletAccountsLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.GetWalletAccountsLocal", []interface{}{__arg}, &res)
+	return
 }
 
 func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []Balance, err error) {
