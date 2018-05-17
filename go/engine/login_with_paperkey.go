@@ -52,7 +52,6 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 	}
 
 	if loggedIn, _ := isLoggedIn(m); loggedIn {
-		// Device keys are unlocked. Just log in with them.
 		m.CDebugf("Already logged in with unlocked device keys")
 		return nil
 	}

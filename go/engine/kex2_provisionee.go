@@ -335,7 +335,7 @@ func (e *Kex2Provisionee) handleDidCounterSign(m libkb.MetaContext, sig []byte, 
 	return e.storeEKs(m, deviceEKStatement, userEKBox)
 }
 
-// updateTemporarySession comits the session token and csrf token to our temporary session,
+// updateTemporarySession commits the session token and csrf token to our temporary session,
 // stored in our provisional login context. We'll need that to post successfully.
 func (e *Kex2Provisionee) updateTemporarySession(m libkb.MetaContext) (err error) {
 	defer m.CTrace("Kex2Provisionee#updateTemporarySession", func() error { return err })()

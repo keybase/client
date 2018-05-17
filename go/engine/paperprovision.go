@@ -6,9 +6,7 @@ package engine
 import (
 	"errors"
 	"fmt"
-
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type PaperProvisionEngine struct {
@@ -135,25 +133,6 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	e.sendNotification()
 	return nil
 
-}
-
-// Copied from login_provision.go
-func (e *PaperProvisionEngine) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
-	var nilUID keybase1.UID
-	arg := libkb.APIArg{
-		Endpoint:    "key/owner",
-		SessionType: libkb.APISessionTypeNONE,
-		Args:        libkb.HTTPArgs{"kid": libkb.S{Val: kid.String()}},
-	}
-	res, err := e.G().API.Get(arg)
-	if err != nil {
-		return nilUID, err
-	}
-	suid, err := res.Body.AtPath("uid").GetString()
-	if err != nil {
-		return nilUID, err
-	}
-	return keybase1.UIDFromString(suid)
 }
 
 // copied more or less from loginProvision.paper()
