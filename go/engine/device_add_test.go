@@ -162,7 +162,7 @@ func TestDeviceAddStoredSecret(t *testing.T) {
 		ProvisionUI: &testXProvisionUI{secret: secretY},
 	}
 	eng := NewDeviceAdd(tcX.G)
-	m := NewMetaContextForTest(tcX).WithUIs(uis).WithNewProvisionalLoginContext()
+	m := NewMetaContextForTest(tcX).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Errorf("device add error: %s", err)
 	}

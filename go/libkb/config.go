@@ -315,7 +315,24 @@ func (f *JSONConfigFile) NukeUser(nu NormalizedUsername) error {
 // GetUserConfigForUsername sees if there's a UserConfig object for the given
 // username previously stored.
 func (f JSONConfigFile) GetUserConfigForUsername(nu NormalizedUsername) (*UserConfig, error) {
+	if uc := f.copyUserConfigIfForUsername(nu); uc != nil {
+		return uc, nil
+	}
 	return ImportUserConfigFromJSONWrapper(f.jw.AtKey("users").AtKey(nu.String()))
+}
+
+func (f JSONConfigFile) copyUserConfigIfForUsername(u NormalizedUsername) *UserConfig {
+	if f.userConfigWrapper == nil || f.userConfigWrapper.userConfig == nil {
+		return nil
+	}
+	if f.userConfigWrapper.userConfig.GetUsername().IsNil() {
+		return nil
+	}
+	if f.userConfigWrapper.userConfig.GetUsername().Eq(u) {
+		tmp := *f.userConfigWrapper.userConfig
+		return &tmp
+	}
+	return nil
 }
 
 func (f JSONConfigFile) copyUserConfigIfForUID(u keybase1.UID) *UserConfig {

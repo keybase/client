@@ -22,6 +22,21 @@ type ActiveDevice struct {
 	sync.RWMutex
 }
 
+func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
+	m.CDebugf("%sUID: %s", prefix, a.uid)
+	m.CDebugf("%sUsername (via env): %s", prefix, a.Username(m))
+	m.CDebugf("%sDeviceID: %s", prefix, a.deviceID)
+	m.CDebugf("%sDeviceName: %s", prefix, a.deviceName)
+	if a.signingKey != nil {
+		m.CDebugf("%sSigKey: %s", prefix, a.signingKey.GetKID())
+	}
+	if a.encryptionKey != nil {
+		m.CDebugf("%sEncKey: %s", prefix, a.encryptionKey.GetKID())
+	}
+	m.CDebugf("%sPassphraseCache: %v", prefix, (a.passphrase != nil && a.passphrase.ValidPassphraseStream()))
+	m.CDebugf("%sPaperKeyCache: %v", prefix, (a.paperKey != nil && a.paperKey.DeviceWithKeys() != nil))
+}
+
 // NewProvisionalActiveDevice creates an ActiveDevice that is "provisional", in that it
 // should not be considered the global ActiveDevice. Instead, it should reside in thread-local
 // context, and can be weaved through the login machinery without trampling the actual global
@@ -49,6 +64,13 @@ func NewPaperKeyActiveDevice(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *
 		secretSyncer:  NewSecretSyncer(m.G()),
 		paperKey:      NewSelfDestructingDeviceWithKeys(m, d, PaperKeyMemoryTimeout),
 	}
+}
+
+func (a *ActiveDevice) ClearCaches() {
+	a.Lock()
+	defer a.Unlock()
+	a.passphrase = nil
+	a.paperKey = nil
 }
 
 // Copy ActiveDevice info from the given ActiveDevice.
@@ -386,4 +408,19 @@ func (a *ActiveDevice) CachePassphraseStream(c *PassphraseStreamCache) {
 	a.Lock()
 	defer a.Unlock()
 	a.passphrase = c
+}
+
+func (a *ActiveDevice) ClearPassphraseStreamCache() {
+	a.Lock()
+	defer a.Unlock()
+	a.passphrase = nil
+}
+
+func (a *ActiveDevice) SigningKeyForUID(u keybase1.UID) GenericKey {
+	a.RLock()
+	defer a.RUnlock()
+	if !a.UID().Equal(u) {
+		return nil
+	}
+	return a.signingKey
 }
