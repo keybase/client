@@ -15,7 +15,7 @@
 
 declare module 'base64-js' {
   declare module.exports: {
-    toByteArray: string | (number => any),
+    toByteArray: (number | string) => any,
     fromByteArray: any => string,
   }
 }

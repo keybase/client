@@ -15,7 +15,7 @@
 
 declare module 'purepack' {
   declare module.exports: {
-    pack: string => Array<any>,
+    pack: (number | string) => Array<any>,
   }
 }
 
