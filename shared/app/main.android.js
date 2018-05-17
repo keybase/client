@@ -1,7 +1,7 @@
 // @flow
 import {connector, Main} from './main-shared.native'
 import {compose, lifecycle, withProps} from 'recompose'
-import {NativeBackHandler} from '../common-adapters/index.native'
+import {NativeBackHandler} from '../common-adapters/native'
 import {getPath} from '../route-tree'
 
 module.hot &&

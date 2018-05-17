@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as PushGen from '../../actions/push-gen'
 import {connect, type TypedState} from '../../util/container'
-import {Box, Button, Text, NativeScrollView, NativeImage} from '../../common-adapters/index.native'
+import {Box, Button, Text, NativeScrollView, NativeImage} from '../../common-adapters/native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 type Props = {

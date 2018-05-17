@@ -7,7 +7,7 @@ import {
   NativeDimensions,
   NativeFlatList,
   ErrorBoundary,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'

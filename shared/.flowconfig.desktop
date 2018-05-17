@@ -1,4 +1,4 @@
-; Desktop VERSION
+; Desktop VERSION. TODO this is a WIP
 [ignore]
 .*/*[.]android.js
 .*/*[.]ios.js

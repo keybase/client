@@ -6,7 +6,13 @@ import {globalStyles, globalColors, globalMargins, transition} from '../../style
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
 import {RPCError} from '../../util/errors'
 
-import type {Props as _Props} from './index'
+type _Props = {
+  error: null | Error | RPCError,
+  daemonError: ?Error,
+  onDismiss: () => void,
+  onFeedback: () => void,
+  debugDump: Array<string>,
+}
 
 type Size = 'Closed' | 'Small' | 'Big'
 type State = {

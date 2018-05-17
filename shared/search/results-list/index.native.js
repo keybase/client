@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Row from '../result-row/container'
-import {Box, Text, NativeFlatList} from '../../common-adapters/index.native'
+import {Box, Text, NativeFlatList} from '../../common-adapters/native'
 import {globalColors, globalMargins} from '../../styles'
 import EmptyResults from './empty'
 

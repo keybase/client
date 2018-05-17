@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, NativeImage} from '../../common-adapters/index.native'
+import {Box, Text, NativeImage} from '../../common-adapters/native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import * as PushGen from '../../actions/push-gen'
 import {connect} from '../../util/container'

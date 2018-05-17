@@ -3,7 +3,7 @@ import * as React from 'react'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
-import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/index.native'
+import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/native'
 
 import type {Props} from '.'
 
