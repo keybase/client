@@ -484,8 +484,9 @@ export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
 }
 
 export const generateFileURL = (path: Types.Path, address: string, token: string): string => {
-  const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
-  return `http://${address}/files${stripKeybase}?token=${token}`
+  const stripKeybase = Types.pathToString(path).slice('/keybase/'.length)
+  const encoded = encodeURIComponent(stripKeybase)
+  return `http://${address}/files/${encoded}?token=${token}`
 }
 
 export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
