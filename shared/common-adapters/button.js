@@ -109,16 +109,18 @@ const smallBorderRadius = isMobile ? 50 : 28
 
 const styles = styleSheetCreate({
   common: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      alignSelf: 'center',
-      borderRadius,
-      height: regularHeight,
-      justifyContent: 'center',
-      paddingLeft: globalMargins.medium,
-      paddingRight: globalMargins.medium,
-    },
+    common: collapseStyles([
+      globalStyles.flexBoxColumn,
+      {
+        alignItems: 'center',
+        alignSelf: 'center',
+        borderRadius,
+        height: regularHeight,
+        justifyContent: 'center',
+        paddingLeft: globalMargins.medium,
+        paddingRight: globalMargins.medium,
+      },
+    ]),
     isElectron: {
       display: 'inline-block',
       lineHeight: 'inherit',
