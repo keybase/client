@@ -981,9 +981,13 @@ func makeRealInitialRMDForTesting(
 	id tlf.ID) (*RootMetadata, *RootMetadataSigned) {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
-	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)
-	require.NoError(t, err)
-	require.True(t, rekeyDone)
+	if h.TypeForKeying() == tlf.TeamKeying {
+		rmd.bareMd.SetLatestKeyGenerationForTeamTLF(1)
+	} else {
+		rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)
+		require.NoError(t, err)
+		require.True(t, rekeyDone)
+	}
 	_, _, _, err = ResetRootBlock(ctx, config, rmd)
 	require.NoError(t, err)
 	session, err := config.KBPKI().GetCurrentSession(ctx)
@@ -1058,8 +1062,18 @@ func makeEncryptedMerkleLeafForTesting(
 		Revision:  1,
 		Timestamp: now.Unix(),
 	}
-	pubKey, err := rmd.bareMd.GetCurrentTLFPublicKey(rmd.extra)
-	require.NoError(t, err)
+	var pubKey kbfscrypto.TLFPublicKey
+	if rmd.TypeForKeying() == tlf.TeamKeying {
+		crypto, ok := config.Crypto().(*CryptoLocal)
+		require.True(t, ok)
+		tid := rmd.GetTlfHandle().FirstResolvedWriter().AsTeamOrBust()
+		pubKey, err = crypto.pubKeyForTeamKeyGeneration(
+			tid, keybase1.PerTeamKeyGeneration(rmd.LatestKeyGeneration()))
+		require.NoError(t, err)
+	} else {
+		pubKey, err = rmd.bareMd.GetCurrentTLFPublicKey(rmd.extra)
+		require.NoError(t, err)
+	}
 	eLeaf, err := mLeaf.Encrypt(config.Codec(), pubKey, &nonce, ePrivKey)
 	require.NoError(t, err)
 	leafBytes, err = config.Codec().Encode(eLeaf)
@@ -1067,7 +1081,7 @@ func makeEncryptedMerkleLeafForTesting(
 	return root, mLeaf, leafBytes
 }
 
-func testMDOpsDecryptMerkleLeaf(t *testing.T, ver kbfsmd.MetadataVer) {
+func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1 libkb.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
@@ -1155,6 +1169,40 @@ func testMDOpsDecryptMerkleLeaf(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.Equal(t, mLeaf.Timestamp, mLeaf2.Timestamp)
 }
 
+func testMDOpsDecryptMerkleLeafTeam(t *testing.T, ver kbfsmd.MetadataVer) {
+	if ver < kbfsmd.SegregatedKeyBundlesVer {
+		t.Skip("Teams not supported")
+	}
+
+	var u1 libkb.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	config.SetMetadataVersion(ver)
+
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+
+	t.Log("Making an initial RMD")
+	id := tlf.FakeID(1, tlf.SingleTeam)
+	teamInfos := AddEmptyTeamsForTestOrBust(t, config, "t1")
+	AddTeamWriterForTestOrBust(t, config, teamInfos[0].TID, session.UID)
+	h := parseTlfHandleOrBust(t, config, "t1", tlf.SingleTeam, id)
+	rmd, _ := makeRealInitialRMDForTesting(t, ctx, config, h, id)
+
+	t.Log("Making an encrypted Merkle leaf")
+	root, mLeaf, leafBytes := makeEncryptedMerkleLeafForTesting(t, config, rmd)
+
+	t.Log("Try to decrypt with the right key")
+	mdOps := config.MDOps().(*MDOpsStandard)
+	mLeaf2, err := mdOps.decryptMerkleLeaf(ctx, rmd.ReadOnly(), root, leafBytes)
+	require.NoError(t, err)
+	require.Equal(t, mLeaf.Revision, mLeaf2.Revision)
+	require.Equal(t, mLeaf.Timestamp, mLeaf2.Timestamp)
+
+	// Error scenarios and multiple keygens are handled by the
+	// service, and are not worth testing here.
+}
+
 func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1 libkb.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
@@ -1237,7 +1285,8 @@ func TestMDOps(t *testing.T) {
 		testMDOpsPutFailEncode,
 		testMDOpsGetRangeFailFinal,
 		testMDOpsGetFinalSuccess,
-		testMDOpsDecryptMerkleLeaf,
+		testMDOpsDecryptMerkleLeafPrivate,
+		testMDOpsDecryptMerkleLeafTeam,
 		testMDOpsVerifyRevokedDeviceWrite,
 	}
 	runTestsOverMetadataVers(t, "testMDOps", tests)

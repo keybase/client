@@ -13,7 +13,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-type perTeamPrivateKeys map[keybase1.PerTeamKeyGeneration]kbfscrypto.TLFPrivateKey
+type perTeamKeyPair struct {
+	privKey kbfscrypto.TLFPrivateKey
+	pubKey  kbfscrypto.TLFPublicKey
+}
+
+type perTeamKeyPairs map[keybase1.PerTeamKeyGeneration]perTeamKeyPair
 
 // CryptoLocal implements the Crypto interface by using a local
 // signing key and a local crypt private key.
@@ -21,27 +26,27 @@ type CryptoLocal struct {
 	CryptoCommon
 	kbfscrypto.SigningKeySigner
 	cryptPrivateKey kbfscrypto.CryptPrivateKey
-	teamPrivateKeys map[keybase1.TeamID]perTeamPrivateKeys
+	teamPrivateKeys map[keybase1.TeamID]perTeamKeyPairs
 }
 
-var _ Crypto = CryptoLocal{}
+var _ Crypto = (*CryptoLocal)(nil)
 
 // NewCryptoLocal constructs a new CryptoLocal instance with the given
 // signing key.
 func NewCryptoLocal(codec kbfscodec.Codec,
 	signingKey kbfscrypto.SigningKey,
-	cryptPrivateKey kbfscrypto.CryptPrivateKey) CryptoLocal {
-	return CryptoLocal{
+	cryptPrivateKey kbfscrypto.CryptPrivateKey) *CryptoLocal {
+	return &CryptoLocal{
 		MakeCryptoCommon(codec),
 		kbfscrypto.SigningKeySigner{Key: signingKey},
 		cryptPrivateKey,
-		make(map[keybase1.TeamID]perTeamPrivateKeys),
+		make(map[keybase1.TeamID]perTeamKeyPairs),
 	}
 }
 
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoLocal.
-func (c CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
+func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey kbfscrypto.TLFEphemeralPublicKey,
 	encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf) (
 	kbfscrypto.TLFCryptKeyClientHalf, error) {
@@ -51,7 +56,7 @@ func (c CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 
 // DecryptTLFCryptKeyClientHalfAny implements the Crypto interface for
 // CryptoLocal.
-func (c CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
+func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral, _ bool) (
 	clientHalf kbfscrypto.TLFCryptKeyClientHalf, index int, err error) {
 	if len(keys) == 0 {
@@ -85,19 +90,32 @@ func (c CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 		errors.WithStack(libkb.DecryptionError{})
 }
 
-func (c CryptoLocal) addTeamKeyGeneration(
-	teamID keybase1.TeamID, keyGen keybase1.PerTeamKeyGeneration,
-	privKey kbfscrypto.TLFPrivateKey) {
+func (c *CryptoLocal) pubKeyForTeamKeyGeneration(
+	teamID keybase1.TeamID, keyGen keybase1.PerTeamKeyGeneration) (
+	pubKey kbfscrypto.TLFPublicKey, err error) {
 	if c.teamPrivateKeys[teamID] == nil {
-		c.teamPrivateKeys[teamID] = make(perTeamPrivateKeys)
+		c.teamPrivateKeys[teamID] = make(perTeamKeyPairs)
 	}
 
-	c.teamPrivateKeys[teamID][keyGen] = privKey
+	teamKeys := c.teamPrivateKeys[teamID]
+	kp, ok := teamKeys[keyGen]
+	// If a key pair doesn't exist yet for this keygen, generate a
+	// random one.
+	if !ok {
+		pubKey, privKey, _, err := c.MakeRandomTLFKeys()
+		if err != nil {
+			return kbfscrypto.TLFPublicKey{}, err
+		}
+		kp = perTeamKeyPair{privKey, pubKey}
+		c.teamPrivateKeys[teamID][keyGen] = kp
+	}
+
+	return kp.pubKey, nil
 }
 
 // DecryptTeamMerkleLeaf implements the Crypto interface for
 // CryptoLocal.
-func (c CryptoLocal) DecryptTeamMerkleLeaf(
+func (c *CryptoLocal) DecryptTeamMerkleLeaf(
 	ctx context.Context, teamID keybase1.TeamID,
 	publicKey kbfscrypto.TLFEphemeralPublicKey,
 	encryptedMerkleLeaf kbfscrypto.EncryptedMerkleLeaf,
@@ -106,7 +124,7 @@ func (c CryptoLocal) DecryptTeamMerkleLeaf(
 	maxKeyGen := keybase1.PerTeamKeyGeneration(len(perTeamKeys))
 	for i := minKeyGen; i <= maxKeyGen; i++ {
 		decryptedData, err := kbfscrypto.DecryptMerkleLeaf(
-			perTeamKeys[i], publicKey, encryptedMerkleLeaf)
+			perTeamKeys[i].privKey, publicKey, encryptedMerkleLeaf)
 		if err == nil {
 			return decryptedData, nil
 		}
@@ -116,4 +134,4 @@ func (c CryptoLocal) DecryptTeamMerkleLeaf(
 }
 
 // Shutdown implements the Crypto interface for CryptoLocal.
-func (c CryptoLocal) Shutdown() {}
+func (c *CryptoLocal) Shutdown() {}

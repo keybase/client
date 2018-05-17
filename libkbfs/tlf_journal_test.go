@@ -77,7 +77,7 @@ type testTLFJournalConfig struct {
 	t            *testing.T
 	tlfID        tlf.ID
 	splitter     BlockSplitter
-	crypto       CryptoLocal
+	crypto       *CryptoLocal
 	bcache       BlockCache
 	bops         BlockOps
 	mdcache      MDCache

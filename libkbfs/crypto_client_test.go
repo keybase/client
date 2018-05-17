@@ -22,7 +22,7 @@ import (
 )
 
 type FakeCryptoClient struct {
-	Local     CryptoLocal
+	Local     *CryptoLocal
 	readyChan chan<- struct{}
 	goChan    <-chan struct{}
 }
