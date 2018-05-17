@@ -1216,6 +1216,11 @@ func InstallLogPath() (string, error) {
 	return "", nil
 }
 
+// WatchdogLogPath doesn't exist on darwin as an independent log file (see desktop app log)
+func WatchdogLogPath(string) (string, error) {
+	return "", nil
+}
+
 // SystemLogPath is where privileged keybase processes log to on darwin
 func SystemLogPath() string {
 	return "/Library/Logs/keybase.system.log"

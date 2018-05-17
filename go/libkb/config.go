@@ -767,6 +767,10 @@ func (f JSONConfigFile) GetLogFile() string {
 	return f.GetTopLevelString("log_file")
 }
 
+func (f JSONConfigFile) GetLogPrefix() string {
+	return f.GetTopLevelString("log_prefix")
+}
+
 func (f JSONConfigFile) GetSecurityAccessGroupOverride() (bool, bool) {
 	return false, false
 }
