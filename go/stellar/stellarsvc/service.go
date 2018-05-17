@@ -2,17 +2,22 @@ package stellarsvc
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"math"
 	"sort"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellarcommon"
+	"github.com/stellar/go/amount"
 )
 
 type UISource interface {
 	SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI
+	IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI
 }
 
 type Server struct {
@@ -116,7 +121,23 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	if !arg.Asset.IsNativeXLM() {
 		return stellar1.PaymentResult{}, fmt.Errorf("sending non-XLM assets is not supported")
 	}
-	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note)
+
+	// make sure that the xlm amount is close to the display amount the
+	// user thinks they are sending.
+	if err = s.checkDisplayAmount(ctx, arg); err != nil {
+		return stellar1.PaymentResult{}, err
+	}
+
+	displayBalance := stellar.DisplayBalance{
+		Amount:   arg.DisplayAmount,
+		Currency: arg.DisplayCurrency,
+	}
+	uis := libkb.UIs{
+		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
+	}
+	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
+
+	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
@@ -295,4 +316,45 @@ func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.For
 	}
 
 	return res, nil
+}
+
+// check that the display amount is within 1% of current exchange rates
+func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendLocalArg) error {
+	if arg.DisplayAmount == "" {
+		return nil
+	}
+
+	exchangeRate, err := remote.ExchangeRate(ctx, s.G(), arg.DisplayCurrency)
+	if err != nil {
+		return err
+	}
+
+	xlmAmount, err := stellar.ConvertLocalToXLM(arg.DisplayAmount, exchangeRate)
+	if err != nil {
+		return err
+	}
+
+	currentAmt, err := amount.ParseInt64(xlmAmount)
+	if err != nil {
+		return err
+	}
+
+	argAmt, err := amount.ParseInt64(arg.Amount)
+	if err != nil {
+		return err
+	}
+
+	if percentageAmountChange(currentAmt, argAmt) > 1.0 {
+		return errors.New("current exchange rates have changed more than 1%")
+	}
+
+	return nil
+}
+
+func percentageAmountChange(a, b int64) float64 {
+	if a == 0 && b == 0 {
+		return 0.0
+	}
+	mid := 0.5 * float64(a+b)
+	return math.Abs(100.0 * float64(a-b) / mid)
 }
