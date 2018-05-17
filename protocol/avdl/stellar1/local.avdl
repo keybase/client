@@ -54,7 +54,7 @@ protocol local {
   Bundle walletDumpLocal();
 
   // Account balance and its current value in selected currency.
-  record LocalOwnAccount {
+  record OwnAccountCLILocal {
     AccountID accountID;
     boolean isPrimary;
     string name;
@@ -62,7 +62,7 @@ protocol local {
     union { null, OutsideExchangeRate } exchangeRate;
   }
 
-  array<LocalOwnAccount> walletGetLocalAccounts();
+  array<OwnAccountCLILocal> walletGetAccountsCLILocal();
 
   // Whether this account is one of this user's.
   boolean ownAccountLocal(AccountID accountID);
