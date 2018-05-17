@@ -358,7 +358,3 @@ func percentageAmountChange(a, b int64) float64 {
 	mid := 0.5 * float64(a+b)
 	return math.Abs(100.0 * float64(a-b) / mid)
 }
-
-func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) ([]stellar1.WalletAccount, error) {
-	return nil, errors.New("not yet implemented")
-}
