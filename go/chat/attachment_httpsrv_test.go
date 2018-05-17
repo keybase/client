@@ -103,7 +103,7 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 		},
 	}))
 
-	tv, _, err := tc.Context().ConvSource.Pull(context.TODO(), conv.Id, uid, &chat1.GetThreadQuery{
+	tv, err := tc.Context().ConvSource.Pull(context.TODO(), conv.Id, uid, &chat1.GetThreadQuery{
 		MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
 	}, nil)
 	require.NoError(t, err)

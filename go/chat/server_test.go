@@ -596,7 +596,7 @@ func TestChatSrvNewConversationLocal(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
 		uid := users[0].User.GetUID().ToBytes()
-		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		if len(conv.MaxMsgSummaries) == 0 {
 			t.Fatalf("created conversation does not have a message")
@@ -729,7 +729,7 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 
-		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		if conversations[0].Info.TlfName != conv.MaxMsgSummaries[0].TlfName {
 			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName, mt)
@@ -1021,7 +1021,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		require.Equal(t, 1, len(conversations))
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName)
 		require.Equal(t, conversations[0].Info.Id, created.Id)
@@ -1050,7 +1050,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		uid := users[0].User.GetUID().ToBytes()
 		tc := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
-		tv, _, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
+		tv, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
 			nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
@@ -1073,7 +1073,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		})
 		require.NoError(t, err)
 		t.Logf("headline -> msgid:%v", res.MessageID)
-		tv, _, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
+		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
 			nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
@@ -1090,8 +1090,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 			Age:              0,
 		})
 		require.NoError(t, err)
-		tv, _, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
-			nil)
+		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil, nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
 		// Teams don't use the remote mock. So PostDeleteHistoryByAge won't have gotten a good answer from GetMessageBefore.
@@ -3677,7 +3676,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 		ri := ctc.as(t, users[0]).ri
-		convRemote, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
 		require.NoError(t, err)
 
 		// Creating a conversation with same topic name just returns the matching one
@@ -3772,7 +3771,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
-		convRemote, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
 		require.NoError(t, err)
 		plarg := chat1.PostLocalArg{
 			ConversationID: conv.Id,
@@ -3880,7 +3879,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
-		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
 		require.NoError(t, err)
 		require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
 		require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -4016,7 +4015,7 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		}
 
 		// Check remote notifications
-		uconv, _, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
+		uconv, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
 			conv.Id, false)
 		require.NoError(t, err)
 		require.NotNil(t, uconv.Notifications)
