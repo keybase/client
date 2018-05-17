@@ -151,7 +151,7 @@ export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize:
 
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
-  return Object.keys(multsMap)
+  const imgSet = Object.keys(multsMap)
     .map(mult => {
       const uri = imgMap[multsMap[mult]]
       if (!uri) {
@@ -164,6 +164,7 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
       }
     })
     .filter(Boolean)
+  return imgSet.length ? imgSet : null
 }
 
 export default Icon
