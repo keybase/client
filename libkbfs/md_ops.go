@@ -70,6 +70,28 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 		return nil, err
 	}
 
+	if rmd.TypeForKeying() == tlf.TeamKeying {
+		// For teams, only the Keybase service has access to the
+		// private key that can decrypt the data, so send the request
+		// over to the crypto client.
+		cryptoLeaf := kbfscrypto.MakeEncryptedMerkleLeaf(
+			eLeaf.Version, eLeaf.EncryptedData, kbfsRoot.Nonce)
+		teamID := rmd.GetTlfHandle().FirstResolvedWriter().AsTeamOrBust()
+		minKeyGen := keybase1.PerTeamKeyGeneration(rmd.LatestKeyGeneration())
+		md.log.CDebugf(ctx, "Decrypting Merkle leaf for team %s with min key "+
+			"generation %d", teamID, minKeyGen)
+		leafBytes, err := md.config.Crypto().DecryptTeamMerkleLeaf(
+			ctx, teamID, *kbfsRoot.EPubKey, cryptoLeaf, minKeyGen)
+		if err != nil {
+			return nil, err
+		}
+		var leaf kbfsmd.MerkleLeaf
+		if err := md.config.Codec().Decode(leafBytes, &leaf); err != nil {
+			return nil, err
+		}
+		return &leaf, nil
+	}
+
 	// The private key we need to decrypt the leaf does not live in
 	// key bundles; it lives only in the MDs that were part of a
 	// specific keygen.  But we don't yet know what the keygen was, or
@@ -194,11 +216,6 @@ func (md *MDOpsStandard) verifyKey(
 	case nil:
 		return true, nil
 	case RevokedDeviceVerificationError:
-		// TODO(KBFS-2963): Support team-keyed TLFs.
-		if irmd.TypeForKeying() == tlf.TeamKeying {
-			md.log.CDebugf(ctx, "Skipping team folder verification for now")
-			return false, nil
-		}
 		if ctx.Value(ctxMDOpsSkipKeyVerification) != nil {
 			md.log.CDebugf(ctx,
 				"Skipping revoked key verification due to recursion")
