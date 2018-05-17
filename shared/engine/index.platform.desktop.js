@@ -40,10 +40,10 @@ function windowsHack() {
   fake.on('error', function() {})
 }
 
-function checkRPCOwnership(): Promise<*> {
+function checkRPCOwnership(): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!isWindows) {
-      return resolve({})
+      return resolve()
     }
     logger.info('Checking RPC ownership')
 
