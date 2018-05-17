@@ -27,6 +27,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     _canDeleteHistory,
     _you: state.config.username,
+    pending: !!message.transferState,
   }
 }
 
@@ -92,6 +93,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
     onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
+    pending: stateProps.pending,
     position: ownProps.position,
     timestamp: message.timestamp,
     visible: ownProps.visible,

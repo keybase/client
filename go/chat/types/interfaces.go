@@ -92,7 +92,7 @@ type MessageDeliverer interface {
 }
 
 type Searcher interface {
-	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, maxHits int, maxMessages int) (hits []chat1.ChatSearchHit, rlimits []chat1.RateLimit, err error)
+	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, rlimits []chat1.RateLimit, err error)
 }
 
 type Sender interface {

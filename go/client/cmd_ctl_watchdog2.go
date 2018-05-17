@@ -5,8 +5,10 @@ package client
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"time"
 
 	"github.com/keybase/cli"
@@ -44,6 +46,11 @@ func (c *CmdWatchdog2) Run() error {
 	if err != nil {
 		return err
 	}
+
+	if !libkb.CheckInstance("keybase.watchdog2") {
+		return fmt.Errorf("Watchdog instance already running")
+	}
+
 	serviceLogPath := filepath.Join(env.GetLogDir(), libkb.ServiceLogFileName)
 	serviceProgram := watchdog.Program{
 		Path: keybasePath,
@@ -102,6 +109,8 @@ func (c *CmdWatchdog2) Run() error {
 		programs = append(programs, updaterProgram)
 	}
 
+	go c.pruneWatchdogLogs()
+
 	// Start and monitor all the programs
 	if err := watchdog.Watch(programs, 10*time.Second, c.G().GetLogf()); err != nil {
 		return err
@@ -147,4 +156,26 @@ func (c *CmdWatchdog2) Warningf(s string, args ...interface{}) {
 // Errorf (for watchdog Log interface)
 func (c *CmdWatchdog2) Errorf(s string, args ...interface{}) {
 	c.G().Log.Errorf(s, args...)
+}
+
+func (c *CmdWatchdog2) pruneWatchdogLogs() {
+	logPrefix := c.G().Env.GetLogPrefix()
+	if logPrefix == "" {
+		return
+	}
+
+	// Remove all but the 5 newest watchdog logs - sorting by name works because timestamp
+	watchdogLogFiles, err := filepath.Glob(logPrefix + "*.log")
+	if err != nil {
+		return
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(watchdogLogFiles)))
+	if len(watchdogLogFiles) <= 5 {
+		return
+	}
+	watchdogLogFiles = watchdogLogFiles[5:]
+
+	for _, path := range watchdogLogFiles {
+		os.Remove(path)
+	}
 }
