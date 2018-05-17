@@ -1044,31 +1044,37 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := h.assertLoggedInUID(ctx)
 	if err != nil {
-		return chat1.PostLocalRes{}, err
+		return res, err
 	}
 
 	// Sanity check that we have a TLF name here
 	if len(arg.Msg.ClientHeader.TlfName) == 0 {
 		h.Debug(ctx, "PostLocal: no TLF name specified: convID: %s uid: %s",
 			arg.ConversationID, uid)
-		return chat1.PostLocalRes{}, fmt.Errorf("no TLF name specified")
+		return res, fmt.Errorf("no TLF name specified")
 	}
 
 	// Make sure sender is set
 	db := make([]byte, 16)
 	deviceID := h.G().Env.GetDeviceID()
 	if err = deviceID.ToBytes(db); err != nil {
-		return chat1.PostLocalRes{}, err
+		return res, err
 	}
 	arg.Msg.ClientHeader.Sender = uid
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
+
+	metadata, err := h.getSupersederEphemeralMetadata(ctx, uid, arg.ConversationID, arg.Msg)
+	if err != nil {
+		return res, err
+	}
+	arg.Msg.ClientHeader.EphemeralMetadata = metadata
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
 
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
-		return chat1.PostLocalRes{}, err
+		return res, err
 	}
 
 	return chat1.PostLocalRes{
@@ -1105,11 +1111,6 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 		MessageID: arg.Supersedes,
 		Body:      arg.Body,
 	})
-	if arg.EphemeralLifetime != nil {
-		parg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: *arg.EphemeralLifetime,
-		}
-	}
 
 	return h.PostLocalNonblock(ctx, parg)
 }
@@ -1261,23 +1262,23 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
 	defer h.suspendConvLoader(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
-		return chat1.PostLocalNonblockRes{}, err
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
 	}
-	uid := h.G().Env.GetUID()
 
 	// Sanity check that we have a TLF name here
 	if len(arg.Msg.ClientHeader.TlfName) == 0 {
 		h.Debug(ctx, "PostLocalNonblock: no TLF name specified: convID: %s uid: %s",
 			arg.ConversationID, uid)
-		return chat1.PostLocalNonblockRes{}, fmt.Errorf("no TLF name specified")
+		return res, fmt.Errorf("no TLF name specified")
 	}
 
 	// Add outbox information
 	var prevMsgID chat1.MessageID
 	if arg.ClientPrev == 0 {
 		h.Debug(ctx, "PostLocalNonblock: ClientPrev not specified using local storage")
-		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid.ToBytes(), nil,
+		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid, nil,
 			&chat1.Pagination{Num: 1}, 0)
 		if err != nil || len(thread.Messages) == 0 {
 			h.Debug(ctx, "PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
@@ -1293,14 +1294,19 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		Prev: prevMsgID,
 	}
 
+	metadata, err := h.getSupersederEphemeralMetadata(ctx, uid, arg.ConversationID, arg.Msg)
+	if err != nil {
+		return res, err
+	}
+	arg.Msg.ClientHeader.EphemeralMetadata = metadata
+
 	// Create non block sender
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 
 	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID)
 	if err != nil {
-		return chat1.PostLocalNonblockRes{},
-			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
+		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}
 	h.Debug(ctx, "PostLocalNonblock: using outboxID: %s", obid)
 
@@ -1308,6 +1314,28 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		OutboxID:         obid,
 		IdentifyFailures: identBreaks,
 	}, nil
+}
+
+// If we are superseding an ephemeral message, we have to set the
+// ephemeralMetadata on this superseder message.
+func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
+	switch msg.ClientHeader.MessageType {
+	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
+	default:
+		return msg.ClientHeader.EphemeralMetadata, nil
+	}
+
+	messages, err := h.G().ChatHelper.GetMessages(ctx, uid, convID,
+		[]chat1.MessageID{msg.ClientHeader.Supersedes}, false /* resolveSupersedes */)
+	if err != nil || len(messages) != 1 || !messages[0].IsValid() {
+		return nil, err
+	}
+	supersededMsg := messages[0].Valid()
+	if supersededMsg.IsEphemeral() {
+		metadata = supersededMsg.EphemeralMetadata()
+		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingLifetime(h.clock.Now()))
+	}
+	return metadata, nil
 }
 
 // MakePreview implements chat1.LocalInterface.MakePreview.

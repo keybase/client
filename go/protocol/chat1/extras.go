@@ -391,8 +391,8 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 	return Etime(metadata.Lifetime, header.Ctime, m.ClientHeader.Rtime, header.Now)
 }
 
-func (m MessageUnboxedValid) RemainingLifetime() time.Duration {
-	remainingLifetime := m.Etime().Time().Sub(time.Now()).Round(time.Second)
+func (m MessageUnboxedValid) RemainingLifetime(now time.Time) time.Duration {
+	remainingLifetime := m.Etime().Time().Sub(now).Round(time.Second)
 	return remainingLifetime
 }
 
