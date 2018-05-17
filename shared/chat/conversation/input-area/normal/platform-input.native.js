@@ -250,9 +250,11 @@ const styles = styleSheetCreate({
   typing: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    alignSelf: 'center',
     borderRadius: 10,
     height: 20,
     justifyContent: 'center',
+    marginRight: globalMargins.tiny,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
