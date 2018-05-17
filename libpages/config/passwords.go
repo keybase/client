@@ -6,8 +6,12 @@ package config
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
+	"fmt"
+	"io"
 	"strings"
 	"sync"
 
@@ -23,7 +27,21 @@ const (
 	passwordTypeSHA256
 )
 
-const sha256PasswordHashPrefix = "sha256:"
+const passwordHashDivider = ":"
+const sha256PasswordHashPrefix = "sha256"
+const saltSize = 12
+
+var sha256PasswordHashLength = len(sha256PasswordHashPrefix) +
+	len(passwordHashDivider) +
+	hex.EncodedLen(saltSize) +
+	len(passwordHashDivider) +
+	hex.EncodedLen(sha256.Size)
+var sha256PasswordHashSaltIndex = len(sha256PasswordHashPrefix) +
+	len(passwordHashDivider)
+var sha256PasswordHashSaltEnd = sha256PasswordHashSaltIndex +
+	hex.EncodedLen(saltSize)
+var sha256PasswordHashSHA256Index = sha256PasswordHashSaltEnd +
+	len(passwordHashDivider)
 
 // InvalidPasswordHash is the error that happens when there's an invalid
 // password hash in the config.
@@ -37,23 +55,26 @@ func (InvalidPasswordHash) Error() string {
 type password interface {
 	check(ctx context.Context,
 		limiter *rate.Limiter, cleartext string) (bool, error)
-	hash() string
 	passwordType() passwordType
 }
 
 type sha256Password struct {
-	sha256Hash [sha256.Size]byte
+	hash [sha256.Size]byte
+	salt [saltSize]byte
 }
 
 var _ password = (*sha256Password)(nil)
 
-func (p *sha256Password) check(
-	_ context.Context, _ *rate.Limiter, cleartext string) (bool, error) {
-	return p.sha256Hash == sha256.Sum256([]byte(cleartext)), nil
-}
-
-func (p *sha256Password) hash() string {
-	return hex.EncodeToString(p.sha256Hash[:])
+func (p *sha256Password) check(_ context.Context, _ *rate.Limiter,
+	cleartext string) (match bool, err error) {
+	sum := sha256.New()
+	if _, err = sum.Write(p.salt[:]); err != nil {
+		return false, fmt.Errorf("calculating sha256 error: %v", err)
+	}
+	if _, err = io.WriteString(sum, cleartext); err != nil {
+		return false, fmt.Errorf("calculating sha256 error: %v", err)
+	}
+	return p.hash == sha256.Sum256(append(p.salt[:], cleartext...)), nil
 }
 
 func (p *sha256Password) passwordType() passwordType {
@@ -105,33 +126,45 @@ func (p *bcryptCachingPassword) check(ctx context.Context,
 	return match, nil
 }
 
-func (p *bcryptCachingPassword) hash() string { return string(p.bcryptHash) }
-
 // GenerateSHA256PasswordHash generates a SHA256 based password hash.
-func GenerateSHA256PasswordHash(cleartext string) string {
-	hash := sha256.Sum256([]byte(cleartext))
-	return sha256PasswordHashPrefix + hex.EncodeToString(hash[:])
+func GenerateSHA256PasswordHash(cleartext string) (string, error) {
+	salt := make([]byte, saltSize)
+	n, err := rand.Read(salt)
+	if err != nil || n != saltSize {
+		return "", errors.New("reading random bytes error")
+	}
+
+	hash := sha256.Sum256(append(salt, cleartext...))
+	return sha256PasswordHashPrefix + passwordHashDivider +
+		hex.EncodeToString(salt[:]) + passwordHashDivider +
+		hex.EncodeToString(hash[:]), nil
 }
 
 // newPassword takes a password hash (usually from a .kbp_config file) and
 // makes a password object out of it. Accepted password hashes are:
 //   1. bcrypt hashes. For example:
 //       $2a$04$DXabUWtVUX/nOEQ2R8aBT.wRUZxllKA2Lbm6Z3cGhkRLwMb6u8Esq
-//   2. sha256 hashes. For example:
-//       sha256:20f3765880a5c269b747e1e906054a4b4a3a991259f1e16b5dde4742cec2319a
+//   2. sha256 hashes in format of sha256:<hex of salt>:<hex of sha256sum>.
+//      For example:
+//       sha256:249704a205894bb003b9f82a:6f2e235f076f1c7e1cfedec477091343dd4b1a678b11554321ee1a493925695c
 func newPassword(passwordHashFromConfig string) (password, error) {
 	if strings.HasPrefix(passwordHashFromConfig, sha256PasswordHashPrefix) {
-		if len(passwordHashFromConfig) !=
-			hex.EncodedLen(sha256.Size)+len(sha256PasswordHashPrefix) {
+		if len(passwordHashFromConfig) != sha256PasswordHashLength {
 			return nil, InvalidPasswordHash{}
 		}
-		b, err := hex.DecodeString(
-			passwordHashFromConfig[len(sha256PasswordHashPrefix):])
+		salt, err := hex.DecodeString(
+			passwordHashFromConfig[sha256PasswordHashSaltIndex:sha256PasswordHashSaltEnd])
+		if err != nil {
+			return nil, InvalidPasswordHash{}
+		}
+		hash, err := hex.DecodeString(
+			passwordHashFromConfig[sha256PasswordHashSHA256Index:])
 		if err != nil {
 			return nil, InvalidPasswordHash{}
 		}
 		p := &sha256Password{}
-		copy(p.sha256Hash[:], b)
+		copy(p.hash[:], hash)
+		copy(p.salt[:], salt)
 		return p, nil
 	}
 	if _, err := bcrypt.Cost([]byte(passwordHashFromConfig)); err == nil {

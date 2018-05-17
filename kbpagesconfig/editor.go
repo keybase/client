@@ -116,7 +116,10 @@ func (e *kbpConfigEditor) setUser(username string, isAdd bool) error {
 			return fmt.Errorf("empty password")
 		}
 	}
-	hashed := config.GenerateSHA256PasswordHash(password)
+	hashed, err := config.GenerateSHA256PasswordHash(password)
+	if err != nil {
+		return err
+	}
 	if e.kbpConfig.Users == nil {
 		e.kbpConfig.Users = make(map[string]string)
 	}

@@ -5,7 +5,9 @@
 package config
 
 import (
+	"bytes"
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -93,7 +95,7 @@ func TestConfigV1Full(t *testing.T) {
 		},
 		Users: map[string]string{
 			"alice": string(generateBcryptPasswordHashForTestOrBust(t, "12345")),
-			"bob":   string(GenerateSHA256PasswordHash("54321")),
+			"bob":   string(generateSHA256PasswordHashForTestOrBust(t, "54321")),
 		},
 		ACLs: map[string]AccessControlV1{
 			"/": AccessControlV1{
@@ -334,4 +336,19 @@ func TestConfigV1Full(t *testing.T) {
 	require.False(t, possibleRead)
 	require.False(t, possibleList)
 	require.Equal(t, "/bob/dir/deep-dir/deep-deep-dir", realm)
+}
+
+func TestV1EncodeObjectKeyOrder(t *testing.T) {
+	// We are relying on an undocumented feature of encoding/json where struct
+	// fields are serialized into json with the same order that they are
+	// defined in the struct. If this ever changes in the future, this test
+	// helps us catch it.
+	v1 := DefaultV1()
+	buf := &bytes.Buffer{}
+	err := v1.Encode(buf, false)
+	require.NoError(t, err)
+	const expectedJSON = `{"version":"v1","users":null,` +
+		`"acls":{"/":{"whitelist_additional_permissions":null,` +
+		`"anonymous_permissions":"read,list"}}}`
+	require.Equal(t, expectedJSON, strings.TrimSpace(buf.String()))
 }

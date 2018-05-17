@@ -15,7 +15,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-func migrateUserToSHA256Hash(p prompter, username string, oldConfig config.Config) (sha256Hash string) {
+func migrateUserToSHA256Hash(p prompter, username string, oldConfig config.Config) (sha256Hash string, err error) {
 	for { // loop until user ctrl-C the command
 		input, err := p.PromptPassword(fmt.Sprintf(
 			"enter the password for %s: ", username))
@@ -54,65 +54,66 @@ func upgradeToSHA256WithPrompter(kbpConfigDir string, prompter prompter) (err er
 	f, err := os.Open(kbpConfigPath)
 	switch {
 	case err == nil:
-		cfg, originalConfigStr, err := readConfigAndClose(f)
-		if err != nil {
-			return fmt.Errorf(
-				"reading config file %s error: %v", kbpConfigPath, err)
-		}
-		if cfg.Version() != config.Version1 {
-			return fmt.Errorf(
-				"unsupported config version %s", cfg.Version())
-		}
-
-		oldConfig := cfg.(*config.V1)
-		needsUpgrade, err := oldConfig.HasBcryptPasswords()
-		if err != nil {
-			return err
-		}
-		if !needsUpgrade {
-			fmt.Printf("Config file %s is already the latest version (%s).\n",
-				kbpConfigPath, cfg.Version())
-			return nil
-		}
-
-		confirmed, err := promptConfirm(prompter,
-			"You are about to migrate some password hashes in your "+
-				"kbpages config file from bcrypt to sha256. You will be "+
-				"prompted to enter passwords for each user one by one. "+
-				"If you don't know the password for any user(s), you may "+
-				"enter new passwords for them. Continue?", true)
-		if err != nil {
-			return err
-		}
-		if !confirmed {
-			return fmt.Errorf("not confirmed")
-		}
-
-		newConfig := config.DefaultV1()
-		for p, acl := range oldConfig.ACLs {
-			if newConfig.ACLs == nil {
-				newConfig.ACLs = make(map[string]config.AccessControlV1)
-			}
-			// shadow copy since oldConfig is on-time use anyway
-			newConfig.ACLs[p] = acl
-		}
-		for user := range oldConfig.Users {
-			if newConfig.Users == nil {
-				newConfig.Users = make(map[string]string)
-			}
-			newConfig.Users[user] = migrateUserToSHA256Hash(
-				prompter, user, oldConfig)
-		}
-		if err = confirmAndWrite(originalConfigStr, newConfig,
-			kbpConfigPath, prompter); err != nil {
-			return err
-		}
-		return nil
 	case os.IsNotExist(err):
 		return fmt.Errorf("no kbpages config file exists in %s", kbpConfigDir)
 	default:
 		return fmt.Errorf("open file %s error: %v", kbpConfigPath, err)
 	}
+
+	cfg, originalConfigStr, err := readConfigAndClose(f)
+	if err != nil {
+		return fmt.Errorf(
+			"reading config file %s error: %v", kbpConfigPath, err)
+	}
+	if cfg.Version() != config.Version1 {
+		return fmt.Errorf(
+			"unsupported config version %s", cfg.Version())
+	}
+
+	oldConfig := cfg.(*config.V1)
+	needsUpgrade, err := oldConfig.HasBcryptPasswords()
+	if err != nil {
+		return err
+	}
+	if !needsUpgrade {
+		fmt.Printf("Config file %s is already the latest version (%s).\n",
+			kbpConfigPath, cfg.Version())
+		return nil
+	}
+
+	confirmed, err := promptConfirm(prompter,
+		"You are about to migrate some password hashes in your "+
+			"kbpages config file from bcrypt to sha256. You will be "+
+			"prompted to enter passwords for each user one by one. "+
+			"If you don't know the password for any user(s), you may "+
+			"enter new passwords for them. Continue?", true)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return fmt.Errorf("not confirmed")
+	}
+
+	newConfig := config.DefaultV1()
+	for p, acl := range oldConfig.ACLs {
+		if newConfig.ACLs == nil {
+			newConfig.ACLs = make(map[string]config.AccessControlV1)
+		}
+		// shadow copy since oldConfig is one-time use anyway
+		newConfig.ACLs[p] = acl
+	}
+	for user := range oldConfig.Users {
+		if newConfig.Users == nil {
+			newConfig.Users = make(map[string]string)
+		}
+		newConfig.Users[user], err = migrateUserToSHA256Hash(
+			prompter, user, oldConfig)
+		if err != nil {
+			return fmt.Errorf("migrating to sha256 error: %v", err)
+		}
+	}
+	return confirmAndWrite(originalConfigStr, newConfig,
+		kbpConfigPath, prompter)
 }
 
 func upgradeToSHA256(c *cli.Context) {

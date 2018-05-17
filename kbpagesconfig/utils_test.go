@@ -4,8 +4,6 @@
 
 package main
 
-import "fmt"
-
 type fakePrompterForTest struct {
 	nextResponse <-chan string
 	prompts      chan<- string
@@ -21,8 +19,6 @@ func (p *fakePrompterForTest) Prompt(prompt string) (string, error) {
 func (p *fakePrompterForTest) PromptPassword(prompt string) (string, error) {
 	if p.prompts != nil {
 		p.prompts <- prompt
-	} else {
-		fmt.Println(prompt)
 	}
 	return <-p.nextResponse, nil
 }

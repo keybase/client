@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -21,7 +22,7 @@ func TestUpgrade(t *testing.T) {
 	defer os.RemoveAll(configDir)
 	kbpConfigPath := filepath.Join(configDir, config.DefaultConfigFilename)
 
-	t.Logf("creating v1 config at %s", kbpConfigPath)
+	t.Logf("creating config with bcrypt pass at %s", kbpConfigPath)
 
 	v1 := config.DefaultV1()
 
@@ -30,9 +31,10 @@ func TestUpgrade(t *testing.T) {
 	v1.Users = make(map[string]string)
 	v1.Users["alice"] = string(bcryptHash)
 
-	f, err := os.Create(kbpConfigPath)
+	f1, err := os.Create(kbpConfigPath)
 	require.NoError(t, err)
-	err = v1.Encode(f, true)
+	defer f1.Close()
+	err = v1.Encode(f1, true)
 	require.NoError(t, err)
 
 	t.Logf("testing upgrade")
@@ -42,12 +44,28 @@ func TestUpgrade(t *testing.T) {
 		nextResponse: nextResponse,
 	}
 
-	nextResponse <- "y"
-	nextResponse <- "123"
-	nextResponse <- "n"
-	nextResponse <- "ecila"
-	nextResponse <- "y"
+	nextResponse <- "y"     // "You are about to migrate ..."
+	nextResponse <- "123"   // answer with a wrong password
+	nextResponse <- "n"     // don't use a random generated one
+	nextResponse <- "ecila" // give correct password
+	nextResponse <- "y"     // confirm write
 
 	err = upgradeToSHA256WithPrompter(configDir, prompter)
 	require.NoError(t, err)
+
+	t.Logf("testing new config is upgraded and still works")
+	f2, err := os.Open(kbpConfigPath)
+	require.NoError(t, err)
+	defer f2.Close()
+
+	cfg, err := config.ParseConfig(f2)
+	require.NoError(t, err)
+	require.Equal(t, config.Version1, cfg.Version())
+	v1 = cfg.(*config.V1)
+
+	needsUpgrade, err := v1.HasBcryptPasswords()
+	require.NoError(t, err)
+	require.False(t, needsUpgrade)
+	authed := v1.Authenticate(context.Background(), "alice", "ecila")
+	require.True(t, authed)
 }

@@ -24,7 +24,7 @@ type prompter interface {
 	PromptPassword(string) (string, error)
 }
 
-// not go-routine safe!
+// Not go-routine safe!
 type kbpConfigEditor struct {
 	kbpConfigPath     string
 	kbpConfig         *config.V1
@@ -104,7 +104,7 @@ func confirmAndWrite(
 		return fmt.Errorf("not confirmed")
 	}
 
-	// write the new config to kbpConfigPath
+	// Write the new config to kbpConfigPath.
 	f, err := os.Create(configPath)
 	if err != nil {
 		return fmt.Errorf(

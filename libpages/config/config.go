@@ -30,7 +30,7 @@ type Version int
 
 const (
 	// VersionUnknown defines an unknown config version.
-	VersionUnknown = iota
+	VersionUnknown Version = iota
 	// Version1 is version 1.
 	Version1
 	// Version2 is version 2.
