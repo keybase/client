@@ -17,7 +17,7 @@ func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *Storage, u
 			g.GetLog().CDebugf(ctx, "ephemeralPurge: %s", err)
 		} else {
 			if len(explodedMsgs) > 0 {
-				ib, _, err := g.InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+				ib, err := g.InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 					ConvIDs: []chat1.ConversationID{job.ConvID},
 				}, nil)
 				if err != nil || len(ib.Convs) != 1 {

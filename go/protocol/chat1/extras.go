@@ -1036,3 +1036,147 @@ func (p RetentionPolicy) Summary() string {
 func TeamIDToTLFID(teamID keybase1.TeamID) (TLFID, error) {
 	return MakeTLFID(teamID.String())
 }
+
+func (r *NonblockFetchRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *NonblockFetchRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *MarkAsReadLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *MarkAsReadLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetInboxAndUnboxLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetThreadLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetThreadLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *NewConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *NewConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetInboxSummaryForCLILocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetInboxSummaryForCLILocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetMessagesLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetMessagesLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *SetConversationStatusLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *SetConversationStatusLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *PostLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PostLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetConversationForCLILocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetConversationForCLILocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *PostLocalNonblockRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PostLocalNonblockRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *DownloadAttachmentLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *DownloadAttachmentLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *FindConversationsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *FindConversationsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *JoinLeaveConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *JoinLeaveConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *DeleteConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *DeleteConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetTLFConversationsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetTLFConversationsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *SetAppNotificationSettingsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *SetAppNotificationSettingsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetSearchRegexpRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetSearchRegexpRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
