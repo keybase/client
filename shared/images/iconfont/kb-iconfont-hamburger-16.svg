@@ -1,16 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
-    <title>9F0AC431-8373-445D-A820-3671043DD8E0</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Colors,-icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons-2" transform="translate(-491.000000, -367.000000)">
-            <g id="kb-iconfont-hamburger-16" transform="translate(491.000000, 367.000000)">
-                <rect id="icon-area" fill="#D8D8D8" opacity="0" x="0" y="0" width="16" height="16"></rect>
-                <path d="M2,3 L6,3 C6.55228475,3 7,3.44771525 7,4 C7,4.55228475 6.55228475,5 6,5 L2,5 C1.44771525,5 1,4.55228475 1,4 C1,3.44771525 1.44771525,3 2,3 Z M2,7 L8,7 C8.55228475,7 9,7.44771525 9,8 C9,8.55228475 8.55228475,9 8,9 L2,9 C1.44771525,9 1,8.55228475 1,8 C1,7.44771525 1.44771525,7 2,7 Z M2,11 L11,11 C11.5522847,11 12,11.4477153 12,12 C12,12.5522847 11.5522847,13 11,13 L2,13 C1.44771525,13 1,12.5522847 1,12 C1,11.4477153 1.44771525,11 2,11 Z" id="Combined-Shape" fill="#000000"></path>
-                <path d="M13.0450135,5 L14.7395529,3.30546062 C15.0271865,3.01672713 15.0267404,2.54962592 14.7385558,2.26144235 C14.4503712,1.97325878 13.98327,1.97281434 13.6945375,2.26044897 L10.9549865,5 L13.6945375,7.73955103 C13.98327,8.02718566 14.4503712,8.02674122 14.7385558,7.73855765 C15.0267404,7.45037408 15.0271865,6.98327287 14.7395529,6.69453938 L13.0450135,5 Z" id="caret-left" fill="#000000" fill-rule="nonzero" transform="translate(12.954987, 5.000000) rotate(-90.000000) translate(-12.954987, -5.000000) "></path>
-            </g>
-        </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <g fill="#000" fill-rule="evenodd">
+        <path d="M2 3h4a1 1 0 1 1 0 2H2a1 1 0 1 1 0-2zm0 4h6a1 1 0 1 1 0 2H2a1 1 0 1 1 0-2zm0 4h9a1 1 0 0 1 0 2H2a1 1 0 0 1 0-2z"/>
+        <path fill-rule="nonzero" d="M12.955 4.91L11.26 3.215a.739.739 0 0 0-1.045 1.045L12.955 7l2.74-2.74a.739.739 0 0 0-1.045-1.045L12.955 4.91z"/>
     </g>
 </svg>
