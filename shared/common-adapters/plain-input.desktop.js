@@ -4,7 +4,83 @@ import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, styleSheetCreate} from '../styles'
 
 import type {_StylesDesktop} from '../styles/css'
-import type {InternalProps} from './plain-input'
+import {type StylesCrossPlatform} from '../styles'
+import type {TextType} from './text'
+
+export type KeyboardType =
+  | 'default'
+  | 'email-address'
+  | 'numeric'
+  | 'phone-pad'
+  // iOS only
+  | 'ascii-capable'
+  | 'numbers-and-punctuation'
+  | 'url'
+  | 'number-pad'
+  | 'name-phone-pad'
+  | 'decimal-pad'
+  | 'twitter'
+  | 'web-search'
+  // Android Only
+  | 'visible-password'
+
+export type Props = {
+  autoFocus?: boolean,
+  className?: string,
+  disabled?: boolean,
+  // Resize in a flexbox-like fashion
+  flexable?: boolean,
+  maxLength?: number,
+  multiline?: boolean,
+  onBlur?: () => void,
+  onChangeText?: (text: string) => void,
+  onFocus?: () => void,
+  placeholder?: string,
+  rowsMin?: number,
+  rowsMax?: number,
+  style?: StylesCrossPlatform,
+  textType?: TextType,
+  type?: 'password' | 'text' | 'number',
+
+  /* Platform discrepancies */
+  // Maps to onSubmitEditing on native
+  onEnterKeyDown?: () => void,
+
+  // Desktop only
+  onClick?: (event: Event) => void,
+  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+  onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+
+  // Mobile only
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
+  autoCorrect?: boolean,
+  keyboardType?: KeyboardType,
+  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
+  selectTextOnFocus?: boolean,
+  onEndEditing?: () => void,
+}
+
+// Use this to mix your props with input props like type Props = PropsWithInput<{foo: number}>
+export type PropsWithInput<P> = {|
+  ...$Exact<Props>,
+  ...$Exact<P>,
+|}
+
+/**
+ * Flow does the work of making the default props nullable when instantiating
+ * this component, but doesn't go as far as letting the props be
+ * actually nullable in the type def. This complicates things when trying
+ * to make this compatible with PropsWithInput. So here we split up the
+ * internal type of Props from the public API, and 'lie' in this file
+ * by claiming that this component takes `Props` when the implementations
+ * use `InternalProps`.
+ * See more discussion here: https://github.com/facebook/flow/issues/1660
+ */
+export type DefaultProps = {
+  keyboardType: KeyboardType,
+  textType: TextType,
+}
+export type InternalProps = DefaultProps & Props
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.

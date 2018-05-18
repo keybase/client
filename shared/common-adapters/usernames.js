@@ -9,6 +9,9 @@ import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen.js'
 
+import type {TextType, Background} from './text'
+import type {StylesCrossPlatform} from '../styles'
+
 export type UserListItem = {
   username: string,
   readOnly?: boolean,
@@ -247,7 +250,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+type OwnProps = {
+  skipSelf?: boolean,
+}
+
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const userData = ownProps.usernames
     .map(username => ({
       broken: stateProps._broken.trackerState === 'error',

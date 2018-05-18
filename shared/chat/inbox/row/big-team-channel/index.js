@@ -1,7 +1,14 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile, desktopStyles} from '../../../../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+  desktopStyles,
+  platformStyles,
+} from '../../../../styles'
 
 type Props = {
   isSelected: boolean,
@@ -52,10 +59,12 @@ const textStylePlain = {
   ...(isMobile ? {backgroundColor: globalColors.fastBlank} : {}),
   color: globalColors.black_75_on_white,
 }
-const textStylePlainBold = {
-  ...textStylePlain,
-  ...globalStyles.fontBold,
-}
+const textStylePlainBold = platformStyles({
+  isElectron: {
+    ...textStylePlain,
+    ...globalStyles.fontBold,
+  },
+})
 const textStyleSelected = {
   color: globalColors.white,
 }

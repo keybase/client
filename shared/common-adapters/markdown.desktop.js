@@ -49,16 +49,18 @@ const wrapStyle = platformStyles({
   },
 })
 
-const codeSnippetStyle = {
-  ...globalStyles.fontTerminal,
-  ...globalStyles.rounded,
-  ...wrapStyle,
-  backgroundColor: globalColors.beige,
-  color: globalColors.blue,
-  fontSize: 12,
-  paddingLeft: globalMargins.xtiny,
-  paddingRight: globalMargins.xtiny,
-}
+const codeSnippetStyle = platformStyles({
+  isElectron: {
+    ...globalStyles.fontTerminal,
+    ...globalStyles.rounded,
+    ...wrapStyle,
+    backgroundColor: globalColors.beige,
+    color: globalColors.blue,
+    fontSize: 12,
+    paddingLeft: globalMargins.xtiny,
+    paddingRight: globalMargins.xtiny,
+  },
+})
 
 const codeSnippetBlockStyle = platformStyles({
   isElectron: {

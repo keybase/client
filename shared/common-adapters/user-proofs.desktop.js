@@ -15,7 +15,7 @@ import {
   collapseStyles,
 } from '../styles'
 import {metaNone} from '../constants/tracker'
-
+import type {PlatformsExpandedType} from '../constants/types/more'
 export type MissingProof = {
   type: PlatformsExpandedType,
   message: string,

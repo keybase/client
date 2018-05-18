@@ -1,10 +1,10 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 // TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
-import {glamorous, desktopStyles} from '../styles'
+import {glamorous, desktopStyles, type StylesCrossPlatform} from '../styles'
 import shallowEqual from 'shallowequal'
 
 export type Background =
@@ -69,7 +69,7 @@ type Props = {
   underline?: boolean,
 }
 
-type MetaType = {
+export type MetaType = {
   fontSize: number,
   colorForBackgroundMode: {[key: Background]: ?string},
   isLink?: true,
@@ -77,7 +77,7 @@ type MetaType = {
   isTerminal?: true,
 }
 
-class Text extends Component<Props> {
+class Text extends React.Component<Props> {
   _span: any
 
   highlightText() {
