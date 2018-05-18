@@ -78,13 +78,6 @@ type UnlockWithPassphraseArg struct {
 	Passphrase string `codec:"passphrase" json:"passphrase"`
 }
 
-type PGPProvisionArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	Username   string `codec:"username" json:"username"`
-	Passphrase string `codec:"passphrase" json:"passphrase"`
-	DeviceName string `codec:"deviceName" json:"deviceName"`
-}
-
 type AccountDeleteArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -132,9 +125,6 @@ type LoginInterface interface {
 	// Unlock restores access to local key store by priming passphrase stream cache.
 	Unlock(context.Context, int) error
 	UnlockWithPassphrase(context.Context, UnlockWithPassphraseArg) error
-	// pgpProvision is for devel/testing to provision a device via pgp using CLI
-	// with no user interaction.
-	PGPProvision(context.Context, PGPProvisionArg) error
 	// accountDelete is for devel/testing to delete the current user's account.
 	AccountDelete(context.Context, int) error
 	// loginOneshot allows a service to have a "onetime login", without
@@ -339,22 +329,6 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"pgpProvision": {
-				MakeArg: func() interface{} {
-					ret := make([]PGPProvisionArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PGPProvisionArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]PGPProvisionArg)(nil), args)
-						return
-					}
-					err = i.PGPProvision(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"accountDelete": {
 				MakeArg: func() interface{} {
 					ret := make([]AccountDeleteArg, 1)
@@ -482,13 +456,6 @@ func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 
 func (c LoginClient) UnlockWithPassphrase(ctx context.Context, __arg UnlockWithPassphraseArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.unlockWithPassphrase", []interface{}{__arg}, nil)
-	return
-}
-
-// pgpProvision is for devel/testing to provision a device via pgp using CLI
-// with no user interaction.
-func (c LoginClient) PGPProvision(ctx context.Context, __arg PGPProvisionArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.pgpProvision", []interface{}{__arg}, nil)
 	return
 }
 
