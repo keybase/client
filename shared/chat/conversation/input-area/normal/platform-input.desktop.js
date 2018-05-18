@@ -235,7 +235,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             <Input
               className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
               autoFocus={false}
-              editable={true}
               small={true}
               style={styleInput}
               ref={this._inputSetRef}

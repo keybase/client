@@ -98,7 +98,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             autoCorrect={true}
             autoCapitalize="sentences"
             autoFocus={false}
-            editable={true}
             hideUnderline={true}
             hintText={this.props.isEditing ? 'Edit your message' : 'Write a message'}
             multiline={true}

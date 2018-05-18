@@ -42,6 +42,12 @@ class ListArea extends React.PureComponent<Props> {
         return <StartConversation conversationIDKey={this.props.conversationIDKey} />
       case 'waiting':
         return <Waiting />
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(this.props.type);
+      */
+        return null
     }
   }
 }

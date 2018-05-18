@@ -22,16 +22,11 @@ const StartConversation = (props: Props) => (
         color={globalColors.white}
       />
     </Button>
-    <Text type="BodySmall" style={styles.addMore}>
-      or add more participants.
-    </Text>
+    <Text type="BodySmall">or add more participants.</Text>
   </Box2>
 )
 
 const styles = styleSheetCreate({
-  addMore: platformStyles({
-    common: {},
-  }),
   arrow: platformStyles({
     common: {
       fontSize: 30,
@@ -47,9 +42,9 @@ const styles = styleSheetCreate({
     width: '100%',
   },
   header: {
-    textAlign: 'center',
     marginLeft: globalMargins.medium,
     marginRight: globalMargins.medium,
+    textAlign: 'center',
   },
   spacer: {
     flex: 1,
