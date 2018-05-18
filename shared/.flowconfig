@@ -7,15 +7,6 @@
 # Will start to ignore js.flow files soon
 #.*/*[.].js.flow
 #.*/*[.]desktop.js
-.*/node_modules/.*/node_modules/fbjs/.*
-.*/node_modules/metro-bundler.*
-.*/node_modules/electron-packager.*
-.*/node_modules/react-native.*
-.*/node_modules/react-navigation.*
-.*/node_modules/metro-bundler.*
-.*/node_modules/metro.*
-#.*/node_modules/@storybook/*
-#.*/node_modules/@babel/*
 <PROJECT_ROOT>/react-native/android/app/.*
 <PROJECT_ROOT>/react/node_modules/.*
 <PROJECT_ROOT>/../protocol/.*
@@ -24,9 +15,14 @@
 <PROJECT_ROOT>/react-native/react-native-contacts
 # all this BS is cause this uses ocaml regexp for some reason and doesnt' include negative lookaheads. we want to ignore node_modules outside of these
 # immutable
-.*/node_modules/[a-hj-zA-Z@].*
-.*/node_modules/i[a-ln-zA-Z@].*
-.*/node_modules/im[a-ln-zA-Z@].*
+# recompose
+.*/node_modules/[abcdefghjklmnopqstuvwxyzA-Z@-].*
+.*/node_modules/i[abcdefghijklnopqrstuvwxyzA-Z@-].*
+.*/node_modules/im[abcdefghijklnopqrstuvwxyzA-Z@-].*
+.*/node_modules/r[abcdfghijklmnopqrstuvwxyzA-Z@-].*
+.*/node_modules/re[abdefghijklmnopqrstuvwxyzA-Z@-].*
+.*/node_modules/rec[abcdefghijklmnpqrstuvwxyzA-Z@-].*
+.*/node_modules/reco[abcdefghijklnopqrstuvwxyzA-Z@-].*
 .*[.]gif$
 .*[.]png$
 
