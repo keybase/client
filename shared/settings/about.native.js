@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import {globalStyles, globalMargins} from '../styles'
-import {Box, Icon, Text} from '../common-adapters/index.native'
+import {Box, Icon, Text} from '../common-adapters/mobile.native'
 
 import type {Props} from './about'
 

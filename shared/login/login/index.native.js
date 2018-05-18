@@ -7,7 +7,7 @@ import {
   Button,
   FormWithCheckbox,
   NativeScrollView,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/mobile.native'
 import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform'
 import Dropdown from './dropdown.native'
 import {globalStyles, globalMargins, globalColors} from '../../styles'

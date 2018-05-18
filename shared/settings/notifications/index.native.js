@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {HeaderHoc, NativeScrollView} from '../../common-adapters/index.native'
+import {HeaderHoc, NativeScrollView} from '../../common-adapters/mobile.native'
 import {globalStyles} from '../../styles'
 import Notifications from './index.js'
 import TurnOnNotifications from './turn-on-notifications.native'

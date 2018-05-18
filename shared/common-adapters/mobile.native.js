@@ -2,7 +2,7 @@
 
 module.hot &&
   module.hot.accept(() => {
-    console.log('accepted update in common-adapters/index.native')
+    console.log('accepted update in common-adapters/mobile.native')
   })
 
 export * from './index.js'

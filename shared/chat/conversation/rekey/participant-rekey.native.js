@@ -8,7 +8,7 @@ import {
   NativeScrollView,
   HeaderHoc,
   ClickableBox,
-} from '../../../common-adapters/index.native'
+} from '../../../common-adapters/mobile.native'
 import {globalColors, globalStyles, desktopStyles} from '../../../styles'
 
 import type {Props} from './participant-rekey'

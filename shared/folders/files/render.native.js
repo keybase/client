@@ -12,7 +12,7 @@ import {
   NativeScrollView,
   ListItem,
   NativeStyleSheet,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
