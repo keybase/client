@@ -5,27 +5,11 @@ package engine
 
 import (
 	"fmt"
-
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type keypair struct {
-	encKey     libkb.GenericKey
-	sigKey     libkb.GenericKey
-	deviceID   keybase1.DeviceID
-	deviceName string
-}
-
-func (k *keypair) toActiveDevice(m libkb.MetaContext, u keybase1.UID) *libkb.ActiveDevice {
-	if k == nil {
-		return nil
-	}
-	return libkb.NewProvisionalActiveDevice(m, u, k.deviceID, k.sigKey, k.encKey, k.deviceName)
-}
-
 // findDeviceKeys looks for device keys and unlocks them.
-func findDeviceKeys(m libkb.MetaContext, me *libkb.User) (*keypair, error) {
+func findDeviceKeys(m libkb.MetaContext, me *libkb.User) (*libkb.DeviceWithKeys, error) {
 	// need to be logged in to get a device key (unlocked)
 	lin, _ := isLoggedIn(m)
 	if !lin {
@@ -55,14 +39,14 @@ func findDeviceKeys(m libkb.MetaContext, me *libkb.User) (*keypair, error) {
 	}
 	m.CDebugf("findDeviceKeys: got device signing key")
 
-	return &keypair{encKey: encKey, sigKey: sigKey}, nil
+	return libkb.NewDeviceWithKeysOnly(sigKey, encKey), nil
 }
 
 // findPaperKeys checks if the user has paper backup keys.  If he/she
 // does, it prompts for a paperkey phrase.  This is used to
 // regenerate paper keys, which are then matched against the
 // paper keys found in the keyfamily.
-func findPaperKeys(m libkb.MetaContext, me *libkb.User) (*keypair, error) {
+func findPaperKeys(m libkb.MetaContext, me *libkb.User) (*libkb.DeviceWithKeys, error) {
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
 		return nil, fmt.Errorf("no computed key infos")
@@ -82,7 +66,7 @@ func findPaperKeys(m libkb.MetaContext, me *libkb.User) (*keypair, error) {
 
 // matchPaperKey checks to make sure paper is a valid paper phrase and that it exists
 // in the user's keyfamily.
-func matchPaperKey(m libkb.MetaContext, me *libkb.User, paper string) (*keypair, error) {
+func matchPaperKey(m libkb.MetaContext, me *libkb.User, paper string) (*libkb.DeviceWithKeys, error) {
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
 		return nil, fmt.Errorf("no computed key infos")
@@ -151,7 +135,7 @@ func matchPaperKey(m libkb.MetaContext, me *libkb.User, paper string) (*keypair,
 	if device.Description != nil {
 		deviceName = *device.Description
 	}
-	return &keypair{sigKey: sigKey, encKey: encKey, deviceID: device.ID, deviceName: deviceName}, nil
+	return libkb.NewDeviceWithKeys(sigKey, encKey, device.ID, deviceName), nil
 }
 
 // fetchLKS gets the encrypted LKS client half from the server.

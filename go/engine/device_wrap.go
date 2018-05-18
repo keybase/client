@@ -132,7 +132,7 @@ func (e *DeviceWrap) setActiveDevice(m libkb.MetaContext) (err error) {
 	// Sync down secrets for future offline login attempts to work.
 	// This will largely just download what we just uploaded, but it's
 	// easy to do this way.
-	w := m.ActiveDevice().SyncSecrets(m)
+	_, w := m.ActiveDevice().SyncSecrets(m)
 	if w != nil {
 		m.CWarningf("Error sync secrets: %s", w.Error())
 	}

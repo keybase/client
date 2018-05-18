@@ -161,23 +161,24 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	res.DeviceSigKeyCached = sk != nil
 	res.DeviceEncKeyCached = ek != nil
 
-	h.G().LoginState().Account(func(a *libkb.Account) {
-		res.PassphraseStreamCached = a.PassphraseStreamCache().ValidPassphraseStream()
-		res.TsecCached = a.PassphraseStreamCache().ValidTsec()
-
-		// cached paper key status
-		if a.GetUnlockedPaperSigKey() != nil {
-			res.PaperSigKeyCached = true
-		}
-		if a.GetUnlockedPaperEncKey() != nil {
+	m := libkb.NewMetaContext(ctx, h.G())
+	ad := m.ActiveDevice()
+	// cached paper key status
+	if pk := ad.PaperKey(m); pk != nil {
+		if pk.EncryptionKey() != nil {
 			res.PaperEncKeyCached = true
 		}
-
-		res.SecretPromptSkip = a.SkipSecretPrompt()
-
-		if a.LoginSession() != nil {
-			res.Session = a.LoginSession().Status()
+		if pk.SigningKey() != nil {
+			res.PaperSigKeyCached = true
 		}
+	}
+
+	psc := ad.PassphraseStreamCache()
+	res.PassphraseStreamCached = psc.ValidPassphraseStream()
+	res.TsecCached = psc.ValidTsec()
+
+	h.G().LoginState().Account(func(a *libkb.Account) {
+		res.SecretPromptSkip = a.SkipSecretPrompt()
 	}, "ConfigHandler::GetExtendedStatus")
 
 	current, all, err := h.G().GetAllUserNames()

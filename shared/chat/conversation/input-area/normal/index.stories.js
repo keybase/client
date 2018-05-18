@@ -32,6 +32,7 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
 
 type Props = {
   isEditing: boolean,
+  isExploding: boolean,
   pendingWaiting: boolean,
   typing: Set<string>,
 }
@@ -54,6 +55,7 @@ const InputContainer = (props: Props) => {
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
     channelName: 'somechannel',
     isEditing: props.isEditing,
+    isExploding: props.isExploding,
     focusInputCounter: 0,
     clearInboxFilter: action('clearInboxFilter'),
     onAttach: (paths: Array<string>) => {
@@ -95,18 +97,37 @@ const InputContainer = (props: Props) => {
 const load = () => {
   storiesOf('Chat/Conversation/Input', module)
     .addDecorator(provider)
-    .add('Normal', () => <InputContainer isEditing={false} pendingWaiting={false} typing={Set()} />)
+    .add('Normal', () => (
+      <InputContainer isEditing={false} pendingWaiting={false} typing={Set()} isExploding={false} />
+    ))
     .add('Typing 1', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris'])} />
+      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris'])} isExploding={false} />
     ))
     .add('Typing 2', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris', 'strib'])} />
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set(['chris', 'strib'])}
+        isExploding={false}
+      />
     ))
     .add('Typing 3', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris', 'strib', 'fred'])} />
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set(['chris', 'strib', 'fred'])}
+        isExploding={false}
+      />
     ))
-    .add('Editing', () => <InputContainer isEditing={true} pendingWaiting={false} typing={Set()} />)
-    .add('Pending waiting', () => <InputContainer isEditing={false} pendingWaiting={true} typing={Set()} />)
+    .add('Editing', () => (
+      <InputContainer isEditing={true} pendingWaiting={false} typing={Set()} isExploding={false} />
+    ))
+    .add('Pending waiting', () => (
+      <InputContainer isEditing={false} pendingWaiting={true} typing={Set()} isExploding={false} />
+    ))
+    .add('Exploding', () => (
+      <InputContainer isEditing={false} pendingWaiting={false} typing={Set()} isExploding={true} />
+    ))
 }
 
 export default load

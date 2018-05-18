@@ -3,7 +3,7 @@
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Box2, Icon, Input, Text} from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
 import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
@@ -63,7 +63,9 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     const multilineOpts = {rowsMax: 3, rowsMin: 1}
 
     let hintText = 'Write a message'
-    if (this.props.isEditing) {
+    if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
+    } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.pendingWaiting) {
       hintText = 'Creating conversation...'
@@ -168,7 +170,7 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
       </Text>
     </Box>
   ) : (
-    <Box2 direction="horizontal" gap="tiny" gapEnd={true}>
+    <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
       <Icon
         onClick={pendingWaiting ? undefined : insertMentionMarker}
         type="iconfont-mention"
@@ -178,12 +180,13 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
       <Icon
         onClick={pendingWaiting ? undefined : openFilePicker}
         type="iconfont-camera"
-        style={styles.actionButton}
+        style={collapseStyles([styles.actionButton])}
         fontSize={21}
       />
     </Box2>
   )
 
+const containerPadding = 6
 const styles = styleSheetCreate({
   accessory: {
     bottom: 1,
@@ -199,6 +202,9 @@ const styles = styleSheetCreate({
   actionButton: {
     alignSelf: isIOS ? 'flex-end' : 'center',
     paddingBottom: 2,
+  },
+  actionIconsContainer: {
+    paddingRight: globalMargins.small - containerPadding,
   },
   actionText: {
     ...globalStyles.flexBoxColumn,
@@ -216,7 +222,7 @@ const styles = styleSheetCreate({
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
-    paddingRight: 6,
+    paddingRight: containerPadding,
   },
   editingTabStyle: {
     ...globalStyles.flexBoxColumn,
@@ -246,9 +252,11 @@ const styles = styleSheetCreate({
   typing: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    alignSelf: 'center',
     borderRadius: 10,
     height: 20,
     justifyContent: 'center',
+    marginRight: globalMargins.tiny,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },

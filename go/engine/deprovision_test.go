@@ -177,10 +177,6 @@ func testDeprovision(t *testing.T, upgradePerUserKey bool) {
 		t.Fatal("Need a secret store for this test")
 	}
 	assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{})
-
-	// Now, test deprovision codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
-	assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{})
 }
 
 func TestDeprovisionAfterRevokePaper(t *testing.T) {
@@ -198,12 +194,6 @@ func testDeprovisionAfterRevokePaper(t *testing.T, upgradePerUserKey bool) {
 	if tc.G.SecretStore() == nil {
 		t.Fatal("Need a secret store for this test")
 	}
-	assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{
-		makeAndRevokePaperKey: true,
-	})
-
-	// Now, test deprovision codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
 	assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{
 		makeAndRevokePaperKey: true,
 	})
@@ -303,10 +293,6 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 		t.Fatalf("Need a secret store for this test")
 	}
 	assertDeprovisionLoggedOut(tc)
-
-	// Now, test codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
-	assertDeprovisionLoggedOut(tc)
 }
 
 func assertCurrentDeviceRevoked(tc libkb.TestContext) {
@@ -405,10 +391,6 @@ func TestCurrentDeviceRevoked(t *testing.T) {
 		t.Fatalf("Need a secret store for this test")
 	}
 	assertCurrentDeviceRevoked(tc)
-
-	// Now, test codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
-	assertCurrentDeviceRevoked(tc)
 }
 
 func TestDeprovisionLastDevice(t *testing.T) {
@@ -428,13 +410,6 @@ func testDeprovisionLastDevice(t *testing.T, upgradePerUserKey bool) {
 		t.Fatal("Need a secret store for this test")
 	}
 	fu := assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{
-		revokePaperKey: true,
-	})
-	assertNumDevicesAndKeys(tc, fu, 0, 0)
-
-	// Now, test deprovision codepath with no secret store
-	tc.G.SetSecretStoreNilForTests(t)
-	fu = assertDeprovisionWithSetup(tc, assertDeprovisionWithSetupArg{
 		revokePaperKey: true,
 	})
 	assertNumDevicesAndKeys(tc, fu, 0, 0)

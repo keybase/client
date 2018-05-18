@@ -86,7 +86,7 @@ func (e *Kex2Provisioner) Run(m libkb.MetaContext) error {
 	// get current passphrase stream if necessary:
 	if e.pps.PassphraseStream == nil {
 		m.CDebugf("kex2 provisioner needs passphrase stream, getting it from LoginState")
-		pps, err := m.G().LoginState().GetPassphraseStreamStored(m, m.UIs().SecretUI)
+		pps, err := libkb.GetPassphraseStreamStored(m)
 		if err != nil {
 			return err
 		}
@@ -293,10 +293,14 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 
 	userEKBoxStorage := m.G().GetUserEKBoxStorage()
 	if len(string(input.DeviceEkKID)) != 0 && userEKBoxStorage != nil {
-		output.UserEkBox, err = e.makeUserEKBox(m, input.DeviceEkKID)
-		if err != nil {
-			return output, err
+		// If we error out here the provisionee will create it's own keys later
+		// but we shouldn't fail kex.
+		userEKBox, ekErr := e.makeUserEKBox(m, input.DeviceEkKID)
+		if ekErr != nil {
+			userEKBox = nil
+			m.CDebugf("Unable to makeUserEKBox %v", ekErr)
 		}
+		output.UserEkBox = userEKBox
 	} else {
 		m.CDebugf("Skipping userEKBox generation empty KID or storage. KID: %v, storage: %v", input.DeviceEkKID, userEKBoxStorage)
 	}

@@ -128,7 +128,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		if err != nil {
 			return err
 		}
-		key = keypair.encKey
+		key = keypair.EncryptionKey()
 	} else {
 		// Load self so that we can get device keys. This does require you to
 		// be logged in.
