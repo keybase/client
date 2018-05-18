@@ -164,6 +164,7 @@ const Action = ({hasText, onSubmit, isEditing, openFilePicker, insertMentionMark
     </Box2>
   )
 
+const containerPadding = 6
 const styles = styleSheetCreate({
   accessory: {
     bottom: 1,
@@ -179,6 +180,9 @@ const styles = styleSheetCreate({
   actionButton: {
     alignSelf: isIOS ? 'flex-end' : 'center',
     paddingBottom: 2,
+  },
+  actionIconsContainer: {
+    paddingRight: globalMargins.small - containerPadding,
   },
   actionText: {
     ...globalStyles.flexBoxColumn,
@@ -196,7 +200,7 @@ const styles = styleSheetCreate({
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
-    paddingRight: 6,
+    paddingRight: containerPadding,
   },
   editingTabStyle: {
     ...globalStyles.flexBoxColumn,
@@ -226,9 +230,11 @@ const styles = styleSheetCreate({
   typing: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    alignSelf: 'center',
     borderRadius: 10,
     height: 20,
     justifyContent: 'center',
+    marginRight: globalMargins.tiny,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
