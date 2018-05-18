@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
-import type {IconType} from './icon'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import Box from './box'
-import Icon from './icon'
+import Icon, {type IconType} from './icon'
 import {isMobile} from '../constants/platform'
 
 type Props = {

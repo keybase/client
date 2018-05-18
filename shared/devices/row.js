@@ -3,7 +3,7 @@ import * as Types from '../constants/types/devices'
 import {connect, compose, type TypedState, setDisplayName} from '../util/container'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
-import {type IconType} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters'
 
 type OwnProps = {
   deviceID: Types.DeviceID,

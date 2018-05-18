@@ -1,6 +1,6 @@
 // @flow
-import React, {Component} from 'react'
-import type {IconType} from '../../common-adapters/icon.constants.js'
+import * as React from 'react'
+import type {IconType} from '../../common-adapters'
 
 export type Props = {
   label: string,
@@ -11,4 +11,4 @@ export type Props = {
   style?: Object,
 }
 
-declare export default class LinkWithIcon extends Component<Props> {}
+declare export default class LinkWithIcon extends React.Component<Props> {}
