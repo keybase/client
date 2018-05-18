@@ -72,7 +72,7 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
  * Gregor key for exploding conversations
  * Used as the `category` when setting the exploding mode on a conversation
- * `body` is the number of seconds to etime
+ * `body` is the number of seconds to exploding message etime
  */
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
