@@ -103,7 +103,7 @@ func (c *cmdWalletSend) Run() error {
 		return err
 	}
 
-	arg := stellar1.SendLocalArg{
+	arg := stellar1.SendCLILocalArg{
 		Recipient:       c.recipient,
 		Amount:          amount,
 		Asset:           stellar1.AssetNative(),
@@ -111,12 +111,12 @@ func (c *cmdWalletSend) Run() error {
 		DisplayAmount:   displayAmount,
 		DisplayCurrency: displayCurrency,
 	}
-	res, err := cli.SendLocal(context.Background(), arg)
+	res, err := cli.SendCLILocal(context.Background(), arg)
 	if err != nil {
 		return err
 	}
 
-	ui.Printf("Sent: %+v\n", res)
+	ui.Printf("Sent!\nKeybase Transaction ID: %v\nStellar Transaction ID: %v\n", res.KbTxID, res.TxID)
 
 	return nil
 }

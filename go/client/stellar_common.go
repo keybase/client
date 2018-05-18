@@ -23,7 +23,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 	}
 	line("%v", ColorString(g, "green", amount))
 	// Show sender and recipient. Prefer keybase form, fall back to stellar abbreviations.
-	showedAbbreviation := true
+	var showedAbbreviation bool
 	var from string
 	switch {
 	case p.FromUsername != nil:
@@ -47,7 +47,11 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 	// If an abbreviation was shown, show the full addresses
 	if showedAbbreviation || verbose {
 		line("From: %v", p.FromStellar.String())
-		line("To:   %v", p.ToStellar.String())
+		if p.ToStellar != nil {
+			line("To:   %v", p.ToStellar.String())
+		} else {
+			line("To:   %v", ColorString(g, "yellow", "unclaimed"))
+		}
 	}
 	if len(p.Note) > 0 {
 		line("Note: %v", ColorString(g, "yellow", printPaymentFilterNote(p.Note)))
