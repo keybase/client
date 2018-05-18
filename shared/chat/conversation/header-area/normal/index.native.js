@@ -1,24 +1,24 @@
 // @flow
 import * as React from 'react'
 import {Avatar, BackButton, Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, collapseStyles} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins, collapseStyles, styleSheetCreate} from '../../../../styles'
 
 import type {Props} from '.'
 
 const ShhIcon = () => (
   <Box style={{position: 'relative', alignSelf: 'flex-start'}}>
-    <Icon type="iconfont-shh" style={shhIconStyle} color={shhIconColor} fontSize={shhIconFontSize} />
+    <Icon type="iconfont-shh" style={styles.left} color={shhIconColor} fontSize={shhIconFontSize} />
   </Box>
 )
 
 const ChannelHeader = (props: Props) => (
-  <Box style={containerStyle}>
+  <Box style={styles.container}>
     <BackButton
       badgeNumber={props.badgeNumber}
       onClick={props.onBack}
       iconColor={globalColors.black_40}
       textStyle={{color: globalColors.blue}}
-      style={{flexShrink: 0, padding: globalMargins.tiny}}
+      style={styles.backButton}
     />
     <Box
       style={{
@@ -54,7 +54,7 @@ const ChannelHeader = (props: Props) => (
     </Box>
     <Icon
       type="iconfont-info"
-      style={collapseStyles([styleLeft, {flexShrink: 0, padding: globalMargins.tiny}])}
+      style={collapseStyles([styles.left, styles.right, {flexShrink: 0, padding: globalMargins.tiny}])}
       fontSize={21}
       onClick={props.onToggleInfoPanel}
     />
@@ -62,13 +62,13 @@ const ChannelHeader = (props: Props) => (
 )
 
 const UsernameHeader = (props: Props) => (
-  <Box style={containerStyle}>
+  <Box style={styles.container}>
     <BackButton
       badgeNumber={props.badgeNumber}
       onClick={props.onBack}
       iconColor={globalColors.black_40}
       textStyle={{color: globalColors.blue}}
-      style={{flexShrink: 0, padding: globalMargins.tiny}}
+      style={styles.backButton}
     />
     <Box
       style={{
@@ -85,7 +85,7 @@ const UsernameHeader = (props: Props) => (
         commaColor={globalColors.black_40}
         type="BodyBig"
         usernames={props.participants}
-        containerStyle={styleCenter}
+        containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
         skipSelf={true}
       />
@@ -94,7 +94,7 @@ const UsernameHeader = (props: Props) => (
     {props.canOpenInfoPanel && (
       <Icon
         type="iconfont-info"
-        style={collapseStyles([styleLeft, {flexShrink: 0, padding: globalMargins.tiny}])}
+        style={collapseStyles([styles.left, styles.right, {flexShrink: 0, padding: globalMargins.tiny}])}
         fontSize={21}
         onClick={props.onToggleInfoPanel}
       />
@@ -102,31 +102,34 @@ const UsernameHeader = (props: Props) => (
   </Box>
 )
 
-const containerStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: globalColors.fastBlank,
-  borderBottomColor: globalColors.black_05,
-  borderBottomWidth: 1,
-  justifyContent: 'flex-start',
-  minHeight: 32,
-}
-
-const styleCenter = {
-  justifyContent: 'center',
-  textAlign: 'center',
-}
-
-const styleLeft = {
-  marginLeft: globalMargins.xtiny,
-}
-
-const shhIconStyle = {
-  marginLeft: globalMargins.xtiny,
-}
-
+const styles = styleSheetCreate({
+  backButton: {
+    flexShrink: 0,
+    marginLeft: globalMargins.small - 4,
+    padding: globalMargins.tiny,
+    paddingLeft: 0,
+  },
+  center: {
+    justifyContent: 'center',
+    textAlign: 'center',
+  },
+  container: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    backgroundColor: globalColors.fastBlank,
+    borderBottomColor: globalColors.black_05,
+    borderBottomWidth: 1,
+    justifyContent: 'flex-start',
+    minHeight: 32,
+  },
+  left: {
+    marginLeft: globalMargins.xtiny,
+  },
+  right: {
+    marginRight: globalMargins.tiny,
+  },
+})
 const shhIconColor = globalColors.black_20
-
 const shhIconFontSize = 20
 
 export {ChannelHeader, UsernameHeader}
