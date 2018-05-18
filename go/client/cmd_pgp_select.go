@@ -40,7 +40,7 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-const importDisclaimer = `You are selecting a PGP key to sign and publish a statement that you
+const selectDisclaimer = `You are selecting a PGP key to sign and publish a statement that you
 own said key, effectively making it part of your Keybase.io identity.
 
 You will be prompted by GPG to unlock your private key - it will be
@@ -51,6 +51,18 @@ keyring, to be able to decrypt or sign using Keybase client. To do
 that, use "--import" flag.
 
 Learn more: keybase pgp help select
+
+`
+
+const importPrivDisclaimer = `You are selecting a PGP key to publish in your profile, and
+importing key to *local*, *encrypted* Keybase keyring.
+
+If your GPG key is encrypted, you will be asked for passphrase
+to unlock it. You may be asked *twice* - first by GPG, to export
+encrypted key bundle, and then by Keybase, to unlock secret key.
+
+Please note that this will not work if your secret key lives on a
+hardware device (like smart cards).
 
 `
 
@@ -67,11 +79,13 @@ func (v *CmdPGPSelect) Run() error {
 		return err
 	}
 
+	dui := v.G().UI.GetDumbOutputUI()
 	if !v.importSecret && !v.noPublish {
 		// The default setting - inform user what's going on and point
 		// to documentation for more options.
-		dui := v.G().UI.GetDumbOutputUI()
-		dui.Printf(importDisclaimer)
+		dui.Printf(selectDisclaimer)
+	} else if v.importSecret {
+		dui.Printf(importPrivDisclaimer)
 	}
 
 	err = c.PGPSelect(context.TODO(), keybase1.PGPSelectArg{
