@@ -74,7 +74,7 @@ function setupApp(store) {
 
   ipcRenderer.send('mainWindowWantsMenubarWindowID')
 
-  // See if we're connected, and try starting keybase if not
+  // See if we're connected, and try starting keybase if not.
   setImmediate(() => {
     if (!eng.hasEverConnected()) {
       ipcRenderer.send('kb-service-check')

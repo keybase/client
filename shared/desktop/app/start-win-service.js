@@ -12,6 +12,7 @@ export default function() {
   const wdLogPath = binPath.replace('keybase.exe', 'watchdog.')
   const args = [binPath, '--log-format=file', '--log-prefix=' + wdLogPath, 'ctl', 'watchdog2']
 
+  // If another watchdog is already running, this one will have no effect
   spawn(rqPath, args, {
     detached: true,
     stdio: 'ignore',
