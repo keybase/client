@@ -11,10 +11,10 @@ type Props = {
 
 const StartConversation = (props: Props) => (
   <Box2 direction="vertical" style={styles.container} gap="small" gapStart={true} gapEnd={true}>
-    <Text type="BodySemibold" style={styles.header}>
-      You don't have an existing conversation with {props.participants} yet.
+    <Text type="BodySmall" style={styles.header}>
+      You haven't chatted with {props.participants} yet.
     </Text>
-    <Button type="Primary" label="Start a chat" onClick={props.onStart}>
+    <Button type="Primary" label="Start chatting" onClick={props.onStart}>
       <Icon
         type="iconfont-chat"
         style={{
