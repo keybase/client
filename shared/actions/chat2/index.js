@@ -655,46 +655,54 @@ const loadMoreMessages = (
   let key = null
   let reason: string = ''
 
-  if (action.type === Chat2Gen.setPendingConversationUsers) {
-    if (Constants.getSelectedConversation(state) !== Constants.pendingConversationIDKey) {
-      return
-    }
-    reason = 'building a search'
-    // we stash the actual preview conversation id key in here
-    key = Constants.getResolvedPendingConversationIDKey(state)
-  } else if (action.type === Chat2Gen.setPendingConversationExistingConversationIDKey) {
-    if (Constants.getSelectedConversation(state) !== Constants.pendingConversationIDKey) {
-      return
-    }
-    reason = 'got search preview conversationidkey'
-    key = Constants.getResolvedPendingConversationIDKey(state)
-  } else if (action.type === Chat2Gen.markConversationsStale) {
-    key = Constants.getSelectedConversation(state)
-    // not mentioned?
-    if (action.payload.conversationIDKeys.indexOf(key) === -1) {
-      return
-    }
-    reason = 'got stale'
-  } else if (action.type === Chat2Gen.selectConversation) {
-    key = action.payload.conversationIDKey
-    reason = action.payload.reason || 'selected'
+  switch (action.type) {
+    case Chat2Gen.setPendingConversationUsers:
+      if (Constants.getSelectedConversation(state) !== Constants.pendingConversationIDKey) {
+        return
+      }
+      reason = 'building a search'
+      // we stash the actual preview conversation id key in here
+      key = Constants.getResolvedPendingConversationIDKey(state)
+      break
+    case Chat2Gen.setPendingConversationExistingConversationIDKey:
+      if (Constants.getSelectedConversation(state) !== Constants.pendingConversationIDKey) {
+        // We're not looking at it so ignore
+        return
+      }
+      reason = 'got search preview conversationidkey'
+      key = Constants.getResolvedPendingConversationIDKey(state)
+      break
+    case Chat2Gen.markConversationsStale:
+      key = Constants.getSelectedConversation(state)
+      // not mentioned?
+      if (action.payload.conversationIDKeys.indexOf(key) === -1) {
+        return
+      }
+      reason = 'got stale'
+      break
+    case Chat2Gen.selectConversation:
+      key = action.payload.conversationIDKey
+      reason = action.payload.reason || 'selected'
 
-    if (key === Constants.pendingConversationIDKey) {
-      key = Constants.getResolvedPendingConversationIDKey(state)
-    }
-  } else if (action.type === Chat2Gen.metasReceived) {
-    if (!action.payload.clearExistingMessages) {
-      // we didn't clear anything out, we don't need to fetch anything
-      return
-    }
-    key = Constants.getSelectedConversation(state)
-  } else if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
-    key = action.payload.conversationIDKey
-    if (action.payload.conversationIDKey === Constants.pendingConversationIDKey) {
-      key = Constants.getResolvedPendingConversationIDKey(state)
-    }
-  } else {
-    key = action.payload.conversationIDKey
+      if (key === Constants.pendingConversationIDKey) {
+        key = Constants.getResolvedPendingConversationIDKey(state)
+      }
+      break
+    case Chat2Gen.metasReceived:
+      if (!action.payload.clearExistingMessages) {
+        // we didn't clear anything out, we don't need to fetch anything
+        return
+      }
+      key = Constants.getSelectedConversation(state)
+      break
+    case Chat2Gen.loadOlderMessagesDueToScroll:
+      key = action.payload.conversationIDKey
+      if (action.payload.conversationIDKey === Constants.pendingConversationIDKey) {
+        key = Constants.getResolvedPendingConversationIDKey(state)
+      }
+      break
+    default:
+      key = action.payload.conversationIDKey
   }
 
   if (!key || !Constants.isValidConversationIDKey(key)) {
@@ -971,10 +979,6 @@ const messageReplyPrivatelySuccess = (
   action: Chat2Gen.MessageReplyPrivatelyPayload
 ) => {
   const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-  if (!conversationIDKey) {
-    throw new Error("Couldn't make a new conversation in reply privately")
-  }
-
   return Saga.sequentially([
     Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
     Saga.put(
@@ -1167,7 +1171,7 @@ const previewConversationFindExisting = (
 
   // we handled participants or teams
   if (participants) {
-    const toFind = I.Set(participants).concat([you])
+    const toFind = I.Set(participants).add(you)
     params = {tlfName: toFind.join(',')}
     users = I.Set(participants)
       .subtract([you])
@@ -1820,8 +1824,17 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
   return ret
 }
 
-const changePendingMode = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
+const changePendingMode = (
+  action: Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload,
+  state: TypedState
+) => {
   switch (action.type) {
+    case Chat2Gen.previewConversation:
+      // We decided to make a team instead of start a convo, so no resolution will take place
+      if (action.payload.reason === 'convertAdHoc') {
+        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+      }
+      break
     case Chat2Gen.selectConversation: {
       if (state.chat2.pendingMode === 'none') {
         return
@@ -1998,7 +2011,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     messageReplyPrivatelySuccess
   )
   yield Saga.safeTakeEveryPure(Chat2Gen.createConversation, createConversation, createConversationSelectIt)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, changePendingMode)
+  yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
 }
 
 export default chat2Saga
