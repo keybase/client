@@ -28,6 +28,8 @@ type queueItem struct {
 // A priorityQueue implements heap.Interface and holds queueItems.
 // We also keep a map of queueItems for easy item updates
 type priorityQueue struct {
+	sync.RWMutex
+
 	queue []*queueItem
 	// convID -> *queueItem
 	itemMap map[string]*queueItem
@@ -40,19 +42,37 @@ func newPriorityQueue() *priorityQueue {
 	}
 }
 
-func (pq priorityQueue) Len() int { return len(pq.queue) }
+func (pq *priorityQueue) Len() int {
+	pq.RLock()
+	defer pq.RUnlock()
 
-func (pq priorityQueue) Less(i, j int) bool {
+	return len(pq.queue)
+}
+
+func (pq *priorityQueue) Less(i, j int) bool {
+	pq.RLock()
+	defer pq.RUnlock()
+
 	return pq.queue[i].purgeInfo.NextPurgeTime < pq.queue[j].purgeInfo.NextPurgeTime
 }
 
-func (pq priorityQueue) Swap(i, j int) {
+func (pq *priorityQueue) Swap(i, j int) {
+	pq.Lock()
+	defer pq.Unlock()
+
 	pq.queue[i], pq.queue[j] = pq.queue[j], pq.queue[i]
 	pq.queue[i].index = i
 	pq.queue[j].index = j
 }
 
+// Note this method should not be used directly since we only want each
+// conversation to appear once in the heap. Use
+// `BackgroundEphemeralPurger.update` instead since it handles this as
+// intended.
 func (pq *priorityQueue) Push(x interface{}) {
+	pq.Lock()
+	defer pq.Unlock()
+
 	item := x.(*queueItem)
 	item.index = len(pq.queue)
 	pq.queue = append(pq.queue, item)
@@ -60,6 +80,9 @@ func (pq *priorityQueue) Push(x interface{}) {
 }
 
 func (pq *priorityQueue) Pop() interface{} {
+	pq.Lock()
+	defer pq.Unlock()
+
 	n := len(pq.queue)
 	item := pq.queue[n-1]
 	item.index = -1 // for safety
@@ -69,20 +92,13 @@ func (pq *priorityQueue) Pop() interface{} {
 }
 
 func (pq *priorityQueue) Peek() *queueItem {
+	pq.RLock()
+	defer pq.RUnlock()
+
 	if len(pq.queue) == 0 {
 		return nil
 	}
 	return pq.queue[0]
-}
-
-func (pq *priorityQueue) update(purgeInfo chat1.EphemeralPurgeInfo) {
-	item, ok := pq.itemMap[purgeInfo.ConvID.String()]
-	if ok {
-		item.purgeInfo = purgeInfo
-		heap.Fix(pq, item.index)
-	} else {
-		heap.Push(pq, &queueItem{purgeInfo: purgeInfo})
-	}
 }
 
 type BackgroundEphemeralPurger struct {
@@ -185,7 +201,7 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 	if head == nil || purgeInfo.NextPurgeTime < head.purgeInfo.NextPurgeTime {
 		b.setOrResetTimer(purgeInfo)
 	}
-	b.pq.update(purgeInfo)
+	b.updateQueue(purgeInfo)
 }
 
 // Read all purgeInfo from disk and startup our queue.
@@ -196,10 +212,20 @@ func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 	}
 	for _, purgeInfo := range allPurgeInfo {
 		if purgeInfo.IsActive {
-			b.pq.update(purgeInfo)
+			b.updateQueue(purgeInfo)
 		}
 	}
 	b.queuePurges(ctx)
+}
+
+func (b *BackgroundEphemeralPurger) updateQueue(purgeInfo chat1.EphemeralPurgeInfo) {
+	item, ok := b.pq.itemMap[purgeInfo.ConvID.String()]
+	if ok {
+		item.purgeInfo = purgeInfo
+		heap.Fix(b.pq, item.index)
+	} else {
+		heap.Push(b.pq, &queueItem{purgeInfo: purgeInfo})
+	}
 }
 
 // This runs when we are waiting to run a job but will shut itself down if we
