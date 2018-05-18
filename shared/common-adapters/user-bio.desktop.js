@@ -205,7 +205,7 @@ class BioRender extends Component<Props> {
             {editFns && (
               <Button
                 style={{marginTop: globalMargins.small}}
-                type="Primary"
+                type="Secondary"
                 label="Edit profile"
                 onClick={editFns.onEditProfile}
               />
