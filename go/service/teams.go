@@ -186,6 +186,8 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,%s)", arg.Name, arg.Username),
 		func() error { return err })()
+	h.G().Log.CDebugf(ctx, "TeamAddMember args: name:%q username:%q email:%q role:%v chat:%v",
+		arg.Name, arg.Username, arg.Email, arg.Role, arg.SendChatNotification)
 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
@@ -195,6 +197,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		if err := teams.InviteEmailMember(ctx, h.G().ExternalG(), arg.Name, arg.Email, arg.Role); err != nil {
 			return keybase1.TeamAddMemberResult{}, err
 		}
+		h.G().Log.CDebugf(ctx, "skipping chat message due to email invite")
 		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: true}, nil
 	}
 	result, err := teams.AddMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
@@ -202,10 +205,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return keybase1.TeamAddMemberResult{}, err
 	}
 	if !arg.SendChatNotification {
-		return result, nil
-	}
-
-	if result.Invited {
+		h.G().Log.CDebugf(ctx, "skipping chat message due to SendChatNotification argument")
 		return result, nil
 	}
 
