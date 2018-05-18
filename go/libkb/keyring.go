@@ -47,7 +47,7 @@ func (g *GlobalContext) SKBFilenameForUser(un NormalizedUsername) string {
 
 func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, error) {
 	if un.IsNil() {
-		return nil, NoUsernameError{}
+		return nil, NewNoUsernameError()
 	}
 
 	skbfile := NewSKBKeyringFile(g, un)
@@ -58,9 +58,13 @@ func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, e
 	return skbfile, nil
 }
 
+func LoadSKBKeyringFromMetaContext(m MetaContext) (*SKBKeyringFile, error) {
+	return LoadSKBKeyring(m.CurrentUsername(), m.G())
+}
+
 func StatSKBKeyringMTime(un NormalizedUsername, g *GlobalContext) (mtime time.Time, err error) {
 	if un.IsNil() {
-		return mtime, NoUsernameError{}
+		return mtime, NewNoUsernameError()
 	}
 	return NewSKBKeyringFile(g, un).MTime()
 }
@@ -323,7 +327,7 @@ func (k *Keyrings) GetSecretKeyWithoutPrompt(m MetaContext, ska SecretKeyArg) (k
 
 	// not cached, so try to unlock without prompting
 	if ska.Me == nil {
-		err = NoUsernameError{}
+		err = NewNoUsernameError()
 		return nil, err
 	}
 	secretStore := NewSecretStore(m.G(), ska.Me.GetNormalizedName())

@@ -72,6 +72,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
 
     const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
+      e.preventDefault()
       this.props.onEditLastMessage()
     } else if (e.key === 'Escape' && this.props.isEditing) {
       this.props.onCancelEditing()

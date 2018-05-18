@@ -67,7 +67,7 @@ func (c *cmdWalletExport) Run() (err error) {
 		}
 	}
 	if len(accountID) == 0 {
-		accounts, err := cli.WalletGetLocalAccounts(context.Background())
+		accounts, err := cli.WalletGetAccountsCLILocal(context.Background())
 		if err != nil {
 			return err
 		}

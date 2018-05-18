@@ -51,10 +51,12 @@ func (e *AccountDelete) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	_, err = m.G().LoginState().VerifyPlaintextPassphrase(m, res.Passphrase, func(lctx libkb.LoginContext) error {
-		return libkb.DeleteAccountWithContext(m.WithLoginContext(lctx), username)
-	})
-
+	m = m.WithNewProvisionalLoginContext()
+	err = libkb.PassphraseLoginNoPrompt(m, username, res.Passphrase)
+	if err != nil {
+		return err
+	}
+	err = libkb.DeleteAccountWithContext(m, username)
 	if err != nil {
 		return err
 	}

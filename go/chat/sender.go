@@ -87,7 +87,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 
 	var prevs []chat1.MessagePreviousPointer
 
-	res, _, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
+	res, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
 		&chat1.GetThreadQuery{
 			DisableResolveSupersedes: true,
 		},
@@ -237,7 +237,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	// Use ConvSource with an `After` which query. Fetches from a combination of local cache
 	// and the server. This is an opportunity for the server to retain messages that should
 	// have been deleted without getting caught.
-	tv, _, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
+	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
 		&chat1.GetThreadQuery{
 			MarkAsRead:   false,
 			MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED},
@@ -296,7 +296,7 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		tlfID := msg.ClientHeader.Conv.Tlfid
 		topicType := msg.ClientHeader.Conv.TopicType
 		newTopicName := msg.MessageBody.Metadata().ConversationTitle
-		convs, _, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID,
+		convs, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID,
 			topicType)
 		if err != nil {
 			return topicNameState, err
@@ -492,7 +492,7 @@ func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, rl *chat1.RateLimit, err error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 
 	// Record that this user is "active in chat", which we use to determine
@@ -504,30 +504,30 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// otherwise we give up and return an error.
 	var conv chat1.Conversation
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
-	conv, _, err = GetUnverifiedConv(ctx, s.G(), sender, convID, true)
+	conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, true)
 	if err != nil {
 		if err == errGetUnverifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
 			switch msg.ClientHeader.MessageType {
 			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
-				return chat1.OutboxID{}, nil, nil, err
+				return chat1.OutboxID{}, nil, err
 			default:
 				s.Debug(ctx, "conversation not found, attempting to join the conversation and try again")
-				if _, err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender,
+				if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender,
 					convID); err != nil {
-					return chat1.OutboxID{}, nil, nil, err
+					return chat1.OutboxID{}, nil, err
 				}
 				// Force hit the remote here, so there is no race condition against the local
 				// inbox
-				conv, _, err = GetUnverifiedConv(ctx, s.G(), sender, convID, false)
+				conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, false)
 				if err != nil {
 					s.Debug(ctx, "failed to get conversation again, giving up: %s", err.Error())
-					return chat1.OutboxID{}, nil, nil, err
+					return chat1.OutboxID{}, nil, err
 				}
 			}
 		} else {
 			s.Debug(ctx, "error getting conversation metadata: %s", err.Error())
-			return chat1.OutboxID{}, nil, nil, err
+			return chat1.OutboxID{}, nil, err
 		}
 	} else {
 		s.Debug(ctx, "uid: %s in conversation %s with status: %v", sender,
@@ -542,8 +542,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			// pass so we don't loop between Send and Join/Leave.
 		default:
 			s.Debug(ctx, "user is in preview mode, joining conversation")
-			if _, err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender, convID); err != nil {
-				return chat1.OutboxID{}, nil, nil, err
+			if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender, convID); err != nil {
+				return chat1.OutboxID{}, nil, err
 			}
 		}
 	default:
@@ -559,7 +559,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			conv.GetMembersType(), &conv)
 		if err != nil {
 			s.Debug(ctx, "error in Prepare: %s", err.Error())
-			return chat1.OutboxID{}, nil, nil, err
+			return chat1.OutboxID{}, nil, err
 		}
 		boxed = b
 
@@ -597,7 +597,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				continue
 			default:
 				s.Debug(ctx, "failed to PostRemote, bailing: %s", err.Error())
-				return chat1.OutboxID{}, nil, nil, err
+				return chat1.OutboxID{}, nil, err
 			}
 		}
 		boxed.ServerHeader = &plres.MsgHeader
@@ -628,7 +628,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(boxed.ClientHeader.Sender.String()),
 			&activity)
 	}
-	return []byte{}, boxed, plres.RateLimit, nil
+	return []byte{}, boxed, nil
 }
 
 const deliverMaxAttempts = 5
@@ -893,7 +893,7 @@ func (s *Deliverer) deliverLoop() {
 					obr.OutboxID, s.clock.Now().Sub(obr.Ctime.Time()))
 				err = delivererExpireError{}
 			} else {
-				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
+				_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
 			}
 			if err != nil {
 				s.Debug(bgctx, "failed to send msg: uid: %s convID: %s obid: %s err: %s attempts: %d",
@@ -946,12 +946,12 @@ func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaint
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error) {
 	msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
 		Prev:        clientPrev,
 		ComposeTime: gregor1.ToTime(time.Now()),
 	}
 	identifyBehavior, _, _ := IdentifyMode(ctx)
 	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, outboxID, identifyBehavior)
-	return obr.OutboxID, nil, &chat1.RateLimit{}, err
+	return obr.OutboxID, nil, err
 }

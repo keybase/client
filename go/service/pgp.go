@@ -312,7 +312,7 @@ func (h *PGPHandler) PGPPurge(ctx context.Context, arg keybase1.PGPPurgeArg) (ke
 func (h *PGPHandler) PGPStorageDismiss(ctx context.Context, sessionID int) error {
 	username := h.G().Env.GetUsername()
 	if username.IsNil() {
-		return libkb.NoUsernameError{}
+		return libkb.NewNoUsernameError()
 	}
 
 	key := libkb.DbKeyNotificationDismiss(libkb.NotificationDismissPGPPrefix, username)

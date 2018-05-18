@@ -9,10 +9,11 @@ import (
 )
 
 type ShutdownArg struct {
+	Code int `codec:"code" json:"code"`
 }
 
 type NotifyServiceInterface interface {
-	Shutdown(context.Context) error
+	Shutdown(context.Context, int) error
 }
 
 func NotifyServiceProtocol(i NotifyServiceInterface) rpc.Protocol {
@@ -25,7 +26,12 @@ func NotifyServiceProtocol(i NotifyServiceInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.Shutdown(ctx)
+					typedArgs, ok := args.(*[]ShutdownArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ShutdownArg)(nil), args)
+						return
+					}
+					err = i.Shutdown(ctx, (*typedArgs)[0].Code)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -38,7 +44,8 @@ type NotifyServiceClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyServiceClient) Shutdown(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifyService.shutdown", []interface{}{ShutdownArg{}}, nil)
+func (c NotifyServiceClient) Shutdown(ctx context.Context, code int) (err error) {
+	__arg := ShutdownArg{Code: code}
+	err = c.Cli.Call(ctx, "keybase.1.NotifyService.shutdown", []interface{}{__arg}, nil)
 	return
 }

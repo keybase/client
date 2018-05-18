@@ -106,21 +106,12 @@ func (e *loginLoadUser) findUsername(m libkb.MetaContext) (string, error) {
 	// looks like an email address
 	m.CDebugf("%q looks like an email address, must get login session to get user", e.usernameOrEmail)
 
-	// need to login with it in order to get the username
-	m = m.WithNewProvisionalLoginContext()
-
 	if err := libkb.PassphraseLoginPromptThenSecretStore(m, e.usernameOrEmail, 3, false /* failOnStoreError */); err != nil {
 		return "", err
 	}
 
 	username := m.LoginContext().GetUsername().String()
 	m.CDebugf("VerifyEmailAddress %q => %q", e.usernameOrEmail, username)
-
-	// Save the provisional login information in case we want this verified passphrase
-	// downstream. Note that it probably makes sense to create this provisional login
-	// a few stack frames up, and propagate to other engines, but for now, do
-	// the simple thing.
-	m = m.CommitProvisionalLogin()
 
 	return username, nil
 }
