@@ -4,6 +4,7 @@
 package stellar1
 
 import (
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -21,6 +22,36 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 		IsDefault:          o.IsDefault,
 		Name:               o.Name,
 		BalanceDescription: o.BalanceDescription,
+	}
+}
+
+type SendResultCLILocal struct {
+	KbTxID KeybaseTransactionID     `codec:"KbTxID" json:"KbTxID"`
+	TxID   TransactionID            `codec:"TxID" json:"TxID"`
+	Relay  *SendRelayResultCLILocal `codec:"relay,omitempty" json:"relay,omitempty"`
+}
+
+func (o SendResultCLILocal) DeepCopy() SendResultCLILocal {
+	return SendResultCLILocal{
+		KbTxID: o.KbTxID.DeepCopy(),
+		TxID:   o.TxID.DeepCopy(),
+		Relay: (func(x *SendRelayResultCLILocal) *SendRelayResultCLILocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Relay),
+	}
+}
+
+type SendRelayResultCLILocal struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+}
+
+func (o SendRelayResultCLILocal) DeepCopy() SendRelayResultCLILocal {
+	return SendRelayResultCLILocal{
+		TeamID: o.TeamID.DeepCopy(),
 	}
 }
 
@@ -150,13 +181,18 @@ type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
-type SendLocalArg struct {
+type SendCLILocalArg struct {
 	Recipient       string `codec:"recipient" json:"recipient"`
 	Amount          string `codec:"amount" json:"amount"`
 	Asset           Asset  `codec:"asset" json:"asset"`
 	Note            string `codec:"note" json:"note"`
 	DisplayAmount   string `codec:"displayAmount" json:"displayAmount"`
 	DisplayCurrency string `codec:"displayCurrency" json:"displayCurrency"`
+}
+
+type ClaimCLILocalArg struct {
+	TxID string     `codec:"txID" json:"txID"`
+	Into *AccountID `codec:"into,omitempty" json:"into,omitempty"`
 }
 
 type RecentPaymentsCLILocalArg struct {
@@ -209,7 +245,8 @@ type FormatLocalCurrencyStringArg struct {
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
-	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
+	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
+	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLIOptionLocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
@@ -260,18 +297,34 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sendLocal": {
+			"sendCLILocal": {
 				MakeArg: func() interface{} {
-					ret := make([]SendLocalArg, 1)
+					ret := make([]SendCLILocalArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SendLocalArg)
+					typedArgs, ok := args.(*[]SendCLILocalArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SendLocalArg)(nil), args)
+						err = rpc.NewTypeError((*[]SendCLILocalArg)(nil), args)
 						return
 					}
-					ret, err = i.SendLocal(ctx, (*typedArgs)[0])
+					ret, err = i.SendCLILocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"claimCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ClaimCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ClaimCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ClaimCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ClaimCLILocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -468,8 +521,13 @@ func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (re
 	return
 }
 
-func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res PaymentResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.sendLocal", []interface{}{__arg}, &res)
+func (c LocalClient) SendCLILocal(ctx context.Context, __arg SendCLILocalArg) (res SendResultCLILocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.sendCLILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ClaimCLILocal(ctx context.Context, __arg ClaimCLILocalArg) (res RelayClaimResult, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.claimCLILocal", []interface{}{__arg}, &res)
 	return
 }
 
