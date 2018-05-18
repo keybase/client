@@ -67,6 +67,7 @@ function checkReachabilityOnConnect() {
     RPCTypes.reachabilityStartReachabilityRpcPromise()
       .then(reachability => {
         dispatch(GregorGen.createUpdateReachability({reachability}))
+        logger.info('updating reachability')
       })
       .catch(err => {
         logger.warn('error bootstrapping reachability: ', err)
