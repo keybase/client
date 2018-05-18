@@ -166,7 +166,7 @@ class RetentionPicker extends React.Component<Props, State> {
         />
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
-          <Icon type="iconfont-timer" style={{marginLeft: globalMargins.xtiny}} fontSize={16} />
+          <Icon type="iconfont-timer" style={iconDeletionStyle} />
         </Box>
         <ClickableBox
           onClick={this._toggleShowMenu}
@@ -274,6 +274,16 @@ const saveStateStyle = platformStyles({
   },
   isMobile: {
     height: globalMargins.medium,
+  },
+})
+
+const iconDeletionStyle = platformStyles({
+  common: {
+    color: globalColors.black_20,
+    marginLeft: globalMargins.xtiny,
+  },
+  isMobile: {
+    fontSize: 22,
   },
 })
 
