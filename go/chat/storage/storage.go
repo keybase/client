@@ -706,7 +706,7 @@ func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, 
 }
 
 func (s *Storage) ClearAll(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (err Error) {
-	defer s.Trace(ctx, func() error { return err }, "ClearBClearAllefore")()
+	defer s.Trace(ctx, func() error { return err }, "ClearAll")()
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
 	locks.Storage.Lock()
