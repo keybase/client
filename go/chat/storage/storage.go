@@ -673,16 +673,10 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	return &expunge, nil
 }
 
-// ClearBefore clears all messages up to (but not including) the upto messageID
-func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+// clearUpto clears up to the given message ID, inclusive
+func (s *Storage) clearUpto(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	upto chat1.MessageID) (err Error) {
-	defer s.Trace(ctx, func() error { return err }, "ClearBefore")()
-	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functions.
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
-	s.Debug(ctx, "ClearBefore: convID: %s uid: %s msgID: %d", convID, uid, upto)
-
+	defer s.Trace(ctx, func() error { return err }, "clearUpto")()
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
 		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
@@ -693,10 +687,35 @@ func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, 
 	}
 
 	var msgIDs []chat1.MessageID
-	for m := upto - 1; m > 0; m-- {
+	for m := upto; m > 0; m-- {
 		msgIDs = append(msgIDs, m)
 	}
 	return s.engine.ClearMessages(ctx, convID, uid, msgIDs)
+}
+
+// ClearBefore clears all messages up to (but not including) the upto messageID
+func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	upto chat1.MessageID) (err Error) {
+	defer s.Trace(ctx, func() error { return err }, "ClearBefore")()
+	// All public functions get locks to make access to the database single threaded.
+	// They should never be called from private functions.
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
+	s.Debug(ctx, "ClearBefore: convID: %s uid: %s msgID: %d", convID, uid, upto)
+	return s.clearUpto(ctx, convID, uid, upto-1)
+}
+
+func (s *Storage) ClearAll(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (err Error) {
+	defer s.Trace(ctx, func() error { return err }, "ClearBClearAllefore")()
+	// All public functions get locks to make access to the database single threaded.
+	// They should never be called from private functions.
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
+	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
+	if err != nil {
+		return err
+	}
+	return s.clearUpto(ctx, convID, uid, maxMsgID)
 }
 
 func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.GetThreadQuery,
