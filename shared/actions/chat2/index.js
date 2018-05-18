@@ -1898,6 +1898,9 @@ const setConvOTRMode = (action: Chat2Gen.SetConvOTRModePayload) => {
   const {conversationIDKey, seconds} = action.payload
   logger.info(`Setting otr mode for conversation ${conversationIDKey} to ${seconds}`)
   const cat = Constants.otrModeGregorKey(conversationIDKey)
+  if (seconds === 0) {
+    return Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category: cat})
+  }
   return Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
     body: seconds.toString(),
     cat,

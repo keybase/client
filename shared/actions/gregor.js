@@ -146,7 +146,8 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
 function handleConvOTRModes(items: Array<Types.NonNullGregorItem>) {
   const otrItems = items.filter(i => i.item.category.startsWith('otr'))
   if (!otrItems.length) {
-    return
+    // No conversations have OTR modes, clear out what is set
+    return Saga.put(Chat2Gen.createUpdateConvOTRModes({modes: []}))
   }
   logger.info('Got push state with some OTR modes')
   const modes = otrItems.reduce((current, i) => {
