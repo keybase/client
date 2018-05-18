@@ -1331,7 +1331,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 				})
 			}
 			if i.topicNameChanged(ctx, oldConv, newConv) {
-				res.TopicNameChanged = append(res.TopicNameChanged, newConv.Metadata.ConversationID)
+				res.TopicNameChanged = append(res.TopicNameChanged, newConv.GetConvID())
 			}
 
 			ibox.Conversations[index].Conv = newConv

@@ -1020,6 +1020,11 @@ func (c ConversationMemberStatus) ToGregorDBStringAssert() string {
 	return s
 }
 
+func (c ConversationMemberStatus) IsRemoved() bool {
+	return c == ConversationMemberStatus_REMOVED ||
+		c == ConversationMemberStatus_LEFT
+}
+
 func (p RetentionPolicy) Summary() string {
 	typ, err := p.Typ()
 	if err != nil {
