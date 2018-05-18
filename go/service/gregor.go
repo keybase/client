@@ -1513,6 +1513,7 @@ func (g *gregorHandler) connectTLS() error {
 		WrapErrorFunc:                 libkb.MakeWrapError(g.G().ExternalG()),
 		InitialReconnectBackoffWindow: func() time.Duration { return g.chatAwareInitialReconnectBackoffWindow(ctx) },
 		ReconnectBackoff:              func() backoff.BackOff { return g.chatAwareReconnectBackoff(ctx) },
+		DialerTimeout:                 10 * time.Second,
 		// We deliberately avoid ForceInitialBackoff here, becuase we don't
 		// want to penalize mobile, which tears down its connection frequently.
 	}
