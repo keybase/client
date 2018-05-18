@@ -67,3 +67,7 @@ export function fontSize(type: IconType): ?Object {
     return null
   }
 }
+
+export function castPlatformStyles(styles: any) {
+  return styles
+}

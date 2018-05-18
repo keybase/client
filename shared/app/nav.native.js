@@ -380,8 +380,8 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 })
 
 const styles = styleSheetCreate({
-  container: globalStyles.fullHeight,
-  content: globalStyles.flexGrow,
+  container: {...globalStyles.fullHeight},
+  content: {...globalStyles.flexGrow},
   hiddenTransitioner: {
     height: '100%',
     left: -9999,
@@ -401,7 +401,7 @@ const styles = styleSheetCreate({
     backgroundColor: globalColors.fastBlank,
     paddingTop: isIPhoneX ? 40 : statusBarHeight,
   },
-  shimContainer: globalStyles.fillAbsolute,
+  shimContainer: {...globalStyles.fillAbsolute},
   tabBarHeightBar: {
     height: tabBarHeight,
   },

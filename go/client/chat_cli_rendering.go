@@ -542,7 +542,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		m.SenderUsername, possiblyRevokedMark, m.SenderDeviceName, shortDurationFromNow(t))
 
 	if m.IsEphemeral() {
-		remainingLifetime := m.RemainingLifetime()
+		remainingLifetime := m.RemainingLifetime(time.Now())
 		if remainingLifetime <= 0 {
 			mv.Body = "[exploded]"
 			for i := 0; i < 40; i++ {

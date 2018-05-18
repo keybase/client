@@ -2,10 +2,9 @@
 import FacebookDescription from '../facebook-description'
 import * as React from 'react'
 import openUrl from '../../util/open-url'
-import {Box, Text} from '../../common-adapters'
+import {Box, Text, type IconType} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {subtitle} from '../../util/platforms'
-import type {IconType} from '../../common-adapters/icon.constants'
 import type {Props} from '.'
 
 type MoreProps = {

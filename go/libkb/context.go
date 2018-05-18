@@ -2,9 +2,10 @@ package libkb
 
 import (
 	"fmt"
+	"time"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type MetaContext struct {
@@ -383,6 +384,23 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	return nil
 }
 
+func (m MetaContext) SwitchUserDeprovisionNukeConfig(username NormalizedUsername) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	if err := cw.NukeUser(username); err != nil {
+		return err
+	}
+
+	// The config entries we just nuked could still be in memory. Clear them.
+	return cw.SetUserConfig(nil, true /* overwrite; ignored */)
+}
+
 // SetActiveOneshotDevice acquires the switchUserMu mutex, setting the active device
 // to one that corresponds to the given UID and DeviceWithKeys, and also sets the config
 // file to a temporary in-memory config (not writing to disk) to satisfy local requests for
@@ -447,24 +465,25 @@ func (m MetaContext) SetActiveDevice(uid keybase1.UID, deviceID keybase1.DeviceI
 	return nil
 }
 
-// LogoutIfRevoked loads the user and checks if the current device keys
-// have been revoked.  If so, it calls Logout.
-func (m MetaContext) LogoutIfRevoked() (err error) {
+// LogoutAndDeprovisionIfRevoked loads the user and checks if the current
+// device keys have been revoked. If so, it calls Logout and then runs the
+// ClearSecretsOnDeprovision
+func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 	m = m.WithLogTag("LOIR")
 
-	defer m.CTrace("GlobalContext#LogoutIfRevoked", func() error { return err })()
+	defer m.CTrace("GlobalContext#LogoutAndDeprovisionIfRevoked", func() error { return err })()
 
 	in, err := m.G().LoginState().LoggedInLoad()
 	if err != nil {
 		return err
 	}
 	if !in {
-		m.CDebugf("LogoutIfRevoked: skipping check (not logged in)")
+		m.CDebugf("LogoutAndDeprovisionIfRevoked: skipping check (not logged in)")
 		return nil
 	}
 
 	if m.G().Env.GetSkipLogoutIfRevokedCheck() {
-		m.CDebugf("LogoutIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
+		m.CDebugf("LogoutAndDeprovisionIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
 		return nil
 	}
 
@@ -472,19 +491,23 @@ func (m MetaContext) LogoutIfRevoked() (err error) {
 	err = CheckCurrentUIDDeviceID(m)
 	switch err.(type) {
 	case nil:
-		m.CDebugf("LogoutIfRevoked: current device ok")
+		m.CDebugf("LogoutAndDeprovisionIfRevoked: current device ok")
 	case DeviceNotFoundError:
-		m.CDebugf("LogoutIfRevoked: device not found error; user was likely reset; calling logout (%s)", err)
+		m.CDebugf("LogoutAndDeprovisionIfRevoked: device not found error; user was likely reset; calling logout (%s)", err)
 		doLogout = true
 	case KeyRevokedError:
-		m.CDebugf("LogoutIfRevoked: key revoked error error; device was revoked; calling logout (%s)", err)
+		m.CDebugf("LogoutAndDeprovisionIfRevoked: key revoked error error; device was revoked; calling logout (%s)", err)
 		doLogout = true
 	default:
-		m.CDebugf("LogoutIfRevoked: non-actionable error: %s", err)
+		m.CDebugf("LogoutAndDeprovisionIfRevoked: non-actionable error: %s", err)
 	}
 
 	if doLogout {
-		return m.G().Logout()
+		username := m.G().Env.GetUsername()
+		if err := m.G().Logout(); err != nil {
+			return err
+		}
+		return ClearSecretsOnDeprovision(m, username)
 	}
 
 	return nil

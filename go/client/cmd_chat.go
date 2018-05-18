@@ -26,6 +26,7 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatListUnread(cl, g),
 		newCmdChatMute(cl, g),
 		newCmdChatRead(cl, g),
+		newCmdChatReAddMember(cl, g),
 		newCmdChatReport(cl, g),
 		newCmdChatSetRetention(cl, g),
 		newCmdChatSearch(cl, g),

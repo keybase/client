@@ -418,6 +418,14 @@ func FormatTime(t Time) string {
 	return FromTime(t).Format(layout)
 }
 
+func ToDurationMsec(d time.Duration) DurationMsec {
+	return DurationMsec(d / time.Millisecond)
+}
+
+func ToDurationSec(d time.Duration) DurationSec {
+	return DurationSec(d / time.Second)
+}
+
 // DeviceID returns the deviceID in a SyncArc, or interface nil
 // (and not gregor1.DeviceID(nil)) if not was specified.
 func (s SyncArg) DeviceID() gregor.DeviceID {
