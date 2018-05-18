@@ -322,7 +322,7 @@ const stylesTabBarNavIcon = {
 }
 
 const navRealCSS = `
-  .nav-item .img { color: ${globalColors.darkBlue3_75}; }
+  .nav-item .img { color: ${globalColors.darkBlue4}; }
   .nav-item:hover .img { color: ${globalColors.white}; }
   .nav-item.selected .img { color: ${globalColors.white}; }
 

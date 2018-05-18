@@ -39,6 +39,7 @@ const colors = {
   darkBlue3: '#182D6E',
   darkBlue3_75: 'rgba(24, 45, 110, .75)',
   darkBlue3_75_on_white: 'rgb(82,98,147)',
+  darkBlue4: '#1036AC',
   // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
   fastBlank: isAndroid ? undefined : '#ffffff',
   green: '#3DCCA6',
