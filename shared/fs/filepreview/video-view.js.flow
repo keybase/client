@@ -1,9 +1,0 @@
-// @flow
-import * as React from 'react'
-
-export type VideoViewProps = {
-  url: string,
-  onInvalidToken: () => void,
-}
-
-declare export default React.ComponentType<VideoViewProps>

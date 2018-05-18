@@ -311,9 +311,27 @@ function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenera
 
 function loadMimeType(action: FsGen.MimeTypeLoadPayload, state: TypedState) {
   const {path} = action.payload
-  const {address, token} = state.fs.localHTTPServerInfo
-  const url = Constants.generateFileURL(path, address, token)
-  return getMimeTypeFromURL(url) // TODO: refresh address/token on 403
+  if (state.fs.localHTTPServerInfo === null) {
+    return Promise.reject(Constants.invalidTokenError)
+  }
+  const url = Constants.generateFileURL(path, state.fs.localHTTPServerInfo)
+  return new Promise((resolve, reject) =>
+    getMimeTypeFromURL(url, ({error, statusCode, mimeType}) => {
+      if (error !== undefined) {
+        reject(error)
+      }
+      switch (statusCode) {
+        case 200:
+          resolve(mimeType)
+          return
+        case 403:
+          reject(Constants.invalidTokenError)
+          return
+        default:
+          reject(new Error(`unexpected HTTP status code: ${statusCode}`))
+      }
+    })
+  )
 }
 
 const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload) =>
@@ -323,6 +341,13 @@ const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload)
       mimeType,
     })
   )
+
+const loadMimeTypeError = err => {
+  if (err === Constants.invalidTokenError) {
+    return Saga.put(FsGen.createRefreshLocalHTTPServerInfo())
+  }
+  throw err
+}
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
@@ -336,7 +361,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
-  yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType, loadMimeTypeResult)
+  yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType, loadMimeTypeResult, loadMimeTypeError)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

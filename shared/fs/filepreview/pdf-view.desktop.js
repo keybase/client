@@ -4,30 +4,11 @@ import {globalStyles, globalMargins} from '../../styles'
 import {Box} from '../../common-adapters'
 import {type PdfViewProps} from './pdf-view'
 
-class PdfView extends React.PureComponent<PdfViewProps> {
-  webviewRef: any
-
-  constructor(props: PdfViewProps) {
-    super(props)
-    this.webviewRef = React.createRef()
-  }
-  componentDidMount() {
-    this.webviewRef.current.addEventListener('did-get-response-details', ({httpResponseCode}) => {
-      httpResponseCode === 403 && this.props.onInvalidToken()
-    })
-  }
-  render() {
-    return (
-      <Box style={stylesContainer}>
-        <webview
-          ref={this.webviewRef}
-          style={stylesWebview}
-          src={`chrome://pdf-viewer/index.html?src=${this.props.url}`}
-        />
-      </Box>
-    )
-  }
-}
+const PdfView = (props: PdfViewProps) => (
+  <Box style={stylesContainer}>
+    <webview style={stylesWebview} src={`chrome://pdf-viewer/index.html?src=${props.url}`} />
+  </Box>
+)
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,

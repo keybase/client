@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {globalStyles, globalMargins} from '../../styles'
 import {Box} from '../../common-adapters'
-import {type VideoViewProps} from './video-view'
+import {type AVViewProps} from './av-view'
 
 // We are inserting dom manually rather than simply loading the video directly
 // to 1) have finer control on the <video> tag, so we can do stuff like
@@ -36,16 +36,17 @@ video {
 const webviewJavaScript = url => `
 const v = document.createElement("video")
 v.setAttribute('loop', true)
-v.setAttribute('muted', true)
+v.setAttribute('controls', true)
+v.setAttribute('controlsList', 'nodownload nofullscreen')
 v.setAttribute('src', '${url}')
 document.getElementsByTagName('body')[0].appendChild(v)
 v.play()
 `
 
-class VideoView extends React.PureComponent<VideoViewProps> {
+class AVView extends React.PureComponent<AVViewProps> {
   webviewRef: any
 
-  constructor(props: VideoViewProps) {
+  constructor(props: AVViewProps) {
     super(props)
     this.webviewRef = React.createRef()
   }
@@ -53,9 +54,6 @@ class VideoView extends React.PureComponent<VideoViewProps> {
     this.webviewRef.current.addEventListener('dom-ready', () => {
       this.webviewRef.current.insertCSS(webviewCSS)
       this.webviewRef.current.executeJavaScript(webviewJavaScript(this.props.url))
-    })
-    this.webviewRef.current.addEventListener('did-get-response-details', ({httpResponseCode}) => {
-      httpResponseCode === 403 && this.props.onInvalidToken()
     })
   }
   render() {
@@ -80,6 +78,7 @@ const stylesContainer = {
 
 const stylesWebview = {
   ...globalStyles.flexGrow,
+  width: '100%',
 }
 
-export default VideoView
+export default AVView

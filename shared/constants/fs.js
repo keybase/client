@@ -128,7 +128,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   transfers: I.Map(),
-  localHTTPServerInfo: makeLocalHTTPServer(),
+  localHTTPServerInfo: null,
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -308,17 +308,6 @@ export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath
 export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
   downloadFilePathNoSearch(Types.getPathName(p))
 
-const mediaMimePrefixes = ['image', 'audio', 'video']
-
-export const isMedia = (name: string): boolean => {
-  const mimeType = mime.lookup(name)
-  if (!mimeType) return false
-  const firstSlashIndex = mimeType.indexOf('/')
-  if (firstSlashIndex === -1) return false
-  const mimePrefix = mimeType.substring(0, firstSlashIndex)
-  return mediaMimePrefixes.includes(mimePrefix)
-}
-
 export type FavoritesListResult = {
   users: {[string]: string},
   devices: {[string]: Types.Device},
@@ -460,8 +449,10 @@ export const folderToFavoriteItems = (
   )
 }
 
+// TODO: get rid of this
 export const mimeTypeFromPathName = (name: string): string => mime.lookup(name) || ''
 
+// TODO: get rid of this
 export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
   const name = Types.getPathName(p)
   const fromPatched = lookupPatchedExt(name)
@@ -476,7 +467,7 @@ export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
     return 'image'
   }
   if (mimeType.startsWith('video/')) {
-    return 'video'
+    return 'av'
   }
   if (mimeType === 'application/pdf') {
     return 'pdf'
@@ -491,8 +482,8 @@ export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
   if (mimeType.startsWith('image/')) {
     return 'image'
   }
-  if (mimeType.startsWith('video/')) {
-    return 'video'
+  if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
+    return 'av'
   }
   if (mimeType === 'application/pdf') {
     return 'pdf'
@@ -500,7 +491,14 @@ export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
   return 'default'
 }
 
-export const generateFileURL = (path: Types.Path, address: string, token: string): string => {
+export const isMedia = (pathItem: Types.PathItem): boolean =>
+  pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
+
+export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types.LocalHTTPServer): string => {
+  if (localHTTPServerInfo === null) {
+    return 'about:blank'
+  }
+  const {address, token} = localHTTPServerInfo || makeLocalHTTPServer() // make flow happy
   const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
   return `http://${address}/files${stripKeybase}?token=${token}`
 }
@@ -550,3 +548,5 @@ export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types
     oldItem.size === newItem.size
   )
 }
+
+export const invalidTokenError = new Error('invalid token')

@@ -8,7 +8,7 @@ import * as Types from '../../constants/types/fs'
 import DefaultView from './default-view-container'
 import ImageView from './image-view'
 import TextView from './text-view'
-import VideoView from './video-view'
+import AVView from './av-view'
 import PdfView from './pdf-view'
 import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, platformStyles} from '../../styles'
@@ -28,20 +28,18 @@ const mapStateToProps = (state: TypedState, {path}: Props) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {path}: Props) => ({
-  onInvalidToken: () => dispatch(FsGen.createRefreshLocalHTTPServerInfo()),
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
 })
 
-const mergeProps = ({_serverInfo, mimeType, isSymlink}, {onInvalidToken, loadMimeType}, {path}) => ({
-  url: Constants.generateFileURL(path, _serverInfo.address, _serverInfo.token),
+const mergeProps = ({_serverInfo, mimeType, isSymlink}, {loadMimeType}, {path}) => ({
+  url: Constants.generateFileURL(path, _serverInfo),
   mimeType,
   isSymlink,
   path,
-  onInvalidToken,
   loadMimeType,
 })
 
-const Renderer = ({mimeType, isSymlink, url, path, routePath, onInvalidToken, loadMimeType}) => {
+const Renderer = ({mimeType, isSymlink, url, path, routePath, loadMimeType}) => {
   if (isSymlink) {
     return <DefaultView path={path} routePath={routePath} />
   }
@@ -60,13 +58,13 @@ const Renderer = ({mimeType, isSymlink, url, path, routePath, onInvalidToken, lo
     case 'default':
       return <DefaultView path={path} routePath={routePath} />
     case 'text':
-      return <TextView url={url} routePath={routePath} onInvalidToken={onInvalidToken} />
+      return <TextView url={url} routePath={routePath} />
     case 'image':
       return <ImageView url={url} routePath={routePath} />
-    case 'video':
-      return <VideoView url={url} routePath={routePath} onInvalidToken={onInvalidToken} />
+    case 'audio-video':
+      return <AVView url={url} routePath={routePath} />
     case 'pdf':
-      return <PdfView url={url} routePath={routePath} onInvalidToken={onInvalidToken} />
+      return <PdfView url={url} routePath={routePath} />
     default:
       return <Text type="BodyError">This shouldn't happen</Text>
   }
@@ -93,8 +91,7 @@ export default compose(
       }
     },
     componentDidUpdate(prevProps) {
-      // Only call loadMimeType if we haven't called previously.
-      if (!this.props.isSymlink && this.props.mimeType === '' && prevProps.mimeType !== '') {
+      if (!this.props.isSymlink && this.props.mimeType === '') {
         this.props.loadMimeType()
       }
     },

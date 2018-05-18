@@ -274,12 +274,19 @@ function openAppSettings() {
   Linking.openURL('app-settings:')
 }
 
-const getMimeTypeFromURL = (url: string): Promise<string> =>
-  new Promise((resolve, reject) => {
-    fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
-      .then(response => resolve(response.headers.get('Content-Type')))
-      .catch(reject)
-  })
+const getMimeTypeFromURL = (
+  url: string,
+  cb: ({error?: any, statusCode?: number, mimeType?: string}) => void
+) =>
+  fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
+    .then(response => {
+      let mimeType = ''
+      if (response.status === 200) {
+        mimeType = response.headers.get('Content-Type')
+      }
+      cb({statusCode: response.status, mimeType})
+    })
+    .catch(error => cb({error}))
 
 export {
   openAppSettings,

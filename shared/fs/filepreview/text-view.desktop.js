@@ -36,9 +36,6 @@ class TextView extends React.PureComponent<TextViewProps> {
     this.webviewRef.current.addEventListener('dom-ready', () => {
       this.webviewRef.current.insertCSS(webviewCSS)
     })
-    this.webviewRef.current.addEventListener('did-get-response-details', ({httpResponseCode}) => {
-      httpResponseCode === 403 && this.props.onInvalidToken()
-    })
   }
   render() {
     return <webview ref={this.webviewRef} style={globalStyles.flexGrow} src={this.props.url} />
