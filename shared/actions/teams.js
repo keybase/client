@@ -813,9 +813,13 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
 
     // Select the new channel, and switch to the chat tab.
     yield Saga.put(
-      Chat2Gen.createSelectConversation({conversationIDKey: newConversationIDKey, reason: 'teamChat'})
+      Chat2Gen.createPreviewConversation({
+        channelname,
+        conversationIDKey: newConversationIDKey,
+        reason: 'newChannel',
+        teamname,
+      })
     )
-    yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
   }
