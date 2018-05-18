@@ -46,9 +46,11 @@ own said key, effectively making it part of your Keybase.io identity.
 You will be prompted by GPG to unlock your private key - it will be
 used to make a signature that you are the owner of said key.
 
-What you can also do, is importing the secret key to *local, encrypted*
-Keybase keyring, to be able to decrypt or sign using Keybase client.
-See more in documentation: "keybase pgp help select".
+You can also import the secret key to *local*, *encrypted* Keybase
+keyring, to be able to decrypt or sign using Keybase client. To do
+that, use "--import" flag.
+
+Learn more: keybase pgp help select
 
 `
 

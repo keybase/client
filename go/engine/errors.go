@@ -40,7 +40,7 @@ type PGPImportStubbedError struct {
 }
 
 func (e PGPImportStubbedError) Error() string {
-	return fmt.Sprintf("Key %s has private part stubbed - cannot import to Keybase keychain. Try again with --no-import.",
+	return fmt.Sprintf("Key %s has private part stubbed - cannot import to Keybase keychain. Try again without --import.",
 		e.KeyIDString)
 }
 

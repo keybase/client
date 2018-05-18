@@ -155,11 +155,9 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 
 	publicKeys := me.GetActivePGPKeys(false)
 	duplicate := false
-	hasSecret := false
 	for _, key := range publicKeys {
 		if key.GetFingerprint().Eq(*(selected.GetFingerprint())) {
 			duplicate = true
-			hasSecret = key.HasSecretKey()
 			break
 		}
 	}
@@ -182,7 +180,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 			return err
 		}
 
-		if !e.arg.SkipImport && !hasSecret {
+		if !e.arg.SkipImport {
 			// Key is duplicate, but caller wants to import secret
 			// half.
 			res, err := m.UIs().GPGUI.ConfirmImportSecretToExistingKey(m.Ctx(), 0)
