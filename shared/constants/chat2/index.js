@@ -68,21 +68,14 @@ export const isInfoPanelOpen = (state: TypedState) => {
 }
 export const pendingConversationIDKey = Types.stringToConversationIDKey('')
 
+export const otrModeGregorKeyPrefix = 'otr:'
 /**
  * Gregor key for OTR conversations
  * Used as the `category` when setting the OTR mode on a conversation
  * `body` is the number of seconds to etime
  */
-export const otrModeGregorKey = (c: Types.ConversationIDKey): string => `otr:${c}`
-/**
- * Get dtime for newly minted OTR mode
- */
-export const otrModeDTime = (): Date => {
-  const today = new Date()
-  const daysToExpiration = 7
-  return new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysToExpiration)
-}
-export const getConversationOTRMode = (c: ConversationIDKey, state: TypedState) =>
+export const otrModeGregorKey = (c: Types.ConversationIDKey): string => `${otrModeGregorKeyPrefix}${c}`
+export const getConversationOTRMode = (c: Types.ConversationIDKey, state: TypedState) =>
   state.chat2.getIn(['otrModes', c], 0)
 
 export {

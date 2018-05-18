@@ -379,6 +379,10 @@
       "_description": "Set the remote OTR mode for a conversation.",
       "conversationIDKey": "Types.ConversationIDKey",
       "seconds": "number"
+    },
+    "updateConvOTRModes": {
+      "_description": "Handle an update to our conversation OTR modes.",
+      "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
     }
   }
 }

@@ -77,6 +77,7 @@ export const setPendingSelected = 'chat2:setPendingSelected'
 export const setPendingStatus = 'chat2:setPendingStatus'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
+export const updateConvOTRModes = 'chat2:updateConvOTRModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
@@ -301,6 +302,7 @@ type _StartConversationPayload = $ReadOnly<{|
   tlf?: ?string,
   fromAReset?: boolean,
 |}>
+type _UpdateConvOTRModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateNotificationSettingsPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -324,6 +326,10 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  * Consume a service notification that a team retention policy was updated
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({error: false, payload, type: updateTeamRetentionPolicy})
+/**
+ * Handle an update to our conversation OTR modes.
+ */
+export const createUpdateConvOTRModes = (payload: _UpdateConvOTRModesPayload) => ({error: false, payload, type: updateConvOTRModes})
 /**
  * Retries sending the pending message that is currently stored in the metaMap
  */
@@ -474,6 +480,7 @@ export type SetPendingSelectedPayload = $Call<typeof createSetPendingSelected, _
 export type SetPendingStatusPayload = $Call<typeof createSetPendingStatus, _SetPendingStatusPayload>
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
 export type StartConversationPayload = $Call<typeof createStartConversation, _StartConversationPayload>
+export type UpdateConvOTRModesPayload = $Call<typeof createUpdateConvOTRModes, _UpdateConvOTRModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateNotificationSettingsPayload = $Call<typeof createUpdateNotificationSettings, _UpdateNotificationSettingsPayload>
 export type UpdateTeamRetentionPolicyPayload = $Call<typeof createUpdateTeamRetentionPolicy, _UpdateTeamRetentionPolicyPayload>
@@ -548,6 +555,7 @@ export type Actions =
   | SetPendingStatusPayload
   | SetupChatHandlersPayload
   | StartConversationPayload
+  | UpdateConvOTRModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateNotificationSettingsPayload
   | UpdateTeamRetentionPolicyPayload

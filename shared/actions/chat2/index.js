@@ -1896,12 +1896,12 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
 
 const setConvOTRMode = (action: Chat2Gen.SetConvOTRModePayload) => {
   const {conversationIDKey, seconds} = action.payload
+  logger.info(`Setting otr mode for conversation ${conversationIDKey} to ${seconds}`)
   const cat = Constants.otrModeGregorKey(conversationIDKey)
-  const dtime = Constants.otrModeDTime()
   return Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
     body: seconds.toString(),
     cat,
-    dtime: {offset: 7 * 24 * 360 * 1000, time: 0},
+    dtime: {offset: 0, time: 0},
   })
 }
 

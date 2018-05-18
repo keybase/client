@@ -3,6 +3,7 @@ import logger from '../logger'
 import {Set} from 'immutable'
 import * as ConfigGen from './config-gen'
 import * as Types from '../constants/types/gregor'
+import * as Chat2Gen from './chat2-gen'
 import * as FavoriteGen from './favorite-gen'
 import * as GitGen from './git-gen'
 import * as GregorGen from './gregor-gen'
@@ -17,6 +18,8 @@ import {type State as GregorState, type OutOfBandMessage} from '../constants/typ
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
+import {otrModeGregorKeyPrefix} from '../constants/chat2/'
+import {stringToConversationIDKey} from '../constants/types/chat2'
 
 function isTlfItem(gItem: Types.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
@@ -140,6 +143,28 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
   yield Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 }
 
+function handleConvOTRModes(items: Array<Types.NonNullGregorItem>) {
+  const otrItems = items.filter(i => i.item.category.startsWith('otr'))
+  if (!otrItems.length) {
+    return
+  }
+  logger.info('Got push state with some OTR modes')
+  const modes = otrItems.reduce((current, i) => {
+    const {category, body} = i.item
+    const secondsString = body.toString()
+    const seconds = parseInt(secondsString, 10)
+    if (isNaN(seconds)) {
+      logger.warn(`Got dirty OTR mode ${secondsString} for category ${category}`)
+      return current
+    }
+    const _conversationIDKey = category.substring(otrModeGregorKeyPrefix.length)
+    const conversationIDKey = stringToConversationIDKey(_conversationIDKey)
+    current.push({conversationIDKey, seconds})
+    return current
+  }, [])
+  return Saga.put(Chat2Gen.createUpdateConvOTRModes({modes}))
+}
+
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
   if (!pushAction.error) {
     const {
@@ -153,6 +178,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
     return Saga.sequentially([
       Saga.call(handleTLFUpdate, nonNullItems),
       Saga.call(handleBannersAndBadges, nonNullItems),
+      handleConvOTRModes(nonNullItems),
     ])
   } else {
     logger.debug('Error in gregor pushState', pushAction.payload)

@@ -665,6 +665,13 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         )
       })
     }
+    case Chat2Gen.updateConvOTRModes:
+      const {modes} = action.payload
+      const otrMap = modes.reduce((map, mode) => {
+        map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
+        return map
+      }, {})
+      return state.set('otrModes', I.Map(otrMap))
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
