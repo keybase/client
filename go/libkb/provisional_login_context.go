@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -14,6 +15,7 @@ type ProvisionalLoginContext struct {
 	salt         []byte
 	streamCache  *PassphraseStreamCache
 	localSession *Session
+	loginSession *LoginSession
 	skbKeyring   *SKBKeyringFile
 	secretSyncer *SecretSyncer
 }
@@ -28,12 +30,26 @@ func newProvisionalLoginContext(m MetaContext) *ProvisionalLoginContext {
 	}
 }
 
+func (p *ProvisionalLoginContext) Dump(m MetaContext, prefix string) {
+	m.CDebugf("%sUsername: %s", prefix, p.username)
+	m.CDebugf("%sUID: %s", prefix, p.uid)
+	if p.salt != nil {
+		m.CDebugf("%sSalt: %s", prefix, hex.EncodeToString(p.salt))
+	}
+	m.CDebugf("%sPassphraseCache: %v", prefix, (p.streamCache != nil))
+	m.CDebugf("%sLocalSession: %v", prefix, (p.localSession != nil))
+	m.CDebugf("%sLoginSession: %v", prefix, (p.loginSession != nil))
+}
+
 func plcErr(s string) error {
 	return fmt.Errorf("ProvisionalLoginContext#%s not implemented", s)
 }
 
 func (p *ProvisionalLoginContext) LoggedInLoad() (bool, error) {
-	return false, plcErr("LoggedInLoad")
+	if p.localSession != nil {
+		return p.localSession.IsLoggedIn(), nil
+	}
+	return false, nil
 }
 func (p *ProvisionalLoginContext) LoggedInProvisioned(context.Context) (bool, error) {
 	return false, plcErr("LoggedInProvisioned")
@@ -66,6 +82,9 @@ func (p *ProvisionalLoginContext) SetStreamGeneration(gen PassphraseGeneration, 
 	}
 }
 func (p *ProvisionalLoginContext) PassphraseStream() *PassphraseStream {
+	if p.PassphraseStreamCache() == nil {
+		return nil
+	}
 	return p.PassphraseStreamCache().PassphraseStream()
 }
 func (p *ProvisionalLoginContext) GetStreamGeneration() (ret PassphraseGeneration) {
@@ -80,11 +99,21 @@ func (p *ProvisionalLoginContext) CreateLoginSessionWithSalt(emailOrUsername str
 	}
 	return nil
 }
-func (p *ProvisionalLoginContext) LoadLoginSession(emailOrUsername string) error {
-	return plcErr("LoadLoginSession")
+func (p *ProvisionalLoginContext) LoadLoginSession(username string) error {
+	nun := NewNormalizedUsername(username)
+	if !p.username.Eq(nun) {
+		return LoggedInWrongUserError{p.username, nun}
+	}
+	if p.loginSession == nil {
+		return LoginSessionNotFound{}
+	}
+	return nil
 }
 func (p *ProvisionalLoginContext) LoginSession() *LoginSession {
-	return nil
+	return p.loginSession
+}
+func (p *ProvisionalLoginContext) SetLoginSession(l *LoginSession) {
+	p.loginSession = l
 }
 func (p *ProvisionalLoginContext) ClearLoginSession() {
 }
@@ -100,10 +129,26 @@ func (p *ProvisionalLoginContext) GetUsername() NormalizedUsername {
 func (p *ProvisionalLoginContext) EnsureUsername(username NormalizedUsername) {
 }
 
-func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
+func (p *ProvisionalLoginContext) SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error {
+	if err := p.assertUnsaved(); err != nil {
+		return err
+	}
+	p.username = username
+	p.uid = uid
+	return nil
+}
 
+func (p *ProvisionalLoginContext) assertUnsaved() error {
 	if wasSaved := !p.uid.IsNil(); wasSaved {
 		return errors.New("can't reuse a ProvisionalLoginContext!")
+	}
+	return nil
+}
+
+func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
+	defer p.M().CTrace("ProvisionalLoginContext#SaveState", func() error { return err })()
+	if err := p.assertUnsaved(); err != nil {
+		return err
 	}
 	p.uid = uid
 	p.username = username
@@ -115,7 +160,8 @@ func (p *ProvisionalLoginContext) Keyring() (ret *SKBKeyringFile, err error) {
 		return p.skbKeyring, nil
 	}
 	if p.username.IsNil() {
-		return nil, NoUsernameError{}
+		p.M().CInfof("ProvisionalLoginContext#Keyring: no username set")
+		return nil, NewNoUsernameError()
 	}
 	p.M().CDebugf("Account: loading keyring for %s", p.username)
 	ret, err = LoadSKBKeyring(p.username, p.M().G())

@@ -71,9 +71,8 @@ func runPrereqs(m libkb.MetaContext, e Engine2) error {
 	prq := e.Prereqs()
 
 	if prq.TemporarySession {
-		err := m.G().AssertTemporarySession(m.LoginContext())
-		if err != nil {
-			return err
+		if !m.HasAnySession() {
+			return libkb.NewLoginRequiredError("need either a temporary session or a device")
 		}
 	}
 
