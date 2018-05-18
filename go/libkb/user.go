@@ -728,6 +728,11 @@ func (u *User) SigningKeyPub() (GenericKey, error) {
 		Me:      u,
 		KeyType: DeviceSigningKeyType,
 	}
+	key := u.G().ActiveDevice.SigningKeyForUID(u.GetUID())
+	if key != nil {
+		return key, nil
+	}
+
 	lockedKey, err := u.G().Keyrings.GetSecretKeyLocked(NewMetaContextTODO(u.G()), arg)
 	if err != nil {
 		return nil, err

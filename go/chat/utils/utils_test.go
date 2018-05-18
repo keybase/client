@@ -54,23 +54,23 @@ func newTestTeamChannelSource(channels []string) *testTeamChannelSource {
 }
 
 func (t *testTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, rl []chat1.RateLimit, err error) {
+	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, err error) {
 	for _, c := range t.channels {
 		res = append(res, chat1.ChannelNameMention{
 			TopicName: c,
 		})
 	}
-	return res, rl, nil
+	return res, nil
 }
 
 func (t *testTeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, []chat1.RateLimit, error) {
-	return "", nil, fmt.Errorf("testTeamChannelSource.GetChannelTopicName not implemented")
+	teamID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, error) {
+	return "", fmt.Errorf("testTeamChannelSource.GetChannelTopicName not implemented")
 }
 
 func (t *testTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
-	return res, rl, nil
+	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
+	return res, nil
 }
 
 func (t *testTeamChannelSource) ChannelsChanged(ctx context.Context, teamID chat1.TLFID) {}

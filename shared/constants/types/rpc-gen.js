@@ -1070,10 +1070,6 @@ export const loginPaperKeySubmitRpcChannelMap = (configKeys: Array<string>, requ
 
 export const loginPaperKeySubmitRpcPromise = (request: LoginPaperKeySubmitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKeySubmit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
-export const loginPgpProvisionRpcChannelMap = (configKeys: Array<string>, request: LoginPgpProvisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.pgpProvision', request)
-
-export const loginPgpProvisionRpcPromise = (request: LoginPgpProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.pgpProvision', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const loginRecoverAccountFromEmailAddressRpcChannelMap = (configKeys: Array<string>, request: LoginRecoverAccountFromEmailAddressRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.recoverAccountFromEmailAddress', request)
 
 export const loginRecoverAccountFromEmailAddressRpcPromise = (request: LoginRecoverAccountFromEmailAddressRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.recoverAccountFromEmailAddress', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -1804,6 +1800,10 @@ export const teamsTeamStatus = {
 export const teamsTeamTreeRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamTreeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamTree', request)
 
 export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => (error ? reject(error) : resolve(result))))
+
+export const teamsTryDecryptWithTeamKeyRpcChannelMap = (configKeys: Array<string>, request: TeamsTryDecryptWithTeamKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.tryDecryptWithTeamKey', request)
+
+export const teamsTryDecryptWithTeamKeyRpcPromise = (request: TeamsTryDecryptWithTeamKeyRpcParam): Promise<TeamsTryDecryptWithTeamKeyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.tryDecryptWithTeamKey', request, (error: RPCError, result: TeamsTryDecryptWithTeamKeyResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsUploadTeamAvatarRpcChannelMap = (configKeys: Array<string>, request: TeamsUploadTeamAvatarRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.uploadTeamAvatar', request)
 
@@ -2800,8 +2800,6 @@ export type LoginLogoutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapT
 export type LoginPaperKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LoginPaperKeySubmitRpcParam = $ReadOnly<{paperPhrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-
-export type LoginPgpProvisionRpcParam = $ReadOnly<{username: String, passphrase: String, deviceName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LoginRecoverAccountFromEmailAddressRpcParam = $ReadOnly<{email: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3970,6 +3968,8 @@ export type TeamsTeamSetSettingsRpcParam = $ReadOnly<{name: String, settings: Te
 
 export type TeamsTeamTreeRpcParam = $ReadOnly<{name: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type TeamsTryDecryptWithTeamKeyRpcParam = $ReadOnly<{teamID: TeamID, encryptedData: Bytes, nonce: BoxNonce, peersPublicKey: BoxPublicKey, minGeneration: PerTeamKeyGeneration, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type TeamsUiConfirmRootTeamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsUiConfirmSubteamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4333,6 +4333,7 @@ type TeamsTeamListUnverifiedResult = AnnotatedTeamList
 type TeamsTeamListVerifiedResult = AnnotatedTeamList
 type TeamsTeamRequestAccessResult = TeamRequestAccessResult
 type TeamsTeamTreeResult = TeamTreeResult
+type TeamsTryDecryptWithTeamKeyResult = Bytes
 type TeamsUiConfirmRootTeamDeleteResult = Boolean
 type TeamsUiConfirmSubteamDeleteResult = Boolean
 type TestTestCallbackResult = String

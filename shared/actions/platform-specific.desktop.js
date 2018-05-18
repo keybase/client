@@ -72,6 +72,17 @@ function openAppSettings(): void {
   throw new Error('Cannot open app settings on desktop')
 }
 
+const getMimeTypeFromURL = (url: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const req = SafeElectron.getRemote().net.request({url, method: 'HEAD'})
+    req.on('response', response => {
+      const contentType = response.headers['content-type']
+      resolve(Array.isArray(contentType) && contentType.length ? contentType[0] : '')
+    })
+    req.on('error', err => reject(err))
+    req.end()
+  })
+
 export {
   checkPermissions,
   setShownPushPrompt,
@@ -88,4 +99,5 @@ export {
   downloadAndShowShareActionSheet,
   displayNewMessageNotification,
   clearAllNotifications,
+  getMimeTypeFromURL,
 }

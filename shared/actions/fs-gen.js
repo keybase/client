@@ -29,6 +29,8 @@ export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
+export const mimeTypeLoad = 'fs:mimeTypeLoad'
+export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
 export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
@@ -97,6 +99,11 @@ type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
 |}>
+type _MimeTypeLoadPayload = $ReadOnly<{|path: Types.Path|}>
+type _MimeTypeLoadedPayload = $ReadOnly<{|
+  path: Types.Path,
+  mimeType: string,
+|}>
 type _OpenFinderPopupPayload = $ReadOnly<{|
   targetRect: ?ClientRect,
   routePath: I.List<string>,
@@ -156,6 +163,8 @@ export const createInstallFuse = (payload: _InstallFusePayload) => ({error: fals
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
+export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: false, payload, type: mimeTypeLoad})
+export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
 export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({error: false, payload, type: openFinderPopup})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
@@ -191,6 +200,8 @@ export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePay
 export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
+export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
+export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
 export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFinderPopupPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
@@ -228,6 +239,8 @@ export type Actions =
   | InstallFuseResultPayload
   | InstallKBFSPayload
   | LocalHTTPServerInfoPayload
+  | MimeTypeLoadPayload
+  | MimeTypeLoadedPayload
   | OpenFinderPopupPayload
   | OpenInFileUIPayload
   | OpenSecurityPreferencesPayload

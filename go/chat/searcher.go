@@ -29,7 +29,7 @@ func NewSearcher(g *globals.Context) *Searcher {
 }
 
 func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp,
-	maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, rlimits []chat1.RateLimit, err error) {
+	maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error) {
 	uid := gregor1.UID(s.G().Env.GetUID().ToBytes())
 	pagination := &chat1.Pagination{Num: s.pageSize}
 
@@ -41,13 +41,12 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 		afterContext = s.pageSize - 1
 	}
 
-	var rlimitsp []*chat1.RateLimit
 	// If we have to gather search result context around a pagination boundary,
 	// we may have to fetch the next page of the thread
 	var prevPage, curPage, nextPage *chat1.ThreadView
 
 	getNextPage := func() (*chat1.ThreadView, error) {
-		thread, rl, err := s.G().ConvSource.Pull(ctx, conversationID, uid, &chat1.GetThreadQuery{
+		thread, err := s.G().ConvSource.Pull(ctx, conversationID, uid, &chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, pagination)
 		if err != nil {
@@ -65,7 +64,6 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 		pagination = thread.Pagination
 		pagination.Num = s.pageSize
 		pagination.Previous = nil
-		rlimitsp = append(rlimitsp, rl...)
 		return &thread, nil
 	}
 
@@ -131,7 +129,7 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 		if nextPage == nil {
 			curPage, err = getNextPage()
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 		} else { // we pre-fetched the next page when retrieving context
 			curPage = nextPage
@@ -149,7 +147,7 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 				afterMsgs := getAfterMsgs(i, prevPage, curPage)
 				newThread, beforeMsgs, err := getBeforeMsgs(i, curPage, nextPage)
 				if err != nil {
-					return nil, nil, err
+					return nil, err
 				}
 				nextPage = newThread
 				searchHit := chat1.ChatSearchHit{
@@ -173,5 +171,5 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 	if uiCh != nil {
 		close(uiCh)
 	}
-	return hits, utils.AggRateLimitsP(rlimitsp), nil
+	return hits, nil
 }
