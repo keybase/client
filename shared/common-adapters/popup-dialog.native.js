@@ -4,7 +4,16 @@ import {Box} from './'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-import type {Props} from './popup-dialog'
+type Props = {
+  onClose: () => void,
+  allowClipBubbling?: boolean,
+  fill?: boolean,
+  children?: React.Node,
+  styleCover?: any,
+  styleContainer?: any,
+  styleClose?: any,
+  styleClipContainer?: any,
+}
 
 export function PopupDialog({children, onClose, fill, styleCover, styleContainer}: Props) {
   return (

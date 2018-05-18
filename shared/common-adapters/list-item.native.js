@@ -1,9 +1,21 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './list-item'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import {globalStyles} from '../styles'
+
+type Props = {
+  type: 'Small' | 'Large',
+  icon: React.Node,
+  body: React.Node,
+  action: React.Node,
+  extraRightMarginAction?: boolean, // Spacing is different if the action is just text (for example)
+  onClick?: () => void,
+  onPress?: void,
+  containerStyle?: Object,
+  bodyContainerStyle?: Object,
+  swipeToAction?: boolean, // Do you have to swipe the list item to reveal an action?
+}
 
 // TODO Add swipe for action
 class ListItem extends Component<Props> {

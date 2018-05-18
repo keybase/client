@@ -12,7 +12,38 @@ import {NativeClipboard} from './native-wrappers.native'
 import openURL from '../util/open-url'
 import {Alert} from 'react-native'
 
-import type {Props} from './markdown'
+type MarkdownComponentType =
+  | 'inline-code'
+  | 'code-block'
+  | 'link'
+  | 'text'
+  | 'bold'
+  | 'italic'
+  | 'strike'
+  | 'emoji'
+  | 'native-emoji'
+  | 'quote-block'
+
+export type MarkdownCreateComponent = (
+  type: MarkdownComponentType,
+  key: string,
+  children: Array<React.Node>,
+  options: {href?: string, convID?: string, bigEmoji?: boolean}
+) => ?React.Node
+
+export type MarkdownMeta = {
+  mentionsAt: MentionsAt,
+  mentionsChannelName: MentionsChannelName,
+  mentionsChannel: MentionsChannel,
+}
+
+export type Props = {
+  children?: string,
+  preview?: boolean, // if true render a simplified version
+  style?: any,
+  allowFontScaling?: boolean,
+  meta?: MarkdownMeta,
+}
 
 function previewCreateComponent(style) {
   return function(type, key, children, options) {

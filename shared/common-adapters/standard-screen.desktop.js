@@ -2,7 +2,22 @@
 import * as React from 'react'
 import {Box, Text, HeaderHoc} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
-import type {Props, NotificationType} from './standard-screen'
+
+export type NotificationType = 'error' | 'success'
+
+export type Props = {
+  children?: ?any,
+  title?: ?string,
+  onCancel?: ?() => void,
+  onBack?: ?() => void,
+  notification?: ?{
+    message: string | React.Node,
+    type: NotificationType,
+  },
+  style?: ?Object,
+  theme?: 'light' | 'dark', // defaults to light
+  styleBanner?: ?Object,
+}
 
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
   const topStack = [

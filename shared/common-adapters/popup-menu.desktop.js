@@ -1,11 +1,47 @@
 // @flow
-import React, {Component} from 'react'
-import type {ModalLessPopupMenuProps, Props, HeaderTextProps} from './popup-menu'
-import {Box, Text} from '../common-adapters/index'
+import * as React from 'react'
+import Box from './box'
+import Text from './text'
 import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles, desktopStyles} from '../styles'
 
-class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
+export type MenuItem = {|
+  title: string, // Only used as ID if view is provided for Header
+  view?: React.Node,
+  subTitle?: string, // subTitle is not used on native
+  danger?: boolean,
+  disabled?: boolean,
+  onClick?: ?(evt?: SyntheticEvent<>) => void,
+  onPress?: void,
+  style?: Object,
+|}
+
+export type Props = {
+  items: Array<MenuItem | 'Divider' | null>, // Divider is not used on native
+  header?: ?MenuItem,
+  onHidden?: ?() => void,
+  style?: Object,
+  styleCatcher?: ?Object,
+  hoverColor?: string,
+}
+
+export type ModalLessPopupMenuProps = {
+  items: Array<MenuItem | 'Divider' | null>,
+  header?: ?MenuItem,
+  onHidden?: ?() => void,
+  closeOnClick?: boolean,
+  style?: Object,
+  hoverColor?: string,
+}
+
+export type HeaderTextProps = {
+  color: string,
+  backgroundColor: string,
+  style?: Object,
+  children?: React.Node,
+}
+
+class ModalLessPopupMenu extends React.Component<ModalLessPopupMenuProps> {
   render() {
     const realCSS = `
     .menu-hover:hover { background-color: ${
@@ -92,7 +128,7 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
 
 // TODO don't use this anymore
 // TODO fix this so it's not broken
-class PopupMenu extends Component<Props> {
+class PopupMenu extends React.Component<Props> {
   render() {
     return (
       <EscapeHandler onESC={this.props.onHidden}>
@@ -111,7 +147,7 @@ class PopupMenu extends Component<Props> {
 }
 
 // TEMP to just get the desktop release working. The previous change totally broke this in devices / git / etc
-class OLDPopupMenu extends Component<Props> {
+class OLDPopupMenu extends React.Component<Props> {
   render() {
     const realCSS = `
     .menu-hover:hover { background-color: ${this.props.hoverColor || globalColors.blue4}; }

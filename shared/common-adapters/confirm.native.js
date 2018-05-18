@@ -1,10 +1,20 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './confirm'
 import Box from './box'
 import Button from './button'
 import StandardScreen from './standard-screen'
 import {globalStyles, globalColors, globalMargins} from '../styles'
+
+type Props = {
+  theme: 'public' | 'private',
+  danger?: boolean,
+  submitLabel: string,
+  onCancel: () => void,
+  onSubmit: ?() => void,
+  header: React.Node,
+  body: React.Node,
+  disabled?: boolean,
+}
 
 class Confirm extends Component<Props> {
   render() {

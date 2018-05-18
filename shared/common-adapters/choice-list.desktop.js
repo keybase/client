@@ -2,8 +2,19 @@
 import * as React from 'react'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
-import type {Props} from './choice-list'
 import type {IconType} from './icon'
+
+type Option = {
+  title: string,
+  description: string,
+  icon: IconType | React.Node,
+  onClick: () => void,
+  onPress?: void,
+}
+
+export type Props = {
+  options: Array<Option>,
+}
 
 const ChoiceList = ({options}: Props) => {
   return (

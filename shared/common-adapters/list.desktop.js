@@ -1,11 +1,22 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import ReactList from 'react-list'
 import {globalStyles} from '../styles'
 
-import type {Props} from './list'
+type Props<Item> = {
+  indexAsKey?: boolean,
+  items: Array<Item>,
+  style?: any,
+  fixedHeight?: ?number,
+  renderItem: (index: number, item: Item) => React.Node,
+  keyProperty?: string, // if passed uses item[keyProperty] for the item keys (does nothing on desktop)
+  selectedIndex?: number, // TODO work on mobile
+  itemSizeEstimator?: (index: number, cache: {[index: number]: number}) => number, // Desktop only
+  keyboardShouldPersistTaps?: 'never' | 'always' | 'handled', // mobile only
+  windowSize?: number, // Mobile only, has a non-RN default
+}
 
-class List extends PureComponent<Props<any>, void> {
+class List extends React.PureComponent<Props<any>, void> {
   _list: ?ReactList
   _itemRender = index => {
     const item = this.props.items[index]

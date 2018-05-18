@@ -1,4 +1,4 @@
-// @flow
+// @noflow // TEMP i have a pr for avatar so elt not fix this up
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import Render from './avatar.render'
 import {pickBy, debounce} from 'lodash-es'
@@ -16,7 +16,27 @@ import {
 } from '../util/container'
 import {desktopStyles, collapseStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
-import type {Props, AvatarSize} from './avatar'
+import type {StylesCrossPlatform} from '../styles'
+
+export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
+
+export type Props = {|
+  borderColor?: string,
+  children?: any,
+  following?: ?boolean,
+  followsYou?: ?boolean,
+  isTeam?: boolean,
+  loadingColor?: string,
+  onAvatarLoaded?: () => void,
+  onClick?: ?() => void,
+  opacity?: number,
+  skipBackground?: boolean,
+  skipBackgroundAfterLoaded?: boolean, // if we're on a white background we don't need a white back cover
+  size: AvatarSize,
+  style?: StylesCrossPlatform,
+  username?: ?string,
+  teamname?: ?string,
+|}
 
 export type URLMap = {
   '200': string,
@@ -187,15 +207,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   if (!url) {
     const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
-    url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
+    url = iconTypeToImgSet(placeholder[String(ownProps.size)])
     isPlaceholder = true
   }
 
   let _askForUserData = null
   if (isTeam) {
-    _askForUserData = () => dispatchProps._askForTeamUserData(ownProps.teamname)
+    _askForUserData = () => ownProps.teamname && dispatchProps._askForTeamUserData(ownProps.teamname)
   } else {
-    _askForUserData = () => dispatchProps._askForUserData(ownProps.username)
+    _askForUserData = () => ownProps.username && dispatchProps._askForUserData(ownProps.username)
   }
 
   const _name = isTeam ? ownProps.teamname : ownProps.username
@@ -221,7 +241,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export type {AvatarSize}
 const realConnector = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('URLAvatar'),
@@ -321,7 +340,7 @@ const ConnectedAvatar = autoConnector(Render)
 const mockOwnToViewProps = (props: Props) => {
   const isTeam = !!props.teamname
   const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
-  const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
+  const url = iconTypeToImgSet(placeholder[String(props.size)])
 
   let style
   if (props.style) {

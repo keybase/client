@@ -1,13 +1,12 @@
 // @flow
 import Box from './box'
-import Icon from './icon'
+import Icon, {type IconType} from './icon'
 import * as React from 'react'
 import Text from './text'
 import Badge from './badge'
 import Avatar from './avatar'
 import {get} from 'lodash-es'
 import shallowEqual from 'shallowequal'
-import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {
   globalStyles,
   globalColors,
@@ -16,6 +15,54 @@ import {
   desktopStyles,
   collapseStyles,
 } from '../styles'
+
+export type ItemProps = {|
+  tabBarButton?: React.Node,
+  label?: string,
+  selected: boolean,
+  selectedColor?: string,
+  onClick?: () => void,
+  onPress?: void,
+  style?: Object,
+  styleContainer?: Object,
+  children?: React.Node,
+  onBottom?: boolean,
+  underlined?: boolean,
+|}
+
+export type Props = {|
+  style?: ?Object,
+  styleTabBar?: Object,
+  children?: Array<React.Element<React.ComponentType<ItemProps>>>,
+  tabBarOnBottom?: boolean,
+  underlined?: boolean,
+|}
+
+export type TabBarButtonSource =
+  | {type: 'icon', icon: IconType}
+  | {type: 'avatar', username: ?string}
+  | {type: 'nav', icon: IconType}
+
+export type TabBadgePosition = 'top-right'
+
+export type TabBarButtonProps = {|
+  className?: string,
+  underlined?: ?boolean,
+  isNav?: boolean,
+  selected: boolean,
+  onClick?: () => void,
+  source: TabBarButtonSource,
+  label?: string,
+  badgeNumber?: ?number,
+  badgePosition?: TabBadgePosition,
+  style?: Object,
+  styleContainer?: any,
+  styleBadge?: any,
+  styleBadgeContainer?: any,
+  styleIcon?: any,
+  styleBadgeNumber?: any,
+  styleLabel?: any,
+|}
 
 // TODO this thing does 4 different things. a lot of the main nav logic is in here which isn't used by anything else. Split this apart!
 

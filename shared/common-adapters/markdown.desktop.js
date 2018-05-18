@@ -1,5 +1,5 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import Text from './text'
 import * as Types from '../constants/types/chat2'
 import Channel from './channel-container'
@@ -9,7 +9,38 @@ import Emoji from './emoji'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 
-import type {Props} from './markdown'
+type MarkdownComponentType =
+  | 'inline-code'
+  | 'code-block'
+  | 'link'
+  | 'text'
+  | 'bold'
+  | 'italic'
+  | 'strike'
+  | 'emoji'
+  | 'native-emoji'
+  | 'quote-block'
+
+export type MarkdownCreateComponent = (
+  type: MarkdownComponentType,
+  key: string,
+  children: Array<React.Node>,
+  options: {href?: string, convID?: string, bigEmoji?: boolean}
+) => ?React.Node
+
+export type MarkdownMeta = {
+  mentionsAt: Types.MentionsAt,
+  mentionsChannelName: Types.MentionsChannelName,
+  mentionsChannel: Types.MentionsChannel,
+}
+
+export type Props = {
+  children?: string,
+  preview?: boolean, // if true render a simplified version
+  style?: any,
+  allowFontScaling?: boolean,
+  meta?: MarkdownMeta,
+}
 
 const wrapStyle = platformStyles({
   isElectron: {
@@ -30,20 +61,18 @@ const codeSnippetStyle = {
 }
 
 const codeSnippetBlockStyle = platformStyles({
-  common: {
-    ...wrapStyle,
+  isElectron: {
     ...codeSnippetStyle,
+    ...wrapStyle,
     backgroundColor: globalColors.beige,
     color: globalColors.black_75,
+    display: 'block',
     marginBottom: globalMargins.xtiny,
     marginTop: globalMargins.xtiny,
     paddingBottom: globalMargins.xtiny,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
     paddingTop: globalMargins.xtiny,
-  },
-  isElectron: {
-    display: 'block',
   },
 })
 
@@ -52,9 +81,7 @@ const textBlockStyle = platformStyles({
   isElectron: {display: 'block', color: 'inherit', fontWeight: 'inherit'},
 })
 const linkStyle = platformStyles({
-  common: {
-    ...wrapStyle,
-  },
+  common: {...wrapStyle},
   isElectron: {fontWeight: 'inherit'},
 })
 const neutralPreviewStyle = platformStyles({
@@ -62,16 +89,12 @@ const neutralPreviewStyle = platformStyles({
 })
 const boldStyle = {...wrapStyle, color: 'inherit'}
 const italicStyle = platformStyles({
-  common: {
-    ...wrapStyle,
-  },
+  common: {...wrapStyle},
   isElectron: {color: 'inherit', fontStyle: 'italic', fontWeight: 'inherit'},
 })
 
 const strikeStyle = platformStyles({
-  common: {
-    ...wrapStyle,
-  },
+  common: {...wrapStyle},
   isElectron: {
     color: 'inherit',
     fontWeight: 'inherit',
@@ -173,7 +196,7 @@ function messageCreateComponent(type, key, children, options) {
   }
 }
 
-class Markdown extends PureComponent<Props> {
+class Markdown extends React.PureComponent<Props> {
   render() {
     const content = parseMarkdown(
       this.props.children,

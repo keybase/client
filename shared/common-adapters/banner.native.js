@@ -1,7 +1,5 @@
 // @flow
-import type {Props} from './banner'
-
-function Banner({error: Error}: Props) {
+function Banner(props: any) {
   return null
 }
 

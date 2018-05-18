@@ -1,12 +1,22 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './checkbox'
 import {NativeTouchableWithoutFeedback, NativeAnimated, NativeEasing} from './native-wrappers.native'
 import Box from './box'
 import Text from './text'
 import {collapseStyles, globalStyles, globalColors, globalMargins} from '../styles'
 
 const checkedOffset = 20
+
+type Props = {|
+  key?: string,
+  label?: string,
+  labelComponent?: Node,
+  onCheck: ?(newCheckedValue: boolean) => void,
+  checked: boolean,
+  style?: StylesCrossPlatform,
+  disabled?: boolean,
+|}
+
 
 type State = {
   left: any,

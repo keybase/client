@@ -9,9 +9,33 @@ import * as React from 'react'
 import Text from './text'
 import openUrl from '../util/open-url'
 import type {Proof} from '../constants/types/tracker'
-import type {Props, MissingProof} from './user-proofs'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
+
+export type MissingProof = {
+  type: PlatformsExpandedType,
+  message: string,
+  onClick: (missingProof: MissingProof) => void,
+}
+
+type CommonProps = {
+  style?: Object,
+  loadingStyle?: ?Object,
+  loading?: boolean,
+  username: ?string,
+  onClickProofMenu?: ?(idx: number) => void,
+  showingMenuIndex?: ?number,
+}
+
+export type Props =
+  | ({
+      type: 'proofs',
+      proofs: Array<Proof>,
+    } & CommonProps)
+  | ({
+      type: 'missingProofs',
+      missingProofs: Array<MissingProof>,
+    } & CommonProps)
 
 function MissingProofRow({missingProof, style}: {missingProof: MissingProof, style: Object}): React.Node {
   const missingColor = globalColors.black_20

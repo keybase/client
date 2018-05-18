@@ -5,7 +5,13 @@ import Text from './text'
 import glamorous from 'glamorous-native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-import type {Props} from './radio-button'
+type Props = {
+  label: string,
+  onSelect: (selected: boolean) => void,
+  selected: boolean,
+  style?: Object,
+  disabled?: boolean,
+}
 
 export const RADIOBUTTON_SIZE = 22
 export const RADIOBUTTON_MARGIN = 8

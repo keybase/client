@@ -8,7 +8,64 @@ import {connect} from 'react-redux'
 import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen.js'
-import type {Props, PlaintextProps} from './usernames'
+
+export type UserListItem = {
+  username: string,
+  readOnly?: boolean,
+  broken?: boolean,
+  you?: boolean,
+  following?: boolean,
+}
+
+export type UserList = Array<UserListItem>
+
+export type Props = {
+  type: TextType,
+  backgroundMode?: Background,
+  style?: Object,
+  commaColor?: string,
+  containerStyle?: Object,
+  inline?: boolean,
+  redColor?: string,
+  title?: string,
+  prefix?: ?string,
+  suffix?: ?string,
+  colorFollowing?: boolean,
+  colorBroken?: boolean,
+  inlineGrammar?: boolean,
+  showAnd?: boolean,
+  onUsernameClicked?: (username: string) => void,
+  underline?: boolean,
+  users: UserList,
+}
+
+export type ConnectedProps = {
+  type: TextType,
+  backgroundMode?: Background,
+  style?: Object,
+  commaColor?: string,
+  containerStyle?: Object,
+  inline?: boolean,
+  redColor?: string,
+  title?: string,
+  prefix?: ?string,
+  suffix?: ?string,
+  colorFollowing?: boolean,
+  colorBroken?: boolean,
+  onUsernameClicked?: (username: string) => void,
+  underline?: boolean,
+  usernames: Array<string>,
+  clickable?: boolean,
+  skipSelf?: boolean,
+}
+
+export type PlaintextProps = {
+  type: TextType,
+  users: UserList,
+  backgroundMode?: Background,
+  containerStyle?: Object,
+  title?: string,
+}
 
 function usernameText({
   type,

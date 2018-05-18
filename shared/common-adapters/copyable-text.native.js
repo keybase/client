@@ -1,11 +1,16 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props as PropsCommon} from './copyable-text'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import Text from './text'
 import Box from './box'
 import {Clipboard, TouchableHighlight} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
+
+
+type PropsComon = {
+  value: string,
+  style?: Object,
+}
 
 export type Props = PropsWithTimer<{
   ...PropsCommon,

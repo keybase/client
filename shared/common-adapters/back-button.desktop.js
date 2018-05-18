@@ -1,9 +1,18 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './back-button'
 import Text from './text'
 import Icon from './icon'
-import {globalStyles, desktopStyles, collapseStyles} from '../styles'
+import {globalStyles, desktopStyles, collapseStyles, type Color} from '../styles'
+
+type Props = {
+  badgeNumber?: number,
+  onClick: () => void,
+  onPress?: void,
+  iconColor?: Color,
+  textStyle?: Object,
+  style?: ?Object,
+  title?: ?string,
+}
 
 class BackButton extends Component<Props> {
   onClick(event: SyntheticEvent<>) {

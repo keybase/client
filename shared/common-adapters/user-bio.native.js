@@ -9,7 +9,27 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 
 import type {AvatarSize} from './avatar'
-import type {Props} from './user-bio'
+export type BioEditFns = {
+  onEditAvatarClick: () => void,
+  onNameEdit: () => void,
+  onBioEdit: () => void,
+  onLocationEdit: () => void,
+  onEditProfile: () => void,
+}
+
+export type Props = {
+  type: 'Tracker' | 'Profile',
+  loading: boolean,
+  avatarSize: AvatarSize,
+  style?: any,
+  username: ?string,
+  userInfo: ?UserInfo,
+  trackerState: SimpleProofState,
+  currentlyFollowing: boolean,
+  editFns?: ?BioEditFns,
+  onAvatarLoaded?: () => void,
+  onClickAvatar?: (username: ?string) => void,
+}
 
 class BioLoading extends Component<{style: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {

@@ -1,12 +1,17 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props as CheckboxProps} from './checkbox'
-import type {Props} from './form-with-checkbox'
-import Checkbox from './checkbox'
-import Input from './input'
+import Checkbox, {type Props as CheckboxProps} from './checkbox'
+import Input, {type Props as InputProps} from './input'
 import Box from './box'
 import Text from './text'
-import {globalStyles, globalMargins, collapseStyles} from '../styles'
+import {globalStyles, globalMargins, collapseStyles, type StylesCrossPlatform} from '../styles'
+
+type Props = {|
+  inputProps: InputProps,
+  style?: StylesCrossPlatform,
+  checkboxContainerStyle?: StylesCrossPlatform,
+  checkboxesProps: Array<$Exact<CheckboxProps>>,
+|}
 
 class FormWithCheckbox extends Component<Props> {
   render() {

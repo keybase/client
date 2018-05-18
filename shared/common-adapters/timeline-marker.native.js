@@ -1,9 +1,15 @@
 // @flow
 import * as React from 'react'
-import type {Props} from './timeline-marker'
 import Box from './box'
 import {globalColors, globalStyles} from '../styles'
 import {timeline_grey} from './timeline-marker.meta'
+
+export type Props = {
+  idx: number,
+  max: number,
+  type?: 'open' | 'closed',
+  style?: any,
+}
 
 const TimelineMarker = ({idx, max, type, style}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginRight: 16, ...style}}>

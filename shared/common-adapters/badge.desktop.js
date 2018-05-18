@@ -4,7 +4,11 @@ import * as React from 'react'
 import Text from './text'
 import {globalStyles, globalColors, platformStyles} from '../styles'
 
-import type {Props} from './badge'
+type Props = {
+  badgeNumber: ?number,
+  badgeStyle?: any,
+  badgeNumberStyle?: Object,
+}
 
 function Badge({badgeStyle, badgeNumber, badgeNumberStyle}: Props) {
   return (

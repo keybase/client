@@ -4,7 +4,10 @@ import * as React from 'react'
 import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 
-import type {Props} from './banner'
+type Props = {
+  error: ?Error,
+  style?: any,
+}
 
 function Banner({error, style}: Props) {
   if (!error) return null

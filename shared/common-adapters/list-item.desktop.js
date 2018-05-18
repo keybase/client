@@ -1,10 +1,22 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import Box from './box'
 import {globalStyles, desktopStyles} from '../styles'
-import type {Props} from './list-item'
 
-class ListItem extends Component<Props> {
+type Props = {
+  type: 'Small' | 'Large',
+  icon: React.Node,
+  body: React.Node,
+  action: React.Node,
+  extraRightMarginAction?: boolean, // Spacing is different if the action is just text (for example)
+  onClick?: () => void,
+  onPress?: void,
+  containerStyle?: Object,
+  bodyContainerStyle?: Object,
+  swipeToAction?: boolean, // Do you have to swipe the list item to reveal an action?
+}
+
+class ListItem extends React.Component<Props> {
   render() {
     const clickable = !!this.props.onClick
     const minHeight = {Large: 48, Small: 40}[this.props.type]

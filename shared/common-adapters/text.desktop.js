@@ -7,7 +7,75 @@ import {findDOMNode} from 'react-dom'
 import {glamorous, desktopStyles} from '../styles'
 import shallowEqual from 'shallowequal'
 
-import type {Props, TextType, Background} from './text'
+export type Background =
+  | 'Announcements'
+  | 'Documentation'
+  | 'HighRisk'
+  | 'Information'
+  | 'Normal'
+  | 'Success'
+  | 'Terminal'
+
+export type TextType =
+  | 'Body'
+  | 'BodyBig'
+  | 'BodyBigLink'
+  | 'BodyError'
+  | 'BodyExtrabold'
+  | 'BodyPrimaryLink'
+  | 'BodySecondaryLink'
+  | 'BodySemibold'
+  | 'BodySemiboldLink'
+  | 'BodySemiboldItalic'
+  | 'BodySmall'
+  | 'BodySmallExtrabold'
+  | 'BodySmallError'
+  | 'BodySmallInlineLink'
+  | 'BodySmallItalic'
+  | 'BodySmallPrimaryLink'
+  | 'BodySmallSecondaryLink'
+  | 'BodySmallSecondaryLinkExtrabold'
+  | 'BodySmallSemibold'
+  | 'BodySmallSemiboldItalic'
+  | 'BodySmallSemiboldInlineLink'
+  | 'BodySmallSuccess'
+  | 'BodySuccess'
+  | 'Header'
+  | 'HeaderExtrabold'
+  | 'HeaderBig'
+  | 'HeaderBigExtrabold'
+  | 'HeaderLink'
+  | 'Terminal'
+  | 'TerminalComment'
+  | 'TerminalEmpty'
+  | 'TerminalInline'
+
+type Props = {
+  allowFontScaling?: boolean,
+  allowHighlightText?: boolean, // if true, highlighttext through refs works
+  backgroundMode?: Background,
+  children?: React.Node,
+  className?: string,
+  lineClamp?: number,
+  onClick?: ?(e: SyntheticEvent<>) => void | ?() => void,
+  onClickURL?: ?string,
+  onLongPress?: () => void,
+  onPress?: void,
+  plainText?: boolean,
+  selectable?: boolean,
+  style?: StylesCrossPlatform,
+  title?: ?string,
+  type: TextType,
+  underline?: boolean,
+}
+
+type MetaType = {
+  fontSize: number,
+  colorForBackgroundMode: {[key: Background]: ?string},
+  isLink?: true,
+  styleOverride?: ?Object,
+  isTerminal?: true,
+}
 
 class Text extends Component<Props> {
   _span: any

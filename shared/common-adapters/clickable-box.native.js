@@ -1,9 +1,30 @@
 // @flow
 import * as React from 'react'
-import type {Props} from './clickable-box'
 import Box from './box'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import {collapseStyles, globalColors} from '../styles'
+
+type Props = {
+  className?: ?string,
+  children?: any,
+  style?: StylesCrossPlatform,
+  onClick?: ?(event: SyntheticEvent<Element>) => void,
+  onPress?: void,
+  onLongPress?: ?(event: SyntheticEvent<Element>) => void,
+  underlayColor?: ?string,
+  onPressIn?: ?() => void,
+  onPressOut?: ?() => void,
+  feedback?: boolean,
+  // mobile only
+  activeOpacity?: number,
+  // desktop only
+  hoverColor?: ?string,
+  onMouseOver?: ?(event: SyntheticEvent<>) => void,
+  onMouseEnter?: ?() => void,
+  onMouseLeave?: ?() => void,
+  onMouseDown?: ?() => void,
+  onMouseUp?: ?() => void,
+}
 
 const ClickableBox = ({
   onClick,

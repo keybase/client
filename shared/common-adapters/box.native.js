@@ -1,10 +1,19 @@
 // @flow
 import * as React from 'react'
 import {View} from 'react-native'
-import {globalStyles, collapseStyles, globalMargins} from '../styles'
+import {globalStyles, collapseStyles, globalMargins, type StylesCrossPlatform} from '../styles'
 import {intersperseFn} from '../util/arrays'
 
-import type {Box2Props} from './box'
+type Box2Props = {
+  children?: React.Node,
+  direction: 'horizontal' | 'vertical',
+  fullHeight?: boolean,
+  fullWidth?: boolean,
+  style?: StylesCrossPlatform,
+  gap?: $Keys<typeof globalMargins>,
+  gapStart?: boolean,
+  gapEnd?: boolean,
+}
 
 const Box = View
 
