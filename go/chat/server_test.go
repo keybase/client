@@ -3262,6 +3262,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
 
+		t.Logf("user1 leaves: %s", ncres.Conv.GetConvID())
 		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
 			ncres.Conv.GetConvID())
 		require.NoError(t, err)
