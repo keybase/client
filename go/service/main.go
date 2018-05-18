@@ -597,16 +597,16 @@ func (d *Service) hourlyChecks() {
 	})
 	go func() {
 		// do this quickly
-		if err := m.LogoutIfRevoked(); err != nil {
-			m.CDebugf("LogoutIfRevoked error: %s", err)
+		if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
+			m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 		}
 		ekLib := m.G().GetEKLib()
 		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
 			m.CDebugf("| checking if current device revoked")
-			if err := m.LogoutIfRevoked(); err != nil {
-				m.CDebugf("LogoutIfRevoked error: %s", err)
+			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
+				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 			}
 
 			ekLib := m.G().GetEKLib()
