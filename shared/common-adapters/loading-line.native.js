@@ -4,7 +4,9 @@ import React, {Component} from 'react'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native.js'
 import {globalColors, styleSheetCreate} from '../styles'
 
-import type {Props} from './loading-line'
+type Props = {
+  style?: ?Object,
+}
 
 const animMax = 0.9
 

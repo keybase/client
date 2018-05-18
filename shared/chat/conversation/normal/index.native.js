@@ -7,7 +7,19 @@ import ListArea from '../list-area/container'
 import {Box, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
-import type {Props} from '.'
+type Props = {
+  conversationIDKey: Types.ConversationIDKey,
+  focusInputCounter: number,
+  infoPanelOpen: boolean,
+  listScrollDownCounter: number,
+  showLoader: boolean,
+  onAttach: (paths: Array<string>) => void,
+  onFocusInput: () => void,
+  onScrollDown: () => void,
+  onShowTracker: (username: string) => void,
+  onToggleInfoPanel: () => void,
+  threadLoadedOffline: boolean,
+}
 
 const Offline = () => (
   <Box

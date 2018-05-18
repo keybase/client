@@ -3,10 +3,33 @@ import logger from '../logger'
 import * as shared from './icon.shared'
 import ClickableBox from './clickable-box'
 import * as React from 'react'
-import {globalColors, glamorous, collapseStyles} from '../styles'
+import {globalColors, glamorous, collapseStyles, type StylesCrossPlatformWithSomeDisallowed} from '../styles'
 import {iconMeta} from './icon.constants'
 import {NativeStyleSheet} from './native-wrappers.native.js'
-import type {IconType, Props} from './icon'
+
+// These must be passed as props
+type DisallowedStyles = {
+  color?: empty,
+  hoverColor?: empty,
+  fontSize?: empty,
+}
+
+export type Props = {
+  type: IconType,
+  hint?: string,
+  onClick?: (event: SyntheticEvent<Element>) => void,
+  onPress?: void,
+  onMouseEnter?: () => void,
+  onMouseLeave?: () => void,
+  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  opacity?: boolean,
+  inheritColor?: boolean,
+  underlayColor?: string,
+  className?: string,
+  color?: Color,
+  hoverColor?: string,
+  fontSize?: number,
+}
 
 // In order to optimize this commonly used component we use StyleSheet on all the default variants
 // so we can pass IDs around instead of full objects
@@ -168,3 +191,4 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
 }
 
 export default Icon
+export type {IconType} from './icon.constants'

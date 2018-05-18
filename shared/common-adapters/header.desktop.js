@@ -1,11 +1,24 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import Text from './text'
-import type {Props, DefaultProps} from './header'
 import {Icon} from '../common-adapters'
 import {globalStyles, globalColors, desktopStyles, platformStyles, collapseStyles} from '../styles'
 
-class Header extends Component<Props> {
+type Props = {
+  icon?: boolean,
+  title?: string,
+  onClose?: () => void,
+  style?: Object,
+  children?: React.Node,
+  windowDragging?: boolean,
+  type: 'Default' | 'Strong',
+}
+
+type DefaultProps = {
+  type: $PropertyType<Props, 'type'>,
+}
+
+class Header extends React.Component<Props> {
   static defaultProps: DefaultProps
 
   renderDefault() {

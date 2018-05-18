@@ -10,7 +10,7 @@ import {
   NativeDimensions,
   HOCTimers,
   type PropsWithTimer,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/native'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'

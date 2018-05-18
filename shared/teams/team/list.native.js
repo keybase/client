@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {NativeSectionList} from '../../common-adapters/index.native'
+import {NativeSectionList} from '../../common-adapters/native'
 import type {Props} from './list'
 import {globalStyles} from '../../styles'
 

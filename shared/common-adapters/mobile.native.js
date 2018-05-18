@@ -2,10 +2,10 @@
 
 module.hot &&
   module.hot.accept(() => {
-    console.log('accepted update in common-adapters/index.native')
+    console.log('accepted update in common-adapters/native')
   })
 
-export * from './index.js'
+export * from '.'
 export * from './native-wrappers.native.js'
 export * from './floating-picker.native.js'
 export * from './form-input.native.js'

@@ -2,8 +2,15 @@
 import * as React from 'react'
 import Text from './text'
 import glamorous from 'glamorous'
-import type {Props} from './radio-button'
 import {globalStyles, globalColors, transition, desktopStyles} from '../styles'
+
+type Props = {
+  label: string,
+  onSelect: (selected: boolean) => void,
+  selected: boolean,
+  style?: Object,
+  disabled?: boolean,
+}
 
 export const RADIOBUTTON_SIZE = 14
 export const RADIOBUTTON_MARGIN = 8

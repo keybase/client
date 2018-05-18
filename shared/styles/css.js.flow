@@ -380,6 +380,7 @@ export type _StylesDesktop = {|
   verticalAlign?: string,
   visibility?: string,
   webkitBackdropFilter?: string,
+  webkitFontSmoothing?: string,
   webkitOverflowScrolling?: string,
   webkitTransform?: string,
   webkitTransformOrigin?: string,

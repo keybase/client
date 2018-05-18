@@ -3,7 +3,16 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles'
 import {getStyle as getTextStyle} from './text'
 
-import type {Props} from './autosize-input'
+type Props = {
+  autoFocus?: boolean,
+  value: string,
+  placeholder?: ?string,
+  inputStyle?: Object,
+  onChange: (text: string) => void,
+  onKeyDown?: (ev: SyntheticKeyboardEvent<>) => void,
+  onFocus?: (ev: SyntheticInputEvent<>) => void,
+  onBlur?: (ev: SyntheticInputEvent<>) => void,
+}
 
 type State = {
   measuredWidth: ?number,
@@ -109,7 +118,7 @@ const resetStyle = {
 }
 
 const placeholderColorCSS = `
-input.lighterPlaceholder::placeholder { 
+input.lighterPlaceholder::placeholder {
   color: ${globalColors.black_20};
 }
 `

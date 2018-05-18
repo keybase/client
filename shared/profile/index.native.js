@@ -20,7 +20,7 @@ import {
   Text,
   UserBio,
   UserProofs,
-} from '../common-adapters/index.native'
+} from '../common-adapters/native'
 import UserActions from './user-actions'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import ShowcasedTeamInfo from './showcased-team-info/container'

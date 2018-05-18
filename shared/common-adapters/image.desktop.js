@@ -1,5 +1,9 @@
 // @flow
 import * as React from 'react'
-import type {Props} from './image'
+
+type Props = {
+  src: string,
+  style?: any,
+}
 
 export default ({src, style}: Props) => <img src={src} style={style} />

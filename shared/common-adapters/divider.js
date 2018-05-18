@@ -1,9 +1,12 @@
 // @flow
 import React, {Component} from 'react'
 import Box from './box'
-import {collapseStyles, globalColors} from '../styles'
+import {collapseStyles, globalColors, type StylesCrossPlatform} from '../styles'
 
-import type {Props} from './divider'
+type Props = {
+  style?: StylesCrossPlatform,
+  vertical?: boolean,
+}
 
 class Divider extends Component<Props> {
   render() {

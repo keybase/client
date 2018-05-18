@@ -6,7 +6,15 @@ import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
 import {globalStyles, collapseStyles} from '../styles'
-import type {Props} from './back-button'
+type Props = {
+  badgeNumber?: number,
+  onClick: () => void,
+  onPress?: void,
+  iconColor?: Color,
+  textStyle?: Object,
+  style?: ?Object,
+  title?: ?string,
+}
 
 export default class BackButton extends Component<Props> {
   onClick(event: SyntheticEvent<>) {

@@ -8,8 +8,83 @@ import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
 
-import type {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
+
+export type Selection = {start: number, end: number}
+
+export type TextInfo = {
+  text: string,
+  selection: Selection,
+}
+
+export type KeyboardType =
+  | 'default'
+  | 'email-address'
+  | 'numeric'
+  | 'phone-pad'
+  // iOS only
+  | 'ascii-capable'
+  | 'numbers-and-punctuation'
+  | 'url'
+  | 'number-pad'
+  | 'name-phone-pad'
+  | 'decimal-pad'
+  | 'twitter'
+  | 'web-search'
+  // Android Only
+  | 'visible-password'
+
+export type Props = {
+  // if true we use a smarter algorithm to decide when we need to recalculate our height
+  // might be safe to use this everywhere but I wanted to limit it to just chat short term
+  smartAutoresize?: boolean,
+  autoFocus?: boolean,
+  className?: string,
+  editable?: boolean,
+  errorStyle?: StylesCrossPlatform,
+  errorText?: ?string,
+  floatingHintTextOverride?: ?string, // if undefined will use hintText. Use this to override hintText
+  hideUnderline?: boolean,
+  hintText?: ?string,
+  inputStyle?: StylesCrossPlatform,
+  multiline?: boolean,
+  onBlur?: () => void,
+  onClick?: (event: Event) => void,
+  onChangeText?: (text: string) => void,
+  onFocus?: () => void,
+  rowsMax?: number,
+  maxLength?: number,
+  rowsMin?: number,
+  hideLabel?: boolean,
+  small?: boolean,
+  smallLabel?: string,
+  smallLabelStyle?: StylesCrossPlatform,
+  style?: StylesCrossPlatform,
+  type?: 'password' | 'text' | 'passwordVisible',
+  value?: ?string,
+
+  // Looks like desktop only, but used on mobile for onSubmitEditing (!).
+  // TODO: Have a separate onSubmitEditing prop.
+  onEnterKeyDown?: (event: SyntheticKeyboardEvent<>) => void,
+
+  // TODO this is a short term hack to have this be uncontrolled. I think likely by default we would want this to be uncontrolled but
+  // i'm afraid of touching this now while I'm fixing a crash.
+  // If true it won't use its internal value to drive its rendering
+  uncontrolled?: boolean,
+
+  // Desktop only.
+  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+  onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+
+  // Mobile only
+  onEndEditing?: ?() => void,
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
+  autoCorrect?: boolean,
+  // If keyboardType is set, it overrides type.
+  keyboardType?: KeyboardType,
+  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
+  selectTextOnFocus?: boolean,
+}
 
 type State = {
   focused: boolean,

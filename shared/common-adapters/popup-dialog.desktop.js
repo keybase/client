@@ -4,7 +4,16 @@ import {Box, Icon} from './'
 import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles, collapseStyles} from '../styles'
 
-import type {Props} from './popup-dialog'
+type Props = {
+  onClose: () => void,
+  allowClipBubbling?: boolean,
+  fill?: boolean,
+  children?: React.Node,
+  styleCover?: any,
+  styleContainer?: any,
+  styleClose?: any,
+  styleClipContainer?: any,
+}
 
 function stopBubbling(ev) {
   ev.stopPropagation()

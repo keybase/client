@@ -4,9 +4,23 @@ import Text from './text'
 import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
 import Box from './box'
-import {collapseStyles, globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
+import {
+  collapseStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  statusBarHeight,
+  type StylesCrossPlatform,
+} from '../styles'
 
-import type {Props} from './header-hoc'
+export type Props = {
+  title?: string,
+  onBack?: ?() => void,
+  onCancel?: ?() => void,
+  headerStyle?: StylesCrossPlatform,
+  customComponent?: ?React.Node,
+  theme?: 'light' | 'dark', // defaults to light
+}
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => {

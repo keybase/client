@@ -4,9 +4,23 @@ import Text from './text'
 import BackButton from './back-button'
 import Box from './box'
 import Icon from './icon'
-import {collapseStyles, globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
+import {
+  collapseStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  desktopStyles,
+  type StylesCrossPlatform,
+} from '../styles'
 
-import type {Props} from './header-hoc'
+export type Props = {
+  title?: string,
+  onBack?: ?() => void,
+  onCancel?: ?() => void,
+  headerStyle?: StylesCrossPlatform,
+  customComponent?: ?React.Node,
+  theme?: 'light' | 'dark', // defaults to light
+}
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   return (props: P & Props) => {

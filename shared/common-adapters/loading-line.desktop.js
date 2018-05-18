@@ -3,7 +3,9 @@ import Box from './box'
 import React, {Component} from 'react'
 import {globalColors, globalStyles} from '../styles'
 
-import type {Props} from './loading-line'
+type Props = {
+  style?: ?Object,
+}
 
 class LoadingLine extends Component<Props> {
   render() {

@@ -8,7 +8,26 @@ import {globalColors, globalMargins, globalStyles, desktopStyles} from '../../st
 import {stateColors} from '../../util/tracker'
 import SubHeading from '../subheading'
 
-import type {Props, PendingInvite, AcceptedInvite} from './index'
+import type {Time} from '../../constants/types/rpc-gen'
+import type {SimpleProofState} from '../../constants/types/tracker'
+
+type InviteBase = {
+  id: string,
+  created: Time,
+}
+
+export type PendingInvite = {
+  url: string,
+  email: ?string,
+} & InviteBase
+
+export type AcceptedInvite = {
+  username: string,
+  fullname: string,
+  currentlyFollowing: boolean,
+  trackerState: SimpleProofState,
+} & InviteBase
+
 
 type State = {
   inviteEmail: string,

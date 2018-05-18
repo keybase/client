@@ -8,10 +8,14 @@ import {
   NativeScrollView,
   HeaderHoc,
   ClickableBox,
-} from '../../../common-adapters/index.native'
+} from '../../../common-adapters/native'
 import {globalColors, globalStyles, desktopStyles} from '../../../styles'
 
-import type {Props} from './participant-rekey'
+type Props = {
+  rekeyers: Array<string>,
+  onShowProfile: (username: string) => void,
+  onBack: () => void,
+}
 
 const Row = ({username, onUsernameClicked}) => (
   <ClickableBox onClick={() => onUsernameClicked(username)}>

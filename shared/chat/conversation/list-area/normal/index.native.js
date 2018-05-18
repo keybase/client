@@ -3,9 +3,20 @@ import * as React from 'react'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
-import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/index.native'
+import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/native'
+import * as I from 'immutable'
+import * as Types from '../../../../constants/types/chat2'
 
-import type {Props} from '.'
+type Props = {|
+  conversationIDKey: Types.ConversationIDKey,
+  messageOrdinals: I.List<Types.Ordinal>,
+  onFocusInput: () => void,
+  // TODO DESKTOP-6256 get rid of this
+  onToggleInfoPanel: () => void,
+  loadMoreMessages: (ordinal: ?Types.Ordinal) => void,
+  editingOrdinal: ?Types.Ordinal,
+  lastLoadMoreOrdinal: ?Types.Ordinal,
+|}
 
 class ConversationList extends React.PureComponent<Props> {
   _renderItem = ({index, item}) => {

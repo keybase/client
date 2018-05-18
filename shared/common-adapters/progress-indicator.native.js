@@ -1,8 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './progress-indicator'
 import {NativeActivityIndicator} from './native-wrappers.native'
 import {globalColors, collapseStyles} from '../styles'
+
+type Props = {
+  style?: Object,
+  white?: boolean,
+  type?: 'Small' | 'Large',
+}
 
 class ProgressIndicator extends Component<Props> {
   render() {

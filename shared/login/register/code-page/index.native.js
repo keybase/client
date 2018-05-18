@@ -17,7 +17,7 @@ import {
   NativeStyleSheet,
   TabBar,
   Text,
-} from '../../../common-adapters/index.native'
+} from '../../../common-adapters/native'
 import {TabBarItem} from '../../../common-adapters/tab-bar'
 import {
   codePageDeviceRoleExistingPhone,

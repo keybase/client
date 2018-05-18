@@ -1,14 +1,30 @@
 // @flow
 import Icon from './icon'
-import React, {Component} from 'react'
+import * as React from 'react'
 import Text from './text'
-import type {Props} from './checkbox'
-import {collapseStyles, globalStyles, globalColors, transition, desktopStyles} from '../styles'
+import {
+  collapseStyles,
+  globalStyles,
+  globalColors,
+  transition,
+  desktopStyles,
+  type StylesCrossPlatform,
+} from '../styles'
+
+export type Props = {|
+  key?: string,
+  label?: string,
+  labelComponent?: React.Node,
+  onCheck: ?(newCheckedValue: boolean) => void,
+  checked: boolean,
+  style?: StylesCrossPlatform,
+  disabled?: boolean,
+|}
 
 export const CHECKBOX_SIZE = 13
 export const CHECKBOX_MARGIN = 8
 
-class Checkbox extends Component<Props> {
+class Checkbox extends React.Component<Props> {
   render() {
     let borderColor = this.props.checked ? globalColors.blue : globalColors.black_20
 

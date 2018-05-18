@@ -1,12 +1,7 @@
-; desktop VERSION
+; Desktop VERSION. TODO this is a WIP
 [ignore]
 .*/*[.]android.js
 .*/*[.]ios.js
-.*/*[.]native.js
-; DO ignore flow files!!!!! waaaaaaaaa
-.*/*[.].js.flow
-; dont ignore desktop .*/*[.]desktop.js
-
 .*/node_modules/.*/node_modules/fbjs/.*
 .*/node_modules/metro-bundler.*
 .*/node_modules/electron-packager.*
@@ -37,20 +32,6 @@ experimental.const_params=true
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> '<PROJECT_ROOT>/__mocks__/global-image-stub.js'
 
 module.system=haste
-
-module.system.haste.use_name_reducers=true
-# strip .js or .js.flow suffix
-module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
-# strip .mobile suffix
-# module.system.haste.name_reducers='^\(.*\)\.ios$' -> '\1'
-# module.system.haste.name_reducers='^\(.*\)\.android$' -> '\1'
-# module.system.haste.name_reducers='^\(.*\)\.native$' -> '\1'
-module.system.haste.name_reducers='^\(.*\)\.desktop\.js$' -> '\1'
-module.file_ext=.js
-module.file_ext=.desktop.js
-module.file_ext=.ios.js
-module.file_ext=.android.js
-module.file_ext=.native.js
 
 suppress_type=$FlowIssue
 suppress_type=$ForceType

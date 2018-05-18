@@ -1,7 +1,11 @@
 // @flow
 import * as React from 'react'
 import {NativeImage} from './index.native'
-import type {Props} from './image'
+
+type Props = {
+  src: string,
+  style?: any,
+}
 
 export default ({src, style}: Props) => {
   const source = {uri: `file://${src}`}

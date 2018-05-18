@@ -3,7 +3,16 @@ import * as React from 'react'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
 import {platformStyles, globalColors, globalMargins} from '../../../../styles'
-import type {Props} from '.'
+
+type Props = {
+  attachTo: ?React.Component<any, any>,
+  visible: boolean,
+  onHidden: () => void,
+  isNew: boolean,
+  selected: ?MessageExplodeDescription,
+  onSelect: MessageExplodeDescription => void,
+  items: MessageExplodeDescription[],
+}
 
 type HeaderProps = {
   isNew: boolean,

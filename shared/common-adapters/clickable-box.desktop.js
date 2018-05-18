@@ -1,8 +1,28 @@
 // @flow
 import * as React from 'react'
-import {collapseStyles, globalStyles, desktopStyles} from '../styles'
+import {collapseStyles, globalStyles, desktopStyles, type StylesCrossPlatform} from '../styles'
 
-import type {Props} from './clickable-box'
+type Props = {
+  className?: ?string,
+  children?: any,
+  style?: StylesCrossPlatform,
+  onClick?: ?(event: SyntheticEvent<Element>) => void,
+  onPress?: void,
+  onLongPress?: ?(event: SyntheticEvent<Element>) => void,
+  underlayColor?: ?string,
+  onPressIn?: ?() => void,
+  onPressOut?: ?() => void,
+  feedback?: boolean,
+  // mobile only
+  activeOpacity?: number,
+  // desktop only
+  hoverColor?: ?string,
+  onMouseOver?: ?(event: SyntheticEvent<>) => void,
+  onMouseEnter?: ?() => void,
+  onMouseLeave?: ?() => void,
+  onMouseDown?: ?() => void,
+  onMouseUp?: ?() => void,
+}
 
 const needMouseEnterLeaveHandlers = (props: Props): boolean => {
   return !!(props.hoverColor || props.underlayColor || props.onMouseEnter || props.onMouseLeave)

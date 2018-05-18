@@ -4,8 +4,14 @@ import Checkbox from './checkbox'
 import Input from './input'
 import React, {Component} from 'react'
 import type {Props as CheckboxProps} from './checkbox'
-import type {Props} from './form-with-checkbox'
 import {collapseStyles, globalStyles} from '../styles'
+
+type Props = {|
+  inputProps: InputProps,
+  style?: StylesCrossPlatform,
+  checkboxContainerStyle?: StylesCrossPlatform,
+  checkboxesProps: Array<$Exact<CheckboxProps>>,
+|}
 
 class FormWithCheckbox extends Component<Props> {
   render() {

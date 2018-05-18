@@ -3,7 +3,6 @@ import * as React from 'react'
 import {TransitionGroup, CSSTransition} from 'react-transition-group'
 import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
-import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/types/tracker'
 import {Box, Icon, Text, Meta} from '../common-adapters/index'
 import {defaultColor} from '../common-adapters/icon.shared'
@@ -16,6 +15,31 @@ import {
   collapseStyles,
 } from '../styles'
 import {metaNone} from '../constants/tracker'
+import type {PlatformsExpandedType} from '../constants/types/more'
+export type MissingProof = {
+  type: PlatformsExpandedType,
+  message: string,
+  onClick: (missingProof: MissingProof) => void,
+}
+
+type CommonProps = {
+  style?: Object,
+  loadingStyle?: ?Object,
+  loading?: boolean,
+  username: ?string,
+  onClickProofMenu?: ?(idx: number) => void,
+  showingMenuIndex?: ?number,
+}
+
+export type Props =
+  | ({
+      type: 'proofs',
+      proofs: Array<Proof>,
+    } & CommonProps)
+  | ({
+      type: 'missingProofs',
+      missingProofs: Array<MissingProof>,
+    } & CommonProps)
 
 function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.Node {
   const missingColor = globalColors.black_20

@@ -13,8 +13,29 @@ import {
   ButtonBar,
 } from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous, platformStyles} from '../../styles'
+import {type ChannelMembershipState} from '../../constants/types/teams'
+import {type ConversationIDKey} from '../../constants/types/chat2'
 
-import type {Props, RowProps} from '.'
+type RowProps = {
+  description: string,
+  name: string,
+}
+
+type Props = {
+  canCreateChannels: boolean,
+  canEditChannels: boolean,
+  channels: Array<RowProps & {convID: ConversationIDKey}>,
+  onCreate: () => void,
+  onToggle: (convID: ConversationIDKey) => void,
+  onEdit: (convID: ConversationIDKey) => void,
+  onClose: () => void,
+  onClickChannel: (convID: ConversationIDKey) => void,
+  teamname: string,
+  unsavedSubscriptions: boolean,
+  onSaveSubscriptions: () => void,
+  waitingForGet: boolean,
+  nextChannelState: ChannelMembershipState,
+}
 
 const HoverBox = glamorous(Box)({
   opacity: 0,

@@ -1,10 +1,35 @@
-// @flow
+// @noflow i havea  pr where this is changed a bunch
 import Icon from './icon'
 import * as React from 'react'
 import {globalColors, glamorous, desktopStyles} from '../styles'
-
-import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
+
+export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
+export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
+export type URLMap = {
+  '200': string,
+  '360': string,
+  '40': string,
+}
+
+export type Props = {|
+  skipBackground?: boolean,
+  borderColor?: string,
+  children?: any,
+  following?: ?boolean,
+  followsYou?: ?boolean,
+  followIconSize: number,
+  isPlaceholder: boolean,
+  loadingColor?: string,
+  onAvatarLoaded?: () => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
+  opacity?: number,
+  size: AvatarSize,
+  style?: ?Object,
+  // TODO flow type to allow one or the other, not both url and username etc
+  url?: URLType,
+  username?: ?string,
+|}
 
 type ImageProps = {
   opacity: ?number,

@@ -3,7 +3,11 @@ import * as React from 'react'
 import {Box, Button, Text, ButtonBar} from '../../../common-adapters'
 import {globalColors, globalStyles} from '../../../styles'
 
-import type {Props} from './you-rekey'
+type Props = {
+  onEnterPaperkey: () => void,
+  onBack: () => void,
+  onRekey: () => void,
+}
 
 const YouRekey = ({onRekey}: Props) => {
   return (

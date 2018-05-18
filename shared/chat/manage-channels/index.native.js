@@ -15,7 +15,26 @@ import {
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
-import type {Props, RowProps} from '.'
+type RowProps = {
+  description: string,
+  name: string,
+}
+
+type Props = {
+  canCreateChannels: boolean,
+  canEditChannels: boolean,
+  channels: Array<RowProps & {convID: ConversationIDKey}>,
+  onCreate: () => void,
+  onToggle: (convID: ConversationIDKey) => void,
+  onEdit: (convID: ConversationIDKey) => void,
+  onClose: () => void,
+  onClickChannel: (convID: ConversationIDKey) => void,
+  teamname: string,
+  unsavedSubscriptions: boolean,
+  onSaveSubscriptions: () => void,
+  waitingForGet: boolean,
+  nextChannelState: ChannelMembershipState,
+}
 
 const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
   <ClickableBox style={style} onClick={onClick}>

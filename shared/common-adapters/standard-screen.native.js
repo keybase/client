@@ -1,11 +1,27 @@
 // @flow
 import * as React from 'react'
-import type {Props} from './standard-screen'
 import {NativeScrollView} from './native-wrappers.native'
 import Box from './box'
 import Text from './text'
 import HeaderHoc from './header-hoc'
 import {globalColors, globalMargins, globalStyles} from '../styles'
+
+export type NotificationType = 'error' | 'success'
+
+export type Props = {
+  children?: ?any,
+  title?: ?string,
+  onCancel?: ?(() => void),
+  onBack?: ?() => void,
+  notification?: ?{
+    message: string | React.Node,
+    type: NotificationType,
+  },
+  style?: ?Object,
+  theme?: 'light' | 'dark', // defaults to light
+  styleBanner?: ?Object,
+}
+
 
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
   return (

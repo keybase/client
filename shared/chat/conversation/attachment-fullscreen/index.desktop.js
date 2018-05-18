@@ -12,7 +12,20 @@ import {
   platformStyles,
 } from '../../../styles'
 
-import type {Props} from '.'
+import type {MessageAttachment} from '../../../constants/types/chat2'
+
+type Props = {
+  path: string,
+  title: string,
+  isZoomed: boolean,
+  message: MessageAttachment,
+  progress: number,
+  progressLabel: ?string,
+  onClose: () => void,
+  onDownloadAttachment: ?() => void,
+  onShowInFinder: ?() => void,
+  onToggleZoom: () => void,
+}
 
 type State = {loaded: boolean}
 class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, State> {

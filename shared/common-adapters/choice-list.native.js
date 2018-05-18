@@ -7,7 +7,14 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {IconType} from './icon'
-import type {Props} from './choice-list'
+
+type Option = {
+  title: string,
+  description: string,
+  icon: IconType | React.Node,
+  onClick: () => void,
+  onPress?: void,
+}
 
 type State = {
   activeIndex: ?number,

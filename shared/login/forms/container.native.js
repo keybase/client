@@ -2,7 +2,7 @@
 import * as React from 'react'
 import type {Props} from './container'
 import {globalMargins, globalStyles} from '../../styles'
-import {Box, HeaderHoc, NativeScrollView} from '../../common-adapters/index.native'
+import {Box, HeaderHoc, NativeScrollView} from '../../common-adapters/native'
 
 const Container = ({children, style, outerStyle}: Props) => {
   return (

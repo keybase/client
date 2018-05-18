@@ -3,7 +3,17 @@ import * as React from 'react'
 import {Avatar, Box, Button, Icon, Input, PopupDialog, Text, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 
-import type {Props} from '.'
+type Props = {
+  channelname: string,
+  description: string,
+  errorText: string,
+  onBack: () => void,
+  onClose: () => void,
+  onSubmit: () => void,
+  onDescriptionChange: (description: string) => void,
+  onChannelnameChange: (channelname: string) => void,
+  teamname: string,
+}
 
 const errorHeader = (errorText: string) => {
   if (!errorText) {

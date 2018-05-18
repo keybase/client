@@ -6,7 +6,11 @@ import {Emoji} from 'emoji-mart'
 // Just the single set we use
 import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
 
-import type {Props} from './emoji'
+export type Props = {
+  size?: number,
+  emojiName: string,
+  allowFontScaling?: boolean,
+}
 
 const backgroundImageFn = (set: string, sheetSize: string) => emojiSet
 

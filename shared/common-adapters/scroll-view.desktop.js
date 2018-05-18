@@ -1,6 +1,11 @@
 // @flow
 import * as React from 'react'
-import type {Props} from './scroll-view'
+
+type Props = {|
+  children?: React.Node,
+  contentContainerStyle?: Object,
+  style?: Object,
+|}
 
 const ScrollView = (props: Props) => {
   const {contentContainerStyle, style, ...rest} = props

@@ -3,7 +3,13 @@ import Avatar from './avatar'
 import * as React from 'react'
 import {globalStyles, globalColors} from '../styles'
 
-import type {Props} from './user-card'
+export type Props = {
+  onAvatarClicked?: () => void,
+  outerStyle?: ?Object,
+  style?: ?Object,
+  username?: ?string,
+  children?: Array<any>,
+}
 
 const avatarSize = 112
 

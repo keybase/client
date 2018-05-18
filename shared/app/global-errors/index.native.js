@@ -9,12 +9,18 @@ import {
   List,
   HOCTimers,
   type PropsWithTimer,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'
 
-import type {Props as _Props} from './index'
+type _Props = {
+  error: null | Error | RPCError,
+  daemonError: ?Error,
+  onDismiss: () => void,
+  onFeedback: () => void,
+  debugDump: Array<string>,
+}
 
 type Size = 'Closed' | 'Small' | 'Big'
 type State = {

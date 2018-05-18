@@ -3,7 +3,11 @@ import * as React from 'react'
 import {Box, Avatar, Usernames, Text} from '../../../common-adapters'
 import {globalColors, globalStyles, platformStyles, desktopStyles} from '../../../styles'
 
-import type {Props} from './participant-rekey'
+type Props = {
+  rekeyers: Array<string>,
+  onShowProfile: (username: string) => void,
+  onBack: () => void,
+}
 
 const Row = ({username, onUsernameClicked}) => (
   <Box style={rowStyle} onClick={() => onUsernameClicked(username)}>

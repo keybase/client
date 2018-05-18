@@ -4,8 +4,14 @@ import * as React from 'react'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
 import {globalStyles, globalColors, isIPhoneX} from '../../styles'
+import type {Tab} from '../../constants/tabs'
 
-import type {Props} from './index.render'
+type Props = {
+  onTabClick: (tab: Tab) => void,
+  selectedTab: Tab,
+  username: string,
+  badgeNumbers: {[key: string]: number},
+}
 
 const _icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',

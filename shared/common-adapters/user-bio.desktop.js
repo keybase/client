@@ -4,9 +4,30 @@ import React, {Component} from 'react'
 import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
+import type {SimpleProofState, UserInfo} from '../constants/types/tracker'
 
 import type {AvatarSize} from './avatar'
-import type {Props} from './user-bio'
+export type BioEditFns = {
+  onEditAvatarClick: () => void,
+  onNameEdit: () => void,
+  onBioEdit: () => void,
+  onLocationEdit: () => void,
+  onEditProfile: () => void,
+}
+
+export type Props = {
+  type: 'Tracker' | 'Profile',
+  loading: boolean,
+  avatarSize: AvatarSize,
+  style?: any,
+  username: ?string,
+  userInfo: ?UserInfo,
+  trackerState: SimpleProofState,
+  currentlyFollowing: boolean,
+  editFns?: ?BioEditFns,
+  onAvatarLoaded?: () => void,
+  onClickAvatar?: (username: ?string) => void,
+}
 
 class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
@@ -141,14 +162,14 @@ class BioRender extends Component<Props> {
               )}
             {userInfo.followersCount !== -1 && (
               <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
-                <Text type="BodySmall" style={{...globalStyles.fontBold}}>
+                <Text type="BodySmall" style={platformStyles({isElectron: {...globalStyles.fontBold}})}>
                   {userInfo.followersCount}
                   <Text type="BodySmall">&nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}</Text>
                 </Text>
                 <Text type="BodySmall">&nbsp; &middot; &nbsp;</Text>
                 <Text type="BodySmall">
                   Following&nbsp;
-                  <Text type="BodySmall" style={{...globalStyles.fontBold}}>
+                  <Text type="BodySmall" style={platformStyles({isElectron: {...globalStyles.fontBold}})}>
                     {userInfo.followingCount}
                   </Text>
                 </Text>

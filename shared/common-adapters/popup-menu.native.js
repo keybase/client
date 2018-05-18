@@ -5,7 +5,41 @@ import Box from './box'
 import Text from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-import type {Props, MenuItem, HeaderTextProps} from './popup-menu'
+export type MenuItem = {|
+  title: string, // Only used as ID if view is provided for Header
+  view?: React.Node,
+  subTitle?: string, // subTitle is not used on native
+  danger?: boolean,
+  disabled?: boolean,
+  onClick?: ?(evt?: SyntheticEvent<>) => void,
+  onPress?: void,
+  style?: Object,
+|}
+
+export type Props = {
+  items: Array<MenuItem | 'Divider' | null>, // Divider is not used on native
+  header?: ?MenuItem,
+  onHidden?: ?() => void,
+  style?: Object,
+  styleCatcher?: ?Object,
+  hoverColor?: string,
+}
+
+export type ModalLessPopupMenuProps = {
+  items: Array<MenuItem | 'Divider' | null>,
+  header?: ?MenuItem,
+  onHidden?: ?() => void,
+  closeOnClick?: boolean,
+  style?: Object,
+  hoverColor?: string,
+}
+
+export type HeaderTextProps = {
+  color: string,
+  backgroundColor: string,
+  style?: Object,
+  children?: React.Node,
+}
 
 // Menu Item
 type MenuItemProps = {

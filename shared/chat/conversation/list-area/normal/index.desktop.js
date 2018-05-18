@@ -9,8 +9,19 @@ import {ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
+import * as I from 'immutable'
+import * as Types from '../../../../constants/types/chat2'
 
-import type {Props} from '.'
+type Props = {|
+  conversationIDKey: Types.ConversationIDKey,
+  messageOrdinals: I.List<Types.Ordinal>,
+  onFocusInput: () => void,
+  // TODO DESKTOP-6256 get rid of this
+  onToggleInfoPanel: () => void,
+  loadMoreMessages: (ordinal: ?Types.Ordinal) => void,
+  editingOrdinal: ?Types.Ordinal,
+  lastLoadMoreOrdinal: ?Types.Ordinal,
+|}
 
 const lockedToBottomSlop = 20
 

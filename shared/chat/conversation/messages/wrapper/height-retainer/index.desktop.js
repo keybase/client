@@ -4,8 +4,13 @@ import * as ReactDOM from 'react-dom'
 import {resolveRootAsURL} from '../../../../../desktop/resolve-root'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
 import {Box} from '../../../../../common-adapters'
-import {collapseStyles} from '../../../../../styles'
-import type {Props} from '.'
+import {collapseStyles, type StylesCrossPlatform} from '../../../../../styles'
+
+type Props = {
+  children?: React.Node,
+  style?: StylesCrossPlatform,
+  retainHeight: boolean,
+}
 
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
 const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
