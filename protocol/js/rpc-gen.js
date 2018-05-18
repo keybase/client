@@ -1070,10 +1070,6 @@ export const loginPaperKeySubmitRpcChannelMap = (configKeys: Array<string>, requ
 
 export const loginPaperKeySubmitRpcPromise = (request: LoginPaperKeySubmitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKeySubmit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
-export const loginPgpProvisionRpcChannelMap = (configKeys: Array<string>, request: LoginPgpProvisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.pgpProvision', request)
-
-export const loginPgpProvisionRpcPromise = (request: LoginPgpProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.pgpProvision', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const loginRecoverAccountFromEmailAddressRpcChannelMap = (configKeys: Array<string>, request: LoginRecoverAccountFromEmailAddressRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.recoverAccountFromEmailAddress', request)
 
 export const loginRecoverAccountFromEmailAddressRpcPromise = (request: LoginRecoverAccountFromEmailAddressRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.recoverAccountFromEmailAddress', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -2804,8 +2800,6 @@ export type LoginLogoutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapT
 export type LoginPaperKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LoginPaperKeySubmitRpcParam = $ReadOnly<{paperPhrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-
-export type LoginPgpProvisionRpcParam = $ReadOnly<{username: String, passphrase: String, deviceName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LoginRecoverAccountFromEmailAddressRpcParam = $ReadOnly<{email: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
