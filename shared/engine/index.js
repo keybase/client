@@ -80,7 +80,6 @@ class Engine {
   // Helper we delegate actual calls to
   _rpcClient: createClientType
   // All incoming call handlers
-  _incomingHandler: {[key: MethodKey]: (param: Object, response: ?Object) => void} = {}
   _incomingActionCreators: {
     [key: MethodKey]: (
       param: Object,
@@ -255,11 +254,6 @@ class Engine {
           return arr
         }, [])
         actions.forEach(a => this._dispatch(a))
-      } else if (this._incomingHandler[method]) {
-        // General incoming
-        const handler = this._incomingHandler[method]
-        rpcLog('engineInternal', 'handling incoming')
-        handler(param, response)
       } else {
         // Unhandled
         this._handleUnhandled(sessionID, method, seqid, param, response)
