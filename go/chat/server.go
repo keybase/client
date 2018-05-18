@@ -1325,10 +1325,18 @@ func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1
 		return msg.ClientHeader.EphemeralMetadata, nil
 	}
 
-	messages, err := h.G().ChatHelper.GetMessages(ctx, uid, convID,
-		[]chat1.MessageID{msg.ClientHeader.Supersedes}, false /* resolveSupersedes */)
-	if err != nil || len(messages) != 1 || !messages[0].IsValid() {
+	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true /* useLocalData */)
+	if err != nil {
 		return nil, err
+	}
+
+	messages, err := h.G().ConvSource.GetMessages(ctx, conv, uid,
+		[]chat1.MessageID{msg.ClientHeader.Supersedes})
+	if err != nil {
+		return nil, err
+	}
+	if len(messages) != 1 || !messages[0].IsValid() {
+		return nil, fmt.Errorf("GetMessages returned multiple messages or an invalid result for msgID: %v", msg.ClientHeader.Supersedes)
 	}
 	supersededMsg := messages[0].Valid()
 	if supersededMsg.IsEphemeral() {
