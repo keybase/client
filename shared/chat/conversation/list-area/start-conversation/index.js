@@ -5,6 +5,7 @@ import {styleSheetCreate, platformStyles, globalColors, globalMargins} from '../
 
 type Props = {
   participants: string,
+  showAddParticipants: boolean,
   onStart: () => void,
 }
 
@@ -22,7 +23,7 @@ const StartConversation = (props: Props) => (
         color={globalColors.white}
       />
     </Button>
-    <Text type="BodySmall">or add more participants.</Text>
+    {props.showAddParticipants && <Text type="BodySmall">or add more participants.</Text>}
   </Box2>
 )
 
