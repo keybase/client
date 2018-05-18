@@ -50,12 +50,14 @@ type LoginContext interface {
 	LoadLoginSession(emailOrUsername string) error
 	LoginSession() *LoginSession
 	ClearLoginSession()
+	SetLoginSession(l *LoginSession)
 
 	LocalSession() *Session
 	GetUID() keybase1.UID
 	GetUsername() NormalizedUsername
 	EnsureUsername(username NormalizedUsername)
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
+	SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error
 
 	Keyring() (*SKBKeyringFile, error)
 	ClearKeyring()
@@ -65,10 +67,8 @@ type LoginContext interface {
 	RunSecretSyncer(uid keybase1.UID) error
 
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error
-	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
 
-	GetUnlockedPaperEncKey() GenericKey
-	GetUnlockedPaperSigKey() GenericKey
+	Dump(m MetaContext, prefix string)
 }
 
 type LoggedInHelper interface {
@@ -316,65 +316,6 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(m MetaContext, passphrase
 	}
 	err = InternalError{"No cached keystream data after login attempt"}
 	return nil, err
-}
-
-func (s *LoginState) getStoredPassphraseStream(m MetaContext, username NormalizedUsername) (*PassphraseStream, error) {
-	fullSecret, err := m.G().SecretStore().RetrieveSecret(m.G().Env.GetUsername())
-	if err != nil {
-		return nil, err
-	}
-	lks := NewLKSecWithFullSecret(fullSecret, m.G().Env.GetUID(), s.G())
-	if err = lks.LoadServerHalf(m); err != nil {
-		return nil, err
-	}
-	stream, err := NewPassphraseStreamLKSecOnly(lks)
-	if err != nil {
-		return nil, err
-	}
-	return stream, nil
-}
-
-// GetPassphraseStreamStored either returns a cached, verified passphrase
-// stream from a previous login, the secret store, or generates a new one via
-// login.
-func (s *LoginState) GetPassphraseStreamStored(m MetaContext, ui SecretUI) (pps *PassphraseStream, err error) {
-	m.G().Log.CDebugf(m.Ctx(), "+ GetPassphraseStreamStored() called")
-	defer func() { m.G().Log.CDebugf(m.Ctx(), "- GetPassphraseStreamStored() -> %s", ErrToOk(err)) }()
-
-	// 1. try cached
-	m.G().Log.CDebugf(m.Ctx(), "| trying cached passphrase stream")
-	full, err := s.PassphraseStream()
-	if err != nil {
-		return pps, err
-	}
-	if full != nil {
-		m.G().Log.CDebugf(m.Ctx(), "| cached passphrase stream ok, using it")
-		return full, nil
-	}
-
-	// 2. try from secret store
-	if m.G().SecretStore() != nil {
-		m.G().Log.CDebugf(m.Ctx(), "| trying to get passphrase stream from secret store")
-		pps, err = s.getStoredPassphraseStream(m, s.G().Env.GetUsername())
-		if err == nil {
-			m.G().Log.CDebugf(m.Ctx(), "| got passphrase stream from secret store")
-			return pps, nil
-		}
-
-		m.G().Log.CDebugf(m.Ctx(), "| failed to get passphrase stream from secret store: %s", err)
-	}
-
-	// 3. login and get it
-	m.G().Log.CDebugf(m.Ctx(), "| using full GetPassphraseStream")
-	full, err = s.GetPassphraseStream(m, ui)
-	if err != nil {
-		return pps, err
-	}
-	if full != nil {
-		m.G().Log.CDebugf(m.Ctx(), "| success using full GetPassphraseStream")
-		return full, nil
-	}
-	return pps, nil
 }
 
 // GetVerifiedTripleSec either returns a cached, verified Triplesec
@@ -735,7 +676,7 @@ func (s *LoginState) getEmailOrUsername(m MetaContext, username *string, loginUI
 	}
 
 	if len(*username) == 0 {
-		err = NoUsernameError{}
+		err = NewNoUsernameError()
 	}
 
 	if err != nil {
@@ -1266,7 +1207,7 @@ func (s *LoginState) PassphraseStreamGeneration() (PassphraseGeneration, error) 
 
 func (s *LoginState) AccountDump() {
 	err := s.Account(func(a *Account) {
-		a.Dump()
+		a.Dump(NewMetaContextBackground(s.G()), "")
 	}, "LoginState - AccountDump")
 	if err != nil {
 		s.G().Log.Warning("error getting account for AccountDump: %s", err)

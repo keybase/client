@@ -9,6 +9,28 @@
   "types": [
     {
       "type": "record",
+      "name": "WalletAccountLocal",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "boolean",
+          "name": "isDefault"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "balanceDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PaymentCLIOptionLocal",
       "fields": [
         {
@@ -103,7 +125,7 @@
     },
     {
       "type": "record",
-      "name": "LocalOwnAccount",
+      "name": "OwnAccountCLILocal",
       "fields": [
         {
           "type": "AccountID",
@@ -135,6 +157,18 @@
     }
   ],
   "messages": {
+    "GetWalletAccountsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "WalletAccountLocal"
+      }
+    },
     "balancesLocal": {
       "request": [
         {
@@ -163,6 +197,14 @@
         },
         {
           "name": "note",
+          "type": "string"
+        },
+        {
+          "name": "displayAmount",
+          "type": "string"
+        },
+        {
+          "name": "displayCurrency",
           "type": "string"
         }
       ],
@@ -200,11 +242,11 @@
       "request": [],
       "response": "Bundle"
     },
-    "walletGetLocalAccounts": {
+    "walletGetAccountsCLILocal": {
       "request": [],
       "response": {
         "type": "array",
-        "items": "LocalOwnAccount"
+        "items": "OwnAccountCLILocal"
       }
     },
     "ownAccountLocal": {

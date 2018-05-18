@@ -839,4 +839,7 @@ protocol teams {
   void setTarsDisabled(string name, boolean disabled);
 
   void uploadTeamAvatar(string teamname, string filename, union { null, ImageCropRect } crop, boolean sendChatNotification);
+
+  bytes tryDecryptWithTeamKey(TeamID teamID, bytes encryptedData, BoxNonce nonce, 
+    BoxPublicKey peersPublicKey, PerTeamKeyGeneration minGeneration);
 }

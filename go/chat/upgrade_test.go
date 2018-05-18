@@ -29,7 +29,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	require.NoError(t, err)
 	tlfID := cres.NameIDBreaks.TlfID
 	require.Equal(t, info.Triple.Tlfid, chat1.TLFID(tlfID.ToBytes()))
-	conv, _, err := GetUnverifiedConv(context.TODO(), tc.Context(), uid, info.Id, true)
+	conv, err := GetUnverifiedConv(context.TODO(), tc.Context(), uid, info.Id, true)
 	require.NoError(t, err)
 
 	header := chat1.MessageClientHeader{

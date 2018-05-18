@@ -77,7 +77,7 @@ class GlobalError extends Component<Props, State> {
     return {
       Big: 500,
       Closed: 0,
-      Small: 35 + 66 + (isIPhoneX ? globalMargins.medium : 0),
+      Small: 35 + 66 + (isIPhoneX ? globalMargins.medium : globalMargins.xsmall),
     }[size]
   }
 
@@ -102,15 +102,18 @@ class GlobalError extends Component<Props, State> {
     return (
       <Box style={{...containerStyle, maxHeight}}>
         <Box style={globalStyles.flexBoxColumn}>
-          <Box style={{...summaryRowStyle, paddingTop: globalMargins.medium}}>
+          <Box
+            style={{...summaryRowStyle, paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.medium}}
+          >
             <Icon
               type="iconfont-exclamation"
               style={{marginRight: globalMargins.tiny}}
-              color={globalColors.white}
+              color={globalColors.white_75}
               onClick={this._onExpandClick}
+              fontSize={21}
             />
             <Text
-              type="BodySmall"
+              type="Body"
               style={{color: globalColors.white, flex: 1, textAlign: 'center'}}
               onClick={this._onExpandClick}
             >
@@ -121,6 +124,7 @@ class GlobalError extends Component<Props, State> {
               onClick={onDismiss}
               style={{marginLeft: globalMargins.tiny}}
               color={globalColors.white_75}
+              fontSize={21}
             />
           </Box>
           <Box style={summaryRowStyle}>
@@ -169,7 +173,7 @@ const containerStyle = {
   backgroundColor: globalColors.black_75,
   left: 0,
   overflow: 'hidden',
-  paddingTop: isIPhoneX ? globalMargins.medium : undefined,
+  paddingTop: isIPhoneX ? globalMargins.medium : globalMargins.xsmall,
   position: 'absolute',
   right: 0,
   top: 0,
@@ -180,7 +184,10 @@ const summaryRowStyle = {
   alignItems: 'flex-start',
   flexShrink: 0,
   justifyContent: 'flex-start',
-  padding: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.xsmall,
+  paddingRight: globalMargins.xsmall,
+  paddingTop: globalMargins.tiny,
 }
 
 const detailStyle = {

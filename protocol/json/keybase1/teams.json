@@ -2553,6 +2553,31 @@
         }
       ],
       "response": null
+    },
+    "tryDecryptWithTeamKey": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "encryptedData",
+          "type": "bytes"
+        },
+        {
+          "name": "nonce",
+          "type": "BoxNonce"
+        },
+        {
+          "name": "peersPublicKey",
+          "type": "BoxPublicKey"
+        },
+        {
+          "name": "minGeneration",
+          "type": "PerTeamKeyGeneration"
+        }
+      ],
+      "response": "bytes"
     }
   },
   "namespace": "keybase.1"

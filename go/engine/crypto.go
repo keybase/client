@@ -244,22 +244,13 @@ func matchingCachedKey(m libkb.MetaContext, arg keybase1.UnboxBytes32AnyArg) (ke
 		}
 	}
 
-	err = m.G().LoginState().Account(func(a *libkb.Account) {
-		// check paper key
-		pkey := a.GetUnlockedPaperEncKey()
+	device := m.ActiveDevice().PaperKey(m)
+	if device != nil {
+		pkey := device.EncryptionKey()
 		if n, ok := kidMatch(pkey, arg.Bundles); ok {
-			key = pkey
-			index = n
-			return
+			return pkey, n, nil
 		}
-	}, "UnboxBytes32Any")
-	if err != nil {
-		return nil, 0, err
 	}
-	if key != nil {
-		return key, index, nil
-	}
-
 	return nil, 0, nil
 }
 
@@ -336,14 +327,7 @@ func matchingPaperKey(m libkb.MetaContext, secretUI libkb.SecretUI, arg keybase1
 
 	// find the index for the key they entered (and make sure the key they entered matches)
 	if n, ok := kidMatch(bkeng.EncKey(), arg.Bundles); ok {
-
-		// this key matches, so cache this paper key
-		if err := m.G().LoginState().Account(func(a *libkb.Account) {
-			a.SetUnlockedPaperKey(bkeng.SigKey(), bkeng.EncKey())
-		}, "UnboxBytes32Any - cache paper key"); err != nil {
-			return nil, 0, err
-		}
-
+		m.ActiveDevice().CachePaperKey(m, bkeng.DeviceWithKeys())
 		return bkeng.EncKey(), n, nil
 	}
 

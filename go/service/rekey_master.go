@@ -446,14 +446,20 @@ func (r *rekeyMaster) currentDeviceSolvesProblemSet(me *libkb.User, ps keybase1.
 		return ret
 	}
 
-	err = r.G().LoginState().Account(func(a *libkb.Account) {
-		paperKey = a.GetUnlockedPaperEncKey()
-	}, "currentDeviceSolvesProblemSet")
+	m := libkb.NewMetaContextBackground(r.G())
+	if d := m.ActiveDevice().PaperKey(m); d != nil {
+		paperKey = d.EncryptionKey()
+	}
 
 	// We can continue though, so no need to error out
-	if err != nil {
-		r.G().Log.Info("| Error getting paper key: %s\n", err)
-		err = nil
+	if paperKey == nil {
+		m.CDebugf("| No cached paper key")
+	}
+	if deviceKey != nil {
+		r.G().Log.Debug("| currentDeviceSolvesProblemSet: checking device key: %s", deviceKey.GetKID())
+	}
+	if paperKey != nil {
+		r.G().Log.Debug("| currentDeviceSolvesProblemSet: checking paper key: %s", paperKey.GetKID())
 	}
 
 	for _, tlf := range ps.Tlfs {
