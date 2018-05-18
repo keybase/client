@@ -722,6 +722,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.blockConversation:
     case Chat2Gen.cancelPendingConversation:
     case Chat2Gen.retryPendingConversation:
+    case Chat2Gen.setConvOTRMode:
       return state
     default:
       /*::

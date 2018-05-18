@@ -14,6 +14,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
+  otrModes: I.Map(),
   pendingConversationUsers: I.Set(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
@@ -66,6 +67,23 @@ export const isInfoPanelOpen = (state: TypedState) => {
   return routePath.size === 3 && routePath.get(2) === 'infoPanel'
 }
 export const pendingConversationIDKey = Types.stringToConversationIDKey('')
+
+/**
+ * Gregor key for OTR conversations
+ * Used as the `category` when setting the OTR mode on a conversation
+ * `body` is the number of seconds to etime
+ */
+export const otrModeGregorKey = (c: Types.ConversationIDKey): string => `otr:${c}`
+/**
+ * Get dtime for newly minted OTR mode
+ */
+export const otrModeDTime = (): Date => {
+  const today = new Date()
+  const daysToExpiration = 7
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysToExpiration)
+}
+export const getConversationOTRMode = (c: ConversationIDKey, state: TypedState) =>
+  state.chat2.getIn(['otrModes', c], 0)
 
 export {
   findConversationFromParticipants,

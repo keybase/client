@@ -65,6 +65,7 @@ export const retryPendingConversation = 'chat2:retryPendingConversation'
 export const selectConversation = 'chat2:selectConversation'
 export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
+export const setConvOTRMode = 'chat2:setConvOTRMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setInboxFilter = 'chat2:setInboxFilter'
@@ -266,6 +267,10 @@ type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   typing: boolean,
 |}>
+type _SetConvOTRModePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  seconds: number,
+|}>
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   policy: RetentionPolicy,
@@ -323,6 +328,10 @@ export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPol
  * Retries sending the pending message that is currently stored in the metaMap
  */
 export const createRetryPendingConversation = (payload: _RetryPendingConversationPayload) => ({error: false, payload, type: retryPendingConversation})
+/**
+ * Set the remote OTR mode for a conversation.
+ */
+export const createSetConvOTRMode = (payload: _SetConvOTRModePayload) => ({error: false, payload, type: setConvOTRMode})
 /**
  * Sets pending messages in the store to the supplied state and logs the reason
  */
@@ -453,6 +462,7 @@ export type RetryPendingConversationPayload = $Call<typeof createRetryPendingCon
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
 export type SendToPendingConversationPayload = $Call<typeof createSendToPendingConversation, _SendToPendingConversationPayload>
 export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayload>
+export type SetConvOTRModePayload = $Call<typeof createSetConvOTRMode, _SetConvOTRModePayload>
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
 export type SetConversationOfflinePayload = $Call<typeof createSetConversationOffline, _SetConversationOfflinePayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
@@ -526,6 +536,7 @@ export type Actions =
   | SelectConversationPayload
   | SendToPendingConversationPayload
   | SendTypingPayload
+  | SetConvOTRModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetInboxFilterPayload

@@ -261,10 +261,7 @@
     // Actually starting a conversation from a search. SendingAction is what happens after the chat is created
     "sendToPendingConversation": {
       "users": "Array<string>",
-      "sendingAction": [
-        "MessageSendPayload",
-        "AttachmentUploadPayload"
-      ]
+      "sendingAction": ["MessageSendPayload", "AttachmentUploadPayload"]
     },
     // We've made a new conversation successfully and want to clean up the pending info now
     "clearPendingConversation": {},
@@ -272,7 +269,7 @@
     "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
-      "forShare?": "boolean",
+      "forShare?": "boolean"
     },
     // Update the loading bars
     "attachmentLoading": {
@@ -286,7 +283,7 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "path?": "string",
-      "forShare?": "boolean",
+      "forShare?": "boolean"
     },
     // We want to upload an attachment
     "attachmentUpload": {
@@ -377,6 +374,11 @@
     "updateTeamRetentionPolicy": {
       "_description": "Consume a service notification that a team retention policy was updated",
       "convs": "Array<RPCChatTypes.InboxUIItem>"
+    },
+    "setConvOTRMode": {
+      "_description": "Set the remote OTR mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "seconds": "number"
     }
   }
 }

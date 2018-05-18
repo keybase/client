@@ -1893,6 +1893,22 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
   }
   return ret
 }
+
+const setConvOTRMode = (action: Chat2Gen.SetConvOTRModePayload) => {
+  const {conversationIDKey, seconds} = action.payload
+  const cat = Constants.otrModeGregorKey(conversationIDKey)
+  const dtime = Constants.otrModeDTime()
+  return Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+    body: seconds.toString(),
+    cat,
+    dtime: {offset: 7 * 24 * 360 * 1000, time: 0},
+  })
+}
+
+const setConvOTRModeSuccess = () => {}
+
+const setConvOTRModeFailure = () => {}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2008,6 +2024,14 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
+
+  // OTR things
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.setConvOTRMode,
+    setConvOTRMode,
+    setConvOTRModeSuccess,
+    setConvOTRModeFailure
+  )
 }
 
 export default chat2Saga
