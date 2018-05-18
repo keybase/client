@@ -43,12 +43,9 @@ func ClearSecretsOnDeprovision(m MetaContext, username NormalizedUsername) error
 	}
 
 	logger("Deleting %s from config.json...", username.String())
-	if err := m.G().Env.GetConfigWriter().NukeUser(username); err != nil {
+	if err := m.SwitchUserDeprovisionNukeConfig(username); err != nil {
 		return err
 	}
-
-	// The config entries we just nuked could still be in memory. Clear them.
-	m.G().Env.GetConfigWriter().SetUserConfig(nil, true /* overwrite; ignored */)
 
 	logger("Clearing the local cache db...")
 	if _, err := m.G().LocalDb.Nuke(); err != nil {

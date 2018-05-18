@@ -384,6 +384,23 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	return nil
 }
 
+func (m MetaContext) SwitchUserDeprovisionNukeConfig(username NormalizedUsername) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	if err := cw.NukeUser(username); err != nil {
+		return err
+	}
+
+	// The config entries we just nuked could still be in memory. Clear them.
+	return cw.SetUserConfig(nil, true /* overwrite; ignored */)
+}
+
 // SetActiveOneshotDevice acquires the switchUserMu mutex, setting the active device
 // to one that corresponds to the given UID and DeviceWithKeys, and also sets the config
 // file to a temporary in-memory config (not writing to disk) to satisfy local requests for
