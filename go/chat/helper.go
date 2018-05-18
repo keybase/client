@@ -217,7 +217,7 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
-	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true)
+	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true /* useLocalData */)
 	if err != nil {
 		return nil, err
 	}

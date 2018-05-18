@@ -96,7 +96,7 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 			confirmed = true
 		}
 		if c.ephemeralLifetime != 0 {
-			lifetime := gregor1.DurationSec(c.ephemeralLifetime / time.Second)
+			lifetime := gregor1.ToDurationSec(c.ephemeralLifetime)
 			msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{Lifetime: lifetime}
 		}
 
