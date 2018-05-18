@@ -26,6 +26,10 @@ func (r *RemoteNet) Balances(ctx context.Context, accountID stellar1.AccountID) 
 	return Balances(ctx, r.G(), accountID)
 }
 
+func (r *RemoteNet) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
+	return Details(ctx, r.G(), accountID)
+}
+
 func (r *RemoteNet) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
 	return SubmitPayment(ctx, r.G(), post)
 }

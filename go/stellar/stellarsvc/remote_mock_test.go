@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -187,10 +188,11 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentSummary {
 }
 
 type FakeAccount struct {
-	T         testing.TB
-	accountID stellar1.AccountID
-	secretKey stellar1.SecretKey // can be missing for relay accounts
-	balance   stellar1.Balance
+	T          testing.TB
+	accountID  stellar1.AccountID
+	secretKey  stellar1.SecretKey // can be missing for relay accounts
+	balance    stellar1.Balance
+	subentries int
 }
 
 func (a *FakeAccount) AddBalance(amt string) {
@@ -297,6 +299,14 @@ func (r *RemoteClientMock) PaymentDetail(ctx context.Context, txID string) (res 
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
+func (a *FakeAccount) availableBalance() (string, error) {
+	b, err := amount.ParseInt64(a.balance.Amount)
+	if err != nil {
+		return "", err
+	}
+
+}
+
 // BackendMock is a mock of stellard.
 // Stores the data and services RemoteClientMock's calls.
 // Threadsafe.
@@ -373,6 +383,7 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 
 	// Unpack signed transaction and checks if Payment matches transaction.
 	unpackedTx, txIDPrecalc, err := unpackTx(post.SignedTransaction)
+
 	if err != nil {
 		return res, err
 	}
@@ -557,6 +568,21 @@ func (r *BackendMock) PaymentDetail(ctx context.Context, tc *TestContext, txID s
 		return res, fmt.Errorf("BackendMock: tx not found: '%v'", txID)
 	}
 	return *p, nil
+}
+
+func (r *BackendMock) Details(ctx context.Context, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
+	defer r.G().CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
+	a, ok := r.accounts[accountID]
+	if !ok {
+		return stellar1.AccountDetails{}, libkb.NotFoundError{}
+	}
+	return stellar1.AccountDetails{
+		AccountID:     accountID,
+		Seqno:         strconv.FormatUint(r.seqno, 64),
+		Balances:      []stellar1.Balance{a.balance},
+		SubentryCount: a.subentries,
+		Available:     a.availableBalance(),
+	}, nil
 }
 
 func (r *BackendMock) AddAccount() stellar1.AccountID {

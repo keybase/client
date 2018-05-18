@@ -57,6 +57,13 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 }
 
 func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (assets []stellar1.AccountAssetLocal, err error) {
+	details, err := s.remoter.Details(ctx, arg.AccountID)
+	if err != nil {
+		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", arg.AccountID, err)
+		return nil, err
+	}
+	_ = details
+
 	return nil, errors.New("not yet implemented")
 }
 
