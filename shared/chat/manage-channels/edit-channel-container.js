@@ -19,6 +19,20 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     throw new Error('teamname unexpectedly empty')
   }
 
+  // We can arrive at this dialog in two ways -- from the manage
+  // channels dialog, or from the chat info panel.
+  //
+  // If from the manage channels, _loadChannels should have already
+  // been called, and channelInfo should be non-empty and reasonably
+  // up to date.
+  //
+  // Otherwise, even though we have the info for this channel from
+  // chat, it's tricky to keep the team and chat data in sync, (see
+  // https://github.com/keybase/client/pull/11891 ) so we just call
+  // _loadChannels if channelInfo is empty. Although even if
+  // channelInfo is non-empty, it might not be updated; that hasn't
+  // been a problem yet, though.
+
   const channelInfo = Constants.getChannelInfoFromConvID(state, teamname, conversationIDKey)
   const _needsLoad = !channelInfo
 
