@@ -18,7 +18,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'jumpFromReset'})),
   startConversation: (participants: Array<string>) =>
-    dispatch(Chat2Gen.createPreviewConversation({fromAReset: true, participants})),
+    dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'fromAReset'})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

@@ -36,9 +36,8 @@
           "'jumpToReset'", // going to an older reset convo
           "'justCreated'", // just made it and select it
           "'manageView'", // clicked from manage screen
-          "'messageLink'", // link in a message
+          "'previewResolved'", // did a preview and are now selecting it
           "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
-          "'preview'", // preview from manage screen
           "'push'", // from a push
           "'savedLastState'", // last seen chat tab
           "'startFoundExisting'", // starting a conversation and found one already
@@ -47,10 +46,28 @@
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // fromAReset means you were in a reset kbfs convo and you want to make a new one
+    // Chatting from external places in the app should usually call this
+    // if you want to preview a team chat (and add it to the inbox use selectConversation instead)
     "previewConversation": {
       "participants?": "Array<string>",
       "teamname?": "string",
-      "fromAReset?": "boolean"
+      "channelname?": "string",
+      "conversationIDKey?": "Types.ConversationIDKey", // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
+      "reason": [
+        "'manageView'",
+        "'messageLink'",
+        "'resetChatWithoutThem'",
+        "'tracker'",
+        "'teamHeader'",
+        "'files'",
+        "'teamInvite'",
+        "'fromAReset'",
+        "'profile'",
+        "'teamMember'",
+        "'teamHeader'",
+        "'convertAdHoc'",
+        "'memberView'",
+      ]
     },
     "createConversation": {
       "_description": "Actually start a conversation",

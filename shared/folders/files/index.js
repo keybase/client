@@ -137,9 +137,9 @@ const mapDispatchToProps = (dispatch: any) => ({
   openTlfInChat: tlf => {
     const {participants, teamname} = tlfToParticipantsOrTeamname(tlf)
     if (participants) {
-      dispatch(Chat2Gen.createPreviewConversation({participants}))
+      dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'files'}))
     } else if (teamname) {
-      dispatch(Chat2Gen.createPreviewConversation({teamname}))
+      dispatch(Chat2Gen.createPreviewConversation({teamname, reason: 'files'}))
     }
   },
 })

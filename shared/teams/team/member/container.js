@@ -68,7 +68,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, nav
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
   },
   _onChat: username => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username]}))
+    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
   },
   onBack: () => dispatch(navigateUp()),
 })

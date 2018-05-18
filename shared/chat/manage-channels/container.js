@@ -84,7 +84,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState,
       you: string,
-      conversationIDKey: ChatTypes.ConversationIDKey
+      channelname: string
     ) => {
       dispatch(
         TeamsGen.createSaveChannelMembership({
@@ -94,12 +94,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
           you,
         })
       )
-      const selected = nextChannelState[conversationIDKey]
-      dispatch(
-        Chat2Gen.createSelectConversation({conversationIDKey, reason: selected ? 'manageView' : 'preview'})
-      )
       dispatch(navigateUp())
-      dispatch(Chat2Gen.createNavigateToThread())
+      dispatch(Chat2Gen.createPreviewConversation({teamname, channelname, reason: 'manageView'}))
     },
   }
 }
@@ -128,8 +124,8 @@ export default compose(
       }),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props._you),
-    onClickChannel: props => (conversationIDKey: string) => {
-      props._onView(props.oldChannelState, props.nextChannelState, props._you, conversationIDKey)
+    onClickChannel: props => (channelname: string) => {
+      props._onView(props.oldChannelState, props.nextChannelState, props._you, channelname)
     },
   }),
   lifecycle({

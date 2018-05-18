@@ -45,8 +45,8 @@ class NewConversation extends React.PureComponent<Props> {
           <Icon
             type="iconfont-remove"
             onClick={this.props.onCancel}
-            color={globalColors.white}
-            style={this.props.isSelected ? closeIconSelectedStyle : closeIconStyle}
+            color={this.props.isSelected ? globalColors.white : globalColors.black_20}
+            style={iconStyle}
           />
         </Box>
       </ClickableBox>
@@ -108,13 +108,8 @@ const textSelectedStyle = {
   color: globalColors.white,
 }
 
-const closeIconStyle = {
-  color: globalColors.black_20,
+const iconStyle = {
   marginRight: globalMargins.tiny,
 }
 
-const closeIconSelectedStyle = {
-  ...closeIconStyle,
-  color: globalColors.white,
-}
 export default NewConversation

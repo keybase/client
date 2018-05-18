@@ -858,14 +858,6 @@ const loadMoreMessagesSuccess = (results: ?Array<any>) => {
   return Saga.put(Chat2Gen.createSetConversationOffline({conversationIDKey, offline: res.offline}))
 }
 
-// If we're previewing a conversation we tell the service so it injects it into the inbox with a flag to tell us its a preview
-const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.reason === 'preview' || action.payload.reason === 'messageLink'
-    ? Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
-        convID: Types.keyToConversationID(action.payload.conversationIDKey),
-      })
-    : null
-
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload, state: TypedState) =>
   !state.chat2.inboxFilter ||
   (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
@@ -1095,26 +1087,50 @@ const previewConversationAfterFindExisting = (
   if (!_fromPreviewConversation || _fromPreviewConversation.length !== 4) {
     return
   }
-  const results: RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
+  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
   const users: Array<string> = _fromPreviewConversation[2]
 
   let existingConversationIDKey
 
-  if (results.conversations && results.conversations.length > 0) {
+  if (action.type === Chat2Gen.previewConversation && action.payload.conversationIDKey) {
+    existingConversationIDKey = action.payload.conversationIDKey
+  } else if (results && results.conversations && results.conversations.length > 0) {
     // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
     // and allows quoting privately to work nicely
     existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
   }
 
-  return Saga.sequentially([
-    Saga.put(
-      Chat2Gen.createSetPendingConversationExistingConversationIDKey({
-        conversationIDKey: existingConversationIDKey || Constants.noConversationIDKey,
-      })
-    ),
-    Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
-    Saga.put(Chat2Gen.createNavigateToThread()),
-  ])
+  // If we're previewing a team conversation we want to actually make an rpc call and add it to the inbox
+  if (
+    action.type === Chat2Gen.previewConversation &&
+    (action.payload.teamname || action.payload.channelname)
+  ) {
+    if (!existingConversationIDKey) {
+      throw new Error('Tried to preview a non-existant channel?')
+    }
+    return Saga.sequentially([
+      Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
+        convID: Types.keyToConversationID(existingConversationIDKey),
+      }),
+      Saga.put(
+        Chat2Gen.createSelectConversation({
+          conversationIDKey: existingConversationIDKey,
+          reason: 'previewResolved',
+        })
+      ),
+      Saga.put(Chat2Gen.createNavigateToThread()),
+    ])
+  } else {
+    return Saga.sequentially([
+      Saga.put(
+        Chat2Gen.createSetPendingConversationExistingConversationIDKey({
+          conversationIDKey: existingConversationIDKey || Constants.noConversationIDKey,
+        })
+      ),
+      Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
+      Saga.put(Chat2Gen.createNavigateToThread()),
+    ])
+  }
 }
 
 // Start a conversation, or select an existing one
@@ -1124,9 +1140,13 @@ const previewConversationFindExisting = (
 ) => {
   let participants
   let teamname
+  let channelname
+  let conversationIDKey
   if (action.type === Chat2Gen.previewConversation) {
     participants = action.payload.participants
     teamname = action.payload.teamname
+    channelname = action.payload.channelname || 'general'
+    conversationIDKey = action.payload.conversationIDKey
   } else if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (!action.payload.fromSearch) {
       return
@@ -1156,21 +1176,22 @@ const previewConversationFindExisting = (
     params = {
       membersType: RPCChatTypes.commonConversationMembersType.team,
       tlfName: teamname,
-      topicName: 'general',
+      topicName: channelname,
     }
+  } else if (conversationIDKey) {
+    // we can skip the call if we have a conversationid already
   } else {
     throw new Error('Start conversation called w/ no participants or teamname')
   }
 
-  let updatePendingMode
-  if (action.type === Chat2Gen.previewConversation) {
+  const updatePendingMode =
+    action.type === Chat2Gen.previewConversation &&
     // it's a fixed set of users so it's not a search (aka you can't add people to it)
-    updatePendingMode = Saga.put(
+    Saga.put(
       Chat2Gen.createSetPendingMode({
-        pendingMode: action.payload.fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers',
+        pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
       })
     )
-  }
 
   const markPendingWaiting = Saga.put(
     Chat2Gen.createSetPendingConversationExistingConversationIDKey({
@@ -1178,17 +1199,20 @@ const previewConversationFindExisting = (
     })
   )
 
-  const makeCall = Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-    oneChatPerTLF: true,
-    topicName: '',
-    topicType: RPCChatTypes.commonTopicType.chat,
-    visibility: RPCTypes.commonTLFVisibility.private,
-    ...params,
-  })
+  const makeCall = conversationIDKey
+    ? null
+    : Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+        oneChatPerTLF: true,
+        topicName: '',
+        topicType: RPCChatTypes.commonTopicType.chat,
+        visibility: RPCTypes.commonTLFVisibility.private,
+        ...params,
+      })
 
   const passUsersDown = Saga.identity(users)
+
   return Saga.sequentially([markPendingWaiting, makeCall, passUsersDown, updatePendingMode])
 }
 
@@ -1273,6 +1297,8 @@ const _maybeAutoselectNewestConversation = (
     if (Constants.isValidConversationIDKey(selected)) {
       return
     }
+  } else if (action.type === Chat2Gen.leaveConversation && action.payload.conversationIDKey === selected) {
+    // force select a new one
   } else if (selected !== Constants.noConversationIDKey) {
     return
   }
@@ -1533,6 +1559,7 @@ const resetChatWithoutThem = (action: Chat2Gen.ResetChatWithoutThemPayload, stat
   return Saga.put(
     Chat2Gen.createPreviewConversation({
       participants: goodParticipants.toArray(),
+      reason: 'resetChatWithoutThem',
     })
   )
 }
@@ -1644,14 +1671,21 @@ const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.Leav
   }
   return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
 }
-const navigateToThread = (_: any, state: TypedState) => {
-  if (isMobile || Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
-    return Saga.put(
-      Route.navigateTo(
-        isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
-      )
-    )
+const navigateToThread = (
+  action: Chat2Gen.NavigateToThreadPayload | Chat2Gen.PreviewConversationPayload,
+  state: TypedState
+) => {
+  if (action.type === Chat2Gen.navigateToThread) {
+    if (!isMobile && !Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
+      console.log('Skip nav to thread on invalid converastion')
+      return
+    }
   }
+  return Saga.put(
+    Route.navigateTo(
+      isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+    )
+  )
 }
 
 const mobileNavigateToThread = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
@@ -1855,6 +1889,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     )
   } else {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
+    yield Saga.safeTakeEveryPure(Chat2Gen.previewConversation, navigateToThread)
   }
 
   // Sometimes change the selection
@@ -1895,8 +1930,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     loadMoreMessages,
     loadMoreMessagesSuccess
   )
-
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, previewConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.messageRetry, messageRetry)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend)

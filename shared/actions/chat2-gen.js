@@ -243,7 +243,9 @@ type _OpenFolderPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey
 type _PreviewConversationPayload = $ReadOnly<{|
   participants?: Array<string>,
   teamname?: string,
-  fromAReset?: boolean,
+  channelname?: string,
+  conversationIDKey?: Types.ConversationIDKey,
+  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView',
 |}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
@@ -252,7 +254,7 @@ type _ResetLetThemInPayload = $ReadOnly<{|
 |}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'searching' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'pendingModeChange' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
+  reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'searching' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
 |}>
 type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,

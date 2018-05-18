@@ -384,7 +384,7 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(Chat2Gen.createPreviewConversation({teamname}))
+      yield Saga.put(Chat2Gen.createPreviewConversation({teamname, reason: 'convertAdHoc'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
