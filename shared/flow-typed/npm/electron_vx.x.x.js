@@ -842,6 +842,7 @@ type electron$remote = {
   ipcMain: electron$IpcMain,
   Menu: typeof electron$Menu,
   MenuItem: typeof electron$MenuItem,
+  net: electron$net,
   powerMonitor: electron$powerMonitor,
   powerSaveBlocker: electron$powerSaveBlocker,
   protocol: electron$protocol,
@@ -978,4 +979,15 @@ type electron$shell = {
   ): void,
   // Windows-only
   readShortcutLink(shortcutPath: string): void,
+}
+
+declare class electron$ClientRequest extends events$EventEmitter {
+  end: () => void;
+}
+
+type electron$net = {
+  request: ({
+    url: string,
+    method?: string,
+  }) => electron$ClientRequest,
 }
