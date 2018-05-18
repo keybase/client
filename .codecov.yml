@@ -5,4 +5,6 @@ coverage:
     project:
       default:
         threshold: 90
-    patch: no
+    patch:
+      default:
+        threshold: 90
