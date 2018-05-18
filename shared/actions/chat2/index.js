@@ -1894,10 +1894,10 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
   return ret
 }
 
-const setConvOTRMode = (action: Chat2Gen.SetConvOTRModePayload) => {
+const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
   const {conversationIDKey, seconds} = action.payload
-  logger.info(`Setting otr mode for conversation ${conversationIDKey} to ${seconds}`)
-  const cat = Constants.otrModeGregorKey(conversationIDKey)
+  logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
+  const cat = Constants.explodingModeGregorKey(conversationIDKey)
   if (seconds === 0) {
     return Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category: cat})
   }
@@ -1908,9 +1908,9 @@ const setConvOTRMode = (action: Chat2Gen.SetConvOTRModePayload) => {
   })
 }
 
-const setConvOTRModeSuccess = () => {}
+const setConvExplodingModeSuccess = () => {}
 
-const setConvOTRModeFailure = () => {}
+const setConvExplodingModeFailure = () => {}
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
@@ -2028,12 +2028,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
 
-  // OTR things
+  // Exploding things
   yield Saga.safeTakeEveryPure(
-    Chat2Gen.setConvOTRMode,
-    setConvOTRMode,
-    setConvOTRModeSuccess,
-    setConvOTRModeFailure
+    Chat2Gen.setConvExplodingMode,
+    setConvExplodingMode,
+    setConvExplodingModeSuccess,
+    setConvExplodingModeFailure
   )
 }
 

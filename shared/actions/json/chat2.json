@@ -375,13 +375,13 @@
       "_description": "Consume a service notification that a team retention policy was updated",
       "convs": "Array<RPCChatTypes.InboxUIItem>"
     },
-    "setConvOTRMode": {
-      "_description": "Set the remote OTR mode for a conversation.",
+    "setConvExplodingMode": {
+      "_description": "Set the remote exploding mode for a conversation.",
       "conversationIDKey": "Types.ConversationIDKey",
       "seconds": "number"
     },
-    "updateConvOTRModes": {
-      "_description": "Handle an update to our conversation OTR modes.",
+    "updateConvExplodingModes": {
+      "_description": "Handle an update to our conversation exploding modes.",
       "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
     }
   }

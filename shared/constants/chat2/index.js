@@ -14,7 +14,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
-  otrModes: I.Map(),
+  explodingModes: I.Map(),
   pendingConversationUsers: I.Set(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
@@ -68,15 +68,16 @@ export const isInfoPanelOpen = (state: TypedState) => {
 }
 export const pendingConversationIDKey = Types.stringToConversationIDKey('')
 
-export const otrModeGregorKeyPrefix = 'otr:'
+export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
- * Gregor key for OTR conversations
- * Used as the `category` when setting the OTR mode on a conversation
+ * Gregor key for exploding conversations
+ * Used as the `category` when setting the exploding mode on a conversation
  * `body` is the number of seconds to etime
  */
-export const otrModeGregorKey = (c: Types.ConversationIDKey): string => `${otrModeGregorKeyPrefix}${c}`
-export const getConversationOTRMode = (c: Types.ConversationIDKey, state: TypedState) =>
-  state.chat2.getIn(['otrModes', c], 0)
+export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
+  `${explodingModeGregorKeyPrefix}${c}`
+export const getConversationExplodingMode = (c: Types.ConversationIDKey, state: TypedState) =>
+  state.chat2.getIn(['explodingModes', c], 0)
 
 export {
   findConversationFromParticipants,

@@ -65,7 +65,7 @@ export const retryPendingConversation = 'chat2:retryPendingConversation'
 export const selectConversation = 'chat2:selectConversation'
 export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
-export const setConvOTRMode = 'chat2:setConvOTRMode'
+export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setInboxFilter = 'chat2:setInboxFilter'
@@ -77,7 +77,7 @@ export const setPendingSelected = 'chat2:setPendingSelected'
 export const setPendingStatus = 'chat2:setPendingStatus'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
-export const updateConvOTRModes = 'chat2:updateConvOTRModes'
+export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
@@ -268,7 +268,7 @@ type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   typing: boolean,
 |}>
-type _SetConvOTRModePayload = $ReadOnly<{|
+type _SetConvExplodingModePayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   seconds: number,
 |}>
@@ -302,7 +302,7 @@ type _StartConversationPayload = $ReadOnly<{|
   tlf?: ?string,
   fromAReset?: boolean,
 |}>
-type _UpdateConvOTRModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
+type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateNotificationSettingsPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -327,17 +327,17 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({error: false, payload, type: updateTeamRetentionPolicy})
 /**
- * Handle an update to our conversation OTR modes.
+ * Handle an update to our conversation exploding modes.
  */
-export const createUpdateConvOTRModes = (payload: _UpdateConvOTRModesPayload) => ({error: false, payload, type: updateConvOTRModes})
+export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
 /**
  * Retries sending the pending message that is currently stored in the metaMap
  */
 export const createRetryPendingConversation = (payload: _RetryPendingConversationPayload) => ({error: false, payload, type: retryPendingConversation})
 /**
- * Set the remote OTR mode for a conversation.
+ * Set the remote exploding mode for a conversation.
  */
-export const createSetConvOTRMode = (payload: _SetConvOTRModePayload) => ({error: false, payload, type: setConvOTRMode})
+export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({error: false, payload, type: setConvExplodingMode})
 /**
  * Sets pending messages in the store to the supplied state and logs the reason
  */
@@ -468,7 +468,7 @@ export type RetryPendingConversationPayload = $Call<typeof createRetryPendingCon
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
 export type SendToPendingConversationPayload = $Call<typeof createSendToPendingConversation, _SendToPendingConversationPayload>
 export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayload>
-export type SetConvOTRModePayload = $Call<typeof createSetConvOTRMode, _SetConvOTRModePayload>
+export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMode, _SetConvExplodingModePayload>
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
 export type SetConversationOfflinePayload = $Call<typeof createSetConversationOffline, _SetConversationOfflinePayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
@@ -480,7 +480,7 @@ export type SetPendingSelectedPayload = $Call<typeof createSetPendingSelected, _
 export type SetPendingStatusPayload = $Call<typeof createSetPendingStatus, _SetPendingStatusPayload>
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
 export type StartConversationPayload = $Call<typeof createStartConversation, _StartConversationPayload>
-export type UpdateConvOTRModesPayload = $Call<typeof createUpdateConvOTRModes, _UpdateConvOTRModesPayload>
+export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateNotificationSettingsPayload = $Call<typeof createUpdateNotificationSettings, _UpdateNotificationSettingsPayload>
 export type UpdateTeamRetentionPolicyPayload = $Call<typeof createUpdateTeamRetentionPolicy, _UpdateTeamRetentionPolicyPayload>
@@ -543,7 +543,7 @@ export type Actions =
   | SelectConversationPayload
   | SendToPendingConversationPayload
   | SendTypingPayload
-  | SetConvOTRModePayload
+  | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetInboxFilterPayload
@@ -555,7 +555,7 @@ export type Actions =
   | SetPendingStatusPayload
   | SetupChatHandlersPayload
   | StartConversationPayload
-  | UpdateConvOTRModesPayload
+  | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateNotificationSettingsPayload
   | UpdateTeamRetentionPolicyPayload
