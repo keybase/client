@@ -224,12 +224,12 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 			return fmt.Errorf("ImportKey (secret: true) error: %s", err)
 		}
 
-		if !libkb.FindPGPPrivateKey(bundle) {
-			return PGPImportStubbedError{KeyIDString: selected.GetFingerprint().ToKeyID()}
-		}
-
 		if err := bundle.Unlock(m, "Import of key into Keybase keyring", m.UIs().SecretUI); err != nil {
 			return err
+		}
+
+		if !libkb.FindPGPPrivateKey(bundle) {
+			return PGPImportStubbedError{KeyIDString: selected.GetFingerprint().ToKeyID()}
 		}
 	}
 
