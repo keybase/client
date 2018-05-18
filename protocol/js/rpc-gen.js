@@ -2496,6 +2496,8 @@ export type GitTeamRepoSettings = $ReadOnly<{channelName?: ?String, chatDisabled
 
 export type GpgUiConfirmDuplicateKeyChosenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type GpgUiConfirmImportSecretToExistingKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type GpgUiGetTTYRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type GpgUiSelectKeyAndPushOptionRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4218,6 +4220,7 @@ type GitGetAllGitMetadataResult = ?Array<GitRepoResult>
 type GitGetGitMetadataResult = ?Array<GitRepoResult>
 type GitGetTeamRepoSettingsResult = GitTeamRepoSettings
 type GpgUiConfirmDuplicateKeyChosenResult = Boolean
+type GpgUiConfirmImportSecretToExistingKeyResult = Boolean
 type GpgUiGetTTYResult = String
 type GpgUiSelectKeyAndPushOptionResult = SelectKeyRes
 type GpgUiSelectKeyResult = String
@@ -4371,6 +4374,7 @@ type UserSearchResult = ?Array<SearchResult>
 export type IncomingCallMapType = {|
   'keybase.1.gpgUi.wantToAddGPGKey'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,
   'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,
+  'keybase.1.gpgUi.confirmImportSecretToExistingKey'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiConfirmImportSecretToExistingKeyResult) => void}) => void,
   'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: $ReadOnly<{sessionID: Int, keys?: ?Array<GPGKey>}>, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,
   'keybase.1.gpgUi.selectKey'?: (params: $ReadOnly<{sessionID: Int, keys?: ?Array<GPGKey>}>, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyResult) => void}) => void,
   'keybase.1.gpgUi.sign'?: (params: $ReadOnly<{msg: Bytes, fingerprint: Bytes}>, response: {error: RPCErrorHandler, result: (result: GpgUiSignResult) => void}) => void,

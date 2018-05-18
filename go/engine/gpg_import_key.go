@@ -155,9 +155,11 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 
 	publicKeys := me.GetActivePGPKeys(false)
 	duplicate := false
+	hasSecret := false
 	for _, key := range publicKeys {
 		if key.GetFingerprint().Eq(*(selected.GetFingerprint())) {
 			duplicate = true
+			hasSecret = key.HasSecretKey()
 			break
 		}
 	}
@@ -176,7 +178,30 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		err = RunEngine2(m, eng)
 		e.duplicatedFingerprints = eng.duplicatedFingerprints
 
-		return err
+		if err != nil {
+			return err
+		}
+
+		if !e.arg.SkipImport && !hasSecret {
+			// Key is duplicate, but caller wants to import secret
+			// half.
+			res, err := m.UIs().GPGUI.ConfirmImportSecretToExistingKey(m.Ctx(), 0)
+			if err != nil {
+				return err
+			}
+			if !res {
+				// But update itself has finished, so this
+				// cancellation is not an error.
+				m.CInfof("User cancelled secret key import.")
+				return nil
+			}
+			// Fall through with OnlyImport=true so it skips sig posting
+			// (which would be rejected because of duplicate kid).
+			e.arg.OnlyImport = true
+		} else {
+			// Nothing to more do.
+			return nil
+		}
 	}
 
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
