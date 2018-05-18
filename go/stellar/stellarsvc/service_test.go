@@ -221,7 +221,7 @@ func TestBalances(t *testing.T) {
 	require.Equal(t, balances[0].Amount, "10000")
 }
 
-func TestGetLocalAccounts(t *testing.T) {
+func TestGetWalletAccountsCLILocal(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
@@ -230,7 +230,7 @@ func TestGetLocalAccounts(t *testing.T) {
 
 	tcs[0].Remote.ImportAccountsForUser(t, tcs[0].G)
 
-	accs, err := tcs[0].Srv.WalletGetLocalAccounts(context.Background())
+	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
 	require.NoError(t, err)
 
 	require.Len(t, accs, 1)

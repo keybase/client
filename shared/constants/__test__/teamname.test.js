@@ -1,6 +1,6 @@
 // @noflow
 /* eslint-env jest */
-import {validTeamname, baseTeamname} from '../teamname'
+import {validTeamname} from '../teamname'
 
 describe('teamname', () => {
   describe('validTeamname', () => {
@@ -19,11 +19,5 @@ describe('teamname', () => {
         expect(validTeamname(validName)).toBe(false)
       }
     })
-  })
-
-  it('baseTeamname', () => {
-    expect(baseTeamname('team')).toBe('team')
-    expect(baseTeamname('team.sub')).toBe('team')
-    expect(baseTeamname('team.sub.sub')).toBe('team.sub')
   })
 })

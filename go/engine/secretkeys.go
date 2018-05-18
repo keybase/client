@@ -52,11 +52,7 @@ func (e *SecretKeysEngine) Run(m libkb.MetaContext) (err error) {
 
 	// Clear out all the cached secret key state. This forces a password prompt
 	// below.
-	m.G().LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-		a.ClearCachedSecretKeys()
-		a.ClearKeyring()
-	}, "clear stream cache")
+	m.ActiveDevice().ClearCaches()
 
 	ska := libkb.SecretKeyArg{
 		Me:      me,

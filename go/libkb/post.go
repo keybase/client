@@ -187,15 +187,15 @@ func CheckPostedViaSigID(ctx context.Context, g *GlobalContext, sigID keybase1.S
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func PostDeviceLKS(ctx context.Context, g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
+func PostDeviceLKS(m MetaContext, sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
-	g.Log.Debug("| PostDeviceLKS: %s", deviceID)
+	m.CDebugf("| PostDeviceLKS: %s", deviceID)
 	if serverHalf.IsNil() {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
 	if ppGen < 1 {
-		g.Log.Warning("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
+		m.CWarningf("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
 		debug.PrintStack()
 	}
 	arg := APIArg{
@@ -210,13 +210,13 @@ func PostDeviceLKS(ctx context.Context, g *GlobalContext, sr SessionReader, devi
 			"kid":             S{Val: clientHalfRecoveryKID.String()},
 			"platform":        S{Val: GetPlatformString()},
 		},
-		RetryCount: 10,
-		SessionR:   sr,
-		NetContext: ctx,
+		RetryCount:  10,
+		SessionR:    sr,
+		MetaContext: m,
 	}
-	_, err := g.API.Post(arg)
+	_, err := m.G().API.Post(arg)
 	if err != nil {
-		g.Log.Info("device/update(%+v) failed: %s", arg.Args, err)
+		m.CInfof("device/update(%+v) failed: %s", arg.Args, err)
 	}
 	return err
 }

@@ -343,7 +343,7 @@ func (e *PGPKeyImportEngine) push(m libkb.MetaContext) (err error) {
 	}
 	e.del.NewKey = e.bundle
 	e.del.EncodedPrivateKey = e.epk
-	if err = e.del.Run(m.LoginContext()); err != nil {
+	if err = e.del.Run(m); err != nil {
 		return err
 	}
 
