@@ -4,6 +4,7 @@ package stellarsvc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -53,6 +54,10 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 	})
 
 	return accts, nil
+}
+
+func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (assets []stellar1.AccountAssetLocal, err error) {
+	return nil, errors.New("not yet implemented")
 }
 
 type balanceList []stellar1.Balance

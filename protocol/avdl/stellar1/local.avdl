@@ -15,6 +15,17 @@ protocol local {
   }
   array<WalletAccountLocal> GetWalletAccountsLocal(int sessionID);
 
+  record AccountAssetLocal {
+    string name;      // "Lumens"
+    string balanceTotal;    // "280.9192933"
+    string balanceAvailableToSend;  // "279.9192933"
+    string assetCode;     // "XLM"
+    string issuer;      // "Stellar"
+    string worth;     // "$98.13"
+    string worthCurrency;   // "USD"
+  }
+  array<AccountAssetLocal> GetAccountAssetsLocal(int sessionID, AccountID accountID);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------

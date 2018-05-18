@@ -36,6 +36,40 @@
     },
     {
       "type": "record",
+      "name": "AccountAssetLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "balanceTotal"
+        },
+        {
+          "type": "string",
+          "name": "balanceAvailableToSend"
+        },
+        {
+          "type": "string",
+          "name": "assetCode"
+        },
+        {
+          "type": "string",
+          "name": "issuer"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -203,6 +237,22 @@
       "response": {
         "type": "array",
         "items": "WalletAccountLocal"
+      }
+    },
+    "GetAccountAssetsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "AccountAssetLocal"
       }
     },
     "balancesLocal": {
