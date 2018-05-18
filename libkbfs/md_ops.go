@@ -219,12 +219,12 @@ func (md *MDOpsStandard) makeMerkleLeaf(
 }
 
 func mdToMerkleTreeID(irmd ImmutableRootMetadata) keybase1.MerkleTreeID {
-	switch irmd.TypeForKeying() {
-	case tlf.PrivateKeying:
+	switch irmd.TlfID().Type() {
+	case tlf.Private:
 		return keybase1.MerkleTreeID_KBFS_PRIVATE
-	case tlf.PublicKeying:
+	case tlf.Public:
 		return keybase1.MerkleTreeID_KBFS_PUBLIC
-	case tlf.TeamKeying:
+	case tlf.SingleTeam:
 		return keybase1.MerkleTreeID_KBFS_PRIVATETEAM
 	default:
 		panic(fmt.Sprintf("Unexpected TLF keying type: %d",
