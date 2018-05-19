@@ -844,6 +844,9 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	userJoined = append(userJoined, previews...)
 	for _, r := range removed {
 		if r.Uid.Eq(uid) {
+			// Blow away conversation cache for any conversations we get removed from
+			s.Debug(ctx, "MembershipUpdate: clear conv cache for removed conv: %s", r.ConvID)
+			s.G().ConvSource.Clear(ctx, r.ConvID, uid)
 			res.UserRemovedConvs = append(res.UserRemovedConvs, r.ConvID)
 		} else {
 			res.OthersRemovedConvs = append(res.OthersRemovedConvs, r)
