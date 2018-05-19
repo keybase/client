@@ -526,6 +526,54 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 	require.Contains(t, allUVs, keybase1.NewUserVersion(owner.User.GetUID(), owner.EldestSeqno))
 }
 
+func TestRotateResetSweepWithWriter(t *testing.T) {
+	// Scenario where CLKR with ResetUsersUntrusted is sent to a
+	// writer. They can't remove reset people, but they should rotate
+	// anyway.
+
+	tc, _, otherA, otherB, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	err := ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherA.Username))
+	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherB.Username))
+
+	// Login as otherB, reset account.
+	tc.G.Logout()
+	require.NoError(t, otherB.Login(tc.G))
+	kbtest.ResetAccount(tc, otherB)
+
+	// Login as otherA (writer), simulate CLKR with info about reset
+	// otherB.
+	tc.G.Logout()
+	require.NoError(t, otherA.Login(tc.G))
+
+	team, err := GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+
+	params := keybase1.TeamCLKRMsg{
+		TeamID:     team.ID,
+		Generation: team.Generation(),
+		ResetUsersUntrusted: []keybase1.TeamCLKRResetUser{
+			keybase1.TeamCLKRResetUser{
+				Uid:               otherB.User.GetUID(),
+				UserEldestSeqno:   keybase1.Seqno(0),
+				MemberEldestSeqno: keybase1.Seqno(1),
+			}},
+	}
+	err = HandleRotateRequest(context.Background(), tc.G, params)
+	require.NoError(t, err)
+
+	team, err = GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+	require.EqualValues(t, 2, team.Generation())
+}
+
 func TestRemoveWithoutRotation(t *testing.T) {
 	tc, _, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
