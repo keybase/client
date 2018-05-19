@@ -673,10 +673,10 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	return &expunge, nil
 }
 
-// clearUpto clears up to the given message ID, inclusive
-func (s *Storage) clearUpto(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	upto chat1.MessageID) (err Error) {
-	defer s.Trace(ctx, func() error { return err }, "clearUpto")()
+// clearUpthrough clears up to the given message ID, inclusive
+func (s *Storage) clearUpthrough(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	upthrough chat1.MessageID) (err Error) {
+	defer s.Trace(ctx, func() error { return err }, "clearUpthrough")()
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
 		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
@@ -687,7 +687,7 @@ func (s *Storage) clearUpto(ctx context.Context, convID chat1.ConversationID, ui
 	}
 
 	var msgIDs []chat1.MessageID
-	for m := upto; m > 0; m-- {
+	for m := upthrough; m > 0; m-- {
 		msgIDs = append(msgIDs, m)
 	}
 	return s.engine.ClearMessages(ctx, convID, uid, msgIDs)
@@ -702,7 +702,7 @@ func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, 
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 	s.Debug(ctx, "ClearBefore: convID: %s uid: %s msgID: %d", convID, uid, upto)
-	return s.clearUpto(ctx, convID, uid, upto-1)
+	return s.clearUpthrough(ctx, convID, uid, upto-1)
 }
 
 func (s *Storage) ClearAll(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (err Error) {
@@ -715,7 +715,7 @@ func (s *Storage) ClearAll(ctx context.Context, convID chat1.ConversationID, uid
 	if err != nil {
 		return err
 	}
-	return s.clearUpto(ctx, convID, uid, maxMsgID)
+	return s.clearUpthrough(ctx, convID, uid, maxMsgID)
 }
 
 func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.GetThreadQuery,
