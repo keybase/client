@@ -203,6 +203,22 @@ func (m MetaContext) WithNewProvisionalLoginContext() MetaContext {
 	return m.WithLoginContext(newProvisionalLoginContext(m))
 }
 
+func (m MetaContext) WithNewProvisionalLoginContextForUser(u *User) MetaContext {
+	return m.WithNewProvisionalLoginContextForUIDAndUsername(u.GetUID(), u.GetNormalizedName())
+}
+
+func (m MetaContext) WithNewProvisionalLoginContextForUIDAndUsername(uid keybase1.UID, un NormalizedUsername) MetaContext {
+	plc := newProvisionalLoginContextWithUIDAndUsername(m, uid, un)
+	if m.ActiveDevice().UID().Equal(uid) {
+		cache := m.ActiveDevice().PassphraseStreamCache()
+		if cache != nil {
+			m.CDebugf("applying active device passphrase stream cache to new ProvisionalLoginContext")
+			plc.SetStreamCache(cache)
+		}
+	}
+	return m.WithLoginContext(plc)
+}
+
 func (m MetaContext) CommitProvisionalLogin() MetaContext {
 	m.CDebugf("MetaContext#CommitProvisionalLogin")
 	lctx := m.loginContext
@@ -580,4 +596,9 @@ func (m MetaContext) HasAnySession() (ret bool) {
 	}
 
 	return false
+}
+
+func (m MetaContext) SyncSecrets() (ss *SecretSyncer, err error) {
+	defer m.CTrace("MetaContext#SyncSecrets", func() error { return err })()
+	return m.ActiveDevice().SyncSecrets(m)
 }

@@ -43,6 +43,7 @@ type LoginContext interface {
 	Logout() error
 
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
+	SetStreamCache(c *PassphraseStreamCache)
 	CreateStreamCacheViaStretch(passphrase string) error
 	PassphraseStreamCache() *PassphraseStreamCache
 	ClearStreamCache()
@@ -67,7 +68,7 @@ type LoginContext interface {
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
 
 	SecretSyncer() *SecretSyncer
-	RunSecretSyncer(uid keybase1.UID) error
+	RunSecretSyncer(m MetaContext, uid keybase1.UID) error
 
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error
 
@@ -519,7 +520,7 @@ func (s *LoginState) pubkeyLoginHelper(m MetaContext, username string, getSecret
 		return
 	}
 
-	lctx.RunSecretSyncer(me.GetUID())
+	lctx.RunSecretSyncer(m, me.GetUID())
 	if !lctx.SecretSyncer().HasDevices() {
 		m.G().Log.CDebugf(m.Ctx(), "| No synced devices, pubkey login impossible.")
 		err = NoDeviceError{Reason: "no synced devices during pubkey login"}
@@ -1111,10 +1112,10 @@ func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) error {
 	return err
 }
 
-func (s *LoginState) RunSecretSyncer(uid keybase1.UID) error {
+func (s *LoginState) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
 	var err error
 	aerr := s.Account(func(a *Account) {
-		err = a.RunSecretSyncer(uid)
+		err = a.RunSecretSyncer(m, uid)
 	}, "RunSecretSyncer")
 	if aerr != nil {
 		return aerr

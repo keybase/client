@@ -54,6 +54,12 @@ func NewProvisionalActiveDevice(m MetaContext, u keybase1.UID, d keybase1.Device
 }
 
 func NewPaperKeyActiveDevice(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *ActiveDevice {
+	ret := NewActiveDeviceWithDeviceWithKeys(m, u, d)
+	ret.paperKey = NewSelfDestructingDeviceWithKeys(m, d, PaperKeyMemoryTimeout)
+	return ret
+}
+
+func NewActiveDeviceWithDeviceWithKeys(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *ActiveDevice {
 	return &ActiveDevice{
 		uid:           u,
 		deviceID:      d.deviceID,
@@ -62,7 +68,6 @@ func NewPaperKeyActiveDevice(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *
 		encryptionKey: d.encryptionKey,
 		nistFactory:   NewNISTFactory(m.G(), u, d.deviceID, d.signingKey),
 		secretSyncer:  NewSecretSyncer(m.G()),
-		paperKey:      NewSelfDestructingDeviceWithKeys(m, d, PaperKeyMemoryTimeout),
 	}
 }
 
@@ -344,7 +349,7 @@ func (a *ActiveDevice) SyncSecrets(m MetaContext) (ret *SecretSyncer, err error)
 	if s == nil {
 		return nil, fmt.Errorf("Can't sync secrets: nil secret syncer")
 	}
-	err = RunSyncer(s, uid, true, nil)
+	err = RunSyncer(m, s, uid, true, nil)
 	if err != nil {
 		return nil, err
 	}

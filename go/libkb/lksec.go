@@ -442,13 +442,13 @@ func (s *LKSec) ComputeClientHalf() (ret LKSecClientHalf, err error) {
 
 func (s *LKSec) loadSecretSyncer(m MetaContext) (ss *SecretSyncer, err error) {
 	if lctx := m.LoginContext(); lctx != nil {
-		if err := lctx.RunSecretSyncer(s.uid); err != nil {
+		if err := lctx.RunSecretSyncer(m, s.uid); err != nil {
 			return nil, err
 		}
 		return lctx.SecretSyncer(), nil
 	}
 	aerr := m.G().LoginState().Account(func(a *Account) {
-		if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
+		if err = RunSyncer(m, a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
 		ss = a.SecretSyncer()

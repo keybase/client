@@ -177,7 +177,7 @@ func PassphraseLoginNoPrompt(m MetaContext, usernameOrEmail string, passphrase s
 }
 
 func PassphraseLoginNoPromptThenSecretStore(m MetaContext, usernameOrEmail string, passphrase string, failOnStoreError bool) (err error) {
-	defer m.CTrace("PassphraseLoginPromptThenSecretStore", func() error { return err })()
+	defer m.CTrace("PassphraseLoginNoPromptThenSecretStore", func() error { return err })()
 
 	err = PassphraseLoginNoPrompt(m, usernameOrEmail, passphrase)
 	if err != nil {
@@ -294,7 +294,9 @@ func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {
 
 // GetPassphraseStreamStored either returns a cached, verified passphrase
 // stream from a previous login, the secret store, or generates a new one via
-// login.
+// login. NOTE: this function can return a partial passphrase stream if it
+// reads from the secret store. It won't have the material used to decrypt
+// server-synced keys or to generate PDPKA material in that case.
 func GetPassphraseStreamStored(m MetaContext) (pps *PassphraseStream, err error) {
 	defer m.CTrace("GetPassphraseStreamStored", func() error { return err })()
 
@@ -327,7 +329,9 @@ func GetPassphraseStreamStored(m MetaContext) (pps *PassphraseStream, err error)
 
 // GetTriplesecMaybePrompt will try to get the user's current triplesec.
 // It will either pluck it out of the environment or prompt the user for
-// a passphrase if it can't be found.
+// a passphrase if it can't be found. The secret store is no use here
+// so skip it. Recall that the full passphrase stream isn't stored to
+// the secret store, only the bits that encrypt local keys.
 func GetTriplesecMaybePrompt(m MetaContext) (tsec Triplesec, ppgen PassphraseGeneration, err error) {
 	defer m.CTrace("GetTriplesecMaybePrompt", func() error { return err })()
 
@@ -362,6 +366,9 @@ func GetTriplesecMaybePrompt(m MetaContext) (tsec Triplesec, ppgen PassphraseGen
 	return tsec, ppgen, err
 }
 
+// GetPassphraseStreamViaPrompt prompts the user for a passphrase and on
+// success returns a PAssphraseStream and Triplesec derived from the user's
+// passphrase. As a side effect, it stores the full LKSec in the secret store.
 func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, tsec Triplesec, err error) {
 
 	// We have to get the current username before we install the new provisional login context,
@@ -378,4 +385,63 @@ func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, tsec Tr
 	m.CommitProvisionalLogin()
 
 	return pps, tsec, nil
+}
+
+// GetFullPassphraseStreamViaPrompt gets the user's passphrase stream either cached from the
+// LoginContext or from the prompt. It doesn't involve the secret store at all, since
+// the full passphrase stream isn't stored in the secret store. And also it doesn't
+// write the secret store because this function is called right before the user
+// changes to a new passphrase, so what's the point. It's assume that the login context is
+// set and non-nil by the caller.
+func GetFullPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, err error) {
+	defer m.CTrace("GetFullPassphraseStreamViaPrompt", func() error { return err })()
+	if pps = m.PassphraseStream(); pps != nil {
+		return pps, nil
+	}
+	nun := m.CurrentUsername()
+	if nun.IsNil() {
+		return nil, NewNoUsernameError()
+	}
+	if err = PassphraseLoginPrompt(m, nun.String(), 5); err != nil {
+		return nil, err
+	}
+	return m.PassphraseStream(), nil
+}
+
+// VerifyPassphraseGetFullStream verifies the current passphrase is a correct login
+// and if so, will return a full passphrase stream derived from it.
+func VerifyPassphraseGetFullStream(m MetaContext, passphrase string) (pps *PassphraseStream, err error) {
+	defer m.CTrace("VerifyPassphraseGetFullStream", func() error { return err })()
+	nun := m.CurrentUsername()
+	if nun.IsNil() {
+		return nil, NewNoUsernameError()
+	}
+	if err = PassphraseLoginNoPrompt(m, nun.String(), passphrase); err != nil {
+		return nil, err
+	}
+	return m.PassphraseStream(), nil
+}
+
+// ComputeLoginPackage2 computes the login package for the given UID as dictated by
+// the context. It assumes that a passphrase stream has already been loaded. A LoginSession
+// is optional. If not available, a new one is requested.
+func ComputeLoginPackage2(m MetaContext, pps *PassphraseStream) (ret PDPKALoginPackage, err error) {
+
+	defer m.CTrace("ComputeLoginPackage2", func() error { return err })()
+	var ls *LoginSession
+	if m.LoginContext() != nil {
+		ls = m.LoginContext().LoginSession()
+	}
+	if ls == nil {
+		ls, err = pplGetLoginSession(m, m.CurrentUsername().String())
+		if err != nil {
+			return ret, err
+		}
+	}
+	var loginSessionRaw []byte
+	loginSessionRaw, err = ls.Session()
+	if err != nil {
+		return ret, err
+	}
+	return computeLoginPackageFromUID(m.CurrentUID(), pps, loginSessionRaw)
 }
