@@ -320,8 +320,7 @@ func (s *SignupEngine) genPGPBatch(m libkb.MetaContext) error {
 	}
 	gen.AddDefaultUID(m.G())
 
-	tsec := m.LoginContext().PassphraseStreamCache().Triplesec()
-	sgen := m.LoginContext().GetStreamGeneration()
+	tsec, sgen := m.LoginContext().PassphraseStreamCache().TriplesecAndGeneration()
 
 	eng := NewPGPKeyImportEngine(m.G(), PGPKeyImportEngineArg{
 		Gen:              &gen,

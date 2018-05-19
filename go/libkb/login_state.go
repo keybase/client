@@ -18,6 +18,9 @@ import (
 // the passphrase is changed on one device which the other still has it cached.
 type PassphraseGeneration int
 
+// IsNil returns true if this PassphraseGeneration isn't initialized.
+func (p PassphraseGeneration) IsNil() bool { return p == PassphraseGeneration(0) }
+
 // LoginState controls the state of the current user's login
 // session and associated variables.  It also serializes access to
 // the various Login functions and requests for the Account
@@ -322,8 +325,7 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(m MetaContext, passphrase
 // or generates a new one that's verified via Login.
 func (s *LoginState) GetVerifiedTriplesec(m MetaContext, ui SecretUI) (ret Triplesec, gen PassphraseGeneration, err error) {
 	err = s.Account(func(a *Account) {
-		ret = a.PassphraseStreamCache().Triplesec()
-		gen = a.GetStreamGeneration()
+		ret, gen = a.PassphraseStreamCache().TriplesecAndGeneration()
 	}, "LoginState - GetVerifiedTriplesec - first")
 	if err != nil || ret != nil {
 		return
@@ -334,8 +336,7 @@ func (s *LoginState) GetVerifiedTriplesec(m MetaContext, ui SecretUI) (ret Tripl
 	}
 
 	err = s.Account(func(a *Account) {
-		ret = a.PassphraseStreamCache().Triplesec()
-		gen = a.GetStreamGeneration()
+		ret, gen = a.PassphraseStreamCache().TriplesecAndGeneration()
 	}, "LoginState - GetVerifiedTriplesec - second")
 	if err != nil || ret != nil {
 		return
