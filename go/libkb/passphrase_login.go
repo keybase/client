@@ -318,14 +318,51 @@ func GetPassphraseStreamStored(m MetaContext) (pps *PassphraseStream, err error)
 
 	// 3. login and get it
 	m.CDebugf("| using full GetPassphraseStream")
-	pps, err = GetPassphraseStreamViaPrompt(m)
+	pps, _, err = GetPassphraseStreamViaPrompt(m)
 	if pps != nil {
 		m.CDebugf("| success using full GetPassphraseStream")
 	}
 	return pps, err
 }
 
-func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, err error) {
+// GetTriplesecMaybePrompt will try to get the user's current triplesec.
+// It will either pluck it out of the environment or prompt the user for
+// a passphrase if it can't be found.
+func GetTriplesecMaybePrompt(m MetaContext) (tsec Triplesec, ppgen PassphraseGeneration, err error) {
+	defer m.CTrace("GetTriplesecMaybePrompt", func() error { return err })()
+
+	// 1. try cached
+	m.CDebugf("| trying cached triplesec")
+	if tsec, ppgen = m.TriplesecAndGeneration(); tsec != nil && !ppgen.IsNil() {
+		m.CDebugf("| cached trieplsec stream ok, using it")
+		return tsec, ppgen, nil
+	}
+
+	// 2. login and get it
+	m.CDebugf("| using full GetPassphraseStreamViaPrompt")
+	var pps *PassphraseStream
+	pps, tsec, err = GetPassphraseStreamViaPrompt(m)
+	if err != nil {
+		return nil, ppgen, err
+	}
+	if pps == nil {
+		m.CDebugf("| Got back empty passphrase stream; returning nil")
+		return nil, ppgen, NewNoTriplesecError()
+	}
+	if tsec == nil {
+		m.CDebugf("| Got back empty triplesec")
+		return nil, ppgen, NewNoTriplesecError()
+	}
+	ppgen = pps.Generation()
+	if ppgen.IsNil() {
+		m.CDebugf("| Got back a non-nill Triplesec but an invalid ppgen; returning nil")
+		return nil, ppgen, NewNoTriplesecError()
+	}
+	m.CDebugf("| got non-nil Triplesec back from prompt")
+	return tsec, ppgen, err
+}
+
+func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, tsec Triplesec, err error) {
 
 	// We have to get the current username before we install the new provisional login context,
 	// which will shadow the logged in username.
@@ -335,10 +372,10 @@ func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, err err
 	m = m.WithNewProvisionalLoginContext()
 	err = PassphraseLoginPromptThenSecretStore(m, nun.String(), 5, false /* failOnStoreError */)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	pps = m.PassphraseStream()
+	pps, tsec = m.PassphraseStreamAndTriplesec()
 	m.CommitProvisionalLogin()
 
-	return pps, nil
+	return pps, tsec, nil
 }

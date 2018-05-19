@@ -523,6 +523,33 @@ func (m MetaContext) PassphraseStream() *PassphraseStream {
 	return m.ActiveDevice().PassphraseStream()
 }
 
+func (m MetaContext) PassphraseStreamAndTriplesec() (*PassphraseStream, Triplesec) {
+	var ppsc *PassphraseStreamCache
+	if m.LoginContext() != nil {
+		ppsc = m.LoginContext().PassphraseStreamCache()
+	} else {
+		ppsc = m.ActiveDevice().PassphraseStreamCache()
+	}
+	if ppsc == nil {
+		return nil, nil
+	}
+	tsec, _ := ppsc.TriplesecAndGeneration()
+	return ppsc.PassphraseStream(), tsec
+}
+
+func (m MetaContext) TriplesecAndGeneration() (ret Triplesec, ppgen PassphraseGeneration) {
+	var pps *PassphraseStream
+	pps, ret = m.PassphraseStreamAndTriplesec()
+	if pps == nil {
+		return nil, ppgen
+	}
+	ppgen = pps.Generation()
+	if ppgen.IsNil() {
+		return nil, ppgen
+	}
+	return ret, ppgen
+}
+
 func (m MetaContext) CurrentUsername() NormalizedUsername {
 	if m.LoginContext() != nil {
 		return m.LoginContext().GetUsername()

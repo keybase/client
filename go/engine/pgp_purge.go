@@ -62,13 +62,11 @@ func (e *PGPPurge) Run(m libkb.MetaContext) error {
 	e.me = me
 
 	// get all PGP blocks in keyring
-	var blocks []*libkb.SKB
-	kerr := e.G().LoginState().Keyring(func(ring *libkb.SKBKeyringFile) {
-		blocks, err = ring.AllPGPBlocks()
-	}, "AllPGPBlocks")
-	if kerr != nil {
-		return kerr
+	ring, err := m.ActiveDevice().Keyring(m)
+	if err != nil {
+		return err
 	}
+	blocks, err := ring.AllPGPBlocks()
 	if err != nil {
 		return err
 	}
@@ -80,15 +78,11 @@ func (e *PGPPurge) Run(m libkb.MetaContext) error {
 
 	if e.arg.DoPurge {
 		// if purge flag set, remove all PGP blocks from keyring and save it
-		kerr = e.G().LoginState().Keyring(func(ring *libkb.SKBKeyringFile) {
-			err = ring.RemoveAllPGPBlocks()
-			if err == nil {
-				err = ring.Save()
-			}
-		}, "RemoveAllPGPBlocks")
-		if kerr != nil {
-			return kerr
+		err = ring.RemoveAllPGPBlocks()
+		if err != nil {
+			return err
 		}
+		err = ring.Save()
 		if err != nil {
 			return err
 		}

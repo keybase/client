@@ -45,11 +45,12 @@ func NewScanKeys(m libkb.MetaContext) (sk *ScanKeys, err error) {
 
 	defer m.CTrace("NewScanKeys", func() error { return err })()
 
-	lin, err := m.G().LoginState().LoggedInLoad()
+	var loggedIn bool
+	loggedIn, err = isLoggedInWithError(m)
 	if err != nil {
 		return nil, err
 	}
-	if !lin {
+	if !loggedIn {
 		return sk, nil
 	}
 
@@ -64,17 +65,11 @@ func NewScanKeys(m libkb.MetaContext) (sk *ScanKeys, err error) {
 		return nil, fmt.Errorf("getsyncedsecret err: %s", err)
 	}
 
-	aerr := m.G().LoginState().Account(func(a *libkb.Account) {
-		var ring *libkb.SKBKeyringFile
-		ring, err = a.Keyring()
-		if err != nil {
-			return
-		}
-		err = sk.coalesceBlocks(m, ring, synced)
-	}, "NewScanKeys - coalesceBlocks")
-	if aerr != nil {
+	ring, err := m.ActiveDevice().Keyring(m)
+	if err != nil {
 		return nil, err
 	}
+	err = sk.coalesceBlocks(m, ring, synced)
 	if err != nil {
 		return nil, err
 	}

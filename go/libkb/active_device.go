@@ -397,11 +397,24 @@ func (a *ActiveDevice) PassphraseStreamCache() *PassphraseStreamCache {
 }
 
 func (a *ActiveDevice) PassphraseStream() *PassphraseStream {
+	a.RLock()
+	defer a.RUnlock()
 	c := a.PassphraseStreamCache()
 	if c == nil || !c.ValidPassphraseStream() {
 		return nil
 	}
 	return c.PassphraseStream()
+}
+
+func (a *ActiveDevice) TriplesecAndGeneration() (Triplesec, PassphraseGeneration) {
+	a.RLock()
+	defer a.RUnlock()
+	var zed PassphraseGeneration
+	c := a.PassphraseStreamCache()
+	if c == nil {
+		return nil, zed
+	}
+	return c.TriplesecAndGeneration()
 }
 
 func (a *ActiveDevice) CachePassphraseStream(c *PassphraseStreamCache) {
@@ -423,4 +436,19 @@ func (a *ActiveDevice) SigningKeyForUID(u keybase1.UID) GenericKey {
 		return nil
 	}
 	return a.signingKey
+}
+
+func (a *ActiveDevice) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
+	defer m.CTrace("ActiveDevice#Keyring", func() error { return err })()
+	un := a.Username(m)
+	if un.IsNil() {
+		m.CInfof("ProvisionalLoginContext#Keyring: no username set")
+		return nil, NewNoUsernameError()
+	}
+	m.CDebugf("Account: loading keyring for %s", un)
+	ret, err = LoadSKBKeyring(un, m.G())
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
