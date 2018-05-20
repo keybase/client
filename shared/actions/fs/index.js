@@ -198,7 +198,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     // completePortion to 1.
     yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
 
-    const mimeType = Constants.mimeTypeFromPathName(Types.getPathName(path))
+    const mimeType = yield Saga.call(_loadMimeType, path)
 
     // Kick off any post-download actions, now that the file is available locally.
     const intentEffect = platformSpecificIntentEffect(intent, localPath, mimeType)
@@ -286,6 +286,56 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
   }
 }
 
+const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer) =>
+  new Promise((resolve, reject) =>
+    getMimeTypeFromURL(Constants.generateFileURL(path, serverInfo), ({error, statusCode, mimeType}) => {
+      if (error !== undefined) {
+        reject(error)
+      }
+      switch (statusCode) {
+        case 200:
+          resolve(mimeType)
+          return
+        case 403:
+          reject(Constants.invalidTokenError)
+          return
+        default:
+          reject(new Error(`unexpected HTTP status code: ${statusCode}`))
+      }
+    })
+  )
+
+// _loadMimeType uses HEAD request to load mime type from the KBFS HTTP server.
+// If the server address/token are not populated yet, or if the token turns out
+// to be invalid, it automatically calls refreshLocalHTTPServerInfo to refresh
+// that. The generator function returns the loaded mime type for the given
+// path, and in addition triggers a mimeTypeLoaded so the loaded mime type for
+// given path is populated in the store.
+function* _loadMimeType(path: Types.Path) {
+  const state = yield Saga.select()
+  let {address, token} = state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
+  while (true) {
+    if (address === '' || token === '') {
+      ;({address, token} = yield refreshLocalHTTPServerInfo())
+      yield refreshLocalHTTPServerInfoResult({address, token})
+    }
+    try {
+      const mimeType = yield Saga.call(getMimeTypePromise, path, {address, token})
+      yield Saga.put(FsGen.createMimeTypeLoaded({path, mimeType}))
+      return mimeType
+    } catch (err) {
+      if (err !== Constants.invalidTokenError) {
+        throw err
+      }
+      token = '' // Set token to '' to trigger the refresh in next iteration.
+    }
+  }
+}
+
+function* loadMimeType(action: FsGen.MimeTypeLoadPayload) {
+  yield Saga.call(_loadMimeType, action.payload.path)
+}
+
 function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenerator<any, any> {
   const {path, type, targetRect, routePath} = action.payload
   // We may not have the folder loaded yet, but will need metadata to know
@@ -309,44 +359,45 @@ function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenera
   )
 }
 
-function loadMimeType(action: FsGen.MimeTypeLoadPayload, state: TypedState) {
-  const {path} = action.payload
-  if (state.fs.localHTTPServerInfo === null) {
-    return Promise.reject(Constants.invalidTokenError)
+function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
+  const {path, routePath} = action.payload
+  const state: TypedState = yield Saga.select()
+  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+  if (pathItem.type === 'folder') {
+    yield Saga.put(
+      putActionIfOnPath(
+        routePath,
+        navigateAppend([
+          {
+            props: {path},
+            selected: 'folder',
+          },
+        ])
+      )
+    )
+    return
   }
-  const url = Constants.generateFileURL(path, state.fs.localHTTPServerInfo)
-  return new Promise((resolve, reject) =>
-    getMimeTypeFromURL(url, ({error, statusCode, mimeType}) => {
-      if (error !== undefined) {
-        reject(error)
-      }
-      switch (statusCode) {
-        case 200:
-          resolve(mimeType)
-          return
-        case 403:
-          reject(Constants.invalidTokenError)
-          return
-        default:
-          reject(new Error(`unexpected HTTP status code: ${statusCode}`))
-      }
-    })
-  )
-}
 
-const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload) =>
-  Saga.put(
-    FsGen.createMimeTypeLoaded({
-      path: action.payload.path,
-      mimeType,
-    })
-  )
-
-const loadMimeTypeError = err => {
-  if (err === Constants.invalidTokenError) {
-    return Saga.put(FsGen.createRefreshLocalHTTPServerInfo())
+  let bare = false
+  if (pathItem.type === 'file') {
+    let mimeType = pathItem.mimeType
+    if (mimeType === '') {
+      mimeType = yield Saga.call(_loadMimeType, path)
+    }
+    bare = isMobile && ['image'].includes(Constants.viewTypeFromMimeType(mimeType))
   }
-  throw err
+
+  yield Saga.put(
+    putActionIfOnPath(
+      routePath,
+      navigateAppend([
+        {
+          props: {path},
+          selected: bare ? 'barePreview' : 'preview',
+        },
+      ])
+    )
+  )
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
@@ -361,7 +412,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
-  yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType, loadMimeTypeResult, loadMimeTypeError)
+  yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.
@@ -373,6 +424,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
 
   // These are saga tasks that may use actions above.
   yield Saga.safeTakeEvery(FsGen.fileActionPopup, fileActionPopup)
+  yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
 }
 
 export default fsSaga

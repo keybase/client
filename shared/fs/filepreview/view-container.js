@@ -61,7 +61,7 @@ const Renderer = ({mimeType, isSymlink, url, path, routePath, loadMimeType}) => 
       return <TextView url={url} routePath={routePath} />
     case 'image':
       return <ImageView url={url} routePath={routePath} />
-    case 'audio-video':
+    case 'av':
       return <AVView url={url} routePath={routePath} />
     case 'pdf':
       return <PdfView url={url} routePath={routePath} />
@@ -91,7 +91,13 @@ export default compose(
       }
     },
     componentDidUpdate(prevProps) {
-      if (!this.props.isSymlink && this.props.mimeType === '') {
+      if (
+        !this.props.isSymlink &&
+        // Trigger loadMimeType if we don't have it yet,
+        this.props.mimeType === '' &&
+        // but only if we haven't triggered it before.
+        prevProps.mimeType !== ''
+      ) {
         this.props.loadMimeType()
       }
     },

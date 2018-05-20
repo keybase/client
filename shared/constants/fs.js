@@ -11,8 +11,6 @@ import type {IconType} from '../common-adapters'
 import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
-import * as mime from 'react-native-mime-types'
-import {lookupPatchedExt} from '../fs/utils/ext-list'
 
 export const defaultPath = '/keybase'
 
@@ -449,32 +447,6 @@ export const folderToFavoriteItems = (
   )
 }
 
-// TODO: get rid of this
-export const mimeTypeFromPathName = (name: string): string => mime.lookup(name) || ''
-
-// TODO: get rid of this
-export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
-  const name = Types.getPathName(p)
-  const fromPatched = lookupPatchedExt(name)
-  if (fromPatched) {
-    return fromPatched
-  }
-  const mimeType = mime.lookup(name) || ''
-  if (mimeType.startsWith('text/')) {
-    return 'text'
-  }
-  if (mimeType.startsWith('image/')) {
-    return 'image'
-  }
-  if (mimeType.startsWith('video/')) {
-    return 'av'
-  }
-  if (mimeType === 'application/pdf') {
-    return 'pdf'
-  }
-  return 'default'
-}
-
 export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
   if (mimeType.startsWith('text/')) {
     return 'text'
@@ -494,7 +466,7 @@ export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
 export const isMedia = (pathItem: Types.PathItem): boolean =>
   pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
 
-export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types.LocalHTTPServer): string => {
+export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types._LocalHTTPServer): string => {
   if (localHTTPServerInfo === null) {
     return 'about:blank'
   }
