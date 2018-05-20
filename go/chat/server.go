@@ -603,10 +603,11 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		} else {
 			h.G().FetchRetrier.Success(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
+			// Load old pages of this conversation on success
+			h.dispatchOldPagesJob(ctx, arg.ConversationID, uid, pagination, resultPagination)
 		}
 	}()
 	defer h.suspendConvLoader(ctx)()
-	defer func() { h.dispatchOldPagesJob(ctx, arg.ConversationID, uid, pagination, resultPagination) }()
 	// Lock conversation while this is running
 	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, arg.ConversationID); err != nil {
 		return res, err
