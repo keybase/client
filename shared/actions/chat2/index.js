@@ -487,6 +487,16 @@ const onChatIdentifyUpdate = update => {
   return [UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed})]
 }
 
+// Get actions to update messagemap / metamap when ephemeral messages expire
+const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => {
+  const actions = []
+  const meta = !!info.conv && Constants.inboxUIItemToConversationMeta(info.conv)
+  if (meta) {
+    actions.push(Chat2Gen.createMetasReceived({fromEphemeralPurge: true, metas: [meta]}))
+  }
+  return actions
+}
+
 // Handle calls that come from the service
 const setupChatHandlers = () => {
   engine().setIncomingActionCreators(
@@ -542,6 +552,8 @@ const setupChatHandlers = () => {
                 }),
               ]
             : null
+        case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
+          return activity.ephemeralPurge ? ephemeralPurgeToActions(activity.ephemeralPurge) : null
         default:
           break
       }

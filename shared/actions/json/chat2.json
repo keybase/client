@@ -95,7 +95,8 @@
       "metas": "Array<Types.ConversationMeta>",
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
-      "clearExistingMessages?": "boolean" // If true, clear out any message data we already have.
+      "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
+      "fromEphemeralPurge?": "boolean" // If true, use meta updating logic for when messages explode
     },
     // Got some inbox errors
     "metaReceivedError": {
@@ -182,6 +183,12 @@
       "messageIDs?": "Array<RPCChatTypes.MessageID>",
       "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
       "ordinals?": "Array<Types.Ordinal>"
+    },
+    "messageExploded": {
+      "_description": "An exploding message expired or was manually detonated",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "explodedBy?": "string"
     },
     // Delete a message
     "messageDelete": {
