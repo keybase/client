@@ -47,16 +47,16 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	accountID := tcs[0].Remote.AddAccount(t)
+	accountID := tcs[0].Backend.AddAccount()
 
 	argImport := stellar1.ImportSecretKeyLocalArg{
-		SecretKey:   tcs[0].Remote.SecretKey(t, accountID),
+		SecretKey:   tcs[0].Backend.SecretKey(accountID),
 		MakePrimary: true,
 	}
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
-	tcs[0].Remote.ImportAccountsForUser(t, tcs[0].G)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 
 	assets, err := tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{AccountID: accountID})
 	require.NoError(t, err)
@@ -78,16 +78,16 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	accountID := tcs[0].Remote.AddAccountEmpty(t)
+	accountID := tcs[0].Backend.AddAccountEmpty(t)
 
 	argImport := stellar1.ImportSecretKeyLocalArg{
-		SecretKey:   tcs[0].Remote.SecretKey(t, accountID),
+		SecretKey:   tcs[0].Backend.SecretKey(accountID),
 		MakePrimary: true,
 	}
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
-	tcs[0].Remote.ImportAccountsForUser(t, tcs[0].G)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 
 	assets, err := tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{AccountID: accountID})
 	require.NoError(t, err)

@@ -254,7 +254,7 @@ func (a *FakeAccount) Check() bool {
 	return true
 }
 
-func (a *FakeAccount) availableBalance() (string, error) {
+func (a *FakeAccount) availableBalance() string {
 	b, err := stellarnet.AvailableBalance(a.balance.Amount, a.subentries)
 	if err != nil {
 		a.t.Fatalf("AvailableBalance error: %s", err)
@@ -305,6 +305,18 @@ func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar
 
 func (r *RemoteClientMock) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
 	return r.Backend.PaymentDetail(ctx, r.Tc, txID)
+}
+
+func (r *RemoteClientMock) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
+	return r.Backend.Details(ctx, r.Tc, accountID)
+}
+
+func (r *RemoteClientMock) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {
+	return r.Backend.GetAccountDisplayCurrency(ctx, r.Tc, accountID)
+}
+
+func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
+	return r.Backend.ExchangeRate(ctx, r.Tc, currency)
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
@@ -572,38 +584,11 @@ func (r *BackendMock) PaymentDetail(ctx context.Context, tc *TestContext, txID s
 	return *p, nil
 }
 
-func (r *BackendMock) Details(ctx context.Context, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
-	defer r.G().CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
-	a, ok := r.accounts[accountID]
-	if !ok {
-		return stellar1.AccountDetails{}, libkb.NotFoundError{}
-	}
-	return stellar1.AccountDetails{
-		AccountID:     accountID,
-		Seqno:         strconv.FormatUint(r.seqno, 64),
-		Balances:      []stellar1.Balance{a.balance},
-		SubentryCount: a.subentries,
-		Available:     a.availableBalance(),
-	}, nil
-}
+func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
+	defer tc.G.CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
+	r.Lock()
+	defer r.Unlock()
 
-func (r *RemoteMock) Details(ctx context.Context, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
-	defer r.G().CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
-	a, ok := r.accounts[accountID]
-	if !ok {
-		return stellar1.AccountDetails{}, libkb.NotFoundError{}
-	}
-	return stellar1.AccountDetails{
-		AccountID:     accountID,
-		Seqno:         strconv.FormatUint(r.seqno, 10),
-		Balances:      []stellar1.Balance{a.balance},
-		SubentryCount: a.subentries,
-		Available:     a.availableBalance(),
-	}, nil
-}
-
-func (r *RemoteMock) Details(ctx context.Context, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
-	defer r.G().CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
 	a, ok := r.accounts[accountID]
 	if !ok {
 		return stellar1.AccountDetails{}, libkb.NotFoundError{}
@@ -614,7 +599,7 @@ func (r *RemoteMock) Details(ctx context.Context, accountID stellar1.AccountID) 
 	}
 	return stellar1.AccountDetails{
 		AccountID:     accountID,
-		Seqno:         strconv.FormatUint(r.seqno, 10),
+		Seqno:         strconv.FormatUint(r.seqnos[accountID], 10),
 		Balances:      balances,
 		SubentryCount: a.subentries,
 		Available:     a.availableBalance(),
@@ -628,19 +613,11 @@ func (r *BackendMock) AddAccount() stellar1.AccountID {
 	return r.addAccountRandom(true)
 }
 
+func (r *BackendMock) AddAccountEmpty(t *testing.T) stellar1.AccountID {
+	return r.addAccountRandom(false)
+}
+
 func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
-=======
-func (r *RemoteMock) AddAccount(t *testing.T) stellar1.AccountID {
-	return r.AddAccountWithAmount(t, "10000")
-}
-
-func (r *RemoteMock) AddAccountEmpty(t *testing.T) stellar1.AccountID {
-	return r.AddAccountWithAmount(t, "")
-}
-
-func (r *RemoteMock) AddAccountWithAmount(t *testing.T, amount string) stellar1.AccountID {
-	defer r.G().CTraceTimed(context.Background(), "RemoteMock.AddAccountWithAmount", func() error { return nil })()
->>>>>>> 88ef5572d3... Handle empty details.Balances
 	full, err := keypair.Random()
 	require.NoError(r.T, err)
 	amount := "0"
@@ -651,14 +628,11 @@ func (r *RemoteMock) AddAccountWithAmount(t *testing.T, amount string) stellar1.
 		T:         r.T,
 		accountID: stellar1.AccountID(full.Address()),
 		secretKey: stellar1.SecretKey(full.Seed()),
-		t:         t,
 	}
 	if amount != "" {
 		a.balance = stellar1.Balance{
 			Asset:  stellar1.Asset{Type: "native"},
 			Amount: amount,
-		},
-		t: t,
 		}
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
@@ -702,7 +676,6 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) {
 				Asset:  stellar1.Asset{Type: "native"},
 				Amount: "0",
 			},
-			t: t,
 		}
 		r.accounts[a.accountID] = a
 	}
@@ -725,11 +698,11 @@ func (r *BackendMock) AssertBalance(accountID stellar1.AccountID, amount string)
 	require.Equal(r.T, amount, r.accounts[accountID].balance.Amount, "account balance")
 }
 
-func (r *RemoteMock) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {
+func (r *BackendMock) GetAccountDisplayCurrency(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (string, error) {
 	return "USD", nil
 }
 
-func (r *RemoteMock) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
+func (r *BackendMock) ExchangeRate(ctx context.Context, tc *TestContext, currency string) (stellar1.OutsideExchangeRate, error) {
 	return stellar1.OutsideExchangeRate{
 		Currency: stellar1.OutsideCurrencyCode(currency),
 		Rate:     "0.318328",
@@ -772,7 +745,7 @@ func txDetails(txEnvelopeB64 string) (res txDetailsT, err error) {
 		return res, err
 	}
 	if op, ok := op.GetCreateAccountOp(); ok {
-		res.amount = amount.String(op.StartingBalance)
+		res.amount = stellaramount.String(op.StartingBalance)
 		res.asset = stellar1.AssetNative()
 		res.to = stellar1.AccountID(op.Destination.Address())
 		return res, nil
