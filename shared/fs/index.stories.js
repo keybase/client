@@ -6,7 +6,7 @@ import * as Constants from '../constants/fs'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors} from '../styles'
 import Files from '.'
-import {NormalPreview} from './filepreview'
+// import {NormalPreview} from './filepreview'
 
 const provider = createPropProvider({
   FileRow: ({path}: {path: Types.Path}) => ({
