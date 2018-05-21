@@ -597,7 +597,7 @@ function _getChannelInfo(action: TeamsGen.GetChannelInfoPayload) {
   const {teamname, conversationIDKey} = action.payload
   const waitingKey = {key: Constants.getChannelInfoWaitingKey(teamname, conversationIDKey)}
   return Saga.all([
-    Saga.call(RPCChatTypes.localGetInboxAndUnboxLocalRpcPromise, {
+    Saga.call(RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       // TODO: Trim down query params.
       query: {
@@ -620,26 +620,28 @@ function _getChannelInfo(action: TeamsGen.GetChannelInfoPayload) {
 }
 
 function _afterGetChannelInfo(fromGetChannelInfo: any[]) {
-  // const results: RPCChatTypes.GetInboxAndUnboxLocalRes = fromGetChannelInfo[0]
-  // const teamname: string = fromGetChannelInfo[1]
-  // const conversationIDKey: ChatTypes.ConversationIDKey = fromGetChannelInfo[1]
+  const results: RPCChatTypes.GetInboxAndUnboxUILocalRes = fromGetChannelInfo[0]
+  const teamname: string = fromGetChannelInfo[1]
+  const conversationIDKey: ChatTypes.ConversationIDKey = fromGetChannelInfo[1]
   const waitingKey: {|key: string|} = fromGetChannelInfo[2]
-  /*
   const convs = results.conversations || []
   if (convs.length !== 1) {
     logger.warn(`Could not get channel info`)
     return Saga.put(createDecrementWaiting(waitingKey))
   }
 
-  const conv = convs[0]
+  const meta = ChatConstants.inboxUIItemToConversationMeta(convs[0])
+  if (!meta) {
+    logger.warn('Could not convert channel info to meta')
+    return Saga.put(createDecrementWaiting(waitingKey))
+  }
   const channelInfo = Constants.makeChannelInfo({
-    channelname: '???', //conv.channel,
-    description: '???', //conv.headline,
-    participants: I.Set(), //I.Set(conv.info.participants || []),
+    channelname: meta.channelname,
+    description: meta.description,
+    participants: meta.participants,
   })
-*/
   return Saga.all([
-    //Saga.put(TeamsGen.createSetTeamChannelInfo({teamname, conversationIDKey, channelInfo})),
+    Saga.put(TeamsGen.createSetTeamChannelInfo({teamname, conversationIDKey, channelInfo})),
     Saga.put(createDecrementWaiting(waitingKey)),
   ])
 }

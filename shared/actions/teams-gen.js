@@ -49,6 +49,7 @@ export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
 export const setTeamCanPerform = 'teams:setTeamCanPerform'
+export const setTeamChannelInfo = 'teams:setTeamChannelInfo'
 export const setTeamChannels = 'teams:setTeamChannels'
 export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamCreationPending = 'teams:setTeamCreationPending'
@@ -208,6 +209,11 @@ type _SetTeamCanPerformPayload = $ReadOnly<{|
   teamname: string,
   teamOperation: Types.TeamOperations,
 |}>
+type _SetTeamChannelInfoPayload = $ReadOnly<{|
+  teamname: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  channelInfo: Types.ChannelInfo,
+|}>
 type _SetTeamChannelsPayload = $ReadOnly<{|
   teamname: string,
   channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>,
@@ -328,6 +334,7 @@ export const createSetNewTeamInfo = (payload: _SetNewTeamInfoPayload) => ({error
 export const createSetPublicity = (payload: _SetPublicityPayload) => ({error: false, payload, type: setPublicity})
 export const createSetTeamAccessRequestsPending = (payload: _SetTeamAccessRequestsPendingPayload) => ({error: false, payload, type: setTeamAccessRequestsPending})
 export const createSetTeamCanPerform = (payload: _SetTeamCanPerformPayload) => ({error: false, payload, type: setTeamCanPerform})
+export const createSetTeamChannelInfo = (payload: _SetTeamChannelInfoPayload) => ({error: false, payload, type: setTeamChannelInfo})
 export const createSetTeamChannels = (payload: _SetTeamChannelsPayload) => ({error: false, payload, type: setTeamChannels})
 export const createSetTeamCreationError = (payload: _SetTeamCreationErrorPayload) => ({error: false, payload, type: setTeamCreationError})
 export const createSetTeamCreationPending = (payload: _SetTeamCreationPendingPayload) => ({error: false, payload, type: setTeamCreationPending})
@@ -389,6 +396,7 @@ export type SetNewTeamInfoPayload = $Call<typeof createSetNewTeamInfo, _SetNewTe
 export type SetPublicityPayload = $Call<typeof createSetPublicity, _SetPublicityPayload>
 export type SetTeamAccessRequestsPendingPayload = $Call<typeof createSetTeamAccessRequestsPending, _SetTeamAccessRequestsPendingPayload>
 export type SetTeamCanPerformPayload = $Call<typeof createSetTeamCanPerform, _SetTeamCanPerformPayload>
+export type SetTeamChannelInfoPayload = $Call<typeof createSetTeamChannelInfo, _SetTeamChannelInfoPayload>
 export type SetTeamChannelsPayload = $Call<typeof createSetTeamChannels, _SetTeamChannelsPayload>
 export type SetTeamCreationErrorPayload = $Call<typeof createSetTeamCreationError, _SetTeamCreationErrorPayload>
 export type SetTeamCreationPendingPayload = $Call<typeof createSetTeamCreationPending, _SetTeamCreationPendingPayload>
@@ -452,6 +460,7 @@ export type Actions =
   | SetPublicityPayload
   | SetTeamAccessRequestsPendingPayload
   | SetTeamCanPerformPayload
+  | SetTeamChannelInfoPayload
   | SetTeamChannelsPayload
   | SetTeamCreationErrorPayload
   | SetTeamCreationPendingPayload

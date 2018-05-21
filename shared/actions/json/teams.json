@@ -178,6 +178,11 @@
       "teamname": "string",
       "publicity": "Types._PublicitySettings",
     },
+    "setTeamChannelInfo": {
+      "teamname": "string",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "channelInfo": "Types.ChannelInfo",
+    },
     "setTeamChannels": {
       "teamname": "string",
       "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>",
