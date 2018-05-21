@@ -391,8 +391,8 @@ func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, tsec Tr
 // LoginContext or from the prompt. It doesn't involve the secret store at all, since
 // the full passphrase stream isn't stored in the secret store. And also it doesn't
 // write the secret store because this function is called right before the user
-// changes to a new passphrase, so what's the point. It's assume that the login context is
-// set and non-nil by the caller.
+// changes to a new passphrase, so what's the point. It's assumed that the login context is
+// set to non-nil by the caller.
 func GetFullPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, err error) {
 	defer m.CTrace("GetFullPassphraseStreamViaPrompt", func() error { return err })()
 	if pps = m.PassphraseStream(); pps != nil {
@@ -424,7 +424,8 @@ func VerifyPassphraseGetFullStream(m MetaContext, passphrase string) (pps *Passp
 
 // ComputeLoginPackage2 computes the login package for the given UID as dictated by
 // the context. It assumes that a passphrase stream has already been loaded. A LoginSession
-// is optional. If not available, a new one is requested.
+// is optional. If not available, a new one is requested. Eventually we will kill ComputeLoginPackage
+// and rename this to that.
 func ComputeLoginPackage2(m MetaContext, pps *PassphraseStream) (ret PDPKALoginPackage, err error) {
 
 	defer m.CTrace("ComputeLoginPackage2", func() error { return err })()

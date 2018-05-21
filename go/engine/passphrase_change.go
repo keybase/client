@@ -93,7 +93,10 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	return
+	// We used to sync secrets here, but sync secrets in runForceUpdate
+	// or runStandardUpdate, since the temporary login information won't
+	// persist past the scope of these functions.
+	return nil
 }
 
 // findDeviceKeys looks for device keys and unlocks them.
