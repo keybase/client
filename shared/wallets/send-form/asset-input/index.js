@@ -7,6 +7,7 @@ type Props = {
   bottomLabel: string,
   displayUnit: string,
   inputPlaceholder: string,
+  onChangeAmount: string => void,
   onChangeDisplayUnit: () => void,
   onClickInfo: () => void,
   topLabel: string,
@@ -29,6 +30,7 @@ const AssetInput = (props: Props) => (
           </Text>
         </Box2>
       }
+      onChangeText={props.onChangeAmount}
       textType="HeaderBigExtrabold"
       placeholder={props.inputPlaceholder}
     />

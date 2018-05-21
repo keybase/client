@@ -5,6 +5,7 @@ import {Box} from '../../../common-adapters'
 import AssetInput from '.'
 
 const common = {
+  onChangeAmount: action('onChangeAmount'),
   onChangeDisplayUnit: action('onChangeDisplayUnit'),
   onClickInfo: action('onClickInfo'),
   topLabel: '',
