@@ -7,8 +7,6 @@ import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import Box from './box'
-
-import type {Exact} from '../constants/types/more'
 import type {Props, IconType} from './icon'
 
 const StyledSpan = glamorous.span(props => ({
@@ -22,8 +20,8 @@ const StyledSpan = glamorous.span(props => ({
     : null),
 }))
 
-class Icon extends Component<Exact<Props>, void> {
-  shouldComponentUpdate(nextProps: Exact<Props>, nextState: any): boolean {
+class Icon extends Component<Props, void> {
+  shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
         return shallowEqual(obj, oth)
@@ -179,6 +177,10 @@ export const styles = {
   icon: {
     fontSize: 16,
   },
+}
+
+export function castPlatformStyles(styles: any) {
+  return shared.castPlatformStyles(styles)
 }
 
 export default Icon

@@ -5,7 +5,7 @@ import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} fro
 import FloatingMenu from '../../common-adapters/floating-menu'
 
 export type Props = {
-  attachTo: ?React.Component<*, *>,
+  attachTo: ?React.Component<any, any>,
   description: string,
   following: {[key: string]: true},
   memberCount: number,
@@ -71,15 +71,23 @@ const TeamInfo = (props: Props) => (
           disabled={props.teamJoinSuccess || props.youHaveRequestedAccess}
           label={
             props.teamJoinSuccess || props.youHaveRequestedAccess
-              ? props.openTeam ? 'Joined' : 'Request sent'
-              : props.openTeam ? 'Join team' : 'Request to join'
+              ? props.openTeam
+                ? 'Joined'
+                : 'Request sent'
+              : props.openTeam
+                ? 'Join team'
+                : 'Request to join'
           }
           small={!isMobile}
           style={{marginTop: globalMargins.tiny}}
           type={
             props.teamJoinSuccess || props.youHaveRequestedAccess
-              ? props.openTeam ? 'PrimaryGreen' : 'Secondary'
-              : props.openTeam ? 'PrimaryGreen' : 'Primary'
+              ? props.openTeam
+                ? 'PrimaryGreen'
+                : 'Secondary'
+              : props.openTeam
+                ? 'PrimaryGreen'
+                : 'Primary'
           }
         />
       </Box>
@@ -110,7 +118,9 @@ const TeamInfo = (props: Props) => (
             <Text type="BodySmall">
               {idx < props.publicAdmins.length - 1
                 ? ', '
-                : props.publicAdminsOthers === 0 ? '.' : `, + ${props.publicAdminsOthers} others.`}
+                : props.publicAdminsOthers === 0
+                  ? '.'
+                  : `, + ${props.publicAdminsOthers} others.`}
             </Text>
           </Box>
         ))}

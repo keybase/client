@@ -23,23 +23,35 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 	}
 	line("%v", ColorString(g, "green", amount))
 	// Show sender and recipient. Prefer keybase form, fall back to stellar abbreviations.
-	from := p.FromStellar.LossyAbbreviation()
-	to := p.ToStellar.LossyAbbreviation()
-	if p.FromUsername != nil {
+	var showedAbbreviation bool
+	var from string
+	switch {
+	case p.FromUsername != nil:
 		from = *p.FromUsername
+	default:
+		from = p.FromStellar.LossyAbbreviation()
+		showedAbbreviation = true
 	}
-	if p.ToUsername != nil {
+	var to string
+	switch {
+	case p.ToUsername != nil:
 		to = *p.ToUsername
-	}
-	showedAbbreviation := true
-	if p.FromUsername != nil && p.ToUsername != nil {
-		showedAbbreviation = false
+	case p.ToStellar != nil:
+		to = p.ToStellar.LossyAbbreviation()
+		showedAbbreviation = true
+	default:
+		// This should never happen
+		line("%v", ColorString(g, "red", "missing recipient info"))
 	}
 	line("%v -> %v", from, to)
 	// If an abbreviation was shown, show the full addresses
 	if showedAbbreviation || verbose {
 		line("From: %v", p.FromStellar.String())
-		line("To:   %v", p.ToStellar.String())
+		if p.ToStellar != nil {
+			line("To:   %v", p.ToStellar.String())
+		} else {
+			line("To:   %v", ColorString(g, "yellow", "unclaimed"))
+		}
 	}
 	if len(p.Note) > 0 {
 		line("Note: %v", ColorString(g, "yellow", printPaymentFilterNote(p.Note)))
@@ -48,11 +60,17 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		line("Note Error: %v", ColorString(g, "red", p.NoteErr))
 	}
 	if verbose {
-		line("Transaction Hash: %v", p.StellarTxID)
+		line("Transaction Hash: %v", p.TxID)
 	}
-	if len(p.Status) > 0 && p.Status != "completed" {
-		line("Status: %v", ColorString(g, "red", p.Status))
-		line("        %v", ColorString(g, "red", p.StatusDetail))
+	switch p.Status {
+	case "", "completed":
+	default:
+		color := "red"
+		if p.Status == "claimable" {
+			color = "yellow"
+		}
+		line("Status: %v", ColorString(g, color, p.Status))
+		line("        %v", ColorString(g, color, p.StatusDetail))
 	}
 }
 

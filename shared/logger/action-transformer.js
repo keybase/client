@@ -9,21 +9,16 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen'
-import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
+import type {TypedState} from '../constants/reducer'
 import * as Entity from '../constants/types/entities'
 
-type ActionTransformer<P, A: {type: string, payload: P}> = (
-  a: A,
-  state: TypedState
-) => ?{type: string, payload?: Object}
-
 // If you use nullTransform it'll not be logged at all
-const nullTransform: ActionTransformer<*, *> = action => {
+const nullTransform = action => {
   return null
 }
 
-const pathActionTransformer: ActionTransformer<*, *> = (action, oldState) => {
+const pathActionTransformer = (action, oldState) => {
   const prevPath = oldState.routeTree ? getPath(oldState.routeTree.routeState) : I.List()
   const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
   const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)
@@ -42,10 +37,10 @@ const entityTransformer = (action: Entity.Actions) => ({
   type: action.type,
 })
 
-const defaultTransformer: ActionTransformer<*, *> = ({type}) => ({type})
+const defaultTransformer = ({type}) => ({type})
 const fullOutput = a => a
 
-const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
+const actionTransformMap = {
   [RouteTreeConstants.switchTo]: pathActionTransformer,
   [RouteTreeConstants.navigateTo]: pathActionTransformer,
   [RouteTreeConstants.navigateAppend]: pathActionTransformer,
@@ -107,9 +102,9 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   }),
 }
 
-const transformActionForLog: ActionTransformer<*, *> = (action, state) =>
+const transformActionForLog = (action: any, state: TypedState) =>
   actionTransformMap[action.type]
     ? actionTransformMap[action.type](action, state)
-    : defaultTransformer(action, state)
+    : defaultTransformer(action)
 
 export default transformActionForLog

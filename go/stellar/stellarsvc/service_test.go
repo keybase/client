@@ -13,7 +13,9 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/client/go/teams"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stellar/go/keypair"
@@ -36,7 +38,7 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 }
 
 func TestCreateWallet(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 2)
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingWalletless, usettingFull})
 	defer cleanup()
 
 	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
@@ -75,9 +77,8 @@ func TestUpkeep(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
-	require.True(t, created)
 
 	bundle, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
@@ -121,10 +122,10 @@ func TestImportExport(t *testing.T) {
 
 	mustAskForPassphrase := func(f func()) {
 		ui := tcs[0].Fu.NewSecretUI()
-		tcs[0].Srv.uiSource.(*testUISource).secret = ui
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = ui
 		f()
 		require.True(t, ui.CalledGetPassphrase, "operation should ask for passphrase")
-		tcs[0].Srv.uiSource.(*testUISource).secret = nullSecretUI{}
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = nullSecretUI{}
 	}
 
 	mustAskForPassphrase(func() {
@@ -208,7 +209,7 @@ func TestBalances(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	accountID := tcs[0].Remote.AddAccount(t)
+	accountID := tcs[0].Backend.AddAccount()
 
 	balances, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
 	if err != nil {
@@ -220,17 +221,16 @@ func TestBalances(t *testing.T) {
 	require.Equal(t, balances[0].Amount, "10000")
 }
 
-func TestGetLocalAccounts(t *testing.T) {
+func TestGetWalletAccountsCLILocal(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.True(t, created)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	tcs[0].Remote.ImportAccountsForUser(t, tcs[0].G)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 
-	accs, err := tcs[0].Srv.WalletGetLocalAccounts(context.Background())
+	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
 	require.NoError(t, err)
 
 	require.Len(t, accs, 1)
@@ -251,25 +251,24 @@ func TestSendLocalStellarAddress(t *testing.T) {
 	require.NoError(t, err)
 
 	srv := tcs[0].Srv
-	rm := tcs[0].Remote
-	accountIDSender := rm.AddAccount(t)
-	accountIDRecip := rm.AddAccount(t)
+	rm := tcs[0].Backend
+	accountIDSender := rm.AddAccount()
+	accountIDRecip := rm.AddAccount()
 
 	argImport := stellar1.ImportSecretKeyLocalArg{
-		SecretKey:   rm.SecretKey(t, accountIDSender),
+		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
 	}
 	err = srv.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
-	arg := stellar1.SendLocalArg{
+	arg := stellar1.SendCLILocalArg{
 		Recipient: accountIDRecip.String(),
 		Amount:    "100",
 		Asset:     stellar1.Asset{Type: "native"},
 	}
-	res, err := srv.SendLocal(context.Background(), arg)
+	_, err = srv.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)
-	_ = res
 
 	balances, err := srv.BalancesLocal(context.Background(), accountIDSender)
 	if err != nil {
@@ -294,29 +293,29 @@ func TestSendLocalKeybase(t *testing.T) {
 	require.NoError(t, err)
 
 	srvSender := tcs[0].Srv
-	rm := tcs[0].Remote
-	accountIDSender := rm.AddAccount(t)
-	accountIDRecip := rm.AddAccount(t)
+	rm := tcs[0].Backend
+	accountIDSender := rm.AddAccount()
+	accountIDRecip := rm.AddAccount()
 
 	srvRecip := tcs[1].Srv
 
 	argImport := stellar1.ImportSecretKeyLocalArg{
-		SecretKey:   rm.SecretKey(t, accountIDSender),
+		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
 	}
 	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
-	argImport.SecretKey = rm.SecretKey(t, accountIDRecip)
+	argImport.SecretKey = rm.SecretKey(accountIDRecip)
 	err = srvRecip.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
-	arg := stellar1.SendLocalArg{
+	arg := stellar1.SendCLILocalArg{
 		Recipient: strings.ToUpper(tcs[1].Fu.Username),
 		Amount:    "100",
 		Asset:     stellar1.Asset{Type: "native"},
 	}
-	_, err = srvSender.SendLocal(context.Background(), arg)
+	_, err = srvSender.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)
 
 	balances, err := srvSender.BalancesLocal(context.Background(), accountIDSender)
@@ -342,59 +341,58 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	srvSender := tcs[0].Srv
-	rm := tcs[0].Remote
-	accountIDSender := rm.AddAccount(t)
-	accountIDRecip := rm.AddAccount(t)
+	rm := tcs[0].Backend
+	accountIDSender := rm.AddAccount()
+	accountIDRecip := rm.AddAccount()
 
 	srvRecip := tcs[1].Srv
 
 	argImport := stellar1.ImportSecretKeyLocalArg{
-		SecretKey:   rm.SecretKey(t, accountIDSender),
+		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
 	}
 	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
-	argImport.SecretKey = rm.SecretKey(t, accountIDRecip)
+	argImport.SecretKey = rm.SecretKey(accountIDRecip)
 	err = srvRecip.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
-	arg := stellar1.SendLocalArg{
+	arg := stellar1.SendCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
 		Amount:    "100",
 		Asset:     stellar1.Asset{Type: "native"},
 	}
-	_, err = srvSender.SendLocal(context.Background(), arg)
+	_, err = srvSender.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)
 
-	checkPayment := func(payment stellar1.PaymentCLILocal) {
-		require.Equal(t, accountIDSender, payment.FromStellar)
-		require.Equal(t, accountIDRecip, payment.ToStellar)
-		require.NotNil(t, payment.ToUsername)
-		require.Equal(t, tcs[1].Fu.Username, *(payment.ToUsername))
-		require.Equal(t, "100.0000000", payment.Amount)
+	checkPayment := func(p stellar1.PaymentCLILocal) {
+		require.Equal(t, accountIDSender, p.FromStellar)
+		require.Equal(t, accountIDRecip, *p.ToStellar)
+		require.NotNil(t, p.ToUsername)
+		require.Equal(t, tcs[1].Fu.Username, *(p.ToUsername))
+		require.Equal(t, "100.0000000", p.Amount)
 	}
 	senderPayments, err := srvSender.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, senderPayments, 1)
-	checkPayment(senderPayments[0])
+	require.NotNil(t, senderPayments[0].Payment, senderPayments[0].Err)
+	checkPayment(*senderPayments[0].Payment)
 
 	recipPayments, err := srvRecip.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, recipPayments, 1)
-	checkPayment(recipPayments[0])
+	require.NotNil(t, senderPayments[0].Payment, senderPayments[0].Err)
+	checkPayment(*recipPayments[0].Payment)
 
-	payment, err := srvSender.PaymentDetailCLILocal(context.Background(), senderPayments[0].StellarTxID.String())
+	payment, err := srvSender.PaymentDetailCLILocal(context.Background(), senderPayments[0].Payment.TxID.String())
 	require.NoError(t, err)
 	checkPayment(payment)
-	payment, err = srvRecip.PaymentDetailCLILocal(context.Background(), senderPayments[0].StellarTxID.String())
+	payment, err = srvRecip.PaymentDetailCLILocal(context.Background(), senderPayments[0].Payment.TxID.String())
 	require.NoError(t, err)
 	checkPayment(payment)
 }
 
-// TODO CORE-7718 delete this test.
-// The functions it uses will be made private.
-// Use the exposed RPCs and inspection of the remote mock instead.
 func TestRelayTransferInnards(t *testing.T) {
 	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingWalletless})
 	defer cleanup()
@@ -409,31 +407,141 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("create relay transfer")
-	recipient, err := stellar.LookupRecipient(context.Background(), tcs[0].G, stellar.RecipientInput(u1.GetNormalizedName()))
+	uis := libkb.UIs{
+		IdentifyUI: tcs[0].Srv.uiSource.IdentifyUI(tcs[0].G, 0),
+	}
+	m := libkb.NewMetaContextBackground(tcs[0].G).WithUIs(uis)
+	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(u1.GetNormalizedName()))
 	require.NoError(t, err)
-	appKey, teamID, err := stellar.RelayTransferKey(context.Background(), tcs[0].G, recipient)
+	appKey, teamID, err := relays.GetKey(context.Background(), tcs[0].G, recipient)
 	require.NoError(t, err)
-	out, err := stellar.CreateRelayTransfer(stellar.RelayPaymentInput{
+	out, err := relays.Create(relays.Input{
 		From:          stellarSender.Signers[0],
 		AmountXLM:     "10.0005",
 		Note:          "hey",
 		EncryptFor:    appKey,
-		SeqnoProvider: stellar.NewSeqnoProvider(context.Background(), tcs[0].Remote),
+		SeqnoProvider: stellar.NewSeqnoProvider(context.Background(), tcs[0].Srv.remoter),
 	})
 	require.NoError(t, err)
 	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())
+	require.NoError(t, err)
 	require.True(t, len(out.FundTx.Signed) > 100)
 
 	t.Logf("decrypt")
-	appKey, err = stellar.RelayTransferKeyForDecryption(context.Background(), tcs[0].G, teamID, appKey.KeyGeneration)
-	require.NoError(t, err)
-	relaySecrets, err := stellar.DecryptRelaySecretB64(out.EncryptedB64, appKey)
+	relaySecrets, err := relays.DecryptB64(context.Background(), tcs[0].G, teamID, out.EncryptedB64)
 	require.NoError(t, err)
 	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecrets.Sk.SecureNoLogString())
 	require.NoError(t, err)
 	require.Equal(t, out.RelayAccountID, accountID)
 	require.Len(t, relaySecrets.StellarID, 64)
 	require.Equal(t, "hey", relaySecrets.Note)
+}
+
+func TestRelayClaim(t *testing.T) {
+	testRelay(t, false)
+}
+
+func TestRelayYank(t *testing.T) {
+	testRelay(t, true)
+}
+
+func testRelay(t *testing.T, yank bool) {
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingPukless})
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "5")
+	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Amount:    "3",
+		Asset:     stellar1.Asset{Type: "native"},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, sendRes.Relay)
+
+	claimant := 0
+	if !yank {
+		claimant = 1
+
+		getapuk := func(tc *TestContext) {
+			tc.Tp.DisableUpgradePerUserKey = false
+			err = engine.RunEngine2(libkb.NewMetaContext(context.Background(), tc.G).WithUIs(libkb.UIs{
+				LogUI: tc.G.Log,
+			}), engine.NewPerUserKeyUpgrade(tc.G, &engine.PerUserKeyUpgradeArgs{}))
+			require.NoError(t, err)
+
+		}
+		getapuk(tcs[1])
+
+		_, err := stellar.CreateWallet(context.Background(), tcs[1].G)
+		require.NoError(t, err)
+
+		tcs[0].Backend.ImportAccountsForUser(tcs[claimant])
+
+		// The implicit team has an invite for the claimant. Now the sender signs them into the team.
+		t.Logf("Sender keys recipient into implicit team")
+		teamID := sendRes.Relay.TeamID
+		team, err := teams.Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamID})
+		require.NoError(t, err)
+		invite, _, found := team.FindActiveKeybaseInvite(tcs[claimant].Fu.GetUID())
+		require.True(t, found)
+		err = teams.HandleSBSRequest(context.Background(), tcs[0].G, keybase1.TeamSBSMsg{
+			TeamID: teamID,
+			Invitees: []keybase1.TeamInvitee{{
+				InviteID:    invite.Id,
+				Uid:         tcs[claimant].Fu.GetUID(),
+				EldestSeqno: tcs[claimant].Fu.EldestSeqno,
+				Role:        keybase1.TeamRole_ADMIN,
+			}},
+		})
+		require.NoError(t, err)
+	}
+
+	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, history, 1)
+	require.Equal(t, "", history[0].Err)
+	require.NotNil(t, history[0].Payment)
+	require.Equal(t, "claimable", history[0].Payment.Status)
+	txID := history[0].Payment.TxID
+
+	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "1.9999900")
+	if !yank {
+		tcs[claimant].Backend.AssertBalance(getPrimaryAccountID(tcs[claimant]), "0")
+	}
+
+	res, err := tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
+	require.NoError(t, err)
+	require.NotEqual(t, "", res.ClaimStellarID)
+
+	if !yank {
+		tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "1.9999900")
+		tcs[claimant].Backend.AssertBalance(getPrimaryAccountID(tcs[claimant]), "2.9999800")
+	} else {
+		tcs[claimant].Backend.AssertBalance(getPrimaryAccountID(tcs[claimant]), "4.9999800")
+	}
+
+	history, err = tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, history, 1)
+	require.Equal(t, "", history[0].Err)
+	require.NotNil(t, history[0].Payment)
+	require.Equal(t, "completed", history[0].Payment.Status)
+
+	history, err = tcs[0].Srv.RecentPaymentsCLILocal(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, history, 1)
+	require.Equal(t, "", history[0].Err)
+	require.NotNil(t, history[0].Payment)
+	require.Equal(t, "completed", history[0].Payment.Status)
+
+	t.Logf("try to claim again")
+	res, err = tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
+	require.Error(t, err)
+	require.Equal(t, "Payment already claimed by "+tcs[claimant].Fu.Username, err.Error())
 }
 
 func TestGetAvailableCurrencies(t *testing.T) {
@@ -449,9 +557,9 @@ func TestGetAvailableCurrencies(t *testing.T) {
 
 type TestContext struct {
 	libkb.TestContext
-	Fu     *kbtest.FakeUser
-	Srv    *Server
-	Remote *RemoteMock
+	Fu      *kbtest.FakeUser
+	Srv     *Server
+	Backend *BackendMock
 }
 
 // Create n TestContexts with logged in users
@@ -475,6 +583,7 @@ const (
 func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, func()) {
 	require.True(t, len(settings) > 0, "must create at least 1 tc")
 	var tcs []*TestContext
+	bem := NewBackendMock(t)
 	for _, setting := range settings {
 		tc := SetupTest(t, "wall", 1)
 		switch setting {
@@ -486,13 +595,15 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		}
 		fu, err := kbtest.CreateAndSignupFakeUser("wall", tc.G)
 		require.NoError(t, err)
-		srv, rm := newTestServer(t, tc.G)
-		tcs = append(tcs, &TestContext{
+		tc2 := &TestContext{
 			TestContext: tc,
 			Fu:          fu,
-			Srv:         srv,
-			Remote:      rm,
-		})
+			// All TCs in a test share the same backend.
+			Backend: bem,
+		}
+		rcm := NewRemoteClientMock(tc2, bem)
+		tc2.Srv = New(tc.G, newTestUISource(), rcm)
+		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {
 		for _, tc := range tcs {
@@ -513,6 +624,18 @@ func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey) {
 	return stellar1.AccountID(full.Address()), stellar1.SecretKey(full.Seed())
 }
 
+func getPrimaryAccountID(tc *TestContext) stellar1.AccountID {
+	accounts, err := tc.Srv.GetWalletAccountsLocal(context.Background(), 0)
+	require.NoError(tc.T, err)
+	for _, a := range accounts {
+		if a.IsDefault {
+			return a.AccountID
+		}
+	}
+	require.Fail(tc.T, "no primary account")
+	return ""
+}
+
 type nullSecretUI struct{}
 
 func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
@@ -520,14 +643,21 @@ func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg
 }
 
 type testUISource struct {
-	secret libkb.SecretUI
+	secretUI   libkb.SecretUI
+	identifyUI libkb.IdentifyUI
+}
+
+func newTestUISource() *testUISource {
+	return &testUISource{
+		secretUI:   nullSecretUI{},
+		identifyUI: &kbtest.FakeIdentifyUI{},
+	}
 }
 
 func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI {
-	return t.secret
+	return t.secretUI
 }
 
-func newTestServer(t testing.TB, g *libkb.GlobalContext) (*Server, *RemoteMock) {
-	m := NewRemoteMock(t, g)
-	return New(g, &testUISource{nullSecretUI{}}, m), m
+func (t *testUISource) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI {
+	return t.identifyUI
 }

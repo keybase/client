@@ -168,6 +168,7 @@ class Input extends Component<Props, State> {
   _onFocus = () => {
     this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
+    this.setNativeProps({style: {textAlignVertical: 'top'}})
   }
 
   _onBlur = () => {
@@ -178,6 +179,8 @@ class Input extends Component<Props, State> {
   _lineHeight = () => {
     if (this.props.small) {
       return 20
+    } else if (this.props.multiline && isAndroid) {
+      return 34
     } else return 28
   }
 
@@ -335,13 +338,15 @@ class Input extends Component<Props, State> {
 
     return (
       <Box style={[containerStyle, this.props.style]}>
-        {!this.props.small && (
-          <Text type="BodySmall" style={styles.floating}>
-            {floatingHintText}
-          </Text>
-        )}
+        {!this.props.small &&
+          !this.props.hideLabel && (
+            <Text type="BodySmall" style={styles.floating}>
+              {floatingHintText}
+            </Text>
+          )}
         {!!this.props.small &&
-          !!this.props.smallLabel && (
+          !!this.props.smallLabel &&
+          !this.props.hideLabel && (
             <Text
               type="BodySmall"
               style={collapseStyles([styles.smallLabel, {lineHeight}, this.props.smallLabelStyle])}

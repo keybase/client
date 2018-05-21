@@ -58,7 +58,7 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 		},
 		MessageBody: body,
 	}
-	_, _, _, err := sender.Send(ctx, convID, msg, 0, nil)
+	_, _, err := sender.Send(ctx, convID, msg, 0, nil)
 	return err
 }
 
@@ -82,7 +82,7 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 		},
 		MessageBody: body,
 	}
-	_, _, _, err := sender.Send(ctx, convID, msg, 0, nil)
+	_, _, err := sender.Send(ctx, convID, msg, 0, nil)
 	return err
 }
 
@@ -134,7 +134,8 @@ func (h *Helper) FindConversations(ctx context.Context, name string, topicName *
 	if topicName != nil {
 		tname = *topicName
 	}
-	convs, _, err := FindConversations(ctx, h.G(), h.DebugLabeler, h.ri, uid, name, topicType, membersType, vis, tname, &oneChat)
+	convs, err := FindConversations(ctx, h.G(), h.DebugLabeler, h.ri, uid, name, topicType, membersType, vis,
+		tname, &oneChat)
 	return convs, err
 }
 
@@ -147,7 +148,7 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 	query := &chat1.GetInboxLocalQuery{
 		ConvIDs: convIDs,
 	}
-	inbox, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, query, nil)
+	inbox, err := h.G().InboxSource.Read(ctx, uid, nil, true, query, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +175,7 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 		ConvIDs:   []chat1.ConversationID{convID},
 		TopicType: &topicType,
 	}
-	inbox, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, query, nil)
+	inbox, err := h.G().InboxSource.Read(ctx, uid, nil, true, query, nil)
 	if err != nil {
 		return topicName, err
 	}
@@ -187,7 +188,7 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 
 	// Fallback to TeamChannelSource
 	h.Debug(ctx, "using TeamChannelSource")
-	topicName, _, err = h.G().TeamChannelSource.GetChannelTopicName(ctx, uid, tlfID, topicType, convID)
+	topicName, err = h.G().TeamChannelSource.GetChannelTopicName(ctx, uid, tlfID, topicType, convID)
 	return topicName, err
 }
 
@@ -216,7 +217,7 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
-	conv, _, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true)
+	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true /* useLocalData */)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +294,7 @@ func (h *Helper) formatPushText(ctx context.Context, uid gregor1.UID, convID cha
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		// Try to get the channel name
-		ib, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+		ib, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
 		}, nil)
 		if err != nil || len(ib.Convs) == 0 {
@@ -437,7 +438,7 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 		return err
 	}
 	uid := gregor1.UID(kuid.ToBytes())
-	conv, _, err := NewConversation(ctx, s.G(), uid, s.canonicalName, s.topicName,
+	conv, err := NewConversation(ctx, s.G(), uid, s.canonicalName, s.topicName,
 		chat1.TopicType_CHAT, s.membersType, keybase1.TLFVisibility_PRIVATE, s.remoteInterface)
 	if err != nil {
 		return err
@@ -500,7 +501,7 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 		},
 		MessageBody: body,
 	}
-	_, _, _, err := s.sender.Send(ctx, s.convID, msg, 0, nil)
+	_, _, err := s.sender.Send(ctx, s.convID, msg, 0, nil)
 	return err
 }
 
@@ -579,22 +580,22 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 var errGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation not found")
 
 func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, *chat1.RateLimit, error) {
+	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, error) {
 
-	inbox, ratelim, err := g.InboxSource.ReadUnverified(ctx, uid, useLocalData, &chat1.GetInboxQuery{
+	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, useLocalData, &chat1.GetInboxQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}, nil)
 	if err != nil {
-		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
+		return chat1.Conversation{}, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
 	}
 	if len(inbox.ConvsUnverified) == 0 {
-		return chat1.Conversation{}, ratelim, errGetUnverifiedConvNotFound
+		return chat1.Conversation{}, errGetUnverifiedConvNotFound
 	}
 	if !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
-		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
+		return chat1.Conversation{}, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
 			inbox.ConvsUnverified[0].GetConvID(), convID)
 	}
-	return inbox.ConvsUnverified[0].Conv, ratelim, nil
+	return inbox.ConvsUnverified[0].Conv, nil
 }
 
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
@@ -633,9 +634,9 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 func FindConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string, topicType chat1.TopicType,
 	membersTypeIn chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
-	oneChatPerTLF *bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+	oneChatPerTLF *bool) (res []chat1.ConversationLocal, err error) {
 
-	findConvosWithMembersType := func(membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+	findConvosWithMembersType := func(membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, err error) {
 
 		query := &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
@@ -648,12 +649,9 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			OneChatTypePerTLF: oneChatPerTLF,
 		}
 
-		inbox, irl, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
+		inbox, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
 		if err != nil {
-			return res, rl, err
-		}
-		if irl != nil {
-			rl = append(rl, *irl)
+			return res, err
 		}
 
 		// If we have inbox hits, return those
@@ -671,14 +669,13 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			nameInfo, err := CtxKeyFinder(ctx, g).Find(ctx, tlfName, membersType, false)
 			if err != nil {
 				debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
-				return res, rl, err
+				return res, err
 			}
-			tlfConvs, irl, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
+			tlfConvs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
 			if err != nil {
 				debugger.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
-				return res, rl, err
+				return res, err
 			}
-			rl = append(rl, irl...)
 
 			for _, tlfConv := range tlfConvs {
 				if utils.GetTopicName(tlfConv) == topicName {
@@ -693,14 +690,14 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 			// Check for offline and return an error
 			if g.InboxSource.IsOffline(ctx) {
-				return res, rl, OfflineError{}
+				return res, OfflineError{}
 			}
 
 			// If we miss the inbox, and we are looking for a public TLF, let's try and find
 			// any conversation that matches
 			nameInfo, err := GetInboxQueryNameInfo(ctx, g, query)
 			if err != nil {
-				return res, rl, err
+				return res, err
 			}
 
 			// Call into gregor to try and find some public convs
@@ -710,10 +707,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 				SummarizeMaxMsgs: true,
 			})
 			if err != nil {
-				return res, rl, err
-			}
-			if pubConvs.RateLimit != nil {
-				rl = append(rl, *pubConvs.RateLimit)
+				return res, err
 			}
 
 			// Localize the convs (if any)
@@ -723,7 +717,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 					ConvsUnverified: utils.RemoteConvs(pubConvs.Conversations),
 				})
 				if err != nil {
-					return res, rl, err
+					return res, err
 				}
 
 				// Search for conversations that match the topic name
@@ -742,18 +736,16 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			}
 
 		}
-		return res, rl, nil
+		return res, nil
 	}
 
-	var irl []chat1.RateLimit
 	attempts := make(map[chat1.ConversationMembersType]bool)
 	mt := membersTypeIn
 L:
 	for {
 		var ierr error
 		attempts[mt] = true
-		res, irl, ierr = findConvosWithMembersType(mt)
-		rl = append(rl, irl...)
+		res, ierr = findConvosWithMembersType(mt)
 		if ierr != nil || len(res) == 0 {
 			if ierr != nil {
 				debugger.Debug(ctx, "FindConversations: fail reason: %s mt: %v", ierr, mt)
@@ -799,35 +791,33 @@ L:
 			break L
 		}
 	}
-	return res, utils.AggRateLimits(rl), err
+	return res, err
 }
 
 // Post a join or leave message. Must be called when the user is in the conv.
 // Uses a blocking sender.
 func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID,
-	convID chat1.ConversationID, body chat1.MessageBody) (rl []chat1.RateLimit, err error) {
+	convID chat1.ConversationID, body chat1.MessageBody) (err error) {
 	typ, err := body.MessageType()
 	if err != nil {
-		return nil, fmt.Errorf("message type for postJoinLeave: %v", err)
+		return fmt.Errorf("message type for postJoinLeave: %v", err)
 	}
 	switch typ {
 	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 	// good
 	default:
-		return nil, fmt.Errorf("invalid message type for postJoinLeave: %v", typ)
+		return fmt.Errorf("invalid message type for postJoinLeave: %v", typ)
 	}
 
 	// Get the conversation from the inbox.
 	query := chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}
-	ib, irl, err := g.InboxSource.Read(ctx, uid, nil, true, &query, nil)
+	ib, err := g.InboxSource.Read(ctx, uid, nil, true, &query, nil)
 	if len(ib.Convs) != 1 {
-		return rl, fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
+		return fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
 	}
-	if irl != nil {
-		rl = append(rl, *irl)
-	}
+
 	conv := ib.Convs[0]
 
 	plaintext := chat1.MessagePlaintext{
@@ -850,33 +840,24 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 
 	// Send with a blocking sender
 	sender := NewBlockingSender(g, NewBoxer(g), nil, ri)
-	_, _, irl, err = sender.Send(ctx, convID, plaintext, 0, nil)
-	if irl != nil {
-		rl = append(rl, *irl)
-	}
-	return rl, err
+	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil)
+	return err
 }
 
 func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (rl []chat1.RateLimit, err error) {
-	alreadyIn, irl, err := g.InboxSource.IsMember(ctx, uid, convID)
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "JoinConversation: IsMember err: %s", err.Error())
 		// Assume we're not in.
 		alreadyIn = false
 	}
-	if irl != nil {
-		rl = append(rl, *irl)
-	}
 
 	// Send the join command even if we're in.
-	joinRes, err := ri().JoinConversation(ctx, convID)
+	_, err = ri().JoinConversation(ctx, convID)
 	if err != nil {
 		debugger.Debug(ctx, "JoinConversation: failed to join conversation: %s", err.Error())
-		return rl, err
-	}
-	if joinRes.RateLimit != nil {
-		rl = append(rl, *joinRes.RateLimit)
+		return err
 	}
 
 	if _, err = g.InboxSource.MembershipUpdate(ctx, uid, 0, []chat1.ConversationMember{
@@ -892,82 +873,67 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 		// Send a message to the channel after joining.
 		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
 		debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
-		irl, err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
+		err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
 		if err != nil {
 			debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
 			// ignore the error
 		}
-		rl = append(rl, irl...)
 	}
-	return rl, nil
+	return nil
 }
 
 func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (rl []chat1.RateLimit, err error) {
-	alreadyIn, irl, err := g.InboxSource.IsMember(ctx, uid, convID)
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "LeaveConversation: IsMember err: %s", err.Error())
 		// Pretend we're in.
 		alreadyIn = true
 	}
-	if irl != nil {
-		rl = append(rl, *irl)
-	}
 
 	// Send a message to the channel to leave the conversation
 	if alreadyIn {
 		leaveMessageBody := chat1.NewMessageBodyWithLeave(chat1.MessageLeave{})
-		irl, err := postJoinLeave(ctx, g, ri, uid, convID, leaveMessageBody)
+		err := postJoinLeave(ctx, g, ri, uid, convID, leaveMessageBody)
 		if err != nil {
 			debugger.Debug(ctx, "LeaveConversation: posting leave-conv message failed: %v", err)
-			return rl, err
+			return err
 		}
-		rl = append(rl, irl...)
 	} else {
-		lres, err := ri().LeaveConversation(ctx, convID)
+		_, err = ri().LeaveConversation(ctx, convID)
 		if err != nil {
 			debugger.Debug(ctx, "LeaveConversation: failed to leave conversation as a non-member: %s", err)
-			return rl, err
-		}
-		if lres.RateLimit != nil {
-			rl = append(rl, *lres.RateLimit)
+			return err
 		}
 	}
 
-	return rl, nil
+	return nil
 }
 
 func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (rl []chat1.RateLimit, err error) {
-	alreadyIn, irl, err := g.InboxSource.IsMember(ctx, uid, convID)
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "PreviewConversation: IsMember err: %s", err.Error())
 		// Assume we aren't in, server will reject us otherwise.
 		alreadyIn = false
 	}
-	if irl != nil {
-		rl = append(rl, *irl)
-	}
 	if alreadyIn {
 		debugger.Debug(ctx, "PreviewConversation: already in the conversation, no need to preview")
-		return nil, nil
+		return nil
 	}
 
-	previewRes, err := ri().PreviewConversation(ctx, convID)
+	_, err = ri().PreviewConversation(ctx, convID)
 	if err != nil {
 		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
-		return rl, err
+		return err
 	}
-	if previewRes.RateLimit != nil {
-		rl = append(rl, *previewRes.RateLimit)
-	}
-
-	return rl, nil
+	return nil
 }
 
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
-	ri func() chat1.RemoteInterface) (chat1.ConversationLocal, []chat1.RateLimit, error) {
+	ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri)
 	return helper.create(ctx)
 }
@@ -1001,17 +967,19 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	}
 }
 
-func (n *newConversationHelper) findConversations(ctx context.Context, membersType chat1.ConversationMembersType, topicName string) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
+func (n *newConversationHelper) findConversations(ctx context.Context,
+	membersType chat1.ConversationMembersType, topicName string) ([]chat1.ConversationLocal, error) {
 	onechatpertlf := true
-	return FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType, membersType, n.vis, topicName, &onechatpertlf)
+	return FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType, membersType,
+		n.vis, topicName, &onechatpertlf)
 }
 
-func (n *newConversationHelper) findExisting(ctx context.Context, topicName string) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+func (n *newConversationHelper) findExisting(ctx context.Context, topicName string) (res []chat1.ConversationLocal, err error) {
 	// proceed to findConversations for requested member type
 	return n.findConversations(ctx, n.membersType, topicName)
 }
 
-func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, rl []chat1.RateLimit, reserr error) {
+func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, reserr error) {
 	defer n.Trace(ctx, func() error { return reserr }, "newConversationHelper")()
 	// Handle a nil topic name with default values for the members type specified
 	if n.topicName == nil {
@@ -1035,13 +1003,12 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
 
-	convs, irl, err := n.findExisting(ctx, findConvsTopicName)
+	convs, err := n.findExisting(ctx, findConvsTopicName)
 
 	// If we find one conversation, then just return it as if we created it.
-	rl = append(rl, irl...)
 	if len(convs) == 1 {
 		n.Debug(ctx, "found previous conversation that matches, returning")
-		return convs[0], rl, err
+		return convs[0], err
 	}
 
 	if n.G().ExternalG().Env.GetChatMemberType() == "impteam" {
@@ -1061,21 +1028,21 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
 	if err != nil {
 		if n.membersType != chat1.ConversationMembersType_IMPTEAMNATIVE {
-			return res, rl, err
+			return res, err
 		}
 		if _, ok := err.(teams.TeamDoesNotExistError); !ok {
-			return res, rl, err
+			return res, err
 		}
 
 		// couldn't find implicit team, so make one
 		n.Debug(ctx, "making new implicit team %q", n.tlfName)
 		_, _, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
 		if err != nil {
-			return res, rl, err
+			return res, err
 		}
 		info, err = CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
 		if err != nil {
-			return res, rl, err
+			return res, err
 		}
 	}
 
@@ -1088,14 +1055,14 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	for i := 0; i < 5; i++ {
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
-			return res, rl, fmt.Errorf("error creating topic ID: %s", err)
+			return res, fmt.Errorf("error creating topic ID: %s", err)
 		}
 		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v]", i, triple.Tlfid,
 			triple.TopicType, triple.TopicID, info.CanonicalName, isPublic)
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
 		if err != nil {
-			return res, rl, fmt.Errorf("error preparing message: %s", err)
+			return res, fmt.Errorf("error preparing message: %s", err)
 		}
 
 		var ncrres chat1.NewConversationRemoteRes
@@ -1105,9 +1072,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			MembersType:    n.membersType,
 			TopicNameState: topicNameState,
 		})
-		if ncrres.RateLimit != nil {
-			rl = append(rl, *ncrres.RateLimit)
-		}
 		convID := ncrres.ConvID
 		if reserr != nil {
 			switch cerr := reserr.(type) {
@@ -1132,26 +1096,23 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				n.Debug(ctx, "collision: %v", reserr)
 				continue
 			default:
-				return res, rl, fmt.Errorf("error creating conversation: %s", reserr)
+				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			}
 		}
 
 		n.Debug(ctx, "established conv: %v", convID)
 
 		// create succeeded; grabbing the conversation and returning
-		ib, irl, err := n.G().InboxSource.Read(ctx, n.uid, nil, false,
+		ib, err := n.G().InboxSource.Read(ctx, n.uid, nil, false,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)
 		if err != nil {
-			return res, rl, err
-		}
-		if rl != nil {
-			rl = append(rl, *irl)
+			return res, err
 		}
 
 		if len(ib.Convs) != 1 {
-			return res, rl,
+			return res,
 				fmt.Errorf("newly created conversation fetch error: found %d conversations", len(ib.Convs))
 		}
 		res = ib.Convs[0]
@@ -1161,14 +1122,14 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		// Update inbox cache
 		updateConv := ib.ConvsUnverified[0]
 		if err = n.G().InboxSource.NewConversation(ctx, n.uid, 0, updateConv.Conv); err != nil {
-			return res, rl, err
+			return res, err
 		}
 
 		// Clear team channel source
 		n.G().TeamChannelSource.ChannelsChanged(ctx, updateConv.Conv.Metadata.IdTriple.Tlfid)
 
 		if res.Error != nil {
-			return res, rl, errors.New(res.Error.Message)
+			return res, errors.New(res.Error.Message)
 		}
 
 		// Send a message to the channel after joining.
@@ -1177,12 +1138,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			// don't send join messages to #general
 			if findConvsTopicName != globals.DefaultTeamTopic {
 				joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-				irl, err := postJoinLeave(ctx, n.G(), n.ri, n.uid, convID, joinMessageBody)
+				err := postJoinLeave(ctx, n.G(), n.ri, n.uid, convID, joinMessageBody)
 				if err != nil {
 					n.Debug(ctx, "posting join-conv message failed: %v", err)
 					// ignore the error
 				}
-				rl = append(rl, irl...)
 			}
 		default:
 			// pass
@@ -1201,11 +1161,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				n.Debug(ctx, "failed to send complex team intro message: %s", err)
 			}
 		}
-
-		return res, rl, nil
+		return res, nil
 	}
-
-	return res, rl, reserr
+	return res, reserr
 }
 
 func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,

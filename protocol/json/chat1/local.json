@@ -86,7 +86,8 @@
         "INVITEADDEDTOTEAM_1",
         "COMPLEXTEAM_2",
         "CREATETEAM_3",
-        "GITPUSH_4"
+        "GITPUSH_4",
+        "CHANGEAVATAR_5"
       ]
     },
     {
@@ -223,6 +224,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemChangeAvatar",
+      "fields": [
+        {
+          "type": "string",
+          "name": "team"
+        },
+        {
+          "type": "string",
+          "name": "user"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -264,6 +279,13 @@
             "def": false
           },
           "body": "MessageSystemGitPush"
+        },
+        {
+          "label": {
+            "name": "CHANGEAVATAR",
+            "def": false
+          },
+          "body": "MessageSystemChangeAvatar"
         }
       ]
     },
@@ -1127,6 +1149,18 @@
           "name": "errMsg"
         },
         {
+          "type": "string",
+          "name": "senderUsername"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceName"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceType"
+        },
+        {
           "type": "MessageID",
           "name": "messageID"
         },
@@ -1633,6 +1667,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "GetThreadNonblockPgMode",
+      "symbols": [
+        "DEFAULT_0",
+        "SERVER_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "GetInboxLocalRes",
       "fields": [
@@ -1773,6 +1815,44 @@
           "type": {
             "type": "array",
             "items": "ConversationLocal"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxAndUnboxUILocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
           },
           "name": "conversations"
         },
@@ -2380,6 +2460,10 @@
           "type": "GetThreadNonblockReason"
         },
         {
+          "name": "pgmode",
+          "type": "GetThreadNonblockPgMode"
+        },
+        {
           "name": "query",
           "type": [
             null,
@@ -2422,6 +2506,29 @@
         }
       ],
       "response": "GetInboxAndUnboxLocalRes"
+    },
+    "getInboxAndUnboxUILocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetInboxAndUnboxUILocalRes"
     },
     "getInboxNonblockLocal": {
       "request": [
@@ -2625,13 +2732,6 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
-        },
-        {
-          "name": "ephemeralLifetime",
-          "type": [
-            null,
-            "gregor1.DurationSec"
-          ]
         }
       ],
       "response": "PostLocalNonblockRes"
@@ -3443,6 +3543,14 @@
         },
         {
           "name": "maxMessages",
+          "type": "int"
+        },
+        {
+          "name": "beforeContext",
+          "type": "int"
+        },
+        {
+          "name": "afterContext",
           "type": "int"
         },
         {

@@ -7,6 +7,7 @@ import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
+import flags from '../../../../util/feature-flags'
 
 import type {PlatformInputProps} from './types'
 
@@ -22,6 +23,7 @@ const MentionCatcher = ({onClick}) => (
 
 type State = {
   emojiPickerOpen: boolean,
+  hasText: boolean,
 }
 
 class PlatformInput extends Component<PlatformInputProps, State> {
@@ -32,6 +34,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     super(props)
     this.state = {
       emojiPickerOpen: false,
+      hasText: false,
     }
   }
 
@@ -76,6 +79,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
 
     const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
+      e.preventDefault()
       this.props.onEditLastMessage()
     } else if (e.key === 'Escape' && this.props.isEditing) {
       this.props.onCancelEditing()
@@ -89,6 +93,11 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     if (text) {
       this.props.onSubmit(text)
     }
+  }
+
+  _onChangeText = (text: string) => {
+    this.setState({hasText: !!text})
+    this.props.onChangeText(text)
   }
 
   componentDidMount = () => {
@@ -191,7 +200,9 @@ class PlatformInput extends Component<PlatformInputProps, State> {
 
   render = () => {
     let hintText = 'Write a message'
-    if (this.props.isEditing) {
+    if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
+    } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.pendingWaiting) {
       hintText = 'Creating conversation...'
@@ -257,7 +268,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               ref={this._inputSetRef}
               hintText={hintText}
               hideUnderline={true}
-              onChangeText={this.props.onChangeText}
+              onChangeText={this._onChangeText}
               uncontrolled={true}
               multiline={true}
               rowsMin={1}
@@ -265,6 +276,22 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               onKeyDown={this._onKeyDown}
               onEnterKeyDown={this._onEnterKeyDown}
             />
+            {flags.explodingMessagesEnabled &&
+              this.props.isExploding &&
+              !this.state.hasText && (
+                <Icon
+                  color={globalColors.black_20}
+                  fontSize={34}
+                  hoverColor={globalColors.black_20}
+                  onClick={this._inputFocus}
+                  style={{
+                    left: 183,
+                    marginTop: -12,
+                    position: 'absolute',
+                  }}
+                  type="iconfont-boom"
+                />
+              )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}

@@ -1,6 +1,5 @@
 // @flow
 import * as RPCTypes from './rpc-gen'
-import type {Exact} from './more'
 type ListState = any
 // TODO this is super messy and there some entangled flow error. let's revisit this soon
 /* {
@@ -25,13 +24,13 @@ export type FolderState = {
   public: ListState,
 }
 
-export type ViewState = Exact<{
+export type ViewState = {|
   showingPrivate: boolean,
   publicIgnoredOpen: boolean,
   privateIgnoredOpen: boolean,
-}>
+|}
 
-export type State = Exact<{
+export type State = {|
   folderState: FolderState,
   fuseInstalling: boolean,
   fuseStatus: ?RPCTypes.FuseStatus,
@@ -40,4 +39,4 @@ export type State = Exact<{
   kbfsOpening: boolean,
   kextPermissionError: boolean,
   viewState: ViewState,
-}>
+|}

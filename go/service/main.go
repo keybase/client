@@ -505,6 +505,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
+		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
@@ -588,32 +589,35 @@ func (d *Service) chatEphemeralPurgeChecks() {
 
 func (d *Service) hourlyChecks() {
 	ticker := libkb.NewBgTicker(1 * time.Hour)
+	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("HRLY")
 	d.G().PushShutdownHook(func() error {
-		d.G().Log.Debug("stopping hourlyChecks loop")
+		m.CDebugf("stopping hourlyChecks loop")
 		ticker.Stop()
 		return nil
 	})
 	go func() {
 		// do this quickly
-		if err := d.G().LogoutIfRevoked(); err != nil {
-			d.G().Log.Debug("LogoutIfRevoked error: %s", err)
+		if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
+			m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 		}
-		ekLib := d.G().GetEKLib()
-		ekLib.KeygenIfNeeded(context.Background())
+		ekLib := m.G().GetEKLib()
+		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
-			d.G().Log.Debug("+ hourly check loop")
-			d.G().Log.Debug("| checking tracks on an hour timer")
-			libkb.CheckTracking(d.G())
-
-			ekLib := d.G().GetEKLib()
-			d.G().Log.Debug("| checking if ephemeral keys need to be created or deleted")
-			ekLib.KeygenIfNeeded(context.Background())
-			d.G().Log.Debug("| checking if current device revoked")
-			if err := d.G().LogoutIfRevoked(); err != nil {
-				d.G().Log.Debug("LogoutIfRevoked error: %s", err)
+			m.CDebugf("| checking if current device revoked")
+			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
+				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 			}
-			d.G().Log.Debug("- hourly check loop")
+
+			ekLib := m.G().GetEKLib()
+			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
+			ekLib.KeygenIfNeeded(m.Ctx())
+
+			m.CDebugf("+ hourly check loop")
+			m.CDebugf("| checking tracks on an hour timer")
+			libkb.CheckTracking(m.G())
+
+			m.CDebugf("- hourly check loop")
 		}
 	}()
 }

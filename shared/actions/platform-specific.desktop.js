@@ -1,7 +1,7 @@
 // @flow
 import {showDockIcon} from '../desktop/app/dock-icon'
 import {getMainWindow} from '../desktop/remote/util'
-import {ipcRenderer} from 'electron'
+import {ipcRenderer, remote} from 'electron'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -23,7 +23,7 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
 
-function requestPushPermissions(): Promise<*> {
+function requestPushPermissions() {
   throw new Error('Push permissions unsupported on this platform')
 }
 
@@ -35,7 +35,7 @@ function setAppState(toMerge: Object) {
   ipcRenderer.send('setAppState', toMerge)
 }
 
-function getAppState(): Promise<*> {
+function getAppState() {
   return new Promise((resolve, reject) => {
     ipcRenderer.once('getAppStateReply', (event, data) => resolve(data))
     ipcRenderer.send('getAppState')
@@ -56,11 +56,11 @@ function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
-function checkPermissions(): Promise<*> {
+function checkPermissions() {
   throw new Error('Push permissions unsupported on this platform')
 }
 
-function setShownPushPrompt(): Promise<*> {
+function setShownPushPrompt() {
   throw new Error('Push permissions unsupported on this platform')
 }
 
@@ -71,6 +71,17 @@ function getShownPushPrompt(): Promise<string> {
 function openAppSettings(): void {
   throw new Error('Cannot open app settings on desktop')
 }
+
+const getMimeTypeFromURL = (url: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const req = remote.net.request({url, method: 'HEAD'})
+    req.on('response', response => {
+      const contentType = response.headers['content-type']
+      resolve(Array.isArray(contentType) && contentType.length ? contentType[0] : '')
+    })
+    req.on('error', err => reject(err))
+    req.end()
+  })
 
 export {
   checkPermissions,
@@ -88,4 +99,5 @@ export {
   downloadAndShowShareActionSheet,
   displayNewMessageNotification,
   clearAllNotifications,
+  getMimeTypeFromURL,
 }

@@ -16,7 +16,7 @@ type AggSigProducer func() (JSONPayload, error)
 
 // Run posts an array of delegations to the server. Keeping this simple as we don't need any state (yet)
 // `extra` is optional and adds an extra sig, produced by something other than a Delegator, after the others.
-func DelegatorAggregator(lctx LoginContext, ds []Delegator, extra AggSigProducer,
+func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	pukBoxes []keybase1.PerUserKeyBox, pukPrev *PerUserKeyPrev) (err error) {
 	if len(ds) == 0 {
 		return errors.New("Empty delegators to aggregator")
@@ -30,7 +30,7 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator, extra AggSigProducer
 		var d = &ds[i]
 
 		d.Aggregated = true
-		if err := d.Run(lctx); err != nil {
+		if err := d.Run(m); err != nil {
 			return err
 		}
 
@@ -62,8 +62,9 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator, extra AggSigProducer
 	apiArg.uArgs = nil
 	apiArg.Endpoint = "key/multi"
 	apiArg.JSONPayload = payload
+	apiArg.MetaContext = m
 
-	_, err = apiArgBase.G().API.PostJSON(apiArg)
+	_, err = m.G().API.PostJSON(apiArg)
 	return err
 }
 

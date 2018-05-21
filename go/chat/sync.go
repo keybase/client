@@ -265,6 +265,22 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncConvs []chat1.Conversation,
+	filteredConvs []types.RemoteConversation) {
+	fmap := make(map[string]bool)
+	for _, fconv := range filteredConvs {
+		fmap[fconv.Conv.GetConvID().String()] = true
+	}
+	// If any sync convs are not in the filtered list, let's blow away their local storage
+	for _, sconv := range syncConvs {
+		if !fmap[sconv.GetConvID().String()] {
+			s.Debug(ctx, "handleFilteredConvs: conv filtered from inbox, removing cache: convID: %s memberStatus: %v existence: %v",
+				sconv.GetConvID(), sconv.ReaderInfo.Status, sconv.Metadata.Existence)
+			s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid)
+		}
+	}
+}
+
 func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversation,
 	topicNameChanged []chat1.ConversationID) (res []chat1.Conversation) {
 	m := make(map[string]bool)
@@ -356,6 +372,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			vers, incr.Vers, len(incr.Convs))
 
 		var iboxSyncRes storage.InboxSyncRes
+		expunges := make(map[string]chat1.Expunge)
 		if iboxSyncRes, err = ibox.Sync(ctx, incr.Vers, incr.Convs); err != nil {
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
@@ -363,11 +380,9 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
 		} else {
 			s.handleMembersTypeChanged(ctx, uid, iboxSyncRes.MembersTypeChanged)
+			s.handleFilteredConvs(ctx, uid, incr.Convs, iboxSyncRes.FilteredConvs)
 			for _, expunge := range iboxSyncRes.Expunges {
-				err := s.G().ConvSource.Expunge(ctx, expunge.ConvID, uid, expunge.Expunge)
-				if err != nil {
-					s.Debug(ctx, "Sync: failed to expunge: %v", err)
-				}
+				expunges[expunge.ConvID.String()] = expunge.Expunge
 			}
 			if s.shouldDoFullReloadFromIncremental(ctx, iboxSyncRes, incr.Convs) {
 				// If we get word we should full clear the inbox (like if the user left a conversation),
@@ -384,16 +399,38 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			}
 		}
 
-		for _, conv := range incr.Convs {
-			// Any conversation with a delete in it needs to be checked for expunge
+		// Dispatch background jobs
+		for _, rc := range iboxSyncRes.FilteredConvs {
+			conv := rc.Conv
 			if delMsg, err := conv.GetMaxMessage(chat1.MessageType_DELETE); err == nil {
-				s.G().ConvSource.ClearFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID())
+				// Any conversation with a delete in it needs to be checked for expunge
+				if s.G().ConvSource.ClearFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID()) {
+					// This returning true means we scheduled a background job already
+					continue
+				}
 			}
-			// Queue background conversation loads
-			job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
-				types.ConvLoaderPriorityHigh, newConvLoaderPagebackHook(s.G(), 0, 5))
-			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
-				s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
+			if expunge, ok := expunges[conv.GetConvID().String()]; ok {
+				// Run expunges on the background loader
+				s.Debug(ctx, "Sync: queueing expunge background loader job: convID: %s", conv.GetConvID())
+				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
+					types.ConvLoaderPriorityHighest,
+					func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+						s.Debug(ctx, "Sync: executing expunge from a sync run: convID: %s", conv.GetConvID())
+						err := s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, expunge)
+						if err != nil {
+							s.Debug(ctx, "Sync: failed to expunge: %v", err)
+						}
+					})
+				if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
+					s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
+				}
+			} else {
+				// Everything else just queue up here
+				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
+					types.ConvLoaderPriorityHigh, newConvLoaderPagebackHook(s.G(), 0, 5))
+				if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
+					s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
+				}
 			}
 		}
 	}

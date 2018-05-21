@@ -34,13 +34,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message} = ownProps
   const arrowColor = message.downloadPath
     ? globalColors.green
-    : message.transferState === 'downloading' ? globalColors.blue : null
+    : message.transferState === 'downloading'
+      ? globalColors.blue
+      : null
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
       : message.transferState === 'uploading'
         ? 'Encrypting'
-        : message.transferState === 'remoteUploading' ? 'waiting...' : null
+        : message.transferState === 'remoteUploading'
+          ? 'waiting...'
+          : null
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
@@ -49,7 +53,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onClick: () => dispatchProps._onClick(message),
     onShowInFinder:
       !isMobile && message.downloadPath
-        ? (e: SyntheticEvent<*>) => {
+        ? (e: SyntheticEvent<any>) => {
             e.preventDefault()
             e.stopPropagation()
             dispatchProps._onShowInFinder(message)

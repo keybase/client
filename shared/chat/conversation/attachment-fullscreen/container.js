@@ -1,6 +1,5 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
-import * as More from '../../../constants/types/more'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
@@ -38,11 +37,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}: Ow
   },
 })
 
-const mergeProps = (
-  stateProps,
-  dispatchProps: More.ReturnType<typeof mapDispatchToProps>,
-  ownProps: OwnProps
-) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const message = stateProps.message
   return {
     message,

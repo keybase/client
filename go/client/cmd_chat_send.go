@@ -23,11 +23,6 @@ import (
 	isatty "github.com/mattn/go-isatty"
 )
 
-// NOTE if you change these values you should change them in
-// go/chatbase/storage/ephemeral.go as well.
-const maxEphemeralLifetime = time.Hour * 24 * 7
-const minEphemeralLifetime = time.Second * 30
-
 type CmdChatSend struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
@@ -70,9 +65,9 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	if ekLib.ShouldRun(context.TODO()) {
 		flags = append(flags, cli.DurationFlag{
 			Name: "exploding-lifetime",
-			Usage: fmt.Sprintf(`Make this message an exploding message and set the
-				lifetime for the given duration.  The maximum lifetime is %v
-				(one week) and the minimum lifetime is %v.`, maxEphemeralLifetime, minEphemeralLifetime),
+			Usage: fmt.Sprintf(`Make this message an exploding message and set the lifetime for the given duration.
+	The maximum lifetime is %v (one week) and the minimum lifetime is %v.`,
+				libkb.MaxEphemeralLifetime, libkb.MinEphemeralLifetime),
 		})
 	}
 	return cli.Command{
@@ -164,11 +159,11 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	}
 
 	if c.ephemeralLifetime != 0 {
-		if c.ephemeralLifetime > maxEphemeralLifetime {
-			return fmt.Errorf("ephemeral lifetime cannot exceed %v", maxEphemeralLifetime)
+		if c.ephemeralLifetime > libkb.MaxEphemeralLifetime {
+			return fmt.Errorf("ephemeral lifetime cannot exceed %v", libkb.MaxEphemeralLifetime)
 		}
-		if c.ephemeralLifetime < minEphemeralLifetime {
-			return fmt.Errorf("ephemeral lifetime must be at least %v", minEphemeralLifetime)
+		if c.ephemeralLifetime < libkb.MinEphemeralLifetime {
+			return fmt.Errorf("ephemeral lifetime must be at least %v", libkb.MinEphemeralLifetime)
 		}
 	}
 

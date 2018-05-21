@@ -86,8 +86,8 @@ func (b *Boxer) log() logger.Logger {
 	return b.G().GetLog()
 }
 
-func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat1.MessageUnboxed {
-	return chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, err UnboxingError) chat1.MessageUnboxed {
+	e := chat1.MessageUnboxedError{
 		ErrType:            err.ExportType(),
 		ErrMsg:             err.Error(),
 		MessageID:          msg.GetMessageID(),
@@ -96,7 +96,10 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 		IsEphemeral:        msg.IsEphemeral(),
 		IsEphemeralExpired: msg.IsEphemeralExpired(b.clock.Now()),
 		Etime:              msg.Etime(),
-	})
+	}
+	e.SenderUsername, e.SenderDeviceName, e.SenderDeviceType = b.getSenderInfoLocal(ctx,
+		msg.ClientHeader.Sender, msg.ClientHeader.SenderDevice)
+	return chat1.NewMessageUnboxedWithError(e)
 }
 
 func (b *Boxer) detectKBFSPermanentServerError(err error, tlfName string) UnboxingError {
@@ -255,7 +258,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		boxed.GetMessageID())()
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 	if conv.IsPublic() != boxed.ClientHeader.TlfPublic {
-		return b.makeErrorMessage(boxed,
+		return b.makeErrorMessage(ctx, boxed,
 			NewPermanentUnboxingError(fmt.Errorf("visibility mismatch: %v != %v", conv.IsPublic(),
 				boxed.ClientHeader.TlfPublic))), nil
 	}
@@ -289,7 +292,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 			boxed.EphemeralMetadata().Generation)
 		if ekErr != nil {
 			b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %s", boxed.ServerHeader.MessageID, ekErr.Error())
-			return b.makeErrorMessage(boxed, NewPermanentUnboxingError(NewEphemeralUnboxingError())), nil
+			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralUnboxingError())), nil
 		}
 		ephemeralSeed = &ek
 	}
@@ -302,7 +305,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
 		if ierr.IsPermanent() {
-			return b.makeErrorMessage(boxed, ierr), nil
+			return b.makeErrorMessage(ctx, boxed, ierr), nil
 		}
 		return chat1.MessageUnboxed{}, ierr
 	}

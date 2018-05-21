@@ -51,7 +51,7 @@ func TestFetchRetry(t *testing.T) {
 	errorRI := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: errorClient{}} }
 	tc.ChatG.ConvSource.SetRemoteInterface(errorRI)
 
-	inbox, _, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+	inbox, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvIDs: convIDs,
 	}, nil)
 	require.NoError(t, err)

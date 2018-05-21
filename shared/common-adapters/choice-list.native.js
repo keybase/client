@@ -1,12 +1,10 @@
 // @flow
 import Box from './box'
 import ClickableBox from './clickable-box'
-import Icon from './icon'
+import Icon, {type IconType} from './icon'
 import Text from './text'
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-
-import type {IconType} from './icon'
 import type {Props} from './choice-list'
 
 type State = {

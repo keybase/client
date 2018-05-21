@@ -14,7 +14,7 @@ export type Props = {|
   alwaysBounceVertical?: boolean,
   alwaysBounceHorizontal?: boolean,
   horizontal?: boolean,
-  refreshControl?: React.Element<*>,
+  refreshControl?: React.Element<any>,
 |}
 
 export default class ScrollView extends React.Component<Props> {}

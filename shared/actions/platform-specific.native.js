@@ -32,12 +32,12 @@ if (!isIOS) {
   RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
 }
 
-function requestPushPermissions(): Promise<*> {
+function requestPushPermissions() {
   return isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
 }
 
 // Sets that we've shown the push prompt in local storage
-function setShownPushPrompt(): Promise<*> {
+function setShownPushPrompt() {
   return new Promise((resolve, reject) => {
     logger.info('Setting shownPushPrompt to true in local storage')
     AsyncStorage.setItem(shownPushPrompt, 'true', e => {
@@ -46,11 +46,11 @@ function setShownPushPrompt(): Promise<*> {
   })
 }
 
-function getShownPushPrompt(): Promise<string> {
+function getShownPushPrompt() {
   return AsyncStorage.getItem(shownPushPrompt)
 }
 
-function checkPermissions(): Promise<*> {
+function checkPermissions() {
   return new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
 }
 
@@ -60,7 +60,7 @@ function showMainWindow() {
   }
 }
 
-function getAppState(): Promise<*> {
+function getAppState() {
   return Promise.resolve({})
 }
 
@@ -274,6 +274,13 @@ function openAppSettings() {
   Linking.openURL('app-settings:')
 }
 
+const getMimeTypeFromURL = (url: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
+      .then(response => resolve(response.headers.get('Content-Type')))
+      .catch(reject)
+  })
+
 export {
   openAppSettings,
   checkPermissions,
@@ -290,4 +297,5 @@ export {
   getShownPushPrompt,
   showShareActionSheet,
   clearAllNotifications,
+  getMimeTypeFromURL,
 }

@@ -176,6 +176,18 @@ func (t *Team) EncryptionKey() (key libkb.NaclDHKeyPair, err error) {
 	return km.EncryptionKey()
 }
 
+func (t *Team) encryptionKeyAtGen(gen keybase1.PerTeamKeyGeneration) (key libkb.NaclDHKeyPair, err error) {
+	item, ok := t.Data.PerTeamKeySeeds[gen]
+	if !ok {
+		return key, libkb.NotFoundError{Msg: fmt.Sprintf("Key at gen %v not found", gen)}
+	}
+	keyManager, err := NewTeamKeyManagerWithSecret(t.G(), item.Seed, gen)
+	if err != nil {
+		return key, err
+	}
+	return keyManager.EncryptionKey()
+}
+
 func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
 	role, err := t.MemberRole(ctx, uv)
 	if err != nil {

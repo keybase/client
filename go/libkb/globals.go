@@ -23,7 +23,6 @@ import (
 	"os"
 	"runtime"
 	"sync"
-	"testing"
 	"time"
 
 	logger "github.com/keybase/client/go/logger"
@@ -363,6 +362,13 @@ func (g *GlobalContext) ConfigureLogging() error {
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 	logFile := g.Env.GetLogFile()
+	if logFile == "" {
+		filePrefix := g.Env.GetLogPrefix()
+		if filePrefix != "" {
+			filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
+			logFile = filePrefix + ".log"
+		}
+	}
 	if logFile == "" {
 		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
 	} else {
@@ -966,38 +972,6 @@ func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 	return &RPCLogFactory{Contextified: NewContextified(g)}
 }
 
-// LogoutIfRevoked loads the user and checks if the current device keys
-// have been revoked.  If so, it calls Logout.
-func (g *GlobalContext) LogoutIfRevoked() error {
-	in, err := g.LoginState().LoggedInLoad()
-	if err != nil {
-		return err
-	}
-	if !in {
-		g.Log.Debug("LogoutIfRevoked: skipping check (not logged in)")
-		return nil
-	}
-
-	if g.Env.GetSkipLogoutIfRevokedCheck() {
-		g.Log.Debug("LogoutIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
-		return nil
-	}
-
-	me, err := LoadMe(NewLoadUserForceArg(g))
-	if err != nil {
-		return err
-	}
-
-	if !me.HasCurrentDeviceInCurrentInstall() {
-		g.Log.Debug("LogoutIfRevoked: current device revoked, calling logout")
-		return g.Logout()
-	}
-
-	g.Log.Debug("LogoutIfRevoked: current device ok")
-
-	return nil
-}
-
 // LogoutSelfCheck checks with the API server to see if this uid+device pair should
 // logout.
 func (g *GlobalContext) LogoutSelfCheck() error {
@@ -1253,19 +1227,6 @@ func (g *GlobalContext) ReplaceSecretStore() error {
 	g.Log.Debug("ReplaceSecretStore success")
 
 	return nil
-}
-
-// engine/deprovision_test calls this to set g.secretStore to nil.
-// It doesn't make much sense since it is impossible for g.secretStore
-// to be nil in the real world, but keeping it for backwards
-// compatibility.
-// This takes t *testing.T as a parameter just to make sure only
-// tests call it.
-func (g *GlobalContext) SetSecretStoreNilForTests(t *testing.T) {
-	g.secretStoreMu.Lock()
-	defer g.secretStoreMu.Unlock()
-
-	g.secretStore = nil
 }
 
 // AssertTemporarySession asserts that the user has an old-fashioned

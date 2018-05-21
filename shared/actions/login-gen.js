@@ -1,10 +1,9 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as More from '../constants/types/more'
 import * as Types from '../constants/types/login'
 import HiddenString from '../util/hidden-string'
 
@@ -42,121 +41,150 @@ export const submitPassphrase = 'login:submitPassphrase'
 export const submitUsernameOrEmail = 'login:submitUsernameOrEmail'
 export const waitingForResponse = 'login:waitingForResponse'
 
+// Payload Types
+type _AddNewDevicePayload = $ReadOnly<{|role: Types.DeviceRole|}>
+type _ChooseGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
+type _ClearQRCodePayload = void
+type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>
+type _ConfiguredAccountsPayloadError = $ReadOnly<{|error: Error|}>
+type _LoginErrorPayload = $ReadOnly<{|error: string|}>
+type _LogoutDonePayload = void
+type _LogoutPayload = void
+type _NavBasedOnLoginAndInitialStatePayload = void
+type _OnBackPayload = void
+type _OnFinishPayload = void
+type _OnWontPayload = void
+type _OpenAccountResetPagePayload = void
+type _ProvisionTextCodeEnteredPayload = $ReadOnly<{|phrase: HiddenString|}>
+type _ProvisioningErrorPayload = $ReadOnly<{|error: Error|}>
+type _QrScannedPayload = $ReadOnly<{|phrase: HiddenString|}>
+type _ReloginPayload = $ReadOnly<{|
+  usernameOrEmail: string,
+  passphrase: HiddenString,
+|}>
+type _ResetQRCodeScannedPayload = void
+type _SelectDeviceIdPayload = $ReadOnly<{|deviceId: string|}>
+type _SetCameraBrokenModePayload = $ReadOnly<{|codePageCameraBrokenMode: boolean|}>
+type _SetCodePageModePayload = $ReadOnly<{|codePageMode: Types.Mode|}>
+type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
+type _SetMyDeviceCodeStatePayload = $ReadOnly<{|codePageMyDeviceRole: Types.DeviceRole|}>
+type _SetOtherDeviceCodeStatePayload = $ReadOnly<{|codePageOtherDeviceRole: Types.DeviceRole|}>
+type _SetQRCodePayload = $ReadOnly<{|codePageQrCode: HiddenString|}>
+type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
+type _SetTextCodePayload = $ReadOnly<{|
+  codePageEnterCodeErrorText: string,
+  codePageTextCode: HiddenString,
+|}>
+type _StartLoginPayload = void
+type _SubmitDeviceNamePayload = $ReadOnly<{|deviceName: string|}>
+type _SubmitPassphrasePayload = $ReadOnly<{|
+  passphrase: HiddenString,
+  storeSecret: boolean,
+|}>
+type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
+type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
+
 // Action Creators
-export const createAddNewDevice = (payload: $ReadOnly<{|role: Types.DeviceRole|}>) => ({error: false, payload, type: addNewDevice})
-export const createChooseGPGMethod = (payload: $ReadOnly<{|exportKey: boolean|}>) => ({error: false, payload, type: chooseGPGMethod})
-export const createClearQRCode = () => ({error: false, payload: undefined, type: clearQRCode})
-export const createConfiguredAccounts = (payload: $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>) => ({error: false, payload, type: configuredAccounts})
-export const createConfiguredAccountsError = (payload: $ReadOnly<{|error: Error|}>) => ({error: true, payload, type: configuredAccounts})
-export const createLoginError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: loginError})
-export const createLogout = () => ({error: false, payload: undefined, type: logout})
-export const createLogoutDone = () => ({error: false, payload: undefined, type: logoutDone})
-export const createNavBasedOnLoginAndInitialState = () => ({error: false, payload: undefined, type: navBasedOnLoginAndInitialState})
-export const createOnBack = () => ({error: false, payload: undefined, type: onBack})
-export const createOnFinish = () => ({error: false, payload: undefined, type: onFinish})
-export const createOnWont = () => ({error: false, payload: undefined, type: onWont})
-export const createOpenAccountResetPage = () => ({error: false, payload: undefined, type: openAccountResetPage})
-export const createProvisionTextCodeEntered = (payload: $ReadOnly<{|phrase: HiddenString|}>) => ({error: false, payload, type: provisionTextCodeEntered})
-export const createProvisioningError = (payload: $ReadOnly<{|error: Error|}>) => ({error: false, payload, type: provisioningError})
-export const createQrScanned = (payload: $ReadOnly<{|phrase: HiddenString|}>) => ({error: false, payload, type: qrScanned})
-export const createRelogin = (
-  payload: $ReadOnly<{|
-    usernameOrEmail: string,
-    passphrase: HiddenString,
-  |}>
-) => ({error: false, payload, type: relogin})
-export const createResetQRCodeScanned = () => ({error: false, payload: undefined, type: resetQRCodeScanned})
-export const createSelectDeviceId = (payload: $ReadOnly<{|deviceId: string|}>) => ({error: false, payload, type: selectDeviceId})
-export const createSetCameraBrokenMode = (payload: $ReadOnly<{|codePageCameraBrokenMode: boolean|}>) => ({error: false, payload, type: setCameraBrokenMode})
-export const createSetCodePageMode = (payload: $ReadOnly<{|codePageMode: Types.Mode|}>) => ({error: false, payload, type: setCodePageMode})
-export const createSetDeletedSelf = (payload: $ReadOnly<{|deletedUsername: string|}>) => ({error: false, payload, type: setDeletedSelf})
-export const createSetMyDeviceCodeState = (payload: $ReadOnly<{|codePageMyDeviceRole: Types.DeviceRole|}>) => ({error: false, payload, type: setMyDeviceCodeState})
-export const createSetOtherDeviceCodeState = (payload: $ReadOnly<{|codePageOtherDeviceRole: Types.DeviceRole|}>) => ({error: false, payload, type: setOtherDeviceCodeState})
-export const createSetQRCode = (payload: $ReadOnly<{|codePageQrCode: HiddenString|}>) => ({error: false, payload, type: setQRCode})
-export const createSetRevokedSelf = (payload: $ReadOnly<{|revoked: string|}>) => ({error: false, payload, type: setRevokedSelf})
-export const createSetTextCode = (
-  payload: $ReadOnly<{|
-    codePageEnterCodeErrorText: string,
-    codePageTextCode: HiddenString,
-  |}>
-) => ({error: false, payload, type: setTextCode})
-export const createStartLogin = () => ({error: false, payload: undefined, type: startLogin})
-export const createSubmitDeviceName = (payload: $ReadOnly<{|deviceName: string|}>) => ({error: false, payload, type: submitDeviceName})
-export const createSubmitPassphrase = (
-  payload: $ReadOnly<{|
-    passphrase: HiddenString,
-    storeSecret: boolean,
-  |}>
-) => ({error: false, payload, type: submitPassphrase})
-export const createSubmitUsernameOrEmail = (payload: $ReadOnly<{|usernameOrEmail: string|}>) => ({error: false, payload, type: submitUsernameOrEmail})
-export const createWaitingForResponse = (payload: $ReadOnly<{|waiting: boolean|}>) => ({error: false, payload, type: waitingForResponse})
+export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({error: false, payload, type: addNewDevice})
+export const createChooseGPGMethod = (payload: _ChooseGPGMethodPayload) => ({error: false, payload, type: chooseGPGMethod})
+export const createClearQRCode = (payload: _ClearQRCodePayload) => ({error: false, payload, type: clearQRCode})
+export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
+export const createConfiguredAccountsError = (payload: _ConfiguredAccountsPayloadError) => ({error: true, payload, type: configuredAccounts})
+export const createLoginError = (payload: _LoginErrorPayload) => ({error: false, payload, type: loginError})
+export const createLogout = (payload: _LogoutPayload) => ({error: false, payload, type: logout})
+export const createLogoutDone = (payload: _LogoutDonePayload) => ({error: false, payload, type: logoutDone})
+export const createNavBasedOnLoginAndInitialState = (payload: _NavBasedOnLoginAndInitialStatePayload) => ({error: false, payload, type: navBasedOnLoginAndInitialState})
+export const createOnBack = (payload: _OnBackPayload) => ({error: false, payload, type: onBack})
+export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, payload, type: onFinish})
+export const createOnWont = (payload: _OnWontPayload) => ({error: false, payload, type: onWont})
+export const createOpenAccountResetPage = (payload: _OpenAccountResetPagePayload) => ({error: false, payload, type: openAccountResetPage})
+export const createProvisionTextCodeEntered = (payload: _ProvisionTextCodeEnteredPayload) => ({error: false, payload, type: provisionTextCodeEntered})
+export const createProvisioningError = (payload: _ProvisioningErrorPayload) => ({error: false, payload, type: provisioningError})
+export const createQrScanned = (payload: _QrScannedPayload) => ({error: false, payload, type: qrScanned})
+export const createRelogin = (payload: _ReloginPayload) => ({error: false, payload, type: relogin})
+export const createResetQRCodeScanned = (payload: _ResetQRCodeScannedPayload) => ({error: false, payload, type: resetQRCodeScanned})
+export const createSelectDeviceId = (payload: _SelectDeviceIdPayload) => ({error: false, payload, type: selectDeviceId})
+export const createSetCameraBrokenMode = (payload: _SetCameraBrokenModePayload) => ({error: false, payload, type: setCameraBrokenMode})
+export const createSetCodePageMode = (payload: _SetCodePageModePayload) => ({error: false, payload, type: setCodePageMode})
+export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
+export const createSetMyDeviceCodeState = (payload: _SetMyDeviceCodeStatePayload) => ({error: false, payload, type: setMyDeviceCodeState})
+export const createSetOtherDeviceCodeState = (payload: _SetOtherDeviceCodeStatePayload) => ({error: false, payload, type: setOtherDeviceCodeState})
+export const createSetQRCode = (payload: _SetQRCodePayload) => ({error: false, payload, type: setQRCode})
+export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
+export const createSetTextCode = (payload: _SetTextCodePayload) => ({error: false, payload, type: setTextCode})
+export const createStartLogin = (payload: _StartLoginPayload) => ({error: false, payload, type: startLogin})
+export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
+export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
+export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({error: false, payload, type: submitUsernameOrEmail})
+export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({error: false, payload, type: waitingForResponse})
 
 // Action Payloads
-export type AddNewDevicePayload = More.ReturnType<typeof createAddNewDevice>
-export type ChooseGPGMethodPayload = More.ReturnType<typeof createChooseGPGMethod>
-export type ClearQRCodePayload = More.ReturnType<typeof createClearQRCode>
-export type ConfiguredAccountsPayload = More.ReturnType<typeof createConfiguredAccounts>
-export type LoginErrorPayload = More.ReturnType<typeof createLoginError>
-export type LogoutDonePayload = More.ReturnType<typeof createLogoutDone>
-export type LogoutPayload = More.ReturnType<typeof createLogout>
-export type NavBasedOnLoginAndInitialStatePayload = More.ReturnType<typeof createNavBasedOnLoginAndInitialState>
-export type OnBackPayload = More.ReturnType<typeof createOnBack>
-export type OnFinishPayload = More.ReturnType<typeof createOnFinish>
-export type OnWontPayload = More.ReturnType<typeof createOnWont>
-export type OpenAccountResetPagePayload = More.ReturnType<typeof createOpenAccountResetPage>
-export type ProvisionTextCodeEnteredPayload = More.ReturnType<typeof createProvisionTextCodeEntered>
-export type ProvisioningErrorPayload = More.ReturnType<typeof createProvisioningError>
-export type QrScannedPayload = More.ReturnType<typeof createQrScanned>
-export type ReloginPayload = More.ReturnType<typeof createRelogin>
-export type ResetQRCodeScannedPayload = More.ReturnType<typeof createResetQRCodeScanned>
-export type SelectDeviceIdPayload = More.ReturnType<typeof createSelectDeviceId>
-export type SetCameraBrokenModePayload = More.ReturnType<typeof createSetCameraBrokenMode>
-export type SetCodePageModePayload = More.ReturnType<typeof createSetCodePageMode>
-export type SetDeletedSelfPayload = More.ReturnType<typeof createSetDeletedSelf>
-export type SetMyDeviceCodeStatePayload = More.ReturnType<typeof createSetMyDeviceCodeState>
-export type SetOtherDeviceCodeStatePayload = More.ReturnType<typeof createSetOtherDeviceCodeState>
-export type SetQRCodePayload = More.ReturnType<typeof createSetQRCode>
-export type SetRevokedSelfPayload = More.ReturnType<typeof createSetRevokedSelf>
-export type SetTextCodePayload = More.ReturnType<typeof createSetTextCode>
-export type StartLoginPayload = More.ReturnType<typeof createStartLogin>
-export type SubmitDeviceNamePayload = More.ReturnType<typeof createSubmitDeviceName>
-export type SubmitPassphrasePayload = More.ReturnType<typeof createSubmitPassphrase>
-export type SubmitUsernameOrEmailPayload = More.ReturnType<typeof createSubmitUsernameOrEmail>
-export type WaitingForResponsePayload = More.ReturnType<typeof createWaitingForResponse>
+export type AddNewDevicePayload = $Call<typeof createAddNewDevice, _AddNewDevicePayload>
+export type ChooseGPGMethodPayload = $Call<typeof createChooseGPGMethod, _ChooseGPGMethodPayload>
+export type ClearQRCodePayload = $Call<typeof createClearQRCode, _ClearQRCodePayload>
+export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
+export type ConfiguredAccountsPayloadError = $Call<typeof createConfiguredAccountsError, _ConfiguredAccountsPayloadError>
+export type LoginErrorPayload = $Call<typeof createLoginError, _LoginErrorPayload>
+export type LogoutDonePayload = $Call<typeof createLogoutDone, _LogoutDonePayload>
+export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
+export type NavBasedOnLoginAndInitialStatePayload = $Call<typeof createNavBasedOnLoginAndInitialState, _NavBasedOnLoginAndInitialStatePayload>
+export type OnBackPayload = $Call<typeof createOnBack, _OnBackPayload>
+export type OnFinishPayload = $Call<typeof createOnFinish, _OnFinishPayload>
+export type OnWontPayload = $Call<typeof createOnWont, _OnWontPayload>
+export type OpenAccountResetPagePayload = $Call<typeof createOpenAccountResetPage, _OpenAccountResetPagePayload>
+export type ProvisionTextCodeEnteredPayload = $Call<typeof createProvisionTextCodeEntered, _ProvisionTextCodeEnteredPayload>
+export type ProvisioningErrorPayload = $Call<typeof createProvisioningError, _ProvisioningErrorPayload>
+export type QrScannedPayload = $Call<typeof createQrScanned, _QrScannedPayload>
+export type ReloginPayload = $Call<typeof createRelogin, _ReloginPayload>
+export type ResetQRCodeScannedPayload = $Call<typeof createResetQRCodeScanned, _ResetQRCodeScannedPayload>
+export type SelectDeviceIdPayload = $Call<typeof createSelectDeviceId, _SelectDeviceIdPayload>
+export type SetCameraBrokenModePayload = $Call<typeof createSetCameraBrokenMode, _SetCameraBrokenModePayload>
+export type SetCodePageModePayload = $Call<typeof createSetCodePageMode, _SetCodePageModePayload>
+export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
+export type SetMyDeviceCodeStatePayload = $Call<typeof createSetMyDeviceCodeState, _SetMyDeviceCodeStatePayload>
+export type SetOtherDeviceCodeStatePayload = $Call<typeof createSetOtherDeviceCodeState, _SetOtherDeviceCodeStatePayload>
+export type SetQRCodePayload = $Call<typeof createSetQRCode, _SetQRCodePayload>
+export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
+export type SetTextCodePayload = $Call<typeof createSetTextCode, _SetTextCodePayload>
+export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
+export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
+export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
+export type SubmitUsernameOrEmailPayload = $Call<typeof createSubmitUsernameOrEmail, _SubmitUsernameOrEmailPayload>
+export type WaitingForResponsePayload = $Call<typeof createWaitingForResponse, _WaitingForResponsePayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createAddNewDevice>
-  | More.ReturnType<typeof createChooseGPGMethod>
-  | More.ReturnType<typeof createClearQRCode>
-  | More.ReturnType<typeof createConfiguredAccounts>
-  | More.ReturnType<typeof createConfiguredAccountsError>
-  | More.ReturnType<typeof createLoginError>
-  | More.ReturnType<typeof createLogout>
-  | More.ReturnType<typeof createLogoutDone>
-  | More.ReturnType<typeof createNavBasedOnLoginAndInitialState>
-  | More.ReturnType<typeof createOnBack>
-  | More.ReturnType<typeof createOnFinish>
-  | More.ReturnType<typeof createOnWont>
-  | More.ReturnType<typeof createOpenAccountResetPage>
-  | More.ReturnType<typeof createProvisionTextCodeEntered>
-  | More.ReturnType<typeof createProvisioningError>
-  | More.ReturnType<typeof createQrScanned>
-  | More.ReturnType<typeof createRelogin>
-  | More.ReturnType<typeof createResetQRCodeScanned>
-  | More.ReturnType<typeof createSelectDeviceId>
-  | More.ReturnType<typeof createSetCameraBrokenMode>
-  | More.ReturnType<typeof createSetCodePageMode>
-  | More.ReturnType<typeof createSetDeletedSelf>
-  | More.ReturnType<typeof createSetMyDeviceCodeState>
-  | More.ReturnType<typeof createSetOtherDeviceCodeState>
-  | More.ReturnType<typeof createSetQRCode>
-  | More.ReturnType<typeof createSetRevokedSelf>
-  | More.ReturnType<typeof createSetTextCode>
-  | More.ReturnType<typeof createStartLogin>
-  | More.ReturnType<typeof createSubmitDeviceName>
-  | More.ReturnType<typeof createSubmitPassphrase>
-  | More.ReturnType<typeof createSubmitUsernameOrEmail>
-  | More.ReturnType<typeof createWaitingForResponse>
+  | AddNewDevicePayload
+  | ChooseGPGMethodPayload
+  | ClearQRCodePayload
+  | ConfiguredAccountsPayload
+  | ConfiguredAccountsPayloadError
+  | LoginErrorPayload
+  | LogoutDonePayload
+  | LogoutPayload
+  | NavBasedOnLoginAndInitialStatePayload
+  | OnBackPayload
+  | OnFinishPayload
+  | OnWontPayload
+  | OpenAccountResetPagePayload
+  | ProvisionTextCodeEnteredPayload
+  | ProvisioningErrorPayload
+  | QrScannedPayload
+  | ReloginPayload
+  | ResetQRCodeScannedPayload
+  | SelectDeviceIdPayload
+  | SetCameraBrokenModePayload
+  | SetCodePageModePayload
+  | SetDeletedSelfPayload
+  | SetMyDeviceCodeStatePayload
+  | SetOtherDeviceCodeStatePayload
+  | SetQRCodePayload
+  | SetRevokedSelfPayload
+  | SetTextCodePayload
+  | StartLoginPayload
+  | SubmitDeviceNamePayload
+  | SubmitPassphrasePayload
+  | SubmitUsernameOrEmailPayload
+  | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: void}

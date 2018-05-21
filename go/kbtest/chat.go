@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/pager"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -468,6 +470,14 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 	if arg.Query != nil && arg.Query.MarkAsRead {
 		m.readMsgid[arg.ConversationID.String()] = msgs[0].ServerHeader.MessageID
 	}
+	var pmsgs []pager.Message
+	for _, m := range res.Thread.Messages {
+		pmsgs = append(pmsgs, m)
+	}
+	res.Thread.Pagination, err = pager.NewThreadPager().MakePage(pmsgs, arg.Pagination.Num, 0)
+	if err != nil {
+		return res, err
+	}
 	return res, nil
 }
 
@@ -529,18 +539,18 @@ type dummyChannelSource struct{}
 var _ types.TeamChannelSource = (*dummyChannelSource)(nil)
 
 func (d dummyChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
-	topicType chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
-	return nil, nil, nil
+	topicType chat1.TopicType) ([]chat1.ConversationLocal, error) {
+	return nil, nil
 }
 
 func (d dummyChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
-	topicType chat1.TopicType) ([]chat1.ChannelNameMention, []chat1.RateLimit, error) {
-	return nil, nil, nil
+	topicType chat1.TopicType) ([]chat1.ChannelNameMention, error) {
+	return nil, nil
 }
 
 func (d dummyChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
-	topicType chat1.TopicType, convID chat1.ConversationID) (string, []chat1.RateLimit, error) {
-	return "", nil, nil
+	topicType chat1.TopicType, convID chat1.ConversationID) (string, error) {
+	return "", nil
 }
 
 func (d dummyChannelSource) ChannelsChanged(ctx context.Context, tlfID chat1.TLFID) {}

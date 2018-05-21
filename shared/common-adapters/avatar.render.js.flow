@@ -9,7 +9,7 @@ export type URLMap = {
   '40': string,
 }
 
-export type Props = {
+export type Props = {|
   skipBackground?: boolean,
   borderColor?: string,
   children?: any,
@@ -26,6 +26,6 @@ export type Props = {
   // TODO flow type to allow one or the other, not both url and username etc
   url?: URLType,
   username?: ?string,
-}
+|}
 
 export default class Avatar extends Component<Props> {}

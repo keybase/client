@@ -20,7 +20,6 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		NewCmdFakeTrackingChanged(cl, g),
 		NewCmdFavorite(cl, g),
 		NewCmdPaperProvision(cl, g),
-		NewCmdPGPProvision(cl, g),
 		NewCmdSecretKey(cl, g),
 		NewCmdShowNotifications(cl, g),
 		NewCmdStress(cl, g),
@@ -32,6 +31,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamRotateKey(cl, g),
 		newCmdTeamDebug(cl, g),
 		newCmdScript(cl, g),
+		newCmdUploadAvatar(cl, g),
 	}
 }
 

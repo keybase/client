@@ -173,7 +173,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 			userEKSection["boxes"] = boxes
 			payload["user_ek"] = userEKSection
 		} else {
-			m.CWarningf("skipping userEK publishing, because there are no valid deviceEKs")
+			m.CDebugf("skipping userEK publishing, there are no valid deviceEKs")
 		}
 	}
 

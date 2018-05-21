@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/bundle"
+	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/amount"
 )
@@ -174,20 +177,9 @@ func LookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.
 	return primary, nil
 }
 
-type RecipientInput string
-
-type Recipient struct {
-	Input RecipientInput
-	// These 3 fields are nullable.
-	User      *libkb.User
-	Assertion *keybase1.SocialAssertion
-	// Recipient may not have a stellar wallet ready to receive
-	AccountID *stellarnet.AddressStr // User entered G... OR target has receiving address
-}
-
 // TODO: handle stellar federation address rebecca*keybase.io (or rebecca*anything.wow)
-func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientInput) (Recipient, error) {
-	res := Recipient{
+func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (stellarcommon.Recipient, error) {
+	res := stellarcommon.Recipient{
 		Input: to,
 	}
 
@@ -209,35 +201,38 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 		return res, nil
 	}
 
-	expr, err := externals.AssertionParse(string(to))
+	idRes, err := identifyRecipient(m, string(to))
 	if err != nil {
-		g.Log.CDebugf(ctx, "error parsing assertion")
-		return res, fmt.Errorf("invalid recipient '%v': %v", to, err)
+		return res, err
 	}
-	socExpr, err := expr.ToSocialAssertion()
-	if err == nil {
-		res.Assertion = &socExpr
-	}
-	username := string(to)
-	switch expr := expr.(type) {
-	case libkb.AssertionKeybase:
-		k, v, err := expr.ToLookup()
-		if !(err == nil && k == "username") {
-			g.Log.CDebugf(ctx, "error unpacking keybase assertion: key:'%v' err:%v", k, err)
-			return res, fmt.Errorf("invalid recipient '%v'", to)
-		}
-		username = v
-	default:
-		// TODO CORE-7781 support resolving non-keybase assertions
-		//                If expr does not resolve use it as SBS.
-		//                If expr resolves and verifies use the user.
-		//                If expr resolves but fails verification ERROR OUT. Do not use as SBS.
-		//                   We don't want to cause impteam conflicts and confusion.
-		g.Log.CDebugf(ctx, "non-keybase resolution %T", expr)
-		return res, fmt.Errorf("invalid recipient '%v'", to)
+	m.CDebugf("identifyRecipient: identify result for %s: %+v", to, idRes)
+	if idRes.Breaks != nil {
+		m.CDebugf("identifyRecipient: TrackBreaks = %+v", idRes.Breaks)
+		return res, libkb.TrackingBrokeError{}
 	}
 
-	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(g, username).WithNetContext(ctx))
+	if idRes.User.Username == "" {
+		expr, err := externals.AssertionParse(string(to))
+		if err != nil {
+			m.CDebugf("error parsing assertion: %s", err)
+			return res, fmt.Errorf("invalid recipient %q: %s", to, err)
+		}
+
+		// valid assertion, but not a user yet
+		m.CDebugf("assertion %s (%s) is valid, but not a user yet", to, expr)
+		social, err := expr.ToSocialAssertion()
+		if err != nil {
+			m.CDebugf("not a social assertion: %s (%s)", to, expr)
+			return res, fmt.Errorf("invalid recipient %q: %s", to, err)
+		}
+		res.Assertion = &social
+		return res, nil
+	}
+
+	username := idRes.User.Username
+
+	// load the user to get its wallet
+	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(m.G(), username).WithNetContext(m.Ctx()))
 	if err != nil {
 		return res, err
 	}
@@ -250,6 +245,11 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 	return res, err
 }
 
+type DisplayBalance struct {
+	Amount   string
+	Currency string
+}
+
 // SendPayment sends XLM
 // `note` is optional. An empty string will not attach a note.
 // Recipient:
@@ -257,45 +257,46 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, to RecipientInput, amount string, note string) (stellar1.PaymentResult, error) {
-	var err error
-	defer g.CTraceTimed(ctx, "Stellar.SendPayment", func() error { return err })()
+func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance) (res stellar1.SendResultCLILocal, err error) {
+	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
-	primary, err := LookupSenderPrimary(ctx, g)
+	primary, err := LookupSenderPrimary(m.Ctx(), m.G())
 	if err != nil {
-		return stellar1.PaymentResult{}, err
+		return res, err
 	}
 	primarySeed := primary.Signers[0]
 	// look up recipient
-	recipient, err := LookupRecipient(ctx, g, to)
+	recipient, err := LookupRecipient(m, to)
 	if err != nil {
-		return stellar1.PaymentResult{}, err
+		return res, err
 	}
 
 	if recipient.AccountID == nil {
-		return sendRelayPayment(ctx, g, remoter, primarySeed, recipient, amount, note)
+		return sendRelayPayment(m, remoter, primarySeed, recipient, amount, note, displayBalance)
 	}
 
 	primarySeed2, err := stellarnet.NewSeedStr(primarySeed.SecureNoLogString())
 	if err != nil {
-		return stellar1.PaymentResult{}, err
+		return res, err
 	}
 
 	post := stellar1.PaymentDirectPost{
-		FromDeviceID: g.ActiveDevice.DeviceID(),
+		FromDeviceID:    m.G().ActiveDevice.DeviceID(),
+		DisplayAmount:   displayBalance.Amount,
+		DisplayCurrency: displayBalance.Currency,
 	}
 	if recipient.User != nil {
 		tmp := recipient.User.ToUserVersion()
 		post.To = &tmp
 	}
 
-	sp := NewSeqnoProvider(ctx, remoter)
+	sp := NewSeqnoProvider(m.Ctx(), remoter)
 
 	// check if recipient account exists
 	var txID string
-	funded, err := isAccountFunded(ctx, remoter, stellar1.AccountID(recipient.AccountID.String()))
+	funded, err := isAccountFunded(m.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
-		return stellar1.PaymentResult{}, fmt.Errorf("error checking destination account balance: %v", err)
+		return res, fmt.Errorf("error checking destination account balance: %v", err)
 	}
 	if !funded {
 		// if no balance, create_account operation
@@ -303,7 +304,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 		// but for now, just let stellar-core tell us there was an error
 		sig, err := stellarnet.CreateAccountXLMTransaction(primarySeed2, *recipient.AccountID, amount, sp)
 		if err != nil {
-			return stellar1.PaymentResult{}, err
+			return res, err
 		}
 		post.SignedTransaction = sig.Signed
 		txID = sig.TxHash
@@ -311,7 +312,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 		// if balance, payment operation
 		sig, err := stellarnet.PaymentXLMTransaction(primarySeed2, *recipient.AccountID, amount, sp)
 		if err != nil {
-			return stellar1.PaymentResult{}, err
+			return res, err
 		}
 		post.SignedTransaction = sig.Signed
 		txID = sig.TxHash
@@ -327,48 +328,137 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 			tmp := recipient.User.ToUserVersion()
 			recipientUv = &tmp
 		}
-		post.NoteB64, err = NoteEncryptB64(ctx, g, noteClear, recipientUv)
+		post.NoteB64, err = NoteEncryptB64(m.Ctx(), m.G(), noteClear, recipientUv)
 		if err != nil {
-			return stellar1.PaymentResult{}, fmt.Errorf("error encrypting note: %v", err)
+			return res, fmt.Errorf("error encrypting note: %v", err)
 		}
 	}
 
 	// submit the transaction
-	return remoter.SubmitPayment(ctx, post)
+	rres, err := remoter.SubmitPayment(m.Ctx(), post)
+	if err != nil {
+		return res, err
+	}
+	return stellar1.SendResultCLILocal{
+		KbTxID: rres.KeybaseID,
+		TxID:   rres.StellarID,
+	}, nil
 }
 
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
-func sendRelayPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
-	from stellar1.SecretKey, recipient Recipient, amount, note string) (res stellar1.PaymentResult, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.sendRelayPayment", func() error { return err })()
-	appKey, teamID, err := RelayTransferKey(ctx, g, recipient)
+func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
+	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount, note string, displayBalance DisplayBalance) (res stellar1.SendResultCLILocal, err error) {
+	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
+	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
 	if err != nil {
 		return res, err
 	}
-	relay, err := CreateRelayTransfer(RelayPaymentInput{
+	relay, err := relays.Create(relays.Input{
 		From:          from,
 		AmountXLM:     amount,
 		Note:          note,
 		EncryptFor:    appKey,
-		SeqnoProvider: NewSeqnoProvider(ctx, remoter),
+		SeqnoProvider: NewSeqnoProvider(m.Ctx(), remoter),
 	})
 	if err != nil {
 		return res, err
 	}
 	post := stellar1.PaymentRelayPost{
-		FromDeviceID:      g.ActiveDevice.DeviceID(),
+		FromDeviceID:      m.G().ActiveDevice.DeviceID(),
 		ToAssertion:       string(recipient.Input),
 		RelayAccount:      relay.RelayAccountID,
 		TeamID:            teamID,
 		BoxB64:            relay.EncryptedB64,
 		SignedTransaction: relay.FundTx.Signed,
+		DisplayAmount:     displayBalance.Amount,
+		DisplayCurrency:   displayBalance.Currency,
 	}
 	if recipient.User != nil {
 		tmp := recipient.User.ToUserVersion()
 		post.To = &tmp
 	}
-	return remoter.SubmitRelayPayment(ctx, post)
+	rres, err := remoter.SubmitRelayPayment(m.Ctx(), post)
+	if err != nil {
+		return res, err
+	}
+	return stellar1.SendResultCLILocal{
+		KbTxID: rres.KeybaseID,
+		TxID:   rres.StellarID,
+		Relay: &stellar1.SendRelayResultCLILocal{
+			TeamID: teamID,
+		},
+	}, nil
+}
+
+// Claim claims a waiting relay.
+func Claim(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
+	txID string, into stellar1.AccountID) (res stellar1.RelayClaimResult, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.ClaimPayment", func() error { return err })()
+	p, err := remoter.PaymentDetail(ctx, txID)
+	if err != nil {
+		return res, err
+	}
+	typ, err := p.Typ()
+	if err != nil {
+		return res, fmt.Errorf("error getting payment details: %v", err)
+	}
+	switch typ {
+	case stellar1.PaymentSummaryType_STELLAR:
+		return res, fmt.Errorf("Payment cannot be claimed. It was found on the Stellar network but not in Keybase.")
+	case stellar1.PaymentSummaryType_DIRECT:
+		p := p.Direct()
+		switch p.TxStatus {
+		case stellar1.TransactionStatus_SUCCESS:
+			return res, fmt.Errorf("Payment cannot be claimed. The direct transfer already happened.")
+		case stellar1.TransactionStatus_PENDING:
+			return res, fmt.Errorf("Payment cannot be claimed. It is currently pending.")
+		default:
+			return res, fmt.Errorf("Payment cannot be claimed. The payment failed anyway.")
+		}
+	case stellar1.PaymentSummaryType_RELAY:
+		return claimPaymentWithDetail(ctx, g, remoter, p.Relay(), into)
+	default:
+		return res, fmt.Errorf("unrecognized payment type: %v", typ)
+	}
+}
+
+func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
+	p stellar1.PaymentSummaryRelay, into stellar1.AccountID) (res stellar1.RelayClaimResult, err error) {
+	if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+		recipient, _, err := g.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(ctx, g, p.Claim.To.Uid))
+		if err != nil || recipient == nil {
+			return res, fmt.Errorf("Payment already claimed")
+		}
+		return res, fmt.Errorf("Payment already claimed by %v", recipient.GetName())
+	}
+	rsec, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
+	if err != nil {
+		return res, fmt.Errorf("error opening secret to claim: %v", err)
+	}
+	skey, _, _, err := libkb.ParseStellarSecretKey(rsec.Sk.SecureNoLogString())
+	if err != nil {
+		return res, fmt.Errorf("error using shared secret key: %v", err)
+	}
+	destinationFunded, err := isAccountFunded(ctx, remoter, into)
+	if err != nil {
+		return res, err
+	}
+	dir := stellar1.RelayDirection_CLAIM
+	if p.From.Uid.Equal(g.ActiveDevice.UID()) {
+		dir = stellar1.RelayDirection_YANK
+	}
+	sp := NewSeqnoProvider(ctx, remoter)
+	sig, err := stellarnet.RelocateTransaction(stellarnet.SeedStr(skey.SecureNoLogString()),
+		stellarnet.AddressStr(into.String()), destinationFunded, sp)
+	if err != nil {
+		return res, fmt.Errorf("error building claim transaction: %v", err)
+	}
+	return remoter.SubmitRelayClaim(ctx, stellar1.RelayClaimPost{
+		KeybaseID:         p.KbTxID,
+		Dir:               dir,
+		SignedTransaction: sig.Signed,
+	})
 }
 
 func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (funded bool, err error) {
@@ -402,14 +492,23 @@ func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res st
 	return primary.AccountID, nil
 }
 
-func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentCLILocal, err error) {
+func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.RecentPaymentsCLILocal", func() error { return err })()
 	payments, err := remoter.RecentPayments(ctx, accountID, 0)
 	if err != nil {
 		return nil, err
 	}
 	for _, p := range payments {
-		res = append(res, localizePayment(ctx, g, p))
+		lp, err := localizePayment(ctx, g, p)
+		if err == nil {
+			res = append(res, stellar1.PaymentCLIOptionLocal{
+				Payment: &lp,
+			})
+		} else {
+			res = append(res, stellar1.PaymentCLIOptionLocal{
+				Err: err.Error(),
+			})
+		}
 	}
 	return res, nil
 }
@@ -420,70 +519,181 @@ func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter 
 	if err != nil {
 		return res, err
 	}
-	return localizePayment(ctx, g, payment), nil
+	return localizePayment(ctx, g, payment)
 }
 
-func localizePayment(ctx context.Context, g *libkb.GlobalContext, x stellar1.PaymentSummary) stellar1.PaymentCLILocal {
-	y := stellar1.PaymentCLILocal{
-		StellarTxID: x.StellarTxID,
-		Status:      "pending",
-		Amount:      x.Amount,
-		Asset:       x.Asset,
-		FromStellar: x.From,
-		ToStellar:   x.To,
+func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {
+	typ, err := p.Typ()
+	if err != nil {
+		return res, fmt.Errorf("malformed payment summary: %v", err)
 	}
-	if x.Stellar != nil {
-		y.Status = "completed"
-	}
-	if x.Keybase != nil {
-		y.Time = x.Keybase.Ctime
-		switch x.Keybase.Status {
+	status := func(txStatus stellar1.TransactionStatus, txErrMsg string) (status, statusDetail string) {
+		switch txStatus {
 		case stellar1.TransactionStatus_PENDING:
-			y.Status = "pending"
+			status = "pending"
 		case stellar1.TransactionStatus_SUCCESS:
-			y.Status = "completed"
-		case stellar1.TransactionStatus_ERROR_TRANSIENT:
-			y.Status = "error"
-			y.StatusDetail = x.Keybase.SubmitErrMsg
-		case stellar1.TransactionStatus_ERROR_PERMANENT:
-			y.Status = "error"
-			y.StatusDetail = x.Keybase.SubmitErrMsg
+			status = "completed"
+		case stellar1.TransactionStatus_ERROR_TRANSIENT, stellar1.TransactionStatus_ERROR_PERMANENT:
+			status = "error"
+			statusDetail = txErrMsg
 		default:
-			y.Status = "unknown"
-			y.StatusDetail = x.Keybase.SubmitErrMsg
+			status = "unknown"
+			statusDetail = txErrMsg
 		}
-		y.DisplayAmount = x.Keybase.DisplayAmount
-		y.DisplayCurrency = x.Keybase.DisplayCurrency
-		fromUsername, err := g.GetUPAKLoader().LookupUsername(ctx, x.Keybase.From.Uid)
-		if err == nil {
-			tmp := fromUsername.String()
-			y.FromUsername = &tmp
+		return status, statusDetail
+	}
+	username := func(uid keybase1.UID) (username *string, err error) {
+		uname, err := g.GetUPAKLoader().LookupUsername(ctx, uid)
+		if err != nil {
+			return nil, err
 		}
-		if x.Keybase.To != nil {
-			toUsername, err := g.GetUPAKLoader().LookupUsername(ctx, x.Keybase.To.Uid)
-			if err == nil {
-				tmp := toUsername.String()
-				y.ToUsername = &tmp
+		tmp := uname.String()
+		return &tmp, nil
+	}
+	switch typ {
+	case stellar1.PaymentSummaryType_STELLAR:
+		p := p.Stellar()
+		return stellar1.PaymentCLILocal{
+			TxID:        p.TxID,
+			Time:        p.Ctime,
+			Status:      "completed",
+			Amount:      p.Amount,
+			Asset:       p.Asset,
+			FromStellar: p.From,
+			ToStellar:   &p.To,
+		}, nil
+	case stellar1.PaymentSummaryType_DIRECT:
+		p := p.Direct()
+		res = stellar1.PaymentCLILocal{
+			TxID:            p.TxID,
+			Time:            p.Ctime,
+			Amount:          p.Amount,
+			Asset:           p.Asset,
+			DisplayAmount:   p.DisplayAmount,
+			DisplayCurrency: p.DisplayCurrency,
+			FromStellar:     p.FromStellar,
+			ToStellar:       &p.ToStellar,
+		}
+		res.Status, res.StatusDetail = status(p.TxStatus, p.TxErrMsg)
+		res.FromUsername, err = username(p.From.Uid)
+		if err != nil {
+			return res, err
+		}
+		if p.To != nil {
+			res.ToUsername, err = username(p.To.Uid)
+			if err != nil {
+				return res, err
 			}
 		}
-		if len(x.Keybase.NoteB64) > 0 {
-			note, err := NoteDecryptB64(ctx, g, x.Keybase.NoteB64)
+		if len(p.NoteB64) > 0 {
+			note, err := NoteDecryptB64(ctx, g, p.NoteB64)
 			if err != nil {
-				y.NoteErr = fmt.Sprintf("failed to decrypt payment note: %v", err)
+				res.NoteErr = fmt.Sprintf("failed to decrypt payment note: %v", err)
 			} else {
-				if note.StellarID != x.StellarTxID {
-					y.NoteErr = "discarded note for wrong txid"
+				if note.StellarID != p.TxID {
+					res.NoteErr = "discarded note for wrong transaction ID"
 				} else {
-					y.Note = note.Note
+					res.Note = note.Note
 				}
 			}
-			if len(y.NoteErr) > 0 {
-				g.Log.CWarningf(ctx, y.NoteErr)
+			if len(res.NoteErr) > 0 {
+				g.Log.CWarningf(ctx, res.NoteErr)
 			}
 		}
+		return res, nil
+	case stellar1.PaymentSummaryType_RELAY:
+		p := p.Relay()
+		res = stellar1.PaymentCLILocal{
+			TxID:            p.TxID,
+			Time:            p.Ctime,
+			Amount:          p.Amount,
+			Asset:           stellar1.AssetNative(),
+			DisplayAmount:   p.DisplayAmount,
+			DisplayCurrency: p.DisplayCurrency,
+			FromStellar:     p.FromStellar,
+		}
+		if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
+			// If the funding tx is not complete
+			res.Status, res.StatusDetail = status(p.TxStatus, p.TxErrMsg)
+		} else {
+			res.Status = "claimable"
+			res.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to yank."
+		}
+		res.FromUsername, err = username(p.From.Uid)
+		if err != nil {
+			return res, err
+		}
+		if p.To != nil {
+			res.ToUsername, err = username(p.To.Uid)
+			if err != nil {
+				return res, err
+			}
+		}
+		// Override status with claim status
+		if p.Claim != nil {
+			if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+				// If the claim succeeded, the relay payment is done.
+				res.Status = "completed"
+				res.ToStellar = &p.Claim.ToStellar
+				res.ToUsername, err = username(p.Claim.To.Uid)
+				if err != nil {
+					return res, err
+				}
+			} else {
+				claimantUsername, err := username(p.Claim.To.Uid)
+				if err != nil {
+					return res, err
+				}
+				res.Status, res.StatusDetail = status(p.Claim.TxStatus, p.Claim.TxErrMsg)
+				res.Status = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, res.Status)
+			}
+		}
+		relaySecrets, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
+		if err == nil {
+			res.Note = relaySecrets.Note
+		} else {
+			res.NoteErr = fmt.Sprintf("error decrypting note box: %v", err)
+		}
+		return res, nil
+	default:
+		return res, fmt.Errorf("unrecognized payment summary type: %v", typ)
 	}
-	if x.Stellar != nil {
-		y.Time = x.Stellar.Ctime
+}
+
+func identifyRecipient(m libkb.MetaContext, assertion string) (keybase1.TLFIdentifyFailure, error) {
+	reason := fmt.Sprintf("Find transaction recipient for %s", assertion)
+	arg := keybase1.Identify2Arg{
+		UserAssertion:    assertion,
+		UseDelegateUI:    true,
+		Reason:           keybase1.IdentifyReason{Reason: reason},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI, // XXX needs adjusting?
 	}
-	return y
+
+	eng := engine.NewResolveThenIdentify2(m.G(), &arg)
+	err := engine.RunEngine2(m, eng)
+	if err != nil {
+		// Ignore these errors
+		if _, ok := err.(libkb.NotFoundError); ok {
+			m.CDebugf("identifyRecipient: not found %s: %s", assertion, err)
+			return keybase1.TLFIdentifyFailure{}, nil
+		}
+		if _, ok := err.(libkb.ResolutionError); ok {
+			m.CDebugf("identifyRecipient: resolution error %s: %s", assertion, err)
+			return keybase1.TLFIdentifyFailure{}, nil
+		}
+	}
+
+	resp := eng.Result()
+	m.CDebugf("identifyRecipient: resp: %+v", resp)
+
+	var frep keybase1.TLFIdentifyFailure
+	if resp != nil {
+		frep.User = keybase1.User{
+			Uid:      resp.Upk.Uid,
+			Username: resp.Upk.Username,
+		}
+		frep.Breaks = resp.TrackBreaks
+	}
+
+	return frep, nil
 }

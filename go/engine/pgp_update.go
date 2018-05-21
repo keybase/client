@@ -104,7 +104,7 @@ func (e *PGPUpdateEngine) Run(m libkb.MetaContext) error {
 		del.NewKey = bundle
 
 		m.UIs().LogUI.Info("Posting update for key %s.", fingerprint.String())
-		if err := del.Run(m.LoginContext()); err != nil {
+		if err := del.Run(m); err != nil {
 			if appStatusErr, ok := err.(libkb.AppStatusError); ok && appStatusErr.Code == libkb.SCKeyDuplicateUpdate {
 				m.UIs().LogUI.Info("Key was already up to date.")
 				e.duplicatedFingerprints = append(e.duplicatedFingerprints, fingerprint)

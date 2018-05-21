@@ -244,6 +244,10 @@ func (k *SKBKeyringFile) saveLocked() error {
 		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: not dirty, so skipping save", k.filename)
 		return nil
 	}
+	if err := MakeParentDirs(k.G().Log, k.filename); err != nil {
+		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: failed to make parent dirs: %s", k.filename, err)
+		return err
+	}
 	k.G().Log.Debug("SKBKeyringFile: saveLocked %s: dirty, safe saving", k.filename)
 	if err := SafeWriteToFile(k.G().Log, k, 0); err != nil {
 		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: SafeWriteToFile error: %s", k.filename, err)

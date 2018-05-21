@@ -455,3 +455,7 @@ func getUserSeqno(tc *libkb.TestContext, uid keybase1.UID) keybase1.Seqno {
 func checkUserSeqno(tc *libkb.TestContext, uid keybase1.UID, expected keybase1.Seqno) {
 	require.Equal(tc.T, expected, getUserSeqno(tc, uid))
 }
+
+func fakeSalt() []byte {
+	return []byte("fakeSALTfakeSALT")
+}

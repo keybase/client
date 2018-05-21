@@ -32,22 +32,30 @@ function toNonNullGregorItems(state: GregorState): Array<Types.NonNullGregorItem
   }, [])
 }
 
+// TODO: DESKTOP-6661 - Refactor `registerReachability` out of `actions/config.js`
 function registerReachability() {
   return (dispatch: Dispatch, getState: () => TypedState) => {
-    engine().setIncomingHandler('keybase.1.reachability.reachabilityChanged', ({reachability}, response) => {
-      // Gregor reachability is only valid if we're logged in
-      // TODO remove this when core stops sending us these when we're logged out
-      if (loggedInSelector(getState())) {
-        dispatch(GregorGen.createUpdateReachability({reachability}))
+    engine().setIncomingActionCreators(
+      'keybase.1.reachability.reachabilityChanged',
+      ({reachability}, response) => {
+        const actions = []
 
-        if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
-          // TODO: We should be able to recover from connection problems
-          // without re-bootstrapping. Originally we used to do this on HTML5
-          // 'online' event, but reachability is more precise.
-          dispatch(ConfigGen.createBootstrap({isReconnect: true}))
+        // Gregor reachability is only valid if we're logged in
+        // TODO remove this when core stops sending us these when we're logged out
+        if (loggedInSelector(getState())) {
+          actions.push(GregorGen.createUpdateReachability({reachability}))
+
+          if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
+            // TODO: We should be able to recover from connection problems
+            // without re-bootstrapping. Originally we used to do this on HTML5
+            // 'online' event, but reachability is more precise.
+            actions.push(ConfigGen.createBootstrap({isReconnect: true}))
+          }
         }
+
+        return actions
       }
-    })
+    )
 
     dispatch(checkReachabilityOnConnect())
   }
@@ -75,33 +83,34 @@ function checkReachabilityOnConnect() {
 }
 
 function registerGregorListeners() {
-  return (dispatch: Dispatch) => {
-    // Filter this firehose down to the two systems we care about: "git", and "kbfs.favorites"
-    // If ever you want to get OOBMs for a different system, then you need to enter it here.
-    RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git', 'kbfs.favorites']})
-      .then(response => {
-        logger.info('Registered gregor listener')
-      })
-      .catch(error => {
-        logger.warn('error in registering gregor listener: ', error)
-      })
-
-    // we get this with sessionID == 0 if we call openDialog
-    engine().setIncomingHandler('keybase.1.gregorUI.pushState', ({state, reason}, response) => {
-      dispatch(GregorGen.createPushState({state, reason}))
-      response && response.result()
+  // Filter this firehose down to the two systems we care about: "git", and "kbfs.favorites"
+  // If ever you want to get OOBMs for a different system, then you need to enter it here.
+  RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git', 'kbfs.favorites']})
+    .then(response => {
+      logger.info('Registered gregor listener')
+    })
+    .catch(error => {
+      logger.warn('error in registering gregor listener: ', error)
     })
 
-    engine().setIncomingHandler('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
-      if (oobm && oobm.length) {
-        const filteredOOBM = oobm.filter(oobm => !!oobm)
-        if (filteredOOBM.length) {
-          dispatch(GregorGen.createPushOOBM({messages: filteredOOBM}))
-        }
+  // we get this with sessionID == 0 if we call openDialog
+  engine().setIncomingActionCreators('keybase.1.gregorUI.pushState', ({reason, state}, response) => {
+    const actions = [GregorGen.createPushState({reason, state})]
+    response && response.result()
+    return actions
+  })
+
+  engine().setIncomingActionCreators('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
+    const actions = []
+    if (oobm && oobm.length) {
+      const filteredOOBM = oobm.filter(oobm => !!oobm)
+      if (filteredOOBM.length) {
+        actions.push(GregorGen.createPushOOBM({messages: filteredOOBM}))
       }
-      response && response.result()
-    })
-  }
+    }
+    response && response.result()
+    return actions
+  })
 }
 
 function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
@@ -142,7 +151,9 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
   if (!pushAction.error) {
-    const {payload: {state}} = pushAction
+    const {
+      payload: {state},
+    } = pushAction
     const nonNullItems = toNonNullGregorItems(state)
     if (nonNullItems.length !== (state.items || []).length) {
       logger.warn('Lost some messages in filtering out nonNull gregor items')
@@ -184,7 +195,9 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
 function _handlePushOOBM(pushOOBM: GregorGen.PushOOBMPayload) {
   const actions = []
   if (!pushOOBM.error) {
-    const {payload: {messages}} = pushOOBM
+    const {
+      payload: {messages},
+    } = pushOOBM
 
     // Filter first so we don't dispatch unnecessary actions
     const gitMessages = messages.filter(i => i.system === 'git')

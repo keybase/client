@@ -44,6 +44,7 @@ class SearchResultsList extends Component<Props> {
           renderItem={this._renderItem}
           keyExtractor={this._keyExtractor}
           keyboardDismissMode={this.props.keyboardDismissMode}
+          keyboardShouldPersistTaps="handled"
         />
       </Box>
     )

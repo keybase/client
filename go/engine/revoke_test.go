@@ -297,8 +297,8 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	if err == nil {
 		t.Fatal("expected runTrack to return an error")
 	}
-	if _, ok := err.(libkb.KeyRevokedError); !ok {
-		t.Errorf("expected libkb.KeyRevokedError, got %T", err)
+	if _, ok := err.(libkb.LoginRequiredError); !ok {
+		t.Errorf("expected libkb.LoginRequiredError, got %T", err)
 	}
 }
 
@@ -368,7 +368,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	}
 
 	// This should log out tc1:
-	if err := tc1.G.LogoutIfRevoked(); err != nil {
+	if err := NewMetaContextForTest(tc1).LogoutAndDeprovisionIfRevoked(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -379,15 +379,15 @@ func TestSignAfterRevoke(t *testing.T) {
 		Msg: msg,
 	})
 	if err == nil {
-		t.Fatal("nil error signing after LogoutIfRevoked")
+		t.Fatal("nil error signing after LogoutAndDeprovisionIfRevoked")
 	}
 	if _, ok := err.(libkb.LoginRequiredError); !ok {
 		t.Errorf("error type: %T, expected libkb.LoginRequiredError", err)
 	}
 }
 
-// Check that if not on a revoked device that LogoutIfRevoked doesn't do anything.
-func TestLogoutIfRevokedNoop(t *testing.T) {
+// Check that if not on a revoked device that LogoutAndDeprovisionIfRevoked doesn't do anything.
+func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
 
@@ -395,7 +395,7 @@ func TestLogoutIfRevokedNoop(t *testing.T) {
 
 	AssertLoggedIn(tc)
 
-	if err := tc.G.LogoutIfRevoked(); err != nil {
+	if err := NewMetaContextForTest(tc).LogoutAndDeprovisionIfRevoked(); err != nil {
 		t.Fatal(err)
 	}
 

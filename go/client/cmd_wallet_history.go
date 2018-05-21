@@ -76,7 +76,12 @@ func (c *cmdWalletHistory) Run() (err error) {
 	// `payments` is sorted most recent first.
 	// Print most recent at the bottom.
 	for i := len(payments) - 1; i >= 0; i-- {
-		printPayment(c.G(), payments[i], c.verbose, dui)
+		p := payments[i]
+		if p.Payment != nil {
+			printPayment(c.G(), *p.Payment, c.verbose, dui)
+		} else {
+			line(ColorString(c.G(), "red", "error in payment: %v", p.Err))
+		}
 		line("")
 	}
 	if len(payments) == 0 {

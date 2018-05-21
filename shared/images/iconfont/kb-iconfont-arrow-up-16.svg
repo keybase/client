@@ -1,14 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
-    <title>5886DF67-5F75-4D58-B649-EAE9322AACDC</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Colors,-icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons-2" transform="translate(-462.000000, -278.000000)" fill="#000000" fill-rule="nonzero">
-            <g id="kb-iconfont-arrow-up-16" transform="translate(462.000000, 278.000000)">
-                <path d="M8,7.43795142 L11.4407048,4.38778054 C12.0269684,3.87004003 12.9754016,3.870843 13.5605485,4.38957526 C14.1456955,4.90830752 14.146598,5.74908969 13.5625656,6.26880815 L8,11.2 L2.43743443,6.26880815 C1.85340205,5.74908969 1.85430448,4.90830752 2.43945145,4.38957526 C3.02459843,3.870843 3.97303161,3.87004003 4.55929519,4.38778054 L8,7.43795142 Z" id="caret-left" transform="translate(8.000000, 7.600000) scale(1, -1) translate(-8.000000, -7.600000) "></path>
-            </g>
-        </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <path fill="#000" fill-rule="nonzero" d="M8 7.762l3.44 3.05c.587.518 1.535.517 2.12-.002.586-.518.587-1.36.003-1.879L8 4 2.437 8.931c-.584.52-.583 1.36.002 1.88.586.518 1.534.519 2.12.001L8 7.762z"/>
 </svg>

@@ -24,6 +24,8 @@ type CmdChatSearch struct {
 	query            string
 	maxHits          int
 	maxMessages      int
+	beforeContext    int
+	afterContext     int
 	isRegex          bool
 	hasTTY           bool
 }
@@ -55,13 +57,29 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cli.IntFlag{
 				Name:  "max-hits",
 				Value: 10,
-				Usage: "Specify the maximum number of search hits to get. Default is 10",
+				Usage: "Specify the maximum number of search hits to get.",
 			},
 			cli.IntFlag{
 				Name:  "max-messages",
 				Value: 10000,
-				Usage: "Specify the maximum number of messages to search. Default is 10000",
-			}),
+				Usage: "Specify the maximum number of messages to search.",
+			},
+			cli.IntFlag{
+				Name:  "B, before-context",
+				Value: 0,
+				Usage: "Print number messages of leading context before each match.",
+			},
+			cli.IntFlag{
+				Name:  "A, after-context",
+				Value: 0,
+				Usage: "Print number of messages of trailing context after each match.",
+			},
+			cli.IntFlag{
+				Name:  "C, context",
+				Value: 2,
+				Usage: "Print number of messages of leading and trailing context surrounding each match.",
+			},
+		),
 	}
 }
 
@@ -121,6 +139,8 @@ func (c *CmdChatSearch) Run() (err error) {
 		IsRegex:          c.isRegex,
 		MaxHits:          c.maxHits,
 		MaxMessages:      c.maxMessages,
+		BeforeContext:    c.beforeContext,
+		AfterContext:     c.afterContext,
 	}
 
 	_, err = resolver.ChatClient.GetSearchRegexp(ctx, arg)
@@ -142,6 +162,15 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 	c.query = ctx.Args().Get(1)
 	c.maxHits = ctx.Int("max-hits")
 	c.maxMessages = ctx.Int("max-messages")
+
+	c.afterContext = ctx.Int("after-context")
+	c.beforeContext = ctx.Int("before-context")
+	if c.afterContext == 0 && c.beforeContext == 0 {
+		context := ctx.Int("context")
+		c.beforeContext = context
+		c.afterContext = context
+	}
+
 	c.isRegex = ctx.Bool("regex")
 	query := c.query
 	if !c.isRegex {

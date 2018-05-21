@@ -27,15 +27,14 @@ import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/rende
 import {makeLeafTags} from '../route-tree'
 
 type CardStackShimProps = {
-  mode?: 'modal',
+  mode: 'modal' | null,
   renderRoute: (route: RenderRouteResult, shouldRender: boolean) => any,
-  onNavigateBack: () => void,
+  onNavigateBack: () => any,
   stack: RouteRenderStack,
-  hidden?: boolean,
+  hidden: boolean,
 }
 
-class CardStackShim extends Component<CardStackShimProps, *> {
-  static defaultProps: *
+class CardStackShim extends Component<CardStackShimProps> {
   getScreenOptions = () => ({})
   getStateForAction = emptyObj
   getActionForPathAndParams = emptyObj
@@ -211,7 +210,8 @@ class MainNavStack extends Component<any, any> {
         <CardStackShim
           key={key}
           hidden={key !== props.routeSelected}
-          stack={stack}
+          mode={null}
+          stack={(stack: RouteRenderStack)}
           renderRoute={renderStackRoute}
           onNavigateBack={props.navigateUp}
         />
@@ -337,7 +337,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
 
     const fullscreenPred = r => r.tags && r.tags.fullscreen
     const mainScreens = baseScreens.takeUntil(fullscreenPred)
-    const fullScreens = baseScreens.skipUntil(fullscreenPred).unshift({
+    const fullScreens: any = baseScreens.skipUntil(fullscreenPred).unshift({
       path: ['main'],
       component: () => (
         <MainNavStack
@@ -355,6 +355,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
         renderRoute={renderStackRoute}
         onNavigateBack={this.props.navigateUp}
         mode="modal"
+        hidden={false}
       />
     )
     const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
@@ -379,8 +380,8 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 })
 
 const styles = styleSheetCreate({
-  container: globalStyles.fullHeight,
-  content: globalStyles.flexGrow,
+  container: {...globalStyles.fullHeight},
+  content: {...globalStyles.flexGrow},
   hiddenTransitioner: {
     height: '100%',
     left: -9999,
@@ -400,7 +401,7 @@ const styles = styleSheetCreate({
     backgroundColor: globalColors.fastBlank,
     paddingTop: isIPhoneX ? 40 : statusBarHeight,
   },
-  shimContainer: globalStyles.fillAbsolute,
+  shimContainer: {...globalStyles.fillAbsolute},
   tabBarHeightBar: {
     height: tabBarHeight,
   },

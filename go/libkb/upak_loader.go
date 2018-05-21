@@ -680,7 +680,7 @@ func (u *CachedUPAKLoader) CheckDeviceForUIDAndUsername(ctx context.Context, uid
 	foundDevice := false
 	isRevoked := false
 	var foundUsername NormalizedUsername
-	u.loadWithInfo(arg, nil, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
+	_, _, err = u.loadWithInfo(arg, nil, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 		if upak == nil {
 			return nil
 		}
@@ -694,6 +694,9 @@ func (u *CachedUPAKLoader) CheckDeviceForUIDAndUsername(ctx context.Context, uid
 		}
 		return nil
 	}, false)
+	if err != nil {
+		return err
+	}
 	if !foundUser {
 		return UserNotFoundError{UID: uid}
 	}
@@ -786,4 +789,22 @@ func (u *CachedUPAKLoader) removeMemCache(ctx context.Context, uid keybase1.UID)
 
 func (u *CachedUPAKLoader) purgeMemCache() {
 	u.cache.Purge()
+}
+
+func checkDeviceValidForUID(ctx context.Context, u UPAKLoader, uid keybase1.UID, did keybase1.DeviceID) error {
+	var nnu NormalizedUsername
+	return u.CheckDeviceForUIDAndUsername(ctx, uid, did, nnu)
+}
+
+func CheckCurrentUIDDeviceID(m MetaContext) (err error) {
+	defer m.CTrace("CheckCurrentUIDDeviceID", func() error { return err })()
+	uid := m.G().Env.GetUID()
+	if uid.IsNil() {
+		return NoUIDError{}
+	}
+	did := m.G().Env.GetDeviceIDForUID(uid)
+	if did.IsNil() {
+		return NoDeviceError{fmt.Sprintf("for UID %s", uid)}
+	}
+	return checkDeviceValidForUID(m.Ctx(), m.G().GetUPAKLoader(), uid, did)
 }

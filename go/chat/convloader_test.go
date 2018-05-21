@@ -242,8 +242,10 @@ func TestConvLoaderPageBack(t *testing.T) {
 	conv := ib.Inbox.Full().Conversations[0]
 
 	u := world.GetUsers()[0]
+	skp, err := sender.(*BlockingSender).getSigningKeyPair(ctx)
+	require.NoError(t, err)
 	for i := 0; i < 2; i++ {
-		_, _, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		pt := chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        conv.Metadata.IdTriple,
 				Sender:      u.User.GetUID().ToBytes(),
@@ -251,13 +253,25 @@ func TestConvLoaderPageBack(t *testing.T) {
 				MessageType: chat1.MessageType_TEXT,
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
-		}, 0, nil)
+		}
+		boxed, err := NewBoxer(tc.Context()).BoxMessage(ctx, pt, conv.GetMembersType(), skp)
 		require.NoError(t, err)
+		require.NotNil(t, boxed)
+		_, err = ri().PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.GetConvID(),
+			MessageBoxed:   *boxed,
+		})
+		require.NoError(t, err)
+	}
+	select {
+	case <-listener.bgConvLoads:
+		require.Fail(t, "no loads here")
+	default:
 	}
 
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 1}, types.ConvLoaderPriorityHigh, nil)))
-
+		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 1}, types.ConvLoaderPriorityHigh,
+			newConvLoaderPagebackHook(tc.Context(), 0, 1))))
 	for i := 0; i < 2; i++ {
 		select {
 		case <-listener.bgConvLoads:
@@ -354,7 +368,7 @@ func TestBackgroundPurge(t *testing.T) {
 	}
 
 	sendEphemeral := func(lifetime gregor1.DurationSec) {
-		_, _, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		_, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:              trip,
 				Sender:            uid,
@@ -390,6 +404,7 @@ func TestBackgroundPurge(t *testing.T) {
 				purgedIDs = append(purgedIDs, purgedMsg.GetMessageID())
 			}
 			require.Equal(t, msgIDs, purgedIDs)
+			require.Equal(t, convID.String(), info.Conv.ConvID)
 		}
 	}
 
@@ -412,7 +427,7 @@ func TestBackgroundPurge(t *testing.T) {
 	sendEphemeral(lifetime * 2)
 	sendEphemeral(lifetime * 3)
 
-	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, &chat1.GetThreadQuery{
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, &chat1.GetThreadQuery{
 		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 	}, nil)
 	require.NoError(t, err)

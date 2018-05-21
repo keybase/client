@@ -23,6 +23,7 @@ export type ControlledRolePickerProps = {
   pluralizeRoleName?: boolean,
   showNotificationCheckbox?: boolean,
   sendNotificationChecked?: boolean,
+  styleCover?: Object,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
@@ -33,6 +34,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const pluralizeRoleName = routeProps.get('pluralizeRoleName')
   const sendNotificationChecked = routeProps.get('sendNotificationChecked')
   const showSendNotification = routeProps.get('showNotificationCheckbox')
+  const styleCover = routeProps.get('styleCover')
   return {
     _onComplete,
     allowAdmin,
@@ -43,6 +45,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     pluralizeRoleName,
     sendNotificationChecked,
     showSendNotification,
+    styleCover,
     username: '',
   }
 }
@@ -58,7 +61,7 @@ const ControlledRolePicker = props => (
 )
 
 const PopupWrapped = props => (
-  <PopupDialog onClose={props.onCancel}>
+  <PopupDialog styleCover={props.styleCover} onClose={props.onCancel}>
     <ControlledRolePicker {...props} />
   </PopupDialog>
 )

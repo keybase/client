@@ -23,6 +23,7 @@ func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	}
 	return cli.Command{
 		Name:        "balances",
+		Aliases:     []string{"list", "accounts"},
 		Usage:       "Show account balances",
 		Description: "Show account balances",
 		Action: func(c *cli.Context) {
@@ -61,7 +62,7 @@ func (c *cmdWalletBalances) runForAccountID(cli stellar1.LocalClient) error {
 }
 
 func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
-	accounts, err := cli.WalletGetLocalAccounts(context.Background())
+	accounts, err := cli.WalletGetAccountsCLILocal(context.Background())
 	if err != nil {
 		return err
 	}

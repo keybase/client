@@ -51,18 +51,8 @@ func (q inboxDiskQuery) queryMatch(other inboxDiskQuery) bool {
 	return false
 }
 
-func (q inboxDiskQuery) paginationMatch(other inboxDiskQuery) bool {
-	if q.Pagination == nil && other.Pagination == nil {
-		return true
-	}
-	if q.Pagination != nil && other.Pagination != nil {
-		return q.Pagination.Eq(*other.Pagination)
-	}
-	return false
-}
-
 func (q inboxDiskQuery) match(other inboxDiskQuery) bool {
-	return q.queryMatch(other) && q.paginationMatch(other)
+	return q.queryMatch(other) && q.Pagination.Eq(other.Pagination)
 }
 
 type inboxDiskData struct {
@@ -1267,6 +1257,7 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 }
 
 type InboxSyncRes struct {
+	FilteredConvs      []types.RemoteConversation
 	TeamTypeChanged    bool
 	MembersTypeChanged []chat1.ConversationID
 	Expunges           []InboxSyncResExpunge
@@ -1330,7 +1321,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 				})
 			}
 			if i.topicNameChanged(ctx, oldConv, newConv) {
-				res.TopicNameChanged = append(res.TopicNameChanged, newConv.Metadata.ConversationID)
+				res.TopicNameChanged = append(res.TopicNameChanged, newConv.GetConvID())
 			}
 
 			ibox.Conversations[index].Conv = newConv
@@ -1349,6 +1340,11 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
 		return res, err
 	}
+
+	// Filter the conversations for the result
+	res.FilteredConvs = i.applyQuery(ctx, &chat1.GetInboxQuery{
+		ConvIDs: utils.PluckConvIDs(convs),
+	}, utils.RemoteConvs(convs))
 
 	return res, nil
 }

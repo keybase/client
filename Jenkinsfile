@@ -95,8 +95,8 @@ helpers.rootLinuxNode(env, {
             }
         }
 
-        def hasGoChanges = hasChanges('go')
-        def hasJSChanges = hasChanges('shared')
+        def hasGoChanges = helpers.hasChanges('go', env)
+        def hasJSChanges = helpers.hasChanges('shared', env)
         println "Has go changes: " + hasGoChanges
         println "Has JS changes: " + hasJSChanges
 
@@ -264,18 +264,6 @@ helpers.rootLinuxNode(env, {
     }
 }
 
-def hasChanges(subdir) {
-    dir(subdir) {
-        def changes = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET)
-        println "Number of changes: " + changes.size()
-        if (changes.size() == 0) {
-            println "No ${subdir} changes, skipping tests."
-            return false
-        }
-        return true
-    }
-}
-
 def getTestDirsNix() {
     def dirs = sh(
         returnStdout: true,
@@ -313,6 +301,8 @@ def testGo(prefix) {
                 [ -z "$lint" -o "$lint" = "Lint-free!" ]
             '''
             sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
+            // Make sure we don't accidentally pull in the testing package.
+            sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()

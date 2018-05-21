@@ -73,7 +73,7 @@ function passthroughResponseSaga() {
 
 class EngineRpcCall {
   _subSagas: SagaTypes.SagaMap
-  _chanConfig: SagaTypes.ChannelConfig<*>
+  _chanConfig: SagaTypes.ChannelConfig<any>
   _rpc: Function
   _rpcNameKey: string // Used for the waiting state and error messages.
   _request: any

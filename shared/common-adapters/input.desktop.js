@@ -374,13 +374,15 @@ class Input extends React.PureComponent<Props, State> {
     return (
       <Box style={collapseStyles([containerStyle, this.props.style])}>
         <style>{inputRealCSS}</style>
-        {!this.props.small && (
-          <Text type="BodySmallSemibold" style={_floatingStyle}>
-            {floatingHintText}
-          </Text>
-        )}
+        {!this.props.small &&
+          !this.props.hideLabel && (
+            <Text type="BodySmallSemibold" style={_floatingStyle}>
+              {floatingHintText}
+            </Text>
+          )}
         {!!this.props.small &&
-          !!this.props.smallLabel && (
+          !!this.props.smallLabel &&
+          !this.props.hideLabel && (
             <Text type="BodySmall" style={smallLabelStyle}>
               {this.props.smallLabel}
             </Text>

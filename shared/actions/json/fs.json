@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/fs'"
-  ],
+  "prelude": ["import * as Types from '../constants/types/fs'"],
   "actions": {
     "folderListLoad": {
       "path": "Types.Path"
@@ -20,6 +18,13 @@
     "filePreviewLoaded": {
       "path": "Types.Path",
       "meta": "Types.PathItem"
+    },
+    "mimeTypeLoad": {
+      "path": "Types.Path"
+    },
+    "mimeTypeLoaded": {
+      "path": "Types.Path",
+      "mimeType": "string"
     },
     "sortSetting": {
       "path": "Types.Path",
@@ -93,6 +98,25 @@
       "errorText": "string"
     },
 
-    "setupFSHandlers": {}
+    "setupFSHandlers": {},
+
+    "share": {
+      "path": "Types.Path",
+      "routePath": "I.List<string>"
+    },
+    "save": {
+      "path": "Types.Path",
+      "routePath": "I.List<string>"
+    },
+    "fileActionPopup": {
+      "path": "Types.Path",
+      "type": "Types.PathType",
+      "targetRect": "?ClientRect",
+      "routePath": "I.List<string>"
+    },
+    "openFinderPopup": {
+      "targetRect": "?ClientRect",
+      "routePath": "I.List<string>"
+    }
   }
 }

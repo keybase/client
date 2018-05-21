@@ -97,6 +97,7 @@ export type _ResetUser = {
 export type ResetUser = I.RecordOf<_ResetUser>
 
 export type _State = {
+  addUserToTeamsResults: string,
   channelCreationError: string,
   teamsWithChosenChannels: I.Set<Teamname>,
   sawChatBanner: boolean,

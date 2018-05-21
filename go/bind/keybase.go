@@ -210,7 +210,7 @@ func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir 
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
 	env := kbCtx.Env
-	return logSendContext.LogSend(status, feedback, sendLogs, 5*1024*1024, env.GetUID(), env.GetInstallID())
+	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID())
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload
@@ -306,6 +306,13 @@ func SetAppStateBackgroundActive() {
 
 func BackgroundSync() {
 	defer kbCtx.Trace("BackgroundSync", func() error { return nil })()
+
+	// Skip the sync if we aren't in the background
+	if state := kbCtx.AppState.State(); state != keybase1.AppState_BACKGROUND {
+		kbCtx.Log.Debug("BackgroundSync: skipping, app not in background state: %v", state)
+		return
+	}
+
 	nextState := keybase1.AppState_BACKGROUNDACTIVE
 	kbCtx.AppState.Update(nextState)
 	doneCh := make(chan struct{})

@@ -254,8 +254,6 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	payload["sigs"] = sigsList
 	payload["downgrade_lease_id"] = lease.LeaseID
 
-	m.CDebugf("RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v",
-		len(pukBoxes), pukPrev != nil, newPukGeneration)
 	if addingNewPUK {
 		libkb.AddPerUserKeyServerArg(payload, newPukGeneration, pukBoxes, pukPrev)
 	}
@@ -287,9 +285,11 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 			userEKSection["boxes"] = filteredBoxes
 			payload["user_ek"] = userEKSection
 		} else {
-			m.CWarningf("skipping userEK publishing, because there are no valid deviceEKs")
+			m.CDebugf("skipping userEK publishing, there are no valid deviceEKs")
 		}
 	}
+	m.CDebugf("RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v, userEKBox: %v",
+		len(pukBoxes), pukPrev != nil, newPukGeneration, myUserEKBox != nil)
 
 	_, err = m.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",

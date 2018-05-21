@@ -29,7 +29,7 @@ function pathToURL(path: string): string {
   return encodeURI('file://' + goodPath).replace(/#/g, '%23')
 }
 
-function openInDefaultDirectory(openPath: string): Promise<*> {
+function openInDefaultDirectory(openPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // Paths in directories might be symlinks, so resolve using
     // realpath.
@@ -77,7 +77,7 @@ function isDirectory(openPath: string): Promise<boolean> {
   })
 }
 
-function _open(openPath: string): Promise<*> {
+function _open(openPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     isDirectory(openPath).then(isDir => {
       if (isDir && isWindows) {
@@ -141,7 +141,7 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-function installCachedDokan(): Promise<*> {
+function installCachedDokan(): Promise<void> {
   return new Promise((resolve, reject) => {
     // use the action logger so it has a chance of making it into the upload
     logger.action('Invoking dokan installer')
@@ -153,15 +153,14 @@ function installCachedDokan(): Promise<*> {
       reject(err)
       return
     }
-    // restart the servie, particularly kbfsdokan
+    // restart the service, particularly kbfsdokan
     // based on desktop/app/start-win-service.js
     const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
     if (!binPath) {
       return
     }
     const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
-    const args = [binPath, 'ctl', 'watchdog2']
-
+    const args = [binPath, 'ctl', 'restart']
     spawn(rqPath, args, {
       detached: true,
       stdio: 'ignore',
@@ -175,7 +174,7 @@ function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-function waitForMount(attempt: number): Promise<*> {
+function waitForMount(attempt: number): Promise<boolean> {
   return new Promise((resolve, reject) => {
     // Read the KBFS path waiting for files to exist, which means it's mounted
     fs.readdir(Constants.defaultKBFSPath, (err, files) => {
@@ -235,7 +234,9 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
     .join(path.sep)
 
   const state: TypedState = yield Saga.select()
-  let {config: {kbfsPath}} = state
+  let {
+    config: {kbfsPath},
+  } = state
 
   if (!kbfsPath) {
     kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)

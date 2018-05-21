@@ -1,18 +1,16 @@
 // @flow
 import * as Types from '../constants/types/search'
 import * as React from 'react'
-import {Avatar, Icon} from '../common-adapters'
-
+import {Avatar, Icon, type IconType} from '../common-adapters'
 import type {AvatarSize} from '../common-adapters/avatar'
-import type {IconType} from '../common-adapters/icon'
 
 type Props = {|
   service: ?Types.Service,
   username: ?string,
   icon: ?IconType,
   avatarSize: AvatarSize,
-  style?: *,
-  fontSize?: *,
+  style?: any,
+  fontSize?: number,
 |}
 
 const IconOrAvatar = ({service, username, icon, avatarSize, style, fontSize}: Props) =>

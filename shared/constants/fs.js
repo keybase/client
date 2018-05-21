@@ -2,11 +2,12 @@
 import * as I from 'immutable'
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
+import {isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
-import {type IconType} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters'
 import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
@@ -43,6 +44,7 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   size: 0,
   progress: 'pending',
   type: 'file',
+  mimeType: '',
 })
 
 export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
@@ -482,9 +484,26 @@ export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
   return 'default'
 }
 
+export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
+  if (mimeType.startsWith('text/')) {
+    return 'text'
+  }
+  if (mimeType.startsWith('image/')) {
+    return 'image'
+  }
+  if (mimeType.startsWith('video/')) {
+    return 'video'
+  }
+  if (mimeType === 'application/pdf') {
+    return 'pdf'
+  }
+  return 'default'
+}
+
 export const generateFileURL = (path: Types.Path, address: string, token: string): string => {
-  const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
-  return `http://${address}/files${stripKeybase}?token=${token}`
+  const stripKeybase = Types.pathToString(path).slice('/keybase/'.length)
+  const encoded = encodeURIComponent(stripKeybase)
+  return `http://${address}/files/${encoded}?token=${token}`
 }
 
 export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
@@ -513,3 +532,22 @@ export const showIgnoreFolder = (path: Types.Path, pathItem: Types.PathItem, use
   !!pathItem.tlfMeta &&
   ['public', 'private'].includes(Types.getPathVisibility(path)) &&
   Types.getPathName(path) !== username
+
+export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect =>
+  isMobile ? null : evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null
+
+// shouldUseOldMimeType determines if mimeType from newItem should reuse
+// what's in oldItem.
+export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
+  if (oldItem.mimeType === '' || newItem.mimeType !== '') {
+    return false
+  }
+
+  return (
+    oldItem.type === newItem.type &&
+    oldItem.lastModifiedTimestamp === newItem.lastModifiedTimestamp &&
+    oldItem.lastWriter.uid === newItem.lastWriter.uid &&
+    oldItem.name === newItem.name &&
+    oldItem.size === newItem.size
+  )
+}

@@ -15,6 +15,7 @@ import * as Saga from '../util/saga'
 import * as PinentryGen from '../actions/pinentry-gen'
 import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
+import {checkRPCOwnership} from '../engine/index.platform'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
 import {createGetPeopleData} from './people-gen'
@@ -84,7 +85,8 @@ const getExtendedStatus = (): AsyncAction => dispatch => {
 
 const registerListeners = (): AsyncAction => dispatch => {
   dispatch(GregorCreators.listenForNativeReachabilityEvents)
-  dispatch(GregorCreators.registerGregorListeners())
+  GregorCreators.registerGregorListeners()
+  // TODO: DESKTOP-6661 - Refactor `registerReachability` out of `actions/config.js`
   dispatch(GregorCreators.registerReachability())
   dispatch(PinentryGen.createRegisterPinentryListener())
 }
@@ -126,6 +128,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
     logger.info('[bootstrap] performing bootstrap...')
     Promise.all([
       dispatch(getBootstrapStatus()),
+      checkRPCOwnership(),
       dispatch(waitForKBFS()),
       dispatch(KBFSGen.createFuseStatus()),
       dispatch(FsGen.createFuseStatus()),
@@ -139,7 +142,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         })
         dispatch(NotificationsGen.createListenForKBFSNotifications())
         if (!opts.isReconnect) {
-          dispatch(async (): Promise<*> => {
+          dispatch(async () => {
             await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             if (getState().config.loggedIn) {
               // If we're logged in, restore any saved route state and

@@ -2,6 +2,11 @@
   "protocol": "local",
   "imports": [
     {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    },
+    {
       "path": "common.avdl",
       "type": "idl"
     }
@@ -9,11 +14,81 @@
   "types": [
     {
       "type": "record",
+      "name": "WalletAccountLocal",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "boolean",
+          "name": "isDefault"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "balanceDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendResultCLILocal",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "KbTxID"
+        },
+        {
+          "type": "TransactionID",
+          "name": "TxID"
+        },
+        {
+          "type": [
+            null,
+            "SendRelayResultCLILocal"
+          ],
+          "name": "relay"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendRelayResultCLILocal",
+      "fields": [
+        {
+          "type": "keybase1.TeamID",
+          "name": "teamID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentCLIOptionLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "PaymentCLILocal"
+          ],
+          "name": "payment"
+        },
+        {
+          "type": "string",
+          "name": "err"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PaymentCLILocal",
       "fields": [
         {
           "type": "TransactionID",
-          "name": "stellarTxID"
+          "name": "txID"
         },
         {
           "type": "TimeMs",
@@ -54,7 +129,10 @@
           "name": "fromStellar"
         },
         {
-          "type": "AccountID",
+          "type": [
+            null,
+            "AccountID"
+          ],
           "name": "toStellar"
         },
         {
@@ -83,7 +161,7 @@
     },
     {
       "type": "record",
-      "name": "LocalOwnAccount",
+      "name": "OwnAccountCLILocal",
       "fields": [
         {
           "type": "AccountID",
@@ -115,6 +193,18 @@
     }
   ],
   "messages": {
+    "GetWalletAccountsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "WalletAccountLocal"
+      }
+    },
     "balancesLocal": {
       "request": [
         {
@@ -127,7 +217,7 @@
         "items": "Balance"
       }
     },
-    "sendLocal": {
+    "sendCLILocal": {
       "request": [
         {
           "name": "recipient",
@@ -144,9 +234,33 @@
         {
           "name": "note",
           "type": "string"
+        },
+        {
+          "name": "displayAmount",
+          "type": "string"
+        },
+        {
+          "name": "displayCurrency",
+          "type": "string"
         }
       ],
-      "response": "PaymentResult"
+      "response": "SendResultCLILocal"
+    },
+    "claimCLILocal": {
+      "request": [
+        {
+          "name": "txID",
+          "type": "string"
+        },
+        {
+          "name": "into",
+          "type": [
+            null,
+            "AccountID"
+          ]
+        }
+      ],
+      "response": "RelayClaimResult"
     },
     "recentPaymentsCLILocal": {
       "request": [
@@ -160,7 +274,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "PaymentCLILocal"
+        "items": "PaymentCLIOptionLocal"
       }
     },
     "paymentDetailCLILocal": {
@@ -180,11 +294,11 @@
       "request": [],
       "response": "Bundle"
     },
-    "walletGetLocalAccounts": {
+    "walletGetAccountsCLILocal": {
       "request": [],
       "response": {
         "type": "array",
-        "items": "LocalOwnAccount"
+        "items": "OwnAccountCLILocal"
       }
     },
     "ownAccountLocal": {
