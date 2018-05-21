@@ -12,7 +12,7 @@ import {
   ScrollView,
   Text,
 } from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 const connectedUsernamesProps = {
@@ -86,7 +86,7 @@ export const MultiFollowNotification = (props: Props) => {
     >
       <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames
-          containerStyle={isMobile ? undefined : {whiteSpace: 'wrap'}}
+          containerStyle={platformStyles({isElectron: {whiteSpace: 'wrap'}})}
           inlineGrammar={true}
           showAnd={!props.numAdditional}
           {...connectedUsernamesProps}

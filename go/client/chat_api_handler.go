@@ -143,7 +143,7 @@ func (l ephemeralLifetime) Valid() bool {
 	if d == 0 {
 		return true // nil val
 	}
-	return d <= maxEphemeralLifetime && d >= minEphemeralLifetime
+	return d <= libkb.MaxEphemeralLifetime && d >= libkb.MinEphemeralLifetime
 }
 
 type sendOptionsV1 struct {
@@ -182,11 +182,10 @@ func (r readOptionsV1) Check() error {
 }
 
 type editOptionsV1 struct {
-	Channel           ChatChannel
-	ConversationID    string          `json:"conversation_id"`
-	MessageID         chat1.MessageID `json:"message_id"`
-	Message           ChatMessage
-	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
+	Channel        ChatChannel
+	ConversationID string          `json:"conversation_id"`
+	MessageID      chat1.MessageID `json:"message_id"`
+	Message        ChatMessage
 }
 
 func (e editOptionsV1) Check() error {
@@ -200,9 +199,6 @@ func (e editOptionsV1) Check() error {
 
 	if !e.Message.Valid() {
 		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid message")}
-	}
-	if !e.EphemeralLifetime.Valid() {
-		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid ephemeral lifetime")}
 	}
 
 	return nil

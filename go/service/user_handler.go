@@ -41,7 +41,7 @@ func (r *userHandler) keyChange(m libkb.MetaContext) error {
 	m.G().KeyfamilyChanged(m.G().Env.GetUID())
 
 	// check if this device was just revoked and if so, log out
-	return m.LogoutIfRevoked()
+	return m.LogoutAndDeprovisionIfRevoked()
 }
 
 func (r *userHandler) identityChange(m libkb.MetaContext) error {

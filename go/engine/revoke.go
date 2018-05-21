@@ -285,7 +285,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 			userEKSection["boxes"] = filteredBoxes
 			payload["user_ek"] = userEKSection
 		} else {
-			m.CWarningf("skipping userEK publishing, because there are no valid deviceEKs")
+			m.CDebugf("skipping userEK publishing, there are no valid deviceEKs")
 		}
 	}
 	m.CDebugf("RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v, userEKBox: %v",

@@ -269,9 +269,9 @@ func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.Te
 		return nil, nil
 	}
 
-	for _, teamEKBox := range teamEKBoxes {
+	for gen, teamEKBox := range teamEKBoxes {
 		if ctimeIsStale(teamEKBox.Metadata.Ctime, merkleRoot) {
-			expired = append(expired, teamEKBox.Metadata.Generation)
+			expired = append(expired, gen)
 		}
 	}
 	return expired, s.deleteMany(ctx, teamID, expired)
