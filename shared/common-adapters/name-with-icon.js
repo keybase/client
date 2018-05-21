@@ -3,16 +3,15 @@ import * as React from 'react'
 import Avatar, {ConnectedAvatar} from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
-import Icon from './icon'
-import {type IconType} from './icon.constants'
+import Icon, {castPlatformStyles, type IconType} from './icon'
 import Text, {type TextType} from './text'
 import {ConnectedUsernames} from './usernames'
 import {
   collapseStyles,
   globalStyles,
   isMobile,
-  styleSheetCreate,
   platformStyles,
+  styleSheetCreate,
   type StylesCrossPlatform,
 } from '../styles'
 
@@ -107,7 +106,13 @@ const NameWithIconHorizontal = (props: Props) => {
         />
       )}
       {!isAvatar &&
-        !!props.icon && <Icon type={props.icon} style={styles.hIconStyle} fontSize={isMobile ? 48 : 32} />}
+        !!props.icon && (
+          <Icon
+            type={props.icon}
+            style={castPlatformStyles(styles.hIconStyle)}
+            fontSize={isMobile ? 48 : 32}
+          />
+        )}
       <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle])}>
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (

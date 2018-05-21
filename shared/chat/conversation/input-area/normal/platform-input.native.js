@@ -2,8 +2,8 @@
 /* eslint-env browser */
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Box2, Icon, Input, Text} from '../../../../common-adapters'
-import {collapseStyles, globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
+import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
+import {globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
 import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
@@ -63,7 +63,9 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     const multilineOpts = {rowsMax: 3, rowsMin: 1}
 
     let hintText = 'Write a message'
-    if (this.props.isEditing) {
+    if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
+    } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.pendingWaiting) {
       hintText = 'Creating conversation...'
@@ -156,7 +158,7 @@ const ChannelMentionHud = InputAccessory(props => (
 
 const Typing = () => (
   <Box style={styles.typing}>
-    <Icon type="icon-typing-24" style={styles.typingIcon} />
+    <Icon type="icon-typing-24" style={iconCastPlatformStyles(styles.typingIcon)} />
   </Box>
 )
 
@@ -172,13 +174,13 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
       <Icon
         onClick={pendingWaiting ? undefined : insertMentionMarker}
         type="iconfont-mention"
-        style={styles.actionButton}
+        style={iconCastPlatformStyles(styles.actionButton)}
         fontSize={21}
       />
       <Icon
         onClick={pendingWaiting ? undefined : openFilePicker}
         type="iconfont-camera"
-        style={collapseStyles([styles.actionButton])}
+        style={iconCastPlatformStyles(styles.actionButton)}
         fontSize={21}
       />
     </Box2>

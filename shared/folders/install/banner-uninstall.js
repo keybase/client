@@ -17,7 +17,7 @@ type Props = {
 class InstalledBanner extends Component<Props, void> {
   _onUninstall = () => {
     SafeElectron.getDialog().showMessageBox(
-      undefined,
+      null,
       {
         buttons: ['Remove & Restart', 'Cancel'],
         detail: 'Are you sure you want to remove Keybase from the Finder and restart the app?',

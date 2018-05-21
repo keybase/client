@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, ClickableBox, Divider, Icon, Text} from '../../common-adapters'
+import {Box2, ClickableBox, Divider, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 
 export type Props = {
@@ -25,7 +25,7 @@ export const Asset = (props: Props) => {
       <ClickableBox onClick={props.toggleExpanded}>
         <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
           <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
-            <Icon type={caretType} style={styles.caret} />
+            <Icon type={caretType} style={iconCastPlatformStyles(styles.caret)} />
             <Box2 direction="vertical">
               <Text type="BodySemibold" lineClamp={1}>
                 {props.name}

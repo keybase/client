@@ -1,6 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Icon, Markdown, NameWithIcon, Text} from '../../../common-adapters'
+import {
+  Box,
+  ClickableBox,
+  Icon,
+  Markdown,
+  NameWithIcon,
+  Text,
+  iconCastPlatformStyles,
+} from '../../../common-adapters'
 import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../common-adapters/floating-menu'
 import InfoPanelMenu from './menu/container'
 import {
@@ -43,7 +51,7 @@ const _SmallTeamHeader = (props: SmallProps) => {
         type="iconfont-gear"
         onClick={props.toggleShowingMenu}
         ref={props.setAttachmentRef}
-        style={styles.gear}
+        style={iconCastPlatformStyles(styles.gear)}
         fontSize={gearIconSize}
       />
     </Box>
@@ -77,7 +85,7 @@ const BigTeamHeader = (props: BigProps) => {
         <Text type="BodyBig">#{props.channelname}</Text>
         {props.canEditChannel && (
           <EditBox style={styles.editBox} onClick={props.onEditChannel}>
-            <Icon style={styles.editIcon} type="iconfont-edit" />
+            <Icon style={iconCastPlatformStyles(styles.editIcon)} type="iconfont-edit" />
             <Text type="BodySmallPrimaryLink" className="hover-underline">
               Edit
             </Text>

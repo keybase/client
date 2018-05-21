@@ -1,9 +1,7 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Box, Icon, ProgressIndicator, Text} from '../../common-adapters'
+import {ClickableBox, Box, Icon, ProgressIndicator, Text, type IconType} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
-
-import type {IconType} from '../../common-adapters/icon.constants'
 
 export type HeaderButtonProps = {
   iconType: IconType,

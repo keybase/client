@@ -18,6 +18,7 @@ import {
   take,
   takeEvery,
   takeLatest,
+  throttle,
 } from 'redux-saga/effects'
 import * as ConfigGen from '../actions/config-gen'
 import {convertToError} from '../util/errors'
@@ -367,4 +368,5 @@ export {
   spawn,
   take,
   takeFromChannelMap,
+  throttle,
 }

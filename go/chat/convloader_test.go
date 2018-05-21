@@ -263,7 +263,6 @@ func TestConvLoaderPageBack(t *testing.T) {
 		})
 		require.NoError(t, err)
 	}
-	// Send kicks off one of these when reading the conversation
 	select {
 	case <-listener.bgConvLoads:
 		require.Fail(t, "no loads here")

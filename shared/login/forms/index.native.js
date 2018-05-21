@@ -7,7 +7,6 @@ import {
   Icon,
   Text,
   NativeScrollView,
-  NativeDimensions,
   HOCTimers,
   type PropsWithTimer,
 } from '../../common-adapters/mobile.native'
@@ -16,9 +15,7 @@ import {globalColors, globalStyles, globalMargins} from '../../styles'
 import type {Props} from '.'
 
 const Scroller = (props: any) => (
-  <NativeScrollView style={{height: '100%', width: '100%', paddingTop: 20}}>
-    {props.children}
-  </NativeScrollView>
+  <NativeScrollView style={{height: '100%', width: '100%'}}>{props.children}</NativeScrollView>
 )
 
 class _Splash extends Component<PropsWithTimer<Props>, {showFeedback: boolean}> {
@@ -135,11 +132,10 @@ const Intro = (props: Props) => (
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
-          flexGrow: 1,
-          width: '100%',
-          justifyContent: 'center',
           alignItems: 'center',
-          marginTop: 55,
+          justifyContent: 'center',
+          paddingTop: 55,
+          width: '100%',
         }}
       >
         <Icon type="icon-keybase-logo-80" />
@@ -179,7 +175,6 @@ const stylesLoginForm = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'flex-start',
-  minHeight: NativeDimensions.get('window').height - 20,
 }
 
 const stylesHeader = {

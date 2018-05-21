@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 import * as Types from '../../constants/types/search'
-import type {IconType} from '../../common-adapters/icon'
+import type {IconType} from '../../common-adapters'
 
 export type UserDetails = {
   id: string,

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
-import {collapseStyles, styleSheetCreate} from '../styles'
+import {collapseStyles, styleSheetCreate, platformStyles} from '../styles'
 
 import type {_StylesDesktop} from '../styles/css'
 import type {InternalProps} from './plain-input'
@@ -187,15 +187,22 @@ const styles = styleSheetCreate({
     minWidth: 0,
     width: '100%',
   },
-  multiline: {
-    height: 'initial',
-    paddingBottom: 0,
-    paddingTop: 0,
-    resize: 'none',
-    width: '100%',
-    wrap: 'off',
-  },
-  noChrome: {borderWidth: 0, lineHeight: 'unset', outline: 'none'},
+  multiline: platformStyles({
+    isElectron: {
+      height: 'initial',
+      paddingBottom: 0,
+      paddingTop: 0,
+      resize: 'none',
+      width: '100%',
+    },
+  }),
+  noChrome: platformStyles({
+    isElectron: {
+      borderWidth: 0,
+      lineHeight: 'unset',
+      outline: 'none',
+    },
+  }),
 })
 
 export default PlainInput

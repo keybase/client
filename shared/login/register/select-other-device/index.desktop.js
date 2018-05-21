@@ -1,11 +1,10 @@
 // @flow
 import Container from '../../forms/container.desktop'
 import * as React from 'react'
-import {Box, Text, Icon} from '../../../common-adapters'
+import {Box, Text, Icon, type IconType} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../../styles'
 import glamorous from 'glamorous'
 import {type DeviceType} from '../../../constants/types/devices'
-import {type IconType} from '../../../common-adapters/icon'
 import {type Props} from '.'
 
 const Row = ({deviceID, name, type, onSelect}) => {

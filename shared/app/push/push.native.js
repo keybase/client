@@ -26,19 +26,17 @@ const Push = (props: Props) => (
         <Text
           type="Header"
           style={{
-            marginBottom: globalMargins.medium,
-            marginTop: globalMargins.medium,
+            marginBottom: globalMargins.small,
+            marginTop: globalMargins.small,
             textAlign: 'center',
           }}
         >
           Please turn on notifications!
         </Text>
-        <Box style={{height: 270, width: '100%'}}>
-          <NativeImage
-            resizeMode="contain"
-            source={require('../../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
-          />
-        </Box>
+        <NativeImage
+          style={{height: 200, width: '170%', resizeMode: 'contain'}}
+          source={require('../../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
+        />
         <Text type="BodySmallSemibold" style={{textAlign: 'center', color: globalColors.black}}>
           It's{' '}
           <Text type="BodySmallSemiboldItalic" style={{color: globalColors.black}}>
