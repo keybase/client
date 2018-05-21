@@ -713,7 +713,6 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q H
 		Args:           q,
 		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
 		NetContext:     ctx,
-		RetryCount:     3,
 	})
 
 	if err != nil {
