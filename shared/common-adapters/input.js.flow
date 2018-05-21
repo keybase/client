@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react'
+import {Component} from 'react'
 import {type StylesCrossPlatform} from '../styles'
 import {type TextType} from './text'
 
@@ -79,7 +79,7 @@ export type TextInfo = {
   selection: Selection,
 }
 
-declare export default class Input extends React.Component<Props> {
+declare export default class Input extends Component<Props> {
   blur: () => void;
   focus: () => void;
   select: () => void;
