@@ -364,23 +364,20 @@ func (u *User) StoreTopLevel(ctx context.Context) error {
 
 func (u *User) SyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 	if lctx := m.LoginContext(); lctx != nil {
-		return u.getSyncedSecretKeyLogin(lctx)
+		return u.getSyncedSecretKeyLogin(m, lctx)
 	}
-	return u.GetSyncedSecretKey()
+	return u.GetSyncedSecretKey(m)
 }
 
-func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) {
-	u.G().Log.Debug("+ User#GetSyncedSecretKeyLogin()")
-	defer func() {
-		u.G().Log.Debug("- User#GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
-	}()
+func (u *User) getSyncedSecretKeyLogin(m MetaContext, lctx LoginContext) (ret *SKB, err error) {
+	defer m.CTrace("User#getSyncedSecretKeyLogin", func() error { return err })()
 
-	if err = lctx.RunSecretSyncer(u.id); err != nil {
+	if err = lctx.RunSecretSyncer(m, u.id); err != nil {
 		return
 	}
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
-		u.G().Log.Debug("| short-circuit; no Computed key family")
+		m.CDebugf("| short-circuit; no Computed key family")
 		return
 	}
 
@@ -388,19 +385,16 @@ func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) 
 	return
 }
 
-func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
-	u.G().Log.Debug("+ User#GetSyncedSecretKey()")
-	defer func() {
-		u.G().Log.Debug("- User#GetSyncedSecretKey() -> %s", ErrToOk(err))
-	}()
+func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
+	defer m.CTrace("User#GetSyncedSecretKey", func() error { return err })()
 
-	if err = u.SyncSecrets(); err != nil {
+	if err = u.SyncSecrets(m); err != nil {
 		return
 	}
 
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
-		u.G().Log.Debug("| short-circuit; no Computed key family")
+		m.CDebugf("| short-circuit; no Computed key family")
 		return
 	}
 
@@ -417,45 +411,27 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 // AllSyncedSecretKeys returns all the PGP key blocks that were
 // synced to API server.  LoginContext can be nil if this isn't
 // used while logging in, signing up.
-func (u *User) AllSyncedSecretKeys(lctx LoginContext) (keys []*SKB, err error) {
-	u.G().Log.Debug("+ User#AllSyncedSecretKeys()")
-	defer func() {
-		u.G().Log.Debug("- User#AllSyncedSecretKey() -> %s", ErrToOk(err))
-	}()
+func (u *User) AllSyncedSecretKeys(m MetaContext) (keys []*SKB, err error) {
+	defer m.CTrace("User#AllSyncedSecretKeys", func() error { return err })()
+	m.Dump()
 
-	if lctx != nil {
-		if err = lctx.RunSecretSyncer(u.id); err != nil {
-			return nil, err
-		}
-	} else {
-		if err = u.G().LoginState().RunSecretSyncer(u.id); err != nil {
-			return nil, err
-		}
+	ss, err := m.SyncSecrets()
+	if err != nil {
+		return nil, err
 	}
 
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
-		u.G().Log.Debug("| short-circuit; no Computed key family")
+		m.CDebugf("| short-circuit; no Computed key family")
 		return nil, nil
 	}
 
-	if lctx != nil {
-		keys = lctx.SecretSyncer().AllActiveKeys(ckf)
-		return keys, nil
-	}
-
-	aerr := u.G().LoginState().SecretSyncer(func(s *SecretSyncer) {
-		keys = s.AllActiveKeys(ckf)
-	}, "User - FindActiveKey")
-	if aerr != nil {
-		return nil, aerr
-	}
-
+	keys = ss.AllActiveKeys(ckf)
 	return keys, nil
 }
 
-func (u *User) SyncSecrets() error {
-	return u.G().LoginState().RunSecretSyncer(u.id)
+func (u *User) SyncSecrets(m MetaContext) error {
+	return u.G().LoginState().RunSecretSyncer(m, u.id)
 }
 
 // May return an empty KID

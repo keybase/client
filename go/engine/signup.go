@@ -69,34 +69,35 @@ func (s *SignupEngine) GetMe() *libkb.User {
 	return s.me
 }
 
-func (s *SignupEngine) Run(m libkb.MetaContext) error {
+func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("SignupEngine#Run", func() error { return err })()
+
 	// make sure we're starting with a clear login state:
-	if err := m.G().Logout(); err != nil {
+	if err = m.G().Logout(); err != nil {
 		return err
 	}
 
 	m = m.WithNewProvisionalLoginContext()
 
-	if err := s.genPassphraseStream(m, s.arg.Passphrase); err != nil {
+	if err = s.genPassphraseStream(m, s.arg.Passphrase); err != nil {
 		return err
 	}
 
-	if err := s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
+	if err = s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
 		return err
 	}
 
-	var err error
 	s.perUserKeyring, err = libkb.NewPerUserKeyring(m.G(), s.uid)
 	if err != nil {
 		return err
 	}
 
-	if err := s.registerDevice(m, s.arg.DeviceName); err != nil {
+	if err = s.registerDevice(m, s.arg.DeviceName); err != nil {
 		return err
 	}
 
 	if !s.arg.SkipPaper {
-		if err := s.genPaperKeys(m); err != nil {
+		if err = s.genPaperKeys(m); err != nil {
 			return err
 		}
 	}
@@ -105,12 +106,12 @@ func (s *SignupEngine) Run(m libkb.MetaContext) error {
 	// a pgp key and push it to the server without any
 	// user interaction to make testing easier.
 	if s.arg.GenPGPBatch {
-		if err := s.genPGPBatch(m); err != nil {
+		if err = s.genPGPBatch(m); err != nil {
 			return err
 		}
 	}
 
-	if err := s.doGPG(m); err != nil {
+	if err = s.doGPG(m); err != nil {
 		return err
 	}
 
@@ -320,8 +321,7 @@ func (s *SignupEngine) genPGPBatch(m libkb.MetaContext) error {
 	}
 	gen.AddDefaultUID(m.G())
 
-	tsec := m.LoginContext().PassphraseStreamCache().Triplesec()
-	sgen := m.LoginContext().GetStreamGeneration()
+	tsec, sgen := m.LoginContext().PassphraseStreamCache().TriplesecAndGeneration()
 
 	eng := NewPGPKeyImportEngine(m.G(), PGPKeyImportEngineArg{
 		Gen:              &gen,
