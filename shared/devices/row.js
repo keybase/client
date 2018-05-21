@@ -1,6 +1,6 @@
 // @flow
 import * as Types from '../constants/types/devices'
-import {connect, compose, type TypedState, setDisplayName} from '../util/container'
+import {storybookableConnect, type TypedState} from '../util/container'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
 import type {IconType} from '../common-adapters'
@@ -12,7 +12,12 @@ type OwnProps = {
 const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
   const device = state.devices.idToDetail.get(deviceID)
   if (!device) {
-    return {}
+    return {
+      icon: isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32',
+      isCurrentDevice: false,
+      isRevoked: false,
+      name: '',
+    }
   }
 
   const icon: IconType = {
@@ -34,14 +39,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(navigateAppend([{props: {deviceID}, selected: 'devicePage'}])),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
   showExistingDevicePage: () => dispatchProps._showExistingDevicePage(ownProps.deviceID),
 })
 
-const RowConnector = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('DeviceRow')
-)
+const RowConnector = storybookableConnect('DeviceRow', mapStateToProps, mapDispatchToProps, mergeProps)
 export {RowConnector}

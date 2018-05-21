@@ -14,8 +14,8 @@ const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 const NullComponent = () => null
 
 // flowlint deprecated-type:off
-const storybookableConnect = (name: string, ...rest: Array<*>) =>
-  compose(connect(...rest), setDisplayName(name))
+const storybookableConnect = (name: string, mapStateToProps: *, mapDispatchToProps: *, mergeProps: *) =>
+  compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName(name))
 
 export {
   branch,
