@@ -51,18 +51,8 @@ func (q inboxDiskQuery) queryMatch(other inboxDiskQuery) bool {
 	return false
 }
 
-func (q inboxDiskQuery) paginationMatch(other inboxDiskQuery) bool {
-	if q.Pagination == nil && other.Pagination == nil {
-		return true
-	}
-	if q.Pagination != nil && other.Pagination != nil {
-		return q.Pagination.Eq(*other.Pagination)
-	}
-	return false
-}
-
 func (q inboxDiskQuery) match(other inboxDiskQuery) bool {
-	return q.queryMatch(other) && q.paginationMatch(other)
+	return q.queryMatch(other) && q.Pagination.Eq(other.Pagination)
 }
 
 type inboxDiskData struct {
