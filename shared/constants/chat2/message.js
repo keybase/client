@@ -559,17 +559,15 @@ export const makePendingTextMessage = (
   text: HiddenString,
   outboxID: Types.OutboxID
 ) => {
+  // we could read the exploding mode for the convo from state here, but that
+  // would cause the timer to count down while the message is still pending
+  // and probably reset when we get the real message back.
+
   const lastOrindal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
   const ordinal = nextFractionalOrdinal(lastOrindal)
 
-  // set exploding metadata for message
-  const explodingLifetime = state.chat2.getIn(['explodingModes', conversationIDKey], 0)
-  const explodingTime = Date.now() + explodingLifetime * 10000
-  const explodeData = explodingLifetime !== 0 ? {exploding: true, explodingTime} : {}
-
   return makeMessageText({
-    ...explodeData,
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
