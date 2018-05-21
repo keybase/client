@@ -180,6 +180,10 @@ export const localGetInboxAndUnboxLocalRpcChannelMap = (configKeys: Array<string
 
 export const localGetInboxAndUnboxLocalRpcPromise = (request: LocalGetInboxAndUnboxLocalRpcParam): Promise<LocalGetInboxAndUnboxLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxLocal', request, (error: RPCError, result: LocalGetInboxAndUnboxLocalResult) => (error ? reject(error) : resolve(result))))
 
+export const localGetInboxAndUnboxUILocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxAndUnboxUILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxAndUnboxUILocal', request)
+
+export const localGetInboxAndUnboxUILocalRpcPromise = (request: LocalGetInboxAndUnboxUILocalRpcParam): Promise<LocalGetInboxAndUnboxUILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxUILocal', request, (error: RPCError, result: LocalGetInboxAndUnboxUILocalResult) => (error ? reject(error) : resolve(result))))
+
 export const localGetInboxNonblockLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxNonblockLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxNonblockLocal', request)
 
 export const localGetInboxNonblockLocalRpcPromise = (request: LocalGetInboxNonblockLocalRpcParam): Promise<LocalGetInboxNonblockLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxNonblockLocal', request, (error: RPCError, result: LocalGetInboxNonblockLocalResult) => (error ? reject(error) : resolve(result))))
@@ -785,6 +789,8 @@ export type GetConversationMetadataRemoteRes = $ReadOnly<{conv: Conversation, ra
 
 export type GetInboxAndUnboxLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, pagination?: ?Pagination, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
+export type GetInboxAndUnboxUILocalRes = $ReadOnly<{conversations?: ?Array<InboxUIItem>, pagination?: ?Pagination, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+
 export type GetInboxByTLFIDRemoteRes = $ReadOnly<{convs?: ?Array<Conversation>, rateLimit?: ?RateLimit}>
 
 export type GetInboxLocalQuery = $ReadOnly<{name?: ?NameQuery, topicName?: ?String, convIDs?: ?Array<ConversationID>, topicType?: ?TopicType, tlfVisibility?: ?Keybase1.TLFVisibility, before?: ?Gregor1.Time, after?: ?Gregor1.Time, oneChatTypePerTLF?: ?Boolean, status?: ?Array<ConversationStatus>, unreadOnly: Boolean, readOnly: Boolean, computeActiveList: Boolean}>
@@ -909,6 +915,8 @@ export type LocalGetConversationForCLILocalRpcParam = $ReadOnly<{query: GetConve
 export type LocalGetGlobalAppNotificationSettingsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetInboxAndUnboxLocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LocalGetInboxAndUnboxUILocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetInboxNonblockLocalRpcParam = $ReadOnly<{maxUnbox?: ?Int, skipUnverified: Boolean, query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1408,6 +1416,7 @@ type LocalGetCachedThreadResult = GetThreadLocalRes
 type LocalGetConversationForCLILocalResult = GetConversationForCLILocalRes
 type LocalGetGlobalAppNotificationSettingsLocalResult = GlobalAppNotificationSettings
 type LocalGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
+type LocalGetInboxAndUnboxUILocalResult = GetInboxAndUnboxUILocalRes
 type LocalGetInboxNonblockLocalResult = NonblockFetchRes
 type LocalGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 type LocalGetMessagesLocalResult = GetMessagesLocalRes

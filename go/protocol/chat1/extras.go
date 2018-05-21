@@ -912,6 +912,10 @@ func (r *GetInboxAndUnboxLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetInboxAndUnboxUILocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *GetThreadLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1069,6 +1073,14 @@ func (r *GetInboxAndUnboxLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetInboxAndUnboxUILocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetInboxAndUnboxUILocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
