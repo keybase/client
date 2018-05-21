@@ -209,13 +209,7 @@ func (m MetaContext) WithNewProvisionalLoginContextForUser(u *User) MetaContext 
 
 func (m MetaContext) WithNewProvisionalLoginContextForUIDAndUsername(uid keybase1.UID, un NormalizedUsername) MetaContext {
 	plc := newProvisionalLoginContextWithUIDAndUsername(m, uid, un)
-	if m.ActiveDevice().UID().Equal(uid) {
-		cache := m.ActiveDevice().PassphraseStreamCache()
-		if cache != nil {
-			m.CDebugf("applying active device passphrase stream cache to new ProvisionalLoginContext")
-			plc.SetStreamCache(cache)
-		}
-	}
+	m.ActiveDevice().CopyCacheToLoginContextIfForUID(m, plc, uid)
 	return m.WithLoginContext(plc)
 }
 

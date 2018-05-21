@@ -423,6 +423,19 @@ func VerifyPassphraseGetStreamInLoginContext(m MetaContext, passphrase string) (
 	return m.PassphraseStream(), nil
 }
 
+// VerifyPassphraseForLoggedInUser verifies that the current passphrase is correct for the logged
+// in user, returning nil if correct, and an error if not.
+func VerifyPassphraseForLoggedInUser(m MetaContext, pp string) (err error) {
+	defer m.CTrace("VerifyPassphraseForLoggedInUser", func() error { return err })()
+	uid, un := m.ActiveDevice().GetUsernameAndUIDIfValid(m)
+	if uid.IsNil() {
+		return NewLoginRequiredError("for VerifyPassphraseForLoggedInUser")
+	}
+	m = m.WithNewProvisionalLoginContextForUIDAndUsername(uid, un)
+	_, err = VerifyPassphraseGetStreamInLoginContext(m, pp)
+	return err
+}
+
 // ComputeLoginPackage2 computes the login package for the given UID as dictated by
 // the context. It assumes that a passphrase stream has already been loaded. A LoginSession
 // is optional. If not available, a new one is requested. Eventually we will kill ComputeLoginPackage
