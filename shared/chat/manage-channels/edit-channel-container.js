@@ -29,7 +29,7 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   // Otherwise, even though we have the info for this channel from
   // chat, it's tricky to keep the team and chat data in sync, (see
   // https://github.com/keybase/client/pull/11891 ) so we just call
-  // _loadChannels if channelInfo is empty. Although even if
+  // _loadChannelInfo if channelInfo is empty. Although even if
   // channelInfo is non-empty, it might not be updated; that hasn't
   // been a problem yet, though.
 
