@@ -248,3 +248,9 @@ type RateLimitedResult interface {
 	GetRateLimit() []chat1.RateLimit
 	SetRateLimits(rl []chat1.RateLimit)
 }
+
+type EphemeralPurger interface {
+	Resumable
+
+	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo)
+}

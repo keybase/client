@@ -11,7 +11,7 @@ import Tracker from '../../tracker/remote-container.desktop'
 import UnlockFolders from '../../unlock-folders/remote-container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {globalColors, globalStyles} from '../../styles'
-import {remote, BrowserWindow} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupContextMenu} from '../app/menu-helper'
 import ErrorBoundary from '../../common-adapters/error-boundary'
 
@@ -27,11 +27,11 @@ type Props = {
 class RemoteComponentLoader extends Component<Props> {
   _store: any
   _ComponentClass: any
-  _window: ?BrowserWindow
+  _window: ?SafeElectron.BrowserWindowType
 
   constructor(props) {
     super(props)
-    this._window = remote.getCurrentWindow()
+    this._window = SafeElectron.getRemote().getCurrentWindow()
     const remoteStore = new RemoteStore({
       gotPropsCallback: this._onGotProps,
       windowComponent: props.windowComponent,

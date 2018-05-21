@@ -186,7 +186,7 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
   }
 }
 
-let _SENDINDICATORWIDTH = 40
+const sendIndicatorWidth = 40
 
 const styles = styleSheetCreate({
   container: {...globalStyles.flexBoxColumn, width: '100%'},
@@ -212,7 +212,7 @@ const styles = styleSheetCreate({
       paddingRight: globalMargins.tiny,
     },
     isMobile: {
-      marginRight: _SENDINDICATORWIDTH,
+      marginRight: sendIndicatorWidth,
     },
   }),
   selected: {backgroundColor: globalColors.black_05},
@@ -225,10 +225,10 @@ const styles = styleSheetCreate({
       justifyContent: 'center',
       position: 'absolute',
       right: 0,
-      width: _SENDINDICATORWIDTH,
+      width: sendIndicatorWidth,
     },
     isMobile: {
-      right: -_SENDINDICATORWIDTH,
+      right: -sendIndicatorWidth,
     },
   }),
   textContainer: {

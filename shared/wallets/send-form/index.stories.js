@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import {action, createPropProvider, storiesOf} from '../../stories/storybook'
+import assetInput, {props3 as assetInputProps} from './asset-input/index.stories'
 import banner from './banner/index.stories'
 import SendForm from '.'
 
@@ -9,7 +10,8 @@ import SendForm from '.'
 // good level of connected granularity while implementing
 // TODO fill these out
 const provider = createPropProvider({
-  AssetInput: props => ({}),
+  // TODO mock out meaningful values once type `OwnProps` is defined
+  AssetInput: props => assetInputProps,
   Available: props => ({}),
   Banner: props => ({}),
   Body: props => ({}),
@@ -22,6 +24,7 @@ const provider = createPropProvider({
 
 const load = () => {
   // dumb component stories
+  assetInput()
   banner()
 
   // full component

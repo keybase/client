@@ -4,17 +4,15 @@
 import * as ConfigGen from '../../actions/config-gen'
 import * as I from 'immutable'
 import * as React from 'react'
-import {ipcRenderer, remote} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {pick} from 'lodash-es'
 import {compose, connect, withStateHandlers, type TypedState} from '../../util/container'
-
-const BrowserWindow = remote.BrowserWindow
 
 type Props = {
   avatars: Object,
   followers: Array<string>,
   following: Array<string>,
-  remoteWindow: ?BrowserWindow,
+  remoteWindow: ?SafeElectron.BrowserWindowType,
   setUsernames: (I.Set<string>) => void,
   usernames: I.Set<string>,
   windowComponent: string,
@@ -41,10 +39,10 @@ function SyncAvatarProps(ComposedComponent: any) {
     }
 
     componentDidMount() {
-      ipcRenderer.on('dispatchAction', this._onRemoteActionFired)
+      SafeElectron.getIpcRenderer().on('dispatchAction', this._onRemoteActionFired)
     }
     componentWillUnmount() {
-      ipcRenderer.removeListener('dispatchAction', this._onRemoteActionFired)
+      SafeElectron.getIpcRenderer().removeListener('dispatchAction', this._onRemoteActionFired)
     }
 
     render() {

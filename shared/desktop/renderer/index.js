@@ -14,10 +14,9 @@ import ReactDOM from 'react-dom'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container'
 import configureStore from '../../store/configure-store'
-import electron, {ipcRenderer} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {makeEngine} from '../../engine'
 import hello from '../../util/hello'
-import loadPerf from '../../util/load-perf'
 import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {throttle, merge} from 'lodash-es'
@@ -43,25 +42,24 @@ function setupStore() {
 function setupApp(store) {
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
-  loadPerf()
 
   if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
     require('devtron').install()
   }
 
-  setupContextMenu(electron.remote.getCurrentWindow())
+  setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
   // Tell the main window some remote window needs its props
-  ipcRenderer.on('remoteWindowWantsProps', (event, windowComponent, windowParam) => {
+  SafeElectron.getIpcRenderer().on('remoteWindowWantsProps', (event, windowComponent, windowParam) => {
     store.dispatch({type: 'remote:needProps', payload: {windowComponent, windowParam}})
   })
 
   // Listen for the menubarWindowID
-  ipcRenderer.on('updateMenubarWindowID', (event, id) => {
+  SafeElectron.getIpcRenderer().on('updateMenubarWindowID', (event, id) => {
     store.dispatch({type: 'remote:updateMenubarWindowID', payload: {id}})
   })
 
-  ipcRenderer.on('dispatchAction', (event, action) => {
+  SafeElectron.getIpcRenderer().on('dispatchAction', (event, action) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
     // _.merge() to get a plain object back out which we can send
@@ -72,12 +70,12 @@ function setupApp(store) {
     })
   })
 
-  ipcRenderer.send('mainWindowWantsMenubarWindowID')
+  SafeElectron.getIpcRenderer().send('mainWindowWantsMenubarWindowID')
 
   // After a delay, see if we're connected, and try starting keybase if not
   setTimeout(() => {
     if (!eng.hasEverConnected()) {
-      ipcRenderer.send('kb-service-check')
+      SafeElectron.getIpcRenderer().send('kb-service-check')
     }
   }, 3 * 1000)
 
@@ -87,15 +85,15 @@ function setupApp(store) {
   }, 5 * 1000)
 
   // Run installer
-  ipcRenderer.on('installed', (event, message) => {
+  SafeElectron.getIpcRenderer().on('installed', (event, message) => {
     store.dispatch(ConfigGen.createReadyForBootstrap())
     store.dispatch(ConfigGen.createBootstrap({}))
   })
-  ipcRenderer.send('install-check')
+  SafeElectron.getIpcRenderer().send('install-check')
 
   var inputMonitor = new InputMonitor(function(isActive) {
     store.dispatch(AppGen.createChangedActive({userActive: isActive}))
-    ipcRenderer.send('setAppState', {isUserActive: isActive})
+    SafeElectron.getIpcRenderer().send('setAppState', {isUserActive: isActive})
   })
   inputMonitor.startActiveTimer()
 
@@ -120,7 +118,7 @@ function setupApp(store) {
       _currentStore = subsetsRemotesCareAbout(store.getState())
 
       if (JSON.stringify(previousStore) !== JSON.stringify(_currentStore)) {
-        ipcRenderer.send('stateChange', store.getState())
+        SafeElectron.getIpcRenderer().send('stateChange', store.getState())
       }
     }, 1000)
   )

@@ -1,15 +1,12 @@
 // @flow
 // This HOC wraps a component that represents a remote window. When this component is mounted anywhere it'll make a BrowserWindow
 import * as React from 'react'
-import electron from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import hotPath from '../hot-path'
 import menuHelper from '../app/menu-helper'
 import {injectReactQueryParams} from '../../util/dev'
 import {resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
-
-const BrowserWindow = electron.BrowserWindow || electron.remote.BrowserWindow
-const ipcRenderer = electron.ipcRenderer
 
 type Props = {
   windowOpts: Object,
@@ -20,28 +17,28 @@ type Props = {
 }
 
 const defaultWindowOpts = {
-  nodeIntegration: false,
   frame: false,
   fullscreen: false,
   height: 300,
+  nodeIntegration: false,
   resizable: false,
   show: false, // Start hidden and show when we actually get props
   width: 500,
 }
 
 type State = {
-  remoteWindow: ?BrowserWindow,
+  remoteWindow: ?SafeElectron.BrowserWindowType,
 }
 
 const sendLoad = (webContents: any, windowParam: string, windowComponent: string, windowTitle: ?string) => {
   webContents.send('load', {
-    windowComponent,
     scripts: [
       {
         async: false,
         src: hotPath('component-loader.bundle.js'),
       },
     ],
+    windowComponent,
     windowParam,
     windowTitle,
   })
@@ -49,8 +46,8 @@ const sendLoad = (webContents: any, windowParam: string, windowComponent: string
 
 function SyncBrowserWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props, State> {
-    _remoteWindow: ?BrowserWindow = null
-    _remoteWindowId: ?string = null
+    _remoteWindow: ?SafeElectron.BrowserWindowType = null
+    _remoteWindowId: ?number = null
     _mounted: boolean = true
 
     // We only have state to force re-renders and to pass down to the child. We usually want to just use the raw _remoteWindow to avoid races
@@ -58,22 +55,23 @@ function SyncBrowserWindow(ComposedComponent: any) {
       remoteWindow: null,
     }
 
-    _makeBrowserWindow = (): BrowserWindow => {
+    _makeBrowserWindow = (): SafeElectron.BrowserWindowType => {
       const windowOpts = {
         ...defaultWindowOpts,
         ...this.props.windowOpts,
       }
-      this._remoteWindow = new BrowserWindow(windowOpts)
+      const w = new SafeElectron.BrowserWindow(windowOpts)
+      this._remoteWindow = w
       if (this._mounted) {
         this.setState({remoteWindow: this._remoteWindow})
       }
       this._positionBrowserWindow(windowOpts)
-      return this._remoteWindow
+      return w
     }
 
     _positionBrowserWindow = (windowOpts: {width: number, height: number}) => {
-      if (this.props.windowPositionBottomRight && electron.screen.getPrimaryDisplay()) {
-        const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
+      if (this.props.windowPositionBottomRight && SafeElectron.getScreen().getPrimaryDisplay()) {
+        const {width, height} = SafeElectron.getScreen().getPrimaryDisplay().workAreaSize
         this._remoteWindow &&
           this._remoteWindow.setPosition(
             width - windowOpts.width - 100,
@@ -93,7 +91,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
       })
 
       if (showDevTools && !skipSecondaryDevtools) {
-        webContents.openDevTools('detach')
+        webContents.openDevTools({mode: 'detach'})
       }
     }
 
@@ -122,7 +120,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
 
       menuHelper(remoteWindow)
 
-      ipcRenderer.send('showDockIconForRemoteWindow', this._remoteWindowId)
+      SafeElectron.getIpcRenderer().send('showDockIconForRemoteWindow', this._remoteWindowId)
 
       remoteWindow.loadURL(
         resolveRootAsURL(

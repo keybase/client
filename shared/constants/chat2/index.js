@@ -14,6 +14,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
+  explodingModes: I.Map(),
   pendingConversationUsers: I.Set(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
@@ -66,6 +67,17 @@ export const isInfoPanelOpen = (state: TypedState) => {
   return routePath.size === 3 && routePath.get(2) === 'infoPanel'
 }
 export const pendingConversationIDKey = Types.stringToConversationIDKey('')
+
+export const explodingModeGregorKeyPrefix = 'exploding:'
+/**
+ * Gregor key for exploding conversations
+ * Used as the `category` when setting the exploding mode on a conversation
+ * `body` is the number of seconds to exploding message etime
+ */
+export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
+  `${explodingModeGregorKeyPrefix}${c}`
+export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) =>
+  state.chat2.getIn(['explodingModes', c], 0)
 
 export {
   findConversationFromParticipants,
