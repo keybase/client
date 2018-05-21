@@ -370,23 +370,46 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 		err = libkb.LoginRequiredError{}
 		return res, err
 	}
-
 	// Read inbox from the source
 	localizer := NewBlockingLocalizer(h.G())
-	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query,
-		arg.Pagination)
+	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
 	if err != nil {
 		return res, err
 	}
 
-	res = chat1.GetInboxAndUnboxLocalRes{
+	return chat1.GetInboxAndUnboxLocalRes{
 		Conversations:    ib.Convs,
 		Pagination:       ib.Pagination,
 		Offline:          h.G().InboxSource.IsOffline(ctx),
 		IdentifyFailures: identBreaks,
-	}
+	}, nil
+}
 
-	return res, nil
+func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInboxAndUnboxUILocalArg) (res chat1.GetInboxAndUnboxUILocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetInboxAndUnboxUILocal")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		err = libkb.LoginRequiredError{}
+		return res, err
+	}
+	// Read inbox from the source
+	localizer := NewBlockingLocalizer(h.G())
+	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
+	if err != nil {
+		return res, err
+	}
+	return chat1.GetInboxAndUnboxUILocalRes{
+		Conversations:    utils.PresentConversationLocals(ib.Convs, h.G().Env.GetUsername().String()),
+		Pagination:       ib.Pagination,
+		IdentifyFailures: identBreaks,
+	}, nil
 }
 
 func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadArg) (res chat1.GetThreadLocalRes, err error) {
