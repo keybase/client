@@ -25,7 +25,7 @@ export default function() {
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
-    resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?mainWindow')),
+    resolveRootAsURL('renderer', injectReactQueryParams(`renderer${__DEV__ ? '.dev' : ''}.html?mainWindow`)),
     {
       backgroundThrottling: false,
       height: appState.state.height,
