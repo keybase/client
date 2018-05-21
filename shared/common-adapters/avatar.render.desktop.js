@@ -60,10 +60,10 @@ const UserImageDiv = glamorous.div(
     return {
       backgroundImage: props.url,
       borderRadius: props.borderRadius,
+      flexShrink: 0,
       height: props.size,
-      maxWidth: props.size,
-      minWidth: props.size,
       opacity,
+      width: props.size,
     }
   }
 )
@@ -90,12 +90,12 @@ const Border = ({borderColor, size, borderRadius}) => (
       borderRadius,
       bottom: borderOffset,
       boxShadow: `0px 0px 0px ${borderSize}px ${borderColor}`,
+      flexShrink: 0,
       left: borderOffset,
-      maxWidth: size,
-      minWidth: size,
       position: 'absolute',
       right: borderOffset,
       top: borderOffset,
+      width: size,
     }}
   />
 )
@@ -110,11 +110,10 @@ class AvatarRender extends React.PureComponent<Props, State> {
         style={collapseStyles([
           desktopStyles.noSelect,
           {
+            flexShrink: 0,
             height: this.props.size,
-            maxWidth: this.props.size,
-            minHeight: this.props.size,
-            minWidth: this.props.size,
             position: 'relative',
+            width: this.props.size,
           },
           this.props.style,
         ])}

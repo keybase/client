@@ -171,7 +171,7 @@ export const styles = {
 }
 
 export function castPlatformStyles(styles: any) {
-  return shared.castPlatformStyles(styles)
+  return Shared.castPlatformStyles(styles)
 }
 
 export default Icon

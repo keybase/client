@@ -71,7 +71,10 @@ const _AddPeople = (props: {teamname: string} & FloatingMenuParentProps) => {
           <Box style={{width: isMobile ? 48 : 32, height: isMobile ? 48 : 32, ...globalStyles.flexBoxCenter}}>
             <Icon type="iconfont-new" fontSize={isMobile ? 24 : 16} color={globalColors.blue} />
           </Box>
-          <Text type="BodyPrimaryLink" style={{marginLeft: globalMargins.small}}>
+          <Text
+            type="BodyPrimaryLink"
+            style={{marginLeft: isMobile ? globalMargins.small : globalMargins.tiny}}
+          >
             Add someone
           </Text>
         </Box>

@@ -130,7 +130,7 @@ const _containerStyle = {
   alignItems: 'center',
   flex: 1,
   height: '100%',
-  padding: globalMargins.xlarge,
+  padding: isMobile ? globalMargins.large : globalMargins.xlarge,
 }
 
 export default DeleteRepo
