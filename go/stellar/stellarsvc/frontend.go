@@ -4,7 +4,6 @@ package stellarsvc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 
@@ -62,9 +61,15 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", arg.AccountID, err)
 		return nil, err
 	}
-	_ = details
 
-	return nil, errors.New("not yet implemented")
+	assets = make([]stellar1.AccountAssetLocal, len(details.Balances))
+	for i, d := range details.Balances {
+		_ = d
+		asset := stellar1.AccountAssetLocal{}
+		assets[i] = asset
+	}
+
+	return assets, nil
 }
 
 type balanceList []stellar1.Balance

@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
 	stellaramount "github.com/stellar/go/amount"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/xdr"
@@ -193,6 +194,7 @@ type FakeAccount struct {
 	secretKey  stellar1.SecretKey // can be missing for relay accounts
 	balance    stellar1.Balance
 	subentries int
+	t          *testing.T
 }
 
 func (a *FakeAccount) AddBalance(amt string) {
@@ -252,6 +254,14 @@ func (a *FakeAccount) Check() bool {
 	return true
 }
 
+func (a *FakeAccount) availableBalance() (string, error) {
+	b, err := stellarnet.AvailableBalance(a.balance.Amount, a.subentries)
+	if err != nil {
+		a.t.Fatalf("AvailableBalance error: %s", err)
+	}
+	return b
+}
+
 // RemoteClientMock is a Remoter that calls into a BackendMock.
 // It basically proxies all calls but passes the caller's TC so the backend knows who's calling.
 // Threadsafe.
@@ -298,14 +308,6 @@ func (r *RemoteClientMock) PaymentDetail(ctx context.Context, txID string) (res 
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
-
-func (a *FakeAccount) availableBalance() (string, error) {
-	b, err := amount.ParseInt64(a.balance.Amount)
-	if err != nil {
-		return "", err
-	}
-
-}
 
 // BackendMock is a mock of stellard.
 // Stores the data and services RemoteClientMock's calls.
@@ -607,6 +609,7 @@ func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
 			Asset:  stellar1.Asset{Type: "native"},
 			Amount: amount,
 		},
+		t: t,
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
@@ -649,6 +652,7 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) {
 				Asset:  stellar1.Asset{Type: "native"},
 				Amount: "0",
 			},
+			t: t,
 		}
 		r.accounts[a.accountID] = a
 	}
