@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Icon, Input2, Text} from '../../../common-adapters'
+import {Box2, Icon, NewInput, Text} from '../../../common-adapters'
 import {collapseStyles, globalColors, styleSheetCreate} from '../../../styles'
 
 type Props = {
@@ -19,7 +19,7 @@ const AssetInput = (props: Props) => (
         {props.topLabel}
       </Text>
     )}
-    <Input2
+    <NewInput
       type="number"
       decoration={
         <Box2 direction="vertical" style={styles.flexEnd}>

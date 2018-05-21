@@ -89,14 +89,3 @@ declare export default class Input extends React.Component<Props> {
   // components. The transformation may be done asynchronously.
   transformText: (fn: (TextInfo) => TextInfo) => void;
 }
-
-export type Input2Props = {
-  // appears to the right of the input in the same container
-  decoration?: React.Node, 
-  placeholder?: string,
-  style?: StylesCrossPlatform, 
-  textType?: TextType,
-  type?: 'text' | 'number',
-}
-
-declare export class Input2 extends React.Component<Input2Props> {}

@@ -1,17 +1,10 @@
 // @flow
 import * as React from 'react'
-import Box, {Box2} from './box'
+import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
-import {
-  collapseStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  platformStyles,
-  styleSheetCreate,
-} from '../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
-import type {Props, Input2Props, Selection, TextInfo} from './input'
+import type {Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
 type State = {
@@ -420,50 +413,3 @@ const _floatingStyle = platformStyles({
 })
 
 export default Input
-
-class Input2 extends React.Component<Input2Props> {
-  render() {
-    const {textType = 'Body'} = this.props
-    const style = getTextStyle(textType)
-    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
-                          ::-webkit-outer-spin-button, ::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}`
-    return (
-      <Box2 direction="horizontal" style={inputStyles.container}>
-        <style>{inputRealCSS}</style>
-        <Box2 direction="horizontal" fullHeight={true} style={{alignItems: 'flex-start'}}>
-          <input
-            type={this.props.type}
-            style={collapseStyles([
-              style,
-              inputStyles.nochrome,
-              inputStyles.autoResize,
-              !!this.props.decoration && {height: style.height},
-              this.props.style,
-            ])}
-            placeholder={this.props.placeholder}
-          />
-          {this.props.decoration || null}
-        </Box2>
-      </Box2>
-    )
-  }
-}
-
-const inputStyles = styleSheetCreate({
-  autoResize: {
-    minWidth: 0,
-    width: '100%',
-    flex: 1,
-  },
-  container: {
-    alignSelf: 'unset',
-    borderColor: globalColors.black_10,
-    borderRadius: 4,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    padding: globalMargins.tiny,
-  },
-  nochrome: {borderWidth: 0, lineHeight: 'unset', outline: 'none'},
-})
-
-export {Input2}
