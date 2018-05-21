@@ -32,6 +32,8 @@ const makeMessageCommon = {
 const makeMessageExplodable = {
   exploded: false,
   explodedBy: '',
+  exploding: false,
+  explodingTime: Date.now(),
 }
 
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
@@ -303,6 +305,9 @@ const validUIMessagetoMessage = (
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
+    exploded: m.isEphemeralExpired,
+    exploding: m.isEphemeral,
+    explodingTime: m.etime,
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
   }
 
@@ -554,9 +559,13 @@ export const makePendingTextMessage = (
   text: HiddenString,
   outboxID: Types.OutboxID
 ) => {
-  const lastOrindal =
+  // we could read the exploding mode for the convo from state here, but that
+  // would cause the timer to count down while the message is still pending
+  // and probably reset when we get the real message back.
+
+  const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  const ordinal = nextFractionalOrdinal(lastOrindal)
+  const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   return makeMessageText({
     author: state.config.username || '',
@@ -580,9 +589,9 @@ export const makePendingAttachmentMessage = (
   previewURL: string,
   outboxID: Types.OutboxID
 ) => {
-  const lastOrindal =
+  const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  const ordinal = nextFractionalOrdinal(lastOrindal)
+  const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   return makeMessageAttachment({
     attachmentType,
