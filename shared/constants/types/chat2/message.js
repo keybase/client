@@ -85,6 +85,8 @@ export type _MessageText = {
   errorReason: ?string,
   exploded: boolean,
   explodedBy: string, // only if 'explode now' happened
+  exploding: boolean,
+  explodingTime: number,
   hasBeenEdited: boolean,
   id: MessageID,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
@@ -114,7 +116,9 @@ export type _MessageAttachment = {
   downloadPath: ?string, // string if downloaded
   errorReason: ?string,
   exploded: boolean,
-  explodedBy: string,
+  explodedBy: string, // only if 'explode now' happened
+  exploding: boolean,
+  explodingTime: number,
   fileName: string,
   fileSize: number,
   hasBeenEdited: boolean,
