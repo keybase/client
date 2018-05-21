@@ -1,13 +1,26 @@
 // @flow
 import * as React from 'react'
-import {Avatar, BackButton, Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
+import {
+  Avatar,
+  BackButton,
+  Box,
+  Icon,
+  Text,
+  ConnectedUsernames,
+  iconCastPlatformStyles,
+} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, collapseStyles, styleSheetCreate} from '../../../../styles'
 
 import type {Props} from '.'
 
 const ShhIcon = () => (
   <Box style={{position: 'relative', alignSelf: 'flex-start'}}>
-    <Icon type="iconfont-shh" style={styles.left} color={shhIconColor} fontSize={shhIconFontSize} />
+    <Icon
+      type="iconfont-shh"
+      style={iconCastPlatformStyles(styles.left)}
+      color={shhIconColor}
+      fontSize={shhIconFontSize}
+    />
   </Box>
 )
 

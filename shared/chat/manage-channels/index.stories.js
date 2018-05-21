@@ -139,6 +139,7 @@ const load = () => {
           onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
+          waitingForGetInfo={false}
         />
       </Box>
     ))
@@ -154,6 +155,23 @@ const load = () => {
           onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={true}
+          waitingForGetInfo={false}
+        />
+      </Box>
+    ))
+    .add('EditChannel - loading', () => (
+      <Box style={toPlatformStyle(editChannelStyle)}>
+        <EditChannel
+          onBack={action('onBack')}
+          teamname={'stripe.usa'}
+          channelName={''}
+          topic={''}
+          onCancel={action('onCancel')}
+          onSave={action('onSave')}
+          onConfirmedDelete={action('onConfirmedDelete')}
+          showDelete={true}
+          deleteRenameDisabled={false}
+          waitingForGetInfo={true}
         />
       </Box>
     ))

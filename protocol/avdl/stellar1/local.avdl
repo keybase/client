@@ -1,5 +1,6 @@
 @namespace("stellar.1")
 protocol local {
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
 
   // -------------------------------------------------------
@@ -20,13 +21,31 @@ protocol local {
 
   array<Balance> balancesLocal(AccountID accountID);
 
-  PaymentResult sendLocal(string recipient, string amount, Asset asset, string note, string displayAmount, string displayCurrency);
+  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note, string displayAmount, string displayCurrency);
+
+  record SendResultCLILocal {
+    KeybaseTransactionID KbTxID;
+    // Direct: tx ID of the payment tx
+    // Relay : tx ID of the funding payment tx
+    TransactionID TxID;
+    union { null, SendRelayResultCLILocal } relay;
+  }
+  record SendRelayResultCLILocal {
+    // Implicit team that the relay secret is encrypted for.
+    keybase1.TeamID teamID;
+  }
+
+  // Claim a relay payment
+  // `txID` is the kbTxID of the relay payment. Can also be the txID of the funding tx.
+  // `into` is the account into which to claim. Null will default to the user's primary account.
+  RelayClaimResult claimCLILocal(string txID, union { null, AccountID } into);
 
   record PaymentCLIOptionLocal {
     // Pointer or error
     union { null, PaymentCLILocal } payment;
     string err;
   }
+
   record PaymentCLILocal {
     TransactionID txID; // For relay payments, the funding tx.
     TimeMs time;

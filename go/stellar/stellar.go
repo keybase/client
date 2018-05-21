@@ -257,19 +257,18 @@ type DisplayBalance struct {
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance) (stellar1.PaymentResult, error) {
-	var err error
+func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
 	primary, err := LookupSenderPrimary(m.Ctx(), m.G())
 	if err != nil {
-		return stellar1.PaymentResult{}, err
+		return res, err
 	}
 	primarySeed := primary.Signers[0]
 	// look up recipient
 	recipient, err := LookupRecipient(m, to)
 	if err != nil {
-		return stellar1.PaymentResult{}, err
+		return res, err
 	}
 
 	if recipient.AccountID == nil {
@@ -278,7 +277,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 
 	primarySeed2, err := stellarnet.NewSeedStr(primarySeed.SecureNoLogString())
 	if err != nil {
-		return stellar1.PaymentResult{}, err
+		return res, err
 	}
 
 	post := stellar1.PaymentDirectPost{
@@ -297,7 +296,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 	var txID string
 	funded, err := isAccountFunded(m.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
-		return stellar1.PaymentResult{}, fmt.Errorf("error checking destination account balance: %v", err)
+		return res, fmt.Errorf("error checking destination account balance: %v", err)
 	}
 	if !funded {
 		// if no balance, create_account operation
@@ -305,7 +304,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 		// but for now, just let stellar-core tell us there was an error
 		sig, err := stellarnet.CreateAccountXLMTransaction(primarySeed2, *recipient.AccountID, amount, sp)
 		if err != nil {
-			return stellar1.PaymentResult{}, err
+			return res, err
 		}
 		post.SignedTransaction = sig.Signed
 		txID = sig.TxHash
@@ -313,7 +312,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 		// if balance, payment operation
 		sig, err := stellarnet.PaymentXLMTransaction(primarySeed2, *recipient.AccountID, amount, sp)
 		if err != nil {
-			return stellar1.PaymentResult{}, err
+			return res, err
 		}
 		post.SignedTransaction = sig.Signed
 		txID = sig.TxHash
@@ -331,18 +330,25 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 		}
 		post.NoteB64, err = NoteEncryptB64(m.Ctx(), m.G(), noteClear, recipientUv)
 		if err != nil {
-			return stellar1.PaymentResult{}, fmt.Errorf("error encrypting note: %v", err)
+			return res, fmt.Errorf("error encrypting note: %v", err)
 		}
 	}
 
 	// submit the transaction
-	return remoter.SubmitPayment(m.Ctx(), post)
+	rres, err := remoter.SubmitPayment(m.Ctx(), post)
+	if err != nil {
+		return res, err
+	}
+	return stellar1.SendResultCLILocal{
+		KbTxID: rres.KeybaseID,
+		TxID:   rres.StellarID,
+	}, nil
 }
 
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
 func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
-	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount, note string, displayBalance DisplayBalance) (res stellar1.PaymentResult, err error) {
+	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount, note string, displayBalance DisplayBalance) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
 	if err != nil {
@@ -372,7 +378,87 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 		tmp := recipient.User.ToUserVersion()
 		post.To = &tmp
 	}
-	return remoter.SubmitRelayPayment(m.Ctx(), post)
+	rres, err := remoter.SubmitRelayPayment(m.Ctx(), post)
+	if err != nil {
+		return res, err
+	}
+	return stellar1.SendResultCLILocal{
+		KbTxID: rres.KeybaseID,
+		TxID:   rres.StellarID,
+		Relay: &stellar1.SendRelayResultCLILocal{
+			TeamID: teamID,
+		},
+	}, nil
+}
+
+// Claim claims a waiting relay.
+func Claim(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
+	txID string, into stellar1.AccountID) (res stellar1.RelayClaimResult, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.ClaimPayment", func() error { return err })()
+	p, err := remoter.PaymentDetail(ctx, txID)
+	if err != nil {
+		return res, err
+	}
+	typ, err := p.Typ()
+	if err != nil {
+		return res, fmt.Errorf("error getting payment details: %v", err)
+	}
+	switch typ {
+	case stellar1.PaymentSummaryType_STELLAR:
+		return res, fmt.Errorf("Payment cannot be claimed. It was found on the Stellar network but not in Keybase.")
+	case stellar1.PaymentSummaryType_DIRECT:
+		p := p.Direct()
+		switch p.TxStatus {
+		case stellar1.TransactionStatus_SUCCESS:
+			return res, fmt.Errorf("Payment cannot be claimed. The direct transfer already happened.")
+		case stellar1.TransactionStatus_PENDING:
+			return res, fmt.Errorf("Payment cannot be claimed. It is currently pending.")
+		default:
+			return res, fmt.Errorf("Payment cannot be claimed. The payment failed anyway.")
+		}
+	case stellar1.PaymentSummaryType_RELAY:
+		return claimPaymentWithDetail(ctx, g, remoter, p.Relay(), into)
+	default:
+		return res, fmt.Errorf("unrecognized payment type: %v", typ)
+	}
+}
+
+func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
+	p stellar1.PaymentSummaryRelay, into stellar1.AccountID) (res stellar1.RelayClaimResult, err error) {
+	if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+		recipient, _, err := g.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(ctx, g, p.Claim.To.Uid))
+		if err != nil || recipient == nil {
+			return res, fmt.Errorf("Payment already claimed")
+		}
+		return res, fmt.Errorf("Payment already claimed by %v", recipient.GetName())
+	}
+	rsec, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
+	if err != nil {
+		return res, fmt.Errorf("error opening secret to claim: %v", err)
+	}
+	skey, _, _, err := libkb.ParseStellarSecretKey(rsec.Sk.SecureNoLogString())
+	if err != nil {
+		return res, fmt.Errorf("error using shared secret key: %v", err)
+	}
+	destinationFunded, err := isAccountFunded(ctx, remoter, into)
+	if err != nil {
+		return res, err
+	}
+	dir := stellar1.RelayDirection_CLAIM
+	if p.From.Uid.Equal(g.ActiveDevice.UID()) {
+		dir = stellar1.RelayDirection_YANK
+	}
+	sp := NewSeqnoProvider(ctx, remoter)
+	sig, err := stellarnet.RelocateTransaction(stellarnet.SeedStr(skey.SecureNoLogString()),
+		stellarnet.AddressStr(into.String()), destinationFunded, sp)
+	if err != nil {
+		return res, fmt.Errorf("error building claim transaction: %v", err)
+	}
+	return remoter.SubmitRelayClaim(ctx, stellar1.RelayClaimPost{
+		KeybaseID:         p.KbTxID,
+		Dir:               dir,
+		SignedTransaction: sig.Signed,
+	})
 }
 
 func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (funded bool, err error) {

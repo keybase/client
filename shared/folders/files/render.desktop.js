@@ -1,6 +1,5 @@
 // @flow
 import React, {Component} from 'react'
-import type {IconType} from '../../common-adapters/icon'
 import type {Props} from './render'
 import {
   Box,
@@ -12,6 +11,7 @@ import {
   Usernames,
   ListItem,
   Button,
+  type IconType,
 } from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'

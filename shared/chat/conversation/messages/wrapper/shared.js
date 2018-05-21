@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
+import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../common-adapters'
 import {type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {
   globalStyles,
@@ -49,7 +49,12 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
 
 const MenuButton = ({onClick, setRef}) => (
   <Box ref={setRef} className="menu-button">
-    <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} fontSize={16} />
+    <Icon
+      type="iconfont-ellipsis"
+      style={iconCastPlatformStyles(styles.ellipsis)}
+      onClick={onClick}
+      fontSize={16}
+    />
   </Box>
 )
 
@@ -147,7 +152,7 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
                 {props.isRevoked && (
                   <Icon
                     type="iconfont-exclamation"
-                    style={styles.exclamation}
+                    style={iconCastPlatformStyles(styles.exclamation)}
                     color={globalColors.blue}
                     fontSize={11}
                   />

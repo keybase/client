@@ -2,7 +2,6 @@
 import Icon from './icon'
 import * as React from 'react'
 import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
-
 import type {AvatarSize, Props} from './avatar.render'
 
 type ImageProps = {

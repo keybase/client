@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
+// RemoteNet is the real implementation of Remoter that talks to servers.
 type RemoteNet struct {
 	libkb.Contextified
 }
@@ -31,6 +32,10 @@ func (r *RemoteNet) SubmitPayment(ctx context.Context, post stellar1.PaymentDire
 
 func (r *RemoteNet) SubmitRelayPayment(ctx context.Context, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error) {
 	return SubmitRelayPayment(ctx, r.G(), post)
+}
+
+func (r *RemoteNet) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
+	return SubmitRelayClaim(ctx, r.G(), post)
 }
 
 func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {

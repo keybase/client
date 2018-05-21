@@ -1,8 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Icon} from '../../../../common-adapters'
-import HOCTimers, {type PropsWithTimer} from '../../../../common-adapters/hoc-timers'
-import type {IconType} from '../../../../common-adapters/icon.constants'
+import {Icon, type IconType, HOCTimers, type PropsWithTimer} from '../../../../common-adapters'
 
 type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'
 const statusToIcon: {[key: IconStatus]: IconType} = {

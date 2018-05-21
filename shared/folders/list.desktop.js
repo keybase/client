@@ -2,9 +2,8 @@
 import React, {Component} from 'react'
 import Row from './row'
 import {some} from 'lodash-es'
-import type {IconType} from '../common-adapters/icon'
 import type {Props} from './list'
-import {Box, Text, Icon, List} from '../common-adapters'
+import {Box, Text, Icon, List, type IconType} from '../common-adapters'
 import {globalStyles, globalColors, desktopStyles, platformStyles} from '../styles'
 
 const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {

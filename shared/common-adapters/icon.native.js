@@ -167,4 +167,8 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
   return imgSet.length ? imgSet : null
 }
 
+export function castPlatformStyles(styles: any) {
+  return shared.castPlatformStyles(styles)
+}
+
 export default Icon

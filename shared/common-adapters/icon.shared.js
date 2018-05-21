@@ -111,3 +111,7 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
 
   return multsMap
 }
+
+export function castPlatformStyles(styles: any) {
+  return styles
+}
