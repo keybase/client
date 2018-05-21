@@ -708,50 +708,6 @@ func (r *BackendMock) ExchangeRate(ctx context.Context, tc *TestContext, currenc
 	}, nil
 }
 
-type txDetailsT struct {
-	tx     xdr.Transaction
-	txID   stellar1.TransactionID
-	from   stellar1.AccountID
-	to     stellar1.AccountID
-	amount string
-	asset  stellar1.Asset
-}
-
-func txDetails(txEnvelopeB64 string) (res txDetailsT, err error) {
-	var tx xdr.TransactionEnvelope
-	err = xdr.SafeUnmarshalBase64(txEnvelopeB64, &tx)
-	if err != nil {
-		return res, fmt.Errorf("decoding tx: %v", err)
-	}
-	res.tx = tx.Tx
-	txID, err := stellarnet.HashTx(tx.Tx)
-	if err != nil {
-		return res, fmt.Errorf("error hashing tx: %v", err)
-	}
-	res.txID = stellar1.TransactionID(txID)
-	res.from = stellar1.AccountID(tx.Tx.SourceAccount.Address())
-	if len(tx.Tx.Operations) != 1 {
-		return res, fmt.Errorf("unexpected number of operations in tx %v != 1", len(tx.Tx.Operations))
-	}
-	if tx.Tx.Operations[0].SourceAccount != nil {
-		// operation overrides tx source field
-		res.from = stellar1.AccountID(tx.Tx.Operations[0].SourceAccount.Address())
-	}
-	op := tx.Tx.Operations[0].Body
-	if op, ok := op.GetPaymentOp(); ok {
-		res.amount, res.asset, err = balanceXdrToProto(op.Amount, op.Asset)
-		res.to = stellar1.AccountID(op.Destination.Address())
-		return res, err
-	}
-	if op, ok := op.GetCreateAccountOp(); ok {
-		res.amount = stellaramount.String(op.StartingBalance)
-		res.asset = stellar1.AssetNative()
-		res.to = stellar1.AccountID(op.Destination.Address())
-		return res, nil
-	}
-	return res, fmt.Errorf("unexpected op type: %v", op.Type)
-}
-
 // Friendbot sends someone XLM
 func (r *BackendMock) Gift(accountID stellar1.AccountID, amount string) {
 	r.Lock()
