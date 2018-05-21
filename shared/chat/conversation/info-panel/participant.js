@@ -30,8 +30,13 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
             marginRight: globalMargins.tiny,
           }}
         >
-          <Avatar size={isMobile ? 40 : 32} username={username} />
-          <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
+          <Avatar size={isMobile ? 48 : 32} username={username} />
+          <Box
+            style={{
+              ...globalStyles.flexBoxColumn,
+              marginLeft: isMobile ? globalMargins.small : globalMargins.tiny,
+            }}
+          >
             <ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
             {fullname !== '' && <Text type="BodySmall">{fullname}</Text>}
           </Box>
@@ -63,10 +68,13 @@ const _AddPeople = (props: {teamname: string} & FloatingMenuParentProps) => {
             marginRight: globalMargins.tiny,
           }}
         >
-          <Box style={{width: isMobile ? 40 : 32, height: isMobile ? 40 : 32, ...globalStyles.flexBoxCenter}}>
+          <Box style={{width: isMobile ? 48 : 32, height: isMobile ? 48 : 32, ...globalStyles.flexBoxCenter}}>
             <Icon type="iconfont-new" fontSize={isMobile ? 24 : 16} color={globalColors.blue} />
           </Box>
-          <Text type="BodyPrimaryLink" style={{marginLeft: globalMargins.small}}>
+          <Text
+            type="BodyPrimaryLink"
+            style={{marginLeft: isMobile ? globalMargins.small : globalMargins.tiny}}
+          >
             Add someone
           </Text>
         </Box>

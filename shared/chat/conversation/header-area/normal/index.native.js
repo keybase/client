@@ -42,7 +42,7 @@ const ChannelHeader = (props: Props) => (
     >
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center'}}>
-          <Avatar teamname={props.teamName} size={props.smallTeam ? 16 : 12} />
+          <Avatar teamname={props.teamName} size={16} />
           {!props.smallTeam && (
             <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
               &nbsp;{props.teamName}

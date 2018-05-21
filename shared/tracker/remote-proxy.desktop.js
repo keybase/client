@@ -10,7 +10,7 @@ import {parsePublicAdmins} from '../util/teams'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {connect, type TypedState, compose, renderNothing} from '../util/container'
+import {connect, type TypedState, compose} from '../util/container'
 
 const MAX_TRACKERS = 5
 const windowOpts = {height: 470, width: 320}
@@ -94,15 +94,15 @@ const trackerMergeProps = (stateProps, dispatchProps, {name}) => {
   }
 }
 
+const Empty = () => null
+
 // Actions are handled by remote-container
 const RemoteTracker = compose(
   connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
   SyncBrowserWindow,
   SyncAvatarProps,
-  SyncProps,
-  // $FlowIssue gets confused
-  renderNothing
-)(null)
+  SyncProps
+)(Empty)
 
 type Props = {
   names: Array<string>,

@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as PropProviders from '../../../../stories/prop-providers'
 import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat2'
 import {storiesOf, action} from '../../../../stories/storybook'
 import TextPopupMenu from './text/index'
@@ -32,8 +33,14 @@ const defaultProps = {
   yourMessage: true,
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Chat/Conversation/Message popup', module)
+    .addDecorator(provider)
     .add('Text', () => (
       <TextPopupMenu
         {...defaultProps}

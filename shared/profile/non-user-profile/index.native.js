@@ -11,7 +11,7 @@ const NonUserRender = (props: Props) => (
   <Box style={styleContainer}>
     <Box style={{...styleHeader, backgroundColor: globalColors.blue}} />
     <Box style={styleBioBlurb}>
-      <Avatar onClick={() => openURL(props.profileUrl)} size={112} />
+      <Avatar onClick={() => openURL(props.profileUrl)} size={128} />
       <Box style={styleUsernameRow} onClick={() => openURL(props.profileUrl)}>
         <Icon type={platformToLogo24(props.serviceName)} />
         <Text type="HeaderBig" selectable={true} style={styleUsername}>
