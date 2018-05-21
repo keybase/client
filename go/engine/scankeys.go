@@ -60,7 +60,7 @@ func NewScanKeys(m libkb.MetaContext) (sk *ScanKeys, err error) {
 	}
 
 	// if user provided, then load their local keys, and their synced secret key:
-	synced, err := sk.me.GetSyncedSecretKey()
+	synced, err := sk.me.GetSyncedSecretKey(m)
 	if err != nil {
 		return nil, fmt.Errorf("getsyncedsecret err: %s", err)
 	}

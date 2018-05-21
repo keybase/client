@@ -23,6 +23,7 @@ type ActiveDevice struct {
 }
 
 func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
+	m.CDebugf("%sActiveDevice: %p", prefix, a)
 	m.CDebugf("%sUID: %s", prefix, a.uid)
 	m.CDebugf("%sUsername (via env): %s", prefix, a.Username(m))
 	m.CDebugf("%sDeviceID: %s", prefix, a.deviceID)
@@ -33,7 +34,7 @@ func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 	if a.encryptionKey != nil {
 		m.CDebugf("%sEncKey: %s", prefix, a.encryptionKey.GetKID())
 	}
-	m.CDebugf("%sPassphraseCache: %v", prefix, (a.passphrase != nil && a.passphrase.ValidPassphraseStream()))
+	m.CDebugf("%sPassphraseCache: cacheObj=%v; valid=%v", prefix, (a.passphrase != nil), (a.passphrase != nil && a.passphrase.ValidPassphraseStream()))
 	m.CDebugf("%sPaperKeyCache: %v", prefix, (a.paperKey != nil && a.paperKey.DeviceWithKeys() != nil))
 }
 
@@ -54,6 +55,12 @@ func NewProvisionalActiveDevice(m MetaContext, u keybase1.UID, d keybase1.Device
 }
 
 func NewPaperKeyActiveDevice(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *ActiveDevice {
+	ret := NewActiveDeviceWithDeviceWithKeys(m, u, d)
+	ret.paperKey = NewSelfDestructingDeviceWithKeys(m, d, PaperKeyMemoryTimeout)
+	return ret
+}
+
+func NewActiveDeviceWithDeviceWithKeys(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *ActiveDevice {
 	return &ActiveDevice{
 		uid:           u,
 		deviceID:      d.deviceID,
@@ -62,7 +69,6 @@ func NewPaperKeyActiveDevice(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *
 		encryptionKey: d.encryptionKey,
 		nistFactory:   NewNISTFactory(m.G(), u, d.deviceID, d.signingKey),
 		secretSyncer:  NewSecretSyncer(m.G()),
-		paperKey:      NewSelfDestructingDeviceWithKeys(m, d, PaperKeyMemoryTimeout),
 	}
 }
 
@@ -205,6 +211,8 @@ func (a *ActiveDevice) clear(acct *Account) error {
 	a.signingKey = nil
 	a.encryptionKey = nil
 	a.nistFactory = nil
+	a.passphrase = nil
+	a.paperKey = nil
 
 	return nil
 }
@@ -344,7 +352,7 @@ func (a *ActiveDevice) SyncSecrets(m MetaContext) (ret *SecretSyncer, err error)
 	if s == nil {
 		return nil, fmt.Errorf("Can't sync secrets: nil secret syncer")
 	}
-	err = RunSyncer(s, uid, true, nil)
+	err = RunSyncer(m, s, uid, true, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -451,4 +459,32 @@ func (a *ActiveDevice) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
 		return nil, err
 	}
 	return ret, nil
+}
+
+func (a *ActiveDevice) CopyCacheToLoginContextIfForUID(m MetaContext, lc LoginContext, u keybase1.UID) (err error) {
+	defer m.CTrace("ActiveDevice#CopyCacheToLoginContextIfForUID", func() error { return err })()
+	a.RLock()
+	defer a.RUnlock()
+	if !a.UID().Equal(u) {
+		return NewUIDMismatchError(fmt.Sprintf("%s v %s", a.UID(), u))
+	}
+	if a.passphrase != nil {
+		m.CDebugf("| copying non-nil passphrase cache")
+		lc.SetStreamCache(a.passphrase)
+	}
+	return nil
+}
+
+func (a *ActiveDevice) GetUsernameAndUIDIfValid(m MetaContext) (u keybase1.UID, un NormalizedUsername) {
+	a.RLock()
+	defer a.RUnlock()
+	uid := a.uid
+	if uid.IsNil() {
+		return uid, un
+	}
+	un = m.G().Env.GetUsernameForUID(uid)
+	if un.IsNil() {
+		return keybase1.UID(""), NormalizedUsername("")
+	}
+	return uid, un
 }
