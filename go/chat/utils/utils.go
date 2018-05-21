@@ -792,9 +792,8 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	if !msg.IsValidFull() {
 		if msg.IsValid() {
 			mvalid := msg.Valid()
-			// TODO If a message is exploding, display the snippet version of "ash lines"
 			if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
-				return ""
+				return "[exploded message 💥]"
 			}
 		}
 		return ""
@@ -838,20 +837,9 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	if !msg.IsValidFull() {
 		return ""
 	}
-
-	var prefix string
-	switch conv.GetMembersType() {
-	case chat1.ConversationMembersType_TEAM:
-		sender := msg.Valid().SenderUsername
-		if sender == currentUsername {
-			prefix = "You: "
-		} else {
-			prefix = fmt.Sprintf("%s: ", sender)
-		}
-	}
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT:
-		return prefix + "sent an exploding 💣 message 💥."
+		return "💣 exploding message."
 	default:
 		return ""
 	}
