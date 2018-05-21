@@ -66,6 +66,16 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		return nil, err
 	}
 
+	if len(details.Balances) == 0 {
+		// add an empty xlm balance
+		details.Balances = []stellar1.Balance{
+			stellar1.Balance{
+				Amount: "0",
+				Asset:  stellar1.Asset{Type: "native"},
+			},
+		}
+	}
+
 	displayCurrency, err := s.remoter.GetAccountDisplayCurrency(ctx, arg.AccountID)
 	if err != nil {
 		return nil, err
@@ -76,6 +86,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	}
 	rate, err := s.remoter.ExchangeRate(ctx, displayCurrency)
 	if err != nil {
+		s.G().Log.CDebugf(ctx, "exchange rate error: %s", err)
 		return nil, err
 	}
 
@@ -83,6 +94,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	for i, d := range details.Balances {
 		fmtAmount, err := stellar.FormatAmount(d.Amount, false)
 		if err != nil {
+			s.G().Log.CDebugf(ctx, "FormatAmount error: %s", err)
 			return nil, err
 		}
 		asset := stellar1.AccountAssetLocal{

@@ -724,6 +724,9 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 }
 
 func FormatAmount(amount string, precisionTwo bool) (string, error) {
+	if amount == "" {
+		amount = "0"
+	}
 	famt, err := strconv.ParseFloat(amount, 64)
 	if err != nil {
 		return "", err

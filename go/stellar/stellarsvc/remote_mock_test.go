@@ -602,6 +602,25 @@ func (r *RemoteMock) Details(ctx context.Context, accountID stellar1.AccountID) 
 	}, nil
 }
 
+func (r *RemoteMock) Details(ctx context.Context, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
+	defer r.G().CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
+	a, ok := r.accounts[accountID]
+	if !ok {
+		return stellar1.AccountDetails{}, libkb.NotFoundError{}
+	}
+	var balances []stellar1.Balance
+	if a.balance.Amount != "" {
+		balances = []stellar1.Balance{a.balance}
+	}
+	return stellar1.AccountDetails{
+		AccountID:     accountID,
+		Seqno:         strconv.FormatUint(r.seqno, 10),
+		Balances:      balances,
+		SubentryCount: a.subentries,
+		Available:     a.availableBalance(),
+	}, nil
+}
+
 func (r *BackendMock) AddAccount() stellar1.AccountID {
 	defer r.trace(nil, "BackendMock.AddAccount", "")()
 	r.Lock()
@@ -610,6 +629,18 @@ func (r *BackendMock) AddAccount() stellar1.AccountID {
 }
 
 func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
+=======
+func (r *RemoteMock) AddAccount(t *testing.T) stellar1.AccountID {
+	return r.AddAccountWithAmount(t, "10000")
+}
+
+func (r *RemoteMock) AddAccountEmpty(t *testing.T) stellar1.AccountID {
+	return r.AddAccountWithAmount(t, "")
+}
+
+func (r *RemoteMock) AddAccountWithAmount(t *testing.T, amount string) stellar1.AccountID {
+	defer r.G().CTraceTimed(context.Background(), "RemoteMock.AddAccountWithAmount", func() error { return nil })()
+>>>>>>> 88ef5572d3... Handle empty details.Balances
 	full, err := keypair.Random()
 	require.NoError(r.T, err)
 	amount := "0"
@@ -620,11 +651,15 @@ func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
 		T:         r.T,
 		accountID: stellar1.AccountID(full.Address()),
 		secretKey: stellar1.SecretKey(full.Seed()),
-		balance: stellar1.Balance{
+		t:         t,
+	}
+	if amount != "" {
+		a.balance = stellar1.Balance{
 			Asset:  stellar1.Asset{Type: "native"},
 			Amount: amount,
 		},
 		t: t,
+		}
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a

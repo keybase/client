@@ -40,7 +40,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
 }
 
-func TestGetAccountAssetsLocal(t *testing.T) {
+func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
@@ -69,4 +69,35 @@ func TestGetAccountAssetsLocal(t *testing.T) {
 	require.Equal(t, "Stellar", assets[0].Issuer)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28", assets[0].Worth)
+}
+
+func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	accountID := tcs[0].Remote.AddAccountEmpty(t)
+
+	argImport := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   tcs[0].Remote.SecretKey(t, accountID),
+		MakePrimary: true,
+	}
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	tcs[0].Remote.ImportAccountsForUser(t, tcs[0].G)
+
+	assets, err := tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+
+	require.Len(t, assets, 1)
+	require.Equal(t, "Lumens", assets[0].Name)
+	require.Equal(t, "XLM", assets[0].AssetCode)
+	require.Equal(t, "0", assets[0].BalanceTotal)
+	require.Equal(t, "0", assets[0].BalanceAvailableToSend)
+	require.Equal(t, "Stellar", assets[0].Issuer)
+	require.Equal(t, "USD", assets[0].WorthCurrency)
+	require.Equal(t, "$0.00", assets[0].Worth)
 }
