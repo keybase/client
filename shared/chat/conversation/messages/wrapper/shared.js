@@ -7,6 +7,7 @@ import {
   globalMargins,
   globalColors,
   isMobile,
+  platformStyles,
   styleSheetCreate,
   collapseStyles,
 } from '../../../../styles'
@@ -96,6 +97,15 @@ const Failure = ({failureDescription, onEdit, onRetry, onCancel}) => {
 
 const LeftSide = props => (
   <Box style={styles.leftSide}>
+    {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
+  </Box>
+)
+
+const RightSide = props => (
+  <Box
+    style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
+    className="message-wrapper"
+  >
     <Box style={styles.sendIndicatorContainer}>
       {props.isYou && (
         <SendIndicator
@@ -108,15 +118,6 @@ const LeftSide = props => (
     </Box>
     {/* The avatar is above this actually but we want the send indicator to never be a part of the height
     calculation so we put it first so it appears under the avatar if they overlap */}
-    {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
-  </Box>
-)
-
-const RightSide = props => (
-  <Box
-    style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
-    className="message-wrapper"
-  >
     {props.includeHeader && (
       <Username
         username={props.author}
@@ -185,6 +186,8 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
   }
 }
 
+let _SENDINDICATORWIDTH = 40
+
 const styles = styleSheetCreate({
   container: {...globalStyles.flexBoxColumn, width: '100%'},
   edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
@@ -201,23 +204,33 @@ const styles = styleSheetCreate({
   leftRightContainer: {...globalStyles.flexBoxRow, width: '100%'},
   leftSide: {flexShrink: 0, marginLeft: 8, marginRight: 8, position: 'relative', width: 32},
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
-  rightSide: {
-    ...globalStyles.flexBoxColumn,
-    paddingBottom: 2,
-    paddingRight: globalMargins.tiny,
-    width: '100%',
-  },
+  rightSide: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      flex: 1,
+      paddingBottom: 2,
+      paddingRight: globalMargins.tiny,
+    },
+    isMobile: {
+      marginRight: _SENDINDICATORWIDTH,
+    },
+  }),
   selected: {backgroundColor: globalColors.black_05},
-  sendIndicatorContainer: {
-    // we never want this thing to push content around
-    alignItems: 'flex-start',
-    bottom: 0,
-    height: 21,
-    justifyContent: 'flex-end',
-    position: 'absolute',
-    right: 0,
-    width: 32,
-  },
+  sendIndicatorContainer: platformStyles({
+    common: {
+      // we never want this thing to push content around
+      alignItems: 'center',
+      bottom: 0,
+      height: 21,
+      justifyContent: 'center',
+      position: 'absolute',
+      right: 0,
+      width: _SENDINDICATORWIDTH,
+    },
+    isMobile: {
+      right: -_SENDINDICATORWIDTH,
+    },
+  }),
   textContainer: {
     ...globalStyles.flexBoxRow,
     borderRadius: 4,
