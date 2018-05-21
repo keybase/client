@@ -1832,6 +1832,15 @@ func (t TeamMembersDetails) ActiveUsernames() map[string]bool {
 	return m
 }
 
+func FilterInactiveMembers(arg []TeamMemberDetails) (ret []TeamMemberDetails) {
+	for _, v := range arg {
+		if v.Active {
+			ret = append(ret, v)
+		}
+	}
+	return ret
+}
+
 func (t TeamName) IsNil() bool {
 	return len(t.Parts) == 0
 }
