@@ -1,6 +1,6 @@
 // @flow
 // This is modified from https://github.com/mawie81/electron-window-state
-import {app, screen, ipcMain} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
 import {appBundlePath} from './paths'
@@ -65,7 +65,7 @@ export default class AppState {
 
     this.config = {
       eventHandlingDelay: 1000,
-      path: path.join(app.getPath('userData'), 'app-state.json'),
+      path: path.join(SafeElectron.getApp().getPath('userData'), 'app-state.json'),
     }
 
     this.managed = {
@@ -79,11 +79,11 @@ export default class AppState {
     }
 
     // Listen to the main window asking for this value
-    ipcMain.on('getAppState', event => {
+    SafeElectron.getIpcMain().on('getAppState', event => {
       event.sender.send('getAppStateReply', this.state)
     })
 
-    ipcMain.on('setAppState', (event, data) => {
+    SafeElectron.getIpcMain().on('setAppState', (event, data) => {
       this.state = {
         ...this.state,
         ...data,
@@ -110,7 +110,7 @@ export default class AppState {
       console.log(`Error saving file: ${err}`)
     }
 
-    if (app.getLoginItemSettings().openAtLogin !== this.state.openAtLogin) {
+    if (SafeElectron.getApp().getLoginItemSettings().openAtLogin !== this.state.openAtLogin) {
       console.log(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
       this.setOSLoginState()
     }
@@ -219,7 +219,7 @@ export default class AppState {
   }
 
   setWinLoginState() {
-    app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
+    SafeElectron.getApp().setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
   }
 
   manageWindow(win: any) {
@@ -303,7 +303,7 @@ export default class AppState {
       x: state.x || 0,
       y: state.y || 0,
     }
-    let displayBounds = screen.getDisplayMatching(rect).bounds
+    let displayBounds = SafeElectron.getScreen().getDisplayMatching(rect).bounds
     console.log('Check bounds:', rect, state.displayBounds, displayBounds)
     return (
       isEqual(state.displayBounds, displayBounds) &&
@@ -363,7 +363,7 @@ export default class AppState {
       }
       this.state.isMaximized = winRef.isMaximized()
       this.state.isFullScreen = winRef.isFullScreen()
-      this.state.displayBounds = screen.getDisplayMatching(winBounds).bounds
+      this.state.displayBounds = SafeElectron.getScreen().getDisplayMatching(winBounds).bounds
       this.state.windowHidden = !winRef.isVisible()
     }
     this.saveState()
@@ -391,12 +391,12 @@ export default class AppState {
   }
 
   _loadAppListeners() {
-    app.on('-keybase-dock-showing', () => {
+    SafeElectron.getApp().on('-keybase-dock-showing', () => {
       this.state.dockHidden = false
       this.saveState()
     })
 
-    app.on('-keybase-dock-hide', () => {
+    SafeElectron.getApp().on('-keybase-dock-hide', () => {
       this.state.dockHidden = true
       this.saveState()
     })

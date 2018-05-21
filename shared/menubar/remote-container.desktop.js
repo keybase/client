@@ -10,11 +10,13 @@ import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
-import {shell, remote} from 'electron'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import {urlHelper} from '../util/url-helper'
 
 const closeWindow = () => {
-  remote.getCurrentWindow().hide()
+  SafeElectron.getRemote()
+    .getCurrentWindow()
+    .hide()
 }
 
 // Props are handled by remote-proxy.desktop.js
@@ -52,7 +54,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   showBug: () => {
     const version = __VERSION__ // eslint-disable-line no-undef
-    shell.openExternal(
+    SafeElectron.getShell().openExternal(
       `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
         version
       )}`

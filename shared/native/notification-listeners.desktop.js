@@ -2,7 +2,7 @@
 import * as RPCTypes from '../constants/types/rpc-gen'
 import sharedNotificationActions from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
-import {remote} from 'electron'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import dumpLogs from '../logger/dump-log-fs'
 import engine from '../engine'
@@ -14,7 +14,7 @@ export default (): void => {
 
   engine().setIncomingActionCreators('keybase.1.NotifyApp.exit', () => {
     console.log('App exit requested')
-    remote.app.exit(0)
+    SafeElectron.getApp().exit(0)
   })
 
   engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', ({notification}, _, __, getState) => [
@@ -32,7 +32,7 @@ export default (): void => {
     if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
       console.log('Quitting due to service shutdown')
       // Quit just the app, not the service
-      remote.app.quit(true)
+      SafeElectron.getApp().quit()
     }
   })
 

@@ -1,5 +1,5 @@
 // @flow
-import {clipboard} from 'electron'
+import * as SafeElectron from './safe-electron.desktop'
 import fs from 'fs'
 import {tmpRandFile} from './file.desktop'
 
@@ -9,13 +9,13 @@ export type ClipboardData = {
 }
 
 export function copyToClipboard(data: string) {
-  clipboard.writeText(data)
+  SafeElectron.getClipboard().writeText(data)
 }
 
 function readImage(): Promise<?ClipboardData> {
   return new Promise((resolve, reject) => {
     tmpRandFile('.png').then(path => {
-      const image = clipboard.readImage()
+      const image = SafeElectron.getClipboard().readImage()
       if (!image) {
         // Nothing to read
         resolve(null)
@@ -39,7 +39,7 @@ export function readImageFromClipboard(
   event: SyntheticEvent<>,
   willReadData: () => void
 ): Promise<?ClipboardData> {
-  const formats = clipboard.availableFormats()
+  const formats = SafeElectron.getClipboard().availableFormats()
   console.log('Read clipboard, formats:', formats)
   const imageFormats = formats.filter(f => f.startsWith('image/'))
 

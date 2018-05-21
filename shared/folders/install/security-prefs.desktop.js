@@ -3,7 +3,7 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import React, {Component} from 'react'
 import {BackButton, Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, platformStyles} from '../../styles'
-import {shell} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {connect, type TypedState} from '../../util/container'
 
 type Props = {
@@ -35,7 +35,7 @@ class InstallSecurityPrefs extends Component<Props, State> {
   }
 
   _openSecurityPrefs = () => {
-    shell.openExternal('x-apple.systempreferences:com.apple.preference.security?General')
+    SafeElectron.getShell().openExternal('x-apple.systempreferences:com.apple.preference.security?General')
   }
 
   render() {
