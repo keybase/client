@@ -15,7 +15,7 @@ import (
 func tryPassphrase(tc libkb.TestContext, u *FakeUser, pp string) error {
 	m := NewMetaContextForTest(tc)
 	m = m.WithNewProvisionalLoginContextForUIDAndUsername(u.UID(), libkb.NewNormalizedUsername(u.Username))
-	_, err := libkb.VerifyPassphraseGetFullStream(m, pp)
+	_, err := libkb.VerifyPassphraseGetStreamInLoginContext(m, pp)
 	return err
 }
 

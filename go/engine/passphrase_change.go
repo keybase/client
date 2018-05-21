@@ -255,9 +255,9 @@ func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 
 	var ppStream *libkb.PassphraseStream
 	if len(c.arg.OldPassphrase) == 0 {
-		ppStream, err = libkb.GetFullPassphraseStreamViaPrompt(m)
+		ppStream, err = libkb.GetPassphraseStreamViaPromptInLoginContext(m)
 	} else {
-		ppStream, err = libkb.VerifyPassphraseGetFullStream(m, c.arg.OldPassphrase)
+		ppStream, err = libkb.VerifyPassphraseGetStreamInLoginContext(m, c.arg.OldPassphrase)
 	}
 	if err != nil {
 		return err

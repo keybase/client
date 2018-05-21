@@ -393,8 +393,8 @@ func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, tsec Tr
 // write the secret store because this function is called right before the user
 // changes to a new passphrase, so what's the point. It's assumed that the login context is
 // set to non-nil by the caller.
-func GetFullPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, err error) {
-	defer m.CTrace("GetFullPassphraseStreamViaPrompt", func() error { return err })()
+func GetPassphraseStreamViaPromptInLoginContext(m MetaContext) (pps *PassphraseStream, err error) {
+	defer m.CTrace("GetPassphraseStreamViaPromptInLoginContext", func() error { return err })()
 	if pps = m.PassphraseStream(); pps != nil {
 		return pps, nil
 	}
@@ -409,9 +409,10 @@ func GetFullPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, err
 }
 
 // VerifyPassphraseGetFullStream verifies the current passphrase is a correct login
-// and if so, will return a full passphrase stream derived from it.
-func VerifyPassphraseGetFullStream(m MetaContext, passphrase string) (pps *PassphraseStream, err error) {
-	defer m.CTrace("VerifyPassphraseGetFullStream", func() error { return err })()
+// and if so, will return a full passphrase stream derived from it. Assumes the caller
+// made a non-nil LoginContext for us to operate in.
+func VerifyPassphraseGetStreamInLoginContext(m MetaContext, passphrase string) (pps *PassphraseStream, err error) {
+	defer m.CTrace("VerifyPassphraseGetStreamInLoginContext", func() error { return err })()
 	nun := m.CurrentUsername()
 	if nun.IsNil() {
 		return nil, NewNoUsernameError()
