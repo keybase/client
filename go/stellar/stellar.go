@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
@@ -16,6 +17,8 @@ import (
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/amount"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 // CreateWallet creates and posts an initial stellar bundle for a user.
@@ -696,4 +699,43 @@ func identifyRecipient(m libkb.MetaContext, assertion string) (keybase1.TLFIdent
 	}
 
 	return frep, nil
+}
+
+func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, code stellar1.OutsideCurrencyCode) (string, error) {
+	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return "", err
+	}
+	currency, ok := conf.Currencies[code]
+	if !ok {
+		return "", fmt.Errorf("Could not find currency %q", code)
+	}
+
+	amountFmt, err := FormatAmount(amount, true)
+	if err != nil {
+		return "", err
+	}
+
+	if currency.Symbol.Postfix {
+		return fmt.Sprintf("%s %s", amountFmt, currency.Symbol.Symbol), nil
+	}
+
+	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
+}
+
+func FormatAmount(amount string, precisionTwo bool) (string, error) {
+	famt, err := strconv.ParseFloat(amount, 64)
+	if err != nil {
+		return "", err
+	}
+
+	// only using english formatting of numbers at this point
+	// see https://godoc.org/golang.org/x/text/message when we
+	// want to tackle further localization.
+	p := message.NewPrinter(language.English)
+
+	if precisionTwo {
+		return p.Sprintf("%.2f", famt), nil
+	}
+	return p.Sprint(famt), nil
 }

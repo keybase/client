@@ -587,6 +587,21 @@ func (r *BackendMock) Details(ctx context.Context, accountID stellar1.AccountID)
 	}, nil
 }
 
+func (r *RemoteMock) Details(ctx context.Context, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
+	defer r.G().CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
+	a, ok := r.accounts[accountID]
+	if !ok {
+		return stellar1.AccountDetails{}, libkb.NotFoundError{}
+	}
+	return stellar1.AccountDetails{
+		AccountID:     accountID,
+		Seqno:         strconv.FormatUint(r.seqno, 10),
+		Balances:      []stellar1.Balance{a.balance},
+		SubentryCount: a.subentries,
+		Available:     a.availableBalance(),
+	}, nil
+}
+
 func (r *BackendMock) AddAccount() stellar1.AccountID {
 	defer r.trace(nil, "BackendMock.AddAccount", "")()
 	r.Lock()
@@ -673,6 +688,61 @@ func (r *BackendMock) AssertBalance(accountID stellar1.AccountID, amount string)
 	defer r.Unlock()
 	require.NotNil(r.T, r.accounts[accountID], "account should exist in mock to assert balance")
 	require.Equal(r.T, amount, r.accounts[accountID].balance.Amount, "account balance")
+}
+
+func (r *RemoteMock) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {
+	return "USD", nil
+}
+
+func (r *RemoteMock) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
+	return stellar1.OutsideExchangeRate{
+		Currency: stellar1.OutsideCurrencyCode(currency),
+		Rate:     "0.318328",
+	}, nil
+}
+
+type txDetailsT struct {
+	tx     xdr.Transaction
+	txID   stellar1.TransactionID
+	from   stellar1.AccountID
+	to     stellar1.AccountID
+	amount string
+	asset  stellar1.Asset
+}
+
+func txDetails(txEnvelopeB64 string) (res txDetailsT, err error) {
+	var tx xdr.TransactionEnvelope
+	err = xdr.SafeUnmarshalBase64(txEnvelopeB64, &tx)
+	if err != nil {
+		return res, fmt.Errorf("decoding tx: %v", err)
+	}
+	res.tx = tx.Tx
+	txID, err := stellarnet.HashTx(tx.Tx)
+	if err != nil {
+		return res, fmt.Errorf("error hashing tx: %v", err)
+	}
+	res.txID = stellar1.TransactionID(txID)
+	res.from = stellar1.AccountID(tx.Tx.SourceAccount.Address())
+	if len(tx.Tx.Operations) != 1 {
+		return res, fmt.Errorf("unexpected number of operations in tx %v != 1", len(tx.Tx.Operations))
+	}
+	if tx.Tx.Operations[0].SourceAccount != nil {
+		// operation overrides tx source field
+		res.from = stellar1.AccountID(tx.Tx.Operations[0].SourceAccount.Address())
+	}
+	op := tx.Tx.Operations[0].Body
+	if op, ok := op.GetPaymentOp(); ok {
+		res.amount, res.asset, err = balanceXdrToProto(op.Amount, op.Asset)
+		res.to = stellar1.AccountID(op.Destination.Address())
+		return res, err
+	}
+	if op, ok := op.GetCreateAccountOp(); ok {
+		res.amount = amount.String(op.StartingBalance)
+		res.asset = stellar1.AssetNative()
+		res.to = stellar1.AccountID(op.Destination.Address())
+		return res, nil
+	}
+	return res, fmt.Errorf("unexpected op type: %v", op.Type)
 }
 
 // Friendbot sends someone XLM

@@ -15,4 +15,6 @@ type Remoter interface {
 	SubmitRelayClaim(context.Context, stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error)
 	RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error)
 	PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error)
+	GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error)
+	ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error)
 }
