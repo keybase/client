@@ -312,9 +312,10 @@ func (b *BackgroundEphemeralPurger) setOrResetTimer(purgeInfo chat1.EphemeralPur
 	if b.purgeTimer == nil {
 		b.purgeTimer = time.NewTimer(duration)
 		go b.loop(duration)
+	} else {
+		b.purgeTimer.Stop()
+		b.purgeTimer.Reset(duration)
 	}
-	b.purgeTimer.Stop()
-	b.purgeTimer.Reset(duration)
 }
 
 func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *storage.Storage, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
