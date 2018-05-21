@@ -1223,6 +1223,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const ephemeralLifetime = Constants.getConversationExplodingMode(conversationIDKey, state)
 
   // Inject pending message and make the call
   return Saga.sequentially([
@@ -1243,6 +1244,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
       body: text.stringValue(),
       clientPrev,
       conversationID: Types.keyToConversationID(conversationIDKey),
+      ephemeralLifetime,
       identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
       outboxID,
       tlfName,
