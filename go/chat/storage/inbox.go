@@ -51,18 +51,8 @@ func (q inboxDiskQuery) queryMatch(other inboxDiskQuery) bool {
 	return false
 }
 
-func (q inboxDiskQuery) paginationMatch(other inboxDiskQuery) bool {
-	if q.Pagination == nil && other.Pagination == nil {
-		return true
-	}
-	if q.Pagination != nil && other.Pagination != nil {
-		return q.Pagination.Eq(*other.Pagination)
-	}
-	return false
-}
-
 func (q inboxDiskQuery) match(other inboxDiskQuery) bool {
-	return q.queryMatch(other) && q.paginationMatch(other)
+	return q.queryMatch(other) && q.Pagination.Eq(other.Pagination)
 }
 
 type inboxDiskData struct {
@@ -1331,7 +1321,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 				})
 			}
 			if i.topicNameChanged(ctx, oldConv, newConv) {
-				res.TopicNameChanged = append(res.TopicNameChanged, newConv.Metadata.ConversationID)
+				res.TopicNameChanged = append(res.TopicNameChanged, newConv.GetConvID())
 			}
 
 			ibox.Conversations[index].Conv = newConv

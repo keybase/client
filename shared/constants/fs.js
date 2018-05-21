@@ -7,7 +7,7 @@ import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
-import {type IconType} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters'
 import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
@@ -501,8 +501,9 @@ export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
 }
 
 export const generateFileURL = (path: Types.Path, address: string, token: string): string => {
-  const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
-  return `http://${address}/files${stripKeybase}?token=${token}`
+  const stripKeybase = Types.pathToString(path).slice('/keybase/'.length)
+  const encoded = encodeURIComponent(stripKeybase)
+  return `http://${address}/files/${encoded}?token=${token}`
 }
 
 export const invalidTokenTitle = 'KBFS HTTP Token Invalid'

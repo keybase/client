@@ -1,12 +1,12 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import * as Types from '../constants/types/chat2'
 import Text from './text'
 import Box from './box'
 import Emoji from './emoji'
 import Channel from './channel-container'
 import Mention from './mention-container'
-import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../styles'
+import {globalStyles, globalColors, globalMargins, styleSheetCreate, collapseStyles} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 import {NativeClipboard} from './native-wrappers.native'
 import openURL from '../util/open-url'
@@ -29,7 +29,7 @@ function previewCreateComponent(style) {
         return <Emoji emojiName={String(children)} size={12} key={key} />
       default:
         return (
-          <Text type="Body" key={key} lineClamp={1} style={[styles.neutral, style]}>
+          <Text type="Body" key={key} lineClamp={1} style={collapseStyles([styles.neutral, style])}>
             {children}
           </Text>
         )
@@ -89,7 +89,7 @@ function messageCreateComponent(style, allowFontScaling) {
           <Text
             type="Body"
             key={key}
-            style={[styles.neutral, style, options.big ? styles.big : null]}
+            style={collapseStyles([styles.neutral, style, options.big ? styles.big : null])}
             allowFontScaling={allowFontScaling}
           >
             {children && children.length ? children : '\u200b'}
@@ -175,7 +175,7 @@ function messageCreateComponent(style, allowFontScaling) {
   }
 }
 
-class Markdown extends PureComponent<Props> {
+class Markdown extends React.PureComponent<Props> {
   render() {
     const createComponent = this.props.preview
       ? previewCreateComponent(this.props.style)

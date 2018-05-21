@@ -28,8 +28,16 @@ func (k KeybaseTransactionID) String() string {
 	return string(k)
 }
 
+func (k KeybaseTransactionID) Eq(b KeybaseTransactionID) bool {
+	return k == b
+}
+
 func (t TransactionID) String() string {
 	return string(t)
+}
+
+func (t TransactionID) Eq(b TransactionID) bool {
+	return t == b
 }
 
 func ToTimeMs(t time.Time) TimeMs {

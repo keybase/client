@@ -26,7 +26,7 @@ type FishyMsgpackError struct {
 }
 
 func (e FishyMsgpackError) Error() string {
-	return fmt.Sprintf("Original msgpack data didn't match re-encoded version: %#v != %#v", e.reencoded, e.original)
+	return fmt.Sprintf("Original msgpack data didn't match re-encoded version: reencoded=%x != original=%x", e.reencoded, e.original)
 }
 
 func codecHandle() *codec.MsgpackHandle {

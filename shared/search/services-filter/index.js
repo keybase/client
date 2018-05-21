@@ -2,10 +2,8 @@
 // The filter bar for search. Lets you select a search provider
 import * as Types from '../../constants/types/search'
 import React, {Component} from 'react'
-import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
+import {Box, Icon, ClickableBox, Text, type IconType} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition, isMobile, platformStyles} from '../../styles'
-
-import type {IconType} from '../../common-adapters/icon'
 
 type Props = {
   selectedService: Types.Service,

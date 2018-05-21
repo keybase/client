@@ -2,6 +2,11 @@
   "protocol": "local",
   "imports": [
     {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    },
+    {
       "path": "common.avdl",
       "type": "idl"
     }
@@ -26,6 +31,37 @@
         {
           "type": "string",
           "name": "balanceDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendResultCLILocal",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "KbTxID"
+        },
+        {
+          "type": "TransactionID",
+          "name": "TxID"
+        },
+        {
+          "type": [
+            null,
+            "SendRelayResultCLILocal"
+          ],
+          "name": "relay"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendRelayResultCLILocal",
+      "fields": [
+        {
+          "type": "keybase1.TeamID",
+          "name": "teamID"
         }
       ]
     },
@@ -181,7 +217,7 @@
         "items": "Balance"
       }
     },
-    "sendLocal": {
+    "sendCLILocal": {
       "request": [
         {
           "name": "recipient",
@@ -208,7 +244,23 @@
           "type": "string"
         }
       ],
-      "response": "PaymentResult"
+      "response": "SendResultCLILocal"
+    },
+    "claimCLILocal": {
+      "request": [
+        {
+          "name": "txID",
+          "type": "string"
+        },
+        {
+          "name": "into",
+          "type": [
+            null,
+            "AccountID"
+          ]
+        }
+      ],
+      "response": "RelayClaimResult"
     },
     "recentPaymentsCLILocal": {
       "request": [

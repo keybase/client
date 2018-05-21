@@ -202,12 +202,8 @@ func addWalletServerArg(serverArg libkb.JSONPayload, bundleEncB64 string, bundle
 }
 
 type seqnoResult struct {
-	Status       libkb.AppStatus `json:"status"`
-	AccountSeqno string          `json:"seqno"`
-}
-
-func (s *seqnoResult) GetAppStatus() *libkb.AppStatus {
-	return &s.Status
+	libkb.AppStatusEmbed
+	AccountSeqno string `json:"seqno"`
 }
 
 func AccountSeqno(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (uint64, error) {
@@ -257,12 +253,8 @@ func Balances(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Ac
 }
 
 type submitResult struct {
-	Status        libkb.AppStatus        `json:"status"`
+	libkb.AppStatusEmbed
 	PaymentResult stellar1.PaymentResult `json:"payment_result"`
-}
-
-func (s *submitResult) GetAppStatus() *libkb.AppStatus {
-	return &s.Status
 }
 
 func SubmitPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
@@ -282,10 +274,6 @@ func SubmitPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.Pa
 }
 
 func SubmitRelayPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error) {
-	if true {
-		// TODO CORE-7718 re-enable this outgoing RPC
-		return stellar1.PaymentResult{}, fmt.Errorf("relay payments not implemented in this version (you may need to update keybase)")
-	}
 	payload := make(libkb.JSONPayload)
 	payload["payment"] = post
 	apiArg := libkb.APIArg{
@@ -299,6 +287,27 @@ func SubmitRelayPayment(ctx context.Context, g *libkb.GlobalContext, post stella
 		return stellar1.PaymentResult{}, err
 	}
 	return res.PaymentResult, nil
+}
+
+type submitClaimResult struct {
+	libkb.AppStatusEmbed
+	RelayClaimResult stellar1.RelayClaimResult `json:"claim_result"`
+}
+
+func SubmitRelayClaim(ctx context.Context, g *libkb.GlobalContext, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
+	payload := make(libkb.JSONPayload)
+	payload["claim"] = post
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitrelayclaim",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res submitClaimResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return stellar1.RelayClaimResult{}, err
+	}
+	return res.RelayClaimResult, nil
 }
 
 type recentPaymentsResult struct {
@@ -343,16 +352,12 @@ func PaymentDetail(ctx context.Context, g *libkb.GlobalContext,
 }
 
 type tickerResult struct {
-	Status     libkb.AppStatus `json:"status"`
-	Price      string          `json:"price"`
-	PriceInBTC string          `json:"xlm_btc"`
-	CachedAt   keybase1.Time   `json:"cached_at"`
-	URL        string          `json:"url"`
-	Currency   string          `json:"currency"`
-}
-
-func (b *tickerResult) GetAppStatus() *libkb.AppStatus {
-	return &b.Status
+	libkb.AppStatusEmbed
+	Price      string        `json:"price"`
+	PriceInBTC string        `json:"xlm_btc"`
+	CachedAt   keybase1.Time `json:"cached_at"`
+	URL        string        `json:"url"`
+	Currency   string        `json:"currency"`
 }
 
 func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (stellar1.OutsideExchangeRate, error) {
@@ -375,12 +380,8 @@ func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) 
 }
 
 type accountCurrencyResult struct {
-	Status                    libkb.AppStatus `json:"status"`
-	CurrencyDisplayPreference string          `json:"currency_display_preference"`
-}
-
-func (b *accountCurrencyResult) GetAppStatus() *libkb.AppStatus {
-	return &b.Status
+	libkb.AppStatusEmbed
+	CurrencyDisplayPreference string `json:"currency_display_preference"`
 }
 
 func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (string, error) {

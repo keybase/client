@@ -1,13 +1,11 @@
 // @flow
 import Box from './box'
-import Icon from './icon'
+import Icon, {type IconType} from './icon'
 import * as React from 'react'
 import Text from './text'
 import {globalStyles, globalColors, isMobile} from '../styles'
 import {iconMeta} from './icon.constants'
 import {storiesOf, action} from '../stories/storybook'
-
-import type {IconType} from './icon'
 
 const commonProps = {
   hint: 'hint text',

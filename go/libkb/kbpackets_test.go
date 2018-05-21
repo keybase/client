@@ -3,7 +3,11 @@
 
 package libkb
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestBadMsgpack(t *testing.T) {
 	p, err := DecodeArmoredPacket(`
@@ -29,9 +33,7 @@ MDljYmQ4MmFmYTdmYzZkZWQxOGI0OWI3YjZiMiIsInNlcW5vIjo0LCJ0YWciOiJzaWduYXR1cmUi
 faNzaWfEQG3uIt5g6X6NRAjnHdF1NSRO5UYJD1B0Ku1ixBIeS2zuSAGR0pts2Lbl+Cz3BGvu9isq
 7MHrgCa2r1PEo4C/4ACoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==
 `)
-	if err == nil {
-		t.Fatalf("Malformed msgpack should fail to decode, but decoded to: %#v", p)
-	}
+	require.Error(t, err, "Malformed msgpack should fail to decode, but decoded to: %#v", p)
 }
 
 func TestFishyMsgpack(t *testing.T) {
@@ -59,7 +61,18 @@ NGQwYjE5NTMwMzIwOWNiZDgyYWZhN2ZjNmRlZDE4YjQ5YjdiNmIyIiwic2Vxbm8iOjQsInRhZyI6
 InNpZ25hdHVyZSJ9o3NpZ8RAbe4i3mDpfo1ECOcd0XU1JE7lRgkPUHQq7WLEEh5LbO5IAZHSm2zY
 tuX4LPcEa+72KyrsweuAJravU8SjgL/gAKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
 `)
-	if _, ok := err.(FishyMsgpackError); !ok {
-		t.Fatalf("Expected a FishyMsgpackError, got %#v %#v", err, p)
-	}
+	require.IsType(t, err, FishyMsgpackError{}, "p=%+v", p)
+}
+
+// This is a regression test for
+// https://github.com/ugorji/go/issues/237 .
+func TestMsgpackReencodeNilHash(t *testing.T) {
+	// This message has a nil hash.
+	p, err := DecodeArmoredPacket(`
+hKRib2R5hapjaXBoZXJ0ZXh0wKhlbmNfdHlwZQClbm9uY2XArHJlY2VpdmVyX2tlecCqc2VuZGVy
+X2tlecCkaGFzaIKkdHlwZQildmFsdWXEIJZSZH19AzYud7qy9x3yx1hN2MooqnhjsytUSqTK+VMZ
+o3RhZ80CA6d2ZXJzaW9uAQ==
+`)
+	// In particular, shouldn't return a FishyMsgpackError.
+	require.NoError(t, err, "p=%+v", p)
 }

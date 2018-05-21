@@ -1,6 +1,6 @@
 // @flow
-import React, {Component} from 'react'
-import type {IconType} from '../../../common-adapters/icon'
+import * as React from 'react'
+import type {IconType} from '../../../common-adapters'
 
 export type Props = {
   onClick: () => void,
@@ -11,5 +11,5 @@ export type Props = {
   children?: any,
 }
 
-export default class Row extends Component<Props> {}
-export class RowCSS extends Component<{}, void> {}
+export default class Row extends React.Component<Props> {}
+export class RowCSS extends React.Component<{}, void> {}
