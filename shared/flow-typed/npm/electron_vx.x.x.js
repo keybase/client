@@ -416,17 +416,17 @@ type electron$contentTracing = {
 
 type electron$dialog = {
   showOpenDialog(
-    browserWindow?: electron$BrowserWindow,
+    browserWindow: ?electron$BrowserWindow,
     options: electron$dialogOpenOptions,
     callback?: Function
   ): Array<string>,
   showSaveDialog(
-    browserWindow?: electron$BrowserWindow,
+    browserWindow: ?electron$BrowserWindow,
     options: electron$dialogSaveOptions,
     callback?: Function
   ): string,
   showMessageBox(
-    browserWindow?: electron$BrowserWindow,
+    browserWindow: ?electron$BrowserWindow,
     options: electron$dialogMessageBoxOptions,
     callback?: Function
   ): number,

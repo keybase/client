@@ -146,7 +146,7 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
 function showError(errors: Array<string>, showOkay: boolean, callback: (err: ?Error) => void) {
   const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
   SafeElectron.getDialog().showMessageBox(
-    undefined,
+    null,
     {
       buttons: showOkay ? ['Okay'] : ['Ignore', 'Quit'],
       detail,

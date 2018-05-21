@@ -185,7 +185,7 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
 
 function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
   SafeElectron.getDialog().showMessageBox(
-    undefined,
+    null,
     {
       buttons: ['Remove & Restart', 'Cancel'],
       detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
