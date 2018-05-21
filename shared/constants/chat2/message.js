@@ -563,9 +563,9 @@ export const makePendingTextMessage = (
   // would cause the timer to count down while the message is still pending
   // and probably reset when we get the real message back.
 
-  const lastOrindal =
+  const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  const ordinal = nextFractionalOrdinal(lastOrindal)
+  const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   return makeMessageText({
     author: state.config.username || '',
@@ -589,9 +589,9 @@ export const makePendingAttachmentMessage = (
   previewURL: string,
   outboxID: Types.OutboxID
 ) => {
-  const lastOrindal =
+  const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  const ordinal = nextFractionalOrdinal(lastOrindal)
+  const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   return makeMessageAttachment({
     attachmentType,
