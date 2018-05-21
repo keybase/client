@@ -329,7 +329,7 @@ func GetPassphraseStreamStored(m MetaContext) (pps *PassphraseStream, err error)
 
 // GetTriplesecMaybePrompt will try to get the user's current triplesec.
 // It will either pluck it out of the environment or prompt the user for
-// a passphrase if it can't be found. The secret store is no use here
+// a passphrase if it can't be found. The secret store is of no use here,
 // so skip it. Recall that the full passphrase stream isn't stored to
 // the secret store, only the bits that encrypt local keys.
 func GetTriplesecMaybePrompt(m MetaContext) (tsec Triplesec, ppgen PassphraseGeneration, err error) {
@@ -367,7 +367,7 @@ func GetTriplesecMaybePrompt(m MetaContext) (tsec Triplesec, ppgen PassphraseGen
 }
 
 // GetPassphraseStreamViaPrompt prompts the user for a passphrase and on
-// success returns a PAssphraseStream and Triplesec derived from the user's
+// success returns a PassphraseStream and Triplesec derived from the user's
 // passphrase. As a side effect, it stores the full LKSec in the secret store.
 func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, tsec Triplesec, err error) {
 
@@ -424,7 +424,8 @@ func VerifyPassphraseGetStreamInLoginContext(m MetaContext, passphrase string) (
 }
 
 // VerifyPassphraseForLoggedInUser verifies that the current passphrase is correct for the logged
-// in user, returning nil if correct, and an error if not.
+// in user, returning nil if correct, and an error if not. Only used in tests right now, but
+// it's fine to use in production code if it seems appropriate.
 func VerifyPassphraseForLoggedInUser(m MetaContext, pp string) (err error) {
 	defer m.CTrace("VerifyPassphraseForLoggedInUser", func() error { return err })()
 	uid, un := m.ActiveDevice().GetUsernameAndUIDIfValid(m)

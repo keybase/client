@@ -99,11 +99,6 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 	return nil
 }
 
-// findDeviceKeys looks for device keys and unlocks them.
-func (c *PassphraseChange) findDeviceKeys(m libkb.MetaContext) (*libkb.DeviceWithKeys, error) {
-	return findDeviceKeys(m, c.me)
-}
-
 // findPaperKeys checks if the user has paper keys.  If he/she
 // does, it prompts for a paper key phrase.  This is used to
 // regenerate paper keys, which are then matched against the
@@ -123,8 +118,8 @@ func (c *PassphraseChange) findPaperKeys(m libkb.MetaContext) (*libkb.DeviceWith
 // The first choice is device keys.  If that fails, it will look
 // for backup keys.  If backup keys are necessary, then it will
 // also log the user in with the backup keys.
-func (c *PassphraseChange) findUpdateKeys(m libkb.MetaContext) (ad *libkb.ActiveDevice, err error) {
-	defer m.CTrace("PassphraseChange#findUpdateKeys", func() error { return err })()
+func (c *PassphraseChange) findUpdateDevice(m libkb.MetaContext) (ad *libkb.ActiveDevice, err error) {
+	defer m.CTrace("PassphraseChange#findUpdateDevice", func() error { return err })()
 	if ad = m.G().ActiveDevice; ad.Valid() {
 		m.CDebugf("| returning globally active device key")
 		return ad, nil
@@ -190,6 +185,8 @@ func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey lib
 		Endpoint:    "passphrase/sign",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
+		// Important to pass a MetaContext here to pick up the provisional login context
+		// or an ActiveDevice that is thread-local.
 		MetaContext: m,
 	}
 
@@ -207,7 +204,7 @@ func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey lib
 func (c *PassphraseChange) runForcedUpdate(m libkb.MetaContext) (err error) {
 	defer m.CTrace("PassphraseChange#runForcedUpdate", func() error { return err })()
 
-	ad, err := c.findUpdateKeys(m)
+	ad, err := c.findUpdateDevice(m)
 	if err != nil {
 		return
 	}
