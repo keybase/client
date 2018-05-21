@@ -1,6 +1,8 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
+import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
@@ -78,6 +80,22 @@ export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
 export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModes', c], 0)
+
+export const makeInboxQuery = (
+  convIDKeys: Array<Types.ConversationIDKey>
+): RPCChatTypes.GetInboxLocalQuery => {
+  return {
+    convIDs: convIDKeys.map(Types.keyToConversationID),
+    computeActiveList: true,
+    readOnly: false,
+    status: Object.keys(RPCChatTypes.commonConversationStatus)
+      .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
+      .map(k => RPCChatTypes.commonConversationStatus[k]),
+    tlfVisibility: RPCTypes.commonTLFVisibility.private,
+    topicType: RPCChatTypes.commonTopicType.chat,
+    unreadOnly: false,
+  }
+}
 
 export {
   findConversationFromParticipants,

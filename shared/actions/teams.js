@@ -599,18 +599,7 @@ function _getChannelInfo(action: TeamsGen.GetChannelInfoPayload) {
   return Saga.all([
     Saga.call(RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      // TODO: Trim down query params.
-      query: {
-        computeActiveList: true,
-        readOnly: false,
-        status: Object.keys(RPCChatTypes.commonConversationStatus)
-          .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
-          .map(k => RPCChatTypes.commonConversationStatus[k]),
-        tlfVisibility: RPCTypes.commonTLFVisibility.private,
-        topicType: RPCChatTypes.commonTopicType.chat,
-        unreadOnly: false,
-        convIDs: [ChatTypes.keyToConversationID(conversationIDKey)],
-      },
+      query: ChatConstants.makeInboxQuery([conversationIDKey]),
     }),
     Saga.identity(teamname),
     Saga.identity(conversationIDKey),
