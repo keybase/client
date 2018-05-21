@@ -87,7 +87,7 @@ const provider = createPropProvider({
   }),
   ViewContainer: () => ({
     url: '/keybase/private/foo/bar.jpg',
-    mimeType: 'jpb',
+    mimeType: 'jpg',
     isSymlink: false,
     path: '/keybase/private/foo/bar.jpg',
     onInvalidToken: action('onInvalidToken'),
