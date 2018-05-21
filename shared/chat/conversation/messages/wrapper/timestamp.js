@@ -9,7 +9,6 @@ export type Props = {
 
 class Timestamp extends React.PureComponent<Props> {
   render() {
-    return null
     return (
       <Box style={styleBox}>
         <Text style={styleText} type="BodySmallSemibold">
