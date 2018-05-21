@@ -810,6 +810,12 @@
       "name": "EphemeralPurgeInfo",
       "fields": [
         {
+          "type": "ConversationID",
+          "name": "convID",
+          "mpackkey": "c",
+          "jsonkey": "c"
+        },
+        {
           "type": "boolean",
           "name": "isActive",
           "mpackkey": "a",

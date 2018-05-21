@@ -121,9 +121,7 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 }
 
 func (h *Server) setResultRateLimit(ctx context.Context, res types.RateLimitedResult) {
-	if rlres, ok := res.(types.RateLimitedResult); ok {
-		rlres.SetRateLimits(CtxRateLimits(ctx))
-	}
+	res.SetRateLimits(CtxRateLimits(ctx))
 }
 
 func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.RemoteConversation,
@@ -370,23 +368,46 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 		err = libkb.LoginRequiredError{}
 		return res, err
 	}
-
 	// Read inbox from the source
 	localizer := NewBlockingLocalizer(h.G())
-	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query,
-		arg.Pagination)
+	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
 	if err != nil {
 		return res, err
 	}
 
-	res = chat1.GetInboxAndUnboxLocalRes{
+	return chat1.GetInboxAndUnboxLocalRes{
 		Conversations:    ib.Convs,
 		Pagination:       ib.Pagination,
 		Offline:          h.G().InboxSource.IsOffline(ctx),
 		IdentifyFailures: identBreaks,
-	}
+	}, nil
+}
 
-	return res, nil
+func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInboxAndUnboxUILocalArg) (res chat1.GetInboxAndUnboxUILocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetInboxAndUnboxUILocal")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		err = libkb.LoginRequiredError{}
+		return res, err
+	}
+	// Read inbox from the source
+	localizer := NewBlockingLocalizer(h.G())
+	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
+	if err != nil {
+		return res, err
+	}
+	return chat1.GetInboxAndUnboxUILocalRes{
+		Conversations:    utils.PresentConversationLocals(ib.Convs, h.G().Env.GetUsername().String()),
+		Pagination:       ib.Pagination,
+		IdentifyFailures: identBreaks,
+	}, nil
 }
 
 func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadArg) (res chat1.GetThreadLocalRes, err error) {
@@ -551,7 +572,7 @@ func (h *Server) applyPagerModeOutgoing(ctx context.Context, convID chat1.Conver
 		if pagination == nil {
 			return
 		}
-		if incoming == nil || (len(incoming.Next) == 0 && len(incoming.Previous) == 0) {
+		if incoming.FirstPage() {
 			h.Debug(ctx, "applyPagerModeOutgoing: resetting pagination: convID: %s p: %s", convID, pagination)
 			h.convPageStatus[convID.String()] = *pagination
 		} else {
@@ -570,7 +591,24 @@ func (h *Server) applyPagerModeOutgoing(ctx context.Context, convID chat1.Conver
 	}
 }
 
+func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	pagination *chat1.Pagination, resultPagination *chat1.Pagination) {
+	// Fire off pageback background jobs if we fetched the first page
+	if pagination.FirstPage() && resultPagination != nil && !resultPagination.Last {
+		p := &chat1.Pagination{
+			Num:  50,
+			Next: resultPagination.Next,
+		}
+		h.Debug(ctx, "dispatchOldPagesJob: queuing %s because of first page fetch: p: %s", convID, p)
+		if err := h.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityLow,
+			newConvLoaderPagebackHook(h.G(), 0, 5))); err != nil {
+			h.Debug(ctx, "dispatchOldPagesJob: failed to queue conversation load: %s", err)
+		}
+	}
+}
+
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
+	var pagination, resultPagination *chat1.Pagination
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
@@ -588,15 +626,11 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		} else {
 			h.G().FetchRetrier.Success(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
+			// Load old pages of this conversation on success
+			h.dispatchOldPagesJob(ctx, arg.ConversationID, uid, pagination, resultPagination)
 		}
 	}()
 	defer h.suspendConvLoader(ctx)()
-	defer func() {
-		if res.Offline {
-			h.Debug(ctx, "GetThreadNonblock: result obtained offline")
-		}
-	}()
-
 	// Lock conversation while this is running
 	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, arg.ConversationID); err != nil {
 		return res, err
@@ -623,8 +657,8 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	h.G().Syncer.SelectConversation(ctx, arg.ConversationID)
 
 	// Decode presentation form pagination
-	pagination, err := utils.DecodePagination(arg.Pagination)
-	if err != nil {
+	var err error
+	if pagination, err = utils.DecodePagination(arg.Pagination); err != nil {
 		return res, err
 	}
 
@@ -687,12 +721,8 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		}
 		var pthread *string
 		if resThread != nil {
-			pstr := "<nil>"
-			if resThread.Pagination != nil {
-				pstr = resThread.Pagination.String()
-			}
 			h.Debug(ctx, "GetThreadNonblock: sending cached response: messages: %d pager: %s",
-				len(resThread.Messages), pstr)
+				len(resThread.Messages), resThread.Pagination)
 			var jsonPt []byte
 			var err error
 
@@ -738,18 +768,15 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, arg.CbMode); fullErr != nil {
 			return
 		}
-		pstr := "<nil>"
-		if rthread.Pagination != nil {
-			pstr = rthread.Pagination.String()
-		}
 		h.Debug(ctx, "GetThreadNonblock: sending full response: messages: %d pager: %s",
-			len(rthread.Messages), pstr)
+			len(rthread.Messages), rthread.Pagination)
 		uires := utils.PresentThreadView(bctx, h.G(), uid, rthread, arg.ConversationID)
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)
 			return
 		}
+		resultPagination = rthread.Pagination
 		h.applyPagerModeOutgoing(bctx, arg.ConversationID, rthread.Pagination, pagination, arg.Pgmode)
 		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
 			SessionID: arg.SessionID,

@@ -17,7 +17,6 @@ declare export class Engine {
   listenOnConnect(key: string, f: () => void): void;
   listenOnDisconnect(key: string, f: () => void): void;
   hasEverConnected(): void;
-  setIncomingHandler(name: string, callback: Function): void;
   setIncomingActionCreators(
     method: string,
     actionCreator: (param: Object, response: ?Object, dispatch: Dispatch, getState: () => any) => ?any

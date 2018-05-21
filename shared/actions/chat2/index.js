@@ -32,6 +32,7 @@ import {
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
+import type {MsgID} from '../../constants/types/rpc-gregor-gen'
 
 const inboxQuery = {
   computeActiveList: true,
@@ -1223,6 +1224,9 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const tlfName = meta.tlfname // TODO non existant convo
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
 
+  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+
   // Inject pending message and make the call
   return Saga.sequentially([
     Saga.put(
@@ -1239,6 +1243,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
       })
     ),
     Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
+      ...ephemeralData,
       body: text.stringValue(),
       clientPrev,
       conversationID: Types.keyToConversationID(conversationIDKey),
@@ -1893,6 +1898,58 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
   }
   return ret
 }
+
+const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
+  const {conversationIDKey, seconds} = action.payload
+  logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
+  const cat = Constants.explodingModeGregorKey(conversationIDKey)
+  if (seconds === 0) {
+    // dismiss the category so we don't leave cruft in the push state
+    return Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category: cat})
+  }
+  return Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+    body: seconds.toString(),
+    cat,
+    dtime: {offset: 0, time: 0},
+  })
+}
+
+const setConvExplodingModeSuccess = (res: MsgID | void, action: Chat2Gen.SetConvExplodingModePayload) => {
+  const {conversationIDKey, seconds} = action.payload
+  if (seconds !== 0) {
+    logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
+  } else {
+    logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
+  }
+}
+
+// don't bug the users with black bars for network errors. chat isn't going to work in general
+const ignoreErrors = [
+  RPCTypes.constantsStatusCode.scgenericapierror,
+  RPCTypes.constantsStatusCode.scapinetworkerror,
+  RPCTypes.constantsStatusCode.sctimeout,
+]
+const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePayload) => {
+  const {conversationIDKey, seconds} = action.payload
+  if (seconds !== 0) {
+    logger.error(
+      `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${
+        e.message
+      }`
+    )
+  } else {
+    logger.error(
+      `Failed to unset exploding mode for conversation ${conversationIDKey}. Service responded with: ${
+        e.message
+      }`
+    )
+  }
+  if (ignoreErrors.includes(e.code)) {
+    return
+  }
+  throw e
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2008,6 +2065,14 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
+
+  // Exploding things
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.setConvExplodingMode,
+    setConvExplodingMode,
+    setConvExplodingModeSuccess,
+    setConvExplodingModeFailure
+  )
 }
 
 export default chat2Saga

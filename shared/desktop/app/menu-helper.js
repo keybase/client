@@ -1,11 +1,7 @@
 // @flow
-// Can't tell which thread we're in so let's try both
-import electron from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {executeActionsForContext} from '../../util/quit-helper.desktop'
 import {isDarwin} from '../../constants/platform'
-
-const Menu = electron.Menu || electron.remote.Menu
-const shell = electron.shell || electron.remote.shell
 
 export default function makeMenu(window: any) {
   const editMenu = {
@@ -51,7 +47,7 @@ export default function makeMenu(window: any) {
       {
         label: 'Learn More',
         click() {
-          shell.openExternal('https://keybase.io')
+          SafeElectron.getShell().openExternal('https://keybase.io')
         },
       },
     ],
@@ -87,8 +83,9 @@ export default function makeMenu(window: any) {
         ...helpMenu,
       },
     ]
-    const menu = Menu.buildFromTemplate(template)
-    Menu.setApplicationMenu(menu)
+    // $FlowIssue not sure yet
+    const menu = SafeElectron.Menu.buildFromTemplate(template)
+    SafeElectron.Menu.setApplicationMenu(menu)
   } else {
     const template = [
       {
@@ -117,15 +114,16 @@ export default function makeMenu(window: any) {
         label: '&Help',
       },
     ]
-    const menu = Menu.buildFromTemplate(template)
+    // $FlowIssue not sure yet
+    const menu = SafeElectron.Menu.buildFromTemplate(template)
     window.setMenu(menu)
   }
 }
 
 export function setupContextMenu(window: any) {
-  const selectionMenu = Menu.buildFromTemplate([{role: 'copy'}])
+  const selectionMenu = SafeElectron.Menu.buildFromTemplate([{role: 'copy'}])
 
-  const inputMenu = Menu.buildFromTemplate([
+  const inputMenu = SafeElectron.Menu.buildFromTemplate([
     {role: 'undo'},
     {role: 'redo'},
     {type: 'separator'},

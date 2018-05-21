@@ -582,6 +582,7 @@ protocol local {
   }
 
   GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetInboxAndUnboxUILocalRes getInboxAndUnboxUILocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
@@ -604,6 +605,14 @@ protocol local {
   }
   record GetInboxAndUnboxLocalRes {
     array<ConversationLocal> conversations;
+    union { null, Pagination } pagination;
+
+    boolean offline;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+   record GetInboxAndUnboxUILocalRes {
+    array<InboxUIItem> conversations;
     union { null, Pagination } pagination;
 
     boolean offline;

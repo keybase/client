@@ -17,6 +17,7 @@ type ChatContext struct {
 	PushHandler         types.PushHandler         // for handling push notifications from chat server
 	TeamChannelSource   types.TeamChannelSource   // source of all channels in a team
 	AttachmentURLSrv    types.AttachmentURLSrv    // source of URLs for loading attachments
+	EphemeralPurger     types.EphemeralPurger     // triggers background purges of ephemeral chats
 }
 
 type Context struct {
