@@ -7,7 +7,7 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 import {ModalPositionRelative} from '../common-adapters/relative-popup-hoc.desktop'
 import TeamInfo from '../profile/showcased-team-info'
 import NonUser from './non-user'
-import {autoResize} from '../desktop/remote/util'
+import {autoResize} from '../desktop/remote/util.desktop'
 import TrackerError from './error.desktop'
 
 import type {Props} from '.'

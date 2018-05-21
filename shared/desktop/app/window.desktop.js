@@ -1,6 +1,6 @@
 // @flow
-import {showDockIcon, hideDockIcon} from './dock-icon'
-import menuHelper from './menu-helper'
+import {showDockIcon, hideDockIcon} from './dock-icon.desktop'
+import menuHelper from './menu-helper.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 
 export default class Window {

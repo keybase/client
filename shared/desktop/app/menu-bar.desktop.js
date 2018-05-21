@@ -3,7 +3,7 @@ import menubar from 'menubar'
 import {injectReactQueryParams} from '../../util/dev'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
-import {resolveImage, resolveRootAsURL} from '../resolve-root'
+import {resolveImage, resolveRootAsURL} from '../resolve-root.desktop'
 import type {BadgeType} from '../../constants/types/notifications'
 
 let iconType: BadgeType = 'regular'
