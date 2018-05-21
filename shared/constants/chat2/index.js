@@ -76,7 +76,7 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
  */
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
-export const getConversationExplodingMode = (c: Types.ConversationIDKey, state: TypedState) =>
+export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModes', c], 0)
 
 export {
