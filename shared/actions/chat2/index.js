@@ -1223,7 +1223,9 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+
   const ephemeralLifetime = Constants.getConversationExplodingMode(conversationIDKey, state)
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   // Inject pending message and make the call
   return Saga.sequentially([
@@ -1241,10 +1243,10 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
       })
     ),
     Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
+      ...ephemeralData,
       body: text.stringValue(),
       clientPrev,
       conversationID: Types.keyToConversationID(conversationIDKey),
-      ephemeralLifetime,
       identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
       outboxID,
       tlfName,

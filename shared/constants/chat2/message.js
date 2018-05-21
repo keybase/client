@@ -32,6 +32,8 @@ const makeMessageCommon = {
 const makeMessageExplodable = {
   exploded: false,
   explodedBy: '',
+  exploding: false,
+  explodingTime: Date.now(),
 }
 
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
@@ -303,6 +305,9 @@ const validUIMessagetoMessage = (
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
+    exploded: m.isEphemeralExpired,
+    exploding: m.isEphemeral,
+    explodingTime: m.etime,
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
   }
 
@@ -558,7 +563,13 @@ export const makePendingTextMessage = (
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
   const ordinal = nextFractionalOrdinal(lastOrindal)
 
+  // set exploding metadata for message
+  const explodingLifetime = state.chat2.getIn(['explodingModes', conversationIDKey], 0)
+  const explodingTime = Date.now() + explodingLifetime * 10000
+  const explodeData = explodingLifetime !== 0 ? {exploding: true, explodingTime} : {}
+
   return makeMessageText({
+    ...explodeData,
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
