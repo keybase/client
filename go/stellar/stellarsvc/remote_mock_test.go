@@ -194,7 +194,6 @@ type FakeAccount struct {
 	secretKey  stellar1.SecretKey // can be missing for relay accounts
 	balance    stellar1.Balance
 	subentries int
-	t          *testing.T
 }
 
 func (a *FakeAccount) AddBalance(amt string) {
@@ -257,7 +256,7 @@ func (a *FakeAccount) Check() bool {
 func (a *FakeAccount) availableBalance() string {
 	b, err := stellarnet.AvailableBalance(a.balance.Amount, a.subentries)
 	if err != nil {
-		a.t.Fatalf("AvailableBalance error: %s", err)
+		a.T.Fatalf("AvailableBalance error: %s", err)
 	}
 	return b
 }
