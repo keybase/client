@@ -74,12 +74,12 @@ function setupApp(store) {
 
   ipcRenderer.send('mainWindowWantsMenubarWindowID')
 
-  // After a delay, see if we're connected, and try starting keybase if not
-  setTimeout(() => {
+  // See if we're connected, and try starting keybase if not.
+  setImmediate(() => {
     if (!eng.hasEverConnected()) {
       ipcRenderer.send('kb-service-check')
     }
-  }, 3 * 1000)
+  })
 
   // After a delay dump logs in case some startup stuff happened
   setTimeout(() => {
