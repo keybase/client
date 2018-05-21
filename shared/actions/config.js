@@ -123,10 +123,10 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
       logger.info('[bootstrap] bootstrapping on connect')
       dispatch(ConfigGen.createBootstrap({}))
     })
+    dispatch(registerListeners())
   } else {
     logger.info('[bootstrap] performing bootstrap...')
     Promise.all([
-      dispatch(registerListeners()),
       dispatch(getBootstrapStatus()),
       checkRPCOwnership(),
       dispatch(waitForKBFS()),
