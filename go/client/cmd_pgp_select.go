@@ -55,7 +55,7 @@ Learn more: keybase pgp help select
 `
 
 const importPrivDisclaimer = `You are selecting a PGP key to publish in your profile, and
-importing key to *local*, *encrypted* Keybase keyring.
+importing secret key to *local*, *encrypted* Keybase keyring.
 
 If your GPG key is encrypted, you will be asked for passphrase
 to unlock it. You may be asked *twice* - first by GPG, to export
