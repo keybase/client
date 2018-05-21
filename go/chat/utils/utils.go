@@ -790,6 +790,13 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 
 func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) string {
 	if !msg.IsValidFull() {
+		if msg.IsValid() {
+			mvalid := msg.Valid()
+			// TODO If a message is exploding, display the snippet version of "ash lines"
+			if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
+				return ""
+			}
+		}
 		return ""
 	}
 	var prefix string
@@ -811,6 +818,43 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 		return systemMessageSnippet(msg.Valid().MessageBody.System())
 	}
 	return ""
+}
+
+// We don't want to display the contents of an exploding message in notifications
+func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string) string {
+	if conv == nil {
+		return ""
+	}
+	msg, err := PickLatestMessageUnboxed(*conv, VisibleChatMessageTypes())
+	if err != nil || !msg.IsValid() {
+		return ""
+	}
+	mvalid := msg.Valid()
+	if !mvalid.IsEphemeral() {
+		return GetMsgSnippet(msg, *conv, currentUsername)
+	}
+
+	// If the message is already exploded, nothing to see here.
+	if !msg.IsValidFull() {
+		return ""
+	}
+
+	var prefix string
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		sender := msg.Valid().SenderUsername
+		if sender == currentUsername {
+			prefix = "You: "
+		} else {
+			prefix = fmt.Sprintf("%s: ", sender)
+		}
+	}
+	switch msg.GetMessageType() {
+	case chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT:
+		return prefix + "sent an exploding 💣 message 💥."
+	default:
+		return ""
+	}
 }
 
 func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {

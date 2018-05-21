@@ -884,7 +884,7 @@ export type InboxView = {rtype: 0} | {rtype: 1, full: ?InboxViewFull}
 
 export type InboxViewFull = $ReadOnly<{vers: InboxVers, conversations?: ?Array<Conversation>, pagination?: ?Pagination}>
 
-export type IncomingMessage = $ReadOnly<{message: UIMessage, convID: ConversationID, displayDesktopNotification: Boolean, conv?: ?InboxUIItem, pagination?: ?UIPagination}>
+export type IncomingMessage = $ReadOnly<{message: UIMessage, convID: ConversationID, displayDesktopNotification: Boolean, desktopNotificationSnippet: String, conv?: ?InboxUIItem, pagination?: ?UIPagination}>
 
 export type JoinLeaveConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 
