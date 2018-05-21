@@ -33,7 +33,7 @@ const SetDescription = (props: Props) => {
           {props.description ? 'set the channel description' : 'cleared the channel description'}
         </Text>
       }
-      bottomLine={props.description ? <Text type="BodySmallItalic">{props.description}</Text> : null}
+      bottomLine={props.description ? <Text type="BodySmall">{props.description}</Text> : null}
     />
   )
 }
