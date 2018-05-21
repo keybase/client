@@ -663,7 +663,7 @@ func stepAssertRegexMatch(g proofContextExt, ins assertRegexMatchT, state script
 		if ins.Negate {
 			negate = ""
 		}
-		debugWithState(g, state, "Regex did %smatch:\n  %v\n  %v\n  %v",
+		debugWithState(g, state, "Regex did %smatch:\n  %v\n  %v\n  %q",
 			negate, rdesc.Template, re, from)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Regex did %smatch (%v)", negate, rdesc.Template)
@@ -761,7 +761,7 @@ func stepRegexCapture(g proofContextExt, ins regexCaptureT, state scriptState) (
 	// Assert that the match matched and has at least one capture group.
 	// -1 for the ignored first element of match
 	if len(match)-1 < len(ins.Into) {
-		debugWithState(g, state, "Regex capture did not match enough groups:\n  %v\n  %v\n  %v\n  %v",
+		debugWithState(g, state, "Regex capture did not match enough groups:\n  %v\n  %v\n  %q\n  %v",
 			rdesc.Template, re, from, match)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Regex capture did not match enough groups (%v)", rdesc.Template)

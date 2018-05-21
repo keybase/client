@@ -1,9 +1,12 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 var ActionNewConversation = "newConversation"
@@ -12,6 +15,7 @@ var ActionReadMessage = "readMessage"
 var ActionSetStatus = "setStatus"
 var ActionSetAppNotificationSettings = "setAppNotificationSettings"
 var ActionTeamType = "teamType"
+var ActionExpunge = "expunge"
 
 var PushActivity = "chat.activity"
 var PushTyping = "chat.typing"
@@ -19,12 +23,25 @@ var PushMembershipUpdate = "chat.membershipUpdate"
 var PushTLFFinalize = "chat.tlffinalize"
 var PushTLFResolve = "chat.tlfresolve"
 var PushTeamChannels = "chat.teamchannels"
+var PushKBFSUpgrade = "chat.kbfsupgrade"
+var PushConvRetention = "chat.convretention"
+var PushTeamRetention = "chat.teamretention"
+
+func NewAllCryptKeys() AllCryptKeys {
+	return make(AllCryptKeys)
+}
 
 type NameInfo struct {
 	ID               chat1.TLFID
 	CanonicalName    string
 	IdentifyFailures []keybase1.TLFIdentifyFailure
-	CryptKeys        []CryptKey
+	CryptKeys        map[chat1.ConversationMembersType][]CryptKey
+}
+
+func NewNameInfo() *NameInfo {
+	return &NameInfo{
+		CryptKeys: make(map[chat1.ConversationMembersType][]CryptKey),
+	}
 }
 
 type MembershipUpdateRes struct {
@@ -64,7 +81,41 @@ type Inbox struct {
 	Pagination      *chat1.Pagination
 }
 
-type ConvIDAndTopicName struct {
-	ConvID    chat1.ConversationID
-	TopicName string
+type ConvLoaderPriority int
+
+var (
+	ConvLoaderPriorityHighest ConvLoaderPriority = 10
+	ConvLoaderPriorityHigh    ConvLoaderPriority = 7
+	ConvLoaderPriorityMedium  ConvLoaderPriority = 5
+	ConvLoaderPriorityLow     ConvLoaderPriority = 3
+	ConvLoaderPriorityLowest  ConvLoaderPriority
+)
+
+func (c ConvLoaderPriority) HigherThan(c2 ConvLoaderPriority) bool {
+	return int(c) > int(c2)
+}
+
+type ConvLoaderJob struct {
+	ConvID       chat1.ConversationID
+	Pagination   *chat1.Pagination
+	Priority     ConvLoaderPriority
+	PostLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)
+}
+
+func (j ConvLoaderJob) HigherPriorityThan(j2 ConvLoaderJob) bool {
+	return j.Priority.HigherThan(j2.Priority)
+}
+
+func (j ConvLoaderJob) String() string {
+	return fmt.Sprintf("[convID: %s pagination: %s]", j.ConvID, j.Pagination)
+}
+
+func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination, priority ConvLoaderPriority,
+	postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
+	return ConvLoaderJob{
+		ConvID:       convID,
+		Pagination:   pagination,
+		Priority:     priority,
+		PostLoadHook: postLoadHook,
+	}
 }

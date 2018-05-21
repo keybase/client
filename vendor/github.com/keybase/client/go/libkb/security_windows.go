@@ -80,5 +80,6 @@ func GetNamedSecurityInfo(objectName string, objectType int32, secInfo uint32, o
 		}
 		return syscall.Errno(ret)
 	}
+
 	return nil
 }

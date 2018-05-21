@@ -278,20 +278,28 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 		a.G().Log.Warning("local session after load is nil")
 	}
 	unp := a.localSession.GetUsername()
-	// not sure how this could happen, but just in case:
-	if unp == nil {
-		return nil, NoUsernameError{}
+	var un NormalizedUsername
+	if unp != nil {
+		un = *unp
+	}
+	if un.IsNil() {
+		un = a.G().Env.GetUsername()
 	}
 
-	if a.skbKeyring != nil && a.skbKeyring.IsForUsername(*unp) {
-		a.G().Log.Debug("Account: found loaded keyring for %s", *unp)
+	// not sure how this could happen, but just in case:
+	if un.IsNil() {
+		return nil, NewNoUsernameError()
+	}
+
+	if a.skbKeyring != nil && a.skbKeyring.IsForUsername(un) {
+		a.G().Log.Debug("Account: found loaded keyring for %s", un)
 		return a.skbKeyring, nil
 	}
 
 	a.skbKeyring = nil
 
-	a.G().Log.Debug("Account: loading keyring for %s", *unp)
-	kr, err := LoadSKBKeyring(*unp, a.G())
+	a.G().Log.Debug("Account: loading keyring for %s", un)
+	kr, err := LoadSKBKeyring(un, a.G())
 	if err != nil {
 		return nil, err
 	}
@@ -447,10 +455,14 @@ func (a *Account) saveUserConfig(username NormalizedUsername, uid keybase1.UID, 
 	return cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), true /* overwrite */)
 }
 
-func (a *Account) Dump() {
+func (a *Account) Dump(m MetaContext, prefix string) {
 	fmt.Printf("Account dump:\n")
 	a.loginSession.Dump()
 	a.streamCache.Dump()
+}
+
+func (a *Account) SetLoginSession(l *LoginSession) {
+	a.setLoginSession(l)
 }
 
 func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
@@ -531,26 +543,6 @@ func (a *Account) deviceNameLookup(device *Device, me *User, key GenericKey) str
 	return *device.Description
 }
 
-func (a *Account) SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error {
-	a.paperSigKey = newTimedGenericKey(a.G(), sig, "paper signing key")
-	a.paperEncKey = newTimedGenericKey(a.G(), enc, "paper encryption key")
-	return nil
-}
-
-func (a *Account) GetUnlockedPaperSigKey() GenericKey {
-	if a.paperSigKey == nil {
-		return nil
-	}
-	return a.paperSigKey.getKey()
-}
-
-func (a *Account) GetUnlockedPaperEncKey() GenericKey {
-	if a.paperEncKey == nil {
-		return nil
-	}
-	return a.paperEncKey.getKey()
-}
-
 func (a *Account) ClearCachedSecretKeys() {
 	a.G().Log.Debug("clearing cached secret keys")
 	a.ClearPaperKeys()
@@ -604,4 +596,8 @@ func (a *Account) SecretPromptCanceled() {
 
 func (a *Account) SetDeviceName(name string) error {
 	return a.G().ActiveDevice.setDeviceName(a, a.G().Env.GetUID(), a.localSession.GetDeviceID(), name)
+}
+
+func (a *Account) SetUsernameUID(n NormalizedUsername, u keybase1.UID) error {
+	return errors.New("cannot call SetUsernameUID on legacy Account object")
 }

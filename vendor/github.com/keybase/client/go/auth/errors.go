@@ -10,7 +10,10 @@ import (
 // ErrShutdown is raised when an operation is pending but the CA is shutting down
 var ErrShutdown = errors.New("shutting down")
 
-// BadUsernameError is raised when the given username disagreeds with the expected
+// ErrUserDeleted is raised when a user is deleted, but was loaded without the loadDeleted flag
+var ErrUserDeleted = errors.New("user was deleted")
+
+// BadUsernameError is raised when the given username disagrees with the expected
 // username
 type BadUsernameError struct {
 	expected libkb.NormalizedUsername
@@ -31,13 +34,8 @@ func (e BadKeyError) Error() string {
 	return fmt.Sprintf("Bad key error: %s not active for %s", e.kid, e.uid)
 }
 
-// KeysNotEqualError is raised when compared keys sets aren't equal.
-type KeysNotEqualError struct {
-}
-
-func (e KeysNotEqualError) Error() string {
-	return "Keys not equal"
-}
+// ErrKeysNotEqual is raised when compared keys sets aren't equal.
+var ErrKeysNotEqual = errors.New("keys not equal")
 
 // InvalidTokenTypeError is raised when the given token is not of the expected type.
 type InvalidTokenTypeError struct {

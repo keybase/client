@@ -8,6 +8,7 @@ package libkb
 import (
 	"syscall"
 	"unsafe"
+
 	"golang.org/x/sys/windows"
 )
 

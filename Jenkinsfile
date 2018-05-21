@@ -247,6 +247,10 @@ def runNixTest(prefix) {
     tests[prefix+'gofmt'] = {
         sh 'test -z $(gofmt -l $(go list ./... 2>/dev/null | grep -v /vendor/ | sed -e s/github.com.keybase.kbfs.// ))'
     }
+    tests[prefix+'notestingdep'] = {
+        // Make sure we don't accidentally pull in the testing package.
+        sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/kbfs/kbfsfuse | grep testing'
+    }
     tests[prefix+'vet'] = {
         sh '''
             lint=$(make -s lint);
