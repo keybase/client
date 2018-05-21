@@ -11,7 +11,7 @@ import DevicesRoute from '../devices/routes'
 import WalletsRoute from '../wallets/routes'
 import GitRoute from '../git/routes'
 import FilesRoute from '../fs/routes'
-import WebLinks from './web-links'
+import WebLinks from './web-links.native'
 import Passphrase from './passphrase/container'
 
 import About from './about-container'
