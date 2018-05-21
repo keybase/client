@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, globalMargins} from '../../styles'
-import {Box} from '../../common-adapters'
 import {type PdfViewProps} from './pdf-view'
+import {Box, WebView} from '../../common-adapters'
 
 const PdfView = (props: PdfViewProps) => (
   <Box style={stylesContainer}>
-    <webview style={stylesWebview} src={`chrome://pdf-viewer/index.html?src=${props.url}`} />
+    <WebView style={stylesWebview} url={`chrome://pdf-viewer/index.html?src=${props.url}`} />
   </Box>
 )
 

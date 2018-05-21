@@ -1,0 +1,15 @@
+// @flow
+import * as React from 'react'
+
+export type WebViewInjections = {
+  javaScript?: string,
+  css?: string,
+}
+
+export type WebViewProps = {
+  url: string,
+	injections?: WebViewInjections,
+  style?: Object,
+}
+
+declare export default React.ComponentType<WebViewProps>

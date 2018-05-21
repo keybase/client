@@ -466,12 +466,13 @@ export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
 export const isMedia = (pathItem: Types.PathItem): boolean =>
   pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
 
+const slashKeybaseSlashLength = '/keybase/'.length
 export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types._LocalHTTPServer): string => {
   if (localHTTPServerInfo === null) {
     return 'about:blank'
   }
   const {address, token} = localHTTPServerInfo || makeLocalHTTPServer() // make flow happy
-  const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
+  const stripKeybase = Types.pathToString(path).slice(slashKeybaseSlashLength)
   const encoded = encodeURIComponent(stripKeybase)
   return `http://${address}/files/${encoded}?token=${token}`
 }

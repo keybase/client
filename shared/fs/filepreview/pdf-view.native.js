@@ -1,14 +1,12 @@
 // @flow
 import * as React from 'react'
-import WebView from '../../common-adapters/web-view.native'
+import {WebView} from '../../common-adapters'
 import {globalColors} from '../../styles'
 import {type PdfViewProps} from './pdf-view'
 
-const PdfView = ({url, onInvalidToken}: PdfViewProps) => (
-  <WebView styles={stylesVideoView} source={{uri: url}} />
-)
+const PdfView = ({url, onInvalidToken}: PdfViewProps) => <WebView styles={stylesPdfView} url={url} />
 
-const stylesVideoView = {
+const stylesPdfView = {
   backgroundColor: globalColors.blue5,
 }
 
