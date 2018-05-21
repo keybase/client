@@ -622,8 +622,8 @@ function _getChannelInfo(action: TeamsGen.GetChannelInfoPayload) {
 function _afterGetChannelInfo(fromGetChannelInfo: any[]) {
   const results: RPCChatTypes.GetInboxAndUnboxUILocalRes = fromGetChannelInfo[0]
   const teamname: string = fromGetChannelInfo[1]
-  const conversationIDKey: ChatTypes.ConversationIDKey = fromGetChannelInfo[1]
-  const waitingKey: {|key: string|} = fromGetChannelInfo[2]
+  const conversationIDKey: ChatTypes.ConversationIDKey = fromGetChannelInfo[2]
+  const waitingKey: {|key: string|} = fromGetChannelInfo[3]
   const convs = results.conversations || []
   if (convs.length !== 1) {
     logger.warn(`Could not get channel info`)
