@@ -31,6 +31,11 @@
     "setAddUserToTeamsResults": {
       "results": "string"
     },
+    "getChannelInfo": {
+      "_description": "Fetches the channel information for a single channel in a team from the server.",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "teamname": "string",
+    },
     "getChannels": {
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"

@@ -15,6 +15,10 @@ export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 // Waiting keys
 // Add granularity as necessary
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const getChannelInfoWaitingKey = (
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey
+) => `getChannelInfo:${teamname}:${conversationIDKey}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
 export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
 export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`

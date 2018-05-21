@@ -593,6 +593,57 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
   yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
 }
 
+function _getChannelInfo(action: TeamsGen.GetChannelInfoPayload) {
+  const {teamname, conversationIDKey} = action.payload
+  const waitingKey = {key: Constants.getChannelInfoWaitingKey(teamname, conversationIDKey)}
+  return Saga.all([
+    Saga.call(RPCChatTypes.localGetInboxAndUnboxLocalRpcPromise, {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      // TODO: Trim down query params.
+      query: {
+        computeActiveList: true,
+        readOnly: false,
+        status: Object.keys(RPCChatTypes.commonConversationStatus)
+          .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
+          .map(k => RPCChatTypes.commonConversationStatus[k]),
+        tlfVisibility: RPCTypes.commonTLFVisibility.private,
+        topicType: RPCChatTypes.commonTopicType.chat,
+        unreadOnly: false,
+        convIDs: [ChatTypes.keyToConversationID(conversationIDKey)],
+      },
+    }),
+    Saga.identity(teamname),
+    Saga.identity(conversationIDKey),
+    Saga.identity(waitingKey),
+    Saga.put(createIncrementWaiting(waitingKey)),
+  ])
+}
+
+function _afterGetChannelInfo(fromGetChannelInfo: any[]) {
+  // const results: RPCChatTypes.GetInboxAndUnboxLocalRes = fromGetChannelInfo[0]
+  // const teamname: string = fromGetChannelInfo[1]
+  // const conversationIDKey: ChatTypes.ConversationIDKey = fromGetChannelInfo[1]
+  const waitingKey: {|key: string|} = fromGetChannelInfo[2]
+  /*
+  const convs = results.conversations || []
+  if (convs.length !== 1) {
+    logger.warn(`Could not get channel info`)
+    return Saga.put(createDecrementWaiting(waitingKey))
+  }
+
+  const conv = convs[0]
+  const channelInfo = Constants.makeChannelInfo({
+    channelname: '???', //conv.channel,
+    description: '???', //conv.headline,
+    participants: I.Set(), //I.Set(conv.info.participants || []),
+  })
+*/
+  return Saga.all([
+    //Saga.put(TeamsGen.createSetTeamChannelInfo({teamname, conversationIDKey, channelInfo})),
+    Saga.put(createDecrementWaiting(waitingKey)),
+  ])
+}
+
 function _getChannels(action: TeamsGen.GetChannelsPayload) {
   const teamname = action.payload.teamname
   const waitingKey = {key: Constants.getChannelsWaitingKey(teamname)}
@@ -1139,6 +1190,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.getTeamPublicity, _getTeamPublicity)
   yield Saga.safeTakeEvery(TeamsGen.getTeamOperations, _getTeamOperations)
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
+  yield Saga.safeTakeEveryPure(TeamsGen.getChannelInfo, _getChannelInfo, _afterGetChannelInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
   yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership)

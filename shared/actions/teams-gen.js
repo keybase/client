@@ -24,6 +24,7 @@ export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteChannelInfo = 'teams:deleteChannelInfo'
 export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
+export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
 export const getDetailsForAllTeams = 'teams:getDetailsForAllTeams'
@@ -136,6 +137,10 @@ type _EditMembershipPayload = $ReadOnly<{|
 type _EditTeamDescriptionPayload = $ReadOnly<{|
   teamname: string,
   description: string,
+|}>
+type _GetChannelInfoPayload = $ReadOnly<{|
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  teamname: string,
 |}>
 type _GetChannelsPayload = $ReadOnly<{|teamname: string|}>
 type _GetDetailsForAllTeamsPayload = void
@@ -272,6 +277,10 @@ type _UpdateTopicPayload = $ReadOnly<{|
 
 // Action Creators
 /**
+ * Fetches the channel information for a single channel in a team from the server.
+ */
+export const createGetChannelInfo = (payload: _GetChannelInfoPayload) => ({error: false, payload, type: getChannelInfo})
+/**
  * Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.
  */
 export const createGetChannels = (payload: _GetChannelsPayload) => ({error: false, payload, type: getChannels})
@@ -355,6 +364,7 @@ export type DeleteChannelConfirmedPayload = $Call<typeof createDeleteChannelConf
 export type DeleteChannelInfoPayload = $Call<typeof createDeleteChannelInfo, _DeleteChannelInfoPayload>
 export type EditMembershipPayload = $Call<typeof createEditMembership, _EditMembershipPayload>
 export type EditTeamDescriptionPayload = $Call<typeof createEditTeamDescription, _EditTeamDescriptionPayload>
+export type GetChannelInfoPayload = $Call<typeof createGetChannelInfo, _GetChannelInfoPayload>
 export type GetChannelsPayload = $Call<typeof createGetChannels, _GetChannelsPayload>
 export type GetDetailsForAllTeamsPayload = $Call<typeof createGetDetailsForAllTeams, _GetDetailsForAllTeamsPayload>
 export type GetDetailsPayload = $Call<typeof createGetDetails, _GetDetailsPayload>
@@ -417,6 +427,7 @@ export type Actions =
   | DeleteChannelInfoPayload
   | EditMembershipPayload
   | EditTeamDescriptionPayload
+  | GetChannelInfoPayload
   | GetChannelsPayload
   | GetDetailsForAllTeamsPayload
   | GetDetailsPayload
