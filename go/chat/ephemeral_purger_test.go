@@ -115,6 +115,13 @@ func TestBackgroundPurge(t *testing.T) {
 	})
 	assertEphemeralPurgeNotifInfo(res.ConvID, []chat1.MessageID{msgUnboxed1.GetMessageID()})
 
+	// Ensure things run smoothly even with extraneous start/stop calls to purger
+	g.EphemeralPurger.Start(context.Background(), uid)
+	<-g.EphemeralPurger.Stop(context.Background())
+	<-g.EphemeralPurger.Stop(context.Background())
+	g.EphemeralPurger.Start(context.Background(), uid)
+	g.EphemeralPurger.Start(context.Background(), uid)
+
 	t.Logf("assert listener 2")
 	world.Fc.Advance(lifetimeDuration)
 	assertListener(res.ConvID)

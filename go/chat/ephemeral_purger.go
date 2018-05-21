@@ -142,10 +142,10 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 	b.Lock()
 	defer b.Unlock()
 
-	b.cleanupTimers()
 	if b.looping {
 		b.stopCh <- make(chan struct{})
 	}
+	b.cleanupTimers()
 	b.uid = uid
 	b.initQueue(ctx)
 
@@ -166,13 +166,13 @@ func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) chan struct{} {
 	b.Lock()
 	defer b.Unlock()
 
-	b.cleanupTimers()
 	ch := make(chan struct{})
 	if b.looping {
 		b.stopCh <- ch
 	} else {
 		close(ch)
 	}
+	b.cleanupTimers()
 	return ch
 }
 
@@ -182,6 +182,7 @@ func (b *BackgroundEphemeralPurger) cleanupTimers() {
 	}
 	if b.purgeTimer != nil {
 		b.purgeTimer.Stop()
+		b.purgeTimer = nil
 	}
 }
 
@@ -230,14 +231,21 @@ func (b *BackgroundEphemeralPurger) updateQueue(purgeInfo chat1.EphemeralPurgeIn
 
 // This runs when we are waiting to run a job but will shut itself down if we
 // have no work.
-func (b *BackgroundEphemeralPurger) loop() {
+func (b *BackgroundEphemeralPurger) loop(duration time.Duration) {
 	b.looping = true
 	defer func() { b.looping = false }()
 	bgctx := context.Background()
 	for {
-		b.Debug(bgctx, "loop: waiting for job")
+		b.Debug(bgctx, "loop: waiting for job, timer to fire at: %v", b.clock.Now().Add(duration))
 		select {
 		case <-b.purgeTimer.C:
+			select {
+			case ch := <-b.stopCh:
+				b.Debug(bgctx, "loop: shutting down (in lock wait) for %s", b.uid)
+				close(ch)
+				return
+			default:
+			}
 			b.Lock()
 			stop := b.queuePurges(bgctx)
 			b.Unlock()
@@ -303,7 +311,7 @@ func (b *BackgroundEphemeralPurger) setOrResetTimer(purgeInfo chat1.EphemeralPur
 	duration := purgeInfo.NextPurgeTime.Time().Sub(b.clock.Now())
 	if b.purgeTimer == nil {
 		b.purgeTimer = time.NewTimer(duration)
-		go b.loop()
+		go b.loop(duration)
 	}
 	b.purgeTimer.Stop()
 	b.purgeTimer.Reset(duration)
