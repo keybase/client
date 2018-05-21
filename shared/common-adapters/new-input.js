@@ -2,7 +2,7 @@
 import * as React from 'react'
 import PlainInput, {type PropsWithInput, type KeyboardType} from './plain-input'
 import Box, {Box2} from './box'
-import Icon, {type IconType} from './icon'
+import Icon, {type IconType, castPlatformStyles} from './icon'
 import {getStyle as getTextStyle, type TextType} from './text'
 import {
   type StylesCrossPlatform,
@@ -71,7 +71,7 @@ class NewInput extends React.Component<DefaultProps & Props, State> {
               color={globalColors.black_20}
               type={this.props.icon}
               fontSize={textStyle.fontSize}
-              style={styles.displayFlex}
+              style={castPlatformStyles(styles.displayFlex)}
             />
           </Box>
         )}

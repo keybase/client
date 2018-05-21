@@ -862,7 +862,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 }
 
 func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
-	return s.storage.MaybeNuke(ctx, true, nil, convID, uid)
+	return s.storage.ClearAll(ctx, convID, uid)
 }
 
 type ByMsgID []chat1.MessageUnboxed

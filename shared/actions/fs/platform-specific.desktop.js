@@ -14,6 +14,7 @@ import logger from '../../logger'
 import {spawn, execFileSync} from 'child_process'
 import path from 'path'
 import {putActionIfOnPath, navigateTo, navigateAppend, navigateUp} from '../route-tree'
+import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 
 type pathType = 'file' | 'directory'
 
@@ -282,8 +283,27 @@ function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
   )
 }
 
-function copyToDownloadDir(path: string, mime: string) {
-  return new Promise((resolve, reject) => resolve())
+function platformSpecificIntentEffect(
+  intent: Types.TransferIntent,
+  localPath: string,
+  mimeType: string
+): ?Saga.Effect {
+  switch (intent) {
+    case 'camera-roll':
+      return Saga.call(saveAttachmentDialog, localPath)
+    case 'share':
+      return Saga.call(showShareActionSheet, {url: localPath, mimeType})
+    case 'none':
+    case 'web-view':
+    case 'web-view-text':
+      return null
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
+      return null
+  }
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
@@ -304,4 +324,4 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openFinderPopup, openFinderPopup)
 }
 
-export {copyToDownloadDir, platformSpecificSaga}
+export {platformSpecificIntentEffect, platformSpecificSaga}

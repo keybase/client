@@ -13,6 +13,7 @@ type CommonProps = {
   conversationIDKey: Types.ConversationIDKey,
   channelName: string,
   isEditing: boolean,
+  isExploding?: boolean,
   focusInputCounter: number,
   clearInboxFilter: () => void,
   onAttach: (paths: Array<string>) => void,

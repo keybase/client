@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
 import {invert} from 'lodash-es'
-import {type IconType} from '../common-adapters/icon.constants'
+import type {IconType} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 
 export const defaultNumFollowSuggestions = 10

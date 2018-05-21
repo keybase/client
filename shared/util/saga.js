@@ -2,7 +2,7 @@
 import logger from '../logger'
 import {mapValues, isEqual, map, forEach} from 'lodash-es'
 import {buffers, channel, delay} from 'redux-saga'
-import type {Pattern, ForkEffect, Saga as _Saga} from 'redux-saga'
+import type {Pattern, ForkEffect, Saga as _Saga, Effect} from 'redux-saga'
 import {
   actionChannel,
   all,
@@ -18,6 +18,7 @@ import {
   take,
   takeEvery,
   takeLatest,
+  throttle,
 } from 'redux-saga/effects'
 import * as ConfigGen from '../actions/config-gen'
 import {convertToError} from '../util/errors'
@@ -27,7 +28,6 @@ import type {TypedState} from '../constants/reducer'
 import type {ChannelConfig, ChannelMap, SagaGenerator, Channel} from '../constants/types/saga'
 
 type SagaMap = {[key: string]: any}
-type Effect = any
 
 function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
   return mapValues(channelConfig, (v, k) => {
@@ -334,7 +334,7 @@ const callAndWrap: CallAndWrap = (fn, ...args) => {
   return call(wrapper)
 }
 
-export type {SagaGenerator, Ok, Err, Result}
+export type {SagaGenerator, Ok, Err, Result, Effect}
 
 export {
   all,
@@ -368,4 +368,5 @@ export {
   spawn,
   take,
   takeFromChannelMap,
+  throttle,
 }

@@ -1,7 +1,7 @@
 // @flow
 import {showDockIcon} from '../desktop/app/dock-icon'
 import {getMainWindow} from '../desktop/remote/util'
-import {ipcRenderer} from 'electron'
+import {ipcRenderer, remote} from 'electron'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -72,6 +72,17 @@ function openAppSettings(): void {
   throw new Error('Cannot open app settings on desktop')
 }
 
+const getMimeTypeFromURL = (url: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const req = remote.net.request({url, method: 'HEAD'})
+    req.on('response', response => {
+      const contentType = response.headers['content-type']
+      resolve(Array.isArray(contentType) && contentType.length ? contentType[0] : '')
+    })
+    req.on('error', err => reject(err))
+    req.end()
+  })
+
 export {
   checkPermissions,
   setShownPushPrompt,
@@ -88,4 +99,5 @@ export {
   downloadAndShowShareActionSheet,
   displayNewMessageNotification,
   clearAllNotifications,
+  getMimeTypeFromURL,
 }

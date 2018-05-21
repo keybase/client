@@ -2024,14 +2024,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
 			t.Logf("edit the message")
+			// An ephemeralLifetime is added if we are editing an ephemeral message
 			earg := chat1.PostEditNonblockArg{
-				ConversationID:    created.Id,
-				TlfName:           created.TlfName,
-				TlfPublic:         created.Visibility == keybase1.TLFVisibility_PUBLIC,
-				Supersedes:        unboxed.GetMessageID(),
-				Body:              "hi2",
-				IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
-				EphemeralLifetime: ephemeralLifetime,
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       unboxed.GetMessageID(),
+				Body:             "hi2",
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
 			require.NoError(t, err)
@@ -2696,6 +2696,68 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 	})
 }
 
+func TestChatSrvGetThreadNonblockOldPages(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "GetThreadNonblock", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+		if mt == chat1.ConversationMembersType_KBFS {
+			return
+		}
+
+		uid := gregor1.UID(users[0].GetUID().ToBytes())
+		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+		threadCb := make(chan kbtest.NonblockThreadResult, 100)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ctc.as(t, users[0]).h.mockChatUI = ui
+		ctx := ctc.as(t, users[0]).startCtx
+		bgConvLoads := make(chan chat1.ConversationID, 10)
+		ctc.as(t, users[0]).h.G().ConvLoader.Start(ctx, uid)
+		ctc.as(t, users[0]).h.G().ConvLoader.(*BackgroundConvLoader).loads = bgConvLoads
+
+		t.Logf("send a bunch of messages")
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		// need two for new conversation, plus the gregor message
+		for i := 0; i < 2; i++ {
+			select {
+			case <-bgConvLoads:
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no bkg load")
+			}
+		}
+		numMsgs := 20
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+		for i := 0; i < numMsgs; i++ {
+			mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		}
+		select {
+		case <-bgConvLoads:
+			require.Fail(t, "no more bg loads")
+		default:
+		}
+		_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			chat1.GetThreadNonblockArg{
+				ConversationID:   conv.Id,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				Pagination:       utils.PresentPagination(&chat1.Pagination{Num: 1}),
+			},
+		)
+		require.NoError(t, err)
+		res := receiveThreadResult(t, threadCb)
+		require.Equal(t, 1, len(res.Messages))
+		select {
+		case <-bgConvLoads:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no bkg load")
+		}
+		select {
+		case <-bgConvLoads:
+			require.Fail(t, "no more bg loads")
+		default:
+		}
+	})
+}
+
 func TestChatSrvGetThreadNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetThreadNonblock", 1)
@@ -3262,6 +3324,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
 
+		t.Logf("user1 leaves: %s", ncres.Conv.GetConvID())
 		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
 			ncres.Conv.GetConvID())
 		require.NoError(t, err)

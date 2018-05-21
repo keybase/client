@@ -334,13 +334,6 @@ var optTests = []optTest{
 		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}}}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}, "exploding_lifetime": "5m"}}}`,
-	},
-	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}, "exploding_lifetime": "1s"}}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
 		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {}}}`,
 		err:   ErrInvalidOptions{},
 	},

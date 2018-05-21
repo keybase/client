@@ -13,7 +13,7 @@ import {
   metaDeleted,
   metaIgnored,
 } from '../constants/tracker'
-import type {IconType} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters'
 import type {PlatformsExpandedType} from '../constants/types/more.js'
 import type {Proof} from '../constants/types/tracker'
 

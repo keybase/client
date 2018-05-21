@@ -634,6 +634,8 @@ type DeviceEKStorage interface {
 	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
+	// Dangerous! Only for deprovisioning.
+	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
 }
 
 type UserEKBoxStorage interface {

@@ -2,7 +2,7 @@
 /* eslint-env browser */
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Box2, Icon, Input, Text} from '../../../../common-adapters'
+import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
 import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
@@ -60,6 +60,15 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   render = () => {
+    let hintText = 'Write a message'
+    if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
+    } else if (this.props.isEditing) {
+      hintText = 'Edit your message'
+    } else if (this.props.pendingWaiting) {
+      hintText = 'Creating conversation...'
+    }
+
     return (
       <Box>
         {this.props.mentionPopupOpen && (
@@ -99,7 +108,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             autoCapitalize="sentences"
             autoFocus={false}
             hideUnderline={true}
-            hintText={this.props.isEditing ? 'Edit your message' : 'Write a message'}
+            hintText={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
@@ -146,11 +155,11 @@ const ChannelMentionHud = InputAccessory(props => (
 
 const Typing = () => (
   <Box style={styles.typing}>
-    <Icon type="icon-typing-24" style={styles.typingIcon} />
+    <Icon type="icon-typing-24" style={iconCastPlatformStyles(styles.typingIcon)} />
   </Box>
 )
 
-const Action = ({hasText, onSubmit, isEditing, openFilePicker, insertMentionMarker}) =>
+const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
   hasText ? (
     <Box style={styles.actionText}>
       <Text type="BodyBigLink" onClick={onSubmit}>
@@ -158,9 +167,19 @@ const Action = ({hasText, onSubmit, isEditing, openFilePicker, insertMentionMark
       </Text>
     </Box>
   ) : (
-    <Box2 direction="horizontal" gap="tiny" gapEnd={true}>
-      <Icon onClick={insertMentionMarker} type="iconfont-mention" style={styles.actionButton} fontSize={21} />
-      <Icon onClick={openFilePicker} type="iconfont-camera" style={styles.actionButton} fontSize={21} />
+    <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
+      <Icon
+        onClick={pendingWaiting ? undefined : insertMentionMarker}
+        type="iconfont-mention"
+        style={iconCastPlatformStyles(styles.actionButton)}
+        fontSize={21}
+      />
+      <Icon
+        onClick={pendingWaiting ? undefined : openFilePicker}
+        type="iconfont-camera"
+        style={iconCastPlatformStyles(styles.actionButton)}
+        fontSize={21}
+      />
     </Box2>
   )
 

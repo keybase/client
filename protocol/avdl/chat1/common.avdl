@@ -316,6 +316,8 @@
 
   @mpackkey("pi") @jsonkey("pi")
   record EphemeralPurgeInfo {
+    @mpackkey("c") @jsonkey("c")
+    ConversationID convID;
     @mpackkey("a") @jsonkey("a")
     boolean isActive;
     @mpackkey("n") @jsonkey("n")

@@ -24,7 +24,6 @@ func TestKeygenIfNeeded(t *testing.T) {
 		deviceEKNeeded, err := ekLib.NewDeviceEKNeeded(context.Background())
 		require.NoError(t, err)
 		require.True(t, deviceEKNeeded)
-
 	}
 
 	expectedUserEKGen, err := userEKBoxStorage.MaxGeneration(context.Background())
@@ -80,7 +79,13 @@ func TestKeygenIfNeeded(t *testing.T) {
 	deviceEKStorage.ClearCache()
 	expectedDeviceEKGen++
 	expectedUserEKGen++
-	keygen(expectedDeviceEKGen, expectedUserEKGen)
+
+	// Test ForceDeleteAll
+	err = deviceEKStorage.ForceDeleteAll(context.Background(), tc.G.Env.GetUsername())
+	require.NoError(t, err)
+	deviceEKs, err := rawDeviceEKStorage.GetAll(context.Background())
+	require.NoError(t, err)
+	require.Len(t, deviceEKs, 0)
 }
 
 func TestNewTeamEKNeeded(t *testing.T) {

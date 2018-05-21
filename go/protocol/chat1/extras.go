@@ -368,7 +368,7 @@ func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
 
 func Etime(lifetime gregor1.DurationSec, ctime, rtime, now gregor1.Time) gregor1.Time {
 	originalLifetime := time.Second * time.Duration(lifetime)
-	elapsedLifetime := ctime.Time().Sub(now.Time())
+	elapsedLifetime := now.Time().Sub(ctime.Time())
 	remainingLifetime := originalLifetime - elapsedLifetime
 	// If the server's view doesn't make sense, just use the signed lifetime
 	// from the message.
@@ -391,8 +391,8 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 	return Etime(metadata.Lifetime, header.Ctime, m.ClientHeader.Rtime, header.Now)
 }
 
-func (m MessageUnboxedValid) RemainingLifetime() time.Duration {
-	remainingLifetime := m.Etime().Time().Sub(time.Now()).Round(time.Second)
+func (m MessageUnboxedValid) RemainingLifetime(now time.Time) time.Duration {
+	remainingLifetime := m.Etime().Time().Sub(now).Round(time.Second)
 	return remainingLifetime
 }
 
@@ -686,14 +686,25 @@ func (f *ConversationFinalizeInfo) BeforeSummary() string {
 	return fmt.Sprintf("(before %s account reset %s)", f.ResetUser, f.ResetDate)
 }
 
-func (p Pagination) Eq(other Pagination) bool {
-	return p.Last == other.Last && bytes.Equal(p.Next, other.Next) &&
-		bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
+func (p *Pagination) Eq(other *Pagination) bool {
+	if p == nil && other == nil {
+		return true
+	}
+	if p != nil && other != nil {
+		return p.Last == other.Last && bytes.Equal(p.Next, other.Next) &&
+			bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
+	}
+	return false
 }
 
-func (p Pagination) String() string {
+func (p *Pagination) String() string {
 	return fmt.Sprintf("[Num: %d n: %s p: %s last: %v]", p.Num, hex.EncodeToString(p.Next),
 		hex.EncodeToString(p.Previous), p.Last)
+}
+
+// FirstPage returns true if the pagination object is not pointing in any direction
+func (p *Pagination) FirstPage() bool {
+	return p == nil || (len(p.Next) == 0 && len(p.Previous) == 0)
 }
 
 func (c ConversationLocal) GetMtime() gregor1.Time {
@@ -901,6 +912,10 @@ func (r *GetInboxAndUnboxLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetInboxAndUnboxUILocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *GetThreadLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1058,6 +1073,14 @@ func (r *GetInboxAndUnboxLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetInboxAndUnboxUILocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetInboxAndUnboxUILocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -1355,4 +1378,9 @@ func (r *SetRetentionRes) GetRateLimit() (res []RateLimit) {
 
 func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimit = &rl[0]
+}
+
+func (i EphemeralPurgeInfo) String() string {
+	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
+		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
 }

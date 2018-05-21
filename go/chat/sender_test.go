@@ -166,6 +166,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
 	g := globals.NewContext(tc.G, tc.ChatG)
+	uid := u.User.GetUID().ToBytes()
 
 	var ctx context.Context
 	if useRemoteMock {
@@ -176,7 +177,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		tc.G.LoginState().LocalSession(func(s *libkb.Session) {
 			sessionToken = s.GetToken()
 		}, "test session")
-		gh := newGregorTestConnection(tc.Context(), u.User.GetUID().ToBytes(), sessionToken)
+		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
 	}
@@ -203,24 +204,35 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.InboxSource = NewHybridInboxSource(g, getRI)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	g.NotifyRouter.SetListener(&listener)
+
 	deliverer := NewDeliverer(g, baseSender)
 	deliverer.SetClock(world.Fc)
 	deliverer.setTestingNameInfoSource(tlf)
+
 	g.MessageDeliverer = deliverer
-	g.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
+	g.MessageDeliverer.Start(context.TODO(), uid)
 	g.MessageDeliverer.Connected(context.TODO())
+
 	g.FetchRetrier = NewFetchRetrier(g)
 	g.FetchRetrier.(*FetchRetrier).SetClock(world.Fc)
 	g.FetchRetrier.Connected(context.TODO())
-	g.FetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
+	g.FetchRetrier.Start(context.TODO(), uid)
+
 	convLoader := NewBackgroundConvLoader(g)
 	convLoader.loads = listener.bgConvLoads
 	convLoader.setTestingNameInfoSource(tlf)
 	g.ConvLoader = convLoader
-	g.ConvLoader.Start(context.TODO(), u.User.GetUID().ToBytes())
+	g.ConvLoader.Start(context.TODO(), uid)
+
+	purger := NewBackgroundEphemeralPurger(g, chatStorage)
+	purger.SetClock(world.Fc)
+	g.EphemeralPurger = purger
+	g.EphemeralPurger.Start(context.TODO(), uid)
+
 	chatSyncer := NewSyncer(g)
 	chatSyncer.isConnected = true
 	g.Syncer = chatSyncer
+
 	g.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(world.Fc)
@@ -1020,7 +1032,7 @@ func TestDeletionAssets(t *testing.T) {
 	_, firstMessageBoxed, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
-			Sender:      u.User.GetUID().ToBytes(),
+			Sender:      uid,
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_ATTACHMENT,
 		},
@@ -1036,7 +1048,7 @@ func TestDeletionAssets(t *testing.T) {
 
 	editHeader := chat1.MessageClientHeader{
 		Conv:        trip,
-		Sender:      u.User.GetUID().ToBytes(),
+		Sender:      uid,
 		TlfName:     u.Username,
 		MessageType: chat1.MessageType_ATTACHMENTUPLOADED,
 		Supersedes:  firstMessageID,
@@ -1078,7 +1090,7 @@ func TestDeletionAssets(t *testing.T) {
 	deletion := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
-			Sender:      u.User.GetUID().ToBytes(),
+			Sender:      uid,
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_DELETE,
 			Supersedes:  firstMessageID,

@@ -673,3 +673,8 @@ const CurrentGitMetadataEncryptionVersion = 1
 // The secret_store_file and erasable_kv_store use a random noise file of this
 // size when encrypting secrets for disk.
 const noiseFileLen = 1024 * 1024 * 2
+
+// NOTE if you change these values you should change them in
+// go/chatbase/storage/ephemeral.go as well.
+const MaxEphemeralLifetime = time.Hour * 24 * 7
+const MinEphemeralLifetime = time.Second * 30

@@ -11,6 +11,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func forceOpenDBs(tc libkb.TestContext) {
+	// We need to ensure these dbs are open since we test that we can delete
+	// them on deprovision
+	err := tc.G.LocalDb.ForceOpen()
+	require.NoError(tc.T, err)
+	err = tc.G.LocalChatDb.ForceOpen()
+	require.NoError(tc.T, err)
+}
+
 func assertFileExists(t libkb.TestingTB, path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		t.Fatalf("%s unexpectedly does not exist", path)
@@ -82,12 +91,15 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 		}
 	}
 
+	forceOpenDBs(tc)
 	dbPath := tc.G.Env.GetDbFilename()
+	chatDBPath := tc.G.Env.GetChatDbFilename()
 	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
 	numKeys := getNumKeys(tc, *fu)
 	expectedNumKeys := numKeys
 
 	assertFileExists(tc.T, dbPath)
+	assertFileExists(tc.T, chatDBPath)
 	assertFileExists(tc.T, secretKeysPath)
 	if !isUserInConfigFile(tc, *fu) {
 		tc.T.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -147,7 +159,9 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 	}
 
 	assertFileDoesNotExist(tc.T, dbPath)
+	assertFileDoesNotExist(tc.T, chatDBPath)
 	assertFileDoesNotExist(tc.T, secretKeysPath)
+
 	if isUserInConfigFile(tc, *fu) {
 		tc.T.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
 	}
@@ -190,6 +204,7 @@ func TestDeprovisionAfterRevokePaperPUK(t *testing.T) {
 func testDeprovisionAfterRevokePaper(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "deprovision")
 	defer tc.Cleanup()
+
 	tc.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 	if tc.G.SecretStore() == nil {
 		t.Fatal("Need a secret store for this test")
@@ -227,11 +242,14 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 		}
 	}
 
+	forceOpenDBs(tc)
 	dbPath := tc.G.Env.GetDbFilename()
+	chatDBPath := tc.G.Env.GetChatDbFilename()
 	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
 	numKeys := getNumKeys(tc, *fu)
 
 	assertFileExists(tc.T, dbPath)
+	assertFileExists(tc.T, chatDBPath)
 	assertFileExists(tc.T, secretKeysPath)
 	if !isUserInConfigFile(tc, *fu) {
 		tc.T.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -272,6 +290,7 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	}
 
 	assertFileDoesNotExist(tc.T, dbPath)
+	assertFileDoesNotExist(tc.T, chatDBPath)
 	assertFileDoesNotExist(tc.T, secretKeysPath)
 	if isUserInConfigFile(tc, *fu) {
 		tc.T.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -323,11 +342,14 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 		}
 	}
 
+	forceOpenDBs(tc)
 	dbPath := tc.G.Env.GetDbFilename()
+	chatDBPath := tc.G.Env.GetChatDbFilename()
 	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
 	numKeys := getNumKeys(tc, *fu)
 
 	assertFileExists(tc.T, dbPath)
+	assertFileExists(tc.T, chatDBPath)
 	assertFileExists(tc.T, secretKeysPath)
 	if !isUserInConfigFile(tc, *fu) {
 		tc.T.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -370,6 +392,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	}
 
 	assertFileDoesNotExist(tc.T, dbPath)
+	assertFileDoesNotExist(tc.T, chatDBPath)
 	assertFileDoesNotExist(tc.T, secretKeysPath)
 	if isUserInConfigFile(tc, *fu) {
 		tc.T.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -387,6 +410,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 func TestCurrentDeviceRevoked(t *testing.T) {
 	tc := SetupEngineTest(t, "deprovision")
 	defer tc.Cleanup()
+
 	if tc.G.SecretStore() == nil {
 		t.Fatalf("Need a secret store for this test")
 	}
@@ -405,6 +429,7 @@ func TestDeprovisionLastDevicePUK(t *testing.T) {
 func testDeprovisionLastDevice(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "deprovision")
 	defer tc.Cleanup()
+
 	tc.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 	if tc.G.SecretStore() == nil {
 		t.Fatal("Need a secret store for this test")

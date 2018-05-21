@@ -1,13 +1,11 @@
 // @flow
-import Icon from './icon'
+import Icon, {type IconType} from './icon'
 import * as React from 'react'
-import {globalColors, styleSheetCreate} from '../styles'
+import {globalColors, styleSheetCreate, collapseStyles} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import {Image} from 'react-native'
-
 import type {AvatarSize} from './avatar'
-import type {IconType} from './icon'
 
 type ImageProps = {
   onLoadEnd: () => void,
@@ -140,7 +138,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
   render() {
     const {size} = this.props
     const borderRadius = this.props.isTeam ? sizeToTeamBorderRadius[String(size)] : size / 2
-    const containerStyle = [styles[`box:${size}`], this.props.style]
+    const containerStyle = collapseStyles([styles[`box:${size}`], this.props.style])
 
     return (
       <ClickableBox onClick={this.props.onClick} feedback={false} style={containerStyle}>
@@ -168,7 +166,10 @@ class AvatarRender extends React.PureComponent<Props, State> {
           {this.props.followIconType && (
             <Icon
               type={this.props.followIconType}
-              style={[styles[`icon:${this.props.followIconSize}`], this.props.followIconStyle]}
+              style={collapseStyles([
+                styles[`icon:${this.props.followIconSize}`],
+                this.props.followIconStyle,
+              ])}
             />
           )}
           {this.props.children}

@@ -18,6 +18,8 @@ import (
 var client = horizon.DefaultPublicNetClient
 var network = build.PublicNetwork
 
+const defaultMemo = "via keybase"
+
 // SetClientURL sets the url for the horizon server this client
 // connects to.
 func SetClientURL(url string) {
@@ -281,7 +283,7 @@ func PaymentXLMTransaction(from SeedStr, to AddressStr, amount string,
 			build.Destination{AddressOrSeed: to.String()},
 			build.NativeAmount{Amount: amount},
 		),
-		build.MemoText{Value: "via keybase"},
+		build.MemoText{Value: defaultMemo},
 	)
 	if err != nil {
 		return res, err
@@ -310,7 +312,53 @@ func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string,
 			build.Destination{AddressOrSeed: to.String()},
 			build.NativeAmount{Amount: amount},
 		),
-		build.MemoText{Value: "via keybase"},
+		build.MemoText{Value: defaultMemo},
+	)
+	if err != nil {
+		return res, err
+	}
+	return sign(from, tx)
+}
+
+// AccountMergeTransaction creates a signed transaction to merge the account `from` into `to`.
+func AccountMergeTransaction(from SeedStr, to AddressStr,
+	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
+	tx, err := build.Transaction(
+		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
+		network,
+		build.AutoSequence{SequenceProvider: seqnoProvider},
+		build.AccountMerge(
+			build.Destination{AddressOrSeed: to.String()},
+		),
+		build.MemoText{Value: defaultMemo},
+	)
+	if err != nil {
+		return res, err
+	}
+	return sign(from, tx)
+}
+
+// RelocateTransaction creates a signed transaction to merge the account `from` into `to`.
+// Works even if `to` is not funded but in that case requires 2 XLM temporary reserve.
+// If `toIsFunded` then this is just an account merge transaction.
+// Otherwise the transaction is two operations: [create_account, account_merge].
+func RelocateTransaction(from SeedStr, to AddressStr, toIsFunded bool,
+	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
+	if toIsFunded {
+		return AccountMergeTransaction(from, to, seqnoProvider)
+	}
+	tx, err := build.Transaction(
+		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
+		network,
+		build.AutoSequence{SequenceProvider: seqnoProvider},
+		build.CreateAccount(
+			build.Destination{AddressOrSeed: to.String()},
+			build.NativeAmount{Amount: "1"},
+		),
+		build.AccountMerge(
+			build.Destination{AddressOrSeed: to.String()},
+		),
+		build.MemoText{Value: defaultMemo},
 	)
 	if err != nil {
 		return res, err
