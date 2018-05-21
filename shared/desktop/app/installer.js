@@ -1,5 +1,5 @@
 // @flow
-import {app, dialog} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import exec from './exec'
 import {keybaseBinPath} from './paths'
 import {quit} from './ctl'
@@ -58,7 +58,7 @@ export default (callback: (err: any) => void): void => {
   let timeout = 30
   // If the app was opened at login, there might be contention for lots
   // of resources, so let's bump the install timeout to something large.
-  if (app.getLoginItemSettings().wasOpenedAtLogin) {
+  if (SafeElectron.getApp().getLoginItemSettings().wasOpenedAtLogin) {
     timeout = 90
   }
   const args = ['--debug', 'install-auto', '--format=json', '--timeout=' + timeout + 's']
@@ -145,7 +145,8 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
 
 function showError(errors: Array<string>, showOkay: boolean, callback: (err: ?Error) => void) {
   const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
-  dialog.showMessageBox(
+  SafeElectron.getDialog().showMessageBox(
+    null,
     {
       buttons: showOkay ? ['Okay'] : ['Ignore', 'Quit'],
       detail,

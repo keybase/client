@@ -1,2 +1,21 @@
 // @flow
-declare var exports: any
+declare export var allowMultipleInstances: boolean
+declare export var enableActionLogging: boolean
+declare export var enableStoreLogging: boolean
+declare export var featureFlagsOverride: boolean
+declare export var filterActionLogs: boolean
+declare export var forceImmediateLogging: boolean
+declare export var ignoreDisconnectOverlay: boolean
+declare export var immediateStateLogging: boolean
+declare export var isDevApplePushToken: boolean
+declare export var isTesting: boolean
+declare export var maskStrings: boolean
+declare export var printBridgeB64: boolean
+declare export var printOutstandingRPCs: boolean
+declare export var printRPC: boolean
+declare export var reduxSagaLogger: boolean
+declare export var reduxSagaLoggerMasked: boolean
+declare export var setup: (store: any) => void
+declare export var showDevTools: boolean
+declare export var skipSecondaryDevtools: boolean
+declare export var userTimings: boolean

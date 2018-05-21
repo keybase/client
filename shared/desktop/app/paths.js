@@ -1,5 +1,5 @@
 // @flow
-import {app} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import getenv from 'getenv'
 import path from 'path'
 import os from 'os'
@@ -13,7 +13,7 @@ function appPath() {
   if (appPath !== '') {
     return appPath
   }
-  return app.getAppPath()
+  return SafeElectron.getApp().getAppPath()
 }
 
 // Path to bundle directory, e.g. /Applications/Keybase.app (darwin only)
@@ -39,7 +39,9 @@ export function appInstallerPath() {
 // Path to keybase executable (darwin only), null if not available
 export function keybaseBinPath() {
   if (os.platform() === 'win32') {
-    var kbPath = app.getPath('appData').replace('Roaming', 'Local')
+    var kbPath = SafeElectron.getApp()
+      .getPath('appData')
+      .replace('Roaming', 'Local')
     if (kbPath === null) kbPath = process.env.LOCALAPPDATA
     if (kbPath === null) {
       console.log('No keybase bin path')

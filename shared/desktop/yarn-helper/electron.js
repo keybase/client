@@ -61,6 +61,7 @@ function startHot() {
 
   const hitServer = () => {
     var req = http.get('http://localhost:4000/dist/index.bundle.js', () => {
+      // $FlowIssue
       spawn(electron, params, {env, stdio: 'inherit'})
     })
     req.on('error', e => {
