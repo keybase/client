@@ -90,8 +90,12 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		return nil, err
 	}
 
-	assets = make([]stellar1.AccountAssetLocal, len(details.Balances))
-	for i, d := range details.Balances {
+	for _, d := range details.Balances {
+		// M1 only supports native balances
+		if d.Asset.Type != "native" {
+			continue
+		}
+
 		fmtAmount, err := stellar.FormatAmount(d.Amount, false)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "FormatAmount error: %s", err)
@@ -125,7 +129,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			asset.Worth = displayFormatted
 		}
 
-		assets[i] = asset
+		assets = append(assets, asset)
 	}
 
 	return assets, nil
