@@ -55,7 +55,10 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
   return {
-    _loadChannels: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
+    _loadChannelInfo: (teamname: string, conversationIDKey: ConversationIDKey) => {
+      dispatch(TeamsGen.createGetChannels({teamname}))
+      dispatch(TeamsGen.createGetChannelInfo({teamname, conversationIDKey}))
+    },
     _navigateUp: () => dispatch(navigateUp()),
     _updateChannelName: (teamname: string, conversationIDKey: ConversationIDKey, newChannelName: string) =>
       dispatch(TeamsGen.createUpdateChannelName({teamname, conversationIDKey, newChannelName})),
@@ -70,7 +73,7 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
   const {teamname, conversationIDKey, channelName, topic} = stateProps
   const deleteRenameDisabled = channelName === 'general'
   return {
-    _loadChannels: () => dispatchProps._loadChannels(teamname),
+    _loadChannelInfo: () => dispatchProps._loadChannelInfo(teamname, conversationIDKey),
     teamname,
     channelName,
     topic,
@@ -106,7 +109,7 @@ const ConnectedEditChannel: React.ComponentType<{
   lifecycle({
     componentDidMount() {
       if (this.props._needsLoad) {
-        this.props._loadChannels()
+        this.props._loadChannelInfo()
       }
     },
   })
