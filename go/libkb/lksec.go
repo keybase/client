@@ -502,6 +502,7 @@ func (s *LKSec) EncryptClientHalfRecovery(key GenericKey) (string, error) {
 // ToSKB exports a generic key with the given LKSec to a SecretKeyBundle,
 // performing all necessary encryption.
 func (s *LKSec) ToSKB(m MetaContext, key GenericKey) (ret *SKB, err error) {
+	defer m.CTrace("LKSec#ToSKB", func() error { return err })()
 	if s == nil {
 		return nil, errors.New("nil lks")
 	}
@@ -526,12 +527,13 @@ func (s *LKSec) ToSKB(m MetaContext, key GenericKey) (ret *SKB, err error) {
 	return ret, nil
 }
 
-func WriteLksSKBToKeyring(m MetaContext, k GenericKey, lks *LKSec) (*SKB, error) {
-	skb, err := lks.ToSKB(m, k)
+func WriteLksSKBToKeyring(m MetaContext, k GenericKey, lks *LKSec) (skb *SKB, err error) {
+	defer m.CTrace("WriteLksSKBToKeyring", func() error { return err })()
+	skb, err = lks.ToSKB(m, k)
 	if err != nil {
 		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
 	}
-	if err := skbPushAndSave(m, skb); err != nil {
+	if err = skbPushAndSave(m, skb); err != nil {
 		return nil, err
 	}
 	return skb, nil

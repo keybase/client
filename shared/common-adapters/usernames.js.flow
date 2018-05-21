@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {TextType, Background} from './text'
+import type {StylesCrossPlatform} from '../styles'
 
 export type UserListItem = {
   username: string,
@@ -15,9 +16,9 @@ export type UserList = Array<UserListItem>
 export type Props = {
   type: TextType,
   backgroundMode?: Background,
-  style?: Object,
+  style?: StylesCrossPlatform,
   commaColor?: string,
-  containerStyle?: Object,
+  containerStyle?: StylesCrossPlatform,
   inline?: boolean,
   redColor?: string,
   title?: string,
@@ -35,9 +36,9 @@ export type Props = {
 export type ConnectedProps = {
   type: TextType,
   backgroundMode?: Background,
-  style?: Object,
+  style?: StylesCrossPlatform,
   commaColor?: string,
-  containerStyle?: Object,
+  containerStyle?: StylesCrossPlatform,
   inline?: boolean,
   redColor?: string,
   title?: string,
@@ -56,7 +57,7 @@ export type PlaintextProps = {
   type: TextType,
   users: UserList,
   backgroundMode?: Background,
-  containerStyle?: Object,
+  containerStyle?: StylesCrossPlatform,
   title?: string,
 }
 

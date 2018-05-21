@@ -8,9 +8,9 @@ import * as Saga from '../../util/saga'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
-import {platformSpecificSaga, copyToDownloadDir} from './platform-specific'
+import {platformSpecificSaga, platformSpecificIntentEffect} from './platform-specific'
+import {getMimeTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
-import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {type TypedState} from '../../util/container'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 
@@ -201,27 +201,8 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     const mimeType = Constants.mimeTypeFromPathName(Types.getPathName(path))
 
     // Kick off any post-download actions, now that the file is available locally.
-    switch (intent) {
-      case 'none':
-        yield Saga.call(copyToDownloadDir, localPath, mimeType)
-        break
-      case 'camera-roll':
-        yield Saga.call(saveAttachmentDialog, localPath)
-        break
-      case 'share':
-        yield Saga.call(showShareActionSheet, {url: localPath, mimeType})
-        break
-      case 'web-view':
-      case 'web-view-text':
-        // TODO
-        return
-      default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
-        break
-    }
+    const intentEffect = platformSpecificIntentEffect(intent, localPath, mimeType)
+    intentEffect && (yield intentEffect)
   } catch (error) {
     console.log(`Download for intent[${intent}] error: ${error}`)
     yield Saga.put(FsGen.createDownloadFinished({key, error}))
@@ -324,6 +305,21 @@ function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenera
   )
 }
 
+function loadMimeType(action: FsGen.MimeTypeLoadPayload, state: TypedState) {
+  const {path} = action.payload
+  const {address, token} = state.fs.localHTTPServerInfo
+  const url = Constants.generateFileURL(path, address, token)
+  return getMimeTypeFromURL(url) // TODO: refresh address/token on 403
+}
+
+const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload) =>
+  Saga.put(
+    FsGen.createMimeTypeLoaded({
+      path: action.payload.path,
+      mimeType,
+    })
+  )
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -336,6 +332,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
+  yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType, loadMimeTypeResult)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

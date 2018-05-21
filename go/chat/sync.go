@@ -265,6 +265,22 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncConvs []chat1.Conversation,
+	filteredConvs []types.RemoteConversation) {
+	fmap := make(map[string]bool)
+	for _, fconv := range filteredConvs {
+		fmap[fconv.Conv.GetConvID().String()] = true
+	}
+	// If any sync convs are not in the filtered list, let's blow away their local storage
+	for _, sconv := range syncConvs {
+		if !fmap[sconv.GetConvID().String()] {
+			s.Debug(ctx, "handleFilteredConvs: conv filtered from inbox, removing cache: convID: %s memberStatus: %v existence: %v",
+				sconv.GetConvID(), sconv.ReaderInfo.Status, sconv.Metadata.Existence)
+			s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid)
+		}
+	}
+}
+
 func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversation,
 	topicNameChanged []chat1.ConversationID) (res []chat1.Conversation) {
 	m := make(map[string]bool)
@@ -364,6 +380,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
 		} else {
 			s.handleMembersTypeChanged(ctx, uid, iboxSyncRes.MembersTypeChanged)
+			s.handleFilteredConvs(ctx, uid, incr.Convs, iboxSyncRes.FilteredConvs)
 			for _, expunge := range iboxSyncRes.Expunges {
 				expunges[expunge.ConvID.String()] = expunge.Expunge
 			}

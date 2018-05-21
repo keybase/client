@@ -2024,14 +2024,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
 			t.Logf("edit the message")
+			// An ephemeralLifetime is added if we are editing an ephemeral message
 			earg := chat1.PostEditNonblockArg{
-				ConversationID:    created.Id,
-				TlfName:           created.TlfName,
-				TlfPublic:         created.Visibility == keybase1.TLFVisibility_PUBLIC,
-				Supersedes:        unboxed.GetMessageID(),
-				Body:              "hi2",
-				IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
-				EphemeralLifetime: ephemeralLifetime,
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       unboxed.GetMessageID(),
+				Body:             "hi2",
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
 			require.NoError(t, err)
@@ -3262,6 +3262,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
 
+		t.Logf("user1 leaves: %s", ncres.Conv.GetConvID())
 		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
 			ncres.Conv.GetConvID())
 		require.NoError(t, err)

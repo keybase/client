@@ -27,7 +27,8 @@ export default (): void => {
     }),
   ])
 
-  engine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({code}) => {
+  engine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({code}, response) => {
+    response && response.result()
     if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
       console.log('Quitting due to service shutdown')
       // Quit just the app, not the service

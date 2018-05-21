@@ -93,7 +93,7 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 }
 
 // findDeviceKeys looks for device keys and unlocks them.
-func (c *PassphraseChange) findDeviceKeys(m libkb.MetaContext) (*keypair, error) {
+func (c *PassphraseChange) findDeviceKeys(m libkb.MetaContext) (*libkb.DeviceWithKeys, error) {
 	return findDeviceKeys(m, c.me)
 }
 
@@ -101,7 +101,7 @@ func (c *PassphraseChange) findDeviceKeys(m libkb.MetaContext) (*keypair, error)
 // does, it prompts for a paper key phrase.  This is used to
 // regenerate paper keys, which are then matched against the
 // paper keys found in the keyfamily.
-func (c *PassphraseChange) findPaperKeys(m libkb.MetaContext) (*keypair, error) {
+func (c *PassphraseChange) findPaperKeys(m libkb.MetaContext) (*libkb.DeviceWithKeys, error) {
 	kp, err := findPaperKeys(m, c.me)
 	if err != nil {
 		m.CDebugf("findPaperKeys error: %s", err)
@@ -116,7 +116,7 @@ func (c *PassphraseChange) findPaperKeys(m libkb.MetaContext) (*keypair, error) 
 // The first choice is device keys.  If that fails, it will look
 // for backup keys.  If backup keys are necessary, then it will
 // also log the user in with the backup keys.
-func (c *PassphraseChange) findUpdateKeys(m libkb.MetaContext) (*keypair, error) {
+func (c *PassphraseChange) findUpdateKeys(m libkb.MetaContext) (*libkb.DeviceWithKeys, error) {
 	kp, err := c.findDeviceKeys(m)
 	if err == nil {
 		return kp, nil
@@ -128,7 +128,7 @@ func (c *PassphraseChange) findUpdateKeys(m libkb.MetaContext) (*keypair, error)
 	}
 
 	// log in with backup keys
-	err = c.G().LoginState().LoginWithKey(m, c.me, kp.sigKey, nil)
+	err = c.G().LoginState().LoginWithKey(m, c.me, kp.SigningKey(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -226,12 +226,12 @@ func (c *PassphraseChange) runForcedUpdate(m libkb.MetaContext) (err error) {
 	if kp == nil {
 		return libkb.NoSecretKeyError{}
 	}
-	ppGen, oldClientHalf, err := fetchLKS(m, kp.encKey)
+	ppGen, oldClientHalf, err := fetchLKS(m, kp.EncryptionKey())
 	if err != nil {
 		return
 	}
 
-	return c.forceUpdatePassphrase(m, kp.sigKey, ppGen, oldClientHalf)
+	return c.forceUpdatePassphrase(m, kp.SigningKey(), ppGen, oldClientHalf)
 }
 
 // runStandardUpdate is for when the user knows the current password.

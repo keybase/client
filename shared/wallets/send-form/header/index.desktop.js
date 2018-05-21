@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Icon} from '../../../common-adapters'
+import {Box2, Icon, iconCastPlatformStyles} from '../../../common-adapters'
 import {globalColors, styleSheetCreate} from '../../../styles'
 
 type Props = {}
@@ -8,7 +8,7 @@ type Props = {}
 const Header = (props: Props) => (
   <Box2 direction="horizontal" style={styles.headerContainer} fullWidth={true}>
     <Box2 direction="horizontal" style={styles.header} fullWidth={true}>
-      <Icon type="icon-stellar-coins-flying-48" style={styles.icon} />
+      <Icon type="icon-stellar-coins-flying-48" style={iconCastPlatformStyles(styles.icon)} />
     </Box2>
   </Box2>
 )
@@ -17,7 +17,8 @@ const styles = styleSheetCreate({
   header: {
     alignSelf: 'flex-end',
     backgroundColor: globalColors.purple,
-    borderRadius: '4px 4px 0 0',
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
     height: 48,
     justifyContent: 'center',
   },

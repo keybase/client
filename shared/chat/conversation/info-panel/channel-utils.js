@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, ButtonBar, ClickableBox, Icon, Text} from '../../../common-adapters'
-import {type IconType} from '../../../common-adapters/icon.constants'
+import {Box, Button, ButtonBar, ClickableBox, Icon, Text, type IconType} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 const CaptionedButton = (props: {label: string, caption: string, onClick: () => void}) => (

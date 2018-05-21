@@ -1,10 +1,8 @@
 // @flow
-import Icon from './icon'
+import Icon, {type IconType} from './icon'
 import * as React from 'react'
 import {globalColors, glamorous, desktopStyles} from '../styles'
-
 import type {AvatarSize} from './avatar'
-import type {IconType} from './icon'
 
 type ImageProps = {
   opacity: ?number,

@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import type {IconType} from '../../common-adapters/icon'
 import type {Props} from './delete.render'
-import {Confirm, Box, Text, Icon, Usernames} from '../../common-adapters'
+import {Confirm, Box, Text, Icon, Usernames, type IconType} from '../../common-adapters'
 import {globalColors, platformStyles} from '../../styles'
 
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {

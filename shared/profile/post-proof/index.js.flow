@@ -1,8 +1,7 @@
 // @flow
-import {Component} from 'react'
-
+import * as React from 'react'
 import type {ProvablePlatformsType} from '../../constants/types/more'
-import type {IconType} from '../../common-adapters/icon'
+import type {IconType} from '../../common-adapters'
 
 export type Props = {
   allowProofCheck: boolean,
@@ -20,4 +19,4 @@ export type Props = {
   errorMessage?: ?string,
 }
 
-export default class Render extends Component<Props> {}
+export default class Render extends React.Component<Props> {}

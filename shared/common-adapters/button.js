@@ -107,42 +107,42 @@ const fullWidthHeight = isMobile ? 48 : 32
 const borderRadius = 50
 const smallBorderRadius = isMobile ? 50 : 28
 
+const common = platformStyles({
+  common: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderRadius,
+    height: regularHeight,
+    justifyContent: 'center',
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+  },
+  isElectron: {
+    display: 'inline-block',
+    lineHeight: 'inherit',
+  },
+})
+
+const commonLabel = platformStyles({
+  common: {
+    color: globalColors.white,
+    textAlign: 'center',
+  },
+  isElectron: {whiteSpace: 'pre'},
+})
+
 const styles = styleSheetCreate({
-  common: platformStyles({
-    common: collapseStyles([
-      globalStyles.flexBoxColumn,
-      {
-        alignItems: 'center',
-        alignSelf: 'center',
-        borderRadius,
-        height: regularHeight,
-        justifyContent: 'center',
-        paddingLeft: globalMargins.medium,
-        paddingRight: globalMargins.medium,
-      },
-    ]),
-    isElectron: {
-      display: 'inline-block',
-      lineHeight: 'inherit',
-    },
-  }),
-  commonLabel: platformStyles({
-    common: {
-      color: globalColors.white,
-      textAlign: 'center',
-    },
-    isElectron: {whiteSpace: 'pre'},
-  }),
   fullWidth: {
     alignSelf: undefined,
     height: fullWidthHeight,
-    width: null,
+    width: undefined,
   },
   labelContainer: {height: '100%', position: 'relative'},
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
   progress: platformStyles({
-    isElectron: collapseStyles([globalStyles.fillAbsolute, globalStyles.flexBoxCenter]),
+    isElectron: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
   }),
   small: {
     borderRadius: smallBorderRadius,
@@ -154,32 +154,29 @@ const styles = styleSheetCreate({
 
 const containerStyles = styleSheetCreate({
   Custom: {},
-  Danger: collapseStyles([styles.common, {backgroundColor: globalColors.red}]),
-  Primary: collapseStyles([styles.common, {backgroundColor: globalColors.blue}]),
-  PrimaryGreen: collapseStyles([styles.common, {backgroundColor: globalColors.green}]),
-  PrimaryGreenActive: collapseStyles([
-    styles.common,
-    platformStyles({
-      common: {backgroundColor: globalColors.white, borderColor: globalColors.green, borderWidth: 2},
-      isElectron: {borderStyle: 'solid'},
-    }),
-  ]),
-  PrimaryPrivate: collapseStyles([styles.common, {backgroundColor: globalColors.darkBlue2}]),
-  Secondary: collapseStyles([styles.common, {backgroundColor: globalColors.lightGrey2}]),
-  SecondaryOnTerminal: collapseStyles([styles.common, {backgroundColor: globalColors.blue_30}]),
-  Wallet: collapseStyles([styles.common, {backgroundColor: globalColors.purple2}]),
+  Danger: {...common, backgroundColor: globalColors.red},
+  Primary: {...common, backgroundColor: globalColors.blue},
+  PrimaryGreen: {...common, backgroundColor: globalColors.green},
+  PrimaryGreenActive: platformStyles({
+    common: {...common, backgroundColor: globalColors.white, borderColor: globalColors.green, borderWidth: 2},
+    isElectron: {borderStyle: 'solid'},
+  }),
+  PrimaryPrivate: {...common, backgroundColor: globalColors.darkBlue2},
+  Secondary: {...common, backgroundColor: globalColors.lightGrey2},
+  SecondaryOnTerminal: {...common, backgroundColor: globalColors.blue_30},
+  Wallet: {...common, backgroundColor: globalColors.purple2},
 })
 
 const labelStyles = styleSheetCreate({
   CustomLabel: {color: globalColors.black_75, textAlign: 'center'},
-  DangerLabel: styles.commonLabel,
-  PrimaryGreenActiveLabel: collapseStyles([styles.commonLabel, {color: globalColors.green}]),
-  PrimaryGreenLabel: styles.commonLabel,
-  PrimaryLabel: styles.commonLabel,
-  PrimaryPrivateLabel: styles.commonLabel,
-  SecondaryLabel: collapseStyles([styles.commonLabel, {color: globalColors.black_75}]),
-  SecondaryLabelOnTerminal: collapseStyles([styles.commonLabel, {color: globalColors.white}]),
-  WalletLabel: styles.commonLabel,
+  DangerLabel: commonLabel,
+  PrimaryGreenActiveLabel: {...commonLabel, color: globalColors.green},
+  PrimaryGreenLabel: commonLabel,
+  PrimaryLabel: commonLabel,
+  PrimaryPrivateLabel: commonLabel,
+  SecondaryLabel: {...commonLabel, color: globalColors.black_75},
+  SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
+  WalletLabel: commonLabel,
 })
 
 const progressStyle = small => (isMobile ? undefined : {height: small ? 20 : 20})

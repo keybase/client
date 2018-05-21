@@ -1,15 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
-    <title>4F3521AF-B522-434B-A640-C7DD9E910085</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Colors,-icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons-2" transform="translate(-431.000000, -278.000000)">
-            <g id="kb-iconfont-arrow-right-16" transform="translate(431.000000, 278.000000)">
-                <rect id="icon-area" fill="#D8D8D8" opacity="0" x="0" y="0" width="16" height="16"></rect>
-                <path d="M8.18005398,7.909973 L11.5691327,4.52089424 C12.1444,3.94342726 12.1435078,3.00922485 11.5671386,2.43285771 C10.9907694,1.85649057 10.056567,1.85560168 9.47910205,2.43087095 L4,7.909973 L9.47910205,13.3890751 C10.056567,13.9643443 10.9907694,13.9634554 11.5671386,13.3870883 C12.1435078,12.8107212 12.1444,11.8765188 11.5691327,11.2990518 L8.18005398,7.909973 Z" id="caret-left" fill="#000000" fill-rule="nonzero" transform="translate(8.000000, 7.909973) scale(-1, 1) translate(-8.000000, -7.909973) "></path>
-            </g>
-        </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <path fill="#000" fill-rule="nonzero" d="M7.82 7.91L4.43 4.52a1.478 1.478 0 0 1 2.09-2.09L12 7.91l-5.48 5.48a1.478 1.478 0 0 1-2.09-2.09l3.39-3.39z"/>
 </svg>

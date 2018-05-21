@@ -705,13 +705,8 @@ func (rkt *rekeyTester) provisionNewDevice() *deviceWrapper {
 
 	// Clear the paper key because we don't want it hanging around to
 	// solve the problems we're trying to induce.
-	err := dev2.tctx.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearPaperKeys()
-	}, "provisionNewDevice")
-
-	if err != nil {
-		rkt.t.Fatalf("failed to clear keys: %s", err)
-	}
+	m := libkb.NewMetaContextBackground(dev2.tctx.G)
+	m.ActiveDevice().ClearPaperKey(m)
 
 	return dev2
 }

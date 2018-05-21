@@ -17,6 +17,7 @@ import {
   NativeStyleSheet,
   TabBar,
   Text,
+  type IconType,
 } from '../../../common-adapters/index.native'
 import {TabBarItem} from '../../../common-adapters/tab-bar'
 import {
@@ -27,8 +28,6 @@ import {
   codePageModeShowText,
 } from '../../../constants/login'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
-
-import type {IconType} from '../../../common-adapters/icon'
 import type {Mode} from '../../../constants/types/login'
 import type {Props} from '.'
 

@@ -185,7 +185,7 @@ func testLoginLoadUserEmail(t *testing.T, fu *FakeUser, input string) (*libkb.Us
 		SecretUI: fu.NewSecretUI(),
 	}
 	eng := newLoginLoadUser(tc.G, input)
-	m := NewMetaContextForTest(tc).WithUIs(uis)
+	m := NewMetaContextForTest(tc).WithUIs(uis).WithNewProvisionalLoginContext()
 	if err := RunEngine2(m, eng); err != nil {
 		return nil, err
 	}
