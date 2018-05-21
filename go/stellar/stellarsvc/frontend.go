@@ -120,13 +120,19 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			asset.WorthCurrency = displayCurrency
 			displayAmount, err := stellar.ConvertXLMToOutside(d.Amount, rate)
 			if err != nil {
-				return nil, err
+				s.G().Log.CDebugf("error converting XLM to display currency: %s", err)
+				asset.Worth = "Currency conversion error"
+				asset.WorthCurrency = "ERR"
+			} else {
+				displayFormatted, err := stellar.FormatCurrency(ctx, s.G(), displayAmount, stellar1.OutsideCurrencyCode(displayCurrency))
+				if err != nil {
+					s.G().Log.CDebugf("error formatting currency: %s", err)
+					asset.Worth = "Currency conversion error"
+					asset.WorthCurrency = "ERR"
+				} else {
+					asset.Worth = displayFormatted
+				}
 			}
-			displayFormatted, err := stellar.FormatCurrency(ctx, s.G(), displayAmount, stellar1.OutsideCurrencyCode(displayCurrency))
-			if err != nil {
-				return nil, err
-			}
-			asset.Worth = displayFormatted
 		}
 
 		assets = append(assets, asset)
