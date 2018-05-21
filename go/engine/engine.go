@@ -62,6 +62,17 @@ func isLoggedIn(m libkb.MetaContext) (ret bool, uid keybase1.UID) {
 	return ret, uid
 }
 
+func assertLoggedIn(m libkb.MetaContext, which string) (err error) {
+	ret, err := isLoggedInWithError(m)
+	if err != nil {
+		return err
+	}
+	if !ret {
+		return libkb.NewLoginRequiredError(which)
+	}
+	return nil
+}
+
 func isLoggedInWithError(m libkb.MetaContext) (ret bool, err error) {
 	ret, _, err = isLoggedInWithUIDAndError(m)
 	return ret, err
