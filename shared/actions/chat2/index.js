@@ -1193,6 +1193,8 @@ const previewConversationFindExisting = (
 
   const updatePendingMode =
     action.type === Chat2Gen.previewConversation &&
+    // not dealing with big teams
+    (!action.payload.teamname && !action.payload.channelname) &&
     // it's a fixed set of users so it's not a search (aka you can't add people to it)
     Saga.put(
       Chat2Gen.createSetPendingMode({
@@ -1835,6 +1837,10 @@ const changePendingMode = (
     case Chat2Gen.previewConversation:
       // We decided to make a team instead of start a convo, so no resolution will take place
       if (action.payload.reason === 'convertAdHoc') {
+        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+      }
+      // We're selecting a team so we never want to show the row, we'll instead make the rpc call to add it to the inbox
+      if (action.payload.teamname || action.payload.channelname) {
         return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
       }
       break
