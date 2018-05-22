@@ -50,6 +50,8 @@ class Input extends React.Component<InputProps> {
   }
 
   componentDidMount = () => {
+    this._lastQuote = this.props._quoteCounter
+
     const text = this.props.getUnsentText()
     this._setText(text, true)
   }
