@@ -10,7 +10,7 @@
 /shared/desktop/build/**
 /shared/desktop/dist/**
 /shared/desktop/release/**
-/shared/desktop/renderer/renderer-load.js
+/shared/desktop/renderer/renderer-load.desktop.js
 /shared/fixme/**
 /shared/flow-typed/**
 /shared/libs/flow-interface.js

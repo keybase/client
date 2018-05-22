@@ -11,7 +11,7 @@ import {
   NativeKeyboardAvoidingView,
   NativeAnimated,
   NativeStatusBar,
-} from '../common-adapters/index.native'
+} from '../common-adapters/mobile.native'
 import {NavigationActions, type NavigationAction} from 'react-navigation'
 import {chatTab, loginTab, peopleTab, folderTab, settingsTab} from '../constants/tabs'
 import {compose} from 'recompose'

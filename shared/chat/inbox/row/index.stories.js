@@ -101,7 +101,10 @@ const commonChannel = {
   isError: false,
 }
 
-const provider = PropProviders.compose(PropProviders.TeamDropdownMenu())
+const provider = PropProviders.compose(
+  PropProviders.TeamDropdownMenu(),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
 
 const load = () => {
   storiesOf('Chat/Inbox', module)

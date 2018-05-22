@@ -25,6 +25,28 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 	}
 }
 
+type AccountAssetLocal struct {
+	Name                   string `codec:"name" json:"name"`
+	BalanceTotal           string `codec:"balanceTotal" json:"balanceTotal"`
+	BalanceAvailableToSend string `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
+	AssetCode              string `codec:"assetCode" json:"assetCode"`
+	Issuer                 string `codec:"issuer" json:"issuer"`
+	Worth                  string `codec:"worth" json:"worth"`
+	WorthCurrency          string `codec:"worthCurrency" json:"worthCurrency"`
+}
+
+func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
+	return AccountAssetLocal{
+		Name:                   o.Name,
+		BalanceTotal:           o.BalanceTotal,
+		BalanceAvailableToSend: o.BalanceAvailableToSend,
+		AssetCode:              o.AssetCode,
+		Issuer:                 o.Issuer,
+		Worth:                  o.Worth,
+		WorthCurrency:          o.WorthCurrency,
+	}
+}
+
 type SendResultCLILocal struct {
 	KbTxID KeybaseTransactionID     `codec:"KbTxID" json:"KbTxID"`
 	TxID   TransactionID            `codec:"TxID" json:"TxID"`
@@ -177,6 +199,11 @@ type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetAccountAssetsLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -244,6 +271,7 @@ type FormatLocalCurrencyStringArg struct {
 
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
+	GetAccountAssetsLocal(context.Context, GetAccountAssetsLocalArg) ([]AccountAssetLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -277,6 +305,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetWalletAccountsLocal(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"GetAccountAssetsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetAccountAssetsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetAccountAssetsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetAccountAssetsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetAccountAssetsLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -512,6 +556,11 @@ type LocalClient struct {
 func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) (res []WalletAccountLocal, err error) {
 	__arg := GetWalletAccountsLocalArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "stellar.1.local.GetWalletAccountsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetAccountAssetsLocal(ctx context.Context, __arg GetAccountAssetsLocalArg) (res []AccountAssetLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.GetAccountAssetsLocal", []interface{}{__arg}, &res)
 	return
 }
 

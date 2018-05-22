@@ -32,11 +32,11 @@ const container3Style = {
   alignItems: 'center',
   backgroundColor: globalColors.blue2,
   borderRadius: globalMargins.large,
-  height: globalMargins.large,
+  height: 48,
   justifyContent: 'center',
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.small,
-  width: globalMargins.large,
+  width: 48,
 }
 
 const textStyle = {

@@ -1,7 +1,7 @@
 // @flow
 import * as SafeElectron from '../util/safe-electron.desktop'
-import {quit} from '../desktop/app/ctl'
-import {hideDockIcon} from '../desktop/app/dock-icon'
+import {quit} from '../desktop/app/ctl.desktop'
+import {hideDockIcon} from '../desktop/app/dock-icon.desktop'
 
 export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
 export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'

@@ -68,6 +68,50 @@ export function fontSize(type: IconType): ?Object {
   }
 }
 
+const idealSizeMultMap = {
+  '128': {'1': 256, '2': 256, '3': 960},
+  '16': {'1': 256, '2': 256, '3': 192},
+  '32': {'1': 256, '2': 256, '3': 192},
+  '48': {'1': 192, '2': 192, '3': 960},
+  '64': {'1': 256, '2': 256, '3': 192},
+  '96': {'1': 192, '2': 192, '3': 960},
+}
+
+export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): any {
+  let sizes: any = Object.keys(imgMap)
+
+  if (!sizes.length) {
+    return null
+  }
+
+  sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
+
+  const multsMap: any = {
+    '1': null,
+    '2': null,
+    '3': null,
+  }
+
+  Object.keys(multsMap).forEach(mult => {
+    // find ideal size if it exist
+    const level1 = idealSizeMultMap[String(targetSize)]
+    if (level1) {
+      const level2 = level1[String(mult)]
+      if (level2) {
+        multsMap[mult] = level2
+        return
+      }
+    }
+
+    // fallback
+    const ideal = parseInt(mult, 10) * targetSize
+    const size = sizes.find(size => size >= ideal)
+    multsMap[mult] = size || sizes[sizes.length - 1]
+  })
+
+  return multsMap
+}
+
 export function castPlatformStyles(styles: any) {
   return styles
 }

@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as PropProviders from '../../stories/prop-providers'
 import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 
@@ -14,8 +15,14 @@ const sharedProps = {
   onSetDescription: action('onSetDescription'),
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Teams/Edit team description', module)
+    .addDecorator(provider)
     .add('Description unchanged', () => (
       <Box style={storyWrapStyle}>
         <EditTeamDescription {...sharedProps} />
