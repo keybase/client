@@ -393,7 +393,7 @@ class Engine {
   ) {
     if (this._incomingActionCreators[method]) {
       rpcLog('engineInternal', "duplicate incoming action creator!!! this isn't allowed", {method})
-      return
+      throw new Error(`duplicate incoming action creator: ${method}`)
     }
     rpcLog('engineInternal', 'registering incoming action creator:', {method})
     this._incomingActionCreators[method] = actionCreator
