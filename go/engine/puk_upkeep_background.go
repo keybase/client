@@ -90,6 +90,7 @@ func (e *PerUserKeyUpkeepBackground) Shutdown() {
 }
 
 func PerUserKeyUpkeepBackgroundRound(m libkb.MetaContext) error {
+	m = m.WithLogTag("PBG")
 	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
 		m.CDebugf("PerUserKeyUpkeepBackgroundRound giving up offline")
 		return nil

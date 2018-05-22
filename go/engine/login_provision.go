@@ -146,7 +146,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 
 	// initialize a stellar wallet for the user if they don't already have one.
 	m.G().LocalSigchainGuard().Clear(m.Ctx(), "loginProvision")
-	m.G().GetStellar().CreateWalletSoft(context.Background())
+	m.G().GetStellar().CreateWalletSoft(m.BackgroundWithLogTags())
 
 	return nil
 }

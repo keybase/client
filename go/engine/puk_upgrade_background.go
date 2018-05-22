@@ -91,6 +91,7 @@ func (e *PerUserKeyUpgradeBackground) Shutdown() {
 }
 
 func PerUserKeyUpgradeBackgroundRound(m libkb.MetaContext) error {
+	m = m.WithLogTag("PBG")
 	if !m.G().Env.GetUpgradePerUserKey() {
 		m.CDebugf("PerUserKeyUpgradeBackground disabled")
 		return nil

@@ -619,12 +619,12 @@ type TeamLoader interface {
 }
 
 type Stellar interface {
-	CreateWalletGated(context.Context) (bool, error)
-	CreateWalletSoft(context.Context)
-	Upkeep(context.Context) error
+	CreateWalletGated(MetaContext) (bool, error)
+	CreateWalletSoft(MetaContext)
+	Upkeep(MetaContext) error
 	OnLogout()
 
-	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
+	GetServerDefinitions(MetaContext) (stellar1.StellarServerDefinitions, error)
 }
 
 type DeviceEKStorage interface {

@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -431,9 +432,8 @@ func (s *testDeviceSet) provision(d *testDevice) {
 		s.t.Fatalf("Failed to login rekey UI: %s", err)
 	}
 	cmd := client.NewCmdLoginRunner(g)
-	if err := cmd.Run(); err != nil {
-		s.t.Fatalf("Login failed: %s\n", err)
-	}
+	err := cmd.Run()
+	require.NoError(s.t, err, "Login failed")
 
 	deviceKeys, backups := d.loadEncryptionKIDs()
 	deviceKeys = s.findNewKIDs(deviceKeys)

@@ -223,7 +223,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
-	g.stellar = newNullStellar(g)
+	g.stellar = newNullStellar()
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
@@ -1286,4 +1286,8 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 		return res, fmt.Errorf("could not load logged-in user")
 	}
 	return upkv2.Current.ToUserVersion(), nil
+}
+
+func (g *GlobalContext) Bg() MetaContext {
+	return NewMetaContext(context.Background(), g)
 }

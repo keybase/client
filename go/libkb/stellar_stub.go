@@ -1,36 +1,33 @@
 package libkb
 
 import (
-	"context"
 	"fmt"
 
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 )
 
-type nullStellar struct {
-	Contextified
-}
+type nullStellar struct{}
 
 var _ Stellar = (*nullStellar)(nil)
 
-func newNullStellar(g *GlobalContext) *nullStellar {
-	return &nullStellar{NewContextified(g)}
+func newNullStellar() *nullStellar {
+	return &nullStellar{}
 }
 
-func (n *nullStellar) CreateWalletGated(ctx context.Context) (bool, error) {
+func (n *nullStellar) CreateWalletGated(m MetaContext) (bool, error) {
 	return false, fmt.Errorf("null stellar impl")
 }
 
-func (n *nullStellar) CreateWalletSoft(ctx context.Context) {
-	n.G().Log.CErrorf(ctx, "null stellar impl")
+func (n *nullStellar) CreateWalletSoft(m MetaContext) {
+	m.CErrorf("null stellar impl")
 }
 
-func (n *nullStellar) Upkeep(ctx context.Context) error {
+func (n *nullStellar) Upkeep(m MetaContext) error {
 	return fmt.Errorf("null stellar impl")
 }
 
 func (n *nullStellar) OnLogout() {}
 
-func (n *nullStellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
+func (n *nullStellar) GetServerDefinitions(m MetaContext) (ret stellar1.StellarServerDefinitions, err error) {
 	return ret, fmt.Errorf("null stellar impl")
 }

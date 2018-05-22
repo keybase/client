@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	context "golang.org/x/net/context"
 )
 
 var WalletInitBackgroundSettings = BackgroundTaskSettings{
@@ -89,22 +88,22 @@ func (e *WalletInitBackground) Shutdown() {
 }
 
 func WalletInitBackgroundRound(m libkb.MetaContext) error {
-	g := m.G()
-	if g.ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
+	m = m.WithLogTag("WBG")
+	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
 		m.CDebugf("WalletInitBackgroundRound giving up offline")
 		return nil
 	}
 
-	if !g.ActiveDevice.Valid() {
+	if !m.G().ActiveDevice.Valid() {
 		m.CDebugf("WalletInitBackground not logged in")
 		return nil
 	}
 
-	if !g.LocalSigchainGuard().IsAvailable(m.Ctx(), "WalletInitBackground") {
+	if !m.G().LocalSigchainGuard().IsAvailable(m.Ctx(), "WalletInitBackground") {
 		m.CDebugf("WalletInitBackgroundRound yielding to guard")
 		return nil
 	}
 
-	_, err := g.GetStellar().CreateWalletGated(context.Background())
+	_, err := m.G().GetStellar().CreateWalletGated(m)
 	return err
 }

@@ -74,7 +74,7 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 		return res, err
 	}
 
-	mctx := libkb.NewMetaContext(ctx, s.G())
+	mctx := s.m(ctx)
 
 	// Prompt for passphrase
 	username := s.G().GetEnv().GetUsername().String()
@@ -134,8 +134,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
-
+	m := s.m(ctx).WithUIs(uis)
 	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
 }
 
@@ -195,7 +194,7 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = stellar.CreateWallet(ctx, s.G())
+	_, err = stellar.CreateWallet(s.m(ctx))
 	return err
 }
 
@@ -304,7 +303,7 @@ func (s *Server) GetAvailableLocalCurrencies(ctx context.Context) (ret map[stell
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetAvailableCurrencies", func() error { return err })()
 
-	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	conf, err := s.G().GetStellar().GetServerDefinitions(s.m(ctx))
 	if err != nil {
 		return ret, err
 	}
@@ -317,7 +316,7 @@ func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.For
 	defer s.G().CTraceTimed(ctx, "FormatCurrencyString", func() error { return err })()
 
 	res = arg.Amount
-	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	conf, err := s.G().GetStellar().GetServerDefinitions(s.m(ctx))
 	if err != nil {
 		return res, err
 	}
@@ -367,6 +366,10 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 	}
 
 	return nil
+}
+
+func (s *Server) m(ctx context.Context) libkb.MetaContext {
+	return libkb.NewMetaContext(ctx, s.G())
 }
 
 func percentageAmountChange(a, b int64) float64 {
