@@ -58,3 +58,20 @@ export const tlfToPreferredOrder = (tlf: string, me: string): string => {
   const readerSuffix = readerNames.length ? `#${readerNames.join(',')}${extensionSuffix}` : extensionSuffix
   return `${writerNames.join(',')}${readerSuffix}`
 }
+
+// helper for making chat calls
+export const tlfToParticipantsOrTeamname = (tlf: string) => {
+  const parts = tlf.split('/')
+  let participants
+  let teamname
+  if (parts.length >= 4) {
+    const [, , type, names] = parts
+    if (type === 'private' || type === 'public') {
+      // allow talking to yourself
+      participants = parseFolderNameToUsers('', names).map(u => u.username)
+    } else if (type === 'team') {
+      teamname = names
+    }
+  }
+  return {participants, teamname}
+}

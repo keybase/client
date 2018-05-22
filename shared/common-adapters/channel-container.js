@@ -5,9 +5,15 @@ import {connect, compose, setDisplayName, type TypedState, type Dispatch} from '
 
 const mapStateToProps = (state: TypedState) => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch, {convID}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {convID, name}) => ({
   onClick: () =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey: convID, reason: 'messageLink'})),
+    dispatch(
+      Chat2Gen.createPreviewConversation({
+        conversationIDKey: convID,
+        channelname: name,
+        reason: 'messageLink',
+      })
+    ),
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('Channel'))(Channel)

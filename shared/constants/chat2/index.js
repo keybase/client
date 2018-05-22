@@ -7,27 +7,40 @@ import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
+import {
+  pendingConversationIDKey,
+  noConversationIDKey,
+  pendingWaitingConversationIDKey,
+} from '../types/chat2/common'
+import {makeConversationMeta, getMeta} from './meta'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   editingMap: I.Map(),
+  explodingModes: I.Map(),
   inboxFilter: '',
   loadingMap: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
-  metaMap: I.Map(),
-  explodingModes: I.Map(),
-  pendingConversationUsers: I.Set(),
+  metaMap: I.Map([
+    [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
+  ]),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
-  pendingSelected: false,
-  pendingStatus: 'none',
   quotingMap: I.Map(),
-  selectedConversation: Types.stringToConversationIDKey(''),
+  selectedConversation: noConversationIDKey,
   typingMap: I.Map(),
   unreadMap: I.Map(),
 })
 
+// We stash the resolved pending conversation idkey into the meta itself
+export const getResolvedPendingConversationIDKey = (state: TypedState) =>
+  getMeta(state, pendingConversationIDKey).conversationIDKey
+export const isValidConversationIDKey = (id: Types.ConversationIDKey) =>
+  id &&
+  id !== pendingConversationIDKey &&
+  id !== noConversationIDKey &&
+  id !== pendingWaitingConversationIDKey
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.SortedSet())
 export const getMessageMap = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -39,7 +52,8 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.editingMap.get(id)
-export const getQuotingOrdinalAndSource = (state: TypedState, id: string) => state.chat2.quotingMap.get(id)
+export const getQuotingOrdinalAndSource = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.quotingMap.get(id)
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
@@ -68,7 +82,8 @@ export const isInfoPanelOpen = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState, [chatTab])
   return routePath.size === 3 && routePath.get(2) === 'infoPanel'
 }
-export const pendingConversationIDKey = Types.stringToConversationIDKey('')
+
+export const creatingLoadingKey = 'creatingConvo'
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
@@ -98,7 +113,6 @@ export const makeInboxQuery = (
 }
 
 export {
-  findConversationFromParticipants,
   getConversationIDKeyMetasToLoad,
   getMeta,
   getRowParticipants,
@@ -127,3 +141,5 @@ export {
   uiMessageToMessage,
   upgradeMessage,
 } from './message'
+
+export {pendingConversationIDKey, noConversationIDKey, pendingWaitingConversationIDKey}

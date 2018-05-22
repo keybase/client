@@ -362,12 +362,8 @@ const _createNewTeamFromConversation = function*(
   const me = usernameSelector(state)
   let participants: Array<string> = []
 
-  if (state.chat2.pendingSelected) {
-    participants = state.chat2.pendingConversationUsers.toArray()
-  } else {
-    const meta = ChatConstants.getMeta(state, conversationIDKey)
-    participants = meta.participants.toArray()
-  }
+  const meta = ChatConstants.getMeta(state, conversationIDKey)
+  participants = meta.participants.toArray()
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
@@ -388,11 +384,7 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
-      if (state.chat2.pendingSelected) {
-        yield Saga.put(Chat2Gen.createExitSearch({canceled: true}))
-        yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
-      }
+      yield Saga.put(Chat2Gen.createPreviewConversation({teamname, reason: 'convertAdHoc'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
@@ -857,9 +849,13 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
 
     // Select the new channel, and switch to the chat tab.
     yield Saga.put(
-      Chat2Gen.createSelectConversation({conversationIDKey: newConversationIDKey, reason: 'teamChat'})
+      Chat2Gen.createPreviewConversation({
+        channelname,
+        conversationIDKey: newConversationIDKey,
+        reason: 'newChannel',
+        teamname,
+      })
     )
-    yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
   }

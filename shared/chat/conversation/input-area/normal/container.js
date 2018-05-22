@@ -5,7 +5,6 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
 import {connect, type TypedState, type Dispatch} from '../../../../util/container'
-import {isEqual} from 'lodash-es'
 import Input, {type Props} from '.'
 
 type OwnProps = {
@@ -25,38 +24,19 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const meta = Constants.getMeta(state, conversationIDKey)
   const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
   const _editingMessage: ?Types.Message = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
-  const quote = Constants.getQuotingOrdinalAndSource(
-    state,
-    state.chat2.pendingSelected ? Constants.pendingConversationIDKey : conversationIDKey
-  )
+  const quote = Constants.getQuotingOrdinalAndSource(state, conversationIDKey)
   let _quotingMessage: ?Types.Message = null
   if (quote) {
     const {ordinal, sourceConversationIDKey} = quote
     _quotingMessage = ordinal ? Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal) : null
   }
 
-  // Sanity check -- is this quoted-pending message for the right person?
-  if (
-    state.chat2.pendingSelected &&
-    _quotingMessage &&
-    !isEqual([_quotingMessage.author], state.chat2.pendingConversationUsers.toArray())
-  ) {
-    console.warn(
-      'Should never happen:',
-      state.chat2.pendingConversationUsers.toArray(),
-      'vs',
-      _quotingMessage.author
-    )
-    _quotingMessage = null
-  }
-
   const _you = state.config.username || ''
-  const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
-
   const injectedInputMessage: ?Types.Message = _editingMessage || _quotingMessage || null
   const injectedInput: string =
     injectedInputMessage && injectedInputMessage.type === 'text'
@@ -65,12 +45,11 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 
   return {
     _editingMessage,
-    _meta: Constants.getMeta(state, conversationIDKey),
+    _meta: meta,
     _quotingMessage,
     _you,
     conversationIDKey,
     injectedInput,
-    pendingWaiting,
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -140,7 +119,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     }
     ownProps.onScrollDown()
   },
-  pendingWaiting: stateProps.pendingWaiting,
   typing: stateProps.typing,
 
   _quotingMessage: stateProps._quotingMessage,

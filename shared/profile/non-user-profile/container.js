@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   },
   onStartChat: (username: string) => {
     if (username) {
-      dispatch(Chat2Gen.createStartConversation({participants: [username]}))
+      dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'}))
     }
   },
 })
