@@ -13,7 +13,7 @@ protocol local {
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM"
   }
-  array<WalletAccountLocal> GetWalletAccountsLocal(int sessionID);
+  array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
 
   record AccountAssetLocal {
     string name;                    // "Lumens"
@@ -24,7 +24,7 @@ protocol local {
     string worth;                   // "$98.13" or error string if worthCurrency == "ERR"
     string worthCurrency;           // "USD", "CAD", etc.  if it is "ERR" then an exchange rate error occurred
   }
-  array<AccountAssetLocal> GetAccountAssetsLocal(int sessionID, AccountID accountID);
+  array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
   // -------------------------------------------------------
   // CLI protocol

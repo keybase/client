@@ -293,7 +293,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "stellar.1.local",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"GetWalletAccountsLocal": {
+			"getWalletAccountsLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]GetWalletAccountsLocalArg, 1)
 					return &ret
@@ -309,7 +309,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"GetAccountAssetsLocal": {
+			"getAccountAssetsLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]GetAccountAssetsLocalArg, 1)
 					return &ret
@@ -555,12 +555,12 @@ type LocalClient struct {
 
 func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) (res []WalletAccountLocal, err error) {
 	__arg := GetWalletAccountsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.GetWalletAccountsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountsLocal", []interface{}{__arg}, &res)
 	return
 }
 
 func (c LocalClient) GetAccountAssetsLocal(ctx context.Context, __arg GetAccountAssetsLocalArg) (res []AccountAssetLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.GetAccountAssetsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getAccountAssetsLocal", []interface{}{__arg}, &res)
 	return
 }
 
