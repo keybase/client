@@ -66,9 +66,14 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.setIn(['teamNameToPublicitySettings', action.payload.teamname], action.payload.publicity)
 
     case TeamsGen.setTeamChannelInfo:
-      const channelInfos = state.teamNameToChannelInfos.get(action.payload.teamname, I.Map())
-      const newChannelInfos = channelInfos.set(action.payload.conversationIDKey, action.payload.channelInfo)
-      return state.setIn(['teamNameToChannelInfos', action.payload.teamname], newChannelInfos)
+      const {conversationIDKey, channelInfo} = action.payload
+      return state.updateIn(
+        ['teamNameToChannelInfos', action.payload.teamname],
+        channelInfos =>
+          channelInfos
+            ? channelInfos.set(conversationIDKey, channelInfo)
+            : I.Map([[conversationIDKey, channelInfo]])
+      )
 
     case TeamsGen.setTeamChannels:
       return state.setIn(['teamNameToChannelInfos', action.payload.teamname], action.payload.channelInfos)
