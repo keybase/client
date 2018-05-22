@@ -9,8 +9,6 @@ import {throttle} from 'lodash-es'
 const throttled = throttle((f, param) => f(param), 1000)
 
 class Input extends React.Component<InputProps> {
-  _lastQuote: ?number
-
   _input: ?TextInput
 
   _inputSetRef = (input: ?TextInput) => {
@@ -55,19 +53,21 @@ class Input extends React.Component<InputProps> {
       this._inputFocus()
     }
 
-    if (!prevProps.isEditing && this.props.isEditing) {
-      this._setText(this.props._editText)
-      this._inputFocus()
-      return
+    // Only trigger edit changes when on the same conversation.
+    if (prevProps.conversationIDKey === this.props.conversationIDKey) {
+      if (!prevProps.isEditing && this.props.isEditing) {
+        this._setText(this.props._editText)
+        this._inputFocus()
+        return
+      }
+
+      if (prevProps.isEditing && !this.props.isEditing) {
+        this._setText('')
+        return
+      }
     }
 
-    if (prevProps.isEditing && !this.props.isEditing) {
-      this._setText('')
-      return
-    }
-
-    if (this.props._quoteCounter && this.props._quoteCounter !== this._lastQuote) {
-      this._lastQuote = this.props._quoteCounter
+    if (this.props._quoteCounter && this.props._quoteCounter > prevProps._quoteCounter) {
       this._setText(this.props._quoteText)
       this._inputFocus()
       return

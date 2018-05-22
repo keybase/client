@@ -81,7 +81,7 @@ export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => 
     return null
   }
 
-  const message = getMessageMap(state, id).get(quote.ordinal)
+  const message = getMessageMap(state, quote.sourceConversationIDKey).get(quote.ordinal)
   if (!message || message.type !== 'text') {
     return null
   }
