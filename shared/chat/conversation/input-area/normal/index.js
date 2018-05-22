@@ -20,15 +20,6 @@ class Input extends React.Component<InputProps> {
     this._input && this._input.focus()
   }
 
-  _inputMoveToEnd = () => {
-    if (this._input) {
-      this._input.transformText(({text, selection}) => ({
-        text,
-        selection: {start: text.length, end: text.length},
-      }))
-    }
-  }
-
   _onCancelQuoting = () => {
     this.props._quotingMessage && this.props.onCancelQuoting()
   }
