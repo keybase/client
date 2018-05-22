@@ -106,16 +106,6 @@ const RightSide = props => (
     style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
     className="message-wrapper"
   >
-    <Box style={styles.sendIndicatorContainer}>
-      {props.isYou && (
-        <SendIndicator
-          sent={props.messageSent}
-          failed={props.messageFailed}
-          style={{marginBottom: 2}}
-          id={props.message.timestamp}
-        />
-      )}
-    </Box>
     {/* The avatar is above this actually but we want the send indicator to never be a part of the height
     calculation so we put it first so it appears under the avatar if they overlap */}
     {props.includeHeader && (
@@ -161,6 +151,16 @@ const RightSide = props => (
         onCancel={props.onCancel}
       />
     )}
+    <Box style={styles.sendIndicatorContainer}>
+      {props.isYou && (
+        <SendIndicator
+          sent={props.messageSent}
+          failed={props.messageFailed}
+          style={styles.sendIndicator}
+          id={props.message.timestamp}
+        />
+      )}
+    </Box>
   </Box>
 )
 
@@ -216,20 +216,19 @@ const styles = styleSheetCreate({
     },
   }),
   selected: {backgroundColor: globalColors.black_05},
+  sendIndicator: {marginBottom: 2},
   sendIndicatorContainer: platformStyles({
     common: {
-      // we never want this thing to push content around
       alignItems: 'center',
-      bottom: 0,
+      bottom: -2,
       height: 21,
       justifyContent: 'center',
       position: 'absolute',
-      right: 0,
-      width: sendIndicatorWidth,
+      right: 30,
+      width: 24,
     },
-    isMobile: {
-      right: -sendIndicatorWidth,
-    },
+    isElectron: {pointerEvents: 'none'},
+    isMobile: {right: -sendIndicatorWidth},
   }),
   textContainer: {
     ...globalStyles.flexBoxRow,
