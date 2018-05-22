@@ -79,8 +79,8 @@ const config = (_, {mode}) => {
     const defines = {
       __DEV__: isDev,
       __HOT__: isHot,
-      __SCREENSHOT__: false,
       __STORYBOOK__: false,
+      __STORYSHOT: false,
       __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
     }
     console.warn('Injecting defines: ', defines)

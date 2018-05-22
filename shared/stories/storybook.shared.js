@@ -34,10 +34,13 @@ class StorybookErrorBoundary extends React.Component<
   constructor(props: any) {
     super(props)
     this.state = {hasError: false, error: null, info: null}
-  }
 
-  componentDidCatch(error: Error, info: {componentStack: string}) {
-    this.setState({hasError: true, error, info})
+    // Disallow catching errors when snapshot testing
+    if (!__STORYSHOT__) {
+      this.componentDidCatch = (error: Error, info: {componentStack: string}) => {
+        this.setState({hasError: true, error, info})
+      }
+    }
   }
 
   render() {
