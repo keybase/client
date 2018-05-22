@@ -967,12 +967,6 @@
 			"revisionTime": "2016-06-17T13:51:20-05:00"
 		},
 		{
-			"checksumSHA1": "fN7qbp5VJw1i0gR7WkWvLA5zFTA=",
-			"path": "golang.org/x/text/feature/plural",
-			"revision": "b7ef84aaf62aa3e70962625c80a571ae7c17cb40",
-			"revisionTime": "2018-02-22T12:58:23Z"
-		},
-		{
 			"path": "golang.org/x/text/internal/gen",
 			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
 			"revisionTime": "2016-06-17T13:51:20-05:00"
@@ -991,12 +985,6 @@
 		{
 			"checksumSHA1": "ecdhOiSamBWEE1T78D5H2U0xO9E=",
 			"path": "golang.org/x/text/message",
-			"revision": "b7ef84aaf62aa3e70962625c80a571ae7c17cb40",
-			"revisionTime": "2018-02-22T12:58:23Z"
-		},
-		{
-			"checksumSHA1": "qBzBktNpZs3Bh7QmLIbH6TdPZ6A=",
-			"path": "golang.org/x/text/message/catalog",
 			"revision": "b7ef84aaf62aa3e70962625c80a571ae7c17cb40",
 			"revisionTime": "2018-02-22T12:58:23Z"
 		},
