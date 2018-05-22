@@ -102,7 +102,7 @@ describe('chat2 reducer', () => {
   })
 
   describe('messageSetQuoting action', () => {
-    it('set and clear quoted message works', () => {
+    it('set quoted message works', () => {
       const setAction = Chat2Gen.createMessageSetQuoting({
         ordinal: Types.numberToOrdinal(1),
         sourceConversationIDKey: conversationIDKey,
@@ -110,10 +110,24 @@ describe('chat2 reducer', () => {
       })
 
       const state1 = reducer(initialState, setAction)
-      /*      expect(state1.quotingMap.get(conversationIDKey)).toEqual({
-        ordinal: Types.numberToOrdinal(1),
-        sourceConversationIDKey: conversationIDKey,
-      })*/
+      expect(state1.quote).toEqual(
+        Constants.makeQuoteInfo({
+          counter: 1,
+          ordinal: Types.numberToOrdinal(1),
+          sourceConversationIDKey: conversationIDKey,
+          targetConversationIDKey: conversationIDKey,
+        })
+      )
+
+      const state2 = reducer(state1, setAction)
+      expect(state2.quote).toEqual(
+        Constants.makeQuoteInfo({
+          counter: 2,
+          ordinal: Types.numberToOrdinal(1),
+          sourceConversationIDKey: conversationIDKey,
+          targetConversationIDKey: conversationIDKey,
+        })
+      )
     })
   })
 })
