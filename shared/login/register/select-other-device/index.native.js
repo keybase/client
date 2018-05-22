@@ -9,7 +9,7 @@ import {
   NativeScrollView,
   Button,
   type IconType,
-} from '../../../common-adapters/index.native'
+} from '../../../common-adapters/mobile.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import type {DeviceType} from '../../../constants/types/devices'
 import type {Props} from '.'

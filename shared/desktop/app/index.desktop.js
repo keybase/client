@@ -1,15 +1,15 @@
 // @flow
-import MainWindow from './main-window'
-import devTools from './dev-tools'
-import installer from './installer'
-import menuBar from './menu-bar'
+import MainWindow from './main-window.desktop'
+import devTools from './dev-tools.desktop'
+import installer from './installer.desktop'
+import menuBar from './menu-bar.desktop'
 import os from 'os'
 import semver from 'semver'
-import windowHelper from './window-helper'
+import windowHelper from './window-helper.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
-import startWinService from './start-win-service'
+import startWinService from './start-win-service.desktop'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
 
 process.on('uncaughtException', e => {

@@ -1,13 +1,13 @@
 // @flow
-import AppState from './app-state'
-import Window from './window'
+import AppState from './app-state.desktop'
+import Window from './window.desktop'
 import getenv from 'getenv'
-import hotPath from '../hot-path'
+import hotPath from '../hot-path.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
-import {hideDockIcon} from './dock-icon'
+import {hideDockIcon} from './dock-icon.desktop'
 import {injectReactQueryParams} from '../../util/dev'
-import {resolveRootAsURL} from '../resolve-root'
+import {resolveRootAsURL} from '../resolve-root.desktop'
 import {windowStyle} from '../../styles'
 import {isWindows} from '../../constants/platform'
 

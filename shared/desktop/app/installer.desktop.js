@@ -1,8 +1,8 @@
 // @flow
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import exec from './exec'
-import {keybaseBinPath} from './paths'
-import {quit} from './ctl'
+import exec from './exec.desktop'
+import {keybaseBinPath} from './paths.desktop'
+import {quit} from './ctl.desktop'
 import {isWindows} from '../../constants/platform'
 import logger from '../../logger'
 import {
@@ -10,7 +10,7 @@ import {
   ExitCodeFuseKextPermissionError,
   ExitCodeAuthCanceledError,
 } from '../../constants/favorite'
-import UserData from './user-data'
+import UserData from './user-data.desktop'
 
 import type {InstallResult} from '../../constants/types/rpc-gen'
 
