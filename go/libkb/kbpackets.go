@@ -212,7 +212,7 @@ func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 			copy(si.Sig[:], sig)
 		}
 		if st, ok := mb["sig_type"].(int64); ok {
-			si.SigType = int(st)
+			si.SigType = AlgoType(st)
 		}
 		if v, ok := mb["version"].(int64); ok {
 			si.Version = int(v)
