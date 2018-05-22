@@ -37,7 +37,7 @@ const TextPopupMenu = (props: Props) => {
             danger: true,
             disabled: !props.onDelete,
             onClick: props.onDelete,
-            subTitle: 'Deletes this message for everyone.',
+            subTitle: 'Deletes this message for everyone',
             title: 'Delete',
           },
         ]
