@@ -104,7 +104,10 @@ func (pq *priorityQueue) Peek() *queueItem {
 type BackgroundEphemeralPurger struct {
 	globals.Contextified
 	utils.DebugLabeler
-	sync.Mutex
+	// used to prevent concurrent calls to Start/Stop
+	lock sync.Mutex
+	// used to prevent concurrent modifications to `pq`
+	queueLock sync.Mutex
 
 	uid     gregor1.UID
 	looping bool
@@ -139,13 +142,16 @@ func (b *BackgroundEphemeralPurger) SetClock(clock clockwork.Clock) {
 func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) {
 	b.Debug(ctx, "Start")
 
-	b.Lock()
-	defer b.Unlock()
+	b.lock.Lock()
+	defer b.lock.Unlock()
 
+	b.cleanupTimers()
 	if b.looping {
 		b.stopCh <- make(chan struct{})
+		// We may get a call to Start/Stop before `loop()` can grab the lock
+		// reset this to false so we just reset it here.
+		b.looping = false
 	}
-	b.cleanupTimers()
 	b.uid = uid
 	b.initQueue(ctx)
 
@@ -158,21 +164,29 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 			storage.NewOutbox(b.G(), b.uid).EphemeralPurge(context.Background())
 		}
 	}()
+	// We may have be `Stop()`ed before and closed out the purge loop, if so
+	// restart it.
+	if b.purgeTimer != nil && !b.looping {
+		go b.loop()
+	}
 }
 
 func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) chan struct{} {
 	b.Debug(ctx, "Stop")
 
-	b.Lock()
-	defer b.Unlock()
+	b.lock.Lock()
+	defer b.lock.Unlock()
 
+	b.cleanupTimers()
 	ch := make(chan struct{})
 	if b.looping {
 		b.stopCh <- ch
+		// We may get a call to Start/Stop before `loop()` can grab the lock
+		// reset this to false so we just reset it here.
+		b.looping = false
 	} else {
 		close(ch)
 	}
-	b.cleanupTimers()
 	return ch
 }
 
@@ -188,8 +202,8 @@ func (b *BackgroundEphemeralPurger) cleanupTimers() {
 func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) {
 	b.Debug(ctx, "Queue purgeInfo: %v, queue: %v", purgeInfo, len(b.pq.queue))
 
-	b.Lock()
-	defer b.Unlock()
+	b.queueLock.Lock()
+	defer b.queueLock.Unlock()
 
 	// We only keep active items in the queue.
 	if !purgeInfo.IsActive {
@@ -206,6 +220,9 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 
 // Read all purgeInfo from disk and startup our queue.
 func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
+	b.queueLock.Lock()
+	defer b.queueLock.Unlock()
+
 	allPurgeInfo, err := b.storage.GetAllPurgeInfo(ctx, b.uid)
 	if err != nil {
 		b.Debug(ctx, "unable to get purgeInfo: %v", allPurgeInfo)
@@ -230,31 +247,20 @@ func (b *BackgroundEphemeralPurger) updateQueue(purgeInfo chat1.EphemeralPurgeIn
 
 // This runs when we are waiting to run a job but will shut itself down if we
 // have no work.
-func (b *BackgroundEphemeralPurger) loop(duration time.Duration) {
-	b.looping = true
-	defer func() { b.looping = false }()
+func (b *BackgroundEphemeralPurger) loop() {
 	bgctx := context.Background()
+	b.lock.Lock()
+	b.looping = true
+	b.lock.Unlock()
+
 	for {
-		b.Debug(bgctx, "loop: waiting for job, timer to fire at: %v", b.clock.Now().Add(duration))
+		b.Debug(bgctx, "loop: waiting for job")
 		select {
 		case <-b.purgeTimer.C:
-			select {
-			case ch := <-b.stopCh:
-				b.Debug(bgctx, "loop: shutting down (in lock wait) for %s", b.uid)
-				close(ch)
-				return
-			default:
-			}
-			b.Lock()
-			stop := b.queuePurges(bgctx)
-			// If we are out of jobs currently, shut down our loop since we
-			// have no timer to listen for.
-			if stop {
-				defer b.Unlock()
-				return
-			}
-			b.Unlock()
-		case ch := <-b.stopCh:
+			b.queueLock.Lock()
+			b.queuePurges(bgctx)
+			b.queueLock.Unlock()
+		case ch := <-b.stopCh: // caller will reset looping=false
 			b.Debug(bgctx, "loop: shutting down for %s", b.uid)
 			close(ch)
 			return
@@ -268,11 +274,11 @@ func (b *BackgroundEphemeralPurger) loop(duration time.Duration) {
 func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 	b.Debug(ctx, "queuePurges")
 
-	now := b.clock.Now()
 	i := 0
 	// Peek into the queue for any expired convs
 	for _, item := range b.pq.queue {
 		purgeInfo := item.purgeInfo
+		now := b.clock.Now()
 		nextPurgeTime := purgeInfo.NextPurgeTime.Time()
 		if nextPurgeTime.Before(now) || nextPurgeTime.Equal(now) {
 			job := types.NewConvLoaderJob(purgeInfo.ConvID, &chat1.Pagination{},
@@ -310,12 +316,10 @@ func (b *BackgroundEphemeralPurger) setOrResetTimer(purgeInfo chat1.EphemeralPur
 	duration := purgeInfo.NextPurgeTime.Time().Sub(b.clock.Now())
 	if b.purgeTimer == nil {
 		b.purgeTimer = time.NewTimer(duration)
+		go b.loop()
 	} else {
 		b.purgeTimer.Stop()
 		b.purgeTimer.Reset(duration)
-	}
-	if !b.looping {
-		go b.loop(duration)
 	}
 }
 

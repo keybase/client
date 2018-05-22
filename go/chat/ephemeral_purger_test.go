@@ -14,7 +14,6 @@ import (
 )
 
 func TestBackgroundPurge(t *testing.T) {
-	t.Skip()
 	ctx, tc, world, _, baseSender, listener, res := setupLoaderTest(t)
 	defer world.Cleanup()
 
@@ -30,7 +29,7 @@ func TestBackgroundPurge(t *testing.T) {
 		select {
 		case convID := <-listener.bgConvLoads:
 			require.Equal(t, res.ConvID, convID)
-		case <-time.After(2 * time.Second):
+		case <-time.After(10 * time.Second):
 			t.Fatal("timeout waiting for conversation load")
 		}
 	}
