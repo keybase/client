@@ -25,9 +25,9 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  const editingState = Constants.getEditingState(state, conversationIDKey)
-  const _editingMessage: ?Types.Message = editingState
-    ? Constants.getMessageMap(state, conversationIDKey).get(editingState.ordinal)
+  const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
+  const _editingMessage: ?Types.Message = editingOrdinal
+    ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
   const quotingState = Constants.getQuotingState(state)
   let _quotingMessage: ?Types.Message = quotingState
@@ -44,7 +44,6 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
       : ''
 
   return {
-    _editingCounter: editingState ? editingState.counter : 0,
     _editingMessage,
     _quotingCounter: quotingState ? quotingState.counter : 0,
     _quotingMessage,
@@ -112,7 +111,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   typing: stateProps.typing,
 
-  _editingCounter: stateProps._editingCounter,
   _editingMessage: stateProps._editingMessage,
   _quotingCounter: stateProps._quotingCounter,
   _quotingMessage: stateProps._quotingMessage,

@@ -56,13 +56,15 @@ class Input extends React.Component<InputProps> {
       this._inputFocus()
     }
 
-    if (
-      prevProps.conversationIDKey === this.props.conversationIDKey &&
-      this.props._editingCounter !== prevProps._editingCounter
-    ) {
+    if (!prevProps.isEditing && this.props.isEditing) {
       const injectedInput = this.props.injectedInput
       this._setText(injectedInput)
       this._inputFocus()
+      return
+    }
+
+    if (prevProps.isEditing && !this.props.isEditing) {
+      this._setText('')
       return
     }
 

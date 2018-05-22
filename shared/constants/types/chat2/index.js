@@ -16,11 +16,6 @@ export type PendingStatus =
   | 'waiting' // attempting to create conversation
   | 'failed' // creating conversation failed
 
-type _editingState = {
-  counter: number,
-  ordinal: Message.Ordinal,
-}
-
 type _quoteState = {
   counter: number,
   ordinal: Message.Ordinal,
@@ -30,7 +25,7 @@ type _quoteState = {
 
 export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
-  editingMap: I.Map<Common.ConversationIDKey, _editingState>, // current message being edited
+  editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
   loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread

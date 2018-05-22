@@ -408,8 +408,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         if (ordinal) {
           const message = messageMap.get(ordinal)
           if (message && message.type === 'text') {
-            const counter = editingMap.getIn([conversationIDKey, 'counter'], 0) + 1
-            return editingMap.set(conversationIDKey, {counter, ordinal})
+            return editingMap.set(conversationIDKey, ordinal)
           } else {
             return editingMap
           }
@@ -422,8 +421,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return message && message.type === 'text' && message.author === editLastUser
         })
         if (found) {
-          const counter = editingMap.getIn([conversationIDKey, 'counter'], 0) + 1
-          return editingMap.set(conversationIDKey, {counter, ordinal: found})
+          return editingMap.set(conversationIDKey, found)
         }
         return editingMap
       })
