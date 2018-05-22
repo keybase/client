@@ -13,8 +13,8 @@
     },
     "globals": {
         "__DEV__": false,
-        "__SCREENSHOT__": false,
         "__STORYBOOK__": false
+        "__STORYSHOT__": false
     },
     "plugins": [
         "filenames", "babel", "import", "flowtype"
