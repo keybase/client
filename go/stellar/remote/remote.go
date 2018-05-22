@@ -24,7 +24,58 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (should bool, err
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes shouldCreateRes
 	err = g.API.GetDecode(arg, &apiRes)
-	return apiRes.ShouldCreate, err
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// return apiRes.ShouldCreate, err
+	return true, err
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
+	// xxx - DO NOT MERGE
 }
 
 // Post a bundle to the server with a chainlink.
