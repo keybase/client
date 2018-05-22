@@ -4,7 +4,6 @@ import {Input as TextInput} from '../../../../common-adapters'
 import MentionInput from './mention-input'
 import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
-import {formatTextForQuoting} from '../../../../util/chat'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
@@ -57,8 +56,7 @@ class Input extends React.Component<InputProps> {
     }
 
     if (!prevProps.isEditing && this.props.isEditing) {
-      const injectedInput = this.props.injectedInput
-      this._setText(injectedInput)
+      this._setText(this.props._editText)
       this._inputFocus()
       return
     }
@@ -68,13 +66,9 @@ class Input extends React.Component<InputProps> {
       return
     }
 
-    if (
-      this.props._quotingCounter !== this._lastQuote &&
-      this.props._quoteTarget === this.props.conversationIDKey
-    ) {
-      this._lastQuote = this.props._quotingCounter
-      const injectedInput = this.props.injectedInput
-      this._setText(formatTextForQuoting(injectedInput))
+    if (this.props._quoteCounter && this.props._quoteCounter !== this._lastQuote) {
+      this._lastQuote = this.props._quoteCounter
+      this._setText(this.props._quoteText)
       this._inputFocus()
       return
     }

@@ -26,30 +26,18 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
-  const quotingState = Constants.getQuotingState(state)
-  let _quotingMessage: ?Types.Message = quotingState
-    ? Constants.getMessageMap(state, quotingState.sourceConversationIDKey).get(quotingState.ordinal)
-    : null
-
-  const _quoteTarget = quotingState ? quotingState.targetConversationIDKey : null
+  const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
 
   const _you = state.config.username || ''
-  const injectedInputMessage: ?Types.Message = _quotingMessage || null
-  const injectedInput: string =
-    injectedInputMessage && injectedInputMessage.type === 'text'
-      ? injectedInputMessage.text.stringValue()
-      : ''
 
   return {
     _editText: editInfo ? editInfo.text : '',
     _editOrdinal: editInfo ? editInfo.ordinal : null,
-    _quotingCounter: quotingState ? quotingState.counter : 0,
-    _quotingMessage,
-    _quoteTarget,
+    _quoteCounter: quoteInfo ? quoteInfo.counter : 0,
+    _quoteText: quoteInfo ? quoteInfo.text : '',
     _you,
     channelName: meta.channelname,
     conversationIDKey,
-    injectedInput,
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -105,10 +93,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   typing: stateProps.typing,
 
   _editText: stateProps._editText,
-  _quotingCounter: stateProps._quotingCounter,
-  _quotingMessage: stateProps._quotingMessage,
-  _quoteTarget: stateProps._quoteTarget,
-  injectedInput: stateProps.injectedInput,
+  _quoteCounter: stateProps._quoteCounter,
+  _quoteText: stateProps._quoteText,
 
   getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
   setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),

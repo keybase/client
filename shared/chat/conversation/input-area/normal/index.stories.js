@@ -73,11 +73,8 @@ const InputContainer = (props: Props) => {
     typing: props.typing,
 
     _editText: '',
-    _quotingCounter: 0,
-    _quotingMessage: null,
-    _quoteTarget: null,
-
-    injectedInput: '',
+    _quoteCounter: 0,
+    _quoteText: '',
 
     getUnsentText: () => {
       action('getUnsentText')()

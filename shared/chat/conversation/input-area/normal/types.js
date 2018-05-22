@@ -25,10 +25,8 @@ type CommonProps = {
 
 type InputProps = CommonProps & {
   _editText: string,
-  _quotingCounter: number,
-  _quotingMessage: ?Types.Message,
-  _quoteTarget: ?Types.ConversationIDKey,
-  injectedInput: string,
+  _quoteCounter: number,
+  _quoteText: string,
 
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,

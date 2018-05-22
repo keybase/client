@@ -6,6 +6,8 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
+import logger from '../../logger'
+import {isEqual} from 'lodash-es'
 import {isMobile} from '../platform'
 import {
   pendingConversationIDKey,
@@ -13,6 +15,7 @@ import {
   pendingWaitingConversationIDKey,
 } from '../types/chat2/common'
 import {makeConversationMeta, getMeta} from './meta'
+import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
@@ -64,13 +67,27 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   if (!ordinal) {
     return null
   }
+
   const message = getMessageMap(state, id).get(ordinal)
   if (!message || message.type !== 'text') {
     return null
   }
+
   return {text: message.text.stringValue(), ordinal}
 }
-export const getQuotingState = (state: TypedState) => state.chat2.quote
+export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => {
+  const quote = state.chat2.quote
+  if (!quote || quote.targetConversationIDKey !== id) {
+    return null
+  }
+
+  const message = getMessageMap(state, id).get(quote.ordinal)
+  if (!message || message.type !== 'text') {
+    return null
+  }
+
+  return {counter: quote.counter, text: formatTextForQuoting(message.text.stringValue())}
+}
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
