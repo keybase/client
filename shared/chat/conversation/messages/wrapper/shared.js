@@ -186,7 +186,7 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
   }
 }
 
-const sendIndicatorWidth = 40
+const sendIndicatorWidth = 32
 
 const styles = styleSheetCreate({
   container: {...globalStyles.flexBoxColumn, width: '100%'},
@@ -204,22 +204,18 @@ const styles = styleSheetCreate({
   leftRightContainer: {...globalStyles.flexBoxRow, width: '100%'},
   leftSide: {flexShrink: 0, marginLeft: 8, marginRight: 8, position: 'relative', width: 32},
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
-  rightSide: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-      flex: 1,
-      paddingBottom: 2,
-      paddingRight: globalMargins.tiny,
-    },
-    isMobile: {
-      marginRight: sendIndicatorWidth,
-    },
-  }),
+  rightSide: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1,
+    paddingBottom: 2,
+    paddingRight: globalMargins.tiny,
+    marginRight: sendIndicatorWidth,
+  },
   selected: {backgroundColor: globalColors.black_05},
   sendIndicatorContainer: platformStyles({
     common: {
       // we never want this thing to push content around
-      alignItems: 'center',
+      alignItems: 'flex-start',
       bottom: 0,
       height: 21,
       justifyContent: 'center',
