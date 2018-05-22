@@ -188,7 +188,7 @@ type _MessageSetEditingPayload = $ReadOnly<{|
 type _MessageSetQuotingPayload = $ReadOnly<{|
   sourceConversationIDKey: Types.ConversationIDKey,
   targetConversationIDKey: Types.ConversationIDKey,
-  ordinal: ?Types.Ordinal,
+  ordinal: Types.Ordinal,
 |}>
 type _MessageWasEditedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,

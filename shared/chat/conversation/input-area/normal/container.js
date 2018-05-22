@@ -62,14 +62,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     ),
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
-  _onCancelQuoting: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(
-      Chat2Gen.createMessageSetQuoting({
-        ordinal: null,
-        sourceConversationIDKey: conversationIDKey,
-        targetConversationIDKey: conversationIDKey,
-      })
-    ),
   _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
     dispatch(
       Chat2Gen.createMessageSetEditing({
@@ -102,11 +94,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   clearInboxFilter: dispatchProps.clearInboxFilter,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
-  onCancelEditing: () => {
-    dispatchProps._onCancelQuoting(stateProps.conversationIDKey)
-    dispatchProps._onCancelEditing(stateProps.conversationIDKey)
-  },
-  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
+  onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onSubmit: (text: string) => {
     const em = stateProps._editingMessage
     if (em) {

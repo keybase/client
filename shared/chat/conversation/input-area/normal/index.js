@@ -20,10 +20,6 @@ class Input extends React.Component<InputProps> {
     this._input && this._input.focus()
   }
 
-  _onCancelQuoting = () => {
-    // this.props._quotingMessage && this.props.onCancelQuoting()
-  }
-
   _onSubmit = (text: string) => {
     this.props.onSubmit(text)
     this._setText('')
@@ -80,7 +76,6 @@ class Input extends React.Component<InputProps> {
     return (
       <MentionInput
         {...this.props}
-        onCancelQuoting={this._onCancelQuoting}
         onSubmit={this._onSubmit}
         inputSetRef={this._inputSetRef}
         onChangeText={this._onChangeText}

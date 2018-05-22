@@ -114,14 +114,6 @@ describe('chat2 reducer', () => {
         ordinal: Types.numberToOrdinal(1),
         sourceConversationIDKey: conversationIDKey,
       })
-
-      const clearAction = Chat2Gen.createMessageSetQuoting({
-        ordinal: null,
-        sourceConversationIDKey: conversationIDKey,
-        targetConversationIDKey: conversationIDKey,
-      })
-      const state2 = reducer(state1, clearAction)
-      expect(state2.quotingMap.get(conversationIDKey)).toEqual(undefined)
     })
   })
 })

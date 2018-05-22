@@ -19,7 +19,6 @@ type CommonProps = {
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
-  onCancelQuoting: () => void,
   onSubmit: (text: string) => void,
   typing: I.Set<string>,
 }
