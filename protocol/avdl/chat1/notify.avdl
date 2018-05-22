@@ -22,6 +22,7 @@ protocol NotifyChat {
     UIMessage message;
     ConversationID convID;
     boolean displayDesktopNotification;
+    string desktopNotificationSnippet;
     union { null, InboxUIItem } conv;
     union { null, UIPagination } pagination;
   }
