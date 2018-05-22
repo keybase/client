@@ -25,8 +25,10 @@ type CommonProps = {
 }
 
 type InputProps = CommonProps & {
-  _quotingMessage: ?Types.Message,
+  _editingCounter: number,
   _editingMessage: ?Types.Message,
+  _quotingCounter: number,
+  _quotingMessage: ?Types.Message,
   injectedInput: string,
 
   getUnsentText: () => string,

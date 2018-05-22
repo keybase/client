@@ -72,8 +72,10 @@ const InputContainer = (props: Props) => {
     pendingWaiting: props.pendingWaiting,
     typing: props.typing,
 
-    _quotingMessage: null,
+    _editingCounter: 0,
     _editingMessage: null,
+    _quotingCounter: 0,
+    _quotingMessage: null,
 
     injectedInput: '',
 

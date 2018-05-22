@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import {Input as TextInput} from '../../../../common-adapters'
-import {isMobile} from '../../../../util/container'
 import MentionInput from './mention-input'
 import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
@@ -66,28 +65,26 @@ class Input extends React.Component<InputProps> {
   componentWillReceiveProps = (nextProps: InputProps) => {
     const props: InputProps = this.props
 
-    // Fill in the input with an edit, quote, or unsent text
-    if (
-      (nextProps._quotingMessage && nextProps._quotingMessage !== props._quotingMessage) ||
-      nextProps._editingMessage !== props._editingMessage
-    ) {
-      this._setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
+    if (nextProps._editingCounter !== this.props._editingCounter) {
+      // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
+      this._setText('')
       const injectedInput = nextProps.injectedInput
-      this._setText(
-        nextProps._quotingMessage && !nextProps._editingMessage
-          ? formatTextForQuoting(injectedInput)
-          : injectedInput,
-        true
-      )
-      !isMobile && this._inputMoveToEnd()
+      this._setText(injectedInput, true)
       this._inputFocus()
-    } else if (props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
-      const text = nextProps.getUnsentText()
-      this._setText(text, true)
+      return
     }
 
-    if (nextProps.isEditing && !props.isEditing) {
+    if (nextProps._quotingCounter !== this.props._quotingCounter) {
+      this._setText('')
+      const injectedInput = nextProps.injectedInput
+      this._setText(formatTextForQuoting(injectedInput), true)
       this._inputFocus()
+      return
+    }
+
+    if (props.conversationIDKey !== nextProps.conversationIDKey) {
+      const text = nextProps.getUnsentText()
+      this._setText(text, true)
     }
   }
 
