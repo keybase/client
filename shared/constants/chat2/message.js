@@ -47,6 +47,7 @@ const makeMessageExplodable = {
   explodedBy: '',
   exploding: false,
   explodingTime: Date.now(),
+  explodingUnreadable: false,
 }
 
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
@@ -526,6 +527,7 @@ const errorUIMessagetoMessage = (
     errorReason: o.errMsg,
     exploded: o.isEphemeralExpired,
     exploding: o.isEphemeral,
+    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
