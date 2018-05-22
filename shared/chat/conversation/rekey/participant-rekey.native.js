@@ -9,14 +9,14 @@ import {
   HeaderHoc,
   ClickableBox,
 } from '../../../common-adapters/mobile.native'
-import {globalColors, globalStyles, desktopStyles} from '../../../styles'
+import {globalColors, globalStyles, globalMargins, desktopStyles} from '../../../styles'
 
 import type {Props} from './participant-rekey'
 
 const Row = ({username, onUsernameClicked}) => (
   <ClickableBox onClick={() => onUsernameClicked(username)}>
     <Box style={rowStyle}>
-      <Avatar username={username} size={40} style={{marginRight: 12, padding: 4}} />
+      <Avatar username={username} size={48} style={{marginRight: globalMargins.small, padding: 4}} />
       <Box style={innerRowStyle}>
         <Usernames inline={true} backgroundMode="Terminal" type="BodySemibold" users={[{username}]} />
         <Text

@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action} from '../../stories/storybook'
 import {RoleConfirm, RoleOptions} from '.'
 
@@ -27,8 +28,14 @@ const roleConfirmProps = {
   confirm: true,
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Teams/Roles', module)
+    .addDecorator(provider)
     .add('Picker', () => <RoleOptions {...roleOptionsProps} />)
     .add('ConfirmReader', () => <RoleConfirm {...roleConfirmProps} selectedRole="reader" />)
     .add('ConfirmWriter', () => <RoleConfirm {...roleConfirmProps} selectedRole="writer" />)

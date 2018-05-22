@@ -31,7 +31,7 @@ class Avatars extends React.PureComponent<any> {
         style={{
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
-          height: smallMode ? globalMargins.large : 56,
+          height: smallMode ? 40 : 56,
           justifyContent: 'flex-start',
           padding: globalMargins.xtiny,
           width: smallMode ? globalMargins.large : 56,
@@ -39,15 +39,15 @@ class Avatars extends React.PureComponent<any> {
       >
         {isTeam ? (
           <Avatar
-            size={smallMode ? 32 : 40}
+            size={smallMode ? 32 : 48}
             teamname={teamname}
             isTeam={true}
             style={{opacity, marginLeft: globalMargins.xtiny, marginTop: globalMargins.xtiny}}
           />
         ) : (
           <MultiAvatar
-            singleSize={smallMode ? 32 : 40}
-            multiSize={smallMode ? 24 : 32}
+            singleSize={smallMode ? 32 : 48}
+            multiSize={smallMode ? 16 : 32}
             avatarProps={avatarProps}
             style={{opacity}}
           />

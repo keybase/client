@@ -3,6 +3,7 @@ import logger from '../logger'
 import {Set} from 'immutable'
 import * as ConfigGen from './config-gen'
 import * as Types from '../constants/types/gregor'
+import * as Chat2Gen from './chat2-gen'
 import * as FavoriteGen from './favorite-gen'
 import * as GitGen from './git-gen'
 import * as GregorGen from './gregor-gen'
@@ -17,6 +18,8 @@ import {type State as GregorState, type OutOfBandMessage} from '../constants/typ
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
+import {explodingModeGregorKeyPrefix} from '../constants/chat2/'
+import {stringToConversationIDKey} from '../constants/types/chat2'
 
 function isTlfItem(gItem: Types.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
@@ -149,6 +152,29 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
   yield Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 }
 
+function handleConvExplodingModes(items: Array<Types.NonNullGregorItem>) {
+  const explodingItems = items.filter(i => i.item.category.startsWith(explodingModeGregorKeyPrefix))
+  if (!explodingItems.length) {
+    // No conversations have exploding modes, clear out what is set
+    return Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
+  }
+  logger.info('Got push state with some exploding modes')
+  const modes = explodingItems.reduce((current, i) => {
+    const {category, body} = i.item
+    const secondsString = body.toString()
+    const seconds = parseInt(secondsString, 10)
+    if (isNaN(seconds)) {
+      logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+      return current
+    }
+    const _conversationIDKey = category.substring(explodingModeGregorKeyPrefix.length)
+    const conversationIDKey = stringToConversationIDKey(_conversationIDKey)
+    current.push({conversationIDKey, seconds})
+    return current
+  }, [])
+  return Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes}))
+}
+
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
   if (!pushAction.error) {
     const {
@@ -162,6 +188,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
     return Saga.sequentially([
       Saga.call(handleTLFUpdate, nonNullItems),
       Saga.call(handleBannersAndBadges, nonNullItems),
+      handleConvExplodingModes(nonNullItems),
     ])
   } else {
     logger.debug('Error in gregor pushState', pushAction.payload)

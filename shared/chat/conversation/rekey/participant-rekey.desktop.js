@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
 import {Box, Avatar, Usernames, Text} from '../../../common-adapters'
-import {globalColors, globalStyles, platformStyles, desktopStyles} from '../../../styles'
+import {globalColors, globalStyles, globalMargins, platformStyles, desktopStyles} from '../../../styles'
 
 import type {Props} from './participant-rekey'
 
 const Row = ({username, onUsernameClicked}) => (
   <Box style={rowStyle} onClick={() => onUsernameClicked(username)}>
-    <Avatar username={username} size={40} style={{marginRight: 12, padding: 4}} />
+    <Avatar username={username} size={48} style={{marginRight: globalMargins.small, padding: 4}} />
     <Box style={innerRowStyle}>
       <Usernames inline={true} type="BodySemibold" users={[{username}]} />
       <Text type="BodySmall" style={platformStyles({isElectron: {lineHeight: '17px'}})}>

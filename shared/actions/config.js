@@ -222,11 +222,13 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
 
 type AvatarRPCCall = any => Promise<any>
 type AvatarHelperAction = {payload: {rpc_call: AvatarRPCCall, names: Array<string>}}
+
+const avatarSizes = [960, 256, 192]
 function _loadAvatarHelper(action: AvatarHelperAction) {
   const {rpc_call, names} = action.payload
   return Saga.call(rpc_call, {
+    formats: avatarSizes.map(s => `square_${s}`),
     names,
-    formats: ['square_200', 'square_360', 'square_40'],
   })
 }
 
@@ -239,12 +241,11 @@ function _loadAvatarHelperError(error: RPCError, action: AvatarHelperAction) {
 
 function _loadAvatarHelperSuccess(resp: RPCTypes.LoadAvatarsRes) {
   const nameToUrlMap = {}
-  Object.keys(resp.picmap).forEach(function(v) {
-    const urlMap = {
-      ...(resp.picmap[v]['square_200'] ? {'200': resp.picmap[v]['square_200']} : null),
-      ...(resp.picmap[v]['square_360'] ? {'360': resp.picmap[v]['square_360']} : null),
-      ...(resp.picmap[v]['square_40'] ? {'40': resp.picmap[v]['square_40']} : null),
-    }
+  Object.keys(resp.picmap).forEach(v => {
+    const urlMap = {}
+    avatarSizes.forEach(s => {
+      urlMap[s] = resp.picmap[v][`square_${s}`] || null
+    })
     nameToUrlMap[v] = urlMap
   })
   return Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
@@ -268,7 +269,7 @@ function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
 
     if (names.length) {
       yield Saga.put({
-        payload: {rpc_call: RPCTypes.avatarsLoadUserAvatarsRpcPromise, names},
+        payload: {names, rpc_call: RPCTypes.avatarsLoadUserAvatarsRpcPromise},
         type: '_loadAvatarHelper',
       })
     }

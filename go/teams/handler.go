@@ -28,7 +28,11 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		return err
 	}
 
-	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() {
+	isAdmin := func() bool {
+		role, err := team.myRole(ctx)
+		return err == nil && role.IsOrAbove(keybase1.TeamRole_ADMIN)
+	}
+	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() && isAdmin() {
 		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team, msg.ResetUsersUntrusted); err == nil {
 			// If sweepOpenTeamResetMembers does not do anything to
 			// the team, do not load team again later.

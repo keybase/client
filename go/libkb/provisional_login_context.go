@@ -30,6 +30,13 @@ func newProvisionalLoginContext(m MetaContext) *ProvisionalLoginContext {
 	}
 }
 
+func newProvisionalLoginContextWithUIDAndUsername(m MetaContext, uid keybase1.UID, un NormalizedUsername) *ProvisionalLoginContext {
+	ret := newProvisionalLoginContext(m)
+	ret.uid = uid
+	ret.username = un
+	return ret
+}
+
 func (p *ProvisionalLoginContext) Dump(m MetaContext, prefix string) {
 	m.CDebugf("%sUsername: %s", prefix, p.username)
 	m.CDebugf("%sUID: %s", prefix, p.uid)
@@ -60,6 +67,9 @@ func (p *ProvisionalLoginContext) Logout() error {
 }
 func (p *ProvisionalLoginContext) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 	p.streamCache = NewPassphraseStreamCache(tsec, pps)
+}
+func (p *ProvisionalLoginContext) SetStreamCache(c *PassphraseStreamCache) {
+	p.streamCache = c
 }
 
 func (p *ProvisionalLoginContext) CreateStreamCacheViaStretch(passphrase string) error {
@@ -130,7 +140,7 @@ func (p *ProvisionalLoginContext) EnsureUsername(username NormalizedUsername) {
 }
 
 func (p *ProvisionalLoginContext) SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error {
-	if err := p.assertUnsaved(); err != nil {
+	if err := p.assertNotReused(username, uid); err != nil {
 		return err
 	}
 	p.username = username
@@ -138,8 +148,8 @@ func (p *ProvisionalLoginContext) SetUsernameUID(username NormalizedUsername, ui
 	return nil
 }
 
-func (p *ProvisionalLoginContext) assertUnsaved() error {
-	if wasSaved := !p.uid.IsNil(); wasSaved {
+func (p *ProvisionalLoginContext) assertNotReused(un NormalizedUsername, uid keybase1.UID) error {
+	if !(p.uid.IsNil() || p.uid.Equal(uid)) || !(p.username.IsNil() || p.username.Eq(un)) {
 		return errors.New("can't reuse a ProvisionalLoginContext!")
 	}
 	return nil
@@ -147,7 +157,7 @@ func (p *ProvisionalLoginContext) assertUnsaved() error {
 
 func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
 	defer p.M().CTrace("ProvisionalLoginContext#SaveState", func() error { return err })()
-	if err := p.assertUnsaved(); err != nil {
+	if err := p.assertNotReused(username, uid); err != nil {
 		return err
 	}
 	p.uid = uid
@@ -180,8 +190,8 @@ func (p *ProvisionalLoginContext) LockedLocalSecretKey(ska SecretKeyArg) (*SKB, 
 func (p *ProvisionalLoginContext) SecretSyncer() *SecretSyncer {
 	return p.secretSyncer
 }
-func (p *ProvisionalLoginContext) RunSecretSyncer(uid keybase1.UID) error {
-	return RunSyncer(p.secretSyncer, uid, (p.localSession != nil), p.localSession)
+func (p *ProvisionalLoginContext) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
+	return RunSyncer(m, p.secretSyncer, uid, (p.localSession != nil), p.localSession)
 }
 func (p *ProvisionalLoginContext) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
 	return plcErr("SetCachedSecretKey")

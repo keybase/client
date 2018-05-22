@@ -85,7 +85,6 @@ class BioRender extends Component<Props> {
       return null
     }
 
-    const {followsYou} = userInfo
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
     const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
@@ -107,8 +106,7 @@ class BioRender extends Component<Props> {
             onClick={editFns ? editFns.onEditAvatarClick : onClickAvatar}
             username={username}
             size={avatarSize}
-            following={currentlyFollowing}
-            followsYou={followsYou}
+            showFollowingStatus={true}
           />
         </Box>
         <Box style={stylesContent}>

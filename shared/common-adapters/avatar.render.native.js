@@ -1,11 +1,11 @@
 // @flow
-import Icon, {type IconType} from './icon'
+import Icon from './icon'
 import * as React from 'react'
 import {globalColors, styleSheetCreate, collapseStyles} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import {Image} from 'react-native'
-import type {AvatarSize} from './avatar'
+import type {AvatarSize, Props} from './avatar.render'
 
 type ImageProps = {
   onLoadEnd: () => void,
@@ -15,39 +15,18 @@ type ImageProps = {
   borderRadius: any,
 }
 
-type Props = {
-  borderColor: ?string,
-  children: any,
-  followIconStyle: ?Object,
-  followIconType: ?IconType,
-  followIconSize: number,
-  isTeam?: boolean,
-  loadingColor: ?string,
-  onClick?: ?(event: SyntheticEvent<>) => void,
-  opacity: ?number,
-  skipBackground?: boolean,
-  skipBackgroundAfterLoaded?: boolean,
-  size: AvatarSize,
-  style?: ?Object,
-  url: ?string,
-}
-
 type State = {
   loaded: boolean,
   url: ?string,
 }
 
 const sizeToTeamBorderRadius = {
-  '112': 12,
-  '12': 3,
+  '128': 12,
   '16': 4,
-  '176': 24,
-  '24': 4,
   '32': 5,
-  '40': 6,
   '48': 6,
   '64': 8,
-  '80': 10,
+  '96': 10,
 }
 
 // Android doesn't handle background colors border radius setting
@@ -179,7 +158,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
   }
 }
 
-const sizes = [176, 112, 80, 64, 48, 40, 32, 24, 16, 12]
+const sizes = [128, 96, 64, 48, 32, 16]
 
 const iconStyles = sizes.reduce((map, size) => {
   map[`icon:${size}`] = {height: size, width: size}

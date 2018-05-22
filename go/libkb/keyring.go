@@ -390,11 +390,11 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(m MetaContext, me *User, passphras
 	var tsec Triplesec
 	var pps *PassphraseStream
 	if lctx := m.LoginContext(); lctx != nil {
-		tsec = lctx.PassphraseStreamCache().Triplesec()
+		tsec, _ = lctx.PassphraseStreamCache().TriplesecAndGeneration()
 		pps = lctx.PassphraseStreamCache().PassphraseStream()
 	} else {
 		m.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
-			tsec = sc.Triplesec()
+			tsec, _ = sc.TriplesecAndGeneration()
 			pps = sc.PassphraseStream()
 		}, "StreamCache - tsec, pps")
 	}
