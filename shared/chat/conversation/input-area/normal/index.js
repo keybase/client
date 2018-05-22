@@ -61,7 +61,10 @@ class Input extends React.Component<InputProps> {
       this._inputFocus()
     }
 
-    // Only trigger edit changes when on the same conversation.
+    // Inject the appropriate text when entering or existing edit
+    // mode, but only when on the same conversation; otherwise we'd
+    // incorrectly inject when switching to/from a conversation with
+    // an unsent edit.
     if (prevProps.conversationIDKey === this.props.conversationIDKey) {
       if (!prevProps.isEditing && this.props.isEditing) {
         this._setText(this.props._editText)
@@ -75,6 +78,8 @@ class Input extends React.Component<InputProps> {
       }
     }
 
+    // Inject the appropriate text when quoting. Keep track of the
+    // last quote we did so as to inject exactly once.
     if (this.props._quoteCounter > this._lastQuote) {
       this._lastQuote = this.props._quoteCounter
       this._setText(this.props._quoteText)
@@ -82,6 +87,8 @@ class Input extends React.Component<InputProps> {
       return
     }
 
+    // Otherwise, inject unsent text. This must come after quote
+    // handling, so as to handle the 'Reply Privately' case.
     if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
       const text = this.props.getUnsentText()
       this._setText(text, true)
