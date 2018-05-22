@@ -555,6 +555,42 @@ func TestGetAvailableCurrencies(t *testing.T) {
 	require.Equal(t, conf.Currencies["EUR"].Name, "Euro")
 }
 
+func TestSetAccountName(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	stellar.ServiceInit(tcs[0].G)
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+	require.NoError(t, err)
+	require.Len(t, accs, 1)
+	require.Equal(t, accs[0].Name, "")
+
+	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+		AccountID: accs[0].AccountID,
+		NewName:   "office lunch money",
+	})
+	require.NoError(t, err)
+
+	accs, err = tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+	require.NoError(t, err)
+	require.Len(t, accs, 1)
+	require.Equal(t, accs[0].Name, "office lunch money")
+
+	// Try invalid argument
+	invalidAccID, _ := randomStellarKeypair()
+	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+		AccountID: invalidAccID,
+		NewName:   "savings",
+	})
+	require.Error(t, err)
+}
+
 type TestContext struct {
 	libkb.TestContext
 	Fu      *kbtest.FakeUser

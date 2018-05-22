@@ -359,3 +359,10 @@ func percentageAmountChange(a, b int64) float64 {
 	mid := 0.5 * float64(a+b)
 	return math.Abs(100.0 * float64(a-b) / mid)
 }
+
+func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
+	m := libkb.NewMetaContext(s.logTag(ctx), s.G())
+	defer s.G().CTraceTimed(ctx, "ChangeWalletAccountNameLocal", func() error { return err })()
+
+	return stellar.ChangeAccountName(m, arg.AccountID, arg.NewName)
+}

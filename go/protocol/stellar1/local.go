@@ -224,6 +224,12 @@ type GetDisplayCurrenciesLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type ChangeWalletAccountNameLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	NewName   string    `codec:"newName" json:"newName"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -293,6 +299,7 @@ type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetAccountAssetsLocal(context.Context, GetAccountAssetsLocalArg) ([]AccountAssetLocal, error)
 	GetDisplayCurrenciesLocal(context.Context, int) ([]CurrencyLocal, error)
+	ChangeWalletAccountNameLocal(context.Context, ChangeWalletAccountNameLocalArg) error
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -358,6 +365,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetDisplayCurrenciesLocal(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"changeWalletAccountNameLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ChangeWalletAccountNameLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChangeWalletAccountNameLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChangeWalletAccountNameLocalArg)(nil), args)
+						return
+					}
+					err = i.ChangeWalletAccountNameLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -604,6 +627,11 @@ func (c LocalClient) GetAccountAssetsLocal(ctx context.Context, __arg GetAccount
 func (c LocalClient) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (res []CurrencyLocal, err error) {
 	__arg := GetDisplayCurrenciesLocalArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrenciesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ChangeWalletAccountNameLocal(ctx context.Context, __arg ChangeWalletAccountNameLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.changeWalletAccountNameLocal", []interface{}{__arg}, nil)
 	return
 }
 
