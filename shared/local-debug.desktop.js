@@ -15,7 +15,7 @@ let config = {
   ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
-  isTesting: __SCREENSHOT__, // Is running a unit test
+  isTesting: __STORYBOOK__, // Is running a unit test
   maskStrings: false, // Replace all hiddenstrings w/ fake values
   printBridgeB64: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for

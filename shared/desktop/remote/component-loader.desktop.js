@@ -4,7 +4,7 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import RemoteStore from './store.desktop'
-import Root from '../renderer/container'
+import Root from '../renderer/container.desktop'
 import Menubar from '../../menubar/remote-container.desktop'
 import Pinentry from '../../pinentry/remote-container.desktop'
 import Tracker from '../../tracker/remote-container.desktop'
@@ -12,7 +12,7 @@ import UnlockFolders from '../../unlock-folders/remote-container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {globalColors, globalStyles} from '../../styles'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {setupContextMenu} from '../app/menu-helper'
+import {setupContextMenu} from '../app/menu-helper.desktop'
 import ErrorBoundary from '../../common-adapters/error-boundary'
 
 disableDragDrop()

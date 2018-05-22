@@ -100,7 +100,7 @@
     "globals": {
       "__DEV__": true,
       "__STORYBOOK__": true,
-      "__SCREENSHOT__": true
+      "__STORYSHOT__": true
     }
   },
   "keywords": [],

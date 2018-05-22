@@ -36,6 +36,7 @@ export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
 export const messageErrored = 'chat2:messageErrored'
+export const messageExploded = 'chat2:messageExploded'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
@@ -162,6 +163,11 @@ type _MessageErroredPayload = $ReadOnly<{|
   reason: string,
   outboxID: Types.OutboxID,
 |}>
+type _MessageExplodedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: RPCChatTypes.MessageID,
+  explodedBy?: string,
+|}>
 type _MessageReplyPrivatelyPayload = $ReadOnly<{|
   sourceConversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -230,6 +236,7 @@ type _MetasReceivedPayload = $ReadOnly<{|
   neverCreate?: boolean,
   clearExistingMetas?: boolean,
   clearExistingMessages?: boolean,
+  fromEphemeralPurge?: boolean,
 |}>
 type _MuteConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -302,6 +309,10 @@ type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.Conver
  * Actually start a conversation
  */
 export const createCreateConversation = (payload: _CreateConversationPayload) => ({error: false, payload, type: createConversation})
+/**
+ * An exploding message expired or was manually detonated
+ */
+export const createMessageExploded = (payload: _MessageExplodedPayload) => ({error: false, payload, type: messageExploded})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
@@ -411,6 +422,7 @@ export type MessageDeleteHistoryPayload = $Call<typeof createMessageDeleteHistor
 export type MessageDeletePayload = $Call<typeof createMessageDelete, _MessageDeletePayload>
 export type MessageEditPayload = $Call<typeof createMessageEdit, _MessageEditPayload>
 export type MessageErroredPayload = $Call<typeof createMessageErrored, _MessageErroredPayload>
+export type MessageExplodedPayload = $Call<typeof createMessageExploded, _MessageExplodedPayload>
 export type MessageReplyPrivatelyPayload = $Call<typeof createMessageReplyPrivately, _MessageReplyPrivatelyPayload>
 export type MessageRetryPayload = $Call<typeof createMessageRetry, _MessageRetryPayload>
 export type MessageSendPayload = $Call<typeof createMessageSend, _MessageSendPayload>
@@ -480,6 +492,7 @@ export type Actions =
   | MessageDeletePayload
   | MessageEditPayload
   | MessageErroredPayload
+  | MessageExplodedPayload
   | MessageReplyPrivatelyPayload
   | MessageRetryPayload
   | MessageSendPayload

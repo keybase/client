@@ -1,5 +1,5 @@
 // @flow
-import {resolveRoot} from './resolve-root'
+import {resolveRoot} from './resolve-root.desktop'
 
 export default (path: string) => {
   // $FlowIssue

@@ -109,6 +109,7 @@ export {
 
 export {
   getClientPrev,
+  getMessageID,
   isSpecialMention,
   makeMessageAttachment,
   makeMessageDeleted,

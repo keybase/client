@@ -2312,9 +2312,9 @@ type MessageUnboxedError struct {
 	MessageID          MessageID               `codec:"messageID" json:"messageID"`
 	MessageType        MessageType             `codec:"messageType" json:"messageType"`
 	Ctime              gregor1.Time            `codec:"ctime" json:"ctime"`
-	IsEphemeral        bool                    `codec:"ie" json:"ie"`
-	IsEphemeralExpired bool                    `codec:"iex" json:"iex"`
-	Etime              gregor1.Time            `codec:"e" json:"e"`
+	IsEphemeral        bool                    `codec:"isEphemeral" json:"isEphemeral"`
+	IsEphemeralExpired bool                    `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
+	Etime              gregor1.Time            `codec:"etime" json:"etime"`
 }
 
 func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {

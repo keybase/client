@@ -3,7 +3,7 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
-import {appBundlePath} from './paths'
+import {appBundlePath} from './paths.desktop'
 import {isEqual} from 'lodash-es'
 import {windowStyle} from '../../styles'
 

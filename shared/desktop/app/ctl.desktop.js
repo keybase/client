@@ -1,7 +1,7 @@
 // @flow
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {keybaseBinPath} from './paths'
-import exec from './exec'
+import {keybaseBinPath} from './paths.desktop'
+import exec from './exec.desktop'
 import {isWindows} from '../../constants/platform'
 
 export function ctlStop(callback: any) {
