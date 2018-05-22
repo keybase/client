@@ -40,7 +40,7 @@ class Contents extends React.Component<Props> {
 
   _headerText = () => {
     if (this.props.isSubteam) {
-      return `You are creating a subteam of ${this.props.baseTeam}.`
+      return `You are creating a subteam of ${this.props.baseTeam}. `
     }
     return "For security reasons, team names are unique and can't be changed, so choose carefully."
   }
@@ -62,17 +62,17 @@ class Contents extends React.Component<Props> {
           >
             <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
               {this._headerText()}
+              {this.props.isSubteam && (
+                <Text
+                  type="BodyPrimaryLink"
+                  style={{...globalStyles.fontSemibold}}
+                  backgroundMode="Announcements"
+                  onClickURL="https://keybase.io/docs/teams/design"
+                >
+                  Learn more
+                </Text>
+              )}
             </Text>
-            {this.props.isSubteam && (
-              <Text
-                type="BodyPrimaryLink"
-                style={{...globalStyles.fontSemibold}}
-                backgroundMode="Announcements"
-                onClickURL="https://keybase.io/docs/teams/design"
-              >
-                Learn more
-              </Text>
-            )}
           </Box>
           {!!errorText && (
             <Box
