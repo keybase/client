@@ -8,7 +8,7 @@ export type WebViewInjections = {
 
 export type WebViewProps = {
   url: string,
-	injections?: WebViewInjections,
+  injections?: WebViewInjections,
   style?: Object,
 }
 
