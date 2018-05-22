@@ -433,12 +433,19 @@ const (
 	HTTPRetryCount          = 6
 )
 
+type PacketVersion int
+
+const (
+	KeybasePacketV1 PacketVersion = 1
+)
+
+type PacketTag int
+
 // Packet tags for OpenPGP and also Keybase packets
 const (
-	KeybasePacketV1 = 1
-	TagP3skb        = 513
-	TagSignature    = 514
-	TagEncryption   = 515
+	TagP3skb      PacketTag = 513
+	TagSignature            = 514
+	TagEncryption           = 515
 )
 
 const (
