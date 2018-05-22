@@ -18,12 +18,14 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 type Props = {
   attachTo: ?React.Component<any, any>,
   author: string,
+  canEdit: boolean,
+  canExplodeNow: boolean,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   explodesAt: number,
-  onEdit: null | (() => void),
-  onExplodeNow: null | (() => void),
+  onEdit: () => void,
+  onExplodeNow: () => void,
   onHidden: () => void,
   position: Position,
   style?: Object,
@@ -126,7 +128,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
 
 const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
   const items = [
-    ...(props.onEdit
+    ...(props.canEdit
       ? [
           {
             onClick: props.onEdit,
@@ -134,11 +136,10 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
           },
         ]
       : []),
-    ...(props.yourMessage
+    ...(props.canExplodeNow
       ? [
           {
             danger: true,
-            disabled: !props.onExplodeNow,
             onClick: props.onExplodeNow,
             title: 'Explode now',
           },

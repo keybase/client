@@ -1,5 +1,7 @@
 // @flow
 import type {Component} from 'react'
+import * as Constants from '../../../../../constants/chat2'
+import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import {connect, type TypedState} from '../../../../../util/container'
@@ -14,15 +16,22 @@ type OwnProps = {
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
-  author: ownProps.message.author,
-  deviceName: ownProps.message.deviceName,
-  deviceRevokedAt: ownProps.message.deviceRevokedAt,
-  deviceType: ownProps.message.deviceType,
-  explodesAt: ownProps.message.explodingTime,
-  timestamp: ownProps.message.timestamp,
-  yourMessage: ownProps.message.author === state.config.username,
-})
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const yourMessage = ownProps.message.author === state.config.username
+  const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
+  const canExplodeNow = TeamConstants.getCanPerform(state, meta.teamname).manageMembers || yourMessage
+  return {
+    author: ownProps.message.author,
+    canEdit: yourMessage,
+    canExplodeNow,
+    deviceName: ownProps.message.deviceName,
+    deviceRevokedAt: ownProps.message.deviceRevokedAt,
+    deviceType: ownProps.message.deviceType,
+    explodesAt: ownProps.message.explodingTime,
+    timestamp: ownProps.message.timestamp,
+    yourMessage,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onEdit: () =>
