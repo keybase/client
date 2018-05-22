@@ -50,6 +50,7 @@ class Input extends React.Component<InputProps> {
   }
 
   componentDidMount = () => {
+    // Set lastQuote so we only inject quoted text after we mount.
     this._lastQuote = this.props._quoteCounter
 
     const text = this.props.getUnsentText()
