@@ -21,8 +21,8 @@ protocol local {
     string balanceAvailableToSend;  // "279.9192933"
     string assetCode;               // "XLM"
     string issuer;                  // "Stellar"
-    string worth;                   // "$98.13"
-    string worthCurrency;           // "USD"
+    string worth;                   // "$98.13" or error string if worthCurrency == "ERR"
+    string worthCurrency;           // "USD", "CAD", etc.  if it is "ERR" then an exchange rate error occurred
   }
   array<AccountAssetLocal> GetAccountAssetsLocal(int sessionID, AccountID accountID);
 
