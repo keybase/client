@@ -34,17 +34,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import type {MsgID} from '../../constants/types/rpc-gregor-gen'
 
-const inboxQuery = {
-  computeActiveList: true,
-  readOnly: false,
-  status: Object.keys(RPCChatTypes.commonConversationStatus)
-    .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
-    .map(k => RPCChatTypes.commonConversationStatus[k]),
-  tlfVisibility: RPCTypes.commonTLFVisibility.private,
-  topicType: RPCChatTypes.commonTopicType.chat,
-  unreadOnly: false,
-}
-
 // Ask the service to refresh the inbox
 const inboxRefresh = (
   action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload,
@@ -77,7 +66,7 @@ const inboxRefresh = (
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       maxUnbox: 0,
-      query: inboxQuery,
+      query: Constants.makeInboxQuery([]),
       skipUnverified: false,
     },
     false,
@@ -236,10 +225,7 @@ const unboxRows = (
     'unboxConversations',
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      query: {
-        ...inboxQuery,
-        convIDs: conversationIDKeys.map(Types.keyToConversationID),
-      },
+      query: Constants.makeInboxQuery(conversationIDKeys),
       skipUnverified: true,
     },
     false,

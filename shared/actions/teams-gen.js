@@ -24,6 +24,7 @@ export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteChannelInfo = 'teams:deleteChannelInfo'
 export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
+export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
 export const getDetailsForAllTeams = 'teams:getDetailsForAllTeams'
@@ -48,6 +49,7 @@ export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
 export const setTeamCanPerform = 'teams:setTeamCanPerform'
+export const setTeamChannelInfo = 'teams:setTeamChannelInfo'
 export const setTeamChannels = 'teams:setTeamChannels'
 export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamCreationPending = 'teams:setTeamCreationPending'
@@ -137,6 +139,10 @@ type _EditTeamDescriptionPayload = $ReadOnly<{|
   teamname: string,
   description: string,
 |}>
+type _GetChannelInfoPayload = $ReadOnly<{|
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  teamname: string,
+|}>
 type _GetChannelsPayload = $ReadOnly<{|teamname: string|}>
 type _GetDetailsForAllTeamsPayload = void
 type _GetDetailsPayload = $ReadOnly<{|teamname: string|}>
@@ -202,6 +208,11 @@ type _SetTeamAccessRequestsPendingPayload = $ReadOnly<{|accessRequestsPending: I
 type _SetTeamCanPerformPayload = $ReadOnly<{|
   teamname: string,
   teamOperation: Types.TeamOperations,
+|}>
+type _SetTeamChannelInfoPayload = $ReadOnly<{|
+  teamname: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  channelInfo: Types.ChannelInfo,
 |}>
 type _SetTeamChannelsPayload = $ReadOnly<{|
   teamname: string,
@@ -272,6 +283,10 @@ type _UpdateTopicPayload = $ReadOnly<{|
 
 // Action Creators
 /**
+ * Fetches the channel information for a single channel in a team from the server.
+ */
+export const createGetChannelInfo = (payload: _GetChannelInfoPayload) => ({error: false, payload, type: getChannelInfo})
+/**
  * Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.
  */
 export const createGetChannels = (payload: _GetChannelsPayload) => ({error: false, payload, type: getChannels})
@@ -319,6 +334,7 @@ export const createSetNewTeamInfo = (payload: _SetNewTeamInfoPayload) => ({error
 export const createSetPublicity = (payload: _SetPublicityPayload) => ({error: false, payload, type: setPublicity})
 export const createSetTeamAccessRequestsPending = (payload: _SetTeamAccessRequestsPendingPayload) => ({error: false, payload, type: setTeamAccessRequestsPending})
 export const createSetTeamCanPerform = (payload: _SetTeamCanPerformPayload) => ({error: false, payload, type: setTeamCanPerform})
+export const createSetTeamChannelInfo = (payload: _SetTeamChannelInfoPayload) => ({error: false, payload, type: setTeamChannelInfo})
 export const createSetTeamChannels = (payload: _SetTeamChannelsPayload) => ({error: false, payload, type: setTeamChannels})
 export const createSetTeamCreationError = (payload: _SetTeamCreationErrorPayload) => ({error: false, payload, type: setTeamCreationError})
 export const createSetTeamCreationPending = (payload: _SetTeamCreationPendingPayload) => ({error: false, payload, type: setTeamCreationPending})
@@ -355,6 +371,7 @@ export type DeleteChannelConfirmedPayload = $Call<typeof createDeleteChannelConf
 export type DeleteChannelInfoPayload = $Call<typeof createDeleteChannelInfo, _DeleteChannelInfoPayload>
 export type EditMembershipPayload = $Call<typeof createEditMembership, _EditMembershipPayload>
 export type EditTeamDescriptionPayload = $Call<typeof createEditTeamDescription, _EditTeamDescriptionPayload>
+export type GetChannelInfoPayload = $Call<typeof createGetChannelInfo, _GetChannelInfoPayload>
 export type GetChannelsPayload = $Call<typeof createGetChannels, _GetChannelsPayload>
 export type GetDetailsForAllTeamsPayload = $Call<typeof createGetDetailsForAllTeams, _GetDetailsForAllTeamsPayload>
 export type GetDetailsPayload = $Call<typeof createGetDetails, _GetDetailsPayload>
@@ -379,6 +396,7 @@ export type SetNewTeamInfoPayload = $Call<typeof createSetNewTeamInfo, _SetNewTe
 export type SetPublicityPayload = $Call<typeof createSetPublicity, _SetPublicityPayload>
 export type SetTeamAccessRequestsPendingPayload = $Call<typeof createSetTeamAccessRequestsPending, _SetTeamAccessRequestsPendingPayload>
 export type SetTeamCanPerformPayload = $Call<typeof createSetTeamCanPerform, _SetTeamCanPerformPayload>
+export type SetTeamChannelInfoPayload = $Call<typeof createSetTeamChannelInfo, _SetTeamChannelInfoPayload>
 export type SetTeamChannelsPayload = $Call<typeof createSetTeamChannels, _SetTeamChannelsPayload>
 export type SetTeamCreationErrorPayload = $Call<typeof createSetTeamCreationError, _SetTeamCreationErrorPayload>
 export type SetTeamCreationPendingPayload = $Call<typeof createSetTeamCreationPending, _SetTeamCreationPendingPayload>
@@ -417,6 +435,7 @@ export type Actions =
   | DeleteChannelInfoPayload
   | EditMembershipPayload
   | EditTeamDescriptionPayload
+  | GetChannelInfoPayload
   | GetChannelsPayload
   | GetDetailsForAllTeamsPayload
   | GetDetailsPayload
@@ -441,6 +460,7 @@ export type Actions =
   | SetPublicityPayload
   | SetTeamAccessRequestsPendingPayload
   | SetTeamCanPerformPayload
+  | SetTeamChannelInfoPayload
   | SetTeamChannelsPayload
   | SetTeamCreationErrorPayload
   | SetTeamCreationPendingPayload
