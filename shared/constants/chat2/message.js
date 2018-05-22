@@ -324,6 +324,11 @@ const validUIMessagetoMessage = (
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
   }
 
+  if (m.isEphemeralExpired) {
+    // This message already exploded. Make it an empty text message.
+    return makeMessageText({...common})
+  }
+
   switch (m.messageBody.messageType) {
     case RPCChatTypes.commonMessageType.text:
       const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
