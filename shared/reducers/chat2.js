@@ -408,7 +408,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         if (ordinal) {
           const message = messageMap.get(ordinal)
           if (message && message.type === 'text') {
-            return editingMap.set(conversationIDKey, ordinal)
+            const counter = editingMap.getIn([conversationIDKey, 'counter'], 0) + 1
+            return editingMap.set(conversationIDKey, {counter, ordinal})
           } else {
             return editingMap
           }
@@ -421,7 +422,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return message && message.type === 'text' && message.author === editLastUser
         })
         if (found) {
-          return editingMap.set(conversationIDKey, found)
+          const counter = editingMap.getIn([conversationIDKey, 'counter'], 0) + 1
+          return editingMap.set(conversationIDKey, {counter, ordinal: found})
         }
         return editingMap
       })
@@ -433,7 +435,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return quotingMap.delete(targetConversationIDKey)
         }
         // quoting a specific message
-        return quotingMap.set(targetConversationIDKey, {ordinal, sourceConversationIDKey})
+        const counter = quotingMap.getIn([targetConversationIDKey, 'counter'], 0) + 1
+        return quotingMap.set(targetConversationIDKey, {counter, ordinal, sourceConversationIDKey})
       })
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload

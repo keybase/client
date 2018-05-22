@@ -11,14 +11,25 @@ export type PendingMode =
   | 'fixedSetOfUsers' // selected a set of users externally
   | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
 
-export type QuotedOrdConv = {
+export type PendingStatus =
+  | 'none' // no pending
+  | 'waiting' // attempting to create conversation
+  | 'failed' // creating conversation failed
+
+type _editingState = {
+  counter: number,
+  ordinal: Message.Ordinal,
+}
+
+type QuotedOrdConv = {
+  counter: number,
   ordinal: Message.Ordinal,
   sourceConversationIDKey: Common.ConversationIDKey,
 }
 
 export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
-  editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
+  editingMap: I.Map<Common.ConversationIDKey, _editingState>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
   loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
