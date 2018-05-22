@@ -144,7 +144,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         pathItem => (pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem)
       )
     case FsGen.loadResetsResult:
-      // TODO: fill in
       const resetsToMerge = action.payload.tlfs.mapEntries(([path, item]) => {
         const original = state.pathItems.get(path) || Constants.makeFolder({name: item.name})
         // This cannot happen, but it's needed to make Flow happy.
