@@ -428,7 +428,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.messageSetQuoting:
       const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
       const counter = (state.quote ? state.quote.counter : 0) + 1
-      return state.set('quote', {counter, ordinal, sourceConversationIDKey, targetConversationIDKey})
+      return state.set(
+        'quote',
+        Constants.makeQuoteInfo({counter, ordinal, sourceConversationIDKey, targetConversationIDKey})
+      )
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
 
