@@ -389,11 +389,8 @@ protocol local {
     MessageID messageID;
     MessageType messageType;
     gregor1.Time ctime;
-    @mpackkey("ie") @jsonkey("ie")
     boolean isEphemeral;
-    @mpackkey("iex") @jsonkey("iex")
     boolean isEphemeralExpired;
-    @mpackkey("e") @jsonkey("e")
     gregor1.Time etime;
   }
 

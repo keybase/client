@@ -65,10 +65,14 @@ const EditedMark = () => (
   </Text>
 )
 
-const Failure = ({failureDescription, onEdit, onRetry, onCancel}) => {
+const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, onCancel}) => {
   const error = `${failureDescription}. `
   const resolveByEdit = failureDescription === 'Failed to send: message is too long'
-  return (
+  return isExplodingUnreadable ? (
+    <Text type="BodySmall" style={styles.fail}>
+      This exploding message is not available to you.
+    </Text>
+  ) : (
     <Text type="BodySmall">
       <Text type="BodySmall" style={styles.fail}>
         {error}
@@ -128,7 +132,12 @@ const RightSide = props => (
       />
     )}
     <Box style={styles.textContainer} className="message">
-      <HeightRetainer style={styles.flexOneColumn} retainHeight={props.message.exploded}>
+      {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
+          The problem is that `isExplodingUnreadable` is coming as true without `props.message.exploded` sometimes.  */}
+      <HeightRetainer
+        style={styles.flexOneColumn}
+        retainHeight={props.message.exploded || props.isExplodingUnreadable}
+      >
         <props.innerClass
           message={props.message}
           isEditing={props.isEditing}
@@ -156,6 +165,7 @@ const RightSide = props => (
     {!!props.failureDescription && (
       <Failure
         failureDescription={props.failureDescription}
+        isExplodingUnreadable={props.isExplodingUnreadable}
         onRetry={props.onRetry}
         onEdit={props.onEdit}
         onCancel={props.onCancel}
