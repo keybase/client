@@ -9,6 +9,8 @@ import {throttle} from 'lodash-es'
 const throttled = throttle((f, param) => f(param), 1000)
 
 class Input extends React.Component<InputProps> {
+  _lastQuote: ?number
+
   _input: ?TextInput
 
   _inputSetRef = (input: ?TextInput) => {
@@ -67,7 +69,7 @@ class Input extends React.Component<InputProps> {
       }
     }
 
-    if (this.props._quoteCounter && this.props._quoteCounter > prevProps._quoteCounter) {
+    if (this.props._quoteCounter && this.props._quoteCounter !== this._lastQuote) {
       this._setText(this.props._quoteText)
       this._inputFocus()
       return
