@@ -74,7 +74,9 @@ const load = () => {
         {...defaultProps}
         {...textMessage}
         attachTo={null}
-        explodesAt={2000009000}
+        explodesAt={2000009000000}
+        canEdit={true}
+        canExplodeNow={true}
         onEdit={action('onEdit')}
         onExplodeNow={action('onExplodeNow')}
         position={'top left'}
@@ -85,7 +87,9 @@ const load = () => {
         {...defaultProps}
         {...textMessage}
         attachTo={null}
-        explodesAt={2000000000}
+        explodesAt={2000000100000}
+        canEdit={true}
+        canExplodeNow={true}
         onEdit={action('onEdit')}
         onExplodeNow={action('onExplodeNow')}
         position={'top left'}
