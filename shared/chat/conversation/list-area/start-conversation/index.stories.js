@@ -4,12 +4,30 @@ import {storiesOf, action} from '../../../../stories/storybook'
 import StartConversation from '.'
 
 const load = () => {
-  storiesOf('Chat/Conversation', module)
-    .add('StartConversationAndAddSome', () => (
-      <StartConversation participants="chris,max" onStart={action('onStart')} showAddParticipants={true} />
+  storiesOf('Chat/Conversation/StartConversation', module)
+    .add('Add more', () => (
+      <StartConversation
+        participants="chris,max"
+        onStart={action('onStart')}
+        showAddParticipants={true}
+        isLoading={false}
+      />
     ))
-    .add('StartConversation', () => (
-      <StartConversation participants="chris,max" onStart={action('onStart')} showAddParticipants={false} />
+    .add('No add more', () => (
+      <StartConversation
+        participants="chris,max"
+        onStart={action('onStart')}
+        showAddParticipants={false}
+        isLoading={false}
+      />
+    ))
+    .add('Add more', () => (
+      <StartConversation
+        participants="chris,max"
+        onStart={action('onStart')}
+        showAddParticipants={true}
+        isLoading={true}
+      />
     ))
 }
 

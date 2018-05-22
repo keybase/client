@@ -975,10 +975,8 @@ const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, st
   return createConversation(Chat2Gen.createCreateConversation({participants: [message.author]}), state)
 }
 
-const messageReplyPrivatelySuccess = (
-  result: RPCChatTypes.NewConversationLocalRes,
-  action: Chat2Gen.MessageReplyPrivatelyPayload
-) => {
+const messageReplyPrivatelySuccess = (results: Array<any>, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
+  const result: RPCChatTypes.NewConversationLocalRes = results[1]
   const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
   return Saga.sequentially([
     Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
@@ -1870,18 +1868,23 @@ const createConversation = (action: Chat2Gen.CreateConversationPayload, state: T
   if (!username) {
     throw new Error('Making a convo while logged out?')
   }
-  return Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-    tlfName: I.Set([username])
-      .concat(action.payload.participants)
-      .join(','),
-    tlfVisibility: RPCTypes.commonTLFVisibility.private,
-    topicType: RPCChatTypes.commonTopicType.chat,
-  })
+  return Saga.sequentially([
+    Saga.put(Chat2Gen.createSetLoading({key: Constants.creatingLoadingKey, loading: true})),
+    Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+      tlfName: I.Set([username])
+        .concat(action.payload.participants)
+        .join(','),
+      tlfVisibility: RPCTypes.commonTLFVisibility.private,
+      topicType: RPCChatTypes.commonTopicType.chat,
+    }),
+    Saga.put(Chat2Gen.createSetLoading({key: Constants.creatingLoadingKey, loading: false})),
+  ])
 }
 
-const createConversationSelectIt = (result: RPCChatTypes.NewConversationLocalRes) => {
+const createConversationSelectIt = (results: Array<any>) => {
+  const result: RPCChatTypes.NewConversationLocalRes = results[1]
   const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")

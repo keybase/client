@@ -7,10 +7,10 @@ import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import NewConversation from '.'
 
 type Props = {
-  shouldShow: boolean,
   isSelected: boolean,
-  onClick: () => void,
   onCancel: () => void,
+  onClick: () => void,
+  shouldShow: boolean,
   users: I.OrderedSet<string>,
 }
 

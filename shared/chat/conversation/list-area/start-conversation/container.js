@@ -6,6 +6,7 @@ import {connect, type TypedState} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
   _meta: Constants.getMeta(state, conversationIDKey),
+  isLoading: !!state.chat2.loadingMap.get(Constants.creatingLoadingKey),
   showAddParticipants: state.chat2.pendingMode === 'searchingForUsers',
 })
 
@@ -22,6 +23,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     str = participants.join(', ')
   }
   return {
+    isLoading: stateProps.isLoading,
     onStart: () => dispatchProps.onStart(participants),
     participants: str,
     showAddParticipants: stateProps.showAddParticipants,

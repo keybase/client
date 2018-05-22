@@ -81,6 +81,8 @@ export const isInfoPanelOpen = (state: TypedState) => {
   return routePath.size === 3 && routePath.get(2) === 'infoPanel'
 }
 
+export const creatingLoadingKey = 'creatingConvo'
+
 export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
  * Gregor key for exploding conversations

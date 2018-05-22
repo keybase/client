@@ -4,9 +4,10 @@ import {Box2, Text, Button, Icon} from '../../../../common-adapters'
 import {styleSheetCreate, platformStyles, globalColors, globalMargins} from '../../../../styles'
 
 type Props = {
+  isLoading: boolean,
+  onStart: () => void,
   participants: string,
   showAddParticipants: boolean,
-  onStart: () => void,
 }
 
 const StartConversation = (props: Props) => (
@@ -14,7 +15,7 @@ const StartConversation = (props: Props) => (
     <Text type="BodySmall" style={styles.header}>
       You haven't chatted with {props.participants} yet.
     </Text>
-    <Button type="Primary" label="Start chatting" onClick={props.onStart}>
+    <Button type="Primary" label="Start chatting" onClick={props.onStart} waiting={props.isLoading}>
       <Icon
         type="iconfont-chat"
         style={{

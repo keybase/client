@@ -5,9 +5,9 @@ import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../..
 
 type Props = {
   isSelected: boolean,
-  users: Array<string>,
   onCancel: () => void,
   onClick: () => void,
+  users: Array<string>,
 }
 
 class NewConversation extends React.PureComponent<Props> {
