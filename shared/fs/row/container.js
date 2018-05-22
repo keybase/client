@@ -48,6 +48,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   type: stateProps.pathItem.type,
   badgeCount: stateProps.pathItem.badgeCount,
   tlfMeta: stateProps.pathItem.tlfMeta,
+  resetParticipants: stateProps.pathItem.resetParticipants,
   lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
   lastWriter: stateProps.pathItem.lastWriter.username,
   shouldShowMenu:

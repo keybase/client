@@ -354,7 +354,7 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
                   : 'private'
                 : 'public'
           const name = item.name
-          const path = Types.stringToPath(`/keybase/${item.visibility}/${name}`)
+          const path = Types.stringToPath(`/keybase/${visibility}/${name}`)
           if (
             item &&
               item.localMetadata &&
