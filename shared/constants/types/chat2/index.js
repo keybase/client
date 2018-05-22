@@ -17,7 +17,7 @@ export type PendingStatus =
   | 'failed' // creating conversation failed
 
 export type _QuoteInfo = {
-  // Always positive.
+  // Always positive and monotonically increasing.
   counter: number,
   ordinal: Message.Ordinal,
   sourceConversationIDKey: Common.ConversationIDKey,
@@ -36,7 +36,7 @@ export type _State = {
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread, There is a special node for the pending conversation
   quotingMap: I.Map<Common.ConversationIDKey, QuoteInfo>, // current message being quoted
   explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
-  quote: ?QuoteInfo, // current message being quoted
+  quote: ?QuoteInfo, // last quoted message
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
