@@ -48,13 +48,13 @@ export type PathItemMetadata = {
   progress: ProgressType,
   badgeCount: number,
   tlfMeta?: FavoriteMetadata,
-  resetParticipants: Array<string>,
 }
 
 export type _FolderPathItem = {
   type: 'folder',
   children: I.Set<string>,
   favoriteChildren: I.Set<string>,
+  resetParticipants: Array<string>,
 } & PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
