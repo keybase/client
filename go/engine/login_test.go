@@ -195,15 +195,18 @@ func TestUserEmails(t *testing.T) {
 
 func TestProvisionDesktop(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		testProvisionDesktop(t, false, sigVersion)
+		testProvisionDesktop(t, false, sigVersion, false)
 	})
+}
+func TestProvisionDesktopWithEmail(t *testing.T) {
+	testProvisionDesktop(t, false, libkb.KeybaseNullSigVersion, true)
 }
 
 func TestProvisionDesktopPUK(t *testing.T) {
-	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion)
+	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion, false)
 }
 
-func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
+func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion, withEmail bool) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -238,6 +241,11 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
 	}
+	if withEmail {
+		uis.LoginUI = &libkb.TestLoginUI{Username: userX.Email}
+		uis.SecretUI = userX.NewSecretUI()
+	}
+
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 
 	var wg sync.WaitGroup
