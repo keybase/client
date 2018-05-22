@@ -6,8 +6,6 @@ import WKWebView from 'react-native-wkwebview-reborn'
 import type {WebViewInjections, WebViewProps} from './web-view'
 import {memoize} from 'lodash-es'
 
-const wv = isIOS ? WKWebView : WebView
-
 const sanitize = (str?: string): string => (str ? str.replace(/\\/g, '\\\\').replace(/`/g, '\\`') : '')
 
 const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
@@ -23,10 +21,18 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 (function() {\` ${sanitize(injections.javaScript)} \`})()
 `
 
-export default (props: WebViewProps) => (
-  <wv
-    source={{uri: props.url}}
-    injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
-    style={props.style}
-  />
-)
+export default (isIOS
+  ? (props: WebViewProps) => (
+      <WKWebView
+        source={{uri: props.url}}
+        injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
+        style={props.style}
+      />
+    )
+  : (props: WebViewProps) => (
+      <WebView
+        source={{uri: props.url}}
+        injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
+        style={props.style}
+      />
+    ))
