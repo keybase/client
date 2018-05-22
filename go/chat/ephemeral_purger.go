@@ -247,12 +247,13 @@ func (b *BackgroundEphemeralPurger) loop(duration time.Duration) {
 			}
 			b.Lock()
 			stop := b.queuePurges(bgctx)
-			b.Unlock()
 			// If we are out of jobs currently, shut down our loop since we
 			// have no timer to listen for.
 			if stop {
+				defer b.Unlock()
 				return
 			}
+			b.Unlock()
 		case ch := <-b.stopCh:
 			b.Debug(bgctx, "loop: shutting down for %s", b.uid)
 			close(ch)
