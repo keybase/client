@@ -24,7 +24,7 @@ func (s *DeviceEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 }
 
 func postNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, sig string) (err error) {
-	defer g.CTrace(ctx, "postNewDeviceEK", func() error { return err })()
+	defer g.CTraceTimed(ctx, "postNewDeviceEK", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/device_ek",
@@ -40,7 +40,7 @@ func postNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, sig string) (e
 }
 
 func serverMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (maxGeneration keybase1.EkGeneration, err error) {
-	defer g.CTrace(ctx, "serverMaxDeviceEK", func() error { return err })()
+	defer g.CTraceTimed(ctx, "serverMaxDeviceEK", func() error { return err })()
 
 	deviceEKs, err := allDeviceEKMetadataMaybeStale(ctx, g, merkleRoot)
 	if err != nil {
@@ -58,7 +58,7 @@ func serverMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot l
 }
 
 func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
-	defer g.CTrace(ctx, "publishNewDeviceEK", func() error { return err })()
+	defer g.CTraceTimed(ctx, "publishNewDeviceEK", func() error { return err })()
 
 	seed, err := newDeviceEphemeralSeed()
 	if err != nil {
@@ -100,7 +100,7 @@ func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot 
 }
 
 func signAndPostDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, seed DeviceEKSeed, merkleRoot libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
-	defer g.CTrace(ctx, "signAndPostDeviceEK", func() error { return err })()
+	defer g.CTraceTimed(ctx, "signAndPostDeviceEK", func() error { return err })()
 
 	storage := g.GetDeviceEKStorage()
 	existingMetadata, err := storage.GetAllActive(ctx, merkleRoot)
@@ -168,7 +168,7 @@ type deviceEKStatementResponse struct {
 }
 
 func allDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata map[keybase1.DeviceID]keybase1.DeviceEkMetadata, err error) {
-	defer g.CTrace(ctx, "allDeviceEKMetadataMaybeStale", func() error { return err })()
+	defer g.CTraceTimed(ctx, "allDeviceEKMetadataMaybeStale", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/device_eks",
@@ -237,7 +237,7 @@ func allDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, 
 // allActiveDeviceEKMetadata fetches the latest deviceEK for each of your
 // devices, filtering out the ones that are stale.
 func allActiveDeviceEKMetadata(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata map[keybase1.DeviceID]keybase1.DeviceEkMetadata, err error) {
-	defer g.CTrace(ctx, "allActiveDeviceEKMetadata", func() error { return err })()
+	defer g.CTraceTimed(ctx, "allActiveDeviceEKMetadata", func() error { return err })()
 
 	maybeStale, err := allDeviceEKMetadataMaybeStale(ctx, g, merkleRoot)
 	if err != nil {
