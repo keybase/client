@@ -21,7 +21,7 @@ class Input extends React.Component<InputProps> {
   }
 
   _onCancelQuoting = () => {
-    this.props._quotingMessage && this.props.onCancelQuoting()
+    // this.props._quotingMessage && this.props.onCancelQuoting()
   }
 
   _onSubmit = (text: string) => {
@@ -54,26 +54,17 @@ class Input extends React.Component<InputProps> {
   }
 
   componentWillReceiveProps = (nextProps: InputProps) => {
-    const props: InputProps = this.props
-
-    if (nextProps._editingCounter !== this.props._editingCounter) {
-      // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
-      this._setText('')
-      const injectedInput = nextProps.injectedInput
-      this._setText(injectedInput, true)
-      this._inputFocus()
-      return
-    }
-
-    if (nextProps._quotingCounter !== this.props._quotingCounter) {
-      this._setText('')
-      const injectedInput = nextProps.injectedInput
-      this._setText(formatTextForQuoting(injectedInput), true)
-      this._inputFocus()
-      return
-    }
-
-    if (props.conversationIDKey !== nextProps.conversationIDKey) {
+    if (this.props.conversationIDKey === nextProps.conversationIDKey) {
+      if (nextProps._editingCounter !== this.props._editingCounter) {
+        const injectedInput = nextProps.injectedInput
+        this._setText(injectedInput)
+        this._inputFocus()
+      } else if (nextProps._quotingCounter !== this.props._quotingCounter) {
+        const injectedInput = nextProps.injectedInput
+        this._setText(formatTextForQuoting(injectedInput))
+        this._inputFocus()
+      }
+    } else {
       const text = nextProps.getUnsentText()
       this._setText(text, true)
     }
