@@ -10,6 +10,8 @@ import {formatTextForQuoting} from '../../../../util/chat'
 const throttled = throttle((f, param) => f(param), 1000)
 
 class Input extends React.Component<InputProps> {
+  _lastQuote: ?number
+
   _input: ?TextInput
 
   _inputSetRef = (input: ?TextInput) => {
@@ -49,26 +51,35 @@ class Input extends React.Component<InputProps> {
     this._setText(text, true)
   }
 
-  componentWillReceiveProps = (nextProps: InputProps) => {
-    if (this.props.conversationIDKey === nextProps.conversationIDKey) {
-      if (nextProps._editingCounter !== this.props._editingCounter) {
-        const injectedInput = nextProps.injectedInput
-        this._setText(injectedInput)
-        this._inputFocus()
-      } else if (nextProps._quotingCounter !== this.props._quotingCounter) {
-        const injectedInput = nextProps.injectedInput
-        this._setText(formatTextForQuoting(injectedInput))
-        this._inputFocus()
-      }
-    } else {
-      const text = nextProps.getUnsentText()
-      this._setText(text, true)
-    }
-  }
-
   componentDidUpdate = (prevProps: InputProps) => {
     if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
       this._inputFocus()
+    }
+
+    if (
+      prevProps.conversationIDKey === this.props.conversationIDKey &&
+      this.props._editingCounter !== prevProps._editingCounter
+    ) {
+      const injectedInput = this.props.injectedInput
+      this._setText(injectedInput)
+      this._inputFocus()
+      return
+    }
+
+    if (
+      this.props._quotingCounter !== this._lastQuote &&
+      this.props._quoteTarget === this.props.conversationIDKey
+    ) {
+      this._lastQuote = this.props._quotingCounter
+      const injectedInput = this.props.injectedInput
+      this._setText(formatTextForQuoting(injectedInput))
+      this._inputFocus()
+      return
+    }
+
+    if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
+      const text = this.props.getUnsentText()
+      this._setText(text, true)
     }
   }
 

@@ -76,6 +76,7 @@ const InputContainer = (props: Props) => {
     _editingMessage: null,
     _quotingCounter: 0,
     _quotingMessage: null,
+    _quoteTarget: null,
 
     injectedInput: '',
 

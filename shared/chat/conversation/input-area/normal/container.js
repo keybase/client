@@ -29,11 +29,12 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _editingMessage: ?Types.Message = editingState
     ? Constants.getMessageMap(state, conversationIDKey).get(editingState.ordinal)
     : null
-  const quotingState = Constants.getQuotingState(
-    state, conversationIDKey)
+  const quotingState = Constants.getQuotingState(state)
   let _quotingMessage: ?Types.Message = quotingState
     ? Constants.getMessageMap(state, quotingState.sourceConversationIDKey).get(quotingState.ordinal)
     : null
+
+  const _quoteTarget = quotingState ? quotingState.targetConversationIDKey : null
 
   const _you = state.config.username || ''
   const injectedInputMessage: ?Types.Message = _editingMessage || _quotingMessage || null
@@ -47,6 +48,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     _editingMessage,
     _quotingCounter: quotingState ? quotingState.counter : 0,
     _quotingMessage,
+    _quoteTarget,
     _you,
     channelName: meta.channelname,
     conversationIDKey,
@@ -114,6 +116,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   _editingMessage: stateProps._editingMessage,
   _quotingCounter: stateProps._quotingCounter,
   _quotingMessage: stateProps._quotingMessage,
+  _quoteTarget: stateProps._quoteTarget,
   injectedInput: stateProps.injectedInput,
 
   getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
