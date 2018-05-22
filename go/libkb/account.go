@@ -196,6 +196,13 @@ func (a *Account) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 	a.streamCache = NewPassphraseStreamCache(tsec, pps)
 }
 
+func (a *Account) SetStreamCache(c *PassphraseStreamCache) {
+	if a.streamCache != nil {
+		a.G().Log.Warning("Account.CreateStreamCache overwriting existing StreamCache")
+	}
+	a.streamCache = c
+}
+
 // SetStreamGeneration sets the passphrase generation on the cached stream
 // if it exists, and otherwise will wind up warning of a problem.
 func (a *Account) SetStreamGeneration(gen PassphraseGeneration, nilPPStreamOK bool) {
@@ -265,8 +272,8 @@ func (a *Account) SecretSyncer() *SecretSyncer {
 	return a.secretSyncer
 }
 
-func (a *Account) RunSecretSyncer(uid keybase1.UID) error {
-	return RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
+func (a *Account) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
+	return RunSyncer(m, a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
 }
 
 func (a *Account) Keyring() (*SKBKeyringFile, error) {

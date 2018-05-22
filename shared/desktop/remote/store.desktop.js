@@ -3,14 +3,15 @@
 // This acts as a fake store for remote windows
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send a 'remoteWindowWantsProps' to the main window which then sends us 'props'
-import {remote, BrowserWindow} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {sendToMainWindow} from './util'
 import {createStore, applyMiddleware, type Store} from 'redux'
+import * as I from 'immutable'
 
 const updateStore = 'remoteStore:update'
 
 class RemoteStore {
-  _window: ?BrowserWindow
+  _window: ?SafeElectron.BrowserWindowType
   _store: Store<any, any, any>
   _gotPropsCallback: ?() => void // let component know it loaded once so it can show itself. Set to null after calling once
 
@@ -32,7 +33,7 @@ class RemoteStore {
   }
 
   _registerForRemoteUpdate = () => {
-    this._window = remote.getCurrentWindow()
+    this._window = SafeElectron.getRemote().getCurrentWindow()
     this._window.on('props', this._onPropsUpdated)
   }
 
@@ -41,10 +42,32 @@ class RemoteStore {
     sendToMainWindow('remoteWindowWantsProps', props.windowComponent, props.windowParam)
   }
 
+  // Some shared inner components needs immutable structures (Avatar), we can likely fix this longer term but for now lets just
+  // map these types back to immutable so the components aren't aware we're doing this over-the-wire store stuff which requires
+  // things to not be immutable. We have very little stuff in remote windows so i think this is simpler than some larger overhaul
+  // to enable embedded connected components
+  _makeImmutable = (props: any) => {
+    if (
+      !props.hasOwnProperty('config') ||
+      (!props.config.hasOwnProperty('followers') && !props.config.hasOwnProperty('followering'))
+    ) {
+      return props
+    }
+
+    return {
+      ...props,
+      config: {
+        ...props.config,
+        followers: I.Set(props.config ? props.config.followers : []),
+        following: I.Set(props.config ? props.config.following : []),
+      },
+    }
+  }
+
   _reducer = (state: any, action: any) => {
     switch (action.type) {
       case updateStore: {
-        const props = JSON.parse(action.payload.propsStr)
+        const props = this._makeImmutable(JSON.parse(action.payload.propsStr))
         // We get diffs of the top level props so we always overwrite
         return {
           ...state,

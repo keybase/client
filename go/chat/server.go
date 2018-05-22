@@ -738,10 +738,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		} else {
 			h.Debug(ctx, "GetThreadNonblock: sending nil cached response")
 		}
+		start := time.Now()
 		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
 			Thread:    pthread,
 		})
+		h.Debug(ctx, "GetThreadNonblock: cached response send time: %v", time.Since(start))
 	}()
 
 	wg.Add(1)
@@ -778,10 +780,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		}
 		resultPagination = rthread.Pagination
 		h.applyPagerModeOutgoing(bctx, arg.ConversationID, rthread.Pagination, pagination, arg.Pgmode)
+		start := time.Now()
 		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
 			SessionID: arg.SessionID,
 			Thread:    string(jsonUIRes),
 		})
+		h.Debug(ctx, "GetThreadNonblock: full response send time: %v", time.Since(start))
 
 		// This means we transmitted with success, so cancel local thread
 		cancel()

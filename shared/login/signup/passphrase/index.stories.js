@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as PropProviders from '../../../stories/prop-providers'
 import Passphrase from '.'
 import {action, storiesOf} from '../../../stories/storybook'
 import HiddenString from '../../../util/hidden-string'
@@ -15,8 +16,14 @@ const props = {
   passphraseError: null,
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Signup/Passphrase', module)
+    .addDecorator(provider)
     .add('Start', () => <Passphrase {...props} />)
     .add('Error', () => <Passphrase {...props} passphraseError={new HiddenString('This is an error')} />)
 }

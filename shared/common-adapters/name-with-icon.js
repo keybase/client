@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Avatar, {ConnectedAvatar} from './avatar'
+import Avatar from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles, type IconType} from './icon'
@@ -45,7 +45,12 @@ const NameWithIconVertical = (props: Props) => {
       style={collapseStyles([styles.vContainerStyle, props.containerStyle])}
     >
       {isAvatar && (
-        <ConnectedAvatar size={adapterProps.iconSize} username={props.username} teamname={props.teamname} />
+        <Avatar
+          showFollowingStatus={true}
+          size={adapterProps.iconSize}
+          username={props.username}
+          teamname={props.teamname}
+        />
       )}
       {!isAvatar &&
         !!props.icon && (
@@ -203,7 +208,7 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
     case 'large':
       if (isUser) {
         return {
-          iconSize: 112,
+          iconSize: 128,
           metaMargin: 8,
           metaOneType: 'BodySemibold',
           titleType: 'HeaderBig',
@@ -212,7 +217,7 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
   }
   // default
   return {
-    iconSize: isUser ? 80 : 64,
+    iconSize: isUser ? 96 : 64,
     metaMargin: isMobile ? 6 : 8,
     metaOneType: isUser ? 'BodySemibold' : 'BodySmall',
     titleType: 'HeaderBig',

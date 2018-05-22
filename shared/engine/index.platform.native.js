@@ -9,8 +9,16 @@ import {measureStart, measureStop} from '../dev/user-timings'
 
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
-const nativeBridge = NativeModules.KeybaseEngine
-const RNEmitter = new NativeEventEmitter(nativeBridge)
+const nativeBridge: {
+  runWithData: string => void,
+  eventName: string,
+  start: () => void,
+  reset: () => void,
+} =
+  NativeModules.KeybaseEngine
+const RNEmitter: {
+  addListener: (string, (string) => void) => void,
+} = new NativeEventEmitter(nativeBridge)
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -20,7 +28,7 @@ class NativeTransport extends TransportShared {
       disconnectCallback,
       incomingRPCCallback,
       // We pass data over to the native side to be handled
-      data => {
+      (data: string) => {
         if (printBridgeB64) {
           console.log(`PRINTBridge JS sending data ${data}`)
         }
@@ -48,7 +56,7 @@ class NativeTransport extends TransportShared {
   } // eslint-disable-line camelcase
 
   // A custom send override to write b64 to the react native bridge
-  send(msg) {
+  send(msg: string) {
     const packed = pack(msg)
     const len = pack(packed.length)
     // We have to write b64 encoded data over the RN bridge
@@ -75,7 +83,7 @@ function createClient(
 
   let packetizeCount = 0
   // This is how the RN side writes back to us
-  RNEmitter.addListener(nativeBridge.eventName, payload => {
+  RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
     const buffer = toBuffer(toByteArray(payload))
     if (printBridgeB64) {
       console.log(`PRINTBridge: JS got payload ${payload.length}: ${buffer.toString()}`)
