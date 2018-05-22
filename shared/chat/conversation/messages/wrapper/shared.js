@@ -217,13 +217,13 @@ const styles = styleSheetCreate({
   sendIndicator: {marginBottom: 2},
   sendIndicatorContainer: platformStyles({
     common: {
-      alignItems: 'center',
+      alignItems: 'flex-start',
       bottom: -2,
       height: 21,
       justifyContent: 'center',
       position: 'absolute',
-      right: 30,
-      width: 24,
+      right: 0,
+      width: sendIndicatorWidth,
     },
     isElectron: {pointerEvents: 'none'},
     isMobile: {

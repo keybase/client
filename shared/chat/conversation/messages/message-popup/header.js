@@ -42,8 +42,6 @@ const MessagePopupHeader = (props: {
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
         maxWidth: isMobile ? '100%' : 240,
-        paddingLeft: globalMargins.small,
-        paddingRight: globalMargins.small,
         textAlign: 'center',
         width: '100%',
       }}
@@ -55,7 +53,13 @@ const MessagePopupHeader = (props: {
           marginTop: !isMobile ? globalMargins.small : globalMargins.large,
         }}
       />
-      <Box style={globalStyles.flexBoxRow}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          paddingLeft: globalMargins.small,
+          paddingRight: globalMargins.small,
+        }}
+      >
         <Text type="BodySmall" style={{color: deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}>
           ENCRYPTED
         </Text>
