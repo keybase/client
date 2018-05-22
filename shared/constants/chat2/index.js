@@ -55,8 +55,8 @@ export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.SortedSet())
-export const getMessageMap = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageMap.get(id, I.Map())
+export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+  state.chat2.messageMap.getIn([id, ordinal])
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.badgeMap.get(id, 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -68,7 +68,7 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
     return null
   }
 
-  const message = getMessageMap(state, id).get(ordinal)
+  const message = getMessage(state, id, ordinal)
   if (!message || message.type !== 'text') {
     return null
   }
@@ -81,7 +81,7 @@ export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => 
     return null
   }
 
-  const message = getMessageMap(state, quote.sourceConversationIDKey).get(quote.ordinal)
+  const message = getMessage(state, quote.sourceConversationIDKey, quote.ordinal)
   if (!message || message.type !== 'text') {
     return null
   }

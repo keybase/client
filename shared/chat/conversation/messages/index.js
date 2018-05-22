@@ -82,13 +82,14 @@ class MessageFactory extends React.PureComponent<Props> {
 }
 
 const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKey}) => {
-  const messageMap = Constants.getMessageMap(state, conversationIDKey)
-  const message = messageMap.get(ordinal)
+  const message: ?Types.Message = Constants.getMessage(state, conversationIDKey, ordinal)
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
+  const isEditing = !!(message && editInfo && editInfo.ordinal === message.ordinal)
+  const previousMessage = previous ? Constants.getMessage(state, conversationIDKey, previous) : null
   return {
-    isEditing: message && conversationIDKey && editInfo && editInfo.ordinal === message.ordinal,
+    isEditing,
     message,
-    previous: previous ? messageMap.get(previous) : null,
+    previous: previousMessage,
   }
 }
 
