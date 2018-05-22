@@ -31,6 +31,8 @@ class StorybookErrorBoundary extends React.Component<
   any,
   {hasError: boolean, error: ?Error, info: ?{componentStack: string}}
 > {
+  componentDidCatch: ?Function
+
   constructor(props: any) {
     super(props)
     this.state = {hasError: false, error: null, info: null}
@@ -40,6 +42,8 @@ class StorybookErrorBoundary extends React.Component<
       this.componentDidCatch = (error: Error, info: {componentStack: string}) => {
         this.setState({hasError: true, error, info})
       }
+    } else {
+      this.componentDidCatch = undefined
     }
   }
 
