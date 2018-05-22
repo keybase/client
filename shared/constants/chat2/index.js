@@ -59,8 +59,17 @@ export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
-export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.editingMap.get(id)
+export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
+  const ordinal = state.chat2.editingMap.get(id)
+  if (!ordinal) {
+    return null
+  }
+  const message = getMessageMap(state, id).get(ordinal)
+  if (!message || message.type !== 'text') {
+    return null
+  }
+  return {text: message.text.stringValue(), ordinal}
+}
 export const getQuotingState = (state: TypedState) => state.chat2.quote
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())

@@ -72,7 +72,7 @@ const InputContainer = (props: Props) => {
     pendingWaiting: props.pendingWaiting,
     typing: props.typing,
 
-    _editingMessage: null,
+    _editText: '',
     _quotingCounter: 0,
     _quotingMessage: null,
     _quoteTarget: null,

@@ -24,7 +24,7 @@ type CommonProps = {
 }
 
 type InputProps = CommonProps & {
-  _editingMessage: ?Types.Message,
+  _editText: string,
   _quotingCounter: number,
   _quotingMessage: ?Types.Message,
   _quoteTarget: ?Types.ConversationIDKey,
