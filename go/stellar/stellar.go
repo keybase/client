@@ -1,6 +1,7 @@
 package stellar
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -724,7 +725,7 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 
 func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
-		amount = "0"
+		return "", errors.New("empty amount")
 	}
 	x := new(big.Rat)
 	_, ok := x.SetString(amount)
@@ -749,7 +750,7 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 		return strings.Join(parts, "."), nil
 	}
 	sinceComma := 0
-	var b strings.Builder
+	var b bytes.Buffer
 	for i := len(head) - 1; i >= 0; i-- {
 		if sinceComma == 3 && head[i] != '-' {
 			b.WriteByte(',')
