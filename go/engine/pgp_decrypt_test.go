@@ -512,12 +512,12 @@ func TestPGPDecryptWithSyncedKey(t *testing.T) {
 	rkeys := ur.GetActivePGPKeys(false)
 	require.True(t, len(rkeys) > 0, "recipient has no active pgp keys")
 
-	// encrypt and sign a message with keyA
+	// encrypt and message with rkeys[0]
 	mid := libkb.NewBufferCloser()
 	msg := "Is it time for lunch?"
 	recipients := []*libkb.PGPKeyBundle{rkeys[0]}
 	err = libkb.PGPEncrypt(strings.NewReader(msg), mid, nil, recipients)
-	require.NoError(t, err, "pgp decryption failed")
+	require.NoError(t, err, "pgp encryption failed")
 	t.Logf("encrypted data: %x", mid.Bytes())
 
 	Logout(tc)
