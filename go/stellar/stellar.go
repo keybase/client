@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
+	"math/big"
+	"strings"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
@@ -17,8 +18,6 @@ import (
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/amount"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
 // CreateWallet creates and posts an initial stellar bundle for a user.
@@ -727,18 +726,47 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
 		amount = "0"
 	}
-	famt, err := strconv.ParseFloat(amount, 64)
-	if err != nil {
-		return "", err
+	x := new(big.Rat)
+	_, ok := x.SetString(amount)
+	if !ok {
+		return "", fmt.Errorf("unable to parse amount %s", amount)
 	}
-
-	// only using english formatting of numbers at this point
-	// see https://godoc.org/golang.org/x/text/message when we
-	// want to tackle further localization.
-	p := message.NewPrinter(language.English)
-
+	precision := 7
 	if precisionTwo {
-		return p.Sprintf("%.2f", famt), nil
+		precision = 2
 	}
-	return p.Sprint(famt), nil
+	s := x.FloatString(precision)
+	parts := strings.Split(s, ".")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("unable to parse amount %s", amount)
+	}
+	if parts[1] == "0000000" {
+		// get rid of all zeros after point if default precision
+		parts = parts[:1]
+	}
+	head := parts[0]
+	if len(head) <= 3 {
+		return strings.Join(parts, "."), nil
+	}
+	sinceComma := 0
+	var b strings.Builder
+	for i := len(head) - 1; i >= 0; i-- {
+		if sinceComma == 3 && head[i] != '-' {
+			b.WriteByte(',')
+			sinceComma = 0
+		}
+		b.WriteByte(head[i])
+		sinceComma++
+	}
+	parts[0] = reverse(b.String())
+
+	return strings.Join(parts, "."), nil
+}
+
+func reverse(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
 }

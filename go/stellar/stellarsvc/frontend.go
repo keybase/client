@@ -12,6 +12,8 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 )
 
+const WorthCurrencyErrorCode = "ERR"
+
 func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (accts []stellar1.WalletAccountLocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetWalletAccountsLocal", func() error { return err })()
@@ -120,15 +122,15 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			asset.WorthCurrency = displayCurrency
 			displayAmount, err := stellar.ConvertXLMToOutside(d.Amount, rate)
 			if err != nil {
-				s.G().Log.CDebugf("error converting XLM to display currency: %s", err)
+				s.G().Log.CDebugf(ctx, "error converting XLM to display currency: %s", err)
 				asset.Worth = "Currency conversion error"
-				asset.WorthCurrency = "ERR"
+				asset.WorthCurrency = WorthCurrencyErrorCode
 			} else {
 				displayFormatted, err := stellar.FormatCurrency(ctx, s.G(), displayAmount, stellar1.OutsideCurrencyCode(displayCurrency))
 				if err != nil {
-					s.G().Log.CDebugf("error formatting currency: %s", err)
+					s.G().Log.CDebugf(ctx, "error formatting currency: %s", err)
 					asset.Worth = "Currency conversion error"
-					asset.WorthCurrency = "ERR"
+					asset.WorthCurrency = WorthCurrencyErrorCode
 				} else {
 					asset.Worth = displayFormatted
 				}
