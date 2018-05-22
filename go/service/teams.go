@@ -122,7 +122,19 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (res keybase1.TeamDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGet(%s)", arg.Name), func() error { return err })()
-	return teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
+
+	res, err = teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
+	if err != nil {
+		return res, err
+	}
+
+	if res.Settings.Open {
+		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", arg.Name)
+		res.Members.Writers = keybase1.FilterInactiveMembers(res.Members.Writers)
+		res.Members.Readers = keybase1.FilterInactiveMembers(res.Members.Readers)
+	}
+
+	return res, nil
 }
 
 func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.TeamImplicitAdminsArg) (res []keybase1.TeamMemberDetails, err error) {

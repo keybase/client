@@ -8,7 +8,7 @@ import {
   NativeImage,
   ZoomableBox,
   NativeDimensions,
-} from '../../../common-adapters/index.native'
+} from '../../../common-adapters/mobile.native'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import MessagePopup from '../messages/message-popup/'
 import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../styles'

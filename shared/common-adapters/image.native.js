@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {NativeImage} from './index.native'
+import {NativeImage} from './mobile.native'
 import type {Props} from './image'
 
 export default ({src, style}: Props) => {

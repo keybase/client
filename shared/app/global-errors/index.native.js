@@ -9,7 +9,7 @@ import {
   List,
   HOCTimers,
   type PropsWithTimer,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'

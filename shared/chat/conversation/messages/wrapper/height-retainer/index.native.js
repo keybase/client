@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, NativeImage} from '../../../../../common-adapters/index.native'
+import {Box, NativeImage} from '../../../../../common-adapters/mobile.native'
 import {collapseStyles} from '../../../../../styles'
 import type {Props} from '.'
 
