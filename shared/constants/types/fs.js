@@ -48,6 +48,7 @@ export type PathItemMetadata = {
   progress: ProgressType,
   badgeCount: number,
   tlfMeta?: FavoriteMetadata,
+  resetParticipants: Array<string>,
 }
 
 export type _FolderPathItem = {

@@ -339,7 +339,7 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
   //   RpcChatTypes.localFindConversationsLocalRpcPromise,
   //   action.payload.tlfName
   // )
-  const untrustedInboxRpc = new EngineRpc.EngineRpcCall(
+  const resetRpc = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatInboxUnverified': function*({
         inbox,
@@ -347,25 +347,32 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
         const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
         // whatever
         if (!result || !result.items) return EngineRpc.rpcResult()
-        const tlfs: Array<Types.ResetMetadata> = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
-          item &&
-            item.localMetadata &&
-            item.localMetadata.resetParticipants &&
-            // Only teams (ignore KBFS-backed TLFs)
-            [1, 2, 3].includes(item.membersType) &&
-            // visibility + team type gives us the TLF locator info we need.
-            filtered.push({
-              name: item.name,
-              visibility: item.visibility === 2 // private
+        const tlfs: Array<[Types.Path, Types.ResetMetadata]> = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
+          const visibility = item.visibility === 2 // private
                 ? item.membersType === 1 // simple team
                   ? 'team'
                   : 'private'
-                : 'public',
-              resetParticipants: item.localMetadata.resetParticipants || [],
-            })
+                : 'public'
+          const name = item.name
+          const path = Types.stringToPath(`/keybase/${item.visibility}/${name}`)
+          if (
+            item &&
+              item.localMetadata &&
+              item.localMetadata.resetParticipants &&
+              // Only teams (ignore KBFS-backed TLFs)
+              [1, 2, 3].includes(item.membersType)
+          ) {
+            filtered.push([
+              path, {
+                name,
+                visibility,
+                resetParticipants: item.localMetadata.resetParticipants || [],
+              },
+            ])
+          }
           return filtered
         }, [])
-        yield Saga.put(FsGen.createLoadResetsResult({tlfs}))
+        yield Saga.put(FsGen.createLoadResetsResult({tlfs: I.Map(tlfs)}))
         return EngineRpc.rpcResult()
       },
     },
@@ -380,7 +387,7 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
     false,
     loading => {}
   )
-  yield Saga.call(untrustedInboxRpc.run)
+  yield Saga.call(resetRpc.run)
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {

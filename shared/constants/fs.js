@@ -33,6 +33,7 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   children: I.Set(),
   favoriteChildren: I.Set(),
   tlfMeta: undefined,
+  resetParticipants: [],
   type: 'folder',
 })
 

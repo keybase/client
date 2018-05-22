@@ -98,7 +98,7 @@ type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
 type _LoadResetsPayload = void
-type _LoadResetsResultPayload = $ReadOnly<{|tlfs: Array<Types.ResetMetadata>|}>
+type _LoadResetsResultPayload = $ReadOnly<{|tlfs: I.Map<Types.Path, Types.ResetMetadata>|}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,

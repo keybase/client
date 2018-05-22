@@ -117,7 +117,7 @@
     },
     "loadResets": {},
     "loadResetsResult": {
-      "tlfs": "Array<Types.ResetMetadata>"
+      "tlfs": "I.Map<Types.Path, Types.ResetMetadata>"
     },
 
     "setupFSHandlers": {}
