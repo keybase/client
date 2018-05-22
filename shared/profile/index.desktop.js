@@ -56,16 +56,16 @@ const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShow
 )
 
 const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
-  <Box onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
+  <ClickableBox onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
     <Box style={styleShowcasedTeamAvatar}>
-      <Icon type="icon-team-placeholder-avatar-24" size={24} style={{borderRadius: 5}} />
+      <Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_20}} type="BodyPrimaryLink">
         Publish the teams you're in
       </Text>
     </Box>
-  </Box>
+  </ClickableBox>
 )
 
 const _ShowcasedTeamRow = (
@@ -86,7 +86,7 @@ const _ShowcasedTeamRow = (
       visible={props.showingMenu}
     />
     <Box style={styleShowcasedTeamAvatar}>
-      <Avatar teamname={props.team.fqName} size={24} />
+      <Avatar teamname={props.team.fqName} size={32} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
@@ -650,16 +650,17 @@ const styleShowcasedTeamContainer = {
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
   minHeight: 32,
+  marginTop: globalMargins.xtiny,
 }
 
 const styleShowcasedTeamAvatar = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'center',
-  height: globalMargins.medium,
-  minHeight: globalMargins.medium,
-  minWidth: globalMargins.medium,
-  width: globalMargins.medium,
+  height: 32,
+  minHeight: 32,
+  minWidth: 32,
+  width: 32,
 }
 
 const styleShowcasedTeamName = {

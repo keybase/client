@@ -1,6 +1,5 @@
 // @flow
-import {remote} from 'electron'
-const BrowserWindow = remote.BrowserWindow
+import * as SafeElectron from '../../util/safe-electron.desktop'
 
 function autoResize() {
   if (__STORYBOOK__) {
@@ -12,11 +11,12 @@ function autoResize() {
   setTimeout(() => {
     try {
       const element = window.document.getElementById('RemoteComponentRoot').firstChild
-      const browserWindow = remote.getCurrentWindow()
+      const browserWindow = SafeElectron.getRemote().getCurrentWindow()
       if (
         element &&
         element.scrollHeight != null &&
         element.offsetTop != null &&
+        browserWindow &&
         !browserWindow.isDestroyed()
       ) {
         // try 5 times to get a stable window size, doesn't seem like a better way to do this...
@@ -54,8 +54,10 @@ function autoResize() {
   }, 1)
 }
 
-const getMainWindow = (): ?BrowserWindow => {
-  const w = BrowserWindow.getAllWindows().find(w => w.webContents.getURL().indexOf('mainWindow') !== -1)
+const getMainWindow = (): ?SafeElectron.BrowserWindowType => {
+  const w = SafeElectron.BrowserWindow.getAllWindows().find(
+    w => w.webContents.getURL().indexOf('mainWindow') !== -1
+  )
   return w
 }
 

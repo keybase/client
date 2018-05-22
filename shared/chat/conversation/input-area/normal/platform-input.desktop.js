@@ -194,8 +194,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
       hintText = 'Write an exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
-    } else if (this.props.pendingWaiting) {
-      hintText = 'Creating conversation...'
     }
 
     return (

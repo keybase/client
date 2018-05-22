@@ -643,6 +643,13 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         )
       })
     }
+    case Chat2Gen.updateConvExplodingModes:
+      const {modes} = action.payload
+      const explodingMap = modes.reduce((map, mode) => {
+        map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
+        return map
+      }, {})
+      return state.set('explodingModes', I.Map(explodingMap))
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -697,6 +704,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.blockConversation:
     case Chat2Gen.previewConversation:
     case Chat2Gen.createConversation:
+    case Chat2Gen.setConvExplodingMode:
       return state
     default:
       /*::

@@ -6,7 +6,7 @@ import {hot} from 'react-hot-loader'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import {connect, type TypedState} from '../util/container'
-import {ipcRenderer} from 'electron'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 import {type RouteDefNode, type RouteStateNode, type Path} from '../route-tree'
 
@@ -22,7 +22,7 @@ type Props = {
 
 class Main extends Component<Props> {
   _updateBadges = () => {
-    ipcRenderer.send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
+    SafeElectron.getIpcRenderer().send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
   }
 
   componentDidUpdate(prevProps) {

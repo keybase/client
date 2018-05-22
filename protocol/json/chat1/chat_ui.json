@@ -467,21 +467,15 @@
         },
         {
           "type": "boolean",
-          "name": "isEphemeral",
-          "mpackkey": "ie",
-          "jsonkey": "ie"
+          "name": "isEphemeral"
         },
         {
           "type": "boolean",
-          "name": "isEphemeralExpired",
-          "mpackkey": "iex",
-          "jsonkey": "iex"
+          "name": "isEphemeralExpired"
         },
         {
           "type": "gregor1.Time",
-          "name": "etime",
-          "mpackkey": "e",
-          "jsonkey": "e"
+          "name": "etime"
         }
       ]
     },

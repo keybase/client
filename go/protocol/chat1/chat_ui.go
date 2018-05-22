@@ -402,9 +402,9 @@ type UIMessageValid struct {
 	AtMentions            []string               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention         `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []UIChannelNameMention `codec:"channelNameMentions" json:"channelNameMentions"`
-	IsEphemeral           bool                   `codec:"ie" json:"ie"`
-	IsEphemeralExpired    bool                   `codec:"iex" json:"iex"`
-	Etime                 gregor1.Time           `codec:"e" json:"e"`
+	IsEphemeral           bool                   `codec:"isEphemeral" json:"isEphemeral"`
+	IsEphemeralExpired    bool                   `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
+	Etime                 gregor1.Time           `codec:"etime" json:"etime"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {

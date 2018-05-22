@@ -62,6 +62,7 @@ export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
+export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setInboxFilter = 'chat2:setInboxFilter'
@@ -70,6 +71,7 @@ export const setPendingConversationExistingConversationIDKey = 'chat2:setPending
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
+export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
@@ -260,6 +262,10 @@ type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   typing: boolean,
 |}>
+type _SetConvExplodingModePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  seconds: number,
+|}>
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   policy: RetentionPolicy,
@@ -280,6 +286,7 @@ type _SetPendingConversationUsersPayload = $ReadOnly<{|
 |}>
 type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode|}>
 type _SetupChatHandlersPayload = void
+type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateNotificationSettingsPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -303,6 +310,14 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  * Consume a service notification that a team retention policy was updated
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({error: false, payload, type: updateTeamRetentionPolicy})
+/**
+ * Handle an update to our conversation exploding modes.
+ */
+export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
+/**
+ * Set the remote exploding mode for a conversation.
+ */
+export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({error: false, payload, type: setConvExplodingMode})
 /**
  * Sets the retention policy for a conversation.
  */
@@ -422,6 +437,7 @@ export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThe
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
 export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayload>
+export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMode, _SetConvExplodingModePayload>
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
 export type SetConversationOfflinePayload = $Call<typeof createSetConversationOffline, _SetConversationOfflinePayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
@@ -430,6 +446,7 @@ export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeo
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
+export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateNotificationSettingsPayload = $Call<typeof createUpdateNotificationSettings, _UpdateNotificationSettingsPayload>
 export type UpdateTeamRetentionPolicyPayload = $Call<typeof createUpdateTeamRetentionPolicy, _UpdateTeamRetentionPolicyPayload>
@@ -489,6 +506,7 @@ export type Actions =
   | ResetLetThemInPayload
   | SelectConversationPayload
   | SendTypingPayload
+  | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetInboxFilterPayload
@@ -497,6 +515,7 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetupChatHandlersPayload
+  | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateNotificationSettingsPayload
   | UpdateTeamRetentionPolicyPayload

@@ -1,15 +1,14 @@
 // @flow
 import menubar from 'menubar'
 import {injectReactQueryParams} from '../../util/dev'
-import {screen as electronScreen, ipcMain, systemPreferences, app} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
-
 import type {BadgeType} from '../../constants/types/notifications'
 
 let iconType: BadgeType = 'regular'
 
-const isDarkMode = () => isDarwin && systemPreferences && systemPreferences.isDarkMode()
+const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
 
 const getIcon = invertColors => {
   const devMode = __DEV__ ? '-dev' : ''
@@ -54,17 +53,21 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     mb.tray.setImage(getIcon(invertColors))
   }
 
-  if (isDarwin && systemPreferences && systemPreferences.subscribeNotification) {
-    systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-      updateIcon(false)
-    })
+  if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
+    SafeElectron.getSystemPreferences().subscribeNotification(
+      'AppleInterfaceThemeChangedNotification',
+      () => {
+        updateIcon(false)
+      }
+    )
   }
 
-  ipcMain.on('showTray', (event, type, count) => {
+  SafeElectron.getIpcMain().on('showTray', (event, type, count) => {
     iconType = type
     updateIcon(false)
-    if (app.dock && app.dock.isVisible()) {
-      app.setBadgeCount(count)
+    const dock = SafeElectron.getApp().dock
+    if (dock && dock.isVisible()) {
+      SafeElectron.getApp().setBadgeCount(count)
     }
   })
 
@@ -93,8 +96,8 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     mb.on('show', () => {
       // Account for different taskbar positions on Windows
       if (isWindows && mb.window && mb.tray) {
-        const cursorPoint = electronScreen.getCursorScreenPoint()
-        const screenSize = electronScreen.getDisplayNearestPoint(cursorPoint).workArea
+        const cursorPoint = SafeElectron.getScreen().getCursorScreenPoint()
+        const screenSize = SafeElectron.getScreen().getDisplayNearestPoint(cursorPoint).workArea
         let menuBounds = mb.window.getBounds()
         console.log('Showing menu:', cursorPoint, screenSize)
         let iconBounds = mb.tray.getBounds()

@@ -25,6 +25,7 @@ export type _State = {
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread, There is a special node for the pending conversation
   quotingMap: I.Map<Common.ConversationIDKey, QuotedOrdConv>, // current message being quoted
+  explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
