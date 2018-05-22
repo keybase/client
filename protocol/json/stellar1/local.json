@@ -83,6 +83,10 @@
         {
           "type": "string",
           "name": "symbol"
+        },
+        {
+          "type": "string",
+          "name": "name"
         }
       ]
     },

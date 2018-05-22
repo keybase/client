@@ -101,3 +101,19 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$0.00", assets[0].Worth)
 }
+
+func TestGetDisplayCurrenciesLocal(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	currencies, err := tcs[0].Srv.GetDisplayCurrenciesLocal(context.Background(), 0)
+	require.NoError(t, err)
+
+	require.Len(t, currencies, 32)
+	require.Equal(t, "USD ($)", currencies[0].Description)
+	require.Equal(t, "USD", currencies[0].Code)
+	require.Equal(t, "$", currencies[0].Symbol)
+	require.Equal(t, "AUD ($)", currencies[1].Description)
+	require.Equal(t, "AUD", currencies[1].Code)
+	require.Equal(t, "$", currencies[1].Symbol)
+}

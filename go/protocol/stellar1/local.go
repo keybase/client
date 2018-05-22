@@ -51,6 +51,7 @@ type CurrencyLocal struct {
 	Description string `codec:"description" json:"description"`
 	Code        string `codec:"code" json:"code"`
 	Symbol      string `codec:"symbol" json:"symbol"`
+	Name        string `codec:"name" json:"name"`
 }
 
 func (o CurrencyLocal) DeepCopy() CurrencyLocal {
@@ -58,6 +59,7 @@ func (o CurrencyLocal) DeepCopy() CurrencyLocal {
 		Description: o.Description,
 		Code:        o.Code,
 		Symbol:      o.Symbol,
+		Name:        o.Name,
 	}
 }
 
