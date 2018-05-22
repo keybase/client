@@ -130,7 +130,10 @@ func (h *IdentifyChangedHandler) getUsername(ctx context.Context, uid keybase1.U
 
 func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.UID) (string, chat1.TLFID, error) {
 
-	me := h.G().Env.GetUID()
+	me := h.G().ActiveDevice.UID()
+	if me.IsNil() {
+		return "", nil, libkb.LoggedInError{}
+	}
 	inbox := storage.NewInbox(h.G(), me.ToBytes())
 
 	_, allConvs, err := inbox.ReadAll(ctx)
