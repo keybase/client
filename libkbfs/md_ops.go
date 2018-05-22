@@ -369,10 +369,8 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	// Check the gap between the revocation and the global/KBFS roots
 	// that include the revocation, to make sure they fall within the
 	// expected error window.  The server didn't begin enforcing this
-	// until some time into KBFS's existence though.  TODO(CORE-7924):
-	// remove the one minute slack once we have a more exact seqno
-	// that includes the revocation.
-	revokeTime := keybase1.FromTime(info.Time).Add(-1 * time.Minute)
+	// until some time into KBFS's existence though.
+	revokeTime := keybase1.FromTime(info.Time)
 	if revokeTime.After(merkleGapEnforcementStart) {
 		// TODO(KBFS-2954): get the right root time for the
 		// corresponding global root.
