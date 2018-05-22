@@ -377,49 +377,6 @@ func ComputeLoginPackage(m MetaContext, username string) (ret PDPKALoginPackage,
 	return computeLoginPackageFromEmailOrUsername(username, ps, loginSession)
 }
 
-func (s *LoginState) ResetAccount(m MetaContext, username string) (err error) {
-	return s.resetOrDelete(m, username, "nuke")
-}
-
-func (s *LoginState) DeleteAccount(m MetaContext, username string) (err error) {
-	return s.resetOrDelete(m, username, "delete")
-}
-
-func ResetAccountWithContext(m MetaContext, username string) error {
-	return ResetOrDeleteWithContext(m, username, "nuke")
-}
-
-func DeleteAccountWithContext(m MetaContext, username string) error {
-	return ResetOrDeleteWithContext(m, username, "delete")
-}
-
-func ResetOrDeleteWithContext(m MetaContext, username string, endpoint string) (err error) {
-	lctx := m.LoginContext()
-	err = lctx.LoadLoginSession(username)
-	if err != nil {
-		return err
-	}
-	pdpka, err := ComputeLoginPackage(m, username)
-	if err != nil {
-		return err
-	}
-	arg := APIArg{
-		Endpoint:    endpoint,
-		SessionType: APISessionTypeREQUIRED,
-		Args:        NewHTTPArgs(),
-		SessionR:    lctx.LocalSession(),
-	}
-	pdpka.PopulateArgs(&arg.Args)
-	_, err = m.G().API.Post(arg)
-	return err
-}
-
-func (s *LoginState) resetOrDelete(m MetaContext, username string, endpoint string) (err error) {
-	return s.loginHandle(func(lctx LoginContext) error {
-		return ResetOrDeleteWithContext(m.WithLoginContext(lctx), username, endpoint)
-	}, nil, ("ResetAccount: " + endpoint))
-}
-
 func (s *LoginState) postLoginToServer(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
 
 	arg := APIArg{
