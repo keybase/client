@@ -154,7 +154,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
           // can change `pathItems`, we need to make sure that neither one
           // clobbers the others' work.
-          original.set('resetParticipants', item.resetParticipants)
+          original.set('resetParticipants', item.resetParticipants),
         ]
       }, [])
       const n = state.mergeIn(['pathItems'], resetsToMerge)
