@@ -148,6 +148,13 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 }
 
 func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) ([]stellar1.CurrencyLocal, error) {
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = conf
+
 	return nil, errors.New("not yet implemented")
 }
 
