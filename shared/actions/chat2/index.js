@@ -254,7 +254,7 @@ const unboxRows = (
 
 // We get an incoming message streamed to us
 const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedState) => {
-  const {message: cMsg, convID, displayDesktopNotification, conv} = incoming
+  const {message: cMsg, convID, displayDesktopNotification, desktopNotificationSnippet} = incoming
   const actions = []
 
   if (convID && cMsg) {
@@ -284,11 +284,11 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       } else {
         // A normal message
         actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
-        if (!isMobile && displayDesktopNotification && conv && conv.snippet) {
+        if (!isMobile && displayDesktopNotification && desktopNotificationSnippet) {
           actions.push(
             Chat2Gen.createDesktopNotification({
               author: message.author,
-              body: conv.snippet,
+              body: desktopNotificationSnippet,
               conversationIDKey,
             })
           )

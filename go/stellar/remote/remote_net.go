@@ -26,6 +26,10 @@ func (r *RemoteNet) Balances(ctx context.Context, accountID stellar1.AccountID) 
 	return Balances(ctx, r.G(), accountID)
 }
 
+func (r *RemoteNet) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
+	return Details(ctx, r.G(), accountID)
+}
+
 func (r *RemoteNet) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
 	return SubmitPayment(ctx, r.G(), post)
 }
@@ -44,4 +48,12 @@ func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.Accou
 
 func (r *RemoteNet) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
 	return PaymentDetail(ctx, r.G(), txID)
+}
+
+func (r *RemoteNet) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {
+	return GetAccountDisplayCurrency(ctx, r.G(), accountID)
+}
+
+func (r *RemoteNet) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
+	return ExchangeRate(ctx, r.G(), currency)
 }

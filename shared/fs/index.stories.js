@@ -6,7 +6,7 @@ import * as Constants from '../constants/fs'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors} from '../styles'
 import Files from '.'
-// import {NormalPreview} from './filepreview'
+import {NormalPreview} from './filepreview'
 
 const provider = createPropProvider({
   FileRow: ({path}: {path: Types.Path}) => ({
@@ -85,6 +85,14 @@ const provider = createPropProvider({
     loadFilePreview: () => {},
     path: '/keybase/private/foo/bar.jpg',
   }),
+  ViewContainer: () => ({
+    url: '/keybase/private/foo/bar.jpg',
+    mimeType: 'jpg',
+    isSymlink: false,
+    path: '/keybase/private/foo/bar.jpg',
+    onInvalidToken: action('onInvalidToken'),
+    loadMimeType: action('loadMimeType'),
+  }),
 })
 
 const load = () => {
@@ -102,9 +110,9 @@ const load = () => {
         ]}
       />
     ))
-  // .add('Preview', () => (
-  // <NormalPreview routePath={I.List([])} routeProps={I.Map({path: '/keybase/private/foo/bar.jpb'})} />
-  // ))
+    .add('Preview', () => (
+      <NormalPreview routePath={I.List([])} routeProps={I.Map({path: '/keybase/private/foo/bar.jpg'})} />
+    ))
 }
 
 export default load
