@@ -79,7 +79,7 @@ const BOOL isDebug = NO;
   NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
   NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
   NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString * eraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore" stringByExpandingTildeInPath];
+  NSString * eraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
   NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
   NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
 
