@@ -33,7 +33,7 @@ const TimelineMarker = ({first, last, closedCircle}) => (
 const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
   <Box2 direction="vertical" style={styles.timelineLabel}>
     <Text type="Body">{desc}</Text>
-    {subDesc &&
+    {!!subDesc &&
       subDescIsName && (
         <Text type="BodySmall">
           by{' '}
@@ -42,7 +42,7 @@ const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
           </Text>
         </Text>
       )}
-    {subDesc && !subDescIsName && <Text type="BodySmall">{subDesc}</Text>}
+    {!!subDesc && !subDescIsName && <Text type="BodySmall">{subDesc}</Text>}
     {spacerOnBottom && <Box style={{height: 15}} />}
   </Box2>
 )

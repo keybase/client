@@ -316,7 +316,7 @@ func (e *PGPKeyImportEngine) prepareSecretPush(m libkb.MetaContext) error {
 		gen = e.arg.PreloadStreamGen
 	} else {
 		var err error
-		tsec, gen, err = m.G().LoginState().GetVerifiedTriplesec(m, m.UIs().SecretUI)
+		tsec, gen, err = libkb.GetTriplesecMaybePrompt(m)
 		if err != nil {
 			return err
 		}

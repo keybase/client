@@ -1,31 +1,25 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
+import {type IconType, type Props as IconProps} from './icon'
 
-export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
-export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
-export type URLMap = {
-  '200': string,
-  '360': string,
-  '40': string,
-}
+export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
 
 export type Props = {|
-  skipBackground?: boolean,
   borderColor?: string,
-  children?: any,
-  following?: ?boolean,
-  followsYou?: ?boolean,
+  children?: React.Node,
   followIconSize: number,
-  isPlaceholder: boolean,
+  followIconType: ?IconType,
+  followIconStyle: ?$PropertyType<IconProps, 'style'>,
+  isTeam: boolean,
   loadingColor?: string,
-  onAvatarLoaded?: () => void,
-  onClick?: ?(event: SyntheticEvent<>) => void,
+  onClick?: ?() => void,
   opacity?: number,
   size: AvatarSize,
-  style?: ?Object,
-  // TODO flow type to allow one or the other, not both url and username etc
-  url?: URLType,
-  username?: ?string,
+  skipBackground?: boolean,
+  skipBackgroundAfterLoaded?: boolean,
+  style?: StylesCrossPlatform,
+  url: any,
 |}
 
-export default class Avatar extends Component<Props> {}
+export default class Avatar extends React.Component<Props> {}

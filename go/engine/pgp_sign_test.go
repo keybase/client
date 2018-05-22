@@ -36,7 +36,9 @@ func TestPGPSign(t *testing.T) {
 		t.Fatal("got a nil User")
 	}
 
-	skb, err := fu.User.GetSyncedSecretKey()
+	m := libkb.NewMetaContextForTest(tc)
+
+	skb, err := fu.User.GetSyncedSecretKey(m)
 	if err != nil {
 		t.Fatal(err)
 	}

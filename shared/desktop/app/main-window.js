@@ -3,7 +3,7 @@ import AppState from './app-state'
 import Window from './window'
 import getenv from 'getenv'
 import hotPath from '../hot-path'
-import {app, ipcMain, session} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon'
 import {injectReactQueryParams} from '../../util/dev'
@@ -15,7 +15,7 @@ export default function() {
   // We are not using partitions on webviews, so this essentially disables
   // download for webviews. If we decide to start using partitions for
   // webviews, we should make sure to attach this to those partitions too.
-  session.defaultSession.on('will-download', event => event.preventDefault())
+  SafeElectron.getSession().defaultSession.on('will-download', event => event.preventDefault())
 
   let appState = new AppState()
   appState.checkOpenAtLogin()
@@ -51,6 +51,8 @@ export default function() {
   }
 
   appState.manageWindow(mainWindow.window)
+
+  const app = SafeElectron.getApp()
 
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
@@ -114,7 +116,7 @@ export default function() {
     hideDockIcon()
   }
 
-  ipcMain.on('showMain', () => {
+  SafeElectron.getIpcMain().on('showMain', () => {
     console.log('Show main window (requested)')
     mainWindow.show()
     const window = mainWindow.window

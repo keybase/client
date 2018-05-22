@@ -4,7 +4,6 @@ import * as NotificationsGen from '../actions/notifications-gen'
 import Push from './push/push.native'
 import React, {Component, Fragment} from 'react'
 import RenderRoute from '../route-tree/render-route'
-import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
 import {connect, type TypedState} from '../util/container'
 import {debounce} from 'lodash-es'
@@ -41,7 +40,6 @@ class Main extends Component<any> {
       this.props.bootstrap()
       this.props.listenForNotifications()
       this.props.hello()
-      loadPerf()
     }
   }
 

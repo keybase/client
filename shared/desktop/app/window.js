@@ -1,7 +1,7 @@
 // @flow
 import {showDockIcon, hideDockIcon} from './dock-icon'
 import menuHelper from './menu-helper'
-import {ipcMain, BrowserWindow} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 
 export default class Window {
   filename: string
@@ -16,6 +16,7 @@ export default class Window {
     this.initiallyVisible = this.opts.show || false
     this.createWindow()
 
+    const ipcMain = SafeElectron.getIpcMain()
     // Listen for remote windows to show a dock icon for, we'll bind them on close to
     // hide the dock icon too
     ipcMain.on('showDockIconForRemoteWindow', (event, remoteWindowId) => {
@@ -23,11 +24,13 @@ export default class Window {
     })
 
     ipcMain.on('listenForRemoteWindowClosed', (event, remoteWindowId) => {
-      BrowserWindow.fromId(remoteWindowId).on('close', () => {
-        try {
-          event.sender.send('remoteWindowClosed', remoteWindowId)
-        } catch (_) {}
-      })
+      const w = SafeElectron.BrowserWindow.fromId(remoteWindowId)
+      w &&
+        w.on('close', () => {
+          try {
+            event.sender.send('remoteWindowClosed', remoteWindowId)
+          } catch (_) {}
+        })
     })
 
     ipcMain.on('registerRemoteUnmount', (remoteComponentLoaderEvent, remoteWindowId) => {
@@ -65,7 +68,7 @@ export default class Window {
       showDockIcon()
     }
 
-    this.window = new BrowserWindow({show: false, ...this.opts})
+    this.window = new SafeElectron.BrowserWindow({show: false, ...this.opts})
     this.window.loadURL(this.filename)
     this.bindWindowListeners()
     this.window.once('show', () => this.onFirstTimeBeingShown())

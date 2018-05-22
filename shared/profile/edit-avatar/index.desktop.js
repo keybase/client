@@ -19,7 +19,7 @@ const Render = ({keybaseUsername, hasAvatar, onAck}: Props) => {
         padding: globalMargins.large,
       }}
     >
-      <Avatar size={176} username={keybaseUsername} />
+      <Avatar size={128} username={keybaseUsername} />
       <Text type="Body" style={{marginTop: globalMargins.medium, textAlign: 'center', maxWidth: 560}}>
         {text}
       </Text>

@@ -65,7 +65,7 @@ func (e *ListTrackersEngine) Run(m libkb.MetaContext) error {
 		return err
 	}
 	ts := libkb.NewTrackerSyncer(e.uid, m.G())
-	if err := libkb.RunSyncer(ts, e.uid, false, nil); err != nil {
+	if err := libkb.RunSyncer(m, ts, e.uid, false, nil); err != nil {
 		return err
 	}
 	e.trackers = ts.Trackers()

@@ -1,7 +1,7 @@
 // @flow
 import jsonfile from 'jsonfile'
 import path from 'path'
-import {app} from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 
 export default class UserData<State> {
   state: State
@@ -19,7 +19,7 @@ export default class UserData<State> {
   }
 
   configPath = (): string => {
-    return path.join(app.getPath('userData'), this.file)
+    return path.join(SafeElectron.getApp().getPath('userData'), this.file)
   }
 
   save = () => {

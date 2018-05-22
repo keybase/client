@@ -38,7 +38,7 @@ const initialState: State = {
 }
 
 export const maxProfileBioChars = 256
-export const AVATAR_SIZE = 112
+export const AVATAR_SIZE = 128
 export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 export const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1

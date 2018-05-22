@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as PropProviders from '../../stories/prop-providers'
 import UserInput from '.'
 import {Box} from '../../common-adapters'
 import {compose, withStateHandlers} from 'recompose'
@@ -97,8 +98,14 @@ const chrisUsers = [
   },
 ]
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Search/UserInput', module)
+    .addDecorator(provider)
     .add('List', () => {
       return (
         <Box>
