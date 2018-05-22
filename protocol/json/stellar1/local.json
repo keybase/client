@@ -227,7 +227,7 @@
     }
   ],
   "messages": {
-    "GetWalletAccountsLocal": {
+    "getWalletAccountsLocal": {
       "request": [
         {
           "name": "sessionID",
@@ -239,7 +239,7 @@
         "items": "WalletAccountLocal"
       }
     },
-    "GetAccountAssetsLocal": {
+    "getAccountAssetsLocal": {
       "request": [
         {
           "name": "sessionID",
