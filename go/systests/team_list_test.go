@@ -139,6 +139,46 @@ func TestTeamList(t *testing.T) {
 	check(&list)
 }
 
+func TestTeamListOpenTeamFilter(t *testing.T) {
+	// Open teams filter out inactive members to the rpc.
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	standaloneArgs := standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	}
+
+	ann := makeUserStandalone(t, "ann", standaloneArgs)
+	bob := makeUserStandalone(t, "bob", standaloneArgs)
+	tom := makeUserStandalone(t, "tom", standaloneArgs)
+
+	team := ann.createTeam()
+	t.Logf("Team created %q", team)
+	ann.teamSetSettings(team, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN)
+	ann.addTeamMember(team, tom.username, keybase1.TeamRole_WRITER)
+	ann.tc.G.UIDMapper.SetTestingNoCachingMode(true)
+
+	bob.reset()
+	tom.reset()
+
+	details, err := ann.teamsClient.TeamGet(context.Background(), keybase1.TeamGetArg{
+		Name:        team,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	require.Len(t, details.Members.Owners, 1)
+	require.Len(t, details.Members.Admins, 1)
+	// Reset writer is filtered out because it's an open team.
+	require.Len(t, details.Members.Writers, 0)
+}
+
 func TestTeamListOpenTeams(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
