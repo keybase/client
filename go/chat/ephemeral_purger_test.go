@@ -14,6 +14,7 @@ import (
 )
 
 func TestBackgroundPurge(t *testing.T) {
+	t.Skip()
 	ctx, tc, world, _, baseSender, listener, res := setupLoaderTest(t)
 	defer world.Cleanup()
 
