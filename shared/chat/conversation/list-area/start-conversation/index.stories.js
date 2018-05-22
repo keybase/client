@@ -21,7 +21,7 @@ const load = () => {
         isLoading={false}
       />
     ))
-    .add('Add more', () => (
+    .add('Loading', () => (
       <StartConversation
         participants="chris,max"
         onStart={action('onStart')}
