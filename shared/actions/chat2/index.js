@@ -494,7 +494,17 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   if (meta) {
     actions.push(Chat2Gen.createMetasReceived({fromEphemeralPurge: true, metas: [meta]}))
   }
-  return actions
+  const conversationIDKey = Types.conversationIDToKey(info.convID)
+  const messageActions =
+    !!info.msgs &&
+    info.msgs.reduce((arr, msg) => {
+      const msgID = Constants.getMessageID(msg)
+      if (msgID) {
+        arr.push(Chat2Gen.createMessageExploded({conversationIDKey, messageID: msgID}))
+      }
+      return arr
+    }, [])
+  return actions.concat(messageActions)
 }
 
 // Handle calls that come from the service

@@ -11,6 +11,19 @@ import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 
+export const getMessageID = (m: RPCChatTypes.UIMessage) => {
+  switch (m.state) {
+    case RPCChatTypes.chatUiMessageUnboxedState.valid:
+      return m.valid ? m.valid.messageID : null
+    case RPCChatTypes.chatUiMessageUnboxedState.error:
+      return m.error ? m.error.messageID : null
+    case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
+      return m.placeholder ? m.placeholder.messageID : null
+    default:
+      return null
+  }
+}
+
 const makeMessageMinimum = {
   author: '',
   conversationIDKey: Types.stringToConversationIDKey(''),

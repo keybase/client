@@ -7,6 +7,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
+import HiddenString from '../util/hidden-string'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -253,6 +254,25 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           : messageMap.clear()
       }
       return messageMap
+    case Chat2Gen.messageExploded:
+      const {conversationIDKey, messageID} = action.payload
+      const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
+      if (!ordinal) {
+        return messageMap
+      }
+      return messageMap.updateIn([action.payload.conversationIDKey, ordinal], message => {
+        if (!message || !['attachment', 'text'].includes(message.type)) {
+          return message
+        }
+        // set the message to exploded and delete any message body information
+        // $FlowIssue thinks `message` is the inner type
+        return message
+          .set('exploded', true)
+          .set('text', new HiddenString(''))
+          .set('mentionsAt', I.Set())
+          .set('mentionsChannel', 'none')
+          .set('mentionsChannelName', I.Map())
+      })
     default:
       return messageMap
   }
@@ -692,6 +712,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.setConversationOffline:
     case Chat2Gen.updateConvRetentionPolicy:
     case Chat2Gen.updateTeamRetentionPolicy:
+    case Chat2Gen.messageExploded:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
