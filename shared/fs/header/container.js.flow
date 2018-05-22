@@ -1,0 +1,6 @@
+// @flow
+import * as React from 'react'
+
+type FolderHeaderProps = any
+
+declare export default React.ComponentType<FolderHeaderProps>

@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {platformStyles, globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
-import {Avatar, BackButton, Box, ClickableBox, Icon, Text} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import ConnectedFilesBanner from '../banner/container'
 
 export type FolderHeaderProps = {
@@ -26,18 +26,7 @@ const FolderHeader = ({
 }: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
     <Box style={styleFolderHeader}>
-      {isMobile ? (
-        <Box style={styleFolderHeaderContainer}>
-          <Box style={folderHeaderStyleRoot}>
-            <Text type="BodyBig">
-              {breadcrumbItems.length === 1
-                ? 'Keybase Files'
-                : breadcrumbItems[breadcrumbItems.length - 1].name}
-            </Text>
-          </Box>
-          <BackButton title={null} onClick={onBack} style={{marginLeft: globalMargins.small}} />
-        </Box>
-      ) : breadcrumbItems.length === 1 ? (
+      {breadcrumbItems.length === 1 ? (
         <Box style={folderHeaderStyleRoot}>
           <Text type="BodyBig">Keybase Files</Text>
         </Box>
@@ -95,19 +84,13 @@ const styleHeaderContainer = {
 const styleFolderHeader = {
   ...stylesCommonRow,
   justifyContent: 'center',
-  minHeight: isMobile ? 64 : 48,
+  minHeight: 48,
 }
 
-const folderHeaderStyleRoot = platformStyles({
-  common: {
-    ...stylesCommonRow,
-    justifyContent: 'center',
-  },
-  isMobile: {
-    width: '100%',
-    position: 'absolute',
-  },
-})
+const folderHeaderStyleRoot = {
+  ...stylesCommonRow,
+  justifyContent: 'center',
+}
 
 const folderHeaderStyleTree = {
   ...stylesCommonRow,
