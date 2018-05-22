@@ -26,13 +26,14 @@ const (
 	// writes if more than 3 hours have passed since the last Merkle
 	// roots (both global and KBFS) were published.  Add some padding
 	// to that, and if we see any gaps larger than this, we will know
-	// we shouldn't be trusting the server.
-	maxAllowedMerkleGap = 3*time.Hour + 15*time.Minute
+	// we shouldn't be trusting the server.  TODO: reduce this once
+	// merkle computation is faster.
+	maxAllowedMerkleGap = 8*time.Hour + 15*time.Minute
 
 	// merkleGapEnforcementStartString indicates when the mdserver
 	// started rejecting new writes based on the lack of recent merkle
 	// updates (according to `maxAllowedMerkleGap` above).
-	merkleGapEnforcementStartString = "2018-05-17T00:00:00+07:00"
+	merkleGapEnforcementStartString = "2018-05-22T13:19:00-07:00"
 )
 
 var merkleGapEnforcementStart time.Time
@@ -40,7 +41,7 @@ var merkleGapEnforcementStart time.Time
 func init() {
 	var err error
 	merkleGapEnforcementStart, err = time.Parse(
-		"2006-01-02T15:04:05+07:00", merkleGapEnforcementStartString)
+		"2006-01-02T15:04:05-07:00", merkleGapEnforcementStartString)
 	if err != nil {
 		// Can never happen without a bad global const string.
 		panic(err)
