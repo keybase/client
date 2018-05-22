@@ -16,12 +16,18 @@ export default function() {
   // download for webviews. If we decide to start using partitions for
   // webviews, we should make sure to attach this to those partitions too.
   SafeElectron.getSession().defaultSession.on('will-download', event => event.preventDefault())
+  // Disallow any permissions requests
+  SafeElectron.getSession().defaultSession.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      return callback(false)
+    }
+  )
 
   let appState = new AppState()
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
-    resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?mainWindow')),
+    resolveRootAsURL('renderer', injectReactQueryParams(`renderer${__DEV__ ? '.dev' : ''}.html?mainWindow`)),
     {
       backgroundThrottling: false,
       height: appState.state.height,
