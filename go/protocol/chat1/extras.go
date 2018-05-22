@@ -368,7 +368,7 @@ func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
 
 func Etime(lifetime gregor1.DurationSec, ctime, rtime, now gregor1.Time) gregor1.Time {
 	originalLifetime := time.Second * time.Duration(lifetime)
-	elapsedLifetime := ctime.Time().Sub(now.Time())
+	elapsedLifetime := now.Time().Sub(ctime.Time())
 	remainingLifetime := originalLifetime - elapsedLifetime
 	// If the server's view doesn't make sense, just use the signed lifetime
 	// from the message.
@@ -391,8 +391,8 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 	return Etime(metadata.Lifetime, header.Ctime, m.ClientHeader.Rtime, header.Now)
 }
 
-func (m MessageUnboxedValid) RemainingLifetime() time.Duration {
-	remainingLifetime := m.Etime().Time().Sub(time.Now()).Round(time.Second)
+func (m MessageUnboxedValid) RemainingLifetime(now time.Time) time.Duration {
+	remainingLifetime := m.Etime().Time().Sub(now).Round(time.Second)
 	return remainingLifetime
 }
 
@@ -686,14 +686,25 @@ func (f *ConversationFinalizeInfo) BeforeSummary() string {
 	return fmt.Sprintf("(before %s account reset %s)", f.ResetUser, f.ResetDate)
 }
 
-func (p Pagination) Eq(other Pagination) bool {
-	return p.Last == other.Last && bytes.Equal(p.Next, other.Next) &&
-		bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
+func (p *Pagination) Eq(other *Pagination) bool {
+	if p == nil && other == nil {
+		return true
+	}
+	if p != nil && other != nil {
+		return p.Last == other.Last && bytes.Equal(p.Next, other.Next) &&
+			bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
+	}
+	return false
 }
 
-func (p Pagination) String() string {
+func (p *Pagination) String() string {
 	return fmt.Sprintf("[Num: %d n: %s p: %s last: %v]", p.Num, hex.EncodeToString(p.Next),
 		hex.EncodeToString(p.Previous), p.Last)
+}
+
+// FirstPage returns true if the pagination object is not pointing in any direction
+func (p *Pagination) FirstPage() bool {
+	return p == nil || (len(p.Next) == 0 && len(p.Previous) == 0)
 }
 
 func (c ConversationLocal) GetMtime() gregor1.Time {
@@ -901,6 +912,10 @@ func (r *GetInboxAndUnboxLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetInboxAndUnboxUILocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *GetThreadLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1035,4 +1050,337 @@ func (p RetentionPolicy) Summary() string {
 
 func TeamIDToTLFID(teamID keybase1.TeamID) (TLFID, error) {
 	return MakeTLFID(teamID.String())
+}
+
+func (r *NonblockFetchRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *NonblockFetchRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *MarkAsReadLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *MarkAsReadLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetInboxAndUnboxLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetInboxAndUnboxUILocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetInboxAndUnboxUILocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetThreadLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetThreadLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *NewConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *NewConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetInboxSummaryForCLILocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetInboxSummaryForCLILocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetMessagesLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetMessagesLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *SetConversationStatusLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *SetConversationStatusLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *PostLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PostLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetConversationForCLILocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetConversationForCLILocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *PostLocalNonblockRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PostLocalNonblockRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *DownloadAttachmentLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *DownloadAttachmentLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *FindConversationsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *FindConversationsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *JoinLeaveConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *JoinLeaveConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *DeleteConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *DeleteConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetTLFConversationsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetTLFConversationsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *SetAppNotificationSettingsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *SetAppNotificationSettingsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetSearchRegexpRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetSearchRegexpRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetInboxRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetInboxRemoteRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetInboxByTLFIDRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetInboxByTLFIDRemoteRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetThreadRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetThreadRemoteRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetConversationMetadataRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetConversationMetadataRemoteRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *PostRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *PostRemoteRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *NewConversationRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *NewConversationRemoteRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetMessagesRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetMessagesRemoteRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *MarkAsReadRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *MarkAsReadRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *SetConversationStatusRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *SetConversationStatusRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetPublicConversationsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetPublicConversationsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *JoinLeaveConversationRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *JoinLeaveConversationRemoteRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *DeleteConversationRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *DeleteConversationRemoteRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetMessageBeforeRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetMessageBeforeRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetTLFConversationsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetTLFConversationsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *SetAppNotificationSettingsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *SetAppNotificationSettingsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *SetRetentionRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (i EphemeralPurgeInfo) String() string {
+	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
+		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
 }

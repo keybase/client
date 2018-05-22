@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPaperKeySubmit(t *testing.T) {
@@ -30,7 +31,8 @@ func TestPaperKeySubmit(t *testing.T) {
 		LoginUI:  loginUI,
 	}
 	s := NewSignupEngine(tc.G, &arg)
-	if err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, s); err != nil {
 		t.Fatal(err)
 	}
 
@@ -45,36 +47,32 @@ func TestPaperKeySubmit(t *testing.T) {
 
 	fu.LoginOrBust(tc)
 
-	assertPaperKeyCached(tc, false)
+	assertPaperKeyCached(m, t, false)
 
 	// submit the paper key
-	m := NewMetaContextForTestWithLogUI(tc)
+	m = NewMetaContextForTestWithLogUI(tc)
 	eng := NewPaperKeySubmit(tc.G, paperkey)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
-	assertPaperKeyCached(tc, true)
+	assertPaperKeyCached(m, t, true)
 
 	if len(listener.paperEncKIDs) != 1 {
 		t.Fatalf("num paperkey notifications: %d, expected 1", len(listener.paperEncKIDs))
 	}
-	if listener.paperEncKIDs[0].NotEqual(eng.pair.encKey.GetKID()) {
-		t.Errorf("enc kid from notify: %s, expected %s", listener.paperEncKIDs[0], eng.pair.encKey.GetKID())
+	if listener.paperEncKIDs[0].NotEqual(eng.deviceWithKeys.EncryptionKey().GetKID()) {
+		t.Errorf("enc kid from notify: %s, expected %s", listener.paperEncKIDs[0], eng.deviceWithKeys.EncryptionKey().GetKID())
 	}
 }
 
-func assertPaperKeyCached(tc libkb.TestContext, wantCached bool) {
-	var sk, ek libkb.GenericKey
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		sk = a.GetUnlockedPaperSigKey()
-		ek = a.GetUnlockedPaperEncKey()
-	}, "assertPaperKeyCached")
-
-	isCached := sk != nil && ek != nil
-	if isCached != wantCached {
-		tc.T.Fatalf("paper key cached: %v, expected %v", isCached, wantCached)
+func assertPaperKeyCached(m libkb.MetaContext, t *testing.T, wantCached bool) {
+	device := m.ActiveDevice().PaperKey(m)
+	var isCached bool
+	if device != nil {
+		isCached = device.HasBothKeys()
 	}
+	require.Equal(t, isCached, wantCached)
 }
 
 type nlistener struct {

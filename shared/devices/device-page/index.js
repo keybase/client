@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import type {IconType} from '../../common-adapters/icon'
 import type {Time} from '../../constants/types/rpc-gen'
-import {Meta, NameWithIcon, Box, Text, Button, Box2, HeaderHoc} from '../../common-adapters'
+import {Meta, NameWithIcon, Box, Text, Button, Box2, HeaderHoc, type IconType} from '../../common-adapters'
 import {globalStyles, globalColors, styleSheetCreate, collapseStyles} from '../../styles'
 
 export type TimelineItem = {
@@ -34,7 +33,7 @@ const TimelineMarker = ({first, last, closedCircle}) => (
 const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
   <Box2 direction="vertical" style={styles.timelineLabel}>
     <Text type="Body">{desc}</Text>
-    {subDesc &&
+    {!!subDesc &&
       subDescIsName && (
         <Text type="BodySmall">
           by{' '}
@@ -43,7 +42,7 @@ const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
           </Text>
         </Text>
       )}
-    {subDesc && !subDescIsName && <Text type="BodySmall">{subDesc}</Text>}
+    {!!subDesc && !subDescIsName && <Text type="BodySmall">{subDesc}</Text>}
     {spacerOnBottom && <Box style={{height: 15}} />}
   </Box2>
 )

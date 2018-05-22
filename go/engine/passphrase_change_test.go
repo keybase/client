@@ -9,20 +9,21 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
+func tryPassphrase(tc libkb.TestContext, u *FakeUser, pp string) error {
+	m := NewMetaContextForTest(tc)
+	m = m.WithNewProvisionalLoginContextForUIDAndUsername(u.UID(), libkb.NewNormalizedUsername(u.Username))
+	_, err := libkb.VerifyPassphraseGetStreamInLoginContext(m, pp)
+	return err
+}
+
 func verifyPassphraseChange(tc libkb.TestContext, u *FakeUser, newPassphrase string) {
-	mctx := NewMetaContextForTest(tc)
-	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(mctx, newPassphrase, nil)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-
-	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(mctx, u.Passphrase, nil)
-	if err == nil {
-		tc.T.Fatal("old passphrase passed verification")
-	}
-
+	err := tryPassphrase(tc, u, newPassphrase)
+	require.NoError(tc.T, err, "verified new passphrase works")
+	err = tryPassphrase(tc, u, u.Passphrase)
+	require.Error(tc.T, err, "verified old passphrase fails")
 	if testing.Verbose() {
 		fmt.Printf("browser test -- username:  %s    password:  %s\n", u.Username, newPassphrase)
 	}
@@ -205,12 +206,11 @@ func TestPassphraseChangeKnownPromptRepeatOld(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
+	m := NewMetaContextForTest(tc)
 
 	// clear the passphrase stream cache to force a prompt
 	// for the existing passphrase.
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	m.ActiveDevice().ClearCaches()
 
 	// Test changing passphrase 3 times; so that old passphrase
 	// cache is properly busted.
@@ -226,7 +226,7 @@ func TestPassphraseChangeKnownPromptRepeatOld(t *testing.T) {
 			SecretUI: secui,
 		}
 		eng := NewPassphraseChange(tc.G, arg)
-		m := NewMetaContextForTest(tc).WithUIs(uis)
+		m = m.WithUIs(uis)
 		if err := RunEngine2(m, eng); err != nil {
 			t.Fatal(err)
 		}
@@ -410,9 +410,7 @@ func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
 	backupPassphrase := beng.Passphrase()
 	m = m.WithSecretUI(&libkb.TestSecretUI{Passphrase: backupPassphrase})
 
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	m.ActiveDevice().ClearCaches()
 
 	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
@@ -787,7 +785,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	syncKeys, err := me.AllSyncedSecretKeys(nil)
+	syncKeys, err := me.AllSyncedSecretKeys(m)
 	if err != nil {
 		t.Fatal(err)
 	}

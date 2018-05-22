@@ -122,7 +122,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
       >
         {this.props.selected && <HighlightLine />}
         <Avatar
-          size={24}
+          size={32}
           onClick={this.props.onClick}
           username={this.props.source.username}
           loadingColor={globalColors.blue3_40}
@@ -322,7 +322,7 @@ const stylesTabBarNavIcon = {
 }
 
 const navRealCSS = `
-  .nav-item .img { color: ${globalColors.darkBlue3_75}; }
+  .nav-item .img { color: ${globalColors.darkBlue4}; }
   .nav-item:hover .img { color: ${globalColors.white}; }
   .nav-item.selected .img { color: ${globalColors.white}; }
 

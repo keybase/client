@@ -1,15 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
-    <title>4428A188-EBC1-48C4-A05D-0C4F9DEE01C7</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Colors,-icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons-2" transform="translate(-307.000000, -278.000000)">
-            <g id="kb-iconfont-proof-placeholder-16" transform="translate(307.000000, 278.000000)">
-                <rect id="icon-area" fill="#D8D8D8" opacity="0" x="0" y="0" width="16" height="16"></rect>
-                <polygon id="Combined-Shape" fill="#000000" fill-rule="nonzero" points="15.2200003 5.52640203 13.3209158 3.85040436 12.312872 1.52737088 9.79201615 1.28483911 7.6099968 0 5.42831075 1.28483911 2.90745486 1.52737088 1.8990845 3.85040436 0 5.52640203 0.551544301 7.99928886 0 10.4721757 1.8990845 12.1481734 2.90712822 14.4712068 5.42798412 14.7135786 6.10069098 15.1098234 7.6099968 15.9985777 9.11930262 15.1098234 9.79168951 14.7135786 12.3125454 14.4712068 13.3209158 12.14866 15.2200003 10.4721757 14.668456 7.99928886"></polygon>
-            </g>
-        </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <path fill="#000" fill-rule="nonzero" d="M15.22 5.526l-1.9-1.676-1.007-2.323-2.521-.242L7.61 0 5.428 1.285l-2.52.242L1.898 3.85 0 5.526.552 8 0 10.472l1.9 1.676 1.007 2.323 2.521.243.673.396 1.509.889 1.51-.89.672-.395 2.52-.243 1.009-2.322 1.899-1.677L14.668 8z"/>
 </svg>

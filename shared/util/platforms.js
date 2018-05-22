@@ -1,6 +1,6 @@
 // @flow
 import type {PlatformsExpandedType} from '../constants/types/more'
-import type {IconType} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters'
 
 const ProveMessages = {
   btc: 'Set a Bitcoin address',

@@ -1847,6 +1847,44 @@
     },
     {
       "type": "record",
+      "name": "GetInboxAndUnboxUILocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PostLocalRes",
       "fields": [
         {
@@ -2469,6 +2507,29 @@
       ],
       "response": "GetInboxAndUnboxLocalRes"
     },
+    "getInboxAndUnboxUILocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetInboxAndUnboxUILocalRes"
+    },
     "getInboxNonblockLocal": {
       "request": [
         {
@@ -2671,13 +2732,6 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
-        },
-        {
-          "name": "ephemeralLifetime",
-          "type": [
-            null,
-            "gregor1.DurationSec"
-          ]
         }
       ],
       "response": "PostLocalNonblockRes"

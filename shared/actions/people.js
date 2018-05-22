@@ -92,24 +92,24 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
 
 let _wasOnPeopleTab = true
 const _setupPeopleHandlers = () => {
-  return Saga.put((dispatch: Dispatch) => {
-    engine().listenOnConnect('registerHomeUI', () => {
-      RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
-        .then(() => console.log('Registered home UI'))
-        .catch(error => console.warn('Error in registering home UI:', error))
-    })
-
-    engine().setIncomingHandler('keybase.1.homeUI.homeUIRefresh', (args: {||}) => {
-      if (_wasOnPeopleTab) {
-        dispatch(
-          PeopleGen.createGetPeopleData({
-            markViewed: false,
-            numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-          })
-        )
-      }
-    })
+  engine().listenOnConnect('registerHomeUI', () => {
+    RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
+      .then(() => console.log('Registered home UI'))
+      .catch(error => console.warn('Error in registering home UI:', error))
   })
+
+  engine().setIncomingActionCreators(
+    'keybase.1.homeUI.homeUIRefresh',
+    () =>
+      _wasOnPeopleTab
+        ? [
+            PeopleGen.createGetPeopleData({
+              markViewed: false,
+              numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
+            }),
+          ]
+        : null
+  )
 }
 
 const _onNavigateTo = (action: RouteTypes.NavigateAppend, state: TypedState) => {

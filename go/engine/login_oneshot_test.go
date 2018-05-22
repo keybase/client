@@ -1,10 +1,11 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestLoginOneshot(t *testing.T) {
@@ -43,7 +44,8 @@ func TestLoginOneshot(t *testing.T) {
 	err = AssertProvisioned(tc2)
 	require.NoError(t, err)
 	testSign(t, tc2)
-	err = m.LogoutIfRevoked()
+	trackAlice(tc2, fu, 2)
+	err = m.LogoutAndDeprovisionIfRevoked()
 	require.NoError(t, err)
 	testSign(t, tc2)
 }

@@ -195,15 +195,18 @@ func TestUserEmails(t *testing.T) {
 
 func TestProvisionDesktop(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		testProvisionDesktop(t, false, sigVersion)
+		testProvisionDesktop(t, false, sigVersion, false)
 	})
+}
+func TestProvisionDesktopWithEmail(t *testing.T) {
+	testProvisionDesktop(t, false, libkb.KeybaseNullSigVersion, true)
 }
 
 func TestProvisionDesktopPUK(t *testing.T) {
-	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion)
+	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion, false)
 }
 
-func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
+func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion, withEmail bool) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -238,6 +241,11 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
 	}
+	if withEmail {
+		uis.LoginUI = &libkb.TestLoginUI{Username: userX.Email}
+		uis.SecretUI = userX.NewSecretUI()
+	}
+
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 
 	var wg sync.WaitGroup
@@ -975,28 +983,28 @@ func TestProvisionPaperOnly(t *testing.T) {
 	if provLoginUI.CalledGetEmailOrUsername != 1 {
 		t.Errorf("expected 1 call to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
 	}
-	var key libkb.GenericKey
+	var device *libkb.DeviceWithKeys
 
 	ch := make(chan struct{})
 	pch := func() {
 		ch <- struct{}{}
 	}
 
-	tc2.G.LoginState().Account(func(a *libkb.Account) {
-		key = a.GetUnlockedPaperEncKey()
-		a.SetTestPostCleanHook(pch)
-	}, "GetUnlockedPaperEncKey")
-	if key == nil {
+	wrapper := m2.ActiveDevice().PaperKeyWrapper(m2)
+	if wrapper != nil {
+		device = wrapper.DeviceWithKeys()
+		wrapper.SetTestPostCleanHook(pch)
+	}
+
+	if device == nil || device.EncryptionKey() == nil {
 		t.Errorf("Got a null paper encryption key")
 	}
 
 	fakeClock.Advance(libkb.PaperKeyMemoryTimeout + 1*time.Minute)
 	<-ch
 
-	tc2.G.LoginState().Account(func(a *libkb.Account) {
-		key = a.GetUnlockedPaperEncKey()
-	}, "GetUnlockedPaperEncKey")
-	if key != nil {
+	device = m2.ActiveDevice().PaperKey(m2)
+	if device != nil {
 		t.Errorf("Got a non-null paper encryption key after timeout")
 	}
 
@@ -1474,7 +1482,7 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 		eng := newLoginProvision(tc2.G, &arg)
 		// use a gpg client that will fail to import any gpg key
 		eng.gpgCli = newGPGImportFailer(tc2.G)
-		m := NewMetaContextForTest(tc2).WithUIs(uis)
+		m := NewMetaContextForTest(tc2).WithUIs(uis).WithNewProvisionalLoginContext()
 
 		if err := RunEngine2(m, eng); err != nil {
 			t.Logf("test run %d:  RunEngine(Login) error: %s", i+1, err)

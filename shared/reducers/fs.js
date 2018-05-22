@@ -9,14 +9,26 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
   switch (action.type) {
     case FsGen.resetStore:
       return initialState
-    case FsGen.filePreviewLoad:
-      return state
     case FsGen.filePreviewLoaded:
-      return state.update('pathItems', metas => metas.set(action.payload.path, action.payload.meta))
+      return state.updateIn(['pathItems', action.payload.path], (original: Types.PathItem) => {
+        const {meta} = action.payload
+        if (original.type !== 'file' || meta.type !== 'file') {
+          return meta
+        }
+
+        return Constants.shouldUseOldMimeType(original, meta) ? meta.set('mimeType', original.mimeType) : meta
+      })
     case FsGen.folderListLoaded: {
       const toMerge = action.payload.pathItems.map((item, path) => {
-        if (item.type !== 'folder') return item
         const original = state.pathItems.get(path)
+
+        if (original && original.type === 'file' && item.type === 'file') {
+          return Constants.shouldUseOldMimeType(original, item)
+            ? item.set('mimeType', original.mimeType)
+            : item
+        }
+
+        if (item.type !== 'folder') return item
         if (!original || original.type !== 'folder') return item
         if (original.progress === 'loaded' && item.progress === 'pending') {
           // Don't override a loaded item into pending. This is specifically
@@ -125,6 +137,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.mergeIn(['pathItems', Types.pathToString(action.payload.path), 'tlfMeta'], {
         isIgnored: false,
       })
+    case FsGen.mimeTypeLoaded:
+      return state.updateIn(
+        ['pathItems', action.payload.path],
+        pathItem => (pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem)
+      )
+    case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:
@@ -139,6 +157,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.save:
     case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
+    case FsGen.mimeTypeLoad:
       return state
     default:
       /*::

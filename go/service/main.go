@@ -332,7 +332,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
-	d.chatEphemeralPurgeChecks()
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
@@ -353,6 +352,7 @@ func (d *Service) startChatModules() {
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
+		//		g.EphemeralPurger.Start(context.Background(), uid)
 	}
 }
 
@@ -360,6 +360,7 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().MessageDeliverer.Stop(context.Background())
 	<-d.ChatG().ConvLoader.Stop(context.Background())
 	<-d.ChatG().FetchRetrier.Stop(context.Background())
+	//	<-d.ChatG().EphemeralPurger.Stop(context.Background())
 }
 
 func (d *Service) createChatModules() {
@@ -381,6 +382,7 @@ func (d *Service) createChatModules() {
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)
+	//	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g, chatStorage)
 
 	// Set up push handler with the badger
 	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
@@ -561,32 +563,6 @@ func (d *Service) writeServiceInfo() error {
 	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath(), d.G().Log)
 }
 
-func (d *Service) chatEphemeralPurgeChecks() {
-	ticker := libkb.NewBgTicker(5 * time.Minute)
-	d.G().PushShutdownHook(func() error {
-		d.G().Log.Debug("stopping chatEphemeralPurgeChecks loop")
-		ticker.Stop()
-		return nil
-	})
-	go func() {
-		for {
-			<-ticker.C
-			uid := d.G().Env.GetUID()
-			if uid.IsNil() {
-				continue
-			}
-			gregorUID := gregor1.UID(uid.ToBytes())
-			d.G().Log.Debug("+ chat ephemeral purge loop")
-			g := globals.NewContext(d.G(), d.ChatG())
-			// Purge any conversations that have expired ephemeral messages
-			storage.New(g, g.ConvSource).QueueEphemeralBackgroundPurges(context.Background(), gregorUID)
-			// Check the outbox for stuck ephemeral messages that need purging
-			storage.NewOutbox(g, gregorUID).EphemeralPurge(context.Background())
-			d.G().Log.Debug("- chat ephemeral chat loop")
-		}
-	}()
-}
-
 func (d *Service) hourlyChecks() {
 	ticker := libkb.NewBgTicker(1 * time.Hour)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("HRLY")
@@ -597,24 +573,26 @@ func (d *Service) hourlyChecks() {
 	})
 	go func() {
 		// do this quickly
-		if err := m.LogoutIfRevoked(); err != nil {
-			m.CDebugf("LogoutIfRevoked error: %s", err)
+		if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
+			m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 		}
 		ekLib := m.G().GetEKLib()
 		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
-			m.CDebugf("+ hourly check loop")
-			m.CDebugf("| checking tracks on an hour timer")
-			libkb.CheckTracking(m.G())
+			m.CDebugf("| checking if current device revoked")
+			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
+				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
+			}
 
 			ekLib := m.G().GetEKLib()
 			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
 			ekLib.KeygenIfNeeded(m.Ctx())
-			m.CDebugf("| checking if current device revoked")
-			if err := m.LogoutIfRevoked(); err != nil {
-				m.CDebugf("LogoutIfRevoked error: %s", err)
-			}
+
+			m.CDebugf("+ hourly check loop")
+			m.CDebugf("| checking tracks on an hour timer")
+			libkb.CheckTracking(m.G())
+
 			m.CDebugf("- hourly check loop")
 		}
 	}()

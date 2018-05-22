@@ -707,6 +707,8 @@ func (e NoUsernameError) Error() string {
 	return "No username known"
 }
 
+func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
+
 //=============================================================================
 
 type UnmarshalError struct {
@@ -2327,3 +2329,8 @@ type NoActiveDeviceError struct{}
 func (e NoActiveDeviceError) Error() string { return "no active device" }
 
 //=============================================================================
+
+type NoTriplesecError struct{}
+
+func (e NoTriplesecError) Error() string { return "No Triplesec was available after prompt" }
+func NewNoTriplesecError() error         { return NoTriplesecError{} }

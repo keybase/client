@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type Color} from '../styles'
+import {type Color, type StylesCrossPlatform} from '../styles'
 
 export type Props = {
   badgeNumber?: number,
@@ -8,7 +8,7 @@ export type Props = {
   onPress?: void,
   iconColor?: Color,
   textStyle?: Object,
-  style?: ?Object,
+  style?: ?StylesCrossPlatform,
   title?: ?string,
 }
 

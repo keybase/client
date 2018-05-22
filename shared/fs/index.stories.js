@@ -85,6 +85,14 @@ const provider = createPropProvider({
     loadFilePreview: () => {},
     path: '/keybase/private/foo/bar.jpg',
   }),
+  ViewContainer: () => ({
+    url: '/keybase/private/foo/bar.jpg',
+    mimeType: 'jpg',
+    isSymlink: false,
+    path: '/keybase/private/foo/bar.jpg',
+    onInvalidToken: action('onInvalidToken'),
+    loadMimeType: action('loadMimeType'),
+  }),
 })
 
 const load = () => {
@@ -103,7 +111,7 @@ const load = () => {
       />
     ))
     .add('Preview', () => (
-      <NormalPreview routePath={I.List([])} routeProps={I.Map({path: '/keybase/private/foo/bar.jpb'})} />
+      <NormalPreview routePath={I.List([])} routeProps={I.Map({path: '/keybase/private/foo/bar.jpg'})} />
     ))
 }
 

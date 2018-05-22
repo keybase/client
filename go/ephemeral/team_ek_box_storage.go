@@ -269,9 +269,9 @@ func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.Te
 		return nil, nil
 	}
 
-	for _, teamEKBox := range teamEKBoxes {
+	for gen, teamEKBox := range teamEKBoxes {
 		if ctimeIsStale(teamEKBox.Metadata.Ctime, merkleRoot) {
-			expired = append(expired, teamEKBox.Metadata.Generation)
+			expired = append(expired, gen)
 		}
 	}
 	return expired, s.deleteMany(ctx, teamID, expired)
@@ -331,7 +331,7 @@ func (s *TeamEKBoxStorage) MaxGeneration(ctx context.Context, teamID keybase1.Te
 
 const MemCacheLRUSize = 200
 
-// Store some TeamSigChainState's in memory. Threadsafe.
+// Store some TeamEKBoxes's in memory. Threadsafe.
 type MemoryStorage struct {
 	libkb.Contextified
 	lru *lru.Cache
@@ -360,7 +360,7 @@ func (s *MemoryStorage) GetMap(teamID keybase1.TeamID) (teamEKBoxes TeamEKBoxMap
 	}
 	teamEKBoxes, ok := untyped.(TeamEKBoxMap)
 	if !ok {
-		s.G().Log.CDebugf(context.TODO(), "Team MemoryStorage got bad type from lru: %T", untyped)
+		s.G().Log.CDebugf(context.TODO(), "TeamEK MemoryStorage got bad type from lru: %T", untyped)
 		return teamEKBoxes, found
 	}
 	return teamEKBoxes, found

@@ -1,7 +1,7 @@
 // @flow
 import * as KBFSGen from '../../actions/kbfs-gen'
 import React, {Component} from 'react'
-import electron from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {Box, ProgressIndicator, Text} from '../../common-adapters'
 import {connect, type TypedState} from '../../util/container'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
@@ -16,8 +16,8 @@ type Props = {
 
 class InstalledBanner extends Component<Props, void> {
   _onUninstall = () => {
-    const dialog = electron.dialog || electron.remote.dialog
-    dialog.showMessageBox(
+    SafeElectron.getDialog().showMessageBox(
+      null,
       {
         buttons: ['Remove & Restart', 'Cancel'],
         detail: 'Are you sure you want to remove Keybase from the Finder and restart the app?',

@@ -1,127 +1,96 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
+import * as React from 'react'
 import Render from './avatar.render'
-import {pickBy, debounce} from 'lodash-es'
-import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'
-import {isTesting} from '../local-debug'
+import {debounce} from 'lodash-es'
+import {iconTypeToImgSet, urlsToImgSet, type IconType, type Props as IconProps} from './icon'
+import HOCTimers, {type PropsWithTimer} from './hoc-timers'
+import {setDisplayName, connect, type TypedState, compose} from '../util/container'
 import {
-  connect,
-  type TypedState,
-  lifecycle,
-  compose,
-  setDisplayName,
-  withProps,
-  withHandlers,
-  withStateHandlers,
-} from '../util/container'
-import {desktopStyles, collapseStyles} from '../styles'
+  platformStyles,
+  desktopStyles,
+  collapseStyles,
+  type StylesCrossPlatformWithSomeDisallowed,
+} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
-import type {Props, AvatarSize} from './avatar'
 
-export type URLMap = {
-  '200': string,
-  '360': string,
-  '40': string,
+export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
+type URLType = any
+type DisallowedStyles = {
+  borderStyle?: empty,
 }
 
-export type UserPictureSize = 360 | 200 | 40
-export type AvatarLookupCallback = (username: string, urlMap: ?URLMap) => void
-export type AvatarLookup = (username: string) => ?URLMap
-export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
-export type TeamAvatarLookup = (teamname: string) => ?URLMap
-export type TeamAvatarLoad = (teamname: string, callback: AvatarLookupCallback) => void
+export type OwnProps = {|
+  borderColor?: string,
+  children?: React.Node,
+  isTeam?: boolean,
+  loadingColor?: string,
+  onClick?: () => void,
+  opacity?: number,
+  size: AvatarSize,
+  skipBackground?: boolean,
+  skipBackgroundAfterLoaded?: boolean, // if we're on a white background we don't need a white back cover
+  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  teamname?: ?string,
+  username?: ?string,
+  showFollowingStatus?: boolean, // show the green dots or not
+|}
+
+type Props = PropsWithTimer<{
+  askForUserData?: () => void,
+  borderColor?: string,
+  children?: React.Node,
+  followIconSize: number,
+  followIconType: ?IconType,
+  followIconStyle: ?$PropertyType<IconProps, 'style'>,
+  following: boolean,
+  followsYou: boolean,
+  isTeam: boolean,
+  loadingColor?: string,
+  name: string,
+  onClick?: () => void,
+  opacity?: number,
+  size: AvatarSize,
+  skipBackground?: boolean,
+  skipBackgroundAfterLoaded?: boolean, // if we're on a white background we don't need a white back cover
+  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  teamname?: ?string,
+  url: URLType,
+  username?: ?string,
+}>
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
-  '112': 'icon-placeholder-avatar-112',
-  '12': 'icon-placeholder-avatar-12',
-  '16': 'icon-placeholder-avatar-16',
-  '176': 'icon-placeholder-avatar-176',
-  '24': 'icon-placeholder-avatar-24',
-  '32': 'icon-placeholder-avatar-32',
-  '40': 'icon-placeholder-avatar-40',
-  '48': 'icon-placeholder-avatar-48',
-  '64': 'icon-placeholder-avatar-64',
-  '80': 'icon-placeholder-avatar-80',
+  '192': 'icon-placeholder-avatar-192',
+  '256': 'icon-placeholder-avatar-256',
+  '960': 'icon-placeholder-avatar-960',
 }
 
 const teamPlaceHolders: {[key: string]: IconType} = {
-  '112': 'icon-team-placeholder-avatar-112',
-  '12': 'icon-team-placeholder-avatar-12',
-  '16': 'icon-team-placeholder-avatar-16',
-  '176': 'icon-team-placeholder-avatar-176',
-  '24': 'icon-team-placeholder-avatar-24',
-  '32': 'icon-team-placeholder-avatar-32',
-  '40': 'icon-team-placeholder-avatar-40',
-  '48': 'icon-team-placeholder-avatar-48',
-  '64': 'icon-team-placeholder-avatar-64',
-  '80': 'icon-team-placeholder-avatar-80',
+  '192': 'icon-team-placeholder-avatar-192',
+  '256': 'icon-team-placeholder-avatar-256',
+  '960': 'icon-team-placeholder-avatar-960',
 }
 
+// prettier-ignore
 const followStateToType = {
-  '112': {
-    theyNo: {youYes: 'icon-following-28'},
-    theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'},
-  },
-  '176': {
-    theyNo: {youYes: 'icon-following-32'},
-    theyYes: {youNo: 'icon-follow-me-32', youYes: 'icon-mutual-follow-32'},
-  },
-  '48': {
-    theyNo: {youYes: 'icon-following-21'},
-    theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  },
-  '64': {
-    theyNo: {youYes: 'icon-following-21'},
-    theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  },
-  '80': {
-    theyNo: {youYes: 'icon-following-21'},
-    theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  },
+  '128': {theyNo: {youYes: 'icon-following-28'}, theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'}},
+  '48': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
+  '64': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
+  '96': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
 }
 
 const followStateToSize = {
-  '112': {
-    theyNo: {youYes: 28},
-    theyYes: {youNo: 28, youYes: 28},
-  },
-  '176': {
-    theyNo: {youYes: 32},
-    theyYes: {youNo: 32, youYes: 32},
-  },
-  '48': {
-    theyNo: {youYes: 21},
-    theyYes: {youNo: 21, youYes: 21},
-  },
-  '64': {
-    theyNo: {youYes: 21},
-    theyYes: {youNo: 21, youYes: 21},
-  },
-  '80': {
-    theyNo: {youYes: 21},
-    theyYes: {youNo: 21, youYes: 21},
-  },
+  '128': {theyNo: {youYes: 28}, theyYes: {youNo: 28, youYes: 28}},
+  '48': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
+  '64': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
+  '96': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
 }
 
 const followSizeToStyle = {
-  '112': {bottom: 0, left: 80, position: 'absolute'},
-  '176': {bottom: 6, left: 132, position: 'absolute'},
-  '48': {bottom: 0, left: 32, position: 'absolute'},
-  '64': {bottom: 0, left: 45, position: 'absolute'},
-  '80': {bottom: 0, left: 57, position: 'absolute'},
-}
-
-const mapStateToProps = (state: TypedState, ownProps: Props) => {
-  let _urlMap
-
-  const name = ownProps.username || ownProps.teamname
-  if (name) {
-    _urlMap = state.config.avatars[name]
-  }
-
-  return {
-    _urlMap,
-  }
+  '128': {bottom: 0, left: 88, position: 'absolute'},
+  '48': {bottom: 0, left: 30, position: 'absolute'},
+  '64': {bottom: 0, left: 44, position: 'absolute'},
+  '96': {bottom: 0, left: 65, position: 'absolute'},
 }
 
 function _followIconType(size: number, followsYou: boolean, following: boolean) {
@@ -149,7 +118,7 @@ const _askForUserDataQueueUp = (username: string, dispatch: Dispatch) => {
   _reallyAskForUserData()
 }
 
-const _reallyAskForUserData = debounce(() => {
+const _reallyAskForUserData: () => void = debounce(() => {
   if (_askDispatch) {
     const usernames = Object.keys(_askQueue)
     _askQueue = {}
@@ -157,60 +126,51 @@ const _reallyAskForUserData = debounce(() => {
   }
 }, 100)
 
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const name = ownProps.username || ownProps.teamname
+  return {
+    _urlMap: name ? state.config.avatars[name] : null,
+    following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
+    followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
+  }
+}
+
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _askForTeamUserData: (teamname: string) =>
     dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
   _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const isTeam = !!ownProps.teamname
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const isTeam = ownProps.isTeam || !!ownProps.teamname
+  const style = collapseStyles([
+    ownProps.style,
+    ownProps.onClick && platformStyles({isElectron: desktopStyles.clickable}),
+  ])
 
-  let style
-  if (ownProps.style) {
-    if (ownProps.onClick) {
-      style = {...ownProps.style, ...desktopStyles.clickable}
-    } else {
-      style = ownProps.style
-    }
-  } else if (ownProps.onClick) {
-    style = desktopStyles.clickable
-  }
-
-  let url
-  let isPlaceholder
-
-  if (stateProps._urlMap) {
-    url = urlsToImgSet(pickBy(stateProps._urlMap, value => value), ownProps.size)
-    isPlaceholder = false
-  }
-
+  let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap, ownProps.size) : null
   if (!url) {
-    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
-    url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
-    isPlaceholder = true
+    url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
   }
 
-  let _askForUserData = null
-  if (isTeam) {
-    _askForUserData = () => dispatchProps._askForTeamUserData(ownProps.teamname)
-  } else {
-    _askForUserData = () => dispatchProps._askForUserData(ownProps.username)
-  }
+  const askForUserData = isTeam
+    ? () => ownProps.teamname && dispatchProps._askForTeamUserData(ownProps.teamname)
+    : () => ownProps.username && dispatchProps._askForUserData(ownProps.username)
 
-  const _name = isTeam ? ownProps.teamname : ownProps.username
+  const name = isTeam ? ownProps.teamname : ownProps.username
 
   return {
-    _askForUserData,
-    _name,
+    askForUserData,
     borderColor: ownProps.borderColor,
     children: ownProps.children,
-    followIconSize: _followIconSize(ownProps.size, ownProps.followsYou, ownProps.following),
-    followIconStyle: followSizeToStyle[ownProps.size],
-    followIconType: _followIconType(ownProps.size, ownProps.followsYou, ownProps.following),
-    isPlaceholder,
+    followIconSize: _followIconSize(ownProps.size, stateProps.followsYou, stateProps.following),
+    followIconStyle: followSizeToStyle[ownProps.size] || null,
+    followIconType: _followIconType(ownProps.size, stateProps.followsYou, stateProps.following),
+    following: stateProps.following,
+    followsYou: stateProps.followsYou,
     isTeam,
     loadingColor: ownProps.loadingColor,
+    name,
     onClick: ownProps.onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
@@ -221,136 +181,79 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export type {AvatarSize}
-const realConnector = compose(
+class AvatarConnector extends React.PureComponent<Props> {
+  _mounted: boolean = true
+
+  componentDidMount() {
+    this._mounted = true
+    this.props.setTimeout(this._maybeLoadUserData, 200)
+  }
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.name !== prevProps.name) {
+      this._maybeLoadUserData()
+    }
+  }
+  componentWillUnmount() {
+    this._mounted = false
+  }
+
+  _maybeLoadUserData = () => {
+    // Still looking at the same user?
+    if (this._mounted && this.props.askForUserData) {
+      this.props.askForUserData()
+    }
+  }
+
+  render() {
+    return (
+      <Render
+        skipBackground={this.props.skipBackground}
+        borderColor={this.props.borderColor}
+        children={this.props.children}
+        followIconSize={this.props.followIconSize}
+        followIconStyle={this.props.followIconStyle}
+        followIconType={this.props.followIconType}
+        isTeam={this.props.isTeam}
+        loadingColor={this.props.loadingColor}
+        onClick={this.props.onClick}
+        opacity={this.props.opacity}
+        size={this.props.size}
+        style={this.props.style}
+        url={this.props.url}
+      />
+    )
+  }
+}
+
+const Avatar = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('URLAvatar'),
-  withStateHandlers(
-    {_mounted: false, _stateName: '', _timeoutID: 0},
-    {
-      setMounted: () => (name: string, timeoutID: number) => ({
-        _mounted: true,
-        _stateName: name,
-        _timeoutID: timeoutID,
-      }),
-      setUnmounted: () => () => ({_mounted: false, _stateName: '', _timeoutID: 0}),
-    }
-  ),
-  withHandlers({
-    _maybeLoadUserData: props => () => {
-      // Still looking at the same user?
-      if (props._mounted && props._askForUserData) {
-        props._askForUserData()
-      }
-    },
-  }),
-  // $FlowIssue : todo just have one connector for avatar and pass a flag to include the follow or not
-  lifecycle({
-    componentDidMount() {
-      const _timeoutID = setTimeout(() => {
-        if (this.props._name === this.props._stateName) {
-          this.props._maybeLoadUserData()
-        }
-      }, 200)
-      this.props.setMounted(this.props._name, _timeoutID)
-    },
-    componentDidUpdate(prevProps) {
-      if (this.props._name !== prevProps._name) {
-        this.props._maybeLoadUserData()
-      }
-    },
-    componentWillUnmount() {
-      if (this.props._timeoutID) {
-        clearTimeout(this.props._timeoutID)
-      }
-      this.props.setUnmounted()
-    },
-  })
-)
+  setDisplayName('Avatar'),
+  HOCTimers
+)(AvatarConnector)
 
-const real = realConnector(Render)
-
-const autoMapStateToProps = (state: TypedState, ownProps: Props) => {
-  const me = state.config.username
-  if (ownProps.username === me || !me || !ownProps.username) {
-    return {}
-  }
-  // User trackerState (more accurate) if it's available; fall back to state.config if not
-  const trackerState = state.tracker.userTrackers[me]
-  if (trackerState && trackerState.trackersLoaded) {
-    return {
-      _followers: trackerState.trackers,
-      _following: trackerState.tracking,
-    }
-  }
-  // Need to give these different names because these are sets of strings while the above are arrays of objects
-  return {
-    _cFollowers: state.config.followers,
-    _cFollowing: state.config.following,
-  }
-}
-
-const autoMergeProps = (stateProps, _, ownProps) => {
-  if (stateProps._followers && ownProps.username) {
-    const following = stateProps._following.some(user => user.username === ownProps.username)
-    const followsYou = stateProps._followers.some(user => user.username === ownProps.username)
-    return {
-      following,
-      followsYou,
-      ...ownProps,
-    }
-  } else if (stateProps._cFollowers && ownProps.username) {
-    const following = stateProps._cFollowing.has(ownProps.username || '')
-    const followsYou = stateProps._cFollowers.has(ownProps.username || '')
-    return {
-      following,
-      followsYou,
-      ...ownProps,
-    }
-  }
-  return ownProps
-}
-
-const autoConnector = compose(
-  realConnector,
-  connect(autoMapStateToProps, () => ({}), autoMergeProps),
-  setDisplayName('Avatar')
-)
-const ConnectedAvatar = autoConnector(Render)
-
-const mockOwnToViewProps = (props: Props) => {
-  const isTeam = !!props.teamname
-  const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
-  const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
-
-  let style
-  if (props.style) {
-    if (props.onClick) {
-      style = collapseStyles([props.style, desktopStyles.clickable])
-    } else {
-      style = props.style
-    }
-  } else if (props.onClick) {
-    style = desktopStyles.clickable
-  }
+const mockOwnToViewProps = (ownProps: OwnProps, following: boolean, followsYou: boolean) => {
+  const isTeam = ownProps.isTeam || !!ownProps.teamname
+  const style = collapseStyles([
+    ownProps.style,
+    ownProps.onClick && platformStyles({isElectron: desktopStyles.clickable}),
+  ])
+  const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
 
   return {
-    borderColor: props.borderColor,
-    children: props.children,
-    followIconSize: _followIconSize(props.size, !!props.followsYou, !!props.following),
-    followIconStyle: followSizeToStyle[props.size],
-    followIconType: _followIconType(props.size, !!props.followsYou, !!props.following),
-    isPlaceholder: true,
+    borderColor: ownProps.borderColor,
+    children: ownProps.children,
+    followIconSize: _followIconSize(ownProps.size, followsYou, following),
+    followIconStyle: followSizeToStyle[ownProps.size],
+    followIconType: _followIconType(ownProps.size, followsYou, following),
     isTeam,
-    loadingColor: props.loadingColor,
-    onClick: props.onClick,
-    opacity: props.opacity,
-    size: props.size,
+    loadingColor: ownProps.loadingColor,
+    onClick: ownProps.onClick,
+    opacity: ownProps.opacity,
+    size: ownProps.size,
     style,
     url,
   }
 }
-const mock = compose(withProps(mockOwnToViewProps))(Render)
 
-export {ConnectedAvatar, mockOwnToViewProps}
-export default (isTesting ? mock : real)
+export default Avatar
+export {mockOwnToViewProps}

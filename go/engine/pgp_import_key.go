@@ -316,7 +316,7 @@ func (e *PGPKeyImportEngine) prepareSecretPush(m libkb.MetaContext) error {
 		gen = e.arg.PreloadStreamGen
 	} else {
 		var err error
-		tsec, gen, err = m.G().LoginState().GetVerifiedTriplesec(m, m.UIs().SecretUI)
+		tsec, gen, err = libkb.GetTriplesecMaybePrompt(m)
 		if err != nil {
 			return err
 		}
@@ -343,7 +343,7 @@ func (e *PGPKeyImportEngine) push(m libkb.MetaContext) (err error) {
 	}
 	e.del.NewKey = e.bundle
 	e.del.EncodedPrivateKey = e.epk
-	if err = e.del.Run(m.LoginContext()); err != nil {
+	if err = e.del.Run(m); err != nil {
 		return err
 	}
 

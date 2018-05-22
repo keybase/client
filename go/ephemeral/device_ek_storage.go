@@ -35,13 +35,16 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 	}
 }
 
+func (s *DeviceEKStorage) keyPrefixFromUsername(username libkb.NormalizedUsername) string {
+	return fmt.Sprintf("%s-%s-", deviceEKPrefix, username)
+}
+
 func (s *DeviceEKStorage) keyPrefix(ctx context.Context) (prefix string, err error) {
 	uv, err := getCurrentUserUV(ctx, s.G())
 	if err != nil {
 		return prefix, err
 	}
-	return fmt.Sprintf("%s-%s-%s-", deviceEKPrefix, s.G().Env.GetUsername(), uv.EldestSeqno), nil
-
+	return fmt.Sprintf("%s-%s-", s.keyPrefixFromUsername(s.G().Env.GetUsername()), uv.EldestSeqno), nil
 }
 
 func (s *DeviceEKStorage) key(ctx context.Context, generation keybase1.EkGeneration) (key string, err error) {
@@ -207,6 +210,10 @@ func (s *DeviceEKStorage) getCache(ctx context.Context) (cache DeviceEKMap, err 
 func (s *DeviceEKStorage) ClearCache() {
 	s.Lock()
 	defer s.Unlock()
+	s.clearCache()
+}
+
+func (s *DeviceEKStorage) clearCache() {
 	s.cache = make(DeviceEKMap)
 	s.indexed = false
 }
@@ -307,12 +314,32 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 	for _, key := range keys {
 		eldestSeqno, err := s.keyToEldestSeqno(key)
 		if err != nil || eldestSeqno < 0 {
-			s.G().Log.CDebugf(ctx, "deletedWrongEldestSeqno: invalid keyToEldestSeqno: %s -> %s, error: %s", key, eldestSeqno, err)
+			s.G().Log.CDebugf(ctx, "deletedWrongEldestSeqno: skipping delete, invalid keyToEldestSeqno: %s -> %s, error: %s", key, eldestSeqno, err)
 			continue
 		}
 		if eldestSeqno != uv.EldestSeqno {
 			epick.Push(s.storage.Erase(ctx, key))
 		}
 	}
+	return epick.Error()
+}
+
+func (s *DeviceEKStorage) ForceDeleteAll(ctx context.Context, username libkb.NormalizedUsername) (err error) {
+	defer s.G().CTrace(ctx, "DeviceEKStorage#ForceDeleteAll", func() error { return err })()
+
+	keys, err := s.storage.AllKeys(ctx)
+	if err != nil {
+		return err
+	}
+	prefix := s.keyPrefixFromUsername(username)
+	epick := libkb.FirstErrorPicker{}
+	for _, key := range keys {
+		// only delete if the key is owned by the current user
+		if strings.HasPrefix(key, prefix) {
+			epick.Push(s.storage.Erase(ctx, key))
+		}
+	}
+
+	s.clearCache()
 	return epick.Error()
 }

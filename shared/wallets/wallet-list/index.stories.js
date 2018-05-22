@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as PropProviders from '../../stories/prop-providers'
 import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 import {Wallet, AddWallet} from '.'
@@ -27,13 +28,24 @@ const mocks = [
   },
 ]
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
-  storiesOf('Wallets', module).add('Wallet List', () => (
-    <Box style={{width: 240}}>
-      {mocks.map(m => <Wallet key={m.name} {...m} />)}
-      <AddWallet showingMenu={true} onAddNew={action('onAddNew')} onLinkExisting={action('onAddExisting')} />
-    </Box>
-  ))
+  storiesOf('Wallets', module)
+    .addDecorator(provider)
+    .add('Wallet List', () => (
+      <Box style={{width: 240}}>
+        {mocks.map(m => <Wallet key={m.name} {...m} />)}
+        <AddWallet
+          showingMenu={true}
+          onAddNew={action('onAddNew')}
+          onLinkExisting={action('onAddExisting')}
+        />
+      </Box>
+    ))
 }
 
 export default load

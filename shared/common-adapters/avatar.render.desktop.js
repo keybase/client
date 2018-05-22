@@ -1,10 +1,8 @@
 // @flow
 import Icon from './icon'
 import * as React from 'react'
-import {globalColors, glamorous, desktopStyles} from '../styles'
-
-import type {AvatarSize} from './avatar'
-import type {IconType} from './icon'
+import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
+import type {AvatarSize, Props} from './avatar.render'
 
 type ImageProps = {
   opacity: ?number,
@@ -13,36 +11,17 @@ type ImageProps = {
   borderRadius: any,
 }
 
-type Props = {
-  borderColor: ?string,
-  children: any,
-  followIconStyle: ?Object,
-  followIconType: ?IconType,
-  isTeam?: boolean,
-  loadingColor: ?string,
-  onClick?: ?(event: SyntheticEvent<>) => void,
-  opacity: ?number,
-  skipBackground?: boolean,
-  size: AvatarSize,
-  style?: ?Object,
-  url: ?string,
-}
-
 type State = {
   loaded: boolean,
 }
 
 const sizeToTeamBorderRadius = {
-  '112': 12,
-  '12': 3,
+  '128': 12,
   '16': 4,
-  '176': 24,
-  '24': 4,
   '32': 5,
-  '40': 6,
   '48': 6,
   '64': 8,
-  '80': 10,
+  '96': 10,
 }
 
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
@@ -81,10 +60,10 @@ const UserImageDiv = glamorous.div(
     return {
       backgroundImage: props.url,
       borderRadius: props.borderRadius,
+      flexShrink: 0,
       height: props.size,
-      maxWidth: props.size,
-      minWidth: props.size,
       opacity,
+      width: props.size,
     }
   }
 )
@@ -111,12 +90,12 @@ const Border = ({borderColor, size, borderRadius}) => (
       borderRadius,
       bottom: borderOffset,
       boxShadow: `0px 0px 0px ${borderSize}px ${borderColor}`,
+      flexShrink: 0,
       left: borderOffset,
-      maxWidth: size,
-      minWidth: size,
       position: 'absolute',
       right: borderOffset,
       top: borderOffset,
+      width: size,
     }}
   />
 )
@@ -128,15 +107,16 @@ class AvatarRender extends React.PureComponent<Props, State> {
     return (
       <div
         onClick={this.props.onClick}
-        style={{
-          ...desktopStyles.noSelect,
-          height: this.props.size,
-          maxWidth: this.props.size,
-          minHeight: this.props.size,
-          minWidth: this.props.size,
-          position: 'relative',
-          ...this.props.style,
-        }}
+        style={collapseStyles([
+          desktopStyles.noSelect,
+          {
+            flexShrink: 0,
+            height: this.props.size,
+            position: 'relative',
+            width: this.props.size,
+          },
+          this.props.style,
+        ])}
       >
         {!this.props.skipBackground && <Background borderRadius={borderRadius} />}
         {this.props.url && (

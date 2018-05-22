@@ -35,7 +35,7 @@ func (e *Unlock) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *Unlock) Prereqs() Prereqs {
-	return Prereqs{Device: true}
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
@@ -52,11 +52,24 @@ func (e *Unlock) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *Unlock) Run(m libkb.MetaContext) error {
-	if e.passphrase != "" {
-		_, err := m.G().LoginState().GetPassphraseStreamWithPassphrase(m, e.passphrase)
+func (e *Unlock) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("Unlock#Run", func() error { return err })()
+
+	un := m.CurrentUsername()
+	m.CDebugf("Active device: %+v", *m.ActiveDevice())
+	if un.IsNil() {
+		return libkb.NewNoUsernameError()
+	}
+	m = m.WithNewProvisionalLoginContext()
+	if e.passphrase == "" {
+		err = libkb.PassphraseLoginPromptThenSecretStore(m, un.String(), 5, false /* failOnStoreError */)
+	} else {
+		err = libkb.PassphraseLoginNoPromptThenSecretStore(m, un.String(), e.passphrase, false /* failOnStoreError */)
+	}
+	if err != nil {
 		return err
 	}
-	_, err := m.G().LoginState().GetPassphraseStream(m, m.UIs().SecretUI)
-	return err
+	m.CommitProvisionalLogin()
+
+	return nil
 }

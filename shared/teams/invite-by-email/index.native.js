@@ -12,7 +12,7 @@ import {
   List,
   Text,
   NativeImage,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/mobile.native'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {Linking, StyleSheet, NativeModules} from 'react-native'
 import type {MobileProps, ContactRowProps} from './index'

@@ -300,13 +300,12 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
 	arg := sendArgV1{
-		conversationID:    convID,
-		channel:           opts.Channel,
-		body:              chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
-		mtype:             chat1.MessageType_EDIT,
-		supersedes:        opts.MessageID,
-		response:          "message edited",
-		ephemeralLifetime: opts.EphemeralLifetime,
+		conversationID: convID,
+		channel:        opts.Channel,
+		body:           chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
+		mtype:          chat1.MessageType_EDIT,
+		supersedes:     opts.MessageID,
+		response:       "message edited",
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -831,7 +830,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	}
 	var ephemeralMetadata *chat1.MsgEphemeralMetadata
 	if arg.ephemeralLifetime.Duration != 0 && membersType != chat1.ConversationMembersType_KBFS {
-		ephemeralLifetime := gregor1.DurationSec(time.Duration(arg.ephemeralLifetime.Duration) / time.Second)
+		ephemeralLifetime := gregor1.ToDurationSec(time.Duration(arg.ephemeralLifetime.Duration))
 		ephemeralMetadata = &chat1.MsgEphemeralMetadata{Lifetime: ephemeralLifetime}
 	}
 

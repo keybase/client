@@ -274,6 +274,13 @@ function openAppSettings() {
   Linking.openURL('app-settings:')
 }
 
+const getMimeTypeFromURL = (url: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
+      .then(response => resolve(response.headers.get('Content-Type')))
+      .catch(reject)
+  })
+
 export {
   openAppSettings,
   checkPermissions,
@@ -290,4 +297,5 @@ export {
   getShownPushPrompt,
   showShareActionSheet,
   clearAllNotifications,
+  getMimeTypeFromURL,
 }

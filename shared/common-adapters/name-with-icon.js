@@ -1,18 +1,17 @@
 // @flow
 import * as React from 'react'
-import Avatar, {ConnectedAvatar} from './avatar'
+import Avatar from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
-import Icon from './icon'
-import {type IconType} from './icon.constants'
+import Icon, {castPlatformStyles, type IconType} from './icon'
 import Text, {type TextType} from './text'
 import {ConnectedUsernames} from './usernames'
 import {
   collapseStyles,
   globalStyles,
   isMobile,
-  styleSheetCreate,
   platformStyles,
+  styleSheetCreate,
   type StylesCrossPlatform,
 } from '../styles'
 
@@ -46,7 +45,12 @@ const NameWithIconVertical = (props: Props) => {
       style={collapseStyles([styles.vContainerStyle, props.containerStyle])}
     >
       {isAvatar && (
-        <ConnectedAvatar size={adapterProps.iconSize} username={props.username} teamname={props.teamname} />
+        <Avatar
+          showFollowingStatus={true}
+          size={adapterProps.iconSize}
+          username={props.username}
+          teamname={props.teamname}
+        />
       )}
       {!isAvatar &&
         !!props.icon && (
@@ -107,7 +111,13 @@ const NameWithIconHorizontal = (props: Props) => {
         />
       )}
       {!isAvatar &&
-        !!props.icon && <Icon type={props.icon} style={styles.hIconStyle} fontSize={isMobile ? 48 : 32} />}
+        !!props.icon && (
+          <Icon
+            type={props.icon}
+            style={castPlatformStyles(styles.hIconStyle)}
+            fontSize={isMobile ? 48 : 32}
+          />
+        )}
       <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle])}>
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
@@ -198,7 +208,7 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
     case 'large':
       if (isUser) {
         return {
-          iconSize: 112,
+          iconSize: 128,
           metaMargin: 8,
           metaOneType: 'BodySemibold',
           titleType: 'HeaderBig',
@@ -207,7 +217,7 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
   }
   // default
   return {
-    iconSize: isUser ? 80 : 64,
+    iconSize: isUser ? 96 : 64,
     metaMargin: isMobile ? 6 : 8,
     metaOneType: isUser ? 'BodySemibold' : 'BodySmall',
     titleType: 'HeaderBig',
