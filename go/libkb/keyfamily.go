@@ -80,10 +80,11 @@ type ComputedKeyInfo struct {
 	DelegatedAtSigChainLocation keybase1.SigChainLocation // Where the delegation was in our sigchain
 
 	// Merkle Timestamps and Friends for revocation.
-	RevokedAt                 *KeybaseTime // The Seqno/Ctime signed into the signature
-	RevokedBy                 keybase1.KID
-	RevokedAtHashMeta         keybase1.HashMeta          // The hash_meta signed in at the time of the revocation
-	RevokedAtSigChainLocation *keybase1.SigChainLocation // Where the revocation was in our sigchain
+	RevokedAt                     *KeybaseTime // The Seqno/Ctime signed into the signature
+	RevokedBy                     keybase1.KID
+	RevokedAtHashMeta             keybase1.HashMeta          // The hash_meta signed in at the time of the revocation
+	RevokeFirstAppearedUnverified keybase1.Seqno             // What the server claims was the first merkle appearance of this revoke
+	RevokedAtSigChainLocation     *keybase1.SigChainLocation // Where the revocation was in our sigchain
 
 	// For PGP keys, the active version of the key. If unspecified, use the
 	// legacy behavior of combining every instance of this key that we got from
@@ -782,6 +783,7 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 			return err
 		}
 		info.RevokedAtHashMeta = mhm
+		info.RevokeFirstAppearedUnverified = tcl.GetFirstAppearedMerkleSeqnoUnverified()
 		kid := info.KID
 
 		if KIDIsPGP(kid) {
@@ -805,6 +807,7 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 			return err
 		}
 		info.RevokedAtHashMeta = mhm
+		info.RevokeFirstAppearedUnverified = tcl.GetFirstAppearedMerkleSeqnoUnverified()
 
 		if KIDIsPGP(kid) {
 			ckf.ClearActivePGPHash(kid)
