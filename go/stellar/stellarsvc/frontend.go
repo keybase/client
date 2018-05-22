@@ -86,10 +86,9 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		displayCurrency = defaultOutsideCurrency
 		s.G().Log.CDebugf(ctx, "Using default display currency %s for account %s", displayCurrency, arg.AccountID)
 	}
-	rate, err := s.remoter.ExchangeRate(ctx, displayCurrency)
+	rate, rateErr := s.remoter.ExchangeRate(ctx, displayCurrency)
 	if err != nil {
-		s.G().Log.CDebugf(ctx, "exchange rate error: %s", err)
-		return nil, err
+		s.G().Log.CDebugf(ctx, "exchange rate error: %s", rateErr)
 	}
 
 	for _, d := range details.Balances {
@@ -120,9 +119,13 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			}
 			asset.BalanceAvailableToSend = fmtAvailable
 			asset.WorthCurrency = displayCurrency
-			displayAmount, err := stellar.ConvertXLMToOutside(d.Amount, rate)
-			if err != nil {
-				s.G().Log.CDebugf(ctx, "error converting XLM to display currency: %s", err)
+
+			var displayAmount string
+			if rateErr == nil {
+				displayAmount, rateErr = stellar.ConvertXLMToOutside(d.Amount, rate)
+			}
+			if rateErr != nil {
+				s.G().Log.CDebugf(ctx, "error converting XLM to display currency: %s", rateErr)
 				asset.Worth = "Currency conversion error"
 				asset.WorthCurrency = WorthCurrencyErrorCode
 			} else {
