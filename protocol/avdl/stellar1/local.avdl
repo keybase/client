@@ -31,7 +31,7 @@ protocol local {
     string code;         // "USD", "CAD", etc.
     string symbol;       // "$"
   }
-  array<CurrencyLocal> GetDisplayCurrenciesLocal(int sessionID);
+  array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
 
   // -------------------------------------------------------
   // CLI protocol

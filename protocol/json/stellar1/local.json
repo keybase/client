@@ -273,7 +273,7 @@
         "items": "AccountAssetLocal"
       }
     },
-    "GetDisplayCurrenciesLocal": {
+    "getDisplayCurrenciesLocal": {
       "request": [
         {
           "name": "sessionID",

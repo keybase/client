@@ -344,7 +344,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"GetDisplayCurrenciesLocal": {
+			"getDisplayCurrenciesLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]GetDisplayCurrenciesLocalArg, 1)
 					return &ret
@@ -601,7 +601,7 @@ func (c LocalClient) GetAccountAssetsLocal(ctx context.Context, __arg GetAccount
 
 func (c LocalClient) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (res []CurrencyLocal, err error) {
 	__arg := GetDisplayCurrenciesLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.GetDisplayCurrenciesLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrenciesLocal", []interface{}{__arg}, &res)
 	return
 }
 
