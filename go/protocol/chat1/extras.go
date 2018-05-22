@@ -698,6 +698,9 @@ func (p *Pagination) Eq(other *Pagination) bool {
 }
 
 func (p *Pagination) String() string {
+	if p == nil {
+		return "<nil>"
+	}
 	return fmt.Sprintf("[Num: %d n: %s p: %s last: %v]", p.Num, hex.EncodeToString(p.Next),
 		hex.EncodeToString(p.Previous), p.Last)
 }

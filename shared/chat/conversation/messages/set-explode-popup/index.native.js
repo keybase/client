@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
-import {Box2, Icon, Text, FloatingPicker} from '../../../../common-adapters/index.native'
+import {Box2, Icon, Text, FloatingPicker} from '../../../../common-adapters/mobile.native'
 import {globalColors, globalMargins} from '../../../../styles'
 import type {Props} from '.'
 

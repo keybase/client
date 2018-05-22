@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, ButtonBar, FormInput} from '../../common-adapters/index.native'
+import {Box, Button, ButtonBar, FormInput} from '../../common-adapters/mobile.native'
 import {globalMargins, globalStyles} from '../../styles'
 import type {Props} from '.'
 

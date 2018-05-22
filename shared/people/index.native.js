@@ -6,7 +6,7 @@ import {
   NativeRefreshControl,
   NativeStyleSheet,
   ScrollView,
-} from '../common-adapters/index.native'
+} from '../common-adapters/mobile.native'
 import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import {globalColors, globalStyles} from '../styles'

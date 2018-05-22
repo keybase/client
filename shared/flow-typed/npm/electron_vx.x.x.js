@@ -579,7 +579,15 @@ type electron$protocol = {}
  * https://github.com/electron/electron/blob/master/docs/api/session.md
  */
 
-declare class electron$Session extends events$EventEmitter {}
+declare class electron$Session extends events$EventEmitter {
+  setPermissionRequestHandler: (
+    handler: (
+      webContents: electron$WebContents,
+      permission: string,
+      cb: (permissionGranted: boolean) => void
+    ) => void
+  ) => void;
+}
 type electron$session = {
   defaultSession: electron$Session,
 }

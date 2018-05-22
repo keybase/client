@@ -377,6 +377,35 @@
           "name": "to"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AccountDetails",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "string",
+          "name": "seqno"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Balance"
+          },
+          "name": "balances"
+        },
+        {
+          "type": "int",
+          "name": "subentryCount"
+        },
+        {
+          "type": "string",
+          "name": "available"
+        }
+      ]
     }
   ],
   "messages": {
@@ -395,6 +424,19 @@
         "type": "array",
         "items": "Balance"
       }
+    },
+    "details": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "AccountDetails"
     },
     "recentPayments": {
       "request": [

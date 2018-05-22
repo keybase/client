@@ -7,7 +7,7 @@ import {
   StandardScreen,
   Text,
   NativeKeyboardAvoidingView,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/mobile.native'
 import {globalMargins, globalColors} from '../../styles'
 import type {Props} from './add'
 

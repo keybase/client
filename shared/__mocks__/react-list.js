@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import * as React from 'react'
 class ReactListMock extends React.Component<any> {
   render() {

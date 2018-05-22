@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import Row from './row'
 import type {Props} from './list'
-import {Box, Text, Icon, ClickableBox, NativeListView, type IconType} from '../common-adapters/index.native'
+import {Box, Text, Icon, ClickableBox, NativeListView, type IconType} from '../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 const rowKey = users => users && users.map(u => u.username).join('-')

@@ -1,9 +1,12 @@
 package stellar
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
+	"strings"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
@@ -696,4 +699,75 @@ func identifyRecipient(m libkb.MetaContext, assertion string) (keybase1.TLFIdent
 	}
 
 	return frep, nil
+}
+
+func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, code stellar1.OutsideCurrencyCode) (string, error) {
+	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return "", err
+	}
+	currency, ok := conf.Currencies[code]
+	if !ok {
+		return "", fmt.Errorf("Could not find currency %q", code)
+	}
+
+	amountFmt, err := FormatAmount(amount, true)
+	if err != nil {
+		return "", err
+	}
+
+	if currency.Symbol.Postfix {
+		return fmt.Sprintf("%s %s", amountFmt, currency.Symbol.Symbol), nil
+	}
+
+	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
+}
+
+func FormatAmount(amount string, precisionTwo bool) (string, error) {
+	if amount == "" {
+		return "", errors.New("empty amount")
+	}
+	x := new(big.Rat)
+	_, ok := x.SetString(amount)
+	if !ok {
+		return "", fmt.Errorf("unable to parse amount %s", amount)
+	}
+	precision := 7
+	if precisionTwo {
+		precision = 2
+	}
+	s := x.FloatString(precision)
+	parts := strings.Split(s, ".")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("unable to parse amount %s", amount)
+	}
+	if parts[1] == "0000000" {
+		// get rid of all zeros after point if default precision
+		parts = parts[:1]
+	}
+	head := parts[0]
+	if len(head) <= 3 {
+		return strings.Join(parts, "."), nil
+	}
+	sinceComma := 0
+	var b bytes.Buffer
+	for i := len(head) - 1; i >= 0; i-- {
+		if sinceComma == 3 && head[i] != '-' {
+			b.WriteByte(',')
+			sinceComma = 0
+		}
+		b.WriteByte(head[i])
+		sinceComma++
+	}
+	parts[0] = reverse(b.String())
+
+	return strings.Join(parts, "."), nil
+}
+
+func reverse(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
 }

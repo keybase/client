@@ -18,7 +18,7 @@ import {
   TabBar,
   Text,
   type IconType,
-} from '../../../common-adapters/index.native'
+} from '../../../common-adapters/mobile.native'
 import {TabBarItem} from '../../../common-adapters/tab-bar'
 import {
   codePageDeviceRoleExistingPhone,

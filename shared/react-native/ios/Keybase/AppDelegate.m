@@ -79,16 +79,12 @@ const BOOL isDebug = NO;
   NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
   NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
   NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString * eraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore" stringByExpandingTildeInPath];
+  NSString * eraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
   NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
   NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
-  NSFileManager* fm = [NSFileManager defaultManager];
 
   // Make keybasePath if it doesn't exist
-  [fm createDirectoryAtPath:keybasePath
-                            withIntermediateDirectories:YES
-                            attributes:nil
-                            error:nil];
+  [self createBackgroundReadableDirectory:keybasePath];
   [self addSkipBackupAttributeToItemAtPath:keybasePath];
 
   // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background

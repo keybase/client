@@ -122,7 +122,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
       >
         {this.props.selected && <HighlightLine />}
         <Avatar
-          size={24}
+          size={32}
           onClick={this.props.onClick}
           username={this.props.source.username}
           loadingColor={globalColors.blue3_40}

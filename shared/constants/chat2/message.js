@@ -11,6 +11,19 @@ import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 
+export const getMessageID = (m: RPCChatTypes.UIMessage) => {
+  switch (m.state) {
+    case RPCChatTypes.chatUiMessageUnboxedState.valid:
+      return m.valid ? m.valid.messageID : null
+    case RPCChatTypes.chatUiMessageUnboxedState.error:
+      return m.error ? m.error.messageID : null
+    case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
+      return m.placeholder ? m.placeholder.messageID : null
+    default:
+      return null
+  }
+}
+
 const makeMessageMinimum = {
   author: '',
   conversationIDKey: Types.stringToConversationIDKey(''),
@@ -34,6 +47,7 @@ const makeMessageExplodable = {
   explodedBy: '',
   exploding: false,
   explodingTime: Date.now(),
+  explodingUnreadable: false,
 }
 
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
@@ -311,6 +325,11 @@ const validUIMessagetoMessage = (
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
   }
 
+  if (m.isEphemeralExpired) {
+    // This message already exploded. Make it an empty text message.
+    return makeMessageText({...common})
+  }
+
   switch (m.messageBody.messageType) {
     case RPCChatTypes.commonMessageType.text:
       const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
@@ -506,6 +525,9 @@ const errorUIMessagetoMessage = (
     deviceName: o.senderDeviceName,
     deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
     errorReason: o.errMsg,
+    exploded: o.isEphemeralExpired,
+    exploding: o.isEphemeral,
+    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,

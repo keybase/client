@@ -352,7 +352,7 @@ func (d *Service) startChatModules() {
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
-		g.EphemeralPurger.Start(context.Background(), uid)
+		//		g.EphemeralPurger.Start(context.Background(), uid)
 	}
 }
 
@@ -360,7 +360,7 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().MessageDeliverer.Stop(context.Background())
 	<-d.ChatG().ConvLoader.Stop(context.Background())
 	<-d.ChatG().FetchRetrier.Stop(context.Background())
-	<-d.ChatG().EphemeralPurger.Stop(context.Background())
+	//	<-d.ChatG().EphemeralPurger.Stop(context.Background())
 }
 
 func (d *Service) createChatModules() {
@@ -382,7 +382,7 @@ func (d *Service) createChatModules() {
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)
-	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g, chatStorage)
+	//	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g, chatStorage)
 
 	// Set up push handler with the badger
 	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
@@ -580,6 +580,7 @@ func (d *Service) hourlyChecks() {
 		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
+			m.CDebugf("+ hourly check loop")
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
 				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
@@ -589,7 +590,6 @@ func (d *Service) hourlyChecks() {
 			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
 			ekLib.KeygenIfNeeded(m.Ctx())
 
-			m.CDebugf("+ hourly check loop")
 			m.CDebugf("| checking tracks on an hour timer")
 			libkb.CheckTracking(m.G())
 
