@@ -26,6 +26,13 @@ protocol local {
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
+  record CurrencyLocal {
+    string description;  // "USD ($)", "CAD ($)", etc.
+    string code;         // "USD", "CAD", etc.
+    string symbol;       // "$"
+  }
+  array<CurrencyLocal> GetDisplayCurrenciesLocal(int sessionID);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------

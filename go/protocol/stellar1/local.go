@@ -47,6 +47,20 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 	}
 }
 
+type CurrencyLocal struct {
+	Description string `codec:"description" json:"description"`
+	Code        string `codec:"code" json:"code"`
+	Symbol      string `codec:"symbol" json:"symbol"`
+}
+
+func (o CurrencyLocal) DeepCopy() CurrencyLocal {
+	return CurrencyLocal{
+		Description: o.Description,
+		Code:        o.Code,
+		Symbol:      o.Symbol,
+	}
+}
+
 type SendResultCLILocal struct {
 	KbTxID KeybaseTransactionID     `codec:"KbTxID" json:"KbTxID"`
 	TxID   TransactionID            `codec:"TxID" json:"TxID"`
@@ -204,6 +218,10 @@ type GetAccountAssetsLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type GetDisplayCurrenciesLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -272,6 +290,7 @@ type FormatLocalCurrencyStringArg struct {
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetAccountAssetsLocal(context.Context, GetAccountAssetsLocalArg) ([]AccountAssetLocal, error)
+	GetDisplayCurrenciesLocal(context.Context, int) ([]CurrencyLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -321,6 +340,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetAccountAssetsLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"GetDisplayCurrenciesLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetDisplayCurrenciesLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetDisplayCurrenciesLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetDisplayCurrenciesLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetDisplayCurrenciesLocal(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -561,6 +596,12 @@ func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) 
 
 func (c LocalClient) GetAccountAssetsLocal(ctx context.Context, __arg GetAccountAssetsLocalArg) (res []AccountAssetLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.getAccountAssetsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (res []CurrencyLocal, err error) {
+	__arg := GetDisplayCurrenciesLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.GetDisplayCurrenciesLocal", []interface{}{__arg}, &res)
 	return
 }
 
