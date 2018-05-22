@@ -1101,7 +1101,7 @@ func publicKeyV2BaseFromComputedKeyInfo(kid keybase1.KID, info ComputedKeyInfo) 
 				HashMeta: info.RevokedAtHashMeta,
 				Seqno:    keybase1.Seqno(info.RevokedAt.Chain),
 			},
-			FirstAppearedUnverified: info.FirstAppearedUnverified,
+			FirstAppearedUnverified: info.RevokeFirstAppearedUnverified,
 			SigningKID:              info.RevokedBy,
 		}
 		if info.RevokedAtSigChainLocation != nil {
