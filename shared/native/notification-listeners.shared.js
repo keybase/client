@@ -19,7 +19,7 @@ const throttledDispatch = throttle((dispatch, action) => dispatch(action), 1000,
 })
 
 // TODO: DESKTOP-6662 - Move notification listeners to their own actions
-export default (injected: ?Function): void => {
+export default (cb: ?Function): void => {
   engine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({badgeState}, _, dispatch) => {
     if (badgeState.inboxVers < lastBadgeStateVersion) {
       logger.info(
@@ -41,13 +41,13 @@ export default (injected: ?Function): void => {
       dispatch(action)
     }
 
-    if (injected) {
+    if (cb) {
       const count = (badgeState.conversations || []).reduce(
         (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total),
         0
       )
 
-      injected(count)
+      cb(count)
     }
   })
 
