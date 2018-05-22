@@ -41,6 +41,10 @@ const MessagePopupHeader = (props: {
       style={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
+        maxWidth: isMobile ? '100%' : 240,
+        paddingLeft: globalMargins.small,
+        paddingRight: globalMargins.small,
+        textAlign: 'center',
         width: '100%',
       }}
     >
@@ -48,7 +52,7 @@ const MessagePopupHeader = (props: {
         type={iconName}
         style={{
           marginBottom: globalMargins.tiny,
-          marginTop: !isMobile ? -globalMargins.tiny : -globalMargins.large,
+          marginTop: !isMobile ? globalMargins.small : globalMargins.large,
         }}
       />
       <Box style={globalStyles.flexBoxRow}>
@@ -60,16 +64,13 @@ const MessagePopupHeader = (props: {
         </Text>
       </Box>
       <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall" style={{color: globalColors.black_40}}>
-          by
-        </Text>
-        <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
-          &nbsp;{deviceName}
+        <Text type="BodySmall">
+          by <Text type="BodySmallSemibold">{author}</Text> using device&nbsp;<Text type="BodySmallSemibold">
+            {deviceName}
+          </Text>
         </Text>
       </Box>
-      <Text type="BodySmall" style={{color: globalColors.black_40}}>
-        {formatTimeForPopup(timestamp)}
-      </Text>
+      <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
       {deviceRevokedAt && (
         <PopupHeaderText
           color={globalColors.white}
