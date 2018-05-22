@@ -3,6 +3,7 @@ package stellar
 import (
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/stellar/go/xdr"
@@ -16,10 +17,10 @@ type SeqnoProvider struct {
 }
 
 // NewSeqnoProvider creates a SeqnoProvider.
-func NewSeqnoProvider(ctx context.Context, remoter remote.Remoter) *SeqnoProvider {
+func NewSeqnoProvider(m libkb.MetaContext) *SeqnoProvider {
 	return &SeqnoProvider{
-		ctx:     ctx,
-		remoter: remoter,
+		ctx:     m.Ctx(),
+		remoter: GetRemoter(m.G()),
 	}
 }
 

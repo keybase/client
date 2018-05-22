@@ -293,7 +293,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 		post.To = &tmp
 	}
 
-	sp := NewSeqnoProvider(m.Ctx(), remoter)
+	sp := NewSeqnoProvider(m)
 
 	// check if recipient account exists
 	var txID string
@@ -362,7 +362,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 		AmountXLM:     amount,
 		Note:          note,
 		EncryptFor:    appKey,
-		SeqnoProvider: NewSeqnoProvider(m.Ctx(), remoter),
+		SeqnoProvider: NewSeqnoProvider(m),
 	})
 	if err != nil {
 		return res, err
@@ -451,7 +451,7 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 	if p.From.Uid.Equal(g.ActiveDevice.UID()) {
 		dir = stellar1.RelayDirection_YANK
 	}
-	sp := NewSeqnoProvider(ctx, remoter)
+	sp := NewSeqnoProvider(libkb.NewMetaContext(ctx, g))
 	sig, err := stellarnet.RelocateTransaction(stellarnet.SeedStr(skey.SecureNoLogString()),
 		stellarnet.AddressStr(into.String()), destinationFunded, sp)
 	if err != nil {

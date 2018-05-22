@@ -10,21 +10,23 @@ import (
 )
 
 func ServiceInit(g *libkb.GlobalContext) {
-	g.SetStellar(NewStellar(g))
+	g.SetStellar(NewStellar(g, remote.NewRemoteNet(g)))
 }
 
 type Stellar struct {
 	libkb.Contextified
 
+	Remoter          remote.Remoter
 	serverConfLock   sync.Mutex
 	cachedServerConf stellar1.StellarServerDefinitions
 }
 
 var _ libkb.Stellar = (*Stellar)(nil)
 
-func NewStellar(g *libkb.GlobalContext) *Stellar {
+func NewStellar(g *libkb.GlobalContext, remoter remote.Remoter) *Stellar {
 	return &Stellar{
 		Contextified: libkb.NewContextified(g),
+		Remoter:      remoter,
 	}
 }
 
@@ -58,4 +60,9 @@ func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.Stella
 	}
 
 	return s.cachedServerConf, nil
+}
+
+// Pull the remoter off the global G's Stellar object
+func GetRemoter(g *libkb.GlobalContext) remote.Remoter {
+	return g.GetStellar().(*Stellar).Remoter
 }

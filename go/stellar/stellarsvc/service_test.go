@@ -420,7 +420,7 @@ func TestRelayTransferInnards(t *testing.T) {
 		AmountXLM:     "10.0005",
 		Note:          "hey",
 		EncryptFor:    appKey,
-		SeqnoProvider: stellar.NewSeqnoProvider(context.Background(), tcs[0].Srv.remoter),
+		SeqnoProvider: stellar.NewSeqnoProvider(tcs[0].Ctx()),
 	})
 	require.NoError(t, err)
 	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())
@@ -598,11 +598,11 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		tc2 := &TestContext{
 			TestContext: tc,
 			Fu:          fu,
+			Srv:         New(tc.G, newTestUISource()),
 			// All TCs in a test share the same backend.
 			Backend: bem,
 		}
-		rcm := NewRemoteClientMock(tc2, bem)
-		tc2.Srv = New(tc.G, newTestUISource(), rcm)
+		tc.G.GetStellar().(*stellar.Stellar).Remoter = NewRemoteClientMock(tc2, bem)
 		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {

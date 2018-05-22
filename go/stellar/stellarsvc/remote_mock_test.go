@@ -270,6 +270,8 @@ type RemoteClientMock struct {
 	Backend *BackendMock
 }
 
+var _ remote.Remoter = (*RemoteClientMock)(nil)
+
 func NewRemoteClientMock(tc *TestContext, bem *BackendMock) *RemoteClientMock {
 	return &RemoteClientMock{
 		Contextified: libkb.NewContextified(tc.G),
@@ -317,8 +319,6 @@ func (r *RemoteClientMock) GetAccountDisplayCurrency(ctx context.Context, accoun
 func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
 	return r.Backend.ExchangeRate(ctx, r.Tc, currency)
 }
-
-var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 // BackendMock is a mock of stellard.
 // Stores the data and services RemoteClientMock's calls.
