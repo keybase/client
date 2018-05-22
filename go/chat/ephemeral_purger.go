@@ -182,7 +182,6 @@ func (b *BackgroundEphemeralPurger) cleanupTimers() {
 	}
 	if b.purgeTimer != nil {
 		b.purgeTimer.Stop()
-		b.purgeTimer = nil
 	}
 }
 
@@ -298,7 +297,6 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 	if nextItem == nil {
 		if b.purgeTimer != nil {
 			b.purgeTimer.Stop()
-			b.purgeTimer = nil
 		}
 		return true
 	}
@@ -311,10 +309,12 @@ func (b *BackgroundEphemeralPurger) setOrResetTimer(purgeInfo chat1.EphemeralPur
 	duration := purgeInfo.NextPurgeTime.Time().Sub(b.clock.Now())
 	if b.purgeTimer == nil {
 		b.purgeTimer = time.NewTimer(duration)
-		go b.loop(duration)
 	} else {
 		b.purgeTimer.Stop()
 		b.purgeTimer.Reset(duration)
+	}
+	if !b.looping {
+		go b.loop(duration)
 	}
 }
 
