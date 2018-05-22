@@ -13,7 +13,7 @@ import {
   ListItem,
   NativeStyleSheet,
   type IconType,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 

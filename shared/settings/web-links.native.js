@@ -1,5 +1,5 @@
 // @flow
-import {HeaderHoc, NativeWebView} from '../common-adapters/index.native'
+import {HeaderHoc, NativeWebView} from '../common-adapters/mobile.native'
 import {connect, compose, defaultProps, type TypedState} from '../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({

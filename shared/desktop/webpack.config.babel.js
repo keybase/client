@@ -141,7 +141,7 @@ const config = (_, {mode}) => {
   const commonConfig = makeCommonConfig()
   const mainThreadConfig = merge(commonConfig, {
     context: path.resolve(__dirname, '..'),
-    entry: {main: './desktop/app/index.js'},
+    entry: {main: './desktop/app/index.desktop.js'},
     name: 'mainThread',
     stats: {
       ...(isDev ? {} : {usedExports: false}), // ignore exports warnings as its mostly used in the render thread
@@ -152,8 +152,8 @@ const config = (_, {mode}) => {
     context: path.resolve(__dirname, '..'),
     devtool: isDev ? 'eval' : 'source-map',
     entry: {
-      'component-loader': './desktop/remote/component-loader.js',
-      index: './desktop/renderer/index.js',
+      'component-loader': './desktop/remote/component-loader.desktop.js',
+      index: './desktop/renderer/index.desktop.js',
     },
     name: 'renderThread',
     plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])],

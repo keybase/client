@@ -4,7 +4,7 @@
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send a 'remoteWindowWantsProps' to the main window which then sends us 'props'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {sendToMainWindow} from './util'
+import {sendToMainWindow} from './util.desktop'
 import {createStore, applyMiddleware, type Store} from 'redux'
 import * as I from 'immutable'
 

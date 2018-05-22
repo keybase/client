@@ -5,7 +5,7 @@ import ScrollView from '../common-adapters/scroll-view'
 import {StatusBar, View} from 'react-native'
 import {configure, addDecorator} from '@storybook/react-native'
 import commonStories from './stories'
-import nativeStories from './stories-native'
+import nativeStories from './platform-stories'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
 
 const stories = {...commonStories, ...nativeStories}
