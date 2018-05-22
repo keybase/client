@@ -40,7 +40,7 @@ class Contents extends React.Component<Props> {
 
   _headerText = () => {
     if (this.props.isSubteam) {
-      return `You are creating a subteam of ${this.props.baseTeam}`
+      return `You are creating a subteam of ${this.props.baseTeam}.`
     }
     return "For security reasons, team names are unique and can't be changed, so choose carefully."
   }
@@ -127,7 +127,7 @@ class Contents extends React.Component<Props> {
               <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
                 <Checkbox
                   checked={joinSubteam}
-                  label="Join this subteam after creating it."
+                  label="Join this subteam after creating it"
                   onCheck={onJoinSubteamChange}
                 />
               </Box>
