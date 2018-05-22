@@ -430,11 +430,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.messageSetQuoting:
       return state.update('quotingMap', quotingMap => {
         const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
-        // clearing
-        if (!ordinal) {
-          return quotingMap.delete(targetConversationIDKey)
-        }
-        // quoting a specific message
         const counter = quotingMap.getIn([targetConversationIDKey, 'counter'], 0) + 1
         return quotingMap.set(targetConversationIDKey, {counter, ordinal, sourceConversationIDKey})
       })
