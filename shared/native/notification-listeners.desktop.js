@@ -10,7 +10,7 @@ import {NotifyPopup} from './notifications'
 
 // TODO: DESKTOP-6662 - Move notification listeners to their own actions
 export default (): void => {
-  sharedNotificationActions()
+  sharedNotificationActions(null)
 
   engine().setIncomingActionCreators('keybase.1.NotifyApp.exit', () => {
     console.log('App exit requested')
