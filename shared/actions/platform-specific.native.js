@@ -18,7 +18,7 @@ import {
 } from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
-import {isIOS} from '../constants/platform'
+import {isIOS, isAndroid} from '../constants/platform'
 
 const shownPushPrompt = 'shownPushPrompt'
 // Used to listen to the java intent for notifications
@@ -278,15 +278,40 @@ const getMimeTypeFromURL = (
   url: string,
   cb: ({error?: any, statusCode?: number, mimeType?: string}) => void
 ) =>
-  fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
-    .then(response => {
-      let mimeType = ''
-      if (response.status === 200) {
-        mimeType = response.headers.get('Content-Type')
-      }
-      cb({statusCode: response.status, mimeType})
-    })
-    .catch(error => cb({error}))
+  // For some reason HEAD doesn't work on Android. So just GET one byte.
+  // TODO: fix HEAD for Android and get rid of this hack.
+  isAndroid
+    ? fetch(url, {method: 'GET', headers: {Range: 'bytes=0-0'}}) // eslint-disable-line no-undef
+        .then(response => {
+          let mimeType = ''
+          let statusCode = response.status
+          if (
+            statusCode === 200 ||
+            statusCode === 206 ||
+            // 416 can happen if the file is empty.
+            statusCode === 416
+          ) {
+            mimeType = response.headers.get('Content-Type')
+            statusCode = 200 // Treat 200, 206, and 416 as 200.
+          }
+          cb({statusCode, mimeType})
+        })
+        .catch(error => {
+          console.log(error)
+          cb({error})
+        })
+    : fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
+        .then(response => {
+          let mimeType = ''
+          if (response.status === 200) {
+            mimeType = response.headers.get('Content-Type')
+          }
+          cb({statusCode: response.status, mimeType})
+        })
+        .catch(error => {
+          console.log(error)
+          cb({error})
+        })
 
 export {
   openAppSettings,
