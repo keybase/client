@@ -5,6 +5,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage} from './resolve-root.desktop'
 import type {BadgeType} from '../../constants/types/notifications'
+import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 let iconType: BadgeType = 'regular'
 
@@ -73,6 +74,10 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
 
   mb.on('ready', () => {
     menubarWindowIDCallback(mb.window.id)
+
+    if (showDevTools && !skipSecondaryDevtools) {
+      mb.window.webContents.openDevTools({mode: 'detach'})
+    }
 
     // Hack: open widget when left/right/double clicked
     mb.tray.on('right-click', (e, bounds) => {
