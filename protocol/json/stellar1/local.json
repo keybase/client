@@ -70,6 +70,28 @@
     },
     {
       "type": "record",
+      "name": "CurrencyLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "symbol"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -253,6 +275,18 @@
       "response": {
         "type": "array",
         "items": "AccountAssetLocal"
+      }
+    },
+    "getDisplayCurrenciesLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "CurrencyLocal"
       }
     },
     "balancesLocal": {
