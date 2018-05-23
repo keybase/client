@@ -329,6 +329,8 @@ const inboxQuery = {
   tlfVisibility: RPCTypes.commonTLFVisibility.any,
 }
 
+const {team, impteamnative, impteamupgrade} = RPCChatTypes.commonConversationMembersType
+
 function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, any> {
   // TODO: maybe uncomment?
   // const conversations = yield Saga.call(
@@ -345,7 +347,7 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
         if (!result || !result.items) return EngineRpc.rpcResult()
         const tlfs: Array<[Types.Path, Types.ResetMetadata]> = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
           const visibility = item.visibility === RPCTypes.commonTLFVisibility.private
-                ? item.membersType === RPCChatTypes.commonConversationMembersType.team
+                ? item.membersType === team
                   ? 'team'
                   : 'private'
                 : 'public'
@@ -355,8 +357,8 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
             item &&
               item.localMetadata &&
               item.localMetadata.resetParticipants &&
-              // Only teams (ignore KBFS-backed TLFs)
-              [1, 2, 3].includes(item.membersType)
+              // Ignore KBFS-backed TLFs
+              [team, impteamnative, impteamupgrade].includes(item.membersType)
           ) {
             filtered.push([
               path, {
