@@ -13,6 +13,7 @@
 <PROJECT_ROOT>/desktop/build/.*
 <PROJECT_ROOT>/desktop/release/.*
 <PROJECT_ROOT>/react-native/react-native-contacts
+<PROJECT_ROOT>/node_modules/immutable/type-definitions/tests
 # all this BS is cause this uses ocaml regexp for some reason and doesnt' include negative lookaheads. we want to ignore node_modules outside of these
 # immutable
 # recompose

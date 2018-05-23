@@ -100,7 +100,7 @@ const UsernameHeader = (props: Props) => (
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
-        skipSelf={true}
+        skipSelf={props.participants.length > 1}
       />
       {props.muted && <ShhIcon />}
     </Box>

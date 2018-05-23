@@ -100,6 +100,7 @@ export const commonTopicType = {
   none: 0,
   chat: 1,
   dev: 2,
+  kbfsfileedit: 3,
 }
 
 export const localAddTeamMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: LocalAddTeamMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.addTeamMemberAfterReset', request)
@@ -1376,6 +1377,7 @@ export type TopicType =
   | 0 // NONE_0
   | 1 // CHAT_1
   | 2 // DEV_2
+  | 3 // KBFSFILEEDIT_3
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
 

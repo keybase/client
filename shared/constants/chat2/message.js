@@ -10,6 +10,7 @@ import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
+import {noConversationIDKey} from '../types/chat2/common'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -26,7 +27,7 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
 
 const makeMessageMinimum = {
   author: '',
-  conversationIDKey: Types.stringToConversationIDKey(''),
+  conversationIDKey: noConversationIDKey,
   id: Types.numberToMessageID(0),
   ordinal: Types.numberToOrdinal(0),
   timestamp: 0,
@@ -645,7 +646,6 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 
 export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'text' && m.type === 'text') {
-    // $ForceType
     return m.withMutations((ret: Types.MessageText) => {
       ret.set('ordinal', old.ordinal)
     })
@@ -660,7 +660,6 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       // don't show the gray box.
       return m.set('ordinal', old.ordinal).set('previewURL', old.previewURL)
     }
-    // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
       // We got an attachment-uploaded message. Hold on to the old ID
       // because that's what the service expects to delete this message

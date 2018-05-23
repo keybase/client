@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -146,6 +147,35 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	return assets, nil
 }
 
+func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) ([]stellar1.CurrencyLocal, error) {
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var currencies []stellar1.CurrencyLocal
+	for code, def := range conf.Currencies {
+		c := stellar1.CurrencyLocal{
+			Description: fmt.Sprintf("%s (%s)", code, def.Symbol.Symbol),
+			Code:        string(code),
+			Symbol:      def.Symbol.Symbol,
+			Name:        def.Name,
+		}
+		currencies = append(currencies, c)
+	}
+	sort.Slice(currencies, func(i, j int) bool {
+		if currencies[i].Code == "USD" {
+			return true
+		}
+		if currencies[j].Code == "USD" {
+			return false
+		}
+		return currencies[i].Code < currencies[j].Code
+	})
+
+	return currencies, nil
+}
+
 type balanceList []stellar1.Balance
 
 func (a balanceList) nativeBalanceDescription() (string, error) {
@@ -159,4 +189,11 @@ func (a balanceList) nativeBalanceDescription() (string, error) {
 		}
 	}
 	return "0 XLM", nil
+}
+
+func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
+	m := libkb.NewMetaContext(s.logTag(ctx), s.G())
+	defer s.G().CTraceTimed(ctx, "ChangeWalletAccountNameLocal", func() error { return err })()
+
+	return stellar.ChangeAccountName(m, arg.AccountID, arg.NewName)
 }

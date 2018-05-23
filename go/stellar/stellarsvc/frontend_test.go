@@ -101,3 +101,55 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$0.00", assets[0].Worth)
 }
+
+func TestGetDisplayCurrenciesLocal(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	currencies, err := tcs[0].Srv.GetDisplayCurrenciesLocal(context.Background(), 0)
+	require.NoError(t, err)
+
+	require.Len(t, currencies, 32)
+	require.Equal(t, "USD ($)", currencies[0].Description)
+	require.Equal(t, "USD", currencies[0].Code)
+	require.Equal(t, "$", currencies[0].Symbol)
+	require.Equal(t, "AUD ($)", currencies[1].Description)
+	require.Equal(t, "AUD", currencies[1].Code)
+	require.Equal(t, "$", currencies[1].Symbol)
+}
+
+func TestChangeWalletName(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	stellar.ServiceInit(tcs[0].G)
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+	require.NoError(t, err)
+	require.Len(t, accs, 1)
+	require.Equal(t, accs[0].Name, "")
+
+	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+		AccountID: accs[0].AccountID,
+		NewName:   "office lunch money",
+	})
+	require.NoError(t, err)
+
+	accs, err = tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+	require.NoError(t, err)
+	require.Len(t, accs, 1)
+	require.Equal(t, accs[0].Name, "office lunch money")
+
+	// Try invalid argument
+	invalidAccID, _ := randomStellarKeypair()
+	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+		AccountID: invalidAccID,
+		NewName:   "savings",
+	})
+	require.Error(t, err)
+}

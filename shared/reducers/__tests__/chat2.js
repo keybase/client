@@ -11,57 +11,57 @@ import reducer from '../chat2'
 jest.unmock('immutable')
 
 describe('chat2 reducer', () => {
-  describe('messageSetEditing action', () => {
-    const conversationIDKey = Types.stringToConversationIDKey('0')
-    const author = 'chris'
+  const conversationIDKey = Types.stringToConversationIDKey('0')
+  const author = 'chris'
 
-    // 1: you wrote text
-    // 2: you wrote text
-    // 3: you attached
-    // 4: someone else wrote text
-    const initialState = Constants.makeState({
-      messageMap: I.Map([
-        [
-          conversationIDKey,
-          I.Map([
-            [
-              Types.numberToOrdinal(1),
-              ConstantsMessage.makeMessageText({
-                author,
-                text: new HiddenString('one'),
-              }),
-            ],
-            [
-              Types.numberToOrdinal(2),
-              ConstantsMessage.makeMessageText({
-                author,
-                text: new HiddenString('two'),
-              }),
-            ],
-            [Types.numberToOrdinal(3), ConstantsMessage.makeMessageAttachment({author})],
-            [
-              Types.numberToOrdinal(4),
-              ConstantsMessage.makeMessageText({
-                author: 'someone_else',
-                text: new HiddenString('four other'),
-              }),
-            ],
-          ]),
-        ],
-      ]),
-      messageOrdinals: I.Map([
-        [
-          conversationIDKey,
-          I.SortedSet([
+  // 1: you wrote text
+  // 2: you wrote text
+  // 3: you attached
+  // 4: someone else wrote text
+  const initialState = Constants.makeState({
+    messageMap: I.Map([
+      [
+        conversationIDKey,
+        I.Map([
+          [
             Types.numberToOrdinal(1),
+            ConstantsMessage.makeMessageText({
+              author,
+              text: new HiddenString('one'),
+            }),
+          ],
+          [
             Types.numberToOrdinal(2),
-            Types.numberToOrdinal(3),
+            ConstantsMessage.makeMessageText({
+              author,
+              text: new HiddenString('two'),
+            }),
+          ],
+          [Types.numberToOrdinal(3), ConstantsMessage.makeMessageAttachment({author})],
+          [
             Types.numberToOrdinal(4),
-          ]),
-        ],
-      ]),
-    })
+            ConstantsMessage.makeMessageText({
+              author: 'someone_else',
+              text: new HiddenString('four other'),
+            }),
+          ],
+        ]),
+      ],
+    ]),
+    messageOrdinals: I.Map([
+      [
+        conversationIDKey,
+        I.SortedSet([
+          Types.numberToOrdinal(1),
+          Types.numberToOrdinal(2),
+          Types.numberToOrdinal(3),
+          Types.numberToOrdinal(4),
+        ]),
+      ],
+    ]),
+  })
 
+  describe('messageSetEditing action', () => {
     it('edit last skips other people and non-text types', () => {
       const action = Chat2Gen.createMessageSetEditing({
         conversationIDKey,
@@ -99,7 +99,9 @@ describe('chat2 reducer', () => {
       const state2 = reducer(state1, clearAction)
       expect(state2.editingMap.get(conversationIDKey)).toEqual(undefined)
     })
+  })
 
+  describe('messageSetQuoting action', () => {
     it('set and clear quoted message works', () => {
       const setAction = Chat2Gen.createMessageSetQuoting({
         ordinal: Types.numberToOrdinal(1),
