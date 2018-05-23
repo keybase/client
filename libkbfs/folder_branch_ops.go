@@ -1628,8 +1628,14 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	}()
 
 	if md.IsReadable() && fbo.config.Mode().PrefetchWorkers() > 0 {
-		// We `Get` the root block to ensure downstream prefetches occur.
-		_ = fbo.config.BlockOps().BlockRetriever().Request(ctx,
+		// We `Get` the root block to ensure downstream prefetches
+		// occur.  Use a fresh context, in case `ctx` is canceled by
+		// the caller before we complete.
+		prefetchCtx := fbo.ctxWithFBOID(context.Background())
+		fbo.log.CDebugf(ctx,
+			"Prefetching root block with a new context: FBOID=%s",
+			prefetchCtx.Value(CtxFBOIDKey))
+		_ = fbo.config.BlockOps().BlockRetriever().Request(prefetchCtx,
 			defaultOnDemandRequestPriority, md, md.data.Dir.BlockPointer,
 			&DirBlock{}, TransientEntry)
 	} else {
