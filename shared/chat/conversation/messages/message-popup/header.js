@@ -50,14 +50,12 @@ const MessagePopupHeader = (props: {
         type={iconName}
         style={{
           marginBottom: globalMargins.tiny,
-          marginTop: !isMobile ? globalMargins.small : globalMargins.large,
+          marginTop: !isMobile ? globalMargins.small : 0,
         }}
       />
       <Box
         style={{
           ...globalStyles.flexBoxRow,
-          paddingLeft: globalMargins.small,
-          paddingRight: globalMargins.small,
         }}
       >
         <Text type="BodySmall" style={{color: deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}>
@@ -67,7 +65,13 @@ const MessagePopupHeader = (props: {
           &nbsp;& SIGNED
         </Text>
       </Box>
-      <Box style={globalStyles.flexBoxRow}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          paddingLeft: globalMargins.small,
+          paddingRight: globalMargins.small,
+        }}
+      >
         <Text type="BodySmall">
           by <Text type="BodySmallSemibold">{author}</Text> using device&nbsp;<Text type="BodySmallSemibold">
             {deviceName}
