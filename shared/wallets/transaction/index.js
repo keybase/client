@@ -51,7 +51,7 @@ type CounterpartyTextProps = {|
   large: boolean,
   counterparty: string,
   counterpartyType: CounterpartyType,
-  showFullKeys: boolean,
+  showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
 |}

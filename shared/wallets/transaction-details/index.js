@@ -21,6 +21,8 @@ export type Props = {|
   publicMemo?: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
+  transactionID: ?string,
+  you: string,
   yourRole: Role,
 |}
 
@@ -45,7 +47,11 @@ const Counterparty = (props: CounterpartyProps) =>
     />
   ) : (
     <Box2 direction="horizontal" fullHeight={true}>
-      <CounterpartyIcon counterparty={props.counterparty} counterpartyType={props.counterpartyType} />
+      <CounterpartyIcon
+        counterparty={props.counterparty}
+        counterpartyType={props.counterpartyType}
+        large={true}
+      />
       <Box2
         direction="vertical"
         fullWidth={true}
@@ -64,7 +70,16 @@ const Counterparty = (props: CounterpartyProps) =>
 
 const TransactionDetails = (props: Props) => (
   <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-    <Transaction {...props} large={true} />
+    <Transaction
+      amountUser={props.amountUser}
+      amountXLM={props.amountXLM}
+      counterparty={props.counterparty}
+      counterpartyType={props.counterpartyType}
+      large={true}
+      memo={props.memo}
+      timestamp={props.timestamp}
+      yourRole={props.yourRole}
+    />
     <Divider />
 
     <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
