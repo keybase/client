@@ -11,7 +11,6 @@ import {Input as TextInput} from '../../../../common-adapters'
 
 type CommonProps = {
   conversationIDKey: Types.ConversationIDKey,
-  channelName: string,
   isEditing: boolean,
   isExploding?: boolean,
   focusInputCounter: number,

@@ -53,7 +53,6 @@ const boxProps = {
 const InputContainer = (props: Props) => {
   const inputProps: InputProps = {
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
-    channelName: 'somechannel',
     isEditing: props.isEditing,
     isExploding: props.isExploding,
     focusInputCounter: 0,

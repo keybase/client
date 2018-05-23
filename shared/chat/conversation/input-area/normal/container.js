@@ -24,7 +24,6 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
 
@@ -36,7 +35,6 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     _quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     _quoteText: quoteInfo ? quoteInfo.text : '',
     _you,
-    channelName: meta.channelname,
     conversationIDKey,
     typing: Constants.getTyping(state, conversationIDKey),
   }
@@ -75,7 +73,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   conversationIDKey: stateProps.conversationIDKey,
-  channelName: stateProps.channelName,
   isEditing: !!stateProps._editOrdinal,
   focusInputCounter: ownProps.focusInputCounter,
   clearInboxFilter: dispatchProps.clearInboxFilter,
