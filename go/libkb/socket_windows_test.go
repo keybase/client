@@ -14,6 +14,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/contester/runlib/win32"
 )
 
 func setupTest(t *testing.T, nm string) *TestContext {
@@ -95,24 +97,68 @@ func TestWindowsPipeOwner(t *testing.T) {
 	}
 	defer serverCmd.Process.Kill()
 
-	// Give the server time to open the pipe
-	time.Sleep(500 * time.Millisecond)
+	for i := 0; i < 20; i++ {
+		// Give the server time to open the pipe
+		time.Sleep(500 * time.Millisecond)
 
-	// Test existing pipe
-	owner, err := IsPipeowner(testPipeName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !owner {
-		t.Fatal(errors.New("Expected true getting owner of test pipe"))
+		// Test existing pipe
+		owner, err := IsPipeowner(testPipeName)
+		if err != nil {
+			if i < 19 {
+				continue
+			}
+			t.Fatal(err)
+		}
+		if !owner {
+			t.Fatal(errors.New("Expected true getting owner of test pipe"))
+		}
 	}
 
 	// Test nonexisting
-	owner, err = IsPipeowner(testPipeName + "_nonexistent")
+	owner, err := IsPipeowner(testPipeName + "_nonexistent")
 	if err == nil {
 		t.Fatal(errors.New("Expected error getting owner of nonexistent pipe"))
 	}
 	if owner {
 		t.Fatal(errors.New("Expected false getting owner of nonexistent pipe"))
+	}
+}
+
+func TestWindowsPipeNonOwner(t *testing.T) {
+
+	tc := setupTest(t, "socket_windows_test")
+	defer tc.Cleanup()
+
+	testPipeName := "\\\\.\\pipe\\kbservice\\test_malicious"
+	// This requires that the test guest account be created and its credentials
+	// stored locally with these commands. The first one must be run elevated,
+	// and the second one is just to store the creds locally so runas can work
+	// non-interactively:
+	//   net user kbtestuser1 123456 /ADD
+	//   runas /user:kbtestuser1 /savecred "cmd /c echo test"
+	//
+	// Note the process will hang around in the background, but it should be OK, since subsequent servers will fail and
+	// the first one can just hang around indefinitely.
+	serverCmd := exec.Command("runas", "/user:kbtestuser1", "/savecred", "go", "run", "testfixtures\\npipe\\kb_pipetest_server.go", testPipeName)
+	err := serverCmd.Start()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 20; i++ {
+		// Give the server time to open the pipe
+		time.Sleep(500 * time.Millisecond)
+
+		// Test existing pipe
+		owner, err := IsPipeowner(testPipeName)
+		if err != nil {
+			if i < 19 {
+				continue
+			}
+			t.Fatal(err)
+		}
+		if !owner {
+			t.Fatal(errors.New("Expected true getting owner of test pipe"))
+		}
 	}
 }
