@@ -4,6 +4,7 @@ package stellarsvc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -243,4 +244,18 @@ func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar
 	}
 
 	return stellar.SetAccountAsPrimary(m, arg.AccountID)
+}
+
+func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.DeleteWalletAccountLocalArg) (err error) {
+	m := libkb.NewMetaContext(s.logTag(ctx), s.G())
+	defer s.G().CTraceTimed(ctx, "DeleteWalletAccountLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+
+	if arg.UserAcknowledged != "yes" {
+		return errors.New("User did not acknowledge")
+	}
+
+	return stellar.DeleteAccount(m, arg.AccountID)
 }
