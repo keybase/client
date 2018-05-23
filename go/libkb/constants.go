@@ -439,9 +439,11 @@ const (
 	KeybasePacketV1 PacketVersion = 1
 )
 
-type PacketTag int
+// PacketTag are tags for OpenPGP and Keybase packets. It is a uint to
+// be backwards compatible with older versions of codec that encoded
+// positive ints as uints.
+type PacketTag uint
 
-// Packet tags for OpenPGP and also Keybase packets
 const (
 	TagP3skb      PacketTag = 513
 	TagSignature  PacketTag = 514
