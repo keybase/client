@@ -35,7 +35,7 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 			Name:      account.Name,
 		}
 
-		balances, err := s.remoter.Balances(ctx, acct.AccountID)
+		balances, err := s.remoter().Balances(ctx, acct.AccountID)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "remote.Balances failed for %q: %s", acct.AccountID, err)
 			return nil, err
@@ -63,7 +63,7 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 }
 
 func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (assets []stellar1.AccountAssetLocal, err error) {
-	details, err := s.remoter.Details(ctx, arg.AccountID)
+	details, err := s.remoter().Details(ctx, arg.AccountID)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", arg.AccountID, err)
 		return nil, err
@@ -79,7 +79,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		}
 	}
 
-	displayCurrency, err := s.remoter.GetAccountDisplayCurrency(ctx, arg.AccountID)
+	displayCurrency, err := s.remoter().GetAccountDisplayCurrency(ctx, arg.AccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		displayCurrency = defaultOutsideCurrency
 		s.G().Log.CDebugf(ctx, "Using default display currency %s for account %s", displayCurrency, arg.AccountID)
 	}
-	rate, rateErr := s.remoter.ExchangeRate(ctx, displayCurrency)
+	rate, rateErr := s.remoter().ExchangeRate(ctx, displayCurrency)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "exchange rate error: %s", rateErr)
 	}

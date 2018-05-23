@@ -311,6 +311,10 @@ func (tc *TestContext) SetRuntimeDir(s string) {
 	tc.G.Env.Test.RuntimeDir = s
 }
 
+func (tc *TestContext) Ctx() MetaContext {
+	return NewMetaContextForTest(*tc)
+}
+
 func (tc TestContext) Clone() (ret TestContext) {
 	var err error
 	ret, err = setupTestContext(tc.T, "", &tc)

@@ -23,14 +23,12 @@ type UISource interface {
 type Server struct {
 	libkb.Contextified
 	uiSource UISource
-	remoter  remote.Remoter
 }
 
-func New(g *libkb.GlobalContext, uiSource UISource, remoter remote.Remoter) *Server {
+func New(g *libkb.GlobalContext, uiSource UISource) *Server {
 	return &Server{
 		Contextified: libkb.NewContextified(g),
 		uiSource:     uiSource,
-		remoter:      remoter,
 	}
 }
 
@@ -46,6 +44,10 @@ func (s *Server) logTag(ctx context.Context) context.Context {
 	return libkb.WithLogTag(ctx, "WA")
 }
 
+func (s *Server) remoter() remote.Remoter {
+	return stellar.GetRemoter(s.G())
+}
+
 func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) (ret []stellar1.Balance, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "BalancesLocal", func() error { return err })()
@@ -53,7 +55,7 @@ func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID
 		return nil, err
 	}
 
-	return s.remoter.Balances(ctx, accountID)
+	return s.remoter().Balances(ctx, accountID)
 }
 
 func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
@@ -136,7 +138,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
+	return stellar.SendPayment(m, s.remoter(), stellarcommon.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
 }
 
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {
@@ -155,7 +157,7 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 			return res, err
 		}
 	}
-	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into)
+	return stellar.Claim(ctx, s.G(), s.remoter(), arg.TxID, into)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
@@ -173,7 +175,7 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 	} else {
 		selectAccountID = *accountID
 	}
-	return stellar.RecentPaymentsCLILocal(ctx, s.G(), s.remoter, selectAccountID)
+	return stellar.RecentPaymentsCLILocal(ctx, s.G(), s.remoter(), selectAccountID)
 }
 
 func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res stellar1.PaymentCLILocal, err error) {
@@ -182,7 +184,7 @@ func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res st
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	return stellar.PaymentDetailCLILocal(ctx, s.G(), s.remoter, txID)
+	return stellar.PaymentDetailCLILocal(ctx, s.G(), s.remoter(), txID)
 }
 
 // WalletInitLocal creates and posts an initial stellar bundle for a user.
@@ -264,7 +266,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 			Name:      account.Name,
 		}
 
-		balances, err := s.remoter.Balances(ctx, accID)
+		balances, err := s.remoter().Balances(ctx, accID)
 		if err != nil {
 			accountError = err
 			s.G().Log.Warning("Could not load balance for %q", accID)
