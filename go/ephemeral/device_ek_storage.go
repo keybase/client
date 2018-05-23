@@ -57,7 +57,7 @@ func (s *DeviceEKStorage) key(ctx context.Context, generation keybase1.EkGenerat
 
 func (s *DeviceEKStorage) keyToEldestSeqno(key string) (eldestSeqno keybase1.Seqno, err error) {
 	if !strings.HasPrefix(key, deviceEKPrefix) {
-		return -1, nil
+		return keybase1.InvalidSeqno(), nil
 	}
 	parts := strings.Split(key, "-")
 
@@ -67,7 +67,7 @@ func (s *DeviceEKStorage) keyToEldestSeqno(key string) (eldestSeqno keybase1.Seq
 	}
 	// Make sure this key is for our current user and not a different one.
 	if parts[1] != s.G().Env.GetUsername().String() {
-		return -1, nil
+		return keybase1.InvalidSeqno(), nil
 	}
 	e, err := strconv.ParseUint(parts[2], 10, 64)
 	if err != nil {

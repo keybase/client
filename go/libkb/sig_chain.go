@@ -221,7 +221,7 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 
 func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
 	low := sc.GetLastLoadedSeqno()
-	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.Seqno(-1))
+	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.InvalidSeqno())
 
 	isSelf := selfUID.Equal(sc.uid)
 
@@ -1044,8 +1044,8 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 	Efn := NewServerChainError
 	sc.G().Log.Debug("+ CheckFreshness")
 	defer sc.G().Log.Debug("- CheckFreshness (%s) -> (%v,%s)", sc.uid, current, ErrToOk(err))
-	a := keybase1.Seqno(-1)
-	b := keybase1.Seqno(-1)
+	a := keybase1.InvalidSeqno()
+	b := keybase1.InvalidSeqno()
 
 	if srv != nil {
 		sc.G().Log.Debug("| Server triple: %v", srv)

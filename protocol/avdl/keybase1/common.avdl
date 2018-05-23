@@ -99,7 +99,7 @@ protocol Common {
     TeamName name;
   }
 
-  @typedef("int64") @lint("ignore")
+  @typedef("uint64") @lint("ignore")
   record Seqno {}
 
   enum SeqType {
