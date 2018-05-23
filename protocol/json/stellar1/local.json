@@ -70,6 +70,84 @@
     },
     {
       "type": "record",
+      "name": "PaymentLocal",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        },
+        {
+          "type": "TimeMs",
+          "name": "time"
+        },
+        {
+          "type": "string",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "source"
+        },
+        {
+          "type": "string",
+          "name": "sourceType"
+        },
+        {
+          "type": "string",
+          "name": "target"
+        },
+        {
+          "type": "string",
+          "name": "targetType"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "string",
+          "name": "noteErr"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentOrErrorLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "PaymentCLILocal"
+          ],
+          "name": "payment"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "err"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "CurrencyLocal",
       "fields": [
         {
@@ -285,6 +363,25 @@
       "response": {
         "type": "array",
         "items": "AccountAssetLocal"
+      }
+    },
+    "getPaymentsLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "olderThanTransactionID",
+          "type": [
+            null,
+            "TransactionID"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentOrErrorLocal"
       }
     },
     "getDisplayCurrenciesLocal": {
