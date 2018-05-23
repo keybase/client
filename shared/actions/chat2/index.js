@@ -1501,6 +1501,9 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   )
   yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
 
+  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+
   let lastRatioSent = 0
   const postAttachment = new EngineRpc.EngineRpcCall(
     {
@@ -1530,6 +1533,7 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     RPCChatTypes.localPostFileAttachmentLocalRpcChannelMap,
     `localPostFileAttachmentLocal-${conversationIDKey}-${path}`,
     {
+      ...ephemeralData,
       attachment: {filename: path},
       conversationID: Types.keyToConversationID(conversationIDKey),
       identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
