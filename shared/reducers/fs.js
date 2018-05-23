@@ -47,10 +47,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           .set('favoriteChildren', original.favoriteChildren)
           .set('resetParticipants', original.resetParticipants)
       })
-      const s = state
-        .mergeIn(['pathItems'], toMerge)
+      return state.mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
-      return s
     }
     case FsGen.folderListLoad:
       return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
@@ -74,8 +72,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             .set('favoriteChildren', item.favoriteChildren),
         ]
       })
-      const s = state.mergeIn(['pathItems'], toMerge)
-      return s
+      return state.mergeIn(['pathItems'], toMerge)
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
