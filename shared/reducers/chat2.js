@@ -109,7 +109,9 @@ const metaMapReducer = (metaMap, action) => {
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
         if (action.payload.clearExistingMetas) {
-          map.clear()
+          // keep pending conversation
+          const pending = map.get(Constants.pendingConversationIDKey)
+          map.clear().set(Constants.pendingConversationIDKey, pending)
         }
         const neverCreate = !!action.payload.neverCreate
         action.payload.metas.forEach(meta => {
@@ -348,12 +350,31 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       })
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
-    case Chat2Gen.setPendingSelected:
-      return state.set('pendingSelected', action.payload.selected)
     case Chat2Gen.setPendingMode:
-      return state.set('pendingMode', action.payload.pendingMode)
+      return state.withMutations(_s => {
+        const s = (_s: Types.State)
+        s.set('pendingMode', action.payload.pendingMode)
+        if (action.payload.pendingMode === 'none') {
+          s.setIn(['metaMap', Constants.pendingConversationIDKey, 'participants'], I.OrderedSet())
+          s.setIn(
+            ['metaMap', Constants.pendingConversationIDKey, 'conversationIDKey'],
+            Constants.noConversationIDKey
+          )
+          s.deleteIn(['messageOrdinals', Constants.pendingConversationIDKey])
+          s.deleteIn(['pendingOutboxToOrdinal', Constants.pendingConversationIDKey])
+          s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
+        }
+      })
     case Chat2Gen.setPendingConversationUsers:
-      return state.set('pendingConversationUsers', I.Set(action.payload.users))
+      return state.setIn(
+        ['metaMap', Constants.pendingConversationIDKey, 'participants'],
+        I.OrderedSet(action.payload.users)
+      )
+    case Chat2Gen.setPendingConversationExistingConversationIDKey:
+      return state.setIn(
+        ['metaMap', Constants.pendingConversationIDKey, 'conversationIDKey'],
+        action.payload.conversationIDKey
+      )
     case Chat2Gen.badgesUpdated: {
       const badgeMap = I.Map(
         action.payload.conversations.map(({convID, badgeCounts}) => [
@@ -412,7 +433,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return quotingMap.delete(targetConversationIDKey)
         }
         // quoting a specific message
-        return quotingMap.set(targetConversationIDKey, {sourceConversationIDKey, ordinal})
+        return quotingMap.set(targetConversationIDKey, {ordinal, sourceConversationIDKey})
       })
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
@@ -577,49 +598,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         })
       )
     }
-    case Chat2Gen.setPendingMessageSubmitState: {
-      const {reason, submitState} = action.payload
-      logger.warn(`Got setPendingMessageSubmitState to '${submitState}' with reason: ${reason}`)
-      const conversationIDKey = Constants.pendingConversationIDKey
-      // We don't need to get the ordinals here, but we might as well check our state is kept internally consistent
-      const ordinalMap = state.pendingOutboxToOrdinal.get(conversationIDKey)
-      if (!ordinalMap) {
-        logger.warn('Got setPendingMessageSubmitState with no pending messages')
-        return state
-      }
-      const ordinals = ordinalMap.toIndexedSeq().toArray()
-      // Mark all messages in the pending conv messageMap as failed
-      return state.set(
-        'messageMap',
-        state.messageMap.withMutations(mm => {
-          ordinals.forEach(ordinal =>
-            mm.updateIn([conversationIDKey, ordinal], message => {
-              if (message) {
-                if (message.type === 'text') {
-                  return message.set('submitState', submitState)
-                }
-                if (message.type === 'attachment') {
-                  return message.set('submitState', submitState)
-                }
-              }
-              return message
-            })
-          )
-        })
-      )
-    }
-    case Chat2Gen.setPendingStatus: {
-      const {pendingStatus} = action.payload
-      return state.set('pendingStatus', pendingStatus)
-    }
-    case Chat2Gen.clearPendingConversation: {
-      return state.withMutations(s => {
-        const conversationIDKey = Constants.pendingConversationIDKey
-        s.deleteIn(['messageOrdinals', conversationIDKey])
-        s.deleteIn(['pendingOutboxToOrdinal', conversationIDKey])
-        s.deleteIn(['messageMap', conversationIDKey])
-      })
-    }
     case Chat2Gen.updateTypers: {
       return state.set('typingMap', action.payload.conversationToTypers)
     }
@@ -721,7 +699,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     // Saga only actions
     case Chat2Gen.attachmentUpload:
     case Chat2Gen.desktopNotification:
-    case Chat2Gen.exitSearch:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
@@ -737,19 +714,17 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.openFolder:
     case Chat2Gen.resetChatWithoutThem:
     case Chat2Gen.resetLetThemIn:
-    case Chat2Gen.sendToPendingConversation:
     case Chat2Gen.sendTyping:
     case Chat2Gen.setConvRetentionPolicy:
     case Chat2Gen.setupChatHandlers:
-    case Chat2Gen.startConversation:
     case Chat2Gen.navigateToInbox:
     case Chat2Gen.navigateToThread:
     case Chat2Gen.messageAttachmentNativeShare:
     case Chat2Gen.messageAttachmentNativeSave:
     case Chat2Gen.updateNotificationSettings:
     case Chat2Gen.blockConversation:
-    case Chat2Gen.cancelPendingConversation:
-    case Chat2Gen.retryPendingConversation:
+    case Chat2Gen.previewConversation:
+    case Chat2Gen.createConversation:
     case Chat2Gen.setConvExplodingMode:
       return state
     default:

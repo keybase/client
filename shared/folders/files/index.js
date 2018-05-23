@@ -8,6 +8,7 @@ import {some, get} from 'lodash-es'
 import type {Folder} from '../list'
 import {connect} from 'react-redux'
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
+import {tlfToParticipantsOrTeamname} from '../../util/kbfs'
 
 type Props = $Shape<{
   folder: ?Folder,
@@ -133,7 +134,14 @@ const mapDispatchToProps = (dispatch: any) => ({
   navigateAppend: route => dispatch(navigateAppend(route)),
   navigateUp: () => dispatch(navigateUp()),
   openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
-  openTlfInChat: tlf => dispatch(Chat2Gen.createStartConversation({tlf})),
+  openTlfInChat: tlf => {
+    const {participants, teamname} = tlfToParticipantsOrTeamname(tlf)
+    if (participants) {
+      dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'files'}))
+    } else if (teamname) {
+      dispatch(Chat2Gen.createPreviewConversation({teamname, reason: 'files'}))
+    }
+  },
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Files)

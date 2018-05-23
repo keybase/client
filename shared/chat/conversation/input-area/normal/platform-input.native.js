@@ -60,15 +60,11 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   render = () => {
-    const multilineOpts = {rowsMax: 3, rowsMin: 1}
-
     let hintText = 'Write a message'
     if (this.props.isExploding) {
       hintText = 'Write an exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
-    } else if (this.props.pendingWaiting) {
-      hintText = 'Creating conversation...'
     }
 
     return (
@@ -109,7 +105,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             autoCorrect={true}
             autoCapitalize="sentences"
             autoFocus={false}
-            editable={!this.props.pendingWaiting}
             hideUnderline={true}
             hintText={hintText}
             multiline={true}
@@ -122,7 +117,8 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             small={true}
             style={styles.input}
             uncontrolled={true}
-            {...multilineOpts}
+            rowsMax={3}
+            rowsMin={1}
           />
 
           {this.props.typing.size > 0 && <Typing />}
@@ -130,7 +126,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
-            pendingWaiting={this.props.pendingWaiting}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
           />
@@ -162,7 +157,7 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
+const Action = ({hasText, onSubmit, isEditing, openFilePicker, insertMentionMarker}) =>
   hasText ? (
     <Box style={styles.actionText}>
       <Text type="BodyBigLink" onClick={onSubmit}>
@@ -172,13 +167,13 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
   ) : (
     <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
       <Icon
-        onClick={pendingWaiting ? undefined : insertMentionMarker}
+        onClick={insertMentionMarker}
         type="iconfont-mention"
         style={iconCastPlatformStyles(styles.actionButton)}
         fontSize={21}
       />
       <Icon
-        onClick={pendingWaiting ? undefined : openFilePicker}
+        onClick={openFilePicker}
         type="iconfont-camera"
         style={iconCastPlatformStyles(styles.actionButton)}
         fontSize={21}

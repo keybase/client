@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
@@ -39,50 +38,38 @@ class Conversation extends React.PureComponent<SwitchProps> {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  let _conversationIDKey
-  let _pendingConversationUsers
-
-  if (state.chat2.pendingSelected) {
-    _pendingConversationUsers = state.chat2.pendingConversationUsers
-    if (state.chat2.pendingMode !== 'startingFromAReset') {
-      _conversationIDKey = Constants.findConversationFromParticipants(
-        state,
-        state.chat2.pendingConversationUsers
-      )
-    }
-  } else {
-    _conversationIDKey = Constants.getSelectedConversation(state)
-  }
+  let conversationIDKey = Constants.getSelectedConversation(state)
+  let _meta = Constants.getMeta(state, conversationIDKey)
 
   return {
-    _conversationIDKey,
-    _metaMap: state.chat2.metaMap,
-    _pendingConversationUsers,
+    _meta,
+    conversationIDKey,
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  let conversationIDKey = stateProps._conversationIDKey
-
-  let type = 'noConvo'
-  if (conversationIDKey) {
-    if (stateProps._metaMap.getIn([conversationIDKey, 'membershipType']) === 'youAreReset') {
-      type = 'youAreReset'
-    } else if (stateProps._metaMap.getIn([conversationIDKey, 'rekeyers'], I.Set()).size > 0) {
-      type = 'rekey'
-    } else if (stateProps._metaMap.getIn([conversationIDKey, 'trustedState']) === 'error') {
-      type = 'error'
-    } else {
+  let type
+  switch (stateProps.conversationIDKey) {
+    case Constants.noConversationIDKey:
+      type = 'noConvo'
+      break
+    case Constants.pendingConversationIDKey:
       type = 'normal'
-    }
-  } else if (stateProps._pendingConversationUsers) {
-    type = 'normal'
-  } else {
-    type = 'noConvo'
+      break
+    default:
+      if (stateProps._meta.membershipType === 'youAreReset') {
+        type = 'youAreReset'
+      } else if (stateProps._meta.rekeyers.size > 0) {
+        type = 'rekey'
+      } else if (stateProps._meta.trustedState === 'error') {
+        type = 'error'
+      } else {
+        type = 'normal'
+      }
   }
 
   return {
-    conversationIDKey: conversationIDKey || Types.stringToConversationIDKey(''), // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
+    conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
     type,
   }
 }
