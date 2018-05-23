@@ -7,6 +7,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Saga from '../../util/saga'
 import * as EngineRpc from '../../constants/engine'
+import * as ChatConstants from '../../constants/chat2'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
@@ -322,16 +323,9 @@ const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload)
     })
   )
 
-const inboxQuery = {
-  computeActiveList: false,
-  readOnly: false,
-  status: Object.keys(RPCChatTypes.commonConversationStatus)
-    .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
-    .map(k => RPCChatTypes.commonConversationStatus[k]),
-  tlfVisibility: RPCTypes.commonTLFVisibility.any,
-  topicType: RPCChatTypes.commonTopicType.chat,
-  unreadOnly: false,
-}
+let inboxQuery = ChatConstants.makeInboxQuery([])
+inboxQuery.computeActiveList = false
+inboxQuery.tlfVisibility = RPCTypes.commonTLFVisibility.any
 
 function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, any> {
   // TODO: maybe uncomment?
@@ -348,8 +342,8 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
         // whatever
         if (!result || !result.items) return EngineRpc.rpcResult()
         const tlfs: Array<[Types.Path, Types.ResetMetadata]> = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
-          const visibility = item.visibility === 2 // private
-                ? item.membersType === 1 // simple team
+          const visibility = item.visibility === RPCTypes.commonTLFVisibility.private
+                ? item.membersType === RPCChatTypes.commonConversationMembersType.team
                   ? 'team'
                   : 'private'
                 : 'public'
