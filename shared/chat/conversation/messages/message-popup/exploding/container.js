@@ -19,7 +19,7 @@ type OwnProps = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
-  const canExplodeNow = TeamConstants.getCanPerform(state, meta.teamname).manageMembers || yourMessage
+  const canExplodeNow = yourMessage || TeamConstants.getCanPerform(state, meta.teamname).manageMembers
   return {
     author: ownProps.message.author,
     canEdit: yourMessage,
