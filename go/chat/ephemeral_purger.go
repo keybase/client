@@ -127,7 +127,6 @@ func NewBackgroundEphemeralPurger(g *globals.Context, storage *storage.Storage) 
 	return &BackgroundEphemeralPurger{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BackgroundEphemeralPurger", false),
-		pq:           newPriorityQueue(),
 		storage:      storage,
 		stopCh:       make(chan chan struct{}),
 		delay:        500 * time.Millisecond,
@@ -157,18 +156,9 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 
 	// Purge the outbox periodically
 	b.outboxTicker = libkb.NewBgTicker(5 * time.Minute)
-	go func() {
-		for {
-			<-b.outboxTicker.C
-			// Check the outbox for stuck ephemeral messages that need purging
-			storage.NewOutbox(b.G(), b.uid).EphemeralPurge(context.Background())
-		}
-	}()
-	// We may have be `Stop()`ed before and closed out the purge loop, if so
-	// restart it.
-	if b.purgeTimer != nil && !b.looping {
-		go b.loop()
-	}
+	// Immediately fire to queue any purges we picked up during initQueue
+	b.purgeTimer = time.NewTimer(0)
+	go b.loop()
 }
 
 func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) chan struct{} {
@@ -205,6 +195,10 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
 
+	if b.pq == nil {
+		panic("Must call Start before adding to the Queue")
+	}
+
 	// We only keep active items in the queue.
 	if !purgeInfo.IsActive {
 		return
@@ -213,7 +207,7 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 	// If we are starting the queue or get an earlier expiration time, reset or start the timer
 	head := b.pq.Peek()
 	if head == nil || purgeInfo.NextPurgeTime < head.purgeInfo.NextPurgeTime {
-		b.setOrResetTimer(purgeInfo)
+		b.resetTimer(purgeInfo)
 	}
 	b.updateQueue(purgeInfo)
 }
@@ -223,6 +217,8 @@ func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
 
+	// Create a new queue
+	b.pq = newPriorityQueue()
 	allPurgeInfo, err := b.storage.GetAllPurgeInfo(ctx, b.uid)
 	if err != nil {
 		b.Debug(ctx, "unable to get purgeInfo: %v", allPurgeInfo)
@@ -232,7 +228,6 @@ func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 			b.updateQueue(purgeInfo)
 		}
 	}
-	b.queuePurges(ctx)
 }
 
 func (b *BackgroundEphemeralPurger) updateQueue(purgeInfo chat1.EphemeralPurgeInfo) {
@@ -260,6 +255,9 @@ func (b *BackgroundEphemeralPurger) loop() {
 			b.queueLock.Lock()
 			b.queuePurges(bgctx)
 			b.queueLock.Unlock()
+		case <-b.outboxTicker.C:
+			// Check the outbox for stuck ephemeral messages that need purging
+			storage.NewOutbox(b.G(), b.uid).EphemeralPurge(context.Background())
 		case ch := <-b.stopCh: // caller will reset looping=false
 			b.Debug(bgctx, "loop: shutting down for %s", b.uid)
 			close(ch)
@@ -308,19 +306,14 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 		return true
 	}
 	// Reset our time for the next min item of the queue.
-	b.setOrResetTimer(nextItem.purgeInfo)
+	b.resetTimer(nextItem.purgeInfo)
 	return false
 }
 
-func (b *BackgroundEphemeralPurger) setOrResetTimer(purgeInfo chat1.EphemeralPurgeInfo) {
+func (b *BackgroundEphemeralPurger) resetTimer(purgeInfo chat1.EphemeralPurgeInfo) {
 	duration := purgeInfo.NextPurgeTime.Time().Sub(b.clock.Now())
-	if b.purgeTimer == nil {
-		b.purgeTimer = time.NewTimer(duration)
-		go b.loop()
-	} else {
-		b.purgeTimer.Stop()
-		b.purgeTimer.Reset(duration)
-	}
+	b.purgeTimer.Stop()
+	b.purgeTimer.Reset(duration)
 }
 
 func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *storage.Storage, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
