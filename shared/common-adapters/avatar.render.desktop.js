@@ -16,12 +16,12 @@ type State = {
 }
 
 const sizeToTeamBorderRadius = {
-  '128': 12,
+  '128': 16,
   '16': 4,
-  '32': 5,
-  '48': 6,
-  '64': 8,
-  '96': 10,
+  '32': 6,
+  '48': 8,
+  '64': 10,
+  '96': 12,
 }
 
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
