@@ -34,6 +34,8 @@ protocol local {
   }
   array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
 
+  void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------

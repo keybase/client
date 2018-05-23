@@ -289,6 +289,23 @@
         "items": "CurrencyLocal"
       }
     },
+    "changeWalletAccountNameLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "newName",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "balancesLocal": {
       "request": [
         {
