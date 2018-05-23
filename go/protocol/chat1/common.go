@@ -271,23 +271,26 @@ var MessageTypeRevMap = map[MessageType]string{
 type TopicType int
 
 const (
-	TopicType_NONE TopicType = 0
-	TopicType_CHAT TopicType = 1
-	TopicType_DEV  TopicType = 2
+	TopicType_NONE         TopicType = 0
+	TopicType_CHAT         TopicType = 1
+	TopicType_DEV          TopicType = 2
+	TopicType_KBFSFILEEDIT TopicType = 3
 )
 
 func (o TopicType) DeepCopy() TopicType { return o }
 
 var TopicTypeMap = map[string]TopicType{
-	"NONE": 0,
-	"CHAT": 1,
-	"DEV":  2,
+	"NONE":         0,
+	"CHAT":         1,
+	"DEV":          2,
+	"KBFSFILEEDIT": 3,
 }
 
 var TopicTypeRevMap = map[TopicType]string{
 	0: "NONE",
 	1: "CHAT",
 	2: "DEV",
+	3: "KBFSFILEEDIT",
 }
 
 type TeamType int

@@ -61,7 +61,8 @@
   enum TopicType {
     NONE_0,
     CHAT_1,
-    DEV_2
+    DEV_2,
+    KBFSFILEEDIT_3
   }
 
   enum TeamType {
