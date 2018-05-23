@@ -113,7 +113,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           gapEnd={true}
           gapStart={true}
           style={{
-            backgroundColor: this.state.secondsLeft < oneMinuteInS ? globalColors.red : globalColors.black,
+            backgroundColor: this.state.secondsLeft < oneMinuteInS ? globalColors.red : globalColors.black_75,
             marginTop: globalMargins.tiny,
           }}
         >

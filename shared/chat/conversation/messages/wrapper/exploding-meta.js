@@ -51,6 +51,8 @@ class ExplodingMeta extends React.Component<Props, State> {
   }
 
   render() {
+    const backgroundColor =
+      this.props.explodesAt - Date.now() < oneMinuteInMs ? globalColors.red : globalColors.black_75
     switch (this.state.mode) {
       case 'countdown':
         return (
@@ -60,10 +62,7 @@ class ExplodingMeta extends React.Component<Props, State> {
               style={collapseStyles([
                 styles.countdownContainer,
                 {
-                  backgroundColor:
-                    this.props.explodesAt - Date.now() < oneMinuteInMs
-                      ? globalColors.red
-                      : globalColors.black,
+                  backgroundColor,
                 },
               ])}
             >
@@ -71,10 +70,11 @@ class ExplodingMeta extends React.Component<Props, State> {
                 {formatTimeDifference(this.props.explodesAt - Date.now())}
               </Text>
             </Box2>
+            <Icon type="iconfont-bomb" fontSize={isMobile ? 22 : 16} color={globalColors.black_75} />
           </Box2>
         )
       case 'boom':
-        return <Icon type="iconfont-boom" fontSize={isMobile ? 44 : 22} />
+        return <Icon type="iconfont-boom" fontSize={isMobile ? 44 : 22} color={globalColors.black_75} />
     }
     return null
   }
