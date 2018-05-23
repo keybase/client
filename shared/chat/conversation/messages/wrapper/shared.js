@@ -107,70 +107,75 @@ const LeftSide = props => (
 )
 
 const RightSide = props => (
-  <Box
-    style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
-    className="message-wrapper"
-  >
-    {props.includeHeader && (
-      <Username
-        username={props.author}
-        isYou={props.isYou}
-        isFollowing={props.isFollowing}
-        isBroken={props.isBroken}
-        onClick={props.onAuthorClick}
-      />
-    )}
-    <Box style={styles.textContainer} className="message">
-      {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
+  <Box style={styles.rightSideContainer}>
+    <Box
+      style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
+      className="message-wrapper"
+    >
+      {props.includeHeader && (
+        <Username
+          username={props.author}
+          isYou={props.isYou}
+          isFollowing={props.isFollowing}
+          isBroken={props.isBroken}
+          onClick={props.onAuthorClick}
+        />
+      )}
+      <Box style={styles.textContainer} className="message">
+        {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
           The problem is that `isExplodingUnreadable` is coming as true without `props.message.exploded` sometimes.  */}
-      <HeightRetainer
-        style={styles.flexOneColumn}
-        retainHeight={props.message.exploded || props.isExplodingUnreadable}
-      >
-        <props.innerClass
+        <HeightRetainer
+          style={styles.flexOneColumn}
+          retainHeight={props.message.exploded || props.isExplodingUnreadable}
+        >
+          <props.innerClass
+            message={props.message}
+            isEditing={props.isEditing}
+            toggleShowingMenu={props.toggleShowingMenu}
+          />
+          {props.isEdited && <EditedMark />}
+        </HeightRetainer>
+        {!isMobile &&
+          !props.message.exploded && (
+            <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
+          )}
+        <MessagePopup
+          attachTo={props.attachmentRef}
           message={props.message}
-          isEditing={props.isEditing}
-          toggleShowingMenu={props.toggleShowingMenu}
+          onHidden={props.toggleShowingMenu}
+          position="bottom left"
+          visible={props.showingMenu}
         />
-        {props.isEdited && <EditedMark />}
-      </HeightRetainer>
-      {!isMobile && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
-      <MessagePopup
-        attachTo={props.attachmentRef}
-        message={props.message}
-        onHidden={props.toggleShowingMenu}
-        position="bottom left"
-        visible={props.showingMenu}
-      />
-      {props.isRevoked && (
-        <Icon
-          type="iconfont-exclamation"
-          style={iconCastPlatformStyles(styles.exclamation)}
-          color={globalColors.blue}
-          fontSize={11}
-        />
-      )}
-      {props.exploding && <ExplodingMeta explodesAt={props.explodesAt} />}
-    </Box>
-    {!!props.failureDescription && (
-      <Failure
-        failureDescription={props.failureDescription}
-        isExplodingUnreadable={props.isExplodingUnreadable}
-        onRetry={props.onRetry}
-        onEdit={props.onEdit}
-        onCancel={props.onCancel}
-      />
-    )}
-    <Box style={styles.sendIndicatorContainer}>
-      {props.isYou && (
-        <SendIndicator
-          sent={props.messageSent}
-          failed={props.messageFailed}
-          style={{marginBottom: 2}}
-          id={props.message.timestamp}
+        {props.isRevoked && (
+          <Icon
+            type="iconfont-exclamation"
+            style={iconCastPlatformStyles(styles.exclamation)}
+            color={globalColors.blue}
+            fontSize={11}
+          />
+        )}
+      </Box>
+      {!!props.failureDescription && (
+        <Failure
+          failureDescription={props.failureDescription}
+          isExplodingUnreadable={props.isExplodingUnreadable}
+          onRetry={props.onRetry}
+          onEdit={props.onEdit}
+          onCancel={props.onCancel}
         />
       )}
+      <Box style={styles.sendIndicatorContainer}>
+        {props.isYou && (
+          <SendIndicator
+            sent={props.messageSent}
+            failed={props.messageFailed}
+            style={{marginBottom: 2}}
+            id={props.message.timestamp}
+          />
+        )}
+      </Box>
     </Box>
+    {props.exploding && <ExplodingMeta explodesAt={props.explodesAt} />}
   </Box>
 )
 
@@ -218,13 +223,19 @@ const styles = styleSheetCreate({
     common: {
       ...globalStyles.flexBoxColumn,
       flex: 1,
-      paddingBottom: 2,
       paddingRight: globalMargins.tiny,
+      position: 'relative',
     },
     isMobile: {
       marginRight: sendIndicatorWidth,
     },
   }),
+  rightSideContainer: {
+    ...globalStyles.flexBoxRow,
+    flex: 1,
+    paddingBottom: 2,
+    paddingRight: globalMargins.tiny,
+  },
   selected: {backgroundColor: globalColors.black_05},
   sendIndicator: {marginBottom: 2},
   sendIndicatorContainer: platformStyles({

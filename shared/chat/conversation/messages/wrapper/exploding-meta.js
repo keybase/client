@@ -56,7 +56,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     switch (this.state.mode) {
       case 'countdown':
         return (
-          <Box2 direction="horizontal" gap="xtiny">
+          <Box2 direction="horizontal" gap="xtiny" style={styles.container}>
             <Box2
               direction="horizontal"
               style={collapseStyles([
@@ -74,7 +74,11 @@ class ExplodingMeta extends React.Component<Props, State> {
           </Box2>
         )
       case 'boom':
-        return <Icon type="iconfont-boom" fontSize={isMobile ? 44 : 22} color={globalColors.black_75} />
+        return (
+          <Box2 direction="horizontal" style={styles.container}>
+            <Icon type="iconfont-boom" fontSize={isMobile ? 44 : 22} color={globalColors.black_75} />
+          </Box2>
+        )
     }
     return null
   }
@@ -111,6 +115,9 @@ const formatTimeDifference = (d: number): string => {
 }
 
 const styles = styleSheetCreate({
+  container: {
+    alignSelf: 'flex-end',
+  },
   countdownContainer: {
     borderRadius: 2,
     paddingLeft: 4,
