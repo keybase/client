@@ -665,6 +665,13 @@ const loadMoreMessages = (
   let reason: string = ''
 
   switch (action.type) {
+    case AppGen.changedFocus:
+      if (!isMobile || !action.payload.appFocused) {
+        return
+      }
+      key = Constants.getSelectedConversation(state)
+      reason = 'foregrounding'
+      break
     case Chat2Gen.setPendingConversationUsers:
       if (Constants.getSelectedConversation(state) !== Constants.pendingConversationIDKey) {
         return
@@ -2019,6 +2026,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
       Chat2Gen.metasReceived,
+      AppGen.changedFocus,
     ],
     loadMoreMessages,
     loadMoreMessagesSuccess
