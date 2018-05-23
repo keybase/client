@@ -231,3 +231,36 @@ func TestSetAccountAsDefault(t *testing.T) {
 	require.NotNil(t, u0addr)
 	require.Equal(t, additionalAccs[0], *u0addr)
 }
+
+func TestLinkNewWalletAccountLocal(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	// make a wallet
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	// link a new account
+	a1, s1 := randomStellarKeypair()
+	arg := stellar1.LinkNewWalletAccountLocalArg{
+		SecretKey: s1,
+		Name:      "my other account",
+	}
+	linkID, err := tcs[0].Srv.LinkNewWalletAccountLocal(context.Background(), arg)
+	require.NoError(t, err)
+	require.Equal(t, a1, linkID)
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	accts, err := tcs[0].Srv.GetWalletAccountsLocal(context.Background(), 0)
+	require.NoError(t, err)
+
+	require.Len(t, accts, 2)
+	require.True(t, accts[0].IsDefault)
+	require.Equal(t, "", accts[0].Name)
+	require.Equal(t, "0 XLM", accts[0].BalanceDescription)
+	require.False(t, accts[1].IsDefault)
+	require.Equal(t, a1, accts[1].AccountID)
+	require.Equal(t, "my other account", accts[1].Name)
+	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
+}

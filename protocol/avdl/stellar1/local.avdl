@@ -37,6 +37,8 @@ protocol local {
   void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
   void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
 
+  AccountID linkNewWalletAccountLocal(int sessionID, SecretKey secretKey, string name);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
