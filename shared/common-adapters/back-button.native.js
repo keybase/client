@@ -5,7 +5,7 @@ import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
-import {globalStyles, collapseStyles} from '../styles'
+import {globalMargins, globalStyles, collapseStyles} from '../styles'
 import type {Props} from './back-button'
 
 export default class BackButton extends Component<Props> {
@@ -35,6 +35,9 @@ export const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   marginRight: 8,
+  padding: globalMargins.tiny,
+  paddingLeft: globalMargins.small - 4,
+  paddingRight: globalMargins.small,
 }
 
 const iconFontSize = 24
