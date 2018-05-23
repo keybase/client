@@ -323,7 +323,7 @@ const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload)
     })
   )
 
-let inboxQuery = {
+const inboxQuery = {
   ...ChatConstants.makeInboxQuery([]),
   computeActiveList: false,
   tlfVisibility: RPCTypes.commonTLFVisibility.any,
