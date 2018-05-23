@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/remote"
 	"github.com/stretchr/testify/require"
 )
 
@@ -152,4 +153,81 @@ func TestChangeWalletName(t *testing.T) {
 		NewName:   "savings",
 	})
 	require.Error(t, err)
+}
+
+func TestSetAccountAsDefault(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+	require.NoError(t, err)
+	require.Len(t, accs, 1)
+
+	require.True(t, accs[0].IsPrimary)
+
+	// Should work for accounts that are already primary and not post
+	// a bundle.
+	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
+		AccountID: accs[0].AccountID,
+	})
+	require.NoError(t, err)
+
+	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.EqualValues(t, 1, bundle.Revision)
+
+	// Test invalid arguments
+	invalidAccID, _ := randomStellarKeypair()
+	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
+		AccountID: invalidAccID,
+	})
+	require.Error(t, err)
+
+	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
+		AccountID: stellar1.AccountID(""),
+	})
+	require.Error(t, err)
+
+	additionalAccs := []stellar1.AccountID{
+		tcs[0].Backend.AddAccountEmpty(t),
+		tcs[0].Backend.AddAccountEmpty(t),
+	}
+
+	for _, v := range additionalAccs {
+		arg := stellar1.ImportSecretKeyLocalArg{
+			SecretKey:   tcs[0].Backend.SecretKey(v),
+			MakePrimary: false,
+		}
+		err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), arg)
+		require.NoError(t, err)
+	}
+
+	for i := len(additionalAccs) - 1; i >= 0; i-- {
+		v := additionalAccs[i]
+		arg := stellar1.SetWalletAccountAsDefaultLocalArg{
+			AccountID: v,
+		}
+		err := tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), arg)
+		require.NoError(t, err)
+
+		accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+		require.NoError(t, err)
+		require.Len(t, accs, 3)
+		for _, acc := range accs {
+			require.Equal(t, acc.IsPrimary, acc.AccountID == v)
+		}
+	}
+
+	// Expecting additionalAccs[0] to be default account. Lookup
+	// public Stellar address as another user.
+	u0, err := tcs[1].G.LoadUserByUID(tcs[0].Fu.User.GetUID())
+	require.NoError(t, err)
+	u0addr := u0.StellarWalletAddress()
+	require.NotNil(t, u0addr)
+	require.Equal(t, additionalAccs[0], *u0addr)
 }
