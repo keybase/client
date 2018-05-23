@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import {isEqualWith} from 'lodash-es'
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
-import {compose, setDisplayName} from 'recompose'
+// import {compose, setDisplayName} from 'recompose'
 import {connect} from 'react-redux'
 
 const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
@@ -13,9 +13,13 @@ const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
 const NullComponent = () => null
 
-// flowlint deprecated-type:off
-const storybookableConnect = (name: string, mapStateToProps: *, mapDispatchToProps: *, mergeProps: *) =>
-  compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName(name))
+// const namedConnect = <MSP, MDP, MP>(
+// name: string,
+// mapStateToProps: MSP,
+// mapDispatchToProps: MDP,
+// mergeProps: MP
+// ): $Call<connect, MSP, MDP, MP> =>
+// compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName(name))
 
 export {
   branch,
@@ -42,7 +46,7 @@ export {
   createSelectorCreator,
   defaultMemoize,
   NullComponent,
-  storybookableConnect,
+  // namedConnect,
 }
 export {Dispatch} from '../constants/types/flux'
 export {isMobile} from '../constants/platform'

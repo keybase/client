@@ -6,8 +6,8 @@ import FloatingMenu, {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
 } from '../common-adapters/floating-menu'
-import {RowConnector} from './row'
-import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
+import Row from './row'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {branch} from 'recompose'
 
 import type {MenuItem} from '../common-adapters/popup-menu.js'
@@ -68,20 +68,6 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
   </Box>
 )
 
-const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
-  <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
-    <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-      <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
-        <Text style={textStyle(isRevoked)} type="BodySemiboldItalic">
-          {name}
-        </Text>
-        {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
-      </Box>
-    </Box>
-  </ClickableBox>
-))
-
 class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
   _renderRow = (index, item) =>
     item.type === 'revokedHeader' ? (
@@ -91,7 +77,7 @@ class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
         onToggleExpanded={this.props.onToggleShowRevoked}
       />
     ) : (
-      <DeviceRow key={item.id} deviceID={item.id} />
+      <Row key={item.id} deviceID={item.id} />
     )
 
   render() {
@@ -153,22 +139,5 @@ const stylesRevokedDescription = {
   paddingLeft: 32,
   paddingRight: 32,
 }
-
-const textStyle = isRevoked =>
-  isRevoked
-    ? platformStyles({
-        common: {
-          color: globalColors.black_40,
-          flex: 0,
-          textDecorationLine: 'line-through',
-          textDecorationStyle: 'solid',
-        },
-        isElectron: {
-          fontStyle: 'italic',
-        },
-      })
-    : {
-        flex: 0,
-      }
 
 export default branch(() => isMobile, HeaderHoc)(Devices)
