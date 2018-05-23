@@ -120,9 +120,8 @@ const TransactionDetails = (props: Props) => (
     <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
       <Text type="BodySmallSemibold">Transaction ID:</Text>
       <Text type="Body">{props.transactionID}</Text>
+      <Text type="BodySmallPrimaryLink">View transaction</Text>
     </Box2>
-
-    <Text type="BodySmallPrimaryLink">View transaction</Text>
   </Box2>
 )
 

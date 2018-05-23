@@ -37,6 +37,7 @@ const load = () => {
         yourRole="sender"
         memo={memo}
         timestamp={yesterday}
+        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         you="cjb"
       />
     ))
@@ -49,6 +50,7 @@ const load = () => {
         yourRole="sender"
         memo={memo}
         timestamp={yesterday}
+        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         you="cjb"
       />
     ))
@@ -62,6 +64,7 @@ const load = () => {
         yourRole="sender"
         memo={memo}
         timestamp={null}
+        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         you="cjb"
       />
     ))
@@ -76,6 +79,7 @@ const load = () => {
         memo={memo}
         publicMemo="Foo bar"
         timestamp={yesterday}
+        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         you="cjb"
       />
     ))
@@ -101,6 +105,7 @@ const load = () => {
         yourRole="receiver"
         memo={memo}
         timestamp={yesterday}
+        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         you="cjb"
       />
     ))

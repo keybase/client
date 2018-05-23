@@ -180,7 +180,11 @@ type TimestampProps = {|
 
 export const Timestamp = (props: TimestampProps) => {
   if (!props.timestamp) {
-    return <Text type="BodySmall">Pending</Text>
+    return (
+      <Text type="BodySmall">
+        {props.relative ? 'Pending' : "The Stellar network hasn't confirmed your transaction."}
+      </Text>
+    )
   }
   let human
   let tooltip
@@ -218,31 +222,42 @@ export const Transaction = (props: Props) => {
   const showMemo =
     props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
   return (
-    <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-      <CounterpartyIcon
-        counterparty={props.counterparty}
-        counterpartyType={props.counterpartyType}
-        large={props.large}
-      />
-      <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
-        <Timestamp relative={true} timestamp={props.timestamp} />
-        <Detail
-          large={props.large}
-          pending={pending}
-          yourRole={props.yourRole}
+    <Box2 direction="vertical" fullWidth={true}>
+      {pending && (
+        <Box2
+          direction="vertical"
+          fullWidth={true}
+          style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
+        >
+          <Text type="BodySmallSemibold">Pending</Text>
+        </Box2>
+      )}
+      <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+        <CounterpartyIcon
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
-          amountUser={props.amountUser}
+          large={props.large}
         />
-        {// TODO: Consolidate memo display code below with
-        // chat/conversation/messages/wallet-payment/index.js.
-        showMemo && (
-          <Box2 direction="horizontal" gap="small" fullWidth={true}>
-            <Divider vertical={true} style={styles.quoteMarker} />
-            <Markdown allowFontScaling={true}>{props.memo}</Markdown>
-          </Box2>
-        )}
-        <AmountXLM pending={pending} yourRole={props.yourRole} amountXLM={props.amountXLM} />
+        <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
+          <Timestamp relative={true} timestamp={props.timestamp} />
+          <Detail
+            large={props.large}
+            pending={pending}
+            yourRole={props.yourRole}
+            counterparty={props.counterparty}
+            counterpartyType={props.counterpartyType}
+            amountUser={props.amountUser}
+          />
+          {// TODO: Consolidate memo display code below with
+          // chat/conversation/messages/wallet-payment/index.js.
+          showMemo && (
+            <Box2 direction="horizontal" gap="small" fullWidth={true}>
+              <Divider vertical={true} style={styles.quoteMarker} />
+              <Markdown allowFontScaling={true}>{props.memo}</Markdown>
+            </Box2>
+          )}
+          <AmountXLM pending={pending} yourRole={props.yourRole} amountXLM={props.amountXLM} />
+        </Box2>
       </Box2>
     </Box2>
   )
