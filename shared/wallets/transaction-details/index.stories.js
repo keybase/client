@@ -29,14 +29,15 @@ const load = () => {
     ))
     .add('Sending to Keybase user', () =>
     <TransactionDetails
-      counterparty="paul"
+      counterparty="yen"
+      counterpartyMeta="Addie Stokes"
       counterpartyType="keybaseUser"
       amountUser="$12.50"
       amountXLM="53.1688643 XLM"
       yourRole="sender"
       memo={memo}
       timestamp={yesterday}
-      large={true}
+      you="cjb"
     />
   ).add('Sending to Stellar public key', () =>
     <TransactionDetails
@@ -47,7 +48,7 @@ const load = () => {
       yourRole="sender"
       memo={memo}
       timestamp={yesterday}
-      large={true}
+      you="cjb"
     />
 ).add('Sending to Keybase user (pending)', () =>
     <TransactionDetails
@@ -58,7 +59,7 @@ const load = () => {
       yourRole="sender"
       memo={memo}
       timestamp={null}
-      large={true}
+      you="cjb"
     />
   ).add('Received from Keybase user (pending)', () =>
     <TransactionDetails
@@ -69,7 +70,7 @@ const load = () => {
       yourRole="receiver"
       memo={memo}
       timestamp={yesterday}
-      large={true}
+      you="cjb"
     />
   )
 }

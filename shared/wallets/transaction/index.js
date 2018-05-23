@@ -14,7 +14,7 @@ type CounterpartyIconProps = {|
   counterpartyType: CounterpartyType,
 |}
 
-const CounterpartyIcon = (props: CounterpartyIconProps) => {
+export const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   switch (props.counterpartyType) {
     case 'keybaseUser':
@@ -46,6 +46,42 @@ const StellarPublicKey = (props: StellarPublicKeyProps) => {
   )
 }
 
+type CounterpartyTextProps = {|
+  large: boolean,
+  counterparty: string,
+  counterpartyType: CounterpartyType,
+|}
+
+export const CounterpartyText = (props: CounterpartyTextProps) => {
+  const textType = props.large ? 'Body' : 'BodySmall'
+  const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
+
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      return <ConnectedUsernames
+        colorFollowing={true}
+        colorBroken={true}
+        inline={true}
+        type={textTypeSemibold}
+        usernames={[props.counterparty]}
+      />
+    case 'stellarPublicKey':
+      return <StellarPublicKey publicKey={props.counterparty} textType={textType} />
+    case 'wallet':
+      return props.large ? (
+        <Text type={textType}>{props.counterparty}</Text>
+      ) : (
+        <Text type={'BodySmallItalic'}>{props.counterparty}</Text>
+      )
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      break
+  }
+}
+
 type DetailProps = {|
   large: boolean,
   pending: boolean,
@@ -59,37 +95,13 @@ const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
 
-  let counterparty
-  switch (props.counterpartyType) {
-    case 'keybaseUser':
-      counterparty = (
-        <ConnectedUsernames
-          colorFollowing={true}
-          colorBroken={true}
-          inline={true}
-          type={textTypeSemibold}
-          usernames={[props.counterparty]}
-        />
-      )
-      break
-    case 'stellarPublicKey':
-      counterparty = <StellarPublicKey publicKey={props.counterparty} textType={textType} />
-      break
-    case 'wallet':
-      counterparty = props.large ? (
-        <Text type={textType}>{props.counterparty}</Text>
-      ) : (
-        <Text type={'BodySmallItalic'}>{props.counterparty}</Text>
-      )
-      break
-    default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
-      break
-  }
-
+  const counterparty = <CounterpartyText
+    counterparty={props.counterparty}
+    counterpartyType={props.counterpartyType}
+    large={props.large}
+    textType={textType}
+    textTypeSemibold={textTypeSemibold}
+  />
   const amount = <Text type={textTypeSemibold}>{props.amountUser}</Text>
 
   if (props.counterpartyType === 'wallet') {
