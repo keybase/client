@@ -8,6 +8,7 @@ import {connect, compose, lifecycle, withProps, type TypedState} from '../util/c
 import {settingsTab} from '../constants/tabs'
 import {switchTo, navigateAppend, navigateTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
+import {tlfToParticipantsOrTeamname} from '../util/kbfs'
 
 type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {selected: FolderType}
@@ -27,7 +28,14 @@ const mapStateToProps = (state: TypedState, {routeState, selected}: OwnProps) =>
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState, isTeam}: OwnProps) => ({
   fuseStatus: () => dispatch(KBFSGen.createFuseStatus()),
   favoriteList: () => dispatch(FavoriteGen.createFavoriteList()),
-  onChat: tlf => dispatch(Chat2Gen.createStartConversation({tlf})),
+  onChat: tlf => {
+    const {participants, teamname} = tlfToParticipantsOrTeamname(tlf)
+    if (participants) {
+      dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'files'}))
+    } else if (teamname) {
+      dispatch(Chat2Gen.createPreviewConversation({teamname, reason: 'files'}))
+    }
+  },
   onClick: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
   onOpen: path => dispatch(KBFSGen.createOpen({path})),
   onRekey: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),

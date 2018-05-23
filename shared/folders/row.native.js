@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {Folder} from './list'
-import {Avatar, Box, Text, Icon, MultiAvatar, Meta, ClickableBox} from '../common-adapters/index.native'
+import {Avatar, Box, Text, Icon, MultiAvatar, Meta, ClickableBox} from '../common-adapters/mobile.native'
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -33,9 +33,9 @@ const Avatars = ({styles, users, ignored, isPublic, isTeam}) => {
       }}
     >
       {isTeam ? (
-        <Avatar size={40} teamname={teamname} style={{opacity}} />
+        <Avatar size={48} teamname={teamname} style={{opacity}} />
       ) : (
-        <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} style={{opacity}} />
+        <MultiAvatar singleSize={48} multiSize={32} avatarProps={avatarProps} style={{opacity}} />
       )}
     </Box>
   )

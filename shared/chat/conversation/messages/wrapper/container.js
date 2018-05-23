@@ -19,11 +19,13 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
   const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
   const messageSent = !message.submitState
   const messageFailed = message.submitState === 'failed'
+  const isExplodingUnreadable = message.explodingUnreadable
 
   return {
     innerClass,
     isBroken,
     isEditing,
+    isExplodingUnreadable,
     isFollowing,
     isYou,
     message,
@@ -86,6 +88,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     isBroken: stateProps.isBroken,
     isEdited: message.hasBeenEdited,
     isEditing: stateProps.isEditing,
+    isExplodingUnreadable: stateProps.isExplodingUnreadable,
     isFollowing: stateProps.isFollowing,
     isRevoked: !!message.deviceRevokedAt,
     isYou: stateProps.isYou,

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
 	stellaramount "github.com/stellar/go/amount"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/xdr"
@@ -187,10 +189,11 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentSummary {
 }
 
 type FakeAccount struct {
-	T         testing.TB
-	accountID stellar1.AccountID
-	secretKey stellar1.SecretKey // can be missing for relay accounts
-	balance   stellar1.Balance
+	T          testing.TB
+	accountID  stellar1.AccountID
+	secretKey  stellar1.SecretKey // can be missing for relay accounts
+	balance    stellar1.Balance
+	subentries int
 }
 
 func (a *FakeAccount) AddBalance(amt string) {
@@ -250,6 +253,14 @@ func (a *FakeAccount) Check() bool {
 	return true
 }
 
+func (a *FakeAccount) availableBalance() string {
+	b, err := stellarnet.AvailableBalance(a.balance.Amount, a.subentries)
+	if err != nil {
+		a.T.Fatalf("AvailableBalance error: %s", err)
+	}
+	return b
+}
+
 // RemoteClientMock is a Remoter that calls into a BackendMock.
 // It basically proxies all calls but passes the caller's TC so the backend knows who's calling.
 // Threadsafe.
@@ -293,6 +304,18 @@ func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar
 
 func (r *RemoteClientMock) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
 	return r.Backend.PaymentDetail(ctx, r.Tc, txID)
+}
+
+func (r *RemoteClientMock) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
+	return r.Backend.Details(ctx, r.Tc, accountID)
+}
+
+func (r *RemoteClientMock) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {
+	return r.Backend.GetAccountDisplayCurrency(ctx, r.Tc, accountID)
+}
+
+func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
+	return r.Backend.ExchangeRate(ctx, r.Tc, currency)
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
@@ -373,6 +396,7 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 
 	// Unpack signed transaction and checks if Payment matches transaction.
 	unpackedTx, txIDPrecalc, err := unpackTx(post.SignedTransaction)
+
 	if err != nil {
 		return res, err
 	}
@@ -559,11 +583,37 @@ func (r *BackendMock) PaymentDetail(ctx context.Context, tc *TestContext, txID s
 	return *p, nil
 }
 
+func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
+	defer tc.G.CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
+	r.Lock()
+	defer r.Unlock()
+
+	a, ok := r.accounts[accountID]
+	if !ok {
+		return stellar1.AccountDetails{}, libkb.NotFoundError{}
+	}
+	var balances []stellar1.Balance
+	if a.balance.Amount != "" {
+		balances = []stellar1.Balance{a.balance}
+	}
+	return stellar1.AccountDetails{
+		AccountID:     accountID,
+		Seqno:         strconv.FormatUint(r.seqnos[accountID], 10),
+		Balances:      balances,
+		SubentryCount: a.subentries,
+		Available:     a.availableBalance(),
+	}, nil
+}
+
 func (r *BackendMock) AddAccount() stellar1.AccountID {
 	defer r.trace(nil, "BackendMock.AddAccount", "")()
 	r.Lock()
 	defer r.Unlock()
 	return r.addAccountRandom(true)
+}
+
+func (r *BackendMock) AddAccountEmpty(t *testing.T) stellar1.AccountID {
+	return r.addAccountRandom(false)
 }
 
 func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
@@ -577,10 +627,12 @@ func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
 		T:         r.T,
 		accountID: stellar1.AccountID(full.Address()),
 		secretKey: stellar1.SecretKey(full.Seed()),
-		balance: stellar1.Balance{
+	}
+	if amount != "" {
+		a.balance = stellar1.Balance{
 			Asset:  stellar1.Asset{Type: "native"},
 			Amount: amount,
-		},
+		}
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
@@ -643,6 +695,17 @@ func (r *BackendMock) AssertBalance(accountID stellar1.AccountID, amount string)
 	defer r.Unlock()
 	require.NotNil(r.T, r.accounts[accountID], "account should exist in mock to assert balance")
 	require.Equal(r.T, amount, r.accounts[accountID].balance.Amount, "account balance")
+}
+
+func (r *BackendMock) GetAccountDisplayCurrency(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (string, error) {
+	return "USD", nil
+}
+
+func (r *BackendMock) ExchangeRate(ctx context.Context, tc *TestContext, currency string) (stellar1.OutsideExchangeRate, error) {
+	return stellar1.OutsideExchangeRate{
+		Currency: stellar1.OutsideCurrencyCode(currency),
+		Rate:     "0.318328",
+	}, nil
 }
 
 // Friendbot sends someone XLM

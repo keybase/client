@@ -41,15 +41,8 @@ const Usernames = (following: string[], you?: string) => ({
 })
 
 const Avatar = (following: string[], followers: string[]) => ({
-  Avatar: (props: any) => {
-    const ownProps = {
-      following: following.includes(props.username),
-      followsYou: followers.includes(props.username),
-      ...props,
-    }
-    return mockOwnToViewProps(ownProps)
-  },
-  URLAvatar: (props: any) => props,
+  Avatar: (props: any) =>
+    mockOwnToViewProps(props, following.includes(props.username), followers.includes(props.username)),
 })
 
 const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({

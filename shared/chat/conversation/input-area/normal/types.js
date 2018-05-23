@@ -21,7 +21,6 @@ type CommonProps = {
   onCancelEditing: () => void,
   onCancelQuoting: () => void,
   onSubmit: (text: string) => void,
-  pendingWaiting: boolean,
   typing: I.Set<string>,
 }
 

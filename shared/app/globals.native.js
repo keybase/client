@@ -15,12 +15,8 @@ if (typeof __STORYBOOK__ === 'undefined') {
   __STORYBOOK__ = (NativeModules.Storybook && NativeModules.Storybook.isStorybook) || false
 }
 
-// __SCREENSHOT__
-//  indicates if the execution environment is visdiff
-//  set to false if it isn't already set
-if (typeof __SCREENSHOT__ === 'undefined') {
-  __SCREENSHOT__ = false
-}
+// We don't storyshot RN
+__STORYSHOT__ = false
 
 // Native String.startswith() sometimes incorrectly returns false on Android!
 // See https://github.com/facebook/react-native/issues/11370 for a report.

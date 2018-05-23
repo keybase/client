@@ -80,8 +80,8 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           <Text type="BodySmall" style={{color: globalColors.black_40}}>
             by
           </Text>
-          <Avatar style={styleAvatar} username={author} size={12} />
-          <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
+          <Avatar style={styleAvatar} username={author} size={16} />
+          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
             {author}
           </Text>
         </Box2>

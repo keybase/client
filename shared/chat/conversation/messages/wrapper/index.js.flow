@@ -10,6 +10,7 @@ export type Props = {
   isBroken: boolean,
   isEdited: boolean,
   isEditing: boolean,
+  isExplodingUnreadable: boolean,
   isFollowing: boolean,
   isRevoked: boolean,
   isYou: boolean,

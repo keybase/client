@@ -1134,6 +1134,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
 			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
@@ -1202,6 +1203,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Zero(t, len(info.Message.Valid().AtMentions))
 			require.Equal(t, chat1.ChannelMention_ALL, info.Message.Valid().ChannelMention)
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
@@ -1219,6 +1221,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
 			require.Equal(t, chat1.ChannelMention_NONE, info.Message.Valid().ChannelMention)
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
@@ -3453,6 +3456,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case info := <-listener0.newMessage:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
@@ -3481,6 +3485,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case info := <-listener0.newMessage:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
@@ -3530,6 +3535,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		select {
 		case info := <-listener0.newMessage:
 			require.False(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
@@ -3541,6 +3547,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			select {
 			case info := <-listener0.newMessage:
 				require.True(t, info.DisplayDesktopNotification)
+				require.NotEqual(t, "", info.DesktopNotificationSnippet)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no new message event")
 			}

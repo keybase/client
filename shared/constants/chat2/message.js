@@ -10,10 +10,24 @@ import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
+import {noConversationIDKey} from '../types/chat2/common'
+
+export const getMessageID = (m: RPCChatTypes.UIMessage) => {
+  switch (m.state) {
+    case RPCChatTypes.chatUiMessageUnboxedState.valid:
+      return m.valid ? m.valid.messageID : null
+    case RPCChatTypes.chatUiMessageUnboxedState.error:
+      return m.error ? m.error.messageID : null
+    case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
+      return m.placeholder ? m.placeholder.messageID : null
+    default:
+      return null
+  }
+}
 
 const makeMessageMinimum = {
   author: '',
-  conversationIDKey: Types.stringToConversationIDKey(''),
+  conversationIDKey: noConversationIDKey,
   id: Types.numberToMessageID(0),
   ordinal: Types.numberToOrdinal(0),
   timestamp: 0,
@@ -34,6 +48,7 @@ const makeMessageExplodable = {
   explodedBy: '',
   exploding: false,
   explodingTime: Date.now(),
+  explodingUnreadable: false,
 }
 
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
@@ -311,6 +326,11 @@ const validUIMessagetoMessage = (
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
   }
 
+  if (m.isEphemeralExpired) {
+    // This message already exploded. Make it an empty text message.
+    return makeMessageText({...common})
+  }
+
   switch (m.messageBody.messageType) {
     case RPCChatTypes.commonMessageType.text:
       const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
@@ -506,6 +526,9 @@ const errorUIMessagetoMessage = (
     deviceName: o.senderDeviceName,
     deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
     errorReason: o.errMsg,
+    exploded: o.isEphemeralExpired,
+    exploding: o.isEphemeral,
+    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
@@ -623,7 +646,6 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 
 export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'text' && m.type === 'text') {
-    // $ForceType
     return m.withMutations((ret: Types.MessageText) => {
       ret.set('ordinal', old.ordinal)
     })
@@ -638,7 +660,6 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       // don't show the gray box.
       return m.set('ordinal', old.ordinal).set('previewURL', old.previewURL)
     }
-    // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
       // We got an attachment-uploaded message. Hold on to the old ID
       // because that's what the service expects to delete this message
