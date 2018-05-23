@@ -14,8 +14,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/contester/runlib/win32"
 )
 
 func setupTest(t *testing.T, nm string) *TestContext {
@@ -128,6 +126,8 @@ func TestWindowsPipeNonOwner(t *testing.T) {
 
 	tc := setupTest(t, "socket_windows_test")
 	defer tc.Cleanup()
+
+	LogonUser()
 
 	testPipeName := "\\\\.\\pipe\\kbservice\\test_malicious"
 	// This requires that the test guest account be created and its credentials
