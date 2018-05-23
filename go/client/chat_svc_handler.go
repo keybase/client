@@ -349,6 +349,11 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 	if header.clientHeader.TlfPublic {
 		vis = keybase1.TLFVisibility_PUBLIC
 	}
+
+	var ephemeralLifetime *gregor1.DurationSec
+	if header.clientHeader.EphemeralMetadata != nil {
+		ephemeralLifetime = &header.clientHeader.EphemeralMetadata.Lifetime
+	}
 	arg := chat1.PostAttachmentLocalArg{
 		ConversationID: header.conversationID,
 		TlfName:        header.clientHeader.TlfName,
@@ -358,7 +363,8 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 			Size:     int(info.Size()),
 			Source:   src,
 		},
-		Title: opts.Title,
+		Title:             opts.Title,
+		EphemeralLifetime: ephemeralLifetime,
 	}
 
 	// check for preview
@@ -429,6 +435,10 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	if header.clientHeader.TlfPublic {
 		vis = keybase1.TLFVisibility_PUBLIC
 	}
+	var ephemeralLifetime *gregor1.DurationSec
+	if header.clientHeader.EphemeralMetadata != nil {
+		ephemeralLifetime = &header.clientHeader.EphemeralMetadata.Lifetime
+	}
 	arg := chat1.PostFileAttachmentLocalArg{
 		ConversationID: header.conversationID,
 		TlfName:        header.clientHeader.TlfName,
@@ -436,7 +446,8 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 		Attachment: chat1.LocalFileSource{
 			Filename: opts.Filename,
 		},
-		Title: opts.Title,
+		Title:             opts.Title,
+		EphemeralLifetime: ephemeralLifetime,
 	}
 
 	// check for preview

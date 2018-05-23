@@ -2077,6 +2077,12 @@ func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachme
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 
+	if arg.EphemeralLifetime != nil {
+		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
+
 	h.Debug(ctx, "posting attachment placeholder message")
 	res, err := h.PostLocal(ctx, postArg)
 	if err != nil {
