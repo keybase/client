@@ -1,9 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box2, Divider, Icon, ConnectedUsernames, Markdown, NameWithIcon} from '../../common-adapters'
-import Text, {type TextType} from '../../common-adapters/text'
+import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {formatTimeForStellarTransaction} from '../../util/timestamp'
 import Transaction, {CounterpartyIcon, CounterpartyText, Timestamp} from '../transaction'
 
 type Role = 'sender' | 'receiver'
