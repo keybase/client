@@ -820,6 +820,5 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 	if !foundAccID {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	//return remote.Post(m.Ctx(), m.G(), nextBundle)
 	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle)
 }

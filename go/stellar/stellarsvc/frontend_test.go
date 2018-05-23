@@ -202,7 +202,8 @@ func TestSetAccountAsDefault(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	for _, v := range additionalAccs {
+	for i := len(additionalAccs) - 1; i >= 0; i-- {
+		v := additionalAccs[i]
 		arg := stellar1.SetWalletAccountAsDefaultLocalArg{
 			AccountID: v,
 		}
