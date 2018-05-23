@@ -40,15 +40,15 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-const selectDisclaimer = `You are selecting a PGP key to sign and publish a statement that you
-own said key, effectively making it part of your Keybase.io identity.
+const selectDisclaimer = `You are selecting a PGP key from your local GnuPG keychain, and
+will publish a statement signed with this key to make it part of 
+your Keybase.io identity.
 
-You will be prompted by GPG to unlock your private key - it will be
-used to make a signature that you are the owner of said key.
+Note that GnuPG will prompt you to perform this signature.
 
 You can also import the secret key to *local*, *encrypted* Keybase
-keyring, to be able to decrypt or sign using Keybase client. To do
-that, use "--import" flag.
+keyring, enabling decryption and signing with the Keybase client.
+To do that, use "--import" flag.
 
 Learn more: keybase pgp help select
 
@@ -57,12 +57,12 @@ Learn more: keybase pgp help select
 const importPrivDisclaimer = `You are selecting a PGP key to publish in your profile, and
 importing secret key to *local*, *encrypted* Keybase keyring.
 
-If your GPG key is encrypted, you will be asked for passphrase
-to unlock it. You may be asked *twice* - first by GPG, to export
-encrypted key bundle, and then by Keybase, to unlock secret key.
+If your GnuPG key is encrypted, you will be asked for passphrase
+to unlock it. You may be asked *twice* - first by GnuPG, to export
+encrypted key bundle, and then by Keybase, to unlock the secret key.
 
 Please note that this will not work if your secret key lives on a
-hardware device (like smart cards).
+hardware device (like a smart card or a Yubikey).
 
 `
 
@@ -122,17 +122,17 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 		},
 		Description: `"keybase pgp select" looks at the local GnuPG keychain for all
    available secret keys. It then makes those keys available for use with keybase.
-   The steps involved are: (1) sign a signature chain link with the selected PGP
-   key and the existing device key; (2) push this signature and the public PGP
-   key to the server; and if "--import" flag is passed: (3) copy the PGP secret half
-   into your local Keybase keyring; and (4) encrypt this secret key with Keybase's
+   The steps involved are: (1a) sign a signature chain link with the selected PGP
+   key and the existing device key; (1b) push this signature and the public PGP
+   key to the server; and if "--import" flag is passed: (2a) copy the PGP secret half
+   into your local Keybase keyring; and (2b) encrypt this secret key with Keybase's
    local key security mechanism.
 
    By default, Keybase suggests only one PGP public key, but if you want to,
    you can supply the "--multi" flag to override this restriction. If you
    want your secret key imported into the local Keybase keyring, then use
-   the "--import" flag. Importing the secret key to Keybase keyring makes
-   it possible to use Keybase PGP like "pgp decrypt" or "pgp sign".
+   the "--import" flag. Importing your secret key to Keybase keyring makes
+   it possible to use Keybase PGP commands like "pgp decrypt" or "pgp sign".
 
    If you don't want to publish signature chain link to Keybase servers, use
    "--no-publish" flag. It's only valid when both "--no-publish" and "--import"
