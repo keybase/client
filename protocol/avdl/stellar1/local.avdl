@@ -35,6 +35,7 @@ protocol local {
   array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
 
   void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
+  void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
 
   // -------------------------------------------------------
   // CLI protocol

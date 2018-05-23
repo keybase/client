@@ -792,3 +792,34 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	}
 	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }
+
+func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err error) {
+	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	if err != nil {
+		return err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	var foundAccID, foundPrimary bool
+	for i, acc := range nextBundle.Accounts {
+		if acc.AccountID.Eq(accountID) {
+			if acc.IsPrimary {
+				// Nothing to do.
+				return nil
+			}
+			nextBundle.Accounts[i].IsPrimary = true
+			foundAccID = true
+		} else if acc.IsPrimary {
+			nextBundle.Accounts[i].IsPrimary = false
+			foundPrimary = true
+		}
+
+		if foundAccID && foundPrimary {
+			break
+		}
+	}
+	if !foundAccID {
+		return fmt.Errorf("account not found: %v", accountID)
+	}
+	//return remote.Post(m.Ctx(), m.G(), nextBundle)
+	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle)
+}
