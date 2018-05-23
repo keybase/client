@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Avatar, Box2, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {formatTimeForStellarTransaction} from '../../util/timestamp'
+import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
 type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
@@ -34,6 +34,7 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
 
 type StellarPublicKeyProps = {|
   publicKey: string,
+  showFullKey: boolean,
   textType: TextType,
 |}
 
@@ -41,7 +42,7 @@ const StellarPublicKey = (props: StellarPublicKeyProps) => {
   const key = props.publicKey
   return (
     <Text type={props.textType} title={key}>
-      {key.substr(0, 6) + '...' + key.substr(-5)}
+      {props.showFullKey ? key : key.substr(0, 6) + '...' + key.substr(-5)}
     </Text>
   )
 }
@@ -50,23 +51,34 @@ type CounterpartyTextProps = {|
   large: boolean,
   counterparty: string,
   counterpartyType: CounterpartyType,
+  showFullKeys: boolean,
+  textType?: 'Body' | 'BodySmall' | 'BodySemibold',
+  textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textType = props.large ? 'Body' : 'BodySmall'
-  const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
+  const textType = props.textType || (props.large ? 'Body' : 'BodySmall')
+  const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
 
   switch (props.counterpartyType) {
     case 'keybaseUser':
-      return <ConnectedUsernames
-        colorFollowing={true}
-        colorBroken={true}
-        inline={true}
-        type={textTypeSemibold}
-        usernames={[props.counterparty]}
-      />
+      return (
+        <ConnectedUsernames
+          colorFollowing={true}
+          colorBroken={true}
+          inline={true}
+          type={textTypeSemibold}
+          usernames={[props.counterparty]}
+        />
+      )
     case 'stellarPublicKey':
-      return <StellarPublicKey publicKey={props.counterparty} textType={textType} />
+      return (
+        <StellarPublicKey
+          publicKey={props.counterparty}
+          showFullKey={props.showFullKey}
+          textType={textType}
+        />
+      )
     case 'wallet':
       return props.large ? (
         <Text type={textType}>{props.counterparty}</Text>
@@ -95,13 +107,16 @@ const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
 
-  const counterparty = <CounterpartyText
-    counterparty={props.counterparty}
-    counterpartyType={props.counterpartyType}
-    large={props.large}
-    textType={textType}
-    textTypeSemibold={textTypeSemibold}
-  />
+  const counterparty = (
+    <CounterpartyText
+      counterparty={props.counterparty}
+      counterpartyType={props.counterpartyType}
+      large={props.large}
+      showFullKey={false}
+      textType={textType}
+      textTypeSemibold={textTypeSemibold}
+    />
+  )
   const amount = <Text type={textTypeSemibold}>{props.amountUser}</Text>
 
   if (props.counterpartyType === 'wallet') {
@@ -160,13 +175,20 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 type TimestampProps = {|
   timestamp: Date | null,
+  relative: boolean,
 |}
 
-const Timestamp = (props: TimestampProps) => {
+export const Timestamp = (props: TimestampProps) => {
   if (!props.timestamp) {
     return <Text type="BodySmall">Pending</Text>
   }
-  const {human, tooltip} = formatTimeForStellarTransaction(props.timestamp)
+  let human
+  let tooltip
+  if (props.relative) {
+    ;({human, tooltip} = formatTimeForStellarTransaction(props.timestamp))
+  } else {
+    ;({human, tooltip} = formatTimeForStellarTransactionDetails(props.timestamp))
+  }
   return (
     <Text title={tooltip} type="BodySmall">
       {human}
@@ -203,7 +225,7 @@ export const Transaction = (props: Props) => {
         large={props.large}
       />
       <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
-        <Timestamp timestamp={props.timestamp} />
+        <Timestamp relative={true} timestamp={props.timestamp} />
         <Detail
           large={props.large}
           pending={pending}

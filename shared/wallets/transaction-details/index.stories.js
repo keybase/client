@@ -27,52 +27,83 @@ const load = () => {
         {story()}
       </Box2>
     ))
-    .add('Sending to Keybase user', () =>
-    <TransactionDetails
-      counterparty="yen"
-      counterpartyMeta="Addie Stokes"
-      counterpartyType="keybaseUser"
-      amountUser="$12.50"
-      amountXLM="53.1688643 XLM"
-      yourRole="sender"
-      memo={memo}
-      timestamp={yesterday}
-      you="cjb"
-    />
-  ).add('Sending to Stellar public key', () =>
-    <TransactionDetails
-      counterparty="G43289XXXXX34OPL"
-      counterpartyType="stellarPublicKey"
-      amountUser="$15.65"
-      amountXLM="42.535091 XLM"
-      yourRole="sender"
-      memo={memo}
-      timestamp={yesterday}
-      you="cjb"
-    />
-).add('Sending to Keybase user (pending)', () =>
-    <TransactionDetails
-      counterparty="Second wallet"
-      counterpartyType="wallet"
-      amountUser="$100"
-      amountXLM="545.2562704 XLM"
-      yourRole="sender"
-      memo={memo}
-      timestamp={null}
-      you="cjb"
-    />
-  ).add('Received from Keybase user (pending)', () =>
-    <TransactionDetails
-      counterparty="Second wallet"
-      counterpartyType="wallet"
-      amountUser="$100"
-      amountXLM="545.2562704 XLM"
-      yourRole="receiver"
-      memo={memo}
-      timestamp={yesterday}
-      you="cjb"
-    />
-  )
+    .add('Sending to Keybase user', () => (
+      <TransactionDetails
+        counterparty="yen"
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+        yourRole="sender"
+        memo={memo}
+        timestamp={yesterday}
+        you="cjb"
+      />
+    ))
+    .add('Sending to Stellar public key', () => (
+      <TransactionDetails
+        counterparty="G43289XXXXX34OPL"
+        counterpartyType="stellarPublicKey"
+        amountUser="$15.65"
+        amountXLM="42.535091 XLM"
+        yourRole="sender"
+        memo={memo}
+        timestamp={yesterday}
+        you="cjb"
+      />
+    ))
+    .add('Sending to Keybase user (pending)', () => (
+      <TransactionDetails
+        counterparty="yen"
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+        yourRole="sender"
+        memo={memo}
+        timestamp={null}
+        you="cjb"
+      />
+    ))
+    .add('Received from Keybase user', () => (
+      <TransactionDetails
+        counterparty="yen"
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+        yourRole="receiver"
+        memo={memo}
+        publicMemo="Foo bar"
+        timestamp={yesterday}
+        you="cjb"
+      />
+    ))
+    .add('Received from Keybase user (pending)', () => (
+      <TransactionDetails
+        counterparty="yen"
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountUser="$12.50"
+        amountXLM="53.1688643 XLM"
+        yourRole="receiver"
+        memo={memo}
+        timestamp={null}
+        you="cjb"
+      />
+    ))
+    .add('Received from another wallet', () => (
+      <TransactionDetails
+        counterparty="Second wallet"
+        counterpartyType="wallet"
+        amountUser="$100"
+        amountXLM="545.2562704 XLM"
+        yourRole="receiver"
+        memo={memo}
+        timestamp={yesterday}
+        you="cjb"
+      />
+    ))
 }
 
 export default load
