@@ -35,7 +35,7 @@ const FolderHeader = ({
                 : breadcrumbItems[breadcrumbItems.length - 1].name}
             </Text>
           </Box>
-          <BackButton title={null} onClick={onBack} style={{marginLeft: globalMargins.small}} />
+          <BackButton title={null} onClick={onBack} />
         </Box>
       ) : breadcrumbItems.length === 1 ? (
         <Box style={folderHeaderStyleRoot}>
@@ -95,7 +95,7 @@ const styleHeaderContainer = {
 const styleFolderHeader = {
   ...stylesCommonRow,
   justifyContent: 'center',
-  minHeight: isMobile ? 64 : 48,
+  minHeight: 48,
 }
 
 const folderHeaderStyleRoot = platformStyles({
