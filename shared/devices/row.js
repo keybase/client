@@ -3,14 +3,13 @@ import * as Types from '../constants/types/devices'
 import {type TypedState} from '../util/container'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
-import type {IconType} from '../common-adapters'
-import {Icon, Box, Text, ClickableBox} from '../common-adapters'
+import {Icon, Box, Text, ClickableBox, type IconType} from '../common-adapters'
 import {globalStyles, globalColors, platformStyles} from '../styles'
 
 // TEMP move to util container
 import * as React from 'react'
 import {connect} from 'react-redux'
-import {setDisplayName} from 'recompose'
+import type {Dispatch} from 'redux'
 
 type OwnProps = {
   deviceID: Types.DeviceID,
@@ -41,7 +40,7 @@ const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch<{type: 'routeTree:navigateAppend'}>) => ({
   _showExistingDevicePage: (deviceID: string) =>
     dispatch(navigateAppend([{props: {deviceID}, selected: 'devicePage'}])),
 })
@@ -49,7 +48,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
-  showExistingDevicePage: () => dispatchProps._showExistingDevicePage(ownProps.deviceID),
+  showExistingDevicePage: (name: string) => dispatchProps._showExistingDevicePage(ownProps.deviceID),
 })
 
 // TODO move to util/container when done
@@ -81,16 +80,29 @@ function namedConnect<
   mapStateToProps: MapStateToProps<S, SP, RSP>,
   mapDispatchToProps: MapDispatchToProps<A, DP, RDP>,
   mergeProps: MergeProps<RSP, RDP, MP, RMP>
-): (component: Com) => React.ComponentType<CP & SP & DP & MP> {
-  const connector: (component: Com) => React.ComponentType<CP & SP & DP & MP> = connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  )
-  return connector(setDisplayName(name))
+): (Wrapped: Com) => React.ComponentType<CP & SP & DP & MP> {
+  return Wrapped => {
+    const connector = connect(mapStateToProps, mapDispatchToProps, mergeProps)
+    class C extends React.Component<RMP> {
+      static displayName = name
+      render() {
+        return <Wrapped {...this.props} />
+      }
+    }
+    return connector(C)
+  }
+}
+// const namedConnect = connect
+
+type Props = {
+  isCurrentDevice: boolean,
+  name: string,
+  isRevoked: boolean,
+  icon: IconType,
+  showExistingDevicePage: () => void,
 }
 
-const Row = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
+const Row = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}: Props) => (
   <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
     <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
       <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
