@@ -156,7 +156,7 @@ func TestChangeWalletName(t *testing.T) {
 }
 
 func TestSetAccountAsDefault(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 1)
+	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
@@ -217,4 +217,12 @@ func TestSetAccountAsDefault(t *testing.T) {
 			require.Equal(t, acc.IsPrimary, acc.AccountID == v)
 		}
 	}
+
+	// Expecting additionalAccs[0] to be default account. Lookup
+	// public Stellar address as another user.
+	u0, err := tcs[1].G.LoadUserByUID(tcs[0].Fu.User.GetUID())
+	require.NoError(t, err)
+	u0addr := u0.StellarWalletAddress()
+	require.NotNil(t, u0addr)
+	require.Equal(t, additionalAccs[0], *u0addr)
 }

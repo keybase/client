@@ -194,6 +194,9 @@ func (a balanceList) nativeBalanceDescription() (string, error) {
 func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
 	m := libkb.NewMetaContext(s.logTag(ctx), s.G())
 	defer s.G().CTraceTimed(ctx, "ChangeWalletAccountNameLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 
 	return stellar.ChangeAccountName(m, arg.AccountID, arg.NewName)
 }
@@ -201,6 +204,9 @@ func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.
 func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (err error) {
 	m := libkb.NewMetaContext(s.logTag(ctx), s.G())
 	defer s.G().CTraceTimed(ctx, "SetWalletAccountAsDefaultLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 
 	return stellar.SetAccountAsPrimary(m, arg.AccountID)
 }

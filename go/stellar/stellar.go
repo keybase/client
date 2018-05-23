@@ -794,6 +794,9 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 }
 
 func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err error) {
+	if accountID.IsNil() {
+		return errors.New("passed empty AccountID")
+	}
 	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
