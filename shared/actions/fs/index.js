@@ -323,9 +323,11 @@ const loadMimeTypeResult = (mimeType: string, action: FsGen.MimeTypeLoadPayload)
     })
   )
 
-let inboxQuery = ChatConstants.makeInboxQuery([])
-inboxQuery.computeActiveList = false
-inboxQuery.tlfVisibility = RPCTypes.commonTLFVisibility.any
+let inboxQuery = {
+  ...ChatConstants.makeInboxQuery([]),
+  computeActiveList: false,
+  tlfVisibility: RPCTypes.commonTLFVisibility.any,
+}
 
 function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, any> {
   // TODO: maybe uncomment?
