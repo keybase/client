@@ -646,9 +646,13 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {
 	defer func() {
 		if ferr != nil {
-			s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s",
-				ferr.Error())
-			storage.NewInbox(s.G(), uid).Clear(ctx)
+			// Only do this aggressive clear if the error we get is not some kind of network error
+			if IsOfflineError(ferr) == OfflineErrorKindOnline {
+				s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s", ferr)
+				storage.NewInbox(s.G(), uid).Clear(ctx)
+			} else {
+				s.Debug(ctx, "handleInboxError: skipping inbox clear because of offline error: %s", ferr)
+			}
 		}
 	}()
 
