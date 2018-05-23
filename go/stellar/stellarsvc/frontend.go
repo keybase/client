@@ -189,6 +189,16 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 	return currencies, nil
 }
 
+func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.LinkNewWalletAccountLocalArg) (stellar1.AccountID, error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "LinkNewWalletAccountLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return err
+	}
+	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary)
+}
+
 type balanceList []stellar1.Balance
 
 func (a balanceList) nativeBalanceDescription() (string, error) {

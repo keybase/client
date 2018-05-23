@@ -319,6 +319,23 @@
       ],
       "response": null
     },
+    "linkNewWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "secretKey",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "AccountID"
+    },
     "balancesLocal": {
       "request": [
         {
