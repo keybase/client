@@ -1,15 +1,17 @@
 // @flow
 /* eslint-env browser */
 import React, {Component} from 'react'
-import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
+import {Box, Icon, Input, Meta, Text} from '../../../../common-adapters'
+import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import flags from '../../../../util/feature-flags'
-
+import {messageExplodeDescriptions} from '../../../../constants/chat2'
+import SetExplodingMessagePopup from '../../messages/set-explode-popup'
 import type {PlatformInputProps} from './types'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 
 const MentionCatcher = ({onClick}) => (
   <Box
@@ -23,17 +25,19 @@ const MentionCatcher = ({onClick}) => (
 
 type State = {
   emojiPickerOpen: boolean,
+  explodingPopupOpen: boolean,
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps, State> {
+class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
   _input: ?Input
   _fileInput: ?HTMLInputElement
 
-  constructor(props: PlatformInputProps) {
+  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
     super(props)
     this.state = {
       emojiPickerOpen: false,
+      explodingPopupOpen: false,
       hasText: false,
     }
   }
@@ -49,6 +53,14 @@ class PlatformInput extends Component<PlatformInputProps, State> {
 
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+  }
+
+  _explodingPopupToggle = () => {
+    this.setState(({explodingPopupOpen}) => ({explodingPopupOpen: !explodingPopupOpen}))
+  }
+
+  _selectExplodingMode = selected => {
+    this.props.selectExplodingMode(selected.seconds)
   }
 
   _filePickerFiles = () => (this._fileInput && this._fileInput.files) || []
@@ -279,6 +291,36 @@ class PlatformInput extends Component<PlatformInputProps, State> {
                   type="iconfont-boom"
                 />
               )}
+            {flags.explodingMessagesEnabled &&
+              this.state.explodingPopupOpen && (
+                <SetExplodingMessagePopup
+                  attachTo={this.props.attachmentRef}
+                  isNew={true}
+                  items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+                  onHidden={this._explodingPopupToggle}
+                  onSelect={this._selectExplodingMode}
+                  position={'bottom right'}
+                  selected={messageExplodeDescriptions.find(
+                    exploded => exploded.seconds === this.props.explodingModeSeconds
+                  )}
+                  visible={this.state.explodingPopupOpen}
+                />
+              )}
+            {flags.explodingMessagesEnabled && (
+              <Box
+                onClick={this._explodingPopupToggle}
+                ref={this.props.setAttachmentRef}
+                style={styles.explodingIconContainer}
+              >
+                <Icon
+                  color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
+                  onClick={this._explodingPopupToggle}
+                  style={styleIcon}
+                  type="iconfont-bomb"
+                />
+                <ExplodingMeta explodingModeSeconds={this.props.explodingModeSeconds} />
+              </Box>
+            )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
@@ -374,6 +416,33 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   </Box>
 )
 
+const ExplodingMeta = ({explodingModeSeconds}) => {
+  let title = 'New'
+
+  if (explodingModeSeconds !== 0) {
+    const description = messageExplodeDescriptions.find(
+      exploding => exploding.seconds === explodingModeSeconds
+    )
+
+    if (description) {
+      const text = description.text.split(' ')
+      title = `${text[0]}${text[1][0]}`
+    } else {
+      title = null
+    }
+  }
+
+  return title ? (
+    <Meta
+      backgroundColor={explodingModeSeconds === 0 ? globalColors.blue : globalColors.black_75}
+      lowercase={explodingModeSeconds !== 0}
+      style={styles.newBadge}
+      size="Small"
+      title={title}
+    />
+  ) : null
+}
+
 const editingTabStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
@@ -415,4 +484,23 @@ const styleFooter = platformStyles({
   },
 })
 
-export default PlatformInput
+const styles = styleSheetCreate({
+  explodingIconContainer: {
+    marginRight: globalMargins.small + 4,
+    position: 'relative',
+  },
+  newBadge: platformStyles({
+    common: {
+      borderRadius: 3,
+      left: 12,
+      position: 'absolute',
+      top: -4,
+    },
+    isElectron: {
+      border: '1px solid white',
+      cursor: 'pointer',
+    },
+  }),
+})
+
+export default FloatingMenuParentHOC(PlatformInput)

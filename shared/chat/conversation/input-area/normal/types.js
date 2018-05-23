@@ -14,6 +14,7 @@ type CommonProps = {
   channelName: string,
   isEditing: boolean,
   isExploding?: boolean,
+  explodingModeSeconds: number,
   focusInputCounter: number,
   clearInboxFilter: () => void,
   onAttach: (paths: Array<string>) => void,
@@ -21,6 +22,7 @@ type CommonProps = {
   onCancelEditing: () => void,
   onCancelQuoting: () => void,
   onSubmit: (text: string) => void,
+  selectExplodingMode: (seconds: number) => void,
   typing: I.Set<string>,
 }
 

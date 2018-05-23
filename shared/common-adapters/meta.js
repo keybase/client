@@ -14,8 +14,10 @@ import {
 type Props = {
   title: string,
   style?: StylesCrossPlatform,
+  size?: 'Small',
   color?: string,
   backgroundColor: string,
+  lowercase?: boolean,
 }
 
 const Meta = (props: Props) => (
@@ -24,10 +26,23 @@ const Meta = (props: Props) => (
       styles.container,
       props.backgroundColor ? {backgroundColor: props.backgroundColor} : null,
       props.style,
+      props.size === 'Small'
+        ? {
+            paddingLeft: 2,
+            paddingRight: 2,
+          }
+        : null,
     ])}
   >
-    <Text type="Header" style={collapseStyles([styles.text, props.color ? {color: props.color} : null])}>
-      {props.title.toUpperCase()}
+    <Text
+      type="Header"
+      style={collapseStyles([
+        styles.text,
+        props.color ? {color: props.color} : null,
+        props.size === 'Small' ? {fontSize: 9} : null,
+      ])}
+    >
+      {props.lowercase ? props.title.toLowerCase() : props.title.toUpperCase()}
     </Text>
   </Box>
 )
