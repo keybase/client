@@ -56,7 +56,7 @@ func AddAccount(bundle *stellar1.Bundle, secretKey stellar1.SecretKey, name stri
 		Mode:      stellar1.AccountMode_USER,
 		IsPrimary: makePrimary,
 		Signers:   []stellar1.SecretKey{secretKey},
-		Name:      "",
+		Name:      name,
 	})
 	return bundle.CheckInvariants()
 }
