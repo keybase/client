@@ -181,10 +181,15 @@ func TestSetAccountAsDefault(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, 1, bundle.Revision)
 
-	// Test invalid argument
+	// Test invalid arguments
 	invalidAccID, _ := randomStellarKeypair()
 	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
 		AccountID: invalidAccID,
+	})
+	require.Error(t, err)
+
+	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
+		AccountID: stellar1.AccountID(""),
 	})
 	require.Error(t, err)
 
