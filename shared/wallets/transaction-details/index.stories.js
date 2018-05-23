@@ -19,18 +19,6 @@ const yesterday = moment(now)
 const memo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
-const addConfigs = (stories, namePrefix, storyFn) => {
-  roles.forEach(r => {
-      stories.add(namePrefix + ` (${r.yourRole} - large)`, () => {
-        const components = []
-        memosAndTimes.forEach(t => {
-          components.push(storyFn({key: components.length, ...r, ...t}))
-        })
-        return components
-      })
-    })
-}
-
 const load = () => {
   storiesOf('Wallets/Transaction Details', module)
     .addDecorator(provider)
@@ -48,6 +36,7 @@ const load = () => {
       yourRole="sender"
       memo={memo}
       timestamp={yesterday}
+      large={true}
     />
   ).add('Sending to Stellar public key', () =>
     <TransactionDetails
