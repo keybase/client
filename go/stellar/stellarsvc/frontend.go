@@ -63,6 +63,13 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 }
 
 func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (assets []stellar1.AccountAssetLocal, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetAccountAssetsLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	details, err := s.remoter.Details(ctx, arg.AccountID)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", arg.AccountID, err)
@@ -147,13 +154,19 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	return assets, nil
 }
 
-func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) ([]stellar1.CurrencyLocal, error) {
+func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (currencies []stellar1.CurrencyLocal, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetDisplayCurrenciesLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var currencies []stellar1.CurrencyLocal
 	for code, def := range conf.Currencies {
 		c := stellar1.CurrencyLocal{
 			Description: fmt.Sprintf("%s (%s)", code, def.Symbol.Symbol),
