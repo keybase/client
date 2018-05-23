@@ -327,7 +327,7 @@
         },
         {
           "name": "secretKey",
-          "type": "string"
+          "type": "SecretKey"
         },
         {
           "name": "name",

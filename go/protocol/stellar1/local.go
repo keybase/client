@@ -236,9 +236,9 @@ type SetWalletAccountAsDefaultLocalArg struct {
 }
 
 type LinkNewWalletAccountLocalArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	SecretKey string `codec:"secretKey" json:"secretKey"`
-	Name      string `codec:"name" json:"name"`
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	SecretKey SecretKey `codec:"secretKey" json:"secretKey"`
+	Name      string    `codec:"name" json:"name"`
 }
 
 type BalancesLocalArg struct {
@@ -682,6 +682,7 @@ func (c LocalClient) ChangeWalletAccountNameLocal(ctx context.Context, __arg Cha
 
 func (c LocalClient) SetWalletAccountAsDefaultLocal(ctx context.Context, __arg SetWalletAccountAsDefaultLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.setWalletAccountAsDefaultLocal", []interface{}{__arg}, nil)
+	return
 }
 
 func (c LocalClient) LinkNewWalletAccountLocal(ctx context.Context, __arg LinkNewWalletAccountLocalArg) (res AccountID, err error) {
