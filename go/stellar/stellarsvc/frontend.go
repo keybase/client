@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -188,4 +189,11 @@ func (a balanceList) nativeBalanceDescription() (string, error) {
 		}
 	}
 	return "0 XLM", nil
+}
+
+func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
+	m := libkb.NewMetaContext(s.logTag(ctx), s.G())
+	defer s.G().CTraceTimed(ctx, "ChangeWalletAccountNameLocal", func() error { return err })()
+
+	return stellar.ChangeAccountName(m, arg.AccountID, arg.NewName)
 }
