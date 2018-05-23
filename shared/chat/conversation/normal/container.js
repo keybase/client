@@ -8,7 +8,9 @@ import {compose, connect, withStateHandlers, type TypedState} from '../../../uti
 import {chatTab} from '../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
-  const showLoader = !!state.chat2.loadingMap.get(`loadingThread:${conversationIDKey}`)
+  const loadingMap = state.chat2.loadingMap
+  const showLoader =
+    !!loadingMap.get(`loadingThread:${conversationIDKey}`) || !!loadingMap.get('inboxSyncStarted')
   const meta = Constants.getMeta(state, conversationIDKey)
   const infoPanelOpen = Constants.isInfoPanelOpen(state)
   return {conversationIDKey, infoPanelOpen, showLoader, threadLoadedOffline: meta.offline}
