@@ -1372,7 +1372,7 @@ func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1
 	supersededMsg := messages[0].Valid()
 	if supersededMsg.IsEphemeral() {
 		metadata = supersededMsg.EphemeralMetadata()
-		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingLifetime(h.clock.Now()))
+		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingEphemeralLifetime(h.clock.Now()))
 	}
 	return metadata, nil
 }

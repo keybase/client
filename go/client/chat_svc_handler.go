@@ -225,12 +225,15 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 				UID:      mv.ClientHeader.Sender.String(),
 				DeviceID: mv.ClientHeader.SenderDevice.String(),
 			},
-			SentAt:        mv.ServerHeader.Ctime.UnixSeconds(),
-			SentAtMs:      mv.ServerHeader.Ctime.UnixMilliseconds(),
-			Prev:          prev,
-			Unread:        unread,
-			RevokedDevice: mv.SenderDeviceRevokedAt != nil,
-			KBFSEncrypted: mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
+			SentAt:             mv.ServerHeader.Ctime.UnixSeconds(),
+			SentAtMs:           mv.ServerHeader.Ctime.UnixMilliseconds(),
+			Prev:               prev,
+			Unread:             unread,
+			RevokedDevice:      mv.SenderDeviceRevokedAt != nil,
+			KBFSEncrypted:      mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
+			IsEphemeral:        mv.IsEphemeral(),
+			IsEphemeralExpired: mv.IsEphemeralExpired(time.Now()),
+			ETime:              mv.Etime(),
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -1066,17 +1069,20 @@ type MsgContent struct {
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
-	ID            chat1.MessageID                `json:"id"`
-	Channel       ChatChannel                    `json:"channel"`
-	Sender        MsgSender                      `json:"sender"`
-	SentAt        int64                          `json:"sent_at"`
-	SentAtMs      int64                          `json:"sent_at_ms"`
-	Content       MsgContent                     `json:"content"`
-	Prev          []chat1.MessagePreviousPointer `json:"prev"`
-	Unread        bool                           `json:"unread"`
-	RevokedDevice bool                           `json:"revoked_device,omitempty"`
-	Offline       bool                           `json:"offline,omitempty"`
-	KBFSEncrypted bool                           `json:"kbfs_encrypted,omitempty"`
+	ID                 chat1.MessageID                `json:"id"`
+	Channel            ChatChannel                    `json:"channel"`
+	Sender             MsgSender                      `json:"sender"`
+	SentAt             int64                          `json:"sent_at"`
+	SentAtMs           int64                          `json:"sent_at_ms"`
+	Content            MsgContent                     `json:"content"`
+	Prev               []chat1.MessagePreviousPointer `json:"prev"`
+	Unread             bool                           `json:"unread"`
+	RevokedDevice      bool                           `json:"revoked_device,omitempty"`
+	Offline            bool                           `json:"offline,omitempty"`
+	KBFSEncrypted      bool                           `json:"kbfs_encrypted,omitempty"`
+	IsEphemeral        bool                           `json:"is_ephemeral,omitempty"`
+	IsEphemeralExpired bool                           `json:"is_ephemeral_expired,omitempty"`
+	ETime              gregor1.Time                   `json:"etime,omitempty"`
 }
 
 // Message contains either a MsgSummary or an Error.  Used for JSON output.
