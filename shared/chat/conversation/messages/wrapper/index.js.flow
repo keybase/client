@@ -4,6 +4,8 @@ import * as Types from '../../../../constants/types/chat2'
 
 export type Props = {
   author: string,
+  explodesAt: number,
+  exploding: boolean,
   failureDescription: string,
   includeHeader: boolean,
   innerClass: React.ComponentType<any>,

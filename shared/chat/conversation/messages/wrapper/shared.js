@@ -15,6 +15,7 @@ import Timestamp from './timestamp'
 import SendIndicator from './chat-send'
 import MessagePopup from '../message-popup'
 import HeightRetainer from './height-retainer'
+import ExplodingMeta from './exploding-meta'
 
 import type {Props} from '.'
 
@@ -149,6 +150,7 @@ const RightSide = props => (
           fontSize={11}
         />
       )}
+      {props.exploding && <ExplodingMeta explodesAt={props.explodesAt} />}
     </Box>
     {!!props.failureDescription && (
       <Failure

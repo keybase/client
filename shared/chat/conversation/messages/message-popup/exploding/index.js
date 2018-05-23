@@ -113,7 +113,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           gapEnd={true}
           gapStart={true}
           style={{
-            backgroundColor: this.state.secondsLeft < oneHourInSecs ? globalColors.red : globalColors.black,
+            backgroundColor: this.state.secondsLeft < oneMinuteInS ? globalColors.red : globalColors.black,
             marginTop: globalMargins.tiny,
           }}
         >
@@ -166,7 +166,7 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
   )
 }
 
-const oneHourInSecs = 60 * 60
+const oneMinuteInS = 60
 
 const stylePopup = platformStyles({
   common: {
