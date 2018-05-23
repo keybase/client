@@ -2,12 +2,11 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as Constants from '../../constants/chat2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
-import logger from '../../logger'
-import {isEqual} from 'lodash-es'
 import {isMobile} from '../platform'
 import {
   pendingConversationIDKey,
@@ -49,8 +48,8 @@ export const isValidConversationIDKey = (id: Types.ConversationIDKey) =>
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
   ordinal: Types.numberToOrdinal(0),
-  sourceConversationIDKey: Types.stringToConversationIDKey(''),
-  targetConversationIDKey: Types.stringToConversationIDKey(''),
+  sourceConversationIDKey: Constants.noConversationIDKey,
+  targetConversationIDKey: Constants.noConversationIDKey,
 })
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
