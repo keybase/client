@@ -12,9 +12,6 @@ const commonProps = {
   setEnabled: action('setEnabled'),
   onConfirm: action('onConfirm'),
   onBack: action('onBack'),
-
-  loading: false,
-  showSaveIndicator: false,
 }
 
 const load = () => {
@@ -22,8 +19,11 @@ const load = () => {
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))
-    .add('Channel', () => <RetentionWarning {...commonProps} />)
+    .add('Ad hoc', () => <RetentionWarning {...commonProps} entityType="adhoc" />)
+    .add('Channel', () => <RetentionWarning {...commonProps} entityType="channel" />)
+    .add('Small team', () => <RetentionWarning {...commonProps} entityType="small team" />)
     .add('Big team', () => <RetentionWarning {...commonProps} entityType="big team" />)
+    .add('Disabled', () => <RetentionWarning {...commonProps} enabled={false} />)
 }
 
 export default load
