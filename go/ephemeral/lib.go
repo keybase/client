@@ -12,6 +12,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+const SkipKeygenNilMerkleRoot = "Skipping key generation, unable to fetch merkle root"
+
 // While  under development, this whitelist will allow ephemeral code to work
 // (useful for enabling on mobile builds)
 var adminWhitelist = map[keybase1.UID]bool{
@@ -108,7 +110,8 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
-		return err
+		e.G().Log.CDebugf(ctx, "Unable to fetch merkle root: %v, attempting keygenIfNeeded with nil root", err)
+		merkleRootPtr = &libkb.MerkleRoot{}
 	}
 	return e.keygenIfNeeded(ctx, *merkleRootPtr)
 }
@@ -116,6 +119,10 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (err error) {
 	defer e.G().CTraceTimed(ctx, "keygenIfNeeded", func() error { return err })()
 	defer e.cleanupStaleUserAndDeviceEKs(ctx, merkleRoot) // always try to cleanup expired keys
+
+	if merkleRoot.IsNil() {
+		return fmt.Errorf(SkipKeygenNilMerkleRoot)
+	}
 
 	if deviceEKNeeded, err := e.newDeviceEKNeeded(ctx, merkleRoot); err != nil {
 		return err
@@ -143,7 +150,8 @@ func (e *EKLib) CleanupStaleUserAndDeviceEKs(ctx context.Context) (err error) {
 
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
-		return err
+		e.G().Log.CDebugf(ctx, "Unable to fetch merkle root: %v, attempting deviceEK deletion with nil root", err)
+		merkleRootPtr = &libkb.MerkleRoot{}
 	}
 	return e.cleanupStaleUserAndDeviceEKs(ctx, *merkleRootPtr)
 }
@@ -156,6 +164,10 @@ func (e *EKLib) cleanupStaleUserAndDeviceEKs(ctx context.Context, merkleRoot lib
 	deviceEKStorage := e.G().GetDeviceEKStorage()
 	_, err = deviceEKStorage.DeleteExpired(ctx, merkleRoot)
 	epick.Push(err)
+
+	if merkleRoot.IsNil() {
+		return fmt.Errorf("skipping userEK deletion, unable to fetch merkle root")
+	}
 
 	userEKBoxStorage := e.G().GetUserEKBoxStorage()
 	_, err = userEKBoxStorage.DeleteExpired(ctx, merkleRoot)
