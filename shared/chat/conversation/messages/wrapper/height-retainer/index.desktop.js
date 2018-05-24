@@ -39,6 +39,8 @@ class HeightRetainer extends React.Component<Props, State> {
               backgroundImage: explodedIllustrationUrl,
               backgroundRepeat: 'repeat',
               backgroundSize: '400px 68px',
+              maxWidth: 500,
+              marginRight: 60,
             },
         ])}
       >
