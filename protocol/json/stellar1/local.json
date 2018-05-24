@@ -319,6 +319,23 @@
       ],
       "response": null
     },
+    "deleteWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "userAcknowledged",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "linkNewWalletAccountLocal": {
       "request": [
         {
