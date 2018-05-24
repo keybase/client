@@ -4,6 +4,10 @@ import {requestAutoInvite} from '../../../actions/signup'
 import Intro from '.'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../util/container'
 
+type OwnProps = {
+  navigateAppend: (...Array<any>) => any,
+}
+
 const mapStateToProps = (state: TypedState) => {
   let bannerMessage = null
 
@@ -16,13 +20,13 @@ const mapStateToProps = (state: TypedState) => {
   return {bannerMessage}
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => ({
   _onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onLogin: () => dispatch(LoginGen.createStartLogin()),
   onSignup: () => dispatch(requestAutoInvite()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   bannerMessage: stateProps.bannerMessage,
   onFeedback: isMobile ? dispatchProps._onFeedback : null,
   onLogin: dispatchProps.onLogin,

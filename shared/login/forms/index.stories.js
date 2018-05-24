@@ -12,6 +12,7 @@ const introProps = {
 }
 
 const splashProps = {
+  failed: false,
   onFeedback: null,
   onRetry: null,
   status: 'Loading',
