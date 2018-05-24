@@ -1351,7 +1351,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // ephemeralMetadata on this superseder message.
 func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 	switch msg.ClientHeader.MessageType {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
+	case chat1.MessageType_DELETE, chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
 	default:
 		return msg.ClientHeader.EphemeralMetadata, nil
 	}
