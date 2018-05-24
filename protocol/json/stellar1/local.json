@@ -133,7 +133,7 @@
         {
           "type": [
             null,
-            "PaymentCLILocal"
+            "PaymentLocal"
           ],
           "name": "payment"
         },

@@ -463,3 +463,58 @@ func TestPrivateKeyExporting(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, tcs[0].Backend.SecretKey(accID), privKey)
 }
+
+func TestGetPaymentsLocal(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
+	require.NoError(t, err)
+
+	srvSender := tcs[0].Srv
+	rm := tcs[0].Backend
+	accountIDSender := rm.AddAccount()
+	accountIDRecip := rm.AddAccount()
+
+	srvRecip := tcs[1].Srv
+
+	argImport := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(accountIDSender),
+		MakePrimary: true,
+	}
+	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	argImport.SecretKey = rm.SecretKey(accountIDRecip)
+	err = srvRecip.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	arg := stellar1.SendCLILocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Amount:    "1011.123",
+		Asset:     stellar1.Asset{Type: "native"},
+	}
+	_, err = srvSender.SendCLILocal(context.Background(), arg)
+	require.NoError(t, err)
+
+	checkPayment := func(p stellar1.PaymentLocal) {
+		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
+		require.Equal(t, "keybase", p.SourceType, "SourceType")
+		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
+		require.Equal(t, "keybase", p.TargetType, "TargetType")
+		require.Equal(t, "1,011.1230000 XLM", p.Amount, "Amount")
+	}
+	senderPayments, err := srvSender.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDSender})
+	require.NoError(t, err)
+	require.Len(t, senderPayments, 1)
+	require.NotNil(t, senderPayments[0].Payment)
+	checkPayment(*senderPayments[0].Payment)
+
+	recipPayments, err := srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip})
+	require.NoError(t, err)
+	require.Len(t, recipPayments, 1)
+	require.NotNil(t, recipPayments[0].Payment)
+	checkPayment(*recipPayments[0].Payment)
+}

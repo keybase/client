@@ -4,11 +4,11 @@ package stellarsvc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -247,8 +247,91 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return nil, err
 	}
 
-	return nil, errors.New("not yet implemented")
+	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, 0)
+	if err != nil {
+		return nil, err
+	}
+	payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments))
+	for i, p := range srvPayments {
+		payments[i].Payment, err = s.transformPaymentSummary(ctx, p)
+		if err != nil {
+			s := err.Error()
+			payments[i].Err = &s
+		}
+	}
 
+	return payments, nil
+}
+
+func (s *Server) transformPaymentSummary(ctx context.Context, p stellar1.PaymentSummary) (*stellar1.PaymentLocal, error) {
+	typ, err := p.Typ()
+	if err != nil {
+		return nil, err
+	}
+
+	switch typ {
+	case stellar1.PaymentSummaryType_STELLAR:
+		return s.transformPaymentStellar(ctx, p.Stellar())
+	case stellar1.PaymentSummaryType_DIRECT:
+		return s.transformPaymentDirect(ctx, p.Direct())
+	case stellar1.PaymentSummaryType_RELAY:
+		return s.transformPaymentRelay(ctx, p.Relay())
+	default:
+		return nil, fmt.Errorf("unrecognized payment type: %s", typ)
+	}
+}
+
+func (s *Server) transformPaymentStellar(ctx context.Context, p stellar1.PaymentSummaryStellar) (*stellar1.PaymentLocal, error) {
+	loc := stellar1.PaymentLocal{
+		TxID:       p.TxID,
+		Time:       p.Ctime,
+		Source:     p.From.String(),
+		SourceType: "stellar",
+		Target:     p.To.String(),
+		TargetType: "stellar",
+	}
+
+	return &loc, nil
+}
+
+func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentSummaryDirect) (*stellar1.PaymentLocal, error) {
+	loc := stellar1.PaymentLocal{
+		TxID: p.TxID,
+		Time: p.Ctime,
+	}
+
+	if p.DisplayAmount != nil {
+		loc.Worth = *p.DisplayAmount
+	}
+	if p.DisplayCurrency != nil {
+		loc.WorthCurrency = *p.DisplayCurrency
+	}
+
+	if name, err := s.lookupUsername(p.From.Uid); err == nil {
+		loc.Source = name
+		loc.SourceType = "keybase"
+	}
+
+	if p.To != nil {
+		if name, err := s.lookupUsername(p.To.Uid); err == nil {
+			loc.Target = name
+			loc.TargetType = "keybase"
+		}
+	}
+
+	return &loc, nil
+}
+
+func (s *Server) transformPaymentRelay(ctx context.Context, p stellar1.PaymentSummaryRelay) (*stellar1.PaymentLocal, error) {
+	return &stellar1.PaymentLocal{}, nil
+}
+
+func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, error) {
+	uname, err := s.G().GetUPAKLoader().LookupUsername(ctx, uid)
+	if err != nil {
+		return "", err
+	}
+	return uname.String(), nil
 }
 
 type balanceList []stellar1.Balance

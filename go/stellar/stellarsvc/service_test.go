@@ -396,13 +396,13 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	recipPayments, err := srvRecip.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, recipPayments, 1)
-	require.NotNil(t, senderPayments[0].Payment, senderPayments[0].Err)
+	require.NotNil(t, recipPayments[0].Payment, recipPayments[0].Err)
 	checkPayment(*recipPayments[0].Payment)
 
 	payment, err := srvSender.PaymentDetailCLILocal(context.Background(), senderPayments[0].Payment.TxID.String())
 	require.NoError(t, err)
 	checkPayment(payment)
-	payment, err = srvRecip.PaymentDetailCLILocal(context.Background(), senderPayments[0].Payment.TxID.String())
+	payment, err = srvRecip.PaymentDetailCLILocal(context.Background(), recipPayments[0].Payment.TxID.String())
 	require.NoError(t, err)
 	checkPayment(payment)
 }

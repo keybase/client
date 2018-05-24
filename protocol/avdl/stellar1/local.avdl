@@ -45,7 +45,7 @@ protocol local {
   }
 
   record PaymentOrErrorLocal {
-    union { null, PaymentCLILocal } payment;
+    union { null, PaymentLocal } payment;
     union { null, string } err;
   }
 

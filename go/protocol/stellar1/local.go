@@ -82,13 +82,13 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 }
 
 type PaymentOrErrorLocal struct {
-	Payment *PaymentCLILocal `codec:"payment,omitempty" json:"payment,omitempty"`
-	Err     *string          `codec:"err,omitempty" json:"err,omitempty"`
+	Payment *PaymentLocal `codec:"payment,omitempty" json:"payment,omitempty"`
+	Err     *string       `codec:"err,omitempty" json:"err,omitempty"`
 }
 
 func (o PaymentOrErrorLocal) DeepCopy() PaymentOrErrorLocal {
 	return PaymentOrErrorLocal{
-		Payment: (func(x *PaymentCLILocal) *PaymentCLILocal {
+		Payment: (func(x *PaymentLocal) *PaymentLocal {
 			if x == nil {
 				return nil
 			}
