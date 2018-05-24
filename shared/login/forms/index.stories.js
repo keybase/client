@@ -3,10 +3,11 @@ import * as React from 'react'
 import {action, storiesOf} from '../../stories/storybook'
 import Intro from './intro'
 import Splash from './splash'
+import {isMobile} from '../../styles'
 
 const introProps = {
   bannerMessage: null,
-  onFeedback: null,
+  onFeedback: isMobile ? action('onFeedback') : null,
   onLogin: action('onLogin'),
   onSignup: action('onSignup'),
 }

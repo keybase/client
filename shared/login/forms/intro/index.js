@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Text, Icon, Box2, ButtonBar, Button} from '../../../common-adapters'
-import {globalColors, styleSheetCreate, globalMargins, isMobile} from '../../../styles'
+import {globalColors, styleSheetCreate, globalMargins, isMobile, platformStyles} from '../../../styles'
 
 type Props = {
   bannerMessage: ?string,
@@ -22,7 +22,7 @@ const Feedback = ({onFeedback}) =>
   )
 
 const Intro = (props: Props) => (
-  <Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small">
+  <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
     {!!props.bannerMessage && (
       <Box2 direction="vertical" fullWidth={true} style={styles.banner}>
         <Text type="BodySemibold" style={styles.bannerMessage}>
@@ -30,8 +30,8 @@ const Intro = (props: Props) => (
         </Text>
       </Box2>
     )}
-    <Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.innerContainer}>
-      {!isMobile && <Box2 direction="vertical" style={styles.gap} />}
+    <Box2 direction="vertical" fullWidth={true} gap="small" style={styles.innerContainer}>
+      <Box2 direction="vertical" style={styles.gapAboveIcon} />
       <Icon type="icon-keybase-logo-80" />
       <Text type="HeaderBig" style={styles.join}>
         Join Keybase
@@ -50,10 +50,26 @@ const Intro = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
-  banner: {backgroundColor: globalColors.blue, padding: globalMargins.medium},
+  banner: {
+    backgroundColor: globalColors.blue,
+    padding: isMobile ? globalMargins.small : globalMargins.medium,
+  },
   bannerMessage: {color: globalColors.white, textAlign: 'center'},
-  gap: {flexGrow: 1},
-  innerContainer: {alignItems: 'center', flexGrow: 1, justifyContent: 'center', padding: globalMargins.large},
+  gapAboveIcon: platformStyles({
+    // we want it to be more centered
+    isElectron: {
+      flexGrow: 1,
+    },
+    isMobile: {
+      height: 0,
+    },
+  }),
+  innerContainer: {
+    alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: isMobile ? globalMargins.small : globalMargins.large,
+  },
   join: {color: globalColors.orange},
 })
 
