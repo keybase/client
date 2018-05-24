@@ -258,6 +258,7 @@ type SendCLILocalArg struct {
 	Note            string `codec:"note" json:"note"`
 	DisplayAmount   string `codec:"displayAmount" json:"displayAmount"`
 	DisplayCurrency string `codec:"displayCurrency" json:"displayCurrency"`
+	ForceRelay      bool   `codec:"forceRelay" json:"forceRelay"`
 }
 
 type ClaimCLILocalArg struct {
