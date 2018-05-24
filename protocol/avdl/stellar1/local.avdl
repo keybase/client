@@ -37,6 +37,13 @@ protocol local {
   void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
   void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
 
+  // Deleting an account is irreversible, even with Keybase, Inc. help.
+  // Consumer of this API should always prompt the user and warn that if
+  // their secret key is not backed up, they will not be able to access
+  // funds on that account.
+  // This RPC checks if `userAcknowledged` string is equal to "yes".
+  void deleteWalletAccountLocal(int sessionID, AccountID accountID, string userAcknowledged);
+
   AccountID linkNewWalletAccountLocal(int sessionID, SecretKey secretKey, string name);
 
   // -------------------------------------------------------
