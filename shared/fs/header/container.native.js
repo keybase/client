@@ -11,6 +11,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, {onBack}, {path}) => {
   const elems = Types.getPathElements(path)
   return {
+    path,
     title: elems.length > 1 ? elems.pop() : 'Keybase Files',
     onBack,
   }

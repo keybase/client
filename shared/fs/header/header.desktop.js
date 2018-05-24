@@ -4,6 +4,7 @@ import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import ConnectedFilesBanner from '../banner/container'
+import AddNew from './add-new-container'
 
 export type FolderHeaderProps = {
   breadcrumbItems: Array<Types.PathBreadcrumbItem>,
@@ -63,6 +64,7 @@ const FolderHeader = ({
             ))}
           </Box>
           <Box style={styleFolderHeaderEnd}>
+            <AddNew path={path} style={styleAddNew} />
             <Icon type="iconfont-finder" color={globalColors.black_40} fontSize={16} onClick={openInFileUI} />
           </Box>
         </Box>
@@ -141,6 +143,10 @@ const styleBreadcrumbDropdownIconBox = {
 
 const styleTeamAvatar = {
   marginRight: globalMargins.xtiny,
+}
+
+const styleAddNew = {
+  marginRight: globalMargins.small,
 }
 
 export default FolderHeader
