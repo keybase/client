@@ -53,7 +53,7 @@ type SettingProps = {|
 |}
 
 const SetMemberShowcase = (props: SettingProps) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingRight: globalMargins.small}}>
     <Checkbox
       checked={props.newPublicityMember}
       disabled={!props.yourOperations.setMemberShowcase}
