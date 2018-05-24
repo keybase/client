@@ -36,6 +36,20 @@ func newBasicSupersedesTransform(g *globals.Context) *basicSupersedesTransform {
 	}
 }
 
+// This is only relevant for ephemeralMessages that are deleted since we want
+// these to show up in the gui as "explode now"
+func (t *basicSupersedesTransform) transformDelete(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
+	mvalid := msg.Valid()
+	if !mvalid.IsEphemeral() {
+		return nil
+	}
+	mvalid.ClientHeader.EphemeralMetadata.ExplodedBy = superMsg.Valid().SenderUsername
+	var emptyBody chat1.MessageBody
+	mvalid.MessageBody = emptyBody
+	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
+	return &newMsg
+}
+
 func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
 	clientHeader := msg.Valid().ClientHeader
 	clientHeader.MessageType = chat1.MessageType_TEXT
@@ -93,7 +107,9 @@ func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.Mess
 		return nil
 	}
 	switch superMsg.GetMessageType() {
-	case chat1.MessageType_DELETE, chat1.MessageType_DELETEHISTORY:
+	case chat1.MessageType_DELETE:
+		return t.transformDelete(msg, superMsg)
+	case chat1.MessageType_DELETEHISTORY:
 		return nil
 	case chat1.MessageType_EDIT:
 		return t.transformEdit(msg, superMsg)

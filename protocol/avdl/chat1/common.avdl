@@ -313,6 +313,8 @@
     gregor1.DurationSec lifetime; // used to computed etime
     @mpackkey("g") @jsonkey("g")
     keybase1.EkGeneration generation;
+    @mpackkey("u") @jsonkey("u")
+    union { null, string } explodedBy;
   }
 
   @mpackkey("pi") @jsonkey("pi")
