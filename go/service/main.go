@@ -580,6 +580,7 @@ func (d *Service) hourlyChecks() {
 		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
+			m.CDebugf("+ hourly check loop")
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
 				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
@@ -589,7 +590,6 @@ func (d *Service) hourlyChecks() {
 			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
 			ekLib.KeygenIfNeeded(m.Ctx())
 
-			m.CDebugf("+ hourly check loop")
 			m.CDebugf("| checking tracks on an hour timer")
 			libkb.CheckTracking(m.G())
 

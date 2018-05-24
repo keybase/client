@@ -13,7 +13,7 @@ import {
   ListItem,
   NativeStyleSheet,
   type IconType,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
@@ -81,7 +81,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
                 key={p.name}
                 type="Large"
                 action={<Box />}
-                icon={<Avatar size={40} username={p.name} />}
+                icon={<Avatar size={48} username={p.name} />}
                 body={
                   <Box style={globalStyles.flexBoxColumn}>
                     <Text type="BodySemibold">{p.name}</Text>
@@ -194,7 +194,7 @@ class FilesRender extends Component<Props> {
           height: 48,
         }}
       >
-        <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: globalMargins.small}} />
+        <BackButton title={null} onClick={this.props.onBack} />
       </Box>
     )
     return contents

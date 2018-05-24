@@ -109,6 +109,15 @@ protocol remote {
 
   array<Balance> balances(keybase1.UserVersion caller, AccountID accountID);
 
+  record AccountDetails {
+    AccountID accountID;
+    string seqno;
+    array<Balance> balances;  
+    int subentryCount;  // number of entries in the ledger (which raise minimum balance)
+    string available;   // for native XLM the amount that is available to send (amount - min balance)
+  }
+  AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
+
   array<PaymentSummary> recentPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
 
   // txID can be either a keybase or stellar transaction ID.

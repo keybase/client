@@ -343,6 +343,18 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 	return m.MessageBody.Deletehistory(), nil
 }
 
+func (m *MsgEphemeralMetadata) String() string {
+	if m == nil {
+		return "<nil>"
+	}
+	var explodedBy string
+	if m.ExplodedBy == nil {
+		explodedBy = "<nil>"
+	} else {
+		explodedBy = *m.ExplodedBy
+	}
+	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", time.Second*time.Duration(m.Lifetime), m.Generation, explodedBy)
+}
 func (m MessagePlaintext) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
@@ -364,6 +376,13 @@ func (m MessageUnboxedValid) IsEphemeral() bool {
 
 func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
+}
+
+func (m MessageUnboxedValid) ExplodedBy() *string {
+	if !m.IsEphemeral() {
+		return nil
+	}
+	return m.EphemeralMetadata().ExplodedBy
 }
 
 func Etime(lifetime gregor1.DurationSec, ctime, rtime, now gregor1.Time) gregor1.Time {
@@ -391,7 +410,7 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 	return Etime(metadata.Lifetime, header.Ctime, m.ClientHeader.Rtime, header.Now)
 }
 
-func (m MessageUnboxedValid) RemainingLifetime(now time.Time) time.Duration {
+func (m MessageUnboxedValid) RemainingEphemeralLifetime(now time.Time) time.Duration {
 	remainingLifetime := m.Etime().Time().Sub(now).Round(time.Second)
 	return remainingLifetime
 }
@@ -698,6 +717,9 @@ func (p *Pagination) Eq(other *Pagination) bool {
 }
 
 func (p *Pagination) String() string {
+	if p == nil {
+		return "<nil>"
+	}
 	return fmt.Sprintf("[Num: %d n: %s p: %s last: %v]", p.Num, hex.EncodeToString(p.Next),
 		hex.EncodeToString(p.Previous), p.Last)
 }

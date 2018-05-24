@@ -5,7 +5,7 @@ import {globalStyles, globalColors} from '../styles'
 
 import type {Props} from './user-card'
 
-const avatarSize = 112
+const avatarSize = 128
 
 const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
   <div style={{...styleContainer, ...outerStyle}}>

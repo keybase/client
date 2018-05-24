@@ -17,11 +17,13 @@ type OwnProps = {
   onFocusInput: () => void,
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => ({
-  conversationIDKey,
-  editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
-  messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
-})
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+  return {
+    conversationIDKey,
+    editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
+    messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
+  }
+}
 
 type DispatchProps = {
   _loadMoreMessages: () => void,

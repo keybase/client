@@ -157,28 +157,6 @@ func testUserHasDeviceKey(tc libkb.TestContext) {
 	}
 }
 
-func TestUserInfo(t *testing.T) {
-	t.Skip()
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-
-	u := CreateAndSignupFakeUser(tc, "login")
-	var username libkb.NormalizedUsername
-	var err error
-	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
-		_, username, _, _, _, err = a.UserInfo()
-	}, "TestUserInfo")
-	if aerr != nil {
-		t.Fatal(err)
-	}
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !username.Eq(libkb.NewNormalizedUsername(u.Username)) {
-		t.Errorf("userinfo username: %q, expected %q", username, u.Username)
-	}
-}
-
 func TestUserEmails(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -195,15 +173,18 @@ func TestUserEmails(t *testing.T) {
 
 func TestProvisionDesktop(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		testProvisionDesktop(t, false, sigVersion)
+		testProvisionDesktop(t, false, sigVersion, false)
 	})
+}
+func TestProvisionDesktopWithEmail(t *testing.T) {
+	testProvisionDesktop(t, false, libkb.KeybaseNullSigVersion, true)
 }
 
 func TestProvisionDesktopPUK(t *testing.T) {
-	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion)
+	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion, false)
 }
 
-func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
+func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion, withEmail bool) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -238,6 +219,11 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
 	}
+	if withEmail {
+		uis.LoginUI = &libkb.TestLoginUI{Username: userX.Email}
+		uis.SecretUI = userX.NewSecretUI()
+	}
+
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 
 	var wg sync.WaitGroup
@@ -941,7 +927,6 @@ func TestProvisionPaperOnly(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc2.G.SetClock(fakeClock)
 	// to pick up the new clock...
-	tc2.G.ResetLoginState()
 	defer tc2.Cleanup()
 
 	secUI := fu.NewSecretUI()
@@ -1036,11 +1021,7 @@ func simulateServiceRestart(t *testing.T, tc libkb.TestContext, fu *FakeUser) {
 
 	// Simulate restarting the service by wiping out the
 	// passphrase stream cache and cached secret keys
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-		a.ClearCachedSecretKeys()
-		a.ClearLoginSession()
-	}, "account - clear")
+	tc.SimulateServiceRestart()
 
 	// now assert we can login without a passphrase
 	uis := libkb.UIs{
@@ -1788,26 +1769,24 @@ func TestLoginStreamCache(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	u1 := CreateAndSignupFakeUser(tc, "login")
+	u1 := SignupFakeUserStoreSecret(tc, "login")
+	assertSecretStored(tc, u1.Username)
 
 	if !assertStreamCache(tc, true) {
 		t.Fatal("expected valid stream cache after signup")
 	}
 
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-		a.ClearCachedSecretKeys()
-	}, "clear stream cache")
+	clearCaches(tc.G)
 
 	if !assertStreamCache(tc, false) {
 		t.Fatal("expected invalid stream cache after clear")
 	}
 
-	// This should now unlock the stream cache too
+	// This should not unlock the stream cache
 	u1.LoginOrBust(tc)
 
-	if !assertStreamCache(tc, true) {
-		t.Fatal("expected valid stream cache after login")
+	if !assertStreamCache(tc, false) {
+		t.Fatal("expected no valid stream cache after login")
 	}
 	assertDeviceKeysCached(tc)
 	assertSecretStored(tc, u1.Username)
@@ -2531,16 +2510,16 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 	ResetAccount(tc, u)
 
 	// Now login again so we can post a PGP key
-	err := tc.G.LoginState().LoginWithPassphrase(m, u.Username, u.Passphrase, false, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	m = m.WithNewProvisionalLoginContext()
+	err := libkb.PassphraseLoginNoPrompt(m, u.Username, u.Passphrase)
+	require.NoError(t, err, "passphrase login no prompt worked")
+	m = m.CommitProvisionalLogin()
 
 	// Generate a new test PGP key for the user, and specify the PushSecret
 	// flag so that their triplesec'ed key is pushed to the server.
 	gen := libkb.PGPGenArg{
-		PrimaryBits: 1024,
-		SubkeyBits:  1024,
+		PrimaryBits: 768,
+		SubkeyBits:  768,
 	}
 	gen.AddDefaultUID(tc.G)
 	peng := NewPGPKeyImportEngine(tc.G, PGPKeyImportEngineArg{
@@ -2549,8 +2528,6 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 		NoSave:     true,
 	})
 
-	// Reset LoginContext to be `nil`, so that way we get the tc.G.LoginState
-	// session token, rather than the old one in ctx.LoginContext.
 	if err := RunEngine2(m, peng); err != nil {
 		tc.T.Fatal(err)
 	}
@@ -2915,10 +2892,7 @@ func TestProvisionerSecretStore(t *testing.T) {
 	if _, err := rand.Read(secretX[:]); err != nil {
 		t.Fatal(err)
 	}
-	tcX.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-		a.ClearCachedSecretKeys()
-	}, "clear stream cache")
+	clearCaches(tcX.G)
 
 	secretCh := make(chan kex2.Secret)
 
@@ -3384,11 +3358,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 
 		// Simulate restarting the service by wiping out the
 		// passphrase stream cache and cached secret keys
-		tc2.G.LoginState().Account(func(a *libkb.Account) {
-			a.ClearStreamCache()
-			a.ClearCachedSecretKeys()
-			a.UnloadLocalSession()
-		}, "account - clear")
+		tc2.SimulateServiceRestart()
 		tc2.G.GetUPAKLoader().ClearMemory()
 
 		// LoginOffline will run when service restarts.
@@ -3784,10 +3754,9 @@ func assertDeviceKeysCached(tc libkb.TestContext) {
 
 func assertPassphraseStreamCache(tc libkb.TestContext) {
 	var ppsValid bool
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		ppsValid = a.PassphraseStreamCache().ValidPassphraseStream()
-	}, "assertPassphraseStreamCache")
-
+	if ppsc := tc.G.ActiveDevice.PassphraseStreamCache(); ppsc != nil {
+		ppsValid = ppsc.ValidPassphraseStream()
+	}
 	if !ppsValid {
 		tc.T.Fatal("passphrase stream not cached")
 	}
@@ -3795,10 +3764,6 @@ func assertPassphraseStreamCache(tc libkb.TestContext) {
 
 func assertSecretStored(tc libkb.TestContext, username string) {
 	secret, err := tc.G.SecretStore().RetrieveSecret(libkb.NewNormalizedUsername(username))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if secret.IsNil() {
-		tc.T.Fatal("secret in secret store was nil")
-	}
+	require.NoError(tc.T, err, "no error fetching secret")
+	require.False(tc.T, secret.IsNil(), "secret was non-nil")
 }

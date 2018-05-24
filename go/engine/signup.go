@@ -9,7 +9,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
-	context "golang.org/x/net/context"
 )
 
 type SignupEngine struct {
@@ -118,16 +117,12 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	m = m.CommitProvisionalLogin()
 
 	// signup complete, notify anyone interested.
-	// (and don't notify inside a LoginState action to avoid
-	// a chance of timing out)
 	m.G().NotifyRouter.HandleLogin(s.arg.Username)
 
 	// For instance, setup gregor and friends...
 	m.G().CallLoginHooks()
 
-	go func() {
-		m.G().GetStellar().CreateWalletSoft(context.Background())
-	}()
+	m.G().GetStellar().CreateWalletSoft(m.Ctx())
 
 	return nil
 }

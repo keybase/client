@@ -53,9 +53,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navi
   },
   onNewChat: () => {
     dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
-    if (isMobile) {
-      dispatch(navigateAppend(['conversation']))
-    }
   },
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>

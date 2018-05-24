@@ -1134,6 +1134,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
 			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
@@ -1202,6 +1203,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Zero(t, len(info.Message.Valid().AtMentions))
 			require.Equal(t, chat1.ChannelMention_ALL, info.Message.Valid().ChannelMention)
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
@@ -1219,6 +1221,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
 			require.Equal(t, chat1.ChannelMention_NONE, info.Message.Valid().ChannelMention)
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
@@ -2879,7 +2882,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(2 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -2948,7 +2951,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -3453,6 +3456,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case info := <-listener0.newMessage:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
@@ -3481,6 +3485,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case info := <-listener0.newMessage:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
@@ -3530,6 +3535,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		select {
 		case info := <-listener0.newMessage:
 			require.False(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
@@ -3541,6 +3547,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			select {
 			case info := <-listener0.newMessage:
 				require.True(t, info.DisplayDesktopNotification)
+				require.NotEqual(t, "", info.DesktopNotificationSnippet)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no new message event")
 			}
@@ -4124,6 +4131,8 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctc.as(t, users[1]).h.mockChatUI = ui
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
@@ -4322,7 +4331,7 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("reset user 1")
 		ctcForUser := ctc.as(t, users[1])
-		require.NoError(t, ctcForUser.h.G().LoginState().ResetAccount(ctcForUser.m, users[1].Username))
+		require.NoError(t, libkb.ResetAccount(ctcForUser.m, users[1].NormalizedUsername(), users[1].Passphrase))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
@@ -4383,7 +4392,7 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("reset user 2")
 		ctcForUser2 := ctc.as(t, users[2])
-		require.NoError(t, ctcForUser2.h.G().LoginState().ResetAccount(ctcForUser2.m, users[2].Username))
+		require.NoError(t, libkb.ResetAccount(ctcForUser2.m, users[2].NormalizedUsername(), users[2].Passphrase))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)

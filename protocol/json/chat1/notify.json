@@ -42,6 +42,10 @@
           "name": "displayDesktopNotification"
         },
         {
+          "type": "string",
+          "name": "desktopNotificationSnippet"
+        },
+        {
           "type": [
             null,
             "InboxUIItem"
@@ -197,6 +201,13 @@
         {
           "type": "Expunge",
           "name": "expunge"
+        },
+        {
+          "type": [
+            null,
+            "InboxUIItem"
+          ],
+          "name": "conv"
         }
       ]
     },

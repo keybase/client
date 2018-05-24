@@ -4,7 +4,7 @@ import * as React from 'react'
 import ScrollView from '../common-adapters/scroll-view'
 import {configure, addDecorator} from '@storybook/react'
 import commonStories from './stories'
-import desktopStories from './stories-desktop'
+import desktopStories from './platform-stories'
 
 // Load css
 import '../desktop/renderer/style.css'

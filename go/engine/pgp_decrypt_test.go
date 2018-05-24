@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func decengctx(fu *FakeUser, tc libkb.TestContext) libkb.MetaContext {
@@ -497,4 +498,90 @@ func (t *TestPgpUI) ShouldPushPrivate(context.Context, int) (bool, error) {
 
 func (t *TestPgpUI) Finished(context.Context, int) error {
 	return nil
+}
+
+func TestPGPDecryptWithSyncedKey(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpg")
+	u := createFakeUserWithPGPOnly(t, tc)
+	t.Log("Created fake user with PGP synced only")
+	defer tc.Cleanup()
+
+	// find recipient key
+	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, u.Username))
+	require.NoError(t, err, "loaded the user")
+	rkeys := ur.GetActivePGPKeys(false)
+	require.True(t, len(rkeys) > 0, "recipient has no active pgp keys")
+
+	// encrypt and message with rkeys[0]
+	mid := libkb.NewBufferCloser()
+	msg := "Is it time for lunch?"
+	recipients := []*libkb.PGPKeyBundle{rkeys[0]}
+	err = libkb.PGPEncrypt(strings.NewReader(msg), mid, nil, recipients)
+	require.NoError(t, err, "pgp encryption failed")
+	t.Logf("encrypted data: %x", mid.Bytes())
+
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc = SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
+	require.NoError(t, err, "no error when checking login")
+
+	// decrypt it
+	decryptIt := func() bool {
+		decoded := libkb.NewBufferCloser()
+		decarg := &PGPDecryptArg{
+			Source:       bytes.NewReader(mid.Bytes()),
+			Sink:         decoded,
+			AssertSigned: false,
+		}
+		idUI := &FakeIdentifyUI{}
+		pgpUI := &TestPgpUI{}
+		secretUI := u.NewSecretUI()
+		uis = libkb.UIs{
+			IdentifyUI: idUI,
+			SecretUI:   secretUI,
+			LogUI:      tc.G.UI.GetLogUI(),
+			PgpUI:      pgpUI,
+		}
+		dec := NewPGPDecrypt(tc.G, decarg)
+		m = NewMetaContextForTest(tc).WithUIs(uis)
+		err = RunEngine2(m, dec)
+		require.NoError(t, err, "no error for PGP decrypt")
+
+		decryptedMsg := decoded.Bytes()
+		trimmed := strings.TrimSpace(string(decryptedMsg))
+		t.Logf("decrypted msg: %s", trimmed)
+		require.Equal(t, trimmed, msg, "msg equality failed")
+		return secretUI.CalledGetPassphrase
+	}
+
+	decryptCalledPassphrase := decryptIt()
+	// No need to get a passphrase, since we just logged in.
+	require.False(t, decryptCalledPassphrase, "passphrase get wasn't called")
+
+	// Simulate a service restart
+	m.ActiveDevice().ClearCaches()
+	m.G().LoginState().Account(func(a *libkb.Account) { a.ClearStreamCache() }, "clear")
+
+	decryptCalledPassphrase = decryptIt()
+	require.True(t, decryptCalledPassphrase, "passphrase get was called")
+
+	// See CORE-7929, we shouldn't really need a passphrase here, but for now,
+	// assert the buggy behavior.
+	decryptCalledPassphrase = decryptIt()
+	require.True(t, decryptCalledPassphrase, "passphrase get was called")
+
 }

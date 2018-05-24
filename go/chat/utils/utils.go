@@ -790,6 +790,12 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 
 func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) string {
 	if !msg.IsValidFull() {
+		if msg.IsValid() {
+			mvalid := msg.Valid()
+			if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
+				return "[exploded message 💥]"
+			}
+		}
 		return ""
 	}
 	var prefix string
@@ -811,6 +817,32 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 		return systemMessageSnippet(msg.Valid().MessageBody.System())
 	}
 	return ""
+}
+
+// We don't want to display the contents of an exploding message in notifications
+func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string) string {
+	if conv == nil {
+		return ""
+	}
+	msg, err := PickLatestMessageUnboxed(*conv, VisibleChatMessageTypes())
+	if err != nil || !msg.IsValid() {
+		return ""
+	}
+	mvalid := msg.Valid()
+	if !mvalid.IsEphemeral() {
+		return GetMsgSnippet(msg, *conv, currentUsername)
+	}
+
+	// If the message is already exploded, nothing to see here.
+	if !msg.IsValidFull() {
+		return ""
+	}
+	switch msg.GetMessageType() {
+	case chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT:
+		return "💣 exploding message."
+	default:
+		return ""
+	}
 }
 
 func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
@@ -1012,6 +1044,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
 			IsEphemeral:           valid.IsEphemeral(),
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
+			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:

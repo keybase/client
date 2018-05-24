@@ -1014,9 +1014,17 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
+		var inboxItem *chat1.InboxUIItem
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
+		if err != nil {
+			s.Debug(ctx, "expungeNotify: failed to get conversations: %s", err)
+		} else {
+			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
+		}
 		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
 			ConvID:  convID,
 			Expunge: *mergeRes.Expunged,
+			Conv:    inboxItem,
 		})
 		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
 	}
@@ -1030,11 +1038,11 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 
 	s.lockTab.Acquire(ctx, uid, convID)
 	defer s.lockTab.Release(ctx, uid, convID)
-
 	mergeRes, err := s.storage.Expunge(ctx, convID, uid, expunge)
 	if err != nil {
 		return err
 	}
+
 	s.expungeNotify(ctx, uid, convID, mergeRes)
 	return nil
 }

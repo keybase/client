@@ -1,6 +1,6 @@
 // @flow
 import globalColors from './colors'
-import {resolveImageAsURL} from '../desktop/resolve-root'
+import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import {type CollapsibleStyle} from '.'
 import * as Shared from './shared'

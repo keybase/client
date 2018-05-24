@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins} from '../../styles'
+import {globalStyles} from '../../styles'
 import {BackButton, Box, Text} from '../../common-adapters'
 
 type Props = {
@@ -13,7 +13,7 @@ const Header = ({title, onBack}: Props) => (
     <Box style={stylesFolderHeaderRoot}>
       <Text type="BodyBig">{title}</Text>
     </Box>
-    <BackButton title={null} onClick={onBack} style={stylesBackButton} />
+    <BackButton title={null} onClick={onBack} />
   </Box>
 )
 
@@ -30,11 +30,7 @@ const stylesFolderHeaderRoot = {
   justifyContent: 'center',
   width: '100%',
   position: 'absolute',
-  minHeight: 64,
-}
-
-const stylesBackButton = {
-  marginLeft: globalMargins.small,
+  minHeight: 48,
 }
 
 export default Header

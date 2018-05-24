@@ -100,6 +100,7 @@ export const commonTopicType = {
   none: 0,
   chat: 1,
   dev: 2,
+  kbfsfileedit: 3,
 }
 
 export const localAddTeamMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: LocalAddTeamMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.addTeamMemberAfterReset', request)
@@ -771,7 +772,7 @@ export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: 
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
-export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge}>
+export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, conv?: ?InboxUIItem}>
 
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, unreadUpdate?: ?UnreadUpdate}>
 
@@ -884,7 +885,7 @@ export type InboxView = {rtype: 0} | {rtype: 1, full: ?InboxViewFull}
 
 export type InboxViewFull = $ReadOnly<{vers: InboxVers, conversations?: ?Array<Conversation>, pagination?: ?Pagination}>
 
-export type IncomingMessage = $ReadOnly<{message: UIMessage, convID: ConversationID, displayDesktopNotification: Boolean, conv?: ?InboxUIItem, pagination?: ?UIPagination}>
+export type IncomingMessage = $ReadOnly<{message: UIMessage, convID: ConversationID, displayDesktopNotification: Boolean, desktopNotificationSnippet: String, conv?: ?InboxUIItem, pagination?: ?UIPagination}>
 
 export type JoinLeaveConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 
@@ -1110,7 +1111,7 @@ export type MessageUnboxedState =
 
 export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>}>
 
-export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration}>
+export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration, explodedBy?: ?String}>
 
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
 
@@ -1376,6 +1377,7 @@ export type TopicType =
   | 0 // NONE_0
   | 1 // CHAT_1
   | 2 // DEV_2
+  | 3 // KBFSFILEEDIT_3
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
 
@@ -1387,7 +1389,7 @@ export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?
 
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
 
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time}>
 
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 

@@ -77,7 +77,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
       KBFSGen.createOpen({path: pathFromFolder({isPublic: true, isTeam: false, users: [{username}]}).path})
     ),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
-  onChat: username => dispatch(Chat2Gen.createStartConversation({participants: [username]})),
+  onChat: username =>
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'})),
   onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),

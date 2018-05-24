@@ -1,4 +1,6 @@
 // @flow
+// Inside tracker we use an embedded Avatar which is connected. This assumes its connected and uses immutable stuff.
+// We convert the over-the-wire plain json to immutable in the remote-store helper
 import * as AppGen from '../actions/app-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
@@ -21,7 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onChat: (username: string) => {
     dispatch(AppGen.createShowMain())
-    dispatch(Chat2Gen.createStartConversation({participants: [username]}))
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
   _onClickAvatar: (username: string) =>
     dispatch(ProfileGen.createOnClickAvatar({openWebsite: true, username})),
@@ -57,12 +59,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onUpdateSelectedTeam: (selectedTeam: string) =>
     dispatchProps._onUpdateSelectedTeam(selectedTeam, stateProps.username),
 })
+
 export default compose(
   withStateHandlers(
     {selectedTeamRect: null},
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),
-  connect(state => state, mapDispatchToProps, mergeProps),
+  connect(s => s, mapDispatchToProps, mergeProps),
   branch(props => !props.username, renderNothing),
   lifecycle({
     componentDidMount() {

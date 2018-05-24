@@ -7,6 +7,7 @@ import {
   globalMargins,
   globalColors,
   isMobile,
+  platformStyles,
   styleSheetCreate,
   collapseStyles,
 } from '../../../../styles'
@@ -28,9 +29,9 @@ const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBr
   return isFollowing ? globalColors.green2 : globalColors.blue
 }
 
-const UserAvatar = ({author, showImage, onAuthorClick}) => (
+const UserAvatar = ({author, onAuthorClick}) => (
   <Box style={styles.userAvatar}>
-    {showImage && <Avatar size={24} username={author} skipBackground={true} onClick={onAuthorClick} />}
+    <Avatar size={32} username={author} skipBackground={true} onClick={onAuthorClick} />
   </Box>
 )
 
@@ -64,10 +65,14 @@ const EditedMark = () => (
   </Text>
 )
 
-const Failure = ({failureDescription, onEdit, onRetry, onCancel}) => {
+const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, onCancel}) => {
   const error = `${failureDescription}. `
   const resolveByEdit = failureDescription === 'Failed to send: message is too long'
-  return (
+  return isExplodingUnreadable ? (
+    <Text type="BodySmall" style={styles.fail}>
+      This exploding message is not available to you.
+    </Text>
+  ) : (
     <Text type="BodySmall">
       <Text type="BodySmall" style={styles.fail}>
         {error}
@@ -94,6 +99,79 @@ const Failure = ({failureDescription, onEdit, onRetry, onCancel}) => {
   )
 }
 
+const LeftSide = props => (
+  <Box style={styles.leftSide}>
+    {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
+  </Box>
+)
+
+const RightSide = props => (
+  <Box
+    style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
+    className="message-wrapper"
+  >
+    {props.includeHeader && (
+      <Username
+        username={props.author}
+        isYou={props.isYou}
+        isFollowing={props.isFollowing}
+        isBroken={props.isBroken}
+        onClick={props.onAuthorClick}
+      />
+    )}
+    <Box style={styles.textContainer} className="message">
+      {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
+          The problem is that `isExplodingUnreadable` is coming as true without `props.message.exploded` sometimes.  */}
+      <HeightRetainer
+        style={styles.flexOneColumn}
+        retainHeight={props.message.exploded || props.isExplodingUnreadable}
+      >
+        <props.innerClass
+          message={props.message}
+          isEditing={props.isEditing}
+          toggleShowingMenu={props.toggleShowingMenu}
+        />
+        {props.isEdited && <EditedMark />}
+      </HeightRetainer>
+      {!isMobile && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
+      <MessagePopup
+        attachTo={props.attachmentRef}
+        message={props.message}
+        onHidden={props.toggleShowingMenu}
+        position="bottom left"
+        visible={props.showingMenu}
+      />
+      {props.isRevoked && (
+        <Icon
+          type="iconfont-exclamation"
+          style={iconCastPlatformStyles(styles.exclamation)}
+          color={globalColors.blue}
+          fontSize={11}
+        />
+      )}
+    </Box>
+    {!!props.failureDescription && (
+      <Failure
+        failureDescription={props.failureDescription}
+        isExplodingUnreadable={props.isExplodingUnreadable}
+        onRetry={props.onRetry}
+        onEdit={props.onEdit}
+        onCancel={props.onCancel}
+      />
+    )}
+    <Box style={styles.sendIndicatorContainer}>
+      {props.isYou && (
+        <SendIndicator
+          sent={props.messageSent}
+          failed={props.messageFailed}
+          style={{marginBottom: 2}}
+          id={props.message.timestamp}
+        />
+      )}
+    </Box>
+  </Box>
+)
+
 class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps> {
   render() {
     const props = this.props
@@ -101,81 +179,25 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        <Box style={collapseStyles([styles.flexOneRow, props.showingMenu && styles.selected])}>
-          <Box style={props.includeHeader ? styles.rightSideWithHeader : styles.rightSideNoHeader}>
-            <Box style={globalStyles.flexBoxColumn}>
-              <UserAvatar
-                author={props.author}
-                showImage={props.includeHeader}
-                onAuthorClick={props.onAuthorClick}
-              />
-              <Box style={styles.sendIndicatorContainer}>
-                {props.isYou && (
-                  <SendIndicator
-                    sent={props.messageSent}
-                    failed={props.messageFailed}
-                    style={{marginBottom: 2}}
-                    id={props.message.timestamp}
-                  />
-                )}
-              </Box>
-            </Box>
-            <Box style={styles.flexOneColumn} className="message-wrapper">
-              {props.includeHeader && (
-                <Username
-                  username={props.author}
-                  isYou={props.isYou}
-                  isFollowing={props.isFollowing}
-                  isBroken={props.isBroken}
-                  onClick={props.onAuthorClick}
-                />
-              )}
-              <Box style={styles.textContainer} className="message">
-                <HeightRetainer style={styles.flexOneColumn} retainHeight={props.message.exploded}>
-                  <props.innerClass
-                    message={props.message}
-                    isEditing={props.isEditing}
-                    toggleShowingMenu={props.toggleShowingMenu}
-                  />
-                  {props.isEdited && <EditedMark />}
-                </HeightRetainer>
-                {!isMobile && (
-                  <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
-                )}
-                <MessagePopup
-                  attachTo={props.attachmentRef}
-                  message={props.message}
-                  onHidden={props.toggleShowingMenu}
-                  position="bottom left"
-                  visible={props.showingMenu}
-                />
-                {props.isRevoked && (
-                  <Icon
-                    type="iconfont-exclamation"
-                    style={iconCastPlatformStyles(styles.exclamation)}
-                    color={globalColors.blue}
-                    fontSize={11}
-                  />
-                )}
-              </Box>
-              {!!props.failureDescription && (
-                <Failure
-                  failureDescription={props.failureDescription}
-                  onRetry={props.onRetry}
-                  onEdit={props.onEdit}
-                  onCancel={props.onCancel}
-                />
-              )}
-            </Box>
-          </Box>
+        <Box
+          style={collapseStyles([
+            styles.leftRightContainer,
+            props.showingMenu && styles.selected,
+            props.includeHeader && styles.hasHeader,
+          ])}
+        >
+          <LeftSide {...props} />
+          <RightSide {...props} />
         </Box>
       </Box>
     )
   }
 }
 
+const sendIndicatorWidth = 32
+
 const styles = styleSheetCreate({
-  container: {...globalStyles.flexBoxColumn},
+  container: {...globalStyles.flexBoxColumn, width: '100%'},
   edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
   ellipsis: {marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
   exclamation: {
@@ -186,44 +208,52 @@ const styles = styleSheetCreate({
   failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
+  hasHeader: {paddingTop: 6},
+  leftRightContainer: {...globalStyles.flexBoxRow, width: '100%'},
+  leftSide: {flexShrink: 0, marginLeft: 8, marginRight: 8, position: 'relative', width: 32},
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
-  rightSideNoHeader: {
-    ...globalStyles.flexBoxRow,
-    flex: 1,
-    marginLeft: globalMargins.tiny,
-    paddingBottom: 2,
-    paddingRight: globalMargins.tiny,
-  },
-  rightSideWithHeader: {
-    ...globalStyles.flexBoxRow,
-    flex: 1,
-    marginLeft: globalMargins.tiny,
-    paddingBottom: 2,
-    paddingRight: globalMargins.tiny,
-    paddingTop: 6,
-  },
+  rightSide: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      flex: 1,
+      paddingBottom: 2,
+      paddingRight: globalMargins.tiny,
+    },
+    isMobile: {
+      marginRight: sendIndicatorWidth,
+    },
+  }),
   selected: {backgroundColor: globalColors.black_05},
+  sendIndicator: {marginBottom: 2},
+  sendIndicatorContainer: platformStyles({
+    common: {
+      alignItems: 'flex-start',
+      bottom: -2,
+      height: 21,
+      justifyContent: 'center',
+      position: 'absolute',
+      right: 0,
+      width: sendIndicatorWidth,
+    },
+    isElectron: {pointerEvents: 'none'},
+    isMobile: {
+      right: -sendIndicatorWidth,
+    },
+  }),
   textContainer: {
     ...globalStyles.flexBoxRow,
     borderRadius: 4,
     flex: 1,
-    marginLeft: -globalMargins.xtiny,
-    marginRight: globalMargins.xtiny,
-    paddingLeft: globalMargins.xtiny,
-    paddingRight: globalMargins.xtiny,
   },
-  sendIndicatorContainer: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1,
-    alignItems: 'flex-start',
-    justifyContent: 'flex-end',
+  userAvatar: {
+    flexShrink: 0,
+    height: 32,
     width: 32,
   },
-  userAvatar: {marginTop: isMobile ? -4 : -5, width: 32},
   username: {
     alignSelf: 'flex-start',
     backgroundColor: globalColors.fastBlank,
-    marginBottom: 2,
+    marginBottom: 0,
   },
   usernameYou: {
     ...globalStyles.italic,
