@@ -251,13 +251,13 @@ func MakeEncryptedMerkleLeaf(
 func PrepareMerkleLeaf(encryptedMerkleLeaf EncryptedMerkleLeaf) (
 	nonce [24]byte, err error) {
 	if encryptedMerkleLeaf.Version != EncryptionSecretbox {
-		return [24]byte{},
+		return nonce,
 			errors.WithStack(UnknownEncryptionVer{
 				Ver: encryptedMerkleLeaf.Version})
 	}
 
 	if len(encryptedMerkleLeaf.Nonce) != len(nonce) {
-		return [24]byte{},
+		return nonce,
 			errors.WithStack(InvalidNonceError{
 				Nonce: encryptedMerkleLeaf.Nonce})
 	}
@@ -265,8 +265,8 @@ func PrepareMerkleLeaf(encryptedMerkleLeaf EncryptedMerkleLeaf) (
 	return nonce, nil
 }
 
-// DecryptMerkleLeaf decrypts an EncryptedMerkleLeaf
-// using the given device private key and ephemeral public key.
+// DecryptMerkleLeaf decrypts an EncryptedMerkleLeaf using the given
+// private TLF key and ephemeral public key.
 func DecryptMerkleLeaf(
 	privateKey TLFPrivateKey, publicKey TLFEphemeralPublicKey,
 	encryptedMerkleLeaf EncryptedMerkleLeaf) ([]byte, error) {
