@@ -407,6 +407,10 @@
         {
           "name": "displayCurrency",
           "type": "string"
+        },
+        {
+          "name": "forceRelay",
+          "type": "bool"
         }
       ],
       "response": "SendResultCLILocal"

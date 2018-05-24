@@ -20,6 +20,7 @@ type cmdWalletSend struct {
 	amount        string
 	note          string
 	localCurrency string
+	forceRelay    bool
 }
 
 func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -28,6 +29,12 @@ func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			Name:  "m, message",
 			Usage: "Include a message with the payment.",
 		},
+	}
+	if develUsage {
+		flags = append(flags, cli.BoolFlag{
+			Name:  "relay",
+			Usage: "Force a relay transfer (dev-only)",
+		})
 	}
 	cmd := &cmdWalletSend{
 		Contextified: libkb.NewContextified(g),
@@ -59,6 +66,7 @@ func (c *cmdWalletSend) ParseArgv(ctx *cli.Context) error {
 		}
 	}
 	c.note = ctx.String("message")
+	c.forceRelay = ctx.Bool("relay")
 	return nil
 }
 
@@ -110,6 +118,7 @@ func (c *cmdWalletSend) Run() error {
 		Note:            c.note,
 		DisplayAmount:   displayAmount,
 		DisplayCurrency: displayCurrency,
+		ForceRelay:      c.forceRelay,
 	}
 	res, err := cli.SendCLILocal(context.Background(), arg)
 	if err != nil {
