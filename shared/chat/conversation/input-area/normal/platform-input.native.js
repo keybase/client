@@ -15,7 +15,6 @@ import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../c
 import type {PlatformInputProps} from './types'
 
 type State = {
-  explodingPickerOpen: boolean,
   hasText: boolean,
 }
 
@@ -25,7 +24,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   constructor(props: PlatformInputProps & FloatingMenuParentProps) {
     super(props)
     this.state = {
-      explodingPickerOpen: false,
       hasText: false,
     }
   }
@@ -33,10 +31,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   _inputSetRef = (ref: ?Input) => {
     this._input = ref
     this.props.inputSetRef(ref)
-  }
-
-  _explodingPickerToggle = () => {
-    this.setState(({explodingPickerOpen}) => ({explodingPickerOpen: !explodingPickerOpen}))
   }
 
   _selectExplodingMode = selected => {
@@ -105,17 +99,17 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             filter={this.props.channelMentionFilter}
           />
         )}
-        {this.state.explodingPickerOpen && (
+        {this.props.showingMenu && (
           <SetExplodingMessagePicker
             attachTo={this.props.attachmentRef}
             isNew={true}
             items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
-            onHidden={this._explodingPickerToggle}
+            onHidden={this.props.toggleShowingMenu}
             onSelect={this._selectExplodingMode}
             selected={messageExplodeDescriptions.find(
               exploded => exploded.seconds === this.props.explodingModeSeconds
             )}
-            visible={this.state.explodingPickerOpen}
+            visible={this.props.showingMenu}
           />
         )}
         <Box style={styles.container}>
@@ -153,7 +147,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
-            openExplodingPicker={this._explodingPickerToggle}
+            openExplodingPicker={this.props.toggleShowingMenu}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}

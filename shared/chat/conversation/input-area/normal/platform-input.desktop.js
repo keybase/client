@@ -26,7 +26,6 @@ const MentionCatcher = ({onClick}) => (
 
 type State = {
   emojiPickerOpen: boolean,
-  explodingPopupOpen: boolean,
   hasText: boolean,
 }
 
@@ -38,7 +37,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     super(props)
     this.state = {
       emojiPickerOpen: false,
-      explodingPopupOpen: false,
       hasText: false,
     }
   }
@@ -54,10 +52,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
 
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
-  }
-
-  _explodingPopupToggle = () => {
-    this.setState(({explodingPopupOpen}) => ({explodingPopupOpen: !explodingPopupOpen}))
   }
 
   _selectExplodingMode = selected => {
@@ -290,29 +284,29 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                 />
               )}
             {flags.explodingMessagesEnabled &&
-              this.state.explodingPopupOpen && (
+              this.props.showingMenu && (
                 <SetExplodingMessagePopup
                   attachTo={this.props.attachmentRef}
                   isNew={true}
                   items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
-                  onHidden={this._explodingPopupToggle}
+                  onHidden={this.props.toggleShowingMenu}
                   onSelect={this._selectExplodingMode}
                   position={'bottom right'}
                   selected={messageExplodeDescriptions.find(
                     exploded => exploded.seconds === this.props.explodingModeSeconds
                   )}
-                  visible={this.state.explodingPopupOpen}
+                  visible={this.props.showingMenu}
                 />
               )}
             {flags.explodingMessagesEnabled && (
               <Box
-                onClick={this._explodingPopupToggle}
+                onClick={this.props.toggleShowingMenu}
                 ref={this.props.setAttachmentRef}
                 style={styles.explodingIconContainer}
               >
                 <Icon
                   color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
-                  onClick={this._explodingPopupToggle}
+                  onClick={this.props.toggleShowingMenu}
                   style={styleIcon}
                   type="iconfont-bomb"
                 />
