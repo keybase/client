@@ -1982,10 +1982,6 @@ export const userProfileEditRpcChannelMap = (configKeys: Array<string>, request:
 
 export const userProfileEditRpcPromise = (request: UserProfileEditRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.profileEdit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
-export const userResetUserRpcChannelMap = (configKeys: Array<string>, request: UserResetUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.resetUser', request)
-
-export const userResetUserRpcPromise = (request: UserResetUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.resetUser', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const userSearchRpcChannelMap = (configKeys: Array<string>, request: UserSearchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.search', request)
 
 export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => (error ? reject(error) : resolve(result))))
@@ -2004,7 +2000,7 @@ export type AccountPassphraseChangeRpcParam = $ReadOnly<{oldPassphrase: String, 
 
 export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AccountResetAccountRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AccountResetAccountRpcParam = $ReadOnly<{passphrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
 
@@ -4138,8 +4134,6 @@ export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno:
 export type UserPlusKeysV2AllIncarnations = $ReadOnly<{current: UserPlusKeysV2, pastIncarnations?: ?Array<UserPlusKeysV2>, uvv: UserVersionVector, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPK2MinorVersion}>
 
 export type UserProfileEditRpcParam = $ReadOnly<{fullName: String, location: String, bio: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-
-export type UserResetUserRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserResolution = $ReadOnly<{assertion: SocialAssertion, userID: UID}>
 

@@ -206,7 +206,6 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	defer tc.Cleanup()
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-	tc.G.ResetLoginState()
 
 	t.Logf("create new user")
 	fu := NewFakeUserOrBust(t, "paper")

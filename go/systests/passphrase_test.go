@@ -50,7 +50,7 @@ func TestPassphraseChange(t *testing.T) {
 	}
 
 	m := libkb.NewMetaContextForTest(*tc)
-	err := libkb.VerifyPassphraseForLoggedInUser(m, userInfo.passphrase)
+	_, err := libkb.VerifyPassphraseForLoggedInUser(m, userInfo.passphrase)
 	require.NoError(t, err, "verified passphrase")
 
 	oldPassphrase := userInfo.passphrase
@@ -62,9 +62,9 @@ func TestPassphraseChange(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = libkb.VerifyPassphraseForLoggedInUser(m, newPassphrase)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m, newPassphrase)
 	require.NoError(t, err, "verified passphrase")
-	err = libkb.VerifyPassphraseForLoggedInUser(m, oldPassphrase)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m, oldPassphrase)
 	require.Error(t, err, "old passphrase failed to verify")
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
