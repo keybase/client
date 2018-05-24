@@ -1372,7 +1372,7 @@ func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1
 	supersededMsg := messages[0].Valid()
 	if supersededMsg.IsEphemeral() {
 		metadata = supersededMsg.EphemeralMetadata()
-		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingLifetime(h.clock.Now()))
+		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingEphemeralLifetime(h.clock.Now()))
 	}
 	return metadata, nil
 }
@@ -2075,6 +2075,12 @@ func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachme
 			MessageBody: chat1.NewMessageBodyWithAttachment(attachment),
 		},
 		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+
+	if arg.EphemeralLifetime != nil {
+		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
 	}
 
 	h.Debug(ctx, "posting attachment placeholder message")

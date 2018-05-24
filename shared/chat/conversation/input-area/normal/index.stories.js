@@ -54,7 +54,6 @@ const boxProps = {
 const InputContainer = (props: Props) => {
   const inputProps: InputProps = {
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
-    channelName: 'somechannel',
     isEditing: props.isEditing,
     isExploding: props.isExploding,
     explodingModeSeconds: props.explodingModeSeconds,
@@ -74,10 +73,9 @@ const InputContainer = (props: Props) => {
     pendingWaiting: props.pendingWaiting,
     typing: props.typing,
 
-    _quotingMessage: null,
-    _editingMessage: null,
-
-    injectedInput: '',
+    editText: '',
+    quoteCounter: 0,
+    quoteText: '',
 
     getUnsentText: () => {
       action('getUnsentText')()

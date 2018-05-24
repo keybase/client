@@ -130,7 +130,10 @@ type _LeaveConversationPayload = $ReadOnly<{|
   dontNavigateToInbox?: boolean,
 |}>
 type _LoadOlderMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _MarkConversationsStalePayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>|}>
+type _MarkConversationsStalePayload = $ReadOnly<{|
+  conversationIDKeys: Array<Types.ConversationIDKey>,
+  updateType: RPCChatTypes.StaleUpdateType,
+|}>
 type _MarkInitiallyLoadedThreadAsReadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _MessageAttachmentNativeSavePayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -188,7 +191,7 @@ type _MessageSetEditingPayload = $ReadOnly<{|
 type _MessageSetQuotingPayload = $ReadOnly<{|
   sourceConversationIDKey: Types.ConversationIDKey,
   targetConversationIDKey: Types.ConversationIDKey,
-  ordinal: ?Types.Ordinal,
+  ordinal: Types.Ordinal,
 |}>
 type _MessageWasEditedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,

@@ -1044,6 +1044,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
 			IsEphemeral:           valid.IsEphemeral(),
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
+			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:

@@ -3,6 +3,7 @@ package ephemeral
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -130,7 +131,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	deviceEKsAfterDeleteExpired, err := s.GetAll(context.Background())
 	require.NoError(t, err)
 
-	require.Equal(t, len(deviceEKsAfterDeleteExpired), 0)
+	require.Len(t, deviceEKsAfterDeleteExpired, 0)
 
 	var badUserDeviceEK keybase1.DeviceEk
 	err = erasableStorage.Get(context.Background(), badUserKey, &badUserDeviceEK)
@@ -141,4 +142,49 @@ func TestDeviceEKStorage(t *testing.T) {
 	err = erasableStorage.Get(context.Background(), badEldestSeqnoKey, &badEldestSeqnoDeviceEK)
 	require.Error(t, err)
 	require.Equal(t, badEldestSeqnoDeviceEK, keybase1.DeviceEk{})
+
+	// There was a bug in the deviceEK format introduced in
+	// https://github.com/keybase/client/pull/11911 where the key format went from
+	//  deviceEKPrefix-username-eldestSeqNo-generation.ek to
+	//  deviceEKPrefix-username--eldestSeqNo-generation.ek
+	// Test that we repair these keys
+	badKeyFormat := fmt.Sprintf("%s-%s--%s-0.ek", deviceEKPrefix, s.G().Env.GetUsername(), uv.EldestSeqno)
+	err = erasableStorage.Put(context.Background(), badKeyFormat, keybase1.DeviceEk{})
+	require.NoError(t, err)
+
+	goodKeyFormat := fmt.Sprintf("%s-%s-%s-1.ek", deviceEKPrefix, s.G().Env.GetUsername(), uv.EldestSeqno)
+	err = erasableStorage.Put(context.Background(), goodKeyFormat, keybase1.DeviceEk{})
+	require.NoError(t, err)
+
+	err = s.keyFormatRepair(context.Background())
+	require.NoError(t, err)
+
+	var badKeyFormatDeviceEK keybase1.DeviceEk
+	err = erasableStorage.Get(context.Background(), badKeyFormat, &badKeyFormatDeviceEK)
+	require.Error(t, err)
+
+	var goodKeyFormatDeviceEK keybase1.DeviceEk
+	err = erasableStorage.Get(context.Background(), goodKeyFormat, &goodKeyFormatDeviceEK)
+	require.NoError(t, err)
+
+	err = erasableStorage.Get(context.Background(), strings.Replace(badKeyFormat, "--", "-", 1), &goodKeyFormatDeviceEK)
+	require.NoError(t, err)
+}
+
+// If we change the key format intentionally, we have to introduce some form of
+// migration or versioning between the keys. This test should blow up if we
+// break it unintentionally.
+func TestDeviceEKStorageKeyFormat(t *testing.T) {
+	tc, _ := ephemeralKeyTestSetup(t)
+	defer tc.Cleanup()
+
+	s := NewDeviceEKStorage(tc.G)
+	generation := keybase1.EkGeneration(1)
+	uv, err := getCurrentUserUV(context.Background(), tc.G)
+	require.NoError(t, err)
+
+	key, err := s.key(context.Background(), generation)
+	require.NoError(t, err)
+	expected := fmt.Sprintf("deviceEphemeralKey-%s-%s-%d.ek", s.G().Env.GetUsername(), uv.EldestSeqno, generation)
+	require.Equal(t, expected, key)
 }
