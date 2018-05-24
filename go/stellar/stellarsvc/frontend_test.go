@@ -377,3 +377,27 @@ func TestChangeDisplayCurrency(t *testing.T) {
 	require.Len(t, balances, 1)
 	require.EqualValues(t, "EUR", balances[0].WorthCurrency)
 }
+
+func TestGetUserSettings(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	us, _ := tcs[0].Srv.GetUserSettingsLocal(context.Background())
+	require.Equal(t, false, us.AcceptedDisclaimer)
+}
+
+func TestSetAcceptedDisclaimer(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	us, err := tcs[0].Srv.GetUserSettingsLocal(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, false, us.AcceptedDisclaimer)
+
+	err = tcs[0].Srv.SetAcceptedDisclaimerLocal(context.Background())
+	require.NoError(t, err)
+
+	us, err = tcs[0].Srv.GetUserSettingsLocal(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, true, us.AcceptedDisclaimer)
+}
