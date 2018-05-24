@@ -827,7 +827,7 @@ const loadMoreMessages = (
       conversationID,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       pagination: {
-        next: isScrollingBack ? 'deadbeef' : null, // must be hex ;)
+        next: isScrollingBack ? 'deadbeef' : null, // daemon treats this as a boolean essentially. string means to scroll back, null means an initial load
         num: numberOfMessagesToLoad,
       },
       query: {
