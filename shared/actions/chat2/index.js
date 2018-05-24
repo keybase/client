@@ -845,18 +845,16 @@ const loadMoreMessages = (
       ''} num: ${numberOfMessagesToLoad} reason: ${reason}`
   )
 
-  let rpcReason = null
-  switch (reason) {
-    case 'push':
-      rpcReason = RPCChatTypes.localGetThreadNonblockReason.push
-      break
-    case 'foregrounding':
-      rpcReason = RPCChatTypes.localGetThreadNonblockReason.foreground
-      break
-    default:
-      rpcReason = RPCChatTypes.localGetThreadNonblockReason.general
-      break
-  }
+  const rpcReason = (function(r) {
+    switch (r) {
+      case 'push':
+        return RPCChatTypes.localGetThreadNonblockReason.push
+      case 'foregrounding':
+        return RPCChatTypes.localGetThreadNonblockReason.foreground
+      default:
+        return RPCChatTypes.localGetThreadNonblockReason.general
+    }
+  })(reason)
   const loadingKey = `loadingThread:${conversationIDKey}`
   const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
     {
