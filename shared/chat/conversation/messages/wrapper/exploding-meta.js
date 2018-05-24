@@ -3,6 +3,7 @@ import * as React from 'react'
 import {Box2, Text, Icon, HOCTimers, type PropsWithTimer} from '../../../../common-adapters'
 import {castPlatformStyles} from '../../../../common-adapters/icon'
 import {collapseStyles, globalColors, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
+import {formatDurationShort} from '../../../../util/timestamp'
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
@@ -68,7 +69,7 @@ class ExplodingMeta extends React.Component<Props, State> {
               ])}
             >
               <Text type="Body" style={{color: globalColors.white, fontSize: 10, fontWeight: 'bold'}}>
-                {formatTimeDifference(this.props.explodesAt - Date.now())}
+                {formatDurationShort(this.props.explodesAt - Date.now())}
               </Text>
             </Box2>
             <Icon type="iconfont-bomb" fontSize={isMobile ? 22 : 16} color={globalColors.black_75} />
@@ -107,22 +108,6 @@ const getLoopInterval = (diff: number) => {
   }
   // less than a minute, check every second
   return 1000
-}
-
-const formatTimeDifference = (d: number): string => {
-  if (d < 0) {
-    return '0'
-  }
-  if (d > oneDayInMs) {
-    return `${Math.floor(d / oneDayInMs)}d`
-  }
-  if (d > oneHourInMs) {
-    return `${Math.floor(d / oneHourInMs)}h`
-  }
-  if (d > oneMinuteInMs) {
-    return `${Math.floor(d / oneMinuteInMs)}m`
-  }
-  return `${Math.floor(d / 1000)}s`
 }
 
 const styles = styleSheetCreate({
