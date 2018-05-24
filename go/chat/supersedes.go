@@ -43,7 +43,8 @@ func (t *basicSupersedesTransform) transformDelete(msg chat1.MessageUnboxed, sup
 	if !mvalid.IsEphemeral() {
 		return nil
 	}
-	mvalid.ClientHeader.EphemeralMetadata.ExplodedBy = superMsg.Valid().SenderUsername
+	explodedBy := superMsg.Valid().SenderUsername
+	mvalid.ClientHeader.EphemeralMetadata.ExplodedBy = &explodedBy
 	var emptyBody chat1.MessageBody
 	mvalid.MessageBody = emptyBody
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
