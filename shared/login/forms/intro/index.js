@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Text, Icon, Box2, ButtonBar, Button} from '../../../common-adapters'
-import {globalColors, styleSheetCreate, globalMargins} from '../../../styles'
+import {globalColors, styleSheetCreate, globalMargins, isMobile} from '../../../styles'
 
 type Props = {
   bannerMessage: ?string,
@@ -31,6 +31,7 @@ const Intro = (props: Props) => (
       </Box2>
     )}
     <Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.innerContainer}>
+      {!isMobile && <Box2 direction="vertical" style={styles.gap} />}
       <Icon type="icon-keybase-logo-80" />
       <Text type="HeaderBig" style={styles.join}>
         Join Keybase
