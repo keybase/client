@@ -26,7 +26,6 @@ const moreThanOneSubscribedChannel = createCachedSelector(
   (state, _) => state.chat2.metaMap,
   (_, teamname) => teamname,
   (metaMap, teamname) => {
-    console.log('aaaa reselect, metaMap, teamname', metaMap, teamname)
     let found = 0
     return metaMap.some(c => {
       found += c.teamname === teamname ? 1 : 0
