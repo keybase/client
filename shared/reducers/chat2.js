@@ -40,11 +40,6 @@ const metaMapReducer = (metaMap, action) => {
         action.payload.conversationIDKey,
         meta => (meta ? meta.set('offline', action.payload.offline) : meta)
       )
-    case Chat2Gen.metaUpdatePagination:
-      return metaMap.update(
-        action.payload.conversationIDKey,
-        meta => (meta ? meta.set('paginationKey', action.payload.paginationKey) : meta)
-      )
     case Chat2Gen.metaDelete:
       return metaMap.delete(action.payload.conversationIDKey)
     case Chat2Gen.notificationSettingsUpdated:
@@ -664,6 +659,11 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         )
       })
     }
+    case Chat2Gen.updateMoreToLoad:
+      return state.update('moreToLoadMap', moreToLoadMap =>
+        moreToLoadMap.set(action.payload.conversationIDKey, action.payload.moreToLoad)
+      )
+
     case Chat2Gen.updateConvExplodingModes:
       const {modes} = action.payload
       const explodingMap = modes.reduce((map, mode) => {
@@ -687,7 +687,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.markConversationsStale:
     case Chat2Gen.notificationSettingsUpdated:
     case Chat2Gen.metaDelete:
-    case Chat2Gen.metaUpdatePagination:
     case Chat2Gen.setConversationOffline:
     case Chat2Gen.updateConvRetentionPolicy:
     case Chat2Gen.updateTeamRetentionPolicy:

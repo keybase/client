@@ -137,11 +137,11 @@ const rpcMetaRequestConversationIDKeys = (
     case Chat2Gen.metaRequestTrusted:
       keys = action.payload.conversationIDKeys
       if (action.payload.force) {
-        return keys
+        return keys.filter(Constants.isValidConversationIDKey)
       }
       break
     case Chat2Gen.selectConversation:
-      keys = [action.payload.conversationIDKey].filter(Boolean)
+      keys = [action.payload.conversationIDKey].filter(Constants.isValidConversationIDKey)
       break
     default:
       /*::
@@ -659,8 +659,6 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   return arr
 }, [])
 
-// We bookkeep the current request's paginationkey in case we get very slow callbacks so we we can ignore new paginationKeys that are too old
-const _loadingMessagesWithPaginationKey = {}
 // Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
 const loadMoreMessages = (
   action:
@@ -749,11 +747,8 @@ const loadMoreMessages = (
     return
   }
 
-  // When we select a conversation we always load the newest N messages and keep track of the pagination information
-  // When you scroll back we use that to get the next page and update the value
-  // otherwise we always just load the newest N and get a new pagination value
   let numberOfMessagesToLoad
-  let paginationKey = null
+  let isScrollingBack = false
 
   const meta = Constants.getMeta(state, conversationIDKey)
 
@@ -763,25 +758,25 @@ const loadMoreMessages = (
   }
 
   if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
-    paginationKey = meta.paginationKey
-    // no more to load
-    if (!paginationKey) {
-      logger.info('Load thread bail: scrolling back and no pagination key')
+    if (!state.chat2.moreToLoadMap.get(conversationIDKey)) {
+      logger.info('Load thread bail: scrolling back and at the end')
       return
     }
+    isScrollingBack = true
     numberOfMessagesToLoad = numMessagesOnScrollback
   } else {
     numberOfMessagesToLoad = numMessagesOnInitialLoad
   }
 
-  // Update bookkeeping
-  _loadingMessagesWithPaginationKey[Types.conversationIDKeyToString(conversationIDKey)] = paginationKey
-
-  // we clear on the first callback. we sometimes don't get a cached context
   let calledClear = false
   const onGotThread = function*({thread}: {thread: string}, context: 'full' | 'cached') {
     if (thread) {
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
+
+      if (!isScrollingBack && !calledClear) {
+        calledClear = true
+        yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
+      }
 
       const messages = (uiMessages.messages || []).reduce((arr, m) => {
         const message = conversationIDKey
@@ -798,37 +793,8 @@ const loadMoreMessages = (
         return arr
       }, [])
 
-      // Still loading this conversation w/ this paginationKey?
-      if (
-        _loadingMessagesWithPaginationKey[Types.conversationIDKeyToString(conversationIDKey)] ===
-        paginationKey
-      ) {
-        let newPaginationKey = Types.stringToPaginationKey(
-          (uiMessages.pagination && uiMessages.pagination.next) || ''
-        )
-
-        if (context === 'full') {
-          const paginationMoreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-          // if last is true on the full payload we blow away paginationKey
-          newPaginationKey = paginationMoreToLoad ? newPaginationKey : Types.stringToPaginationKey('')
-        }
-        yield Saga.put(
-          Chat2Gen.createMetaUpdatePagination({conversationIDKey, paginationKey: newPaginationKey})
-        )
-      }
-
-      // If we're loading the thread clean lets clear
-      if (!calledClear && action.type !== Chat2Gen.loadOlderMessagesDueToScroll) {
-        calledClear = true
-        // only clear if we've never seen the oldest message, implying there is a gap
-        if (messages.length) {
-          const oldestOrdinal = messages[messages.length - 1].ordinal
-          const state: TypedState = yield Saga.select()
-          if (!state.chat2.messageOrdinals.get(conversationIDKey, oldestOrdinal)) {
-            yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
-          }
-        }
-      }
+      const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+      yield Saga.put(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
 
       if (messages.length) {
         yield Saga.put(
@@ -841,8 +807,7 @@ const loadMoreMessages = (
   }
 
   logger.info(
-    `Load thread: calling rpc convo: ${conversationIDKey} paginationKey: ${paginationKey ||
-      ''} num: ${numberOfMessagesToLoad} reason: ${reason}`
+    `Load thread: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
   )
 
   const loadingKey = `loadingThread:${conversationIDKey}`
@@ -862,7 +827,7 @@ const loadMoreMessages = (
       conversationID,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       pagination: {
-        next: paginationKey,
+        next: isScrollingBack ? 'deadbeef' : null, // must be hex ;)
         num: numberOfMessagesToLoad,
       },
       query: {

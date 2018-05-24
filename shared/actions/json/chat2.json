@@ -133,9 +133,9 @@
       "selectSomethingElse": "boolean"
     },
     // We updated our view of a thread
-    "metaUpdatePagination": {
+    "updateMoreToLoad": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paginationKey": "?Types.PaginationKey"
+      "moreToLoad": "boolean"
     },
     // Add a new message
     "messagesAdd": {
