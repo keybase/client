@@ -402,7 +402,10 @@ const onChatInboxSynced = (syncRes, getState) => {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
             actions.unshift(
-              Chat2Gen.createMarkConversationsStale({conversationIDKeys: [selectedConversation]})
+              Chat2Gen.createMarkConversationsStale({
+                conversationIDKeys: [selectedConversation],
+                updateType: RPCChatTypes.notifyChatStaleUpdateType.newactivity,
+              })
             )
           }
           arr.push(meta)
@@ -444,21 +447,28 @@ const onChatTypingUpdate = typingUpdates => {
 }
 
 const onChatThreadStale = updates => {
-  const conversationIDKeys = (updates || []).reduce((arr, u) => {
-    if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear) {
-      arr.push(Types.conversationIDToKey(u.convID))
+  const actions = []
+  Object.keys(RPCChatTypes.notifyChatStaleUpdateType).forEach(function(key) {
+    const conversationIDKeys = (updates || []).reduce((arr, u) => {
+      if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType[key]) {
+        arr.push(Types.conversationIDToKey(u.convID))
+      }
+      return arr
+    }, [])
+    if (conversationIDKeys.length > 0) {
+      actions.concat([
+        Chat2Gen.createMarkConversationsStale({
+          conversationIDKeys,
+          updateType: RPCChatTypes.notifyChatStaleUpdateType[key],
+        }),
+        Chat2Gen.createMetaRequestTrusted({
+          conversationIDKeys,
+          force: true,
+        }),
+      ])
     }
-    return arr
-  }, [])
-  if (conversationIDKeys.length > 0) {
-    return [
-      Chat2Gen.createMarkConversationsStale({conversationIDKeys}),
-      Chat2Gen.createMetaRequestTrusted({
-        conversationIDKeys,
-        force: true,
-      }),
-    ]
-  }
+  })
+  return actions
 }
 
 // Some participants are broken/fixed now

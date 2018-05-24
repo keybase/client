@@ -150,7 +150,9 @@ const metaMapReducer = (metaMap, action) => {
 const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return messageMap.deleteAll(action.payload.conversationIDKeys)
+      return action.payload.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear
+        ? messageMap.deleteAll(action.payload.conversationIDKeys)
+        : messageMap
     case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete:
       return messageMap.updateIn(
@@ -283,7 +285,9 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
 const messageOrdinalsReducer = (messageOrdinals, action) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return messageOrdinals.deleteAll(action.payload.conversationIDKeys)
+      return action.payload.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear
+        ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
+        : messageOrdinals
     case Chat2Gen.metasReceived:
       const existingPending = messageOrdinals.get(Constants.pendingConversationIDKey)
       if (action.payload.clearExistingMessages) {
