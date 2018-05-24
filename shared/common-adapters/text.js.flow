@@ -34,7 +34,6 @@ type TextType =
   | 'BodySmallSemiboldItalic'
   | 'BodySmallSemiboldInlineLink'
   | 'BodySmallSuccess'
-  | 'BodyTiny'
   | 'BodySuccess'
   | 'Header'
   | 'HeaderExtrabold'

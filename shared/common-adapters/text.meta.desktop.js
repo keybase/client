@@ -238,19 +238,6 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 11,
     styleOverride: globalStyles.fontRegular,
   },
-  // Body tiny
-  BodyTiny: {
-    colorForBackgroundMode: {
-      Announcements: globalColors.white,
-      Normal: globalColors.black_75,
-      Terminal: globalColors.white,
-    },
-    fontSize: 8,
-    styleOverride: {
-      ...globalStyles.fontSemibold,
-      letterSpacing: 0.5,
-    },
-  },
   // Terminal
   Terminal: {
     colorForBackgroundMode: {
