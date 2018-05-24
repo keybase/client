@@ -845,6 +845,18 @@ const loadMoreMessages = (
       ''} num: ${numberOfMessagesToLoad} reason: ${reason}`
   )
 
+  let rpcReason = null
+  switch (reason) {
+    case 'push':
+      rpcReason = RPCChatTypes.localGetThreadNonblockReason.push
+      break
+    case 'foregrounding':
+      rpcReason = RPCChatTypes.localGetThreadNonblockReason.foreground
+      break
+    default:
+      rpcReason = RPCChatTypes.localGetThreadNonblockReason.general
+      break
+  }
   const loadingKey = `loadingThread:${conversationIDKey}`
   const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
     {
@@ -871,10 +883,7 @@ const loadMoreMessages = (
         messageTypes: loadThreadMessageTypes,
       },
       pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
-      reason:
-        reason === 'push'
-          ? RPCChatTypes.localGetThreadNonblockReason.push
-          : RPCChatTypes.localGetThreadNonblockReason.general,
+      reason: rpcReason,
     },
     false,
     (loading: boolean) => Chat2Gen.createSetLoading({key: loadingKey, loading})
