@@ -123,10 +123,10 @@ const RightSide = props => (
       )}
       <Box style={styles.textContainer} className="message">
         {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
-          The problem is that `isExplodingUnreadable` is coming as true without `props.message.exploded` sometimes.  */}
+          The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
         <HeightRetainer
           style={styles.flexOneColumn}
-          retainHeight={props.message.exploded || props.isExplodingUnreadable}
+          retainHeight={props.exploded || props.isExplodingUnreadable}
         >
           <props.innerClass
             message={props.message}
@@ -136,9 +136,7 @@ const RightSide = props => (
           {props.isEdited && <EditedMark />}
         </HeightRetainer>
         {!isMobile &&
-          !props.message.exploded && (
-            <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
-          )}
+          !props.exploded && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
         <MessagePopup
           attachTo={props.attachmentRef}
           message={props.message}
