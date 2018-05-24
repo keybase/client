@@ -635,11 +635,20 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 	if err != nil {
 		return err
 	}
-	// Don't send any notifications for non-chat topic types
-	if conv != nil && conv.GetTopicType() != chat1.TopicType_CHAT {
+	if conv != nil {
+		switch conv.GetTopicType() {
+		case chat1.TopicType_CHAT:
+			g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
+		case chat1.TopicType_DEV:
+			// ignore these
+			return nil
+		case chat1.TopicType_KBFSFILEEDIT:
+			g.G().NotifyRouter.HandleChatKBFSFileEditActivity(ctx, kbUID, activity)
+		}
 		return nil
+	} else {
+		g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
 	}
-	g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
 	return nil
 }
 
