@@ -456,6 +456,11 @@ const onChatThreadStale = updates => {
       return arr
     }, [])
     if (conversationIDKeys.length > 0) {
+      logger.info(
+        `onChatThreadStale: dispatching thread reload actions for ${
+          conversationIDKeys.length
+        } convs of type ${key}`
+      )
       actions.concat([
         Chat2Gen.createMarkConversationsStale({
           conversationIDKeys,
