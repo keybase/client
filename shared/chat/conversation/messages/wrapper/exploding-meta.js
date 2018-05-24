@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import {Box2, Text, Icon, HOCTimers, type PropsWithTimer} from '../../../../common-adapters'
-// import {} from '../../../../constants/types/chat2'
-import {collapseStyles, globalColors, isMobile, styleSheetCreate} from '../../../../styles'
+import {castPlatformStyles} from '../../../../common-adapters/icon'
+import {collapseStyles, globalColors, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
@@ -53,10 +53,11 @@ class ExplodingMeta extends React.Component<Props, State> {
   render() {
     const backgroundColor =
       this.props.explodesAt - Date.now() < oneMinuteInMs ? globalColors.red : globalColors.black_75
+    let children
     switch (this.state.mode) {
       case 'countdown':
-        return (
-          <Box2 direction="horizontal" gap="xtiny" style={styles.container}>
+        children = (
+          <Box2 direction="horizontal" gap="xtiny">
             <Box2
               direction="horizontal"
               style={collapseStyles([
@@ -73,14 +74,24 @@ class ExplodingMeta extends React.Component<Props, State> {
             <Icon type="iconfont-bomb" fontSize={isMobile ? 22 : 16} color={globalColors.black_75} />
           </Box2>
         )
+        break
       case 'boom':
-        return (
-          <Box2 direction="horizontal" style={styles.container}>
-            <Icon type="iconfont-boom" fontSize={isMobile ? 44 : 22} color={globalColors.black_75} />
+        children = (
+          <Box2 direction="horizontal">
+            <Icon
+              type="iconfont-boom"
+              style={castPlatformStyles(styles.boomIcon)}
+              fontSize={isMobile ? 44 : 35}
+              color={globalColors.black_75}
+            />
           </Box2>
         )
     }
-    return null
+    return (
+      <Box2 direction="horizontal" style={styles.container}>
+        {children}
+      </Box2>
+    )
   }
 }
 
@@ -100,7 +111,7 @@ const getLoopInterval = (diff: number) => {
 
 const formatTimeDifference = (d: number): string => {
   if (d < 0) {
-    return 'now'
+    return '0'
   }
   if (d > oneDayInMs) {
     return `${Math.floor(d / oneDayInMs)}d`
@@ -115,8 +126,24 @@ const formatTimeDifference = (d: number): string => {
 }
 
 const styles = styleSheetCreate({
+  boomIcon: platformStyles({
+    common: {
+      position: 'absolute',
+    },
+    isElectron: {
+      top: -6,
+      left: 0,
+    },
+    isMobile: {
+      top: -22,
+      left: 0,
+    },
+  }),
   container: {
     alignSelf: 'flex-end',
+    position: 'relative',
+    width: isMobile ? 80 : 72,
+    height: isMobile ? 22 : 19,
   },
   countdownContainer: {
     borderRadius: 2,
