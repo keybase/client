@@ -315,34 +315,12 @@ func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar
 }
 
 func (s *Server) GetWalletAccountPrivateKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPrivateKeyLocalArg) (res stellar1.SecretKey, err error) {
-	mctx := libkb.NewMetaContext(s.logTag(ctx), s.G())
 	defer s.G().CTraceTimed(ctx, "GetWalletAccountPrivateKeyLocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
 	if arg.AccountID.IsNil() {
 		return res, errors.New("passed empty AccountID")
-	}
-
-	// Prompt for passphrase
-	username := s.G().GetEnv().GetUsername().String()
-	promptArg := libkb.DefaultPassphrasePromptArg(mctx, username)
-	promptArg.Prompt = fmt.Sprintf("%s to export Stellar secret keys for %q", promptArg.Prompt, arg.AccountID)
-	secretUI := s.uiSource.SecretUI(s.G(), 0)
-	ppRes, err := secretUI.GetPassphrase(promptArg, nil)
-	if err != nil {
-		return res, err
-	}
-	pwdOk := false
-	_, err = s.G().LoginState().VerifyPlaintextPassphrase(mctx, ppRes.Passphrase, func(lctx libkb.LoginContext) error {
-		pwdOk = true
-		return nil
-	})
-	if err != nil {
-		return res, err
-	}
-	if !pwdOk {
-		return res, libkb.PassphraseError{}
 	}
 
 	return stellar.ExportSecretKey(ctx, s.G(), arg.AccountID)
