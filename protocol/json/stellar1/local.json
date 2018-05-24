@@ -306,6 +306,70 @@
       ],
       "response": null
     },
+    "setWalletAccountAsDefaultLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "deleteWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "userAcknowledged",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "linkNewWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "secretKey",
+          "type": "SecretKey"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "AccountID"
+    },
+    "changeDisplayCurrencyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "currency",
+          "type": "OutsideCurrencyCode"
+        }
+      ],
+      "response": null
+    },
     "balancesLocal": {
       "request": [
         {

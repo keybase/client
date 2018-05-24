@@ -75,6 +75,7 @@ func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *user
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
 
 	u.device.userClient = keybase1.UserClient{Cli: cli}
+	u.device.accountClient = keybase1.AccountClient{Cli: cli}
 
 	return &u
 }

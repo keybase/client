@@ -558,15 +558,6 @@
         "items": "InterestingPerson"
       }
     },
-    "resetUser": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
     "meUserVersion": {
       "request": [
         {

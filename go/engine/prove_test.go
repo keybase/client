@@ -64,9 +64,7 @@ func TestProveRooterCachedKeys(t *testing.T) {
 	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	fu := CreateAndSignupFakeUser(tc, "prove")
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	clearCaches(tc.G)
 
 	_, _, err := proveRooterWithSecretUI(tc.G, fu, &libkb.TestSecretUI{}, sigVersion)
 	if err != nil {

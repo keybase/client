@@ -194,7 +194,7 @@ class FilesRender extends Component<Props> {
           height: 48,
         }}
       >
-        <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: globalMargins.small}} />
+        <BackButton title={null} onClick={this.props.onBack} />
       </Box>
     )
     return contents

@@ -403,33 +403,6 @@ func (a *Account) EnsureUsername(username NormalizedUsername) {
 
 }
 
-func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
-	token string, deviceSubkey, deviceSibkey GenericKey, err error) {
-	if !a.LoggedIn() {
-		err = LoginRequiredError{}
-		return
-	}
-
-	arg := NewLoadUserArg(a.G()).WithLoginContext(a).WithSelf(true)
-	err = a.G().GetFullSelfer().WithUser(arg, func(user *User) error {
-		var err error
-		deviceSubkey, err = user.GetDeviceSubkey()
-		if err != nil {
-			return err
-		}
-		deviceSibkey, err = user.GetDeviceSibkey()
-		if err != nil {
-			return err
-		}
-		uid = user.GetUID()
-		username = user.GetNormalizedName()
-		return nil
-
-	})
-	token = a.localSession.GetToken()
-	return
-}
-
 // SaveState saves the logins state to memory, and to the user
 // config file.
 func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {

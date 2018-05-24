@@ -402,7 +402,10 @@ const onChatInboxSynced = (syncRes, getState) => {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
             actions.unshift(
-              Chat2Gen.createMarkConversationsStale({conversationIDKeys: [selectedConversation]})
+              Chat2Gen.createMarkConversationsStale({
+                conversationIDKeys: [selectedConversation],
+                updateType: RPCChatTypes.notifyChatStaleUpdateType.newactivity,
+              })
             )
           }
           arr.push(meta)
@@ -444,21 +447,33 @@ const onChatTypingUpdate = typingUpdates => {
 }
 
 const onChatThreadStale = updates => {
-  const conversationIDKeys = (updates || []).reduce((arr, u) => {
-    if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear) {
-      arr.push(Types.conversationIDToKey(u.convID))
+  const actions = []
+  Object.keys(RPCChatTypes.notifyChatStaleUpdateType).forEach(function(key) {
+    const conversationIDKeys = (updates || []).reduce((arr, u) => {
+      if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType[key]) {
+        arr.push(Types.conversationIDToKey(u.convID))
+      }
+      return arr
+    }, [])
+    if (conversationIDKeys.length > 0) {
+      logger.info(
+        `onChatThreadStale: dispatching thread reload actions for ${
+          conversationIDKeys.length
+        } convs of type ${key}`
+      )
+      actions.concat([
+        Chat2Gen.createMarkConversationsStale({
+          conversationIDKeys,
+          updateType: RPCChatTypes.notifyChatStaleUpdateType[key],
+        }),
+        Chat2Gen.createMetaRequestTrusted({
+          conversationIDKeys,
+          force: true,
+        }),
+      ])
     }
-    return arr
-  }, [])
-  if (conversationIDKeys.length > 0) {
-    return [
-      Chat2Gen.createMarkConversationsStale({conversationIDKeys}),
-      Chat2Gen.createMetaRequestTrusted({
-        conversationIDKeys,
-        force: true,
-      }),
-    ]
-  }
+  })
+  return actions
 }
 
 // Some participants are broken/fixed now
@@ -665,6 +680,13 @@ const loadMoreMessages = (
   let reason: string = ''
 
   switch (action.type) {
+    case AppGen.changedFocus:
+      if (!isMobile || !action.payload.appFocused) {
+        return
+      }
+      key = Constants.getSelectedConversation(state)
+      reason = 'foregrounding'
+      break
     case Chat2Gen.setPendingConversationUsers:
       if (Constants.getSelectedConversation(state) !== Constants.pendingConversationIDKey) {
         return
@@ -974,7 +996,7 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
 
 const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
   const {sourceConversationIDKey, ordinal} = action.payload
-  const message = Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal)
+  const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
   if (!message) {
     logger.warn("Can't find message to reply to", ordinal)
     return
@@ -1000,7 +1022,7 @@ const messageReplyPrivatelySuccess = (results: Array<any>, action: Chat2Gen.Mess
 
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
   const {conversationIDKey, text, ordinal} = action.payload
-  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
     logger.warn("Can't find message to edit", ordinal)
     return
@@ -1444,7 +1466,7 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
     return
   }
   const state: TypedState = yield Saga.select()
-  let message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  let message = Constants.getMessage(state, conversationIDKey, ordinal)
 
   if (!message || message.type !== 'attachment') {
     throw new Error('Trying to download missing / incorrect message?')
@@ -1501,6 +1523,9 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   )
   yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
 
+  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+
   let lastRatioSent = 0
   const postAttachment = new EngineRpc.EngineRpcCall(
     {
@@ -1530,6 +1555,7 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     RPCChatTypes.localPostFileAttachmentLocalRpcChannelMap,
     `localPostFileAttachmentLocal-${conversationIDKey}-${path}`,
     {
+      ...ephemeralData,
       attachment: {filename: path},
       conversationID: Types.keyToConversationID(conversationIDKey),
       identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
@@ -1648,7 +1674,7 @@ const markThreadAsRead = (
 const deleteMessageHistory = (action: Chat2Gen.MessageDeletePayload, state: TypedState) => {
   const {conversationIDKey, ordinal} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
-  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
     throw new Error('Deleting message history with no message?')
   }
@@ -1728,7 +1754,7 @@ const mobileChangeSelection = (_: any, state: TypedState) => {
 function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
   const {conversationIDKey, ordinal} = action.payload
   let state: TypedState = yield Saga.select()
-  let message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
@@ -1743,7 +1769,7 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
 function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSavePayload) {
   const {conversationIDKey, ordinal} = action.payload
   let state: TypedState = yield Saga.select()
-  let message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
@@ -2015,6 +2041,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
       Chat2Gen.metasReceived,
+      AppGen.changedFocus,
     ],
     loadMoreMessages,
     loadMoreMessagesSuccess

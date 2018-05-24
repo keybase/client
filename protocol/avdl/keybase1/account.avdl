@@ -26,5 +26,9 @@ protocol account {
     boolean hasServerKeys;
   }
 
-  void resetAccount(int sessionID);
+  /**
+   resetAccount resets the user's account; it's meant only for devel and tests.
+   passphrase is optional and will be prompted for if not supplied.
+  */
+  void resetAccount(int sessionID, string passphrase);
 }

@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as Constants from '../../constants/chat2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
@@ -13,6 +14,7 @@ import {
   pendingWaitingConversationIDKey,
 } from '../types/chat2/common'
 import {makeConversationMeta, getMeta} from './meta'
+import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
@@ -27,7 +29,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   ]),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
-  quotingMap: I.Map(),
+  quote: null,
   selectedConversation: noConversationIDKey,
   typingMap: I.Map(),
   unreadMap: I.Map(),
@@ -41,19 +43,53 @@ export const isValidConversationIDKey = (id: Types.ConversationIDKey) =>
   id !== pendingConversationIDKey &&
   id !== noConversationIDKey &&
   id !== pendingWaitingConversationIDKey
+
+export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
+  counter: 0,
+  ordinal: Types.numberToOrdinal(0),
+  sourceConversationIDKey: Constants.noConversationIDKey,
+  targetConversationIDKey: Constants.noConversationIDKey,
+})
+
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.SortedSet())
-export const getMessageMap = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageMap.get(id, I.Map())
+export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+  state.chat2.messageMap.getIn([id, ordinal])
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.badgeMap.get(id, 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
-export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.editingMap.get(id)
-export const getQuotingOrdinalAndSource = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.quotingMap.get(id)
+
+export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
+  const ordinal = state.chat2.editingMap.get(id)
+  if (!ordinal) {
+    return null
+  }
+
+  const message = getMessage(state, id, ordinal)
+  if (!message || message.type !== 'text') {
+    return null
+  }
+
+  return {text: message.text.stringValue(), ordinal}
+}
+
+export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => {
+  const quote = state.chat2.quote
+  // Return null if we're not on the target conversation.
+  if (!quote || quote.targetConversationIDKey !== id) {
+    return null
+  }
+
+  const message = getMessage(state, quote.sourceConversationIDKey, quote.ordinal)
+  if (!message || message.type !== 'text') {
+    return null
+  }
+
+  return {counter: quote.counter, text: formatTextForQuoting(message.text.stringValue())}
+}
+
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))

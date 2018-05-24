@@ -341,7 +341,7 @@ func NewBackendMock(t testing.TB) *BackendMock {
 }
 
 func (r *BackendMock) trace(err *error, name string, format string, args ...interface{}) func() {
-	r.T.Logf("+ %s%s", name, fmt.Sprintf(format, args...))
+	r.T.Logf("+ %s %s", name, fmt.Sprintf(format, args...))
 	return func() {
 		errStr := "?"
 		if err != nil {

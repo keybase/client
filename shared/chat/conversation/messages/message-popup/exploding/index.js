@@ -18,12 +18,14 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 type Props = {
   attachTo: ?React.Component<any, any>,
   author: string,
+  canEdit: boolean,
+  canExplodeNow: boolean,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   explodesAt: number,
-  onEdit: null | (() => void),
-  onExplodeNow: null | (() => void),
+  onEdit: () => void,
+  onExplodeNow: () => void,
   onHidden: () => void,
   position: Position,
   style?: Object,
@@ -55,7 +57,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
 
   tick() {
     const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
-    let secondsLeft = this.props.explodesAt - now
+    let secondsLeft = Math.floor(this.props.explodesAt / 1000) - now
     if (secondsLeft < 0) {
       secondsLeft = 0
     }
@@ -111,7 +113,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           gapEnd={true}
           gapStart={true}
           style={{
-            backgroundColor: this.state.secondsLeft < oneHourInSecs ? globalColors.red : globalColors.black,
+            backgroundColor: this.state.secondsLeft < oneMinuteInS ? globalColors.red : globalColors.black_75,
             marginTop: globalMargins.tiny,
           }}
         >
@@ -126,7 +128,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
 
 const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
   const items = [
-    ...(props.onEdit
+    ...(props.canEdit
       ? [
           {
             onClick: props.onEdit,
@@ -134,11 +136,10 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
           },
         ]
       : []),
-    ...(props.yourMessage
+    ...(props.canExplodeNow
       ? [
           {
             danger: true,
-            disabled: !props.onExplodeNow,
             onClick: props.onExplodeNow,
             title: 'Explode now',
           },
@@ -165,7 +166,7 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
   )
 }
 
-const oneHourInSecs = 60 * 60
+const oneMinuteInS = 60
 
 const stylePopup = platformStyles({
   common: {

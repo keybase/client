@@ -380,9 +380,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 	}
 
 	// clear the paper key cache to test getting a paper key via UI
-	err = tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearCachedSecretKeys()
-	}, "TestCryptoUnboxBytes32AnyPaper")
+	clearCaches(tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}

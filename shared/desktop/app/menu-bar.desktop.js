@@ -1,10 +1,11 @@
 // @flow
 import menubar from 'menubar'
-import {injectReactQueryParams} from '../../util/dev'
+import {getRendererHTML} from './dev.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
-import {resolveImage, resolveRootAsURL} from '../resolve-root.desktop'
+import {resolveImage} from './resolve-root.desktop'
 import type {BadgeType} from '../../constants/types/notifications'
+import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 let iconType: BadgeType = 'regular'
 
@@ -34,7 +35,7 @@ const getIcon = invertColors => {
 
 export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
-    index: resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?menubar')),
+    index: getRendererHTML('menubar'),
     nodeIntegration: false,
     width: 320,
     height: 350,
@@ -73,6 +74,10 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
 
   mb.on('ready', () => {
     menubarWindowIDCallback(mb.window.id)
+
+    if (showDevTools && !skipSecondaryDevtools) {
+      mb.window.webContents.openDevTools({mode: 'detach'})
+    }
 
     // Hack: open widget when left/right/double clicked
     mb.tray.on('right-click', (e, bounds) => {

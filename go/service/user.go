@@ -4,7 +4,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/avatars"
@@ -236,21 +235,6 @@ func (h *UserHandler) ListTrackers2(ctx context.Context, arg keybase1.ListTracke
 		res = eng.GetResults()
 	}
 	return res, err
-}
-
-func (h *UserHandler) ResetUser(ctx context.Context, sessionID int) error {
-	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
-		return errors.New("can only reset user via service RPC in dev mode")
-	}
-	err := h.G().LoginState().ResetAccount(libkb.NewMetaContext(ctx, h.G()), h.G().Env.GetUsername().String())
-	if err != nil {
-		return err
-	}
-	err = h.G().Logout()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEditArg) error {
