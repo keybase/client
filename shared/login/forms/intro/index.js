@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Text, Icon, Box2, Button} from '../../../common-adapters'
+import {Text, Icon, Box2, ButtonBar, Button} from '../../../common-adapters'
 import {globalColors, styleSheetCreate, globalMargins, isMobile} from '../../../styles'
 
 type Props = {
@@ -40,13 +40,17 @@ const Intro = (props: Props) => (
         <Text type="HeaderBig" style={styles.join}>
           Join Keybase
         </Text>
-        <Button type="Primary" onClick={props.onSignup} label="Create an account" />
+        <ButtonBar noPaddings={true}>
+          <Button type="Primary" onClick={props.onSignup} label="Create an account" />
+        </ButtonBar>
       </Box2>
       <Box2 direction="vertical" gap="tiny">
         <Text type="Body" onClick={props.onLogin}>
           Already on Keybase?
         </Text>
-        <Button type="Secondary" onClick={props.onLogin} label="Log in" />
+        <ButtonBar noPaddings={true}>
+          <Button type="Secondary" onClick={props.onLogin} label="Log in" />
+        </ButtonBar>
       </Box2>
       <Feedback onFeedback={props.onFeedback} />
     </Box2>
