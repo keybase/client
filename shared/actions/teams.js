@@ -1035,7 +1035,16 @@ function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsP
     // we've already dismissed for this team and we already know about it, bail
     return
   }
-  const pushState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
+  let pushState
+  try {
+    pushState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  } catch (err) {
+    // failure getting the push state, don't bother the user with an error
+    // and don't try to move forward updating the state
+    logger.info(`${logPrefix} error fetching gregor state: ${err}`)
+    return
+  }
   const item = pushState.items.find(i => i.item.category === Constants.chosenChannelsGregorKey)
   let teams = []
   let msgID
@@ -1054,7 +1063,7 @@ function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsP
   }
   // update if exists, else create
   if (msgID) {
-    logger.info(`Updating teamsWithChosenChannels for team ${teamname}`)
+    logger.info(`${logPrefix} Updating teamsWithChosenChannels`)
     yield Saga.call(RPCTypes.gregorUpdateItemRpcPromise, {
       body: JSON.stringify(teams),
       cat: Constants.chosenChannelsGregorKey,
@@ -1062,7 +1071,7 @@ function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsP
       msgID,
     })
   } else {
-    logger.info(`Creating teamsWithChosenChannels with team ${teamname}`)
+    logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
     yield Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
       body: JSON.stringify(teams),
       cat: Constants.chosenChannelsGregorKey,
