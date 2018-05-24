@@ -82,6 +82,14 @@ export const localGetUserSettingsLocalRpcChannelMap = (configKeys: Array<string>
 
 export const localGetUserSettingsLocalRpcPromise = (request: LocalGetUserSettingsLocalRpcParam): Promise<LocalGetUserSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getUserSettingsLocal', request, (error: RPCError, result: LocalGetUserSettingsLocalResult) => (error ? reject(error) : resolve(result))))
 
+export const localGetWalletAccountPrivateKeyLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetWalletAccountPrivateKeyLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getWalletAccountPrivateKeyLocal', request)
+
+export const localGetWalletAccountPrivateKeyLocalRpcPromise = (request: LocalGetWalletAccountPrivateKeyLocalRpcParam): Promise<LocalGetWalletAccountPrivateKeyLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getWalletAccountPrivateKeyLocal', request, (error: RPCError, result: LocalGetWalletAccountPrivateKeyLocalResult) => (error ? reject(error) : resolve(result))))
+
+export const localGetWalletAccountPublicKeyLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetWalletAccountPublicKeyLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getWalletAccountPublicKeyLocal', request)
+
+export const localGetWalletAccountPublicKeyLocalRpcPromise = (request: LocalGetWalletAccountPublicKeyLocalRpcParam): Promise<LocalGetWalletAccountPublicKeyLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getWalletAccountPublicKeyLocal', request, (error: RPCError, result: LocalGetWalletAccountPublicKeyLocalResult) => (error ? reject(error) : resolve(result))))
+
 export const localGetWalletAccountsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetWalletAccountsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getWalletAccountsLocal', request)
 
 export const localGetWalletAccountsLocalRpcPromise = (request: LocalGetWalletAccountsLocalRpcParam): Promise<LocalGetWalletAccountsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getWalletAccountsLocal', request, (error: RPCError, result: LocalGetWalletAccountsLocalResult) => (error ? reject(error) : resolve(result))))
@@ -267,6 +275,10 @@ export type LocalGetDisplayCurrenciesLocalRpcParam = ?$ReadOnly<{incomingCallMap
 
 export type LocalGetUserSettingsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type LocalGetWalletAccountPrivateKeyLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LocalGetWalletAccountPublicKeyLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type LocalGetWalletAccountsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalImportSecretKeyLocalRpcParam = $ReadOnly<{secretKey: SecretKey, makePrimary: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -401,6 +413,8 @@ type LocalGetAccountAssetsLocalResult = ?Array<AccountAssetLocal>
 type LocalGetAvailableLocalCurrenciesResult = {[key: string]: OutsideCurrencyDefinition}
 type LocalGetDisplayCurrenciesLocalResult = ?Array<CurrencyLocal>
 type LocalGetUserSettingsLocalResult = UserSettings
+type LocalGetWalletAccountPrivateKeyLocalResult = SecretKey
+type LocalGetWalletAccountPublicKeyLocalResult = String
 type LocalGetWalletAccountsLocalResult = ?Array<WalletAccountLocal>
 type LocalLinkNewWalletAccountLocalResult = AccountID
 type LocalOwnAccountLocalResult = Boolean
