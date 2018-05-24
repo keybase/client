@@ -61,6 +61,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	flags := append(getConversationResolverFlags(),
 		mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
 	)
+	// TODO move this to mustGetChatFlags once we release
 	ekLib := ephemeral.NewEKLib(g)
 	if ekLib.ShouldRun(context.TODO()) {
 		flags = append(flags, cli.DurationFlag{
