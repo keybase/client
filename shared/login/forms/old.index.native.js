@@ -18,37 +18,6 @@ const Scroller = (props: any) => (
   <NativeScrollView style={{height: '100%', width: '100%'}}>{props.children}</NativeScrollView>
 )
 
-const Failure = (props: Props) => (
-  <Scroller>
-    <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
-      <Box style={stylesBannerRed}>
-        <Text type="BodySemibold" style={stylesTextBanner}>
-          Oops, we had a problem communicating with our services. This might be because you lost connectivity.
-        </Text>
-      </Box>
-      <Box
-        style={{...globalStyles.flexBoxColumn, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
-      >
-        <Icon type="" />
-        <Box style={globalStyles.flexBoxRow}>
-          <Button
-            type="Primary"
-            label="Reload"
-            onClick={props.onRetry}
-            style={{marginTop: globalMargins.xlarge}}
-          />
-          <Button
-            type="Secondary"
-            label="Send us feedback"
-            onClick={props.onFeedback}
-            style={{marginLeft: globalMargins.small, marginTop: globalMargins.xlarge}}
-          />
-        </Box>
-      </Box>
-    </Box>
-  </Scroller>
-)
-
 const Intro = (props: Props) => (
   <Scroller>
     <Box

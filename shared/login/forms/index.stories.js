@@ -1,20 +1,15 @@
 // @flow
 import * as React from 'react'
 import {action, storiesOf} from '../../stories/storybook'
-// import {Intro, Failure} from '.'
+import Intro from './intro'
 import Splash from './splash'
 
-// const props = {
-// bootStatus: 'bootStatusLoading',
-// justDeletedSelf: null,
-// justLoginFromRevokedDevice: null,
-// justRevokedSelf: null,
-// onFeedback: action('onFeedback'),
-// onLogin: action('onLogin'),
-// onRetry: action('onRetry'),
-// onSignup: action('onSignup'),
-// retrying: false,
-// }
+const introProps = {
+  bannerMessage: null,
+  onFeedback: null,
+  onLogin: action('onLogin'),
+  onSignup: action('onSignup'),
+}
 
 const splashProps = {
   onFeedback: null,
@@ -23,17 +18,10 @@ const splashProps = {
 }
 
 const load = () => {
-  // storiesOf('Login/Intro', module)
-  // .add('First time user', () => <Intro {...props} bootStatus="bootStatusBootstrapped" />)
-  // .add('User who just revoked device', () => (
-  // <Intro {...props} bootStatus="bootStatusBootstrapped" justRevokedSelf="DEVICE_NAME" />
-  // ))
-  // .add('User who just deleted self', () => (
-  // <Intro {...props} bootStatus="bootStatusBootstrapped" justDeletedSelf="hal9000" />
-  // ))
-  // .add('User who tried to login from revoked device', () => (
-  // <Intro {...props} bootStatus="bootStatusBootstrapped" justLoginFromRevokedDevice="DEVICE_NAME" />
-  // ))
+  storiesOf('Login', module)
+    .add('Intro', () => <Intro {...introProps} />)
+    .add('Intro: banner', () => <Intro {...introProps} bannerMessage="You just deleted your account!" />)
+
   storiesOf('Login', module)
     .add('Splash', () => <Splash {...splashProps} />)
     .add('Failure', () => (
