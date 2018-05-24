@@ -1,7 +1,7 @@
 // @flow
 import Box from './box'
 import ClickableBox from './clickable-box'
-import Icon from './icon'
+import Icon, {castPlatformStyles} from './icon'
 import * as React from 'react'
 import Text from './text'
 import {
@@ -43,7 +43,7 @@ export type Props = {
 const Progress = ({small, white}) => (
   <Box style={styles.progressContainer}>
     <Icon
-      style={small ? styles.progressSmall : styles.progressNormal}
+      style={castPlatformStyles(small ? styles.progressSmall : styles.progressNormal)}
       type={white ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
     />
   </Box>
