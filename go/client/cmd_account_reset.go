@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -51,7 +52,7 @@ func (c *CmdAccountReset) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.ResetAccount(context.Background(), 0)
+	return cli.ResetAccount(context.Background(), keybase1.ResetAccountArg{})
 }
 
 func (c *CmdAccountReset) GetUsage() libkb.Usage {

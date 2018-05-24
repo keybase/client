@@ -83,9 +83,14 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
         }
       ],
-      "response": null
+      "response": null,
+      "doc": "resetAccount resets the user's account; it's meant only for devel and tests.\n   passphrase is optional and will be prompted for if not supplied."
     }
   },
   "namespace": "keybase.1"
