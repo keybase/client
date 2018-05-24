@@ -23,7 +23,7 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
   return title ? (
     <Meta
       backgroundColor={explodingModeSeconds === 0 ? globalColors.blue : globalColors.black_75_on_white}
-      lowercase={explodingModeSeconds !== 0}
+      noUppercase={explodingModeSeconds !== 0}
       style={styles.newBadge}
       size="Small"
       title={title}

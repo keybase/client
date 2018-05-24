@@ -17,7 +17,7 @@ type Props = {
   size?: 'Small',
   color?: string,
   backgroundColor: string,
-  lowercase?: boolean,
+  noUppercase?: boolean,
 }
 
 const Meta = (props: Props) => (
@@ -42,7 +42,7 @@ const Meta = (props: Props) => (
         props.size === 'Small' ? {fontSize: 9} : null,
       ])}
     >
-      {props.lowercase ? props.title.toLowerCase() : props.title.toUpperCase()}
+      {props.noUppercase ? props.title : props.title.toUpperCase()}
     </Text>
   </Box>
 )
