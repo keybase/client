@@ -772,7 +772,7 @@ export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: 
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
-export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge}>
+export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, conv?: ?InboxUIItem}>
 
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, unreadUpdate?: ?UnreadUpdate}>
 
