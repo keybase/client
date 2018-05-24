@@ -70,9 +70,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    // TODO: Also call onCancelQuoting on mobile.
-    this.props.onCancelQuoting()
-
     const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       e.preventDefault()

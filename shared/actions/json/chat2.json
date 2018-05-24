@@ -169,7 +169,7 @@
     "messageSetQuoting": {
       "sourceConversationIDKey": "Types.ConversationIDKey",
       "targetConversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "?Types.Ordinal"
+      "ordinal": "Types.Ordinal"
     },
     // Reply privately to a message with quoting
     "messageReplyPrivately": {
