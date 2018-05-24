@@ -92,6 +92,16 @@
     },
     {
       "type": "record",
+      "name": "UserSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "acceptedDisclaimer"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -366,6 +376,24 @@
         {
           "name": "currency",
           "type": "OutsideCurrencyCode"
+        }
+      ],
+      "response": null
+    },
+    "getUserSettingsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "UserSettings"
+    },
+    "setAcceptedDisclaimerLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         }
       ],
       "response": null
