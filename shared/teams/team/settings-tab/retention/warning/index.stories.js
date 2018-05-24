@@ -23,6 +23,7 @@ const load = () => {
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))
     .add('Channel', () => <RetentionWarning {...commonProps} />)
+    .add('Big team', () => <RetentionWarning {...commonProps} entityType="big team" />)
 }
 
 export default load
