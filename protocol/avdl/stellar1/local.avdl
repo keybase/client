@@ -46,6 +46,10 @@ protocol local {
 
   AccountID linkNewWalletAccountLocal(int sessionID, SecretKey secretKey, string name);
 
+  // OutsideCurrencyCode examples: "USD", "EUR". Has to be one of
+  // supported currencies, returned from getDisplayCurrenciesLocal.
+  void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------

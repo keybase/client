@@ -314,3 +314,66 @@ func TestDeleteWallet(t *testing.T) {
 	require.Equal(t, accs[0].AccountID, accID2)
 	require.True(t, accs[0].IsPrimary)
 }
+
+func TestChangeDisplayCurrency(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	stellar.CreateWallet(context.Background(), tcs[0].G)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accID := getPrimaryAccountID(tcs[0])
+
+	// Try invalid currency first.
+	err := tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: accID,
+		Currency:  stellar1.OutsideCurrencyCode("ZZZ"),
+	})
+	require.Error(t, err)
+
+	// Try empty account id.
+	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: stellar1.AccountID(""),
+		Currency:  stellar1.OutsideCurrencyCode("USD"),
+	})
+	require.Error(t, err)
+
+	// Try non-existant account id.
+	invalidAccID, _ := randomStellarKeypair()
+	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: invalidAccID,
+		Currency:  stellar1.OutsideCurrencyCode("USD"),
+	})
+	require.Error(t, err)
+
+	// Make wallet as other user, and try to change the currency as
+	// first user.
+	stellar.CreateWallet(context.Background(), tcs[1].G)
+	tcs[1].Backend.ImportAccountsForUser(tcs[1])
+	accID2 := getPrimaryAccountID(tcs[1])
+	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: accID2,
+		Currency:  stellar1.OutsideCurrencyCode("EUR"),
+	})
+	require.Error(t, err)
+
+	// Finally, a happy path.
+	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: accID,
+		Currency:  stellar1.OutsideCurrencyCode("EUR"),
+	})
+	require.NoError(t, err)
+
+	// Check both CLI and Frontend RPCs.
+	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+	require.NoError(t, err)
+	require.Len(t, accs, 1)
+	require.NotNil(t, accs[0].ExchangeRate)
+	require.EqualValues(t, "EUR", accs[0].ExchangeRate.Currency)
+
+	balances, err := tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{
+		AccountID: accID,
+	})
+	require.NoError(t, err)
+	require.Len(t, balances, 1)
+	require.EqualValues(t, "EUR", balances[0].WorthCurrency)
+}

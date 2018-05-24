@@ -79,6 +79,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 	if len(details.Balances) == 0 {
 		// add an empty xlm balance
+		s.G().Log.CDebugf(ctx, "Account has no balances - adding default 0 XLM balance")
 		details.Balances = []stellar1.Balance{
 			stellar1.Balance{
 				Amount: "0",
@@ -87,10 +88,11 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		}
 	}
 
-	displayCurrency, err := s.remoter.GetAccountDisplayCurrency(ctx, arg.AccountID)
+	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, s.G(), arg.AccountID)
 	if err != nil {
 		return nil, err
 	}
+	s.G().Log.CDebugf(ctx, "Display currency for account %q is %q", arg.AccountID, displayCurrency)
 	if displayCurrency == "" {
 		displayCurrency = defaultOutsideCurrency
 		s.G().Log.CDebugf(ctx, "Using default display currency %s for account %s", displayCurrency, arg.AccountID)
@@ -258,4 +260,22 @@ func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.Dele
 	}
 
 	return stellar.DeleteAccount(m, arg.AccountID)
+}
+
+func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (err error) {
+	defer s.G().CTraceTimed(ctx, "ChangeDisplayCurrencyLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	if arg.AccountID.IsNil() {
+		return errors.New("passed empty AccountID")
+	}
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return err
+	}
+	if _, ok := conf.Currencies[arg.Currency]; !ok {
+		return fmt.Errorf("Unknown currency code: %q", arg.Currency)
+	}
+	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, string(arg.Currency))
 }
