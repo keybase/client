@@ -353,6 +353,23 @@
       ],
       "response": "AccountID"
     },
+    "changeDisplayCurrencyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "currency",
+          "type": "OutsideCurrencyCode"
+        }
+      ],
+      "response": null
+    },
     "balancesLocal": {
       "request": [
         {
