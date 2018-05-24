@@ -72,7 +72,7 @@ const Failure = (props: Props) => (
       <Box
         style={{...globalStyles.flexBoxColumn, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
       >
-        <Icon type="icon-keybase-logo-logged-out-80" />
+        <Icon type="" />
         <Box style={globalStyles.flexBoxRow}>
           <Button
             type="Primary"

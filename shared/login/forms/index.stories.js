@@ -16,6 +16,12 @@ import Splash from './splash'
 // retrying: false,
 // }
 
+const splashProps = {
+  onFeedback: null,
+  onRetry: null,
+  status: 'Loading',
+}
+
 const load = () => {
   // storiesOf('Login/Intro', module)
   // .add('First time user', () => <Intro {...props} bootStatus="bootStatusBootstrapped" />)
@@ -29,12 +35,18 @@ const load = () => {
   // <Intro {...props} bootStatus="bootStatusBootstrapped" justLoginFromRevokedDevice="DEVICE_NAME" />
   // ))
   storiesOf('Login', module)
-    .add('Splash', () => <Splash status="Loading" onRetry={null} onFeedback={null} />)
+    .add('Splash', () => <Splash {...splashProps} />)
     .add('Failure', () => (
-      <Splash status="Something went wrong" onRetry={action('onRetry')} onFeedback={null} />
+      <Splash {...splashProps} failed={true} status="Something went wrong" onRetry={action('onRetry')} />
     ))
     .add('Failure feedback', () => (
-      <Splash status="Something went wrong" onRetry={action('onRetry')} onFeedback={action('onFeedback')} />
+      <Splash
+        {...splashProps}
+        failed={true}
+        status="Something went wrong"
+        onRetry={action('onRetry')}
+        onFeedback={action('onFeedback')}
+      />
     ))
   // storiesOf('Login', module).add('Failure', () => <Failure {...props} bootStatus="bootStatusFailure" />)
 }

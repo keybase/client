@@ -5,8 +5,8 @@ import Splash from '.'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  _failed: state.config.bootStatus === 'bootStatusFailure',
   _stillTrying: state.config.bootstrapTriesRemaining === Constants.maxBootstrapTries,
+  failed: state.config.bootStatus === 'bootStatusFailure',
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
@@ -16,7 +16,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let status
-  if (stateProps._failed) {
+  if (stateProps.failed) {
     status =
       'Oops, we had a problem communicating with our services. This might be because you lost connectivity.'
   } else {
@@ -24,8 +24,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 
   return {
+    failed: stateProps.failed,
     onFeedback: isMobile ? dispatchProps._onFeedback : null,
-    onRetry: stateProps._failed ? dispatchProps._onRetry : null,
+    onRetry: stateProps.failed ? dispatchProps._onRetry : null,
     status,
   }
 }

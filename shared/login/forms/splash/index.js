@@ -5,6 +5,7 @@ import {globalColors, styleSheetCreate} from '../../../styles'
 
 type Props = {|
   status: string,
+  failed: boolean,
   onRetry: ?() => void,
   onFeedback: ?() => void,
 |}
@@ -22,7 +23,7 @@ const Feedback = ({onFeedback}) =>
 
 const Splash = (props: Props) => (
   <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
-    <Icon type="icon-keybase-logo-80" />
+    <Icon type={props.failed ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
     <Text style={styles.header} type="HeaderBig">
       Keybase
     </Text>
