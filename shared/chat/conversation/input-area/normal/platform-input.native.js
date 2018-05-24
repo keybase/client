@@ -7,19 +7,25 @@ import {globalMargins, globalStyles, globalColors, styleSheetCreate} from '../..
 import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
-
+import {NativeTouchableWithoutFeedback} from '../../../../common-adapters/native-wrappers.native'
+import SetExplodingMessagePicker from '../../messages/set-explode-popup'
+import {ExplodingMeta} from './shared'
+import {messageExplodeDescriptions} from '../../../../constants/chat2'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import type {PlatformInputProps} from './types'
 
 type State = {
+  explodingPickerOpen: boolean,
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps, State> {
+class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
   _input: ?Input
 
-  constructor(props: PlatformInputProps) {
+  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
     super(props)
     this.state = {
+      explodingPickerOpen: false,
       hasText: false,
     }
   }
@@ -27,6 +33,14 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   _inputSetRef = (ref: ?Input) => {
     this._input = ref
     this.props.inputSetRef(ref)
+  }
+
+  _explodingPickerToggle = () => {
+    this.setState(({explodingPickerOpen}) => ({explodingPickerOpen: !explodingPickerOpen}))
+  }
+
+  _selectExplodingMode = selected => {
+    this.props.selectExplodingMode(selected.seconds)
   }
 
   _openFilePicker = () => {
@@ -91,6 +105,19 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             filter={this.props.channelMentionFilter}
           />
         )}
+        {this.state.explodingPickerOpen && (
+          <SetExplodingMessagePicker
+            attachTo={this.props.attachmentRef}
+            isNew={true}
+            items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+            onHidden={this._explodingPickerToggle}
+            onSelect={this._selectExplodingMode}
+            selected={messageExplodeDescriptions.find(
+              exploded => exploded.seconds === this.props.explodingModeSeconds
+            )}
+            visible={this.state.explodingPickerOpen}
+          />
+        )}
         <Box style={styles.container}>
           {this.props.isEditing && (
             // TODO: Make this box take up the full height.
@@ -126,8 +153,11 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
+            openExplodingPicker={this._explodingPickerToggle}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
+            isExploding={this.props.isExploding}
+            explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
       </Box>
@@ -157,7 +187,16 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({hasText, onSubmit, isEditing, openFilePicker, insertMentionMarker}) =>
+const Action = ({
+  hasText,
+  onSubmit,
+  isEditing,
+  openExplodingPicker,
+  openFilePicker,
+  insertMentionMarker,
+  isExploding,
+  explodingModeSeconds,
+}) =>
   hasText ? (
     <Box style={styles.actionText}>
       <Text type="BodyBigLink" onClick={onSubmit}>
@@ -166,6 +205,11 @@ const Action = ({hasText, onSubmit, isEditing, openFilePicker, insertMentionMark
     </Box>
   ) : (
     <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
+      <ExplodingIcon
+        explodingModeSeconds={explodingModeSeconds}
+        isExploding={isExploding}
+        openExplodingPicker={openExplodingPicker}
+      />
       <Icon
         onClick={insertMentionMarker}
         type="iconfont-mention"
@@ -180,6 +224,20 @@ const Action = ({hasText, onSubmit, isEditing, openFilePicker, insertMentionMark
       />
     </Box2>
   )
+
+const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
+  <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
+    <Box style={styles.explodingIconContainer}>
+      <Icon
+        color={isExploding ? globalColors.black_75 : null}
+        style={iconCastPlatformStyles(styles.actionButton)}
+        type="iconfont-bomb"
+        fontSize={21}
+      />
+      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
+    </Box>
+  </NativeTouchableWithoutFeedback>
+)
 
 const containerPadding = 6
 const styles = styleSheetCreate({
@@ -226,6 +284,10 @@ const styles = styleSheetCreate({
     height: '100%',
     padding: 3,
   },
+  explodingIconContainer: {
+    ...globalStyles.flexBoxRow,
+    marginRight: globalMargins.xsmall,
+  },
   input: {
     marginLeft: globalMargins.tiny,
     paddingBottom: 12,
@@ -260,4 +322,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default PlatformInput
+export default FloatingMenuParentHOC(PlatformInput)

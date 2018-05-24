@@ -1,7 +1,7 @@
 // @flow
 /* eslint-env browser */
 import React, {Component} from 'react'
-import {Box, Icon, Input, Meta, Text} from '../../../../common-adapters'
+import {Box, Icon, Input, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
@@ -12,6 +12,7 @@ import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup'
 import type {PlatformInputProps} from './types'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import {ExplodingMeta} from './shared'
 
 const MentionCatcher = ({onClick}) => (
   <Box
@@ -416,33 +417,6 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   </Box>
 )
 
-const ExplodingMeta = ({explodingModeSeconds}) => {
-  let title = 'New'
-
-  if (explodingModeSeconds !== 0) {
-    const description = messageExplodeDescriptions.find(
-      exploding => exploding.seconds === explodingModeSeconds
-    )
-
-    if (description) {
-      const text = description.text.split(' ')
-      title = `${text[0]}${text[1][0]}`
-    } else {
-      title = null
-    }
-  }
-
-  return title ? (
-    <Meta
-      backgroundColor={explodingModeSeconds === 0 ? globalColors.blue : globalColors.black_75}
-      lowercase={explodingModeSeconds !== 0}
-      style={styles.newBadge}
-      size="Small"
-      title={title}
-    />
-  ) : null
-}
-
 const editingTabStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
@@ -489,18 +463,6 @@ const styles = styleSheetCreate({
     marginRight: globalMargins.small + 4,
     position: 'relative',
   },
-  newBadge: platformStyles({
-    common: {
-      borderRadius: 3,
-      left: 12,
-      position: 'absolute',
-      top: -4,
-    },
-    isElectron: {
-      border: '1px solid white',
-      cursor: 'pointer',
-    },
-  }),
 })
 
 export default FloatingMenuParentHOC(PlatformInput)
