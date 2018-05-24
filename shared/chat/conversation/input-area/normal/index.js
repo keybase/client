@@ -51,7 +51,7 @@ class Input extends React.Component<InputProps> {
 
   componentDidMount = () => {
     // Set lastQuote so we only inject quoted text after we mount.
-    this._lastQuote = this.props._quoteCounter
+    this._lastQuote = this.props.quoteCounter
 
     const text = this.props.getUnsentText()
     this._setText(text, true)
@@ -68,7 +68,7 @@ class Input extends React.Component<InputProps> {
     // an unsent edit.
     if (prevProps.conversationIDKey === this.props.conversationIDKey) {
       if (!prevProps.isEditing && this.props.isEditing) {
-        this._setText(this.props._editText)
+        this._setText(this.props.editText)
         this._inputFocus()
         return
       }
@@ -81,9 +81,9 @@ class Input extends React.Component<InputProps> {
 
     // Inject the appropriate text when quoting. Keep track of the
     // last quote we did so as to inject exactly once.
-    if (this.props._quoteCounter > this._lastQuote) {
-      this._lastQuote = this.props._quoteCounter
-      this._setText(this.props._quoteText)
+    if (this.props.quoteCounter > this._lastQuote) {
+      this._lastQuote = this.props.quoteCounter
+      this._setText(this.props.quoteText)
       this._inputFocus()
       return
     }

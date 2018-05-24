@@ -23,9 +23,9 @@ type CommonProps = {
 }
 
 type InputProps = CommonProps & {
-  _editText: string,
-  _quoteCounter: number,
-  _quoteText: string,
+  editText: string,
+  quoteCounter: number,
+  quoteText: string,
 
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,

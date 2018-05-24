@@ -30,10 +30,10 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _you = state.config.username || ''
 
   return {
-    _editText: editInfo ? editInfo.text : '',
+    editText: editInfo ? editInfo.text : '',
     _editOrdinal: editInfo ? editInfo.ordinal : null,
-    _quoteCounter: quoteInfo ? quoteInfo.counter : 0,
-    _quoteText: quoteInfo ? quoteInfo.text : '',
+    quoteCounter: quoteInfo ? quoteInfo.counter : 0,
+    quoteText: quoteInfo ? quoteInfo.text : '',
     _you,
     conversationIDKey,
     typing: Constants.getTyping(state, conversationIDKey),
@@ -89,9 +89,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   typing: stateProps.typing,
 
-  _editText: stateProps._editText,
-  _quoteCounter: stateProps._quoteCounter,
-  _quoteText: stateProps._quoteText,
+  editText: stateProps.editText,
+  quoteCounter: stateProps.quoteCounter,
+  quoteText: stateProps.quoteText,
 
   getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
   setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),

@@ -71,9 +71,9 @@ const InputContainer = (props: Props) => {
     pendingWaiting: props.pendingWaiting,
     typing: props.typing,
 
-    _editText: '',
-    _quoteCounter: 0,
-    _quoteText: '',
+    editText: '',
+    quoteCounter: 0,
+    quoteText: '',
 
     getUnsentText: () => {
       action('getUnsentText')()
