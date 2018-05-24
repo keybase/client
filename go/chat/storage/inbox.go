@@ -1142,7 +1142,7 @@ func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, vers chat1.InboxVers,
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
 		i.Debug(ctx, "UpgradeKBFSToImpteam: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		return nil
 	}
 	conv.Conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
 
