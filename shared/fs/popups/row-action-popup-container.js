@@ -179,12 +179,12 @@ const mergeProps = (stateProps, dispatchProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('Popup'),
   lifecycle({
     componentDidMount() {
       if (this.props.needLoadMimeType) {
         this.props.loadMimeType()
       }
     },
-  }),
-  setDisplayName('Popup')
+  })
 )(Popup)

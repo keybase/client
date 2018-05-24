@@ -285,8 +285,9 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
 const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer) =>
   new Promise((resolve, reject) =>
     getMimeTypeFromURL(Constants.generateFileURL(path, serverInfo), ({error, statusCode, mimeType}) => {
-      if (error !== undefined) {
+      if (error) {
         reject(error)
+        return
       }
       switch (statusCode) {
         case 200:
@@ -297,6 +298,7 @@ const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer
           return
         default:
           reject(new Error(`unexpected HTTP status code: ${statusCode}`))
+          return
       }
     })
   )
@@ -328,9 +330,7 @@ function* _loadMimeType(path: Types.Path) {
   }
 }
 
-function* loadMimeType(action: FsGen.MimeTypeLoadPayload) {
-  yield Saga.call(_loadMimeType, action.payload.path)
-}
+const loadMimeType = (action: FsGen.MimeTypeLoadPayload) => Saga.call(_loadMimeType, action.payload.path)
 
 function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenerator<any, any> {
   const {path, type, targetRect, routePath} = action.payload
@@ -380,7 +380,7 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
     if (mimeType === '') {
       mimeType = yield Saga.call(_loadMimeType, path)
     }
-    bare = isMobile && ['image'].includes(Constants.viewTypeFromMimeType(mimeType))
+    bare = isMobile && 'image' === Constants.viewTypeFromMimeType(mimeType)
   }
 
   yield Saga.put(
@@ -408,7 +408,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
-  yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
+  yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

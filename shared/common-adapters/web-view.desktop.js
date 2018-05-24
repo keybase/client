@@ -3,24 +3,29 @@ import * as React from 'react'
 import type {WebViewProps} from './web-view'
 
 class WebView extends React.PureComponent<WebViewProps> {
-  webviewRef: any
+  _webviewRef: ?WebviewElement
 
-  constructor(props: WebViewProps) {
-    super(props)
-    this.webviewRef = React.createRef()
+  _setWebviewRef = (r: ?HTMLElement) => {
+    this._webviewRef = (r: any)
   }
+
   componentDidMount() {
     const css = (this.props.injections && this.props.injections.css) || ''
     const javaScript = (this.props.injections && this.props.injections.javaScript) || ''
-    if (css || javaScript) {
-      this.webviewRef.current.addEventListener('dom-ready', () => {
-        this.webviewRef.current.insertCSS(css)
-        this.webviewRef.current.executeJavaScript(javaScript)
-      })
+    if (!css && !javaScript) {
+      return
     }
+    if (!this._webviewRef) {
+      return
+    }
+    const ref: WebviewElement = this._webviewRef
+    ref.addEventListener('dom-ready', () => {
+      ref.insertCSS(css)
+      ref.executeJavaScript(javaScript)
+    })
   }
   render() {
-    return <webview ref={this.webviewRef} style={this.props.style} src={this.props.url} />
+    return <webview ref={this._setWebviewRef} style={this.props.style} src={this.props.url} />
   }
 }
 
