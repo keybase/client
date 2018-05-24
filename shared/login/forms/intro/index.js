@@ -3,12 +3,12 @@ import * as React from 'react'
 import {Text, Icon, Box2, ButtonBar, Button} from '../../../common-adapters'
 import {globalColors, styleSheetCreate, globalMargins} from '../../../styles'
 
-type Props = {|
+type Props = {
   bannerMessage: ?string,
   onFeedback: ?() => void,
   onLogin: () => void,
   onSignup: () => void,
-|}
+}
 
 const Feedback = ({onFeedback}) =>
   onFeedback ? (
