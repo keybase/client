@@ -192,7 +192,7 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 	return currencies, nil
 }
 
-func (s *Server) GetUserSettingsLocal(ctx context.Context) (userSettings stellar1.UserSettings, err error) {
+func (s *Server) GetUserSettingsLocal(ctx context.Context, sessionID int) (userSettings stellar1.UserSettings, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetUserSettingsLocal", func() error { return err })()
 	err = s.assertLoggedIn(ctx)
@@ -207,7 +207,7 @@ func (s *Server) GetUserSettingsLocal(ctx context.Context) (userSettings stellar
 	return userSettings, nil
 }
 
-func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context) (err error) {
+func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "SetAcceptedDisclaimerLocal", func() error { return err })()
 	err = s.assertLoggedIn(ctx)
