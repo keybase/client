@@ -21,7 +21,11 @@ const Feedback = ({onFeedback}) =>
     </ButtonBar>
   ) : (
     <Text type="BodySmall">
-      Send us feedback: Run <Text type="TerminalInline">keybase log send</Text> from the terminal
+      Send us feedback! Run{' '}
+      <Text type="TerminalInline" selectable={true}>
+        keybase log send
+      </Text>{' '}
+      from the terminal.
     </Text>
   )
 

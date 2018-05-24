@@ -20,7 +20,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     status =
       'Oops, we had a problem communicating with our services. This might be because you lost connectivity.'
   } else {
-    status = stateProps._stillTrying ? 'Loading…  (still trying)' : 'Loading…'
+    status = stateProps._stillTrying ? 'Loading...  (still trying)' : 'Loading...'
   }
 
   return {

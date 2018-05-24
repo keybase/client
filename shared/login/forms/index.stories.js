@@ -16,7 +16,7 @@ const splashProps = {
   failed: false,
   onFeedback: null,
   onRetry: null,
-  status: 'Loading',
+  status: 'Loading...',
 }
 
 const load = () => {
