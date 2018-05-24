@@ -30,7 +30,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
-  quotingMap: I.Map(),
   selectedConversation: noConversationIDKey,
   typingMap: I.Map(),
   unreadMap: I.Map(),
