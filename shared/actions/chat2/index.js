@@ -659,7 +659,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   return arr
 }, [])
 
-const reasonToRPCReason = reason => {
+const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadNonblockReason => {
   switch (reason) {
     case 'push':
       return RPCChatTypes.localGetThreadNonblockReason.push
