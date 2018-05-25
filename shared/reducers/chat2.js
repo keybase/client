@@ -150,7 +150,9 @@ const metaMapReducer = (metaMap, action) => {
 const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return messageMap.deleteAll(action.payload.conversationIDKeys)
+      return action.payload.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear
+        ? messageMap.deleteAll(action.payload.conversationIDKeys)
+        : messageMap
     case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete:
       return messageMap.updateIn(
@@ -283,7 +285,9 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
 const messageOrdinalsReducer = (messageOrdinals, action) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return messageOrdinals.deleteAll(action.payload.conversationIDKeys)
+      return action.payload.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear
+        ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
+        : messageOrdinals
     case Chat2Gen.metasReceived:
       const existingPending = messageOrdinals.get(Constants.pendingConversationIDKey)
       if (action.payload.clearExistingMessages) {
@@ -426,15 +430,12 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return editingMap
       })
     case Chat2Gen.messageSetQuoting:
-      return state.update('quotingMap', quotingMap => {
-        const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
-        // clearing
-        if (!ordinal) {
-          return quotingMap.delete(targetConversationIDKey)
-        }
-        // quoting a specific message
-        return quotingMap.set(targetConversationIDKey, {ordinal, sourceConversationIDKey})
-      })
+      const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
+      const counter = (state.quote ? state.quote.counter : 0) + 1
+      return state.set(
+        'quote',
+        Constants.makeQuoteInfo({counter, ordinal, sourceConversationIDKey, targetConversationIDKey})
+      )
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
 

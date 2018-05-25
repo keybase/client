@@ -260,7 +260,7 @@ type DisplayBalance struct {
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance) (res stellar1.SendResultCLILocal, err error) {
+func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance, forceRelay bool) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
 	primary, err := LookupSenderPrimary(m.Ctx(), m.G())
@@ -274,7 +274,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 		return res, err
 	}
 
-	if recipient.AccountID == nil {
+	if recipient.AccountID == nil || forceRelay {
 		return sendRelayPayment(m, remoter, primarySeed, recipient, amount, note, displayBalance)
 	}
 
@@ -824,4 +824,31 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 		return fmt.Errorf("account not found: %v", accountID)
 	}
 	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle)
+}
+
+func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
+	if accountID.IsNil() {
+		return errors.New("passed empty AccountID")
+	}
+	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	if err != nil {
+		return err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	var found bool
+	for i, acc := range nextBundle.Accounts {
+		if acc.AccountID.Eq(accountID) {
+			if acc.IsPrimary {
+				return fmt.Errorf("cannot delete primary account %v", accountID)
+			}
+
+			nextBundle.Accounts = append(nextBundle.Accounts[:i], nextBundle.Accounts[i+1:]...)
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("account not found: %v", accountID)
+	}
+	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }

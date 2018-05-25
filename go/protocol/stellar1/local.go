@@ -235,10 +235,22 @@ type SetWalletAccountAsDefaultLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type DeleteWalletAccountLocalArg struct {
+	SessionID        int       `codec:"sessionID" json:"sessionID"`
+	AccountID        AccountID `codec:"accountID" json:"accountID"`
+	UserAcknowledged string    `codec:"userAcknowledged" json:"userAcknowledged"`
+}
+
 type LinkNewWalletAccountLocalArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	SecretKey SecretKey `codec:"secretKey" json:"secretKey"`
 	Name      string    `codec:"name" json:"name"`
+}
+
+type ChangeDisplayCurrencyLocalArg struct {
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID           `codec:"accountID" json:"accountID"`
+	Currency  OutsideCurrencyCode `codec:"currency" json:"currency"`
 }
 
 type BalancesLocalArg struct {
@@ -252,6 +264,7 @@ type SendCLILocalArg struct {
 	Note            string `codec:"note" json:"note"`
 	DisplayAmount   string `codec:"displayAmount" json:"displayAmount"`
 	DisplayCurrency string `codec:"displayCurrency" json:"displayCurrency"`
+	ForceRelay      bool   `codec:"forceRelay" json:"forceRelay"`
 }
 
 type ClaimCLILocalArg struct {
@@ -312,7 +325,9 @@ type LocalInterface interface {
 	GetDisplayCurrenciesLocal(context.Context, int) ([]CurrencyLocal, error)
 	ChangeWalletAccountNameLocal(context.Context, ChangeWalletAccountNameLocalArg) error
 	SetWalletAccountAsDefaultLocal(context.Context, SetWalletAccountAsDefaultLocalArg) error
+	DeleteWalletAccountLocal(context.Context, DeleteWalletAccountLocalArg) error
 	LinkNewWalletAccountLocal(context.Context, LinkNewWalletAccountLocalArg) (AccountID, error)
+	ChangeDisplayCurrencyLocal(context.Context, ChangeDisplayCurrencyLocalArg) error
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -414,6 +429,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"deleteWalletAccountLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]DeleteWalletAccountLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeleteWalletAccountLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeleteWalletAccountLocalArg)(nil), args)
+						return
+					}
+					err = i.DeleteWalletAccountLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"linkNewWalletAccountLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]LinkNewWalletAccountLocalArg, 1)
@@ -426,6 +457,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.LinkNewWalletAccountLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"changeDisplayCurrencyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ChangeDisplayCurrencyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChangeDisplayCurrencyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChangeDisplayCurrencyLocalArg)(nil), args)
+						return
+					}
+					err = i.ChangeDisplayCurrencyLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -685,8 +732,18 @@ func (c LocalClient) SetWalletAccountAsDefaultLocal(ctx context.Context, __arg S
 	return
 }
 
+func (c LocalClient) DeleteWalletAccountLocal(ctx context.Context, __arg DeleteWalletAccountLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.deleteWalletAccountLocal", []interface{}{__arg}, nil)
+	return
+}
+
 func (c LocalClient) LinkNewWalletAccountLocal(ctx context.Context, __arg LinkNewWalletAccountLocalArg) (res AccountID, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.linkNewWalletAccountLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ChangeDisplayCurrencyLocal(ctx context.Context, __arg ChangeDisplayCurrencyLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.changeDisplayCurrencyLocal", []interface{}{__arg}, nil)
 	return
 }
 

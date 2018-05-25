@@ -52,6 +52,10 @@ func (fu *FakeUser) GetUID() keybase1.UID {
 	return libkb.UsernameToUID(fu.Username)
 }
 
+func (fu FakeUser) NormalizedUsername() libkb.NormalizedUsername {
+	return libkb.NewNormalizedUsername(fu.Username)
+}
+
 func (fu *FakeUser) GetUserVersion() keybase1.UserVersion {
 	return keybase1.UserVersion{
 		Uid:         fu.GetUID(),
@@ -115,7 +119,8 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 
 // copied from engine/common_test.go
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
-	err := tc.G.LoginState().ResetAccount(libkb.NewMetaContextForTest(tc), u.Username)
+	m := libkb.NewMetaContextForTest(tc)
+	err := libkb.ResetAccount(m, u.NormalizedUsername(), u.Passphrase)
 	if err != nil {
 		tc.T.Fatalf("In account reset: %s", err)
 	}
@@ -124,11 +129,12 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 }
 
 func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
-	err := tc.G.LoginState().DeleteAccount(libkb.NewMetaContextForTest(tc), u.Username)
+	m := libkb.NewMetaContextForTest(tc)
+	err := libkb.DeleteAccount(m, u.NormalizedUsername(), u.Passphrase)
 	if err != nil {
-		tc.T.Fatalf("In delete: %s", err)
+		tc.T.Fatalf("In account reset: %s", err)
 	}
-	tc.T.Logf("Account deleted for user %s", u.Username)
+	tc.T.Logf("Account reset for user %s", u.Username)
 	Logout(tc)
 }
 

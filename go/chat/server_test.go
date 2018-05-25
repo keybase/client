@@ -2882,7 +2882,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(2 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -2951,7 +2951,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -4331,7 +4331,7 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("reset user 1")
 		ctcForUser := ctc.as(t, users[1])
-		require.NoError(t, ctcForUser.h.G().LoginState().ResetAccount(ctcForUser.m, users[1].Username))
+		require.NoError(t, libkb.ResetAccount(ctcForUser.m, users[1].NormalizedUsername(), users[1].Passphrase))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
@@ -4392,7 +4392,7 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("reset user 2")
 		ctcForUser2 := ctc.as(t, users[2])
-		require.NoError(t, ctcForUser2.h.G().LoginState().ResetAccount(ctcForUser2.m, users[2].Username))
+		require.NoError(t, libkb.ResetAccount(ctcForUser2.m, users[2].NormalizedUsername(), users[2].Passphrase))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)

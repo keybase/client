@@ -24,32 +24,18 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
-  const _editingMessage: ?Types.Message = editingOrdinal
-    ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
-    : null
-  const quote = Constants.getQuotingOrdinalAndSource(state, conversationIDKey)
-  let _quotingMessage: ?Types.Message = null
-  if (quote) {
-    const {ordinal, sourceConversationIDKey} = quote
-    _quotingMessage = ordinal ? Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal) : null
-  }
+  const editInfo = Constants.getEditInfo(state, conversationIDKey)
+  const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
 
   const _you = state.config.username || ''
-  const injectedInputMessage: ?Types.Message = _editingMessage || _quotingMessage || null
-  const injectedInput: string =
-    injectedInputMessage && injectedInputMessage.type === 'text'
-      ? injectedInputMessage.text.stringValue()
-      : ''
 
   return {
-    _editingMessage,
-    _meta: meta,
-    _quotingMessage,
+    editText: editInfo ? editInfo.text : '',
+    _editOrdinal: editInfo ? editInfo.ordinal : null,
+    quoteCounter: quoteInfo ? quoteInfo.counter : 0,
+    quoteText: quoteInfo ? quoteInfo.text : '',
     _you,
     conversationIDKey,
-    injectedInput,
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -61,14 +47,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     ),
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
-  _onCancelQuoting: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(
-      Chat2Gen.createMessageSetQuoting({
-        ordinal: null,
-        sourceConversationIDKey: conversationIDKey,
-        targetConversationIDKey: conversationIDKey,
-      })
-    ),
   _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
     dispatch(
       Chat2Gen.createMessageSetEditing({
@@ -77,11 +55,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         ordinal: null,
       })
     ),
-  _onEditMessage: (message: Types.Message, body: string) =>
+  _onEditMessage: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, body: string) =>
     dispatch(
       Chat2Gen.createMessageEdit({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        conversationIDKey,
+        ordinal,
         text: new HiddenString(body),
       })
     ),
@@ -95,25 +73,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   conversationIDKey: stateProps.conversationIDKey,
-  channelName: stateProps._meta.channelname,
-  isEditing: !!stateProps._editingMessage,
+  isEditing: !!stateProps._editOrdinal,
   focusInputCounter: ownProps.focusInputCounter,
   clearInboxFilter: dispatchProps.clearInboxFilter,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
-  onCancelEditing: () => {
-    dispatchProps._onCancelQuoting(stateProps.conversationIDKey)
-    dispatchProps._onCancelEditing(stateProps.conversationIDKey)
-  },
-  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
+  onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onSubmit: (text: string) => {
-    const em = stateProps._editingMessage
-    if (em) {
-      if (em.type === 'text' && em.text.stringValue() === text) {
-        dispatchProps._onCancelEditing(stateProps.conversationIDKey)
-      } else {
-        dispatchProps._onEditMessage(em, text)
-      }
+    if (stateProps._editOrdinal) {
+      dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
     } else {
       dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
     }
@@ -121,9 +89,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   typing: stateProps.typing,
 
-  _quotingMessage: stateProps._quotingMessage,
-  _editingMessage: stateProps._editingMessage,
-  injectedInput: stateProps.injectedInput,
+  editText: stateProps.editText,
+  quoteCounter: stateProps.quoteCounter,
+  quoteText: stateProps.quoteText,
 
   getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
   setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),

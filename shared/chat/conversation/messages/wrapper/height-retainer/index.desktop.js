@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {resolveRootAsURL} from '../../../../../desktop/resolve-root.desktop'
+import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
 import {Box} from '../../../../../common-adapters'
 import {collapseStyles} from '../../../../../styles'
@@ -39,6 +39,8 @@ class HeightRetainer extends React.Component<Props, State> {
               backgroundImage: explodedIllustrationUrl,
               backgroundRepeat: 'repeat',
               backgroundSize: '400px 68px',
+              maxWidth: 500,
+              marginRight: 60,
             },
         ])}
       >

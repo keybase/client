@@ -117,6 +117,7 @@ protocol chatUi {
     array<UIChannelNameMention> channelNameMentions;
     boolean isEphemeral;
     boolean isEphemeralExpired;
+    union { null, string} explodedBy;
     gregor1.Time etime;
   }
 

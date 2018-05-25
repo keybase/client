@@ -801,6 +801,15 @@
           "name": "generation",
           "mpackkey": "g",
           "jsonkey": "g"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "explodedBy",
+          "mpackkey": "u",
+          "jsonkey": "u"
         }
       ],
       "mpackkey": "em",

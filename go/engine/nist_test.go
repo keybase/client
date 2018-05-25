@@ -15,7 +15,6 @@ func TestNIST(t *testing.T) {
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-	tc.G.ResetLoginState()
 
 	// Need to set active devices
 	Logout(tc)

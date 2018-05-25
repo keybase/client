@@ -15,6 +15,10 @@ type Remoter interface {
 	SubmitRelayClaim(context.Context, stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error)
 	RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error)
 	PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error)
+	// GetAccountDisplayCurrency is not used as a mock now - since this
+	// setting only lives in database table on the server, we can do full
+	// integration testing here. Otherwise, all what ChangeDisplayCurrency
+	// test would do is testing a mock.
 	GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error)
 	ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error)
 }

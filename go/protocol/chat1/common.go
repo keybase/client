@@ -1049,12 +1049,20 @@ func (o OutboxInfo) DeepCopy() OutboxInfo {
 type MsgEphemeralMetadata struct {
 	Lifetime   gregor1.DurationSec   `codec:"l" json:"l"`
 	Generation keybase1.EkGeneration `codec:"g" json:"g"`
+	ExplodedBy *string               `codec:"u,omitempty" json:"u,omitempty"`
 }
 
 func (o MsgEphemeralMetadata) DeepCopy() MsgEphemeralMetadata {
 	return MsgEphemeralMetadata{
 		Lifetime:   o.Lifetime.DeepCopy(),
 		Generation: o.Generation.DeepCopy(),
+		ExplodedBy: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ExplodedBy),
 	}
 }
 
