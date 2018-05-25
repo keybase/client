@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
@@ -110,6 +111,10 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 	key, err := s.key(ctx, generation)
 	if err != nil {
 		return err
+	}
+	// Fill in this puppy.
+	if deviceEK.Metadata.DeviceCtime == 0 {
+		deviceEK.Metadata.DeviceCtime = keybase1.ToTime(time.Now())
 	}
 	err = s.storage.Put(ctx, key, deviceEK)
 	if err != nil {
@@ -290,12 +295,30 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 		return nil, err
 	}
 
-	keyMap := make(keyExpiryMap)
-	for generation, deviceEK := range cache {
-		keyMap[generation] = deviceEK.Metadata.Ctime
+	// Fall back to the device's local time if we don't have a merkle root so
+	// we can complete deletions offline.
+	var now keybase1.Time
+	if merkleRoot.IsNil() {
+		now = keybase1.ToTime(time.Now())
+	} else {
+		now = keybase1.TimeFromSeconds(merkleRoot.Ctime())
 	}
 
-	expired = getExpiredGenerations(keyMap, keybase1.TimeFromSeconds(merkleRoot.Ctime()))
+	keyMap := make(keyExpiryMap)
+	for generation, deviceEK := range cache {
+		var ctime keybase1.Time
+		// If we have a nil root _and_ a valid DeviceCtime, use that.If we're
+		// missing a DeviceCtime it's better to use the slightly off
+		// merkleCtime than a 0
+		if merkleRoot.IsNil() && deviceEK.Metadata.DeviceCtime > 0 {
+			ctime = deviceEK.Metadata.DeviceCtime
+		} else {
+			ctime = deviceEK.Metadata.Ctime
+		}
+		keyMap[generation] = ctime
+	}
+
+	expired = getExpiredGenerations(keyMap, now)
 	epick := libkb.FirstErrorPicker{}
 	for _, generation := range expired {
 		epick.Push(s.delete(ctx, generation))
