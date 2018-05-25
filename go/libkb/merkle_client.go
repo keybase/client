@@ -1520,13 +1520,44 @@ func (vp *VerificationPath) verifyUserOrTeam(ctx context.Context, id keybase1.Us
 
 func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (leaf *MerkleGenericLeaf, err error) {
 	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupLeafAtHashMeta(%v)", leafID)
+	paramer := func(a *HTTPArgs) {
+		a.Add("start_hash_meta", S{Val: hm.String()})
+	}
+	checker := func(path *VerificationPath) error {
+		if !path.root.HashMeta().Eq(hm) {
+			return MerkleClientError{"hash meta failed to match", merkleErrorHashMeta}
+		}
+		return nil
+	}
+	leaf, _, err = mc.lookupLeafHistorical(ctx, leafID, paramer, checker)
+	return leaf, err
+}
+
+func (mc *MerkleClient) LookupLeafAtSeqno(ctx context.Context, leafID keybase1.UserOrTeamID, s keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
+	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupLeafAtHashMeta(%v)", leafID)
+	paramer := func(a *HTTPArgs) {
+		a.Add("start_seqno", I{Val: int(s)})
+	}
+	checker := func(path *VerificationPath) error {
+		if path.root.Seqno() == nil {
+			return MerkleClientError{"no such seqno was found", merkleErrorNotFound}
+		}
+		if *path.root.Seqno() != s {
+			return MerkleClientError{"seqno mismatch", merkleErrorBadSeqno}
+		}
+		return nil
+	}
+	return mc.lookupLeafHistorical(ctx, leafID, paramer, checker)
+}
+
+func (mc *MerkleClient) lookupLeafHistorical(ctx context.Context, leafID keybase1.UserOrTeamID, paramer func(*HTTPArgs), checker func(*VerificationPath) error) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
 
 	var path *VerificationPath
 	var ss SkipSequence
 	var apiRes *APIRes
 
 	if err = mc.init(ctx); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// The must current root we got. This might be slightly out of date, but all we really care
@@ -1536,27 +1567,27 @@ func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase
 
 	q := NewHTTPArgs()
 	q.Add("leaf_id", S{Val: leafID.String()})
-	q.Add("start_hash_meta", S{Val: hm.String()})
+	paramer(&q)
 
 	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(ctx, q, currentRoot); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if !path.root.HashMeta().Eq(hm) {
-		return nil, MerkleClientError{"hash meta failed to match", merkleErrorHashMeta}
+	if err = checker(path); err != nil {
+		return nil, nil, err
 	}
 
 	err = mc.verifySkipSequenceAndRootHistorical(ctx, ss, path.root, currentRoot, apiRes)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	leaf, err = path.verifyUserOrTeam(ctx, leafID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return leaf, nil
+	return leaf, path.root, nil
 }
 
 func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {

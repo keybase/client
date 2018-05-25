@@ -97,8 +97,9 @@ const Right = ({showTrackerButton, onShowTracker}) => {
       onClick={onShowTracker}
       style={{
         marginLeft: globalMargins.small,
-        marginRight: isMobile ? globalMargins.tiny : globalMargins.small,
+        marginRight: globalMargins.small,
       }}
+      fontSize={isMobile ? 22 : 16}
     />
   ) : null
 }

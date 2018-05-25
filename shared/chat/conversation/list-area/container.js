@@ -3,10 +3,11 @@ import * as React from 'react'
 import * as SearchConstants from '../../../constants/search'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
+import * as ProfileGen from '../../../actions/profile-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import Normal from './normal/container'
 import SearchResultsList from '../../../search/results-list/container'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {connect, type TypedState, type Dispatch, isMobile} from '../../../util/container'
 import {desktopStyles} from '../../../styles'
 import StartConversation from './start-conversation/container'
 import Waiting from './waiting'
@@ -91,7 +92,9 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onShowTracker: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username})),
+    isMobile
+      ? dispatch(ProfileGen.createShowUserProfile({username}))
+      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
