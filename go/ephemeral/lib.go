@@ -175,7 +175,7 @@ func (e *EKLib) NewDeviceEKNeeded(ctx context.Context) (needed bool, err error) 
 }
 
 func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (needed bool, err error) {
-	defer e.G().CTraceTimed(ctx, "newDeviceEKNeeded", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, fmt.Sprintf("newDeviceEKNeeded: %v", needed), func() error { return err })()
 
 	s := e.G().GetDeviceEKStorage()
 	maxGeneration, err := s.MaxGeneration(ctx)
@@ -191,6 +191,8 @@ func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRo
 		return needed, err
 	}
 
+	// Ok we can access the ek, check lifetime.
+	e.G().Log.CDebugf(ctx, "nextDeviceEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime))
 	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), nil
 }
 
@@ -206,7 +208,7 @@ func (e *EKLib) NewUserEKNeeded(ctx context.Context) (needed bool, err error) {
 }
 
 func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (needed bool, err error) {
-	defer e.G().CTraceTimed(ctx, "newUserEKNeeded", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, fmt.Sprintf("newUserEKNeeded: %v", needed), func() error { return err })()
 
 	// Let's see what the latest server statement is.
 	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), e.G().Env.GetUID())
@@ -229,6 +231,7 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 		}
 	}
 	// Ok we can access the ek, check lifetime.
+	e.G().Log.CDebugf(ctx, "nextUserEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime))
 	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), nil
 }
 
@@ -248,7 +251,7 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 }
 
 func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot, statement *keybase1.TeamEkStatement) (needed bool, err error) {
-	defer e.G().CTraceTimed(ctx, "newTeamEKNeeded", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, fmt.Sprintf("newTeamEKNeeded: %v", needed), func() error { return err })()
 
 	// Let's see what the latest server statement is.
 	// No statement, so we need a teamEK
@@ -268,6 +271,7 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 		}
 	}
 	// Ok we can access the ek, check lifetime.
+	e.G().Log.CDebugf(ctx, "nextTeamEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime))
 	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), nil
 }
 
