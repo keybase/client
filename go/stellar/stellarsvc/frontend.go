@@ -307,17 +307,29 @@ func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentS
 		loc.WorthCurrency = *p.DisplayCurrency
 	}
 
-	if name, err := s.lookupUsername(p.From.Uid); err == nil {
+	if name, err := s.lookupUsername(ctx, p.From.Uid); err == nil {
 		loc.Source = name
 		loc.SourceType = "keybase"
+	} else {
+		loc.Source = p.FromStellar.String()
+		loc.SourceType = "stellar"
 	}
 
 	if p.To != nil {
-		if name, err := s.lookupUsername(p.To.Uid); err == nil {
+		if name, err := s.lookupUsername(ctx, p.To.Uid); err == nil {
 			loc.Target = name
 			loc.TargetType = "keybase"
+		} else {
+			loc.Target = p.ToStellar.String()
+			loc.TargetType = "stellar"
 		}
 	}
+
+	formatted, err := stellar.FormatAmount(p.Amount, false)
+	if err != nil {
+		return nil, err
+	}
+	loc.Amount = formatted + " XLM"
 
 	return &loc, nil
 }
