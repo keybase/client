@@ -1035,6 +1035,10 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
+	if expunge.Upto == 0 {
+		// just get out of here as quickly as possible with a 0 upto
+		return nil
+	}
 
 	s.lockTab.Acquire(ctx, uid, convID)
 	defer s.lockTab.Release(ctx, uid, convID)

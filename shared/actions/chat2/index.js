@@ -447,7 +447,7 @@ const onChatTypingUpdate = typingUpdates => {
 }
 
 const onChatThreadStale = updates => {
-  const actions = []
+  let actions = []
   Object.keys(RPCChatTypes.notifyChatStaleUpdateType).forEach(function(key) {
     const conversationIDKeys = (updates || []).reduce((arr, u) => {
       if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType[key]) {
@@ -461,7 +461,7 @@ const onChatThreadStale = updates => {
           conversationIDKeys.length
         } convs of type ${key}`
       )
-      actions.concat([
+      actions = actions.concat([
         Chat2Gen.createMarkConversationsStale({
           conversationIDKeys,
           updateType: RPCChatTypes.notifyChatStaleUpdateType[key],
@@ -659,6 +659,17 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   return arr
 }, [])
 
+const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadNonblockReason => {
+  switch (reason) {
+    case 'push':
+      return RPCChatTypes.localGetThreadNonblockReason.push
+    case 'foregrounding':
+      return RPCChatTypes.localGetThreadNonblockReason.foreground
+    default:
+      return RPCChatTypes.localGetThreadNonblockReason.general
+  }
+}
+
 // Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
 const loadMoreMessages = (
   action:
@@ -836,10 +847,7 @@ const loadMoreMessages = (
         messageTypes: loadThreadMessageTypes,
       },
       pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
-      reason:
-        reason === 'push'
-          ? RPCChatTypes.localGetThreadNonblockReason.push
-          : RPCChatTypes.localGetThreadNonblockReason.general,
+      reason: reasonToRPCReason(reason),
     },
     false,
     (loading: boolean) => Chat2Gen.createSetLoading({key: loadingKey, loading})

@@ -92,12 +92,8 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 	u, paperkey := CreateAndSigunpLPK(tc, "login")
 
 	t.Logf("locking keys")
-	err := tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearCachedSecretKeys()
-		a.ClearStreamCache()
-	}, "test")
-	require.NoError(t, err)
-	err = tc.G.SecretStore().ClearSecret(libkb.NormalizedUsername(u.Username))
+	tc.SimulateServiceRestart()
+	err := tc.G.SecretStore().ClearSecret(libkb.NormalizedUsername(u.Username))
 	require.NoError(t, err)
 
 	t.Logf("checking logged in status [before]")

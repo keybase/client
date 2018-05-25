@@ -24,8 +24,6 @@ func TestBackgroundIdentifier(t *testing.T) {
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-	// to pick up the new clock...
-	tc.G.ResetLoginState()
 
 	_, tracy, err := runTrack(tc, fu, "t_tracy", sigVersion)
 	if err != nil {

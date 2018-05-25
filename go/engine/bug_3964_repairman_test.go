@@ -117,7 +117,10 @@ func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.Devi
 
 	// Dev1 has a passphrase cached, but dev2 doesn't (since it was provisioned).
 	// For this test though it's fine to take the passphrase from dev1.
-	pps := m1.ActiveDevice().PassphraseStream()
+	pps, err := libkb.GetPassphraseStreamStored(m1)
+	if err != nil {
+		return nil, err
+	}
 	if pps == nil {
 		return nil, errors.New("empty passphrase stream on m1, but expected one since we just signed up")
 	}
@@ -285,9 +288,12 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pps, err := tctx.G.LoginState().GetPassphraseStream(m, m.UIs().SecretUI)
+	pps, err := libkb.GetPassphraseStreamStored(m)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if pps == nil {
+		t.Fatal("failed to get passphrase stream")
 	}
 	clientHalfExpected := pps.LksClientHalf()
 	if !clientHalf.Equal(clientHalfExpected) {
