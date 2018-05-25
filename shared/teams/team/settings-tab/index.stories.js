@@ -41,6 +41,8 @@ const commonProps = {
 
 const provider = createPropProvider({
   RetentionPicker: () => ({
+    // TODO: Add this to RetentionPicker's props, or remove the need
+    // for these.
     _loadTeamPolicy: action('_loadTeamPolicy'),
     _loadTeamOperations: action('_loadTeamOperations'),
     _onShowWarning: action('_onShowWarning'),
