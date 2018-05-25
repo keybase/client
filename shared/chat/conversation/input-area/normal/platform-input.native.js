@@ -16,6 +16,7 @@ import {ExplodingMeta} from './shared'
 import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import type {PlatformInputProps} from './types'
+import flags from '../../../../util/feature-flags'
 
 type State = {
   hasText: boolean,
@@ -208,11 +209,13 @@ const Action = ({
     </Box>
   ) : (
     <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
-      <ExplodingIcon
-        explodingModeSeconds={explodingModeSeconds}
-        isExploding={isExploding}
-        openExplodingPicker={openExplodingPicker}
-      />
+      {flags.explodingMessagesEnabled && (
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          openExplodingPicker={openExplodingPicker}
+        />
+      )}
       <Icon
         onClick={insertMentionMarker}
         type="iconfont-mention"
