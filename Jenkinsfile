@@ -283,8 +283,8 @@ def getTestDirsWindows() {
 def runTestPipeServer() {
     powershell '''
         $username = "kbtestuser1"
-        $password = (ConvertTo-SecureString -String "12345678" -AsPlainText -Force)
-        net user /add $username "12345678"
+        $password = (ConvertTo-SecureString -String "53drByj6zadM" -AsPlainText -Force)
+        net user /add $username "53drByj6zadM"
         $credentials = New-Object System.Management.Automation.PSCredential -ArgumentList @($username,$password)
         $testexe = Join-Path $Env:GOPATH "bin\\kb_pipetest_server.exe" -Resolve
         Stop-Process -Force -Name "kb_pipetest_server"
