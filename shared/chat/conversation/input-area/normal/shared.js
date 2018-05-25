@@ -21,12 +21,22 @@ const styles = styleSheetCreate({
       borderRadius: 3,
       borderStyle: 'solid',
       borderWidth: 1,
+    },
+    isAndroid: {
+      marginLeft: 3,
+      padding: 3,
+      paddingLeft: 12,
+    },
+    isElectron: {
+      cursor: 'pointer',
       left: 12,
       position: 'absolute',
       top: -4,
     },
-    isElectron: {
-      cursor: 'pointer',
+    isIOS: {
+      left: 12,
+      position: 'absolute',
+      top: -4,
     },
   }),
 })

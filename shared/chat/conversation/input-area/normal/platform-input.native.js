@@ -3,7 +3,7 @@
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
+import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
@@ -230,7 +230,7 @@ const Action = ({
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
-    <Box style={styles.explodingIconContainer}>
+    <Box style={explodingIconContainer}>
       <Icon
         color={isExploding ? globalColors.black_75 : null}
         style={iconCastPlatformStyles(styles.actionButton)}
@@ -287,10 +287,6 @@ const styles = styleSheetCreate({
     height: '100%',
     padding: 3,
   },
-  explodingIconContainer: {
-    ...globalStyles.flexBoxRow,
-    marginRight: globalMargins.xsmall,
-  },
   input: {
     marginLeft: globalMargins.tiny,
     paddingBottom: 12,
@@ -322,6 +318,16 @@ const styles = styleSheetCreate({
   },
   typingIcon: {
     width: 20,
+  },
+})
+
+const explodingIconContainer = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    marginRight: globalMargins.xsmall,
+  },
+  isAndroid: {
+    marginRight: -5,
   },
 })
 
