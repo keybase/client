@@ -96,11 +96,11 @@
       "fields": [
         {
           "type": "KeybaseTransactionID",
-          "name": "KbTxID"
+          "name": "kbTxID"
         },
         {
           "type": "TransactionID",
-          "name": "TxID"
+          "name": "txID"
         },
         {
           "type": [
@@ -410,7 +410,7 @@
         },
         {
           "name": "forceRelay",
-          "type": "bool"
+          "type": "boolean"
         }
       ],
       "response": "SendResultCLILocal"
