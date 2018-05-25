@@ -36,13 +36,15 @@ const commonProps = {
     changeTarsDisabled: true,
     deleteChatHistory: true,
   },
-  waitingForSavePublicity: true,
+  waitingForSavePublicity: false,
 }
 
 const provider = createPropProvider({
   RetentionPicker: () => ({
     _loadTeamPolicy: action('_loadTeamPolicy'),
     _loadTeamOperations: action('_loadTeamOperations'),
+    _onShowWarning: action('_onShowWarning'),
+
     canSetPolicy: true,
     policy: makeRetentionPolicy({type: 'retain'}),
     loading: false,
