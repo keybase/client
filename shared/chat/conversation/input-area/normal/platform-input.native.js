@@ -95,7 +95,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
           {this.props.isEditing && (
             // TODO: Make this box take up the full height.
             <Box style={styles.editingTabStyle}>
-              <Text type="BodySmall">Editing:</Text>
+              <Text type="BodySmall">Edit:</Text>
               <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
                 Cancel
               </Text>
@@ -222,9 +222,10 @@ const styles = styleSheetCreate({
   editingTabStyle: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    backgroundColor: globalColors.yellow_60,
+    backgroundColor: globalColors.yellow3,
     height: '100%',
-    padding: 3,
+    maxWidth: 32,
+    padding: globalMargins.xtiny,
   },
   input: {
     marginLeft: globalMargins.tiny,
