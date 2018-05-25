@@ -48,11 +48,6 @@ const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey, resetParticipants}) 
           <Meta title="rekey" backgroundColor={globalColors.red} />
         </Box>
       )}
-      {resetParticipants.length > 0 && (
-        <Box style={styleBadgeContainerRekey}>
-          <Meta title="reset" backgroundColor={globalColors.red} />
-        </Box>
-      )}
       {isNew && (
         <Box style={styleBadgeContainerNew}>
           <Meta title="new" backgroundColor={globalColors.orange} />
@@ -80,10 +75,13 @@ export const Row = (props: RowProps) => (
             >
               {props.name}
             </Text>
-            {props.type !== 'folder' && (
+            {props.type === 'folder' && (!props.resetParticipants || props.resetParticipants.length === 0)
+              ? (<Box />)
+              : (
               <PathItemInfo
                 lastModifiedTimestamp={props.lastModifiedTimestamp}
                 lastWriter={props.lastWriter}
+                resetParticipants={props.resetParticipants}
               />
             )}
           </Box>

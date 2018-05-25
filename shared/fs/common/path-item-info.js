@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, globalColors, isMobile, platformStyles} from '../../styles'
-import {Box, Text} from '../../common-adapters'
+import {Box, Meta, Text} from '../../common-adapters'
 import {formatTimeForFS} from '../../util/timestamp'
 
 type Props = {
@@ -9,13 +9,23 @@ type Props = {
   lastWriter: string,
   wrap?: boolean,
   startWithLastModified?: boolean,
+  resetParticipants?: Array<string>,
 }
 
 const PathItemInfo = (props: Props) => (
   <Box style={props.wrap ? timeWriterBoxStyleWithWrap : timeWriterBoxStyle}>
-    <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
-      {(props.startWithLastModified ? 'Last modified ' : '') + formatTimeForFS(props.lastModifiedTimestamp)}
-    </Text>
+    {!!props.resetParticipants && props.resetParticipants.length > 0
+      ? (
+        <Box style={resetInfoBoxStyle}>
+          <Meta title="reset" backgroundColor={globalColors.red} />
+          <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
+            someone has reset their account
+          </Text>
+        </Box>
+      )
+      : (<Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
+        {(props.startWithLastModified ? 'Last modified ' : '') + formatTimeForFS(props.lastModifiedTimestamp)}
+      </Text>)}
     {props.lastWriter ? (
       <Text type="BodySmall" style={writerTextStyle} lineClamp={isMobile ? 1 : undefined}>
         &nbsp;by&nbsp;
@@ -50,5 +60,10 @@ const writerTextStyle = platformStyles({
     whiteSpace: 'nowrap',
   },
 })
+
+const resetInfoBoxStyle = {
+  ...globalStyles.flexBoxRow,
+  padding: 1,
+}
 
 export default PathItemInfo
