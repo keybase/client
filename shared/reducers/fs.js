@@ -153,11 +153,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
+    case FsGen.mimeTypeLoad:
     case FsGen.share:
     case FsGen.save:
     case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
-    case FsGen.mimeTypeLoad:
+    case FsGen.openPathItem:
       return state
     default:
       /*::
