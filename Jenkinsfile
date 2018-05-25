@@ -279,11 +279,11 @@ def getTestDirsWindows() {
     return dirs.tokenize()
 }
 
+// The New-LocalUser part depends on being run with elevated permissions
 def runTestPipeServer() {
     powershell '''
         $username = "kbtestuser1"
         $password = (ConvertTo-SecureString -String "12345678" -AsPlainText -Force)
-        // This part depends on being run with elevated permissions
         New-LocalUser $username -Password $password -FullName "Keybase Test User" -Description "Only for CI purposes"
         $credentials = New-Object System.Management.Automation.PSCredential -ArgumentList @($username,$password)
         $testexe = Join-Path $Env:GOPATH "bin\\kb_pipetest_server.exe" -Resolve
