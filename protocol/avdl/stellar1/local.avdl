@@ -50,6 +50,12 @@ protocol local {
   // supported currencies, returned from getDisplayCurrenciesLocal.
   void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
 
+  record UserSettings {
+    boolean acceptedDisclaimer; // whether the user has accepted the usage disclaimer
+  }
+  UserSettings getUserSettingsLocal(int sessionID);
+  void setAcceptedDisclaimerLocal(int sessionID); 
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
