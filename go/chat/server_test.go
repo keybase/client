@@ -1938,6 +1938,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			assertEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
 				valid := unboxed.Valid()
 				require.False(t, valid.IsEphemeralExpired)
+				require.Nil(t, valid.ExplodedBy)
 				if ephemeralLifetime == nil {
 					require.False(t, valid.IsEphemeral)
 					require.EqualValues(t, valid.Etime, 0)
@@ -1946,6 +1947,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 					lifetime := time.Second * time.Duration(*ephemeralLifetime)
 					require.True(t, time.Now().Add(lifetime).Sub(valid.Etime.Time()) <= lifetime)
 				}
+			}
+
+			assertNotEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
+				valid := unboxed.Valid()
+				require.False(t, valid.IsEphemeralExpired)
+				require.False(t, valid.IsEphemeral)
+				require.EqualValues(t, valid.Etime, 0)
+				require.Nil(t, valid.ExplodedBy)
 			}
 
 			var err error
@@ -2068,6 +2077,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
 				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+				assertEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2095,6 +2105,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, headline, unboxed.Valid().MessageBody.Headline().Headline)
 				}
+				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2122,6 +2133,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, topicName, unboxed.Valid().MessageBody.Metadata().ConversationTitle)
 				}
+				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
