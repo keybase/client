@@ -805,8 +805,8 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	// Find conversation
 	index, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "NewMessage: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "NewMessage: no conversation found: convID: %s", convID)
+		return nil
 	}
 
 	// Update conversation. Use given max messages if the param is non-empty, otherwise just fill
@@ -899,8 +899,8 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "ReadMessage: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "ReadMessage: no conversation found: convID: %s", convID)
+		return nil
 	}
 
 	// Update conv
@@ -942,8 +942,8 @@ func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "SetStatus: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "SetStatus: no conversation found: convID: %s", convID)
+		return nil
 	}
 
 	conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
@@ -979,8 +979,8 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "SetAppNotificationSettings: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "SetAppNotificationSettings: no conversation found: convID: %s", convID)
+		return nil
 	}
 	for apptype, kindMap := range settings.Settings {
 		for kind, enabled := range kindMap {
@@ -1022,8 +1022,8 @@ func (i *Inbox) Expunge(ctx context.Context, vers chat1.InboxVers,
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "Expunge: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "Expunge: no conversation found: convID: %s", convID)
+		return nil
 	}
 	conv.Conv.Expunge = expunge
 	conv.Conv.Metadata.Version = vers.ToConvVers()
@@ -1067,8 +1067,8 @@ func (i *Inbox) SetConvRetention(ctx context.Context, vers chat1.InboxVers,
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "SetConvRetention: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "SetConvRetention: no conversation found: convID: %s", convID)
+		return nil
 	}
 	conv.Conv.ConvRetention = &policy
 	conv.Conv.Metadata.Version = vers.ToConvVers()
@@ -1175,8 +1175,8 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, vers chat1.InboxVers,
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "TeamTypeChanged: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "TeamTypeChanged: no conversation found: convID: %s", convID)
+		return nil
 	}
 	conv.Conv.Notifications = notifInfo
 	conv.Conv.Metadata.TeamType = teamType
