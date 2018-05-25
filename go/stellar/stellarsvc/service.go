@@ -318,7 +318,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 		return nil
 	}
 
-	exchangeRate, err := remote.ExchangeRate(ctx, s.G(), arg.DisplayCurrency)
+	exchangeRate, err := s.remoter.ExchangeRate(ctx, arg.DisplayCurrency)
 	if err != nil {
 		return err
 	}
@@ -339,6 +339,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 	}
 
 	if percentageAmountChange(currentAmt, argAmt) > 1.0 {
+		s.G().Log.CDebugf(ctx, "argAmt: %d, currentAmt: %d", argAmt, currentAmt)
 		return errors.New("current exchange rates have changed more than 1%")
 	}
 

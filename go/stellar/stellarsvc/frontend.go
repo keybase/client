@@ -301,7 +301,11 @@ func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentS
 	}
 
 	if p.DisplayAmount != nil {
-		loc.Worth = *p.DisplayAmount
+		var err error
+		loc.Worth, err = stellar.FormatCurrency(ctx, s.G(), *p.DisplayAmount, stellar1.OutsideCurrencyCode(loc.WorthCurrency))
+		if err != nil {
+			return nil, err
+		}
 	}
 	if p.DisplayCurrency != nil {
 		loc.WorthCurrency = *p.DisplayCurrency

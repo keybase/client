@@ -492,9 +492,11 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	arg := stellar1.SendCLILocalArg{
-		Recipient: tcs[1].Fu.Username,
-		Amount:    "1011.123",
-		Asset:     stellar1.Asset{Type: "native"},
+		Recipient:       tcs[1].Fu.Username,
+		Amount:          "1011.123",
+		Asset:           stellar1.Asset{Type: "native"},
+		DisplayAmount:   "321.87",
+		DisplayCurrency: "USD",
 	}
 	_, err = srvSender.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)
@@ -505,6 +507,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
 		require.Equal(t, "keybase", p.TargetType, "TargetType")
 		require.Equal(t, "1,011.1230000 XLM", p.Amount, "Amount")
+		require.Equal(t, "$300.00", p.Worth, "Worth")
+		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
 	}
 	senderPayments, err := srvSender.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDSender})
 	require.NoError(t, err)
