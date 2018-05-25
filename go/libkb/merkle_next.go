@@ -40,6 +40,7 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 			m.CDebugf("| Found at merkle seqno=%d", q)
 			found = true
 		}
+		q++
 	}
 	if !found {
 		return res, MerkleClientError{fmt.Sprintf("tried %d roots, but seqno not found", maxTries), merkleErrorNoUpdates}
