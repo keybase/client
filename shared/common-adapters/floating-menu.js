@@ -5,7 +5,6 @@ import type {Position} from './relative-popup-hoc'
 import PopupMenu, {type MenuItem, ModalLessPopupMenu} from './popup-menu'
 import {isMobile} from '../constants/platform'
 import {type StylesCrossPlatform} from '../styles'
-import {NativeKeyboard} from '../common-adapters/native-wrappers.native'
 
 export type Props = {
   closeOnSelect?: boolean,
@@ -74,11 +73,7 @@ export const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(
       super(props)
       this._setters = {
         setShowingMenu: showingMenu => this.setState({showingMenu}),
-        toggleShowingMenu: () => {
-          // Hide the keyboard on mobile when showing the menu.
-          isMobile && !this.state.showingMenu && NativeKeyboard.dismiss()
-          this.setState(oldState => ({showingMenu: !oldState.showingMenu}))
-        },
+        toggleShowingMenu: () => this.setState(oldState => ({showingMenu: !oldState.showingMenu})),
         setAttachmentRef: isMobile ? undefined : attachmentRef => this.setState({attachmentRef}),
       }
     }

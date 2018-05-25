@@ -7,7 +7,10 @@ import {globalMargins, globalStyles, globalColors, styleSheetCreate} from '../..
 import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
-import {NativeTouchableWithoutFeedback} from '../../../../common-adapters/native-wrappers.native'
+import {
+  NativeKeyboard,
+  NativeTouchableWithoutFeedback,
+} from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup'
 import {ExplodingMeta} from './shared'
 import {messageExplodeDescriptions} from '../../../../constants/chat2'
@@ -65,6 +68,12 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     if (text) {
       this.props.onSubmit(text)
     }
+  }
+
+  _toggleShowingMenu = () => {
+    // Hide the keyboard on mobile when showing the menu.
+    NativeKeyboard.dismiss()
+    this.props.toggleShowingMenu()
   }
 
   render = () => {
@@ -147,7 +156,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
-            openExplodingPicker={this.props.toggleShowingMenu}
+            openExplodingPicker={this._toggleShowingMenu}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}
