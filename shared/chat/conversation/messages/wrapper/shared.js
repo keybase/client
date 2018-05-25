@@ -15,6 +15,7 @@ import Timestamp from './timestamp'
 import SendIndicator from './chat-send'
 import MessagePopup from '../message-popup'
 import HeightRetainer from './height-retainer'
+import ExplodingMeta from './exploding-meta'
 
 import type {Props} from '.'
 
@@ -65,10 +66,14 @@ const EditedMark = () => (
   </Text>
 )
 
-const Failure = ({failureDescription, onEdit, onRetry, onCancel}) => {
+const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, onCancel}) => {
   const error = `${failureDescription}. `
   const resolveByEdit = failureDescription === 'Failed to send: message is too long'
-  return (
+  return isExplodingUnreadable ? (
+    <Text type="BodySmall" style={styles.fail}>
+      This exploding message is not available to you.
+    </Text>
+  ) : (
     <Text type="BodySmall">
       <Text type="BodySmall" style={styles.fail}>
         {error}
@@ -102,65 +107,73 @@ const LeftSide = props => (
 )
 
 const RightSide = props => (
-  <Box
-    style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
-    className="message-wrapper"
-  >
-    <Box style={styles.sendIndicatorContainer}>
-      {props.isYou && (
-        <SendIndicator
-          sent={props.messageSent}
-          failed={props.messageFailed}
-          style={{marginBottom: 2}}
-          id={props.message.timestamp}
+  <Box style={styles.rightSideContainer}>
+    <Box
+      style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
+      className="message-wrapper"
+    >
+      {props.includeHeader && (
+        <Username
+          username={props.author}
+          isYou={props.isYou}
+          isFollowing={props.isFollowing}
+          isBroken={props.isBroken}
+          onClick={props.onAuthorClick}
         />
       )}
-    </Box>
-    {/* The avatar is above this actually but we want the send indicator to never be a part of the height
-    calculation so we put it first so it appears under the avatar if they overlap */}
-    {props.includeHeader && (
-      <Username
-        username={props.author}
-        isYou={props.isYou}
-        isFollowing={props.isFollowing}
-        isBroken={props.isBroken}
-        onClick={props.onAuthorClick}
-      />
-    )}
-    <Box style={styles.textContainer} className="message">
-      <HeightRetainer style={styles.flexOneColumn} retainHeight={props.message.exploded}>
-        <props.innerClass
+      <Box style={styles.textContainer} className="message">
+        {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
+          The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
+        <HeightRetainer
+          style={styles.flexOneColumn}
+          retainHeight={props.exploded || props.isExplodingUnreadable}
+        >
+          <props.innerClass
+            message={props.message}
+            isEditing={props.isEditing}
+            toggleShowingMenu={props.toggleShowingMenu}
+          />
+          {props.isEdited && <EditedMark />}
+        </HeightRetainer>
+        {!isMobile &&
+          !props.exploded && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
+        <MessagePopup
+          attachTo={props.attachmentRef}
           message={props.message}
-          isEditing={props.isEditing}
-          toggleShowingMenu={props.toggleShowingMenu}
+          onHidden={props.toggleShowingMenu}
+          position="bottom left"
+          visible={props.showingMenu}
         />
-        {props.isEdited && <EditedMark />}
-      </HeightRetainer>
-      {!isMobile && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
-      <MessagePopup
-        attachTo={props.attachmentRef}
-        message={props.message}
-        onHidden={props.toggleShowingMenu}
-        position="bottom left"
-        visible={props.showingMenu}
-      />
-      {props.isRevoked && (
-        <Icon
-          type="iconfont-exclamation"
-          style={iconCastPlatformStyles(styles.exclamation)}
-          color={globalColors.blue}
-          fontSize={11}
+        {props.isRevoked && (
+          <Icon
+            type="iconfont-exclamation"
+            style={iconCastPlatformStyles(styles.exclamation)}
+            color={globalColors.blue}
+            fontSize={11}
+          />
+        )}
+      </Box>
+      {!!props.failureDescription && (
+        <Failure
+          failureDescription={props.failureDescription}
+          isExplodingUnreadable={props.isExplodingUnreadable}
+          onRetry={props.onRetry}
+          onEdit={props.onEdit}
+          onCancel={props.onCancel}
         />
       )}
+      <Box style={styles.sendIndicatorContainer}>
+        {props.isYou && (
+          <SendIndicator
+            sent={props.messageSent}
+            failed={props.messageFailed}
+            style={{marginBottom: 2}}
+            id={props.message.timestamp}
+          />
+        )}
+      </Box>
     </Box>
-    {!!props.failureDescription && (
-      <Failure
-        failureDescription={props.failureDescription}
-        onRetry={props.onRetry}
-        onEdit={props.onEdit}
-        onCancel={props.onCancel}
-      />
-    )}
+    {props.exploding && <ExplodingMeta explodesAt={props.explodesAt} />}
   </Box>
 )
 
@@ -186,7 +199,7 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
   }
 }
 
-const sendIndicatorWidth = 40
+const sendIndicatorWidth = 32
 
 const styles = styleSheetCreate({
   container: {...globalStyles.flexBoxColumn, width: '100%'},
@@ -208,25 +221,32 @@ const styles = styleSheetCreate({
     common: {
       ...globalStyles.flexBoxColumn,
       flex: 1,
-      paddingBottom: 2,
       paddingRight: globalMargins.tiny,
+      position: 'relative',
     },
     isMobile: {
       marginRight: sendIndicatorWidth,
     },
   }),
+  rightSideContainer: {
+    ...globalStyles.flexBoxRow,
+    flex: 1,
+    paddingBottom: 2,
+    paddingRight: globalMargins.tiny,
+  },
   selected: {backgroundColor: globalColors.black_05},
+  sendIndicator: {marginBottom: 2},
   sendIndicatorContainer: platformStyles({
     common: {
-      // we never want this thing to push content around
-      alignItems: 'center',
-      bottom: 0,
+      alignItems: 'flex-start',
+      bottom: -2,
       height: 21,
       justifyContent: 'center',
       position: 'absolute',
       right: 0,
       width: sendIndicatorWidth,
     },
+    isElectron: {pointerEvents: 'none'},
     isMobile: {
       right: -sendIndicatorWidth,
     },

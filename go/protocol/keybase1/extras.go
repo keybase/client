@@ -574,6 +574,8 @@ func (s SigID) Exists() bool {
 	return !s.IsNil()
 }
 
+func (s SigID) String() string { return string(s) }
+
 func (s SigID) Equal(t SigID) bool {
 	return s == t
 }

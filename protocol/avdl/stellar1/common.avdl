@@ -87,6 +87,7 @@ protocol common {
     string note;
   }
 
+  // OutsideCurrencyCode examples: "USD", "EUR"
   @typedef("string") record OutsideCurrencyCode {}
 
   record OutsideExchangeRate {

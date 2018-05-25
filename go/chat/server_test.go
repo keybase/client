@@ -1938,6 +1938,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			assertEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
 				valid := unboxed.Valid()
 				require.False(t, valid.IsEphemeralExpired)
+				require.Nil(t, valid.ExplodedBy)
 				if ephemeralLifetime == nil {
 					require.False(t, valid.IsEphemeral)
 					require.EqualValues(t, valid.Etime, 0)
@@ -1946,6 +1947,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 					lifetime := time.Second * time.Duration(*ephemeralLifetime)
 					require.True(t, time.Now().Add(lifetime).Sub(valid.Etime.Time()) <= lifetime)
 				}
+			}
+
+			assertNotEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
+				valid := unboxed.Valid()
+				require.False(t, valid.IsEphemeralExpired)
+				require.False(t, valid.IsEphemeral)
+				require.EqualValues(t, valid.Etime, 0)
+				require.Nil(t, valid.ExplodedBy)
 			}
 
 			var err error
@@ -2068,6 +2077,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
 				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+				assertEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2095,6 +2105,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, headline, unboxed.Valid().MessageBody.Headline().Headline)
 				}
+				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2122,6 +2133,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, topicName, unboxed.Valid().MessageBody.Metadata().ConversationTitle)
 				}
+				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2882,7 +2894,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(2 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -2951,7 +2963,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -4131,6 +4143,8 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctc.as(t, users[1]).h.mockChatUI = ui
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
@@ -4329,7 +4343,7 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("reset user 1")
 		ctcForUser := ctc.as(t, users[1])
-		require.NoError(t, ctcForUser.h.G().LoginState().ResetAccount(ctcForUser.m, users[1].Username))
+		require.NoError(t, libkb.ResetAccount(ctcForUser.m, users[1].NormalizedUsername(), users[1].Passphrase))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
@@ -4390,7 +4404,7 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("reset user 2")
 		ctcForUser2 := ctc.as(t, users[2])
-		require.NoError(t, ctcForUser2.h.G().LoginState().ResetAccount(ctcForUser2.m, users[2].Username))
+		require.NoError(t, libkb.ResetAccount(ctcForUser2.m, users[2].NormalizedUsername(), users[2].Passphrase))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)

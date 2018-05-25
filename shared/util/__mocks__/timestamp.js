@@ -39,3 +39,7 @@ export function daysToLabel(days: number): string {
 export function secondsToDHMS(seconds: number): string {
   return '[mocked]'
 }
+
+export function formatDurationShort(ms: number): string {
+  return '[mocked]'
+}

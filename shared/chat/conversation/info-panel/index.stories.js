@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {storiesOf, action, unexpected} from '../../../stories/storybook'
-import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as PropProviders from '../../../stories/prop-providers'
 import {retentionPolicies} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
@@ -54,7 +54,7 @@ const provider = PropProviders.compose(
 )
 
 const commonProps = {
-  selectedConversationIDKey: Types.stringToConversationIDKey(''),
+  selectedConversationIDKey: Constants.noConversationIDKey,
   participants: [
     {
       fullname: 'Fred Akalin',

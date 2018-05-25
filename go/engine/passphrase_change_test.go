@@ -158,9 +158,7 @@ func TestPassphraseChangeKnownPrompt(t *testing.T) {
 
 	// clear the passphrase stream cache to force a prompt
 	// for the existing passphrase.
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	clearCaches(tc.G)
 
 	// Test changing passphrase 3 times; so that old passphrase
 	// cache is properly busted.
@@ -236,7 +234,8 @@ func TestPassphraseChangeKnownPromptRepeatOld(t *testing.T) {
 		// the bug fix that we're actually trying to test by doing multiple
 		// passphrase changes.
 		if i == numChanges-1 {
-			_, err := tc.G.LoginState().VerifyPlaintextPassphrase(NewMetaContextForTest(tc), newPassphrase, nil)
+			m := NewMetaContextForTest(tc)
+			_, err := libkb.VerifyPassphraseForLoggedInUser(m, newPassphrase)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -362,10 +361,7 @@ func TestPassphraseChangeUnknownNoPSCache(t *testing.T) {
 
 	u, _, _ := CreateAndSignupFakeUserCustomArg(tc, "paper", f)
 
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-		a.ClearCachedSecretKeys()
-	}, "clear stream cache")
+	tc.SimulateServiceRestart()
 
 	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
@@ -486,7 +482,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 	// this call will cause the login state to be reloaded.
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, before passphrase change")
 
-	tc.ResetLoginState()
+	tc.SimulateServiceRestart()
 
 	secretUI := libkb.TestSecretUI{}
 	uis := libkb.UIs{
@@ -535,9 +531,7 @@ func TestPassphraseChangePGPUsage(t *testing.T) {
 
 	// clear the passphrase stream cache to force a prompt
 	// for the existing passphrase.
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	clearCaches(tc.G)
 
 	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
@@ -574,9 +568,7 @@ func TestPassphraseChangePGP3Sec(t *testing.T) {
 
 	// clear the passphrase stream cache to force a prompt
 	// for the existing passphrase.
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	clearCaches(tc.G)
 
 	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{
@@ -682,7 +674,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 	// this call will cause the login state to be reloaded.
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, before passphrase change")
 
-	tc.ResetLoginState()
+	tc.SimulateServiceRestart()
 
 	secretUI := libkb.TestSecretUI{}
 	uis = libkb.UIs{
@@ -753,9 +745,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 
 	// clear the passphrase stream cache to force a prompt
 	// for the existing passphrase.
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	clearCaches(tc.G)
 
 	newPassphrase := "password1234"
 	arg := &keybase1.PassphraseChangeArg{

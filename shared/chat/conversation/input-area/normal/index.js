@@ -1,17 +1,21 @@
 // @flow
 import * as React from 'react'
 import {Input as TextInput} from '../../../../common-adapters'
-import {isMobile} from '../../../../util/container'
 import MentionInput from './mention-input'
 import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
-import {formatTextForQuoting} from '../../../../util/chat'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
 
 class Input extends React.Component<InputProps> {
+  _lastQuote: number
   _input: ?TextInput
+
+  constructor(props: InputProps) {
+    super(props)
+    this._lastQuote = 0
+  }
 
   _inputSetRef = (input: ?TextInput) => {
     this._input = input
@@ -19,19 +23,6 @@ class Input extends React.Component<InputProps> {
 
   _inputFocus = () => {
     this._input && this._input.focus()
-  }
-
-  _inputMoveToEnd = () => {
-    if (this._input) {
-      this._input.transformText(({text, selection}) => ({
-        text,
-        selection: {start: text.length, end: text.length},
-      }))
-    }
-  }
-
-  _onCancelQuoting = () => {
-    this.props._quotingMessage && this.props.onCancelQuoting()
   }
 
   _onSubmit = (text: string) => {
@@ -59,41 +50,49 @@ class Input extends React.Component<InputProps> {
   }
 
   componentDidMount = () => {
+    // Set lastQuote so we only inject quoted text after we mount.
+    this._lastQuote = this.props.quoteCounter
+
     const text = this.props.getUnsentText()
     this._setText(text, true)
-  }
-
-  componentWillReceiveProps = (nextProps: InputProps) => {
-    const props: InputProps = this.props
-
-    // Fill in the input with an edit, quote, or unsent text
-    if (
-      (nextProps._quotingMessage && nextProps._quotingMessage !== props._quotingMessage) ||
-      nextProps._editingMessage !== props._editingMessage
-    ) {
-      this._setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
-      const injectedInput = nextProps.injectedInput
-      this._setText(
-        nextProps._quotingMessage && !nextProps._editingMessage
-          ? formatTextForQuoting(injectedInput)
-          : injectedInput,
-        true
-      )
-      !isMobile && this._inputMoveToEnd()
-      this._inputFocus()
-    } else if (props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
-      const text = nextProps.getUnsentText()
-      this._setText(text, true)
-    }
-
-    if (nextProps.isEditing && !props.isEditing) {
-      this._inputFocus()
-    }
   }
 
   componentDidUpdate = (prevProps: InputProps) => {
     if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
       this._inputFocus()
+    }
+
+    // Inject the appropriate text when entering or existing edit
+    // mode, but only when on the same conversation; otherwise we'd
+    // incorrectly inject when switching to/from a conversation with
+    // an unsent edit.
+    if (prevProps.conversationIDKey === this.props.conversationIDKey) {
+      if (!prevProps.isEditing && this.props.isEditing) {
+        this._setText(this.props.editText)
+        this._inputFocus()
+        return
+      }
+
+      if (prevProps.isEditing && !this.props.isEditing) {
+        this._setText('')
+        return
+      }
+    }
+
+    // Inject the appropriate text when quoting. Keep track of the
+    // last quote we did so as to inject exactly once.
+    if (this.props.quoteCounter > this._lastQuote) {
+      this._lastQuote = this.props.quoteCounter
+      this._setText(this.props.quoteText)
+      this._inputFocus()
+      return
+    }
+
+    // Otherwise, inject unsent text. This must come after quote
+    // handling, so as to handle the 'Reply Privately' case.
+    if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
+      const text = this.props.getUnsentText()
+      this._setText(text, true)
     }
   }
 
@@ -101,7 +100,6 @@ class Input extends React.Component<InputProps> {
     return (
       <MentionInput
         {...this.props}
-        onCancelQuoting={this._onCancelQuoting}
         onSubmit={this._onSubmit}
         inputSetRef={this._inputSetRef}
         onChangeText={this._onChangeText}

@@ -389,11 +389,8 @@ protocol local {
     MessageID messageID;
     MessageType messageType;
     gregor1.Time ctime;
-    @mpackkey("ie") @jsonkey("ie")
     boolean isEphemeral;
-    @mpackkey("iex") @jsonkey("iex")
     boolean isEphemeralExpired;
-    @mpackkey("e") @jsonkey("e")
     gregor1.Time etime;
   }
 
@@ -555,7 +552,8 @@ protocol local {
   }
   enum GetThreadNonblockReason {
     GENERAL_0,
-    PUSH_1
+    PUSH_1,
+    FOREGROUND_2
   }
   enum GetThreadNonblockPgMode {
     DEFAULT_0,

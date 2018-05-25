@@ -1906,6 +1906,10 @@ export const uiPromptDefault = {
   no: 2,
 }
 
+export const userFindNextMerkleRootAfterRevokeRpcChannelMap = (configKeys: Array<string>, request: UserFindNextMerkleRootAfterRevokeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.findNextMerkleRootAfterRevoke', request)
+
+export const userFindNextMerkleRootAfterRevokeRpcPromise = (request: UserFindNextMerkleRootAfterRevokeRpcParam): Promise<UserFindNextMerkleRootAfterRevokeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.findNextMerkleRootAfterRevoke', request, (error: RPCError, result: UserFindNextMerkleRootAfterRevokeResult) => (error ? reject(error) : resolve(result))))
+
 export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
 
 export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => (error ? reject(error) : resolve(result))))
@@ -1982,10 +1986,6 @@ export const userProfileEditRpcChannelMap = (configKeys: Array<string>, request:
 
 export const userProfileEditRpcPromise = (request: UserProfileEditRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.profileEdit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
-export const userResetUserRpcChannelMap = (configKeys: Array<string>, request: UserResetUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.resetUser', request)
-
-export const userResetUserRpcPromise = (request: UserResetUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.resetUser', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const userSearchRpcChannelMap = (configKeys: Array<string>, request: UserSearchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.search', request)
 
 export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => (error ? reject(error) : resolve(result))))
@@ -2004,7 +2004,7 @@ export type AccountPassphraseChangeRpcParam = $ReadOnly<{oldPassphrase: String, 
 
 export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AccountResetAccountRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AccountResetAccountRpcParam = $ReadOnly<{passphrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
 
@@ -2914,6 +2914,8 @@ export type NaclDHKeyPublic = any
 export type NaclSigningKeyPrivate = any
 
 export type NaclSigningKeyPublic = any
+
+export type NextMerkleRootRes = $ReadOnly<{res?: ?MerkleRootV2}>
 
 export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean}>
 
@@ -4083,6 +4085,8 @@ export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation
 
 export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetadata?: ?Array<UserEkMetadata>}>
 
+export type UserFindNextMerkleRootAfterRevokeRpcParam = $ReadOnly<{uid: UID, kid: KID, loc: SigChainLocation, prev: MerkleRootV2, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserInterestingPeopleRpcParam = $ReadOnly<{maxUsers: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4138,8 +4142,6 @@ export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno:
 export type UserPlusKeysV2AllIncarnations = $ReadOnly<{current: UserPlusKeysV2, pastIncarnations?: ?Array<UserPlusKeysV2>, uvv: UserVersionVector, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPK2MinorVersion}>
 
 export type UserProfileEditRpcParam = $ReadOnly<{fullName: String, location: String, bio: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-
-export type UserResetUserRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserResolution = $ReadOnly<{assertion: SocialAssertion, userID: UID}>
 
@@ -4345,6 +4347,7 @@ type TlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 type TlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 type TrackTrackResult = ConfirmResult
 type UiPromptYesNoResult = Boolean
+type UserFindNextMerkleRootAfterRevokeResult = NextMerkleRootRes
 type UserGetUPAKResult = UPAKVersioned
 type UserInterestingPeopleResult = ?Array<InterestingPerson>
 type UserListTrackers2Result = UserSummary2Set

@@ -70,13 +70,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    if (this.props.pendingWaiting) {
-      return
-    }
-
-    // TODO: Also call onCancelQuoting on mobile.
-    this.props.onCancelQuoting()
-
     const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       e.preventDefault()
@@ -192,21 +185,14 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     this.props.setChannelMentionPopupOpen(false)
   }
 
-  _onFocus = () => {
-    if (!this.props.pendingWaiting) {
-      this.props.clearInboxFilter()
-    }
-  }
-
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
       hintText = 'Write an exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
-    } else if (this.props.pendingWaiting) {
-      hintText = 'Creating conversation...'
     }
+
     return (
       <Box
         style={{
@@ -250,7 +236,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               filter={this.props.channelMentionFilter}
             />
           )}
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
             <input
               type="file"
               style={{display: 'none'}}
@@ -261,8 +247,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             <Input
               className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
               autoFocus={false}
-              editable={!this.props.pendingWaiting}
-              onFocus={this._onFocus}
               small={true}
               style={styleInput}
               ref={this._inputSetRef}
@@ -295,16 +279,8 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
-            <Icon
-              onClick={this.props.pendingWaiting ? undefined : this._emojiPickerToggle}
-              style={styleIcon}
-              type="iconfont-emoji"
-            />
-            <Icon
-              onClick={this.props.pendingWaiting ? undefined : this._filePickerOpen}
-              style={styleIcon}
-              type="iconfont-attachment"
-            />
+            <Icon onClick={this._emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
+            <Icon onClick={this._filePickerOpen} style={styleIcon} type="iconfont-attachment" />
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
             <Text
