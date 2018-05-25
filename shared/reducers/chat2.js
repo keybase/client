@@ -117,7 +117,9 @@ const metaMapReducer = (metaMap, action) => {
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
-              return action.payload.fromEphemeralPurge ? meta : Constants.updateMeta(old, meta)
+              return action.payload.fromEphemeralPurge || action.payload.fromExpunge
+                ? meta
+                : Constants.updateMeta(old, meta)
             } else {
               return neverCreate ? old : meta
             }
