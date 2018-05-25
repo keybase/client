@@ -237,6 +237,13 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsError() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_ERROR
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -355,6 +362,7 @@ func (m *MsgEphemeralMetadata) String() string {
 	}
 	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", time.Second*time.Duration(m.Lifetime), m.Generation, explodedBy)
 }
+
 func (m MessagePlaintext) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
