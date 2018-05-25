@@ -26,9 +26,10 @@ type BlockingSender struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	boxer *Boxer
-	store *attachments.Store
-	getRi func() chat1.RemoteInterface
+	boxer          *Boxer
+	store          *attachments.Store
+	getRi          func() chat1.RemoteInterface
+	prevPagination *chat1.Pagination
 }
 
 var _ types.Sender = (*BlockingSender)(nil)
@@ -36,12 +37,17 @@ var _ types.Sender = (*BlockingSender)(nil)
 func NewBlockingSender(g *globals.Context, boxer *Boxer, store *attachments.Store,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
-		getRi:        getRi,
-		boxer:        boxer,
-		store:        store,
+		Contextified:   globals.NewContextified(g),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
+		getRi:          getRi,
+		boxer:          boxer,
+		store:          store,
+		prevPagination: &chat1.Pagination{Num: 50},
 	}
+}
+
+func (s *BlockingSender) setPrevPagination(p *chat1.Pagination) {
+	s.prevPagination = p
 }
 
 func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
@@ -85,15 +91,11 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 		return chat1.MessagePlaintext{}, fmt.Errorf("addPrevPointersToMessage expects an empty prev list")
 	}
 
-	var prevs []chat1.MessagePreviousPointer
-
 	res, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
 		&chat1.GetThreadQuery{
 			DisableResolveSupersedes: true,
 		},
-		&chat1.Pagination{
-			Num: 50,
-		})
+		s.prevPagination)
 	if err != nil {
 		return chat1.MessagePlaintext{}, err
 	}
@@ -101,12 +103,29 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	if len(res.Messages) == 0 {
 		s.Debug(ctx, "no local messages found for prev pointers")
 	}
-	prevs, _, err = CheckPrevPointersAndGetUnpreved(&res)
+	var prevs []chat1.MessagePreviousPointer
+	newPrevsForRegular, newPrevsForExploding, err := CheckPrevPointersAndGetUnpreved(&res)
 	if err != nil {
 		return chat1.MessagePlaintext{}, err
 	}
 
-	if len(prevs) == 0 {
+	var numPrev int
+	if msg.IsEphemeral() {
+		prevs = newPrevsForExploding
+		numPrev = len(newPrevsForExploding)
+	} else {
+		prevs = newPrevsForRegular
+		// If we have only sent ephemeralMessages and are now sending a regular
+		// message, we may have an empty list for newPrevsForRegular. In this
+		// case we allow the `Prev` to be empty, so we don't want to abort in
+		// the check on numPrev below.
+		numPrev = len(newPrevsForRegular)
+		if numPrev == 0 {
+			numPrev = len(newPrevsForExploding)
+		}
+	}
+
+	if numPrev == 0 {
 		return chat1.MessagePlaintext{}, fmt.Errorf("Could not find previous messages for prev pointers (of %v)", len(res.Messages))
 	}
 
