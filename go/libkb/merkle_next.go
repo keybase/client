@@ -34,7 +34,7 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 		}
 		m.CDebugf("Leaf back: %+v", leaf)
 		if leaf.Public == nil {
-			return res, fmt.Errorf("user leaf returned with nil public part")
+			return res, MerkleClientError{"user leaf returned with nil public part", merkleErrorBadLeaf}
 		}
 		if leaf.Public.Seqno >= arg.Loc.Seqno {
 			m.CDebugf("| Found at merkle seqno=%d", q)
@@ -42,14 +42,14 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 		}
 	}
 	if !found {
-		return res, fmt.Errorf("tried %d roots, but seqno not found", maxTries)
+		return res, MerkleClientError{fmt.Sprintf("tried %d roots, but seqno not found", maxTries), merkleErrorNoUpdates}
 	}
 	sigID := u.GetSigIDFromSeqno(leaf.Public.Seqno)
 	if sigID.IsNil() {
-		return res, fmt.Errorf("unknown seqno in sigchain: %d", arg.Loc.Seqno)
+		return res, MerkleClientError{fmt.Sprintf("unknown seqno in sigchain: %d", arg.Loc.Seqno), merkleErrorBadSeqno}
 	}
 	if !sigID.Equal(leaf.Public.SigID) {
-		return res, fmt.Errorf("sigID sent down by server didn't match: %s != %s", sigID.String(), leaf.Public.SigID.String())
+		return res, MerkleClientError{fmt.Sprintf("sigID sent down by server didn't match: %s != %s", sigID.String(), leaf.Public.SigID.String()), merkleErrorBadSigID}
 	}
 	res.Res = &keybase1.MerkleRootV2{
 		HashMeta: root.HashMeta(),
