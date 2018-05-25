@@ -26,10 +26,10 @@ type BlockingSender struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	boxer          *Boxer
-	store          *attachments.Store
-	getRi          func() chat1.RemoteInterface
-	prevPagination *chat1.Pagination
+	boxer             *Boxer
+	store             *attachments.Store
+	getRi             func() chat1.RemoteInterface
+	prevPtrPagination *chat1.Pagination
 }
 
 var _ types.Sender = (*BlockingSender)(nil)
@@ -37,17 +37,17 @@ var _ types.Sender = (*BlockingSender)(nil)
 func NewBlockingSender(g *globals.Context, boxer *Boxer, store *attachments.Store,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
-		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
-		getRi:          getRi,
-		boxer:          boxer,
-		store:          store,
-		prevPagination: &chat1.Pagination{Num: 50},
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
+		getRi:             getRi,
+		boxer:             boxer,
+		store:             store,
+		prevPtrPagination: &chat1.Pagination{Num: 50},
 	}
 }
 
 func (s *BlockingSender) setPrevPagination(p *chat1.Pagination) {
-	s.prevPagination = p
+	s.prevPtrPagination = p
 }
 
 func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
@@ -95,7 +95,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 		&chat1.GetThreadQuery{
 			DisableResolveSupersedes: true,
 		},
-		s.prevPagination)
+		s.prevPtrPagination)
 	if err != nil {
 		return chat1.MessagePlaintext{}, err
 	}
