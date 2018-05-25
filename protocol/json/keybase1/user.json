@@ -631,7 +631,7 @@
         }
       ],
       "response": "NextMerkleRootRes",
-      "doc": "FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID\n   revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where\n   we'll start our search. Usually it's tne next one, but not always"
+      "doc": "FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID\n   revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where\n   we'll start our search. Usually it's the next one, but not always"
     }
   },
   "namespace": "keybase.1"
