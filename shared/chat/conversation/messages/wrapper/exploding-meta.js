@@ -29,7 +29,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     if (prevState.mode === 'none' && Date.now() >= nextProps.explodesAt) {
       return {mode: 'hidden'}
     }
-    if (nextProps.exploded) {
+    if (nextProps.exploded && prevState.mode === 'countdown') {
       // got an explode now
       // also helps w/ keeping in sync with ash lines
       return {mode: 'boom'}
@@ -47,7 +47,7 @@ class ExplodingMeta extends React.Component<Props, State> {
 
   _updateLoop = () => {
     const difference = this.props.explodesAt - Date.now()
-    if (difference <= 0) {
+    if (difference <= 0 || this.props.exploded) {
       this.setState({mode: 'boom'})
       return
     }
