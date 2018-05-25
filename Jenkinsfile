@@ -286,10 +286,10 @@ def runTestPipeServer() {
         // This part depends on being run with elevated permissions
         New-LocalUser $username -Password $password -FullName "Keybase Test User" -Description "Only for CI purposes"
         $credentials = New-Object System.Management.Automation.PSCredential -ArgumentList @($username,$password)
-        $testexe = Join-Path $Env:GOPATH "bin\kb_pipetest_server.exe" -Resolve
+        $testexe = Join-Path $Env:GOPATH "bin\\kb_pipetest_server.exe" -Resolve
         Stop-Process -Force -Name "kb_pipetest_server"
-        Start-Process "go" -ArgumentList @("install","github.com\keybase\client\go\libkb\testfixtures\kb_pipetest_server")
-        Start-Process $testexe -ArgumentList @("\\.\pipe\kbservice\test_malicious") -Credential ($credentials)
+        Start-Process "go" -ArgumentList @("install","github.com\\keybase\\client\\go\\libkb\\testfixtures\\kb_pipetest_server")
+        Start-Process $testexe -ArgumentList @("\\\\.\\pipe\\kbservice\\test_malicious") -Credential ($credentials)
     '''
 }
 
