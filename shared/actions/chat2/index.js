@@ -447,7 +447,7 @@ const onChatTypingUpdate = typingUpdates => {
 }
 
 const onChatThreadStale = updates => {
-  const actions = []
+  let actions = []
   Object.keys(RPCChatTypes.notifyChatStaleUpdateType).forEach(function(key) {
     const conversationIDKeys = (updates || []).reduce((arr, u) => {
       if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType[key]) {
@@ -461,7 +461,7 @@ const onChatThreadStale = updates => {
           conversationIDKeys.length
         } convs of type ${key}`
       )
-      actions.concat([
+      actions = actions.concat([
         Chat2Gen.createMarkConversationsStale({
           conversationIDKeys,
           updateType: RPCChatTypes.notifyChatStaleUpdateType[key],
