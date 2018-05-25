@@ -33,7 +33,7 @@ func waitNamedPipe(name string, timeout uint32) (err error) {
 		return e1
 	}
 
-	r1, _, e2 := procWaitNamedPipeW.Call(2, uintptr(unsafe.Pointer(rawName)), uintptr(timeout), 0)
+	r1, _, e2 := procWaitNamedPipeW.Call(uintptr(unsafe.Pointer(rawName)), uintptr(timeout))
 	if r1 == 0 {
 		return e2
 	}

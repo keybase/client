@@ -279,6 +279,20 @@ def getTestDirsWindows() {
     return dirs.tokenize()
 }
 
+def runTestPipeServer() {
+    powershell '''
+        $username = "kbtestuser1"
+        $password = (ConvertTo-SecureString -String "12345678" -AsPlainText -Force)
+        // This part depends on being run with elevated permissions
+        New-LocalUser $username -Password $password -FullName "Keybase Test User" -Description "Only for CI purposes"
+        $credentials = New-Object System.Management.Automation.PSCredential -ArgumentList @($username,$password)
+        $testexe = Join-Path $Env:GOPATH "bin\kb_pipetest_server.exe" -Resolve
+        Stop-Process -Force -Name "kb_pipetest_server"
+        Start-Process "go" -ArgumentList @("install","github.com\keybase\client\go\libkb\testfixtures\kb_pipetest_server")
+        Start-Process $testexe -ArgumentList @("\\.\pipe\kbservice\test_malicious") -Credential ($credentials)
+    '''
+}
+
 def testGo(prefix) {
     dir('go') {
     withEnv([

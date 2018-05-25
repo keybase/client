@@ -49,7 +49,6 @@ func TestWindows(t *testing.T) {
 	doDirectoryTest(t, hf.DataDir(), "Data", "Devel")
 	doDirectoryTest(t, hf.ConfigDir(), "Config", "Devel")
 
-
 	whf := Win32{Base{"tester", nil, func() RunMode { return DevelRunMode }, makeLogGetter(t)}}
 	fromTemp := whf.deriveFromTemp()
 	if len(fromTemp) == 0 {
@@ -59,5 +58,5 @@ func TestWindows(t *testing.T) {
 	if !exists(fromTemp) {
 		t.Errorf("%s does not exist", fromTemp)
 	}
-	
+
 }
