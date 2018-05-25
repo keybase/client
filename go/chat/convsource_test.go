@@ -275,7 +275,8 @@ func TestExplodeNow(t *testing.T) {
 	require.Equal(t, deleteMsgID, msg3.Valid().ServerHeader.SupersededBy, "wrong super")
 	require.Equal(t, chat1.MessageBody{}, msg3.Valid().MessageBody, "wrong body")
 	require.True(t, msg3.Valid().IsEphemeral())
-	require.False(t, msg3.Valid().IsEphemeralExpired(time.Now()))
+	// This is true since we did an explode now!
+	require.True(t, msg3.Valid().IsEphemeralExpired(time.Now()))
 	require.Equal(t, u.Username, *msg3.Valid().ExplodedBy())
 }
 

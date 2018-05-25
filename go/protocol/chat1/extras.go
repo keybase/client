@@ -428,7 +428,7 @@ func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 		return false
 	}
 	etime := m.Etime().Time()
-	return etime.Before(now) || etime.Equal(now)
+	return m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
 
 func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
@@ -539,7 +539,7 @@ func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
 		return false
 	}
 	etime := m.Etime().Time()
-	return etime.Before(now) || etime.Equal(now)
+	return m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
 
 func (m MessageBoxed) HideExplosion(now time.Time) bool {
