@@ -154,8 +154,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           original.set('resetParticipants', item.resetParticipants),
         ]
       }, [])
-      const n = state.mergeIn(['pathItems'], resetsToMerge)
-      return n
+      return state.mergeIn(['pathItems'], resetsToMerge)
     case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
     case FsGen.download:
