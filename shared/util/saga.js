@@ -126,7 +126,7 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
   pattern: string | Array<any> | Function,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: ?(result: R, action: A, updatedState?: TypedState) => FinalAction,
+  actionCreatorsWithResult?: ?(result: R, action: A, updatedState: TypedState) => FinalAction,
   actionCreatorsWithError?: ?(result: R, action: A) => FinalActionError
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
@@ -148,7 +148,8 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
           const state: TypedState = yield select()
           yield actionCreatorsWithResult(result, action, state)
         } else {
-          yield actionCreatorsWithResult(result, action)
+          // $FlowIssue we pass undefined if they don't use it
+          yield actionCreatorsWithResult(result, action, undefined)
         }
       }
     } catch (e) {
