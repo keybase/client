@@ -160,7 +160,7 @@ protocol user {
   /**
    FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
    revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
-   we'll start our search. Usually it's tne next one, but not always
+   we'll start our search. Usually it's the next one, but not always
   */
   NextMerkleRootRes findNextMerkleRootAfterRevoke(UID uid, KID kid, SigChainLocation loc, MerkleRootV2 prev);
 }
