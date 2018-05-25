@@ -659,6 +659,17 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   return arr
 }, [])
 
+const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadNonblockReason => {
+  switch (reason) {
+    case 'push':
+      return RPCChatTypes.localGetThreadNonblockReason.push
+    case 'foregrounding':
+      return RPCChatTypes.localGetThreadNonblockReason.foreground
+    default:
+      return RPCChatTypes.localGetThreadNonblockReason.general
+  }
+}
+
 // We bookkeep the current request's paginationkey in case we get very slow callbacks so we we can ignore new paginationKeys that are too old
 const _loadingMessagesWithPaginationKey = {}
 // Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
@@ -871,10 +882,7 @@ const loadMoreMessages = (
         messageTypes: loadThreadMessageTypes,
       },
       pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
-      reason:
-        reason === 'push'
-          ? RPCChatTypes.localGetThreadNonblockReason.push
-          : RPCChatTypes.localGetThreadNonblockReason.general,
+      reason: reasonToRPCReason(reason),
     },
     false,
     (loading: boolean) => Chat2Gen.createSetLoading({key: loadingKey, loading})
