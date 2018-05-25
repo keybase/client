@@ -443,16 +443,16 @@ type disclaimerResult struct {
 	AcceptedDisclaimer bool `json:"accepted_disclaimer"`
 }
 
-func GetUserSettings(ctx context.Context, g *libkb.GlobalContext) (stellar1.UserSettings, error) {
+func GetUserSettings(ctx context.Context, g *libkb.GlobalContext) (res stellar1.UserSettings, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/disclaimer",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
 	}
 	var apiRes disclaimerResult
-	err := g.API.GetDecode(apiArg, &apiRes)
+	err = g.API.GetDecode(apiArg, &apiRes)
 	if err != nil {
-		return stellar1.UserSettings{AcceptedDisclaimer: false}, err
+		return res, err
 	}
 	return stellar1.UserSettings{AcceptedDisclaimer: apiRes.AcceptedDisclaimer}, nil
 }

@@ -197,7 +197,7 @@ func (s *Server) GetUserSettingsLocal(ctx context.Context, sessionID int) (userS
 	defer s.G().CTraceTimed(ctx, "GetUserSettingsLocal", func() error { return err })()
 	err = s.assertLoggedIn(ctx)
 	if err != nil {
-		return stellar1.UserSettings{}, err
+		return userSettings, err
 	}
 
 	userSettings, err = remote.GetUserSettings(ctx, s.G())
@@ -215,8 +215,7 @@ func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) 
 		return err
 	}
 
-	err = remote.SetAcceptedDisclaimer(ctx, s.G())
-	return err
+	return remote.SetAcceptedDisclaimer(ctx, s.G())
 }
 
 func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.LinkNewWalletAccountLocalArg) (accountID stellar1.AccountID, err error) {
