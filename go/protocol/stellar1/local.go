@@ -64,8 +64,8 @@ func (o CurrencyLocal) DeepCopy() CurrencyLocal {
 }
 
 type SendResultCLILocal struct {
-	KbTxID KeybaseTransactionID     `codec:"KbTxID" json:"KbTxID"`
-	TxID   TransactionID            `codec:"TxID" json:"TxID"`
+	KbTxID KeybaseTransactionID     `codec:"kbTxID" json:"kbTxID"`
+	TxID   TransactionID            `codec:"txID" json:"txID"`
 	Relay  *SendRelayResultCLILocal `codec:"relay,omitempty" json:"relay,omitempty"`
 }
 

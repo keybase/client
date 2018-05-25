@@ -57,13 +57,13 @@ protocol local {
   array<Balance> balancesLocal(AccountID accountID);
 
   SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
-                                  string displayAmount, string displayCurrency, bool forceRelay);
+                                  string displayAmount, string displayCurrency, boolean forceRelay);
 
   record SendResultCLILocal {
-    KeybaseTransactionID KbTxID;
+    KeybaseTransactionID kbTxID;
     // Direct: tx ID of the payment tx
     // Relay : tx ID of the funding payment tx
-    TransactionID TxID;
+    TransactionID txID;
     union { null, SendRelayResultCLILocal } relay;
   }
   record SendRelayResultCLILocal {
