@@ -291,7 +291,7 @@ def runTestPipeServer() {
         $credentials = New-Object System.Management.Automation.PSCredential -ArgumentList @($username,$password)
         Stop-Process -Force -Name "kb_pipetest_server"
         go install github.com\\keybase\\client\\go\\libkb\\testfixtures\\kb_pipetest_server
-        go env
+        NET SESSION
         $testexe = Join-Path $gopath "bin\\kb_pipetest_server.exe" -Resolve
         Start-Process $testexe -ArgumentList @("\\\\.\\pipe\\kbservice\\test_malicious") -Credential ($credentials)
     '''    
