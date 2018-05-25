@@ -40,40 +40,69 @@ const inboxRefresh = (
   state: TypedState
 ) => {
   const username = state.config.username || ''
-  const untrustedInboxRpc = new EngineRpc.EngineRpcCall(
-    {
-      'chat.1.chatUi.chatInboxUnverified': function*({
-        inbox,
-      }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
-        const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
-        const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
-        // We get a subset of meta information from the cache even in the untrusted payload
-        const metas = items
-          .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
-          .filter(Boolean)
-        // Check if some of our existing stored metas might no longer be valid
-        const clearExistingMetas =
-          action.type === Chat2Gen.inboxRefresh &&
-          ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
-        const clearExistingMessages =
-          action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
-        yield Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
-        return EngineRpc.rpcResult()
-      },
-    },
-    RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
-    'inboxRefresh',
+  // const untrustedInboxRpc = new EngineRpc.EngineRpcCall(
+  // {
+  // 'chat.1.chatUi.chatInboxUnverified': function*({
+  // inbox,
+  // }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
+  // const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+  // const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
+  // // We get a subset of meta information from the cache even in the untrusted payload
+  // const metas = items
+  // .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
+  // .filter(Boolean)
+  // // Check if some of our existing stored metas might no longer be valid
+  // const clearExistingMetas =
+  // action.type === Chat2Gen.inboxRefresh &&
+  // ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
+  // const clearExistingMessages =
+  // action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
+  // yield Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
+  // return EngineRpc.rpcResult()
+  // },
+  // },
+  // RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+  // 'inboxRefresh',
+  // {
+  // identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+  // maxUnbox: 0,
+  // query: Constants.makeInboxQuery([]),
+  // skipUnverified: false,
+  // },
+  // false,
+  // loading => Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
+  // )
+
+  // return Saga.call(untrustedInboxRpc.run)
+
+  const onUnverified = function({inbox}: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
+    const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+    const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
+    // We get a subset of meta information from the cache even in the untrusted payload
+    const metas = items
+      .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
+      .filter(Boolean)
+    // Check if some of our existing stored metas might no longer be valid
+    const clearExistingMetas =
+      action.type === Chat2Gen.inboxRefresh &&
+      ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
+    const clearExistingMessages =
+      action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
+    return Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
+  }
+
+  return Saga.call(
+    engineCall,
+    'chat.1.local.getInboxNonblockLocal',
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       maxUnbox: 0,
       query: Constants.makeInboxQuery([]),
       skipUnverified: false,
     },
-    false,
+    {'chat.1.chatUi.chatInboxUnverified': onUnverified},
     loading => Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
   )
-
-  return Saga.call(untrustedInboxRpc.run)
 }
 
 // When we get info on a team we need to unbox immediately so we can get the channel names
@@ -287,6 +316,26 @@ const unboxRows = (
     return Saga.all(actions)
   }
 
+  const onFailed = ({convID, error}: RPCChatTypes.ChatUiChatInboxFailedRpcParam, state: TypedState) => {
+    const conversationIDKey = Types.conversationIDToKey(convID)
+    switch (error.typ) {
+      case RPCChatTypes.localConversationErrorType.transient:
+        logger.info(
+          `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+        )
+        break
+      default:
+        logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
+        return Saga.put(
+          Chat2Gen.createMetaReceivedError({
+            conversationIDKey: conversationIDKey,
+            error,
+            username: state.config.username || '',
+          })
+        )
+    }
+  }
+
   const getRows = Saga.call(
     engineCall,
     'chat.1.local.getInboxNonblockLocal',
@@ -297,7 +346,7 @@ const unboxRows = (
     },
     {
       'chat.1.chatUi.chatInboxConversation': onUnboxed,
-      // 'chat.1.chatUi.chatInboxFailed': onFailed,
+      'chat.1.chatUi.chatInboxFailed': onFailed,
     },
     loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
   )
@@ -1377,16 +1426,14 @@ const _maybeAutoselectNewestConversation = (
   }
 
   // If we got here we're auto selecting the newest convo
-  const metas = state.chat2.metaMap
-    .filter(meta => meta.teamType !== 'big')
-    .sort((a, b) => b.timestamp - a.timestamp)
-  let meta
-  if (action.type === TeamsGen.leaveTeam) {
-    // make sure we don't reselect the team chat if it happens to be first in the list
-    meta = metas.filter(meta => meta.teamname !== action.payload.teamname).first()
-  } else {
-    meta = metas.first()
-  }
+  const meta = state.chat2.metaMap.maxBy(
+    meta =>
+      meta.teamType !== 'big' &&
+      (action.type !== TeamsGen.leaveTeam || meta.teamname !== action.payload.teamname)
+        ? meta.timestamp
+        : 0
+  )
+
   if (meta) {
     return Saga.put(
       Chat2Gen.createSelectConversation({
