@@ -288,6 +288,7 @@ def runTestPipeServer() {
         "GOPATH=\"${GOPATH}\"",
     ]) {
         powershell '''
+            Get-Item Env:GOPATH
             $username = "kbtestuser1"
             $password = (ConvertTo-SecureString -String "53drByj6zadM" -AsPlainText -Force)
             net user /add $username "53drByj6zadM"
