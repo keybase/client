@@ -284,16 +284,15 @@ def runTestPipeServer() {
     def BASEDIR="${pwd()}"
     def GOPATH="${BASEDIR}\\go"
     withEnv([
-        'GOROOT=C:\\go',
-        "GOPATH=\"${GOPATH}\"",
+        "GOPATH=${GOPATH}",
     ]) {
         powershell '''
-            Get-Item Env:GOPATH
+            $gopath = Resolve-Path -Path $Env:GOPATH
             $username = "kbtestuser1"
             $password = (ConvertTo-SecureString -String "53drByj6zadM" -AsPlainText -Force)
             net user /add $username "53drByj6zadM"
             $credentials = New-Object System.Management.Automation.PSCredential -ArgumentList @($username,$password)
-            $testexe = Join-Path $Env:GOPATH "bin\\kb_pipetest_server.exe" -Resolve
+            $testexe = Join-Path gopath "bin\\kb_pipetest_server.exe" -Resolve
             Stop-Process -Force -Name "kb_pipetest_server"
             Start-Process "go" -ArgumentList @("install","github.com\\keybase\\client\\go\\libkb\\testfixtures\\kb_pipetest_server")
             Start-Process $testexe -ArgumentList @("\\\\.\\pipe\\kbservice\\test_malicious") -Credential ($credentials)
