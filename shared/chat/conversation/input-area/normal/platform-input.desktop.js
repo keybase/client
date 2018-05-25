@@ -243,7 +243,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
               filter={this.props.channelMentionFilter}
             />
           )}
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
             <input
               type="file"
               style={{display: 'none'}}
