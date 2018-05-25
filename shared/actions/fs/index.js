@@ -298,7 +298,6 @@ const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer
           return
         default:
           reject(new Error(`unexpected HTTP status code: ${statusCode}`))
-          return
       }
     })
   )
@@ -312,7 +311,9 @@ const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer
 function* _loadMimeType(path: Types.Path) {
   const state = yield Saga.select()
   let {address, token} = state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
-  while (true) {
+  // This should finish within 2 iterations most. But just in case we bound it
+  // at 4.
+  for (let i = 0; i < 4; ++i) {
     if (address === '' || token === '') {
       ;({address, token} = yield refreshLocalHTTPServerInfo())
       yield refreshLocalHTTPServerInfoResult({address, token})
@@ -328,6 +329,7 @@ function* _loadMimeType(path: Types.Path) {
       token = '' // Set token to '' to trigger the refresh in next iteration.
     }
   }
+  throw new Error('failed to load mime type')
 }
 
 const loadMimeType = (action: FsGen.MimeTypeLoadPayload) => Saga.call(_loadMimeType, action.payload.path)
@@ -380,7 +382,7 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
     if (mimeType === '') {
       mimeType = yield Saga.call(_loadMimeType, path)
     }
-    bare = isMobile && 'image' === Constants.viewTypeFromMimeType(mimeType)
+    bare = isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image'
   }
 
   yield Saga.put(
