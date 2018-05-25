@@ -216,7 +216,7 @@ const metaData: {[key: TextType]: MetaType} = {
     isLink: true,
     styleOverride: globalStyles.fontRegular,
   },
-  BodySmallPrimaryLinkSemibold: {
+  BodySmallSemiboldPrimaryLink: {
     colorForBackgroundMode: {
       Normal: globalColors.blue,
       Terminal: globalColors.white,
@@ -231,7 +231,7 @@ const metaData: {[key: TextType]: MetaType} = {
     isLink: true,
     styleOverride: globalStyles.fontRegular,
   },
-  BodySmallSecondaryLinkExtrabold: {
+  BodySmallExtraboldSecondaryLink: {
     colorForBackgroundMode: {Normal: globalColors.black_60},
     fontSize: 11,
     isLink: true,
