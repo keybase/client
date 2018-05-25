@@ -614,14 +614,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           }
           return arr
         }, upToOrdinals)
-
-        const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
-        ordinals.reduce((arr, ordinal) => {
-          if (Types.ordinalToNumber(ordinal) < upToMessageID) {
-            arr.push(ordinal)
-          }
-          return arr
-        }, upToOrdinals)
       }
 
       const allOrdinals = I.Set(
