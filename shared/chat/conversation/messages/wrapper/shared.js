@@ -125,6 +125,7 @@ const RightSide = props => (
         {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
         <HeightRetainer
+          explodedBy={props.explodedBy}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
@@ -173,7 +174,7 @@ const RightSide = props => (
         )}
       </Box>
     </Box>
-    {props.exploding && <ExplodingMeta explodesAt={props.explodesAt} />}
+    {props.exploding && <ExplodingMeta exploded={props.exploded} explodesAt={props.explodesAt} />}
   </Box>
 )
 

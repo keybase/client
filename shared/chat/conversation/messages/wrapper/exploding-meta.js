@@ -10,6 +10,7 @@ const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 
 type Props = PropsWithTimer<{
+  exploded: boolean,
   explodesAt: number,
 }>
 
@@ -27,6 +28,11 @@ class ExplodingMeta extends React.Component<Props, State> {
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     if (prevState.mode === 'none' && Date.now() >= nextProps.explodesAt) {
       return {mode: 'hidden'}
+    }
+    if (nextProps.exploded) {
+      // got an explode now
+      // also helps w/ keeping in sync with ash lines
+      return {mode: 'boom'}
     }
     if (prevState.mode !== 'none') {
       // never change away from anything set

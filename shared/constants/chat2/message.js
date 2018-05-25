@@ -321,6 +321,7 @@ const validUIMessagetoMessage = (
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
     exploded: m.isEphemeralExpired,
+    explodedBy: m.explodedBy || '',
     exploding: m.isEphemeral,
     explodingTime: m.etime,
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,

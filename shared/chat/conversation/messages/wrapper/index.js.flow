@@ -5,6 +5,7 @@ import * as Types from '../../../../constants/types/chat2'
 export type Props = {
   author: string,
   exploded: boolean,
+  explodedBy: string,
   explodesAt: number,
   exploding: boolean,
   failureDescription: string,

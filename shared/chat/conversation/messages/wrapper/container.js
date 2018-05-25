@@ -83,6 +83,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     author: message.author,
     exploded: message.exploded,
+    explodedBy: message.explodedBy,
     explodesAt: message.explodingTime,
     exploding: message.exploding,
     failureDescription,
