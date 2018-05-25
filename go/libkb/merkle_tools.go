@@ -59,3 +59,44 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 	m.CDebugf("| res.Res: %+v", *res.Res)
 	return res, nil
 }
+
+func VerifyMerkleRootAndKBFS(m MetaContext, arg keybase1.VerifyMerkleRootAndKBFSArg) (err error) {
+
+	defer m.CTrace(fmt.Sprintf("VerifyMerkleRootAndKBFS(%+v)", arg), func() error { return err })()
+
+	var mr *MerkleRoot
+	mr, err = m.G().GetMerkleClient().FetchRootFromServerBySeqno(m.Ctx(), arg.Root.Seqno)
+	if err != nil {
+		return nil
+	}
+	if mr == nil {
+		return MerkleClientError{"no merkle root found", merkleErrorNotFound}
+	}
+	if !mr.HashMeta().Eq(arg.Root.HashMeta) {
+		return MerkleClientError{"wrong hash meta", merkleErrorHashMeta}
+	}
+
+	var received keybase1.KBFSRootHash
+	switch arg.ExpectedKBFSRoot.TreeID {
+	case keybase1.MerkleTreeID_KBFS_PUBLIC:
+		received = mr.payload.unpacked.Body.Kbfs.Public.Root
+	case keybase1.MerkleTreeID_KBFS_PRIVATE:
+		received = mr.payload.unpacked.Body.Kbfs.Private.Root
+	case keybase1.MerkleTreeID_KBFS_PRIVATETEAM:
+		received = mr.payload.unpacked.Body.Kbfs.PrivateTeam.Root
+	default:
+		return MerkleClientError{"unknown KBFS tree ID", merkleErrorKBFSBadTree}
+	}
+
+	if received == nil || arg.ExpectedKBFSRoot.Root == nil {
+		if received != nil || arg.ExpectedKBFSRoot.Root != nil {
+			return MerkleClientError{"KBFS hash mismatch; nil hash", merkleErrorKBFSMismatch}
+		}
+		return nil
+	}
+	if !received.Eq(arg.ExpectedKBFSRoot.Root) {
+		return MerkleClientError{"KBFS hash mismatch", merkleErrorKBFSMismatch}
+	}
+
+	return nil
+}
