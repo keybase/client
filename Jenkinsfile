@@ -284,7 +284,7 @@ def runTestPipeServer() {
     powershell '''
         $username = "kbtestuser1"
         $password = (ConvertTo-SecureString -String "12345678" -AsPlainText -Force)
-        New-LocalUser $username -Password $password -FullName "Keybase Test User" -Description "Only for CI purposes"
+        net user /add $username "12345678"
         $credentials = New-Object System.Management.Automation.PSCredential -ArgumentList @($username,$password)
         $testexe = Join-Path $Env:GOPATH "bin\\kb_pipetest_server.exe" -Resolve
         Stop-Process -Force -Name "kb_pipetest_server"
