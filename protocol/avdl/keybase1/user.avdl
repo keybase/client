@@ -151,4 +151,16 @@ protocol user {
   UPAKVersioned getUPAK(UID uid);
 
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
+
+  record NextMerkleRootRes {
+    union { null, MerkleRootV2 } res;
+
+  }
+
+  /**
+   FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
+   revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
+   we'll start our search. Usually it's tne next one, but not always
+  */
+  NextMerkleRootRes findNextMerkleRootAfterRevoke(UID uid, KID kid, SigChainLocation loc, MerkleRootV2 prev);
 }
