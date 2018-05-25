@@ -1,6 +1,13 @@
 // @flow
 import * as I from 'immutable'
-import {compose, connect, lifecycle, type Dispatch, type TypedState} from '../../util/container'
+import {
+  compose,
+  connect,
+  lifecycle,
+  type Dispatch,
+  type TypedState,
+  setDisplayName,
+} from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -84,6 +91,7 @@ const stylesLoadingText = platformStyles({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('ViewContainer'),
   lifecycle({
     componentDidMount() {
       if (!this.props.isSymlink && this.props.mimeType === '') {

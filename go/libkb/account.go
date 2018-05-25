@@ -196,6 +196,13 @@ func (a *Account) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 	a.streamCache = NewPassphraseStreamCache(tsec, pps)
 }
 
+func (a *Account) SetStreamCache(c *PassphraseStreamCache) {
+	if a.streamCache != nil {
+		a.G().Log.Warning("Account.CreateStreamCache overwriting existing StreamCache")
+	}
+	a.streamCache = c
+}
+
 // SetStreamGeneration sets the passphrase generation on the cached stream
 // if it exists, and otherwise will wind up warning of a problem.
 func (a *Account) SetStreamGeneration(gen PassphraseGeneration, nilPPStreamOK bool) {
@@ -265,8 +272,8 @@ func (a *Account) SecretSyncer() *SecretSyncer {
 	return a.secretSyncer
 }
 
-func (a *Account) RunSecretSyncer(uid keybase1.UID) error {
-	return RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
+func (a *Account) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
+	return RunSyncer(m, a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
 }
 
 func (a *Account) Keyring() (*SKBKeyringFile, error) {
@@ -394,33 +401,6 @@ func (a *Account) EnsureUsername(username NormalizedUsername) {
 		a.LocalSession().SetUsername(username)
 	}
 
-}
-
-func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
-	token string, deviceSubkey, deviceSibkey GenericKey, err error) {
-	if !a.LoggedIn() {
-		err = LoginRequiredError{}
-		return
-	}
-
-	arg := NewLoadUserArg(a.G()).WithLoginContext(a).WithSelf(true)
-	err = a.G().GetFullSelfer().WithUser(arg, func(user *User) error {
-		var err error
-		deviceSubkey, err = user.GetDeviceSubkey()
-		if err != nil {
-			return err
-		}
-		deviceSibkey, err = user.GetDeviceSibkey()
-		if err != nil {
-			return err
-		}
-		uid = user.GetUID()
-		username = user.GetNormalizedName()
-		return nil
-
-	})
-	token = a.localSession.GetToken()
-	return
 }
 
 // SaveState saves the logins state to memory, and to the user

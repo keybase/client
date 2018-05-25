@@ -1,9 +1,12 @@
 package stellar
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
+	"strings"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
@@ -102,13 +105,13 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 	return remote.Post(ctx, g, nextBundle)
 }
 
-func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool) (err error) {
+func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
 	prevBundle, _, err := remote.Fetch(ctx, g)
 	if err != nil {
 		return err
 	}
 	nextBundle := bundle.Advance(prevBundle)
-	err = bundle.AddAccount(&nextBundle, secretKey, "", makePrimary)
+	err = bundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
 	if err != nil {
 		return err
 	}
@@ -257,7 +260,7 @@ type DisplayBalance struct {
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance) (res stellar1.SendResultCLILocal, err error) {
+func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance, forceRelay bool) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
 	primary, err := LookupSenderPrimary(m.Ctx(), m.G())
@@ -271,7 +274,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 		return res, err
 	}
 
-	if recipient.AccountID == nil {
+	if recipient.AccountID == nil || forceRelay {
 		return sendRelayPayment(m, remoter, primarySeed, recipient, amount, note, displayBalance)
 	}
 
@@ -696,4 +699,156 @@ func identifyRecipient(m libkb.MetaContext, assertion string) (keybase1.TLFIdent
 	}
 
 	return frep, nil
+}
+
+func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, code stellar1.OutsideCurrencyCode) (string, error) {
+	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return "", err
+	}
+	currency, ok := conf.Currencies[code]
+	if !ok {
+		return "", fmt.Errorf("Could not find currency %q", code)
+	}
+
+	amountFmt, err := FormatAmount(amount, true)
+	if err != nil {
+		return "", err
+	}
+
+	if currency.Symbol.Postfix {
+		return fmt.Sprintf("%s %s", amountFmt, currency.Symbol.Symbol), nil
+	}
+
+	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
+}
+
+func FormatAmount(amount string, precisionTwo bool) (string, error) {
+	if amount == "" {
+		return "", errors.New("empty amount")
+	}
+	x := new(big.Rat)
+	_, ok := x.SetString(amount)
+	if !ok {
+		return "", fmt.Errorf("unable to parse amount %s", amount)
+	}
+	precision := 7
+	if precisionTwo {
+		precision = 2
+	}
+	s := x.FloatString(precision)
+	parts := strings.Split(s, ".")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("unable to parse amount %s", amount)
+	}
+	if parts[1] == "0000000" {
+		// get rid of all zeros after point if default precision
+		parts = parts[:1]
+	}
+	head := parts[0]
+	if len(head) <= 3 {
+		return strings.Join(parts, "."), nil
+	}
+	sinceComma := 0
+	var b bytes.Buffer
+	for i := len(head) - 1; i >= 0; i-- {
+		if sinceComma == 3 && head[i] != '-' {
+			b.WriteByte(',')
+			sinceComma = 0
+		}
+		b.WriteByte(head[i])
+		sinceComma++
+	}
+	parts[0] = reverse(b.String())
+
+	return strings.Join(parts, "."), nil
+}
+
+func reverse(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
+}
+
+func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newName string) (err error) {
+	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	if err != nil {
+		return err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	var found bool
+	for i, acc := range nextBundle.Accounts {
+		if acc.AccountID.Eq(accountID) {
+			// Change Name in place to modify Account struct.
+			nextBundle.Accounts[i].Name = newName
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("account not found: %v", accountID)
+	}
+	return remote.Post(m.Ctx(), m.G(), nextBundle)
+}
+
+func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err error) {
+	if accountID.IsNil() {
+		return errors.New("passed empty AccountID")
+	}
+	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	if err != nil {
+		return err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	var foundAccID, foundPrimary bool
+	for i, acc := range nextBundle.Accounts {
+		if acc.AccountID.Eq(accountID) {
+			if acc.IsPrimary {
+				// Nothing to do.
+				return nil
+			}
+			nextBundle.Accounts[i].IsPrimary = true
+			foundAccID = true
+		} else if acc.IsPrimary {
+			nextBundle.Accounts[i].IsPrimary = false
+			foundPrimary = true
+		}
+
+		if foundAccID && foundPrimary {
+			break
+		}
+	}
+	if !foundAccID {
+		return fmt.Errorf("account not found: %v", accountID)
+	}
+	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle)
+}
+
+func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
+	if accountID.IsNil() {
+		return errors.New("passed empty AccountID")
+	}
+	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	if err != nil {
+		return err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	var found bool
+	for i, acc := range nextBundle.Accounts {
+		if acc.AccountID.Eq(accountID) {
+			if acc.IsPrimary {
+				return fmt.Errorf("cannot delete primary account %v", accountID)
+			}
+
+			nextBundle.Accounts = append(nextBundle.Accounts[:i], nextBundle.Accounts[i+1:]...)
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("account not found: %v", accountID)
+	}
+	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }

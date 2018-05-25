@@ -641,8 +641,9 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	// If this is from a push, set us into the foreground
-	if arg.Reason == chat1.GetThreadNonblockReason_PUSH {
+	// If this is from a push or foreground, set us into the foreground
+	switch arg.Reason {
+	case chat1.GetThreadNonblockReason_PUSH, chat1.GetThreadNonblockReason_FOREGROUND:
 		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
 		// to reset any delay checks or timers
 		switch h.G().AppState.State() {
@@ -738,10 +739,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		} else {
 			h.Debug(ctx, "GetThreadNonblock: sending nil cached response")
 		}
+		start := time.Now()
 		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
 			Thread:    pthread,
 		})
+		h.Debug(ctx, "GetThreadNonblock: cached response send time: %v", time.Since(start))
 	}()
 
 	wg.Add(1)
@@ -778,10 +781,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		}
 		resultPagination = rthread.Pagination
 		h.applyPagerModeOutgoing(bctx, arg.ConversationID, rthread.Pagination, pagination, arg.Pgmode)
+		start := time.Now()
 		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
 			SessionID: arg.SessionID,
 			Thread:    string(jsonUIRes),
 		})
+		h.Debug(ctx, "GetThreadNonblock: full response send time: %v", time.Since(start))
 
 		// This means we transmitted with success, so cancel local thread
 		cancel()
@@ -1347,7 +1352,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // ephemeralMetadata on this superseder message.
 func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 	switch msg.ClientHeader.MessageType {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
+	case chat1.MessageType_DELETE, chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
 	default:
 		return msg.ClientHeader.EphemeralMetadata, nil
 	}
@@ -1368,7 +1373,7 @@ func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1
 	supersededMsg := messages[0].Valid()
 	if supersededMsg.IsEphemeral() {
 		metadata = supersededMsg.EphemeralMetadata()
-		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingLifetime(h.clock.Now()))
+		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingEphemeralLifetime(h.clock.Now()))
 	}
 	return metadata, nil
 }
@@ -2071,6 +2076,12 @@ func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachme
 			MessageBody: chat1.NewMessageBodyWithAttachment(attachment),
 		},
 		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+
+	if arg.EphemeralLifetime != nil {
+		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
 	}
 
 	h.Debug(ctx, "posting attachment placeholder message")

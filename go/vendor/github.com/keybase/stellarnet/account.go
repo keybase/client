@@ -19,6 +19,7 @@ var client = horizon.DefaultPublicNetClient
 var network = build.PublicNetwork
 
 const defaultMemo = "via keybase"
+const baseReserve = 5000000
 
 // SetClientURL sets the url for the horizon server this client
 // connects to.
@@ -77,6 +78,79 @@ func (a *Account) Balances() ([]horizon.Balance, error) {
 	}
 
 	return a.internal.Balances, nil
+}
+
+// SubentryCount returns the number of subentries in the account's ledger.
+// Subentries affect the minimum balance.
+func (a *Account) SubentryCount() (int, error) {
+	if err := a.load(); err != nil {
+		return 0, err
+	}
+
+	return int(a.internal.SubentryCount), nil
+}
+
+// AvailableBalanceXLM returns the native lumen balance minus any
+// required minimum balance.
+func (a *Account) AvailableBalanceXLM() (string, error) {
+	if err := a.load(); err != nil {
+		return "", err
+	}
+
+	return a.availableBalanceXLMLoaded()
+}
+
+// availableBalanceXLMLoaded must be called after a.load().
+func (a *Account) availableBalanceXLMLoaded() (string, error) {
+	return AvailableBalance(a.internal.GetNativeBalance(), int(a.internal.SubentryCount))
+}
+
+// AvailableBalance determines the amount of the balance that could
+// be sent to another account (leaving enough XLM in the sender's
+// account to maintain the minimum balance).
+func AvailableBalance(balance string, subentryCount int) (string, error) {
+	balanceInt, err := samount.ParseInt64(balance)
+	if err != nil {
+		return "", err
+	}
+
+	minimum := baseReserve * (2 + int64(subentryCount))
+
+	available := balanceInt - minimum
+	if available < 0 {
+		available = 0
+	}
+
+	return samount.StringFromInt64(available), nil
+}
+
+// AccountDetails contains basic details about a stellar account.
+type AccountDetails struct {
+	Seqno         string
+	SubentryCount int
+	Available     string
+	Balances      []horizon.Balance
+}
+
+// Details returns AccountDetails for this account (minimizing horizon calls).
+func (a *Account) Details() (*AccountDetails, error) {
+	if err := a.load(); err != nil {
+		return nil, err
+	}
+
+	available, err := a.availableBalanceXLMLoaded()
+	if err != nil {
+		return nil, err
+	}
+
+	details := AccountDetails{
+		Seqno:         a.internal.Sequence,
+		SubentryCount: int(a.internal.SubentryCount),
+		Balances:      a.internal.Balances,
+		Available:     available,
+	}
+
+	return &details, nil
 }
 
 // IsMasterKeyActive returns whether the account's master key can sign transactions.
@@ -366,6 +440,7 @@ func RelocateTransaction(from SeedStr, to AddressStr, toIsFunded bool,
 	return sign(from, tx)
 }
 
+// SignResult contains the result of signing a transaction.
 type SignResult struct {
 	Seqno  uint64
 	Signed string // signed transaction (base64)

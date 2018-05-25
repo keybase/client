@@ -8,12 +8,47 @@ protocol local {
   // -------------------------------------------------------
 
   record WalletAccountLocal {
-    AccountID accountID;  // string "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K"
+    AccountID accountID;        // string "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K"
     boolean isDefault;          // true if this is the default sending/receiving account
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM"
   }
-  array<WalletAccountLocal> GetWalletAccountsLocal(int sessionID);
+  array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
+
+  record AccountAssetLocal {
+    string name;                    // "Lumens"
+    string balanceTotal;            // "280.9192933"
+    string balanceAvailableToSend;  // "279.9192933"
+    string assetCode;               // "XLM"
+    string issuer;                  // "Stellar"
+    string worth;                   // "$98.13" or error string if worthCurrency == "ERR"
+    string worthCurrency;           // "USD", "CAD", etc.  if it is "ERR" then an exchange rate error occurred
+  }
+  array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
+
+  record CurrencyLocal {
+    string description;  // "USD ($)", "CAD ($)", etc.
+    string code;         // "USD", "CAD", etc.
+    string symbol;       // "$"
+    string name;         // "US Dollar", "Thai Baht", etc.
+  }
+  array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
+
+  void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
+  void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
+
+  // Deleting an account is irreversible, even with Keybase, Inc. help.
+  // Consumer of this API should always prompt the user and warn that if
+  // their secret key is not backed up, they will not be able to access
+  // funds on that account.
+  // This RPC checks if `userAcknowledged` string is equal to "yes".
+  void deleteWalletAccountLocal(int sessionID, AccountID accountID, string userAcknowledged);
+
+  AccountID linkNewWalletAccountLocal(int sessionID, SecretKey secretKey, string name);
+
+  // OutsideCurrencyCode examples: "USD", "EUR". Has to be one of
+  // supported currencies, returned from getDisplayCurrenciesLocal.
+  void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
 
   // -------------------------------------------------------
   // CLI protocol
@@ -21,7 +56,8 @@ protocol local {
 
   array<Balance> balancesLocal(AccountID accountID);
 
-  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note, string displayAmount, string displayCurrency);
+  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
+                                  string displayAmount, string displayCurrency, bool forceRelay);
 
   record SendResultCLILocal {
     KeybaseTransactionID KbTxID;

@@ -25,6 +25,7 @@ var adminWhitelist = map[keybase1.UID]bool{
 	"eb08cb06e608ea41bd893946445d7919": true, // mlsteele
 	"69da56f622a2ac750b8e590c3658a700": true, // jzila
 	"1563ec26dc20fd162a4f783551141200": true, // patrick
+	"6f95d3982877016f117303145a0eea19": true, // amarcedone
 }
 
 const cacheEntryLifetimeSecs = 60 * 5 // 5 minutes
@@ -113,7 +114,7 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 }
 
 func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (err error) {
-	defer e.G().CTrace(ctx, "keygenIfNeeded", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "keygenIfNeeded", func() error { return err })()
 	defer e.cleanupStaleUserAndDeviceEKs(ctx, merkleRoot) // always try to cleanup expired keys
 
 	if deviceEKNeeded, err := e.newDeviceEKNeeded(ctx, merkleRoot); err != nil {
@@ -148,7 +149,7 @@ func (e *EKLib) CleanupStaleUserAndDeviceEKs(ctx context.Context) (err error) {
 }
 
 func (e *EKLib) cleanupStaleUserAndDeviceEKs(ctx context.Context, merkleRoot libkb.MerkleRoot) (err error) {
-	defer e.G().CTrace(ctx, "cleanupStaleUserAndDeviceEKs", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "cleanupStaleUserAndDeviceEKs", func() error { return err })()
 
 	epick := libkb.FirstErrorPicker{}
 
@@ -174,7 +175,7 @@ func (e *EKLib) NewDeviceEKNeeded(ctx context.Context) (needed bool, err error) 
 }
 
 func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (needed bool, err error) {
-	defer e.G().CTrace(ctx, "newDeviceEKNeeded", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "newDeviceEKNeeded", func() error { return err })()
 
 	s := e.G().GetDeviceEKStorage()
 	maxGeneration, err := s.MaxGeneration(ctx)
@@ -205,7 +206,7 @@ func (e *EKLib) NewUserEKNeeded(ctx context.Context) (needed bool, err error) {
 }
 
 func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (needed bool, err error) {
-	defer e.G().CTrace(ctx, "newUserEKNeeded", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "newUserEKNeeded", func() error { return err })()
 
 	// Let's see what the latest server statement is.
 	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), e.G().Env.GetUID())
@@ -247,7 +248,7 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 }
 
 func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot, statement *keybase1.TeamEkStatement) (needed bool, err error) {
-	defer e.G().CTrace(ctx, "newTeamEKNeeded", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "newTeamEKNeeded", func() error { return err })()
 
 	// Let's see what the latest server statement is.
 	// No statement, so we need a teamEK
@@ -306,7 +307,7 @@ func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
-	defer e.G().CTrace(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
 	err = teamEKRetryWrapper(ctx, e.G(), func() error {
 		teamEK, err = e.getOrCreateLatestTeamEKInner(ctx, teamID)
 		return err
@@ -315,7 +316,7 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 }
 
 func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
-	defer e.G().CTrace(ctx, "getOrCreateLatestTeamEKInner", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "getOrCreateLatestTeamEKInner", func() error { return err })()
 
 	e.Lock()
 	defer e.Unlock()
@@ -375,7 +376,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 // Try to get the TeamEK for the given `generation`. If this fails and the
 // `generation` is also the current maxGeneration, create a new teamEK.
 func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
-	defer e.G().CTrace(ctx, "GetTeamEK", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "GetTeamEK", func() error { return err })()
 
 	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation)
 	if err != nil {
@@ -399,7 +400,7 @@ func (e *EKLib) DeriveDeviceDHKey(seed keybase1.Bytes32) *libkb.NaclDHKeyPair {
 }
 
 func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey libkb.GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
-	defer e.G().CTrace(ctx, "SignedDeviceEKStatementFromSeed", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "SignedDeviceEKStatementFromSeed", func() error { return err })()
 
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
@@ -411,7 +412,7 @@ func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation 
 
 // For device provisioning
 func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (userEKBox *keybase1.UserEkBoxed, err error) {
-	defer e.G().CTrace(ctx, "BoxLatestUserEK", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "BoxLatestUserEK", func() error { return err })()
 
 	if !e.ShouldRun(ctx) {
 		return nil, nil
@@ -455,7 +456,7 @@ func (e *EKLib) PrepareNewUserEK(ctx context.Context, merkleRoot libkb.MerkleRoo
 }
 
 func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, recipients []keybase1.UID) (teamEKBoxes *[]keybase1.TeamEkBoxMetadata, err error) {
-	defer e.G().CTrace(ctx, "BoxLatestTeamEK", func() error { return err })()
+	defer e.G().CTraceTimed(ctx, "BoxLatestTeamEK", func() error { return err })()
 
 	// If we need a new teamEK let's just create it when needed, the new
 	// members will be part of the team and will have access to it via the

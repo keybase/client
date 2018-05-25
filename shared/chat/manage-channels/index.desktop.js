@@ -108,7 +108,7 @@ const ManageChannels = (props: Props) => {
   return (
     <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
       <Box style={_boxStyle}>
-        <Avatar isTeam={true} teamname={props.teamname} size={24} />
+        <Avatar isTeam={true} teamname={props.teamname} size={32} />
         <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
           {props.teamname}
         </Text>
@@ -124,7 +124,7 @@ const ManageChannels = (props: Props) => {
               onToggle={() => props.onToggle(c.convID)}
               showEdit={!props.unsavedSubscriptions}
               onEdit={() => props.onEdit(c.convID)}
-              onClickChannel={() => props.onClickChannel(c.convID)}
+              onClickChannel={() => props.onClickChannel(c.name)}
             />
           ))}
         </ScrollView>

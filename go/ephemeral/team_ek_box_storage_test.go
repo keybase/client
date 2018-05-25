@@ -1,6 +1,7 @@
 package ephemeral
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -126,4 +127,23 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	expected := []keybase1.EkGeneration(nil)
 	require.NoError(t, err)
 	require.Equal(t, expected, expired)
+}
+
+// If we change the key format intentionally, we have to introduce some form of
+// migration or versioning between the keys. This test should blow up if we
+// break it unintentionally.
+func TestTeamEKStorageKeyFormat(t *testing.T) {
+	tc, _ := ephemeralKeyTestSetup(t)
+	defer tc.Cleanup()
+
+	s := NewTeamEKBoxStorage(tc.G)
+	uv, err := getCurrentUserUV(context.Background(), tc.G)
+	require.NoError(t, err)
+
+	teamID := createTeam(tc)
+
+	key, err := s.dbKey(context.Background(), teamID)
+	require.NoError(t, err)
+	expected := fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s", teamID, s.G().Env.GetUsername(), uv.EldestSeqno)
+	require.Equal(t, expected, key.Key)
 }

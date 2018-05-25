@@ -72,25 +72,30 @@ func (h *AccountHandler) HasServerKeys(ctx context.Context, sessionID int) (res 
 	return eng.GetResult(), nil
 }
 
-func (h *AccountHandler) ResetAccount(ctx context.Context, sessionID int) error {
+func (h *AccountHandler) ResetAccount(ctx context.Context, arg keybase1.ResetAccountArg) (err error) {
+
 	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
 		return errors.New("ResetAccount only supported in devel run mode")
 	}
 
 	m := libkb.NewMetaContext(ctx, h.G())
+	defer m.CTrace("AccountHandler#ResetAccount", func() error { return err })()
 
-	username := h.G().GetEnv().GetUsername().String()
-	m.CDebugf("resetting account for %s", username)
+	username := h.G().GetEnv().GetUsername()
+	m.CDebugf("resetting account for %s", username.String())
 
-	arg := libkb.DefaultPassphrasePromptArg(m, username)
-	secretUI := h.getSecretUI(sessionID, h.G())
-	res, err := secretUI.GetPassphrase(arg, nil)
-	if err != nil {
-		return err
+	passphrase := arg.Passphrase
+	if passphrase == "" {
+		pparg := libkb.DefaultPassphrasePromptArg(m, username.String())
+		secretUI := h.getSecretUI(arg.SessionID, h.G())
+		res, err := secretUI.GetPassphrase(pparg, nil)
+		if err != nil {
+			return err
+		}
+		passphrase = res.Passphrase
 	}
-	_, err = h.G().LoginState().VerifyPlaintextPassphrase(m, res.Passphrase, func(lctx libkb.LoginContext) error {
-		return libkb.ResetAccountWithContext(m.WithLoginContext(lctx), username)
-	})
+
+	err = libkb.ResetAccount(m, username, passphrase)
 	if err != nil {
 		return err
 	}

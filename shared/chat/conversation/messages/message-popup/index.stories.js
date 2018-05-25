@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as PropProviders from '../../../../stories/prop-providers'
 import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat2'
 import {storiesOf, action} from '../../../../stories/storybook'
 import TextPopupMenu from './text/index'
@@ -32,8 +33,14 @@ const defaultProps = {
   yourMessage: true,
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Chat/Conversation/Message popup', module)
+    .addDecorator(provider)
     .add('Text', () => (
       <TextPopupMenu
         {...defaultProps}
@@ -67,7 +74,9 @@ const load = () => {
         {...defaultProps}
         {...textMessage}
         attachTo={null}
-        explodesAt={2000009000}
+        explodesAt={2000009000000}
+        canEdit={true}
+        canExplodeNow={true}
         onEdit={action('onEdit')}
         onExplodeNow={action('onExplodeNow')}
         position={'top left'}
@@ -78,7 +87,9 @@ const load = () => {
         {...defaultProps}
         {...textMessage}
         attachTo={null}
-        explodesAt={2000000000}
+        explodesAt={2000000100000}
+        canEdit={true}
+        canExplodeNow={true}
         onEdit={action('onEdit')}
         onExplodeNow={action('onExplodeNow')}
         position={'top left'}

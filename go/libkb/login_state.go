@@ -18,6 +18,9 @@ import (
 // the passphrase is changed on one device which the other still has it cached.
 type PassphraseGeneration int
 
+// IsNil returns true if this PassphraseGeneration isn't initialized.
+func (p PassphraseGeneration) IsNil() bool { return p == PassphraseGeneration(0) }
+
 // LoginState controls the state of the current user's login
 // session and associated variables.  It also serializes access to
 // the various Login functions and requests for the Account
@@ -40,6 +43,7 @@ type LoginContext interface {
 	Logout() error
 
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
+	SetStreamCache(c *PassphraseStreamCache)
 	CreateStreamCacheViaStretch(passphrase string) error
 	PassphraseStreamCache() *PassphraseStreamCache
 	ClearStreamCache()
@@ -64,7 +68,7 @@ type LoginContext interface {
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
 
 	SecretSyncer() *SecretSyncer
-	RunSecretSyncer(uid keybase1.UID) error
+	RunSecretSyncer(m MetaContext, uid keybase1.UID) error
 
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error
 
@@ -322,8 +326,7 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(m MetaContext, passphrase
 // or generates a new one that's verified via Login.
 func (s *LoginState) GetVerifiedTriplesec(m MetaContext, ui SecretUI) (ret Triplesec, gen PassphraseGeneration, err error) {
 	err = s.Account(func(a *Account) {
-		ret = a.PassphraseStreamCache().Triplesec()
-		gen = a.GetStreamGeneration()
+		ret, gen = a.PassphraseStreamCache().TriplesecAndGeneration()
 	}, "LoginState - GetVerifiedTriplesec - first")
 	if err != nil || ret != nil {
 		return
@@ -334,8 +337,7 @@ func (s *LoginState) GetVerifiedTriplesec(m MetaContext, ui SecretUI) (ret Tripl
 	}
 
 	err = s.Account(func(a *Account) {
-		ret = a.PassphraseStreamCache().Triplesec()
-		gen = a.GetStreamGeneration()
+		ret, gen = a.PassphraseStreamCache().TriplesecAndGeneration()
 	}, "LoginState - GetVerifiedTriplesec - second")
 	if err != nil || ret != nil {
 		return
@@ -373,49 +375,6 @@ func ComputeLoginPackage(m MetaContext, username string) (ret PDPKALoginPackage,
 		return computeLoginPackageFromUID(lctx.GetUID(), ps, loginSession)
 	}
 	return computeLoginPackageFromEmailOrUsername(username, ps, loginSession)
-}
-
-func (s *LoginState) ResetAccount(m MetaContext, username string) (err error) {
-	return s.resetOrDelete(m, username, "nuke")
-}
-
-func (s *LoginState) DeleteAccount(m MetaContext, username string) (err error) {
-	return s.resetOrDelete(m, username, "delete")
-}
-
-func ResetAccountWithContext(m MetaContext, username string) error {
-	return ResetOrDeleteWithContext(m, username, "nuke")
-}
-
-func DeleteAccountWithContext(m MetaContext, username string) error {
-	return ResetOrDeleteWithContext(m, username, "delete")
-}
-
-func ResetOrDeleteWithContext(m MetaContext, username string, endpoint string) (err error) {
-	lctx := m.LoginContext()
-	err = lctx.LoadLoginSession(username)
-	if err != nil {
-		return err
-	}
-	pdpka, err := ComputeLoginPackage(m, username)
-	if err != nil {
-		return err
-	}
-	arg := APIArg{
-		Endpoint:    endpoint,
-		SessionType: APISessionTypeREQUIRED,
-		Args:        NewHTTPArgs(),
-		SessionR:    lctx.LocalSession(),
-	}
-	pdpka.PopulateArgs(&arg.Args)
-	_, err = m.G().API.Post(arg)
-	return err
-}
-
-func (s *LoginState) resetOrDelete(m MetaContext, username string, endpoint string) (err error) {
-	return s.loginHandle(func(lctx LoginContext) error {
-		return ResetOrDeleteWithContext(m.WithLoginContext(lctx), username, endpoint)
-	}, nil, ("ResetAccount: " + endpoint))
 }
 
 func (s *LoginState) postLoginToServer(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
@@ -518,7 +477,7 @@ func (s *LoginState) pubkeyLoginHelper(m MetaContext, username string, getSecret
 		return
 	}
 
-	lctx.RunSecretSyncer(me.GetUID())
+	lctx.RunSecretSyncer(m, me.GetUID())
 	if !lctx.SecretSyncer().HasDevices() {
 		m.G().Log.CDebugf(m.Ctx(), "| No synced devices, pubkey login impossible.")
 		err = NoDeviceError{Reason: "no synced devices during pubkey login"}
@@ -1110,10 +1069,10 @@ func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) error {
 	return err
 }
 
-func (s *LoginState) RunSecretSyncer(uid keybase1.UID) error {
+func (s *LoginState) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
 	var err error
 	aerr := s.Account(func(a *Account) {
-		err = a.RunSecretSyncer(uid)
+		err = a.RunSecretSyncer(m, uid)
 	}, "RunSecretSyncer")
 	if aerr != nil {
 		return aerr

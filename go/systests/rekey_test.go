@@ -20,15 +20,16 @@ import (
 // deviceWrapper wraps a mock "device", meaning an independent running service and
 // some connected clients.
 type deviceWrapper struct {
-	tctx         *libkb.TestContext
-	clones       []*libkb.TestContext
-	stopCh       chan error
-	service      *service.Service
-	rekeyUI      *testRekeyUI
-	deviceKey    keybase1.PublicKey
-	rekeyClient  keybase1.RekeyClient
-	userClient   keybase1.UserClient
-	gregorClient keybase1.GregorClient
+	tctx          *libkb.TestContext
+	clones        []*libkb.TestContext
+	stopCh        chan error
+	service       *service.Service
+	rekeyUI       *testRekeyUI
+	deviceKey     keybase1.PublicKey
+	rekeyClient   keybase1.RekeyClient
+	userClient    keybase1.UserClient
+	accountClient keybase1.AccountClient
+	gregorClient  keybase1.GregorClient
 }
 
 func (d *deviceWrapper) KID() keybase1.KID {
@@ -238,6 +239,7 @@ func (rkt *rekeyTester) startUIsAndClients(dw *deviceWrapper) {
 		dw.rekeyClient = keybase1.RekeyClient{Cli: cli}
 		dw.userClient = keybase1.UserClient{Cli: cli}
 		dw.gregorClient = keybase1.GregorClient{Cli: cli}
+		dw.accountClient = keybase1.AccountClient{Cli: cli}
 		return nil
 	}
 

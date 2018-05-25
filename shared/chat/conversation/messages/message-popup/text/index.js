@@ -60,10 +60,10 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    {onClick: props.onCopy, title: 'Copy Text'},
+    {onClick: props.onCopy, title: 'Copy text'},
     {onClick: props.onQuote, title: 'Quote'},
-    {onClick: props.onReplyPrivately, title: 'Reply Privately'},
-    {onClick: props.onViewProfile, title: 'View Profile'},
+    {onClick: props.onReplyPrivately, title: 'Reply privately'},
+    {onClick: props.onViewProfile, title: 'View profile'},
   ]
 
   const header = {
@@ -96,7 +96,7 @@ const TextPopupMenu = (props: Props) => {
 
 const stylePopup = {
   overflow: 'visible',
-  width: isMobile ? '100%' : 196,
+  width: isMobile ? '100%' : 240,
 }
 
 export default TextPopupMenu

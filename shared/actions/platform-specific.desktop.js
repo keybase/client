@@ -1,6 +1,6 @@
 // @flow
-import {showDockIcon} from '../desktop/app/dock-icon'
-import {getMainWindow} from '../desktop/remote/util'
+import {showDockIcon} from '../desktop/app/dock-icon.desktop'
+import {getMainWindow} from '../desktop/remote/util.desktop'
 import * as SafeElectron from '../util/safe-electron.desktop'
 
 function showShareActionSheet(options: {

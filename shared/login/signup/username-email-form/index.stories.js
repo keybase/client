@@ -2,6 +2,7 @@
 import * as React from 'react'
 import UsernameEmailForm from '.'
 import {action, storiesOf} from '../../../stories/storybook'
+import * as PropProviders from '../../../stories/prop-providers'
 
 const props = {
   email: null,
@@ -16,8 +17,14 @@ const props = {
   waiting: false,
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Signup/Username email', module)
+    .addDecorator(provider)
     .add('Start', () => <UsernameEmailForm {...props} />)
     .add('Name', () => <UsernameEmailForm {...props} username={'Name'} />)
     .add('Email', () => <UsernameEmailForm {...props} email={'Email@email.com'} />)

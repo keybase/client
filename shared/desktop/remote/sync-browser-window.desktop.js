@@ -2,10 +2,9 @@
 // This HOC wraps a component that represents a remote window. When this component is mounted anywhere it'll make a BrowserWindow
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import hotPath from '../hot-path'
-import menuHelper from '../app/menu-helper'
-import {injectReactQueryParams} from '../../util/dev'
-import {resolveRootAsURL} from '../resolve-root'
+import hotPath from '../app/hot-path.desktop'
+import menuHelper from '../app/menu-helper.desktop'
+import {getRendererHTML} from '../app/dev.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 type Props = {
@@ -122,12 +121,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
 
       SafeElectron.getIpcRenderer().send('showDockIconForRemoteWindow', this._remoteWindowId)
 
-      remoteWindow.loadURL(
-        resolveRootAsURL(
-          'renderer',
-          injectReactQueryParams(`renderer.html?${this.props.windowComponent || ''}`)
-        )
-      )
+      remoteWindow.loadURL(getRendererHTML(this.props.windowComponent))
 
       this._setupWebContents()
       remoteWindow.on('close', this._onWindowClosed)

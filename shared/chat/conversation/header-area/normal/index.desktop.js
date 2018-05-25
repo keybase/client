@@ -11,56 +11,42 @@ const ShhIcon = () => (
   </Box>
 )
 
-const ChannelHeader = ({
-  channelName,
-  infoPanelOpen,
-  muted,
-  onOpenFolder,
-  onToggleInfoPanel,
-  teamName,
-  smallTeam,
-}: Props) => (
+const ChannelHeader = (props: Props) => (
   <Box style={containerStyle}>
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        flex: 1,
         alignItems: 'center',
+        flex: 1,
         justifyContent: 'center',
         marginLeft: 24,
       }}
     >
       <Text
-        type={smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
-        style={smallTeam ? {color: globalColors.black_75} : {color: globalColors.black_40}}
+        type={props.smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
+        style={props.smallTeam ? {color: globalColors.black_75} : {color: globalColors.black_40}}
       >
-        {teamName}
+        {props.teamName}
       </Text>
-      {!smallTeam && (
+      {!props.smallTeam && (
         <Text type="BodyBig" style={{color: globalColors.black_75, marginLeft: 2}}>
-          #{channelName}
+          #{props.channelName}
         </Text>
       )}
-      {muted && <ShhIcon />}
+      {props.muted && <ShhIcon />}
     </Box>
-    <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
+    {props.onOpenFolder && (
+      <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
+    )}
     <Icon
-      type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
+      type={props.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
       style={styleLeft}
-      onClick={onToggleInfoPanel}
+      onClick={props.onToggleInfoPanel}
     />
   </Box>
 )
 
-const UsernameHeader = ({
-  canOpenInfoPanel,
-  infoPanelOpen,
-  muted,
-  onOpenFolder,
-  onShowProfile,
-  onToggleInfoPanel,
-  participants,
-}: Props) => (
+const UsernameHeader = (props: Props) => (
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
       <ConnectedUsernames
@@ -69,21 +55,24 @@ const UsernameHeader = ({
         inline={false}
         commaColor={globalColors.black_40}
         type="BodyBig"
-        usernames={participants}
+        usernames={props.participants}
         containerStyle={styleCenter}
-        onUsernameClicked={onShowProfile}
-        skipSelf={true}
+        onUsernameClicked={props.onShowProfile}
+        skipSelf={props.participants.length > 1 /* length ===1 means just you so show yourself */}
       />
-      {muted && <ShhIcon />}
+      {props.muted && <ShhIcon />}
     </Box>
-    <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
-    {canOpenInfoPanel && (
+    {props.onOpenFolder && (
+      <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
+    )}
+    {props.canOpenInfoPanel && (
       <Icon
-        type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
+        type={props.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
         style={styleLeft}
-        onClick={onToggleInfoPanel}
+        onClick={props.onToggleInfoPanel}
       />
     )}
+    {props.onCancelPending && <Icon type="iconfont-close" onClick={props.onCancelPending} />}
   </Box>
 )
 

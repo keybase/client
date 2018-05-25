@@ -1174,21 +1174,15 @@
         },
         {
           "type": "boolean",
-          "name": "isEphemeral",
-          "mpackkey": "ie",
-          "jsonkey": "ie"
+          "name": "isEphemeral"
         },
         {
           "type": "boolean",
-          "name": "isEphemeralExpired",
-          "mpackkey": "iex",
-          "jsonkey": "iex"
+          "name": "isEphemeralExpired"
         },
         {
           "type": "gregor1.Time",
-          "name": "etime",
-          "mpackkey": "e",
-          "jsonkey": "e"
+          "name": "etime"
         }
       ]
     },
@@ -1663,7 +1657,8 @@
       "name": "GetThreadNonblockReason",
       "symbols": [
         "GENERAL_0",
-        "PUSH_1"
+        "PUSH_1",
+        "FOREGROUND_2"
       ]
     },
     {

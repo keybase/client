@@ -7,6 +7,7 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -121,7 +122,19 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (res keybase1.TeamDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGet(%s)", arg.Name), func() error { return err })()
-	return teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
+
+	res, err = teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
+	if err != nil {
+		return res, err
+	}
+
+	if res.Settings.Open {
+		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", arg.Name)
+		res.Members.Writers = keybase1.FilterInactiveMembers(res.Members.Writers)
+		res.Members.Readers = keybase1.FilterInactiveMembers(res.Members.Readers)
+	}
+
+	return res, nil
 }
 
 func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.TeamImplicitAdminsArg) (res []keybase1.TeamMemberDetails, err error) {
@@ -471,7 +484,20 @@ func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.S
 func (h *TeamsHandler) CanUserPerform(ctx context.Context, teamname string) (ret keybase1.TeamOperation, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CanUserPerform(%s)", teamname), func() error { return err })()
-	return teams.CanUserPerform(ctx, h.G().ExternalG(), teamname)
+	// We never want to return an error from this, the frontend has no proper reaction to an error from
+	// this RPC call. We retry until we work.
+	for {
+		if ret, err = teams.CanUserPerform(ctx, h.G().ExternalG(), teamname); err == nil {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			return ret, ctx.Err()
+		default:
+		}
+		time.Sleep(5 * time.Second)
+	}
+	return ret, err
 }
 
 func (h *TeamsHandler) TeamRotateKey(ctx context.Context, teamID keybase1.TeamID) (err error) {

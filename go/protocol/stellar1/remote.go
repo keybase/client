@@ -386,7 +386,40 @@ func (o ClaimSummary) DeepCopy() ClaimSummary {
 	}
 }
 
+type AccountDetails struct {
+	AccountID     AccountID `codec:"accountID" json:"accountID"`
+	Seqno         string    `codec:"seqno" json:"seqno"`
+	Balances      []Balance `codec:"balances" json:"balances"`
+	SubentryCount int       `codec:"subentryCount" json:"subentryCount"`
+	Available     string    `codec:"available" json:"available"`
+}
+
+func (o AccountDetails) DeepCopy() AccountDetails {
+	return AccountDetails{
+		AccountID: o.AccountID.DeepCopy(),
+		Seqno:     o.Seqno,
+		Balances: (func(x []Balance) []Balance {
+			if x == nil {
+				return nil
+			}
+			var ret []Balance
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Balances),
+		SubentryCount: o.SubentryCount,
+		Available:     o.Available,
+	}
+}
+
 type BalancesArg struct {
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+}
+
+type DetailsArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
 }
@@ -432,6 +465,7 @@ type PingArg struct {
 
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
+	Details(context.Context, DetailsArg) (AccountDetails, error)
 	RecentPayments(context.Context, RecentPaymentsArg) ([]PaymentSummary, error)
 	PaymentDetail(context.Context, PaymentDetailArg) (PaymentSummary, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
@@ -458,6 +492,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.Balances(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"details": {
+				MakeArg: func() interface{} {
+					ret := make([]DetailsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DetailsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DetailsArg)(nil), args)
+						return
+					}
+					ret, err = i.Details(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -595,6 +645,11 @@ type RemoteClient struct {
 
 func (c RemoteClient) Balances(ctx context.Context, __arg BalancesArg) (res []Balance, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.balances", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) Details(ctx context.Context, __arg DetailsArg) (res AccountDetails, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.details", []interface{}{__arg}, &res)
 	return
 }
 

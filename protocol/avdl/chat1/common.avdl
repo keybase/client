@@ -61,7 +61,8 @@
   enum TopicType {
     NONE_0,
     CHAT_1,
-    DEV_2
+    DEV_2,
+    KBFSFILEEDIT_3
   }
 
   enum TeamType {
@@ -312,6 +313,8 @@
     gregor1.DurationSec lifetime; // used to computed etime
     @mpackkey("g") @jsonkey("g")
     keybase1.EkGeneration generation;
+    @mpackkey("u") @jsonkey("u")
+    union { null, string } explodedBy;
   }
 
   @mpackkey("pi") @jsonkey("pi")

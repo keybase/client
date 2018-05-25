@@ -24,12 +24,12 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFull
         paddingLeft: globalMargins.tiny,
       }}
     >
-      <Box style={{...globalStyles.flexBoxCenter, width: isMobile ? 40 : 32}}>
+      <Box style={{...globalStyles.flexBoxCenter, width: isMobile ? 48 : 32}}>
         <IconOrAvatar
           service={leftService}
           username={leftUsername}
           icon={leftIcon}
-          avatarSize={isMobile ? 40 : 32}
+          avatarSize={isMobile ? 48 : 32}
         />
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
@@ -57,14 +57,14 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
           service={rightService}
           username={rightUsername}
           icon={rightIcon}
-          avatarSize={isMobile ? 16 : 12}
-          fontSize={isMobile ? 16 : 12}
+          fontSize={16}
+          avatarSize={16}
           style={{
             ...globalStyles.flexBoxColumn,
-            height: isMobile ? 16 : 12,
+            height: 16,
             marginRight: globalMargins.xtiny,
-            marginTop: isMobile ? 1 : 3,
-            width: isMobile ? 16 : 12,
+            marginTop: isMobile ? 1 : 0,
+            width: 16,
           }}
         />
         {!!rightUsername && (
@@ -97,8 +97,9 @@ const Right = ({showTrackerButton, onShowTracker}) => {
       onClick={onShowTracker}
       style={{
         marginLeft: globalMargins.small,
-        marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
+        marginRight: globalMargins.small,
       }}
+      fontSize={isMobile ? 22 : 16}
     />
   ) : null
 }

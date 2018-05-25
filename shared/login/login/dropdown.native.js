@@ -7,7 +7,7 @@ import {
   NativeTouchableWithoutFeedback,
   NativePicker,
   NativeModal,
-} from '../../common-adapters/index.native'
+} from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import {globalStyles, globalColors} from '../../styles'
 import {isIOS} from '../../constants/platform'

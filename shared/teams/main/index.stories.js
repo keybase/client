@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as PropProviders from '../../stories/prop-providers'
 import BetaNote from './beta-note'
 import Header from './header'
 import TeamList from './team-list'
@@ -18,8 +19,14 @@ const teamNameToIsOpen = {
   techtonica: true,
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Teams/Main', module)
+    .addDecorator(provider)
     .add('Header', () => (
       <Header onCreateTeam={action('onCreateTeam')} onJoinTeam={action('onJoinTeam')} loaded={true} />
     ))

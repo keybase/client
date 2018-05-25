@@ -362,12 +362,8 @@ const _createNewTeamFromConversation = function*(
   const me = usernameSelector(state)
   let participants: Array<string> = []
 
-  if (state.chat2.pendingSelected) {
-    participants = state.chat2.pendingConversationUsers.toArray()
-  } else {
-    const meta = ChatConstants.getMeta(state, conversationIDKey)
-    participants = meta.participants.toArray()
-  }
+  const meta = ChatConstants.getMeta(state, conversationIDKey)
+  participants = meta.participants.toArray()
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
@@ -388,11 +384,7 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
-      if (state.chat2.pendingSelected) {
-        yield Saga.put(Chat2Gen.createExitSearch({canceled: true}))
-        yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
-      }
+      yield Saga.put(Chat2Gen.createPreviewConversation({teamname, reason: 'convertAdHoc'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
@@ -591,6 +583,42 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
 
   yield Saga.put(TeamsGen.createSetTeamPublicitySettings({teamname, publicity: publicityMap}))
   yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+}
+
+function _getChannelInfo(action: TeamsGen.GetChannelInfoPayload) {
+  const {teamname, conversationIDKey} = action.payload
+  return Saga.all([
+    Saga.call(RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise, {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      query: ChatConstants.makeInboxQuery([conversationIDKey]),
+    }),
+    Saga.identity(teamname),
+    Saga.identity(conversationIDKey),
+  ])
+}
+
+function _afterGetChannelInfo(fromGetChannelInfo: any[]) {
+  const results: RPCChatTypes.GetInboxAndUnboxUILocalRes = fromGetChannelInfo[0]
+  const teamname: string = fromGetChannelInfo[1]
+  const conversationIDKey: ChatTypes.ConversationIDKey = fromGetChannelInfo[2]
+  const convs = results.conversations || []
+  if (convs.length !== 1) {
+    logger.warn(`Could not get channel info`)
+    return
+  }
+
+  const meta = ChatConstants.inboxUIItemToConversationMeta(convs[0])
+  if (!meta) {
+    logger.warn('Could not convert channel info to meta')
+    return
+  }
+
+  const channelInfo = Constants.makeChannelInfo({
+    channelname: meta.channelname,
+    description: meta.description,
+    participants: meta.participants,
+  })
+  return Saga.put(TeamsGen.createSetTeamChannelInfo({teamname, conversationIDKey, channelInfo}))
 }
 
 function _getChannels(action: TeamsGen.GetChannelsPayload) {
@@ -821,9 +849,13 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
 
     // Select the new channel, and switch to the chat tab.
     yield Saga.put(
-      Chat2Gen.createSelectConversation({conversationIDKey: newConversationIDKey, reason: 'teamChat'})
+      Chat2Gen.createPreviewConversation({
+        channelname,
+        conversationIDKey: newConversationIDKey,
+        reason: 'newChannel',
+        teamname,
+      })
     )
-    yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
   }
@@ -1139,6 +1171,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.getTeamPublicity, _getTeamPublicity)
   yield Saga.safeTakeEvery(TeamsGen.getTeamOperations, _getTeamOperations)
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
+  yield Saga.safeTakeEveryPure(TeamsGen.getChannelInfo, _getChannelInfo, _afterGetChannelInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
   yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership)

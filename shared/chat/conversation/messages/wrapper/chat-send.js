@@ -28,7 +28,12 @@ type Props = PropsWithTimer<{
 
 type State = {iconStatus: IconStatus, visible: boolean}
 class SendIndicator extends React.Component<Props, State> {
-  state = {iconStatus: 'encrypting', visible: true}
+  state: State
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {iconStatus: 'encrypting', visible: !props.sent}
+  }
 
   encryptingTimeoutID: TimeoutID
   sentTimeoutID: TimeoutID

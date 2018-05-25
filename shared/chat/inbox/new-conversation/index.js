@@ -5,46 +5,9 @@ import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../..
 
 type Props = {
   isSelected: boolean,
-  users: Array<string>,
+  onCancel: () => void,
   onClick: () => void,
-}
-
-const containerStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  flexShrink: 0,
-  minHeight: 56,
-}
-
-const containerSelectedStyle = {
-  ...containerStyle,
-  backgroundColor: globalColors.blue,
-}
-
-const container2Style = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  alignItems: 'center',
-}
-
-const container3Style = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: globalColors.blue2,
-  borderRadius: globalMargins.large,
-  height: globalMargins.large,
-  justifyContent: 'center',
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.small,
-  width: globalMargins.large,
-}
-
-const textStyle = {
-  color: globalColors.darkBlue,
-}
-const textSelectedStyle = {
-  ...textStyle,
-  color: globalColors.white,
+  users: Array<string>,
 }
 
 class NewConversation extends React.PureComponent<Props> {
@@ -58,19 +21,95 @@ class NewConversation extends React.PureComponent<Props> {
           <Box style={container3Style}>
             <Icon type="iconfont-people" color={globalColors.blue} fontSize={24} />
           </Box>
-          {this.props.users.length ? (
-            <Text style={this.props.isSelected ? textSelectedStyle : textStyle} type="BodySemibold">
-              {this.props.users.join(',')}
-            </Text>
-          ) : (
-            <Text style={this.props.isSelected ? textSelectedStyle : textStyle} type="BodySemibold">
-              New conversation
-            </Text>
-          )}
+          <Box style={namesStyles1}>
+            <Box style={namesStyles2}>
+              {this.props.users.length ? (
+                <Text
+                  style={this.props.isSelected ? textSelectedStyle : textStyle}
+                  type="BodySemibold"
+                  lineClamp={1}
+                >
+                  {this.props.users.join(',')}
+                </Text>
+              ) : (
+                <Text
+                  style={this.props.isSelected ? textSelectedStyle : textStyle}
+                  type="BodySemibold"
+                  lineClamp={1}
+                >
+                  New conversation
+                </Text>
+              )}
+            </Box>
+          </Box>
+          <Icon
+            type="iconfont-remove"
+            onClick={this.props.onCancel}
+            color={this.props.isSelected ? globalColors.white : globalColors.black_20}
+            style={iconStyle}
+          />
         </Box>
       </ClickableBox>
     )
   }
+}
+
+const namesStyles1 = {
+  flex: 1,
+  height: '100%',
+  position: 'relative',
+}
+
+const namesStyles2 = {
+  ...globalStyles.flexBoxRow,
+  ...globalStyles.fillAbsolute,
+  alignItems: 'center',
+  paddingRight: 4,
+}
+
+const containerStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  flexShrink: 0,
+  minHeight: 56,
+  width: '100%',
+}
+
+const containerSelectedStyle = {
+  ...containerStyle,
+  backgroundColor: globalColors.blue,
+}
+
+const container2Style = {
+  ...globalStyles.flexBoxRow,
+  ...desktopStyles.clickable,
+  alignItems: 'center',
+  paddingRight: 4,
+  width: '100%',
+}
+
+const container3Style = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  backgroundColor: globalColors.blue3_40,
+  borderRadius: globalMargins.large,
+  height: 48,
+  justifyContent: 'center',
+  marginLeft: globalMargins.tiny,
+  marginRight: globalMargins.small,
+  width: 48,
+}
+
+const textStyle = {
+  color: globalColors.darkBlue,
+}
+const textSelectedStyle = {
+  ...textStyle,
+  color: globalColors.white,
+}
+
+const iconStyle = {
+  marginRight: globalMargins.tiny,
 }
 
 export default NewConversation

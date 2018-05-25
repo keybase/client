@@ -58,7 +58,7 @@ const _styleContainer = {
 }
 
 export {default as AutosizeInput} from './autosize-input'
-export {default as Avatar, ConnectedAvatar} from './avatar'
+export {default as Avatar} from './avatar'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'
 export {default as Banner} from './banner'

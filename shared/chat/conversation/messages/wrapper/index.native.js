@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Wrapper from './shared'
-import {NativeTouchableHighlight, NativeKeyboard} from '../../../../common-adapters/index.native'
+import {NativeTouchableHighlight, NativeKeyboard} from '../../../../common-adapters/mobile.native'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {globalColors} from '../../../../styles'
 
@@ -13,7 +13,7 @@ const dismissKeyboard = () => {
 
 const _NativeWrapper = (props: Props & FloatingMenuParentProps) => (
   <NativeTouchableHighlight
-    onLongPress={props.toggleShowingMenu}
+    onLongPress={props.exploded ? undefined : props.toggleShowingMenu}
     underlayColor={globalColors.white}
     onPress={dismissKeyboard}
   >

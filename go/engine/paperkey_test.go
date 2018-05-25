@@ -90,11 +90,10 @@ func TestPaperKey(t *testing.T) {
 	Logout(tc)
 
 	// make sure the passphrase authentication didn't change:
-
-	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(NewMetaContextForTest(tc), fu.Passphrase, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	m = m.WithNewProvisionalLoginContext()
+	err := libkb.PassphraseLoginNoPrompt(m, fu.Username, fu.Passphrase)
+	require.NoError(t, err, "passphrase login still worked")
+	m = m.CommitProvisionalLogin()
 
 	// make sure the backup key device id is different than the actual device id
 	// and that the actual device id didn't change.
