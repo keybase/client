@@ -282,8 +282,10 @@ def getTestDirsWindows() {
 // The New-LocalUser part depends on being run with elevated permissions
 def runTestPipeServer() {
     powershell '''
-        Get-Item Env:GOPATH
-        $gopath = Resolve-Path -Path $Env:GOPATH
+        $gopath = Get-Item Env:GOPATH
+        $gopath.Replace('"', '')
+        $gopath = Resolve-Path -Path $gopath
+        Write-Host $gopath
         $username = "kbtestuser1"
         $password = (ConvertTo-SecureString -String "53drByj6zadM" -AsPlainText -Force)
         net user /add $username "53drByj6zadM"
