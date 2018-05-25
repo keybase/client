@@ -1571,7 +1571,7 @@ const resetChatWithoutThem = (action: Chat2Gen.ResetChatWithoutThemPayload, stat
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   // remove all bad people
-  const goodParticipants = meta.participants.subtract(meta.resetParticipants)
+  const goodParticipants = meta.participants.toSet().subtract(meta.resetParticipants)
   return Saga.put(
     Chat2Gen.createPreviewConversation({
       participants: goodParticipants.toArray(),
