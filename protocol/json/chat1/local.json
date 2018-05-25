@@ -1657,7 +1657,8 @@
       "name": "GetThreadNonblockReason",
       "symbols": [
         "GENERAL_0",
-        "PUSH_1"
+        "PUSH_1",
+        "FOREGROUND_2"
       ]
     },
     {

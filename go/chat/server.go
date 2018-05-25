@@ -641,8 +641,9 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	// If this is from a push, set us into the foreground
-	if arg.Reason == chat1.GetThreadNonblockReason_PUSH {
+	// If this is from a push or foreground, set us into the foreground
+	switch arg.Reason {
+	case chat1.GetThreadNonblockReason_PUSH, chat1.GetThreadNonblockReason_FOREGROUND:
 		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
 		// to reset any delay checks or timers
 		switch h.G().AppState.State() {
@@ -1351,7 +1352,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // ephemeralMetadata on this superseder message.
 func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 	switch msg.ClientHeader.MessageType {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
+	case chat1.MessageType_DELETE, chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
 	default:
 		return msg.ClientHeader.EphemeralMetadata, nil
 	}
