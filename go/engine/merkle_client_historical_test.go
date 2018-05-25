@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -38,5 +39,65 @@ func TestMerkleClientHistorical(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, leaf2)
 	require.True(t, leaf.Public().Eq(*leaf2.Public))
+
+}
+
+func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
+	tc := SetupEngineTest(t, "merk")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUserPaper(tc, "merk")
+	for i := 0; i < 2; i++ {
+		v := libkb.KeybaseSignatureV2
+		trackAlice(tc, fu, v)
+		untrackAlice(tc, fu, v)
+	}
+
+	assertNumDevicesAndKeys(tc, fu, 2, 4)
+
+	devices, _ := getActiveDevicesAndKeys(tc, fu)
+	var paperDevice *libkb.Device
+	for _, device := range devices {
+		if device.Type == libkb.DeviceTypePaper {
+			paperDevice = device
+		}
+	}
+
+	err := doRevokeDevice(tc, fu, paperDevice.ID, false, false)
+	require.NoError(t, err, "revoke worked")
+	assertNumDevicesAndKeys(tc, fu, 1, 2)
+
+	for i := 0; i < 2; i++ {
+		v := libkb.KeybaseSignatureV2
+		trackAlice(tc, fu, v)
+		untrackAlice(tc, fu, v)
+	}
+
+	m := NewMetaContextForTest(tc)
+
+	upak, _, err := tc.G.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(fu.UID()))
+	require.NoError(t, err, "upak loaded")
+	require.NotNil(t, upak, "upak wasn't nil")
+
+	var revokedKey *keybase1.PublicKeyV2NaCl
+	for _, key := range upak.Current.DeviceKeys {
+		if key.Base.Revocation != nil {
+			revokedKey = &key
+			break
+		}
+	}
+	require.NotNil(t, revokedKey, "we found a revoked key")
+	arg := keybase1.FindNextMerkleRootAfterRevokeArg{
+		Uid:  fu.UID(),
+		Kid:  revokedKey.Base.Kid,
+		Loc:  revokedKey.Base.Revocation.SigChainLocation,
+		Prev: revokedKey.Base.Revocation.PrevMerkleRootSigned,
+	}
+	res, err := libkb.FindNextMerkleRootAfterRevoke(m, arg)
+	require.NoError(t, err, "found the next root")
+	require.NotNil(t, res.Res, "we got a root back")
+	before := revokedKey.Base.Revocation.PrevMerkleRootSigned.Seqno
+	after := res.Res.Seqno
+	require.True(t, after > before, "we got a > seqno")
+	t.Logf("Found merkle root %d > %d", after, before)
 
 }

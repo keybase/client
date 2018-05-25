@@ -256,6 +256,22 @@ func (o InterestingPerson) DeepCopy() InterestingPerson {
 	}
 }
 
+type NextMerkleRootRes struct {
+	Res *MerkleRootV2 `codec:"res,omitempty" json:"res,omitempty"`
+}
+
+func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
+	return NextMerkleRootRes{
+		Res: (func(x *MerkleRootV2) *MerkleRootV2 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Res),
+	}
+}
+
 type ListTrackersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -364,6 +380,13 @@ type UploadUserAvatarArg struct {
 	Crop     *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
 }
 
+type FindNextMerkleRootAfterRevokeArg struct {
+	Uid  UID              `codec:"uid" json:"uid"`
+	Kid  KID              `codec:"kid" json:"kid"`
+	Loc  SigChainLocation `codec:"loc" json:"loc"`
+	Prev MerkleRootV2     `codec:"prev" json:"prev"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -402,6 +425,10 @@ type UserInterface interface {
 	// getUPAK returns a UPAK. Used mainly for debugging.
 	GetUPAK(context.Context, UID) (UPAKVersioned, error)
 	UploadUserAvatar(context.Context, UploadUserAvatarArg) error
+	// FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
+	// revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
+	// we'll start our search. Usually it's tne next one, but not always
+	FindNextMerkleRootAfterRevoke(context.Context, FindNextMerkleRootAfterRevokeArg) (NextMerkleRootRes, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -744,6 +771,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"findNextMerkleRootAfterRevoke": {
+				MakeArg: func() interface{} {
+					ret := make([]FindNextMerkleRootAfterRevokeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FindNextMerkleRootAfterRevokeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FindNextMerkleRootAfterRevokeArg)(nil), args)
+						return
+					}
+					ret, err = i.FindNextMerkleRootAfterRevoke(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -875,5 +918,13 @@ func (c UserClient) GetUPAK(ctx context.Context, uid UID) (res UPAKVersioned, er
 
 func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatarArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []interface{}{__arg}, nil)
+	return
+}
+
+// FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
+// revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
+// we'll start our search. Usually it's tne next one, but not always
+func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg FindNextMerkleRootAfterRevokeArg) (res NextMerkleRootRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterRevoke", []interface{}{__arg}, &res)
 	return
 }
