@@ -337,6 +337,7 @@ const callAndWrap: CallAndWrap = (fn, ...args) => {
 export type {SagaGenerator, Ok, Err, Result, Effect}
 
 export {
+  actionChannel,
   all,
   buffers,
   call,
