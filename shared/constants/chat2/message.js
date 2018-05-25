@@ -11,6 +11,7 @@ import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
+import flags from '../../util/feature-flags'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -320,9 +321,9 @@ const validUIMessagetoMessage = (
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
-    exploded: m.isEphemeralExpired,
-    exploding: m.isEphemeral,
-    explodingTime: m.etime,
+    exploded: flags.explodingMessagesEnabled && m.isEphemeralExpired,
+    exploding: flags.explodingMessagesEnabled && m.isEphemeral,
+    explodingTime: (flags.explodingMessagesEnabled && m.etime) || 0,
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
   }
 
@@ -526,9 +527,10 @@ const errorUIMessagetoMessage = (
     deviceName: o.senderDeviceName,
     deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
     errorReason: o.errMsg,
-    exploded: o.isEphemeralExpired,
-    exploding: o.isEphemeral,
-    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral,
+    exploded: flags.explodingMessagesEnabled && o.isEphemeralExpired,
+    exploding: flags.explodingMessagesEnabled && o.isEphemeral,
+    explodingUnreadable:
+      flags.explodingMessagesEnabled && o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
