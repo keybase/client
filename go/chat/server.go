@@ -277,8 +277,8 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 						SessionID: arg.SessionID,
 						Conv:      string(jbody),
 					})
-					h.Debug(ctx, "GetInboxNonblockLocal: sent verified conv successfully: %v",
-						time.Now().Sub(start))
+					h.Debug(ctx, "GetInboxNonblockLocal: sent verified conv successfully: id: %s time: %v",
+						convRes.Conv.GetConvID(), time.Now().Sub(start))
 				}
 				convLocalsCh <- *convRes.ConvRes
 
