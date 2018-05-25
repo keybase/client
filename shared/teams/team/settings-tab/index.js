@@ -121,8 +121,21 @@ const PublicityTeam = (props: SettingProps) =>
     </Box>
   )
 
-const OpenTeam = (props: SettingProps) =>
-  props.yourOperations.changeOpenTeam && (
+const OpenTeam = (props: SettingProps) => {
+  if (!props.yourOperations.changeOpenTeam) {
+    return
+  }
+
+  const _onSetOpenTeamRole = props.onSetOpenTeamRole
+
+  const onSetOpenTeamRole = _onSetOpenTeamRole
+    ? (e: SyntheticEvent<>) => {
+        e.stopPropagation()
+        _onSetOpenTeamRole()
+      }
+    : undefined
+
+  return (
     <Box style={stylesPublicitySettingsBox}>
       <Checkbox
         checked={props.newOpenTeam}
@@ -133,7 +146,7 @@ const OpenTeam = (props: SettingProps) =>
               Anyone will be able to join immediately. Users will join as{' '}
               <Text
                 type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
-                onClick={props.newOpenTeam ? props.onSetOpenTeamRole : undefined}
+                onClick={props.newOpenTeam ? onSetOpenTeamRole : undefined}
               >
                 {pluralize(props.newOpenTeamRole)}
               </Text>
@@ -145,6 +158,7 @@ const OpenTeam = (props: SettingProps) =>
       />
     </Box>
   )
+}
 
 const IgnoreAccessRequests = (props: SettingProps) =>
   !props.newOpenTeam &&
