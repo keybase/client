@@ -155,7 +155,7 @@ export type _State = {
   transfers: I.Map<string, Transfer>,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
-  localHTTPServerInfo: LocalHTTPServer,
+  localHTTPServerInfo: ?LocalHTTPServer,
 }
 export type State = I.RecordOf<_State>
 
@@ -347,7 +347,7 @@ export type FavoriteFolder = {
   },
 }
 
-export type FileViewType = 'text' | 'image' | 'video' | 'pdf' | 'default'
+export type FileViewType = 'text' | 'image' | 'av' | 'pdf' | 'default'
 
 export type ResetMetadata = {
   name: string,

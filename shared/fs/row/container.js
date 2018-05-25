@@ -4,7 +4,6 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import {isMobile} from '../../constants/platform'
-import {navigateAppend} from '../../actions/route-tree'
 import {Row} from './row'
 import * as StateMappers from '../utils/state-mappers'
 
@@ -19,16 +18,8 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-const isBare = (path: Types.Path) => isMobile && ['image'].includes(Constants.viewTypeFromPath(path))
-
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
-  _onOpen: (type: Types.PathType, path: Types.Path) => {
-    if (type === 'folder') {
-      dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
-    } else {
-      dispatch(navigateAppend([{props: {path}, selected: isBare(path) ? 'barePreview' : 'preview'}]))
-    }
-  },
+  _onOpen: (path: Types.Path) => dispatch(FsGen.createOpenPathItem({path, routePath})),
   _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
   _onAction: (path: Types.Path, type: Types.PathType, evt?: SyntheticEvent<>) =>
     dispatch(
@@ -55,7 +46,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     !isMobile ||
     stateProps.pathItem.type !== 'folder' ||
     Constants.showIgnoreFolder(stateProps.path, stateProps.pathItem, stateProps._username),
-  onOpen: () => dispatchProps._onOpen(stateProps.pathItem.type, stateProps.path),
+  onOpen: () => dispatchProps._onOpen(stateProps.path),
   openInFileUI: stateProps.kbfsEnabled
     ? () => dispatchProps._openInFileUI(stateProps.path)
     : dispatchProps._openFinderPopup,

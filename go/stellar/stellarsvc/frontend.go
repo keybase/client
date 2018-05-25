@@ -192,6 +192,32 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 	return currencies, nil
 }
 
+func (s *Server) GetUserSettingsLocal(ctx context.Context, sessionID int) (userSettings stellar1.UserSettings, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetUserSettingsLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return userSettings, err
+	}
+
+	userSettings, err = remote.GetUserSettings(ctx, s.G())
+	if err != nil {
+		return userSettings, err
+	}
+	return userSettings, nil
+}
+
+func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "SetAcceptedDisclaimerLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return err
+	}
+
+	return remote.SetAcceptedDisclaimer(ctx, s.G())
+}
+
 func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.LinkNewWalletAccountLocalArg) (accountID stellar1.AccountID, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "LinkNewWalletAccountLocal", func() error { return err })()

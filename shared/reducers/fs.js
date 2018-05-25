@@ -172,6 +172,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:
+    case FsGen.openPathItem:
     case FsGen.loadResets:
       return state
     default:

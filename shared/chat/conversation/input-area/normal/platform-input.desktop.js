@@ -236,7 +236,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               filter={this.props.channelMentionFilter}
             />
           )}
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
             <input
               type="file"
               style={{display: 'none'}}
