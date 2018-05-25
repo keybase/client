@@ -109,23 +109,20 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 		return chat1.MessagePlaintext{}, err
 	}
 
-	var numPrev int
+	var hasPrev bool
 	if msg.IsEphemeral() {
 		prevs = newPrevsForExploding
-		numPrev = len(newPrevsForExploding)
+		hasPrev = len(newPrevsForExploding) > 0
 	} else {
 		prevs = newPrevsForRegular
 		// If we have only sent ephemeralMessages and are now sending a regular
 		// message, we may have an empty list for newPrevsForRegular. In this
 		// case we allow the `Prev` to be empty, so we don't want to abort in
 		// the check on numPrev below.
-		numPrev = len(newPrevsForRegular)
-		if numPrev == 0 {
-			numPrev = len(newPrevsForExploding)
-		}
+		hasPrev = len(newPrevsForRegular) > 0 || len(newPrevsForExploding) > 0
 	}
 
-	if numPrev == 0 {
+	if !hasPrev {
 		return chat1.MessagePlaintext{}, fmt.Errorf("Could not find previous messages for prev pointers (of %v)", len(res.Messages))
 	}
 
