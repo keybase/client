@@ -287,7 +287,9 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
         }
       }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
-      const body = cMsg.valid.messageBody
+      const valid = cMsg.valid
+      const body = valid.messageBody
+      logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
       // Types that are mutations
       switch (body.messageType) {
         case RPCChatTypes.commonMessageType.edit:
@@ -295,7 +297,7 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
             actions.push(
               Chat2Gen.createMessageWasEdited({
                 conversationIDKey,
-                ...Constants.uiMessageEditToMessage(body.edit, cMsg.valid),
+                ...Constants.uiMessageEditToMessage(body.edit, valid),
               })
             )
           }
@@ -303,7 +305,13 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
         case RPCChatTypes.commonMessageType.delete:
           if (body.delete && body.delete.messageIDs) {
             actions.push(
-              Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs: body.delete.messageIDs})
+              valid.isEphemeral
+                ? Chat2Gen.createMessagesExploded({
+                    conversationIDKey,
+                    explodedBy: valid.senderUsername,
+                    messageIDs: body.delete.messageIDs,
+                  })
+                : Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs: body.delete.messageIDs})
             )
           }
           break
@@ -502,16 +510,17 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
     actions.push(Chat2Gen.createMetasReceived({fromEphemeralPurge: true, metas: [meta]}))
   }
   const conversationIDKey = Types.conversationIDToKey(info.convID)
-  const messageActions =
+  const messageIDs =
     !!info.msgs &&
     info.msgs.reduce((arr, msg) => {
       const msgID = Constants.getMessageID(msg)
       if (msgID) {
-        arr.push(Chat2Gen.createMessageExploded({conversationIDKey, messageID: msgID}))
+        arr.push(msgID)
       }
       return arr
     }, [])
-  return actions.concat(messageActions)
+  !!messageIDs && actions.push(Chat2Gen.createMessagesExploded({conversationIDKey, messageIDs}))
+  return actions
 }
 
 // Handle calls that come from the service

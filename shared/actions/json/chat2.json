@@ -199,10 +199,10 @@
       "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
       "ordinals?": "Array<Types.Ordinal>"
     },
-    "messageExploded": {
-      "_description": "An exploding message expired or was manually detonated",
+    "messagesExploded": {
+      "_description": "Exploding messages expired or were manually detonated.",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "RPCChatTypes.MessageID",
+      "messageIDs": "Array<RPCChatTypes.MessageID>",
       "explodedBy?": "string"
     },
     // Delete a message

@@ -36,7 +36,6 @@ export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
 export const messageErrored = 'chat2:messageErrored'
-export const messageExploded = 'chat2:messageExploded'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
@@ -44,6 +43,7 @@ export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
+export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
 export const metaDelete = 'chat2:metaDelete'
 export const metaHandleQueue = 'chat2:metaHandleQueue'
@@ -166,11 +166,6 @@ type _MessageErroredPayload = $ReadOnly<{|
   reason: string,
   outboxID: Types.OutboxID,
 |}>
-type _MessageExplodedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: RPCChatTypes.MessageID,
-  explodedBy?: string,
-|}>
 type _MessageReplyPrivatelyPayload = $ReadOnly<{|
   sourceConversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -204,6 +199,11 @@ type _MessageWasEditedPayload = $ReadOnly<{|
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
   messages: Array<Types.Message>,
+|}>
+type _MessagesExplodedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageIDs: Array<RPCChatTypes.MessageID>,
+  explodedBy?: string,
 |}>
 type _MessagesWereDeletedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -313,10 +313,6 @@ type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.Conver
  */
 export const createCreateConversation = (payload: _CreateConversationPayload) => ({error: false, payload, type: createConversation})
 /**
- * An exploding message expired or was manually detonated
- */
-export const createMessageExploded = (payload: _MessageExplodedPayload) => ({error: false, payload, type: messageExploded})
-/**
  * Consume a service notification that a conversation's retention policy has been updated
  */
 export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPolicyPayload) => ({error: false, payload, type: updateConvRetentionPolicy})
@@ -324,6 +320,10 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  * Consume a service notification that a team retention policy was updated
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({error: false, payload, type: updateTeamRetentionPolicy})
+/**
+ * Exploding messages expired or were manually detonated.
+ */
+export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({error: false, payload, type: messagesExploded})
 /**
  * Handle an update to our conversation exploding modes.
  */
@@ -425,7 +425,6 @@ export type MessageDeleteHistoryPayload = $Call<typeof createMessageDeleteHistor
 export type MessageDeletePayload = $Call<typeof createMessageDelete, _MessageDeletePayload>
 export type MessageEditPayload = $Call<typeof createMessageEdit, _MessageEditPayload>
 export type MessageErroredPayload = $Call<typeof createMessageErrored, _MessageErroredPayload>
-export type MessageExplodedPayload = $Call<typeof createMessageExploded, _MessageExplodedPayload>
 export type MessageReplyPrivatelyPayload = $Call<typeof createMessageReplyPrivately, _MessageReplyPrivatelyPayload>
 export type MessageRetryPayload = $Call<typeof createMessageRetry, _MessageRetryPayload>
 export type MessageSendPayload = $Call<typeof createMessageSend, _MessageSendPayload>
@@ -433,6 +432,7 @@ export type MessageSetEditingPayload = $Call<typeof createMessageSetEditing, _Me
 export type MessageSetQuotingPayload = $Call<typeof createMessageSetQuoting, _MessageSetQuotingPayload>
 export type MessageWasEditedPayload = $Call<typeof createMessageWasEdited, _MessageWasEditedPayload>
 export type MessagesAddPayload = $Call<typeof createMessagesAdd, _MessagesAddPayload>
+export type MessagesExplodedPayload = $Call<typeof createMessagesExploded, _MessagesExplodedPayload>
 export type MessagesWereDeletedPayload = $Call<typeof createMessagesWereDeleted, _MessagesWereDeletedPayload>
 export type MetaDeletePayload = $Call<typeof createMetaDelete, _MetaDeletePayload>
 export type MetaHandleQueuePayload = $Call<typeof createMetaHandleQueue, _MetaHandleQueuePayload>
@@ -495,7 +495,6 @@ export type Actions =
   | MessageDeletePayload
   | MessageEditPayload
   | MessageErroredPayload
-  | MessageExplodedPayload
   | MessageReplyPrivatelyPayload
   | MessageRetryPayload
   | MessageSendPayload
@@ -503,6 +502,7 @@ export type Actions =
   | MessageSetQuotingPayload
   | MessageWasEditedPayload
   | MessagesAddPayload
+  | MessagesExplodedPayload
   | MessagesWereDeletedPayload
   | MetaDeletePayload
   | MetaHandleQueuePayload
