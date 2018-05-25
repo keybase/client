@@ -449,8 +449,7 @@ func TestPrivateKeyExporting(t *testing.T) {
 	})
 	require.Error(t, err)
 
-	// Random account ID. Will still ask for password, and then
-	// discover it doesn't known this ID, and bail out.
+	// Try random account ID.
 	randomAccID, _ := randomStellarKeypair()
 	_, err = tcs[0].Srv.GetWalletAccountPrivateKeyLocal(context.Background(), stellar1.GetWalletAccountPrivateKeyLocalArg{
 		AccountID: randomAccID,
