@@ -320,6 +320,7 @@ def testGo(prefix) {
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
+            runTestPipeServer()
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
