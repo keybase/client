@@ -12,14 +12,23 @@ type Props = {
   resetParticipants?: Array<string>,
 }
 
+const fancyJoin = (arr: Array<string>, delimiter: string, doubleDelimiter: string, finalDelimiter: string): string => {
+  if (arr.length === 1) {
+    return arr[0]
+  } else if (arr.length === 2) {
+    return `${arr[0]}${doubleDelimiter}${arr[1]}`
+  }
+  return `${arr.slice(0, -1).join(delimiter)}${finalDelimiter}${arr[arr.length - 1]}`
+}
+
 const PathItemInfo = (props: Props) => (
   <Box style={props.wrap ? timeWriterBoxStyleWithWrap : timeWriterBoxStyle}>
     {!!props.resetParticipants && props.resetParticipants.length > 0
       ? (
         <Box style={resetInfoBoxStyle}>
-          <Meta title="reset" backgroundColor={globalColors.red} />
+          <Meta title="reset" backgroundColor={globalColors.red} style={resetMetaStyle} />
           <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
-            someone has reset their account
+            {fancyJoin(props.resetParticipants, ', ', ' and ', ', and ')} ha{props.resetParticipants.length === 1 ? 's' : 've'} reset their account.
           </Text>
         </Box>
       )
@@ -63,7 +72,10 @@ const writerTextStyle = platformStyles({
 
 const resetInfoBoxStyle = {
   ...globalStyles.flexBoxRow,
-  padding: 1,
+}
+
+const resetMetaStyle = {
+  marginRight: 4,
 }
 
 export default PathItemInfo
