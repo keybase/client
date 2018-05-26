@@ -34,6 +34,8 @@ import {
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 
+import * as TEMP from '../../dev/user-timings'
+
 // Ask the service to refresh the inbox
 const inboxRefresh = (
   action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload,
@@ -101,9 +103,21 @@ const inboxRefresh = (
       skipUnverified: false,
     },
     {'chat.1.chatUi.chatInboxUnverified': onUnverified},
-    loading => Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
+    loading => {
+      if (!loading) {
+        TEMP.measureStop('NOJIMA1')
+      }
+      return Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
+    }
   )
 }
+
+// TEMP
+window.NOJIMA = () => {
+  TEMP.measureStart('NOJIMA1')
+  DEBUGStore.dispatch(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
+}
+// TEMP
 
 // When we get info on a team we need to unbox immediately so we can get the channel names
 const requestTeamsUnboxing = (action: Chat2Gen.MetasReceivedPayload) => {

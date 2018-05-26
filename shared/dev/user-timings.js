@@ -132,21 +132,22 @@ const _getLabel = obj => {
 
 const _effectIdToLabel = {}
 
-const sagaTimer = allowTiming
-  ? {
-      actionDispatched: () => {},
-      effectCancelled: _endSaga,
-      effectRejected: _endSaga,
-      effectResolved: _endSaga,
-      effectTriggered: desc => {
-        _effectIdToLabel[desc.effectId] = _getLabel(desc)
-        if (desc.effect && desc.effect.TAKE) {
-          return
-        }
-        mark(`${markPrefix} saga:${desc.effectId}`)
-      },
-    }
-  : null
+const sagaTimer =
+  true && allowTiming
+    ? {
+        actionDispatched: () => {},
+        effectCancelled: _endSaga,
+        effectRejected: _endSaga,
+        effectResolved: _endSaga,
+        effectTriggered: desc => {
+          _effectIdToLabel[desc.effectId] = _getLabel(desc)
+          if (desc.effect && desc.effect.TAKE) {
+            return
+          }
+          mark(`${markPrefix} saga:${desc.effectId}`)
+        },
+      }
+    : null
 
 const reducerTimer = allowTiming
   ? finalReducers => {

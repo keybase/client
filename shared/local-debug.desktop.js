@@ -3,7 +3,7 @@ import {jsonDebugFileName} from './constants/platform.desktop'
 import {noop} from 'lodash-es'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config = {
   allowMultipleInstances: false, // Multiple instances of the app
@@ -79,7 +79,7 @@ if (PERF) {
   config.immediateStateLogging = false
   config.printOutstandingRPCs = false
   config.printRPC = false
-  config.reduxSagaLogger = false
+  config.reduxSagaLogger = true
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
 }
