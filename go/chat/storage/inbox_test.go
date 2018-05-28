@@ -112,7 +112,8 @@ func TestInboxBasic(t *testing.T) {
 		Num: numConvs / 2,
 	})
 	require.NoError(t, err)
-	require.Equal(t, chat1.InboxVers(2), vers, "version mismatch")
+	// Merge in of 2 doesn't do anything, we still think we are at version 1 of the whole box
+	require.Equal(t, chat1.InboxVers(1), vers, "version mismatch")
 	convListCompare(t, convs[:numConvs/2], res, "half")
 }
 

@@ -217,7 +217,7 @@ func (i *Inbox) mergeConvs(l []types.RemoteConversation, r []types.RemoteConvers
 	}
 	for _, conv := range r {
 		key := conv.GetConvID().String()
-		if m[key].GetVersion() < conv.GetVersion() {
+		if m[key].GetVersion() <= conv.GetVersion() {
 			res = append(res, conv)
 			delete(m, key)
 		}
@@ -308,10 +308,7 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "Merge: vers: %d convs: %d", vers, len(convsIn))
-	if len(convsIn) == 0 {
-		i.Debug(ctx, "Merge: empty list given, bailing")
-		return nil
-	} else if len(convsIn) == 1 {
+	if len(convsIn) == 1 {
 		i.Debug(ctx, "Merge: single conversation: %s", convsIn[0])
 	}
 
@@ -340,7 +337,7 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 	if ibox.InboxVersion != 0 {
 		vers = ibox.InboxVersion
 	} else {
-		i.Debug(ctx, "Merge: setting inbox version to: %d", vers)
+		i.Debug(ctx, "Merge: using given version: %d", vers)
 	}
 	i.Debug(ctx, "Merge: merging inbox: vers: %d", vers)
 	data = inboxDiskData{
