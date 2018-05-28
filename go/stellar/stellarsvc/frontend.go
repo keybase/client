@@ -173,7 +173,7 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 	for code, def := range conf.Currencies {
 		c := stellar1.CurrencyLocal{
 			Description: fmt.Sprintf("%s (%s)", code, def.Symbol.Symbol),
-			Code:        string(code),
+			Code:        code,
 			Symbol:      def.Symbol.Symbol,
 			Name:        def.Name,
 		}

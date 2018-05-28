@@ -77,7 +77,7 @@
           "name": "description"
         },
         {
-          "type": "string",
+          "type": "OutsideCurrencyCode",
           "name": "code"
         },
         {

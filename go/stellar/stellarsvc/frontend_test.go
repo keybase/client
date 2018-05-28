@@ -111,11 +111,13 @@ func TestGetDisplayCurrenciesLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, currencies, 32)
+	// USD should go first.
 	require.Equal(t, "USD ($)", currencies[0].Description)
-	require.Equal(t, "USD", currencies[0].Code)
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencies[0].Code)
 	require.Equal(t, "$", currencies[0].Symbol)
+	// Rest is in alphabetical order.
 	require.Equal(t, "AUD ($)", currencies[1].Description)
-	require.Equal(t, "AUD", currencies[1].Code)
+	require.Equal(t, stellar1.OutsideCurrencyCode("AUD"), currencies[1].Code)
 	require.Equal(t, "$", currencies[1].Symbol)
 }
 

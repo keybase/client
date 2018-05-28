@@ -215,7 +215,7 @@ export type BundleVisibleV1 = $ReadOnly<{revision: BundleRevision, prev: Hash, a
 
 export type ClaimSummary = $ReadOnly<{txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, dir: RelayDirection, toStellar: AccountID, to: Keybase1.UserVersion}>
 
-export type CurrencyLocal = $ReadOnly<{description: String, code: String, symbol: String, name: String}>
+export type CurrencyLocal = $ReadOnly<{description: String, code: OutsideCurrencyCode, symbol: String, name: String}>
 
 export type CurrencySymbol = $ReadOnly<{symbol: String, ambigious: Boolean, postfix: Boolean}>
 
