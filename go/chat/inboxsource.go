@@ -141,7 +141,6 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox types.I
 	var res []types.RemoteConversation
 	for _, conv := range inbox.ConvsUnverified {
 		if utils.IsConvEmpty(conv.Conv) {
-			b.Debug(ctx, "filterInboxRes: maxmsgs: %d", len(conv.Conv.MaxMsgSummaries))
 			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.Conv.GetConvID())
 			continue
 		}
