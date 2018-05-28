@@ -93,7 +93,6 @@ const load = () => {
         yourRole="receiver"
         memo={memo}
         timestamp={null}
-        transactionID={null}
         you="cjb"
       />
     ))

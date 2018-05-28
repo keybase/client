@@ -19,7 +19,7 @@ export type Props = {|
   publicMemo?: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
-  transactionID: ?string,
+  transactionID?: string,
   you: string,
   yourRole: Role,
 |}
@@ -33,38 +33,45 @@ type CounterpartyProps = {|
   yourRole: Role,
 |}
 
-const Counterparty = (props: CounterpartyProps) =>
-  props.isYou ? (
-    <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
-  ) : props.counterpartyType === 'keybaseUser' ? (
-    <NameWithIcon
-      colorFollowing={true}
-      horizontal={true}
-      username={props.counterparty}
-      metaOne={props.counterpartyMeta}
-    />
-  ) : (
-    <Box2 direction="horizontal" fullHeight={true}>
-      <CounterpartyIcon
-        counterparty={props.counterparty}
-        counterpartyType={props.counterpartyType}
-        large={true}
+const Counterparty = (props: CounterpartyProps) => {
+  if (props.isYou) {
+    return <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
+  }
+
+  if (props.counterpartyType === 'keybaseUser') {
+    return (
+      <NameWithIcon
+        colorFollowing={true}
+        horizontal={true}
+        username={props.counterparty}
+        metaOne={props.counterpartyMeta}
       />
-      <Box2
-        direction="vertical"
-        fullWidth={true}
-        style={{justifyContent: 'center', marginLeft: globalMargins.small}}
-      >
-        <CounterpartyText
+    )
+  } else {
+    return (
+      <Box2 direction="horizontal" fullHeight={true}>
+        <CounterpartyIcon
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
-          large={true}
-          showFullKey={true}
-          textType="BodySemibold"
+          large={false}
         />
+        <Box2
+          direction="vertical"
+          fullWidth={true}
+          style={{justifyContent: 'center', marginLeft: globalMargins.small}}
+        >
+          <CounterpartyText
+            counterparty={props.counterparty}
+            counterpartyType={props.counterpartyType}
+            large={false}
+            showFullKey={true}
+            textType="BodySemibold"
+          />
+        </Box2>
       </Box2>
-    </Box2>
-  )
+    )
+  }
+}
 
 const TransactionDetails = (props: Props) => (
   <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
@@ -109,7 +116,7 @@ const TransactionDetails = (props: Props) => (
       <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={{alignItems: 'center'}}>
         <Icon
           color={props.timestamp ? globalColors.green2 : globalColors.black}
-          size="16"
+          fontSize={16}
           type={props.timestamp ? 'iconfont-success' : 'icon-transaction-pending-16'}
         />
         <Text
@@ -132,7 +139,9 @@ const TransactionDetails = (props: Props) => (
 
     <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
       <Text type="BodySmallSemibold">Transaction ID:</Text>
-      <Text type="Body">{props.transactionID}</Text>
+      <Text selectable={true} type="Body">
+        {props.transactionID}
+      </Text>
       <Text type="BodySmallPrimaryLink">View transaction</Text>
     </Box2>
   </Box2>

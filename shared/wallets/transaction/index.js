@@ -251,7 +251,12 @@ export const Transaction = (props: Props) => {
           {// TODO: Consolidate memo display code below with
           // chat/conversation/messages/wallet-payment/index.js.
           showMemo && (
-            <Box2 direction="horizontal" gap="small" fullWidth={true}>
+            <Box2
+              direction="horizontal"
+              gap="small"
+              fullWidth={true}
+              style={{marginTop: globalMargins.xtiny}}
+            >
               <Divider vertical={true} style={styles.quoteMarker} />
               <Markdown allowFontScaling={true}>{props.memo}</Markdown>
             </Box2>
