@@ -210,6 +210,15 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
+	if e.arg.OnlyImport {
+		if err := e.ensurePublicPartIsPublished(me, bundle.GetKID()); err != nil {
+			// Make sure key is active in user's sigchain. Otherwise,
+			// after importing to local keychain, Keybase will refuse
+			// to use it for any operation anyway.
+			return err
+		}
+	}
+
 	m.CDebugf("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
 
 	eng := NewPGPKeyImportEngine(m.G(), PGPKeyImportEngineArg{
@@ -243,4 +252,16 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 
 func (e *GPGImportKeyEngine) LastKey() *libkb.PGPKeyBundle {
 	return e.last
+}
+
+func (e *GPGImportKeyEngine) ensurePublicPartIsPublished(me *libkb.User, kid keybase1.KID) error {
+	ckf := me.GetComputedKeyFamily()
+	if ckf == nil {
+		return fmt.Errorf("cannot get ComputedKeyFamily")
+	}
+	active := ckf.GetKeyRole(kid)
+	if active != libkb.DLGSibkey {
+		return PGPNotActiveForLocalImport{kid}
+	}
+	return nil
 }
