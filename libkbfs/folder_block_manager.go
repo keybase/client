@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -1179,16 +1179,19 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		}
 
 		err := fbm.doReclamation(timer)
-		_, isWriteError := err.(WriteAccessError)
-		_, isFinalError := err.(kbfsmd.MetadataIsFinalError)
-		if isWriteError || isFinalError {
-			// If we can't write the MD, don't bother with the timer
-			// anymore. Don't completely shut down, since we don't
-			// want forced reclamations to hang.
-			timer.Stop()
-			timerChan = make(chan time.Time)
-			fbm.log.CDebugf(context.Background(),
-				"Permanently stopping QR due to error: %+v", err)
+		if e := errors.Cause(err); e != nil {
+			_, isWriteError := e.(WriteAccessError)
+			_, isFinalError := e.(kbfsmd.MetadataIsFinalError)
+			_, isRevokeError := e.(RevokedDeviceVerificationError)
+			if isWriteError || isFinalError || isRevokeError {
+				// If we can't write the MD, don't bother with the timer
+				// anymore. Don't completely shut down, since we don't
+				// want forced reclamations to hang.
+				timer.Stop()
+				timerChan = make(chan time.Time)
+				fbm.log.CDebugf(context.Background(),
+					"Permanently stopping QR due to error: %+v", err)
+			}
 		}
 	}
 }

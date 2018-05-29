@@ -657,7 +657,12 @@ func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
 	}
 
 	kbtime := keybase1.ToTime(clock.Now())
-	info := revokedKeyInfo{Time: kbtime}
+	info := revokedKeyInfo{
+		Time: kbtime,
+		MerkleRoot: keybase1.MerkleRootV2{
+			Seqno: 1,
+		},
+	}
 	user.RevokedVerifyingKeys[user.VerifyingKeys[index]] = info
 	user.RevokedCryptPublicKeys[user.CryptPublicKeys[index]] = info
 

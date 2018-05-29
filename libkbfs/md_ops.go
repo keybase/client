@@ -221,6 +221,13 @@ func (md *MDOpsStandard) verifyKey(
 				"Skipping revoked key verification due to recursion")
 			return false, nil
 		}
+		if e.info.MerkleRoot.Seqno <= 0 {
+			md.log.CDebugf(ctx, "Can't verify an MD written by a revoked "+
+				"device if there's no valid root seqno to check: %d",
+				e.info.MerkleRoot.Seqno)
+			return false, err
+		}
+
 		info = e.info
 		// Fall through to check via the merkle tree.
 	default:
