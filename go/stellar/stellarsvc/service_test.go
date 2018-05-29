@@ -522,6 +522,16 @@ func testRelay(t *testing.T, yank bool) {
 	require.Equal(t, "claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
 
+	fhistory, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	require.NoError(t, err)
+	require.Len(t, fhistory, 1)
+	require.Nil(t, fhistory[0].Err)
+	require.NotNil(t, fhistory[0].Payment)
+	require.NotEmpty(t, fhistory[0].Payment.TxID)
+	require.NotZero(t, fhistory[0].Payment.Time)
+	require.Equal(t, "claimable", fhistory[0].Payment.Status)
+	require.Equal(t, "3 XLM", fhistory[0].Payment.Amount)
+
 	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "1.9999900")
 	if !yank {
 		tcs[claimant].Backend.AssertBalance(getPrimaryAccountID(tcs[claimant]), "0")
@@ -545,12 +555,26 @@ func testRelay(t *testing.T, yank bool) {
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "completed", history[0].Payment.Status)
 
+	fhistory, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	require.NoError(t, err)
+	require.Len(t, fhistory, 1)
+	require.Nil(t, fhistory[0].Err)
+	require.NotNil(t, fhistory[0].Payment)
+	require.Equal(t, "completed", fhistory[0].Payment.Status)
+
 	history, err = tcs[0].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
 	require.Equal(t, "", history[0].Err)
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "completed", history[0].Payment.Status)
+
+	fhistory, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
+	require.NoError(t, err)
+	require.Len(t, fhistory, 1)
+	require.Nil(t, fhistory[0].Err)
+	require.NotNil(t, fhistory[0].Payment)
+	require.Equal(t, "completed", fhistory[0].Payment.Status)
 
 	t.Logf("try to claim again")
 	res, err = tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})

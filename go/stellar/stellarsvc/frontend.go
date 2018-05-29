@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
 )
 
@@ -289,7 +290,6 @@ func (s *Server) transformPaymentStellar(ctx context.Context, p stellar1.Payment
 		SourceType: "stellar",
 		Target:     p.To.String(),
 		TargetType: "stellar",
-		Status:     stellar1.TransactionStatus_SUCCESS.String(),
 	}
 
 	formatted, err := stellar.FormatAmount(p.Amount, false)
@@ -297,6 +297,8 @@ func (s *Server) transformPaymentStellar(ctx context.Context, p stellar1.Payment
 		return nil, err
 	}
 	loc.Amount = formatted + " XLM"
+
+	loc.Status, loc.StatusDetail = stellar1.TransactionStatus_SUCCESS.Details("")
 
 	return &loc, nil
 }
@@ -342,8 +344,7 @@ func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentS
 	}
 	loc.Amount = formatted + " XLM"
 
-	loc.Status = p.TxStatus.String()
-	loc.StatusDetail = p.TxErrMsg
+	loc.Status, loc.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
 
 	loc.Note, loc.NoteErr = s.decryptNote(ctx, p.TxID, p.NoteB64)
 
@@ -351,7 +352,93 @@ func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentS
 }
 
 func (s *Server) transformPaymentRelay(ctx context.Context, p stellar1.PaymentSummaryRelay) (*stellar1.PaymentLocal, error) {
-	return &stellar1.PaymentLocal{}, nil
+
+	s.G().Log.CDebugf(ctx, "transformPaymentRelay: %+v", p)
+
+	loc := stellar1.PaymentLocal{
+		TxID: p.TxID,
+		Time: p.Ctime,
+	}
+
+	if p.DisplayAmount != nil && len(*p.DisplayAmount) != 0 {
+		var err error
+		loc.Worth, err = stellar.FormatCurrency(ctx, s.G(), *p.DisplayAmount, stellar1.OutsideCurrencyCode(*p.DisplayCurrency))
+		if err != nil {
+			return nil, err
+		}
+	}
+	if p.DisplayCurrency != nil {
+		loc.WorthCurrency = *p.DisplayCurrency
+	}
+
+	if name, err := s.lookupUsername(ctx, p.From.Uid); err == nil {
+		loc.Source = name
+		loc.SourceType = "keybase"
+	} else {
+		loc.Source = p.FromStellar.String()
+		loc.SourceType = "stellar"
+	}
+
+	if p.To == nil {
+		loc.Status = "error"
+		loc.StatusDetail = "No recipient"
+		return &loc, nil
+	}
+
+	name, err := s.lookupUsername(ctx, p.To.Uid)
+	if err != nil {
+		loc.Status = "error"
+		loc.StatusDetail = "Recipient lookup failed"
+		return &loc, nil
+	}
+
+	loc.Target = name
+	loc.TargetType = "keybase"
+
+	formatted, err := stellar.FormatAmount(p.Amount, false)
+	if err != nil {
+		return nil, err
+	}
+	loc.Amount = formatted + " XLM"
+
+	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
+		// If the funding tx is not complete
+		loc.Status, loc.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
+	} else {
+		loc.Status = "claimable"
+
+		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to yank."
+	}
+	if p.Claim != nil {
+		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+			// If the claim succeeded, the relay payment is done.
+			loc.Status = "completed"
+			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
+			if err == nil {
+				loc.Target = name
+				loc.TargetType = "keybase"
+			} else {
+				loc.Target = p.Claim.ToStellar.String()
+				loc.TargetType = "stellar"
+			}
+		} else {
+			claimantUsername, err := s.lookupUsername(ctx, p.Claim.To.Uid)
+			if err != nil {
+				return nil, err
+			}
+			loc.Status, loc.StatusDetail = p.Claim.TxStatus.Details(p.Claim.TxErrMsg)
+			loc.Status = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, loc.Status)
+		}
+	}
+
+	relaySecrets, err := relays.DecryptB64(ctx, s.G(), p.TeamID, p.BoxB64)
+	if err == nil {
+		loc.Note = relaySecrets.Note
+	} else {
+		loc.NoteErr = fmt.Sprintf("error decrypting note: %s", err)
+	}
+
+	return &loc, nil
 }
 
 func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, error) {

@@ -135,3 +135,20 @@ func AssetNative() Asset {
 		Issuer: "",
 	}
 }
+
+func (t TransactionStatus) Details(errMsg string) (status, detail string) {
+	switch t {
+	case TransactionStatus_PENDING:
+		status = "pending"
+	case TransactionStatus_SUCCESS:
+		status = "completed"
+	case TransactionStatus_ERROR_TRANSIENT, TransactionStatus_ERROR_PERMANENT:
+		status = "error"
+		detail = errMsg
+	default:
+		status = "unknown"
+		detail = errMsg
+	}
+
+	return status, detail
+}

@@ -530,21 +530,6 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 	if err != nil {
 		return res, fmt.Errorf("malformed payment summary: %v", err)
 	}
-	status := func(txStatus stellar1.TransactionStatus, txErrMsg string) (status, statusDetail string) {
-		switch txStatus {
-		case stellar1.TransactionStatus_PENDING:
-			status = "pending"
-		case stellar1.TransactionStatus_SUCCESS:
-			status = "completed"
-		case stellar1.TransactionStatus_ERROR_TRANSIENT, stellar1.TransactionStatus_ERROR_PERMANENT:
-			status = "error"
-			statusDetail = txErrMsg
-		default:
-			status = "unknown"
-			statusDetail = txErrMsg
-		}
-		return status, statusDetail
-	}
 	username := func(uid keybase1.UID) (username *string, err error) {
 		uname, err := g.GetUPAKLoader().LookupUsername(ctx, uid)
 		if err != nil {
@@ -577,7 +562,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 			FromStellar:     p.FromStellar,
 			ToStellar:       &p.ToStellar,
 		}
-		res.Status, res.StatusDetail = status(p.TxStatus, p.TxErrMsg)
+		res.Status, res.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
 		res.FromUsername, err = username(p.From.Uid)
 		if err != nil {
 			return res, err
@@ -617,7 +602,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 		}
 		if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
 			// If the funding tx is not complete
-			res.Status, res.StatusDetail = status(p.TxStatus, p.TxErrMsg)
+			res.Status, res.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
 		} else {
 			res.Status = "claimable"
 			res.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to yank."
@@ -647,7 +632,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				if err != nil {
 					return res, err
 				}
-				res.Status, res.StatusDetail = status(p.Claim.TxStatus, p.Claim.TxErrMsg)
+				res.Status, res.StatusDetail = p.Claim.TxStatus.Details(p.Claim.TxErrMsg)
 				res.Status = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, res.Status)
 			}
 		}
