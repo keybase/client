@@ -227,6 +227,14 @@ func (k *KBPKIClient) GetCurrentMerkleRoot(ctx context.Context) (
 	return k.serviceOwner.KeybaseService().GetCurrentMerkleRoot(ctx)
 }
 
+// VerifyMerkleRoot implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) VerifyMerkleRoot(
+	ctx context.Context, root keybase1.MerkleRootV2,
+	kbfsRoot keybase1.KBFSRoot) error {
+	return k.serviceOwner.KeybaseService().VerifyMerkleRoot(
+		ctx, root, kbfsRoot)
+}
+
 // IsTeamWriter implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) IsTeamWriter(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,

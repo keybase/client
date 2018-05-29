@@ -115,6 +115,11 @@ func (cmrg constMerkleRootGetter) GetCurrentMerkleRoot(
 	return keybase1.MerkleRootV2{}, nil
 }
 
+func (cmrg constMerkleRootGetter) VerifyMerkleRoot(
+	_ context.Context, _ keybase1.MerkleRootV2, _ keybase1.KBFSRoot) error {
+	return nil
+}
+
 func putMDRangeHelper(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	signer kbfscrypto.Signer, firstRevision kbfsmd.Revision,
 	firstPrevRoot kbfsmd.ID, mdCount int, uid keybase1.UID,

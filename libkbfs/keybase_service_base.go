@@ -70,6 +70,11 @@ func (k *keybaseServiceMerkleGetter) GetCurrentMerkleRoot(
 	return k.k.getCurrentMerkleRoot(ctx)
 }
 
+func (k *keybaseServiceMerkleGetter) VerifyMerkleRoot(
+	_ context.Context, _ keybase1.MerkleRootV2, _ keybase1.KBFSRoot) error {
+	panic("constMerkleRootGetter doesn't verify merkle roots")
+}
+
 // NewKeybaseServiceBase makes a new KeybaseService.
 func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *KeybaseServiceBase {
 	k := KeybaseServiceBase{
@@ -803,6 +808,17 @@ func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
 	// block.
 	_, root, err := k.merkleRoot.Get(ctx, 30*time.Second, 60*time.Second)
 	return root, err
+}
+
+// VerifyMerkleRoot implements the KBPKI interface for KeybaseServiceBase.
+func (k *KeybaseServiceBase) VerifyMerkleRoot(
+	ctx context.Context, root keybase1.MerkleRootV2,
+	kbfsRoot keybase1.KBFSRoot) error {
+	return k.merkleClient.VerifyMerkleRootAndKBFS(ctx,
+		keybase1.VerifyMerkleRootAndKBFSArg{
+			Root:             root,
+			ExpectedKBFSRoot: kbfsRoot,
+		})
 }
 
 func (k *KeybaseServiceBase) processUserPlusKeys(

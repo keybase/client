@@ -26,6 +26,7 @@ type KeybaseServiceMeasured struct {
 	createTeamTLFTimer               metrics.Timer
 	getTeamSettingsTimer             metrics.Timer
 	getCurrentMerkleRootTimer        metrics.Timer
+	verifyMerkleRootTimer            metrics.Timer
 	currentSessionTimer              metrics.Timer
 	favoriteAddTimer                 metrics.Timer
 	favoriteDeleteTimer              metrics.Timer
@@ -50,6 +51,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	createTeamTLFTimer := metrics.GetOrRegisterTimer("KeybaseService.CreateTeamTLF", r)
 	getTeamSettingsTimer := metrics.GetOrRegisterTimer("KeybaseService.GetTeamSettings", r)
 	getCurrentMerkleRootTimer := metrics.GetOrRegisterTimer("KeybaseService.GetCurrentMerkleRoot", r)
+	verifyMerkleRootTimer := metrics.GetOrRegisterTimer("KeybaseService.VerifyMerkleRoot", r)
 	currentSessionTimer := metrics.GetOrRegisterTimer("KeybaseService.CurrentSession", r)
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteAdd", r)
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteDelete", r)
@@ -68,6 +70,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		createTeamTLFTimer:               createTeamTLFTimer,
 		getTeamSettingsTimer:             getTeamSettingsTimer,
 		getCurrentMerkleRootTimer:        getCurrentMerkleRootTimer,
+		verifyMerkleRootTimer:            verifyMerkleRootTimer,
 		currentSessionTimer:              currentSessionTimer,
 		favoriteAddTimer:                 favoriteAddTimer,
 		favoriteDeleteTimer:              favoriteDeleteTimer,
@@ -166,6 +169,17 @@ func (k KeybaseServiceMeasured) GetCurrentMerkleRoot(ctx context.Context) (
 		root, err = k.delegate.GetCurrentMerkleRoot(ctx)
 	})
 	return root, err
+}
+
+// VerifyMerkleRoot implements the KBPKI interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) VerifyMerkleRoot(
+	ctx context.Context, root keybase1.MerkleRootV2,
+	kbfsRoot keybase1.KBFSRoot) (err error) {
+	k.verifyMerkleRootTimer.Time(func() {
+		err = k.delegate.VerifyMerkleRoot(ctx, root, kbfsRoot)
+	})
+	return err
 }
 
 // CurrentSession implements the KeybaseService interface for

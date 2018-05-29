@@ -505,6 +505,12 @@ func (k *KeybaseDaemonLocal) GetCurrentMerkleRoot(ctx context.Context) (
 	return k.merkleRoot, nil
 }
 
+// VerifyMerkleRoot implements the KBPKI interface for KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) VerifyMerkleRoot(
+	_ context.Context, _ keybase1.MerkleRootV2, _ keybase1.KBFSRoot) error {
+	return nil
+}
+
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {

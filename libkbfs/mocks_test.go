@@ -1414,6 +1414,18 @@ func (mr *MockmerkleRootGetterMockRecorder) GetCurrentMerkleRoot(ctx interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentMerkleRoot", reflect.TypeOf((*MockmerkleRootGetter)(nil).GetCurrentMerkleRoot), ctx)
 }
 
+// VerifyMerkleRoot mocks base method
+func (m *MockmerkleRootGetter) VerifyMerkleRoot(ctx context.Context, root keybase1.MerkleRootV2, kbfsRoot keybase1.KBFSRoot) error {
+	ret := m.ctrl.Call(m, "VerifyMerkleRoot", ctx, root, kbfsRoot)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyMerkleRoot indicates an expected call of VerifyMerkleRoot
+func (mr *MockmerkleRootGetterMockRecorder) VerifyMerkleRoot(ctx, root, kbfsRoot interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMerkleRoot", reflect.TypeOf((*MockmerkleRootGetter)(nil).VerifyMerkleRoot), ctx, root, kbfsRoot)
+}
+
 // MockgitMetadataPutter is a mock of gitMetadataPutter interface
 type MockgitMetadataPutter struct {
 	ctrl     *gomock.Controller
@@ -1483,6 +1495,18 @@ func (m *MockKeybaseService) GetCurrentMerkleRoot(ctx context.Context) (keybase1
 // GetCurrentMerkleRoot indicates an expected call of GetCurrentMerkleRoot
 func (mr *MockKeybaseServiceMockRecorder) GetCurrentMerkleRoot(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentMerkleRoot", reflect.TypeOf((*MockKeybaseService)(nil).GetCurrentMerkleRoot), ctx)
+}
+
+// VerifyMerkleRoot mocks base method
+func (m *MockKeybaseService) VerifyMerkleRoot(ctx context.Context, root keybase1.MerkleRootV2, kbfsRoot keybase1.KBFSRoot) error {
+	ret := m.ctrl.Call(m, "VerifyMerkleRoot", ctx, root, kbfsRoot)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyMerkleRoot indicates an expected call of VerifyMerkleRoot
+func (mr *MockKeybaseServiceMockRecorder) VerifyMerkleRoot(ctx, root, kbfsRoot interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMerkleRoot", reflect.TypeOf((*MockKeybaseService)(nil).VerifyMerkleRoot), ctx, root, kbfsRoot)
 }
 
 // PutGitMetadata mocks base method
@@ -2232,6 +2256,18 @@ func (m *MockKBPKI) GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRo
 // GetCurrentMerkleRoot indicates an expected call of GetCurrentMerkleRoot
 func (mr *MockKBPKIMockRecorder) GetCurrentMerkleRoot(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentMerkleRoot", reflect.TypeOf((*MockKBPKI)(nil).GetCurrentMerkleRoot), ctx)
+}
+
+// VerifyMerkleRoot mocks base method
+func (m *MockKBPKI) VerifyMerkleRoot(ctx context.Context, root keybase1.MerkleRootV2, kbfsRoot keybase1.KBFSRoot) error {
+	ret := m.ctrl.Call(m, "VerifyMerkleRoot", ctx, root, kbfsRoot)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyMerkleRoot indicates an expected call of VerifyMerkleRoot
+func (mr *MockKBPKIMockRecorder) VerifyMerkleRoot(ctx, root, kbfsRoot interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMerkleRoot", reflect.TypeOf((*MockKBPKI)(nil).VerifyMerkleRoot), ctx, root, kbfsRoot)
 }
 
 // IsTeamWriter mocks base method

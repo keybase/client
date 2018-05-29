@@ -432,6 +432,11 @@ type merkleRootGetter interface {
 	// GetCurrentMerkleRoot returns the current root of the global
 	// Keybase Merkle tree.
 	GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRootV2, error)
+	// VerifyMerkleRoot checks that the specified merkle root
+	// contains the given KBFS root; if not, it returns an error.
+	VerifyMerkleRoot(
+		ctx context.Context, root keybase1.MerkleRootV2,
+		kbfsRoot keybase1.KBFSRoot) error
 }
 
 type gitMetadataPutter interface {
