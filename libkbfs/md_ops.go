@@ -238,7 +238,7 @@ func (md *MDOpsStandard) verifyKey(
 		irmd.Revision(), irmd.TlfID(), info.Time, info.MerkleRoot.Seqno)
 	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
 
-	kbfsRoot, merkleNodes, rootSeqno, _, err :=
+	kbfsRoot, merkleNodes, rootSeqno, err :=
 		md.config.MDServer().FindNextMD(ctx, rmds.MD.TlfID(),
 			info.MerkleRoot.Seqno)
 	if err != nil {
@@ -321,11 +321,6 @@ func (md *MDOpsStandard) verifyKey(
 	if err != nil {
 		return false, err
 	}
-
-	// TODO(KBFS-2954): check with the service to verify the global
-	// root info, to make sure it fits into our view of the global
-	// merkle tree and that it indeed points to the leaf we're using
-	// via `kbfsRoot` and all the `merkleNodes`.
 
 	return true, nil
 }

@@ -1541,11 +1541,11 @@ type MDServer interface {
 	// tree to be produced after a given Keybase global merkle tree
 	// sequence number `rootSeqno` (and all merkle nodes between it
 	// and the root, and the root itself).  It also returns the global
-	// merkle tree sequence number and hash of the root that first
-	// included the returned metadata object.
+	// merkle tree sequence number of the root that first included the
+	// returned metadata object.
 	FindNextMD(ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 		nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
-		nextRootSeqno keybase1.Seqno, nextRootHash keybase1.HashMeta, err error)
+		nextRootSeqno keybase1.Seqno, err error)
 }
 
 type mdServerLocal interface {

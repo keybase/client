@@ -745,6 +745,6 @@ func (md *MDServerDisk) FastForwardBackoff() {}
 func (md *MDServerDisk) FindNextMD(
 	ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
-	nextRootSeqno keybase1.Seqno, nextRootHash keybase1.HashMeta, err error) {
-	return nil, nil, 0, keybase1.HashMeta{}, nil
+	nextRootSeqno keybase1.Seqno, err error) {
+	return nil, nil, 0, nil
 }

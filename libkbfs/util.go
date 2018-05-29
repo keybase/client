@@ -202,3 +202,16 @@ func isWriterFromHandle(
 	}
 	return checker.IsTeamWriter(ctx, tid, uid, verifyingKey)
 }
+
+func tlfToMerkleTreeID(id tlf.ID) keybase1.MerkleTreeID {
+	switch id.Type() {
+	case tlf.Private:
+		return keybase1.MerkleTreeID_KBFS_PRIVATE
+	case tlf.Public:
+		return keybase1.MerkleTreeID_KBFS_PUBLIC
+	case tlf.SingleTeam:
+		return keybase1.MerkleTreeID_KBFS_PRIVATETEAM
+	default:
+		panic(fmt.Sprintf("Unexpected TLF type: %d", id.Type()))
+	}
+}

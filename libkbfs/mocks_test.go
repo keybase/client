@@ -4694,14 +4694,13 @@ func (mr *MockMDServerMockRecorder) FastForwardBackoff() *gomock.Call {
 }
 
 // FindNextMD mocks base method
-func (m *MockMDServer) FindNextMD(ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (*kbfsmd.MerkleRoot, [][]byte, keybase1.Seqno, keybase1.HashMeta, error) {
+func (m *MockMDServer) FindNextMD(ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (*kbfsmd.MerkleRoot, [][]byte, keybase1.Seqno, error) {
 	ret := m.ctrl.Call(m, "FindNextMD", ctx, tlfID, rootSeqno)
 	ret0, _ := ret[0].(*kbfsmd.MerkleRoot)
 	ret1, _ := ret[1].([][]byte)
 	ret2, _ := ret[2].(keybase1.Seqno)
-	ret3, _ := ret[3].(keybase1.HashMeta)
-	ret4, _ := ret[4].(error)
-	return ret0, ret1, ret2, ret3, ret4
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // FindNextMD indicates an expected call of FindNextMD
@@ -4996,14 +4995,13 @@ func (mr *MockmdServerLocalMockRecorder) FastForwardBackoff() *gomock.Call {
 }
 
 // FindNextMD mocks base method
-func (m *MockmdServerLocal) FindNextMD(ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (*kbfsmd.MerkleRoot, [][]byte, keybase1.Seqno, keybase1.HashMeta, error) {
+func (m *MockmdServerLocal) FindNextMD(ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (*kbfsmd.MerkleRoot, [][]byte, keybase1.Seqno, error) {
 	ret := m.ctrl.Call(m, "FindNextMD", ctx, tlfID, rootSeqno)
 	ret0, _ := ret[0].(*kbfsmd.MerkleRoot)
 	ret1, _ := ret[1].([][]byte)
 	ret2, _ := ret[2].(keybase1.Seqno)
-	ret3, _ := ret[3].(keybase1.HashMeta)
-	ret4, _ := ret[4].(error)
-	return ret0, ret1, ret2, ret3, ret4
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // FindNextMD indicates an expected call of FindNextMD

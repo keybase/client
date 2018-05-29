@@ -1238,7 +1238,7 @@ func (md *MDServerRemote) FastForwardBackoff() {
 func (md *MDServerRemote) FindNextMD(
 	ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
-	nextRootSeqno keybase1.Seqno, nextRootHash keybase1.HashMeta, err error) {
+	nextRootSeqno keybase1.Seqno, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: FindNextMD %s %d", tlfID, rootSeqno)
 	md.log.CDebugf(ctx, "KeyServer: FindNextMD %s %d", tlfID, rootSeqno)
@@ -1256,28 +1256,43 @@ func (md *MDServerRemote) FindNextMD(
 
 	response, err := md.getClient().FindNextMD(ctx, arg)
 	if err != nil {
-		return nil, nil, 0, keybase1.HashMeta{}, err
+		return nil, nil, 0, err
 	}
 
 	if len(response.MerkleNodes) == 0 {
 		md.log.CDebugf(ctx, "No merkle data found for %s, seqno=%d",
 			tlfID, rootSeqno)
-		return nil, nil, 0, keybase1.HashMeta{}, nil
+		return nil, nil, 0, nil
 	}
 
 	if response.KbfsRoot.Version != 1 {
-		return nil, nil, 0, keybase1.HashMeta{},
+		return nil, nil, 0,
 			kbfsmd.NewMerkleVersionError{Version: response.KbfsRoot.Version}
+	}
+
+	// Verify this is a valid merkle root and KBFS root before we
+	// decode the bytes.
+	md.log.CDebugf(ctx, "Verifying merkle root %d", response.RootSeqno)
+	root := keybase1.MerkleRootV2{
+		Seqno:    response.RootSeqno,
+		HashMeta: response.RootHash,
+	}
+	expectedKbfsRoot := keybase1.KBFSRoot{
+		TreeID: tlfToMerkleTreeID(tlfID),
+		Root:   response.KbfsRoot.Root,
+	}
+	err = md.config.KBPKI().VerifyMerkleRoot(ctx, root, expectedKbfsRoot)
+	if err != nil {
+		return nil, nil, 0, err
 	}
 
 	var kbfsRoot kbfsmd.MerkleRoot
 	err = md.config.Codec().Decode(response.KbfsRoot.Root, &kbfsRoot)
 	if err != nil {
-		return nil, nil, 0, keybase1.HashMeta{}, err
+		return nil, nil, 0, err
 	}
 
-	return &kbfsRoot, response.MerkleNodes, response.RootSeqno,
-		response.RootHash, nil
+	return &kbfsRoot, response.MerkleNodes, response.RootSeqno, nil
 }
 
 func (md *MDServerRemote) resetRekeyTimer() {

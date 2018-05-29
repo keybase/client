@@ -671,7 +671,7 @@ func (mds *keyBundleMDServer) GetKeyBundles(ctx context.Context, tlfID tlf.ID,
 func (mds *keyBundleMDServer) FindNextMD(
 	ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
-	nextRootSeqno keybase1.Seqno, nextRootHash keybase1.HashMeta, err error) {
+	nextRootSeqno keybase1.Seqno, err error) {
 	nextKbfsRoot = mds.nextMerkleRoot
 	nextMerkleNodes = mds.nextMerkleNodes
 	nextRootSeqno = mds.nextMerkleRootSeqno
@@ -679,8 +679,7 @@ func (mds *keyBundleMDServer) FindNextMD(
 	mds.nextMerkleRoot = nil
 	mds.nextMerkleNodes = nil
 	mds.nextMerkleRootSeqno = 0
-	return nextKbfsRoot, nextMerkleNodes, nextRootSeqno,
-		keybase1.HashMeta{}, nil
+	return nextKbfsRoot, nextMerkleNodes, nextRootSeqno, nil
 }
 
 func testMDOpsGetRangeSuccessHelper(
