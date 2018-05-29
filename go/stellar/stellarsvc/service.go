@@ -339,7 +339,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 	}
 
 	if percentageAmountChange(currentAmt, argAmt) > 1.0 {
-		s.G().Log.CDebugf(ctx, "argAmt: %d, currentAmt: %d", argAmt, currentAmt)
+		s.G().Log.CDebugf(ctx, "large exchange rate delta: argAmt: %d, currentAmt: %d", argAmt, currentAmt)
 		return errors.New("current exchange rates have changed more than 1%")
 	}
 
