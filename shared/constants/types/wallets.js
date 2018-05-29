@@ -9,11 +9,14 @@ export type _Reserve = {
 export type Reserve = I.RecordOf<_Reserve>
 
 export type _State = {
-  hello: string,
+  walletMap: any,
 }
 export type State = I.RecordOf<_State>
 
-export type _WalletMeta = {
-
+export type _Wallet = {
+  accountID: string,
+  balanceDescription: string,
+  isDefault: false,
+  name: string,
 }
-export type WalletMeta = I.RecordOf<_WalletMeta>
+export type Wallet = I.RecordOf<_Wallet>

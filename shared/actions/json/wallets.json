@@ -5,7 +5,7 @@
   "actions": {
     "walletsReceived": {
       "_description": "Update our store of wallet data",
-      "wallets": "Array<Types.WalletMeta>",
+      "wallets": "Array<Types.Wallet>",
 
     },
     "walletsRefresh": {
