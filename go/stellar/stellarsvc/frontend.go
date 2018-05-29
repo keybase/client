@@ -17,6 +17,8 @@ import (
 )
 
 const WorthCurrencyErrorCode = "ERR"
+const ParticipantTypeKeybase = "keybase"
+const ParticipantTypeStellar = "stellar"
 
 func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (accts []stellar1.WalletAccountLocal, err error) {
 	ctx = s.logTag(ctx)
@@ -291,9 +293,9 @@ func (s *Server) transformPaymentStellar(ctx context.Context, p stellar1.Payment
 	}
 
 	loc.Source = p.From.String()
-	loc.SourceType = "stellar"
+	loc.SourceType = ParticipantTypeStellar
 	loc.Target = p.To.String()
-	loc.TargetType = "stellar"
+	loc.TargetType = ParticipantTypeStellar
 
 	loc.Status, loc.StatusDetail = stellar1.TransactionStatus_SUCCESS.Details("")
 
@@ -346,7 +348,7 @@ func (s *Server) transformPaymentRelay(ctx context.Context, p stellar1.PaymentSu
 		return nil, errors.New("recipient lookup failed")
 	}
 	loc.Target = name
-	loc.TargetType = "keybase"
+	loc.TargetType = ParticipantTypeKeybase
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
 		// If the funding tx is not complete
@@ -363,10 +365,10 @@ func (s *Server) transformPaymentRelay(ctx context.Context, p stellar1.PaymentSu
 			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
 			if err == nil {
 				loc.Target = name
-				loc.TargetType = "keybase"
+				loc.TargetType = ParticipantTypeKeybase
 			} else {
 				loc.Target = p.Claim.ToStellar.String()
-				loc.TargetType = "stellar"
+				loc.TargetType = ParticipantTypeStellar
 			}
 		} else {
 			claimantUsername, err := s.lookupUsername(ctx, p.Claim.To.Uid)
@@ -391,9 +393,9 @@ func (s *Server) transformPaymentRelay(ctx context.Context, p stellar1.PaymentSu
 func (s *Server) lookupUsernameFallback(ctx context.Context, uid keybase1.UID, acctID stellar1.AccountID) (name, kind string) {
 	name, err := s.lookupUsername(ctx, uid)
 	if err == nil {
-		return name, "keybase"
+		return name, ParticipantTypeKeybase
 	}
-	return acctID.String(), "stellar"
+	return acctID.String(), ParticipantTypeStellar
 }
 
 func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, error) {
