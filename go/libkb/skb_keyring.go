@@ -128,18 +128,12 @@ func (k *SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska
 	defer k.Unlock()
 
 	var kid keybase1.KID
+	var blocks []*SKB
 	k.G().Log.Debug("+ SKBKeyringFile.SearchWithComputedKeyFamily")
 	defer func() {
-		var res string
-		if kid.Exists() {
-			res = kid.String()
-		} else {
-			res = "<nil>"
-		}
-		k.G().Log.Debug("- SKBKeyringFile.SearchWithComputedKeyFamily -> %s\n", res)
+		k.G().Log.Debug("- SKBKeyringFile.SearchWithComputedKeyFamily -> returning %d block(s)\n", len(blocks))
 	}()
 	k.G().Log.Debug("| Searching %d possible blocks", len(k.Blocks))
-	var blocks []*SKB
 	for i := len(k.Blocks) - 1; i >= 0; i-- {
 		k.G().Log.Debug("| trying key index# -> %d", i)
 		if key, err := k.Blocks[i].GetPubKey(); err == nil && key != nil {
@@ -150,11 +144,16 @@ func (k *SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska
 				k.G().Log.Debug("| Skipped, doesn't match type=%s", ska.KeyType)
 			} else if !KeyMatchesQuery(key, ska.KeyQuery, ska.ExactMatch) {
 				k.G().Log.Debug("| Skipped, doesn't match query=%s", ska.KeyQuery)
-
 			} else if active != DLGSibkey {
-				k.G().Log.Debug("| Skipped, active=%d", int(active))
+				if ska.KeyType == PGPKeyType && ckf.getCkiUnchecked(kid) == nil {
+					k.G().Log.Debug("| Local-only PGP key (not in CKF). Adding block.")
+					blocks = append(blocks, k.Blocks[i])
+				} else {
+					k.G().Log.Debug("| Skipped, active=%d", int(active))
+				}
 			} else {
 				blocks = append(blocks, k.Blocks[i])
+				k.G().Log.Debug("| OK")
 			}
 		} else {
 			k.G().Log.Debug("| failed --> %v", err)
