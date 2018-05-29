@@ -270,7 +270,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
                   onClick={this._inputFocus}
                   style={{
                     left: 183,
-                    marginTop: -12,
+                    marginTop: -27,
                     position: 'absolute',
                   }}
                   type="iconfont-boom"
