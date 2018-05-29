@@ -8,4 +8,4 @@ export type Props = {
   style?: StylesCrossPlatform,
   retainHeight: boolean,
 }
-export default class HeightRetainer extends React.Component<Props> {}
+export default class ExplodingHeightRetainer extends React.Component<Props> {}

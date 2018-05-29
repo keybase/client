@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom'
 import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
 import {Box, ConnectedUsernames, Text} from '../../../../../common-adapters'
-import {collapseStyles, globalColors} from '../../../../../styles'
+import {collapseStyles, globalColors, styleSheetCreate} from '../../../../../styles'
 import type {Props} from '.'
 
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
@@ -13,7 +13,7 @@ const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
 type State = {
   height: ?number,
 }
-class HeightRetainer extends React.Component<Props, State> {
+class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {height: 17}
   componentDidUpdate() {
     if (this.props.retainHeight) {
@@ -47,11 +47,11 @@ class HeightRetainer extends React.Component<Props, State> {
         {!this.props.retainHeight && this.props.children}
         {this.props.retainHeight &&
           (!this.props.explodedBy ? (
-            <Text type="BodySmall" style={exploded}>
+            <Text type="BodySmall" style={styles.exploded}>
               EXPLODED
             </Text>
           ) : (
-            <Text type="BodySmall" style={exploded}>
+            <Text type="BodySmall" style={styles.exploded}>
               EXPLODED BY{' '}
               <ConnectedUsernames
                 type="BodySmall"
@@ -67,12 +67,14 @@ class HeightRetainer extends React.Component<Props, State> {
   }
 }
 
-const exploded = {
-  backgroundColor: globalColors.white,
-  color: globalColors.black_20_on_white,
-  position: 'absolute',
-  right: 12,
-  bottom: 2,
-}
+const styles = styleSheetCreate({
+  exploded: {
+    backgroundColor: globalColors.white,
+    color: globalColors.black_20_on_white,
+    position: 'absolute',
+    right: 12,
+    bottom: 2,
+  },
+})
 
-export default HeightRetainer
+export default ExplodingHeightRetainer

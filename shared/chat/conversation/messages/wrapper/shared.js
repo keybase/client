@@ -14,7 +14,7 @@ import {
 import Timestamp from './timestamp'
 import SendIndicator from './chat-send'
 import MessagePopup from '../message-popup'
-import HeightRetainer from './height-retainer'
+import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta'
 
 import type {Props} from '.'
@@ -124,7 +124,7 @@ const RightSide = props => (
       <Box style={styles.textContainer} className="message">
         {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
-        <HeightRetainer
+        <ExplodingHeightRetainer
           explodedBy={props.explodedBy}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
@@ -135,7 +135,7 @@ const RightSide = props => (
             toggleShowingMenu={props.toggleShowingMenu}
           />
           {props.isEdited && <EditedMark />}
-        </HeightRetainer>
+        </ExplodingHeightRetainer>
         {!isMobile &&
           !props.exploded && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
         <MessagePopup

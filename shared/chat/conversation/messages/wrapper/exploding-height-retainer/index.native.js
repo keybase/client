@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, ConnectedUsernames, NativeImage, Text} from '../../../../../common-adapters/mobile.native'
-import {collapseStyles, globalColors} from '../../../../../styles'
+import {collapseStyles, globalColors, styleSheetCreate} from '../../../../../styles'
 import type {Props} from '.'
 
 const explodedUllustrationURL = require('../../../../../images/icons/pattern-ashes-mobile-400-80.png')
@@ -9,7 +9,7 @@ const explodedUllustrationURL = require('../../../../../images/icons/pattern-ash
 type State = {
   height: ?number,
 }
-class HeightRetainer extends React.Component<Props, State> {
+class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {height: 20}
 
   _onLayout = evt => {
@@ -36,11 +36,11 @@ class HeightRetainer extends React.Component<Props, State> {
         )}
         {this.props.retainHeight &&
           (!this.props.explodedBy ? (
-            <Text type="BodySmall" style={exploded}>
+            <Text type="BodySmall" style={styles.exploded}>
               EXPLODED
             </Text>
           ) : (
-            <Text lineClamp={1} type="BodySmall" style={exploded}>
+            <Text lineClamp={1} type="BodySmall" style={styles.exploded}>
               EXPLODED BY{' '}
               <ConnectedUsernames
                 type="BodySmall"
@@ -57,12 +57,14 @@ class HeightRetainer extends React.Component<Props, State> {
   }
 }
 
-const exploded = {
-  backgroundColor: globalColors.white,
-  color: globalColors.black_20_on_white,
-  position: 'absolute',
-  right: 0,
-  bottom: 2,
-}
+const styles = styleSheetCreate({
+  exploded: {
+    backgroundColor: globalColors.white,
+    color: globalColors.black_20_on_white,
+    position: 'absolute',
+    right: 0,
+    bottom: 2,
+  },
+})
 
-export default HeightRetainer
+export default ExplodingHeightRetainer
