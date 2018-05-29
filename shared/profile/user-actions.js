@@ -106,23 +106,28 @@ class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuPa
       onClick: () => this.props.onAddToTeam(),
       title: 'Add to team...',
     },
-    {
-      onClick: () => this.props.onOpenPrivateFolder(),
-      style: {
-        borderTopWidth: 0,
-      },
-      title: 'Open private folder',
-    },
-    {
-      onClick: () => this.props.onBrowsePublicFolder(),
-      title: 'Browse public folder',
-    },
   ]
 
   componentDidMount() {
+    if (!isMobile) {
+      this._menuItems = this._menuItems.concat([
+        {
+          onClick: () => this.props.onOpenPrivateFolder(),
+          title: 'Open private folder',
+        },
+        {
+          onClick: () => this.props.onBrowsePublicFolder(),
+          title: 'Browse public folder',
+        },
+      ])
+    }
+
     this.props.onUnfollow &&
       this._menuItems.push({
         onClick: () => this.props.onUnfollow && this.props.onUnfollow(),
+        style: {
+          borderTopWidth: 0,
+        },
         title: 'Unfollow',
       })
   }
