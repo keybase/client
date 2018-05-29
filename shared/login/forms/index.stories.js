@@ -3,13 +3,17 @@ import * as React from 'react'
 import {action, storiesOf} from '../../stories/storybook'
 import Intro from './intro'
 import Splash from './splash'
-import {isMobile} from '../../styles'
 
 const introProps = {
   bannerMessage: null,
-  onFeedback: isMobile ? action('onFeedback') : null,
+  onFeedback: null,
   onLogin: action('onLogin'),
   onSignup: action('onSignup'),
+}
+
+const introWithFeedbackProps = {
+  ...introProps,
+  onFeedback: action('onFeedback'),
 }
 
 const splashProps = {
@@ -23,6 +27,7 @@ const load = () => {
   storiesOf('Login', module)
     .add('Intro', () => <Intro {...introProps} />)
     .add('Intro: banner', () => <Intro {...introProps} bannerMessage="You just deleted your account!" />)
+    .add('Intro with onFeedback', () => <Intro {...introWithFeedbackProps} />)
 
   storiesOf('Login', module)
     .add('Splash', () => <Splash {...splashProps} />)
