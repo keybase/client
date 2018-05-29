@@ -17,6 +17,7 @@ type RowProps = {
   badgeCount: number,
   tlfMeta?: Types.FavoriteMetadata,
   resetParticipants: Array<string>,
+  isUserReset: boolean,
   onOpen: () => void,
   openInFileUI: () => void,
   onAction: (event: SyntheticEvent<>) => void,
@@ -82,6 +83,7 @@ export const Row = (props: RowProps) => (
                 lastModifiedTimestamp={props.lastModifiedTimestamp}
                 lastWriter={props.lastWriter}
                 resetParticipants={props.resetParticipants}
+                isUserReset={props.isUserReset}
               />
             )}
           </Box>
