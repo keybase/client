@@ -28,7 +28,7 @@ protocol local {
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
-    string code;         // "USD", "CAD", etc.
+    OutsideCurrencyCode code;         // "USD", "CAD", etc.
     string symbol;       // "$"
     string name;         // "US Dollar", "Thai Baht", etc.
   }
