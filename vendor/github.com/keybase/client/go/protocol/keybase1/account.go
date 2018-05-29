@@ -40,7 +40,8 @@ type HasServerKeysArg struct {
 }
 
 type ResetAccountArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Passphrase string `codec:"passphrase" json:"passphrase"`
 }
 
 type AccountInterface interface {
@@ -54,7 +55,9 @@ type AccountInterface interface {
 	// * Whether the logged-in user has uploaded private keys
 	// * Will error if not logged in.
 	HasServerKeys(context.Context, int) (HasServerKeysRes, error)
-	ResetAccount(context.Context, int) error
+	// resetAccount resets the user's account; it's meant only for devel and tests.
+	// passphrase is optional and will be prompted for if not supplied.
+	ResetAccount(context.Context, ResetAccountArg) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -136,7 +139,7 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ResetAccountArg)(nil), args)
 						return
 					}
-					err = i.ResetAccount(ctx, (*typedArgs)[0].SessionID)
+					err = i.ResetAccount(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -176,8 +179,9 @@ func (c AccountClient) HasServerKeys(ctx context.Context, sessionID int) (res Ha
 	return
 }
 
-func (c AccountClient) ResetAccount(ctx context.Context, sessionID int) (err error) {
-	__arg := ResetAccountArg{SessionID: sessionID}
+// resetAccount resets the user's account; it's meant only for devel and tests.
+// passphrase is optional and will be prompted for if not supplied.
+func (c AccountClient) ResetAccount(ctx context.Context, __arg ResetAccountArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.resetAccount", []interface{}{__arg}, nil)
 	return
 }
