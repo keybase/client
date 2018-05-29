@@ -182,7 +182,9 @@ func filterKeys(keys map[keybase1.KID]keybase1.PublicKeyV2NaCl) (
 	return verifyingKeys, cryptPublicKeys, kidNames, nil
 }
 
-func filterRevokedKeys(
+func (k *KeybaseServiceBase) filterRevokedKeys(
+	ctx context.Context,
+	uid keybase1.UID,
 	keys map[keybase1.KID]keybase1.PublicKeyV2NaCl,
 	reset *keybase1.ResetSummary) (
 	map[kbfscrypto.VerifyingKey]revokedKeyInfo,
@@ -197,7 +199,21 @@ func filterRevokedKeys(
 		var info revokedKeyInfo
 		if key.Base.Revocation != nil {
 			info.Time = key.Base.Revocation.Time
-			info.MerkleRoot = key.Base.Revocation.PrevMerkleRootSigned
+			res, err := k.userClient.FindNextMerkleRootAfterRevoke(ctx,
+				keybase1.FindNextMerkleRootAfterRevokeArg{
+					Uid:  uid,
+					Kid:  key.Base.Kid,
+					Loc:  key.Base.Revocation.SigChainLocation,
+					Prev: key.Base.Revocation.PrevMerkleRootSigned,
+				})
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			if res.Res != nil {
+				info.MerkleRoot = *res.Res
+			} else {
+				info.MerkleRoot = key.Base.Revocation.PrevMerkleRootSigned
+			}
 		} else if reset != nil {
 			info.Time = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
 			info.MerkleRoot.Seqno = reset.MerkleRoot.Seqno
@@ -575,7 +591,7 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 		return UserInfo{}, err
 	}
 
-	return k.processUserPlusKeys(res)
+	return k.processUserPlusKeys(ctx, res)
 }
 
 var allowedLoadTeamRoles = map[keybase1.TeamRole]bool{
@@ -728,7 +744,8 @@ func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
 }
 
 func (k *KeybaseServiceBase) processUserPlusKeys(
-	upk keybase1.UserPlusKeysV2AllIncarnations) (UserInfo, error) {
+	ctx context.Context, upk keybase1.UserPlusKeysV2AllIncarnations) (
+	UserInfo, error) {
 	verifyingKeys, cryptPublicKeys, kidNames, err := filterKeys(
 		upk.Current.DeviceKeys)
 	if err != nil {
@@ -736,7 +753,8 @@ func (k *KeybaseServiceBase) processUserPlusKeys(
 	}
 
 	revokedVerifyingKeys, revokedCryptPublicKeys, revokedKidNames, err :=
-		filterRevokedKeys(upk.Current.DeviceKeys, upk.Current.Reset)
+		k.filterRevokedKeys(
+			ctx, upk.Current.Uid, upk.Current.DeviceKeys, upk.Current.Reset)
 	if err != nil {
 		return UserInfo{}, err
 	}
@@ -750,7 +768,8 @@ func (k *KeybaseServiceBase) processUserPlusKeys(
 	for _, incarnation := range upk.PastIncarnations {
 		revokedVerifyingKeysPast, revokedCryptPublicKeysPast,
 			revokedKidNames, err :=
-			filterRevokedKeys(incarnation.DeviceKeys, incarnation.Reset)
+			k.filterRevokedKeys(
+				ctx, incarnation.Uid, incarnation.DeviceKeys, incarnation.Reset)
 		if err != nil {
 			return UserInfo{}, err
 		}
