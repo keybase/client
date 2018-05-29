@@ -1940,6 +1940,8 @@ const createConversation = (action: Chat2Gen.CreateConversationPayload, state: T
   if (!username) {
     throw new Error('Making a convo while logged out?')
   }
+  const foo = true
+  if (foo) throw new Error('hi')
   return Saga.sequentially([
     Saga.put(Chat2Gen.createSetLoading({key: Constants.creatingLoadingKey, loading: true})),
     Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {

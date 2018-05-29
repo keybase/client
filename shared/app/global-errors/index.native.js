@@ -10,7 +10,7 @@ import {
   HOCTimers,
   type PropsWithTimer,
 } from '../../common-adapters/mobile.native'
-import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
+import {globalStyles, globalColors, globalMargins, isIPhoneX, platformStyles} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'
 
@@ -77,7 +77,7 @@ class GlobalError extends Component<Props, State> {
     return {
       Big: 500,
       Closed: 0,
-      Small: 35 + 66 + (isIPhoneX ? globalMargins.medium : globalMargins.xsmall),
+      Small: 35 + 66 + (isIPhoneX ? globalMargins.medium : 0),
     }[size]
   }
 
@@ -103,26 +103,24 @@ class GlobalError extends Component<Props, State> {
       <Box style={{...containerStyle, maxHeight}}>
         <Box style={globalStyles.flexBoxColumn}>
           <Box
-            style={{...summaryRowStyle, paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.medium}}
+            style={{
+              ...summaryRowStyle,
+              paddingBottom: globalMargins.xtiny,
+              paddingTop: globalMargins.medium,
+              position: 'relative',
+            }}
           >
-            <Icon
-              type="iconfont-exclamation"
-              style={{marginRight: globalMargins.tiny}}
-              color={globalColors.white_75}
-              onClick={this._onExpandClick}
-              fontSize={21}
-            />
             <Text
               type="Body"
               style={{color: globalColors.white, flex: 1, textAlign: 'center'}}
               onClick={this._onExpandClick}
             >
-              An error occurred
+              An error occurred.
             </Text>
             <Icon
               type="iconfont-close"
               onClick={onDismiss}
-              style={{marginLeft: globalMargins.tiny}}
+              style={closeIconStyle}
               color={globalColors.white_75}
               fontSize={21}
             />
@@ -173,7 +171,7 @@ const containerStyle = {
   backgroundColor: globalColors.black_75,
   left: 0,
   overflow: 'hidden',
-  paddingTop: isIPhoneX ? globalMargins.medium : globalMargins.xsmall,
+  paddingTop: isIPhoneX ? globalMargins.medium : 0,
   position: 'absolute',
   right: 0,
   top: 0,
@@ -197,5 +195,13 @@ const detailStyle = {
   padding: globalMargins.xtiny,
   paddingTop: globalMargins.tiny,
 }
+
+const closeIconStyle = platformStyles({
+  isMobile: {
+    position: 'absolute',
+    right: globalMargins.xsmall,
+    top: 24,
+  },
+})
 
 export default HOCTimers(GlobalError)
