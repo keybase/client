@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Box2, Button, ClickableBox, FloatingMenu, FollowButton, ButtonBar, Icon} from '../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import {normal as proofNormal} from '../constants/tracker'
-import {globalColors} from '../styles'
+import {globalColors, isMobile, platformStyles, styleSheetCreate} from '../styles'
 import type {SimpleProofState} from '../constants/types/tracker'
 
 type Props = {
@@ -53,7 +53,7 @@ function UserActions({
             onAddToTeam={onAddToTeam}
             onOpenPrivateFolder={onOpenPrivateFolder}
             onBrowsePublicFolder={onBrowsePublicFolder}
-          />{' '}
+          />
         </ButtonBar>
       )
     } else {
@@ -66,7 +66,7 @@ function UserActions({
             onOpenPrivateFolder={onOpenPrivateFolder}
             onBrowsePublicFolder={onBrowsePublicFolder}
             onUnfollow={onUnfollow}
-          />{' '}
+          />
         </ButtonBar>
       )
     }
@@ -106,20 +106,28 @@ class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuPa
       onClick: () => this.props.onAddToTeam(),
       title: 'Add to team...',
     },
-    {
-      onClick: () => this.props.onOpenPrivateFolder(),
-      title: 'Open private folder',
-    },
-    {
-      onClick: () => this.props.onBrowsePublicFolder(),
-      title: 'Browse public folder',
-    },
   ]
 
   componentDidMount() {
+    if (!isMobile) {
+      this._menuItems = this._menuItems.concat([
+        {
+          onClick: () => this.props.onOpenPrivateFolder(),
+          title: 'Open private folder',
+        },
+        {
+          onClick: () => this.props.onBrowsePublicFolder(),
+          title: 'Browse public folder',
+        },
+      ])
+    }
+
     this.props.onUnfollow &&
       this._menuItems.push({
         onClick: () => this.props.onUnfollow && this.props.onUnfollow(),
+        style: {
+          borderTopWidth: 0,
+        },
         title: 'Unfollow',
       })
   }
@@ -132,20 +140,52 @@ class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuPa
         ref={this.props.setAttachmentRef}
       >
         <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Button onClick={null} type="Secondary" label="..." />
+          <Button onClick={null} type="Secondary" style={iconButton}>
+            <Icon
+              color={globalColors.black_75}
+              fontSize={isMobile ? 21 : 16}
+              style={ellipsisIcon}
+              type="iconfont-ellipsis"
+            />
+          </Button>
         </Box2>
         <FloatingMenu
           attachTo={this.props.attachmentRef}
           closeOnSelect={true}
+          containerStyle={styles.floatingMenu}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}
+          position="bottom right"
           visible={this.props.showingMenu}
-          position="bottom center"
         />
       </ClickableBox>
     )
   }
 }
+
+const ellipsisIcon = platformStyles({
+  common: {
+    position: 'relative',
+    top: 1,
+  },
+})
+
+const iconButton = platformStyles({
+  isElectron: {
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+  isMobile: {
+    paddingLeft: 12,
+    paddingRight: 12,
+  },
+})
+
+const styles = styleSheetCreate({
+  floatingMenu: {
+    marginTop: 4,
+  },
+})
 
 const DropdownButton = FloatingMenuParentHOC(_DropdownButton)
 
