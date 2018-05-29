@@ -1,0 +1,8 @@
+// @flow
+import * as React from 'react'
+
+export type AVViewProps = {
+  url: string,
+}
+
+declare export default React.ComponentType<AVViewProps>

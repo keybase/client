@@ -117,7 +117,9 @@ const metaMapReducer = (metaMap, action) => {
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
-              return action.payload.fromEphemeralPurge ? meta : Constants.updateMeta(old, meta)
+              return action.payload.fromEphemeralPurge || action.payload.fromExpunge
+                ? meta
+                : Constants.updateMeta(old, meta)
             } else {
               return neverCreate ? old : meta
             }
@@ -614,14 +616,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         const ordinalToMessage = state.messageMap.get(conversationIDKey, I.Map())
         ordinalToMessage.reduce((arr, m, ordinal) => {
           if (m.id < upToMessageID) {
-            arr.push(ordinal)
-          }
-          return arr
-        }, upToOrdinals)
-
-        const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
-        ordinals.reduce((arr, ordinal) => {
-          if (Types.ordinalToNumber(ordinal) < upToMessageID) {
             arr.push(ordinal)
           }
           return arr

@@ -225,6 +225,10 @@ func (mr MerkleRoot) HashMeta() keybase1.HashMeta {
 	return mr.ShortHash().ExportToHashMeta()
 }
 
+func (mr MerkleRoot) IsNil() bool {
+	return mr == MerkleRoot{}
+}
+
 type SkipSequence []MerkleRootPayload
 
 type MerkleTriple struct {

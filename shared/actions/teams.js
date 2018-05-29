@@ -517,7 +517,8 @@ function _getDetailsForAllTeams(action: TeamsGen.GetDetailsForAllTeamsPayload, s
 
 function* _addUserToTeams(action: TeamsGen.AddUserToTeamsPayload, state: TypedState) {
   const {role, teams, user} = action.payload
-  const collectedResults = []
+  const teamsAddedTo = []
+  const errorAddingTo = []
   for (const team of teams) {
     try {
       yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
@@ -527,12 +528,40 @@ function* _addUserToTeams(action: TeamsGen.AddUserToTeamsPayload, state: TypedSt
         role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
         sendChatNotification: true,
       })
-      collectedResults.push(`Added ${user} to ${team}.`)
+      teamsAddedTo.push(team)
     } catch (error) {
-      collectedResults.push(`Error adding ${user}: ${error.desc}  `)
+      errorAddingTo.push(team)
     }
   }
-  yield Saga.put(TeamsGen.createSetAddUserToTeamsResults({results: collectedResults.join('\n')}))
+
+  // TODO: We should split these results into two messages, showing one in green and
+  // the other in red instead of lumping them together.
+
+  let result = ''
+
+  if (teamsAddedTo.length) {
+    result += `${user} was added to `
+    if (teamsAddedTo.length > 3) {
+      result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo.length - 2} teams.`
+    } else if (teamsAddedTo.length === 3) {
+      result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo[2]}.`
+    } else if (teamsAddedTo.length === 2) {
+      result += `${teamsAddedTo[0]} and ${teamsAddedTo[1]}.`
+    } else {
+      result += `${teamsAddedTo[0]}.`
+    }
+  }
+
+  if (errorAddingTo.length) {
+    if (result.length > 0) {
+      result += ' But we '
+    } else {
+      result += 'We '
+    }
+    result += `were unable to add ${user} to ${errorAddingTo.join(', ')}.`
+  }
+
+  yield Saga.put(TeamsGen.createSetAddUserToTeamsResults({results: result}))
 }
 
 const _getTeamOperations = function*(

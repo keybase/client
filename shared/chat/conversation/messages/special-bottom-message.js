@@ -35,6 +35,7 @@ class BottomMessage extends React.PureComponent<Props> {
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  measure: ?() => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -46,6 +47,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       : null
 
   return {
+    measure: ownProps.measure,
     showResetParticipants,
     showSuperseded,
   }

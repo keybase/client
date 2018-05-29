@@ -111,11 +111,13 @@ func TestGetDisplayCurrenciesLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, currencies, 32)
+	// USD should go first.
 	require.Equal(t, "USD ($)", currencies[0].Description)
-	require.Equal(t, "USD", currencies[0].Code)
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencies[0].Code)
 	require.Equal(t, "$", currencies[0].Symbol)
+	// Rest is in alphabetical order.
 	require.Equal(t, "AUD ($)", currencies[1].Description)
-	require.Equal(t, "AUD", currencies[1].Code)
+	require.Equal(t, stellar1.OutsideCurrencyCode("AUD"), currencies[1].Code)
 	require.Equal(t, "$", currencies[1].Symbol)
 }
 
@@ -376,4 +378,28 @@ func TestChangeDisplayCurrency(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, balances, 1)
 	require.EqualValues(t, "EUR", balances[0].WorthCurrency)
+}
+
+func TestGetUserSettings(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	us, _ := tcs[0].Srv.GetUserSettingsLocal(context.Background(), 0)
+	require.Equal(t, false, us.AcceptedDisclaimer)
+}
+
+func TestSetAcceptedDisclaimer(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	us, err := tcs[0].Srv.GetUserSettingsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, false, us.AcceptedDisclaimer)
+
+	err = tcs[0].Srv.SetAcceptedDisclaimerLocal(context.Background(), 0)
+	require.NoError(t, err)
+
+	us, err = tcs[0].Srv.GetUserSettingsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, true, us.AcceptedDisclaimer)
 }

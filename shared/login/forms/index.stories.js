@@ -1,34 +1,44 @@
 // @flow
 import * as React from 'react'
 import {action, storiesOf} from '../../stories/storybook'
-import {Intro, Splash, Failure} from '.'
+import Intro from './intro'
+import Splash from './splash'
+import {isMobile} from '../../styles'
 
-const props = {
-  bootStatus: 'bootStatusLoading',
-  justDeletedSelf: null,
-  justLoginFromRevokedDevice: null,
-  justRevokedSelf: null,
-  onFeedback: action('onFeedback'),
+const introProps = {
+  bannerMessage: null,
+  onFeedback: isMobile ? action('onFeedback') : null,
   onLogin: action('onLogin'),
-  onRetry: action('onRetry'),
   onSignup: action('onSignup'),
-  retrying: false,
+}
+
+const splashProps = {
+  failed: false,
+  onFeedback: null,
+  onRetry: null,
+  status: 'Loading...',
 }
 
 const load = () => {
-  storiesOf('Login/Forms', module)
-    .add('Intro: First time user', () => <Intro {...props} bootStatus="bootStatusBootstrapped" />)
-    .add('Intro: User who just revoked device', () => (
-      <Intro {...props} bootStatus="bootStatusBootstrapped" justRevokedSelf="DEVICE_NAME" />
+  storiesOf('Login', module)
+    .add('Intro', () => <Intro {...introProps} />)
+    .add('Intro: banner', () => <Intro {...introProps} bannerMessage="You just deleted your account!" />)
+
+  storiesOf('Login', module)
+    .add('Splash', () => <Splash {...splashProps} />)
+    .add('Failure', () => (
+      <Splash {...splashProps} failed={true} status="Something went wrong" onRetry={action('onRetry')} />
     ))
-    .add('Intro: User who just deleted self', () => (
-      <Intro {...props} bootStatus="bootStatusBootstrapped" justDeletedSelf="hal9000" />
+    .add('Failure feedback', () => (
+      <Splash
+        {...splashProps}
+        failed={true}
+        status="Something went wrong"
+        onRetry={action('onRetry')}
+        onFeedback={action('onFeedback')}
+      />
     ))
-    .add('Intro: User who tried to login from revoked device', () => (
-      <Intro {...props} bootStatus="bootStatusBootstrapped" justLoginFromRevokedDevice="DEVICE_NAME" />
-    ))
-    .add('Splash', () => <Splash {...props} />)
-    .add('Failure', () => <Failure {...props} bootStatus="bootStatusFailure" />)
+  // storiesOf('Login', module).add('Failure', () => <Failure {...props} bootStatus="bootStatusFailure" />)
 }
 
 export default load

@@ -240,6 +240,7 @@ type _MetasReceivedPayload = $ReadOnly<{|
   clearExistingMetas?: boolean,
   clearExistingMessages?: boolean,
   fromEphemeralPurge?: boolean,
+  fromExpunge?: boolean,
 |}>
 type _MuteConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
