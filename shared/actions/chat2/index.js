@@ -36,80 +36,90 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 
 import * as TEMP from '../../dev/user-timings'
 
+const OLD_STYLE = false
+
 // Ask the service to refresh the inbox
 const inboxRefresh = (
   action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload,
   state: TypedState
 ) => {
   const username = state.config.username || ''
-  // const untrustedInboxRpc = new EngineRpc.EngineRpcCall(
-  // {
-  // 'chat.1.chatUi.chatInboxUnverified': function*({
-  // inbox,
-  // }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
-  // const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
-  // const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
-  // // We get a subset of meta information from the cache even in the untrusted payload
-  // const metas = items
-  // .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
-  // .filter(Boolean)
-  // // Check if some of our existing stored metas might no longer be valid
-  // const clearExistingMetas =
-  // action.type === Chat2Gen.inboxRefresh &&
-  // ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
-  // const clearExistingMessages =
-  // action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
-  // yield Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
-  // return EngineRpc.rpcResult()
-  // },
-  // },
-  // RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
-  // 'inboxRefresh',
-  // {
-  // identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-  // maxUnbox: 0,
-  // query: Constants.makeInboxQuery([]),
-  // skipUnverified: false,
-  // },
-  // false,
-  // loading => Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
-  // )
 
-  // return Saga.call(untrustedInboxRpc.run)
-
-  const onUnverified = function({inbox}: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
-    const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
-    const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
-    // We get a subset of meta information from the cache even in the untrusted payload
-    const metas = items
-      .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
-      .filter(Boolean)
-    // Check if some of our existing stored metas might no longer be valid
-    const clearExistingMetas =
-      action.type === Chat2Gen.inboxRefresh &&
-      ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
-    const clearExistingMessages =
-      action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
-    return Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
-  }
-
-  return Saga.call(
-    engineCall,
-    'chat.1.local.getInboxNonblockLocal',
-    {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      maxUnbox: 0,
-      query: Constants.makeInboxQuery([]),
-      skipUnverified: false,
-    },
-    {'chat.1.chatUi.chatInboxUnverified': onUnverified},
-    loading => {
-      if (!loading) {
-        TEMP.measureStop('NOJIMA1')
+  if (OLD_STYLE) {
+    const untrustedInboxRpc = new EngineRpc.EngineRpcCall(
+      {
+        'chat.1.chatUi.chatInboxUnverified': function*({
+          inbox,
+        }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
+          const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+          const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
+          // We get a subset of meta information from the cache even in the untrusted payload
+          const metas = items
+            .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
+            .filter(Boolean)
+          // Check if some of our existing stored metas might no longer be valid
+          const clearExistingMetas =
+            action.type === Chat2Gen.inboxRefresh &&
+            ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
+          const clearExistingMessages =
+            action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
+          yield Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
+          return EngineRpc.rpcResult()
+        },
+      },
+      RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+      'inboxRefresh',
+      {
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        maxUnbox: 0,
+        query: Constants.makeInboxQuery([]),
+        skipUnverified: false,
+      },
+      false,
+      loading => {
+        if (!loading) {
+          TEMP.measureStop('NOJIMA1')
+        }
+        return Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
       }
-      return Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
+    )
+
+    return Saga.call(untrustedInboxRpc.run)
+  } else {
+    const onUnverified = function({inbox}: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
+      const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+      const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
+      // We get a subset of meta information from the cache even in the untrusted payload
+      const metas = items
+        .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
+        .filter(Boolean)
+      // Check if some of our existing stored metas might no longer be valid
+      const clearExistingMetas =
+        action.type === Chat2Gen.inboxRefresh &&
+        ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
+      const clearExistingMessages =
+        action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
+      return Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
     }
-  )
+
+    return Saga.call(
+      engineCall,
+      'chat.1.local.getInboxNonblockLocal',
+      {
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        maxUnbox: 0,
+        query: Constants.makeInboxQuery([]),
+        skipUnverified: false,
+      },
+      {'chat.1.chatUi.chatInboxUnverified': onUnverified},
+      loading => {
+        if (!loading) {
+          TEMP.measureStop('NOJIMA1')
+        }
+        return Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
+      }
+    )
+  }
 }
 
 // TEMP

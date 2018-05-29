@@ -221,79 +221,70 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   return Saga.sequentially(actions)
 }
 
-type AvatarRPCCall = any => Promise<any>
-type AvatarHelperAction = {payload: {rpc_call: AvatarRPCCall, names: Array<string>}}
-
-const avatarSizes = [960, 256, 192]
-function _loadAvatarHelper(action: AvatarHelperAction) {
-  const {rpc_call, names} = action.payload
-  return Saga.call(rpc_call, {
-    formats: avatarSizes.map(s => `square_${s}`),
-    names,
-  })
-}
-
-function _loadAvatarHelperError(error: RPCError, action: AvatarHelperAction) {
-  if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
-    throw error
-  }
-  // ignore all other errors
-}
-
-function _loadAvatarHelperSuccess(resp: RPCTypes.LoadAvatarsRes) {
-  const nameToUrlMap = {}
-  Object.keys(resp.picmap).forEach(v => {
-    const urlMap = {}
-    avatarSizes.forEach(s => {
-      urlMap[s] = resp.picmap[v][`square_${s}`] || null
-    })
-    nameToUrlMap[v] = urlMap
-  })
-  return Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
-}
-
-function _validUsernames(names: Array<string>) {
+function _validNames(names: Array<string>) {
   return names.filter(name => !!name.match(/^([.a-z0-9_-]{1,1000})$/i))
 }
 
-let _avatarsToLoad = I.Set()
-function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
-  const usernames = _validUsernames(action.payload.usernames)
-  // store it and wait, once our timer is up we pull any and run it
-  _avatarsToLoad = _avatarsToLoad.concat(usernames)
+const avatarsToLoad = {
+  teams: I.Set(),
+  users: I.Set(),
+}
 
-  while (_avatarsToLoad.size > 0) {
-    yield Saga.call(Saga.delay, 200)
+function* addToAvatarQueue(action: ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload) {
+  if (action.type === ConfigGen.loadAvatars) {
+    const usernames = _validNames(action.payload.usernames)
+    avatarsToLoad.users = avatarsToLoad.users.concat(usernames)
+  } else {
+    const teamnames = _validNames(action.payload.teamnames)
+    avatarsToLoad.teams = avatarsToLoad.teams.concat(teamnames)
+  }
 
-    const names = _avatarsToLoad.take(maxAvatarsPerLoad).toArray()
-    _avatarsToLoad = _avatarsToLoad.skip(maxAvatarsPerLoad)
+  if (avatarChannel) {
+    yield Saga.put(avatarChannel, 'queue')
+  }
+}
 
-    if (names.length) {
-      yield Saga.put({
-        payload: {names, rpc_call: RPCTypes.avatarsLoadUserAvatarsRpcPromise},
-        type: '_loadAvatarHelper',
-      })
+const avatarSizes = [960, 256, 192]
+function* avatarCallAndHandle(names: Array<string>, method: Function) {
+  try {
+    const resp = yield Saga.call(method, {
+      formats: avatarSizes.map(s => `square_${s}`),
+      names,
+    })
+
+    const nameToUrlMap = Object.keys(resp.picmap).reduce((nameToUrlMap, v) => {
+      nameToUrlMap[v] = avatarSizes.reduce((map, s) => {
+        map[s] = resp.picmap[v][`square_${s}`] || null
+        return map
+      }, {})
+      return nameToUrlMap
+    }, {})
+
+    yield Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
+  } catch (error) {
+    if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
+      yield Saga.put(ConfigGen.createGlobalError({globalError: error}))
     }
   }
 }
 
-let _teamAvatarsToLoad = I.Set()
-function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
-  const teamnames = _validUsernames(action.payload.teamnames)
-  _teamAvatarsToLoad = _teamAvatarsToLoad.concat(teamnames)
+let avatarChannel
+function* handleAvatarQueue() {
+  avatarChannel = yield Saga.channel(Saga.buffers.dropping(1))
+  while (true) {
+    yield Saga.call(Saga.delay, 100)
+    yield Saga.take(avatarChannel)
 
-  while (_teamAvatarsToLoad.size > 0) {
-    // store it and wait, once our timer is up we pull any and run it
-    yield Saga.call(Saga.delay, 200)
+    const usernames = avatarsToLoad.users.take(maxAvatarsPerLoad).toArray()
+    avatarsToLoad.users = avatarsToLoad.users.skip(maxAvatarsPerLoad)
+    if (usernames.length) {
+      yield Saga.call(avatarCallAndHandle, usernames, RPCTypes.avatarsLoadUserAvatarsRpcPromise)
+    }
 
-    const names = _teamAvatarsToLoad.take(maxAvatarsPerLoad).toArray()
-    _teamAvatarsToLoad = _teamAvatarsToLoad.skip(maxAvatarsPerLoad)
-
-    if (names.length) {
-      yield Saga.put({
-        payload: {rpc_call: RPCTypes.avatarsLoadTeamAvatarsRpcPromise, names},
-        type: '_loadAvatarHelper',
-      })
+    const teamnames = avatarsToLoad.teams.take(maxAvatarsPerLoad).toArray()
+    avatarsToLoad.teams = avatarsToLoad.teams.skip(maxAvatarsPerLoad)
+    if (teamnames.length) {
+      yield Saga.call(avatarCallAndHandle, teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
     }
   }
 }
@@ -331,14 +322,9 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, _persistRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
-  yield Saga.safeTakeEvery(ConfigGen.loadAvatars, _loadAvatars)
-  yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, _loadTeamAvatars)
-  yield Saga.safeTakeEveryPure(
-    '_loadAvatarHelper',
-    _loadAvatarHelper,
-    _loadAvatarHelperSuccess,
-    _loadAvatarHelperError
-  )
+  yield Saga.safeTakeEvery(ConfigGen.loadAvatars, addToAvatarQueue)
+  yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, addToAvatarQueue)
+  yield Saga.fork(handleAvatarQueue)
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, _setStartedDueToPush)
   yield Saga.safeTakeEveryPure(ConfigGen.loadConfig, _loadConfig, _afterLoadConfig)
