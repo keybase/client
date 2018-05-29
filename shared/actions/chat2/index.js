@@ -32,7 +32,6 @@ import {
 } from '../platform-specific'
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
-import flags from '../../util/feature-flags'
 
 // Ask the service to refresh the inbox
 const inboxRefresh = (
@@ -1956,13 +1955,6 @@ const createConversationSelectIt = (results: Array<any>) => {
 
 const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
   const {conversationIDKey, seconds} = action.payload
-  if (!flags.explodingMessagesEnabled) {
-    // nope
-    logger.warn(
-      `Got setConvExplodingMode for convID ${conversationIDKey}, ${seconds} seconds = with exploding messages disabled`
-    )
-    return
-  }
   logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
   const cat = Constants.explodingModeGregorKey(conversationIDKey)
   if (seconds === 0) {

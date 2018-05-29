@@ -8,7 +8,6 @@ import * as Types from '../constants/types/chat2'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
-import flags from '../util/feature-flags'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -263,12 +262,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       return messageMap
     case Chat2Gen.messageExploded:
       const {conversationIDKey, messageID} = action.payload
-      if (!flags.explodingMessagesEnabled) {
-        logger.warn(
-          `Got messageExploded for ${conversationIDKey}:${messageID} with exploding messages disabled`
-        )
-        return messageMap
-      }
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
       if (!ordinal) {
         return messageMap
@@ -667,10 +660,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     }
     case Chat2Gen.updateConvExplodingModes:
       const {modes} = action.payload
-      if (!flags.explodingMessagesEnabled) {
-        logger.warn(`Got exploding modes with exploding messages disabled. JSON: ${JSON.stringify(modes)}`)
-        return state
-      }
       const explodingMap = modes.reduce((map, mode) => {
         map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
         return map
