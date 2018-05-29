@@ -12,3 +12,8 @@ export type _State = {
   hello: string,
 }
 export type State = I.RecordOf<_State>
+
+export type _WalletMeta = {
+
+}
+export type WalletMeta = I.RecordOf<_WalletMeta>

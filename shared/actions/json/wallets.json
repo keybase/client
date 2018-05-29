@@ -3,8 +3,13 @@
     "import * as Types from '../constants/types/wallets'",
   ],
   "actions": {
+    "walletsReceived": {
+      "_description": "Update our store of wallet data",
+      "wallets": "Array<Types.WalletMeta>",
+
+    },
     "walletsRefresh": {
-      "_description": "Refresh out list of wallets",
+      "_description": "Refresh our list of wallets",
     },
   }
 }

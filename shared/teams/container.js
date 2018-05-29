@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
+import * as WalletsGen from '../actions/wallets-gen'
 import Teams from './main'
 import openURL from '../util/open-url'
 import {navigateAppend} from '../actions/route-tree'
@@ -23,6 +24,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  _loadWallets: () => dispatch(WalletsGen.createWalletsRefresh()),
   onCreateTeam: () => {
     dispatch(
       navigateAppend([
@@ -65,6 +67,7 @@ export default compose(
   lifecycle({
     componentDidMount() {
       this.props._loadTeams()
+      this.props._loadWallets()
     },
   })
 )(Teams)
