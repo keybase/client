@@ -1906,6 +1906,10 @@ export const uiPromptDefault = {
   no: 2,
 }
 
+export const userFindNextMerkleRootAfterRevokeRpcChannelMap = (configKeys: Array<string>, request: UserFindNextMerkleRootAfterRevokeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.findNextMerkleRootAfterRevoke', request)
+
+export const userFindNextMerkleRootAfterRevokeRpcPromise = (request: UserFindNextMerkleRootAfterRevokeRpcParam): Promise<UserFindNextMerkleRootAfterRevokeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.findNextMerkleRootAfterRevoke', request, (error: RPCError, result: UserFindNextMerkleRootAfterRevokeResult) => (error ? reject(error) : resolve(result))))
+
 export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
 
 export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => (error ? reject(error) : resolve(result))))
@@ -2263,7 +2267,7 @@ export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCal
 
 export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
-export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time, deviceCtime: Time}>
 
 export type DeviceEkStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
 
@@ -2910,6 +2914,8 @@ export type NaclDHKeyPublic = any
 export type NaclSigningKeyPrivate = any
 
 export type NaclSigningKeyPublic = any
+
+export type NextMerkleRootRes = $ReadOnly<{res?: ?MerkleRootV2}>
 
 export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean}>
 
@@ -4079,6 +4085,8 @@ export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation
 
 export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetadata?: ?Array<UserEkMetadata>}>
 
+export type UserFindNextMerkleRootAfterRevokeRpcParam = $ReadOnly<{uid: UID, kid: KID, loc: SigChainLocation, prev: MerkleRootV2, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserInterestingPeopleRpcParam = $ReadOnly<{maxUsers: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4339,6 +4347,7 @@ type TlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 type TlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 type TrackTrackResult = ConfirmResult
 type UiPromptYesNoResult = Boolean
+type UserFindNextMerkleRootAfterRevokeResult = NextMerkleRootRes
 type UserGetUPAKResult = UPAKVersioned
 type UserInterestingPeopleResult = ?Array<InterestingPerson>
 type UserListTrackers2Result = UserSummary2Set

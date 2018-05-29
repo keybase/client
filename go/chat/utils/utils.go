@@ -477,10 +477,17 @@ func FilterExploded(msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 			if mvalid.IsEphemeral() && mvalid.HideExplosion(now) {
 				continue
 			}
+		} else if msg.IsError() {
+			// If we had an error on an expired message, it's irrelevant now
+			// that the message has exploded so we hide it.
+			merr := msg.Error()
+			if merr.IsEphemeral && merr.IsEphemeralExpired {
+				continue
+			}
 		}
 		res = append(res, msg)
 	}
-	return msgs
+	return res
 }
 
 // GetSupersedes must be called with a valid msg
