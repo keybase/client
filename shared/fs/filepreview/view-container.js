@@ -16,10 +16,8 @@ import DefaultView from './default-view-container'
 import ImageView from './image-view'
 import TextView from './text-view'
 import AVView from './av-view'
-import PdfView from './pdf-view'
 import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, platformStyles} from '../../styles'
-import {isAndroid} from '../../constants/platform'
 
 type Props = {
   path: Types.Path,
