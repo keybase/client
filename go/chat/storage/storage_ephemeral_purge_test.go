@@ -165,7 +165,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// state
 	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
 		ConvID:          convID,
-		NextPurgeTime:   msgF.Valid().Etime(),
+		NextPurgeTime:   msgE.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
 		IsActive:        true,
 	}
@@ -174,7 +174,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	t.Logf("mergeH")
 	// We add msgH, which is already expired, so it should get purged on entry,
-	// but our nextPurgeTime should be unchanged, since msgF's etime is still
+	// but our nextPurgeTime should be unchanged, since msgE's etime is still
 	// the min.
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgH}))
 	verifyTrackerState(expectedPurgeInfo)
