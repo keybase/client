@@ -289,7 +289,14 @@ func (s *Server) transformPaymentStellar(ctx context.Context, p stellar1.Payment
 		SourceType: "stellar",
 		Target:     p.To.String(),
 		TargetType: "stellar",
+		Status:     stellar1.TransactionStatus_SUCCESS.String(),
 	}
+
+	formatted, err := stellar.FormatAmount(p.Amount, false)
+	if err != nil {
+		return nil, err
+	}
+	loc.Amount = formatted + " XLM"
 
 	return &loc, nil
 }
@@ -302,7 +309,7 @@ func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentS
 
 	if p.DisplayAmount != nil {
 		var err error
-		loc.Worth, err = stellar.FormatCurrency(ctx, s.G(), *p.DisplayAmount, stellar1.OutsideCurrencyCode(loc.WorthCurrency))
+		loc.Worth, err = stellar.FormatCurrency(ctx, s.G(), *p.DisplayAmount, stellar1.OutsideCurrencyCode(*p.DisplayCurrency))
 		if err != nil {
 			return nil, err
 		}
@@ -335,6 +342,11 @@ func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentS
 	}
 	loc.Amount = formatted + " XLM"
 
+	loc.Status = p.TxStatus.String()
+	loc.StatusDetail = p.TxErrMsg
+
+	loc.Note, loc.NoteErr = s.decryptNote(ctx, p.TxID, p.NoteB64)
+
 	return &loc, nil
 }
 
@@ -348,6 +360,23 @@ func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, 
 		return "", err
 	}
 	return uname.String(), nil
+}
+
+func (s *Server) decryptNote(ctx context.Context, txid stellar1.TransactionID, note string) (plaintext, errOutput string) {
+	if len(note) == 0 {
+		return "", ""
+	}
+
+	decrypted, err := stellar.NoteDecryptB64(ctx, s.G(), note)
+	if err != nil {
+		return "", fmt.Sprintf("failed to decrypt payment note: %s", err)
+	}
+
+	if decrypted.StellarID != txid {
+		return "", "discarded note for wrong transaction ID"
+	}
+
+	return decrypted.Note, ""
 }
 
 type balanceList []stellar1.Balance
