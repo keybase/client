@@ -72,11 +72,8 @@ const Renderer = ({mimeType, isSymlink, url, path, routePath, loadMimeType}) => 
     case 'av':
       return <AVView url={url} routePath={routePath} />
     case 'pdf':
-      return isAndroid ? ( // Android WebView doesn't support PDF. Come on Android!
-        <DefaultView path={path} routePath={routePath} />
-      ) : (
-        <PdfView url={url} routePath={routePath} />
-      )
+      // Security risks to links in PDF viewing. See DESKTOP-6888.
+      return <DefaultView path={path} routePath={routePath} />
     default:
       return <Text type="BodyError">This shouldn't happen</Text>
   }
