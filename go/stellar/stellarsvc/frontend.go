@@ -4,6 +4,7 @@ package stellarsvc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -258,6 +259,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		if err != nil {
 			s := err.Error()
 			payments[i].Err = &s
+			payments[i].Payment = nil // just to make sure
 		}
 	}
 
@@ -283,123 +285,68 @@ func (s *Server) transformPaymentSummary(ctx context.Context, p stellar1.Payment
 }
 
 func (s *Server) transformPaymentStellar(ctx context.Context, p stellar1.PaymentSummaryStellar) (*stellar1.PaymentLocal, error) {
-	loc := stellar1.PaymentLocal{
-		TxID:       p.TxID,
-		Time:       p.Ctime,
-		Source:     p.From.String(),
-		SourceType: "stellar",
-		Target:     p.To.String(),
-		TargetType: "stellar",
-	}
-
-	formatted, err := stellar.FormatAmount(p.Amount, false)
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount)
 	if err != nil {
 		return nil, err
 	}
-	loc.Amount = formatted + " XLM"
+
+	loc.Source = p.From.String()
+	loc.SourceType = "stellar"
+	loc.Target = p.To.String()
+	loc.TargetType = "stellar"
 
 	loc.Status, loc.StatusDetail = stellar1.TransactionStatus_SUCCESS.Details("")
 
-	return &loc, nil
+	return loc, nil
 }
 
 func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentSummaryDirect) (*stellar1.PaymentLocal, error) {
-	loc := stellar1.PaymentLocal{
-		TxID: p.TxID,
-		Time: p.Ctime,
-	}
-
-	if p.DisplayAmount != nil {
-		var err error
-		loc.Worth, err = stellar.FormatCurrency(ctx, s.G(), *p.DisplayAmount, stellar1.OutsideCurrencyCode(*p.DisplayCurrency))
-		if err != nil {
-			return nil, err
-		}
-	}
-	if p.DisplayCurrency != nil {
-		loc.WorthCurrency = *p.DisplayCurrency
-	}
-
-	if name, err := s.lookupUsername(ctx, p.From.Uid); err == nil {
-		loc.Source = name
-		loc.SourceType = "keybase"
-	} else {
-		loc.Source = p.FromStellar.String()
-		loc.SourceType = "stellar"
-	}
-
-	if p.To != nil {
-		if name, err := s.lookupUsername(ctx, p.To.Uid); err == nil {
-			loc.Target = name
-			loc.TargetType = "keybase"
-		} else {
-			loc.Target = p.ToStellar.String()
-			loc.TargetType = "stellar"
-		}
-	}
-
-	formatted, err := stellar.FormatAmount(p.Amount, false)
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount)
 	if err != nil {
 		return nil, err
 	}
-	loc.Amount = formatted + " XLM"
+
+	loc.Worth, loc.WorthCurrency, err = s.formatWorth(ctx, p.DisplayAmount, p.DisplayCurrency)
+	if err != nil {
+		return nil, err
+	}
+
+	loc.Source, loc.SourceType = s.lookupUsernameFallback(ctx, p.From.Uid, p.FromStellar)
+
+	if p.To != nil {
+		loc.Target, loc.TargetType = s.lookupUsernameFallback(ctx, p.To.Uid, p.ToStellar)
+	}
 
 	loc.Status, loc.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
 
 	loc.Note, loc.NoteErr = s.decryptNote(ctx, p.TxID, p.NoteB64)
 
-	return &loc, nil
+	return loc, nil
 }
 
 func (s *Server) transformPaymentRelay(ctx context.Context, p stellar1.PaymentSummaryRelay) (*stellar1.PaymentLocal, error) {
-
-	s.G().Log.CDebugf(ctx, "transformPaymentRelay: %+v", p)
-
-	loc := stellar1.PaymentLocal{
-		TxID: p.TxID,
-		Time: p.Ctime,
-	}
-
-	if p.DisplayAmount != nil && len(*p.DisplayAmount) != 0 {
-		var err error
-		loc.Worth, err = stellar.FormatCurrency(ctx, s.G(), *p.DisplayAmount, stellar1.OutsideCurrencyCode(*p.DisplayCurrency))
-		if err != nil {
-			return nil, err
-		}
-	}
-	if p.DisplayCurrency != nil {
-		loc.WorthCurrency = *p.DisplayCurrency
-	}
-
-	if name, err := s.lookupUsername(ctx, p.From.Uid); err == nil {
-		loc.Source = name
-		loc.SourceType = "keybase"
-	} else {
-		loc.Source = p.FromStellar.String()
-		loc.SourceType = "stellar"
-	}
-
-	if p.To == nil {
-		loc.Status = "error"
-		loc.StatusDetail = "No recipient"
-		return &loc, nil
-	}
-
-	name, err := s.lookupUsername(ctx, p.To.Uid)
-	if err != nil {
-		loc.Status = "error"
-		loc.StatusDetail = "Recipient lookup failed"
-		return &loc, nil
-	}
-
-	loc.Target = name
-	loc.TargetType = "keybase"
-
-	formatted, err := stellar.FormatAmount(p.Amount, false)
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount)
 	if err != nil {
 		return nil, err
 	}
-	loc.Amount = formatted + " XLM"
+
+	loc.Worth, loc.WorthCurrency, err = s.formatWorth(ctx, p.DisplayAmount, p.DisplayCurrency)
+	if err != nil {
+		return nil, err
+	}
+
+	loc.Source, loc.SourceType = s.lookupUsernameFallback(ctx, p.From.Uid, p.FromStellar)
+
+	if p.To == nil {
+		return nil, errors.New("no recipient")
+	}
+	name, err := s.lookupUsername(ctx, p.To.Uid)
+	if err != nil {
+		s.G().Log.CDebugf(ctx, "recipient lookup failed: %s", err)
+		return nil, errors.New("recipient lookup failed")
+	}
+	loc.Target = name
+	loc.TargetType = "keybase"
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
 		// If the funding tx is not complete
@@ -438,7 +385,15 @@ func (s *Server) transformPaymentRelay(ctx context.Context, p stellar1.PaymentSu
 		loc.NoteErr = fmt.Sprintf("error decrypting note: %s", err)
 	}
 
-	return &loc, nil
+	return loc, nil
+}
+
+func (s *Server) lookupUsernameFallback(ctx context.Context, uid keybase1.UID, acctID stellar1.AccountID) (name, kind string) {
+	name, err := s.lookupUsername(ctx, uid)
+	if err == nil {
+		return name, "keybase"
+	}
+	return acctID.String(), "stellar"
 }
 
 func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, error) {
@@ -447,6 +402,23 @@ func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, 
 		return "", err
 	}
 	return uname.String(), nil
+}
+
+func (s *Server) formatWorth(ctx context.Context, amount, currency *string) (worth, worthCurrency string, err error) {
+	if amount == nil || currency == nil {
+		return "", "", nil
+	}
+
+	if len(*amount) == 0 || len(*currency) == 0 {
+		return "", "", nil
+	}
+
+	worth, err = stellar.FormatCurrency(ctx, s.G(), *amount, stellar1.OutsideCurrencyCode(*currency))
+	if err != nil {
+		return "", "", err
+	}
+
+	return worth, *currency, nil
 }
 
 func (s *Server) decryptNote(ctx context.Context, txid stellar1.TransactionID, note string) (plaintext, errOutput string) {
@@ -471,11 +443,7 @@ type balanceList []stellar1.Balance
 func (a balanceList) nativeBalanceDescription() (string, error) {
 	for _, b := range a {
 		if b.Asset.IsNativeXLM() {
-			fmtAmount, err := stellar.FormatAmount(b.Amount, false)
-			if err != nil {
-				return "", err
-			}
-			return fmt.Sprintf("%s XLM", fmtAmount), nil
+			return stellar.FormatAmountXLM(b.Amount)
 		}
 	}
 	return "0 XLM", nil
@@ -551,4 +519,16 @@ func (s *Server) GetWalletAccountSecretKeyLocal(ctx context.Context, arg stellar
 	}
 
 	return stellar.ExportSecretKey(ctx, s.G(), arg.AccountID)
+}
+
+func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string) (*stellar1.PaymentLocal, error) {
+	formatted, err := stellar.FormatAmountXLM(amount)
+	if err != nil {
+		return nil, err
+	}
+
+	loc := stellar1.NewPaymentLocal(txID, ctime)
+	loc.Amount = formatted
+
+	return loc, nil
 }

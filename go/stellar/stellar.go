@@ -708,6 +708,18 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
 }
 
+func FormatAmountXLM(amount string) (string, error) {
+	return FormatAmountWithSuffix(amount, false, "XLM")
+}
+
+func FormatAmountWithSuffix(amount string, precisionTwo bool, suffix string) (string, error) {
+	formatted, err := FormatAmount(amount, precisionTwo)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s %s", formatted, suffix), nil
+}
+
 func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
 		return "", errors.New("empty amount")

@@ -152,3 +152,10 @@ func (t TransactionStatus) Details(errMsg string) (status, detail string) {
 
 	return status, detail
 }
+
+func NewPaymentLocal(txid TransactionID, ctime TimeMs) *PaymentLocal {
+	return &PaymentLocal{
+		TxID: txid,
+		Time: ctime,
+	}
+}
