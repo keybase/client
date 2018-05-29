@@ -1427,7 +1427,7 @@ type teamEKPayload struct {
 
 func (t *Team) teamEKPayload(ctx context.Context, recipients []keybase1.UID) (*teamEKPayload, error) {
 	ekLib := t.G().GetEKLib()
-	if !(ekLib != nil && ekLib.ShouldRun(ctx) && len(recipients) > 0) {
+	if ekLib == nil || len(recipients) == 0 {
 		return nil, nil
 	}
 
