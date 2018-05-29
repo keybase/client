@@ -537,6 +537,14 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             const conversationIDKey = Types.stringToConversationIDKey(cid)
             const messages = convoToMessages[cid]
             messages.forEach(message => {
+              // don't overwrite full w/ cached values ever
+              if (message.source === 'cache') {
+                const maybeFull = state.messageMap.getIn([conversationIDKey, message.ordinal])
+                if (maybeFull && maybeFull.source === 'full') {
+                  // bail
+                  return
+                }
+              }
               const m = canSendType(message)
               const old = m ? findExisting(conversationIDKey, m) : null
               const toSet = old ? Constants.upgradeMessage(old, message) : message

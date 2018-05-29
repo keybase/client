@@ -254,7 +254,8 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       conversationIDKey,
       cMsg,
       state.config.username || '',
-      state.config.deviceName || ''
+      state.config.deviceName || '',
+      'full'
     )
     if (message) {
       // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
@@ -796,9 +797,9 @@ const loadMoreMessages = (
   // Update bookkeeping
   _loadingMessagesWithPaginationKey[Types.conversationIDKeyToString(conversationIDKey)] = paginationKey
 
-  // we clear on the first callback. we sometimes don't get a cached context
+  // we clear on the first callback. we sometimes don't get a cached source
   let calledClear = false
-  const onGotThread = function*({thread}: {thread: string}, context: 'full' | 'cached') {
+  const onGotThread = function*({thread}: {thread: string}, source: 'full' | 'cache') {
     if (thread) {
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
 
@@ -808,7 +809,8 @@ const loadMoreMessages = (
               conversationIDKey,
               m,
               state.config.username || '',
-              state.config.deviceName || ''
+              state.config.deviceName || '',
+              source
             )
           : null
         if (message) {
@@ -826,7 +828,7 @@ const loadMoreMessages = (
           (uiMessages.pagination && uiMessages.pagination.next) || ''
         )
 
-        if (context === 'full') {
+        if (source === 'full') {
           const paginationMoreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
           // if last is true on the full payload we blow away paginationKey
           newPaginationKey = paginationMoreToLoad ? newPaginationKey : Types.stringToPaginationKey('')
@@ -868,7 +870,7 @@ const loadMoreMessages = (
   const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatThreadCached': function*(p) {
-        return yield* onGotThread(p, 'cached')
+        return yield* onGotThread(p, 'cache')
       },
       'chat.1.chatUi.chatThreadFull': function*(p) {
         return yield* onGotThread(p, 'full')
