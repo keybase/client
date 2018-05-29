@@ -304,6 +304,13 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
           break
         case RPCChatTypes.commonMessageType.delete:
           if (body.delete && body.delete.messageIDs) {
+            // check if the delete came from an exploding message
+            const messageIDs = body.delete.messageIDs
+            const messages = state.chat2.messageMap.get(conversationIDKey)
+            let isExplodeNow = messageIDs.reduce((prev, msgID) => {
+              const message = messages.find(msg => msg.id === msg)
+            }, false)
+
             actions.push(
               valid.isEphemeral
                 ? Chat2Gen.createMessagesExploded({
@@ -311,7 +318,7 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
                     explodedBy: valid.senderUsername,
                     messageIDs: body.delete.messageIDs,
                   })
-                : Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs: body.delete.messageIDs})
+                : Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs})
             )
           }
           break
