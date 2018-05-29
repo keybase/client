@@ -32,6 +32,7 @@ import {
 } from '../platform-specific'
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
+import flags from '../../util/feature-flags'
 
 // Ask the service to refresh the inbox
 const inboxRefresh = (
@@ -1102,7 +1103,10 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const tlfName = meta.tlfname
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
 
-  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  // disable sending exploding messages if flag is false
+  const ephemeralLifetime = flags.explodingMessagesEnabled
+    ? Constants.getConversationExplodingMode(state, conversationIDKey)
+    : 0
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   // Inject pending message and make the call
@@ -1540,7 +1544,10 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   )
   yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
 
-  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  // disable sending exploding messages if flag is false
+  const ephemeralLifetime = flags.explodingMessagesEnabled
+    ? Constants.getConversationExplodingMode(state, conversationIDKey)
+    : 0
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   let lastRatioSent = 0
