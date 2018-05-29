@@ -78,6 +78,10 @@ export const localGetDisplayCurrenciesLocalRpcChannelMap = (configKeys: Array<st
 
 export const localGetDisplayCurrenciesLocalRpcPromise = (request: LocalGetDisplayCurrenciesLocalRpcParam): Promise<LocalGetDisplayCurrenciesLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getDisplayCurrenciesLocal', request, (error: RPCError, result: LocalGetDisplayCurrenciesLocalResult) => (error ? reject(error) : resolve(result))))
 
+export const localGetUserSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetUserSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getUserSettingsLocal', request)
+
+export const localGetUserSettingsLocalRpcPromise = (request: LocalGetUserSettingsLocalRpcParam): Promise<LocalGetUserSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getUserSettingsLocal', request, (error: RPCError, result: LocalGetUserSettingsLocalResult) => (error ? reject(error) : resolve(result))))
+
 export const localGetWalletAccountsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetWalletAccountsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getWalletAccountsLocal', request)
 
 export const localGetWalletAccountsLocalRpcPromise = (request: LocalGetWalletAccountsLocalRpcParam): Promise<LocalGetWalletAccountsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getWalletAccountsLocal', request, (error: RPCError, result: LocalGetWalletAccountsLocalResult) => (error ? reject(error) : resolve(result))))
@@ -105,6 +109,10 @@ export const localRecentPaymentsCLILocalRpcPromise = (request: LocalRecentPaymen
 export const localSendCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalSendCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.sendCLILocal', request)
 
 export const localSendCLILocalRpcPromise = (request: LocalSendCLILocalRpcParam): Promise<LocalSendCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.sendCLILocal', request, (error: RPCError, result: LocalSendCLILocalResult) => (error ? reject(error) : resolve(result))))
+
+export const localSetAcceptedDisclaimerLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetAcceptedDisclaimerLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.setAcceptedDisclaimerLocal', request)
+
+export const localSetAcceptedDisclaimerLocalRpcPromise = (request: LocalSetAcceptedDisclaimerLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.setAcceptedDisclaimerLocal', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const localSetDisplayCurrencyRpcChannelMap = (configKeys: Array<string>, request: LocalSetDisplayCurrencyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.setDisplayCurrency', request)
 
@@ -207,7 +215,7 @@ export type BundleVisibleV1 = $ReadOnly<{revision: BundleRevision, prev: Hash, a
 
 export type ClaimSummary = $ReadOnly<{txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, dir: RelayDirection, toStellar: AccountID, to: Keybase1.UserVersion}>
 
-export type CurrencyLocal = $ReadOnly<{description: String, code: String, symbol: String, name: String}>
+export type CurrencyLocal = $ReadOnly<{description: String, code: OutsideCurrencyCode, symbol: String, name: String}>
 
 export type CurrencySymbol = $ReadOnly<{symbol: String, ambigious: Boolean, postfix: Boolean}>
 
@@ -243,6 +251,8 @@ export type LocalGetAvailableLocalCurrenciesRpcParam = ?$ReadOnly<{incomingCallM
 
 export type LocalGetDisplayCurrenciesLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type LocalGetUserSettingsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type LocalGetWalletAccountsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalImportSecretKeyLocalRpcParam = $ReadOnly<{secretKey: SecretKey, makePrimary: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -256,6 +266,8 @@ export type LocalPaymentDetailCLILocalRpcParam = $ReadOnly<{txID: String, incomi
 export type LocalRecentPaymentsCLILocalRpcParam = $ReadOnly<{accountID?: ?AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalSendCLILocalRpcParam = $ReadOnly<{recipient: String, amount: String, asset: Asset, note: String, displayAmount: String, displayCurrency: String, forceRelay: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LocalSetAcceptedDisclaimerLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalSetDisplayCurrencyRpcParam = $ReadOnly<{accountID: AccountID, currency: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -357,6 +369,8 @@ export type TransactionStatus =
   | 3 // ERROR_TRANSIENT_3
   | 4 // ERROR_PERMANENT_4
 
+export type UserSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
+
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String}>
 type LocalBalancesLocalResult = ?Array<Balance>
 type LocalClaimCLILocalResult = RelayClaimResult
@@ -366,6 +380,7 @@ type LocalFormatLocalCurrencyStringResult = String
 type LocalGetAccountAssetsLocalResult = ?Array<AccountAssetLocal>
 type LocalGetAvailableLocalCurrenciesResult = {[key: string]: OutsideCurrencyDefinition}
 type LocalGetDisplayCurrenciesLocalResult = ?Array<CurrencyLocal>
+type LocalGetUserSettingsLocalResult = UserSettings
 type LocalGetWalletAccountsLocalResult = ?Array<WalletAccountLocal>
 type LocalLinkNewWalletAccountLocalResult = AccountID
 type LocalOwnAccountLocalResult = Boolean

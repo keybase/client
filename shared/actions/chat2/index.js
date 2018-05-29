@@ -495,6 +495,23 @@ const onChatIdentifyUpdate = update => {
   return [UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed})]
 }
 
+// Get actions to update messagemap / metamap when retention policy expunge happens
+const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo) => {
+  const actions = []
+  const meta = !!expunge.conv && Constants.inboxUIItemToConversationMeta(expunge.conv)
+  if (meta) {
+    actions.push(Chat2Gen.createMetasReceived({fromExpunge: true, metas: [meta]}))
+  }
+  const conversationIDKey = Types.conversationIDToKey(expunge.convID)
+  actions.push(
+    Chat2Gen.createMessagesWereDeleted({
+      conversationIDKey,
+      upToMessageID: expunge.expunge.upto,
+    })
+  )
+  return actions
+}
+
 // Get actions to update messagemap / metamap when ephemeral messages expire
 const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => {
   const actions = []
@@ -561,15 +578,7 @@ const setupChatHandlers = () => {
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
           return [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
         case RPCChatTypes.notifyChatChatActivityType.expunge:
-          const expungeInfo: ?RPCChatTypes.ExpungeInfo = activity.expunge
-          return expungeInfo
-            ? [
-                Chat2Gen.createMessagesWereDeleted({
-                  conversationIDKey: Types.conversationIDToKey(expungeInfo.convID),
-                  upToMessageID: expungeInfo.expunge.upto,
-                }),
-              ]
-            : null
+          return activity.expunge ? expungeToActions(activity.expunge) : null
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge ? ephemeralPurgeToActions(activity.ephemeralPurge) : null
         default:
