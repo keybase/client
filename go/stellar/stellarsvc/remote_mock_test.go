@@ -248,7 +248,7 @@ func (a *FakeAccount) Check() bool {
 		return true
 	}
 
-	return b == 0
+	return b != 0
 }
 
 func (a *FakeAccount) availableBalance() string {
