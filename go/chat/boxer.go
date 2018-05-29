@@ -401,12 +401,6 @@ func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
 		return res, err
 	// V3 is the same as V2, except that it indicates exploding message support.
 	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3:
-		// Disable reading exploding messages until fully we release support
-		if boxed.Version == chat1.MessageBoxedVersion_V3 {
-			if ekLib := b.G().GetEKLib(); ekLib != nil && !ekLib.ShouldRun(ctx) {
-				return nil, NewPermanentUnboxingError(NewMessageBoxedVersionError(boxed.Version))
-			}
-		}
 		res, err := b.unboxV2orV3(ctx, boxed, membersType, encryptionKey, ephemeralSeed)
 		if err != nil {
 			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
