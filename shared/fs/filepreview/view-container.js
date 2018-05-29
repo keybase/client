@@ -16,10 +16,8 @@ import DefaultView from './default-view-container'
 import ImageView from './image-view'
 import TextView from './text-view'
 import AVView from './av-view'
-import PdfView from './pdf-view'
 import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, platformStyles} from '../../styles'
-import {isAndroid} from '../../constants/platform'
 
 type Props = {
   path: Types.Path,
@@ -72,11 +70,8 @@ const Renderer = ({mimeType, isSymlink, url, path, routePath, loadMimeType}) => 
     case 'av':
       return <AVView url={url} routePath={routePath} />
     case 'pdf':
-      return isAndroid ? ( // Android WebView doesn't support PDF. Come on Android!
-        <DefaultView path={path} routePath={routePath} />
-      ) : (
-        <PdfView url={url} routePath={routePath} />
-      )
+      // Security risks to links in PDF viewing. See DESKTOP-6888.
+      return <DefaultView path={path} routePath={routePath} />
     default:
       return <Text type="BodyError">This shouldn't happen</Text>
   }
