@@ -1179,19 +1179,16 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		}
 
 		err := fbm.doReclamation(timer)
-		if e := errors.Cause(err); e != nil {
-			_, isWriteError := e.(WriteAccessError)
-			_, isFinalError := e.(kbfsmd.MetadataIsFinalError)
-			_, isRevokeError := e.(RevokedDeviceVerificationError)
-			if isWriteError || isFinalError || isRevokeError {
-				// If we can't write the MD, don't bother with the timer
-				// anymore. Don't completely shut down, since we don't
-				// want forced reclamations to hang.
-				timer.Stop()
-				timerChan = make(chan time.Time)
-				fbm.log.CDebugf(context.Background(),
-					"Permanently stopping QR due to error: %+v", err)
-			}
+		switch errors.Cause(err).(type) {
+		case WriteAccessError, kbfsmd.MetadataIsFinalError,
+			RevokedDeviceVerificationError:
+			// If we can't write the MD, don't bother with the timer
+			// anymore. Don't completely shut down, since we don't
+			// want forced reclamations to hang.
+			timer.Stop()
+			timerChan = make(chan time.Time)
+			fbm.log.CDebugf(context.Background(),
+				"Permanently stopping QR due to error: %+v", err)
 		}
 	}
 }
