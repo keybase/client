@@ -165,9 +165,7 @@ const unboxRows = (
 
   const onUnboxed = function*({conv}: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
     const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-    // We allow empty conversations now since we create them and they're empty now
-    const allowEmpty = action.type === Chat2Gen.selectConversation
-    const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem, allowEmpty)
+    const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem, true)
     if (meta) {
       yield Saga.put(
         Chat2Gen.createMetasReceived({
@@ -1135,7 +1133,8 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
 const previewConversationAfterFindExisting = (
   _fromPreviewConversation,
-  action: Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
+  action: Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
+  state: TypedState
 ) => {
   // TODO make a sequentially that uses an object map and not all this array nonsense
   if (!_fromPreviewConversation || _fromPreviewConversation.length !== 4) {
@@ -1152,6 +1151,14 @@ const previewConversationAfterFindExisting = (
     // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
     // and allows quoting privately to work nicely
     existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
+
+    // If we get a conversationIDKey we don't know about (maybe an empty convo) lets treat it as not being found so we can go through the create flow
+    if (
+      existingConversationIDKey &&
+      Constants.getMeta(state, existingConversationIDKey).conversationIDKey === Constants.noConversationIDKey
+    ) {
+      existingConversationIDKey = Constants.noConversationIDKey
+    }
   }
 
   // If we're previewing a team conversation we want to actually make an rpc call and add it to the inbox
