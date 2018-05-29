@@ -133,7 +133,7 @@ const styles = styleSheetCreate({
   container: {
     alignSelf: 'flex-end',
     position: 'relative',
-    width: isMobile ? 80 : 72,
+    width: isMobile ? 50 : 72,
     height: isMobile ? 22 : 19,
   },
   countdownContainer: {
