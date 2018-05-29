@@ -132,7 +132,7 @@ func KBFSRootHashFromString(s string) (ret KBFSRootHash, err error) {
 	if s == "null" {
 		return nil, nil
 	}
-	b, err := hex.DecodeString(s)
+	b, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		return ret, err
 	}

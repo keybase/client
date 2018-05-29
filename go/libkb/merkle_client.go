@@ -311,15 +311,15 @@ type MerkleRootPayloadUnpacked struct {
 		Kbfs struct {
 			Private struct {
 				Root    keybase1.KBFSRootHash `json:"root"`
-				Version keybase1.Seqno        `json:"version"`
+				Version *keybase1.Seqno       `json:"version"`
 			} `json:"private"`
 			Public struct {
 				Root    keybase1.KBFSRootHash `json:"root"`
-				Version keybase1.Seqno        `json:"version"`
+				Version *keybase1.Seqno       `json:"version"`
 			} `json:"public"`
 			PrivateTeam struct {
 				Root    keybase1.KBFSRootHash `json:"root"`
-				Version keybase1.Seqno        `json:"version"`
+				Version *keybase1.Seqno       `json:"version"`
 			} `json:"privateteam"`
 		} `json:"kbfs"`
 		LegacyUIDRoot NodeHashShort  `json:"legacy_uid_root"`
@@ -1768,23 +1768,23 @@ func (mr *MerkleRoot) Fetched() time.Time {
 	return mr.fetched
 }
 
-func (mr *MerkleRoot) KBFSPrivate() (keybase1.KBFSRootHash, keybase1.Seqno) {
+func (mr *MerkleRoot) KBFSPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	if mr == nil {
-		return nil, keybase1.Seqno(0)
+		return nil, nil
 	}
 	return mr.payload.kbfsPrivate()
 }
 
-func (mr *MerkleRoot) KBFSPublic() (keybase1.KBFSRootHash, keybase1.Seqno) {
+func (mr *MerkleRoot) KBFSPublic() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	if mr == nil {
-		return nil, keybase1.Seqno(0)
+		return nil, nil
 	}
 	return mr.payload.kbfsPublic()
 }
 
-func (mr *MerkleRoot) KBFSPrivateTeam() (keybase1.KBFSRootHash, keybase1.Seqno) {
+func (mr *MerkleRoot) KBFSPrivateTeam() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	if mr == nil {
-		return nil, keybase1.Seqno(0)
+		return nil, nil
 	}
 	return mr.payload.kbfsPrivateTeam()
 }
@@ -1801,12 +1801,12 @@ func (mrp MerkleRootPayload) rootHash() NodeHash          { return mrp.unpacked.
 func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.Body.LegacyUIDRoot }
 func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }
 func (mrp MerkleRootPayload) ctime() int64                { return mrp.unpacked.Ctime }
-func (mrp MerkleRootPayload) kbfsPrivate() (keybase1.KBFSRootHash, keybase1.Seqno) {
+func (mrp MerkleRootPayload) kbfsPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.Private.Root, mrp.unpacked.Body.Kbfs.Private.Version
 }
-func (mrp MerkleRootPayload) kbfsPublic() (keybase1.KBFSRootHash, keybase1.Seqno) {
+func (mrp MerkleRootPayload) kbfsPublic() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.Public.Root, mrp.unpacked.Body.Kbfs.Public.Version
 }
-func (mrp MerkleRootPayload) kbfsPrivateTeam() (keybase1.KBFSRootHash, keybase1.Seqno) {
+func (mrp MerkleRootPayload) kbfsPrivateTeam() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.PrivateTeam.Root, mrp.unpacked.Body.Kbfs.PrivateTeam.Version
 }
