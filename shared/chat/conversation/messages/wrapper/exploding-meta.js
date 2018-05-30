@@ -1,8 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text, Icon, HOCTimers, type PropsWithTimer} from '../../../../common-adapters'
+import {Box2, ClickableBox, Text, Icon, HOCTimers, type PropsWithTimer} from '../../../../common-adapters'
 import {castPlatformStyles} from '../../../../common-adapters/icon'
-import {collapseStyles, globalColors, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalStyles,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 import {formatDurationShort} from '../../../../util/timestamp'
 
 const oneMinuteInMs = 60 * 1000
@@ -12,6 +19,7 @@ const oneDayInMs = oneHourInMs * 24
 type Props = PropsWithTimer<{
   exploded: boolean,
   explodesAt: number,
+  onClick: ?() => void,
 }>
 
 // 'none' is functionally 'unset', used to detect a fresh mount
@@ -95,9 +103,9 @@ class ExplodingMeta extends React.Component<Props, State> {
         )
     }
     return (
-      <Box2 direction="horizontal" style={styles.container}>
+      <ClickableBox onClick={this.props.onClick} style={styles.container}>
         {children}
-      </Box2>
+      </ClickableBox>
     )
   }
 }
@@ -131,6 +139,7 @@ const styles = styleSheetCreate({
     },
   }),
   container: {
+    ...globalStyles.flexBoxRow,
     alignSelf: 'flex-end',
     position: 'relative',
     width: isMobile ? 50 : 72,
