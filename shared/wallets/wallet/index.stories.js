@@ -1,4 +1,5 @@
 // @flow
+import * as PropProviders from '../../stories/prop-providers'
 import React from 'react'
 import {Box2} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
@@ -25,8 +26,14 @@ const commonActions = {
   onShowSecretKey: action('onShowSecretKey'),
 }
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Wallets/Wallet', module)
+    .addDecorator(provider)
     .add('Default wallet', () => (
       <Box2 direction="horizontal" style={styleWidth}>
         <Header {...commonActions} {...defaultWalletMock} />

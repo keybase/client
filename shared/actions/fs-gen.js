@@ -29,8 +29,11 @@ export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
+export const mimeTypeLoad = 'fs:mimeTypeLoad'
+export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
 export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
+export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const save = 'fs:save'
@@ -97,11 +100,20 @@ type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
 |}>
+type _MimeTypeLoadPayload = $ReadOnly<{|path: Types.Path|}>
+type _MimeTypeLoadedPayload = $ReadOnly<{|
+  path: Types.Path,
+  mimeType: string,
+|}>
 type _OpenFinderPopupPayload = $ReadOnly<{|
   targetRect: ?ClientRect,
   routePath: I.List<string>,
 |}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
+type _OpenPathItemPayload = $ReadOnly<{|
+  path: Types.Path,
+  routePath: I.List<string>,
+|}>
 type _OpenSecurityPreferencesPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
 type _SavePayload = $ReadOnly<{|
@@ -156,8 +168,11 @@ export const createInstallFuse = (payload: _InstallFusePayload) => ({error: fals
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
+export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: false, payload, type: mimeTypeLoad})
+export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
 export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({error: false, payload, type: openFinderPopup})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
+export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({error: false, payload, type: refreshLocalHTTPServerInfo})
 export const createSave = (payload: _SavePayload) => ({error: false, payload, type: save})
@@ -191,8 +206,11 @@ export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePay
 export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
+export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
+export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
 export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFinderPopupPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
+export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
 export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
 export type SavePayload = $Call<typeof createSave, _SavePayload>
@@ -228,8 +246,11 @@ export type Actions =
   | InstallFuseResultPayload
   | InstallKBFSPayload
   | LocalHTTPServerInfoPayload
+  | MimeTypeLoadPayload
+  | MimeTypeLoadedPayload
   | OpenFinderPopupPayload
   | OpenInFileUIPayload
+  | OpenPathItemPayload
   | OpenSecurityPreferencesPayload
   | RefreshLocalHTTPServerInfoPayload
   | SavePayload

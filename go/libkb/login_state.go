@@ -18,6 +18,9 @@ import (
 // the passphrase is changed on one device which the other still has it cached.
 type PassphraseGeneration int
 
+// IsNil returns true if this PassphraseGeneration isn't initialized.
+func (p PassphraseGeneration) IsNil() bool { return p == PassphraseGeneration(0) }
+
 // LoginState controls the state of the current user's login
 // session and associated variables.  It also serializes access to
 // the various Login functions and requests for the Account
@@ -40,6 +43,7 @@ type LoginContext interface {
 	Logout() error
 
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
+	SetStreamCache(c *PassphraseStreamCache)
 	CreateStreamCacheViaStretch(passphrase string) error
 	PassphraseStreamCache() *PassphraseStreamCache
 	ClearStreamCache()
@@ -50,25 +54,25 @@ type LoginContext interface {
 	LoadLoginSession(emailOrUsername string) error
 	LoginSession() *LoginSession
 	ClearLoginSession()
+	SetLoginSession(l *LoginSession)
 
 	LocalSession() *Session
 	GetUID() keybase1.UID
 	GetUsername() NormalizedUsername
 	EnsureUsername(username NormalizedUsername)
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
+	SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error
 
 	Keyring() (*SKBKeyringFile, error)
 	ClearKeyring()
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
 
 	SecretSyncer() *SecretSyncer
-	RunSecretSyncer(uid keybase1.UID) error
+	RunSecretSyncer(m MetaContext, uid keybase1.UID) error
 
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error
-	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
 
-	GetUnlockedPaperEncKey() GenericKey
-	GetUnlockedPaperSigKey() GenericKey
+	Dump(m MetaContext, prefix string)
 }
 
 type LoggedInHelper interface {
@@ -318,71 +322,11 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(m MetaContext, passphrase
 	return nil, err
 }
 
-func (s *LoginState) getStoredPassphraseStream(m MetaContext, username NormalizedUsername) (*PassphraseStream, error) {
-	fullSecret, err := m.G().SecretStore().RetrieveSecret(m.G().Env.GetUsername())
-	if err != nil {
-		return nil, err
-	}
-	lks := NewLKSecWithFullSecret(fullSecret, m.G().Env.GetUID(), s.G())
-	if err = lks.LoadServerHalf(m); err != nil {
-		return nil, err
-	}
-	stream, err := NewPassphraseStreamLKSecOnly(lks)
-	if err != nil {
-		return nil, err
-	}
-	return stream, nil
-}
-
-// GetPassphraseStreamStored either returns a cached, verified passphrase
-// stream from a previous login, the secret store, or generates a new one via
-// login.
-func (s *LoginState) GetPassphraseStreamStored(m MetaContext, ui SecretUI) (pps *PassphraseStream, err error) {
-	m.G().Log.CDebugf(m.Ctx(), "+ GetPassphraseStreamStored() called")
-	defer func() { m.G().Log.CDebugf(m.Ctx(), "- GetPassphraseStreamStored() -> %s", ErrToOk(err)) }()
-
-	// 1. try cached
-	m.G().Log.CDebugf(m.Ctx(), "| trying cached passphrase stream")
-	full, err := s.PassphraseStream()
-	if err != nil {
-		return pps, err
-	}
-	if full != nil {
-		m.G().Log.CDebugf(m.Ctx(), "| cached passphrase stream ok, using it")
-		return full, nil
-	}
-
-	// 2. try from secret store
-	if m.G().SecretStore() != nil {
-		m.G().Log.CDebugf(m.Ctx(), "| trying to get passphrase stream from secret store")
-		pps, err = s.getStoredPassphraseStream(m, s.G().Env.GetUsername())
-		if err == nil {
-			m.G().Log.CDebugf(m.Ctx(), "| got passphrase stream from secret store")
-			return pps, nil
-		}
-
-		m.G().Log.CDebugf(m.Ctx(), "| failed to get passphrase stream from secret store: %s", err)
-	}
-
-	// 3. login and get it
-	m.G().Log.CDebugf(m.Ctx(), "| using full GetPassphraseStream")
-	full, err = s.GetPassphraseStream(m, ui)
-	if err != nil {
-		return pps, err
-	}
-	if full != nil {
-		m.G().Log.CDebugf(m.Ctx(), "| success using full GetPassphraseStream")
-		return full, nil
-	}
-	return pps, nil
-}
-
 // GetVerifiedTripleSec either returns a cached, verified Triplesec
 // or generates a new one that's verified via Login.
 func (s *LoginState) GetVerifiedTriplesec(m MetaContext, ui SecretUI) (ret Triplesec, gen PassphraseGeneration, err error) {
 	err = s.Account(func(a *Account) {
-		ret = a.PassphraseStreamCache().Triplesec()
-		gen = a.GetStreamGeneration()
+		ret, gen = a.PassphraseStreamCache().TriplesecAndGeneration()
 	}, "LoginState - GetVerifiedTriplesec - first")
 	if err != nil || ret != nil {
 		return
@@ -393,8 +337,7 @@ func (s *LoginState) GetVerifiedTriplesec(m MetaContext, ui SecretUI) (ret Tripl
 	}
 
 	err = s.Account(func(a *Account) {
-		ret = a.PassphraseStreamCache().Triplesec()
-		gen = a.GetStreamGeneration()
+		ret, gen = a.PassphraseStreamCache().TriplesecAndGeneration()
 	}, "LoginState - GetVerifiedTriplesec - second")
 	if err != nil || ret != nil {
 		return
@@ -432,49 +375,6 @@ func ComputeLoginPackage(m MetaContext, username string) (ret PDPKALoginPackage,
 		return computeLoginPackageFromUID(lctx.GetUID(), ps, loginSession)
 	}
 	return computeLoginPackageFromEmailOrUsername(username, ps, loginSession)
-}
-
-func (s *LoginState) ResetAccount(m MetaContext, username string) (err error) {
-	return s.resetOrDelete(m, username, "nuke")
-}
-
-func (s *LoginState) DeleteAccount(m MetaContext, username string) (err error) {
-	return s.resetOrDelete(m, username, "delete")
-}
-
-func ResetAccountWithContext(m MetaContext, username string) error {
-	return ResetOrDeleteWithContext(m, username, "nuke")
-}
-
-func DeleteAccountWithContext(m MetaContext, username string) error {
-	return ResetOrDeleteWithContext(m, username, "delete")
-}
-
-func ResetOrDeleteWithContext(m MetaContext, username string, endpoint string) (err error) {
-	lctx := m.LoginContext()
-	err = lctx.LoadLoginSession(username)
-	if err != nil {
-		return err
-	}
-	pdpka, err := ComputeLoginPackage(m, username)
-	if err != nil {
-		return err
-	}
-	arg := APIArg{
-		Endpoint:    endpoint,
-		SessionType: APISessionTypeREQUIRED,
-		Args:        NewHTTPArgs(),
-		SessionR:    lctx.LocalSession(),
-	}
-	pdpka.PopulateArgs(&arg.Args)
-	_, err = m.G().API.Post(arg)
-	return err
-}
-
-func (s *LoginState) resetOrDelete(m MetaContext, username string, endpoint string) (err error) {
-	return s.loginHandle(func(lctx LoginContext) error {
-		return ResetOrDeleteWithContext(m.WithLoginContext(lctx), username, endpoint)
-	}, nil, ("ResetAccount: " + endpoint))
 }
 
 func (s *LoginState) postLoginToServer(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
@@ -577,7 +477,7 @@ func (s *LoginState) pubkeyLoginHelper(m MetaContext, username string, getSecret
 		return
 	}
 
-	lctx.RunSecretSyncer(me.GetUID())
+	lctx.RunSecretSyncer(m, me.GetUID())
 	if !lctx.SecretSyncer().HasDevices() {
 		m.G().Log.CDebugf(m.Ctx(), "| No synced devices, pubkey login impossible.")
 		err = NoDeviceError{Reason: "no synced devices during pubkey login"}
@@ -735,7 +635,7 @@ func (s *LoginState) getEmailOrUsername(m MetaContext, username *string, loginUI
 	}
 
 	if len(*username) == 0 {
-		err = NoUsernameError{}
+		err = NewNoUsernameError()
 	}
 
 	if err != nil {
@@ -1169,10 +1069,10 @@ func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) error {
 	return err
 }
 
-func (s *LoginState) RunSecretSyncer(uid keybase1.UID) error {
+func (s *LoginState) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
 	var err error
 	aerr := s.Account(func(a *Account) {
-		err = a.RunSecretSyncer(uid)
+		err = a.RunSecretSyncer(m, uid)
 	}, "RunSecretSyncer")
 	if aerr != nil {
 		return aerr
@@ -1266,7 +1166,7 @@ func (s *LoginState) PassphraseStreamGeneration() (PassphraseGeneration, error) 
 
 func (s *LoginState) AccountDump() {
 	err := s.Account(func(a *Account) {
-		a.Dump()
+		a.Dump(NewMetaContextBackground(s.G()), "")
 	}, "LoginState - AccountDump")
 	if err != nil {
 		s.G().Log.Warning("error getting account for AccountDump: %s", err)
@@ -1292,17 +1192,6 @@ func (s *LoginState) SessionLoadAndCheck(force bool) (bool, error) {
 	return sessionValid, nil
 }
 
-func IsLoggedIn(g *GlobalContext, lih LoggedInHelper) (ret bool, uid keybase1.UID, err error) {
-	if lih == nil {
-		lih = g.LoginState()
-	}
-	ret, err = lih.LoggedInLoad()
-	if ret && err == nil {
-		uid = lih.GetUID()
-	}
-	return ret, uid, err
-}
-
 // UnverifiedPassphraseStream takes a passphrase as a parameter and
 // also the salt from the Account and computes a Triplesec and
 // a passphrase stream.  It's not verified through a Login.
@@ -1319,7 +1208,7 @@ func UnverifiedPassphraseStream(m MetaContext, passphrase string) (tsec Triplese
 		}
 		salt, err = lctx.LoginSession().Salt()
 	} else {
-		aerr := m.G().LoginState().Account(func(a *Account) {
+		aerr := m.G().LoginStateDeprecated().Account(func(a *Account) {
 			if len(username) > 0 {
 				err = a.LoadLoginSession(username)
 				if err != nil {

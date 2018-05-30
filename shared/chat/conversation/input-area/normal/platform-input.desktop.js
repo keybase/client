@@ -2,13 +2,17 @@
 /* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
+import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
-
+import flags from '../../../../util/feature-flags'
+import {messageExplodeDescriptions} from '../../../../constants/chat2'
+import SetExplodingMessagePopup from '../../messages/set-explode-popup'
 import type {PlatformInputProps} from './types'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import {ExplodingMeta} from './shared'
 
 const MentionCatcher = ({onClick}) => (
   <Box
@@ -22,16 +26,18 @@ const MentionCatcher = ({onClick}) => (
 
 type State = {
   emojiPickerOpen: boolean,
+  hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps, State> {
+class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
   _input: ?Input
   _fileInput: ?HTMLInputElement
 
-  constructor(props: PlatformInputProps) {
+  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
     super(props)
     this.state = {
       emojiPickerOpen: false,
+      hasText: false,
     }
   }
 
@@ -46,6 +52,10 @@ class PlatformInput extends Component<PlatformInputProps, State> {
 
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+  }
+
+  _selectExplodingMode = selected => {
+    this.props.selectExplodingMode(selected.seconds)
   }
 
   _filePickerFiles = () => (this._fileInput && this._fileInput.files) || []
@@ -67,13 +77,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    if (this.props.pendingWaiting) {
-      return
-    }
-
-    // TODO: Also call onCancelQuoting on mobile.
-    this.props.onCancelQuoting()
-
     const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       e.preventDefault()
@@ -90,6 +93,11 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     if (text) {
       this.props.onSubmit(text)
     }
+  }
+
+  _onChangeText = (text: string) => {
+    this.setState({hasText: !!text})
+    this.props.onChangeText(text)
   }
 
   componentDidMount = () => {
@@ -184,19 +192,14 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     this.props.setChannelMentionPopupOpen(false)
   }
 
-  _onFocus = () => {
-    if (!this.props.pendingWaiting) {
-      this.props.clearInboxFilter()
-    }
-  }
-
   render = () => {
     let hintText = 'Write a message'
-    if (this.props.isEditing) {
+    if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
+    } else if (this.props.isEditing) {
       hintText = 'Edit your message'
-    } else if (this.props.pendingWaiting) {
-      hintText = 'Creating conversation...'
     }
+
     return (
       <Box
         style={{
@@ -240,7 +243,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               filter={this.props.channelMentionFilter}
             />
           )}
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
             <input
               type="file"
               style={{display: 'none'}}
@@ -251,14 +254,12 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             <Input
               className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
               autoFocus={false}
-              editable={!this.props.pendingWaiting}
-              onFocus={this._onFocus}
               small={true}
               style={styleInput}
               ref={this._inputSetRef}
               hintText={hintText}
               hideUnderline={true}
-              onChangeText={this.props.onChangeText}
+              onChangeText={this._onChangeText}
               uncontrolled={true}
               multiline={true}
               rowsMin={1}
@@ -266,19 +267,57 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               onKeyDown={this._onKeyDown}
               onEnterKeyDown={this._onEnterKeyDown}
             />
+            {flags.explodingMessagesEnabled &&
+              this.props.isExploding &&
+              !this.state.hasText && (
+                <Icon
+                  color={globalColors.black_20}
+                  fontSize={34}
+                  hoverColor={globalColors.black_20}
+                  onClick={this._inputFocus}
+                  style={{
+                    left: 183,
+                    marginTop: -27,
+                    position: 'absolute',
+                  }}
+                  type="iconfont-boom"
+                />
+              )}
+            {flags.explodingMessagesEnabled &&
+              this.props.showingMenu && (
+                <SetExplodingMessagePopup
+                  attachTo={this.props.attachmentRef}
+                  isNew={true}
+                  items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+                  onHidden={this.props.toggleShowingMenu}
+                  onSelect={this._selectExplodingMode}
+                  position={'bottom right'}
+                  selected={messageExplodeDescriptions.find(
+                    exploded => exploded.seconds === this.props.explodingModeSeconds
+                  )}
+                  visible={this.props.showingMenu}
+                />
+              )}
+            {flags.explodingMessagesEnabled && (
+              <Box
+                onClick={this.props.toggleShowingMenu}
+                ref={this.props.setAttachmentRef}
+                style={styles.explodingIconContainer}
+              >
+                <Icon
+                  color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
+                  onClick={this.props.toggleShowingMenu}
+                  style={styleIcon}
+                  type="iconfont-bomb"
+                />
+                <ExplodingMeta explodingModeSeconds={this.props.explodingModeSeconds} />
+              </Box>
+            )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
-            <Icon
-              onClick={this.props.pendingWaiting ? undefined : this._emojiPickerToggle}
-              style={styleIcon}
-              type="iconfont-emoji"
-            />
-            <Icon
-              onClick={this.props.pendingWaiting ? undefined : this._filePickerOpen}
-              style={styleIcon}
-              type="iconfont-attachment"
-            />
+            <Icon onClick={this._emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
+            <Icon onClick={this._filePickerOpen} style={styleIcon} type="iconfont-attachment" />
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
             <Text
@@ -410,4 +449,11 @@ const styleFooter = platformStyles({
   },
 })
 
-export default PlatformInput
+const styles = styleSheetCreate({
+  explodingIconContainer: {
+    marginRight: globalMargins.small + 4,
+    position: 'relative',
+  },
+})
+
+export default FloatingMenuParentHOC(PlatformInput)

@@ -196,6 +196,13 @@ func (a *Account) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 	a.streamCache = NewPassphraseStreamCache(tsec, pps)
 }
 
+func (a *Account) SetStreamCache(c *PassphraseStreamCache) {
+	if a.streamCache != nil {
+		a.G().Log.Warning("Account.CreateStreamCache overwriting existing StreamCache")
+	}
+	a.streamCache = c
+}
+
 // SetStreamGeneration sets the passphrase generation on the cached stream
 // if it exists, and otherwise will wind up warning of a problem.
 func (a *Account) SetStreamGeneration(gen PassphraseGeneration, nilPPStreamOK bool) {
@@ -265,8 +272,8 @@ func (a *Account) SecretSyncer() *SecretSyncer {
 	return a.secretSyncer
 }
 
-func (a *Account) RunSecretSyncer(uid keybase1.UID) error {
-	return RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
+func (a *Account) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
+	return RunSyncer(m, a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
 }
 
 func (a *Account) Keyring() (*SKBKeyringFile, error) {
@@ -288,7 +295,7 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 
 	// not sure how this could happen, but just in case:
 	if un.IsNil() {
-		return nil, NoUsernameError{}
+		return nil, NewNoUsernameError()
 	}
 
 	if a.skbKeyring != nil && a.skbKeyring.IsForUsername(un) {
@@ -396,33 +403,6 @@ func (a *Account) EnsureUsername(username NormalizedUsername) {
 
 }
 
-func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
-	token string, deviceSubkey, deviceSibkey GenericKey, err error) {
-	if !a.LoggedIn() {
-		err = LoginRequiredError{}
-		return
-	}
-
-	arg := NewLoadUserArg(a.G()).WithLoginContext(a).WithSelf(true)
-	err = a.G().GetFullSelfer().WithUser(arg, func(user *User) error {
-		var err error
-		deviceSubkey, err = user.GetDeviceSubkey()
-		if err != nil {
-			return err
-		}
-		deviceSibkey, err = user.GetDeviceSibkey()
-		if err != nil {
-			return err
-		}
-		uid = user.GetUID()
-		username = user.GetNormalizedName()
-		return nil
-
-	})
-	token = a.localSession.GetToken()
-	return
-}
-
 // SaveState saves the logins state to memory, and to the user
 // config file.
 func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
@@ -455,10 +435,14 @@ func (a *Account) saveUserConfig(username NormalizedUsername, uid keybase1.UID, 
 	return cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), true /* overwrite */)
 }
 
-func (a *Account) Dump() {
+func (a *Account) Dump(m MetaContext, prefix string) {
 	fmt.Printf("Account dump:\n")
 	a.loginSession.Dump()
 	a.streamCache.Dump()
+}
+
+func (a *Account) SetLoginSession(l *LoginSession) {
+	a.setLoginSession(l)
 }
 
 func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
@@ -539,26 +523,6 @@ func (a *Account) deviceNameLookup(device *Device, me *User, key GenericKey) str
 	return *device.Description
 }
 
-func (a *Account) SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error {
-	a.paperSigKey = newTimedGenericKey(a.G(), sig, "paper signing key")
-	a.paperEncKey = newTimedGenericKey(a.G(), enc, "paper encryption key")
-	return nil
-}
-
-func (a *Account) GetUnlockedPaperSigKey() GenericKey {
-	if a.paperSigKey == nil {
-		return nil
-	}
-	return a.paperSigKey.getKey()
-}
-
-func (a *Account) GetUnlockedPaperEncKey() GenericKey {
-	if a.paperEncKey == nil {
-		return nil
-	}
-	return a.paperEncKey.getKey()
-}
-
 func (a *Account) ClearCachedSecretKeys() {
 	a.G().Log.Debug("clearing cached secret keys")
 	a.ClearPaperKeys()
@@ -612,4 +576,8 @@ func (a *Account) SecretPromptCanceled() {
 
 func (a *Account) SetDeviceName(name string) error {
 	return a.G().ActiveDevice.setDeviceName(a, a.G().Env.GetUID(), a.localSession.GetDeviceID(), name)
+}
+
+func (a *Account) SetUsernameUID(n NormalizedUsername, u keybase1.UID) error {
+	return errors.New("cannot call SetUsernameUID on legacy Account object")
 }

@@ -23,7 +23,6 @@ import (
 	"os"
 	"runtime"
 	"sync"
-	"testing"
 	"time"
 
 	logger "github.com/keybase/client/go/logger"
@@ -272,7 +271,7 @@ func (g *GlobalContext) createLoginState() {
 	g.createLoginStateLocked()
 }
 
-func (g *GlobalContext) LoginState() *LoginState {
+func (g *GlobalContext) LoginStateDeprecated() *LoginState {
 	g.loginStateMu.RLock()
 	defer g.loginStateMu.RUnlock()
 
@@ -764,7 +763,7 @@ func (g *GlobalContext) GetMyUID() keybase1.UID {
 		return uid
 	}
 
-	g.LoginState().LocalSession(func(s *Session) {
+	g.LoginStateDeprecated().LocalSession(func(s *Session) {
 		uid = s.GetUID()
 	}, "G - GetMyUID - GetUID")
 	if uid.Exists() {
@@ -1061,7 +1060,7 @@ func (g *GlobalContext) SetTeamEKBoxStorage(s TeamEKBoxStorage) {
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
-	arg := NewLoadUserByUIDArg(nil, g, uid).WithPublicKeyOptional()
+	arg := NewLoadUserArgWithMetaContext(NewMetaContextBackground(g)).WithUID(uid).WithPublicKeyOptional()
 	return LoadUser(arg)
 }
 
@@ -1228,47 +1227,6 @@ func (g *GlobalContext) ReplaceSecretStore() error {
 	g.Log.Debug("ReplaceSecretStore success")
 
 	return nil
-}
-
-// engine/deprovision_test calls this to set g.secretStore to nil.
-// It doesn't make much sense since it is impossible for g.secretStore
-// to be nil in the real world, but keeping it for backwards
-// compatibility.
-// This takes t *testing.T as a parameter just to make sure only
-// tests call it.
-func (g *GlobalContext) SetSecretStoreNilForTests(t *testing.T) {
-	g.secretStoreMu.Lock()
-	defer g.secretStoreMu.Unlock()
-
-	g.secretStore = nil
-}
-
-// AssertTemporarySession asserts that the user has an old-fashioned
-// session token. Should only be necessary on login/provisioning flow.
-func (g *GlobalContext) AssertTemporarySession(lctx LoginContext) error {
-
-	run := func(lctx LoginContext) error {
-		sess := lctx.LocalSession()
-		if sess == nil {
-			return LoginRequiredError{"no session object loaded"}
-		}
-		if !sess.IsValid() {
-			return LoginRequiredError{"session isn't valid"}
-		}
-		return nil
-	}
-
-	if lctx != nil {
-		return run(lctx)
-	}
-	var gerr error
-	aerr := g.LoginState().Account(func(a *Account) {
-		gerr = run(a)
-	}, "AssertTemporarySession")
-	if aerr != nil {
-		return aerr
-	}
-	return gerr
 }
 
 func (g *GlobalContext) IsOneshot(ctx context.Context) (bool, error) {

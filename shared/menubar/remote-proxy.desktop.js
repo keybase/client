@@ -5,12 +5,12 @@ import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
-import {remote, BrowserWindow} from 'electron'
+import * as SafeElectron from '../util/safe-electron.desktop'
 
 const windowOpts = {}
 
 type Props = {
-  externalRemoteWindow: BrowserWindow,
+  externalRemoteWindow: SafeElectron.BrowserWindowType,
   windowComponent: string,
   windowOpts?: Object,
   windowParam: string,
@@ -60,7 +60,7 @@ const mapStateToProps = (state: TypedState) => ({
 const mergeProps = stateProps => ({
   badgeInfo: stateProps._badgeInfo.toJS(),
   externalRemoteWindow: stateProps._externalRemoteWindowID
-    ? remote.BrowserWindow.fromId(stateProps._externalRemoteWindowID)
+    ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
   folderProps: stateProps.folderProps,
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,

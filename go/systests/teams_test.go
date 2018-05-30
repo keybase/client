@@ -186,6 +186,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 
 	u.deviceClient = keybase1.DeviceClient{Cli: cli}
 	u.device.userClient = keybase1.UserClient{Cli: cli}
+	u.device.accountClient = keybase1.AccountClient{Cli: cli}
 
 	// register for notifications
 	u.notifications = newTeamNotifyHandler()
@@ -282,16 +283,18 @@ func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.Team
 		Settings: settings,
 	})
 	require.NoError(u.tc.T, err)
-	changeByID := false
-	for {
-		select {
-		case arg := <-u.notifications.changeCh:
-			changeByID = arg.Changes.Misc
-		case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G)):
-			u.tc.T.Fatal("no notification on teamSetSettings")
-		}
-		if changeByID {
-			return
+	if u.notifications != nil {
+		changeByID := false
+		for {
+			select {
+			case arg := <-u.notifications.changeCh:
+				changeByID = arg.Changes.Misc
+			case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G)):
+				u.tc.T.Fatal("no notification on teamSetSettings")
+			}
+			if changeByID {
+				return
+			}
 		}
 	}
 }
@@ -686,10 +689,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	require.NoError(t, err, "login")
 
 	// Clear the paper key.
-	err = g.LoginState().Account(func(a *libkb.Account) {
-		a.ClearPaperKeys()
-	}, "provisionNewDevice")
-	require.NoError(t, err, "clear paper key")
+	g.ActiveDevice.ClearCaches()
 
 	skey, err := g.ActiveDevice.SigningKey()
 	require.NoError(t, err)
@@ -704,7 +704,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 func (u *userPlusDevice) reset() {
 	u.device.tctx.Tp.SkipLogoutIfRevokedCheck = true
 	uvBefore := u.userVersion()
-	err := u.device.userClient.ResetUser(context.TODO(), 0)
+	err := u.device.accountClient.ResetAccount(context.TODO(), keybase1.ResetAccountArg{Passphrase: u.passphrase})
 	require.NoError(u.tc.T, err)
 	uvAfter := u.userVersion()
 	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,

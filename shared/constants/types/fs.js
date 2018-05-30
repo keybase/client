@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as Devices from './devices'
-import {type IconType} from '../../common-adapters/icon'
+import type {IconType} from '../../common-adapters'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
 
@@ -65,6 +65,7 @@ export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
 export type _FilePathItem = {
   type: 'file',
+  mimeType: string,
 } & PathItemMetadata
 export type FilePathItem = I.RecordOf<_FilePathItem>
 
@@ -153,7 +154,7 @@ export type _State = {
   transfers: I.Map<string, Transfer>,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
-  localHTTPServerInfo: LocalHTTPServer,
+  localHTTPServerInfo: ?LocalHTTPServer,
 }
 export type State = I.RecordOf<_State>
 
@@ -345,4 +346,4 @@ export type FavoriteFolder = {
   },
 }
 
-export type FileViewType = 'text' | 'image' | 'video' | 'pdf' | 'default'
+export type FileViewType = 'text' | 'image' | 'av' | 'pdf' | 'default'

@@ -11,10 +11,9 @@ import (
 
 func assertStreamCache(tc libkb.TestContext, valid bool) bool {
 	var ppsValid bool
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		ppsValid = a.PassphraseStreamCache().Valid()
-	}, "clear stream cache")
-
+	if ps := tc.G.ActiveDevice.PassphraseStreamCache(); ps != nil {
+		ppsValid = ps.Valid()
+	}
 	return valid == ppsValid
 }
 
@@ -34,9 +33,7 @@ func TestUnlock(t *testing.T) {
 		SecretUI: fu.NewSecretUI(),
 	}
 
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	tc.G.ActiveDevice.ClearPassphraseStreamCache()
 
 	if !assertStreamCache(tc, false) {
 		t.Fatal("expected invalid stream cache after clear")
@@ -96,9 +93,7 @@ func TestUnlockWithPassphrase(t *testing.T) {
 		// No SecretUI here!
 	}
 
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	tc.G.ActiveDevice.ClearPassphraseStreamCache()
 
 	if !assertStreamCache(tc, false) {
 		t.Fatal("expected invalid stream cache after clear")

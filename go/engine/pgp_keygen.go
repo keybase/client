@@ -105,7 +105,7 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 func (e *PGPKeyGen) push(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, pushPrivate bool) (err error) {
 	defer m.CTrace("PGPKeyGen.push", func() error { return err })()
 
-	tsec, gen, err := m.G().LoginState().GetVerifiedTriplesec(m, m.UIs().SecretUI)
+	tsec, gen, err := libkb.GetTriplesecMaybePrompt(m)
 	if err != nil {
 		return err
 	}
@@ -139,5 +139,5 @@ func (e *PGPKeyGen) push(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, pushPr
 		del.EncodedPrivateKey = armored
 	}
 
-	return del.Run(m.LoginContext())
+	return del.Run(m)
 }

@@ -2,11 +2,11 @@
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import loginRoutes from './login/routes'
 import signupRoutes from './signup/routes'
-import Intro from './forms/intro'
+import Forms from './forms'
 import Feedback from '../settings/feedback-container'
 
 const routeTree = makeRouteDefNode({
-  component: Intro,
+  component: Forms,
   children: {
     feedback: {
       component: Feedback,

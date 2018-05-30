@@ -60,7 +60,8 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
   },
   onChat: () => {
-    ownProps.username && dispatch(Chat2Gen.createStartConversation({participants: [ownProps.username]}))
+    ownProps.username &&
+      dispatch(Chat2Gen.createPreviewConversation({participants: [ownProps.username], reason: 'teamMember'}))
   },
   onClick: () => dispatch(navigateAppend([{props: ownProps, selected: 'member'}])),
 })

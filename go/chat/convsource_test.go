@@ -48,7 +48,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	require.NoError(t, err)
 
 	t.Logf("basic test")
-	_, msgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -62,7 +62,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	}, 0, nil)
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
-	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -70,7 +70,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	require.Equal(t, 1, len(thread.Messages), "wrong length")
 	require.Equal(t, msgID, thread.Messages[0].GetMessageID(), "wrong msgID")
 
-	_, editMsgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	_, editMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -88,7 +88,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	editMsgID := editMsgBoxed.GetMessageID()
 
 	t.Logf("testing an edit")
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -113,7 +113,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 		delBody = chat1.NewMessageBodyWithDeletehistory(*delHeader)
 		delSupersedes = 0
 	}
-	_, deleteMsgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	_, deleteMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:          trip,
 			Sender:        u.User.GetUID().ToBytes(),
@@ -127,7 +127,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	}, 0, nil)
 	require.NoError(t, err)
 	deleteMsgID := deleteMsgBoxed.GetMessageID()
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -135,7 +135,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	require.Equal(t, 0, len(thread.Messages), "wrong length")
 
 	t.Logf("testing disabling resolve")
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{
 				chat1.MessageType_TEXT,
@@ -149,6 +149,135 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	require.Equal(t, 3, len(thread.Messages), "wrong length")
 	require.Equal(t, msgID, thread.Messages[2].GetMessageID(), "wrong msgID")
 	require.Equal(t, deleteMsgID, thread.Messages[2].Valid().ServerHeader.SupersededBy, "wrong super")
+}
+
+func TestExplodeNow(t *testing.T) {
+	ctx, world, ri, _, sender, _ := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	tc := world.Tcs[u.Username]
+	trip := newConvTriple(ctx, t, tc, u.Username)
+	firstMessagePlaintext := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TLFNAME,
+		},
+		MessageBody: chat1.MessageBody{},
+	}
+	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+		chat1.ConversationMembersType_TEAM, nil)
+	require.NoError(t, err)
+	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
+		IdTriple:   trip,
+		TLFMessage: *firstMessageBoxed,
+	})
+	require.NoError(t, err)
+
+	t.Logf("basic test")
+	ephemeralMetadata := chat1.MsgEphemeralMetadata{
+		Lifetime: 30,
+	}
+	_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:              trip,
+			Sender:            u.User.GetUID().ToBytes(),
+			TlfName:           u.Username,
+			TlfPublic:         false,
+			MessageType:       chat1.MessageType_TEXT,
+			EphemeralMetadata: &ephemeralMetadata,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "30s ephemeral",
+		}),
+	}, 0, nil)
+	require.NoError(t, err)
+
+	msgID := msgBoxed.GetMessageID()
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		&chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, 1, len(thread.Messages), "wrong length")
+	msg1 := thread.Messages[0]
+	require.Equal(t, msgID, msg1.GetMessageID(), "wrong msgID")
+	require.True(t, msg1.IsValid())
+	require.True(t, msg1.Valid().IsEphemeral())
+	require.False(t, msg1.Valid().IsEphemeralExpired(time.Now()))
+	require.Nil(t, msg1.Valid().ExplodedBy())
+
+	_, editMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:              trip,
+			Sender:            u.User.GetUID().ToBytes(),
+			TlfName:           u.Username,
+			TlfPublic:         false,
+			MessageType:       chat1.MessageType_EDIT,
+			Supersedes:        msgID,
+			EphemeralMetadata: &ephemeralMetadata,
+		},
+		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageID: msgID,
+			Body:      "EDITED ephemeral",
+		}),
+	}, 0, nil)
+	require.NoError(t, err)
+	editMsgID := editMsgBoxed.GetMessageID()
+
+	t.Logf("testing an edit")
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		&chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(thread.Messages), "wrong length")
+	msg2 := thread.Messages[0]
+	require.Equal(t, msgID, msg2.GetMessageID(), "wrong msgID")
+	require.Equal(t, editMsgID, msg2.Valid().ServerHeader.SupersededBy, "wrong super")
+	require.Equal(t, "EDITED ephemeral", msg2.Valid().MessageBody.Text().Body, "wrong body")
+	require.True(t, msg2.Valid().IsEphemeral())
+	require.False(t, msg2.Valid().IsEphemeralExpired(time.Now()))
+	require.Nil(t, msg2.Valid().ExplodedBy())
+
+	t.Logf("testing a delete")
+	delBody := chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+		MessageIDs: []chat1.MessageID{msgID, editMsgID},
+	})
+	delSupersedes := msgID
+	_, deleteMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  delSupersedes,
+		},
+		MessageBody: delBody,
+	}, 0, nil)
+	require.NoError(t, err)
+
+	deleteMsgID := deleteMsgBoxed.GetMessageID()
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		&chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(thread.Messages), "wrong length")
+	// Since we deleted an exploding message, it will still show up in the
+	// thread with the deleter set as "explodedBy"
+	msg3 := thread.Messages[0]
+	require.Equal(t, msgID, msg3.GetMessageID(), "wrong msgID")
+	require.Equal(t, deleteMsgID, msg3.Valid().ServerHeader.SupersededBy, "wrong super")
+	require.Equal(t, chat1.MessageBody{}, msg3.Valid().MessageBody, "wrong body")
+	require.True(t, msg3.Valid().IsEphemeral())
+	// This is true since we did an explode now!
+	require.True(t, msg3.Valid().IsEphemeralExpired(time.Now()))
+	require.Equal(t, u.Username, *msg3.Valid().ExplodedBy())
 }
 
 type failingRemote struct {
@@ -486,7 +615,7 @@ func TestGetThreadCaching(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, msgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -505,7 +634,7 @@ func TestGetThreadCaching(t *testing.T) {
 	tc.ChatG.ConvSource.Disconnected(ctx)
 	tc.ChatG.InboxSource.Disconnected(ctx)
 	t.Logf("make sure we get offline error")
-	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -515,7 +644,7 @@ func TestGetThreadCaching(t *testing.T) {
 	t.Logf("read to populate caches")
 	tc.ChatG.ConvSource.Connected(ctx)
 	tc.ChatG.InboxSource.Connected(ctx)
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -534,7 +663,7 @@ func TestGetThreadCaching(t *testing.T) {
 	tc.G.OverrideUPAKLoader(newFailingUpak(t))
 
 	ctx = newTestContextWithTlfMock(tc, failingTI)
-	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -621,7 +750,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	tc.Context().ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 		return newNoGetThreadRemote(ri)
 	})
-	thread, _, err := tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
+	thread, err := tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, holes+2, len(thread.Messages))
 	require.Equal(t, msg.GetMessageID(), thread.Messages[0].GetMessageID())
@@ -629,7 +758,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 
 	// Make sure we don't consider it a hit if we end the fetch with a hole
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, convID, uid))
-	_, _, err = tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
+	_, err = tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
 	require.Error(t, err)
 }
 
@@ -861,7 +990,7 @@ func TestClearFromDelete(t *testing.T) {
 	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
 		u.Username, "hi2"))
 
-	_, delMsg, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),

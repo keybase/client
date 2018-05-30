@@ -32,6 +32,8 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
 
 type Props = {
   isEditing: boolean,
+  isExploding: boolean,
+  explodingModeSeconds: number,
   pendingWaiting: boolean,
   typing: Set<string>,
 }
@@ -52,8 +54,9 @@ const boxProps = {
 const InputContainer = (props: Props) => {
   const inputProps: InputProps = {
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
-    channelName: 'somechannel',
     isEditing: props.isEditing,
+    isExploding: props.isExploding,
+    explodingModeSeconds: props.explodingModeSeconds,
     focusInputCounter: 0,
     clearInboxFilter: action('clearInboxFilter'),
     onAttach: (paths: Array<string>) => {
@@ -70,19 +73,18 @@ const InputContainer = (props: Props) => {
     pendingWaiting: props.pendingWaiting,
     typing: props.typing,
 
-    _quotingMessage: null,
-    _editingMessage: null,
-
-    injectedInput: '',
+    editText: '',
+    quoteCounter: 0,
+    quoteText: '',
 
     getUnsentText: () => {
       action('getUnsentText')()
       return props.isEditing ? 'some text' : ''
     },
 
-    setUnsentText: action('setUnsentText'),
-
+    selectExplodingMode: action('selectExplodingMode'),
     sendTyping: action('sendTyping'),
+    setUnsentText: action('setUnsentText'),
   }
 
   return (
@@ -95,18 +97,69 @@ const InputContainer = (props: Props) => {
 const load = () => {
   storiesOf('Chat/Conversation/Input', module)
     .addDecorator(provider)
-    .add('Normal', () => <InputContainer isEditing={false} pendingWaiting={false} typing={Set()} />)
+    .add('Normal', () => (
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set()}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
+    ))
     .add('Typing 1', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris'])} />
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set(['chris'])}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
     ))
     .add('Typing 2', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris', 'strib'])} />
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set(['chris', 'strib'])}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
     ))
     .add('Typing 3', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris', 'strib', 'fred'])} />
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set(['chris', 'strib', 'fred'])}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
     ))
-    .add('Editing', () => <InputContainer isEditing={true} pendingWaiting={false} typing={Set()} />)
-    .add('Pending waiting', () => <InputContainer isEditing={false} pendingWaiting={true} typing={Set()} />)
+    .add('Editing', () => (
+      <InputContainer
+        isEditing={true}
+        pendingWaiting={false}
+        typing={Set()}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
+    ))
+    .add('Pending waiting', () => (
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={true}
+        typing={Set()}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
+    ))
+    .add('Exploding', () => (
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set()}
+        isExploding={true}
+        explodingModeSeconds={0}
+      />
+    ))
 }
 
 export default load

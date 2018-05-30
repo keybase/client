@@ -20,15 +20,16 @@ import (
 // deviceWrapper wraps a mock "device", meaning an independent running service and
 // some connected clients.
 type deviceWrapper struct {
-	tctx         *libkb.TestContext
-	clones       []*libkb.TestContext
-	stopCh       chan error
-	service      *service.Service
-	rekeyUI      *testRekeyUI
-	deviceKey    keybase1.PublicKey
-	rekeyClient  keybase1.RekeyClient
-	userClient   keybase1.UserClient
-	gregorClient keybase1.GregorClient
+	tctx          *libkb.TestContext
+	clones        []*libkb.TestContext
+	stopCh        chan error
+	service       *service.Service
+	rekeyUI       *testRekeyUI
+	deviceKey     keybase1.PublicKey
+	rekeyClient   keybase1.RekeyClient
+	userClient    keybase1.UserClient
+	accountClient keybase1.AccountClient
+	gregorClient  keybase1.GregorClient
 }
 
 func (d *deviceWrapper) KID() keybase1.KID {
@@ -238,6 +239,7 @@ func (rkt *rekeyTester) startUIsAndClients(dw *deviceWrapper) {
 		dw.rekeyClient = keybase1.RekeyClient{Cli: cli}
 		dw.userClient = keybase1.UserClient{Cli: cli}
 		dw.gregorClient = keybase1.GregorClient{Cli: cli}
+		dw.accountClient = keybase1.AccountClient{Cli: cli}
 		return nil
 	}
 
@@ -705,13 +707,8 @@ func (rkt *rekeyTester) provisionNewDevice() *deviceWrapper {
 
 	// Clear the paper key because we don't want it hanging around to
 	// solve the problems we're trying to induce.
-	err := dev2.tctx.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearPaperKeys()
-	}, "provisionNewDevice")
-
-	if err != nil {
-		rkt.t.Fatalf("failed to clear keys: %s", err)
-	}
+	m := libkb.NewMetaContextBackground(dev2.tctx.G)
+	m.ActiveDevice().ClearPaperKey(m)
 
 	return dev2
 }

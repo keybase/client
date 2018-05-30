@@ -260,7 +260,7 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			if lctx := m.LoginContext(); lctx != nil {
 				lctx.CreateStreamCache(tsec, pps)
 			} else {
-				aerr := s.G().LoginState().Account(func(a *Account) {
+				aerr := s.G().LoginStateDeprecated().Account(func(a *Account) {
 					a.CreateStreamCache(tsec, pps)
 				}, "skb - UnlockSecretKey - CreateStreamCache")
 				if aerr != nil {
@@ -427,11 +427,11 @@ func (s *SKB) UnlockNoPrompt(m MetaContext, secretStore SecretStore) (GenericKey
 	var pps *PassphraseStream
 	lctx := m.LoginContext()
 	if lctx != nil {
-		tsec = lctx.PassphraseStreamCache().Triplesec()
+		tsec, _ = lctx.PassphraseStreamCache().TriplesecAndGeneration()
 		pps = lctx.PassphraseStreamCache().PassphraseStream()
 	} else {
-		s.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
-			tsec = sc.Triplesec()
+		s.G().LoginStateDeprecated().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
+			tsec, _ = sc.TriplesecAndGeneration()
 			pps = sc.PassphraseStream()
 		}, "skb - UnlockNoPrompt - tsec, pps")
 	}
@@ -460,7 +460,7 @@ func (s *SKB) unlockPrompt(m MetaContext, arg SecretKeyPromptArg, secretStore Se
 	// if lctx != nil, then don't bother as any prompts during login should be shown.
 	if m.LoginContext() == nil && arg.UseCancelCache {
 		var skip bool
-		s.G().LoginState().Account(func(a *Account) {
+		s.G().LoginStateDeprecated().Account(func(a *Account) {
 			skip = a.SkipSecretPrompt()
 		}, "SKB - unlockPrompt")
 		if skip {
@@ -487,7 +487,7 @@ func (s *SKB) unlockPrompt(m MetaContext, arg SecretKeyPromptArg, secretStore Se
 	if err != nil {
 		if _, ok := err.(InputCanceledError); ok && arg.UseCancelCache {
 			// cache the cancel response in the account
-			s.G().LoginState().Account(func(a *Account) {
+			s.G().LoginStateDeprecated().Account(func(a *Account) {
 				a.SecretPromptCanceled()
 			}, "SKB - unlockPrompt - input canceled")
 		}

@@ -82,6 +82,15 @@ export function formatTimeForStellarTransaction(timestamp: Date) {
   }
 }
 
+export function formatTimeForStellarTransactionDetails(timestamp: Date) {
+  const m = moment(timestamp)
+  const human = m.format('ddd, MMM D YYYY - h:mm A') // Tue, May 22 2018 - 9:18 AM
+  return {
+    human,
+    tooltip: m.format(),
+  }
+}
+
 export function formatTimeForRevoked(time: number): string {
   const m = moment(time)
   return m.format('ddd MMM DD') // Wed Jan 5 2016
@@ -104,4 +113,23 @@ export function secondsToDHMS(seconds: number): string {
   mins = mins % 60
 
   return `${days}d ${hours}h ${mins}m ${secs}s`
+}
+
+const oneMinuteInMs = 60 * 1000
+const oneHourInMs = oneMinuteInMs * 60
+const oneDayInMs = oneHourInMs * 24
+export function formatDurationShort(ms: number): string {
+  if (ms < 0) {
+    return '0'
+  }
+  if (ms > oneDayInMs) {
+    return `${Math.floor(ms / oneDayInMs)}d`
+  }
+  if (ms > oneHourInMs) {
+    return `${Math.floor(ms / oneHourInMs)}h`
+  }
+  if (ms > oneMinuteInMs) {
+    return `${Math.floor(ms / oneMinuteInMs)}m`
+  }
+  return `${Math.floor(ms / 1000)}s`
 }

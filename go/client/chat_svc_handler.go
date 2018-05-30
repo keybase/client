@@ -225,12 +225,15 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 				UID:      mv.ClientHeader.Sender.String(),
 				DeviceID: mv.ClientHeader.SenderDevice.String(),
 			},
-			SentAt:        mv.ServerHeader.Ctime.UnixSeconds(),
-			SentAtMs:      mv.ServerHeader.Ctime.UnixMilliseconds(),
-			Prev:          prev,
-			Unread:        unread,
-			RevokedDevice: mv.SenderDeviceRevokedAt != nil,
-			KBFSEncrypted: mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
+			SentAt:             mv.ServerHeader.Ctime.UnixSeconds(),
+			SentAtMs:           mv.ServerHeader.Ctime.UnixMilliseconds(),
+			Prev:               prev,
+			Unread:             unread,
+			RevokedDevice:      mv.SenderDeviceRevokedAt != nil,
+			KBFSEncrypted:      mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
+			IsEphemeral:        mv.IsEphemeral(),
+			IsEphemeralExpired: mv.IsEphemeralExpired(time.Now()),
+			ETime:              mv.Etime(),
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -300,13 +303,12 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
 	arg := sendArgV1{
-		conversationID:    convID,
-		channel:           opts.Channel,
-		body:              chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
-		mtype:             chat1.MessageType_EDIT,
-		supersedes:        opts.MessageID,
-		response:          "message edited",
-		ephemeralLifetime: opts.EphemeralLifetime,
+		conversationID: convID,
+		channel:        opts.Channel,
+		body:           chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
+		mtype:          chat1.MessageType_EDIT,
+		supersedes:     opts.MessageID,
+		response:       "message edited",
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -350,6 +352,11 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 	if header.clientHeader.TlfPublic {
 		vis = keybase1.TLFVisibility_PUBLIC
 	}
+
+	var ephemeralLifetime *gregor1.DurationSec
+	if header.clientHeader.EphemeralMetadata != nil {
+		ephemeralLifetime = &header.clientHeader.EphemeralMetadata.Lifetime
+	}
 	arg := chat1.PostAttachmentLocalArg{
 		ConversationID: header.conversationID,
 		TlfName:        header.clientHeader.TlfName,
@@ -359,7 +366,8 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 			Size:     int(info.Size()),
 			Source:   src,
 		},
-		Title: opts.Title,
+		Title:             opts.Title,
+		EphemeralLifetime: ephemeralLifetime,
 	}
 
 	// check for preview
@@ -430,6 +438,10 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	if header.clientHeader.TlfPublic {
 		vis = keybase1.TLFVisibility_PUBLIC
 	}
+	var ephemeralLifetime *gregor1.DurationSec
+	if header.clientHeader.EphemeralMetadata != nil {
+		ephemeralLifetime = &header.clientHeader.EphemeralMetadata.Lifetime
+	}
 	arg := chat1.PostFileAttachmentLocalArg{
 		ConversationID: header.conversationID,
 		TlfName:        header.clientHeader.TlfName,
@@ -437,7 +449,8 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 		Attachment: chat1.LocalFileSource{
 			Filename: opts.Filename,
 		},
-		Title: opts.Title,
+		Title:             opts.Title,
+		EphemeralLifetime: ephemeralLifetime,
 	}
 
 	// check for preview
@@ -831,7 +844,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	}
 	var ephemeralMetadata *chat1.MsgEphemeralMetadata
 	if arg.ephemeralLifetime.Duration != 0 && membersType != chat1.ConversationMembersType_KBFS {
-		ephemeralLifetime := gregor1.DurationSec(time.Duration(arg.ephemeralLifetime.Duration) / time.Second)
+		ephemeralLifetime := gregor1.ToDurationSec(time.Duration(arg.ephemeralLifetime.Duration))
 		ephemeralMetadata = &chat1.MsgEphemeralMetadata{Lifetime: ephemeralLifetime}
 	}
 
@@ -1056,17 +1069,20 @@ type MsgContent struct {
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
-	ID            chat1.MessageID                `json:"id"`
-	Channel       ChatChannel                    `json:"channel"`
-	Sender        MsgSender                      `json:"sender"`
-	SentAt        int64                          `json:"sent_at"`
-	SentAtMs      int64                          `json:"sent_at_ms"`
-	Content       MsgContent                     `json:"content"`
-	Prev          []chat1.MessagePreviousPointer `json:"prev"`
-	Unread        bool                           `json:"unread"`
-	RevokedDevice bool                           `json:"revoked_device,omitempty"`
-	Offline       bool                           `json:"offline,omitempty"`
-	KBFSEncrypted bool                           `json:"kbfs_encrypted,omitempty"`
+	ID                 chat1.MessageID                `json:"id"`
+	Channel            ChatChannel                    `json:"channel"`
+	Sender             MsgSender                      `json:"sender"`
+	SentAt             int64                          `json:"sent_at"`
+	SentAtMs           int64                          `json:"sent_at_ms"`
+	Content            MsgContent                     `json:"content"`
+	Prev               []chat1.MessagePreviousPointer `json:"prev"`
+	Unread             bool                           `json:"unread"`
+	RevokedDevice      bool                           `json:"revoked_device,omitempty"`
+	Offline            bool                           `json:"offline,omitempty"`
+	KBFSEncrypted      bool                           `json:"kbfs_encrypted,omitempty"`
+	IsEphemeral        bool                           `json:"is_ephemeral,omitempty"`
+	IsEphemeralExpired bool                           `json:"is_ephemeral_expired,omitempty"`
+	ETime              gregor1.Time                   `json:"etime,omitempty"`
 }
 
 // Message contains either a MsgSummary or an Error.  Used for JSON output.

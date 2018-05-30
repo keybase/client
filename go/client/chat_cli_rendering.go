@@ -187,6 +187,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 					Content:   flexibletable.SingleCell{Item: "???"},
 				},
 				flexibletable.Cell{
+					Alignment: flexibletable.Center,
+					Content:   flexibletable.SingleCell{Item: "???"},
+				},
+				flexibletable.Cell{
 					Alignment: flexibletable.Left,
 					Content:   flexibletable.SingleCell{Item: conv.Error.Message},
 				},
@@ -542,14 +546,14 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		m.SenderUsername, possiblyRevokedMark, m.SenderDeviceName, shortDurationFromNow(t))
 
 	if m.IsEphemeral() {
-		remainingLifetime := m.RemainingLifetime()
-		if remainingLifetime <= 0 {
+		remainingEphemeralLifetime := m.RemainingEphemeralLifetime(time.Now())
+		if remainingEphemeralLifetime <= 0 {
 			mv.Body = "[exploded]"
 			for i := 0; i < 40; i++ {
 				mv.Body += "* "
 			}
 		} else {
-			mv.EphemeralInfo = fmt.Sprintf("[expires in %s]", remainingLifetime)
+			mv.EphemeralInfo = fmt.Sprintf("[expires in %s]", remainingEphemeralLifetime)
 		}
 	}
 

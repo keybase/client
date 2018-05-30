@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +25,6 @@ func TestKeygenIfNeeded(t *testing.T) {
 		deviceEKNeeded, err := ekLib.NewDeviceEKNeeded(context.Background())
 		require.NoError(t, err)
 		require.True(t, deviceEKNeeded)
-
 	}
 
 	expectedUserEKGen, err := userEKBoxStorage.MaxGeneration(context.Background())
@@ -80,7 +80,13 @@ func TestKeygenIfNeeded(t *testing.T) {
 	deviceEKStorage.ClearCache()
 	expectedDeviceEKGen++
 	expectedUserEKGen++
-	keygen(expectedDeviceEKGen, expectedUserEKGen)
+
+	// Test ForceDeleteAll
+	err = deviceEKStorage.ForceDeleteAll(context.Background(), tc.G.Env.GetUsername())
+	require.NoError(t, err)
+	deviceEKs, err := rawDeviceEKStorage.GetAll(context.Background())
+	require.NoError(t, err)
+	require.Len(t, deviceEKs, 0)
 }
 
 func TestNewTeamEKNeeded(t *testing.T) {
@@ -229,4 +235,37 @@ func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
 
 	err = ekLib.CleanupStaleUserAndDeviceEKs(context.Background())
 	require.NoError(t, err)
+}
+
+func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
+	tc, _ := ephemeralKeyTestSetup(t)
+	defer tc.Cleanup()
+
+	seed, err := newDeviceEphemeralSeed()
+	require.NoError(t, err)
+	s := tc.G.GetDeviceEKStorage()
+	ctimeExpired := keybase1.TimeFromSeconds(time.Now().Unix() - KeyLifetimeSecs*3)
+	err = s.Put(context.Background(), 0, keybase1.DeviceEk{
+		Seed: keybase1.Bytes32(seed),
+		Metadata: keybase1.DeviceEkMetadata{
+			Ctime:       ctimeExpired,
+			DeviceCtime: ctimeExpired,
+		},
+	})
+	require.NoError(t, err)
+
+	ekLib := NewEKLib(tc.G)
+	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
+	require.Error(t, err)
+	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
+
+	// Even though we return an error, we charge through on the deletion
+	// successfully.
+	deviceEK, err := s.Get(context.Background(), 0)
+	require.Error(t, err)
+	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
+
+	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
+	require.Error(t, err)
+	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 }

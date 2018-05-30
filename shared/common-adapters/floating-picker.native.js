@@ -1,9 +1,16 @@
 // @flow
-import React, {type Node} from 'react'
+import * as React from 'react'
 import {TouchableWithoutFeedback, Picker} from 'react-native'
 import Box, {Box2} from './box'
 import Text from './text'
-import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../styles'
+import {
+  globalColors,
+  globalMargins,
+  globalStyles,
+  platformStyles,
+  styleSheetCreate,
+  collapseStyles,
+} from '../styles'
 import FloatingBox from './floating-box.native'
 
 type PickerItem = {|label: string, value: string | number|}
@@ -12,8 +19,8 @@ type Props = {
   items: PickerItem[], // values must be unique
   selectedValue: string | number,
   onSelect: (string | number) => void,
-  header?: Node,
-  prompt?: Node,
+  header?: React.Node,
+  prompt?: React.Node,
   promptString?: string, // used on android as title of selection popup
   onHidden: () => void,
   onCancel: () => void,
@@ -42,7 +49,7 @@ const FloatingPicker = (props: Props) => {
             >
               <Text
                 type="BodySemibold"
-                style={[styles.link, styles.cancelContainer]}
+                style={collapseStyles([styles.link, styles.cancelContainer])}
                 onClick={props.onCancel}
               >
                 Cancel

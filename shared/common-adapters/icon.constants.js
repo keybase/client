@@ -1036,55 +1036,25 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-phone-text-code-48.png'),
   },
-  'icon-placeholder-avatar-112': {
+  'icon-placeholder-avatar-192': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-112.png'),
+    require: require('../images/icons/icon-placeholder-avatar-192.png'),
   },
-  'icon-placeholder-avatar-12': {
+  'icon-placeholder-avatar-256': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-12.png'),
-  },
-  'icon-placeholder-avatar-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-16.png'),
-  },
-  'icon-placeholder-avatar-176': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-176.png'),
-  },
-  'icon-placeholder-avatar-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-24.png'),
+    require: require('../images/icons/icon-placeholder-avatar-256.png'),
   },
   'icon-placeholder-avatar-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-32.png'),
   },
-  'icon-placeholder-avatar-40': {
+  'icon-placeholder-avatar-960': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-40.png'),
-  },
-  'icon-placeholder-avatar-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-48.png'),
-  },
-  'icon-placeholder-avatar-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-64.png'),
-  },
-  'icon-placeholder-avatar-80': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-80.png'),
+    require: require('../images/icons/icon-placeholder-avatar-960.png'),
   },
   'icon-placeholder-secret-user-48': {
     isFont: false,
@@ -1376,11 +1346,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-team-placeholder-avatar-112.png'),
   },
-  'icon-team-placeholder-avatar-12': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-team-placeholder-avatar-12.png'),
-  },
   'icon-team-placeholder-avatar-16': {
     isFont: false,
     extension: 'png',
@@ -1391,20 +1356,20 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-team-placeholder-avatar-176.png'),
   },
-  'icon-team-placeholder-avatar-24': {
+  'icon-team-placeholder-avatar-192': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-team-placeholder-avatar-24.png'),
+    require: require('../images/icons/icon-team-placeholder-avatar-192.png'),
+  },
+  'icon-team-placeholder-avatar-256': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-team-placeholder-avatar-256.png'),
   },
   'icon-team-placeholder-avatar-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-team-placeholder-avatar-32.png'),
-  },
-  'icon-team-placeholder-avatar-40': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-team-placeholder-avatar-40.png'),
   },
   'icon-team-placeholder-avatar-48': {
     isFont: false,
@@ -1421,6 +1386,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-team-placeholder-avatar-80.png'),
   },
+  'icon-team-placeholder-avatar-960': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-team-placeholder-avatar-960.png'),
+  },
   'icon-team-sparkles-48-40': {
     isFont: false,
     extension: 'png',
@@ -1435,6 +1405,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-terminal-48.png'),
+  },
+  'icon-transaction-pending-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-transaction-pending-16.png'),
   },
   'icon-twitter-logo-16': {
     isFont: false,

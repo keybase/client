@@ -313,9 +313,8 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 	if err := RunEngine2(m, peng); err != nil {
 		t.Fatal(err)
 	}
-	err := tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.SetUnlockedPaperKey(peng.SigKey(), peng.EncKey())
-	}, "TestCryptoUnboxBytes32AnyPaper")
+
+	m.ActiveDevice().CachePaperKey(m, libkb.NewDeviceWithKeysOnly(peng.SigKey(), peng.EncKey()))
 
 	key := peng.EncKey()
 	kp, ok := key.(libkb.NaclDHKeyPair)
@@ -381,9 +380,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 	}
 
 	// clear the paper key cache to test getting a paper key via UI
-	err = tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearCachedSecretKeys()
-	}, "TestCryptoUnboxBytes32AnyPaper")
+	clearCaches(tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}

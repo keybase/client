@@ -3,6 +3,7 @@ import logger from '../logger'
 import {Set} from 'immutable'
 import * as ConfigGen from './config-gen'
 import * as Types from '../constants/types/gregor'
+import * as Chat2Gen from './chat2-gen'
 import * as FavoriteGen from './favorite-gen'
 import * as GitGen from './git-gen'
 import * as GregorGen from './gregor-gen'
@@ -17,6 +18,8 @@ import {type State as GregorState, type OutOfBandMessage} from '../constants/typ
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
+import {explodingModeGregorKeyPrefix} from '../constants/chat2/'
+import {stringToConversationIDKey} from '../constants/types/chat2'
 
 function isTlfItem(gItem: Types.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
@@ -32,22 +35,30 @@ function toNonNullGregorItems(state: GregorState): Array<Types.NonNullGregorItem
   }, [])
 }
 
+// TODO: DESKTOP-6661 - Refactor `registerReachability` out of `actions/config.js`
 function registerReachability() {
   return (dispatch: Dispatch, getState: () => TypedState) => {
-    engine().setIncomingHandler('keybase.1.reachability.reachabilityChanged', ({reachability}, response) => {
-      // Gregor reachability is only valid if we're logged in
-      // TODO remove this when core stops sending us these when we're logged out
-      if (loggedInSelector(getState())) {
-        dispatch(GregorGen.createUpdateReachability({reachability}))
+    engine().setIncomingActionCreators(
+      'keybase.1.reachability.reachabilityChanged',
+      ({reachability}, response) => {
+        const actions = []
 
-        if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
-          // TODO: We should be able to recover from connection problems
-          // without re-bootstrapping. Originally we used to do this on HTML5
-          // 'online' event, but reachability is more precise.
-          dispatch(ConfigGen.createBootstrap({isReconnect: true}))
+        // Gregor reachability is only valid if we're logged in
+        // TODO remove this when core stops sending us these when we're logged out
+        if (loggedInSelector(getState())) {
+          actions.push(GregorGen.createUpdateReachability({reachability}))
+
+          if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
+            // TODO: We should be able to recover from connection problems
+            // without re-bootstrapping. Originally we used to do this on HTML5
+            // 'online' event, but reachability is more precise.
+            actions.push(ConfigGen.createBootstrap({isReconnect: true}))
+          }
         }
+
+        return actions
       }
-    })
+    )
 
     dispatch(checkReachabilityOnConnect())
   }
@@ -76,33 +87,34 @@ function checkReachabilityOnConnect() {
 }
 
 function registerGregorListeners() {
-  return (dispatch: Dispatch) => {
-    // Filter this firehose down to the two systems we care about: "git", and "kbfs.favorites"
-    // If ever you want to get OOBMs for a different system, then you need to enter it here.
-    RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git', 'kbfs.favorites']})
-      .then(response => {
-        logger.info('Registered gregor listener')
-      })
-      .catch(error => {
-        logger.warn('error in registering gregor listener: ', error)
-      })
-
-    // we get this with sessionID == 0 if we call openDialog
-    engine().setIncomingHandler('keybase.1.gregorUI.pushState', ({state, reason}, response) => {
-      dispatch(GregorGen.createPushState({state, reason}))
-      response && response.result()
+  // Filter this firehose down to the two systems we care about: "git", and "kbfs.favorites"
+  // If ever you want to get OOBMs for a different system, then you need to enter it here.
+  RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git', 'kbfs.favorites']})
+    .then(response => {
+      logger.info('Registered gregor listener')
+    })
+    .catch(error => {
+      logger.warn('error in registering gregor listener: ', error)
     })
 
-    engine().setIncomingHandler('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
-      if (oobm && oobm.length) {
-        const filteredOOBM = oobm.filter(oobm => !!oobm)
-        if (filteredOOBM.length) {
-          dispatch(GregorGen.createPushOOBM({messages: filteredOOBM}))
-        }
+  // we get this with sessionID == 0 if we call openDialog
+  engine().setIncomingActionCreators('keybase.1.gregorUI.pushState', ({reason, state}, response) => {
+    const actions = [GregorGen.createPushState({reason, state})]
+    response && response.result()
+    return actions
+  })
+
+  engine().setIncomingActionCreators('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
+    const actions = []
+    if (oobm && oobm.length) {
+      const filteredOOBM = oobm.filter(oobm => !!oobm)
+      if (filteredOOBM.length) {
+        actions.push(GregorGen.createPushOOBM({messages: filteredOOBM}))
       }
-      response && response.result()
-    })
-  }
+    }
+    response && response.result()
+    return actions
+  })
 }
 
 function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
@@ -141,6 +153,29 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
   yield Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 }
 
+function handleConvExplodingModes(items: Array<Types.NonNullGregorItem>) {
+  const explodingItems = items.filter(i => i.item.category.startsWith(explodingModeGregorKeyPrefix))
+  if (!explodingItems.length) {
+    // No conversations have exploding modes, clear out what is set
+    return Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
+  }
+  logger.info('Got push state with some exploding modes')
+  const modes = explodingItems.reduce((current, i) => {
+    const {category, body} = i.item
+    const secondsString = body.toString()
+    const seconds = parseInt(secondsString, 10)
+    if (isNaN(seconds)) {
+      logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+      return current
+    }
+    const _conversationIDKey = category.substring(explodingModeGregorKeyPrefix.length)
+    const conversationIDKey = stringToConversationIDKey(_conversationIDKey)
+    current.push({conversationIDKey, seconds})
+    return current
+  }, [])
+  return Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes}))
+}
+
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
   if (!pushAction.error) {
     const {
@@ -154,6 +189,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
     return Saga.sequentially([
       Saga.call(handleTLFUpdate, nonNullItems),
       Saga.call(handleBannersAndBadges, nonNullItems),
+      handleConvExplodingModes(nonNullItems),
     ])
   } else {
     logger.debug('Error in gregor pushState', pushAction.payload)

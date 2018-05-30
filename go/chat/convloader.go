@@ -147,8 +147,8 @@ func (b *BackgroundConvLoader) monitorAppState() {
 	for {
 		state = <-b.G().AppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_FOREGROUND:
-			b.Debug(ctx, "monitorAppState: foregrounded")
+		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
+			b.Debug(ctx, "monitorAppState: active state: %v", state)
 			// Only resume if we had suspended earlier (frontend can spam us with these)
 			if suspended {
 				b.Debug(ctx, "monitorAppState: resuming load thread")
@@ -437,7 +437,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	if pagination == nil {
 		pagination = &chat1.Pagination{Num: 50}
 	}
-	tv, _, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid, query, pagination)
+	tv, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid, query, pagination)
 	if err != nil {
 		b.Debug(ctx, "load: ConvSource.Pull error: %s (%T)", err, err)
 		if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {

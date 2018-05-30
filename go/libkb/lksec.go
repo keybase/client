@@ -442,13 +442,13 @@ func (s *LKSec) ComputeClientHalf() (ret LKSecClientHalf, err error) {
 
 func (s *LKSec) loadSecretSyncer(m MetaContext) (ss *SecretSyncer, err error) {
 	if lctx := m.LoginContext(); lctx != nil {
-		if err := lctx.RunSecretSyncer(s.uid); err != nil {
+		if err := lctx.RunSecretSyncer(m, s.uid); err != nil {
 			return nil, err
 		}
 		return lctx.SecretSyncer(), nil
 	}
-	aerr := m.G().LoginState().Account(func(a *Account) {
-		if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
+	aerr := m.G().LoginStateDeprecated().Account(func(a *Account) {
+		if err = RunSyncer(m, a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
 		ss = a.SecretSyncer()
@@ -482,7 +482,7 @@ func (s *LKSec) apiServerHalf(m MetaContext, devid keybase1.DeviceID) (dkm Devic
 // an LKS that works for encryption.
 func NewLKSecForEncrypt(m MetaContext, ui SecretUI, uid keybase1.UID) (ret *LKSec, err error) {
 	var pps *PassphraseStream
-	if pps, err = m.G().LoginState().GetPassphraseStream(m, ui); err != nil {
+	if pps, err = m.G().LoginStateDeprecated().GetPassphraseStream(m, ui); err != nil {
 		return
 	}
 	ret = NewLKSec(pps, uid, m.G())
@@ -502,6 +502,7 @@ func (s *LKSec) EncryptClientHalfRecovery(key GenericKey) (string, error) {
 // ToSKB exports a generic key with the given LKSec to a SecretKeyBundle,
 // performing all necessary encryption.
 func (s *LKSec) ToSKB(m MetaContext, key GenericKey) (ret *SKB, err error) {
+	defer m.CTrace("LKSec#ToSKB", func() error { return err })()
 	if s == nil {
 		return nil, errors.New("nil lks")
 	}
@@ -526,12 +527,13 @@ func (s *LKSec) ToSKB(m MetaContext, key GenericKey) (ret *SKB, err error) {
 	return ret, nil
 }
 
-func WriteLksSKBToKeyring(m MetaContext, k GenericKey, lks *LKSec) (*SKB, error) {
-	skb, err := lks.ToSKB(m, k)
+func WriteLksSKBToKeyring(m MetaContext, k GenericKey, lks *LKSec) (skb *SKB, err error) {
+	defer m.CTrace("WriteLksSKBToKeyring", func() error { return err })()
+	skb, err = lks.ToSKB(m, k)
 	if err != nil {
 		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
 	}
-	if err := skbPushAndSave(m, skb); err != nil {
+	if err = skbPushAndSave(m, skb); err != nil {
 		return nil, err
 	}
 	return skb, nil

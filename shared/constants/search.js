@@ -3,9 +3,9 @@ import * as I from 'immutable'
 import * as Types from './types/search'
 import * as SearchGen from '../actions/search-gen'
 import {amIFollowing, usernameSelector} from './selectors'
-import {type IconType} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters'
 import {createSelector} from 'reselect'
-import {type TypedState} from './reducer'
+import type {TypedState} from './reducer'
 
 export const makeSearchResult: I.RecordFactory<Types.SearchResult> = I.Record({
   id: '',

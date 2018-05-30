@@ -23,6 +23,10 @@ func TestKex2ProvisionPUK(t *testing.T) {
 	subTestKex2Provision(t, true /* upgradePerUserKey */)
 }
 
+func fakeSalt() []byte {
+	return []byte("fakeSALTfakeSALT")
+}
+
 func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := libkb.SetupTest(t, "kex2provision", 2)
@@ -86,19 +90,16 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	go func() {
 		defer wg.Done()
 
-		f := func(lctx libkb.LoginContext) error {
-
+		err := (func() error {
 			uis := libkb.UIs{
 				ProvisionUI: &kbtest.TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
 			}
 			deviceID, err := libkb.NewDeviceID()
 			if err != nil {
-				t.Errorf("provisionee device id error: %s", err)
 				return err
 			}
 			suffix, err := libkb.RandBytes(5)
 			if err != nil {
-				t.Errorf("provisionee device suffix error: %s", err)
 				return err
 			}
 			dname := fmt.Sprintf("device_%x", suffix)
@@ -107,18 +108,11 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 				Description: &dname,
 				Type:        libkb.DeviceTypeDesktop,
 			}
-			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY)
-			m := libkb.NewMetaContextForTest(tcY).WithUIs(uis).WithLoginContext(lctx)
-			if err := engine.RunEngine2(m, provisionee); err != nil {
-				t.Errorf("provisionee error: %s", err)
-				return err
-			}
-			return nil
-		}
-
-		if err := tcY.G.LoginState().ExternalFunc(f, "Test - Kex2Provision"); err != nil {
-			t.Errorf("kex2 provisionee error: %s", err)
-		}
+			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, fakeSalt())
+			m := libkb.NewMetaContextForTest(tcY).WithUIs(uis).WithNewProvisionalLoginContext()
+			return engine.RunEngine2(m, provisionee)
+		})()
+		require.NoError(t, err, "provisionee")
 	}()
 
 	// start provisioner
@@ -148,6 +142,10 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		require.True(t, maxDeviceEKGenerationY > 0)
 		deviceEKY, err := deviceEKStorageY.Get(context.Background(), maxDeviceEKGenerationY)
 		require.NoError(t, err)
+		// Clear out DeviceCtime since it won't be present in fetched data,
+		// it's only known locally.
+		require.NotEqual(t, 0, deviceEKY.Metadata.DeviceCtime)
+		deviceEKY.Metadata.DeviceCtime = 0
 
 		// Make sure the server knows about our device_ek
 		merkleRootPtr, err := tcY.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)

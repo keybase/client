@@ -47,7 +47,7 @@ func (g *GlobalContext) SKBFilenameForUser(un NormalizedUsername) string {
 
 func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, error) {
 	if un.IsNil() {
-		return nil, NoUsernameError{}
+		return nil, NewNoUsernameError()
 	}
 
 	skbfile := NewSKBKeyringFile(g, un)
@@ -58,9 +58,13 @@ func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, e
 	return skbfile, nil
 }
 
+func LoadSKBKeyringFromMetaContext(m MetaContext) (*SKBKeyringFile, error) {
+	return LoadSKBKeyring(m.CurrentUsername(), m.G())
+}
+
 func StatSKBKeyringMTime(un NormalizedUsername, g *GlobalContext) (mtime time.Time, err error) {
 	if un.IsNil() {
-		return mtime, NoUsernameError{}
+		return mtime, NewNoUsernameError()
 	}
 	return NewSKBKeyringFile(g, un).MTime()
 }
@@ -206,7 +210,7 @@ func (k *Keyrings) GetSecretKeyLocked(m MetaContext, ska SecretKeyArg) (ret *SKB
 			return ret, err
 		}
 	} else {
-		aerr := m.G().LoginState().Account(func(a *Account) {
+		aerr := m.G().LoginStateDeprecated().Account(func(a *Account) {
 			ret, err = a.LockedLocalSecretKey(ska)
 		}, "LockedLocalSecretKey")
 		if err != nil {
@@ -273,7 +277,7 @@ func (k *Keyrings) setCachedSecretKey(m MetaContext, ska SecretKeyArg, key Gener
 	if lctx := m.LoginContext(); lctx != nil {
 		setErr = lctx.SetCachedSecretKey(ska, key, nil)
 	} else {
-		aerr := m.G().LoginState().Account(func(a *Account) {
+		aerr := m.G().LoginStateDeprecated().Account(func(a *Account) {
 			setErr = a.SetCachedSecretKey(ska, key, nil)
 		}, "GetSecretKeyWithPrompt - SetCachedSecretKey")
 		if aerr != nil {
@@ -323,7 +327,7 @@ func (k *Keyrings) GetSecretKeyWithoutPrompt(m MetaContext, ska SecretKeyArg) (k
 
 	// not cached, so try to unlock without prompting
 	if ska.Me == nil {
-		err = NoUsernameError{}
+		err = NewNoUsernameError()
 		return nil, err
 	}
 	secretStore := NewSecretStore(m.G(), ska.Me.GetNormalizedName())
@@ -386,11 +390,11 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(m MetaContext, me *User, passphras
 	var tsec Triplesec
 	var pps *PassphraseStream
 	if lctx := m.LoginContext(); lctx != nil {
-		tsec = lctx.PassphraseStreamCache().Triplesec()
+		tsec, _ = lctx.PassphraseStreamCache().TriplesecAndGeneration()
 		pps = lctx.PassphraseStreamCache().PassphraseStream()
 	} else {
-		m.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
-			tsec = sc.Triplesec()
+		m.G().LoginStateDeprecated().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
+			tsec, _ = sc.TriplesecAndGeneration()
 			pps = sc.PassphraseStream()
 		}, "StreamCache - tsec, pps")
 	}

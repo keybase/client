@@ -23,11 +23,13 @@ window.console._info = window.console.info
 const PERF = false
 
 let config = {
+  allowMultipleInstances: false,
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: null, // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
+  ignoreDisconnectOverlay: false,
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
   isTesting: nativeBridge.test === '1' || (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
@@ -37,6 +39,8 @@ let config = {
   printRPC: false, // Print rpc traffic
   reduxSagaLogger: false, // Print saga debug info
   reduxSagaLoggerMasked: true, // Print saga debug info masked out
+  showDevTools: false,
+  skipSecondaryDevtools: false,
   userTimings: false, // Add user timings api to timeline in chrome
 }
 
@@ -78,11 +82,13 @@ if (PERF) {
 }
 
 export const {
+  allowMultipleInstances,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,
   filterActionLogs,
   forceImmediateLogging,
+  ignoreDisconnectOverlay,
   immediateStateLogging,
   isDevApplePushToken,
   isTesting,
@@ -92,6 +98,8 @@ export const {
   printRPC,
   reduxSagaLogger,
   reduxSagaLoggerMasked,
+  showDevTools,
+  skipSecondaryDevtools,
   userTimings,
 } = config
 

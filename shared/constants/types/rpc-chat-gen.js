@@ -100,6 +100,7 @@ export const commonTopicType = {
   none: 0,
   chat: 1,
   dev: 2,
+  kbfsfileedit: 3,
 }
 
 export const localAddTeamMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: LocalAddTeamMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.addTeamMemberAfterReset', request)
@@ -180,6 +181,10 @@ export const localGetInboxAndUnboxLocalRpcChannelMap = (configKeys: Array<string
 
 export const localGetInboxAndUnboxLocalRpcPromise = (request: LocalGetInboxAndUnboxLocalRpcParam): Promise<LocalGetInboxAndUnboxLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxLocal', request, (error: RPCError, result: LocalGetInboxAndUnboxLocalResult) => (error ? reject(error) : resolve(result))))
 
+export const localGetInboxAndUnboxUILocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxAndUnboxUILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxAndUnboxUILocal', request)
+
+export const localGetInboxAndUnboxUILocalRpcPromise = (request: LocalGetInboxAndUnboxUILocalRpcParam): Promise<LocalGetInboxAndUnboxUILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxUILocal', request, (error: RPCError, result: LocalGetInboxAndUnboxUILocalResult) => (error ? reject(error) : resolve(result))))
+
 export const localGetInboxNonblockLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxNonblockLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxNonblockLocal', request)
 
 export const localGetInboxNonblockLocalRpcPromise = (request: LocalGetInboxNonblockLocalRpcParam): Promise<LocalGetInboxNonblockLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxNonblockLocal', request, (error: RPCError, result: LocalGetInboxNonblockLocalResult) => (error ? reject(error) : resolve(result))))
@@ -221,6 +226,7 @@ export const localGetThreadNonblockPgMode = {
 export const localGetThreadNonblockReason = {
   general: 0,
   push: 1,
+  foreground: 2,
 }
 
 export const localGetThreadNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadNonblock', request)
@@ -761,13 +767,13 @@ export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
-export type EphemeralPurgeInfo = $ReadOnly<{isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
+export type EphemeralPurgeInfo = $ReadOnly<{convID: ConversationID, isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
 
 export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>, conv?: ?InboxUIItem}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
-export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge}>
+export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, conv?: ?InboxUIItem}>
 
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, unreadUpdate?: ?UnreadUpdate}>
 
@@ -784,6 +790,8 @@ export type GetConversationForCLILocalRes = $ReadOnly<{conversation: Conversatio
 export type GetConversationMetadataRemoteRes = $ReadOnly<{conv: Conversation, rateLimit?: ?RateLimit}>
 
 export type GetInboxAndUnboxLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, pagination?: ?Pagination, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+
+export type GetInboxAndUnboxUILocalRes = $ReadOnly<{conversations?: ?Array<InboxUIItem>, pagination?: ?Pagination, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
 export type GetInboxByTLFIDRemoteRes = $ReadOnly<{convs?: ?Array<Conversation>, rateLimit?: ?RateLimit}>
 
@@ -826,6 +834,7 @@ export type GetThreadNonblockPgMode =
 export type GetThreadNonblockReason =
   | 0 // GENERAL_0
   | 1 // PUSH_1
+  | 2 // FOREGROUND_2
 
 export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
 
@@ -878,7 +887,7 @@ export type InboxView = {rtype: 0} | {rtype: 1, full: ?InboxViewFull}
 
 export type InboxViewFull = $ReadOnly<{vers: InboxVers, conversations?: ?Array<Conversation>, pagination?: ?Pagination}>
 
-export type IncomingMessage = $ReadOnly<{message: UIMessage, convID: ConversationID, displayDesktopNotification: Boolean, conv?: ?InboxUIItem, pagination?: ?UIPagination}>
+export type IncomingMessage = $ReadOnly<{message: UIMessage, convID: ConversationID, displayDesktopNotification: Boolean, desktopNotificationSnippet: String, conv?: ?InboxUIItem, pagination?: ?UIPagination}>
 
 export type JoinLeaveConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 
@@ -909,6 +918,8 @@ export type LocalGetConversationForCLILocalRpcParam = $ReadOnly<{query: GetConve
 export type LocalGetGlobalAppNotificationSettingsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetInboxAndUnboxLocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LocalGetInboxAndUnboxUILocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetInboxNonblockLocalRpcParam = $ReadOnly<{maxUnbox?: ?Int, skipUnverified: Boolean, query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -948,7 +959,7 @@ export type LocalPostDeleteHistoryUptoRpcParam = $ReadOnly<{conversationID: Conv
 
 export type LocalPostDeleteNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalPostEditNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostEditNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPostFileAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalFileSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1102,7 +1113,7 @@ export type MessageUnboxedState =
 
 export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>}>
 
-export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration}>
+export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration, explodedBy?: ?String}>
 
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
 
@@ -1368,6 +1379,7 @@ export type TopicType =
   | 0 // NONE_0
   | 1 // CHAT_1
   | 2 // DEV_2
+  | 3 // KBFSFILEEDIT_3
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
 
@@ -1379,7 +1391,7 @@ export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?
 
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
 
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time}>
 
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 
@@ -1408,6 +1420,7 @@ type LocalGetCachedThreadResult = GetThreadLocalRes
 type LocalGetConversationForCLILocalResult = GetConversationForCLILocalRes
 type LocalGetGlobalAppNotificationSettingsLocalResult = GlobalAppNotificationSettings
 type LocalGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
+type LocalGetInboxAndUnboxUILocalResult = GetInboxAndUnboxUILocalRes
 type LocalGetInboxNonblockLocalResult = NonblockFetchRes
 type LocalGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 type LocalGetMessagesLocalResult = GetMessagesLocalRes

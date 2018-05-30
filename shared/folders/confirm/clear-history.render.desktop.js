@@ -17,7 +17,7 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
           users={users}
           prefix={`Clear history for ${isPrivate ? 'private' : 'public'}/`}
           suffix="?"
-          containerStyle={{display: 'inline-flex', justifyContent: 'center'}}
+          containerStyle={platformStyles({isElectron: {display: 'inline-flex', justifyContent: 'center'}})}
         />
         <Text
           type="Header"

@@ -1,18 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
-    <title>B544AAE4-6247-4B31-95D6-BF9F1E03BC25</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Colors,-icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons-2" transform="translate(-491.000000, -424.000000)" fill="#000000">
-            <g id="kb-iconfont-usercard-16" transform="translate(491.000000, 424.000000)">
-                <g id="Group-3" transform="translate(2.000000, 0.000000)">
-                    <path d="M2,2 L2,14 L10,14 L10,2 L2,2 Z M2,0 L10,0 C11.1045695,-2.02906125e-16 12,0.8954305 12,2 L12,14 C12,15.1045695 11.1045695,16 10,16 L2,16 C0.8954305,16 1.3527075e-16,15.1045695 0,14 L0,2 C-1.3527075e-16,0.8954305 0.8954305,2.02906125e-16 2,0 Z" id="Rectangle-27" fill-rule="nonzero"></path>
-                    <circle id="Oval" cx="6" cy="4.5" r="1.75"></circle>
-                    <path d="M3.5,9 C3.5,8.44771525 3.94371665,8 4.49980749,8 L7.50019251,8 C8.05237094,8 8.5,8.44386482 8.5,9 C8.5,9.55228475 8.05628335,10 7.50019251,10 L4.49980749,10 C3.94762906,10 3.5,9.55613518 3.5,9 Z M3.5,12 C3.5,11.4477153 3.94371665,11 4.49980749,11 L7.50019251,11 C8.05237094,11 8.5,11.4438648 8.5,12 C8.5,12.5522847 8.05628335,13 7.50019251,13 L4.49980749,13 C3.94762906,13 3.5,12.5561352 3.5,12 Z" id="Combined-Shape"></path>
-                </g>
-            </g>
-        </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <g fill="#000" fill-rule="evenodd" transform="translate(2)">
+        <path fill-rule="nonzero" d="M2 2v12h8V2H2zm0-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2z"/>
+        <circle cx="6" cy="4.5" r="1.75"/>
+        <path d="M3.5 9c0-.552.444-1 1-1h3c.552 0 1 .444 1 1 0 .552-.444 1-1 1h-3c-.552 0-1-.444-1-1zm0 3c0-.552.444-1 1-1h3c.552 0 1 .444 1 1 0 .552-.444 1-1 1h-3c-.552 0-1-.444-1-1z"/>
     </g>
 </svg>

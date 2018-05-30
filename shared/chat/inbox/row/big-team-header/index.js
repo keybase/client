@@ -32,7 +32,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           teamname={props.teamname}
           isSmallTeam={false}
         />
-        <Avatar teamname={props.teamname} size={isMobile ? 24 : 16} />
+        <Avatar teamname={props.teamname} size={32} />
         <Text type="BodySmallSemibold" style={teamStyle}>
           {props.teamname}
         </Text>
@@ -63,17 +63,13 @@ const teamRowContainerStyle = platformStyles({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 0,
+    maxHeight: 32,
+    minHeight: 32,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
   isElectron: {
     ...desktopStyles.clickable,
-    maxHeight: globalMargins.medium,
-    minHeight: globalMargins.medium,
-  },
-  isMobile: {
-    maxHeight: globalMargins.large,
-    minHeight: globalMargins.large,
   },
 })
 

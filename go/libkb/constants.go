@@ -610,6 +610,9 @@ const DeriveReasonPUKStellarNoteShared string = "Keybase-Derived-Stellar-Note-PU
 // has skip pointers indicating log(n) previous merkle roots.
 var FirstProdMerkleSeqnoWithSkips = keybase1.Seqno(835903)
 
+// We didn't have valid signatures before 796, so don't try to load them.
+var FirstProdMerkleSeqnoWithSigs = keybase1.Seqno(796)
+
 type AppType string
 
 const (
@@ -673,3 +676,8 @@ const CurrentGitMetadataEncryptionVersion = 1
 // The secret_store_file and erasable_kv_store use a random noise file of this
 // size when encrypting secrets for disk.
 const noiseFileLen = 1024 * 1024 * 2
+
+// NOTE if you change these values you should change them in
+// go/chatbase/storage/ephemeral.go as well.
+const MaxEphemeralLifetime = time.Hour * 24 * 7
+const MinEphemeralLifetime = time.Second * 30

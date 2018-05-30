@@ -2,11 +2,135 @@
   "protocol": "local",
   "imports": [
     {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    },
+    {
       "path": "common.avdl",
       "type": "idl"
     }
   ],
   "types": [
+    {
+      "type": "record",
+      "name": "WalletAccountLocal",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "boolean",
+          "name": "isDefault"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "balanceDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AccountAssetLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "balanceTotal"
+        },
+        {
+          "type": "string",
+          "name": "balanceAvailableToSend"
+        },
+        {
+          "type": "string",
+          "name": "assetCode"
+        },
+        {
+          "type": "string",
+          "name": "issuer"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CurrencyLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "OutsideCurrencyCode",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "symbol"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "acceptedDisclaimer"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendResultCLILocal",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "kbTxID"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        },
+        {
+          "type": [
+            null,
+            "SendRelayResultCLILocal"
+          ],
+          "name": "relay"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendRelayResultCLILocal",
+      "fields": [
+        {
+          "type": "keybase1.TeamID",
+          "name": "teamID"
+        }
+      ]
+    },
     {
       "type": "record",
       "name": "PaymentCLIOptionLocal",
@@ -103,7 +227,7 @@
     },
     {
       "type": "record",
-      "name": "LocalOwnAccount",
+      "name": "OwnAccountCLILocal",
       "fields": [
         {
           "type": "AccountID",
@@ -135,6 +259,145 @@
     }
   ],
   "messages": {
+    "getWalletAccountsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "WalletAccountLocal"
+      }
+    },
+    "getAccountAssetsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "AccountAssetLocal"
+      }
+    },
+    "getDisplayCurrenciesLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "CurrencyLocal"
+      }
+    },
+    "changeWalletAccountNameLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "newName",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "setWalletAccountAsDefaultLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "deleteWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "userAcknowledged",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "linkNewWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "secretKey",
+          "type": "SecretKey"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "AccountID"
+    },
+    "changeDisplayCurrencyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "currency",
+          "type": "OutsideCurrencyCode"
+        }
+      ],
+      "response": null
+    },
+    "getUserSettingsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "UserSettings"
+    },
+    "setAcceptedDisclaimerLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
     "balancesLocal": {
       "request": [
         {
@@ -147,7 +410,7 @@
         "items": "Balance"
       }
     },
-    "sendLocal": {
+    "sendCLILocal": {
       "request": [
         {
           "name": "recipient",
@@ -172,9 +435,29 @@
         {
           "name": "displayCurrency",
           "type": "string"
+        },
+        {
+          "name": "forceRelay",
+          "type": "boolean"
         }
       ],
-      "response": "PaymentResult"
+      "response": "SendResultCLILocal"
+    },
+    "claimCLILocal": {
+      "request": [
+        {
+          "name": "txID",
+          "type": "string"
+        },
+        {
+          "name": "into",
+          "type": [
+            null,
+            "AccountID"
+          ]
+        }
+      ],
+      "response": "RelayClaimResult"
     },
     "recentPaymentsCLILocal": {
       "request": [
@@ -208,11 +491,11 @@
       "request": [],
       "response": "Bundle"
     },
-    "walletGetLocalAccounts": {
+    "walletGetAccountsCLILocal": {
       "request": [],
       "response": {
         "type": "array",
-        "items": "LocalOwnAccount"
+        "items": "OwnAccountCLILocal"
       }
     },
     "ownAccountLocal": {

@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import * as ChatTypes from '../../constants/types/chat2'
+import * as PropProviders from '../../stories/prop-providers'
 import * as Types from '../../constants/types/teams'
 import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
@@ -58,8 +59,14 @@ const channelState = channels.reduce((acc: Types.ChannelMembershipState, c) => {
   return acc
 }, {})
 
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
+
 const load = () => {
   storiesOf('Chat/Teams', module)
+    .addDecorator(provider)
     .add('ManageChannels', () => (
       <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
         <ManageChannels
@@ -132,6 +139,7 @@ const load = () => {
           onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
+          waitingForGetInfo={false}
         />
       </Box>
     ))
@@ -147,6 +155,23 @@ const load = () => {
           onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={true}
+          waitingForGetInfo={false}
+        />
+      </Box>
+    ))
+    .add('EditChannel - loading', () => (
+      <Box style={toPlatformStyle(editChannelStyle)}>
+        <EditChannel
+          onBack={action('onBack')}
+          teamname={'stripe.usa'}
+          channelName={''}
+          topic={''}
+          onCancel={action('onCancel')}
+          onSave={action('onSave')}
+          onConfirmedDelete={action('onConfirmedDelete')}
+          showDelete={true}
+          deleteRenameDisabled={false}
+          waitingForGetInfo={true}
         />
       </Box>
     ))

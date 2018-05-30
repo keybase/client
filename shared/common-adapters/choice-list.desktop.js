@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon} from '../common-adapters'
+import {Box, Text, Icon, type IconType} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 import type {Props} from './choice-list'
-import type {IconType} from './icon'
 
 const ChoiceList = ({options}: Props) => {
   return (

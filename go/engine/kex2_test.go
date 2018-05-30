@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestKex2Provision(t *testing.T) {
@@ -53,21 +54,17 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		f := func(lctx libkb.LoginContext) error {
-
+		err := (func() error {
 			uis := libkb.UIs{
 				ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 			}
-			m := NewMetaContextForTest(tcY).WithLoginContext(lctx).WithUIs(uis)
+			m := NewMetaContextForTest(tcY).WithUIs(uis).WithNewProvisionalLoginContext()
 			deviceID, err := libkb.NewDeviceID()
 			if err != nil {
-				t.Errorf("provisionee device id error: %s", err)
 				return err
 			}
 			suffix, err := libkb.RandBytes(5)
 			if err != nil {
-				t.Errorf("provisionee device suffix error: %s", err)
 				return err
 			}
 			dname := fmt.Sprintf("device_%x", suffix)
@@ -76,17 +73,13 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 				Description: &dname,
 				Type:        libkb.DeviceTypeDesktop,
 			}
-			provisionee := NewKex2Provisionee(tcY.G, device, secretY)
+			provisionee := NewKex2Provisionee(tcY.G, device, secretY, fakeSalt())
 			if err := RunEngine2(m, provisionee); err != nil {
-				t.Errorf("provisionee error: %s", err)
 				return err
 			}
 			return nil
-		}
-
-		if err := tcY.G.LoginState().ExternalFunc(f, "Test - Kex2Provision"); err != nil {
-			t.Errorf("kex2 provisionee error: %s", err)
-		}
+		})()
+		require.NoError(t, err, "no kex2 provisionee error")
 	}()
 
 	// start provisioner
@@ -140,20 +133,17 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		f := func(lctx libkb.LoginContext) error {
+		err := (func() error {
 			uis := libkb.UIs{
 				ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 			}
-			m := NewMetaContextForTest(tcY).WithLoginContext(lctx).WithUIs(uis)
+			m := NewMetaContextForTest(tcY).WithUIs(uis).WithNewProvisionalLoginContext()
 			deviceID, err := libkb.NewDeviceID()
 			if err != nil {
-				t.Errorf("provisionee device id error: %s", err)
 				return err
 			}
 			suffix, err := libkb.RandBytes(5)
 			if err != nil {
-				t.Errorf("provisionee device suffix error: %s", err)
 				return err
 			}
 			dname := fmt.Sprintf("device_%x", suffix)
@@ -162,17 +152,13 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 				Description: &dname,
 				Type:        libkb.DeviceTypeDesktop,
 			}
-			provisionee := NewKex2Provisionee(tcY.G, device, secretY)
+			provisionee := NewKex2Provisionee(tcY.G, device, secretY, fakeSalt())
 			if err := RunEngine2(m, provisionee); err != nil {
-				t.Errorf("provisionee error: %s", err)
 				return err
 			}
 			return nil
-		}
-
-		if err := tcY.G.LoginState().ExternalFunc(f, "Test - Kex2Provision"); err != nil {
-			t.Errorf("kex2 provisionee error: %s", err)
-		}
+		})()
+		require.NoError(t, err, "kex2 provisionee")
 	}()
 
 	// start provisioner

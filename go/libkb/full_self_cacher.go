@@ -119,7 +119,7 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 	var sigHints *SigHints
 	var leaf *MerkleUserLeaf
 
-	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(ctx, m.G(), arg.uid, true)
+	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(NewMetaContext(ctx, m.G()), arg.uid, true)
 	if err != nil {
 		m.me = nil
 		return err
@@ -151,10 +151,7 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 // WithUser supports other so that code doesn't need to change if we're doing the
 // operation for the user or someone else.
 func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err error) {
-	ctx := arg.netContext
-	if ctx == nil {
-		ctx = context.Background()
-	}
+	ctx := arg.GetNetContext()
 	ctx = WithLogTag(ctx, "SELF")
 	arg = arg.WithNetContext(ctx)
 

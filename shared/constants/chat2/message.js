@@ -10,10 +10,24 @@ import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
+import {noConversationIDKey} from '../types/chat2/common'
+
+export const getMessageID = (m: RPCChatTypes.UIMessage) => {
+  switch (m.state) {
+    case RPCChatTypes.chatUiMessageUnboxedState.valid:
+      return m.valid ? m.valid.messageID : null
+    case RPCChatTypes.chatUiMessageUnboxedState.error:
+      return m.error ? m.error.messageID : null
+    case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
+      return m.placeholder ? m.placeholder.messageID : null
+    default:
+      return null
+  }
+}
 
 const makeMessageMinimum = {
   author: '',
-  conversationIDKey: Types.stringToConversationIDKey(''),
+  conversationIDKey: noConversationIDKey,
   id: Types.numberToMessageID(0),
   ordinal: Types.numberToOrdinal(0),
   timestamp: 0,
@@ -32,6 +46,9 @@ const makeMessageCommon = {
 const makeMessageExplodable = {
   exploded: false,
   explodedBy: '',
+  exploding: false,
+  explodingTime: Date.now(),
+  explodingUnreadable: false,
 }
 
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
@@ -303,7 +320,15 @@ const validUIMessagetoMessage = (
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
+    exploded: m.isEphemeralExpired,
+    exploding: m.isEphemeral,
+    explodingTime: m.etime,
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
+  }
+
+  if (m.isEphemeralExpired) {
+    // This message already exploded. Make it an empty text message.
+    return makeMessageText({...common})
   }
 
   switch (m.messageBody.messageType) {
@@ -501,6 +526,9 @@ const errorUIMessagetoMessage = (
     deviceName: o.senderDeviceName,
     deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
     errorReason: o.errMsg,
+    exploded: o.isEphemeralExpired,
+    exploding: o.isEphemeral,
+    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
@@ -554,9 +582,13 @@ export const makePendingTextMessage = (
   text: HiddenString,
   outboxID: Types.OutboxID
 ) => {
-  const lastOrindal =
+  // we could read the exploding mode for the convo from state here, but that
+  // would cause the timer to count down while the message is still pending
+  // and probably reset when we get the real message back.
+
+  const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  const ordinal = nextFractionalOrdinal(lastOrindal)
+  const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   return makeMessageText({
     author: state.config.username || '',
@@ -580,9 +612,9 @@ export const makePendingAttachmentMessage = (
   previewURL: string,
   outboxID: Types.OutboxID
 ) => {
-  const lastOrindal =
+  const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  const ordinal = nextFractionalOrdinal(lastOrindal)
+  const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   return makeMessageAttachment({
     attachmentType,
@@ -614,7 +646,6 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 
 export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'text' && m.type === 'text') {
-    // $ForceType
     return m.withMutations((ret: Types.MessageText) => {
       ret.set('ordinal', old.ordinal)
     })
@@ -629,7 +660,6 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       // don't show the gray box.
       return m.set('ordinal', old.ordinal).set('previewURL', old.previewURL)
     }
-    // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
       // We got an attachment-uploaded message. Hold on to the old ID
       // because that's what the service expects to delete this message

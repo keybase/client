@@ -10,8 +10,8 @@ import (
 // PaperKeySubmit is an engine.
 type PaperKeySubmit struct {
 	libkb.Contextified
-	paperPhrase string
-	pair        *keypair
+	paperPhrase    string
+	deviceWithKeys *libkb.DeviceWithKeys
 }
 
 // NewPaperKeySubmit creates a PaperKeySubmit engine.
@@ -51,24 +51,16 @@ func (e *PaperKeySubmit) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	e.pair, err = matchPaperKey(m, me, e.paperPhrase)
+	e.deviceWithKeys, err = matchPaperKey(m, me, e.paperPhrase)
 	if err != nil {
 		return err
 	}
 
-	aerr := m.G().LoginState().Account(func(a *libkb.Account) {
-		err = a.SetUnlockedPaperKey(e.pair.sigKey, e.pair.encKey)
-	}, "PaperKeySubmit - cache paper key")
-	if aerr != nil {
-		return aerr
-	}
-	if err != nil {
-		return err
-	}
+	m.ActiveDevice().CachePaperKey(m, e.deviceWithKeys)
 
 	// send a notification that a paper key has been cached
 	// for rekey purposes
-	m.G().NotifyRouter.HandlePaperKeyCached(me.GetUID(), e.pair.encKey.GetKID(), e.pair.sigKey.GetKID())
+	m.G().NotifyRouter.HandlePaperKeyCached(me.GetUID(), e.deviceWithKeys.EncryptionKey().GetKID(), e.deviceWithKeys.SigningKey().GetKID())
 
 	// XXX - this is temporary until KBFS handles the above notification
 	m.G().UserChanged(me.GetUID())

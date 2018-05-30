@@ -11,7 +11,7 @@ import {
   Input,
   NativeScrollView,
   NativeKeyboard,
-} from '../common-adapters/index.native'
+} from '../common-adapters/mobile.native'
 
 const getOtherErrorInfo = (err: Error) => {
   const info = {}

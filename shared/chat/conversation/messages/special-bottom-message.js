@@ -35,15 +35,19 @@ class BottomMessage extends React.PureComponent<Props> {
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  measure: ?() => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  const showResetParticipants = meta && !meta.resetParticipants.isEmpty() ? ownProps.conversationIDKey : null
+  const showResetParticipants = !meta.resetParticipants.isEmpty() ? ownProps.conversationIDKey : null
   const showSuperseded =
-    meta && (meta.wasFinalizedBy || meta.supersededBy) ? ownProps.conversationIDKey : null
+    meta && (meta.wasFinalizedBy || meta.supersededBy !== Constants.noConversationIDKey)
+      ? ownProps.conversationIDKey
+      : null
 
   return {
+    measure: ownProps.measure,
     showResetParticipants,
     showSuperseded,
   }

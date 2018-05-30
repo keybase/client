@@ -300,11 +300,12 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		ri = mockRemote
 		ctx = newTestContextWithTlfMock(tc, tlf)
 	} else {
-		var sessionToken string
 		ctx = newTestContext(tc)
-		tc.G.LoginState().LocalSession(func(s *libkb.Session) {
-			sessionToken = s.GetToken()
-		}, "test session")
+		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
@@ -596,7 +597,7 @@ func TestChatSrvNewConversationLocal(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
 		uid := users[0].User.GetUID().ToBytes()
-		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		if len(conv.MaxMsgSummaries) == 0 {
 			t.Fatalf("created conversation does not have a message")
@@ -729,7 +730,7 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 
-		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		if conversations[0].Info.TlfName != conv.MaxMsgSummaries[0].TlfName {
 			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName, mt)
@@ -1021,7 +1022,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		require.Equal(t, 1, len(conversations))
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName)
 		require.Equal(t, conversations[0].Info.Id, created.Id)
@@ -1050,7 +1051,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		uid := users[0].User.GetUID().ToBytes()
 		tc := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
-		tv, _, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
+		tv, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
 			nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
@@ -1073,7 +1074,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		})
 		require.NoError(t, err)
 		t.Logf("headline -> msgid:%v", res.MessageID)
-		tv, _, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
+		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
 			nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
@@ -1090,8 +1091,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 			Age:              0,
 		})
 		require.NoError(t, err)
-		tv, _, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
-			nil)
+		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil, nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
 		// Teams don't use the remote mock. So PostDeleteHistoryByAge won't have gotten a good answer from GetMessageBefore.
@@ -1135,6 +1135,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
 			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
@@ -1203,6 +1204,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Zero(t, len(info.Message.Valid().AtMentions))
 			require.Equal(t, chat1.ChannelMention_ALL, info.Message.Valid().ChannelMention)
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
@@ -1220,6 +1222,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
 			require.Equal(t, chat1.ChannelMention_NONE, info.Message.Valid().ChannelMention)
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
@@ -1936,6 +1939,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			assertEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
 				valid := unboxed.Valid()
 				require.False(t, valid.IsEphemeralExpired)
+				require.Nil(t, valid.ExplodedBy)
 				if ephemeralLifetime == nil {
 					require.False(t, valid.IsEphemeral)
 					require.EqualValues(t, valid.Etime, 0)
@@ -1944,6 +1948,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 					lifetime := time.Second * time.Duration(*ephemeralLifetime)
 					require.True(t, time.Now().Add(lifetime).Sub(valid.Etime.Time()) <= lifetime)
 				}
+			}
+
+			assertNotEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
+				valid := unboxed.Valid()
+				require.False(t, valid.IsEphemeralExpired)
+				require.False(t, valid.IsEphemeral)
+				require.EqualValues(t, valid.Etime, 0)
+				require.Nil(t, valid.ExplodedBy)
 			}
 
 			var err error
@@ -2025,14 +2037,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
 			t.Logf("edit the message")
+			// An ephemeralLifetime is added if we are editing an ephemeral message
 			earg := chat1.PostEditNonblockArg{
-				ConversationID:    created.Id,
-				TlfName:           created.TlfName,
-				TlfPublic:         created.Visibility == keybase1.TLFVisibility_PUBLIC,
-				Supersedes:        unboxed.GetMessageID(),
-				Body:              "hi2",
-				IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
-				EphemeralLifetime: ephemeralLifetime,
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       unboxed.GetMessageID(),
+				Body:             "hi2",
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
 			require.NoError(t, err)
@@ -2066,6 +2078,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
 				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2093,6 +2106,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, headline, unboxed.Valid().MessageBody.Headline().Headline)
 				}
+				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2120,6 +2134,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, topicName, unboxed.Valid().MessageBody.Metadata().ConversationTitle)
 				}
+				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2697,6 +2712,68 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 	})
 }
 
+func TestChatSrvGetThreadNonblockOldPages(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "GetThreadNonblock", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+		if mt == chat1.ConversationMembersType_KBFS {
+			return
+		}
+
+		uid := gregor1.UID(users[0].GetUID().ToBytes())
+		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+		threadCb := make(chan kbtest.NonblockThreadResult, 100)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ctc.as(t, users[0]).h.mockChatUI = ui
+		ctx := ctc.as(t, users[0]).startCtx
+		bgConvLoads := make(chan chat1.ConversationID, 10)
+		ctc.as(t, users[0]).h.G().ConvLoader.Start(ctx, uid)
+		ctc.as(t, users[0]).h.G().ConvLoader.(*BackgroundConvLoader).loads = bgConvLoads
+
+		t.Logf("send a bunch of messages")
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		// need two for new conversation, plus the gregor message
+		for i := 0; i < 2; i++ {
+			select {
+			case <-bgConvLoads:
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no bkg load")
+			}
+		}
+		numMsgs := 20
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+		for i := 0; i < numMsgs; i++ {
+			mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		}
+		select {
+		case <-bgConvLoads:
+			require.Fail(t, "no more bg loads")
+		default:
+		}
+		_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+			chat1.GetThreadNonblockArg{
+				ConversationID:   conv.Id,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				Pagination:       utils.PresentPagination(&chat1.Pagination{Num: 1}),
+			},
+		)
+		require.NoError(t, err)
+		res := receiveThreadResult(t, threadCb)
+		require.Equal(t, 1, len(res.Messages))
+		select {
+		case <-bgConvLoads:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no bkg load")
+		}
+		select {
+		case <-bgConvLoads:
+			require.Fail(t, "no more bg loads")
+		default:
+		}
+	})
+}
+
 func TestChatSrvGetThreadNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetThreadNonblock", 1)
@@ -2818,7 +2895,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(2 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -2887,7 +2964,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -3263,6 +3340,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
 
+		t.Logf("user1 leaves: %s", ncres.Conv.GetConvID())
 		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
 			ncres.Conv.GetConvID())
 		require.NoError(t, err)
@@ -3391,6 +3469,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case info := <-listener0.newMessage:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
@@ -3419,6 +3498,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case info := <-listener0.newMessage:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
@@ -3468,6 +3548,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		select {
 		case info := <-listener0.newMessage:
 			require.False(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
@@ -3479,6 +3560,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			select {
 			case info := <-listener0.newMessage:
 				require.True(t, info.DisplayDesktopNotification)
+				require.NotEqual(t, "", info.DesktopNotificationSnippet)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no new message event")
 			}
@@ -3562,9 +3644,10 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 		ctx := ctc.as(t, users[0]).startCtx
-
+		_ = ctc.as(t, users[1]).startCtx
 		for i, u := range users {
 			t.Logf("user[%v] %v %v", i, u.Username, u.User.GetUID())
+			ctc.world.Tcs[u.Username].ChatG.Syncer.(*Syncer).isConnected = true
 		}
 
 		listener := newServerChatListener()
@@ -3677,7 +3760,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 		ri := ctc.as(t, users[0]).ri
-		convRemote, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
 		require.NoError(t, err)
 
 		// Creating a conversation with same topic name just returns the matching one
@@ -3772,7 +3855,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
-		convRemote, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
 		require.NoError(t, err)
 		plarg := chat1.PostLocalArg{
 			ConversationID: conv.Id,
@@ -3880,7 +3963,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
-		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
 		require.NoError(t, err)
 		require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
 		require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -4016,7 +4099,7 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		}
 
 		// Check remote notifications
-		uconv, _, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
+		uconv, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
 			conv.Id, false)
 		require.NoError(t, err)
 		require.NotNil(t, uconv.Notifications)
@@ -4062,6 +4145,8 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctc.as(t, users[1]).h.mockChatUI = ui
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
@@ -4260,7 +4345,7 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("reset user 1")
 		ctcForUser := ctc.as(t, users[1])
-		require.NoError(t, ctcForUser.h.G().LoginState().ResetAccount(ctcForUser.m, users[1].Username))
+		require.NoError(t, libkb.ResetAccount(ctcForUser.m, users[1].NormalizedUsername(), users[1].Passphrase))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
@@ -4321,7 +4406,7 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("reset user 2")
 		ctcForUser2 := ctc.as(t, users[2])
-		require.NoError(t, ctcForUser2.h.G().LoginState().ResetAccount(ctcForUser2.m, users[2].Username))
+		require.NoError(t, libkb.ResetAccount(ctcForUser2.m, users[2].NormalizedUsername(), users[2].Passphrase))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)

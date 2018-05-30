@@ -15,7 +15,6 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 	testvectors "github.com/keybase/keybase-test-vectors/go"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 // Returns a map from error name strings to sets of Go error types. If a test
@@ -225,7 +224,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 	if sigchainErr == nil {
-		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(nil, eldestKID, &ckf)
+		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(NewMetaContextForTest(tc), eldestKID, &ckf)
 	}
 
 	// Some tests expect an error. If we get one, make sure it's the right
@@ -327,7 +326,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 }
 
 func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
-	err := chain.Store(context.Background())
+	err := chain.Store(NewMetaContextForTest(tc))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -341,9 +340,8 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 			public: chain.GetCurrentTailTriple(),
 			uid:    chain.uid,
 		},
-		chainType:    PublicChain,
-		Contextified: NewContextified(tc.G),
-		ctx:          context.Background(),
+		chainType:        PublicChain,
+		MetaContextified: NewMetaContextified(NewMetaContextForTest(tc)),
 	}
 	sgl.chain = chain
 	sgl.dirtyTail = chain.GetCurrentTailTriple()

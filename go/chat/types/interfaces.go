@@ -64,7 +64,7 @@ type ConversationSource interface {
 	PushUnboxed(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, msg chat1.MessageUnboxed) (continuousUpdate bool, err error)
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
-		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
+		pagination *chat1.Pagination) (chat1.ThreadView, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
@@ -92,12 +92,12 @@ type MessageDeliverer interface {
 }
 
 type Searcher interface {
-	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, rlimits []chat1.RateLimit, err error)
+	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error)
 }
 
 type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-		clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error)
+		clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
 		conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error)
 }
@@ -112,10 +112,10 @@ type InboxSource interface {
 	Offlinable
 
 	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, useLocalData bool,
-		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, *chat1.RateLimit, error)
+		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
-		query *chat1.GetInboxQuery, p *chat1.Pagination) (Inbox, *chat1.RateLimit, error)
-	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, *chat1.RateLimit, error)
+		query *chat1.GetInboxQuery, p *chat1.Pagination) (Inbox, error)
+	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
@@ -213,9 +213,9 @@ type AppState interface {
 type TeamChannelSource interface {
 	Offlinable
 
-	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
-	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ChannelNameMention, []chat1.RateLimit, error)
-	GetChannelTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType, chat1.ConversationID) (string, []chat1.RateLimit, error)
+	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
+	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ChannelNameMention, error)
+	GetChannelTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType, chat1.ConversationID) (string, error)
 	ChannelsChanged(context.Context, chat1.TLFID)
 }
 
@@ -242,4 +242,15 @@ type AttachmentURLSrv interface {
 	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
 		preview bool) string
 	GetAttachmentFetcher() AttachmentFetcher
+}
+
+type RateLimitedResult interface {
+	GetRateLimit() []chat1.RateLimit
+	SetRateLimits(rl []chat1.RateLimit)
+}
+
+type EphemeralPurger interface {
+	Resumable
+
+	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo)
 }

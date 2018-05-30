@@ -1,8 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Icon} from '../../../../common-adapters'
-import HOCTimers, {type PropsWithTimer} from '../../../../common-adapters/hoc-timers'
-import type {IconType} from '../../../../common-adapters/icon.constants'
+import {Icon, type IconType, HOCTimers, type PropsWithTimer} from '../../../../common-adapters'
 
 type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'
 const statusToIcon: {[key: IconStatus]: IconType} = {
@@ -30,7 +28,12 @@ type Props = PropsWithTimer<{
 
 type State = {iconStatus: IconStatus, visible: boolean}
 class SendIndicator extends React.Component<Props, State> {
-  state = {iconStatus: 'encrypting', visible: true}
+  state: State
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {iconStatus: 'encrypting', visible: !props.sent}
+  }
 
   encryptingTimeoutID: TimeoutID
   sentTimeoutID: TimeoutID

@@ -92,7 +92,7 @@ const AttachmentPopupMenu = (props: Props) => {
 
 const stylePopup = {
   overflow: 'visible',
-  width: isMobile ? '100%' : 196,
+  width: isMobile ? '100%' : 240,
 }
 
 export default AttachmentPopupMenu

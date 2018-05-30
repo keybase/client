@@ -1,15 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
-    <title>15C18CF5-0AE8-47AD-8B62-199CA5ECB533</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Colors,-icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons-2" transform="translate(-431.000000, -337.000000)">
-            <g id="kb-iconfont-thunderbolt-16" transform="translate(431.000000, 337.000000)">
-                <rect id="icon-area" fill="#D8D8D8" opacity="0" x="0" y="0" width="16" height="16"></rect>
-                <path d="M12.0510341,1 L7.20192846,1 C6.86757819,1 6.55534919,1.16709824 6.36988273,1.44529295 L2,8 L6,8 L3.88892,16 L14,7 L9.69238,7 L12.8633624,2.58320032 C13.1854551,2.13456375 13.082871,1.50976427 12.6342344,1.18767163 C12.464257,1.06563862 12.2602812,1 12.0510341,1 Z" id="storm-path" fill="#000000"></path>
-            </g>
-        </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <path fill="#000" fill-rule="evenodd" d="M12.051 1h-4.85a1 1 0 0 0-.831.445L2 8h4l-2.111 8L14 7H9.692l3.171-4.417A1 1 0 0 0 12.051 1z"/>
 </svg>

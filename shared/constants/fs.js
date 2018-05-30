@@ -7,12 +7,10 @@ import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
-import {type IconType} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters'
 import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
-import * as mime from 'react-native-mime-types'
-import {lookupPatchedExt} from '../fs/utils/ext-list'
 
 export const defaultPath = '/keybase'
 
@@ -44,6 +42,7 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   size: 0,
   progress: 'pending',
   type: 'file',
+  mimeType: '',
 })
 
 export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
@@ -127,7 +126,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   transfers: I.Map(),
-  localHTTPServerInfo: makeLocalHTTPServer(),
+  localHTTPServerInfo: null,
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -307,17 +306,6 @@ export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath
 export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
   downloadFilePathNoSearch(Types.getPathName(p))
 
-const mediaMimePrefixes = ['image', 'audio', 'video']
-
-export const isMedia = (name: string): boolean => {
-  const mimeType = mime.lookup(name)
-  if (!mimeType) return false
-  const firstSlashIndex = mimeType.indexOf('/')
-  if (firstSlashIndex === -1) return false
-  const mimePrefix = mimeType.substring(0, firstSlashIndex)
-  return mediaMimePrefixes.includes(mimePrefix)
-}
-
 export type FavoritesListResult = {
   users: {[string]: string},
   devices: {[string]: Types.Device},
@@ -459,23 +447,15 @@ export const folderToFavoriteItems = (
   )
 }
 
-export const mimeTypeFromPathName = (name: string): string => mime.lookup(name) || ''
-
-export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
-  const name = Types.getPathName(p)
-  const fromPatched = lookupPatchedExt(name)
-  if (fromPatched) {
-    return fromPatched
-  }
-  const mimeType = mime.lookup(name) || ''
+export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
   if (mimeType.startsWith('text/')) {
     return 'text'
   }
   if (mimeType.startsWith('image/')) {
     return 'image'
   }
-  if (mimeType.startsWith('video/')) {
-    return 'video'
+  if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
+    return 'av'
   }
   if (mimeType === 'application/pdf') {
     return 'pdf'
@@ -483,9 +463,18 @@ export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
   return 'default'
 }
 
-export const generateFileURL = (path: Types.Path, address: string, token: string): string => {
-  const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
-  return `http://${address}/files${stripKeybase}?token=${token}`
+export const isMedia = (pathItem: Types.PathItem): boolean =>
+  pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
+
+const slashKeybaseSlashLength = '/keybase/'.length
+export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types._LocalHTTPServer): string => {
+  if (localHTTPServerInfo === null) {
+    return 'about:blank'
+  }
+  const {address, token} = localHTTPServerInfo || makeLocalHTTPServer() // make flow happy
+  const stripKeybase = Types.pathToString(path).slice(slashKeybaseSlashLength)
+  const encoded = encodeURIComponent(stripKeybase)
+  return `http://${address}/files/${encoded}?token=${token}`
 }
 
 export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
@@ -517,3 +506,21 @@ export const showIgnoreFolder = (path: Types.Path, pathItem: Types.PathItem, use
 
 export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect =>
   isMobile ? null : evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null
+
+// shouldUseOldMimeType determines if mimeType from newItem should reuse
+// what's in oldItem.
+export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
+  if (oldItem.mimeType === '' || newItem.mimeType !== '') {
+    return false
+  }
+
+  return (
+    oldItem.type === newItem.type &&
+    oldItem.lastModifiedTimestamp === newItem.lastModifiedTimestamp &&
+    oldItem.lastWriter.uid === newItem.lastWriter.uid &&
+    oldItem.name === newItem.name &&
+    oldItem.size === newItem.size
+  )
+}
+
+export const invalidTokenError = new Error('invalid token')

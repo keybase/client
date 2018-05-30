@@ -18,6 +18,9 @@ import (
 var client = horizon.DefaultPublicNetClient
 var network = build.PublicNetwork
 
+const defaultMemo = "via keybase"
+const baseReserve = 5000000
+
 // SetClientURL sets the url for the horizon server this client
 // connects to.
 func SetClientURL(url string) {
@@ -75,6 +78,79 @@ func (a *Account) Balances() ([]horizon.Balance, error) {
 	}
 
 	return a.internal.Balances, nil
+}
+
+// SubentryCount returns the number of subentries in the account's ledger.
+// Subentries affect the minimum balance.
+func (a *Account) SubentryCount() (int, error) {
+	if err := a.load(); err != nil {
+		return 0, err
+	}
+
+	return int(a.internal.SubentryCount), nil
+}
+
+// AvailableBalanceXLM returns the native lumen balance minus any
+// required minimum balance.
+func (a *Account) AvailableBalanceXLM() (string, error) {
+	if err := a.load(); err != nil {
+		return "", err
+	}
+
+	return a.availableBalanceXLMLoaded()
+}
+
+// availableBalanceXLMLoaded must be called after a.load().
+func (a *Account) availableBalanceXLMLoaded() (string, error) {
+	return AvailableBalance(a.internal.GetNativeBalance(), int(a.internal.SubentryCount))
+}
+
+// AvailableBalance determines the amount of the balance that could
+// be sent to another account (leaving enough XLM in the sender's
+// account to maintain the minimum balance).
+func AvailableBalance(balance string, subentryCount int) (string, error) {
+	balanceInt, err := samount.ParseInt64(balance)
+	if err != nil {
+		return "", err
+	}
+
+	minimum := baseReserve * (2 + int64(subentryCount))
+
+	available := balanceInt - minimum
+	if available < 0 {
+		available = 0
+	}
+
+	return samount.StringFromInt64(available), nil
+}
+
+// AccountDetails contains basic details about a stellar account.
+type AccountDetails struct {
+	Seqno         string
+	SubentryCount int
+	Available     string
+	Balances      []horizon.Balance
+}
+
+// Details returns AccountDetails for this account (minimizing horizon calls).
+func (a *Account) Details() (*AccountDetails, error) {
+	if err := a.load(); err != nil {
+		return nil, err
+	}
+
+	available, err := a.availableBalanceXLMLoaded()
+	if err != nil {
+		return nil, err
+	}
+
+	details := AccountDetails{
+		Seqno:         a.internal.Sequence,
+		SubentryCount: int(a.internal.SubentryCount),
+		Balances:      a.internal.Balances,
+		Available:     available,
+	}
+
+	return &details, nil
 }
 
 // IsMasterKeyActive returns whether the account's master key can sign transactions.
@@ -281,7 +357,7 @@ func PaymentXLMTransaction(from SeedStr, to AddressStr, amount string,
 			build.Destination{AddressOrSeed: to.String()},
 			build.NativeAmount{Amount: amount},
 		),
-		build.MemoText{Value: "via keybase"},
+		build.MemoText{Value: defaultMemo},
 	)
 	if err != nil {
 		return res, err
@@ -310,7 +386,7 @@ func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string,
 			build.Destination{AddressOrSeed: to.String()},
 			build.NativeAmount{Amount: amount},
 		),
-		build.MemoText{Value: "via keybase"},
+		build.MemoText{Value: defaultMemo},
 	)
 	if err != nil {
 		return res, err
@@ -318,6 +394,53 @@ func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string,
 	return sign(from, tx)
 }
 
+// AccountMergeTransaction creates a signed transaction to merge the account `from` into `to`.
+func AccountMergeTransaction(from SeedStr, to AddressStr,
+	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
+	tx, err := build.Transaction(
+		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
+		network,
+		build.AutoSequence{SequenceProvider: seqnoProvider},
+		build.AccountMerge(
+			build.Destination{AddressOrSeed: to.String()},
+		),
+		build.MemoText{Value: defaultMemo},
+	)
+	if err != nil {
+		return res, err
+	}
+	return sign(from, tx)
+}
+
+// RelocateTransaction creates a signed transaction to merge the account `from` into `to`.
+// Works even if `to` is not funded but in that case requires 2 XLM temporary reserve.
+// If `toIsFunded` then this is just an account merge transaction.
+// Otherwise the transaction is two operations: [create_account, account_merge].
+func RelocateTransaction(from SeedStr, to AddressStr, toIsFunded bool,
+	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
+	if toIsFunded {
+		return AccountMergeTransaction(from, to, seqnoProvider)
+	}
+	tx, err := build.Transaction(
+		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
+		network,
+		build.AutoSequence{SequenceProvider: seqnoProvider},
+		build.CreateAccount(
+			build.Destination{AddressOrSeed: to.String()},
+			build.NativeAmount{Amount: "1"},
+		),
+		build.AccountMerge(
+			build.Destination{AddressOrSeed: to.String()},
+		),
+		build.MemoText{Value: defaultMemo},
+	)
+	if err != nil {
+		return res, err
+	}
+	return sign(from, tx)
+}
+
+// SignResult contains the result of signing a transaction.
 type SignResult struct {
 	Seqno  uint64
 	Signed string // signed transaction (base64)
