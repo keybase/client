@@ -80,7 +80,7 @@ func skbPushAndSave(m MetaContext, skb *SKB) (err error) {
 		}
 		return kr.PushAndSave(skb)
 	}
-	kerr := m.G().LoginState().Keyring(func(ring *SKBKeyringFile) {
+	kerr := m.G().LoginStateDeprecated().Keyring(func(ring *SKBKeyringFile) {
 		err = ring.PushAndSave(skb)
 	}, "PushAndSave")
 	if kerr != nil {

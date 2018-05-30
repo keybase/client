@@ -689,10 +689,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	require.NoError(t, err, "login")
 
 	// Clear the paper key.
-	err = g.LoginState().Account(func(a *libkb.Account) {
-		a.ClearPaperKeys()
-	}, "provisionNewDevice")
-	require.NoError(t, err, "clear paper key")
+	g.ActiveDevice.ClearCaches()
 
 	skey, err := g.ActiveDevice.SigningKey()
 	require.NoError(t, err)

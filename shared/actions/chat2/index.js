@@ -32,6 +32,7 @@ import {
 } from '../platform-specific'
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
+import flags from '../../util/feature-flags'
 
 // Ask the service to refresh the inbox
 const inboxRefresh = (
@@ -165,9 +166,7 @@ const unboxRows = (
 
   const onUnboxed = function*({conv}: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
     const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-    // We allow empty conversations now since we create them and they're empty now
-    const allowEmpty = action.type === Chat2Gen.selectConversation
-    const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem, allowEmpty)
+    const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem, true)
     if (meta) {
       yield Saga.put(
         Chat2Gen.createMetasReceived({
@@ -1102,7 +1101,10 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const tlfName = meta.tlfname
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
 
-  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  // disable sending exploding messages if flag is false
+  const ephemeralLifetime = flags.explodingMessagesEnabled
+    ? Constants.getConversationExplodingMode(state, conversationIDKey)
+    : 0
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   // Inject pending message and make the call
@@ -1135,7 +1137,8 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
 const previewConversationAfterFindExisting = (
   _fromPreviewConversation,
-  action: Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
+  action: Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
+  state: TypedState
 ) => {
   // TODO make a sequentially that uses an object map and not all this array nonsense
   if (!_fromPreviewConversation || _fromPreviewConversation.length !== 4) {
@@ -1146,20 +1149,29 @@ const previewConversationAfterFindExisting = (
 
   let existingConversationIDKey
 
+  const isTeam =
+    action.type === Chat2Gen.previewConversation && (action.payload.teamname || action.payload.channelname)
   if (action.type === Chat2Gen.previewConversation && action.payload.conversationIDKey) {
     existingConversationIDKey = action.payload.conversationIDKey
   } else if (results && results.conversations && results.conversations.length > 0) {
     // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
     // and allows quoting privately to work nicely
     existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
+
+    // If we get a conversationIDKey we don't know about (maybe an empty convo) lets treat it as not being found so we can go through the create flow
+    // if it's a team avoid the flow and just preview & select the channel
+    if (
+      !isTeam &&
+      existingConversationIDKey &&
+      Constants.getMeta(state, existingConversationIDKey).conversationIDKey === Constants.noConversationIDKey
+    ) {
+      existingConversationIDKey = Constants.noConversationIDKey
+    }
   }
 
   // If we're previewing a team conversation we want to actually make an rpc call and add it to the inbox
-  if (
-    action.type === Chat2Gen.previewConversation &&
-    (action.payload.teamname || action.payload.channelname)
-  ) {
-    if (!existingConversationIDKey) {
+  if (isTeam) {
+    if (!existingConversationIDKey || existingConversationIDKey === Constants.noConversationIDKey) {
       throw new Error('Tried to preview a non-existant channel?')
     }
     return Saga.sequentially([
@@ -1540,7 +1552,10 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   )
   yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
 
-  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  // disable sending exploding messages if flag is false
+  const ephemeralLifetime = flags.explodingMessagesEnabled
+    ? Constants.getConversationExplodingMode(state, conversationIDKey)
+    : 0
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   let lastRatioSent = 0

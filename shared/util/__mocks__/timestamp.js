@@ -21,6 +21,13 @@ export function formatTimeForStellarTransaction(timestamp: Date) {
   }
 }
 
+export function formatTimeForStellarTransactionDetails(timestamp: Date) {
+  return {
+    human: '[mocked]',
+    tooltip: '[mocked]',
+  }
+}
+
 export function formatTimeForRevoked(time: number): string {
   return '[mocked]'
 }

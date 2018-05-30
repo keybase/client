@@ -54,10 +54,14 @@ protocol NotifyChat {
     boolean isEphemeralPurge;
   }
 
-  record MembersUpdateInfo {
-    ConversationID convID;
+  record MemberInfo {
     string member;
     ConversationMemberStatus status;
+  }
+
+  record MembersUpdateInfo {
+    ConversationID convID;
+    array<MemberInfo> members;
   }
 
   record TeamTypeInfo {

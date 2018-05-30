@@ -112,9 +112,6 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 		}
 	}()
 
-	if !e.ShouldRun(ctx) {
-		return nil
-	}
 	if loggedIn, err = e.checkLoginAndPUK(ctx); err != nil {
 		return err
 	}
@@ -443,10 +440,6 @@ func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation 
 func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (userEKBox *keybase1.UserEkBoxed, err error) {
 	defer e.G().CTraceTimed(ctx, "BoxLatestUserEK", func() error { return err })()
 
-	if !e.ShouldRun(ctx) {
-		return nil, nil
-	}
-
 	// Let's make sure we are up to date with keys first and we have the latest userEK cached.
 	if err = e.KeygenIfNeeded(ctx); err != nil {
 		return nil, err
@@ -550,30 +543,20 @@ func (e *EKLib) PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, si
 }
 
 func (e *EKLib) OnLogin() error {
-	if !e.ShouldRun(context.Background()) {
-		return nil
-	}
-	err := e.KeygenIfNeeded(context.Background())
-	if err != nil {
+	if err := e.KeygenIfNeeded(context.Background()); err != nil {
 		e.G().Log.CDebugf(context.Background(), "OnLogin error: %v", err)
 	}
 	return nil
 }
 
 func (e *EKLib) OnLogout() error {
-	if !e.ShouldRun(context.Background()) {
-		return nil
-	}
-	deviceEKStorage := e.G().GetDeviceEKStorage()
-	if deviceEKStorage != nil {
+	if deviceEKStorage := e.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.ClearCache()
 	}
-	userEKBoxStorage := e.G().GetUserEKBoxStorage()
-	if userEKBoxStorage != nil {
+	if userEKBoxStorage := e.G().GetUserEKBoxStorage(); userEKBoxStorage != nil {
 		userEKBoxStorage.ClearCache()
 	}
-	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
-	if teamEKBoxStorage != nil {
+	if teamEKBoxStorage := e.G().GetTeamEKBoxStorage(); teamEKBoxStorage != nil {
 		teamEKBoxStorage.ClearCache()
 	}
 	return nil
