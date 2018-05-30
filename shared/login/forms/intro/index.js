@@ -35,7 +35,7 @@ const Intro = (props: Props) => (
       </Box2>
     )}
     <Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="large" style={styles.innerContainer}>
-      <Box2 direction="vertical" gap="small" style={{alignItems: 'center'}}>
+      <Box2 direction="vertical" fullWidth={true} gap="small" style={styles.alignItemsCenter}>
         <Icon type="icon-keybase-logo-80" />
         <Text type="HeaderBig" style={styles.join}>
           Join Keybase
@@ -44,7 +44,7 @@ const Intro = (props: Props) => (
           <Button type="Primary" onClick={props.onSignup} label="Create an account" />
         </ButtonBar>
       </Box2>
-      <Box2 direction="vertical" gap="tiny">
+      <Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.alignItemsCenter}>
         <Text type="Body" onClick={props.onLogin}>
           Already on Keybase?
         </Text>
@@ -58,6 +58,9 @@ const Intro = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
+  alignItemsCenter: {
+    alignItems: 'center',
+  },
   banner: {
     backgroundColor: globalColors.blue,
     justifyContent: 'center',

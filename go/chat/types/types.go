@@ -74,6 +74,10 @@ func (rc RemoteConversation) GetConvID() chat1.ConversationID {
 	return rc.Conv.GetConvID()
 }
 
+func (rc RemoteConversation) GetVersion() chat1.ConversationVers {
+	return rc.Conv.Metadata.Version
+}
+
 type Inbox struct {
 	Version         chat1.InboxVers
 	ConvsUnverified []RemoteConversation

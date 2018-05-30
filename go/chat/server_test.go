@@ -2077,7 +2077,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
 				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
-				assertEphemeral(ephemeralLifetime, unboxed)
+				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -3643,9 +3643,10 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 		ctx := ctc.as(t, users[0]).startCtx
-
+		_ = ctc.as(t, users[1]).startCtx
 		for i, u := range users {
 			t.Logf("user[%v] %v %v", i, u.Username, u.User.GetUID())
+			ctc.world.Tcs[u.Username].ChatG.Syncer.(*Syncer).isConnected = true
 		}
 
 		listener := newServerChatListener()
