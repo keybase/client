@@ -30,3 +30,11 @@ func (h *MerkleHandler) GetCurrentMerkleRoot(ctx context.Context, freshnessMsec 
 	}
 	return obj.ExportToAVDL(h.G()), nil
 }
+
+func (h *MerkleHandler) VerifyMerkleRootAndKBFS(ctx context.Context, arg keybase1.VerifyMerkleRootAndKBFSArg) (err error) {
+	m := libkb.NewMetaContext(ctx, h.G())
+	m = m.WithLogTag("MRKL")
+	defer m.CTraceTimed("MerkleHandler#VerifyMerkleRootAndKBFS", func() error { return err })()
+	err = libkb.VerifyMerkleRootAndKBFS(m, arg)
+	return err
+}

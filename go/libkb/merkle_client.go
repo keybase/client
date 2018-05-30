@@ -310,16 +310,16 @@ type MerkleRootPayloadUnpacked struct {
 	Body struct {
 		Kbfs struct {
 			Private struct {
-				Root    *string `json:"root"`
-				Version *int    `json:"version"`
+				Root    keybase1.KBFSRootHash `json:"root"`
+				Version *keybase1.Seqno       `json:"version"`
 			} `json:"private"`
 			Public struct {
-				Root    *string `json:"root"`
-				Version *int    `json:"version"`
+				Root    keybase1.KBFSRootHash `json:"root"`
+				Version *keybase1.Seqno       `json:"version"`
 			} `json:"public"`
 			PrivateTeam struct {
-				Root    *string `json:"root"`
-				Version *int    `json:"version"`
+				Root    keybase1.KBFSRootHash `json:"root"`
+				Version *keybase1.Seqno       `json:"version"`
 			} `json:"privateteam"`
 		} `json:"kbfs"`
 		LegacyUIDRoot NodeHashShort  `json:"legacy_uid_root"`
@@ -1029,10 +1029,6 @@ func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot
 	return mc.verifyAndStoreRootHelper(ctx, root, seqnoWhenCalled, false)
 }
 
-func (mc *MerkleClient) verifyRootHistorical(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno) error {
-	return mc.verifyAndStoreRootHelper(ctx, root, seqnoWhenCalled, true)
-}
-
 func (mc *MerkleClient) verifyAndStoreRootHelper(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno, historical bool) (err error) {
 	defer mc.G().CVTrace(ctx, VLog0, fmt.Sprintf("merkleClient#verifyAndStoreRootHelper(root=%d, cached=%v, historical=%v)", int(*root.Seqno()), seqnoWhenCalled, historical), func() error { return err })()
 
@@ -1564,6 +1560,12 @@ func (mc *MerkleClient) LookupLeafAtSeqno(ctx context.Context, leafID keybase1.U
 	return mc.lookupLeafHistorical(ctx, leafID, paramer, checker)
 }
 
+func (mc *MerkleClient) LookupRootAtSeqno(ctx context.Context, s keybase1.Seqno) (root *MerkleRoot, err error) {
+	defer mc.G().CVTrace(ctx, VLog0, fmt.Sprintf("LookupRootAtSeqno(%d)", s), func() error { return err })()
+	_, root, err = mc.LookupLeafAtSeqno(ctx, keybase1.UserOrTeamID(""), s)
+	return root, err
+}
+
 func (mc *MerkleClient) lookupLeafHistorical(ctx context.Context, leafID keybase1.UserOrTeamID, paramer func(*HTTPArgs), checker func(*VerificationPath) error) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
 
 	var path *VerificationPath
@@ -1580,7 +1582,11 @@ func (mc *MerkleClient) lookupLeafHistorical(ctx context.Context, leafID keybase
 	currentRoot := mc.LastRoot()
 
 	q := NewHTTPArgs()
-	q.Add("leaf_id", S{Val: leafID.String()})
+	if leafID.IsNil() {
+		q.Add("no_leaf", B{Val: true})
+	} else {
+		q.Add("leaf_id", S{Val: leafID.String()})
+	}
 	paramer(&q)
 
 	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(ctx, q, currentRoot); err != nil {
@@ -1596,9 +1602,11 @@ func (mc *MerkleClient) lookupLeafHistorical(ctx context.Context, leafID keybase
 		return nil, nil, err
 	}
 
-	leaf, err = path.verifyUserOrTeam(ctx, leafID)
-	if err != nil {
-		return nil, nil, err
+	if !leafID.IsNil() {
+		leaf, err = path.verifyUserOrTeam(ctx, leafID)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	return leaf, path.root, nil
@@ -1768,21 +1776,21 @@ func (mr *MerkleRoot) Fetched() time.Time {
 	return mr.fetched
 }
 
-func (mr *MerkleRoot) KBFSPrivate() (*string, *int) {
+func (mr *MerkleRoot) KBFSPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	if mr == nil {
 		return nil, nil
 	}
 	return mr.payload.kbfsPrivate()
 }
 
-func (mr *MerkleRoot) KBFSPublic() (*string, *int) {
+func (mr *MerkleRoot) KBFSPublic() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	if mr == nil {
 		return nil, nil
 	}
 	return mr.payload.kbfsPublic()
 }
 
-func (mr *MerkleRoot) KBFSPrivateTeam() (*string, *int) {
+func (mr *MerkleRoot) KBFSPrivateTeam() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	if mr == nil {
 		return nil, nil
 	}
@@ -1801,12 +1809,12 @@ func (mrp MerkleRootPayload) rootHash() NodeHash          { return mrp.unpacked.
 func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.Body.LegacyUIDRoot }
 func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }
 func (mrp MerkleRootPayload) ctime() int64                { return mrp.unpacked.Ctime }
-func (mrp MerkleRootPayload) kbfsPrivate() (*string, *int) {
+func (mrp MerkleRootPayload) kbfsPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.Private.Root, mrp.unpacked.Body.Kbfs.Private.Version
 }
-func (mrp MerkleRootPayload) kbfsPublic() (*string, *int) {
+func (mrp MerkleRootPayload) kbfsPublic() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.Public.Root, mrp.unpacked.Body.Kbfs.Public.Version
 }
-func (mrp MerkleRootPayload) kbfsPrivateTeam() (*string, *int) {
+func (mrp MerkleRootPayload) kbfsPrivateTeam() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.PrivateTeam.Root, mrp.unpacked.Body.Kbfs.PrivateTeam.Version
 }
