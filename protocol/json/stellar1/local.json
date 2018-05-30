@@ -73,8 +73,8 @@
       "name": "PaymentLocal",
       "fields": [
         {
-          "type": "TransactionID",
-          "name": "txID"
+          "type": "string",
+          "name": "id"
         },
         {
           "type": "TimeMs",
@@ -90,7 +90,7 @@
         },
         {
           "type": "string",
-          "name": "amount"
+          "name": "amountDescription"
         },
         {
           "type": "string",

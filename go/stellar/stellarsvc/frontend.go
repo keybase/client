@@ -530,7 +530,7 @@ func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount 
 	}
 
 	loc := stellar1.NewPaymentLocal(txID, ctime)
-	loc.Amount = formatted
+	loc.AmountDescription = formatted
 
 	return loc, nil
 }

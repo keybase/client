@@ -27,11 +27,11 @@ protocol local {
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
   
   record PaymentLocal {
-    TransactionID txID;        // For relay payments, the funding tx.
+    string id;                 // For relay payments, the funding tx.
     TimeMs time;
     string status;             // "pending", "completed", "error"
     string statusDetail;
-    string amount;             // "1,323.1234567 XLM"
+    string amountDescription;  // "1,323.1234567 XLM"
     string worth;              // "$123.23" 
     string worthCurrency;      // "USD", "CAD", etc. (the symbols can be ambiguous)
 

@@ -48,36 +48,36 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 }
 
 type PaymentLocal struct {
-	TxID          TransactionID `codec:"txID" json:"txID"`
-	Time          TimeMs        `codec:"time" json:"time"`
-	Status        string        `codec:"status" json:"status"`
-	StatusDetail  string        `codec:"statusDetail" json:"statusDetail"`
-	Amount        string        `codec:"amount" json:"amount"`
-	Worth         string        `codec:"worth" json:"worth"`
-	WorthCurrency string        `codec:"worthCurrency" json:"worthCurrency"`
-	Source        string        `codec:"source" json:"source"`
-	SourceType    string        `codec:"sourceType" json:"sourceType"`
-	Target        string        `codec:"target" json:"target"`
-	TargetType    string        `codec:"targetType" json:"targetType"`
-	Note          string        `codec:"note" json:"note"`
-	NoteErr       string        `codec:"noteErr" json:"noteErr"`
+	Id                string `codec:"id" json:"id"`
+	Time              TimeMs `codec:"time" json:"time"`
+	Status            string `codec:"status" json:"status"`
+	StatusDetail      string `codec:"statusDetail" json:"statusDetail"`
+	AmountDescription string `codec:"amountDescription" json:"amountDescription"`
+	Worth             string `codec:"worth" json:"worth"`
+	WorthCurrency     string `codec:"worthCurrency" json:"worthCurrency"`
+	Source            string `codec:"source" json:"source"`
+	SourceType        string `codec:"sourceType" json:"sourceType"`
+	Target            string `codec:"target" json:"target"`
+	TargetType        string `codec:"targetType" json:"targetType"`
+	Note              string `codec:"note" json:"note"`
+	NoteErr           string `codec:"noteErr" json:"noteErr"`
 }
 
 func (o PaymentLocal) DeepCopy() PaymentLocal {
 	return PaymentLocal{
-		TxID:          o.TxID.DeepCopy(),
-		Time:          o.Time.DeepCopy(),
-		Status:        o.Status,
-		StatusDetail:  o.StatusDetail,
-		Amount:        o.Amount,
-		Worth:         o.Worth,
-		WorthCurrency: o.WorthCurrency,
-		Source:        o.Source,
-		SourceType:    o.SourceType,
-		Target:        o.Target,
-		TargetType:    o.TargetType,
-		Note:          o.Note,
-		NoteErr:       o.NoteErr,
+		Id:                o.Id,
+		Time:              o.Time.DeepCopy(),
+		Status:            o.Status,
+		StatusDetail:      o.StatusDetail,
+		AmountDescription: o.AmountDescription,
+		Worth:             o.Worth,
+		WorthCurrency:     o.WorthCurrency,
+		Source:            o.Source,
+		SourceType:        o.SourceType,
+		Target:            o.Target,
+		TargetType:        o.TargetType,
+		Note:              o.Note,
+		NoteErr:           o.NoteErr,
 	}
 }
 
