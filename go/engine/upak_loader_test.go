@@ -161,7 +161,7 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 	assertNumDevicesAndKeys(tc, fu, 1, 2)
 
 	t.Logf("load revoked device")
-	upk, deviceKey, revoked, err := tc.G.GetUPAKLoader().LoadDeviceKey(nil, user.GetUID(), thisDevice.ID)
+	upk, deviceKey, revoked, err := tc.G.GetUPAKLoader().LoadDeviceKey(context.TODO(), user.GetUID(), thisDevice.ID)
 	require.NoError(t, err)
 	require.Equal(t, user.GetNormalizedName().String(), upk.Base.Username, "usernames must match")
 	require.Equal(t, thisDevice.ID, deviceKey.DeviceID, "deviceID must match")
