@@ -3,7 +3,7 @@ import * as React from 'react'
 import moment from 'moment'
 import * as PropProviders from '../../stories/prop-providers'
 import {Box2} from '../../common-adapters'
-import {storiesOf} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
 import TransactionDetails from '.'
 
 const provider = PropProviders.compose(
@@ -38,6 +38,7 @@ const load = () => {
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />
     ))
@@ -51,6 +52,7 @@ const load = () => {
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />
     ))
@@ -65,6 +67,7 @@ const load = () => {
         memo={memo}
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />
     ))
@@ -80,6 +83,7 @@ const load = () => {
         publicMemo="Foo bar"
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />
     ))
@@ -106,6 +110,7 @@ const load = () => {
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />
     ))

@@ -16,6 +16,7 @@ export type Props = {|
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
+  onViewTransaction?: () => void,
   publicMemo?: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
@@ -47,30 +48,30 @@ const Counterparty = (props: CounterpartyProps) => {
         metaOne={props.counterpartyMeta}
       />
     )
-  } else {
-    return (
-      <Box2 direction="horizontal" fullHeight={true}>
-        <CounterpartyIcon
+  }
+
+  return (
+    <Box2 direction="horizontal" fullHeight={true}>
+      <CounterpartyIcon
+        counterparty={props.counterparty}
+        counterpartyType={props.counterpartyType}
+        large={false}
+      />
+      <Box2
+        direction="vertical"
+        fullWidth={true}
+        style={{justifyContent: 'center', marginLeft: globalMargins.small}}
+      >
+        <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
           large={false}
+          showFullKey={true}
+          textType="BodySemibold"
         />
-        <Box2
-          direction="vertical"
-          fullWidth={true}
-          style={{justifyContent: 'center', marginLeft: globalMargins.small}}
-        >
-          <CounterpartyText
-            counterparty={props.counterparty}
-            counterpartyType={props.counterpartyType}
-            large={false}
-            showFullKey={true}
-            textType="BodySemibold"
-          />
-        </Box2>
       </Box2>
-    )
-  }
+    </Box2>
+  )
 }
 
 const TransactionDetails = (props: Props) => (
@@ -139,10 +140,12 @@ const TransactionDetails = (props: Props) => (
 
     <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
       <Text type="BodySmallSemibold">Transaction ID:</Text>
-      <Text selectable={true} type="Body">
-        {props.transactionID}
-      </Text>
-      <Text type="BodySmallPrimaryLink">View transaction</Text>
+      <Text type="Body">{props.transactionID}</Text>
+      {props.onViewTransaction && (
+        <Text onClick={props.onViewTransaction} type="BodySmallPrimaryLink">
+          View transaction
+        </Text>
+      )}
     </Box2>
   </Box2>
 )
