@@ -260,8 +260,8 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	arg = arg.EnsureCtxAndLogTag()
 
 	// Shorthands
-	g := u.G()
 	m := arg.MetaContext()
+	g := m.G()
 	ctx := m.Ctx()
 
 	defer m.CVTrace(VLog0, culDebug(arg.uid), func() error { return err })()
