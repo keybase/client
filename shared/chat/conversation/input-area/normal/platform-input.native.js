@@ -327,10 +327,7 @@ const styles = styleSheetCreate({
 const explodingIconContainer = platformStyles({
   common: {
     ...globalStyles.flexBoxRow,
-    marginRight: globalMargins.xsmall,
-  },
-  isAndroid: {
-    marginRight: -5,
+    marginRight: -3,
   },
 })
 
