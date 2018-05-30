@@ -29,18 +29,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     if (m) {
       participants = m.participants
       _generalChannelConversationIDKey = m.conversationIDKey
+    } else {
+      logger.info(`MentionHUD: no meta found for general channel in team ${meta.teamname}`)
     }
   }
 
+  const users = participants
+    .map(p => ({fullName: stateProps._infoMap.getIn([p, 'fullname'], ''), username: p}))
+    .toArray()
   return {
     ...ownProps,
     _generalChannelConversationIDKey,
     _loadParticipants: dispatchProps._loadParticipants,
     conversationIDKey: stateProps.conversationIDKey,
     filter: stateProps._filter.toLowerCase(),
-    users: participants
-      .map(p => ({fullName: stateProps._infoMap.getIn([p, 'fullname'], ''), username: p}))
-      .toArray(),
+    loading: users.length === 0,
+    users,
   }
 }
 
