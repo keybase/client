@@ -223,9 +223,8 @@ func (md *MDOpsStandard) verifyKey(
 		}
 		if e.info.MerkleRoot.Seqno <= 0 {
 			md.log.CDebugf(ctx, "Can't verify an MD written by a revoked "+
-				"device if there's no valid root seqno to check: %d",
-				e.info.MerkleRoot.Seqno)
-			return false, err
+				"device if there's no valid root seqno to check: %+e", e)
+			return true, nil
 		}
 
 		info = e.info

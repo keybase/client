@@ -199,20 +199,26 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 		var info revokedKeyInfo
 		if key.Base.Revocation != nil {
 			info.Time = key.Base.Revocation.Time
-			res, err := k.userClient.FindNextMerkleRootAfterRevoke(ctx,
-				keybase1.FindNextMerkleRootAfterRevokeArg{
-					Uid:  uid,
-					Kid:  key.Base.Kid,
-					Loc:  key.Base.Revocation.SigChainLocation,
-					Prev: key.Base.Revocation.PrevMerkleRootSigned,
-				})
-			if err != nil {
-				return nil, nil, nil, err
-			}
-			if res.Res != nil {
-				info.MerkleRoot = *res.Res
-			} else {
-				info.MerkleRoot = key.Base.Revocation.PrevMerkleRootSigned
+			info.MerkleRoot = key.Base.Revocation.PrevMerkleRootSigned
+			// if possible, ask the service to give us the first
+			// merkle root that covers this revoke. Some older device
+			// revokes didn't yet include a prev field, so we can't
+			// refine the merkle root in those cases, and will be
+			// relying only on server trust.
+			if info.MerkleRoot.Seqno > 0 {
+				res, err := k.userClient.FindNextMerkleRootAfterRevoke(ctx,
+					keybase1.FindNextMerkleRootAfterRevokeArg{
+						Uid:  uid,
+						Kid:  key.Base.Kid,
+						Loc:  key.Base.Revocation.SigChainLocation,
+						Prev: key.Base.Revocation.PrevMerkleRootSigned,
+					})
+				if err != nil {
+					return nil, nil, nil, err
+				}
+				if res.Res != nil {
+					info.MerkleRoot = *res.Res
+				}
 			}
 		} else if reset != nil {
 			info.Time = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
