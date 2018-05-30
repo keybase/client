@@ -170,7 +170,7 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 // state). Used by tests that need to clear out cached login state
 // without logging out.
 func (tc *TestContext) SimulateServiceRestart() {
-	tc.G.createLoginState()
+	tc.G.simulateServiceRestart()
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {
@@ -460,12 +460,6 @@ func (f *FakeGregorDismisser) DismissItem(_ context.Context, cli gregor1.Incomin
 
 func (f *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
 	return nil
-}
-
-// ResetLoginState is only used for testing...
-// Bypasses locks.
-func (g *GlobalContext) ResetLoginState() {
-	g.createLoginStateLocked()
 }
 
 type TestUIDMapper struct {

@@ -21,6 +21,7 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -659,44 +660,11 @@ func (a *InternalAPIEngine) checkAppStatus(arg APIArg, ast *AppStatus) error {
 		}
 	}
 
-	// check if there was a bad session error:
-	if err := a.checkSessionExpired(arg, ast); err != nil {
-		return err
+	if ast.Code == SCBadSession {
+		return BadSessionError{"server rejected session; is your device revoked?"}
 	}
 
 	return NewAppStatusError(ast)
-}
-
-func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) error {
-	if ast.Code != SCBadSession {
-		return nil
-	}
-
-	// if SCBadSession comes back, but no session was provided, then the session isn't invalid,
-	// the requesting code is broken.
-	if arg.SessionType == APISessionTypeNONE {
-		a.G().Log.CDebugf(arg.NetContext, "api request to %q was made with session type NONE, but api server responded with bad session", arg.Endpoint)
-		return fmt.Errorf("api endpoint %q requires session, APIArg for this request had session type NONE", arg.Endpoint)
-	}
-
-	var loggedIn bool
-	if arg.SessionR != nil {
-		loggedIn = arg.SessionR.IsLoggedIn()
-	} else {
-		loggedIn = a.G().LoginStateDeprecated().LoggedIn()
-	}
-	if !loggedIn {
-		return nil
-	}
-	a.G().Log.CDebugf(arg.NetContext, "local session -> is logged in, remote -> not logged in.  invalidating local session:")
-	if arg.SessionR != nil {
-		arg.SessionR.Invalidate()
-	} else {
-		a.G().LoginStateDeprecated().LocalSession(func(s *Session) { s.Invalidate() }, "api - checkSessionExpired")
-	}
-
-	// use ReloginRequiredError to signal that the session needs to be refreshed
-	return ReloginRequiredError{}
 }
 
 func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
@@ -734,10 +702,6 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	reqErr := a.getDecode(m, arg, v)
 	if reqErr == nil {
 		return nil
-	}
-
-	if err := a.refreshSession(m, arg, reqErr); err != nil {
-		return err
 	}
 
 	m.CDebugf("| API GetDecode %s session refreshed, trying again", arg.Endpoint)
@@ -828,10 +792,6 @@ func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 		return nil
 	}
 
-	if err := a.refreshSession(m, arg, reqErr); err != nil {
-		return err
-	}
-
 	m.CDebugf("| API PostDecode %s session refreshed, trying again", arg.Endpoint)
 	reqErr = a.postDecode(m, arg, v)
 	if reqErr == nil {
@@ -888,12 +848,6 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 		return res, nil
 	}
 
-	if err := a.refreshSession(m, arg, reqErr); err != nil {
-		return res, err
-	}
-
-	m.CDebugf("| API call %s session refreshed, trying again", arg.Endpoint)
-
 	if req.GetBody != nil {
 		// post request body consumed, need to get it back
 		var err error
@@ -914,34 +868,13 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 		return res, LoginRequiredError{Context: "your session has expired"}
 	}
 
+	if err != nil && IsAppStatusErrorCode(err, keybase1.StatusCode_SCBadSession) {
+		return res, LoginRequiredError{Context: "session credentials rejected"}
+	}
+
 	m.CDebugf("| API call %s error after refresh: %s", arg.Endpoint, err)
 
 	return res, err
-}
-
-func (a *InternalAPIEngine) refreshSession(m MetaContext, arg APIArg, reqErr error) error {
-	_, relogin := reqErr.(ReloginRequiredError)
-	if !relogin {
-		return reqErr
-	}
-
-	m.CDebugf("| API call %s session expired, trying to refresh", arg.Endpoint)
-
-	if arg.SessionR != nil {
-		// can't re-login with a SessionR
-		return LoginRequiredError{Context: "your session has expired"}
-	}
-
-	username := m.G().Env.GetUsername()
-	if err := m.G().LoginStateDeprecated().LoginWithStoredSecret(m, username.String(), nil); err != nil {
-		m.CDebugf("| API call %s session refresh error: %s", arg.Endpoint, err)
-		return LoginRequiredError{Context: "your session has expired"}
-
-	}
-
-	m.CDebugf("| API call %s session refreshed", arg.Endpoint)
-	return nil
-
 }
 
 func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (*APIRes, error) {

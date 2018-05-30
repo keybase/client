@@ -396,14 +396,13 @@ func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 		return
 	}
 
-	aerr := u.G().LoginStateDeprecated().SecretSyncer(func(s *SecretSyncer) {
-		ret, err = s.FindActiveKey(ckf)
-	}, "User - FindActiveKey")
-	if aerr != nil {
-		return nil, aerr
+	syncer, err := m.SyncSecrets()
+	if err != nil {
+		return nil, err
 	}
 
-	return
+	ret, err = syncer.FindActiveKey(ckf)
+	return ret, err
 }
 
 // AllSyncedSecretKeys returns all the PGP key blocks that were
@@ -413,7 +412,7 @@ func (u *User) AllSyncedSecretKeys(m MetaContext) (keys []*SKB, err error) {
 	defer m.CTrace("User#AllSyncedSecretKeys", func() error { return err })()
 	m.Dump()
 
-	ss, err := m.SyncSecrets()
+	ss, err := m.SyncSecretsForUID(u.GetUID())
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +428,8 @@ func (u *User) AllSyncedSecretKeys(m MetaContext) (keys []*SKB, err error) {
 }
 
 func (u *User) SyncSecrets(m MetaContext) error {
-	return u.G().LoginStateDeprecated().RunSecretSyncer(m, u.id)
+	_, err := m.SyncSecretsForUID(u.GetUID())
+	return err
 }
 
 // May return an empty KID
