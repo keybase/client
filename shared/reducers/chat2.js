@@ -428,7 +428,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
-          return message && message.type === 'text' && message.author === editLastUser
+          return message && message.type === 'text' && message.author === editLastUser && !message.exploded
         })
         if (found) {
           return editingMap.set(conversationIDKey, found)
