@@ -25,7 +25,7 @@ func TestMerkleClientHistorical(t *testing.T) {
 	require.NotNil(t, root)
 
 	var sigVersion libkb.SigVersion
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 3; i++ {
 		// Cover both v1 and v2 case
 		if i%2 == 0 {
 			sigVersion = libkb.KeybaseSignatureV2
