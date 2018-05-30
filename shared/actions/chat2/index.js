@@ -309,8 +309,8 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
             let isExplodeNow = false
             if (messages) {
               for (let i = 0; i < messageIDs.length; i++) {
-                const id = messageIDs[i]
-                const message = messages.find(msg => msg.id === id)
+                const id = Types.numberToOrdinal(messageIDs[i])
+                const message = messages.get(id) || messages.find(msg => msg.id === id)
                 if (
                   message &&
                   (message.type === 'text' || message.type === 'attachment') &&
