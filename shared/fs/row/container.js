@@ -8,6 +8,7 @@ import {Row} from './row'
 import * as StateMappers from '../utils/state-mappers'
 
 const mapStateToProps = (state: TypedState, {path}) => {
+  // $FlowIssue is being dumb.
   const pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
   const _username = state.config.username || undefined
   return {
@@ -39,7 +40,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   type: stateProps.pathItem.type,
   badgeCount: stateProps.pathItem.badgeCount,
   tlfMeta: stateProps.pathItem.tlfMeta,
-  isUserReset: stateProps.pathItem.resetParticipants.includes(stateProps._username),
+  isUserReset: stateProps.pathItem.resetParticipants ? stateProps.pathItem.resetParticipants.includes(stateProps._username) : false,
   resetParticipants: stateProps.pathItem.type === 'folder'
     ? stateProps.pathItem.resetParticipants
     : [],

@@ -10,7 +10,7 @@ type Props = {
   wrap?: boolean,
   startWithLastModified?: boolean,
   resetParticipants?: Array<string>,
-  isUserReset: boolean,
+  isUserReset?: boolean,
 }
 
 const fancyJoin = (arr: Array<string>, delimiter: string, doubleDelimiter: string, finalDelimiter: string): string => {
@@ -27,12 +27,15 @@ const PathItemInfo = (props: Props) => (
     {!!props.resetParticipants && props.resetParticipants.length > 0
       ? (
         <Box style={resetInfoBoxStyle}>
-          <Meta title="reset" backgroundColor={globalColors.red} style={resetMetaStyle} />
-          <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
-            {props.isUserReset
-              ? 'Participants have to let you back in.'
-              : `${fancyJoin(props.resetParticipants, ', ', ' and ', ', and ')} ha${props.resetParticipants.length === 1 ? 's' : 've'} reset their account.`}
-          </Text>
+          {props.isUserReset
+            ? 'Participants have to let you back in.'
+            : <Box>
+                <Meta title="reset" backgroundColor={globalColors.red} style={resetMetaStyle} />
+                <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
+                  {fancyJoin(props.resetParticipants, ', ', ' and ', ', and ')} ha{props.resetParticipants && props.resetParticipants.length === 1 ? 's' : 've'} reset their account.
+                </Text>
+              </Box>
+          }
         </Box>
       )
       : (<Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
