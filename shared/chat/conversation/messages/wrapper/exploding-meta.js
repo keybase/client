@@ -111,17 +111,27 @@ class ExplodingMeta extends React.Component<Props, State> {
 }
 
 const getLoopInterval = (diff: number) => {
+  let deltaMS
+  let nearestUnit
   if (diff > oneDayInMs) {
-    return diff - Math.floor(diff / oneDayInMs) * oneDayInMs
+    nearestUnit = oneDayInMs
   }
   if (diff > oneHourInMs) {
-    return diff - Math.floor(diff / oneHourInMs) * oneHourInMs
+    nearestUnit = oneHourInMs
   }
   if (diff > oneMinuteInMs) {
-    return diff - Math.floor(diff / oneMinuteInMs) * oneMinuteInMs
+    nearestUnit = oneMinuteInMs
   }
-  // less than a minute, check every second
-  return 1000
+  if (!nearestUnit) {
+    // less than a minute, check every half second
+    return 500
+  }
+  deltaMS = diff - Math.floor(diff / nearestUnit) * nearestUnit
+  const halfNearestUnit = nearestUnit / 2
+  if (deltaMS > halfNearestUnit) {
+    return deltaMS - halfNearestUnit
+  }
+  return deltaMS + halfNearestUnit
 }
 
 const styles = styleSheetCreate({
