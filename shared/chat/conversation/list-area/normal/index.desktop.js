@@ -42,6 +42,7 @@ class Thread extends React.Component<Props, State> {
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cellCache.clearAll()
       this.setState({isLockedToBottom: true})
+      return
     }
 
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
@@ -49,12 +50,14 @@ class Thread extends React.Component<Props, State> {
     }
 
     if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
-      // the size of the first old row will change when we get new rows (timestamp and avatar can move) so we have to clear its size cache
-      const oldFirstRow = this.props.messageOrdinals.size - prevProps.messageOrdinals.size
-      if (oldFirstRow > 0) {
-        this._cellCache.clear(oldFirstRow + 1)
-
-        // also try and scroll to this value
+      // Did we prepend?
+      if (this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first()) {
+        // the size of the first old row will change when we get new rows (timestamp and avatar can move) so we have to clear its size cache
+        const oldFirstRow = this.props.messageOrdinals.size - prevProps.messageOrdinals.size
+        if (oldFirstRow > 0) {
+          this._cellCache.clear(oldFirstRow + 1)
+        }
+        // on a prepend lets try and scroll back down to the 'old' top of the messages
         if (this._list) {
           this._list.scrollToRow(oldFirstRow)
         }
