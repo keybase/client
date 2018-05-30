@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Box, Text, Icon, Checkbox, ClickableBox} from '../../common-adapters'
 import {fileUIName, isMobile, isLinux} from '../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
-import FileBanner from '../../fs/banner'
+import FileBanner from '../../fs/fileui-banner'
 
 type Props = {
   kbfsEnabled: boolean,

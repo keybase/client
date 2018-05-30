@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {platformStyles, globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 import {Avatar, BackButton, Box, ClickableBox, Icon, Text} from '../../common-adapters'
-import ConnectedFilesBanner from '../banner/container'
+import ConnectedFilesBanner from '../fileui-banner/container'
 
 export type FolderHeaderProps = {
   breadcrumbItems: Array<Types.PathBreadcrumbItem>,
