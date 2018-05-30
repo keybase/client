@@ -669,8 +669,8 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	membersRes types.MembershipUpdateRes) {
 	// Build a map of uid -> username for this update
 	var uids []keybase1.UID
-	for _, cm := range membersRes.AllAotherUsers() {
-		uids = append(uids, keybase1.UID(cm.Uid.String()))
+	for _, uid := range membersRes.AllOtherUsers() {
+		uids = append(uids, keybase1.UID(uid.String()))
 	}
 	uidMap := make(map[string]string)
 	packages, err := g.G().UIDMapper.MapUIDsToUsernamePackages(ctx, g.G(), uids, 0, 0, false)
@@ -678,6 +678,8 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 		for index, p := range packages {
 			uidMap[uids[index].String()] = p.NormalizedUsername.String()
 		}
+	} else {
+		g.Debug(ctx, "notifyMembersUpdate: failed to get usernames, not sending them: %s", err)
 	}
 	convMap := make(map[string][]chat1.MemberInfo)
 	addStatus := func(status chat1.ConversationMemberStatus, l []chat1.ConversationMember) {
