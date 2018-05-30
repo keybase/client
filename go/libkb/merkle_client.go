@@ -1537,8 +1537,18 @@ func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase
 	return leaf, err
 }
 
+func (mc *MerkleClient) checkHistoricalSeqno(s keybase1.Seqno) error {
+	if mc.G().Env.GetRunMode() == ProductionRunMode && s < FirstProdMerkleSeqnoWithSigs {
+		return MerkleClientError{fmt.Sprintf("cannot load seqno=%d; must load at %d or higher", s, FirstProdMerkleSeqnoWithSigs), merkleErrorAncientSeqno}
+	}
+	return nil
+}
+
 func (mc *MerkleClient) LookupLeafAtSeqno(ctx context.Context, leafID keybase1.UserOrTeamID, s keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
 	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupLeafAtHashMeta(%v)", leafID)
+	if err = mc.checkHistoricalSeqno(s); err != nil {
+		return nil, nil, err
+	}
 	paramer := func(a *HTTPArgs) {
 		a.Add("start_seqno", I{Val: int(s)})
 	}

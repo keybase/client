@@ -1158,6 +1158,7 @@ const (
 	merkleErrorBadLeaf
 	merkleErrorNoUpdates
 	merkleErrorBadSigID
+	merkleErrorAncientSeqno
 )
 
 type MerkleClientError struct {
