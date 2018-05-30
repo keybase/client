@@ -49,15 +49,16 @@ class Thread extends React.Component<Props, State> {
     }
 
     if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
-      // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
-      // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
-      // another cache from row -> style which is out of sync
+      // the size of the first old row will change when we get new rows (timestamp and avatar can move) so we have to clear its size cache
       const oldFirstRow = this.props.messageOrdinals.size - prevProps.messageOrdinals.size
       if (oldFirstRow > 0) {
         this._cellCache.clear(oldFirstRow + 1)
+
+        // also try and scroll to this value
+        if (this._list) {
+          this._list.scrollToRow(oldFirstRow)
+        }
       }
-      // this._cellCache.clearAll()
-      // this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
 
     if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
@@ -65,28 +66,14 @@ class Thread extends React.Component<Props, State> {
       if (idx !== -1) {
         this._list && this._list.scrollToRow(idx + 1)
       }
-    } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size && this._list) {
-      // try and maintain scroll position, doens't work great
-      // if (prevProps.messageOrdinals.size > 1) {
-      // const toFind = prevProps.messageOrdinals.first()
-      // if (toFind === this.props.lastLoadMoreOrdinal) {
-      // const idx = toFind ? this.props.messageOrdinals.indexOf(toFind) : -1
-      // if (idx !== -1) {
-      // const scrollToIdx = idx + 1
-      // this._list.scrollToRow(scrollToIdx)
-      // }
-      // }
-      // }
     }
   }
 
   // we MUST debounce else this callbacks happens a bunch and we're switch back and forth as you submit
   _updateBottomLock = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
-    console.log('aaa updatebot', clientHeight, scrollHeight, scrollTop)
     // meaningless otherwise
     if (clientHeight) {
       const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
-      console.log('aaa islocked', isLockedToBottom)
       this.setState(
         prevState => (isLockedToBottom !== prevState.isLockedToBottom ? {isLockedToBottom} : null)
       )
@@ -170,8 +157,6 @@ class Thread extends React.Component<Props, State> {
   render() {
     const rowCount = this._getItemCount()
     const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
-
-    console.log('aaa render rowcount/scrollto', rowCount, scrollToIndex)
 
     return (
       <ErrorBoundary>
