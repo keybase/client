@@ -518,6 +518,12 @@
 			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
+			"checksumSHA1": "UwtyqB7CaUWPlw0DVJQvw0IFQZs=",
+			"path": "github.com/sergi/go-diff/diffmatchpatch",
+			"revision": "1744e2970ca51c86172c8190fadad617561ed6e7",
+			"revisionTime": "2017-11-10T11:01:46Z"
+		},
+		{
 			"checksumSHA1": "9IAVZIwKPa9vqMs5qbSDgAtSMOg=",
 			"origin": "github.com/keybase/stellar-org/amount",
 			"path": "github.com/stellar/go/amount",
@@ -690,6 +696,18 @@
 			"path": "go4.org/readerutil",
 			"revision": "09d86de304dc27e636298361bbfee4ac6ab04f21",
 			"revisionTime": "2016-11-18T21:00:15Z"
+		},
+		{
+			"checksumSHA1": "oCH3J96RWvO8W4xjix47PModpio=",
+			"path": "golang.org/x/crypto/bcrypt",
+			"revision": "3d37316aaa6bd9929127ac9a527abf408178ea7b",
+			"revisionTime": "2018-01-22T21:46:34Z"
+		},
+		{
+			"checksumSHA1": "oVPHWesOmZ02vLq2fglGvf+AMgk=",
+			"path": "golang.org/x/crypto/blowfish",
+			"revision": "3d37316aaa6bd9929127ac9a527abf408178ea7b",
+			"revisionTime": "2018-01-22T21:46:34Z"
 		},
 		{
 			"checksumSHA1": "TT1rac6kpQp2vz24m5yDGUNQ/QQ=",
@@ -991,6 +1009,12 @@
 			"path": "golang.org/x/text/unicode/cldr",
 			"revision": "a7c023693a94aedd6b6df43ae7526bfe9d2b7d22",
 			"revisionTime": "2016-09-22T05:42:04Z"
+		},
+		{
+			"checksumSHA1": "eFQDEix/mGnhwnFu/Hq63zMfrX8=",
+			"path": "golang.org/x/time/rate",
+			"revision": "f51c12702a4d776e4c1fa9b0fabab841babae631",
+			"revisionTime": "2016-10-28T04:02:39Z"
 		},
 		{
 			"path": "h12.me/socks",

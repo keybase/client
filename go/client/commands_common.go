@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/client/pages"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
@@ -43,6 +44,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdLogin(cl, g),
 		NewCmdLogout(cl, g),
 		NewCmdOneshot(cl, g),
+		pages.NewCmdPages(cl, g),
 		NewCmdPaperKey(cl, g),
 		NewCmdPassphrase(cl, g),
 		NewCmdPGP(cl, g),
