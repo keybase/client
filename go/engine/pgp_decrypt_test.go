@@ -572,9 +572,7 @@ func TestPGPDecryptWithSyncedKey(t *testing.T) {
 	// No need to get a passphrase, since we just logged in.
 	require.False(t, decryptCalledPassphrase, "passphrase get wasn't called")
 
-	// Simulate a service restart
-	m.ActiveDevice().ClearCaches()
-	m.G().LoginState().Account(func(a *libkb.Account) { a.ClearStreamCache() }, "clear")
+	clearCaches(m.G())
 
 	decryptCalledPassphrase = decryptIt()
 	require.True(t, decryptCalledPassphrase, "passphrase get was called")

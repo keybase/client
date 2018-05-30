@@ -103,7 +103,7 @@ func makeTestSKB(t *testing.T, lks *LKSec, g *GlobalContext) *SKB {
 		t.Fatal(err)
 	}
 	g.createLoginState()
-	err = g.LoginState().Account(func(a *Account) {
+	err = g.LoginStateDeprecated().Account(func(a *Account) {
 		a.CreateLoginSessionWithSalt(email, salt)
 	}, "makeTestSKB")
 	if err != nil {
@@ -195,7 +195,7 @@ func TestUnusedSecretStore(t *testing.T) {
 	skb := makeTestSKB(t, lks, tc.G)
 	// It doesn't matter what passphraseStream contains, as long
 	// as it's the right size.
-	err := tc.G.LoginState().Account(func(a *Account) {
+	err := tc.G.LoginStateDeprecated().Account(func(a *Account) {
 		a.CreateStreamCache(nil, NewPassphraseStream(make([]byte, extraLen)))
 	}, "TestUnusedSecretStore")
 	if err != nil {

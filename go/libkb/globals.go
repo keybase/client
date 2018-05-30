@@ -271,7 +271,7 @@ func (g *GlobalContext) createLoginState() {
 	g.createLoginStateLocked()
 }
 
-func (g *GlobalContext) LoginState() *LoginState {
+func (g *GlobalContext) LoginStateDeprecated() *LoginState {
 	g.loginStateMu.RLock()
 	defer g.loginStateMu.RUnlock()
 
@@ -763,7 +763,7 @@ func (g *GlobalContext) GetMyUID() keybase1.UID {
 		return uid
 	}
 
-	g.LoginState().LocalSession(func(s *Session) {
+	g.LoginStateDeprecated().LocalSession(func(s *Session) {
 		uid = s.GetUID()
 	}, "G - GetMyUID - GetUID")
 	if uid.Exists() {
@@ -1227,34 +1227,6 @@ func (g *GlobalContext) ReplaceSecretStore() error {
 	g.Log.Debug("ReplaceSecretStore success")
 
 	return nil
-}
-
-// AssertTemporarySession asserts that the user has an old-fashioned
-// session token. Should only be necessary on login/provisioning flow.
-func (g *GlobalContext) AssertTemporarySession(lctx LoginContext) error {
-
-	run := func(lctx LoginContext) error {
-		sess := lctx.LocalSession()
-		if sess == nil {
-			return LoginRequiredError{"no session object loaded"}
-		}
-		if !sess.IsValid() {
-			return LoginRequiredError{"session isn't valid"}
-		}
-		return nil
-	}
-
-	if lctx != nil {
-		return run(lctx)
-	}
-	var gerr error
-	aerr := g.LoginState().Account(func(a *Account) {
-		gerr = run(a)
-	}, "AssertTemporarySession")
-	if aerr != nil {
-		return aerr
-	}
-	return gerr
 }
 
 func (g *GlobalContext) IsOneshot(ctx context.Context) (bool, error) {

@@ -58,7 +58,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	t.Logf("using device1:%+v", device1.ID)
 
 	t.Logf("load existing device key")
-	upk, deviceKey, revoked, err := tc.G.GetUPAKLoader().LoadDeviceKey(nil, user.GetUID(), device1.ID)
+	upk, deviceKey, revoked, err := tc.G.GetUPAKLoader().LoadDeviceKey(context.TODO(), user.GetUID(), device1.ID)
 	require.NoError(t, err)
 	require.Equal(t, user.GetNormalizedName().String(), upk.Base.Username, "usernames must match")
 	require.Equal(t, device1.ID, deviceKey.DeviceID, "deviceID must match")
@@ -115,7 +115,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	t.Logf("using device2:%+v", device2.ID)
 
 	t.Logf("load brand new device (while old is cached)")
-	upk, deviceKey, revoked, err = tc.G.GetUPAKLoader().LoadDeviceKey(nil, user.GetUID(), device2.ID)
+	upk, deviceKey, revoked, err = tc.G.GetUPAKLoader().LoadDeviceKey(context.TODO(), user.GetUID(), device2.ID)
 	require.NoError(t, err)
 	require.Equal(t, user.GetNormalizedName().String(), upk.Base.Username, "usernames must match")
 	require.Equal(t, device2.ID, deviceKey.DeviceID, "deviceID must match")

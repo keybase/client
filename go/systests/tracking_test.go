@@ -131,8 +131,6 @@ func TestTrackingNotifications(t *testing.T) {
 	if err := signup.Run(); err != nil {
 		t.Fatal(err)
 	}
-	tc2.G.Log.Debug("Login State: %v", tc2.G.LoginState())
-
 	nh := newTrackingNotifyHandler()
 
 	// Launch the server that will listen for tracking notifications.

@@ -31,7 +31,7 @@ func GetCurrentStatus(ctx context.Context, g *GlobalContext) (res CurrentStatus,
 		res.Registered = true
 		res.User = NewUserThin(cr.GetUsername().String(), uid)
 	}
-	res.SessionIsValid, err = g.LoginState().LoggedInProvisioned(ctx)
+	res.SessionIsValid, err = g.LoginStateDeprecated().LoggedInProvisioned(ctx)
 	res.LoggedIn = res.SessionIsValid
 	return
 }
