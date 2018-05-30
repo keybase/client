@@ -88,7 +88,7 @@ func TestWindowsPipeOwner(t *testing.T) {
 	defer tc.Cleanup()
 
 	testPipeName := "\\\\.\\pipe\\kbservice\\test_pipe"
-	serverCmd := exec.Command("go", "run", "testfixtures\\npipe\\main.go", testPipeName)
+	serverCmd := exec.Command("go", "run", "testfixtures\\kb_pipetest_server\\main.go", testPipeName)
 	err := serverCmd.Start()
 	if err != nil {
 		t.Fatal(err)
@@ -119,22 +119,5 @@ func TestWindowsPipeOwner(t *testing.T) {
 	}
 	if owner {
 		t.Fatal(errors.New("Expected false getting owner of nonexistent pipe"))
-	}
-}
-
-// Note this depends on a process serving the test pipe from a separate account
-func TestWindowsPipeNonOwner(t *testing.T) {
-
-	tc := setupTest(t, "socket_windows_test")
-	defer tc.Cleanup()
-
-	testPipeName := "\\\\.\\pipe\\kbservice\\test_malicious"
-
-	owner, err := IsPipeowner(testPipeName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if owner {
-		t.Fatal(errors.New("Owner check of malicious pipe failed"))
 	}
 }

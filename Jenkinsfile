@@ -279,19 +279,6 @@ def getTestDirsWindows() {
     return dirs.tokenize()
 }
 
-// The New-LocalUser part depends on being run with elevated permissions
-def runTestPipeServer() {
-    powershell '''
-        Write-Host "$env.GOARCH"
-        $gopath = Resolve-Path -Path "$env:GOPATH".Replace('"', '')
-        Write-Host $gopath
-        Stop-Process -Force -Name "kb_pipetest_server"
-        go install github.com\\keybase\\client\\go\\libkb\\testfixtures\\kb_pipetest_server
-        $testexe = Join-Path $gopath "bin\\kb_pipetest_server.exe" -Resolve
-        runas /user:kbtestuser1 /savecreds "$testexe \\\\.\\pipe\\kbservice\\test_malicious"
-    '''
-}
-
 def testGo(prefix) {
     dir('go') {
     withEnv([
@@ -319,7 +306,6 @@ def testGo(prefix) {
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
-            runTestPipeServer()
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
