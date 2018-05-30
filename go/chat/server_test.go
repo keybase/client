@@ -3323,8 +3323,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Status)
-			require.Equal(t, users[1].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
@@ -3355,8 +3356,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, chat1.ConversationMemberStatus_REMOVED, act.Status)
-			require.Equal(t, users[1].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_REMOVED, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
@@ -3377,8 +3379,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Status)
-			require.Equal(t, users[2].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Members[0].Status)
+			require.Equal(t, users[2].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
@@ -4349,16 +4352,18 @@ func TestChatSrvUserReset(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
-			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
-			require.Equal(t, users[1].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
 		select {
 		case act := <-listener2.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
-			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
-			require.Equal(t, users[1].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
@@ -4410,8 +4415,9 @@ func TestChatSrvUserReset(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
-			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
-			require.Equal(t, users[2].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Members[0].Status)
+			require.Equal(t, users[2].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}

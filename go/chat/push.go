@@ -669,8 +669,7 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	membersRes types.MembershipUpdateRes) {
 	// Build a map of uid -> username for this update
 	var uids []keybase1.UID
-	for _, cm := range append(membersRes.OthersResetConvs,
-		append(membersRes.OthersRemovedConvs, membersRes.OthersJoinedConvs...)...) {
+	for _, cm := range membersRes.AllAotherUsers() {
 		uids = append(uids, keybase1.UID(cm.Uid.String()))
 	}
 	uidMap := make(map[string]string)
