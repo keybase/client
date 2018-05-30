@@ -22,16 +22,48 @@ func (o MerkleRootAndTime) DeepCopy() MerkleRootAndTime {
 	}
 }
 
+type KBFSRootHash []byte
+
+func (o KBFSRootHash) DeepCopy() KBFSRootHash {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
+type KBFSRoot struct {
+	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
+	Root   KBFSRootHash `codec:"root" json:"root"`
+}
+
+func (o KBFSRoot) DeepCopy() KBFSRoot {
+	return KBFSRoot{
+		TreeID: o.TreeID.DeepCopy(),
+		Root:   o.Root.DeepCopy(),
+	}
+}
+
 type GetCurrentMerkleRootArg struct {
 	FreshnessMsec int `codec:"freshnessMsec" json:"freshnessMsec"`
 }
 
+type VerifyMerkleRootAndKBFSArg struct {
+	Root             MerkleRootV2 `codec:"root" json:"root"`
+	ExpectedKBFSRoot KBFSRoot     `codec:"expectedKBFSRoot" json:"expectedKBFSRoot"`
+}
+
 type MerkleInterface interface {
-	// * getCurrentMerkleRoot gets the current-most Merkle root from the keybase server.
-	// * The caller can specify how stale a result can be with freshnessMsec.
-	// * If 0 is specified, then any amount of staleness is OK. If -1 is specified, then
-	// * we force a GET and a round-trip.
+	// GetCurrentMerkleRoot gets the current-most Merkle root from the keybase server.
+	// The caller can specify how stale a result can be with freshnessMsec.
+	// If 0 is specified, then any amount of staleness is OK. If -1 is specified, then
+	// we force a GET and a round-trip.
 	GetCurrentMerkleRoot(context.Context, int) (MerkleRootAndTime, error)
+	// VerifyMerkleRootAndKBFS checks that the given merkle root is indeed a valid
+	// root of the keybase server's Merkle tree, and that the given KBFS root
+	// is included in that global root.
+	VerifyMerkleRootAndKBFS(context.Context, VerifyMerkleRootAndKBFSArg) error
 }
 
 func MerkleProtocol(i MerkleInterface) rpc.Protocol {
@@ -54,6 +86,22 @@ func MerkleProtocol(i MerkleInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"verifyMerkleRootAndKBFS": {
+				MakeArg: func() interface{} {
+					ret := make([]VerifyMerkleRootAndKBFSArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]VerifyMerkleRootAndKBFSArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]VerifyMerkleRootAndKBFSArg)(nil), args)
+						return
+					}
+					err = i.VerifyMerkleRootAndKBFS(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -62,12 +110,20 @@ type MerkleClient struct {
 	Cli rpc.GenericClient
 }
 
-// * getCurrentMerkleRoot gets the current-most Merkle root from the keybase server.
-// * The caller can specify how stale a result can be with freshnessMsec.
-// * If 0 is specified, then any amount of staleness is OK. If -1 is specified, then
-// * we force a GET and a round-trip.
+// GetCurrentMerkleRoot gets the current-most Merkle root from the keybase server.
+// The caller can specify how stale a result can be with freshnessMsec.
+// If 0 is specified, then any amount of staleness is OK. If -1 is specified, then
+// we force a GET and a round-trip.
 func (c MerkleClient) GetCurrentMerkleRoot(ctx context.Context, freshnessMsec int) (res MerkleRootAndTime, err error) {
 	__arg := GetCurrentMerkleRootArg{FreshnessMsec: freshnessMsec}
 	err = c.Cli.Call(ctx, "keybase.1.merkle.getCurrentMerkleRoot", []interface{}{__arg}, &res)
+	return
+}
+
+// VerifyMerkleRootAndKBFS checks that the given merkle root is indeed a valid
+// root of the keybase server's Merkle tree, and that the given KBFS root
+// is included in that global root.
+func (c MerkleClient) VerifyMerkleRootAndKBFS(ctx context.Context, __arg VerifyMerkleRootAndKBFSArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.merkle.verifyMerkleRootAndKBFS", []interface{}{__arg}, nil)
 	return
 }

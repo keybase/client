@@ -1406,6 +1406,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-terminal-48.png'),
   },
+  'icon-transaction-pending-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-transaction-pending-16.png'),
+  },
   'icon-twitter-logo-16': {
     isFont: false,
     extension: 'png',

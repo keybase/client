@@ -94,7 +94,6 @@ func TestGregorForwardToElectron(t *testing.T) {
 	if err := signup.Run(); err != nil {
 		t.Fatal(err)
 	}
-	tc.G.Log.Debug("Login State: %v", tc.G.LoginState())
 
 	var err error
 	check := func() {

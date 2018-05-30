@@ -2,14 +2,17 @@
 /* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
+import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import flags from '../../../../util/feature-flags'
-
+import {messageExplodeDescriptions} from '../../../../constants/chat2'
+import SetExplodingMessagePopup from '../../messages/set-explode-popup'
 import type {PlatformInputProps} from './types'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import {ExplodingMeta} from './shared'
 
 const MentionCatcher = ({onClick}) => (
   <Box
@@ -26,11 +29,11 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps, State> {
+class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
   _input: ?Input
   _fileInput: ?HTMLInputElement
 
-  constructor(props: PlatformInputProps) {
+  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
     super(props)
     this.state = {
       emojiPickerOpen: false,
@@ -49,6 +52,10 @@ class PlatformInput extends Component<PlatformInputProps, State> {
 
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+  }
+
+  _selectExplodingMode = selected => {
+    this.props.selectExplodingMode(selected.seconds)
   }
 
   _filePickerFiles = () => (this._fileInput && this._fileInput.files) || []
@@ -270,12 +277,42 @@ class PlatformInput extends Component<PlatformInputProps, State> {
                   onClick={this._inputFocus}
                   style={{
                     left: 183,
-                    marginTop: -12,
+                    marginTop: -27,
                     position: 'absolute',
                   }}
                   type="iconfont-boom"
                 />
               )}
+            {flags.explodingMessagesEnabled &&
+              this.props.showingMenu && (
+                <SetExplodingMessagePopup
+                  attachTo={this.props.attachmentRef}
+                  isNew={true}
+                  items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+                  onHidden={this.props.toggleShowingMenu}
+                  onSelect={this._selectExplodingMode}
+                  position={'bottom right'}
+                  selected={messageExplodeDescriptions.find(
+                    exploded => exploded.seconds === this.props.explodingModeSeconds
+                  )}
+                  visible={this.props.showingMenu}
+                />
+              )}
+            {flags.explodingMessagesEnabled && (
+              <Box
+                onClick={this.props.toggleShowingMenu}
+                ref={this.props.setAttachmentRef}
+                style={styles.explodingIconContainer}
+              >
+                <Icon
+                  color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
+                  onClick={this.props.toggleShowingMenu}
+                  style={styleIcon}
+                  type="iconfont-bomb"
+                />
+                <ExplodingMeta explodingModeSeconds={this.props.explodingModeSeconds} />
+              </Box>
+            )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
@@ -412,4 +449,11 @@ const styleFooter = platformStyles({
   },
 })
 
-export default PlatformInput
+const styles = styleSheetCreate({
+  explodingIconContainer: {
+    marginRight: globalMargins.small + 4,
+    position: 'relative',
+  },
+})
+
+export default FloatingMenuParentHOC(PlatformInput)

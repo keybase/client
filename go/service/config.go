@@ -177,7 +177,7 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	res.PassphraseStreamCached = psc.ValidPassphraseStream()
 	res.TsecCached = psc.ValidTsec()
 
-	h.G().LoginState().Account(func(a *libkb.Account) {
+	h.G().LoginStateDeprecated().Account(func(a *libkb.Account) {
 		res.SecretPromptSkip = a.SkipSecretPrompt()
 	}, "ConfigHandler::GetExtendedStatus")
 

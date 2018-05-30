@@ -187,17 +187,37 @@ func (o FailedMessageInfo) DeepCopy() FailedMessageInfo {
 	}
 }
 
-type MembersUpdateInfo struct {
-	ConvID ConversationID           `codec:"convID" json:"convID"`
+type MemberInfo struct {
 	Member string                   `codec:"member" json:"member"`
 	Status ConversationMemberStatus `codec:"status" json:"status"`
+}
+
+func (o MemberInfo) DeepCopy() MemberInfo {
+	return MemberInfo{
+		Member: o.Member,
+		Status: o.Status.DeepCopy(),
+	}
+}
+
+type MembersUpdateInfo struct {
+	ConvID  ConversationID `codec:"convID" json:"convID"`
+	Members []MemberInfo   `codec:"members" json:"members"`
 }
 
 func (o MembersUpdateInfo) DeepCopy() MembersUpdateInfo {
 	return MembersUpdateInfo{
 		ConvID: o.ConvID.DeepCopy(),
-		Member: o.Member,
-		Status: o.Status.DeepCopy(),
+		Members: (func(x []MemberInfo) []MemberInfo {
+			if x == nil {
+				return nil
+			}
+			var ret []MemberInfo
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Members),
 	}
 }
 
