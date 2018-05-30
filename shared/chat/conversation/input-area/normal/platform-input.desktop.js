@@ -277,7 +277,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                   onClick={this._inputFocus}
                   style={{
                     left: 183,
-                    marginTop: -12,
+                    marginTop: -27,
                     position: 'absolute',
                   }}
                   type="iconfont-boom"
