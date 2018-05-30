@@ -28,7 +28,9 @@ const PathItemInfo = (props: Props) => (
       ? (
         <Box style={resetInfoBoxStyle}>
           {props.isUserReset
-            ? 'Participants have to let you back in.'
+            ? <Text type="BodyError">
+                Participants have to let you back in.
+              </Text>
             : <Box>
                 <Meta title="reset" backgroundColor={globalColors.red} style={resetMetaStyle} />
                 <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
