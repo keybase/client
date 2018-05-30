@@ -1060,7 +1060,7 @@ func (g *GlobalContext) SetTeamEKBoxStorage(s TeamEKBoxStorage) {
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
-	arg := NewLoadUserByUIDArg(nil, g, uid).WithPublicKeyOptional()
+	arg := NewLoadUserArgWithMetaContext(NewMetaContextBackground(g)).WithUID(uid).WithPublicKeyOptional()
 	return LoadUser(arg)
 }
 
