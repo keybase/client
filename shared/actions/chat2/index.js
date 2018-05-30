@@ -691,8 +691,11 @@ const loadMoreMessages = (
     | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload,
   state: TypedState
 ) => {
-  const numMessagesOnInitialLoad = isMobile ? 20 : 500
-  const numMessagesOnScrollback = isMobile ? 100 : 500
+  // TEMP nojima
+  const numMessagesOnInitialLoad = 75
+  const numMessagesOnScrollback = 75
+  // const numMessagesOnInitialLoad = isMobile ? 20 : 500
+  // const numMessagesOnScrollback = isMobile ? 100 : 500
 
   // Get the conversationIDKey
   let key = null
