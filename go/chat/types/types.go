@@ -53,6 +53,13 @@ type MembershipUpdateRes struct {
 	OthersResetConvs   []chat1.ConversationMember
 }
 
+func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
+	for _, cm := range append(m.OthersResetConvs, append(m.OthersJoinedConvs, m.OthersRemovedConvs...)...) {
+		res = append(res, cm.Uid)
+	}
+	return res
+}
+
 type RemoteConversationMetadata struct {
 	TopicName         string   `codec:"t"`
 	Snippet           string   `codec:"s"`
