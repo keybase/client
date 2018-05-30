@@ -200,7 +200,7 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 		if key.Base.Revocation != nil {
 			info.Time = key.Base.Revocation.Time
 			info.MerkleRoot = key.Base.Revocation.PrevMerkleRootSigned
-			// if possible, ask the service to give us the first
+			// If possible, ask the service to give us the first
 			// merkle root that covers this revoke. Some older device
 			// revokes didn't yet include a prev field, so we can't
 			// refine the merkle root in those cases, and will be
