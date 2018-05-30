@@ -7,7 +7,7 @@ import {Box, Button, Text} from '../../common-adapters'
 import PathItemInfo from '../common/path-item-info'
 import PathItemIcon from '../common/path-item-icon'
 import memoize from 'lodash/memoize'
-import {fileUIName, isMobile} from '../../constants/platform'
+import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 
 type DefaultViewProps = {
   fileUIEnabled: boolean,
@@ -55,7 +55,7 @@ const DefaultView = (props: DefaultViewProps) => (
         onClick={props.onShare}
       />
     )}
-    {!isMobile &&
+    {!isIOS &&
       (props.fileUIEnabled ? (
         <Button
           key="open"
