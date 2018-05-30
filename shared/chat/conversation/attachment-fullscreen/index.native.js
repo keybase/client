@@ -81,7 +81,7 @@ class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, {load
           Close
         </Text>
         <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
-          {this.props.path && (
+          {!!this.props.path && (
             <AutoMaxSizeImage
               source={{uri: `${this.props.path}`}}
               onLoad={this._setLoaded}
