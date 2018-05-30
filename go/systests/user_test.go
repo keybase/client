@@ -299,7 +299,6 @@ func TestSignupLogout(t *testing.T) {
 	if err := signup.Run(); err != nil {
 		t.Fatal(err)
 	}
-	tc2.G.Log.Debug("Login State: %v", tc2.G.LoginState())
 	select {
 	case err := <-nh.errCh:
 		t.Fatalf("Error before notify: %v", err)

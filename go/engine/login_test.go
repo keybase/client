@@ -2513,7 +2513,6 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 	m = m.WithNewProvisionalLoginContext()
 	err := libkb.PassphraseLoginNoPrompt(m, u.Username, u.Passphrase)
 	require.NoError(t, err, "passphrase login no prompt worked")
-	m = m.CommitProvisionalLogin()
 
 	// Generate a new test PGP key for the user, and specify the PushSecret
 	// flag so that their triplesec'ed key is pushed to the server.
@@ -2532,6 +2531,7 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
+	m = m.CommitProvisionalLogin()
 	Logout(tc)
 
 	// Now finally try a login

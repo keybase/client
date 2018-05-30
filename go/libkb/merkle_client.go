@@ -649,7 +649,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceUser(ctx context.Context, q HTT
 	}
 
 	if sigHints != nil {
-		if err = sigHints.RefreshWith(ctx, apiRes.Body.AtKey("sigs")); err != nil {
+		if err = sigHints.RefreshWith(NewMetaContext(ctx, mc.G()), apiRes.Body.AtKey("sigs")); err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}

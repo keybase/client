@@ -210,7 +210,7 @@ func (k *Keyrings) GetSecretKeyLocked(m MetaContext, ska SecretKeyArg) (ret *SKB
 			return ret, err
 		}
 	} else {
-		aerr := m.G().LoginState().Account(func(a *Account) {
+		aerr := m.G().LoginStateDeprecated().Account(func(a *Account) {
 			ret, err = a.LockedLocalSecretKey(ska)
 		}, "LockedLocalSecretKey")
 		if err != nil {
@@ -277,7 +277,7 @@ func (k *Keyrings) setCachedSecretKey(m MetaContext, ska SecretKeyArg, key Gener
 	if lctx := m.LoginContext(); lctx != nil {
 		setErr = lctx.SetCachedSecretKey(ska, key, nil)
 	} else {
-		aerr := m.G().LoginState().Account(func(a *Account) {
+		aerr := m.G().LoginStateDeprecated().Account(func(a *Account) {
 			setErr = a.SetCachedSecretKey(ska, key, nil)
 		}, "GetSecretKeyWithPrompt - SetCachedSecretKey")
 		if aerr != nil {
@@ -393,7 +393,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(m MetaContext, me *User, passphras
 		tsec, _ = lctx.PassphraseStreamCache().TriplesecAndGeneration()
 		pps = lctx.PassphraseStreamCache().PassphraseStream()
 	} else {
-		m.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
+		m.G().LoginStateDeprecated().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
 			tsec, _ = sc.TriplesecAndGeneration()
 			pps = sc.PassphraseStream()
 		}, "StreamCache - tsec, pps")
