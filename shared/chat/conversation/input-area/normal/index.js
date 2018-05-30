@@ -6,7 +6,7 @@ import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
-const throttled = throttle((f, param) => f(param), 1000)
+const throttled = throttle((f, param) => f(param), 2000)
 
 class Input extends React.Component<InputProps> {
   _lastQuote: number

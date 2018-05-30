@@ -1,14 +1,19 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, globalMargins} from '../../styles'
-import {Box} from '../../common-adapters'
-import {type VideoViewProps} from './video-view'
+import {type AVViewProps} from './av-view'
+import {Box, WebView, type WebViewInjections} from '../../common-adapters'
+
+const AVView = (props: AVViewProps) => (
+  <Box style={stylesContainer}>
+    <WebView style={stylesWebview} url="about:blank" injections={injections(props.url)} />
+  </Box>
+)
 
 // We are inserting dom manually rather than simply loading the video directly
 // to 1) have finer control on the <video> tag, so we can do stuff like
 // disabling controls; 2) not rely on webview to detect the video source. For
 // example, it may not show a .mov, but prompts user to download it.
-
 const webviewCSS = `
 html {
   display: block;
@@ -36,36 +41,17 @@ video {
 const webviewJavaScript = url => `
 const v = document.createElement("video")
 v.setAttribute('loop', true)
-v.setAttribute('muted', true)
+v.setAttribute('controls', true)
+v.setAttribute('controlsList', 'nodownload nofullscreen')
 v.setAttribute('src', '${url}')
 document.getElementsByTagName('body')[0].appendChild(v)
 v.play()
 `
 
-class VideoView extends React.PureComponent<VideoViewProps> {
-  webviewRef: any
-
-  constructor(props: VideoViewProps) {
-    super(props)
-    this.webviewRef = React.createRef()
-  }
-  componentDidMount() {
-    this.webviewRef.current.addEventListener('dom-ready', () => {
-      this.webviewRef.current.insertCSS(webviewCSS)
-      this.webviewRef.current.executeJavaScript(webviewJavaScript(this.props.url))
-    })
-    this.webviewRef.current.addEventListener('did-get-response-details', ({httpResponseCode}) => {
-      httpResponseCode === 403 && this.props.onInvalidToken()
-    })
-  }
-  render() {
-    return (
-      <Box style={stylesContainer}>
-        <webview ref={this.webviewRef} style={stylesWebview} src="about:blank" />
-      </Box>
-    )
-  }
-}
+const injections = (url: string): WebViewInjections => ({
+  css: webviewCSS,
+  javaScript: webviewJavaScript(url),
+})
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
@@ -80,6 +66,6 @@ const stylesContainer = {
 
 const stylesWebview = {
   ...globalStyles.flexGrow,
+  width: '100%',
 }
-
-export default VideoView
+export default AVView

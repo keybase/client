@@ -128,6 +128,25 @@ func HashMetaFromString(s string) (ret HashMeta, err error) {
 	return HashMeta(b), nil
 }
 
+func KBFSRootHashFromString(s string) (ret KBFSRootHash, err error) {
+	if s == "null" {
+		return nil, nil
+	}
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return ret, err
+	}
+	return KBFSRootHash(b), nil
+}
+
+func (h KBFSRootHash) String() string {
+	return hex.EncodeToString(h)
+}
+
+func (h KBFSRootHash) Eq(h2 KBFSRootHash) bool {
+	return hmac.Equal(h[:], h2[:])
+}
+
 func (h HashMeta) String() string {
 	return hex.EncodeToString(h)
 }
@@ -142,6 +161,15 @@ func (h *HashMeta) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	*h = hm
+	return nil
+}
+
+func (h *KBFSRootHash) UnmarshalJSON(b []byte) error {
+	rh, err := KBFSRootHashFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*h = rh
 	return nil
 }
 
@@ -573,6 +601,8 @@ func (s SigID) IsNil() bool {
 func (s SigID) Exists() bool {
 	return !s.IsNil()
 }
+
+func (s SigID) String() string { return string(s) }
 
 func (s SigID) Equal(t SigID) bool {
 	return s == t

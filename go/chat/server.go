@@ -270,12 +270,15 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s",
 						err.Error())
 				} else {
-					h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s bytes: %d",
+					h.Debug(ctx, "GetInboxNonblockLocal: sending verified conv: id: %s tlf: %s bytes: %d",
 						convRes.Conv.GetConvID(), convRes.ConvRes.Info.TLFNameExpanded(), len(jbody))
+					start := time.Now()
 					chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 						SessionID: arg.SessionID,
 						Conv:      string(jbody),
 					})
+					h.Debug(ctx, "GetInboxNonblockLocal: sent verified conv successfully: id: %s time: %v",
+						convRes.Conv.GetConvID(), time.Now().Sub(start))
 				}
 				convLocalsCh <- *convRes.ConvRes
 
@@ -641,8 +644,9 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	// If this is from a push, set us into the foreground
-	if arg.Reason == chat1.GetThreadNonblockReason_PUSH {
+	// If this is from a push or foreground, set us into the foreground
+	switch arg.Reason {
+	case chat1.GetThreadNonblockReason_PUSH, chat1.GetThreadNonblockReason_FOREGROUND:
 		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
 		// to reset any delay checks or timers
 		switch h.G().AppState.State() {

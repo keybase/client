@@ -552,7 +552,8 @@ protocol local {
   }
   enum GetThreadNonblockReason {
     GENERAL_0,
-    PUSH_1
+    PUSH_1,
+    FOREGROUND_2
   }
   enum GetThreadNonblockPgMode {
     DEFAULT_0,

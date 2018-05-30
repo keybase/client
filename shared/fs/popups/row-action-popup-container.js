@@ -1,8 +1,15 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as FSGen from '../../actions/fs-gen'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
+import * as FsGen from '../../actions/fs-gen'
+import {
+  compose,
+  connect,
+  lifecycle,
+  setDisplayName,
+  type TypedState,
+  type Dispatch,
+} from '../../util/container'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import Popup from './row-action-popup'
 import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
@@ -46,15 +53,16 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onHidden: () => dispatch(navigateUp()),
+  _loadMimeType: (path: Types.Path) => dispatch(FsGen.createMimeTypeLoad({path})),
   _ignoreFolder: (path: Types.Path) => {
-    dispatch(FSGen.createFavoriteIgnore({path}))
+    dispatch(FsGen.createFavoriteIgnore({path}))
     !isMobile && dispatch(navigateUp())
   },
 
   ...(isMobile
     ? {
         saveImage: (path: Types.Path) => {
-          dispatch(FSGen.createDownload({path, intent: 'camera-roll'}))
+          dispatch(FsGen.createDownload({path, intent: 'camera-roll'}))
           dispatch(
             navigateAppend([
               {
@@ -74,7 +82,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
             ])
           ),
         shareNative: (path: Types.Path) => {
-          dispatch(FSGen.createDownload({intent: 'share', path}))
+          dispatch(FsGen.createDownload({intent: 'share', path}))
           dispatch(
             navigateAppend([
               {
@@ -87,12 +95,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       }
     : {
         showInFileUI: (path: Types.Path) =>
-          dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
+          dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
       }),
 
   ...(!isIOS
     ? {
-        download: (path: Types.Path) => dispatch(FSGen.createDownload({path, intent: 'none'})),
+        download: (path: Types.Path) => dispatch(FsGen.createDownload({path, intent: 'none'})),
       }
     : {}),
 })
@@ -109,7 +117,7 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
     })
   isMobile &&
     pathItem.type !== 'folder' &&
-    Constants.isMedia(pathItem.name) &&
+    Constants.isMedia(pathItem) &&
     menuItems.push({
       title: 'Save',
       onClick: () => saveImage(path),
@@ -148,7 +156,7 @@ const getShareMenuItems = ({path}, {shareNative}) =>
 
 const mergeProps = (stateProps, dispatchProps) => {
   const {path, pathItem, isShare, _username, childrenFolders, childrenFiles} = stateProps
-  const {onHidden} = dispatchProps
+  const {onHidden, _loadMimeType} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(path), pathItem.type, _username)
   const menuItems = isShare
     ? getShareMenuItems(stateProps, dispatchProps)
@@ -159,14 +167,24 @@ const mergeProps = (stateProps, dispatchProps) => {
     lastWriter: pathItem.lastWriter.username,
     name: pathItem.name,
     size: pathItem.size,
+    needLoadMimeType: pathItem.type === 'file' && pathItem.mimeType === '',
     childrenFolders,
     childrenFiles,
     itemStyles,
     menuItems,
     onHidden,
+    loadMimeType: () => _loadMimeType(path),
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Popup'))(
-  Popup
-)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('Popup'),
+  lifecycle({
+    componentDidMount() {
+      if (this.props.needLoadMimeType) {
+        this.props.loadMimeType()
+      }
+    },
+  })
+)(Popup)
