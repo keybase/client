@@ -256,10 +256,12 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 // be able to access it from inside the accessor with exclusion.
 func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusKeysV2AllIncarnations) error, shouldReturnFullUser bool) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error) {
 
-	// Shorthand
-	g := u.G()
 	// Add a LU= tax to this context, for all subsequent debugging
-	m := arg.MetaContext().WithLogTag("LU")
+	arg = arg.EnsureCtxAndLogTag()
+
+	// Shorthands
+	g := u.G()
+	m := arg.MetaContext()
 	ctx := m.Ctx()
 
 	defer m.CVTrace(VLog0, culDebug(arg.uid), func() error { return err })()

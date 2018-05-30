@@ -123,6 +123,11 @@ func (arg LoadUserArg) WithSelf(self bool) LoadUserArg {
 	return arg
 }
 
+func (arg LoadUserArg) EnsureCtxAndLogTag() LoadUserArg {
+	arg.m = arg.m.EnsureCtx().WithLogTag("LU")
+	return arg
+}
+
 func (arg LoadUserArg) WithCachedOnly() LoadUserArg {
 	arg.cachedOnly = true
 	return arg
