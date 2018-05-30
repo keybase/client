@@ -36,22 +36,6 @@ type HomeFinder interface {
 	InfoDir() string
 }
 
-func (b Base) Unsplit(v []string) string {
-	if len(v) > 0 && len(v[0]) == 0 {
-		v2 := make([]string, len(v))
-		copy(v2, v)
-		v[0] = string(filepath.Separator)
-	}
-	result := filepath.Join(v...)
-	// filepath.Join doesn't add a separator on Windows after the drive
-	if len(v) > 0 && result[len(v[0])] != filepath.Separator {
-		v = append(v[:1], v...)
-		v[1] = string(filepath.Separator)
-		result = filepath.Join(v...)
-	}
-	return result
-}
-
 func (b Base) Join(elem ...string) string { return filepath.Join(elem...) }
 
 type XdgPosix struct {
@@ -187,6 +171,22 @@ var win32SplitRE = regexp.MustCompile(`[/\\]`)
 
 func (w Win32) Split(s string) []string {
 	return win32SplitRE.Split(s, -1)
+}
+
+func (w Win32) Unsplit(v []string) string {
+	if len(v) > 0 && len(v[0]) == 0 {
+		v2 := make([]string, len(v))
+		copy(v2, v)
+		v[0] = string(filepath.Separator)
+	}
+	result := filepath.Join(v...)
+	// filepath.Join doesn't add a separator on Windows after the drive
+	if len(v) > 0 && result[len(v[0])] != filepath.Separator {
+		v = append(v[:1], v...)
+		v[1] = string(filepath.Separator)
+		result = filepath.Join(v...)
+	}
+	return result
 }
 
 func (w Win32) Normalize(s string) string {
