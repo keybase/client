@@ -1029,10 +1029,6 @@ func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot
 	return mc.verifyAndStoreRootHelper(ctx, root, seqnoWhenCalled, false)
 }
 
-func (mc *MerkleClient) verifyRootHistorical(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno) error {
-	return mc.verifyAndStoreRootHelper(ctx, root, seqnoWhenCalled, true)
-}
-
 func (mc *MerkleClient) verifyAndStoreRootHelper(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno, historical bool) (err error) {
 	defer mc.G().CVTrace(ctx, VLog0, fmt.Sprintf("merkleClient#verifyAndStoreRootHelper(root=%d, cached=%v, historical=%v)", int(*root.Seqno()), seqnoWhenCalled, historical), func() error { return err })()
 
@@ -1564,6 +1560,12 @@ func (mc *MerkleClient) LookupLeafAtSeqno(ctx context.Context, leafID keybase1.U
 	return mc.lookupLeafHistorical(ctx, leafID, paramer, checker)
 }
 
+func (mc *MerkleClient) LookupRootAtSeqno(ctx context.Context, s keybase1.Seqno) (root *MerkleRoot, err error) {
+	defer mc.G().CVTrace(ctx, VLog0, fmt.Sprintf("LookupRootAtSeqno(%d)", s), func() error { return err })()
+	_, root, err = mc.LookupLeafAtSeqno(ctx, keybase1.UserOrTeamID(""), s)
+	return root, err
+}
+
 func (mc *MerkleClient) lookupLeafHistorical(ctx context.Context, leafID keybase1.UserOrTeamID, paramer func(*HTTPArgs), checker func(*VerificationPath) error) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
 
 	var path *VerificationPath
@@ -1580,7 +1582,11 @@ func (mc *MerkleClient) lookupLeafHistorical(ctx context.Context, leafID keybase
 	currentRoot := mc.LastRoot()
 
 	q := NewHTTPArgs()
-	q.Add("leaf_id", S{Val: leafID.String()})
+	if leafID.IsNil() {
+		q.Add("no_leaf", B{Val: true})
+	} else {
+		q.Add("leaf_id", S{Val: leafID.String()})
+	}
 	paramer(&q)
 
 	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(ctx, q, currentRoot); err != nil {
@@ -1596,9 +1602,11 @@ func (mc *MerkleClient) lookupLeafHistorical(ctx context.Context, leafID keybase
 		return nil, nil, err
 	}
 
-	leaf, err = path.verifyUserOrTeam(ctx, leafID)
-	if err != nil {
-		return nil, nil, err
+	if !leafID.IsNil() {
+		leaf, err = path.verifyUserOrTeam(ctx, leafID)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	return leaf, path.root, nil

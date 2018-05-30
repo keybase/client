@@ -65,13 +65,14 @@ func VerifyMerkleRootAndKBFS(m MetaContext, arg keybase1.VerifyMerkleRootAndKBFS
 	defer m.CTrace(fmt.Sprintf("VerifyMerkleRootAndKBFS(%+v)", arg), func() error { return err })()
 
 	var mr *MerkleRoot
-	mr, err = m.G().GetMerkleClient().FetchRootFromServerBySeqno(m.Ctx(), arg.Root.Seqno)
+	mr, err = m.G().GetMerkleClient().LookupRootAtSeqno(m.Ctx(), arg.Root.Seqno)
 	if err != nil {
 		return nil
 	}
 	if mr == nil {
 		return MerkleClientError{"no merkle root found", merkleErrorNotFound}
 	}
+
 	if !mr.HashMeta().Eq(arg.Root.HashMeta) {
 		return MerkleClientError{"wrong hash meta", merkleErrorHashMeta}
 	}

@@ -40,6 +40,18 @@ func TestMerkleClientHistorical(t *testing.T) {
 	require.NotNil(t, leaf2)
 	require.True(t, leaf.Public().Eq(*leaf2.Public))
 
+	m := NewMetaContextForTest(tc)
+	arg := keybase1.VerifyMerkleRootAndKBFSArg{
+		Root : keybase1.MerkleRootV2{
+			Seqno : *root.Seqno(),
+			HashMeta : root.HashMeta(),
+		},
+		ExpectedKBFSRoot : keybase1.KBFSRoot{
+			TreeID : keybase1.MerkleTreeID_KBFS_PRIVATETEAM,
+		},
+	}
+	err = libkb.VerifyMerkleRootAndKBFS(m, arg)
+	require.NoError(t, err)
 }
 
 func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
