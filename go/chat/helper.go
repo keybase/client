@@ -578,6 +578,7 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 }
 
 var errGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation not found")
+var errGetVerifiedConvNotFound = errors.New("GetVerifiedConv: conversation not found")
 
 func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, error) {
@@ -596,6 +597,40 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			inbox.ConvsUnverified[0].GetConvID(), convID)
 	}
 	return inbox.ConvsUnverified[0].Conv, nil
+}
+
+func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, useLocalData bool) (res chat1.ConversationLocal, err error) {
+
+	inbox, err := g.InboxSource.Read(ctx, uid, nil, useLocalData, &chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}, nil)
+	if err != nil {
+		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
+	}
+	if len(inbox.Convs) == 0 {
+		return res, errGetVerifiedConvNotFound
+	}
+	if !inbox.Convs[0].GetConvID().Eq(convID) {
+		return res, fmt.Errorf("GetVerifiedConv: convID mismatch: %s != %s",
+			inbox.Convs[0].GetConvID(), convID)
+	}
+	return inbox.Convs[0], nil
+}
+
+func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Context,
+	uid gregor1.UID, conv chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	if conv.Error != nil {
+		// If we get a transient failure, add this to the retrier queue
+		if conv.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
+			g.FetchRetrier.Failure(ctx, uid,
+				NewConversationRetry(g, conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
+		}
+	} else {
+		pc := utils.PresentConversationLocal(conv, g.Env.GetUsername().String())
+		res = &pc
+	}
+	return res
 }
 
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,

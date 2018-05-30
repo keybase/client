@@ -35,6 +35,10 @@
         {
           "type": "Time",
           "name": "ctime"
+        },
+        {
+          "type": "Time",
+          "name": "deviceCtime"
         }
       ]
     },

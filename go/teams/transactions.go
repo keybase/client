@@ -657,7 +657,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	var teamEKBoxes *[]keybase1.TeamEkBoxMetadata
 	if teamEKPayload == nil {
 		ekLib := g.GetEKLib()
-		if ekLib != nil && ekLib.ShouldRun(ctx) && len(memSet.recipients) > 0 {
+		if ekLib != nil && len(memSet.recipients) > 0 {
 			uids := memSet.recipientUids()
 			teamEKBoxes, err = ekLib.BoxLatestTeamEK(ctx, team.ID, uids)
 			if err != nil {

@@ -4,9 +4,11 @@ package stellarsvc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -62,6 +64,13 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 }
 
 func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (assets []stellar1.AccountAssetLocal, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetAccountAssetsLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	details, err := s.remoter.Details(ctx, arg.AccountID)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", arg.AccountID, err)
@@ -70,6 +79,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 	if len(details.Balances) == 0 {
 		// add an empty xlm balance
+		s.G().Log.CDebugf(ctx, "Account has no balances - adding default 0 XLM balance")
 		details.Balances = []stellar1.Balance{
 			stellar1.Balance{
 				Amount: "0",
@@ -78,10 +88,11 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		}
 	}
 
-	displayCurrency, err := s.remoter.GetAccountDisplayCurrency(ctx, arg.AccountID)
+	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, s.G(), arg.AccountID)
 	if err != nil {
 		return nil, err
 	}
+	s.G().Log.CDebugf(ctx, "Display currency for account %q is %q", arg.AccountID, displayCurrency)
 	if displayCurrency == "" {
 		displayCurrency = defaultOutsideCurrency
 		s.G().Log.CDebugf(ctx, "Using default display currency %s for account %s", displayCurrency, arg.AccountID)
@@ -146,6 +157,88 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	return assets, nil
 }
 
+func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (currencies []stellar1.CurrencyLocal, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetDisplayCurrenciesLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for code, def := range conf.Currencies {
+		c := stellar1.CurrencyLocal{
+			Description: fmt.Sprintf("%s (%s)", code, def.Symbol.Symbol),
+			Code:        code,
+			Symbol:      def.Symbol.Symbol,
+			Name:        def.Name,
+		}
+		currencies = append(currencies, c)
+	}
+	sort.Slice(currencies, func(i, j int) bool {
+		if currencies[i].Code == "USD" {
+			return true
+		}
+		if currencies[j].Code == "USD" {
+			return false
+		}
+		return currencies[i].Code < currencies[j].Code
+	})
+
+	return currencies, nil
+}
+
+func (s *Server) GetUserSettingsLocal(ctx context.Context, sessionID int) (userSettings stellar1.UserSettings, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetUserSettingsLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return userSettings, err
+	}
+
+	userSettings, err = remote.GetUserSettings(ctx, s.G())
+	if err != nil {
+		return userSettings, err
+	}
+	return userSettings, nil
+}
+
+func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "SetAcceptedDisclaimerLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return err
+	}
+
+	return remote.SetAcceptedDisclaimer(ctx, s.G())
+}
+
+func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.LinkNewWalletAccountLocalArg) (accountID stellar1.AccountID, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "LinkNewWalletAccountLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	_, accountID, _, err = libkb.ParseStellarSecretKey(string(arg.SecretKey))
+	if err != nil {
+		return "", err
+	}
+
+	err = stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, false, arg.Name)
+	if err != nil {
+		return "", err
+	}
+
+	return accountID, nil
+}
+
 type balanceList []stellar1.Balance
 
 func (a balanceList) nativeBalanceDescription() (string, error) {
@@ -159,4 +252,56 @@ func (a balanceList) nativeBalanceDescription() (string, error) {
 		}
 	}
 	return "0 XLM", nil
+}
+
+func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
+	m := libkb.NewMetaContext(s.logTag(ctx), s.G())
+	defer s.G().CTraceTimed(ctx, "ChangeWalletAccountNameLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+
+	return stellar.ChangeAccountName(m, arg.AccountID, arg.NewName)
+}
+
+func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (err error) {
+	m := libkb.NewMetaContext(s.logTag(ctx), s.G())
+	defer s.G().CTraceTimed(ctx, "SetWalletAccountAsDefaultLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+
+	return stellar.SetAccountAsPrimary(m, arg.AccountID)
+}
+
+func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.DeleteWalletAccountLocalArg) (err error) {
+	m := libkb.NewMetaContext(s.logTag(ctx), s.G())
+	defer s.G().CTraceTimed(ctx, "DeleteWalletAccountLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+
+	if arg.UserAcknowledged != "yes" {
+		return errors.New("User did not acknowledge")
+	}
+
+	return stellar.DeleteAccount(m, arg.AccountID)
+}
+
+func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (err error) {
+	defer s.G().CTraceTimed(ctx, "ChangeDisplayCurrencyLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	if arg.AccountID.IsNil() {
+		return errors.New("passed empty AccountID")
+	}
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return err
+	}
+	if _, ok := conf.Currencies[arg.Currency]; !ok {
+		return fmt.Errorf("Unknown currency code: %q", arg.Currency)
+	}
+	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, string(arg.Currency))
 }

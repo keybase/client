@@ -230,7 +230,7 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 
 	resp, finisher, err := sc.G().API.GetResp(APIArg{
 		Endpoint:    "sig/get",
-		SessionType: APISessionTypeNONE,
+		SessionType: APISessionTypeOPTIONAL,
 		Args: HTTPArgs{
 			"uid":           UIDArg(sc.uid),
 			"low":           I{int(low)},
@@ -254,6 +254,14 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 }
 
 func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+	if val, err := jsonparser.GetInt(body, "status", "code"); err == nil {
+		if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
+			// Do not bother trying to read the sigchain - user is
+			// deleted.
+			return nil, UserDeletedError{}
+		}
+	}
+
 	foundTail := false
 
 	var links ChainLinks

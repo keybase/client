@@ -36,21 +36,18 @@ const Header = (props: HeaderProps) => (
   </Box>
 )
 
-const stylesClose = {
-  marginLeft: globalMargins.tiny,
-}
-
-const filePreviewHeaderStyle = platformStyles({
-  common: {
-    ...globalStyles.flexBoxColumn,
-    ...globalStyles.flexGrow,
-    alignItems: 'center',
-    borderBottomWidth: 0,
-    justifyContent: 'center',
-  },
-  isElectron: {height: 48},
-  isMobile: {height: 64},
+const stylesClose = platformStyles({
+  isElectron: {marginLeft: globalMargins.tiny},
 })
+
+const filePreviewHeaderStyle = {
+  ...globalStyles.flexBoxColumn,
+  ...globalStyles.flexGrow,
+  alignItems: 'center',
+  height: 48,
+  borderBottomWidth: 0,
+  justifyContent: 'center',
+}
 
 const stylesHeaderIcons = {
   ...globalStyles.flexBoxRow,

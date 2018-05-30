@@ -362,16 +362,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 
 func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal, uid gregor1.UID) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		if conv.Error != nil {
-			// If we get a transient failure, add this to the retrier queue
-			if conv.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
-				g.G().FetchRetrier.Failure(ctx, uid,
-					NewConversationRetry(g.G(), conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
-			}
-		} else {
-			pc := utils.PresentConversationLocal(*conv, g.G().Env.GetUsername().String())
-			res = &pc
-		}
+		return PresentConversationLocalWithFetchRetry(ctx, g.G(), uid, *conv)
 	}
 	return res
 }
@@ -461,6 +452,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				if err != nil {
 					g.Debug(ctx, "chat activity: error making page: %s", err.Error())
 				}
+
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
@@ -468,6 +460,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(ctx, conv, uid),
 					DisplayDesktopNotification: desktopNotification,
+					DesktopNotificationSnippet: utils.GetDesktopNotificationSnippet(conv, g.G().Env.GetUsername().String()),
 					Pagination:                 utils.PresentPagination(page),
 				})
 			}

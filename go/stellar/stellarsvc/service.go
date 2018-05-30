@@ -63,7 +63,7 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 	if err != nil {
 		return err
 	}
-	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary)
+	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, "")
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
@@ -136,7 +136,8 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
+	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount,
+		arg.Note, displayBalance, arg.ForceRelay)
 }
 
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {

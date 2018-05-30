@@ -41,6 +41,8 @@ const MessagePopupHeader = (props: {
       style={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
+        maxWidth: isMobile ? '100%' : 240,
+        textAlign: 'center',
         width: '100%',
       }}
     >
@@ -48,10 +50,14 @@ const MessagePopupHeader = (props: {
         type={iconName}
         style={{
           marginBottom: globalMargins.tiny,
-          marginTop: !isMobile ? -globalMargins.tiny : -globalMargins.large,
+          marginTop: !isMobile ? globalMargins.small : 0,
         }}
       />
-      <Box style={globalStyles.flexBoxRow}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+        }}
+      >
         <Text type="BodySmall" style={{color: deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}>
           ENCRYPTED
         </Text>
@@ -59,17 +65,20 @@ const MessagePopupHeader = (props: {
           &nbsp;& SIGNED
         </Text>
       </Box>
-      <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall" style={{color: globalColors.black_40}}>
-          by
-        </Text>
-        <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
-          &nbsp;{deviceName}
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          paddingLeft: globalMargins.small,
+          paddingRight: globalMargins.small,
+        }}
+      >
+        <Text type="BodySmall">
+          by <Text type="BodySmallSemibold">{author}</Text> using device&nbsp;<Text type="BodySmallSemibold">
+            {deviceName}
+          </Text>
         </Text>
       </Box>
-      <Text type="BodySmall" style={{color: globalColors.black_40}}>
-        {formatTimeForPopup(timestamp)}
-      </Text>
+      <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
       {deviceRevokedAt && (
         <PopupHeaderText
           color={globalColors.white}

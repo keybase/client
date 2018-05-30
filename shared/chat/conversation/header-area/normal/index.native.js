@@ -100,7 +100,7 @@ const UsernameHeader = (props: Props) => (
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
-        skipSelf={true}
+        skipSelf={props.participants.length > 1}
       />
       {props.muted && <ShhIcon />}
     </Box>
@@ -118,9 +118,6 @@ const UsernameHeader = (props: Props) => (
 const styles = styleSheetCreate({
   backButton: {
     flexShrink: 0,
-    marginLeft: globalMargins.small - 4,
-    padding: globalMargins.tiny,
-    paddingLeft: 0,
   },
   center: {
     justifyContent: 'center',

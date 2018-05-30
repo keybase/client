@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
 import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
-import {resolveImageAsURL} from '../desktop/resolve-root.desktop'
+import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import Box from './box'
 import type {Props, IconType} from './icon'
 

@@ -186,6 +186,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 
 	u.deviceClient = keybase1.DeviceClient{Cli: cli}
 	u.device.userClient = keybase1.UserClient{Cli: cli}
+	u.device.accountClient = keybase1.AccountClient{Cli: cli}
 
 	// register for notifications
 	u.notifications = newTeamNotifyHandler()
@@ -706,7 +707,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 func (u *userPlusDevice) reset() {
 	u.device.tctx.Tp.SkipLogoutIfRevokedCheck = true
 	uvBefore := u.userVersion()
-	err := u.device.userClient.ResetUser(context.TODO(), 0)
+	err := u.device.accountClient.ResetAccount(context.TODO(), keybase1.ResetAccountArg{Passphrase: u.passphrase})
 	require.NoError(u.tc.T, err)
 	uvAfter := u.userVersion()
 	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,

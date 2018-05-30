@@ -17,7 +17,7 @@ class Avatars extends React.PureComponent<any> {
     const avatarProps = users.slice(0, 2).map(({username}, idx) => ({
       borderColor: avatarCount > 1 && idx === 0 ? globalColors.white : undefined,
       loadingColor: globalColors.lightGrey,
-      size: smallMode ? 24 : 32,
+      size: 32,
       username,
     }))
 
@@ -31,10 +31,10 @@ class Avatars extends React.PureComponent<any> {
         style={{
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
-          height: smallMode ? 40 : 56,
+          height: smallMode ? 48 : 56,
           justifyContent: 'flex-start',
-          padding: globalMargins.xtiny,
-          width: smallMode ? globalMargins.large : 56,
+          padding: smallMode ? 0 : globalMargins.xtiny,
+          width: 56,
         }}
       >
         {isTeam ? (
@@ -47,7 +47,7 @@ class Avatars extends React.PureComponent<any> {
         ) : (
           <MultiAvatar
             singleSize={smallMode ? 32 : 48}
-            multiSize={smallMode ? 16 : 32}
+            multiSize={32}
             avatarProps={avatarProps}
             style={{opacity}}
           />

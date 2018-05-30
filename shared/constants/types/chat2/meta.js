@@ -17,7 +17,7 @@ export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type _ConversationMeta = {
   channelname: string,
-  conversationIDKey: Common.ConversationIDKey,
+  conversationIDKey: Common.ConversationIDKey, // should be the key for this meta EXCEPT for pendingConversationIDKey, in that case its the resolved conversation we're previewing
   description: string,
   inboxVersion: number,
   isMuted: boolean,
@@ -34,8 +34,8 @@ export type _ConversationMeta = {
   resetParticipants: I.Set<string>,
   retentionPolicy: RetentionPolicy,
   snippet: string,
-  supersededBy: ?Common.ConversationIDKey,
-  supersedes: ?Common.ConversationIDKey,
+  supersededBy: Common.ConversationIDKey,
+  supersedes: Common.ConversationIDKey,
   teamType: TeamType,
   teamname: string,
   // We have a place in the team store that also stores `teamRetentionPolicy`.
