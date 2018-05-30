@@ -55,23 +55,24 @@ const DefaultView = (props: DefaultViewProps) => (
         onClick={props.onShare}
       />
     )}
-    {props.fileUIEnabled ? (
-      <Button
-        key="open"
-        type="Secondary"
-        label={'Show in ' + fileUIName}
-        style={{marginTop: globalMargins.small}}
-        onClick={props.onShowInFileUI}
-      />
-    ) : (
-      <Button
-        key="download"
-        type="Secondary"
-        label="Download a copy"
-        style={{marginTop: globalMargins.small}}
-        onClick={props.onDownload}
-      />
-    )}
+    {!isMobile &&
+      (props.fileUIEnabled ? (
+        <Button
+          key="open"
+          type="Secondary"
+          label={'Show in ' + fileUIName}
+          style={{marginTop: globalMargins.small}}
+          onClick={props.onShowInFileUI}
+        />
+      ) : (
+        <Button
+          key="download"
+          type="Secondary"
+          label="Download a copy"
+          style={{marginTop: globalMargins.small}}
+          onClick={props.onDownload}
+        />
+      ))}
     {// We only show this button for files with no extensions, because our
     // mime type list cannot be exaustive. For example it'd be weird to show
     // an Illustrator file as plain text.
