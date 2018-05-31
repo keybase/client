@@ -447,7 +447,7 @@ func (s *LKSec) loadSecretSyncer(m MetaContext) (ss *SecretSyncer, err error) {
 		}
 		return lctx.SecretSyncer(), nil
 	}
-	aerr := m.G().LoginState().Account(func(a *Account) {
+	aerr := m.G().LoginStateDeprecated().Account(func(a *Account) {
 		if err = RunSyncer(m, a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
@@ -482,7 +482,7 @@ func (s *LKSec) apiServerHalf(m MetaContext, devid keybase1.DeviceID) (dkm Devic
 // an LKS that works for encryption.
 func NewLKSecForEncrypt(m MetaContext, ui SecretUI, uid keybase1.UID) (ret *LKSec, err error) {
 	var pps *PassphraseStream
-	if pps, err = m.G().LoginState().GetPassphraseStream(m, ui); err != nil {
+	if pps, err = m.G().LoginStateDeprecated().GetPassphraseStream(m, ui); err != nil {
 		return
 	}
 	ret = NewLKSec(pps, uid, m.G())

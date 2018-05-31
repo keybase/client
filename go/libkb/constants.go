@@ -610,6 +610,9 @@ const DeriveReasonPUKStellarNoteShared string = "Keybase-Derived-Stellar-Note-PU
 // has skip pointers indicating log(n) previous merkle roots.
 var FirstProdMerkleSeqnoWithSkips = keybase1.Seqno(835903)
 
+// We didn't have valid signatures before 796, so don't try to load them.
+var FirstProdMerkleSeqnoWithSigs = keybase1.Seqno(796)
+
 type AppType string
 
 const (

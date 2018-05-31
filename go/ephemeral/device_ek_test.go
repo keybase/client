@@ -23,6 +23,10 @@ func TestNewDeviceEK(t *testing.T) {
 	s := tc.G.GetDeviceEKStorage()
 	deviceEK, err := s.Get(context.Background(), publishedMetadata.Generation)
 	require.NoError(t, err)
+	// Clear out DeviceCtime since it won't be present in fetched data, it's
+	// only known locally.
+	require.NotEqual(t, 0, deviceEK.Metadata.DeviceCtime)
+	deviceEK.Metadata.DeviceCtime = 0
 	require.Equal(t, deviceEK.Metadata, publishedMetadata)
 
 	fetchedDevices, err := allActiveDeviceEKMetadata(context.Background(), tc.G, merkleRoot)

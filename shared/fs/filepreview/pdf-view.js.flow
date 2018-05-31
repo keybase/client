@@ -3,7 +3,6 @@ import * as React from 'react'
 
 export type PdfViewProps = {
   url: string,
-  onInvalidToken: () => void,
 }
 
 declare export default React.ComponentType<PdfViewProps>

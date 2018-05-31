@@ -33,7 +33,7 @@ const announcementContainerStyle = {
   alignItems: 'center',
   backgroundColor: globalColors.blue,
   padding: globalMargins.small,
-  paddingBottom: globalMargins.tiny,
+  paddingBottom: globalMargins.small,
 }
 
 const Prompt = () => (

@@ -110,10 +110,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			}
 			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, fakeSalt())
 			m := libkb.NewMetaContextForTest(tcY).WithUIs(uis).WithNewProvisionalLoginContext()
-			if err := engine.RunEngine2(m, provisionee); err != nil {
-				return err
-			}
-			return nil
+			return engine.RunEngine2(m, provisionee)
 		})()
 		require.NoError(t, err, "provisionee")
 	}()
@@ -145,6 +142,10 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		require.True(t, maxDeviceEKGenerationY > 0)
 		deviceEKY, err := deviceEKStorageY.Get(context.Background(), maxDeviceEKGenerationY)
 		require.NoError(t, err)
+		// Clear out DeviceCtime since it won't be present in fetched data,
+		// it's only known locally.
+		require.NotEqual(t, 0, deviceEKY.Metadata.DeviceCtime)
+		deviceEKY.Metadata.DeviceCtime = 0
 
 		// Make sure the server knows about our device_ek
 		merkleRootPtr, err := tcY.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)

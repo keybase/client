@@ -21,7 +21,7 @@ export type Props = {
   onPress?: void,
   onMouseEnter?: Function,
   onMouseLeave?: Function,
-  label: ?string,
+  label?: ?string,
   style?: StylesCrossPlatform,
   labelStyle?: StylesCrossPlatform,
   type:
@@ -86,14 +86,15 @@ class Button extends React.Component<Props> {
           style={collapseStyles([globalStyles.flexBoxRow, globalStyles.flexBoxCenter, styles.labelContainer])}
         >
           {!this.props.waiting && this.props.children}
-          {!this.props.waiting && (
-            <Text
-              type={this.props.small ? 'BodySemibold' : 'BodyBig'}
-              style={collapseStyles([labelStyle, this.props.labelStyle])}
-            >
-              {this.props.label}
-            </Text>
-          )}
+          {!this.props.waiting &&
+            this.props.label && (
+              <Text
+                type={this.props.small ? 'BodySemibold' : 'BodyBig'}
+                style={collapseStyles([labelStyle, this.props.labelStyle])}
+              >
+                {this.props.label}
+              </Text>
+            )}
           {this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>

@@ -50,7 +50,6 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
 
 function* _listenKBFSSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createSetupFSHandlers())
-  yield Saga.put(FsGen.createRefreshLocalHTTPServerInfo())
   yield Saga.put(Chat2Gen.createSetupChatHandlers())
   yield Saga.put(TeamsGen.createSetupTeamHandlers())
   yield Saga.put(UnlockFoldersGen.createRegisterRekeyListener())
