@@ -3102,220 +3102,220 @@ export type VerifySessionRes = $ReadOnly<{uid: UID, sid: String, generated: Int,
 export type WebProof = $ReadOnly<{hostname: String, protocols?: ?Array<String>}>
 
 export type WriteArgs = $ReadOnly<{opID: OpID, path: Path, offset: Long}>
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
+// Not enabled: add 'keybase.1.BTC.registerBTC' to enabled-calls.json
+// Not enabled: add 'keybase.1.KBFSGit.createRepo' to enabled-calls.json
+// Not enabled: add 'keybase.1.KBFSGit.deleteRepo' to enabled-calls.json
+// Not enabled: add 'keybase.1.KBFSGit.gc' to enabled-calls.json
+// Not enabled: add 'keybase.1.Kex2Provisionee.didCounterSign' to enabled-calls.json
+// Not enabled: add 'keybase.1.Kex2Provisionee.hello' to enabled-calls.json
+// Not enabled: add 'keybase.1.Kex2Provisionee2.didCounterSign2' to enabled-calls.json
+// Not enabled: add 'keybase.1.Kex2Provisionee2.hello2' to enabled-calls.json
+// Not enabled: add 'keybase.1.Kex2Provisioner.kexStart' to enabled-calls.json
+// Not enabled: add 'keybase.1.NotifyFSRequest.FSEditListRequest' to enabled-calls.json
+// Not enabled: add 'keybase.1.NotifyFSRequest.FSSyncStatusRequest' to enabled-calls.json
+// Not enabled: add 'keybase.1.ScanProofs.scanProofs' to enabled-calls.json
+// Not enabled: add 'keybase.1.SecretKeys.getSecretKeys' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSClose' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSCopy' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSGetOps' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSListRecursive' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSMakeOpid' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSMove' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSOpen' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSRead' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSRemove' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSRename' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSSetStat' to enabled-calls.json
+// Not enabled: add 'keybase.1.SimpleFS.simpleFSWrite' to enabled-calls.json
+// Not enabled: add 'keybase.1.account.passphrasePrompt' to enabled-calls.json
+// Not enabled: add 'keybase.1.account.resetAccount' to enabled-calls.json
+// Not enabled: add 'keybase.1.appState.updateAppState' to enabled-calls.json
+// Not enabled: add 'keybase.1.badger.getBadgeState' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.addReference' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.archiveReference' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.archiveReferenceWithCount' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.authenticateSession' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.blockPing' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.delReference' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.delReferenceWithCount' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.getBlock' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.getSessionChallenge' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.getTeamQuotaInfo' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.getUserQuotaInfo' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.putBlock' to enabled-calls.json
+// Not enabled: add 'keybase.1.block.putBlockAgain' to enabled-calls.json
+// Not enabled: add 'keybase.1.config.checkAPIServerOutOfDateWarning' to enabled-calls.json
+// Not enabled: add 'keybase.1.config.clearValue' to enabled-calls.json
+// Not enabled: add 'keybase.1.config.getCurrentStatus' to enabled-calls.json
+// Not enabled: add 'keybase.1.config.getValue' to enabled-calls.json
+// Not enabled: add 'keybase.1.config.setPath' to enabled-calls.json
+// Not enabled: add 'keybase.1.config.setUserConfig' to enabled-calls.json
+// Not enabled: add 'keybase.1.config.setValue' to enabled-calls.json
+// Not enabled: add 'keybase.1.crypto.signED25519' to enabled-calls.json
+// Not enabled: add 'keybase.1.crypto.signED25519ForKBFS' to enabled-calls.json
+// Not enabled: add 'keybase.1.crypto.signToString' to enabled-calls.json
+// Not enabled: add 'keybase.1.crypto.unboxBytes32' to enabled-calls.json
+// Not enabled: add 'keybase.1.crypto.unboxBytes32Any' to enabled-calls.json
+// Not enabled: add 'keybase.1.ctl.appExit' to enabled-calls.json
+// Not enabled: add 'keybase.1.ctl.dbDelete' to enabled-calls.json
+// Not enabled: add 'keybase.1.ctl.dbGet' to enabled-calls.json
+// Not enabled: add 'keybase.1.ctl.dbPut' to enabled-calls.json
+// Not enabled: add 'keybase.1.ctl.logRotate' to enabled-calls.json
+// Not enabled: add 'keybase.1.ctl.reload' to enabled-calls.json
+// Not enabled: add 'keybase.1.ctl.stop' to enabled-calls.json
+// Not enabled: add 'keybase.1.debugging.firstStep' to enabled-calls.json
+// Not enabled: add 'keybase.1.debugging.increment' to enabled-calls.json
+// Not enabled: add 'keybase.1.debugging.script' to enabled-calls.json
+// Not enabled: add 'keybase.1.debugging.secondStep' to enabled-calls.json
+// Not enabled: add 'keybase.1.delegateUiCtl.registerGregorFirehose' to enabled-calls.json
+// Not enabled: add 'keybase.1.delegateUiCtl.registerUpdateUI' to enabled-calls.json
+// Not enabled: add 'keybase.1.device.checkDeviceNameForUser' to enabled-calls.json
+// Not enabled: add 'keybase.1.device.deviceList' to enabled-calls.json
+// Not enabled: add 'keybase.1.favorite.getFavorites' to enabled-calls.json
+// Not enabled: add 'keybase.1.fs.List' to enabled-calls.json
+// Not enabled: add 'keybase.1.git.deleteGitMetadata' to enabled-calls.json
+// Not enabled: add 'keybase.1.git.gcPersonalRepo' to enabled-calls.json
+// Not enabled: add 'keybase.1.git.gcTeamRepo' to enabled-calls.json
+// Not enabled: add 'keybase.1.git.getTeamRepoSettings' to enabled-calls.json
+// Not enabled: add 'keybase.1.git.putGitMetadata' to enabled-calls.json
+// Not enabled: add 'keybase.1.home.homeActionTaken' to enabled-calls.json
+// Not enabled: add 'keybase.1.identify.Resolve3' to enabled-calls.json
+// Not enabled: add 'keybase.1.identify.identifyLite' to enabled-calls.json
+// Not enabled: add 'keybase.1.identify.resolveIdentifyImplicitTeam' to enabled-calls.json
+// Not enabled: add 'keybase.1.identify.resolveImplicitTeam' to enabled-calls.json
+// Not enabled: add 'keybase.1.implicitTeamMigration.finalizeMigration' to enabled-calls.json
+// Not enabled: add 'keybase.1.implicitTeamMigration.startMigration' to enabled-calls.json
+// Not enabled: add 'keybase.1.install.installCommandLinePrivileged' to enabled-calls.json
+// Not enabled: add 'keybase.1.kbfs.FSEditList' to enabled-calls.json
+// Not enabled: add 'keybase.1.kbfs.FSEvent' to enabled-calls.json
+// Not enabled: add 'keybase.1.kbfs.FSSyncEvent' to enabled-calls.json
+// Not enabled: add 'keybase.1.kbfs.FSSyncStatus' to enabled-calls.json
+// Not enabled: add 'keybase.1.kbfs.createTLF' to enabled-calls.json
+// Not enabled: add 'keybase.1.kbfs.getKBFSTeamSettings' to enabled-calls.json
+// Not enabled: add 'keybase.1.kbfsMount.GetAllAvailableMountDirs' to enabled-calls.json
+// Not enabled: add 'keybase.1.kbfsMount.SetCurrentMountDir' to enabled-calls.json
+// Not enabled: add 'keybase.1.log.registerLogger' to enabled-calls.json
+// Not enabled: add 'keybase.1.login.clearStoredSecret' to enabled-calls.json
+// Not enabled: add 'keybase.1.login.loginOneshot' to enabled-calls.json
+// Not enabled: add 'keybase.1.login.loginProvisionedDevice' to enabled-calls.json
+// Not enabled: add 'keybase.1.login.loginWithPaperKey' to enabled-calls.json
+// Not enabled: add 'keybase.1.login.recoverAccountFromEmailAddress' to enabled-calls.json
+// Not enabled: add 'keybase.1.login.unlock' to enabled-calls.json
+// Not enabled: add 'keybase.1.login.unlockWithPassphrase' to enabled-calls.json
+// Not enabled: add 'keybase.1.merkle.getCurrentMerkleRoot' to enabled-calls.json
+// Not enabled: add 'keybase.1.merkle.verifyMerkleRootAndKBFS' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.authenticate' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.deleteKey' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.findNextMD' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.forceMerkleBuildForTest' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getChallenge' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getFolderHandle' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getFoldersForRekey' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getKey' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getKeyBundles' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getLatestFolderHandle' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getMerkleNode' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getMerkleRoot' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getMerkleRootLatest' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getMerkleRootSince' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.getMetadata' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.lock' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.ping' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.ping2' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.pruneBranch' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.putKeys' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.putMetadata' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.registerForUpdates' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.releaseLock' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.setImplicitTeamModeForTest' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.startImplicitTeamMigration' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.truncateLock' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadata.truncateUnlock' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadataUpdate.folderNeedsRekey' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadataUpdate.foldersNeedRekey' to enabled-calls.json
+// Not enabled: add 'keybase.1.metadataUpdate.metadataUpdate' to enabled-calls.json
+// Not enabled: add 'keybase.1.paperprovision.paperProvision' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpDecrypt' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpDeletePrimary' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpEncrypt' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpExport' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpExportByFingerprint' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpExportByKID' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpImport' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpKeyGen' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpPull' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpPurge' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpSelect' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpSign' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpUpdate' to enabled-calls.json
+// Not enabled: add 'keybase.1.pgp.pgpVerify' to enabled-calls.json
+// Not enabled: add 'keybase.1.pprof.processorProfile' to enabled-calls.json
+// Not enabled: add 'keybase.1.pprof.trace' to enabled-calls.json
+// Not enabled: add 'keybase.1.quota.verifySession' to enabled-calls.json
+// Not enabled: add 'keybase.1.reachability.reachabilityChanged' to enabled-calls.json
+// Not enabled: add 'keybase.1.rekey.debugShowRekeyStatus' to enabled-calls.json
+// Not enabled: add 'keybase.1.rekey.getPendingRekeyStatus' to enabled-calls.json
+// Not enabled: add 'keybase.1.rekey.rekeySync' to enabled-calls.json
+// Not enabled: add 'keybase.1.saltpack.saltpackDecrypt' to enabled-calls.json
+// Not enabled: add 'keybase.1.saltpack.saltpackEncrypt' to enabled-calls.json
+// Not enabled: add 'keybase.1.saltpack.saltpackSign' to enabled-calls.json
+// Not enabled: add 'keybase.1.saltpack.saltpackVerify' to enabled-calls.json
+// Not enabled: add 'keybase.1.session.currentSession' to enabled-calls.json
+// Not enabled: add 'keybase.1.session.sessionPing' to enabled-calls.json
+// Not enabled: add 'keybase.1.sigs.sigList' to enabled-calls.json
+// Not enabled: add 'keybase.1.sigs.sigListJSON' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.getTeamRootID' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.getTeamShowcase' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.loadTeamPlusApplicationKeys' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.lookupImplicitTeam' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.lookupOrCreateImplicitTeam' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.setTarsDisabled' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamAcceptInvite' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamChangeMembership' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamCreateSeitanToken' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamCreateWithSettings' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamDebug' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamDelete' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamImplicitAdmins' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamListSubteamsRecursive' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamListTeammates' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamListVerified' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamReAddMemberAfterReset' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamRename' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamRequestAccess' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamRotateKey' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.teamSetSettings' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.tryDecryptWithTeamKey' to enabled-calls.json
+// Not enabled: add 'keybase.1.teams.uploadTeamAvatar' to enabled-calls.json
+// Not enabled: add 'keybase.1.test.panic' to enabled-calls.json
+// Not enabled: add 'keybase.1.test.test' to enabled-calls.json
+// Not enabled: add 'keybase.1.test.testCallback' to enabled-calls.json
+// Not enabled: add 'keybase.1.tlf.CryptKeys' to enabled-calls.json
+// Not enabled: add 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName' to enabled-calls.json
+// Not enabled: add 'keybase.1.tlf.publicCanonicalTLFNameAndID' to enabled-calls.json
+// Not enabled: add 'keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID' to enabled-calls.json
+// Not enabled: add 'keybase.1.tlfKeys.getTLFCryptKeys' to enabled-calls.json
+// Not enabled: add 'keybase.1.track.fakeTrackingChanged' to enabled-calls.json
+// Not enabled: add 'keybase.1.track.track' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.findNextMerkleRootAfterRevoke' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.getUPAK' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.listTrackers' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.listTrackersByName' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.listTrackersSelf' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.listTracking' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.listTrackingJSON' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.loadAllPublicKeysUnverified' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.loadMyPublicKeys' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.loadPublicKeys' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.loadUncheckedUserSummaries' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.loadUser' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.loadUserByName' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.loadUserPlusKeys' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.loadUserPlusKeysV2' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.meUserVersion' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.search' to enabled-calls.json
+// Not enabled: add 'keybase.1.user.uploadUserAvatar' to enabled-calls.json
 type AccountHasServerKeysResult = HasServerKeysRes
 type AccountPassphrasePromptResult = GetPassphraseRes
 type ApiserverDeleteResult = APIRes

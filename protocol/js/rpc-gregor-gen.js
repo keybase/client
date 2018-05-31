@@ -101,22 +101,22 @@ export type Time = Long
 export type TimeOrOffset = $ReadOnly<{time: Time, offset: DurationMsec}>
 
 export type UID = Bytes
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
+// Not enabled: add 'gregor.1.auth.authenticateSessionToken' to enabled-calls.json
+// Not enabled: add 'gregor.1.authInternal.createGregorSuperUserSessionToken' to enabled-calls.json
+// Not enabled: add 'gregor.1.authUpdate.revokeSessionIDs' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.consumeMessage' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.consumeMessageMulti' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.consumePublishMessage' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.describeConnectedUsers' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.describeConnectedUsersInternal' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.ping' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.state' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.stateByCategoryPrefix' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.sync' to enabled-calls.json
+// Not enabled: add 'gregor.1.incoming.version' to enabled-calls.json
+// Not enabled: add 'gregor.1.outgoing.broadcastMessage' to enabled-calls.json
+// Not enabled: add 'gregor.1.remind.deleteReminders' to enabled-calls.json
+// Not enabled: add 'gregor.1.remind.getReminders' to enabled-calls.json
 type AuthAuthenticateSessionTokenResult = AuthResult
 type AuthInternalCreateGregorSuperUserSessionTokenResult = SessionToken
 type IncomingDescribeConnectedUsersInternalResult = ?Array<ConnectedUser>

@@ -1136,61 +1136,61 @@ export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, head
 export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
 
 export type UpdateConversationMembership = $ReadOnly<{inboxVers: InboxVers, joined?: ?Array<ConversationMember>, removed?: ?Array<ConversationMember>, reset?: ?Array<ConversationMember>, previewed?: ?Array<ConversationID>, unreadUpdate?: ?UnreadUpdate, unreadUpdates?: ?Array<UnreadUpdate>}>
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
-// Not enabled:
+// Not enabled: add 'chat.1.local.DownloadAttachmentLocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.DownloadFileAttachmentLocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.GetMessagesLocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.generateOutboxID' to enabled-calls.json
+// Not enabled: add 'chat.1.local.getCachedThread' to enabled-calls.json
+// Not enabled: add 'chat.1.local.getConversationForCLILocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.getInboxAndUnboxLocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.getInboxSummaryForCLILocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.getSearchRegexp' to enabled-calls.json
+// Not enabled: add 'chat.1.local.getThreadLocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.getThreadNonblock' to enabled-calls.json
+// Not enabled: add 'chat.1.local.joinConversationLocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.postAttachmentLocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.postDeleteHistoryByAge' to enabled-calls.json
+// Not enabled: add 'chat.1.local.postDeleteHistoryUpto' to enabled-calls.json
+// Not enabled: add 'chat.1.local.postFileAttachmentLocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.postLocal' to enabled-calls.json
+// Not enabled: add 'chat.1.local.postLocalNonblock' to enabled-calls.json
+// Not enabled: add 'chat.1.local.postMetadataNonblock' to enabled-calls.json
+// Not enabled: add 'chat.1.local.upgradeKBFSConversationToImpteam' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.GetUnreadUpdateFull' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.SetConversationStatus' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.deleteConversation' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.getGlobalAppNotificationSettings' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.getInboxRemote' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.getInboxVersion' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.getMessageBefore' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.getMessagesRemote' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.getPublicConversations' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.getS3Params' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.getTLFConversations' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.getThreadRemote' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.joinConversation' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.leaveConversation' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.markAsRead' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.newConversationRemote' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.newConversationRemote2' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.postRemote' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.previewConversation' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.publishReadMessage' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.publishSetConversationStatus' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.remoteNotificationSuccessful' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.retentionSweepConv' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.s3Sign' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.setAppNotificationSettings' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.setConvRetention' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.setGlobalAppNotificationSettings' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.setTeamRetention' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.syncAll' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.syncChat' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.syncInbox' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.tlfFinalize' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.tlfResolve' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.updateTypingRemote' to enabled-calls.json
+// Not enabled: add 'chat.1.remote.upgradeKBFSToImpteam' to enabled-calls.json
 type ChatUiChatConfirmChannelDeleteResult = Boolean
 type LocalDeleteConversationLocalResult = DeleteConversationLocalRes
 type LocalDownloadAttachmentLocalResult = DownloadAttachmentLocalRes

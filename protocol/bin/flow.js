@@ -231,7 +231,7 @@ function analyzeMessages(json, project) {
       : rpcChannelMapGen(methodName, name, r, innerParamType, responseType)
     const engineSaga = isUIProtocol ? '' : engineSagaGen(methodName, name, r, innerParamType, responseType)
     const notEnabled = isUIProtocol ? '' : notEnabledGen(methodName)
-    return [paramType, response, notEnabled, rpcPromise, rpcChannelMap, engineSaga]
+    return [paramType, response, rpcPromise, rpcChannelMap, engineSaga, notEnabled]
   })
 }
 
@@ -242,7 +242,7 @@ function enabledCall(methodName, type) {
 
 function notEnabledGen(methodName) {
   const cleanName = methodName.substring(1, methodName.length - 1)
-  return !enabledCalls[cleanName] ? '// Not enabled: ' : ''
+  return !enabledCalls[cleanName] ? `// Not enabled: add ${methodName} to enabled-calls.json` : ''
 }
 
 function engineSagaGen(methodName, name, response, requestType, responseType) {

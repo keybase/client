@@ -25,7 +25,6 @@ import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
-import {type RPCError} from '../util/errors'
 
 const maxAvatarsPerLoad = 50
 // TODO convert to sagas
