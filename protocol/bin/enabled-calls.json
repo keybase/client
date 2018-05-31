@@ -427,5 +427,20 @@
   },
   "chat.1.local.getInboxNonblockLocal": {
     "engineSaga": true
+  },
+  "chat.1.local.getThreadNonblock": {
+    "engineSaga": true
+  },
+  "chat.1.local.DownloadFileAttachmentLocal": {
+    "engineSaga": true
+  },
+  "chat.1.local.postFileAttachmentLocal": {
+    "engineSaga": true
+  },
+  "keybase.1.teams.teamSetSettings": {
+    "promise": true
+  },
+  "keybase.1.teams.setTarsDisabled": {
+    "promise": true
   }
 }

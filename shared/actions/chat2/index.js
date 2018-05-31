@@ -3,7 +3,6 @@ import * as AppGen from '../app-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
-import engineCall from '../../engine/saga'
 import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../kbfs-gen'
@@ -57,9 +56,7 @@ const inboxRefresh = (
     return Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
   }
 
-  return Saga.call(
-    engineCall,
-    'chat.1.local.getInboxNonblockLocal',
+  return RPCChatTypes.localGetInboxNonblockLocalRpcSaga(
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       maxUnbox: 0,
@@ -235,21 +232,6 @@ const unboxRows = (
     },
     loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
   )
-  // const getRows = Saga.call(
-  // engineCall,
-  // 'chat.1.local.getInboxNonblockLocal',
-  // {
-  // identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-  // query: Constants.makeInboxQuery(conversationIDKeys),
-  // skipUnverified: true,
-  // },
-  // {
-  // 'chat.1.chatUi.chatInboxConversation': onUnboxed,
-  // 'chat.1.chatUi.chatInboxFailed': onFailed,
-  // 'chat.1.chatUi.chatInboxUnverified': () => {},
-  // },
-  // loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
-  // )
 
   return Saga.sequentially([Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})), getRows])
 }
@@ -805,7 +787,7 @@ const loadMoreMessages = (
   const loadingKey = `loadingThread:${conversationIDKey}`
 
   let calledClear = false
-  const onGotThread = ({thread}: {thread: string}, context: 'full' | 'cached') => {
+  const onGotThread = ({thread}: {+thread: ?string}, context: 'full' | 'cached') => {
     if (!thread) {
       return
     }
@@ -840,19 +822,19 @@ const loadMoreMessages = (
         Saga.put(Chat2Gen.createMessagesAdd({context: {conversationIDKey, type: 'threadLoad'}, messages}))
       )
     }
-    return actions
+    return Saga.sequentially(actions)
   }
 
-  const makeCall = Saga.call(
-    engineCall,
-    'chat.1.local.getThreadNonblock',
+  const makeCall = RPCChatTypes.localGetThreadNonblockRpcSaga(
     {
       cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
       conversationID,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       pagination: {
-        next: isScrollingBack ? 'deadbeef' : null, // daemon treats this as a boolean essentially. string means to scroll back, null means an initial load
+        last: false,
+        next: isScrollingBack ? 'deadbeef' : '', // daemon treats this as a boolean essentially. string means to scroll back, null means an initial load
         num: numberOfMessagesToLoad,
+        previous: '',
       },
       pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
       query: {
@@ -1430,14 +1412,14 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
         )
       }
     }
-    yield Saga.call(
-      engineCall,
-      'chat.1.local.DownloadFileAttachmentLocal',
+
+    yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga(
       {
         conversationID: Types.keyToConversationID(conversationIDKey),
         filename: fileName,
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
         messageID: message.id,
+        preview: false,
       },
       {
         'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
@@ -1525,15 +1507,13 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
 
   try {
     let lastRatioSent = -1 // force the first update to show no matter what
-    yield Saga.call(
-      engineCall,
-      'chat.1.local.postFileAttachmentLocal',
+    yield RPCChatTypes.localPostFileAttachmentLocalRpcSaga(
       {
         ...ephemeralData,
         attachment: {filename: path},
         conversationID: Types.keyToConversationID(conversationIDKey),
         identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        metadata: null,
+        metadata: Buffer.from([]),
         outboxID,
         title,
         tlfName: meta.tlfname,

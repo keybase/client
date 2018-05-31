@@ -9,7 +9,8 @@ import {printOutstandingRPCs} from '../local-debug'
 function* call(
   method: string,
   param: Object,
-  incomingCallMap: any,
+  // TODO type this. we need to merge all the incomingcallmaptypes really
+  incomingCallMap: {[method: string]: any},
   waitingActionCreator?: (waiting: boolean) => any
 ): Generator<any, any, any> {
   const engine = getEngine()
@@ -23,14 +24,19 @@ function* call(
     // convert call map
     const callMap = Object.keys(incomingCallMap).reduce((map, method) => {
       map[method] = (params, response) => {
-        // Reply immediately always
-        if (response) {
+        // If we need a custom reply we pass it down to the action handler to deal with, otherwise by default we handle it immediately
+        const customResponseNeeded = incomingCallMap[method].length === 3
+        if (!customResponseNeeded && response) {
           response.result()
         }
 
         // defer to process network first
         setTimeout(() => {
-          emitter({method, params})
+          emitter({
+            method,
+            params,
+            ...(customResponseNeeded ? {response} : {}),
+          })
         }, 5)
       }
       return map
@@ -76,13 +82,13 @@ function* call(
         // See if its handled
         const cb = incomingCallMap[res.method]
         if (cb) {
+          const state: TypedState = yield RSE.select()
           let action
-          // If they want state get it first
-          if (cb.length === 2) {
-            const state: TypedState = yield RSE.select()
-            action = yield RSE.call(cb, res.params, state)
+
+          if (res.response) {
+            action = yield RSE.call(cb, res.params, res.response, state)
           } else {
-            action = yield RSE.call(cb, res.params)
+            action = yield RSE.call(cb, res.params, state)
           }
 
           if (action) {

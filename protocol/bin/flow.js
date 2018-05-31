@@ -203,7 +203,7 @@ function analyzeMessages(json, project) {
       if (type) {
         r = `,response: {error: RPCErrorHandler, result: (${type}) => void}`
       } else {
-        r = `,response: CommonResponseHandler`
+        r = ''
       }
     } else {
       r = ''
@@ -211,9 +211,9 @@ function analyzeMessages(json, project) {
 
     const inParams = buildParams(true)
     if (isUIProtocol) {
-      project.incomingMaps[`keybase.1.${json.protocol}.${m}`] = `(params: ${
+      project.incomingMaps[`${json.namespace}.${json.protocol}.${m}`] = `(params: ${
         inParams ? `${inParams}` : 'void'
-      }${r}) => void`
+      }${r}, state: TypedState) => ?Saga.Effect | Generator<any,any,any>`
     }
 
     r = ''
@@ -249,7 +249,7 @@ function engineSagaGen(methodName, name, response, requestType, responseType) {
   if (!enabledCall(methodName, 'engineSaga')) {
     return ''
   }
-  return `\nexport const ${name}RpcSaga = (params: ${requestType}, incomingCallMap: {[method: string]: (...Array<any>) => ?Saga.Effect}, loading: (loading: boolean) => ?Action) => Saga.call(engineSaga, ${methodName}, params, incomingCallMap, loading)`
+  return `\nexport const ${name}RpcSaga = (params: ${requestType}, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, ${methodName}, params, incomingCallMap, loading)`
 }
 
 function rpcChannelMapGen(methodName, name, response, requestType, responseType) {
@@ -388,6 +388,7 @@ import engineSaga from '../../engine/saga'
 import * as Saga from '../../util/saga'
 import type {Action} from '../../constants/types/flux'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
+import type {TypedState} from '../../constants/reducer'
 `
   const incomingMap =
     `\nexport type IncomingCallMapType = {|` +
