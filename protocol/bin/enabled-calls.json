@@ -1,0 +1,446 @@
+{
+  "keybase.1.prove.startProof": {
+    "channelMap": true
+  },
+  "keybase.1.pgp.pgpKeyGenDefault": {
+    "channelMap": true
+  },
+  "keybase.1.login.logout": {
+    "channelMap": true
+  },
+  "keybase.1.device.deviceAdd": {
+    "channelMap": true
+  },
+  "keybase.1.login.login": {
+    "channelMap": true
+  },
+  "keybase.1.login.paperKey": {
+    "channelMap": true
+  },
+  "keybase.1.install.installKBFS": {
+    "promise": true
+  },
+  "keybase.1.favorite.favoriteIgnore": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.simpleFSSyncStatus": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.simpleFSCancel": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.simpleFSWait": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.simpleFSCopyRecursive": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.simpleFSCheck": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.simpleFSReadList": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.simpleFSStat": {
+    "promise": true
+  },
+  "keybase.1.apiserver.GetWithSession": {
+    "promise": true
+  },
+  "keybase.1.favorite.favoriteAdd": {
+    "promise": true
+  },
+  "keybase.1.revoke.revokeDevice": {
+    "promise": true
+  },
+  "keybase.1.login.deprovision": {
+    "promise": true
+  },
+  "keybase.1.device.deviceHistoryList": {
+    "promise": true
+  },
+  "keybase.1.rekey.getRevokeWarning": {
+    "promise": true
+  },
+  "keybase.1.config.getConfig": {
+    "promise": true
+  },
+  "keybase.1.avatars.loadTeamAvatars": {
+    "promise": true
+  },
+  "keybase.1.avatars.loadUserAvatars": {
+    "promise": true
+  },
+  "keybase.1.config.getBootstrapStatus": {
+    "promise": true
+  },
+  "keybase.1.config.getExtendedStatus": {
+    "promise": true
+  },
+  "keybase.1.config.waitForClient": {
+    "promise": true
+  },
+  "keybase.1.gregor.injectItem": {
+    "promise": true
+  },
+  "keybase.1.config.helloIAm": {
+    "promise": true
+  },
+  "keybase.1.pgp.pgpStorageDismiss": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.simpleFSList": {
+    "promise": true
+  },
+  "keybase.1.account.emailChange": {
+    "promise": true
+  },
+  "keybase.1.account.hasServerKeys": {
+    "promise": true
+  },
+  "keybase.1.account.passphraseChange": {
+    "promise": true
+  },
+  "keybase.1.apiserver.Delete": {
+    "promise": true
+  },
+  "keybase.1.apiserver.Get": {
+    "promise": true
+  },
+  "keybase.1.apiserver.PostJSON": {
+    "promise": true
+  },
+  "keybase.1.apiserver.Post": {
+    "promise": true
+  },
+  "keybase.1.config.getRememberPassphrase": {
+    "promise": true
+  },
+  "keybase.1.config.setRememberPassphrase": {
+    "promise": true
+  },
+  "keybase.1.cryptocurrency.registerAddress": {
+    "promise": true
+  },
+  "keybase.1.ctl.dbNuke": {
+    "promise": true
+  },
+  "keybase.1.delegateUiCtl.registerGregorFirehoseFiltered": {
+    "promise": true
+  },
+  "keybase.1.delegateUiCtl.registerHomeUI": {
+    "promise": true
+  },
+  "keybase.1.delegateUiCtl.registerIdentifyUI": {
+    "promise": true
+  },
+  "keybase.1.delegateUiCtl.registerRekeyUI": {
+    "promise": true
+  },
+  "keybase.1.delegateUiCtl.registerSecretUI": {
+    "promise": true
+  },
+  "keybase.1.device.checkDeviceNameFormat": {
+    "promise": true
+  },
+  "keybase.1.git.createPersonalRepo": {
+    "promise": true
+  },
+  "keybase.1.git.createTeamRepo": {
+    "promise": true
+  },
+  "keybase.1.git.deletePersonalRepo": {
+    "promise": true
+  },
+  "keybase.1.git.deleteTeamRepo": {
+    "promise": true
+  },
+  "keybase.1.git.getAllGitMetadata": {
+    "promise": true
+  },
+  "keybase.1.git.getGitMetadata": {
+    "promise": true
+  },
+  "keybase.1.git.setTeamRepoSettings": {
+    "promise": true
+  },
+  "keybase.1.gregor.dismissCategory": {
+    "promise": true
+  },
+  "keybase.1.gregor.dismissItem": {
+    "promise": true
+  },
+  "keybase.1.home.homeGetScreen": {
+    "promise": true
+  },
+  "keybase.1.home.homeMarkViewed": {
+    "promise": true
+  },
+  "keybase.1.home.homeSkipTodoType": {
+    "promise": true
+  },
+  "keybase.1.identify.identify2": {
+    "promise": true
+  },
+  "keybase.1.install.fuseStatus": {
+    "promise": true
+  },
+  "keybase.1.install.installFuse": {
+    "promise": true
+  },
+  "keybase.1.install.uninstallKBFS": {
+    "promise": true
+  },
+  "keybase.1.kbfsMount.GetCurrentMountDir": {
+    "promise": true
+  },
+  "keybase.1.login.accountDelete": {
+    "promise": true
+  },
+  "keybase.1.login.getConfiguredAccounts": {
+    "promise": true
+  },
+  "keybase.1.login.paperKeySubmit": {
+    "promise": true
+  },
+  "keybase.1.notifyCtl.setNotifications": {
+    "promise": true
+  },
+  "keybase.1.pprof.logProcessorProfile": {
+    "promise": true
+  },
+  "keybase.1.pprof.logTrace": {
+    "promise": true
+  },
+  "keybase.1.prove.checkProof": {
+    "promise": true
+  },
+  "keybase.1.reachability.checkReachability": {
+    "promise": true
+  },
+  "keybase.1.reachability.startReachability": {
+    "promise": true
+  },
+  "keybase.1.rekey.rekeyStatusFinish": {
+    "promise": true
+  },
+  "keybase.1.rekey.showPendingRekeyStatus": {
+    "promise": true
+  },
+  "keybase.1.revoke.revokeKey": {
+    "promise": true
+  },
+  "keybase.1.revoke.revokeSigs": {
+    "promise": true
+  },
+  "keybase.1.signup.checkInvitationCode": {
+    "promise": true
+  },
+  "keybase.1.signup.checkUsernameAvailable": {
+    "promise": true
+  },
+  "keybase.1.signup.getInvitationCode": {
+    "promise": true
+  },
+  "keybase.1.signup.inviteRequest": {
+    "promise": true
+  },
+  "keybase.1.signup.signup": {
+    "promise": true
+  },
+  "keybase.1.teams.canUserPerform": {
+    "promise": true
+  },
+  "keybase.1.teams.getTarsDisabled": {
+    "promise": true
+  },
+  "keybase.1.teams.getTeamAndMemberShowcase": {
+    "promise": true
+  },
+  "keybase.1.teams.setTeamMemberShowcase": {
+    "promise": true
+  },
+  "keybase.1.teams.setTeamShowcase": {
+    "promise": true
+  },
+  "keybase.1.teams.teamAcceptInviteOrRequestAccess": {
+    "promise": true
+  },
+  "keybase.1.teams.teamAddEmailsBulk": {
+    "promise": true
+  },
+  "keybase.1.teams.teamAddMember": {
+    "promise": true
+  },
+  "keybase.1.teams.teamCreate": {
+    "promise": true
+  },
+  "keybase.1.teams.teamCreateSeitanTokenV2": {
+    "promise": true
+  },
+  "keybase.1.teams.teamEditMember": {
+    "promise": true
+  },
+  "keybase.1.teams.teamGet": {
+    "promise": true
+  },
+  "keybase.1.teams.teamIgnoreRequest": {
+    "promise": true
+  },
+  "keybase.1.teams.teamLeave": {
+    "promise": true
+  },
+  "keybase.1.teams.teamListMyAccessRequests": {
+    "promise": true
+  },
+  "keybase.1.teams.teamListRequests": {
+    "promise": true
+  },
+  "keybase.1.teams.teamListUnverified": {
+    "promise": true
+  },
+  "keybase.1.teams.teamRemoveMember": {
+    "promise": true
+  },
+  "keybase.1.teams.teamTree": {
+    "promise": true
+  },
+  "keybase.1.track.checkTracking": {
+    "promise": true
+  },
+  "keybase.1.track.dismissWithToken": {
+    "promise": true
+  },
+  "keybase.1.track.trackWithToken": {
+    "promise": true
+  },
+  "keybase.1.track.untrack": {
+    "promise": true
+  },
+  "keybase.1.user.interestingPeople": {
+    "promise": true
+  },
+  "keybase.1.user.listTrackers2": {
+    "promise": true
+  },
+  "keybase.1.user.loadMySettings": {
+    "promise": true
+  },
+  "keybase.1.user.profileEdit": {
+    "promise": true
+  },
+  "chat.1.local.addTeamMemberAfterReset": {
+    "promise": true
+  },
+  "chat.1.local.CancelPost": {
+    "promise": true
+  },
+  "chat.1.local.deleteConversationLocal": {
+    "promise": true
+  },
+  "chat.1.local.findConversationsLocal": {
+    "promise": true
+  },
+  "chat.1.local.getGlobalAppNotificationSettingsLocal": {
+    "promise": true
+  },
+  "chat.1.local.getInboxAndUnboxUILocal": {
+    "promise": true
+  },
+  "chat.1.local.getTLFConversationsLocal": {
+    "promise": true
+  },
+  "chat.1.local.getTeamRetentionLocal": {
+    "promise": true
+  },
+  "chat.1.local.joinConversationByIDLocal": {
+    "promise": true
+  },
+  "chat.1.local.leaveConversationLocal": {
+    "promise": true
+  },
+  "chat.1.local.makePreview": {
+    "promise": true
+  },
+  "chat.1.local.markAsReadLocal": {
+    "promise": true
+  },
+  "chat.1.local.newConversationLocal": {
+    "promise": true
+  },
+  "chat.1.local.postDeleteHistoryThrough": {
+    "promise": true
+  },
+  "chat.1.local.postDeleteNonblock": {
+    "promise": true
+  },
+  "chat.1.local.postEditNonblock": {
+    "promise": true
+  },
+  "chat.1.local.postHeadlineNonblock": {
+    "promise": true
+  },
+  "chat.1.local.postHeadline": {
+    "promise": true
+  },
+  "chat.1.local.postMetadata": {
+    "promise": true
+  },
+  "chat.1.local.postTextNonblock": {
+    "promise": true
+  },
+  "chat.1.local.previewConversationByIDLocal": {
+    "promise": true
+  },
+  "chat.1.local.RetryPost": {
+    "promise": true
+  },
+  "chat.1.local.setAppNotificationSettingsLocal": {
+    "promise": true
+  },
+  "chat.1.local.setConvRetentionLocal": {
+    "promise": true
+  },
+  "chat.1.local.SetConversationStatusLocal": {
+    "promise": true
+  },
+  "chat.1.local.setGlobalAppNotificationSettingsLocal": {
+    "promise": true
+  },
+  "chat.1.local.setTeamRetentionLocal": {
+    "promise": true
+  },
+  "chat.1.local.unboxMobilePushNotification": {
+    "promise": true
+  },
+  "chat.1.local.updateTyping": {
+    "promise": true
+  },
+  "keybase.1.gregor.updateItem": {
+    "promise": true
+  },
+  "keybase.1.gregor.getState": {
+    "promise": true
+  },
+  "chat.1.local.getInboxNonblockLocal": {
+    "engineSaga": true
+  },
+  "chat.1.local.getThreadNonblock": {
+    "engineSaga": true
+  },
+  "chat.1.local.DownloadFileAttachmentLocal": {
+    "engineSaga": true
+  },
+  "chat.1.local.postFileAttachmentLocal": {
+    "engineSaga": true
+  },
+  "keybase.1.teams.teamSetSettings": {
+    "promise": true
+  },
+  "keybase.1.teams.setTarsDisabled": {
+    "promise": true
+  }
+}
