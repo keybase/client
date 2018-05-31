@@ -314,8 +314,8 @@ func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar
 	return arg.AccountID.String(), nil
 }
 
-func (s *Server) GetWalletAccountPrivateKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPrivateKeyLocalArg) (res stellar1.SecretKey, err error) {
-	defer s.G().CTraceTimed(ctx, "GetWalletAccountPrivateKeyLocal", func() error { return err })()
+func (s *Server) GetWalletAccountSecretKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountSecretKeyLocalArg) (res stellar1.SecretKey, err error) {
+	defer s.G().CTraceTimed(ctx, "GetWalletAccountSecretKeyLocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}

@@ -444,20 +444,20 @@ func TestPrivateKeyExporting(t *testing.T) {
 	accID := getPrimaryAccountID(tcs[0])
 
 	// Try empty argument.
-	_, err := tcs[0].Srv.GetWalletAccountPrivateKeyLocal(context.Background(), stellar1.GetWalletAccountPrivateKeyLocalArg{
+	_, err := tcs[0].Srv.GetWalletAccountSecretKeyLocal(context.Background(), stellar1.GetWalletAccountSecretKeyLocalArg{
 		AccountID: stellar1.AccountID(""),
 	})
 	require.Error(t, err)
 
 	// Try random account ID.
 	randomAccID, _ := randomStellarKeypair()
-	_, err = tcs[0].Srv.GetWalletAccountPrivateKeyLocal(context.Background(), stellar1.GetWalletAccountPrivateKeyLocalArg{
+	_, err = tcs[0].Srv.GetWalletAccountSecretKeyLocal(context.Background(), stellar1.GetWalletAccountSecretKeyLocalArg{
 		AccountID: randomAccID,
 	})
 	require.Error(t, err)
 
 	// Happy path.
-	privKey, err := tcs[0].Srv.GetWalletAccountPrivateKeyLocal(context.Background(), stellar1.GetWalletAccountPrivateKeyLocalArg{
+	privKey, err := tcs[0].Srv.GetWalletAccountSecretKeyLocal(context.Background(), stellar1.GetWalletAccountSecretKeyLocalArg{
 		AccountID: accID,
 	})
 	require.NoError(t, err)

@@ -411,7 +411,7 @@
       ],
       "response": "string"
     },
-    "getWalletAccountPrivateKeyLocal": {
+    "getWalletAccountSecretKeyLocal": {
       "request": [
         {
           "name": "sessionID",

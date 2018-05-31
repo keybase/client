@@ -276,7 +276,7 @@ type GetWalletAccountPublicKeyLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
-type GetWalletAccountPrivateKeyLocalArg struct {
+type GetWalletAccountSecretKeyLocalArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -359,7 +359,7 @@ type LocalInterface interface {
 	GetUserSettingsLocal(context.Context, int) (UserSettings, error)
 	SetAcceptedDisclaimerLocal(context.Context, int) error
 	GetWalletAccountPublicKeyLocal(context.Context, GetWalletAccountPublicKeyLocalArg) (string, error)
-	GetWalletAccountPrivateKeyLocal(context.Context, GetWalletAccountPrivateKeyLocalArg) (SecretKey, error)
+	GetWalletAccountSecretKeyLocal(context.Context, GetWalletAccountSecretKeyLocalArg) (SecretKey, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -557,18 +557,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getWalletAccountPrivateKeyLocal": {
+			"getWalletAccountSecretKeyLocal": {
 				MakeArg: func() interface{} {
-					ret := make([]GetWalletAccountPrivateKeyLocalArg, 1)
+					ret := make([]GetWalletAccountSecretKeyLocalArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetWalletAccountPrivateKeyLocalArg)
+					typedArgs, ok := args.(*[]GetWalletAccountSecretKeyLocalArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetWalletAccountPrivateKeyLocalArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetWalletAccountSecretKeyLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.GetWalletAccountPrivateKeyLocal(ctx, (*typedArgs)[0])
+					ret, err = i.GetWalletAccountSecretKeyLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -860,8 +860,8 @@ func (c LocalClient) GetWalletAccountPublicKeyLocal(ctx context.Context, __arg G
 	return
 }
 
-func (c LocalClient) GetWalletAccountPrivateKeyLocal(ctx context.Context, __arg GetWalletAccountPrivateKeyLocalArg) (res SecretKey, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountPrivateKeyLocal", []interface{}{__arg}, &res)
+func (c LocalClient) GetWalletAccountSecretKeyLocal(ctx context.Context, __arg GetWalletAccountSecretKeyLocalArg) (res SecretKey, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountSecretKeyLocal", []interface{}{__arg}, &res)
 	return
 }
 
