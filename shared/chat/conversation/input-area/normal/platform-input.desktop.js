@@ -299,7 +299,10 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                   style={styleIcon}
                   type="iconfont-bomb"
                 />
-                <ExplodingMeta explodingModeSeconds={this.props.explodingModeSeconds} />
+                <ExplodingMeta
+                  explodingModeSeconds={this.props.explodingModeSeconds}
+                  isNew={this.props.isExplodingNew}
+                />
               </Box>
             )}
             {this.state.emojiPickerOpen && (

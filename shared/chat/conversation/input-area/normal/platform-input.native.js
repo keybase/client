@@ -151,6 +151,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}
+            isExplodingNew={this.props.isExplodingNew}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
@@ -189,6 +190,7 @@ const Action = ({
   openFilePicker,
   insertMentionMarker,
   isExploding,
+  isExplodingNew,
   explodingModeSeconds,
 }) =>
   hasText ? (
@@ -203,6 +205,7 @@ const Action = ({
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
           isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
           openExplodingPicker={openExplodingPicker}
         />
       )}
@@ -221,7 +224,7 @@ const Action = ({
     </Box2>
   )
 
-const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
+const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
     <Box style={explodingIconContainer}>
       <Icon
@@ -230,7 +233,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
         type="iconfont-bomb"
         fontSize={21}
       />
-      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
+      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />
     </Box>
   </NativeTouchableWithoutFeedback>
 )
