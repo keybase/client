@@ -15,6 +15,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -1045,7 +1046,8 @@ func makeSuccessorRMDForTesting(
 
 func makeEncryptedMerkleLeafForTesting(
 	t *testing.T, config Config, rmd *RootMetadata) (
-	root *kbfsmd.MerkleRoot, mLeaf kbfsmd.MerkleLeaf, leafBytes []byte) {
+	root *kbfsmd.MerkleRoot, rootNodeBytes []byte,
+	mLeaf kbfsmd.MerkleLeaf, leafBytes []byte) {
 	ePubKey, ePrivKey, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 	var nonce [24]byte
@@ -1077,7 +1079,20 @@ func makeEncryptedMerkleLeafForTesting(
 	require.NoError(t, err)
 	leafBytes, err = config.Codec().Encode(eLeaf)
 	require.NoError(t, err)
-	return root, mLeaf, leafBytes
+
+	rootNode := merkle.Node{
+		Type: 2,
+		Leafs: []merkle.KeyValuePair{{
+			Key:   merkle.Hash(rmd.TlfID().Bytes()),
+			Value: leafBytes,
+		}},
+	}
+	rootNodeBytes, err = config.Codec().Encode(rootNode)
+	require.NoError(t, err)
+	hasher := merkle.SHA512Hasher{}
+	root.Hash = hasher.Hash(rootNodeBytes)
+
+	return root, rootNodeBytes, mLeaf, leafBytes
 }
 
 func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -1102,7 +1117,8 @@ func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 	rmd, rmds := makeRealInitialRMDForTesting(t, ctx, config, h, id)
 
 	t.Log("Making an encrypted Merkle leaf")
-	root, mLeaf, leafBytes := makeEncryptedMerkleLeafForTesting(t, config, rmd)
+	root, _, mLeaf, leafBytes := makeEncryptedMerkleLeafForTesting(
+		t, config, rmd)
 
 	mdServer.nextHead = rmds
 	mdServer.processRMDSes(rmds, rmd.extra)
@@ -1153,7 +1169,7 @@ func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	t.Log("Decrypt a leaf that's encrypted with the next keygen")
 	leafRMD := allRMDs[6]
-	root, mLeaf, leafBytes = makeEncryptedMerkleLeafForTesting(
+	root, _, mLeaf, leafBytes = makeEncryptedMerkleLeafForTesting(
 		t, config, leafRMD)
 	rmds, err = SignBareRootMetadata(
 		ctx, config.Codec(), config.Crypto(), config.Crypto(),
@@ -1189,7 +1205,8 @@ func testMDOpsDecryptMerkleLeafTeam(t *testing.T, ver kbfsmd.MetadataVer) {
 	rmd, _ := makeRealInitialRMDForTesting(t, ctx, config, h, id)
 
 	t.Log("Making an encrypted Merkle leaf")
-	root, mLeaf, leafBytes := makeEncryptedMerkleLeafForTesting(t, config, rmd)
+	root, _, mLeaf, leafBytes := makeEncryptedMerkleLeafForTesting(
+		t, config, rmd)
 
 	t.Log("Try to decrypt with the right key")
 	mdOps := config.MDOps().(*MDOpsStandard)
@@ -1244,9 +1261,10 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdServer.nextGetRange = allRMDSs[1 : len(allRMDSs)-1]
 
 	t.Log("Make a merkle leaf using the new generation")
-	root, _, leafBytes := makeEncryptedMerkleLeafForTesting(t, config, rmd)
+	root, rootNodeBytes, _, leafBytes := makeEncryptedMerkleLeafForTesting(
+		t, config, rmd)
 	mdServer.nextMerkleRoot = root
-	mdServer.nextMerkleNodes = [][]byte{leafBytes}
+	mdServer.nextMerkleNodes = [][]byte{rootNodeBytes, leafBytes}
 	mdServer.nextMerkleRootSeqno = 100
 
 	irmd := MakeImmutableRootMetadata(

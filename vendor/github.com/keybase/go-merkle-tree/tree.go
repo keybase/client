@@ -2,6 +2,8 @@ package merkleTree
 
 import (
 	"sync"
+
+	"golang.org/x/net/context"
 )
 
 // Tree is the MerkleTree class; it needs an engine and a configuration
@@ -18,28 +20,37 @@ func NewTree(e StorageEngine, c Config) *Tree {
 }
 
 // Build a tree from scratch, taking a batch input. Provide the
-// batch import (it should be sorted), and also an optional TxInfo
-func (t *Tree) Build(sm *SortedMap, txi TxInfo) (err error) {
+// batch import (it should be sorted), and also an optional TxInfo.
+func (t *Tree) Build(
+	ctx context.Context, sm *SortedMap, txi TxInfo) (err error) {
 	t.Lock()
 	defer t.Unlock()
 
 	var prevRoot, nextRoot Hash
-	if prevRoot, err = t.eng.LookupRoot(); err != nil {
+	if prevRoot, err = t.eng.LookupRoot(ctx); err != nil {
 		return err
 	}
-	if nextRoot, err = t.hashTreeRecursive(Level(0), sm, prevRoot); err != nil {
+	if nextRoot, err = t.hashTreeRecursive(ctx,
+		Level(0), sm, prevRoot); err != nil {
 		return err
 	}
-	if err = t.eng.CommitRoot(prevRoot, nextRoot, txi); err != nil {
+	if err = t.eng.CommitRoot(ctx, prevRoot, nextRoot, txi); err != nil {
 		return err
 	}
 
 	return err
 }
 
-func (t *Tree) hashTreeRecursive(level Level, sm *SortedMap, prevRoot Hash) (ret Hash, err error) {
+func (t *Tree) hashTreeRecursive(ctx context.Context,
+	level Level, sm *SortedMap, prevRoot Hash) (ret Hash, err error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	if sm.Len() <= t.cfg.n {
-		ret, err = t.makeLeaf(level, sm, prevRoot)
+		ret, err = t.makeLeaf(ctx, level, sm, prevRoot)
 		return ret, err
 	}
 
@@ -56,7 +67,7 @@ func (t *Tree) hashTreeRecursive(level Level, sm *SortedMap, prevRoot Hash) (ret
 		end := j
 		if start < end {
 			sublist := sm.slice(start, end)
-			ret, err = t.hashTreeRecursive(level+1, sublist, nil)
+			ret, err = t.hashTreeRecursive(ctx, level+1, sublist, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -67,17 +78,17 @@ func (t *Tree) hashTreeRecursive(level Level, sm *SortedMap, prevRoot Hash) (ret
 	if ret, _, nodeExported, err = ncpm.exportToNode(t.cfg.hasher, prevRoot, level); err != nil {
 		return nil, err
 	}
-	err = t.eng.StoreNode(ret, nodeExported)
+	err = t.eng.StoreNode(ctx, ret, nodeExported)
 	return ret, err
 
 }
 
-func (t *Tree) makeLeaf(l Level, sm *SortedMap, prevRoot Hash) (ret Hash, err error) {
+func (t *Tree) makeLeaf(ctx context.Context, l Level, sm *SortedMap, prevRoot Hash) (ret Hash, err error) {
 	var nodeExported []byte
 	if ret, _, nodeExported, err = sm.exportToNode(t.cfg.hasher, prevRoot, l); err != nil {
 		return nil, err
 	}
-	if err = t.eng.StoreNode(ret, nodeExported); err != nil {
+	if err = t.eng.StoreNode(ctx, ret, nodeExported); err != nil {
 		return nil, err
 	}
 	return ret, err
@@ -91,8 +102,8 @@ func (t *Tree) verifyNode(h Hash, raw []byte) (err error) {
 	return err
 }
 
-func (t *Tree) lookupNode(h Hash) ([]byte, *Node, error) {
-	b, err := t.eng.LookupNode(h)
+func (t *Tree) lookupNode(ctx context.Context, h Hash) ([]byte, *Node, error) {
+	b, err := t.eng.LookupNode(ctx, h)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -107,11 +118,11 @@ func (t *Tree) lookupNode(h Hash) ([]byte, *Node, error) {
 	return b, &node, nil
 }
 
-func (t *Tree) findGeneric(h Hash, skipVerify bool) (ret interface{}, root Hash, err error) {
+func (t *Tree) findGeneric(ctx context.Context, h Hash, skipVerify bool) (ret interface{}, root Hash, err error) {
 	t.RLock()
 	defer t.RUnlock()
 
-	root, err = t.eng.LookupRoot()
+	root, err = t.eng.LookupRoot(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -120,7 +131,7 @@ func (t *Tree) findGeneric(h Hash, skipVerify bool) (ret interface{}, root Hash,
 	for curr != nil {
 		var node *Node
 		var nodeExported []byte
-		nodeExported, node, err = t.lookupNode(curr)
+		nodeExported, node, err = t.lookupNode(ctx, curr)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -144,8 +155,8 @@ func (t *Tree) findGeneric(h Hash, skipVerify bool) (ret interface{}, root Hash,
 	return ret, root, err
 }
 
-func (t *Tree) findTyped(h Hash, skipVerify bool) (ret interface{}, root Hash, err error) {
-	ret, root, err = t.findGeneric(h, skipVerify)
+func (t *Tree) findTyped(ctx context.Context, h Hash, skipVerify bool) (ret interface{}, root Hash, err error) {
+	ret, root, err = t.findGeneric(ctx, h, skipVerify)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -170,14 +181,14 @@ func (t *Tree) findTyped(h Hash, skipVerify bool) (ret interface{}, root Hash, e
 // Find the hash in the tree. Return the value stored at the leaf under
 // that hash, or nil if not found.  Return an error if there was an
 // internal problem.
-func (t *Tree) Find(h Hash) (ret interface{}, root Hash, err error) {
-	return t.findTyped(h, false)
+func (t *Tree) Find(ctx context.Context, h Hash) (ret interface{}, root Hash, err error) {
+	return t.findTyped(ctx, h, false)
 }
 
 // findUnsafe shouldn't be used, since it will skip hash comparisons
 // at interior nodes.  It's mainly here for testing.
-func (t *Tree) findUnsafe(h Hash) (ret interface{}, root Hash, err error) {
-	return t.findTyped(h, true)
+func (t *Tree) findUnsafe(ctx context.Context, h Hash) (ret interface{}, root Hash, err error) {
+	return t.findTyped(ctx, h, true)
 }
 
 type step struct {
@@ -203,11 +214,11 @@ func (p *path) reverse() {
 // Upsert inserts or updates the leaf with the given KeyValuePair
 // information.  It will associate the given transaction info
 // if specified.
-func (t *Tree) Upsert(kvp KeyValuePair, txinfo TxInfo) (err error) {
+func (t *Tree) Upsert(ctx context.Context, kvp KeyValuePair, txinfo TxInfo) (err error) {
 	t.Lock()
 	defer t.Unlock()
 
-	root, err := t.eng.LookupRoot()
+	root, err := t.eng.LookupRoot(ctx)
 	if err != nil {
 		return err
 	}
@@ -221,7 +232,7 @@ func (t *Tree) Upsert(kvp KeyValuePair, txinfo TxInfo) (err error) {
 
 	// Root might be nil if we're upserting into an empty tree
 	if root != nil {
-		_, curr, err = t.lookupNode(root)
+		_, curr, err = t.lookupNode(ctx, root)
 		if err != nil {
 			return err
 		}
@@ -244,7 +255,7 @@ func (t *Tree) Upsert(kvp KeyValuePair, txinfo TxInfo) (err error) {
 		if nxt == nil {
 			break
 		}
-		_, curr, err = t.lookupNode(nxt)
+		_, curr, err = t.lookupNode(ctx, nxt)
 		if err != nil {
 			return err
 		}
@@ -263,7 +274,7 @@ func (t *Tree) Upsert(kvp KeyValuePair, txinfo TxInfo) (err error) {
 	}
 
 	// Make a new subtree out of our new node.
-	hsh, err := t.hashTreeRecursive(level, sm, prevRoot)
+	hsh, err := t.hashTreeRecursive(ctx, level, sm, prevRoot)
 	if err != nil {
 		return err
 	}
@@ -280,12 +291,12 @@ func (t *Tree) Upsert(kvp KeyValuePair, txinfo TxInfo) (err error) {
 		if err != nil {
 			return err
 		}
-		err = t.eng.StoreNode(hsh, nodeExported)
+		err = t.eng.StoreNode(ctx, hsh, nodeExported)
 		if err != nil {
 			return err
 		}
 	}
-	err = t.eng.CommitRoot(prevRoot, hsh, txinfo)
+	err = t.eng.CommitRoot(ctx, prevRoot, hsh, txinfo)
 
 	return err
 }

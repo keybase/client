@@ -414,9 +414,10 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
+			"checksumSHA1": "OgoahEm1klTnBu8VUttmyqhsi6M=",
 			"path": "github.com/keybase/go-merkle-tree",
-			"revision": "94090372642a4b6fcac21e6f1e71f4050c19d908",
-			"revisionTime": "2016-02-04T22:18:14Z"
+			"revision": "90288bcf8366442e1d29ad22356fae3f2e8254a5",
+			"revisionTime": "2018-02-26T14:35:15Z"
 		},
 		{
 			"path": "github.com/keybase/go-triplesec",

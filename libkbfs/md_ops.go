@@ -281,6 +281,15 @@ func (md *MDOpsStandard) verifyKey(
 		"Next KBFS merkle root is %d, included in global merkle root seqno=%d",
 		kbfsRoot.SeqNo, rootSeqno)
 
+	// The FindNextMD call already validated the global root, and the
+	// fact that the root contained the given KBFS root.  Now we need
+	// to validate the hashes of the nodes all the way down to the
+	// leaf.
+	err = verifyMerkleNodes(ctx, kbfsRoot, merkleNodes, irmd.TlfID())
+	if err != nil {
+		return false, err
+	}
+
 	// Decode (and possibly decrypt) the leaf node, so we can see what
 	// the given MD revision number was for the MD that followed the
 	// revoke.
