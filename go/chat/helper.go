@@ -673,8 +673,9 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 	findConvosWithMembersType := func(membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, err error) {
 		// Don't look for KBFS conversations anymore, they have mostly been converted, and it is better
-		// to just not search for them than to create a double conversation.
-		if membersType == chat1.ConversationMembersType_KBFS {
+		// to just not search for them than to create a double conversation. Make an exception for
+		// public conversations.
+		if membersType == chat1.ConversationMembersType_KBFS && vis == keybase1.TLFVisibility_PRIVATE {
 			return nil, nil
 		}
 
@@ -1097,8 +1098,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err != nil {
 			return res, fmt.Errorf("error creating topic ID: %s", err)
 		}
-		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v mt: %v]", i,
-			triple.Tlfid, triple.TopicType, triple.TopicID, info.CanonicalName, isPublic, n.membersType)
+		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v mt: %v]",
+			i, triple.Tlfid, triple.TopicType, triple.TopicID, info.CanonicalName, isPublic,
+			n.membersType)
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
 		if err != nil {
@@ -1226,6 +1228,9 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 				}),
 		}
 	} else {
+		if membersType == chat1.ConversationMembersType_TEAM {
+			return nil, nil, errors.New("team conversations require a topic name")
+		}
 		msg = chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,
