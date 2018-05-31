@@ -51,6 +51,10 @@ function isValidEmail(email: ?string): ?Error {
   if (email && !hasAtSign(email)) {
     return new Error('Invalid email address.')
   }
+
+  if (email && email.length >= 128) {
+    return new Error('Email address is too long.')
+  }
 }
 
 // Returns an error string if not valid
