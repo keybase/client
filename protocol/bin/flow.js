@@ -17,6 +17,7 @@ var projects = {
     incomingMaps: {},
     seenTypes: {},
     enums: {},
+    notEnabled: [],
   },
   keybase1: {
     root: 'json/keybase1',
@@ -25,6 +26,7 @@ var projects = {
     incomingMaps: {},
     seenTypes: {},
     enums: {},
+    notEnabled: [],
   },
   gregor1: {
     root: './json/gregor1',
@@ -32,6 +34,7 @@ var projects = {
     incomingMaps: {},
     seenTypes: {},
     enums: {},
+    notEnabled: [],
   },
   stellar1: {
     root: './json/stellar1',
@@ -40,6 +43,7 @@ var projects = {
     incomingMaps: {},
     seenTypes: {},
     enums: {},
+    notEnabled: [],
   },
 }
 
@@ -230,19 +234,18 @@ function analyzeMessages(json, project) {
       ? ''
       : rpcChannelMapGen(methodName, name, r, innerParamType, responseType)
     const engineSaga = isUIProtocol ? '' : engineSagaGen(methodName, name, r, innerParamType, responseType)
-    const notEnabled = isUIProtocol ? '' : notEnabledGen(methodName)
-    return [paramType, response, rpcPromise, rpcChannelMap, engineSaga, notEnabled]
+
+    const cleanName = methodName.substring(1, methodName.length - 1)
+    if (!enabledCalls[cleanName]) {
+      project.notEnabled.push(methodName)
+    }
+    return [paramType, response, rpcPromise, rpcChannelMap, engineSaga]
   })
 }
 
 function enabledCall(methodName, type) {
   const cleanName = methodName.substring(1, methodName.length - 1)
   return enabledCalls[cleanName] && enabledCalls[cleanName][type]
-}
-
-function notEnabledGen(methodName) {
-  const cleanName = methodName.substring(1, methodName.length - 1)
-  return !enabledCalls[cleanName] ? `// Not enabled: add ${methodName} to enabled-calls.json` : ''
 }
 
 function engineSagaGen(methodName, name, response, requestType, responseType) {
@@ -396,7 +399,10 @@ import type {TypedState} from '../../constants/reducer'
       .map(im => `  '${im}'?: ${project.incomingMaps[im]}`)
       .join(',') +
     '|}\n'
-  const toWrite = [typePrelude, typeDefs.join('\n'), incomingMap].join('\n')
+  const notEnabled = `// Not enabled calls. To enable add to enabled-calls.json: ${project.notEnabled.join(
+    ' '
+  )}`
+  const toWrite = [typePrelude, typeDefs.join('\n'), incomingMap, notEnabled].join('\n')
   const destinationFile = `types/${project.out.substr(3)}` // Only used by prettier so we can set an override in .prettierrc
   const formatted = prettier.format(toWrite, prettier.resolveConfig.sync(destinationFile))
   fs.writeFileSync(project.out, formatted)

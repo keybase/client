@@ -237,41 +237,6 @@ export type TransactionStatus =
 export type UserSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
 
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String}>
-// Not enabled: add 'stellar.1.local.balancesLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.changeDisplayCurrencyLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.changeWalletAccountNameLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.claimCLILocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.deleteWalletAccountLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.exchangeRateLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.exportSecretKeyLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.formatLocalCurrencyString' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.getAccountAssetsLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.getAvailableLocalCurrencies' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.getDisplayCurrenciesLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.getUserSettingsLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.getWalletAccountsLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.importSecretKeyLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.linkNewWalletAccountLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.ownAccountLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.paymentDetailCLILocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.recentPaymentsCLILocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.sendCLILocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.setAcceptedDisclaimerLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.setDisplayCurrency' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.setWalletAccountAsDefaultLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.walletDumpLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.walletGetAccountsCLILocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.local.walletInitLocal' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.accountSeqno' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.balances' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.details' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.isMasterKeyActive' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.paymentDetail' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.ping' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.recentPayments' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.submitPayment' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.submitRelayClaim' to enabled-calls.json
-// Not enabled: add 'stellar.1.remote.submitRelayPayment' to enabled-calls.json
 type LocalBalancesLocalResult = ?Array<Balance>
 type LocalClaimCLILocalResult = RelayClaimResult
 type LocalExchangeRateLocalResult = OutsideExchangeRate
@@ -301,3 +266,5 @@ type RemoteSubmitRelayClaimResult = RelayClaimResult
 type RemoteSubmitRelayPaymentResult = PaymentResult
 
 export type IncomingCallMapType = {||}
+
+// Not enabled calls. To enable add to enabled-calls.json: 'stellar.1.local.getWalletAccountsLocal' 'stellar.1.local.getAccountAssetsLocal' 'stellar.1.local.getDisplayCurrenciesLocal' 'stellar.1.local.changeWalletAccountNameLocal' 'stellar.1.local.setWalletAccountAsDefaultLocal' 'stellar.1.local.deleteWalletAccountLocal' 'stellar.1.local.linkNewWalletAccountLocal' 'stellar.1.local.changeDisplayCurrencyLocal' 'stellar.1.local.getUserSettingsLocal' 'stellar.1.local.setAcceptedDisclaimerLocal' 'stellar.1.local.balancesLocal' 'stellar.1.local.sendCLILocal' 'stellar.1.local.claimCLILocal' 'stellar.1.local.recentPaymentsCLILocal' 'stellar.1.local.paymentDetailCLILocal' 'stellar.1.local.walletInitLocal' 'stellar.1.local.walletDumpLocal' 'stellar.1.local.walletGetAccountsCLILocal' 'stellar.1.local.ownAccountLocal' 'stellar.1.local.importSecretKeyLocal' 'stellar.1.local.exportSecretKeyLocal' 'stellar.1.local.setDisplayCurrency' 'stellar.1.local.exchangeRateLocal' 'stellar.1.local.getAvailableLocalCurrencies' 'stellar.1.local.formatLocalCurrencyString' 'stellar.1.remote.balances' 'stellar.1.remote.details' 'stellar.1.remote.recentPayments' 'stellar.1.remote.paymentDetail' 'stellar.1.remote.accountSeqno' 'stellar.1.remote.submitPayment' 'stellar.1.remote.submitRelayPayment' 'stellar.1.remote.submitRelayClaim' 'stellar.1.remote.isMasterKeyActive' 'stellar.1.remote.ping'
