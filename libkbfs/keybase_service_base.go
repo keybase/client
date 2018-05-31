@@ -200,30 +200,16 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 		if key.Base.Revocation != nil {
 			info.Time = key.Base.Revocation.Time
 			info.MerkleRoot = key.Base.Revocation.PrevMerkleRootSigned
-			// If possible, ask the service to give us the first
-			// merkle root that covers this revoke. Some older device
-			// revokes didn't yet include a prev field, so we can't
-			// refine the merkle root in those cases, and will be
-			// relying only on server trust.
-			if info.MerkleRoot.Seqno > 0 {
-				res, err := k.userClient.FindNextMerkleRootAfterRevoke(ctx,
-					keybase1.FindNextMerkleRootAfterRevokeArg{
-						Uid:  uid,
-						Kid:  key.Base.Kid,
-						Loc:  key.Base.Revocation.SigChainLocation,
-						Prev: key.Base.Revocation.PrevMerkleRootSigned,
-					})
-				if err != nil {
-					return nil, nil, nil, err
-				}
-				if res.Res != nil {
-					info.MerkleRoot = *res.Res
-				}
-			}
+			// If we don't have a prev seqno, then we already have the
+			// best merkle data we're going to get.
+			info.filledInMerkle = info.MerkleRoot.Seqno <= 0
+			info.sigChainLocation = key.Base.Revocation.SigChainLocation
 		} else if reset != nil {
 			info.Time = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
 			info.MerkleRoot.Seqno = reset.MerkleRoot.Seqno
 			info.MerkleRoot.HashMeta = reset.MerkleRoot.HashMeta
+			// We can't yet get better merkle info from the service.
+			info.filledInMerkle = true
 		} else {
 			// Not revoked.
 			continue
@@ -574,6 +560,53 @@ func (k *KeybaseServiceBase) ResolveImplicitTeamByID(
 	return res.Name, nil
 }
 
+func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
+	ctx context.Context, currUserInfo UserInfo, kid keybase1.KID) (
+	newUserInfo UserInfo, exists bool, err error) {
+	k.log.CDebugf(ctx, "Checking merkle info for user %s, revoked key %s",
+		currUserInfo.UID, kid)
+
+	for key, info := range currUserInfo.RevokedVerifyingKeys {
+		if !key.KID().Equal(kid) {
+			continue
+		}
+		exists = true
+		if info.filledInMerkle {
+			break
+		}
+
+		k.log.CDebugf(ctx, "Filling in merkle info for user %s, revoked key %s",
+			currUserInfo.UID, kid)
+
+		// If possible, ask the service to give us the first merkle
+		// root that covers this revoke. Some older device revokes
+		// didn't yet include a prev field, so we can't refine the
+		// merkle root in those cases, and will be relying only on
+		// server trust.
+		if info.MerkleRoot.Seqno > 0 {
+			res, err := k.userClient.FindNextMerkleRootAfterRevoke(ctx,
+				keybase1.FindNextMerkleRootAfterRevokeArg{
+					Uid:  currUserInfo.UID,
+					Kid:  kid,
+					Loc:  info.sigChainLocation,
+					Prev: info.MerkleRoot,
+				})
+			if err != nil {
+				return UserInfo{}, false, err
+			}
+			if res.Res != nil {
+				info.MerkleRoot = *res.Res
+			}
+		}
+		info.filledInMerkle = true
+		currUserInfo.RevokedVerifyingKeys[key] = info
+		k.setCachedUserInfo(currUserInfo.UID, currUserInfo)
+		break
+	}
+
+	return currUserInfo, exists, nil
+}
+
 // LoadUserPlusKeys implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
@@ -583,11 +616,23 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 		if pollForKID == keybase1.KID("") {
 			return cachedUserInfo, nil
 		}
-		// Skip the cache if pollForKID isn't present in `VerifyingKeys`.
+		// Skip the cache if pollForKID isn't present in
+		// `VerifyingKeys` or one of the revoked verifying keys.
 		for _, key := range cachedUserInfo.VerifyingKeys {
 			if key.KID().Equal(pollForKID) {
 				return cachedUserInfo, nil
 			}
+		}
+
+		// Check if the key is revoked, and fill in the merkle info in
+		// that case.
+		cachedUserInfo, exists, err := k.checkForRevokedVerifyingKey(
+			ctx, cachedUserInfo, pollForKID)
+		if err != nil {
+			return UserInfo{}, err
+		}
+		if exists {
+			return cachedUserInfo, nil
 		}
 	}
 
@@ -597,7 +642,21 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 		return UserInfo{}, err
 	}
 
-	return k.processUserPlusKeys(ctx, res)
+	userInfo, err := k.processUserPlusKeys(ctx, res)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	if pollForKID != keybase1.KID("") {
+		// Fill in merkle info if we were explicitly trying to load a
+		// revoked key.
+		userInfo, _, err = k.checkForRevokedVerifyingKey(
+			ctx, userInfo, pollForKID)
+		if err != nil {
+			return UserInfo{}, err
+		}
+	}
+	return userInfo, nil
 }
 
 var allowedLoadTeamRoles = map[keybase1.TeamRole]bool{

@@ -33,6 +33,10 @@ type revokedKeyInfo struct {
 	// Fields are exported so they can be copied by the codec.
 	Time       keybase1.Time
 	MerkleRoot keybase1.MerkleRootV2
+
+	// These fields never need copying.
+	sigChainLocation keybase1.SigChainLocation
+	filledInMerkle   bool
 }
 
 // UserInfo contains all the info about a keybase user that kbfs cares
