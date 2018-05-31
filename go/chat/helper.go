@@ -1097,8 +1097,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err != nil {
 			return res, fmt.Errorf("error creating topic ID: %s", err)
 		}
-		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v]", i, triple.Tlfid,
-			triple.TopicType, triple.TopicID, info.CanonicalName, isPublic)
+		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v mt: %v]", i,
+			triple.Tlfid, triple.TopicType, triple.TopicID, info.CanonicalName, isPublic, n.membersType)
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
 		if err != nil {
