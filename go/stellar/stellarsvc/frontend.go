@@ -257,7 +257,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	}
 	payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments))
 	for i, p := range srvPayments {
-		payments[i].Payment, err = s.transformPaymentSummary(ctx, p)
+		payments[i].Payment, err = s.transformPaymentSummary(ctx, arg.AccountID, p)
 		if err != nil {
 			s := err.Error()
 			payments[i].Err = &s
@@ -268,7 +268,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	return payments, nil
 }
 
-func (s *Server) transformPaymentSummary(ctx context.Context, p stellar1.PaymentSummary) (*stellar1.PaymentLocal, error) {
+func (s *Server) transformPaymentSummary(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummary) (*stellar1.PaymentLocal, error) {
 	typ, err := p.Typ()
 	if err != nil {
 		return nil, err
@@ -276,18 +276,18 @@ func (s *Server) transformPaymentSummary(ctx context.Context, p stellar1.Payment
 
 	switch typ {
 	case stellar1.PaymentSummaryType_STELLAR:
-		return s.transformPaymentStellar(ctx, p.Stellar())
+		return s.transformPaymentStellar(ctx, acctID, p.Stellar())
 	case stellar1.PaymentSummaryType_DIRECT:
-		return s.transformPaymentDirect(ctx, p.Direct())
+		return s.transformPaymentDirect(ctx, acctID, p.Direct())
 	case stellar1.PaymentSummaryType_RELAY:
-		return s.transformPaymentRelay(ctx, p.Relay())
+		return s.transformPaymentRelay(ctx, acctID, p.Relay())
 	default:
 		return nil, fmt.Errorf("unrecognized payment type: %s", typ)
 	}
 }
 
-func (s *Server) transformPaymentStellar(ctx context.Context, p stellar1.PaymentSummaryStellar) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount)
+func (s *Server) transformPaymentStellar(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar) (*stellar1.PaymentLocal, error) {
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.From, acctID)
 	if err != nil {
 		return nil, err
 	}
@@ -302,8 +302,8 @@ func (s *Server) transformPaymentStellar(ctx context.Context, p stellar1.Payment
 	return loc, nil
 }
 
-func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentSummaryDirect) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount)
+func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect) (*stellar1.PaymentLocal, error) {
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, acctID)
 	if err != nil {
 		return nil, err
 	}
@@ -326,8 +326,8 @@ func (s *Server) transformPaymentDirect(ctx context.Context, p stellar1.PaymentS
 	return loc, nil
 }
 
-func (s *Server) transformPaymentRelay(ctx context.Context, p stellar1.PaymentSummaryRelay) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount)
+func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay) (*stellar1.PaymentLocal, error) {
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, acctID)
 	if err != nil {
 		return nil, err
 	}
@@ -523,8 +523,9 @@ func (s *Server) GetWalletAccountSecretKeyLocal(ctx context.Context, arg stellar
 	return stellar.ExportSecretKey(ctx, s.G(), arg.AccountID)
 }
 
-func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string) (*stellar1.PaymentLocal, error) {
-	formatted, err := stellar.FormatAmountXLM(amount)
+func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, from, requester stellar1.AccountID) (*stellar1.PaymentLocal, error) {
+	isSender := from == requester
+	formatted, err := stellar.FormatPaymentAmountXLM(amount, isSender)
 	if err != nil {
 		return nil, err
 	}

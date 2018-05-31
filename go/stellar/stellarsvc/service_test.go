@@ -530,7 +530,11 @@ func testRelay(t *testing.T, yank bool) {
 	require.NotEmpty(t, fhistory[0].Payment.Id)
 	require.NotZero(t, fhistory[0].Payment.Time)
 	require.Equal(t, "claimable", fhistory[0].Payment.Status)
-	require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)
+	if yank {
+		require.Equal(t, "- 3 XLM", fhistory[0].Payment.AmountDescription)
+	} else {
+		require.Equal(t, "+ 3 XLM", fhistory[0].Payment.AmountDescription)
+	}
 
 	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "1.9999900")
 	if !yank {

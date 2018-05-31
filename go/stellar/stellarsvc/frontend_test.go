@@ -502,12 +502,16 @@ func TestGetPaymentsLocal(t *testing.T) {
 	_, err = srvSender.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)
 
-	checkPayment := func(p stellar1.PaymentLocal) {
+	checkPayment := func(p stellar1.PaymentLocal, sender bool) {
 		require.NotEmpty(t, p.Id)
 		require.NotZero(t, p.Time)
 		require.Equal(t, "completed", p.Status)
 		require.Empty(t, p.StatusDetail)
-		require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
+		if sender {
+			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+		} else {
+			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
 		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
@@ -525,11 +529,11 @@ func TestGetPaymentsLocal(t *testing.T) {
 		t.Logf("senderPayments error: %+v", *senderPayments[0].Err)
 	}
 	require.NotNil(t, senderPayments[0].Payment)
-	checkPayment(*senderPayments[0].Payment)
+	checkPayment(*senderPayments[0].Payment, true)
 
 	recipPayments, err := srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip})
 	require.NoError(t, err)
 	require.Len(t, recipPayments, 1)
 	require.NotNil(t, recipPayments[0].Payment)
-	checkPayment(*recipPayments[0].Payment)
+	checkPayment(*recipPayments[0].Payment, false)
 }
