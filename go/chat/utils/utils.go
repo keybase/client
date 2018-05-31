@@ -802,9 +802,11 @@ func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLo
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
 		showPrefix = true
+	default:
+		showPrefix = len(conv.Names()) > 2
 	}
 
-	if showPrefix || len(conv.Names()) > 2 {
+	if showPrefix {
 		sender := mvalid.SenderUsername
 		if sender == currentUsername {
 			senderPrefix = "You: "
