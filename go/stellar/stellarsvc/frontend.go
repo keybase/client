@@ -287,7 +287,7 @@ func (s *Server) transformPaymentSummary(ctx context.Context, acctID stellar1.Ac
 }
 
 func (s *Server) transformPaymentStellar(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.From, acctID)
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.From, p.To, acctID)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func (s *Server) transformPaymentStellar(ctx context.Context, acctID stellar1.Ac
 }
 
 func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, acctID)
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, p.ToStellar, acctID)
 	if err != nil {
 		return nil, err
 	}
@@ -327,7 +327,7 @@ func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.Acc
 }
 
 func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, acctID)
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, "", acctID)
 	if err != nil {
 		return nil, err
 	}
@@ -523,14 +523,26 @@ func (s *Server) GetWalletAccountSecretKeyLocal(ctx context.Context, arg stellar
 	return stellar.ExportSecretKey(ctx, s.G(), arg.AccountID)
 }
 
-func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, from, requester stellar1.AccountID) (*stellar1.PaymentLocal, error) {
+func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, from, to, requester stellar1.AccountID) (*stellar1.PaymentLocal, error) {
+	loc := stellar1.NewPaymentLocal(txID, ctime)
+
 	isSender := from == requester
-	formatted, err := stellar.FormatPaymentAmountXLM(amount, isSender)
+	isRecipient := to == requester
+	switch {
+	case isSender && isRecipient:
+		// sent to self
+		loc.Delta = stellar1.BalanceDelta_NONE
+	case isSender:
+		loc.Delta = stellar1.BalanceDelta_DECREASE
+	case isRecipient:
+		loc.Delta = stellar1.BalanceDelta_INCREASE
+	}
+
+	formatted, err := stellar.FormatPaymentAmountXLM(amount, loc.Delta)
 	if err != nil {
 		return nil, err
 	}
 
-	loc := stellar1.NewPaymentLocal(txID, ctime)
 	loc.AmountDescription = formatted
 
 	return loc, nil

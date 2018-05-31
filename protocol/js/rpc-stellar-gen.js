@@ -34,6 +34,12 @@ export const commonTransactionStatus = {
   errorPermanent: 4,
 }
 
+export const localBalanceDelta = {
+  none: 0,
+  increase: 1,
+  decrease: 2,
+}
+
 export const localBalancesLocalRpcChannelMap = (configKeys: Array<string>, request: LocalBalancesLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.balancesLocal', request)
 
 export const localBalancesLocalRpcPromise = (request: LocalBalancesLocalRpcParam): Promise<LocalBalancesLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.balancesLocal', request, (error: RPCError, result: LocalBalancesLocalResult) => (error ? reject(error) : resolve(result))))
@@ -221,6 +227,11 @@ export type AutoClaim = $ReadOnly<{kbTxID: KeybaseTransactionID}>
 
 export type Balance = $ReadOnly<{asset: Asset, amount: String, limit: String}>
 
+export type BalanceDelta =
+  | 0 // NONE_0
+  | 1 // INCREASE_1
+  | 2 // DECREASE_2
+
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
 
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>
@@ -329,7 +340,7 @@ export type PaymentCLIOptionLocal = $ReadOnly<{payment?: ?PaymentCLILocal, err: 
 
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String}>
 
-export type PaymentLocal = $ReadOnly<{id: String, time: TimeMs, status: String, statusDetail: String, amountDescription: String, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
+export type PaymentLocal = $ReadOnly<{id: String, time: TimeMs, status: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
 
 export type PaymentOrErrorLocal = $ReadOnly<{payment?: ?PaymentLocal, err?: ?String}>
 

@@ -708,16 +708,19 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
 }
 
-func FormatPaymentAmountXLM(amount string, isSender bool) (string, error) {
+func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string, error) {
 	desc, err := FormatAmountXLM(amount)
 	if err != nil {
 		return "", err
 	}
-	if isSender {
+
+	switch delta {
+	case stellar1.BalanceDelta_DECREASE:
 		desc = "- " + desc
-	} else {
+	case stellar1.BalanceDelta_INCREASE:
 		desc = "+ " + desc
 	}
+
 	return desc, nil
 }
 

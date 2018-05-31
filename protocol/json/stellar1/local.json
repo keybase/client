@@ -69,6 +69,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "BalanceDelta",
+      "symbols": [
+        "NONE_0",
+        "INCREASE_1",
+        "DECREASE_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "PaymentLocal",
       "fields": [
@@ -91,6 +100,10 @@
         {
           "type": "string",
           "name": "amountDescription"
+        },
+        {
+          "type": "BalanceDelta",
+          "name": "delta"
         },
         {
           "type": "string",

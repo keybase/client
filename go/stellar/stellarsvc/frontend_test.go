@@ -509,8 +509,10 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Empty(t, p.StatusDetail)
 		if sender {
 			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
 		} else {
 			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
