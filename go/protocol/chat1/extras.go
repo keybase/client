@@ -237,6 +237,13 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsError() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_ERROR
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -355,6 +362,7 @@ func (m *MsgEphemeralMetadata) String() string {
 	}
 	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", time.Second*time.Duration(m.Lifetime), m.Generation, explodedBy)
 }
+
 func (m MessagePlaintext) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
@@ -420,7 +428,11 @@ func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 		return false
 	}
 	etime := m.Etime().Time()
-	return etime.Before(now) || etime.Equal(now)
+	// There are a few ways a message could be considered expired
+	// 1. Our body is already nil (deleted from DELETEHISTORY or a server purge)
+	// 2. We were "exploded now"
+	// 3. Our lifetime is up
+	return m.MessageBody.IsNil() || m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
 
 func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
@@ -531,7 +543,7 @@ func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
 		return false
 	}
 	etime := m.Etime().Time()
-	return etime.Before(now) || etime.Equal(now)
+	return m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
 
 func (m MessageBoxed) HideExplosion(now time.Time) bool {

@@ -263,6 +263,19 @@
           "name": "username"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "NextMerkleRootRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MerkleRootV2"
+          ],
+          "name": "res"
+        }
+      ]
     }
   ],
   "messages": {
@@ -597,6 +610,28 @@
         }
       ],
       "response": null
+    },
+    "findNextMerkleRootAfterRevoke": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "kid",
+          "type": "KID"
+        },
+        {
+          "name": "loc",
+          "type": "SigChainLocation"
+        },
+        {
+          "name": "prev",
+          "type": "MerkleRootV2"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID\n   revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where\n   we'll start our search. Usually it's the next one, but not always"
     }
   },
   "namespace": "keybase.1"

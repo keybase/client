@@ -110,10 +110,6 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
 
     case TeamsGen.setTeamsWithChosenChannels:
       const teams = action.payload.teamsWithChosenChannels
-      // If this is coming in as the clear before a set, just ignore it.
-      if (teams.count() === 0) {
-        return state
-      }
       return state.set('teamsWithChosenChannels', teams)
 
     case TeamsGen.setUpdatedChannelName:

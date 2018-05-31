@@ -119,7 +119,8 @@
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
-      "fromEphemeralPurge?": "boolean" // If true, use meta updating logic for when messages explode
+      "fromEphemeralPurge?": "boolean", // If true, use meta updating logic for when messages explode
+      "fromExpunge?": "boolean" // If true, use meta updating logic for retention policy deletes
     },
     // Got some inbox errors
     "metaReceivedError": {
@@ -133,9 +134,9 @@
       "selectSomethingElse": "boolean"
     },
     // We updated our view of a thread
-    "metaUpdatePagination": {
+    "updateMoreToLoad": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paginationKey": "?Types.PaginationKey"
+      "moreToLoad": "boolean"
     },
     // Add a new message
     "messagesAdd": {

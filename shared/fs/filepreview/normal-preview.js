@@ -13,15 +13,14 @@ import View from './view-container'
 type NormalPreviewProps = {
   path: Types.Path,
   routePath: I.List<string>,
-  fileViewType?: Types.FileViewType, // can be set by default-view-container.js for type override
 }
 
-const NormalPreview = ({path, fileViewType, routePath}: NormalPreviewProps) => (
+const NormalPreview = ({path, routePath}: NormalPreviewProps) => (
   <Box style={styleOuterContainer}>
     <Header path={path} routePath={routePath} />
     <Box style={stylesGreyContainer}>
       <Box style={stylesContentContainer}>
-        <View path={path} fileViewType={fileViewType} routePath={routePath} />
+        <View path={path} routePath={routePath} />
       </Box>
     </Box>
     <Footer />
@@ -58,6 +57,5 @@ const stylesContentContainer = platformStyles({
 
 export default mapProps(({routePath, routeProps}): NormalPreviewProps => ({
   path: Types.stringToPath(routeProps.get('path') || Constants.defaultPath),
-  fileViewType: routeProps.get('fileViewType'),
   routePath,
 }))(NormalPreview)

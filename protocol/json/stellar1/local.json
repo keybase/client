@@ -77,7 +77,7 @@
           "name": "description"
         },
         {
-          "type": "string",
+          "type": "OutsideCurrencyCode",
           "name": "code"
         },
         {
@@ -92,15 +92,25 @@
     },
     {
       "type": "record",
+      "name": "UserSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "acceptedDisclaimer"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
           "type": "KeybaseTransactionID",
-          "name": "KbTxID"
+          "name": "kbTxID"
         },
         {
           "type": "TransactionID",
-          "name": "TxID"
+          "name": "txID"
         },
         {
           "type": [
@@ -370,6 +380,24 @@
       ],
       "response": null
     },
+    "getUserSettingsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "UserSettings"
+    },
+    "setAcceptedDisclaimerLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
     "balancesLocal": {
       "request": [
         {
@@ -407,6 +435,10 @@
         {
           "name": "displayCurrency",
           "type": "string"
+        },
+        {
+          "name": "forceRelay",
+          "type": "boolean"
         }
       ],
       "response": "SendResultCLILocal"

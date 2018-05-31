@@ -257,24 +257,25 @@ class Profile extends Component<Props, State> {
           <Box
             style={{
               ...globalStyles.flexBoxRow,
+              alignItems: 'center',
               backgroundColor: globalColors.green,
+              justifyContent: 'center',
+              maxWidth: '100%',
+              minHeight: 40,
+              paddingBottom: 8,
+              paddingTop: 8,
               zIndex: ADD_TO_TEAM_ZINDEX,
             }}
           >
-            <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
-              <Text
-                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
-                type="BodySemibold"
-                backgroundMode="HighRisk"
-              >
+            <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 8}}>
+              <Text style={{textAlign: 'center'}} type="BodySemibold" backgroundMode="HighRisk">
                 {this.props.addUserToTeamsResults}
               </Text>
             </Box>
-            <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', flexShrink: 1}}>
+            <Box style={{...globalStyles.flexBoxColumn, padding: 8}}>
               <Icon
                 color={globalColors.black_40}
                 onClick={this.props.onClearAddUserToTeamsResults}
-                style={{padding: globalMargins.tiny}}
                 type="iconfont-close"
               />
             </Box>

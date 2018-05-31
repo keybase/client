@@ -437,3 +437,32 @@ func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 	_, err := g.API.Post(apiArg)
 	return err
 }
+
+type disclaimerResult struct {
+	libkb.AppStatusEmbed
+	AcceptedDisclaimer bool `json:"accepted_disclaimer"`
+}
+
+func GetUserSettings(ctx context.Context, g *libkb.GlobalContext) (res stellar1.UserSettings, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/disclaimer",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  ctx,
+	}
+	var apiRes disclaimerResult
+	err = g.API.GetDecode(apiArg, &apiRes)
+	if err != nil {
+		return res, err
+	}
+	return stellar1.UserSettings{AcceptedDisclaimer: apiRes.AcceptedDisclaimer}, nil
+}
+
+func SetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) error {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/disclaimer",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  ctx,
+	}
+	_, err := g.API.Post(apiArg)
+	return err
+}

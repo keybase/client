@@ -14,18 +14,20 @@ func (o EkGeneration) DeepCopy() EkGeneration {
 }
 
 type DeviceEkMetadata struct {
-	Kid        KID          `codec:"kid" json:"device_ephemeral_dh_public"`
-	HashMeta   HashMeta     `codec:"hashMeta" json:"hash_meta"`
-	Generation EkGeneration `codec:"generation" json:"generation"`
-	Ctime      Time         `codec:"ctime" json:"ctime"`
+	Kid         KID          `codec:"kid" json:"device_ephemeral_dh_public"`
+	HashMeta    HashMeta     `codec:"hashMeta" json:"hash_meta"`
+	Generation  EkGeneration `codec:"generation" json:"generation"`
+	Ctime       Time         `codec:"ctime" json:"ctime"`
+	DeviceCtime Time         `codec:"deviceCtime" json:"deviceCtime"`
 }
 
 func (o DeviceEkMetadata) DeepCopy() DeviceEkMetadata {
 	return DeviceEkMetadata{
-		Kid:        o.Kid.DeepCopy(),
-		HashMeta:   o.HashMeta.DeepCopy(),
-		Generation: o.Generation.DeepCopy(),
-		Ctime:      o.Ctime.DeepCopy(),
+		Kid:         o.Kid.DeepCopy(),
+		HashMeta:    o.HashMeta.DeepCopy(),
+		Generation:  o.Generation.DeepCopy(),
+		Ctime:       o.Ctime.DeepCopy(),
+		DeviceCtime: o.DeviceCtime.DeepCopy(),
 	}
 }
 

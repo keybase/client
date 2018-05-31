@@ -146,11 +146,7 @@ func Logout(tc libkb.TestContext) {
 }
 
 func AssertProvisioned(tc libkb.TestContext) error {
-	prov, err := tc.G.LoginState().LoggedInProvisioned(context.TODO())
-	if err != nil {
-		return err
-	}
-	if !prov {
+	if !tc.G.ActiveDevice.Valid() {
 		return libkb.LoginRequiredError{}
 	}
 	return nil

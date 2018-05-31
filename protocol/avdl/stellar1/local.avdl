@@ -28,7 +28,7 @@ protocol local {
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
-    string code;         // "USD", "CAD", etc.
+    OutsideCurrencyCode code;         // "USD", "CAD", etc.
     string symbol;       // "$"
     string name;         // "US Dollar", "Thai Baht", etc.
   }
@@ -50,19 +50,26 @@ protocol local {
   // supported currencies, returned from getDisplayCurrenciesLocal.
   void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
 
+  record UserSettings {
+    boolean acceptedDisclaimer; // whether the user has accepted the usage disclaimer
+  }
+  UserSettings getUserSettingsLocal(int sessionID);
+  void setAcceptedDisclaimerLocal(int sessionID); 
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
 
   array<Balance> balancesLocal(AccountID accountID);
 
-  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note, string displayAmount, string displayCurrency);
+  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
+                                  string displayAmount, string displayCurrency, boolean forceRelay);
 
   record SendResultCLILocal {
-    KeybaseTransactionID KbTxID;
+    KeybaseTransactionID kbTxID;
     // Direct: tx ID of the payment tx
     // Relay : tx ID of the funding payment tx
-    TransactionID TxID;
+    TransactionID txID;
     union { null, SendRelayResultCLILocal } relay;
   }
   record SendRelayResultCLILocal {

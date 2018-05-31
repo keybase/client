@@ -34,6 +34,7 @@ export type _State = {
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread, There is a special node for the pending conversation
+  moreToLoadMap: I.Map<Common.ConversationIDKey, boolean>, // if we have more data to load
   explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
   quote: ?QuoteInfo, // last quoted message
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
@@ -57,7 +58,7 @@ export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.
 export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
   Buffer.from(Message.outboxIDToString(outboxID), 'hex')
 
-export type {ConversationMeta, MetaTrustedState, NotificationsType, PaginationKey} from './meta'
+export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta'
 export type {
   AttachmentType,
   MentionsAt,
@@ -87,5 +88,4 @@ export {
   outboxIDToString,
   stringToOutboxID,
 } from './message'
-export {stringToPaginationKey} from './meta'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'

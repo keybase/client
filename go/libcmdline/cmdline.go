@@ -423,6 +423,14 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "app-start-mode",
 			Usage: "Specify 'service' to auto-start UI app, or anything else to disable",
 		},
+		cli.BoolFlag{
+			Name:  "bg-identifier-disabled",
+			Usage: "supply to disable the BG identifier loop",
+		},
+		cli.StringFlag{
+			Name:  "chat-db",
+			Usage: "Specify an alternate local Chat DB location.",
+		},
 		cli.StringFlag{
 			Name:  "code-signing-kids",
 			Usage: "Set of code signing key IDs (colon-separated).",
@@ -435,21 +443,9 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "db",
 			Usage: "Specify an alternate local DB location.",
 		},
-		cli.StringFlag{
-			Name:  "chat-db",
-			Usage: "Specify an alternate local Chat DB location.",
-		},
-		cli.StringFlag{
-			Name:  "pvl-kit",
-			Usage: "Specify an alternate local PVL kit file location.",
-		},
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "Enable debugging mode.",
-		},
-		cli.BoolFlag{
-			Name:  "upgrade-per-user-key",
-			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
 		},
 		cli.StringFlag{
 			Name:  "features",
@@ -500,12 +496,12 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Specify a PGP directory (default is ~/.gnupg).",
 		},
 		cli.StringFlag{
-			Name:  "pinentry",
-			Usage: "Specify a path to find a pinentry program.",
-		},
-		cli.StringFlag{
 			Name:  "pid-file",
 			Usage: "Location of the keybased pid-file (to ensure only one running daemon).",
+		},
+		cli.StringFlag{
+			Name:  "pinentry",
+			Usage: "Specify a path to find a pinentry program.",
 		},
 		cli.IntFlag{
 			Name:  "proof-cache-size",
@@ -528,6 +524,14 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Specify a URI for contacting the Keybase push server",
 		},
 		cli.StringFlag{
+			Name:  "pvl-kit",
+			Usage: "Specify an alternate local PVL kit file location.",
+		},
+		cli.BoolFlag{
+			Name:  "remember-passphrase",
+			Usage: "Remember keybase passphrase",
+		},
+		cli.StringFlag{
 			Name:  "run-mode",
 			Usage: "Run mode (devel, staging, prod).", // These are defined in libkb/constants.go
 		},
@@ -546,6 +550,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "session-file",
 			Usage: "Specify an alternate session data file.",
+		},
+		cli.BoolFlag{
+			Name:  "slow-gregor-conn",
+			Usage: "Slow responses from gregor for testing",
 		},
 		cli.StringFlag{
 			Name:  "socket-file",
@@ -575,6 +583,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "updater-config-file",
 			Usage: "Specify a path to the updater config file",
 		},
+		cli.BoolFlag{
+			Name:  "upgrade-per-user-key",
+			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
+		},
 		cli.IntFlag{
 			Name:  "user-cache-size",
 			Usage: "Number of User entries to cache.",
@@ -582,18 +594,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "vdebug",
 			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
-		},
-		cli.BoolFlag{
-			Name:  "bg-identifier-disabled",
-			Usage: "supply to disable the BG identifier loop",
-		},
-		cli.BoolFlag{
-			Name:  "remember-passphrase",
-			Usage: "Remember keybase passphrase",
-		},
-		cli.BoolFlag{
-			Name:  "slow-gregor-conn",
-			Usage: "Slow responses from gregor for testing",
 		},
 	}
 	if extraFlags != nil {

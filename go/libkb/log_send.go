@@ -140,7 +140,7 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 	}
 
 	// Get the login session, if any
-	l.G().LoginState().LoggedInLoad()
+	l.G().LoginStateDeprecated().LoggedInLoad()
 
 	resp, err := l.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
 	if err != nil {

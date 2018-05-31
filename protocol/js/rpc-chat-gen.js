@@ -226,6 +226,7 @@ export const localGetThreadNonblockPgMode = {
 export const localGetThreadNonblockReason = {
   general: 0,
   push: 1,
+  foreground: 2,
 }
 
 export const localGetThreadNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadNonblock', request)
@@ -833,6 +834,7 @@ export type GetThreadNonblockPgMode =
 export type GetThreadNonblockReason =
   | 0 // GENERAL_0
   | 1 // PUSH_1
+  | 2 // FOREGROUND_2
 
 export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
 
@@ -1003,7 +1005,9 @@ export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Arra
 
 export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 
-export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, member: String, status: ConversationMemberStatus}>
+export type MemberInfo = $ReadOnly<{member: String, status: ConversationMemberStatus}>
+
+export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, members?: ?Array<MemberInfo>}>
 
 export type MerkleRoot = $ReadOnly<{seqno: Long, hash: Bytes}>
 

@@ -249,7 +249,6 @@ func (b *BackgroundEphemeralPurger) loop() {
 	b.lock.Unlock()
 
 	for {
-		b.Debug(bgctx, "loop: waiting for job")
 		select {
 		case <-b.purgeTimer.C:
 			b.queueLock.Lock()

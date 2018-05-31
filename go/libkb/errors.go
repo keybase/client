@@ -1153,6 +1153,14 @@ const (
 	merkleErrorNoRightBookend
 	merkleErrorHashMeta
 	merkleErrorBadResetChain
+	merkleErrorNotFound
+	merkleErrorBadSeqno
+	merkleErrorBadLeaf
+	merkleErrorNoUpdates
+	merkleErrorBadSigID
+	merkleErrorAncientSeqno
+	merkleErrorKBFSBadTree
+	merkleErrorKBFSMismatch
 )
 
 type MerkleClientError struct {

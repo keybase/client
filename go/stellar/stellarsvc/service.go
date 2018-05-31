@@ -85,18 +85,10 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 	if err != nil {
 		return res, err
 	}
-	pwdOk := false
-	_, err = s.G().LoginState().VerifyPlaintextPassphrase(mctx, ppRes.Passphrase, func(lctx libkb.LoginContext) error {
-		pwdOk = true
-		return nil
-	})
+	_, err = libkb.VerifyPassphraseForLoggedInUser(mctx, ppRes.Passphrase)
 	if err != nil {
 		return res, err
 	}
-	if !pwdOk {
-		return res, libkb.PassphraseError{}
-	}
-
 	return stellar.ExportSecretKey(ctx, s.G(), accountID)
 }
 
@@ -136,7 +128,8 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
+	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount,
+		arg.Note, displayBalance, arg.ForceRelay)
 }
 
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {
