@@ -725,6 +725,11 @@ func (f failingTlf) EphemeralDecryptionKey(ctx context.Context, tlfName string, 
 	panic("unimplemented")
 }
 
+func (f failingTlf) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
+	panic("unimplemented")
+}
+
 type failingUpak struct {
 	t *testing.T
 }
@@ -764,6 +769,10 @@ func (f failingUpak) Invalidate(ctx context.Context, uid keybase1.UID) {
 func (f failingUpak) LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upk *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error) {
 	require.Fail(f.t, "LoadDeviceKey call")
 	return nil, nil, nil, nil
+}
+func (f failingUpak) LoadUPAKWithDeviceID(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
+	require.Fail(f.t, "LoadUPAKWithDeviceID call")
+	return nil, nil
 }
 func (f failingUpak) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
 	require.Fail(f.t, "LookupUsername call")
