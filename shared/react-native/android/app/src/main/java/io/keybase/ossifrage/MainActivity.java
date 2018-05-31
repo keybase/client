@@ -23,7 +23,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import keybase.Keybase;
@@ -66,9 +65,6 @@ public class MainActivity extends ReactActivity {
         initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
-
-        // Setup a background job
-        BackgroundSyncJob.scheduleJob();
 
         Intent intent = getIntent();
         if (intent != null) {
