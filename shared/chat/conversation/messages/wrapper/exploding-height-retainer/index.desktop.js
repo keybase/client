@@ -54,7 +54,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
             <Text type="BodySmall" style={styles.exploded}>
               EXPLODED BY{' '}
               <ConnectedUsernames
-                type="BodySmall"
+                type="BodySmallSemibold"
                 clickable={true}
                 usernames={[this.props.explodedBy]}
                 inline={true}

@@ -8,8 +8,7 @@ import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import flags from '../../../../util/feature-flags'
-import {messageExplodeDescriptions} from '../../../../constants/chat2'
-import SetExplodingMessagePopup from '../../messages/set-explode-popup'
+import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {ExplodingMeta} from './shared'
@@ -287,14 +286,8 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
               this.props.showingMenu && (
                 <SetExplodingMessagePopup
                   attachTo={this.props.attachmentRef}
-                  isNew={true}
-                  items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+                  conversationIDKey={this.props.conversationIDKey}
                   onHidden={this.props.toggleShowingMenu}
-                  onSelect={this._selectExplodingMode}
-                  position={'bottom right'}
-                  selected={messageExplodeDescriptions.find(
-                    exploded => exploded.seconds === this.props.explodingModeSeconds
-                  )}
                   visible={this.props.showingMenu}
                 />
               )}

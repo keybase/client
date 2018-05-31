@@ -62,7 +62,7 @@ class SetExplodePopup extends React.Component<Props, State> {
   }
 
   onDone = () => {
-    this.props.onSelect(this.state.selected)
+    this.props.onSelect(this.state.selected.seconds)
     this.props.onHidden()
   }
 

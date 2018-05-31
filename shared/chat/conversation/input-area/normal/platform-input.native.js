@@ -11,9 +11,8 @@ import {
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
-import SetExplodingMessagePicker from '../../messages/set-explode-popup'
+import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
@@ -112,13 +111,8 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
         {this.props.showingMenu && (
           <SetExplodingMessagePicker
             attachTo={this.props.attachmentRef}
-            isNew={true}
-            items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+            conversationIDKey={this.props.conversationIDKey}
             onHidden={this.props.toggleShowingMenu}
-            onSelect={this._selectExplodingMode}
-            selected={messageExplodeDescriptions.find(
-              exploded => exploded.seconds === this.props.explodingModeSeconds
-            )}
             visible={this.props.showingMenu}
           />
         )}
