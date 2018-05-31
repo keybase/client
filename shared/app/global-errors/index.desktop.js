@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import logger from '../../logger'
 import {Box, Text, Icon, HOCTimers, type PropsWithTimer} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
 import {RPCError} from '../../util/errors'
 
@@ -129,13 +129,18 @@ class GlobalError extends Component<Props, State> {
     return (
       <Box style={{...containerStyle, ...containerErrorStyle, maxHeight}} onClick={this._onExpandClick}>
         <Box style={{...summaryRowStyle, ...summaryRowErrorStyle}}>
-          {summary && (
-            <Icon type="iconfont-exclamation" style={{marginRight: 8}} color={globalColors.white} />
-          )}
           <Text type="BodyBig" style={{color: globalColors.white, textAlign: 'center', flex: 1}}>
             {summary}
           </Text>
-          {summary && <Icon type="iconfont-close" onClick={onDismiss} color={globalColors.white_75} />}
+          {summary && (
+            <Icon
+              color={globalColors.white_75}
+              hoverColor={globalColors.white}
+              onClick={onDismiss}
+              style={closeIconStyle}
+              type="iconfont-close"
+            />
+          )}
         </Box>
         <Text type="BodyBig" selectable={true} style={detailStyle}>
           {this.props.debugDump.length ? this.props.debugDump.join('\n') : details}
@@ -214,5 +219,13 @@ const overlayFillStyle = {
   flex: 1,
   justifyContent: 'center',
 }
+
+const closeIconStyle = platformStyles({
+  isElectron: {
+    position: 'absolute',
+    right: globalMargins.xsmall,
+    top: globalMargins.xsmall,
+  },
+})
 
 export default HOCTimers(GlobalError)

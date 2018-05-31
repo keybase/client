@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -97,19 +96,21 @@ func main() {
 		iterations = 10
 	}
 
+	m := libkb.NewMetaContextBackground(g)
+
 	for i := 0; i < iterations; i++ {
 		start := time.Now()
 		sc = &libkb.SigChain{Contextified: libkb.NewContextified(g)}
 		sc.SetUIDUsername(keybase1.UID(*uid), *username)
-		if _, err := sc.LoadServerBody(context.Background(), raw, 0, nil, ""); err != nil {
+		if _, err := sc.LoadServerBody(m, raw, 0, nil, ""); err != nil {
 			errout(err.Error())
 		}
 
-		if err := sc.VerifyChain(context.Background()); err != nil {
+		if err := sc.VerifyChain(m); err != nil {
 			errout(err.Error())
 		}
 
-		if err := sc.Store(context.Background()); err != nil {
+		if err := sc.Store(m); err != nil {
 			errout(err.Error())
 		}
 		elapsed := time.Since(start)

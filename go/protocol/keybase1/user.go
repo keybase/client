@@ -427,7 +427,7 @@ type UserInterface interface {
 	UploadUserAvatar(context.Context, UploadUserAvatarArg) error
 	// FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
 	// revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
-	// we'll start our search. Usually it's tne next one, but not always
+	// we'll start our search. Usually it's the next one, but not always
 	FindNextMerkleRootAfterRevoke(context.Context, FindNextMerkleRootAfterRevokeArg) (NextMerkleRootRes, error)
 }
 
@@ -923,7 +923,7 @@ func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatar
 
 // FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
 // revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
-// we'll start our search. Usually it's tne next one, but not always
+// we'll start our search. Usually it's the next one, but not always
 func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg FindNextMerkleRootAfterRevokeArg) (res NextMerkleRootRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterRevoke", []interface{}{__arg}, &res)
 	return

@@ -387,6 +387,8 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
   badgeIDKey: '',
 })
 
+export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
+
 export {
   getNumberOfSubscribedChannels,
   getRole,

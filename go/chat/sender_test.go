@@ -172,11 +172,12 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	if useRemoteMock {
 		ctx = newTestContextWithTlfMock(tc, tlf)
 	} else {
-		var sessionToken string
 		ctx = newTestContext(tc)
-		tc.G.LoginState().LocalSession(func(s *libkb.Session) {
-			sessionToken = s.GetToken()
-		}, "test session")
+		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
@@ -185,6 +186,9 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	boxer.SetClock(world.Fc)
 	getRI := func() chat1.RemoteInterface { return ri }
 	baseSender := NewBlockingSender(g, boxer, nil, getRI)
+	// Force a small page size here to test prev pointer calculations for
+	// exploding and non exploding messages
+	baseSender.setPrevPagination(&chat1.Pagination{Num: 2})
 	sender := NewNonblockingSender(g, baseSender)
 	listener := chatListener{
 		incoming:       make(chan int, 100),
@@ -959,17 +963,48 @@ func TestKBFSCryptKeysBit(t *testing.T) {
 }
 
 func TestPrevPointerAddition(t *testing.T) {
-	ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
-	defer world.Cleanup()
+	mt := chat1.ConversationMembersType_TEAM
+	runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
+		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
+		defer world.Cleanup()
 
-	u := world.GetUsers()[0]
-	uid := u.User.GetUID().ToBytes()
-	tc := userTc(t, world, u)
-	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
+		var ephemeralMetadata *chat1.MsgEphemeralMetadata
+		if ephemeralLifetime != nil {
+			ephemeralMetadata = &chat1.MsgEphemeralMetadata{
+				Lifetime: *ephemeralLifetime,
+			}
+		}
+		u := world.GetUsers()[0]
+		uid := u.User.GetUID().ToBytes()
+		tc := userTc(t, world, u)
+		conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
 
-	// Send a bunch of messages on this convo
-	for i := 0; i < 10; i++ {
-		_, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+		// Send a bunch of messages on this convo
+		for i := 0; i < 10; i++ {
+			_, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:              conv.Metadata.IdTriple,
+					Sender:            uid,
+					TlfName:           u.Username,
+					MessageType:       chat1.MessageType_TEXT,
+					EphemeralMetadata: ephemeralMetadata,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+			}, 0, nil)
+			require.NoError(t, err)
+		}
+
+		// Nuke the body cache
+		require.NoError(t, storage.New(tc.Context(), tc.ChatG.ConvSource).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
+
+		// Fetch a subset into the cache
+		_, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, nil, &chat1.Pagination{
+			Num: 2,
+		})
+		require.NoError(t, err)
+
+		// Prepare a regular message and make sure it gets prev pointers
+		boxed, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        conv.Metadata.IdTriple,
 				Sender:      uid,
@@ -977,32 +1012,17 @@ func TestPrevPointerAddition(t *testing.T) {
 				MessageType: chat1.MessageType_TEXT,
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
-		}, 0, nil)
+		}, mt, &conv)
 		require.NoError(t, err)
-	}
-
-	// Nuke the body cache
-	require.NoError(t, storage.New(tc.Context(), tc.ChatG.ConvSource).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
-
-	// Fetch a subset into the cache
-	_, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, nil, &chat1.Pagination{
-		Num: 2,
+		require.Empty(t, pendingAssetDeletes)
+		if ephemeralLifetime == nil {
+			require.NotEmpty(t, boxed.ClientHeader.Prev, "empty prev pointers")
+		} else {
+			// Since we only sent ephemeral messages previously, we won't have
+			// any prev pointers to regular messages here.
+			require.Empty(t, boxed.ClientHeader.Prev, "empty prev pointers")
+		}
 	})
-	require.NoError(t, err)
-
-	// Prepare a message and make sure it gets prev pointers
-	boxed, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        conv.Metadata.IdTriple,
-			Sender:      uid,
-			TlfName:     u.Username,
-			MessageType: chat1.MessageType_TEXT,
-		},
-		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
-	}, chat1.ConversationMembersType_KBFS, &conv)
-	require.NoError(t, err)
-	require.Empty(t, pendingAssetDeletes)
-	require.NotEmpty(t, boxed.ClientHeader.Prev, "empty prev pointers")
 }
 
 // Test a DELETE attempts to delete all associated assets.

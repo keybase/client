@@ -266,7 +266,7 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 	uis := libkb.UIs{
 		SecretUI: u.NewSecretUI(),
 	}
-	me, err := libkb.LoadMe(libkb.LoadUserArg{Contextified: libkb.NewContextified(tctx.G)})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(NewMetaContextForTest(tctx)))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -16,6 +16,7 @@ protocol ephemeral {
     HashMeta hashMeta;
     EkGeneration generation;
     Time ctime;
+    Time deviceCtime;
   }
 
   // NOTE: The device/user/team structs are very similar here, so it might seem

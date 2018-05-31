@@ -5,10 +5,8 @@ package libkb
 
 import (
 	"fmt"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	"golang.org/x/net/context"
 )
 
 type SigHint struct {
@@ -111,62 +109,62 @@ func (sh SigHints) MarshalToJSON() *jsonw.Wrapper {
 	return ret
 }
 
-func (sh *SigHints) Store(ctx context.Context) (err error) {
-	sh.G().Log.CDebugf(ctx, "+ SigHints.Store() for uid=%s", sh.uid)
+func (sh *SigHints) Store(m MetaContext) (err error) {
+	m.CDebugf("+ SigHints.Store() for uid=%s", sh.uid)
 	if sh.dirty {
 		err = sh.G().LocalDb.Put(DbKeyUID(DBSigHints, sh.uid), []DbKey{}, sh.MarshalToJSON())
 		sh.dirty = false
 	} else {
-		sh.G().Log.CDebugf(ctx, "| SigHints.Store() skipped; wasn't dirty")
+		m.CDebugf("| SigHints.Store() skipped; wasn't dirty")
 	}
-	sh.G().Log.CDebugf(ctx, "- SigHints.Store() for uid=%s -> %v", sh.uid, ErrToOk(err))
+	m.CDebugf("- SigHints.Store() for uid=%s -> %v", sh.uid, ErrToOk(err))
 	return err
 }
 
-func LoadSigHints(ctx context.Context, uid keybase1.UID, g *GlobalContext) (sh *SigHints, err error) {
-	g.Log.CDebugf(ctx, "+ LoadSigHints(%s)", uid)
+func LoadSigHints(m MetaContext, uid keybase1.UID) (sh *SigHints, err error) {
+	defer m.CTrace(fmt.Sprintf("+ LoadSigHints(%s)", uid), func() error { return err })()
 	var jw *jsonw.Wrapper
-	jw, err = g.LocalDb.Get(DbKeyUID(DBSigHints, uid))
+	jw, err = m.G().LocalDb.Get(DbKeyUID(DBSigHints, uid))
 	if err != nil {
 		jw = nil
-		g.Log.CDebugf(ctx, "| SigHints failed to access local storage: %s", err)
+		m.CDebugf("| SigHints failed to access local storage: %s", err)
 	}
 	// jw might be nil here, but that's allowed.
-	sh, err = NewSigHints(jw, uid, false, g)
+	sh, err = NewSigHints(jw, uid, false, m.G())
 	if err == nil {
-		g.Log.CDebugf(ctx, "| SigHints loaded @v%d", sh.version)
+		m.CDebugf("| SigHints loaded @v%d", sh.version)
 	}
-	g.Log.CDebugf(ctx, "- LoadSigHints(%s)", uid)
+	m.CDebugf("- LoadSigHints(%s)", uid)
 	return
 }
 
-func (sh *SigHints) Refresh(ctx context.Context) (err error) {
-	defer sh.G().CTrace(ctx, fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
-	res, err := sh.G().API.Get(APIArg{
+func (sh *SigHints) Refresh(m MetaContext) (err error) {
+	defer m.CTrace(fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
+	res, err := m.G().API.Get(APIArg{
 		Endpoint:    "sig/hints",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"uid": UIDArg(sh.uid),
 			"low": I{sh.version},
 		},
-		NetContext: ctx,
+		MetaContext: m,
 	})
 	if err != nil {
 		return err
 	}
 
-	return sh.RefreshWith(ctx, res.Body)
+	return sh.RefreshWith(m, res.Body)
 }
 
-func (sh *SigHints) RefreshWith(ctx context.Context, jw *jsonw.Wrapper) (err error) {
-	defer sh.G().CTrace(ctx, "RefreshWith", func() error { return err })()
+func (sh *SigHints) RefreshWith(m MetaContext, jw *jsonw.Wrapper) (err error) {
+	defer m.CTrace("RefreshWith", func() error { return err })()
 
 	n, err := jw.AtKey("hints").Len()
 	if err != nil {
 		return err
 	}
 	if n == 0 {
-		sh.G().Log.CDebugf(ctx, "| No changes; version %d was up-to-date", sh.version)
+		m.CDebugf("| No changes; version %d was up-to-date", sh.version)
 	} else if err = sh.PopulateWith(jw); err != nil {
 		return err
 	} else {
@@ -175,10 +173,10 @@ func (sh *SigHints) RefreshWith(ctx context.Context, jw *jsonw.Wrapper) (err err
 	return nil
 }
 
-func LoadAndRefreshSigHints(ctx context.Context, uid keybase1.UID, g *GlobalContext) (sh *SigHints, err error) {
-	sh, err = LoadSigHints(ctx, uid, g)
+func LoadAndRefreshSigHints(m MetaContext, uid keybase1.UID) (sh *SigHints, err error) {
+	sh, err = LoadSigHints(m, uid)
 	if err == nil {
-		err = sh.Refresh(ctx)
+		err = sh.Refresh(m)
 	}
 	return
 }
