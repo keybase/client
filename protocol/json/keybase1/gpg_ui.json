@@ -45,6 +45,15 @@
       ],
       "response": "boolean"
     },
+    "confirmImportSecretToExistingKey": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
     "selectKeyAndPushOption": {
       "request": [
         {
