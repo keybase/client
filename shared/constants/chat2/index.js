@@ -121,6 +121,15 @@ export const isInfoPanelOpen = (state: TypedState) => {
 
 export const creatingLoadingKey = 'creatingConvo'
 
+// When we see that exploding messages are in the app, we set
+// seenExplodingGregorKey as well as newExplodingGregorKey.
+// newExploding.. is set with a dtime of a couple days.
+// seenExploding.. never expires.
+// 1. Neither exist: set both
+// 2. Both exist: exploding messages are new
+// 3. One exists (seenExploding...): exploding messages are old
+export const seenExplodingGregorKey = 'hasSeenExplodingMessages'
+export const newExplodingGregorKey = 'explodingMessagesAreNew'
 export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
  * Gregor key for exploding conversations
