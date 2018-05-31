@@ -2066,6 +2066,9 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
       body: 'true',
       dtime: {time: 0, offset: 0},
     }),
+    // note that we don't get a push state when this item expires,
+    // it doesn't really affect things here - we can wait for the
+    // next push state to stop displaying 'new' mode
     Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
       cat: Constants.newExplodingGregorKey,
       body: 'true',
