@@ -36,10 +36,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     this.props.inputSetRef(ref)
   }
 
-  _selectExplodingMode = selected => {
-    this.props.selectExplodingMode(selected.seconds)
-  }
-
   _openFilePicker = () => {
     showImagePicker({mediaType: 'photo'}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {

@@ -70,8 +70,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  _selectExplodingMode: (conversationIDKey: Types.ConversationIDKey, seconds: number) =>
-    dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey, seconds})),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
@@ -100,9 +98,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
-  selectExplodingMode: (seconds: number) => {
-    dispatchProps._selectExplodingMode(stateProps.conversationIDKey, seconds)
-  },
   sendTyping: (typing: boolean) => {
     dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },

@@ -20,7 +20,6 @@ type CommonProps = {
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
   onSubmit: (text: string) => void,
-  selectExplodingMode: (seconds: number) => void,
   typing: I.Set<string>,
 }
 

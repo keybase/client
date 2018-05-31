@@ -53,10 +53,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
   }
 
-  _selectExplodingMode = selected => {
-    this.props.selectExplodingMode(selected.seconds)
-  }
-
   _filePickerFiles = () => (this._fileInput && this._fileInput.files) || []
 
   _filePickerOpen = () => {
