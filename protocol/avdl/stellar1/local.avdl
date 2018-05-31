@@ -128,9 +128,8 @@ protocol local {
   RelayClaimResult claimCLILocal(string txID, union { null, AccountID } into);
 
   record PaymentCLIOptionLocal {
-    // Pointer or error
     union { null, PaymentCLILocal } payment;
-    string err;
+    union { null, string } err;
   }
 
   record PaymentCLILocal {

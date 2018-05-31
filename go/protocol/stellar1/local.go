@@ -234,7 +234,7 @@ func (o SendRelayResultCLILocal) DeepCopy() SendRelayResultCLILocal {
 
 type PaymentCLIOptionLocal struct {
 	Payment *PaymentCLILocal `codec:"payment,omitempty" json:"payment,omitempty"`
-	Err     string           `codec:"err" json:"err"`
+	Err     *string          `codec:"err,omitempty" json:"err,omitempty"`
 }
 
 func (o PaymentCLIOptionLocal) DeepCopy() PaymentCLIOptionLocal {
@@ -246,7 +246,13 @@ func (o PaymentCLIOptionLocal) DeepCopy() PaymentCLIOptionLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Payment),
-		Err: o.Err,
+		Err: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Err),
 	}
 }
 

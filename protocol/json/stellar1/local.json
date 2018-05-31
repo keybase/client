@@ -250,7 +250,10 @@
           "name": "payment"
         },
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "err"
         }
       ]

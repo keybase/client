@@ -517,7 +517,7 @@ func testRelay(t *testing.T, yank bool) {
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
-	require.Equal(t, "", history[0].Err)
+	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
@@ -558,7 +558,7 @@ func testRelay(t *testing.T, yank bool) {
 	history, err = tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
-	require.Equal(t, "", history[0].Err)
+	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "completed", history[0].Payment.Status)
 
@@ -573,7 +573,7 @@ func testRelay(t *testing.T, yank bool) {
 	history, err = tcs[0].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
-	require.Equal(t, "", history[0].Err)
+	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "completed", history[0].Payment.Status)
 

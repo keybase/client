@@ -508,8 +508,9 @@ func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter
 				Payment: &lp,
 			})
 		} else {
+			errStr := err.Error()
 			res = append(res, stellar1.PaymentCLIOptionLocal{
-				Err: err.Error(),
+				Err: &errStr,
 			})
 		}
 	}
