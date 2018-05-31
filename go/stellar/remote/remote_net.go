@@ -42,6 +42,18 @@ func (r *RemoteNet) SubmitRelayClaim(ctx context.Context, post stellar1.RelayCla
 	return SubmitRelayClaim(ctx, r.G(), post)
 }
 
+func (r *RemoteNet) AcquireAutoClaimLock(ctx context.Context) (string, error) {
+	return AcquireAutoClaimLock(ctx, r.G())
+}
+
+func (r *RemoteNet) ReleaseAutoClaimLock(ctx context.Context, token string) error {
+	return ReleaseAutoClaimLock(ctx, r.G(), token)
+}
+
+func (r *RemoteNet) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, error) {
+	return NextAutoClaim(ctx, r.G())
+}
+
 func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
 	return RecentPayments(ctx, r.G(), accountID, limit)
 }
