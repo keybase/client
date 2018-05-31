@@ -79,7 +79,7 @@ if (PERF) {
   config.immediateStateLogging = false
   config.printOutstandingRPCs = false
   config.printRPC = false
-  config.reduxSagaLogger = true
+  config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
 }
