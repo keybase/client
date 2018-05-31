@@ -21,6 +21,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   editingMap: I.Map(),
   explodingModes: I.Map(),
   inboxFilter: '',
+  isExplodingNew: true,
   loadingMap: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
@@ -125,11 +126,12 @@ export const creatingLoadingKey = 'creatingConvo'
 // seenExplodingGregorKey as well as newExplodingGregorKey.
 // newExploding.. is set with a dtime of a couple days.
 // seenExploding.. never expires.
-// 1. Neither exist: set both
-// 2. Both exist: exploding messages are new
-// 3. One exists (seenExploding...): exploding messages are old
+// 1. Neither exist: new and user hasn't seen them
+// 2. Both exist: new and user has seen them
+// 3. One exists (seenExploding...): old; unset tag
 export const seenExplodingGregorKey = 'hasSeenExplodingMessages'
 export const newExplodingGregorKey = 'explodingMessagesAreNew'
+export const getIsExplodingNew = (state: TypedState) => state.chat2.get('isExplodingNew')
 export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
  * Gregor key for exploding conversations

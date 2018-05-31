@@ -182,6 +182,11 @@ function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
   const newExploding = items.find(i => i.item.category === ChatConstants.newExplodingGregorKey)
   const actions = []
   if (!seenExploding && !newExploding) {
+    // neither exist. we haven't been here before - set flag in store to new.
+    actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: true})))
+  } else if (!seenExploding) {
+    // newExploding && !seenExploding. this should never happen
+    logger.warn('Got newExploding but not seenExploding! Setting seenExploding...')
     actions.push(
       Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
         cat: ChatConstants.seenExplodingGregorKey,
@@ -189,8 +194,14 @@ function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
         dtime: {time: 0, offset: 0},
       })
     )
+  } else if (!newExploding) {
+    // seenExploding but not newExploding, set flag in store to old
+    actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: false})))
+  } else {
+    // both exist. exploding messages are new.
+    actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: true})))
   }
-  return []
+  return Saga.all(actions)
 }
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
@@ -207,7 +218,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
       Saga.call(handleTLFUpdate, nonNullItems),
       Saga.call(handleBannersAndBadges, nonNullItems),
       handleConvExplodingModes(nonNullItems),
-      ...handleIsExplodingNew(nonNullItems),
+      handleIsExplodingNew(nonNullItems),
     ])
   } else {
     logger.debug('Error in gregor pushState', pushAction.payload)
