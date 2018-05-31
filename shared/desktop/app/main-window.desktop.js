@@ -18,7 +18,9 @@ export default function() {
   // Disallow any permissions requests except for notifications
   SafeElectron.getSession().defaultSession.setPermissionRequestHandler(
     (webContents, permission, callback) => {
-      if (permission === 'notifications') {
+      const ourURL = getRendererHTML('mainWindow')
+      const requestURL = webContents.getURL()
+      if (permission === 'notifications' && requestURL === ourURL) {
         // Allow notifications
         return callback(true)
       }
