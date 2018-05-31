@@ -15,9 +15,15 @@ export default function() {
   // download for webviews. If we decide to start using partitions for
   // webviews, we should make sure to attach this to those partitions too.
   SafeElectron.getSession().defaultSession.on('will-download', event => event.preventDefault())
-  // Disallow any permissions requests
+  // Disallow any permissions requests except for notifications
   SafeElectron.getSession().defaultSession.setPermissionRequestHandler(
     (webContents, permission, callback) => {
+      const ourURL = getRendererHTML('mainWindow')
+      const requestURL = webContents.getURL()
+      if (permission === 'notifications' && requestURL === ourURL) {
+        // Allow notifications
+        return callback(true)
+      }
       return callback(false)
     }
   )

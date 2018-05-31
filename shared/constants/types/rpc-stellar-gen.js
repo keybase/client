@@ -58,6 +58,8 @@ export type AccountMode =
 
 export type Asset = $ReadOnly<{type: String, code: String, issuer: String}>
 
+export type AutoClaim = $ReadOnly<{kbTxID: KeybaseTransactionID}>
+
 export type Balance = $ReadOnly<{asset: Asset, amount: String, limit: String}>
 
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
@@ -185,7 +187,7 @@ export type PaymentSummaryType =
   | 2 // DIRECT_2
   | 3 // RELAY_3
 
-export type RelayClaimPost = $ReadOnly<{keybaseID: KeybaseTransactionID, dir: RelayDirection, signedTransaction: String}>
+export type RelayClaimPost = $ReadOnly<{keybaseID: KeybaseTransactionID, dir: RelayDirection, signedTransaction: String, autoClaimToken?: ?String}>
 
 export type RelayClaimResult = $ReadOnly<{claimStellarID: TransactionID}>
 
@@ -197,17 +199,23 @@ export type RelayDirection =
 
 export type RemoteAccountSeqnoRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
 
+export type RemoteAcquireAutoClaimLockRpcParam = $ReadOnly<{caller: Keybase1.UserVersion}>
+
 export type RemoteBalancesRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
 
 export type RemoteDetailsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
 
 export type RemoteIsMasterKeyActiveRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
 
+export type RemoteNextAutoClaimRpcParam = $ReadOnly<{caller: Keybase1.UserVersion}>
+
 export type RemotePaymentDetailRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, txID: String}>
 
 export type RemotePingRpcParam = void
 
 export type RemoteRecentPaymentsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, limit: Int}>
+
+export type RemoteReleaseAutoClaimLockRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, token: String}>
 
 export type RemoteSubmitPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentDirectPost}>
 
@@ -255,9 +263,11 @@ type LocalSendCLILocalResult = SendResultCLILocal
 type LocalWalletDumpLocalResult = Bundle
 type LocalWalletGetAccountsCLILocalResult = ?Array<OwnAccountCLILocal>
 type RemoteAccountSeqnoResult = String
+type RemoteAcquireAutoClaimLockResult = String
 type RemoteBalancesResult = ?Array<Balance>
 type RemoteDetailsResult = AccountDetails
 type RemoteIsMasterKeyActiveResult = Boolean
+type RemoteNextAutoClaimResult = ?AutoClaim
 type RemotePaymentDetailResult = PaymentSummary
 type RemotePingResult = String
 type RemoteRecentPaymentsResult = ?Array<PaymentSummary>
@@ -267,4 +277,4 @@ type RemoteSubmitRelayPaymentResult = PaymentResult
 
 export type IncomingCallMapType = {||}
 
-// Not enabled calls. To enable add to enabled-calls.json: 'stellar.1.local.getWalletAccountsLocal' 'stellar.1.local.getAccountAssetsLocal' 'stellar.1.local.getDisplayCurrenciesLocal' 'stellar.1.local.changeWalletAccountNameLocal' 'stellar.1.local.setWalletAccountAsDefaultLocal' 'stellar.1.local.deleteWalletAccountLocal' 'stellar.1.local.linkNewWalletAccountLocal' 'stellar.1.local.changeDisplayCurrencyLocal' 'stellar.1.local.getUserSettingsLocal' 'stellar.1.local.setAcceptedDisclaimerLocal' 'stellar.1.local.balancesLocal' 'stellar.1.local.sendCLILocal' 'stellar.1.local.claimCLILocal' 'stellar.1.local.recentPaymentsCLILocal' 'stellar.1.local.paymentDetailCLILocal' 'stellar.1.local.walletInitLocal' 'stellar.1.local.walletDumpLocal' 'stellar.1.local.walletGetAccountsCLILocal' 'stellar.1.local.ownAccountLocal' 'stellar.1.local.importSecretKeyLocal' 'stellar.1.local.exportSecretKeyLocal' 'stellar.1.local.setDisplayCurrency' 'stellar.1.local.exchangeRateLocal' 'stellar.1.local.getAvailableLocalCurrencies' 'stellar.1.local.formatLocalCurrencyString' 'stellar.1.remote.balances' 'stellar.1.remote.details' 'stellar.1.remote.recentPayments' 'stellar.1.remote.paymentDetail' 'stellar.1.remote.accountSeqno' 'stellar.1.remote.submitPayment' 'stellar.1.remote.submitRelayPayment' 'stellar.1.remote.submitRelayClaim' 'stellar.1.remote.isMasterKeyActive' 'stellar.1.remote.ping'
+// Not enabled calls. To enable add to enabled-calls.json: 'stellar.1.local.getWalletAccountsLocal' 'stellar.1.local.getAccountAssetsLocal' 'stellar.1.local.getDisplayCurrenciesLocal' 'stellar.1.local.changeWalletAccountNameLocal' 'stellar.1.local.setWalletAccountAsDefaultLocal' 'stellar.1.local.deleteWalletAccountLocal' 'stellar.1.local.linkNewWalletAccountLocal' 'stellar.1.local.changeDisplayCurrencyLocal' 'stellar.1.local.getUserSettingsLocal' 'stellar.1.local.setAcceptedDisclaimerLocal' 'stellar.1.local.balancesLocal' 'stellar.1.local.sendCLILocal' 'stellar.1.local.claimCLILocal' 'stellar.1.local.recentPaymentsCLILocal' 'stellar.1.local.paymentDetailCLILocal' 'stellar.1.local.walletInitLocal' 'stellar.1.local.walletDumpLocal' 'stellar.1.local.walletGetAccountsCLILocal' 'stellar.1.local.ownAccountLocal' 'stellar.1.local.importSecretKeyLocal' 'stellar.1.local.exportSecretKeyLocal' 'stellar.1.local.setDisplayCurrency' 'stellar.1.local.exchangeRateLocal' 'stellar.1.local.getAvailableLocalCurrencies' 'stellar.1.local.formatLocalCurrencyString' 'stellar.1.remote.balances' 'stellar.1.remote.details' 'stellar.1.remote.recentPayments' 'stellar.1.remote.paymentDetail' 'stellar.1.remote.accountSeqno' 'stellar.1.remote.submitPayment' 'stellar.1.remote.submitRelayPayment' 'stellar.1.remote.submitRelayClaim' 'stellar.1.remote.acquireAutoClaimLock' 'stellar.1.remote.releaseAutoClaimLock' 'stellar.1.remote.nextAutoClaim' 'stellar.1.remote.isMasterKeyActive' 'stellar.1.remote.ping'
