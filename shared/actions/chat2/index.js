@@ -1112,6 +1112,16 @@ const previewConversationAfterFindExisting = (
   const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
   const users: Array<string> = _fromPreviewConversation[2]
 
+  // still looking for this result?
+  if (
+    !Constants.getMeta(state, Constants.pendingConversationIDKey)
+      .participants.toSet()
+      .equals(I.Set(users))
+  ) {
+    console.log('Ignorning old preview find due to participant mismatch')
+    return
+  }
+
   let existingConversationIDKey
 
   const isTeam =

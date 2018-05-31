@@ -23,7 +23,7 @@ func TestDeleteRoot(t *testing.T) {
 
 	_, err := GetTeamByNameForTest(context.Background(), tc.G, teamname, false, false)
 	require.Error(t, err, "no error getting deleted team")
-	require.IsType(t, TeamDoesNotExistError{}, err)
+	require.True(t, IsTeamReadError(err))
 }
 
 func TestDeleteSubteamAdmin(t *testing.T) {
