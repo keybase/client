@@ -563,9 +563,6 @@ func (k *KeybaseServiceBase) ResolveImplicitTeamByID(
 func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 	ctx context.Context, currUserInfo UserInfo, kid keybase1.KID) (
 	newUserInfo UserInfo, exists bool, err error) {
-	k.log.CDebugf(ctx, "Checking merkle info for user %s, revoked key %s",
-		currUserInfo.UID, kid)
-
 	for key, info := range currUserInfo.RevokedVerifyingKeys {
 		if !key.KID().Equal(kid) {
 			continue
