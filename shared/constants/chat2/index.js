@@ -131,6 +131,7 @@ export const creatingLoadingKey = 'creatingConvo'
 // 3. One exists (seenExploding...): old; unset tag
 export const seenExplodingGregorKey = 'hasSeenExplodingMessages'
 export const newExplodingGregorKey = 'explodingMessagesAreNew'
+export const newExplodingGregorOffset = 1000 * 3600 * 24 * 3 // 3 days in ms
 export const getIsExplodingNew = (state: TypedState) => state.chat2.get('isExplodingNew')
 export const explodingModeGregorKeyPrefix = 'exploding:'
 /**

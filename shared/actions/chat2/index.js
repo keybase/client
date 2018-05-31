@@ -2050,6 +2050,30 @@ const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePay
   throw e
 }
 
+function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMessagesPayload) {
+  const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  const seenExplodingMessages = !!gregorState.items.filter(
+    i => i.item.category === Constants.seenExplodingGregorKey
+  ).length
+  if (seenExplodingMessages) {
+    // do nothing
+    return
+  }
+  // neither are set, inject both
+  yield Saga.all([
+    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+      cat: Constants.seenExplodingGregorKey,
+      body: 'true',
+      dtime: {time: 0, offset: 0},
+    }),
+    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+      cat: Constants.newExplodingGregorKey,
+      body: 'true',
+      dtime: {time: 0, offset: Constants.newExplodingGregorOffset},
+    }),
+  ])
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2183,6 +2207,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeSuccess,
     setConvExplodingModeFailure
   )
+  yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
 }
 
 export default chat2Saga

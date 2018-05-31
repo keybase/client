@@ -727,6 +727,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.previewConversation:
     case Chat2Gen.createConversation:
     case Chat2Gen.setConvExplodingMode:
+    case Chat2Gen.handleSeeingExplodingMessages:
       return state
     default:
       /*::
