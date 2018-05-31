@@ -339,16 +339,18 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 
 	loc.Source, loc.SourceType = s.lookupUsernameFallback(ctx, p.From.Uid, p.FromStellar)
 
-	if p.To == nil {
-		return nil, errors.New("no recipient")
+	if p.To != nil {
+		name, err := s.lookupUsername(ctx, p.To.Uid)
+		if err != nil {
+			s.G().Log.CDebugf(ctx, "recipient lookup failed: %s", err)
+			return nil, errors.New("recipient lookup failed")
+		}
+		loc.Target = name
+		loc.TargetType = ParticipantTypeKeybase
+	} else {
+		loc.Target = p.ToAssertion
+		loc.TargetType = ParticipantTypeKeybase
 	}
-	name, err := s.lookupUsername(ctx, p.To.Uid)
-	if err != nil {
-		s.G().Log.CDebugf(ctx, "recipient lookup failed: %s", err)
-		return nil, errors.New("recipient lookup failed")
-	}
-	loc.Target = name
-	loc.TargetType = ParticipantTypeKeybase
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
 		// If the funding tx is not complete
