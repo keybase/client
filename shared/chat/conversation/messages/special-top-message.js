@@ -80,7 +80,9 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  const loadMoreType = meta.paginationKey ? 'moreToLoad' : 'noMoreToLoad'
+  const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
+    ? 'moreToLoad'
+    : 'noMoreToLoad'
   const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
   const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
   // don't show default header in the case of the retention notice being visible
@@ -90,8 +92,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     conversationIDKey: ownProps.conversationIDKey,
     hasOlderResetConversation,
-    showRetentionNotice,
     loadMoreType,
+    showRetentionNotice,
     showTeamOffer,
   }
 }

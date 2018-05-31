@@ -5,6 +5,7 @@ import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 
 /* eslint-disable sort-keys */
 export const globalMargins = {
+  xxtiny: 2,
   xtiny: 4,
   tiny: 8,
   xsmall: 12,

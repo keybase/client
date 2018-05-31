@@ -53,6 +53,13 @@ type MembershipUpdateRes struct {
 	OthersResetConvs   []chat1.ConversationMember
 }
 
+func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
+	for _, cm := range append(m.OthersResetConvs, append(m.OthersJoinedConvs, m.OthersRemovedConvs...)...) {
+		res = append(res, cm.Uid)
+	}
+	return res
+}
+
 type RemoteConversationMetadata struct {
 	TopicName         string   `codec:"t"`
 	Snippet           string   `codec:"s"`
@@ -72,6 +79,10 @@ func (rc RemoteConversation) GetMtime() gregor1.Time {
 
 func (rc RemoteConversation) GetConvID() chat1.ConversationID {
 	return rc.Conv.GetConvID()
+}
+
+func (rc RemoteConversation) GetVersion() chat1.ConversationVers {
+	return rc.Conv.Metadata.Version
 }
 
 type Inbox struct {

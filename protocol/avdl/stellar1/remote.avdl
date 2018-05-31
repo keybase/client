@@ -29,6 +29,7 @@ protocol remote {
     KeybaseTransactionID keybaseID;
     RelayDirection dir;
     string signedTransaction; // Claim or yank tx
+    union { null, string } autoClaimToken; // Optional. Filled if this is an autoclaim.
   }
 
   enum PaymentSummaryType {
@@ -112,7 +113,7 @@ protocol remote {
   record AccountDetails {
     AccountID accountID;
     string seqno;
-    array<Balance> balances;  
+    array<Balance> balances;
     int subentryCount;  // number of entries in the ledger (which raise minimum balance)
     string available;   // for native XLM the amount that is available to send (amount - min balance)
   }
@@ -131,6 +132,17 @@ protocol remote {
   PaymentResult submitRelayPayment(keybase1.UserVersion caller, PaymentRelayPost payment);
 
   RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
+
+  // Acquire the UV-specific lock for autoclaims.
+  // Returns a token, or an empty string if the lock is unavailable.
+  string acquireAutoClaimLock(keybase1.UserVersion caller);
+
+  void releaseAutoClaimLock(keybase1.UserVersion caller, string token);
+
+  record AutoClaim {
+    KeybaseTransactionID kbTxID;
+  }
+  union { null, AutoClaim } nextAutoClaim(keybase1.UserVersion caller);
 
   // ask the stellar network whether the master key for the account has power
   boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);

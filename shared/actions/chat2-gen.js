@@ -51,7 +51,6 @@ export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
 export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
-export const metaUpdatePagination = 'chat2:metaUpdatePagination'
 export const metasReceived = 'chat2:metasReceived'
 export const muteConversation = 'chat2:muteConversation'
 export const navigateToInbox = 'chat2:navigateToInbox'
@@ -74,6 +73,7 @@ export const setPendingMode = 'chat2:setPendingMode'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
+export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
@@ -230,10 +230,6 @@ type _MetaRequestTrustedPayload = $ReadOnly<{|
   conversationIDKeys: Array<Types.ConversationIDKey>,
 |}>
 type _MetaRequestingTrustedPayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>|}>
-type _MetaUpdatePaginationPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  paginationKey: ?Types.PaginationKey,
-|}>
 type _MetasReceivedPayload = $ReadOnly<{|
   metas: Array<Types.ConversationMeta>,
   neverCreate?: boolean,
@@ -299,6 +295,10 @@ type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode|}>
 type _SetupChatHandlersPayload = void
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
+type _UpdateMoreToLoadPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  moreToLoad: boolean,
+|}>
 type _UpdateNotificationSettingsPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   notificationsDesktop: Types.NotificationsType,
@@ -379,7 +379,6 @@ export const createMetaNeedsUpdating = (payload: _MetaNeedsUpdatingPayload) => (
 export const createMetaReceivedError = (payload: _MetaReceivedErrorPayload) => ({error: false, payload, type: metaReceivedError})
 export const createMetaRequestTrusted = (payload: _MetaRequestTrustedPayload) => ({error: false, payload, type: metaRequestTrusted})
 export const createMetaRequestingTrusted = (payload: _MetaRequestingTrustedPayload) => ({error: false, payload, type: metaRequestingTrusted})
-export const createMetaUpdatePagination = (payload: _MetaUpdatePaginationPayload) => ({error: false, payload, type: metaUpdatePagination})
 export const createMetasReceived = (payload: _MetasReceivedPayload) => ({error: false, payload, type: metasReceived})
 export const createMuteConversation = (payload: _MuteConversationPayload) => ({error: false, payload, type: muteConversation})
 export const createNavigateToInbox = (payload: _NavigateToInboxPayload) => ({error: false, payload, type: navigateToInbox})
@@ -397,6 +396,7 @@ export const createSetLoading = (payload: _SetLoadingPayload) => ({error: false,
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({error: false, payload, type: setPendingMode})
 export const createSetupChatHandlers = (payload: _SetupChatHandlersPayload) => ({error: false, payload, type: setupChatHandlers})
+export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({error: false, payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({error: false, payload, type: updateNotificationSettings})
 export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: false, payload, type: updateTypers})
 
@@ -441,7 +441,6 @@ export type MetaNeedsUpdatingPayload = $Call<typeof createMetaNeedsUpdating, _Me
 export type MetaReceivedErrorPayload = $Call<typeof createMetaReceivedError, _MetaReceivedErrorPayload>
 export type MetaRequestTrustedPayload = $Call<typeof createMetaRequestTrusted, _MetaRequestTrustedPayload>
 export type MetaRequestingTrustedPayload = $Call<typeof createMetaRequestingTrusted, _MetaRequestingTrustedPayload>
-export type MetaUpdatePaginationPayload = $Call<typeof createMetaUpdatePagination, _MetaUpdatePaginationPayload>
 export type MetasReceivedPayload = $Call<typeof createMetasReceived, _MetasReceivedPayload>
 export type MuteConversationPayload = $Call<typeof createMuteConversation, _MuteConversationPayload>
 export type NavigateToInboxPayload = $Call<typeof createNavigateToInbox, _NavigateToInboxPayload>
@@ -464,6 +463,7 @@ export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendi
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
+export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
 export type UpdateNotificationSettingsPayload = $Call<typeof createUpdateNotificationSettings, _UpdateNotificationSettingsPayload>
 export type UpdateTeamRetentionPolicyPayload = $Call<typeof createUpdateTeamRetentionPolicy, _UpdateTeamRetentionPolicyPayload>
 export type UpdateTypersPayload = $Call<typeof createUpdateTypers, _UpdateTypersPayload>
@@ -511,7 +511,6 @@ export type Actions =
   | MetaReceivedErrorPayload
   | MetaRequestTrustedPayload
   | MetaRequestingTrustedPayload
-  | MetaUpdatePaginationPayload
   | MetasReceivedPayload
   | MuteConversationPayload
   | NavigateToInboxPayload
@@ -534,6 +533,7 @@ export type Actions =
   | SetupChatHandlersPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
+  | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
   | UpdateTeamRetentionPolicyPayload
   | UpdateTypersPayload

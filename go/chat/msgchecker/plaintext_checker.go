@@ -41,12 +41,13 @@ func validateTopicName(topicName string) validateTopicNameRes {
 }
 
 type MessagePlaintextLengthExceedingError struct {
+	ActualLength         int
 	MaxLength            int
 	DescriptibleItemName string
 }
 
 func (e MessagePlaintextLengthExceedingError) Error() string {
-	return fmt.Sprintf("%s exceeds the maximum length of %d bytes", e.DescriptibleItemName, e.MaxLength)
+	return fmt.Sprintf("%s of size %d bytes exceeds the maximum length of %d bytes", e.DescriptibleItemName, e.ActualLength, e.MaxLength)
 }
 
 func (e MessagePlaintextLengthExceedingError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
@@ -56,6 +57,7 @@ func (e MessagePlaintextLengthExceedingError) IsImmediateFail() (chat1.OutboxErr
 func plaintextFieldLengthChecker(descriptibleItemName string, actualLength int, maxLength int) error {
 	if actualLength > maxLength {
 		return MessagePlaintextLengthExceedingError{
+			ActualLength:         actualLength,
 			MaxLength:            maxLength,
 			DescriptibleItemName: descriptibleItemName,
 		}
