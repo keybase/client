@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -297,7 +298,8 @@ func (s *Server) transformPaymentStellar(ctx context.Context, acctID stellar1.Ac
 	loc.Target = p.To.String()
 	loc.TargetType = ParticipantTypeStellar
 
-	loc.Status, loc.StatusDetail = stellar1.TransactionStatus_SUCCESS.Details("")
+	loc.Status = stellar1.PaymentStatus_COMPLETED
+	loc.StatusDescription = strings.ToLower(loc.Status.String())
 
 	return loc, nil
 }
@@ -319,7 +321,9 @@ func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.Acc
 		loc.Target, loc.TargetType = s.lookupUsernameFallback(ctx, p.To.Uid, p.ToStellar)
 	}
 
-	loc.Status, loc.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
+	loc.Status = p.TxStatus.ToPaymentStatus()
+	loc.StatusDescription = strings.ToLower(loc.Status.String())
+	loc.StatusDetail = p.TxErrMsg
 
 	loc.Note, loc.NoteErr = s.decryptNote(ctx, p.TxID, p.NoteB64)
 
@@ -354,16 +358,16 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
 		// If the funding tx is not complete
-		loc.Status, loc.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
+		loc.Status = p.TxStatus.ToPaymentStatus()
+		loc.StatusDetail = p.TxErrMsg
 	} else {
-		loc.Status = "claimable"
-
+		loc.Status = stellar1.PaymentStatus_CLAIMABLE
 		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to yank."
 	}
 	if p.Claim != nil {
+		loc.Status = p.Claim.TxStatus.ToPaymentStatus()
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
-			loc.Status = "completed"
 			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
 			if err == nil {
 				loc.Target = name
@@ -377,10 +381,14 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 			if err != nil {
 				return nil, err
 			}
-			loc.Status, loc.StatusDetail = p.Claim.TxStatus.Details(p.Claim.TxErrMsg)
-			loc.Status = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, loc.Status)
+			if p.Claim.TxErrMsg != "" {
+				loc.StatusDetail = p.Claim.TxErrMsg
+			} else {
+				loc.StatusDetail = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, loc.Status.String())
+			}
 		}
 	}
+	loc.StatusDescription = strings.ToLower(loc.Status.String())
 
 	relaySecrets, err := relays.DecryptB64(ctx, s.G(), p.TeamID, p.BoxB64)
 	if err == nil {

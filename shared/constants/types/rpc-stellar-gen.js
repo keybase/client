@@ -120,6 +120,15 @@ export const localPaymentDetailCLILocalRpcChannelMap = (configKeys: Array<string
 
 export const localPaymentDetailCLILocalRpcPromise = (request: LocalPaymentDetailCLILocalRpcParam): Promise<LocalPaymentDetailCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.paymentDetailCLILocal', request, (error: RPCError, result: LocalPaymentDetailCLILocalResult) => (error ? reject(error) : resolve(result))))
 
+export const localPaymentStatus = {
+  none: 0,
+  pending: 1,
+  claimable: 2,
+  completed: 3,
+  error: 4,
+  unknown: 5,
+}
+
 export const localRecentPaymentsCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalRecentPaymentsCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.recentPaymentsCLILocal', request)
 
 export const localRecentPaymentsCLILocalRpcPromise = (request: LocalRecentPaymentsCLILocalRpcParam): Promise<LocalRecentPaymentsCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.recentPaymentsCLILocal', request, (error: RPCError, result: LocalRecentPaymentsCLILocalResult) => (error ? reject(error) : resolve(result))))
@@ -340,13 +349,21 @@ export type PaymentCLIOptionLocal = $ReadOnly<{payment?: ?PaymentCLILocal, err: 
 
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String}>
 
-export type PaymentLocal = $ReadOnly<{id: String, time: TimeMs, status: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
+export type PaymentLocal = $ReadOnly<{id: String, time: TimeMs, status: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
 
 export type PaymentOrErrorLocal = $ReadOnly<{payment?: ?PaymentLocal, err?: ?String}>
 
 export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String}>
 
 export type PaymentResult = $ReadOnly<{keybaseID: KeybaseTransactionID, stellarID: TransactionID}>
+
+export type PaymentStatus =
+  | 0 // NONE_0
+  | 1 // PENDING_1
+  | 2 // CLAIMABLE_2
+  | 3 // COMPLETED_3
+  | 4 // ERROR_4
+  | 5 // UNKNOWN_5
 
 export type PaymentStrategy =
   | 0 // NONE_0

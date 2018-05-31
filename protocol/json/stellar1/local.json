@@ -78,6 +78,18 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PaymentStatus",
+      "symbols": [
+        "NONE_0",
+        "PENDING_1",
+        "CLAIMABLE_2",
+        "COMPLETED_3",
+        "ERROR_4",
+        "UNKNOWN_5"
+      ]
+    },
+    {
       "type": "record",
       "name": "PaymentLocal",
       "fields": [
@@ -90,8 +102,12 @@
           "name": "time"
         },
         {
-          "type": "string",
+          "type": "PaymentStatus",
           "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
         },
         {
           "type": "string",

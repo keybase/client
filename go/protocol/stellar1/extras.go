@@ -136,6 +136,20 @@ func AssetNative() Asset {
 	}
 }
 
+func (t TransactionStatus) ToPaymentStatus() PaymentStatus {
+	switch t {
+	case TransactionStatus_PENDING:
+		return PaymentStatus_PENDING
+	case TransactionStatus_SUCCESS:
+		return PaymentStatus_COMPLETED
+	case TransactionStatus_ERROR_TRANSIENT, TransactionStatus_ERROR_PERMANENT:
+		return PaymentStatus_ERROR
+	default:
+		return PaymentStatus_UNKNOWN
+	}
+
+}
+
 func (t TransactionStatus) Details(errMsg string) (status, detail string) {
 	switch t {
 	case TransactionStatus_PENDING:

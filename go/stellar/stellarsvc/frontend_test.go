@@ -505,7 +505,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 	checkPayment := func(p stellar1.PaymentLocal, sender bool) {
 		require.NotEmpty(t, p.Id)
 		require.NotZero(t, p.Time)
-		require.Equal(t, "completed", p.Status)
+		require.Equal(t, stellar1.PaymentStatus_COMPLETED, p.Status)
+		require.Equal(t, "completed", p.StatusDescription)
 		require.Empty(t, p.StatusDetail)
 		if sender {
 			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
