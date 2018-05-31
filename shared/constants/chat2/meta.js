@@ -12,7 +12,7 @@ import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 import {makeRetentionPolicy, serviceRetentionPolicyToRetentionPolicy} from '../teams'
-import {noConversationIDKey} from '../types/chat2/common'
+import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -125,7 +125,6 @@ export const updateMeta = (
 
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
-    m.set('paginationKey', old.paginationKey)
     m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
@@ -266,7 +265,6 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   notificationsMobile: 'never',
   offline: false,
   orangeLineOrdinal: null,
-  paginationKey: null,
   participants: I.OrderedSet(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
@@ -316,7 +314,7 @@ export const getConversationIDKeyMetasToLoad = (
   metaMap: I.Map<Types.ConversationIDKey, Types.ConversationMeta>
 ) =>
   conversationIDKeys.reduce((arr, id) => {
-    if (id) {
+    if (id && isValidConversationIDKey(id)) {
       const trustedState = metaMap.getIn([id, 'trustedState'])
       if (trustedState !== 'requesting' && trustedState !== 'trusted') {
         arr.push(id)
