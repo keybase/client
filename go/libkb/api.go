@@ -21,7 +21,6 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -699,25 +698,7 @@ func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) 
 // JSON into the value pointed to by v.
 func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	m := arg.GetMetaContext(a.G())
-	reqErr := a.getDecode(m, arg, v)
-	if reqErr == nil {
-		return nil
-	}
-
-	m.CDebugf("| API GetDecode %s session refreshed, trying again", arg.Endpoint)
-
-	reqErr = a.getDecode(m, arg, v)
-	if reqErr == nil {
-		m.CDebugf("| API GetDecode %s success after refresh", arg.Endpoint)
-		return nil
-	}
-	if _, relogin := reqErr.(ReloginRequiredError); relogin {
-		m.CDebugf("| API GetDecode %s retry after refresh still asking for new session, bailing out", arg.Endpoint)
-		return LoginRequiredError{Context: "your session has expired"}
-	}
-
-	m.CDebugf("| API GetDecode %s error after refresh: %s", arg.Endpoint, reqErr)
-	return reqErr
+	return a.getDecode(m, arg, v)
 }
 
 func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
@@ -787,24 +768,7 @@ func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response,
 
 func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 	m := arg.GetMetaContext(a.G())
-	reqErr := a.postDecode(m, arg, v)
-	if reqErr == nil {
-		return nil
-	}
-
-	m.CDebugf("| API PostDecode %s session refreshed, trying again", arg.Endpoint)
-	reqErr = a.postDecode(m, arg, v)
-	if reqErr == nil {
-		m.CDebugf("| API PostDecode %s success after refresh", arg.Endpoint)
-		return nil
-	}
-	if _, relogin := reqErr.(ReloginRequiredError); relogin {
-		m.CDebugf("| API PostDecode %s retry after refresh still asking for new session, bailing out", arg.Endpoint)
-		return LoginRequiredError{Context: "your session has expired"}
-	}
-
-	m.CDebugf("| API PostDecode %s error after refresh: %s", arg.Endpoint, reqErr)
-	return reqErr
+	return a.postDecode(m, arg, v)
 }
 
 func (a *InternalAPIEngine) postDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
@@ -856,24 +820,7 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 			return res, err
 		}
 	}
-
 	res, err := a.doRequest(m, arg, req)
-	if err == nil {
-		m.CDebugf("| API call %s success after refresh", arg.Endpoint)
-		return res, nil
-	}
-
-	if _, relogin := err.(ReloginRequiredError); relogin {
-		m.CDebugf("| API call %s retry after refresh still asking for new session, bailing out", arg.Endpoint)
-		return res, LoginRequiredError{Context: "your session has expired"}
-	}
-
-	if err != nil && IsAppStatusErrorCode(err, keybase1.StatusCode_SCBadSession) {
-		return res, LoginRequiredError{Context: "session credentials rejected"}
-	}
-
-	m.CDebugf("| API call %s error after refresh: %s", arg.Endpoint, err)
-
 	return res, err
 }
 
