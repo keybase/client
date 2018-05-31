@@ -675,7 +675,8 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		// Don't look for KBFS conversations anymore, they have mostly been converted, and it is better
 		// to just not search for them than to create a double conversation. Make an exception for
 		// public conversations.
-		if membersType == chat1.ConversationMembersType_KBFS && vis == keybase1.TLFVisibility_PRIVATE {
+		if g.GetEnv().GetChatMemberType() != "kbfs" && membersType == chat1.ConversationMembersType_KBFS &&
+			vis == keybase1.TLFVisibility_PRIVATE {
 			return nil, nil
 		}
 
