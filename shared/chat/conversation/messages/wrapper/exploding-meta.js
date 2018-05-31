@@ -1,6 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Text, Icon, HOCTimers, type PropsWithTimer} from '../../../../common-adapters'
+import {
+  Box2,
+  ClickableBox,
+  Text,
+  Icon,
+  HOCTimers,
+  ProgressIndicator,
+  type PropsWithTimer,
+} from '../../../../common-adapters'
 import {castPlatformStyles} from '../../../../common-adapters/icon'
 import {
   collapseStyles,
@@ -20,6 +28,7 @@ type Props = PropsWithTimer<{
   exploded: boolean,
   explodesAt: number,
   onClick: ?() => void,
+  pending: boolean,
 }>
 
 // 'none' is functionally 'unset', used to detect a fresh mount
@@ -34,7 +43,7 @@ class ExplodingMeta extends React.Component<Props, State> {
   }
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (prevState.mode === 'none' && Date.now() >= nextProps.explodesAt) {
+    if (prevState.mode === 'none' && (Date.now() >= nextProps.explodesAt || nextProps.exploded)) {
       return {mode: 'hidden'}
     }
     if (nextProps.exploded && prevState.mode === 'countdown') {
@@ -82,9 +91,13 @@ class ExplodingMeta extends React.Component<Props, State> {
                 },
               ])}
             >
-              <Text type="Body" style={{color: globalColors.white, fontSize: 10, fontWeight: 'bold'}}>
-                {formatDurationShort(this.props.explodesAt - Date.now())}
-              </Text>
+              {this.props.pending ? (
+                <ProgressIndicator style={{width: 17, height: 17}} white={true} />
+              ) : (
+                <Text type="Body" style={{color: globalColors.white, fontSize: 10, fontWeight: 'bold'}}>
+                  {formatDurationShort(this.props.explodesAt - Date.now())}
+                </Text>
+              )}
             </Box2>
             <Icon type="iconfont-bomb" fontSize={isMobile ? 22 : 16} color={globalColors.black_75} />
           </Box2>

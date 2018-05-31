@@ -1145,7 +1145,8 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
             state,
             conversationIDKey,
             text,
-            Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+            Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+            ephemeralLifetime
           ),
         ],
       })
@@ -1562,6 +1563,12 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     return
   }
 
+  // disable sending exploding messages if flag is false
+  const ephemeralLifetime = flags.explodingMessagesEnabled
+    ? Constants.getConversationExplodingMode(state, conversationIDKey)
+    : 0
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+
   const attachmentType = Constants.pathToAttachmentType(path)
   const message = Constants.makePendingAttachmentMessage(
     state,
@@ -1569,7 +1576,8 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     attachmentType,
     title,
     (preview && preview.filename) || '',
-    Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+    Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+    ephemeralLifetime
   )
   const ordinal = message.ordinal
   yield Saga.put(
@@ -1579,12 +1587,6 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     })
   )
   yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
-
-  // disable sending exploding messages if flag is false
-  const ephemeralLifetime = flags.explodingMessagesEnabled
-    ? Constants.getConversationExplodingMode(state, conversationIDKey)
-    : 0
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   let lastRatioSent = 0
   const postAttachment = new EngineRpc.EngineRpcCall(

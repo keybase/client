@@ -581,7 +581,8 @@ export const makePendingTextMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   text: HiddenString,
-  outboxID: Types.OutboxID
+  outboxID: Types.OutboxID,
+  explodeTime?: number
 ) => {
   // we could read the exploding mode for the convo from state here, but that
   // would cause the timer to count down while the message is still pending
@@ -591,7 +592,10 @@ export const makePendingTextMessage = (
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
+  const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
+
   return makeMessageText({
+    ...explodeInfo,
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
@@ -611,13 +615,17 @@ export const makePendingAttachmentMessage = (
   attachmentType: Types.AttachmentType,
   title: string,
   previewURL: string,
-  outboxID: Types.OutboxID
+  outboxID: Types.OutboxID,
+  explodeTime?: number
 ) => {
   const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
+  const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
+
   return makeMessageAttachment({
+    ...explodeInfo,
     attachmentType,
     author: state.config.username || '',
     conversationIDKey,

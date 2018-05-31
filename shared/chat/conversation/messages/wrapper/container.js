@@ -19,6 +19,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
   const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
   const messageSent = !message.submitState
   const messageFailed = message.submitState === 'failed'
+  const messagePending = message.submitState === 'pending'
   const isExplodingUnreadable = message.explodingUnreadable
 
   return {
@@ -30,6 +31,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
     isYou,
     message,
     messageFailed,
+    messagePending,
     messageSent,
     orangeLineAbove,
     previous,
@@ -98,6 +100,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     isYou: stateProps.isYou,
     message,
     messageFailed: stateProps.messageFailed,
+    messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
     onCancel: stateProps.isYou
