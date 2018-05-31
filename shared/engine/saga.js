@@ -6,11 +6,11 @@ import * as RSE from 'redux-saga/effects'
 import {type TypedState} from '../constants/reducer'
 import {printOutstandingRPCs} from '../local-debug'
 
+// TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
 function* call(
   method: string,
   param: Object,
-  // TODO type this. we need to merge all the incomingcallmaptypes really
-  incomingCallMap: {[method: string]: any},
+  incomingCallMap: {[method: string]: any}, // this is typed by the generated helpers
   waitingActionCreator?: (waiting: boolean) => any
 ): Generator<any, any, any> {
   const engine = getEngine()
