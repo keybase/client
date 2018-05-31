@@ -1,21 +1,21 @@
 {
   "keybase.1.prove.startProof": {
-    "promise": true
+    "channelMap": true
   },
   "keybase.1.pgp.pgpKeyGenDefault": {
-    "promise": true
+    "channelMap": true
   },
   "keybase.1.login.logout": {
-    "promise": true
+    "channelMap": true
   },
   "keybase.1.device.deviceAdd": {
-    "promise": true
+    "channelMap": true
   },
   "keybase.1.login.login": {
-    "promise": true
+    "channelMap": true
   },
   "keybase.1.login.paperKey": {
-    "promise": true
+    "channelMap": true
   },
   "keybase.1.install.installKBFS": {
     "promise": true
@@ -418,5 +418,14 @@
   },
   "chat.1.local.updateTyping": {
     "promise": true
+  },
+  "keybase.1.gregor.updateItem": {
+    "promise": true
+  },
+  "keybase.1.gregor.getState": {
+    "promise": true
+  },
+  "chat.1.local.getInboxNonblockLocal": {
+    "engineSaga": true
   }
 }

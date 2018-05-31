@@ -9,9 +9,6 @@ const camelcase = require('camelcase')
 const colors = require('colors')
 const enabledCalls = require('./enabled-calls.json')
 
-console.log(enabledCalls)
-console.log(enabledCalls['keybase.1.login.paperKey'].promise)
-
 var projects = {
   chat1: {
     root: './json/chat1',
@@ -191,15 +188,8 @@ function analyzeMessages(json, project) {
           const rtype = figureType(r.type)
           return `${r.name}${r.hasOwnProperty('default') || rtype.startsWith('?') ? '?' : ''}: ${rtype}`
         })
-        .concat(
-          ...(incoming
-            ? []
-            : ['incomingCallMap?: IncomingCallMapType', 'waitingHandler?: WaitingHandlerType'])
-        )
-
-      // if its just the incomingCallMpa or waitingHandler we can skip passing anything
-      const isOptional = !incoming && arr.length === 2 ? '?' : ''
-      return `${isOptional}$ReadOnly<{${arr.join(',')}}>`
+      const noParams = !incoming && !arr.length
+      return noParams ? 'void' : `$ReadOnly<{${arr.join(',')}}>`
     }
 
     const name = `${json.protocol}${capitalize(m)}`
@@ -239,24 +229,42 @@ function analyzeMessages(json, project) {
     const rpcChannelMap = isUIProtocol
       ? ''
       : rpcChannelMapGen(methodName, name, r, innerParamType, responseType)
-    return [paramType, response, rpcPromise, rpcChannelMap]
+    const engineSaga = isUIProtocol ? '' : engineSagaGen(methodName, name, r, innerParamType, responseType)
+    const notEnabled = isUIProtocol ? '' : notEnabledGen(methodName)
+    return [paramType, response, notEnabled, rpcPromise, rpcChannelMap, engineSaga]
   })
 }
 
-function enabledCallPrefix(methodName, type) {
+function enabledCall(methodName, type) {
   const cleanName = methodName.substring(1, methodName.length - 1)
-  return !enabledCalls[cleanName] || !enabledCalls[cleanName][type] ? '// Not enabled: ' : ''
+  return enabledCalls[cleanName] && enabledCalls[cleanName][type]
+}
+
+function notEnabledGen(methodName) {
+  const cleanName = methodName.substring(1, methodName.length - 1)
+  return !enabledCalls[cleanName] ? '// Not enabled: ' : ''
+}
+
+function engineSagaGen(methodName, name, response, requestType, responseType) {
+  if (!enabledCall(methodName, 'engineSaga')) {
+    return ''
+  }
+  return `\nexport const ${name}RpcSaga = (params: ${requestType}, incomingCallMap: {[method: string]: (...Array<any>) => ?Saga.Effect}, loading: (loading: boolean) => ?Action) => Saga.call(engineSaga, ${methodName}, params, incomingCallMap, loading)`
 }
 
 function rpcChannelMapGen(methodName, name, response, requestType, responseType) {
-  const prefix = enabledCallPrefix(methodName, 'channelMap')
-  return `\n${prefix}export const ${name}RpcChannelMap = (configKeys: Array<string>, request: ${requestType}): EngineChannel => engine()._channelMapRpcHelper(configKeys, ${methodName}, request)`
+  if (!enabledCall(methodName, 'channelMap')) {
+    return ''
+  }
+  return `\nexport const ${name}RpcChannelMap = (configKeys: Array<string>, request: ${requestType}): EngineChannel => engine()._channelMapRpcHelper(configKeys, ${methodName}, request)`
 }
 
 function rpcPromiseGen(methodName, name, response, requestType, responseType) {
-  const prefix = enabledCallPrefix(methodName, 'promise')
+  if (!enabledCall(methodName, 'promise')) {
+    return ''
+  }
   const resultType = responseType !== 'null' ? `${capitalize(name)}Result` : 'void'
-  return `\n${prefix}export const ${name}RpcPromise = (request: ${requestType}): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing(${methodName}, request, (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
+  return `\nexport const ${name}RpcPromise = (request: ${requestType}): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing(${methodName}, request, (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
     resultType === 'void' ? '' : 'result'
   })))`
 }
@@ -376,6 +384,9 @@ function write(typeDefs, project) {
 // Not enabled: calls need to be turned on in enabled-calls.json
 ${project.import || ''}
 import engine, {EngineChannel} from '../../engine'
+import engineSaga from '../../engine/saga'
+import * as Saga from '../../util/saga'
+import type {Action} from '../../constants/types/flux'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
 `
   const incomingMap =

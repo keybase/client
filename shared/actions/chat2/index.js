@@ -222,9 +222,7 @@ const unboxRows = (
     }
   }
 
-  const getRows = Saga.call(
-    engineCall,
-    'chat.1.local.getInboxNonblockLocal',
+  const getRows = RPCChatTypes.localGetInboxNonblockLocalRpcSaga(
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       query: Constants.makeInboxQuery(conversationIDKeys),
@@ -237,6 +235,21 @@ const unboxRows = (
     },
     loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
   )
+  // const getRows = Saga.call(
+  // engineCall,
+  // 'chat.1.local.getInboxNonblockLocal',
+  // {
+  // identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+  // query: Constants.makeInboxQuery(conversationIDKeys),
+  // skipUnverified: true,
+  // },
+  // {
+  // 'chat.1.chatUi.chatInboxConversation': onUnboxed,
+  // 'chat.1.chatUi.chatInboxFailed': onFailed,
+  // 'chat.1.chatUi.chatInboxUnverified': () => {},
+  // },
+  // loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
+  // )
 
   return Saga.sequentially([Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})), getRows])
 }

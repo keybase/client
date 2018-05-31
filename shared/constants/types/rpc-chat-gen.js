@@ -6,289 +6,10 @@
 import * as Gregor1 from './rpc-gregor-gen'
 import * as Keybase1 from './rpc-gen'
 import engine, {EngineChannel} from '../../engine'
+import engineSaga from '../../engine/saga'
+import * as Saga from '../../util/saga'
+import type {Action} from '../../constants/types/flux'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
-
-// Not enabled: export const localAddTeamMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: LocalAddTeamMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.addTeamMemberAfterReset', request)
-
-// Not enabled: export const localCancelPostRpcChannelMap = (configKeys: Array<string>, request: LocalCancelPostRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.CancelPost', request)
-
-// Not enabled: export const localDeleteConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalDeleteConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.deleteConversationLocal', request)
-
-// Not enabled: export const localDownloadAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: LocalDownloadAttachmentLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.DownloadAttachmentLocal', request)
-
-// Not enabled: export const localDownloadAttachmentLocalRpcPromise = (request: LocalDownloadAttachmentLocalRpcParam): Promise<LocalDownloadAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.DownloadAttachmentLocal', request, (error: RPCError, result: LocalDownloadAttachmentLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localDownloadFileAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: LocalDownloadFileAttachmentLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.DownloadFileAttachmentLocal', request)
-
-// Not enabled: export const localDownloadFileAttachmentLocalRpcPromise = (request: LocalDownloadFileAttachmentLocalRpcParam): Promise<LocalDownloadFileAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.DownloadFileAttachmentLocal', request, (error: RPCError, result: LocalDownloadFileAttachmentLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localFindConversationsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalFindConversationsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.findConversationsLocal', request)
-
-// Not enabled: export const localGenerateOutboxIDRpcChannelMap = (configKeys: Array<string>, request: LocalGenerateOutboxIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.generateOutboxID', request)
-
-// Not enabled: export const localGenerateOutboxIDRpcPromise = (request: LocalGenerateOutboxIDRpcParam): Promise<LocalGenerateOutboxIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.generateOutboxID', request, (error: RPCError, result: LocalGenerateOutboxIDResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetCachedThreadRpcChannelMap = (configKeys: Array<string>, request: LocalGetCachedThreadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getCachedThread', request)
-
-// Not enabled: export const localGetCachedThreadRpcPromise = (request: LocalGetCachedThreadRpcParam): Promise<LocalGetCachedThreadResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getCachedThread', request, (error: RPCError, result: LocalGetCachedThreadResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetConversationForCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetConversationForCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getConversationForCLILocal', request)
-
-// Not enabled: export const localGetConversationForCLILocalRpcPromise = (request: LocalGetConversationForCLILocalRpcParam): Promise<LocalGetConversationForCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getConversationForCLILocal', request, (error: RPCError, result: LocalGetConversationForCLILocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetGlobalAppNotificationSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetGlobalAppNotificationSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getGlobalAppNotificationSettingsLocal', request)
-
-// Not enabled: export const localGetInboxAndUnboxLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxAndUnboxLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxAndUnboxLocal', request)
-
-// Not enabled: export const localGetInboxAndUnboxLocalRpcPromise = (request: LocalGetInboxAndUnboxLocalRpcParam): Promise<LocalGetInboxAndUnboxLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxLocal', request, (error: RPCError, result: LocalGetInboxAndUnboxLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetInboxAndUnboxUILocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxAndUnboxUILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxAndUnboxUILocal', request)
-
-// Not enabled: export const localGetInboxNonblockLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxNonblockLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxNonblockLocal', request)
-
-// Not enabled: export const localGetInboxNonblockLocalRpcPromise = (request: LocalGetInboxNonblockLocalRpcParam): Promise<LocalGetInboxNonblockLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxNonblockLocal', request, (error: RPCError, result: LocalGetInboxNonblockLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetInboxSummaryForCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxSummaryForCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxSummaryForCLILocal', request)
-
-// Not enabled: export const localGetInboxSummaryForCLILocalRpcPromise = (request: LocalGetInboxSummaryForCLILocalRpcParam): Promise<LocalGetInboxSummaryForCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxSummaryForCLILocal', request, (error: RPCError, result: LocalGetInboxSummaryForCLILocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetMessagesLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetMessagesLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.GetMessagesLocal', request)
-
-// Not enabled: export const localGetMessagesLocalRpcPromise = (request: LocalGetMessagesLocalRpcParam): Promise<LocalGetMessagesLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.GetMessagesLocal', request, (error: RPCError, result: LocalGetMessagesLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetSearchRegexpRpcChannelMap = (configKeys: Array<string>, request: LocalGetSearchRegexpRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getSearchRegexp', request)
-
-// Not enabled: export const localGetSearchRegexpRpcPromise = (request: LocalGetSearchRegexpRpcParam): Promise<LocalGetSearchRegexpResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getSearchRegexp', request, (error: RPCError, result: LocalGetSearchRegexpResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetTLFConversationsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetTLFConversationsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getTLFConversationsLocal', request)
-
-// Not enabled: export const localGetTeamRetentionLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetTeamRetentionLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getTeamRetentionLocal', request)
-
-// Not enabled: export const localGetThreadLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadLocal', request)
-
-// Not enabled: export const localGetThreadLocalRpcPromise = (request: LocalGetThreadLocalRpcParam): Promise<LocalGetThreadLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getThreadLocal', request, (error: RPCError, result: LocalGetThreadLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetThreadNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadNonblock', request)
-
-// Not enabled: export const localGetThreadNonblockRpcPromise = (request: LocalGetThreadNonblockRpcParam): Promise<LocalGetThreadNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getThreadNonblock', request, (error: RPCError, result: LocalGetThreadNonblockResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localJoinConversationByIDLocalRpcChannelMap = (configKeys: Array<string>, request: LocalJoinConversationByIDLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.joinConversationByIDLocal', request)
-
-// Not enabled: export const localJoinConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalJoinConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.joinConversationLocal', request)
-
-// Not enabled: export const localJoinConversationLocalRpcPromise = (request: LocalJoinConversationLocalRpcParam): Promise<LocalJoinConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.joinConversationLocal', request, (error: RPCError, result: LocalJoinConversationLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localLeaveConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalLeaveConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.leaveConversationLocal', request)
-
-// Not enabled: export const localMakePreviewRpcChannelMap = (configKeys: Array<string>, request: LocalMakePreviewRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.makePreview', request)
-
-// Not enabled: export const localMarkAsReadLocalRpcChannelMap = (configKeys: Array<string>, request: LocalMarkAsReadLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.markAsReadLocal', request)
-
-// Not enabled: export const localNewConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalNewConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.newConversationLocal', request)
-
-// Not enabled: export const localPostAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: LocalPostAttachmentLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postAttachmentLocal', request)
-
-// Not enabled: export const localPostAttachmentLocalRpcPromise = (request: LocalPostAttachmentLocalRpcParam): Promise<LocalPostAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postAttachmentLocal', request, (error: RPCError, result: LocalPostAttachmentLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localPostDeleteHistoryByAgeRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryByAgeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistoryByAge', request)
-
-// Not enabled: export const localPostDeleteHistoryByAgeRpcPromise = (request: LocalPostDeleteHistoryByAgeRpcParam): Promise<LocalPostDeleteHistoryByAgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryByAge', request, (error: RPCError, result: LocalPostDeleteHistoryByAgeResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localPostDeleteHistoryThroughRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryThroughRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistoryThrough', request)
-
-// Not enabled: export const localPostDeleteHistoryUptoRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryUptoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistoryUpto', request)
-
-// Not enabled: export const localPostDeleteHistoryUptoRpcPromise = (request: LocalPostDeleteHistoryUptoRpcParam): Promise<LocalPostDeleteHistoryUptoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryUpto', request, (error: RPCError, result: LocalPostDeleteHistoryUptoResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localPostDeleteNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteNonblock', request)
-
-// Not enabled: export const localPostEditNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostEditNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postEditNonblock', request)
-
-// Not enabled: export const localPostFileAttachmentLocalRpcChannelMap = (configKeys: Array<string>, request: LocalPostFileAttachmentLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postFileAttachmentLocal', request)
-
-// Not enabled: export const localPostFileAttachmentLocalRpcPromise = (request: LocalPostFileAttachmentLocalRpcParam): Promise<LocalPostFileAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postFileAttachmentLocal', request, (error: RPCError, result: LocalPostFileAttachmentLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localPostHeadlineNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostHeadlineNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadlineNonblock', request)
-
-// Not enabled: export const localPostHeadlineRpcChannelMap = (configKeys: Array<string>, request: LocalPostHeadlineRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadline', request)
-
-// Not enabled: export const localPostLocalNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostLocalNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postLocalNonblock', request)
-
-// Not enabled: export const localPostLocalNonblockRpcPromise = (request: LocalPostLocalNonblockRpcParam): Promise<LocalPostLocalNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postLocalNonblock', request, (error: RPCError, result: LocalPostLocalNonblockResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localPostLocalRpcChannelMap = (configKeys: Array<string>, request: LocalPostLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postLocal', request)
-
-// Not enabled: export const localPostLocalRpcPromise = (request: LocalPostLocalRpcParam): Promise<LocalPostLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postLocal', request, (error: RPCError, result: LocalPostLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localPostMetadataNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostMetadataNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postMetadataNonblock', request)
-
-// Not enabled: export const localPostMetadataNonblockRpcPromise = (request: LocalPostMetadataNonblockRpcParam): Promise<LocalPostMetadataNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postMetadataNonblock', request, (error: RPCError, result: LocalPostMetadataNonblockResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localPostMetadataRpcChannelMap = (configKeys: Array<string>, request: LocalPostMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postMetadata', request)
-
-// Not enabled: export const localPostTextNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostTextNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postTextNonblock', request)
-
-// Not enabled: export const localPreviewConversationByIDLocalRpcChannelMap = (configKeys: Array<string>, request: LocalPreviewConversationByIDLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.previewConversationByIDLocal', request)
-
-// Not enabled: export const localRetryPostRpcChannelMap = (configKeys: Array<string>, request: LocalRetryPostRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.RetryPost', request)
-
-// Not enabled: export const localSetAppNotificationSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetAppNotificationSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setAppNotificationSettingsLocal', request)
-
-// Not enabled: export const localSetConvRetentionLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetConvRetentionLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setConvRetentionLocal', request)
-
-// Not enabled: export const localSetConversationStatusLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetConversationStatusLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.SetConversationStatusLocal', request)
-
-// Not enabled: export const localSetGlobalAppNotificationSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetGlobalAppNotificationSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setGlobalAppNotificationSettingsLocal', request)
-
-// Not enabled: export const localSetTeamRetentionLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetTeamRetentionLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setTeamRetentionLocal', request)
-
-// Not enabled: export const localUnboxMobilePushNotificationRpcChannelMap = (configKeys: Array<string>, request: LocalUnboxMobilePushNotificationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.unboxMobilePushNotification', request)
-
-// Not enabled: export const localUpdateTypingRpcChannelMap = (configKeys: Array<string>, request: LocalUpdateTypingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.updateTyping', request)
-
-// Not enabled: export const localUpgradeKBFSConversationToImpteamRpcChannelMap = (configKeys: Array<string>, request: LocalUpgradeKBFSConversationToImpteamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.upgradeKBFSConversationToImpteam', request)
-
-// Not enabled: export const localUpgradeKBFSConversationToImpteamRpcPromise = (request: LocalUpgradeKBFSConversationToImpteamRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.upgradeKBFSConversationToImpteam', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remoteDeleteConversationRpcChannelMap = (configKeys: Array<string>, request: RemoteDeleteConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.deleteConversation', request)
-
-// Not enabled: export const remoteDeleteConversationRpcPromise = (request: RemoteDeleteConversationRpcParam): Promise<RemoteDeleteConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.deleteConversation', request, (error: RPCError, result: RemoteDeleteConversationResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetGlobalAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RemoteGetGlobalAppNotificationSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getGlobalAppNotificationSettings', request)
-
-// Not enabled: export const remoteGetGlobalAppNotificationSettingsRpcPromise = (request: RemoteGetGlobalAppNotificationSettingsRpcParam): Promise<RemoteGetGlobalAppNotificationSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getGlobalAppNotificationSettings', request, (error: RPCError, result: RemoteGetGlobalAppNotificationSettingsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetInboxRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteGetInboxRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getInboxRemote', request)
-
-// Not enabled: export const remoteGetInboxRemoteRpcPromise = (request: RemoteGetInboxRemoteRpcParam): Promise<RemoteGetInboxRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getInboxRemote', request, (error: RPCError, result: RemoteGetInboxRemoteResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetInboxVersionRpcChannelMap = (configKeys: Array<string>, request: RemoteGetInboxVersionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getInboxVersion', request)
-
-// Not enabled: export const remoteGetInboxVersionRpcPromise = (request: RemoteGetInboxVersionRpcParam): Promise<RemoteGetInboxVersionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getInboxVersion', request, (error: RPCError, result: RemoteGetInboxVersionResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetMessageBeforeRpcChannelMap = (configKeys: Array<string>, request: RemoteGetMessageBeforeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getMessageBefore', request)
-
-// Not enabled: export const remoteGetMessageBeforeRpcPromise = (request: RemoteGetMessageBeforeRpcParam): Promise<RemoteGetMessageBeforeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getMessageBefore', request, (error: RPCError, result: RemoteGetMessageBeforeResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetMessagesRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteGetMessagesRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getMessagesRemote', request)
-
-// Not enabled: export const remoteGetMessagesRemoteRpcPromise = (request: RemoteGetMessagesRemoteRpcParam): Promise<RemoteGetMessagesRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getMessagesRemote', request, (error: RPCError, result: RemoteGetMessagesRemoteResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetPublicConversationsRpcChannelMap = (configKeys: Array<string>, request: RemoteGetPublicConversationsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getPublicConversations', request)
-
-// Not enabled: export const remoteGetPublicConversationsRpcPromise = (request: RemoteGetPublicConversationsRpcParam): Promise<RemoteGetPublicConversationsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getPublicConversations', request, (error: RPCError, result: RemoteGetPublicConversationsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetS3ParamsRpcChannelMap = (configKeys: Array<string>, request: RemoteGetS3ParamsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getS3Params', request)
-
-// Not enabled: export const remoteGetS3ParamsRpcPromise = (request: RemoteGetS3ParamsRpcParam): Promise<RemoteGetS3ParamsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getS3Params', request, (error: RPCError, result: RemoteGetS3ParamsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetTLFConversationsRpcChannelMap = (configKeys: Array<string>, request: RemoteGetTLFConversationsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getTLFConversations', request)
-
-// Not enabled: export const remoteGetTLFConversationsRpcPromise = (request: RemoteGetTLFConversationsRpcParam): Promise<RemoteGetTLFConversationsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getTLFConversations', request, (error: RPCError, result: RemoteGetTLFConversationsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetThreadRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteGetThreadRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getThreadRemote', request)
-
-// Not enabled: export const remoteGetThreadRemoteRpcPromise = (request: RemoteGetThreadRemoteRpcParam): Promise<RemoteGetThreadRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.getThreadRemote', request, (error: RPCError, result: RemoteGetThreadRemoteResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteGetUnreadUpdateFullRpcChannelMap = (configKeys: Array<string>, request: RemoteGetUnreadUpdateFullRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.GetUnreadUpdateFull', request)
-
-// Not enabled: export const remoteGetUnreadUpdateFullRpcPromise = (request: RemoteGetUnreadUpdateFullRpcParam): Promise<RemoteGetUnreadUpdateFullResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.GetUnreadUpdateFull', request, (error: RPCError, result: RemoteGetUnreadUpdateFullResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteJoinConversationRpcChannelMap = (configKeys: Array<string>, request: RemoteJoinConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.joinConversation', request)
-
-// Not enabled: export const remoteJoinConversationRpcPromise = (request: RemoteJoinConversationRpcParam): Promise<RemoteJoinConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.joinConversation', request, (error: RPCError, result: RemoteJoinConversationResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteLeaveConversationRpcChannelMap = (configKeys: Array<string>, request: RemoteLeaveConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.leaveConversation', request)
-
-// Not enabled: export const remoteLeaveConversationRpcPromise = (request: RemoteLeaveConversationRpcParam): Promise<RemoteLeaveConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.leaveConversation', request, (error: RPCError, result: RemoteLeaveConversationResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteMarkAsReadRpcChannelMap = (configKeys: Array<string>, request: RemoteMarkAsReadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.markAsRead', request)
-
-// Not enabled: export const remoteMarkAsReadRpcPromise = (request: RemoteMarkAsReadRpcParam): Promise<RemoteMarkAsReadResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.markAsRead', request, (error: RPCError, result: RemoteMarkAsReadResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteNewConversationRemote2RpcChannelMap = (configKeys: Array<string>, request: RemoteNewConversationRemote2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.newConversationRemote2', request)
-
-// Not enabled: export const remoteNewConversationRemote2RpcPromise = (request: RemoteNewConversationRemote2RpcParam): Promise<RemoteNewConversationRemote2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.newConversationRemote2', request, (error: RPCError, result: RemoteNewConversationRemote2Result) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteNewConversationRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteNewConversationRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.newConversationRemote', request)
-
-// Not enabled: export const remoteNewConversationRemoteRpcPromise = (request: RemoteNewConversationRemoteRpcParam): Promise<RemoteNewConversationRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.newConversationRemote', request, (error: RPCError, result: RemoteNewConversationRemoteResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remotePostRemoteRpcChannelMap = (configKeys: Array<string>, request: RemotePostRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.postRemote', request)
-
-// Not enabled: export const remotePostRemoteRpcPromise = (request: RemotePostRemoteRpcParam): Promise<RemotePostRemoteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.postRemote', request, (error: RPCError, result: RemotePostRemoteResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remotePreviewConversationRpcChannelMap = (configKeys: Array<string>, request: RemotePreviewConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.previewConversation', request)
-
-// Not enabled: export const remotePreviewConversationRpcPromise = (request: RemotePreviewConversationRpcParam): Promise<RemotePreviewConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.previewConversation', request, (error: RPCError, result: RemotePreviewConversationResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remotePublishReadMessageRpcChannelMap = (configKeys: Array<string>, request: RemotePublishReadMessageRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.publishReadMessage', request)
-
-// Not enabled: export const remotePublishReadMessageRpcPromise = (request: RemotePublishReadMessageRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.publishReadMessage', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remotePublishSetConversationStatusRpcChannelMap = (configKeys: Array<string>, request: RemotePublishSetConversationStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.publishSetConversationStatus', request)
-
-// Not enabled: export const remotePublishSetConversationStatusRpcPromise = (request: RemotePublishSetConversationStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.publishSetConversationStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remoteRemoteNotificationSuccessfulRpcChannelMap = (configKeys: Array<string>, request: RemoteRemoteNotificationSuccessfulRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.remoteNotificationSuccessful', request)
-
-// Not enabled: export const remoteRemoteNotificationSuccessfulRpcPromise = (request: RemoteRemoteNotificationSuccessfulRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remoteRetentionSweepConvRpcChannelMap = (configKeys: Array<string>, request: RemoteRetentionSweepConvRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.retentionSweepConv', request)
-
-// Not enabled: export const remoteRetentionSweepConvRpcPromise = (request: RemoteRetentionSweepConvRpcParam): Promise<RemoteRetentionSweepConvResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.retentionSweepConv', request, (error: RPCError, result: RemoteRetentionSweepConvResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteS3SignRpcChannelMap = (configKeys: Array<string>, request: RemoteS3SignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.s3Sign', request)
-
-// Not enabled: export const remoteS3SignRpcPromise = (request: RemoteS3SignRpcParam): Promise<RemoteS3SignResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.s3Sign', request, (error: RPCError, result: RemoteS3SignResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSetAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RemoteSetAppNotificationSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setAppNotificationSettings', request)
-
-// Not enabled: export const remoteSetAppNotificationSettingsRpcPromise = (request: RemoteSetAppNotificationSettingsRpcParam): Promise<RemoteSetAppNotificationSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.setAppNotificationSettings', request, (error: RPCError, result: RemoteSetAppNotificationSettingsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSetConvRetentionRpcChannelMap = (configKeys: Array<string>, request: RemoteSetConvRetentionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setConvRetention', request)
-
-// Not enabled: export const remoteSetConvRetentionRpcPromise = (request: RemoteSetConvRetentionRpcParam): Promise<RemoteSetConvRetentionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.setConvRetention', request, (error: RPCError, result: RemoteSetConvRetentionResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSetConversationStatusRpcChannelMap = (configKeys: Array<string>, request: RemoteSetConversationStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.SetConversationStatus', request)
-
-// Not enabled: export const remoteSetConversationStatusRpcPromise = (request: RemoteSetConversationStatusRpcParam): Promise<RemoteSetConversationStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.SetConversationStatus', request, (error: RPCError, result: RemoteSetConversationStatusResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSetGlobalAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RemoteSetGlobalAppNotificationSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setGlobalAppNotificationSettings', request)
-
-// Not enabled: export const remoteSetGlobalAppNotificationSettingsRpcPromise = (request: RemoteSetGlobalAppNotificationSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.setGlobalAppNotificationSettings', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remoteSetTeamRetentionRpcChannelMap = (configKeys: Array<string>, request: RemoteSetTeamRetentionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setTeamRetention', request)
-
-// Not enabled: export const remoteSetTeamRetentionRpcPromise = (request: RemoteSetTeamRetentionRpcParam): Promise<RemoteSetTeamRetentionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.setTeamRetention', request, (error: RPCError, result: RemoteSetTeamRetentionResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSyncAllRpcChannelMap = (configKeys: Array<string>, request: RemoteSyncAllRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.syncAll', request)
-
-// Not enabled: export const remoteSyncAllRpcPromise = (request: RemoteSyncAllRpcParam): Promise<RemoteSyncAllResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.syncAll', request, (error: RPCError, result: RemoteSyncAllResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSyncChatRpcChannelMap = (configKeys: Array<string>, request: RemoteSyncChatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.syncChat', request)
-
-// Not enabled: export const remoteSyncChatRpcPromise = (request: RemoteSyncChatRpcParam): Promise<RemoteSyncChatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.syncChat', request, (error: RPCError, result: RemoteSyncChatResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSyncInboxRpcChannelMap = (configKeys: Array<string>, request: RemoteSyncInboxRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.syncInbox', request)
-
-// Not enabled: export const remoteSyncInboxRpcPromise = (request: RemoteSyncInboxRpcParam): Promise<RemoteSyncInboxResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.syncInbox', request, (error: RPCError, result: RemoteSyncInboxResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteTlfFinalizeRpcChannelMap = (configKeys: Array<string>, request: RemoteTlfFinalizeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.tlfFinalize', request)
-
-// Not enabled: export const remoteTlfFinalizeRpcPromise = (request: RemoteTlfFinalizeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.tlfFinalize', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remoteTlfResolveRpcChannelMap = (configKeys: Array<string>, request: RemoteTlfResolveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.tlfResolve', request)
-
-// Not enabled: export const remoteTlfResolveRpcPromise = (request: RemoteTlfResolveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.tlfResolve', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remoteUpdateTypingRemoteRpcChannelMap = (configKeys: Array<string>, request: RemoteUpdateTypingRemoteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.updateTypingRemote', request)
-
-// Not enabled: export const remoteUpdateTypingRemoteRpcPromise = (request: RemoteUpdateTypingRemoteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.updateTypingRemote', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remoteUpgradeKBFSToImpteamRpcChannelMap = (configKeys: Array<string>, request: RemoteUpgradeKBFSToImpteamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.upgradeKBFSToImpteam', request)
-
-// Not enabled: export const remoteUpgradeKBFSToImpteamRpcPromise = (request: RemoteUpgradeKBFSToImpteamRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.upgradeKBFSToImpteam', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const chatUiMessageUnboxedState = {
   valid: 1,
@@ -431,6 +152,8 @@ export const localFindConversationsLocalRpcPromise = (request: LocalFindConversa
 export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (request: LocalGetGlobalAppNotificationSettingsLocalRpcParam): Promise<LocalGetGlobalAppNotificationSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getGlobalAppNotificationSettingsLocal', request, (error: RPCError, result: LocalGetGlobalAppNotificationSettingsLocalResult) => (error ? reject(error) : resolve(result))))
 
 export const localGetInboxAndUnboxUILocalRpcPromise = (request: LocalGetInboxAndUnboxUILocalRpcParam): Promise<LocalGetInboxAndUnboxUILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxUILocal', request, (error: RPCError, result: LocalGetInboxAndUnboxUILocalResult) => (error ? reject(error) : resolve(result))))
+
+export const localGetInboxNonblockLocalRpcSaga = (params: LocalGetInboxNonblockLocalRpcParam, incomingCallMap: {[method: string]: (...Array<any>) => ?Saga.Effect}, loading: (loading: boolean) => ?Action) => Saga.call(engineSaga, 'chat.1.local.getInboxNonblockLocal', params, incomingCallMap, loading)
 
 export const localGetTLFConversationsLocalRpcPromise = (request: LocalGetTLFConversationsLocalRpcParam): Promise<LocalGetTLFConversationsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getTLFConversationsLocal', request, (error: RPCError, result: LocalGetTLFConversationsLocalResult) => (error ? reject(error) : resolve(result))))
 
@@ -648,39 +371,39 @@ export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<UnverifiedInboxU
 
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1, incremental: ?ChatSyncIncrementalInfo}
 
-export type ChatUiChatAttachmentDownloadDoneRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatAttachmentDownloadDoneRpcParam = void
 
-export type ChatUiChatAttachmentDownloadProgressRpcParam = $ReadOnly<{bytesComplete: Long, bytesTotal: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatAttachmentDownloadProgressRpcParam = $ReadOnly<{bytesComplete: Long, bytesTotal: Long}>
 
-export type ChatUiChatAttachmentDownloadStartRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatAttachmentDownloadStartRpcParam = void
 
-export type ChatUiChatAttachmentPreviewUploadDoneRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatAttachmentPreviewUploadDoneRpcParam = void
 
-export type ChatUiChatAttachmentPreviewUploadStartRpcParam = $ReadOnly<{metadata: AssetMetadata, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatAttachmentPreviewUploadStartRpcParam = $ReadOnly<{metadata: AssetMetadata}>
 
-export type ChatUiChatAttachmentUploadDoneRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatAttachmentUploadDoneRpcParam = void
 
-export type ChatUiChatAttachmentUploadOutboxIDRpcParam = $ReadOnly<{outboxID: OutboxID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatAttachmentUploadOutboxIDRpcParam = $ReadOnly<{outboxID: OutboxID}>
 
-export type ChatUiChatAttachmentUploadProgressRpcParam = $ReadOnly<{bytesComplete: Long, bytesTotal: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatAttachmentUploadProgressRpcParam = $ReadOnly<{bytesComplete: Long, bytesTotal: Long}>
 
-export type ChatUiChatAttachmentUploadStartRpcParam = $ReadOnly<{metadata: AssetMetadata, placeholderMsgID: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatAttachmentUploadStartRpcParam = $ReadOnly<{metadata: AssetMetadata, placeholderMsgID: MessageID}>
 
-export type ChatUiChatConfirmChannelDeleteRpcParam = $ReadOnly<{channel: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatConfirmChannelDeleteRpcParam = $ReadOnly<{channel: String}>
 
-export type ChatUiChatInboxConversationRpcParam = $ReadOnly<{conv: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatInboxConversationRpcParam = $ReadOnly<{conv: String}>
 
-export type ChatUiChatInboxFailedRpcParam = $ReadOnly<{convID: ConversationID, error: InboxUIItemError, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatInboxFailedRpcParam = $ReadOnly<{convID: ConversationID, error: InboxUIItemError}>
 
-export type ChatUiChatInboxUnverifiedRpcParam = $ReadOnly<{inbox: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatInboxUnverifiedRpcParam = $ReadOnly<{inbox: String}>
 
-export type ChatUiChatSearchDoneRpcParam = $ReadOnly<{numHits: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatSearchDoneRpcParam = $ReadOnly<{numHits: Int}>
 
-export type ChatUiChatSearchHitRpcParam = $ReadOnly<{searchHit: ChatSearchHit, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatSearchHitRpcParam = $ReadOnly<{searchHit: ChatSearchHit}>
 
-export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String}>
 
-export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String}>
 
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 
@@ -896,109 +619,109 @@ export type JoinLeaveConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 
 export type KBFSImpteamUpgradeUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers}>
 
-export type LocalAddTeamMemberAfterResetRpcParam = $ReadOnly<{username: String, convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalAddTeamMemberAfterResetRpcParam = $ReadOnly<{username: String, convID: ConversationID}>
 
-export type LocalCancelPostRpcParam = $ReadOnly<{outboxID: OutboxID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalCancelPostRpcParam = $ReadOnly<{outboxID: OutboxID}>
 
-export type LocalDeleteConversationLocalRpcParam = $ReadOnly<{convID: ConversationID, channelName: String, confirmed: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalDeleteConversationLocalRpcParam = $ReadOnly<{convID: ConversationID, channelName: String, confirmed: Boolean}>
 
-export type LocalDownloadAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageID: MessageID, sink: Keybase1.Stream, preview: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalDownloadAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageID: MessageID, sink: Keybase1.Stream, preview: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalDownloadFileAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageID: MessageID, filename: String, preview: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalDownloadFileAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageID: MessageID, filename: String, preview: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
 export type LocalFileSource = $ReadOnly<{filename: String}>
 
-export type LocalFindConversationsLocalRpcParam = $ReadOnly<{tlfName: String, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, topicType: TopicType, topicName: String, oneChatPerTLF?: ?Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalFindConversationsLocalRpcParam = $ReadOnly<{tlfName: String, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, topicType: TopicType, topicName: String, oneChatPerTLF?: ?Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalGenerateOutboxIDRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGenerateOutboxIDRpcParam = void
 
-export type LocalGetCachedThreadRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetCachedThreadRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalGetConversationForCLILocalRpcParam = $ReadOnly<{query: GetConversationForCLILocalQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetConversationForCLILocalRpcParam = $ReadOnly<{query: GetConversationForCLILocalQuery}>
 
-export type LocalGetGlobalAppNotificationSettingsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetGlobalAppNotificationSettingsLocalRpcParam = void
 
-export type LocalGetInboxAndUnboxLocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetInboxAndUnboxLocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalGetInboxAndUnboxUILocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetInboxAndUnboxUILocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalGetInboxNonblockLocalRpcParam = $ReadOnly<{maxUnbox?: ?Int, skipUnverified: Boolean, query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetInboxNonblockLocalRpcParam = $ReadOnly<{maxUnbox?: ?Int, skipUnverified: Boolean, query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalGetInboxSummaryForCLILocalRpcParam = $ReadOnly<{query: GetInboxSummaryForCLILocalQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetInboxSummaryForCLILocalRpcParam = $ReadOnly<{query: GetInboxSummaryForCLILocalQuery}>
 
-export type LocalGetMessagesLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, disableResolveSupersedes: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetMessagesLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, disableResolveSupersedes: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, isRegex: Boolean, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, isRegex: Boolean, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType}>
 
-export type LocalGetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID}>
 
-export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadNonblockReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadNonblockReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalJoinConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalJoinConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID}>
 
-export type LocalJoinConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, visibility: Keybase1.TLFVisibility, topicName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalJoinConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, visibility: Keybase1.TLFVisibility, topicName: String}>
 
-export type LocalLeaveConversationLocalRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalLeaveConversationLocalRpcParam = $ReadOnly<{convID: ConversationID}>
 
-export type LocalMakePreviewRpcParam = $ReadOnly<{attachment: LocalFileSource, outputDir: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalMakePreviewRpcParam = $ReadOnly<{attachment: LocalFileSource, outputDir: String}>
 
-export type LocalMarkAsReadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, msgID: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalMarkAsReadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, msgID: MessageID}>
 
-export type LocalNewConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, tlfVisibility: Keybase1.TLFVisibility, topicName?: ?String, membersType: ConversationMembersType, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalNewConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, tlfVisibility: Keybase1.TLFVisibility, topicName?: ?String, membersType: ConversationMembersType, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec}>
 
-export type LocalPostDeleteHistoryByAgeRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostDeleteHistoryByAgeRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec}>
 
-export type LocalPostDeleteHistoryThroughRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, through: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostDeleteHistoryThroughRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, through: MessageID}>
 
-export type LocalPostDeleteHistoryUptoRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, upto: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostDeleteHistoryUptoRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, upto: MessageID}>
 
-export type LocalPostDeleteNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostDeleteNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalPostEditNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostEditNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalPostFileAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalFileSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostFileAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalFileSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec}>
 
-export type LocalPostHeadlineNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostHeadlineNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalPostHeadlineRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostHeadlineRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalPostLocalNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, msg: MessagePlaintext, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostLocalNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, msg: MessagePlaintext, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalPostLocalRpcParam = $ReadOnly<{conversationID: ConversationID, msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostLocalRpcParam = $ReadOnly<{conversationID: ConversationID, msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalPostMetadataNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostMetadataNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalPostMetadataRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostMetadataRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalPostTextNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostTextNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec}>
 
-export type LocalPreviewConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPreviewConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID}>
 
-export type LocalRetryPostRpcParam = $ReadOnly<{outboxID: OutboxID, identifyBehavior?: ?Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalRetryPostRpcParam = $ReadOnly<{outboxID: OutboxID, identifyBehavior?: ?Keybase1.TLFIdentifyBehavior}>
 
-export type LocalSetAppNotificationSettingsLocalRpcParam = $ReadOnly<{convID: ConversationID, channelWide: Boolean, settings?: ?Array<AppNotificationSettingLocal>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSetAppNotificationSettingsLocalRpcParam = $ReadOnly<{convID: ConversationID, channelWide: Boolean, settings?: ?Array<AppNotificationSettingLocal>}>
 
-export type LocalSetConvRetentionLocalRpcParam = $ReadOnly<{convID: ConversationID, policy: RetentionPolicy, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSetConvRetentionLocalRpcParam = $ReadOnly<{convID: ConversationID, policy: RetentionPolicy}>
 
-export type LocalSetConversationStatusLocalRpcParam = $ReadOnly<{conversationID: ConversationID, status: ConversationStatus, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSetConversationStatusLocalRpcParam = $ReadOnly<{conversationID: ConversationID, status: ConversationStatus, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 
-export type LocalSetGlobalAppNotificationSettingsLocalRpcParam = $ReadOnly<{settings: {[key: string]: Bool}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSetGlobalAppNotificationSettingsLocalRpcParam = $ReadOnly<{settings: {[key: string]: Bool}}>
 
-export type LocalSetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, policy: RetentionPolicy, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, policy: RetentionPolicy}>
 
 export type LocalSource = $ReadOnly<{source: Keybase1.Stream, filename: String, size: Int}>
 
-export type LocalUnboxMobilePushNotificationRpcParam = $ReadOnly<{payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalUnboxMobilePushNotificationRpcParam = $ReadOnly<{payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>}>
 
-export type LocalUpdateTypingRpcParam = $ReadOnly<{conversationID: ConversationID, typing: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalUpdateTypingRpcParam = $ReadOnly<{conversationID: ConversationID, typing: Boolean}>
 
-export type LocalUpgradeKBFSConversationToImpteamRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalUpgradeKBFSConversationToImpteamRpcParam = $ReadOnly<{convID: ConversationID}>
 
 export type MakePreviewRes = $ReadOnly<{mimeType: String, filename?: ?String, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
 
@@ -1136,35 +859,35 @@ export type NotificationKind =
   | 0 // GENERIC_0
   | 1 // ATMENTION_1
 
-export type NotifyChatChatIdentifyUpdateRpcParam = $ReadOnly<{update: Keybase1.CanonicalTLFNameAndIDWithBreaks, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatIdentifyUpdateRpcParam = $ReadOnly<{update: Keybase1.CanonicalTLFNameAndIDWithBreaks}>
 
-export type NotifyChatChatInboxStaleRpcParam = $ReadOnly<{uid: Keybase1.UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatInboxStaleRpcParam = $ReadOnly<{uid: Keybase1.UID}>
 
-export type NotifyChatChatInboxSyncStartedRpcParam = $ReadOnly<{uid: Keybase1.UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatInboxSyncStartedRpcParam = $ReadOnly<{uid: Keybase1.UID}>
 
-export type NotifyChatChatInboxSyncedRpcParam = $ReadOnly<{uid: Keybase1.UID, syncRes: ChatSyncResult, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatInboxSyncedRpcParam = $ReadOnly<{uid: Keybase1.UID, syncRes: ChatSyncResult}>
 
-export type NotifyChatChatJoinedConversationRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatJoinedConversationRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem}>
 
-export type NotifyChatChatKBFSToImpteamUpgradeRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatKBFSToImpteamUpgradeRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>
 
-export type NotifyChatChatLeftConversationRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatLeftConversationRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>
 
-export type NotifyChatChatResetConversationRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatResetConversationRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>
 
-export type NotifyChatChatSetConvRetentionRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatSetConvRetentionRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem}>
 
-export type NotifyChatChatSetTeamRetentionRpcParam = $ReadOnly<{uid: Keybase1.UID, teamID: Keybase1.TeamID, convs?: ?Array<InboxUIItem>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatSetTeamRetentionRpcParam = $ReadOnly<{uid: Keybase1.UID, teamID: Keybase1.TeamID, convs?: ?Array<InboxUIItem>}>
 
-export type NotifyChatChatTLFFinalizeRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, finalizeInfo: ConversationFinalizeInfo, conv?: ?InboxUIItem, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatTLFFinalizeRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, finalizeInfo: ConversationFinalizeInfo, conv?: ?InboxUIItem}>
 
-export type NotifyChatChatTLFResolveRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, resolveInfo: ConversationResolveInfo, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatTLFResolveRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, resolveInfo: ConversationResolveInfo}>
 
-export type NotifyChatChatThreadsStaleRpcParam = $ReadOnly<{uid: Keybase1.UID, updates?: ?Array<ConversationStaleUpdate>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatThreadsStaleRpcParam = $ReadOnly<{uid: Keybase1.UID, updates?: ?Array<ConversationStaleUpdate>}>
 
-export type NotifyChatChatTypingUpdateRpcParam = $ReadOnly<{typingUpdates?: ?Array<ConvTypingUpdate>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatChatTypingUpdateRpcParam = $ReadOnly<{typingUpdates?: ?Array<ConvTypingUpdate>}>
 
-export type NotifyChatNewChatActivityRpcParam = $ReadOnly<{uid: Keybase1.UID, activity: ChatActivity, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyChatNewChatActivityRpcParam = $ReadOnly<{uid: Keybase1.UID, activity: ChatActivity}>
 
 export type OutboxErrorType =
   | 0 // MISC_0
@@ -1202,75 +925,75 @@ export type ReadMessageInfo = $ReadOnly<{convID: ConversationID, msgID: MessageI
 
 export type ReadMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, msgID: MessageID, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate}>
 
-export type RemoteDeleteConversationRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteDeleteConversationRpcParam = $ReadOnly<{convID: ConversationID}>
 
-export type RemoteGetGlobalAppNotificationSettingsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetGlobalAppNotificationSettingsRpcParam = void
 
-export type RemoteGetInboxRemoteRpcParam = $ReadOnly<{vers: InboxVers, query?: ?GetInboxQuery, pagination?: ?Pagination, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetInboxRemoteRpcParam = $ReadOnly<{vers: InboxVers, query?: ?GetInboxQuery, pagination?: ?Pagination}>
 
-export type RemoteGetInboxVersionRpcParam = $ReadOnly<{uid: Gregor1.UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetInboxVersionRpcParam = $ReadOnly<{uid: Gregor1.UID}>
 
-export type RemoteGetMessageBeforeRpcParam = $ReadOnly<{convID: ConversationID, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetMessageBeforeRpcParam = $ReadOnly<{convID: ConversationID, age: Gregor1.DurationSec}>
 
-export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>}>
 
-export type RemoteGetPublicConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetPublicConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean}>
 
-export type RemoteGetS3ParamsRpcParam = $ReadOnly<{conversationID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetS3ParamsRpcParam = $ReadOnly<{conversationID: ConversationID}>
 
-export type RemoteGetTLFConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetTLFConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean}>
 
-export type RemoteGetThreadRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetThreadRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination}>
 
-export type RemoteGetUnreadUpdateFullRpcParam = $ReadOnly<{inboxVers: InboxVers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetUnreadUpdateFullRpcParam = $ReadOnly<{inboxVers: InboxVers}>
 
-export type RemoteJoinConversationRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteJoinConversationRpcParam = $ReadOnly<{convID: ConversationID}>
 
-export type RemoteLeaveConversationRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteLeaveConversationRpcParam = $ReadOnly<{convID: ConversationID}>
 
-export type RemoteMarkAsReadRpcParam = $ReadOnly<{conversationID: ConversationID, msgID: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteMarkAsReadRpcParam = $ReadOnly<{conversationID: ConversationID, msgID: MessageID}>
 
-export type RemoteNewConversationRemote2RpcParam = $ReadOnly<{idTriple: ConversationIDTriple, TLFMessage: MessageBoxed, membersType: ConversationMembersType, topicNameState?: ?TopicNameState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteNewConversationRemote2RpcParam = $ReadOnly<{idTriple: ConversationIDTriple, TLFMessage: MessageBoxed, membersType: ConversationMembersType, topicNameState?: ?TopicNameState}>
 
-export type RemoteNewConversationRemoteRpcParam = $ReadOnly<{idTriple: ConversationIDTriple, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteNewConversationRemoteRpcParam = $ReadOnly<{idTriple: ConversationIDTriple}>
 
-export type RemotePostRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageBoxed: MessageBoxed, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, topicNameState?: ?TopicNameState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemotePostRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageBoxed: MessageBoxed, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, topicNameState?: ?TopicNameState}>
 
-export type RemotePreviewConversationRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemotePreviewConversationRpcParam = $ReadOnly<{convID: ConversationID}>
 
-export type RemotePublishReadMessageRpcParam = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID, msgID: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemotePublishReadMessageRpcParam = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID, msgID: MessageID}>
 
-export type RemotePublishSetConversationStatusRpcParam = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID, status: ConversationStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemotePublishSetConversationStatusRpcParam = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID, status: ConversationStatus}>
 
-export type RemoteRemoteNotificationSuccessfulRpcParam = $ReadOnly<{authToken: Gregor1.SessionToken, companionPushIDs?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteRemoteNotificationSuccessfulRpcParam = $ReadOnly<{authToken: Gregor1.SessionToken, companionPushIDs?: ?Array<String>}>
 
-export type RemoteRetentionSweepConvRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteRetentionSweepConvRpcParam = $ReadOnly<{convID: ConversationID}>
 
-export type RemoteS3SignRpcParam = $ReadOnly<{version: Int, payload: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteS3SignRpcParam = $ReadOnly<{version: Int, payload: Bytes}>
 
-export type RemoteSetAppNotificationSettingsRpcParam = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSetAppNotificationSettingsRpcParam = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>
 
-export type RemoteSetConvRetentionRpcParam = $ReadOnly<{convID: ConversationID, policy: RetentionPolicy, sweepChannel: Uint64, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSetConvRetentionRpcParam = $ReadOnly<{convID: ConversationID, policy: RetentionPolicy, sweepChannel: Uint64}>
 
-export type RemoteSetConversationStatusRpcParam = $ReadOnly<{conversationID: ConversationID, status: ConversationStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSetConversationStatusRpcParam = $ReadOnly<{conversationID: ConversationID, status: ConversationStatus}>
 
-export type RemoteSetGlobalAppNotificationSettingsRpcParam = $ReadOnly<{settings: GlobalAppNotificationSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSetGlobalAppNotificationSettingsRpcParam = $ReadOnly<{settings: GlobalAppNotificationSettings}>
 
-export type RemoteSetTeamRetentionRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, policy: RetentionPolicy, sweepChannel: Uint64, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSetTeamRetentionRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, policy: RetentionPolicy, sweepChannel: Uint64}>
 
-export type RemoteSyncAllRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, session: Gregor1.SessionToken, inboxVers: InboxVers, ctime: Gregor1.Time, fresh: Boolean, protVers: SyncAllProtVers, hostName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSyncAllRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, session: Gregor1.SessionToken, inboxVers: InboxVers, ctime: Gregor1.Time, fresh: Boolean, protVers: SyncAllProtVers, hostName: String}>
 
-export type RemoteSyncChatRpcParam = $ReadOnly<{vers: InboxVers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSyncChatRpcParam = $ReadOnly<{vers: InboxVers}>
 
-export type RemoteSyncInboxRpcParam = $ReadOnly<{vers: InboxVers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSyncInboxRpcParam = $ReadOnly<{vers: InboxVers}>
 
-export type RemoteTlfFinalizeRpcParam = $ReadOnly<{tlfID: TLFID, resetUser: String, resetDate: String, resetTimestamp: Gregor1.Time, resetFull: String, resetUID?: ?Keybase1.UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteTlfFinalizeRpcParam = $ReadOnly<{tlfID: TLFID, resetUser: String, resetDate: String, resetTimestamp: Gregor1.Time, resetFull: String, resetUID?: ?Keybase1.UID}>
 
-export type RemoteTlfResolveRpcParam = $ReadOnly<{tlfID: TLFID, resolvedWriters?: ?Array<Gregor1.UID>, resolvedReaders?: ?Array<Gregor1.UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteTlfResolveRpcParam = $ReadOnly<{tlfID: TLFID, resolvedWriters?: ?Array<Gregor1.UID>, resolvedReaders?: ?Array<Gregor1.UID>}>
 
-export type RemoteUpdateTypingRemoteRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteUpdateTypingRemoteRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
 
-export type RemoteUpgradeKBFSToImpteamRpcParam = $ReadOnly<{tlfID: TLFID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteUpgradeKBFSToImpteamRpcParam = $ReadOnly<{tlfID: TLFID}>
 
 export type RemoteUserTypingUpdate = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
 
@@ -1413,6 +1136,61 @@ export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, head
 export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
 
 export type UpdateConversationMembership = $ReadOnly<{inboxVers: InboxVers, joined?: ?Array<ConversationMember>, removed?: ?Array<ConversationMember>, reset?: ?Array<ConversationMember>, previewed?: ?Array<ConversationID>, unreadUpdate?: ?UnreadUpdate, unreadUpdates?: ?Array<UnreadUpdate>}>
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
 type ChatUiChatConfirmChannelDeleteResult = Boolean
 type LocalDeleteConversationLocalResult = DeleteConversationLocalRes
 type LocalDownloadAttachmentLocalResult = DownloadAttachmentLocalRes

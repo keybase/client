@@ -5,79 +5,18 @@
 // Not enabled: calls need to be turned on in enabled-calls.json
 
 import engine, {EngineChannel} from '../../engine'
+import engineSaga from '../../engine/saga'
+import * as Saga from '../../util/saga'
+import type {Action} from '../../constants/types/flux'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
 
-// Not enabled: export const authAuthenticateSessionTokenRpcChannelMap = (configKeys: Array<string>, request: AuthAuthenticateSessionTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.auth.authenticateSessionToken', request)
+export type AuthAuthenticateSessionTokenRpcParam = $ReadOnly<{session: SessionToken}>
 
-// Not enabled: export const authAuthenticateSessionTokenRpcPromise = (request: AuthAuthenticateSessionTokenRpcParam): Promise<AuthAuthenticateSessionTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.auth.authenticateSessionToken', request, (error: RPCError, result: AuthAuthenticateSessionTokenResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const authInternalCreateGregorSuperUserSessionTokenRpcChannelMap = (configKeys: Array<string>, request: AuthInternalCreateGregorSuperUserSessionTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.authInternal.createGregorSuperUserSessionToken', request)
-
-// Not enabled: export const authInternalCreateGregorSuperUserSessionTokenRpcPromise = (request: AuthInternalCreateGregorSuperUserSessionTokenRpcParam): Promise<AuthInternalCreateGregorSuperUserSessionTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.authInternal.createGregorSuperUserSessionToken', request, (error: RPCError, result: AuthInternalCreateGregorSuperUserSessionTokenResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const authUpdateRevokeSessionIDsRpcChannelMap = (configKeys: Array<string>, request: AuthUpdateRevokeSessionIDsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.authUpdate.revokeSessionIDs', request)
-
-// Not enabled: export const authUpdateRevokeSessionIDsRpcPromise = (request: AuthUpdateRevokeSessionIDsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.authUpdate.revokeSessionIDs', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const incomingConsumeMessageMultiRpcChannelMap = (configKeys: Array<string>, request: IncomingConsumeMessageMultiRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.consumeMessageMulti', request)
-
-// Not enabled: export const incomingConsumeMessageMultiRpcPromise = (request: IncomingConsumeMessageMultiRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.consumeMessageMulti', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const incomingConsumeMessageRpcChannelMap = (configKeys: Array<string>, request: IncomingConsumeMessageRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.consumeMessage', request)
-
-// Not enabled: export const incomingConsumeMessageRpcPromise = (request: IncomingConsumeMessageRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.consumeMessage', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const incomingConsumePublishMessageRpcChannelMap = (configKeys: Array<string>, request: IncomingConsumePublishMessageRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.consumePublishMessage', request)
-
-// Not enabled: export const incomingConsumePublishMessageRpcPromise = (request: IncomingConsumePublishMessageRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.consumePublishMessage', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const incomingDescribeConnectedUsersInternalRpcChannelMap = (configKeys: Array<string>, request: IncomingDescribeConnectedUsersInternalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.describeConnectedUsersInternal', request)
-
-// Not enabled: export const incomingDescribeConnectedUsersInternalRpcPromise = (request: IncomingDescribeConnectedUsersInternalRpcParam): Promise<IncomingDescribeConnectedUsersInternalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.describeConnectedUsersInternal', request, (error: RPCError, result: IncomingDescribeConnectedUsersInternalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const incomingDescribeConnectedUsersRpcChannelMap = (configKeys: Array<string>, request: IncomingDescribeConnectedUsersRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.describeConnectedUsers', request)
-
-// Not enabled: export const incomingDescribeConnectedUsersRpcPromise = (request: IncomingDescribeConnectedUsersRpcParam): Promise<IncomingDescribeConnectedUsersResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.describeConnectedUsers', request, (error: RPCError, result: IncomingDescribeConnectedUsersResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const incomingPingRpcChannelMap = (configKeys: Array<string>, request: IncomingPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.ping', request)
-
-// Not enabled: export const incomingPingRpcPromise = (request: IncomingPingRpcParam): Promise<IncomingPingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.ping', request, (error: RPCError, result: IncomingPingResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const incomingStateByCategoryPrefixRpcChannelMap = (configKeys: Array<string>, request: IncomingStateByCategoryPrefixRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.stateByCategoryPrefix', request)
-
-// Not enabled: export const incomingStateByCategoryPrefixRpcPromise = (request: IncomingStateByCategoryPrefixRpcParam): Promise<IncomingStateByCategoryPrefixResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.stateByCategoryPrefix', request, (error: RPCError, result: IncomingStateByCategoryPrefixResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const incomingStateRpcChannelMap = (configKeys: Array<string>, request: IncomingStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.state', request)
-
-// Not enabled: export const incomingStateRpcPromise = (request: IncomingStateRpcParam): Promise<IncomingStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.state', request, (error: RPCError, result: IncomingStateResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const incomingSyncRpcChannelMap = (configKeys: Array<string>, request: IncomingSyncRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.sync', request)
-
-// Not enabled: export const incomingSyncRpcPromise = (request: IncomingSyncRpcParam): Promise<IncomingSyncResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.sync', request, (error: RPCError, result: IncomingSyncResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const incomingVersionRpcChannelMap = (configKeys: Array<string>, request: IncomingVersionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.version', request)
-
-// Not enabled: export const incomingVersionRpcPromise = (request: IncomingVersionRpcParam): Promise<IncomingVersionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.incoming.version', request, (error: RPCError, result: IncomingVersionResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const outgoingBroadcastMessageRpcChannelMap = (configKeys: Array<string>, request: OutgoingBroadcastMessageRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.outgoing.broadcastMessage', request)
-
-// Not enabled: export const outgoingBroadcastMessageRpcPromise = (request: OutgoingBroadcastMessageRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.outgoing.broadcastMessage', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remindDeleteRemindersRpcChannelMap = (configKeys: Array<string>, request: RemindDeleteRemindersRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.remind.deleteReminders', request)
-
-// Not enabled: export const remindDeleteRemindersRpcPromise = (request: RemindDeleteRemindersRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.remind.deleteReminders', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remindGetRemindersRpcChannelMap = (configKeys: Array<string>, request: RemindGetRemindersRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'gregor.1.remind.getReminders', request)
-
-// Not enabled: export const remindGetRemindersRpcPromise = (request: RemindGetRemindersRpcParam): Promise<RemindGetRemindersResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('gregor.1.remind.getReminders', request, (error: RPCError, result: RemindGetRemindersResult) => error ? reject(error) : resolve(result)))
-
-export type AuthAuthenticateSessionTokenRpcParam = $ReadOnly<{session: SessionToken, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-
-export type AuthInternalCreateGregorSuperUserSessionTokenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AuthInternalCreateGregorSuperUserSessionTokenRpcParam = void
 
 export type AuthResult = $ReadOnly<{uid: UID, username: String, sid: SessionID, isAdmin: Boolean}>
 
-export type AuthUpdateRevokeSessionIDsRpcParam = $ReadOnly<{sessionIDs?: ?Array<SessionID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AuthUpdateRevokeSessionIDsRpcParam = $ReadOnly<{sessionIDs?: ?Array<SessionID>}>
 
 export type Body = Bytes
 
@@ -97,25 +36,25 @@ export type DurationSec = Int64
 
 export type InBandMessage = $ReadOnly<{stateUpdate?: ?StateUpdateMessage, stateSync?: ?StateSyncMessage}>
 
-export type IncomingConsumeMessageMultiRpcParam = $ReadOnly<{msg: Message, uids?: ?Array<UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingConsumeMessageMultiRpcParam = $ReadOnly<{msg: Message, uids?: ?Array<UID>}>
 
-export type IncomingConsumeMessageRpcParam = $ReadOnly<{m: Message, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingConsumeMessageRpcParam = $ReadOnly<{m: Message}>
 
-export type IncomingConsumePublishMessageRpcParam = $ReadOnly<{m: Message, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingConsumePublishMessageRpcParam = $ReadOnly<{m: Message}>
 
-export type IncomingDescribeConnectedUsersInternalRpcParam = $ReadOnly<{uids?: ?Array<UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingDescribeConnectedUsersInternalRpcParam = $ReadOnly<{uids?: ?Array<UID>}>
 
-export type IncomingDescribeConnectedUsersRpcParam = $ReadOnly<{uids?: ?Array<UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingDescribeConnectedUsersRpcParam = $ReadOnly<{uids?: ?Array<UID>}>
 
-export type IncomingPingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingPingRpcParam = void
 
-export type IncomingStateByCategoryPrefixRpcParam = $ReadOnly<{uid: UID, deviceid: DeviceID, timeOrOffset: TimeOrOffset, categoryPrefix: Category, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingStateByCategoryPrefixRpcParam = $ReadOnly<{uid: UID, deviceid: DeviceID, timeOrOffset: TimeOrOffset, categoryPrefix: Category}>
 
-export type IncomingStateRpcParam = $ReadOnly<{uid: UID, deviceid: DeviceID, timeOrOffset: TimeOrOffset, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingStateRpcParam = $ReadOnly<{uid: UID, deviceid: DeviceID, timeOrOffset: TimeOrOffset}>
 
-export type IncomingSyncRpcParam = $ReadOnly<{uid: UID, deviceid: DeviceID, ctime: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingSyncRpcParam = $ReadOnly<{uid: UID, deviceid: DeviceID, ctime: Time}>
 
-export type IncomingVersionRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IncomingVersionRpcParam = $ReadOnly<{uid: UID}>
 
 export type Item = $ReadOnly<{category: Category, dtime: TimeOrOffset, remindTimes?: ?Array<TimeOrOffset>, body: Body}>
 
@@ -131,11 +70,11 @@ export type MsgRange = $ReadOnly<{endTime: TimeOrOffset, category: Category}>
 
 export type OutOfBandMessage = $ReadOnly<{uid: UID, system: System, body: Body}>
 
-export type OutgoingBroadcastMessageRpcParam = $ReadOnly<{m: Message, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type OutgoingBroadcastMessageRpcParam = $ReadOnly<{m: Message}>
 
-export type RemindDeleteRemindersRpcParam = $ReadOnly<{reminderIDs?: ?Array<ReminderID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemindDeleteRemindersRpcParam = $ReadOnly<{reminderIDs?: ?Array<ReminderID>}>
 
-export type RemindGetRemindersRpcParam = $ReadOnly<{maxReminders: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemindGetRemindersRpcParam = $ReadOnly<{maxReminders: Int}>
 
 export type Reminder = $ReadOnly<{item: ItemAndMetadata, seqno: Int, remindTime: Time}>
 
@@ -162,6 +101,22 @@ export type Time = Long
 export type TimeOrOffset = $ReadOnly<{time: Time, offset: DurationMsec}>
 
 export type UID = Bytes
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
 type AuthAuthenticateSessionTokenResult = AuthResult
 type AuthInternalCreateGregorSuperUserSessionTokenResult = SessionToken
 type IncomingDescribeConnectedUsersInternalResult = ?Array<ConnectedUser>

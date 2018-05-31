@@ -6,1093 +6,10 @@
 import * as Gregor1 from './rpc-gregor-gen'
 
 import engine, {EngineChannel} from '../../engine'
+import engineSaga from '../../engine/saga'
+import * as Saga from '../../util/saga'
+import type {Action} from '../../constants/types/flux'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
-
-// Not enabled: export const BTCRegisterBTCRpcChannelMap = (configKeys: Array<string>, request: BTCRegisterBTCRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.BTC.registerBTC', request)
-
-// Not enabled: export const BTCRegisterBTCRpcPromise = (request: BTCRegisterBTCRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.BTC.registerBTC', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const KBFSGitCreateRepoRpcChannelMap = (configKeys: Array<string>, request: KBFSGitCreateRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.createRepo', request)
-
-// Not enabled: export const KBFSGitCreateRepoRpcPromise = (request: KBFSGitCreateRepoRpcParam): Promise<KBFSGitCreateRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error: RPCError, result: KBFSGitCreateRepoResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const KBFSGitDeleteRepoRpcChannelMap = (configKeys: Array<string>, request: KBFSGitDeleteRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.deleteRepo', request)
-
-// Not enabled: export const KBFSGitDeleteRepoRpcPromise = (request: KBFSGitDeleteRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.deleteRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const KBFSGitGcRpcChannelMap = (configKeys: Array<string>, request: KBFSGitGcRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.gc', request)
-
-// Not enabled: export const KBFSGitGcRpcPromise = (request: KBFSGitGcRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.KBFSGit.gc', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const Kex2Provisionee2DidCounterSign2RpcChannelMap = (configKeys: Array<string>, request: Kex2Provisionee2DidCounterSign2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.didCounterSign2', request)
-
-// Not enabled: export const Kex2Provisionee2DidCounterSign2RpcPromise = (request: Kex2Provisionee2DidCounterSign2RpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.didCounterSign2', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const Kex2Provisionee2Hello2RpcChannelMap = (configKeys: Array<string>, request: Kex2Provisionee2Hello2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.hello2', request)
-
-// Not enabled: export const Kex2Provisionee2Hello2RpcPromise = (request: Kex2Provisionee2Hello2RpcParam): Promise<Kex2Provisionee2Hello2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee2.hello2', request, (error: RPCError, result: Kex2Provisionee2Hello2Result) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const Kex2ProvisioneeDidCounterSignRpcChannelMap = (configKeys: Array<string>, request: Kex2ProvisioneeDidCounterSignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee.didCounterSign', request)
-
-// Not enabled: export const Kex2ProvisioneeDidCounterSignRpcPromise = (request: Kex2ProvisioneeDidCounterSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.didCounterSign', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const Kex2ProvisioneeHelloRpcChannelMap = (configKeys: Array<string>, request: Kex2ProvisioneeHelloRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee.hello', request)
-
-// Not enabled: export const Kex2ProvisioneeHelloRpcPromise = (request: Kex2ProvisioneeHelloRpcParam): Promise<Kex2ProvisioneeHelloResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisionee.hello', request, (error: RPCError, result: Kex2ProvisioneeHelloResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const Kex2ProvisionerKexStartRpcChannelMap = (configKeys: Array<string>, request: Kex2ProvisionerKexStartRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisioner.kexStart', request)
-
-// Not enabled: export const Kex2ProvisionerKexStartRpcPromise = (request: Kex2ProvisionerKexStartRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.Kex2Provisioner.kexStart', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const NotifyFSRequestFSEditListRequestRpcChannelMap = (configKeys: Array<string>, request: NotifyFSRequestFSEditListRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.NotifyFSRequest.FSEditListRequest', request)
-
-// Not enabled: export const NotifyFSRequestFSEditListRequestRpcPromise = (request: NotifyFSRequestFSEditListRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSEditListRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const NotifyFSRequestFSSyncStatusRequestRpcChannelMap = (configKeys: Array<string>, request: NotifyFSRequestFSSyncStatusRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.NotifyFSRequest.FSSyncStatusRequest', request)
-
-// Not enabled: export const NotifyFSRequestFSSyncStatusRequestRpcPromise = (request: NotifyFSRequestFSSyncStatusRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.NotifyFSRequest.FSSyncStatusRequest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const ScanProofsScanProofsRpcChannelMap = (configKeys: Array<string>, request: ScanProofsScanProofsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ScanProofs.scanProofs', request)
-
-// Not enabled: export const ScanProofsScanProofsRpcPromise = (request: ScanProofsScanProofsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ScanProofs.scanProofs', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SecretKeysGetSecretKeysRpcChannelMap = (configKeys: Array<string>, request: SecretKeysGetSecretKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SecretKeys.getSecretKeys', request)
-
-// Not enabled: export const SecretKeysGetSecretKeysRpcPromise = (request: SecretKeysGetSecretKeysRpcParam): Promise<SecretKeysGetSecretKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SecretKeys.getSecretKeys', request, (error: RPCError, result: SecretKeysGetSecretKeysResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const SimpleFSSimpleFSCancelRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCancelRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCancel', request)
-
-// Not enabled: export const SimpleFSSimpleFSCheckRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCheckRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCheck', request)
-
-// Not enabled: export const SimpleFSSimpleFSCloseRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCloseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSClose', request)
-
-// Not enabled: export const SimpleFSSimpleFSCloseRpcPromise = (request: SimpleFSSimpleFSCloseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSClose', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SimpleFSSimpleFSCopyRecursiveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCopyRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCopyRecursive', request)
-
-// Not enabled: export const SimpleFSSimpleFSCopyRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSCopyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCopy', request)
-
-// Not enabled: export const SimpleFSSimpleFSCopyRpcPromise = (request: SimpleFSSimpleFSCopyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopy', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SimpleFSSimpleFSDumpDebuggingInfoRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSDumpDebuggingInfoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo', request)
-
-// Not enabled: export const SimpleFSSimpleFSDumpDebuggingInfoRpcPromise = (request: SimpleFSSimpleFSDumpDebuggingInfoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSDumpDebuggingInfo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SimpleFSSimpleFSGetHTTPAddressAndTokenRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetHTTPAddressAndTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken', request)
-
-// Not enabled: export const SimpleFSSimpleFSGetOpsRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetOpsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetOps', request)
-
-// Not enabled: export const SimpleFSSimpleFSGetOpsRpcPromise = (request: SimpleFSSimpleFSGetOpsRpcParam): Promise<SimpleFSSimpleFSGetOpsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetOps', request, (error: RPCError, result: SimpleFSSimpleFSGetOpsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const SimpleFSSimpleFSListRecursiveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSListRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSListRecursive', request)
-
-// Not enabled: export const SimpleFSSimpleFSListRecursiveRpcPromise = (request: SimpleFSSimpleFSListRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSListRecursive', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SimpleFSSimpleFSListRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSList', request)
-
-// Not enabled: export const SimpleFSSimpleFSMakeOpidRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSMakeOpidRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMakeOpid', request)
-
-// Not enabled: export const SimpleFSSimpleFSMakeOpidRpcPromise = (request: SimpleFSSimpleFSMakeOpidRpcParam): Promise<SimpleFSSimpleFSMakeOpidResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMakeOpid', request, (error: RPCError, result: SimpleFSSimpleFSMakeOpidResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const SimpleFSSimpleFSMoveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSMoveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMove', request)
-
-// Not enabled: export const SimpleFSSimpleFSMoveRpcPromise = (request: SimpleFSSimpleFSMoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMove', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SimpleFSSimpleFSOpenRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSOpenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSOpen', request)
-
-// Not enabled: export const SimpleFSSimpleFSOpenRpcPromise = (request: SimpleFSSimpleFSOpenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSOpen', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SimpleFSSimpleFSReadListRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSReadListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSReadList', request)
-
-// Not enabled: export const SimpleFSSimpleFSReadRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSReadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRead', request)
-
-// Not enabled: export const SimpleFSSimpleFSReadRpcPromise = (request: SimpleFSSimpleFSReadRpcParam): Promise<SimpleFSSimpleFSReadResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRead', request, (error: RPCError, result: SimpleFSSimpleFSReadResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const SimpleFSSimpleFSRemoveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSRemoveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRemove', request)
-
-// Not enabled: export const SimpleFSSimpleFSRemoveRpcPromise = (request: SimpleFSSimpleFSRemoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRemove', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SimpleFSSimpleFSRenameRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSRenameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRename', request)
-
-// Not enabled: export const SimpleFSSimpleFSRenameRpcPromise = (request: SimpleFSSimpleFSRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSRename', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SimpleFSSimpleFSSetStatRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSSetStatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSSetStat', request)
-
-// Not enabled: export const SimpleFSSimpleFSSetStatRpcPromise = (request: SimpleFSSimpleFSSetStatRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSSetStat', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const SimpleFSSimpleFSStatRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSStatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSStat', request)
-
-// Not enabled: export const SimpleFSSimpleFSSyncStatusRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSSyncStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSSyncStatus', request)
-
-// Not enabled: export const SimpleFSSimpleFSWaitRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSWaitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSWait', request)
-
-// Not enabled: export const SimpleFSSimpleFSWriteRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSWriteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSWrite', request)
-
-// Not enabled: export const SimpleFSSimpleFSWriteRpcPromise = (request: SimpleFSSimpleFSWriteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWrite', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const accountEmailChangeRpcChannelMap = (configKeys: Array<string>, request: AccountEmailChangeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.emailChange', request)
-
-// Not enabled: export const accountHasServerKeysRpcChannelMap = (configKeys: Array<string>, request: AccountHasServerKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.hasServerKeys', request)
-
-// Not enabled: export const accountPassphraseChangeRpcChannelMap = (configKeys: Array<string>, request: AccountPassphraseChangeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.passphraseChange', request)
-
-// Not enabled: export const accountPassphrasePromptRpcChannelMap = (configKeys: Array<string>, request: AccountPassphrasePromptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.passphrasePrompt', request)
-
-// Not enabled: export const accountPassphrasePromptRpcPromise = (request: AccountPassphrasePromptRpcParam): Promise<AccountPassphrasePromptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphrasePrompt', request, (error: RPCError, result: AccountPassphrasePromptResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const accountResetAccountRpcChannelMap = (configKeys: Array<string>, request: AccountResetAccountRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.resetAccount', request)
-
-// Not enabled: export const accountResetAccountRpcPromise = (request: AccountResetAccountRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.resetAccount', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const apiserverDeleteRpcChannelMap = (configKeys: Array<string>, request: ApiserverDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Delete', request)
-
-// Not enabled: export const apiserverGetRpcChannelMap = (configKeys: Array<string>, request: ApiserverGetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Get', request)
-
-// Not enabled: export const apiserverGetWithSessionRpcChannelMap = (configKeys: Array<string>, request: ApiserverGetWithSessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.GetWithSession', request)
-
-// Not enabled: export const apiserverPostJSONRpcChannelMap = (configKeys: Array<string>, request: ApiserverPostJSONRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.PostJSON', request)
-
-// Not enabled: export const apiserverPostRpcChannelMap = (configKeys: Array<string>, request: ApiserverPostRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Post', request)
-
-// Not enabled: export const appStateUpdateAppStateRpcChannelMap = (configKeys: Array<string>, request: AppStateUpdateAppStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.appState.updateAppState', request)
-
-// Not enabled: export const appStateUpdateAppStateRpcPromise = (request: AppStateUpdateAppStateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.appState.updateAppState', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const avatarsLoadTeamAvatarsRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadTeamAvatarsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadTeamAvatars', request)
-
-// Not enabled: export const avatarsLoadUserAvatarsRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadUserAvatarsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadUserAvatars', request)
-
-// Not enabled: export const badgerGetBadgeStateRpcChannelMap = (configKeys: Array<string>, request: BadgerGetBadgeStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.badger.getBadgeState', request)
-
-// Not enabled: export const badgerGetBadgeStateRpcPromise = (request: BadgerGetBadgeStateRpcParam): Promise<BadgerGetBadgeStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.badger.getBadgeState', request, (error: RPCError, result: BadgerGetBadgeStateResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const blockAddReferenceRpcChannelMap = (configKeys: Array<string>, request: BlockAddReferenceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.addReference', request)
-
-// Not enabled: export const blockAddReferenceRpcPromise = (request: BlockAddReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.addReference', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const blockArchiveReferenceRpcChannelMap = (configKeys: Array<string>, request: BlockArchiveReferenceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.archiveReference', request)
-
-// Not enabled: export const blockArchiveReferenceRpcPromise = (request: BlockArchiveReferenceRpcParam): Promise<BlockArchiveReferenceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReference', request, (error: RPCError, result: BlockArchiveReferenceResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const blockArchiveReferenceWithCountRpcChannelMap = (configKeys: Array<string>, request: BlockArchiveReferenceWithCountRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.archiveReferenceWithCount', request)
-
-// Not enabled: export const blockArchiveReferenceWithCountRpcPromise = (request: BlockArchiveReferenceWithCountRpcParam): Promise<BlockArchiveReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.archiveReferenceWithCount', request, (error: RPCError, result: BlockArchiveReferenceWithCountResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const blockAuthenticateSessionRpcChannelMap = (configKeys: Array<string>, request: BlockAuthenticateSessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.authenticateSession', request)
-
-// Not enabled: export const blockAuthenticateSessionRpcPromise = (request: BlockAuthenticateSessionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.authenticateSession', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const blockBlockPingRpcChannelMap = (configKeys: Array<string>, request: BlockBlockPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.blockPing', request)
-
-// Not enabled: export const blockBlockPingRpcPromise = (request: BlockBlockPingRpcParam): Promise<BlockBlockPingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.blockPing', request, (error: RPCError, result: BlockBlockPingResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const blockDelReferenceRpcChannelMap = (configKeys: Array<string>, request: BlockDelReferenceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.delReference', request)
-
-// Not enabled: export const blockDelReferenceRpcPromise = (request: BlockDelReferenceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReference', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const blockDelReferenceWithCountRpcChannelMap = (configKeys: Array<string>, request: BlockDelReferenceWithCountRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.delReferenceWithCount', request)
-
-// Not enabled: export const blockDelReferenceWithCountRpcPromise = (request: BlockDelReferenceWithCountRpcParam): Promise<BlockDelReferenceWithCountResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.delReferenceWithCount', request, (error: RPCError, result: BlockDelReferenceWithCountResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const blockGetBlockRpcChannelMap = (configKeys: Array<string>, request: BlockGetBlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getBlock', request)
-
-// Not enabled: export const blockGetBlockRpcPromise = (request: BlockGetBlockRpcParam): Promise<BlockGetBlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getBlock', request, (error: RPCError, result: BlockGetBlockResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const blockGetSessionChallengeRpcChannelMap = (configKeys: Array<string>, request: BlockGetSessionChallengeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getSessionChallenge', request)
-
-// Not enabled: export const blockGetSessionChallengeRpcPromise = (request: BlockGetSessionChallengeRpcParam): Promise<BlockGetSessionChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getSessionChallenge', request, (error: RPCError, result: BlockGetSessionChallengeResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const blockGetTeamQuotaInfoRpcChannelMap = (configKeys: Array<string>, request: BlockGetTeamQuotaInfoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getTeamQuotaInfo', request)
-
-// Not enabled: export const blockGetTeamQuotaInfoRpcPromise = (request: BlockGetTeamQuotaInfoRpcParam): Promise<BlockGetTeamQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, (error: RPCError, result: BlockGetTeamQuotaInfoResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const blockGetUserQuotaInfoRpcChannelMap = (configKeys: Array<string>, request: BlockGetUserQuotaInfoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getUserQuotaInfo', request)
-
-// Not enabled: export const blockGetUserQuotaInfoRpcPromise = (request: BlockGetUserQuotaInfoRpcParam): Promise<BlockGetUserQuotaInfoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.getUserQuotaInfo', request, (error: RPCError, result: BlockGetUserQuotaInfoResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const blockPutBlockAgainRpcChannelMap = (configKeys: Array<string>, request: BlockPutBlockAgainRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.putBlockAgain', request)
-
-// Not enabled: export const blockPutBlockAgainRpcPromise = (request: BlockPutBlockAgainRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlockAgain', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const blockPutBlockRpcChannelMap = (configKeys: Array<string>, request: BlockPutBlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.putBlock', request)
-
-// Not enabled: export const blockPutBlockRpcPromise = (request: BlockPutBlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.block.putBlock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const configCheckAPIServerOutOfDateWarningRpcChannelMap = (configKeys: Array<string>, request: ConfigCheckAPIServerOutOfDateWarningRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.checkAPIServerOutOfDateWarning', request)
-
-// Not enabled: export const configCheckAPIServerOutOfDateWarningRpcPromise = (request: ConfigCheckAPIServerOutOfDateWarningRpcParam): Promise<ConfigCheckAPIServerOutOfDateWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.checkAPIServerOutOfDateWarning', request, (error: RPCError, result: ConfigCheckAPIServerOutOfDateWarningResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const configClearValueRpcChannelMap = (configKeys: Array<string>, request: ConfigClearValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.clearValue', request)
-
-// Not enabled: export const configClearValueRpcPromise = (request: ConfigClearValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.clearValue', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const configGetBootstrapStatusRpcChannelMap = (configKeys: Array<string>, request: ConfigGetBootstrapStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getBootstrapStatus', request)
-
-// Not enabled: export const configGetConfigRpcChannelMap = (configKeys: Array<string>, request: ConfigGetConfigRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getConfig', request)
-
-// Not enabled: export const configGetCurrentStatusRpcChannelMap = (configKeys: Array<string>, request: ConfigGetCurrentStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getCurrentStatus', request)
-
-// Not enabled: export const configGetCurrentStatusRpcPromise = (request: ConfigGetCurrentStatusRpcParam): Promise<ConfigGetCurrentStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getCurrentStatus', request, (error: RPCError, result: ConfigGetCurrentStatusResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const configGetExtendedStatusRpcChannelMap = (configKeys: Array<string>, request: ConfigGetExtendedStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getExtendedStatus', request)
-
-// Not enabled: export const configGetRememberPassphraseRpcChannelMap = (configKeys: Array<string>, request: ConfigGetRememberPassphraseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getRememberPassphrase', request)
-
-// Not enabled: export const configGetValueRpcChannelMap = (configKeys: Array<string>, request: ConfigGetValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getValue', request)
-
-// Not enabled: export const configGetValueRpcPromise = (request: ConfigGetValueRpcParam): Promise<ConfigGetValueResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getValue', request, (error: RPCError, result: ConfigGetValueResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const configHelloIAmRpcChannelMap = (configKeys: Array<string>, request: ConfigHelloIAmRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.helloIAm', request)
-
-// Not enabled: export const configSetPathRpcChannelMap = (configKeys: Array<string>, request: ConfigSetPathRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setPath', request)
-
-// Not enabled: export const configSetPathRpcPromise = (request: ConfigSetPathRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setPath', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const configSetRememberPassphraseRpcChannelMap = (configKeys: Array<string>, request: ConfigSetRememberPassphraseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setRememberPassphrase', request)
-
-// Not enabled: export const configSetUserConfigRpcChannelMap = (configKeys: Array<string>, request: ConfigSetUserConfigRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setUserConfig', request)
-
-// Not enabled: export const configSetUserConfigRpcPromise = (request: ConfigSetUserConfigRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setUserConfig', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const configSetValueRpcChannelMap = (configKeys: Array<string>, request: ConfigSetValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setValue', request)
-
-// Not enabled: export const configSetValueRpcPromise = (request: ConfigSetValueRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setValue', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const configWaitForClientRpcChannelMap = (configKeys: Array<string>, request: ConfigWaitForClientRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.waitForClient', request)
-
-// Not enabled: export const cryptoSignED25519ForKBFSRpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519ForKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519ForKBFS', request)
-
-// Not enabled: export const cryptoSignED25519ForKBFSRpcPromise = (request: CryptoSignED25519ForKBFSRpcParam): Promise<CryptoSignED25519ForKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519ForKBFS', request, (error: RPCError, result: CryptoSignED25519ForKBFSResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const cryptoSignED25519RpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519', request)
-
-// Not enabled: export const cryptoSignED25519RpcPromise = (request: CryptoSignED25519RpcParam): Promise<CryptoSignED25519Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signED25519', request, (error: RPCError, result: CryptoSignED25519Result) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const cryptoSignToStringRpcChannelMap = (configKeys: Array<string>, request: CryptoSignToStringRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signToString', request)
-
-// Not enabled: export const cryptoSignToStringRpcPromise = (request: CryptoSignToStringRpcParam): Promise<CryptoSignToStringResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.signToString', request, (error: RPCError, result: CryptoSignToStringResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const cryptoUnboxBytes32AnyRpcChannelMap = (configKeys: Array<string>, request: CryptoUnboxBytes32AnyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.unboxBytes32Any', request)
-
-// Not enabled: export const cryptoUnboxBytes32AnyRpcPromise = (request: CryptoUnboxBytes32AnyRpcParam): Promise<CryptoUnboxBytes32AnyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32Any', request, (error: RPCError, result: CryptoUnboxBytes32AnyResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const cryptoUnboxBytes32RpcChannelMap = (configKeys: Array<string>, request: CryptoUnboxBytes32RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.unboxBytes32', request)
-
-// Not enabled: export const cryptoUnboxBytes32RpcPromise = (request: CryptoUnboxBytes32RpcParam): Promise<CryptoUnboxBytes32Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.crypto.unboxBytes32', request, (error: RPCError, result: CryptoUnboxBytes32Result) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const cryptocurrencyRegisterAddressRpcChannelMap = (configKeys: Array<string>, request: CryptocurrencyRegisterAddressRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.cryptocurrency.registerAddress', request)
-
-// Not enabled: export const ctlAppExitRpcChannelMap = (configKeys: Array<string>, request: CtlAppExitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.appExit', request)
-
-// Not enabled: export const ctlAppExitRpcPromise = (request: CtlAppExitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.appExit', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const ctlDbDeleteRpcChannelMap = (configKeys: Array<string>, request: CtlDbDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbDelete', request)
-
-// Not enabled: export const ctlDbDeleteRpcPromise = (request: CtlDbDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const ctlDbGetRpcChannelMap = (configKeys: Array<string>, request: CtlDbGetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbGet', request)
-
-// Not enabled: export const ctlDbGetRpcPromise = (request: CtlDbGetRpcParam): Promise<CtlDbGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbGet', request, (error: RPCError, result: CtlDbGetResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const ctlDbNukeRpcChannelMap = (configKeys: Array<string>, request: CtlDbNukeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbNuke', request)
-
-// Not enabled: export const ctlDbPutRpcChannelMap = (configKeys: Array<string>, request: CtlDbPutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbPut', request)
-
-// Not enabled: export const ctlDbPutRpcPromise = (request: CtlDbPutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbPut', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const ctlLogRotateRpcChannelMap = (configKeys: Array<string>, request: CtlLogRotateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.logRotate', request)
-
-// Not enabled: export const ctlLogRotateRpcPromise = (request: CtlLogRotateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.logRotate', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const ctlReloadRpcChannelMap = (configKeys: Array<string>, request: CtlReloadRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.reload', request)
-
-// Not enabled: export const ctlReloadRpcPromise = (request: CtlReloadRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.reload', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const ctlStopRpcChannelMap = (configKeys: Array<string>, request: CtlStopRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.stop', request)
-
-// Not enabled: export const ctlStopRpcPromise = (request: CtlStopRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.stop', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const debuggingFirstStepRpcChannelMap = (configKeys: Array<string>, request: DebuggingFirstStepRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.firstStep', request)
-
-// Not enabled: export const debuggingFirstStepRpcPromise = (request: DebuggingFirstStepRpcParam): Promise<DebuggingFirstStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.firstStep', request, (error: RPCError, result: DebuggingFirstStepResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const debuggingIncrementRpcChannelMap = (configKeys: Array<string>, request: DebuggingIncrementRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.increment', request)
-
-// Not enabled: export const debuggingIncrementRpcPromise = (request: DebuggingIncrementRpcParam): Promise<DebuggingIncrementResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.increment', request, (error: RPCError, result: DebuggingIncrementResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const debuggingScriptRpcChannelMap = (configKeys: Array<string>, request: DebuggingScriptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.script', request)
-
-// Not enabled: export const debuggingScriptRpcPromise = (request: DebuggingScriptRpcParam): Promise<DebuggingScriptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.script', request, (error: RPCError, result: DebuggingScriptResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const debuggingSecondStepRpcChannelMap = (configKeys: Array<string>, request: DebuggingSecondStepRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.secondStep', request)
-
-// Not enabled: export const debuggingSecondStepRpcPromise = (request: DebuggingSecondStepRpcParam): Promise<DebuggingSecondStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.secondStep', request, (error: RPCError, result: DebuggingSecondStepResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const delegateUiCtlRegisterGregorFirehoseFilteredRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered', request)
-
-// Not enabled: export const delegateUiCtlRegisterGregorFirehoseRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterGregorFirehoseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerGregorFirehose', request)
-
-// Not enabled: export const delegateUiCtlRegisterGregorFirehoseRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehose', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const delegateUiCtlRegisterHomeUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterHomeUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerHomeUI', request)
-
-// Not enabled: export const delegateUiCtlRegisterIdentifyUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterIdentifyUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerIdentifyUI', request)
-
-// Not enabled: export const delegateUiCtlRegisterRekeyUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterRekeyUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerRekeyUI', request)
-
-// Not enabled: export const delegateUiCtlRegisterSecretUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterSecretUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerSecretUI', request)
-
-// Not enabled: export const delegateUiCtlRegisterUpdateUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterUpdateUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerUpdateUI', request)
-
-// Not enabled: export const delegateUiCtlRegisterUpdateUIRpcPromise = (request: DelegateUiCtlRegisterUpdateUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerUpdateUI', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const deviceCheckDeviceNameForUserRpcChannelMap = (configKeys: Array<string>, request: DeviceCheckDeviceNameForUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.checkDeviceNameForUser', request)
-
-// Not enabled: export const deviceCheckDeviceNameForUserRpcPromise = (request: DeviceCheckDeviceNameForUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameForUser', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const deviceCheckDeviceNameFormatRpcChannelMap = (configKeys: Array<string>, request: DeviceCheckDeviceNameFormatRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.checkDeviceNameFormat', request)
-
-// Not enabled: export const deviceDeviceAddRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceAdd', request)
-
-// Not enabled: export const deviceDeviceHistoryListRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceHistoryListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceHistoryList', request)
-
-// Not enabled: export const deviceDeviceListRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceList', request)
-
-// Not enabled: export const deviceDeviceListRpcPromise = (request: DeviceDeviceListRpcParam): Promise<DeviceDeviceListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceList', request, (error: RPCError, result: DeviceDeviceListResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const favoriteFavoriteAddRpcChannelMap = (configKeys: Array<string>, request: FavoriteFavoriteAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.favoriteAdd', request)
-
-// Not enabled: export const favoriteFavoriteIgnoreRpcChannelMap = (configKeys: Array<string>, request: FavoriteFavoriteIgnoreRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.favoriteIgnore', request)
-
-// Not enabled: export const favoriteGetFavoritesRpcChannelMap = (configKeys: Array<string>, request: FavoriteGetFavoritesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.getFavorites', request)
-
-// Not enabled: export const favoriteGetFavoritesRpcPromise = (request: FavoriteGetFavoritesRpcParam): Promise<FavoriteGetFavoritesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.getFavorites', request, (error: RPCError, result: FavoriteGetFavoritesResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const fsListRpcChannelMap = (configKeys: Array<string>, request: FsListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.fs.List', request)
-
-// Not enabled: export const fsListRpcPromise = (request: FsListRpcParam): Promise<FsListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.fs.List', request, (error: RPCError, result: FsListResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const gitCreatePersonalRepoRpcChannelMap = (configKeys: Array<string>, request: GitCreatePersonalRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createPersonalRepo', request)
-
-// Not enabled: export const gitCreateTeamRepoRpcChannelMap = (configKeys: Array<string>, request: GitCreateTeamRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createTeamRepo', request)
-
-// Not enabled: export const gitDeleteGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitDeleteGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteGitMetadata', request)
-
-// Not enabled: export const gitDeleteGitMetadataRpcPromise = (request: GitDeleteGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteGitMetadata', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const gitDeletePersonalRepoRpcChannelMap = (configKeys: Array<string>, request: GitDeletePersonalRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deletePersonalRepo', request)
-
-// Not enabled: export const gitDeleteTeamRepoRpcChannelMap = (configKeys: Array<string>, request: GitDeleteTeamRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteTeamRepo', request)
-
-// Not enabled: export const gitGcPersonalRepoRpcChannelMap = (configKeys: Array<string>, request: GitGcPersonalRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.gcPersonalRepo', request)
-
-// Not enabled: export const gitGcPersonalRepoRpcPromise = (request: GitGcPersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcPersonalRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const gitGcTeamRepoRpcChannelMap = (configKeys: Array<string>, request: GitGcTeamRepoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.gcTeamRepo', request)
-
-// Not enabled: export const gitGcTeamRepoRpcPromise = (request: GitGcTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.gcTeamRepo', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const gitGetAllGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitGetAllGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
-
-// Not enabled: export const gitGetGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitGetGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getGitMetadata', request)
-
-// Not enabled: export const gitGetTeamRepoSettingsRpcChannelMap = (configKeys: Array<string>, request: GitGetTeamRepoSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getTeamRepoSettings', request)
-
-// Not enabled: export const gitGetTeamRepoSettingsRpcPromise = (request: GitGetTeamRepoSettingsRpcParam): Promise<GitGetTeamRepoSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getTeamRepoSettings', request, (error: RPCError, result: GitGetTeamRepoSettingsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const gitPutGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitPutGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.putGitMetadata', request)
-
-// Not enabled: export const gitPutGitMetadataRpcPromise = (request: GitPutGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.putGitMetadata', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const gitSetTeamRepoSettingsRpcChannelMap = (configKeys: Array<string>, request: GitSetTeamRepoSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.setTeamRepoSettings', request)
-
-// Not enabled: export const gregorDismissCategoryRpcChannelMap = (configKeys: Array<string>, request: GregorDismissCategoryRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissCategory', request)
-
-// Not enabled: export const gregorDismissItemRpcChannelMap = (configKeys: Array<string>, request: GregorDismissItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissItem', request)
-
-// Not enabled: export const gregorGetStateRpcChannelMap = (configKeys: Array<string>, request: GregorGetStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.getState', request)
-
-// Not enabled: export const gregorGetStateRpcPromise = (request: GregorGetStateRpcParam): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.getState', request, (error: RPCError, result: GregorGetStateResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const gregorInjectItemRpcChannelMap = (configKeys: Array<string>, request: GregorInjectItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.injectItem', request)
-
-// Not enabled: export const gregorUpdateItemRpcChannelMap = (configKeys: Array<string>, request: GregorUpdateItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.updateItem', request)
-
-// Not enabled: export const gregorUpdateItemRpcPromise = (request: GregorUpdateItemRpcParam): Promise<GregorUpdateItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.updateItem', request, (error: RPCError, result: GregorUpdateItemResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const homeHomeActionTakenRpcChannelMap = (configKeys: Array<string>, request: HomeHomeActionTakenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeActionTaken', request)
-
-// Not enabled: export const homeHomeActionTakenRpcPromise = (request: HomeHomeActionTakenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeActionTaken', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const homeHomeGetScreenRpcChannelMap = (configKeys: Array<string>, request: HomeHomeGetScreenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeGetScreen', request)
-
-// Not enabled: export const homeHomeMarkViewedRpcChannelMap = (configKeys: Array<string>, request: HomeHomeMarkViewedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeMarkViewed', request)
-
-// Not enabled: export const homeHomeSkipTodoTypeRpcChannelMap = (configKeys: Array<string>, request: HomeHomeSkipTodoTypeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeSkipTodoType', request)
-
-// Not enabled: export const identifyIdentify2RpcChannelMap = (configKeys: Array<string>, request: IdentifyIdentify2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identify2', request)
-
-// Not enabled: export const identifyIdentifyLiteRpcChannelMap = (configKeys: Array<string>, request: IdentifyIdentifyLiteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identifyLite', request)
-
-// Not enabled: export const identifyIdentifyLiteRpcPromise = (request: IdentifyIdentifyLiteRpcParam): Promise<IdentifyIdentifyLiteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identifyLite', request, (error: RPCError, result: IdentifyIdentifyLiteResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const identifyResolve3RpcChannelMap = (configKeys: Array<string>, request: IdentifyResolve3RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve3', request)
-
-// Not enabled: export const identifyResolve3RpcPromise = (request: IdentifyResolve3RpcParam): Promise<IdentifyResolve3Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.Resolve3', request, (error: RPCError, result: IdentifyResolve3Result) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const identifyResolveIdentifyImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveIdentifyImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveIdentifyImplicitTeam', request)
-
-// Not enabled: export const identifyResolveIdentifyImplicitTeamRpcPromise = (request: IdentifyResolveIdentifyImplicitTeamRpcParam): Promise<IdentifyResolveIdentifyImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error: RPCError, result: IdentifyResolveIdentifyImplicitTeamResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const identifyResolveImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: IdentifyResolveImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveImplicitTeam', request)
-
-// Not enabled: export const identifyResolveImplicitTeamRpcPromise = (request: IdentifyResolveImplicitTeamRpcParam): Promise<IdentifyResolveImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.resolveImplicitTeam', request, (error: RPCError, result: IdentifyResolveImplicitTeamResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const implicitTeamMigrationFinalizeMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationFinalizeMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.finalizeMigration', request)
-
-// Not enabled: export const implicitTeamMigrationFinalizeMigrationRpcPromise = (request: ImplicitTeamMigrationFinalizeMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.finalizeMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const implicitTeamMigrationStartMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationStartMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.startMigration', request)
-
-// Not enabled: export const implicitTeamMigrationStartMigrationRpcPromise = (request: ImplicitTeamMigrationStartMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.startMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const installFuseStatusRpcChannelMap = (configKeys: Array<string>, request: InstallFuseStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
-
-// Not enabled: export const installInstallCommandLinePrivilegedRpcChannelMap = (configKeys: Array<string>, request: InstallInstallCommandLinePrivilegedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installCommandLinePrivileged', request)
-
-// Not enabled: export const installInstallCommandLinePrivilegedRpcPromise = (request: InstallInstallCommandLinePrivilegedRpcParam): Promise<InstallInstallCommandLinePrivilegedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installCommandLinePrivileged', request, (error: RPCError, result: InstallInstallCommandLinePrivilegedResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const installInstallFuseRpcChannelMap = (configKeys: Array<string>, request: InstallInstallFuseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installFuse', request)
-
-// Not enabled: export const installInstallKBFSRpcChannelMap = (configKeys: Array<string>, request: InstallInstallKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installKBFS', request)
-
-// Not enabled: export const installUninstallKBFSRpcChannelMap = (configKeys: Array<string>, request: InstallUninstallKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.uninstallKBFS', request)
-
-// Not enabled: export const kbfsCreateTLFRpcChannelMap = (configKeys: Array<string>, request: KbfsCreateTLFRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.createTLF', request)
-
-// Not enabled: export const kbfsCreateTLFRpcPromise = (request: KbfsCreateTLFRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.createTLF', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const kbfsFSEditListRpcChannelMap = (configKeys: Array<string>, request: KbfsFSEditListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEditList', request)
-
-// Not enabled: export const kbfsFSEditListRpcPromise = (request: KbfsFSEditListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEditList', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const kbfsFSEventRpcChannelMap = (configKeys: Array<string>, request: KbfsFSEventRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEvent', request)
-
-// Not enabled: export const kbfsFSEventRpcPromise = (request: KbfsFSEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSEvent', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const kbfsFSSyncEventRpcChannelMap = (configKeys: Array<string>, request: KbfsFSSyncEventRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSSyncEvent', request)
-
-// Not enabled: export const kbfsFSSyncEventRpcPromise = (request: KbfsFSSyncEventRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncEvent', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const kbfsFSSyncStatusRpcChannelMap = (configKeys: Array<string>, request: KbfsFSSyncStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSSyncStatus', request)
-
-// Not enabled: export const kbfsFSSyncStatusRpcPromise = (request: KbfsFSSyncStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.FSSyncStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const kbfsGetKBFSTeamSettingsRpcChannelMap = (configKeys: Array<string>, request: KbfsGetKBFSTeamSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.getKBFSTeamSettings', request)
-
-// Not enabled: export const kbfsGetKBFSTeamSettingsRpcPromise = (request: KbfsGetKBFSTeamSettingsRpcParam): Promise<KbfsGetKBFSTeamSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfs.getKBFSTeamSettings', request, (error: RPCError, result: KbfsGetKBFSTeamSettingsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const kbfsMountGetAllAvailableMountDirsRpcChannelMap = (configKeys: Array<string>, request: KbfsMountGetAllAvailableMountDirsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetAllAvailableMountDirs', request)
-
-// Not enabled: export const kbfsMountGetAllAvailableMountDirsRpcPromise = (request: KbfsMountGetAllAvailableMountDirsRpcParam): Promise<KbfsMountGetAllAvailableMountDirsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetAllAvailableMountDirs', request, (error: RPCError, result: KbfsMountGetAllAvailableMountDirsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const kbfsMountGetCurrentMountDirRpcChannelMap = (configKeys: Array<string>, request: KbfsMountGetCurrentMountDirRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetCurrentMountDir', request)
-
-// Not enabled: export const kbfsMountSetCurrentMountDirRpcChannelMap = (configKeys: Array<string>, request: KbfsMountSetCurrentMountDirRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.SetCurrentMountDir', request)
-
-// Not enabled: export const kbfsMountSetCurrentMountDirRpcPromise = (request: KbfsMountSetCurrentMountDirRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.SetCurrentMountDir', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const logRegisterLoggerRpcChannelMap = (configKeys: Array<string>, request: LogRegisterLoggerRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.log.registerLogger', request)
-
-// Not enabled: export const logRegisterLoggerRpcPromise = (request: LogRegisterLoggerRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.log.registerLogger', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const loginAccountDeleteRpcChannelMap = (configKeys: Array<string>, request: LoginAccountDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.accountDelete', request)
-
-// Not enabled: export const loginClearStoredSecretRpcChannelMap = (configKeys: Array<string>, request: LoginClearStoredSecretRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.clearStoredSecret', request)
-
-// Not enabled: export const loginClearStoredSecretRpcPromise = (request: LoginClearStoredSecretRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.clearStoredSecret', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const loginDeprovisionRpcChannelMap = (configKeys: Array<string>, request: LoginDeprovisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.deprovision', request)
-
-// Not enabled: export const loginGetConfiguredAccountsRpcChannelMap = (configKeys: Array<string>, request: LoginGetConfiguredAccountsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.getConfiguredAccounts', request)
-
-// Not enabled: export const loginLoginOneshotRpcChannelMap = (configKeys: Array<string>, request: LoginLoginOneshotRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginOneshot', request)
-
-// Not enabled: export const loginLoginOneshotRpcPromise = (request: LoginLoginOneshotRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginOneshot', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const loginLoginProvisionedDeviceRpcChannelMap = (configKeys: Array<string>, request: LoginLoginProvisionedDeviceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginProvisionedDevice', request)
-
-// Not enabled: export const loginLoginProvisionedDeviceRpcPromise = (request: LoginLoginProvisionedDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginProvisionedDevice', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const loginLoginRpcChannelMap = (configKeys: Array<string>, request: LoginLoginRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.login', request)
-
-// Not enabled: export const loginLoginWithPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginLoginWithPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginWithPaperKey', request)
-
-// Not enabled: export const loginLoginWithPaperKeyRpcPromise = (request: LoginLoginWithPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginWithPaperKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const loginLogoutRpcChannelMap = (configKeys: Array<string>, request: LoginLogoutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.logout', request)
-
-// Not enabled: export const loginPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKey', request)
-
-// Not enabled: export const loginPaperKeySubmitRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeySubmitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKeySubmit', request)
-
-// Not enabled: export const loginRecoverAccountFromEmailAddressRpcChannelMap = (configKeys: Array<string>, request: LoginRecoverAccountFromEmailAddressRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.recoverAccountFromEmailAddress', request)
-
-// Not enabled: export const loginRecoverAccountFromEmailAddressRpcPromise = (request: LoginRecoverAccountFromEmailAddressRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.recoverAccountFromEmailAddress', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const loginUnlockRpcChannelMap = (configKeys: Array<string>, request: LoginUnlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.unlock', request)
-
-// Not enabled: export const loginUnlockRpcPromise = (request: LoginUnlockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const loginUnlockWithPassphraseRpcChannelMap = (configKeys: Array<string>, request: LoginUnlockWithPassphraseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.unlockWithPassphrase', request)
-
-// Not enabled: export const loginUnlockWithPassphraseRpcPromise = (request: LoginUnlockWithPassphraseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.unlockWithPassphrase', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const merkleGetCurrentMerkleRootRpcChannelMap = (configKeys: Array<string>, request: MerkleGetCurrentMerkleRootRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.getCurrentMerkleRoot', request)
-
-// Not enabled: export const merkleGetCurrentMerkleRootRpcPromise = (request: MerkleGetCurrentMerkleRootRpcParam): Promise<MerkleGetCurrentMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error: RPCError, result: MerkleGetCurrentMerkleRootResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const merkleVerifyMerkleRootAndKBFSRpcChannelMap = (configKeys: Array<string>, request: MerkleVerifyMerkleRootAndKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.verifyMerkleRootAndKBFS', request)
-
-// Not enabled: export const merkleVerifyMerkleRootAndKBFSRpcPromise = (request: MerkleVerifyMerkleRootAndKBFSRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.verifyMerkleRootAndKBFS', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataAuthenticateRpcChannelMap = (configKeys: Array<string>, request: MetadataAuthenticateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.authenticate', request)
-
-// Not enabled: export const metadataAuthenticateRpcPromise = (request: MetadataAuthenticateRpcParam): Promise<MetadataAuthenticateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.authenticate', request, (error: RPCError, result: MetadataAuthenticateResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataDeleteKeyRpcChannelMap = (configKeys: Array<string>, request: MetadataDeleteKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.deleteKey', request)
-
-// Not enabled: export const metadataDeleteKeyRpcPromise = (request: MetadataDeleteKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.deleteKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataFindNextMDRpcChannelMap = (configKeys: Array<string>, request: MetadataFindNextMDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.findNextMD', request)
-
-// Not enabled: export const metadataFindNextMDRpcPromise = (request: MetadataFindNextMDRpcParam): Promise<MetadataFindNextMDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.findNextMD', request, (error: RPCError, result: MetadataFindNextMDResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataForceMerkleBuildForTestRpcChannelMap = (configKeys: Array<string>, request: MetadataForceMerkleBuildForTestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.forceMerkleBuildForTest', request)
-
-// Not enabled: export const metadataForceMerkleBuildForTestRpcPromise = (request: MetadataForceMerkleBuildForTestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.forceMerkleBuildForTest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataGetChallengeRpcChannelMap = (configKeys: Array<string>, request: MetadataGetChallengeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getChallenge', request)
-
-// Not enabled: export const metadataGetChallengeRpcPromise = (request: MetadataGetChallengeRpcParam): Promise<MetadataGetChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getChallenge', request, (error: RPCError, result: MetadataGetChallengeResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataGetFolderHandleRpcChannelMap = (configKeys: Array<string>, request: MetadataGetFolderHandleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getFolderHandle', request)
-
-// Not enabled: export const metadataGetFolderHandleRpcPromise = (request: MetadataGetFolderHandleRpcParam): Promise<MetadataGetFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFolderHandle', request, (error: RPCError, result: MetadataGetFolderHandleResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataGetFoldersForRekeyRpcChannelMap = (configKeys: Array<string>, request: MetadataGetFoldersForRekeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getFoldersForRekey', request)
-
-// Not enabled: export const metadataGetFoldersForRekeyRpcPromise = (request: MetadataGetFoldersForRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getFoldersForRekey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataGetKeyBundlesRpcChannelMap = (configKeys: Array<string>, request: MetadataGetKeyBundlesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getKeyBundles', request)
-
-// Not enabled: export const metadataGetKeyBundlesRpcPromise = (request: MetadataGetKeyBundlesRpcParam): Promise<MetadataGetKeyBundlesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKeyBundles', request, (error: RPCError, result: MetadataGetKeyBundlesResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataGetKeyRpcChannelMap = (configKeys: Array<string>, request: MetadataGetKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getKey', request)
-
-// Not enabled: export const metadataGetKeyRpcPromise = (request: MetadataGetKeyRpcParam): Promise<MetadataGetKeyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getKey', request, (error: RPCError, result: MetadataGetKeyResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataGetLatestFolderHandleRpcChannelMap = (configKeys: Array<string>, request: MetadataGetLatestFolderHandleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getLatestFolderHandle', request)
-
-// Not enabled: export const metadataGetLatestFolderHandleRpcPromise = (request: MetadataGetLatestFolderHandleRpcParam): Promise<MetadataGetLatestFolderHandleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getLatestFolderHandle', request, (error: RPCError, result: MetadataGetLatestFolderHandleResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataGetMerkleNodeRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleNodeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleNode', request)
-
-// Not enabled: export const metadataGetMerkleNodeRpcPromise = (request: MetadataGetMerkleNodeRpcParam): Promise<MetadataGetMerkleNodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleNode', request, (error: RPCError, result: MetadataGetMerkleNodeResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataGetMerkleRootLatestRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleRootLatestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRootLatest', request)
-
-// Not enabled: export const metadataGetMerkleRootLatestRpcPromise = (request: MetadataGetMerkleRootLatestRpcParam): Promise<MetadataGetMerkleRootLatestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootLatest', request, (error: RPCError, result: MetadataGetMerkleRootLatestResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataGetMerkleRootRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleRootRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRoot', request)
-
-// Not enabled: export const metadataGetMerkleRootRpcPromise = (request: MetadataGetMerkleRootRpcParam): Promise<MetadataGetMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRoot', request, (error: RPCError, result: MetadataGetMerkleRootResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataGetMerkleRootSinceRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMerkleRootSinceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRootSince', request)
-
-// Not enabled: export const metadataGetMerkleRootSinceRpcPromise = (request: MetadataGetMerkleRootSinceRpcParam): Promise<MetadataGetMerkleRootSinceResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMerkleRootSince', request, (error: RPCError, result: MetadataGetMerkleRootSinceResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataGetMetadataRpcChannelMap = (configKeys: Array<string>, request: MetadataGetMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMetadata', request)
-
-// Not enabled: export const metadataGetMetadataRpcPromise = (request: MetadataGetMetadataRpcParam): Promise<MetadataGetMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getMetadata', request, (error: RPCError, result: MetadataGetMetadataResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataLockRpcChannelMap = (configKeys: Array<string>, request: MetadataLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.lock', request)
-
-// Not enabled: export const metadataLockRpcPromise = (request: MetadataLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.lock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataPing2RpcChannelMap = (configKeys: Array<string>, request: MetadataPing2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping2', request)
-
-// Not enabled: export const metadataPing2RpcPromise = (request: MetadataPing2RpcParam): Promise<MetadataPing2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping2', request, (error: RPCError, result: MetadataPing2Result) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataPingRpcChannelMap = (configKeys: Array<string>, request: MetadataPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping', request)
-
-// Not enabled: export const metadataPingRpcPromise = (request: MetadataPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.ping', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataPruneBranchRpcChannelMap = (configKeys: Array<string>, request: MetadataPruneBranchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.pruneBranch', request)
-
-// Not enabled: export const metadataPruneBranchRpcPromise = (request: MetadataPruneBranchRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.pruneBranch', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataPutKeysRpcChannelMap = (configKeys: Array<string>, request: MetadataPutKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.putKeys', request)
-
-// Not enabled: export const metadataPutKeysRpcPromise = (request: MetadataPutKeysRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putKeys', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataPutMetadataRpcChannelMap = (configKeys: Array<string>, request: MetadataPutMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.putMetadata', request)
-
-// Not enabled: export const metadataPutMetadataRpcPromise = (request: MetadataPutMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.putMetadata', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataRegisterForUpdatesRpcChannelMap = (configKeys: Array<string>, request: MetadataRegisterForUpdatesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.registerForUpdates', request)
-
-// Not enabled: export const metadataRegisterForUpdatesRpcPromise = (request: MetadataRegisterForUpdatesRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.registerForUpdates', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataReleaseLockRpcChannelMap = (configKeys: Array<string>, request: MetadataReleaseLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.releaseLock', request)
-
-// Not enabled: export const metadataReleaseLockRpcPromise = (request: MetadataReleaseLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.releaseLock', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataSetImplicitTeamModeForTestRpcChannelMap = (configKeys: Array<string>, request: MetadataSetImplicitTeamModeForTestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.setImplicitTeamModeForTest', request)
-
-// Not enabled: export const metadataSetImplicitTeamModeForTestRpcPromise = (request: MetadataSetImplicitTeamModeForTestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.setImplicitTeamModeForTest', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataStartImplicitTeamMigrationRpcChannelMap = (configKeys: Array<string>, request: MetadataStartImplicitTeamMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.startImplicitTeamMigration', request)
-
-// Not enabled: export const metadataStartImplicitTeamMigrationRpcPromise = (request: MetadataStartImplicitTeamMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.startImplicitTeamMigration', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataTruncateLockRpcChannelMap = (configKeys: Array<string>, request: MetadataTruncateLockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateLock', request)
-
-// Not enabled: export const metadataTruncateLockRpcPromise = (request: MetadataTruncateLockRpcParam): Promise<MetadataTruncateLockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateLock', request, (error: RPCError, result: MetadataTruncateLockResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataTruncateUnlockRpcChannelMap = (configKeys: Array<string>, request: MetadataTruncateUnlockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateUnlock', request)
-
-// Not enabled: export const metadataTruncateUnlockRpcPromise = (request: MetadataTruncateUnlockRpcParam): Promise<MetadataTruncateUnlockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.truncateUnlock', request, (error: RPCError, result: MetadataTruncateUnlockResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const metadataUpdateFolderNeedsRekeyRpcChannelMap = (configKeys: Array<string>, request: MetadataUpdateFolderNeedsRekeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.folderNeedsRekey', request)
-
-// Not enabled: export const metadataUpdateFolderNeedsRekeyRpcPromise = (request: MetadataUpdateFolderNeedsRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.folderNeedsRekey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataUpdateFoldersNeedRekeyRpcChannelMap = (configKeys: Array<string>, request: MetadataUpdateFoldersNeedRekeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.foldersNeedRekey', request)
-
-// Not enabled: export const metadataUpdateFoldersNeedRekeyRpcPromise = (request: MetadataUpdateFoldersNeedRekeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.foldersNeedRekey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const metadataUpdateMetadataUpdateRpcChannelMap = (configKeys: Array<string>, request: MetadataUpdateMetadataUpdateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.metadataUpdate', request)
-
-// Not enabled: export const metadataUpdateMetadataUpdateRpcPromise = (request: MetadataUpdateMetadataUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadataUpdate.metadataUpdate', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const notifyCtlSetNotificationsRpcChannelMap = (configKeys: Array<string>, request: NotifyCtlSetNotificationsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.notifyCtl.setNotifications', request)
-
-// Not enabled: export const paperprovisionPaperProvisionRpcChannelMap = (configKeys: Array<string>, request: PaperprovisionPaperProvisionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.paperprovision.paperProvision', request)
-
-// Not enabled: export const paperprovisionPaperProvisionRpcPromise = (request: PaperprovisionPaperProvisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.paperprovision.paperProvision', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pgpPgpDecryptRpcChannelMap = (configKeys: Array<string>, request: PgpPgpDecryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpDecrypt', request)
-
-// Not enabled: export const pgpPgpDecryptRpcPromise = (request: PgpPgpDecryptRpcParam): Promise<PgpPgpDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDecrypt', request, (error: RPCError, result: PgpPgpDecryptResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const pgpPgpDeletePrimaryRpcChannelMap = (configKeys: Array<string>, request: PgpPgpDeletePrimaryRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpDeletePrimary', request)
-
-// Not enabled: export const pgpPgpDeletePrimaryRpcPromise = (request: PgpPgpDeletePrimaryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpDeletePrimary', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pgpPgpEncryptRpcChannelMap = (configKeys: Array<string>, request: PgpPgpEncryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpEncrypt', request)
-
-// Not enabled: export const pgpPgpEncryptRpcPromise = (request: PgpPgpEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpEncrypt', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pgpPgpExportByFingerprintRpcChannelMap = (configKeys: Array<string>, request: PgpPgpExportByFingerprintRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExportByFingerprint', request)
-
-// Not enabled: export const pgpPgpExportByFingerprintRpcPromise = (request: PgpPgpExportByFingerprintRpcParam): Promise<PgpPgpExportByFingerprintResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByFingerprint', request, (error: RPCError, result: PgpPgpExportByFingerprintResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const pgpPgpExportByKIDRpcChannelMap = (configKeys: Array<string>, request: PgpPgpExportByKIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExportByKID', request)
-
-// Not enabled: export const pgpPgpExportByKIDRpcPromise = (request: PgpPgpExportByKIDRpcParam): Promise<PgpPgpExportByKIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExportByKID', request, (error: RPCError, result: PgpPgpExportByKIDResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const pgpPgpExportRpcChannelMap = (configKeys: Array<string>, request: PgpPgpExportRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExport', request)
-
-// Not enabled: export const pgpPgpExportRpcPromise = (request: PgpPgpExportRpcParam): Promise<PgpPgpExportResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpExport', request, (error: RPCError, result: PgpPgpExportResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const pgpPgpImportRpcChannelMap = (configKeys: Array<string>, request: PgpPgpImportRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpImport', request)
-
-// Not enabled: export const pgpPgpImportRpcPromise = (request: PgpPgpImportRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpImport', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pgpPgpKeyGenDefaultRpcChannelMap = (configKeys: Array<string>, request: PgpPgpKeyGenDefaultRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGenDefault', request)
-
-// Not enabled: export const pgpPgpKeyGenRpcChannelMap = (configKeys: Array<string>, request: PgpPgpKeyGenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGen', request)
-
-// Not enabled: export const pgpPgpKeyGenRpcPromise = (request: PgpPgpKeyGenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGen', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pgpPgpPullRpcChannelMap = (configKeys: Array<string>, request: PgpPgpPullRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpPull', request)
-
-// Not enabled: export const pgpPgpPullRpcPromise = (request: PgpPgpPullRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPull', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pgpPgpPurgeRpcChannelMap = (configKeys: Array<string>, request: PgpPgpPurgeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpPurge', request)
-
-// Not enabled: export const pgpPgpPurgeRpcPromise = (request: PgpPgpPurgeRpcParam): Promise<PgpPgpPurgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpPurge', request, (error: RPCError, result: PgpPgpPurgeResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const pgpPgpSelectRpcChannelMap = (configKeys: Array<string>, request: PgpPgpSelectRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpSelect', request)
-
-// Not enabled: export const pgpPgpSelectRpcPromise = (request: PgpPgpSelectRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSelect', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pgpPgpSignRpcChannelMap = (configKeys: Array<string>, request: PgpPgpSignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpSign', request)
-
-// Not enabled: export const pgpPgpSignRpcPromise = (request: PgpPgpSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpSign', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pgpPgpStorageDismissRpcChannelMap = (configKeys: Array<string>, request: PgpPgpStorageDismissRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpStorageDismiss', request)
-
-// Not enabled: export const pgpPgpUpdateRpcChannelMap = (configKeys: Array<string>, request: PgpPgpUpdateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpUpdate', request)
-
-// Not enabled: export const pgpPgpUpdateRpcPromise = (request: PgpPgpUpdateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpUpdate', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pgpPgpVerifyRpcChannelMap = (configKeys: Array<string>, request: PgpPgpVerifyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpVerify', request)
-
-// Not enabled: export const pgpPgpVerifyRpcPromise = (request: PgpPgpVerifyRpcParam): Promise<PgpPgpVerifyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpVerify', request, (error: RPCError, result: PgpPgpVerifyResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const pprofLogProcessorProfileRpcChannelMap = (configKeys: Array<string>, request: PprofLogProcessorProfileRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.logProcessorProfile', request)
-
-// Not enabled: export const pprofLogTraceRpcChannelMap = (configKeys: Array<string>, request: PprofLogTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.logTrace', request)
-
-// Not enabled: export const pprofProcessorProfileRpcChannelMap = (configKeys: Array<string>, request: PprofProcessorProfileRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.processorProfile', request)
-
-// Not enabled: export const pprofProcessorProfileRpcPromise = (request: PprofProcessorProfileRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.processorProfile', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const pprofTraceRpcChannelMap = (configKeys: Array<string>, request: PprofTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.trace', request)
-
-// Not enabled: export const pprofTraceRpcPromise = (request: PprofTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.trace', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const proveCheckProofRpcChannelMap = (configKeys: Array<string>, request: ProveCheckProofRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.checkProof', request)
-
-// Not enabled: export const proveStartProofRpcChannelMap = (configKeys: Array<string>, request: ProveStartProofRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.startProof', request)
-
-// Not enabled: export const quotaVerifySessionRpcChannelMap = (configKeys: Array<string>, request: QuotaVerifySessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.quota.verifySession', request)
-
-// Not enabled: export const quotaVerifySessionRpcPromise = (request: QuotaVerifySessionRpcParam): Promise<QuotaVerifySessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.quota.verifySession', request, (error: RPCError, result: QuotaVerifySessionResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const reachabilityCheckReachabilityRpcChannelMap = (configKeys: Array<string>, request: ReachabilityCheckReachabilityRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.checkReachability', request)
-
-// Not enabled: export const reachabilityReachabilityChangedRpcChannelMap = (configKeys: Array<string>, request: ReachabilityReachabilityChangedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.reachabilityChanged', request)
-
-// Not enabled: export const reachabilityReachabilityChangedRpcPromise = (request: ReachabilityReachabilityChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.reachabilityChanged', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const reachabilityStartReachabilityRpcChannelMap = (configKeys: Array<string>, request: ReachabilityStartReachabilityRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.startReachability', request)
-
-// Not enabled: export const rekeyDebugShowRekeyStatusRpcChannelMap = (configKeys: Array<string>, request: RekeyDebugShowRekeyStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.debugShowRekeyStatus', request)
-
-// Not enabled: export const rekeyDebugShowRekeyStatusRpcPromise = (request: RekeyDebugShowRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.debugShowRekeyStatus', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const rekeyGetPendingRekeyStatusRpcChannelMap = (configKeys: Array<string>, request: RekeyGetPendingRekeyStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.getPendingRekeyStatus', request)
-
-// Not enabled: export const rekeyGetPendingRekeyStatusRpcPromise = (request: RekeyGetPendingRekeyStatusRpcParam): Promise<RekeyGetPendingRekeyStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getPendingRekeyStatus', request, (error: RPCError, result: RekeyGetPendingRekeyStatusResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const rekeyGetRevokeWarningRpcChannelMap = (configKeys: Array<string>, request: RekeyGetRevokeWarningRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.getRevokeWarning', request)
-
-// Not enabled: export const rekeyRekeyStatusFinishRpcChannelMap = (configKeys: Array<string>, request: RekeyRekeyStatusFinishRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.rekeyStatusFinish', request)
-
-// Not enabled: export const rekeyRekeySyncRpcChannelMap = (configKeys: Array<string>, request: RekeyRekeySyncRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.rekeySync', request)
-
-// Not enabled: export const rekeyRekeySyncRpcPromise = (request: RekeyRekeySyncRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeySync', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const rekeyShowPendingRekeyStatusRpcChannelMap = (configKeys: Array<string>, request: RekeyShowPendingRekeyStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.showPendingRekeyStatus', request)
-
-// Not enabled: export const revokeRevokeDeviceRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeDeviceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeDevice', request)
-
-// Not enabled: export const revokeRevokeKeyRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeKey', request)
-
-// Not enabled: export const revokeRevokeSigsRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeSigsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeSigs', request)
-
-// Not enabled: export const saltpackSaltpackDecryptRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackDecryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackDecrypt', request)
-
-// Not enabled: export const saltpackSaltpackDecryptRpcPromise = (request: SaltpackSaltpackDecryptRpcParam): Promise<SaltpackSaltpackDecryptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackDecrypt', request, (error: RPCError, result: SaltpackSaltpackDecryptResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const saltpackSaltpackEncryptRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackEncryptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackEncrypt', request)
-
-// Not enabled: export const saltpackSaltpackEncryptRpcPromise = (request: SaltpackSaltpackEncryptRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackEncrypt', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const saltpackSaltpackSignRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackSignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackSign', request)
-
-// Not enabled: export const saltpackSaltpackSignRpcPromise = (request: SaltpackSaltpackSignRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackSign', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const saltpackSaltpackVerifyRpcChannelMap = (configKeys: Array<string>, request: SaltpackSaltpackVerifyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackVerify', request)
-
-// Not enabled: export const saltpackSaltpackVerifyRpcPromise = (request: SaltpackSaltpackVerifyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.saltpack.saltpackVerify', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const sessionCurrentSessionRpcChannelMap = (configKeys: Array<string>, request: SessionCurrentSessionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.session.currentSession', request)
-
-// Not enabled: export const sessionCurrentSessionRpcPromise = (request: SessionCurrentSessionRpcParam): Promise<SessionCurrentSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.currentSession', request, (error: RPCError, result: SessionCurrentSessionResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const sessionSessionPingRpcChannelMap = (configKeys: Array<string>, request: SessionSessionPingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.session.sessionPing', request)
-
-// Not enabled: export const sessionSessionPingRpcPromise = (request: SessionSessionPingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.session.sessionPing', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const signupCheckInvitationCodeRpcChannelMap = (configKeys: Array<string>, request: SignupCheckInvitationCodeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.checkInvitationCode', request)
-
-// Not enabled: export const signupCheckUsernameAvailableRpcChannelMap = (configKeys: Array<string>, request: SignupCheckUsernameAvailableRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.checkUsernameAvailable', request)
-
-// Not enabled: export const signupGetInvitationCodeRpcChannelMap = (configKeys: Array<string>, request: SignupGetInvitationCodeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.getInvitationCode', request)
-
-// Not enabled: export const signupInviteRequestRpcChannelMap = (configKeys: Array<string>, request: SignupInviteRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.inviteRequest', request)
-
-// Not enabled: export const signupSignupRpcChannelMap = (configKeys: Array<string>, request: SignupSignupRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.signup', request)
-
-// Not enabled: export const sigsSigListJSONRpcChannelMap = (configKeys: Array<string>, request: SigsSigListJSONRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.sigs.sigListJSON', request)
-
-// Not enabled: export const sigsSigListJSONRpcPromise = (request: SigsSigListJSONRpcParam): Promise<SigsSigListJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigListJSON', request, (error: RPCError, result: SigsSigListJSONResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const sigsSigListRpcChannelMap = (configKeys: Array<string>, request: SigsSigListRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.sigs.sigList', request)
-
-// Not enabled: export const sigsSigListRpcPromise = (request: SigsSigListRpcParam): Promise<SigsSigListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.sigs.sigList', request, (error: RPCError, result: SigsSigListResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, request: TeamsCanUserPerformRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.canUserPerform', request)
-
-// Not enabled: export const teamsGetTarsDisabledRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTarsDisabledRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTarsDisabled', request)
-
-// Not enabled: export const teamsGetTeamAndMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamAndMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
-
-// Not enabled: export const teamsGetTeamRootIDRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamRootIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamRootID', request)
-
-// Not enabled: export const teamsGetTeamRootIDRpcPromise = (request: TeamsGetTeamRootIDRpcParam): Promise<TeamsGetTeamRootIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamRootID', request, (error: RPCError, result: TeamsGetTeamRootIDResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsGetTeamShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamShowcase', request)
-
-// Not enabled: export const teamsGetTeamShowcaseRpcPromise = (request: TeamsGetTeamShowcaseRpcParam): Promise<TeamsGetTeamShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamShowcase', request, (error: RPCError, result: TeamsGetTeamShowcaseResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsLoadTeamPlusApplicationKeysRpcChannelMap = (configKeys: Array<string>, request: TeamsLoadTeamPlusApplicationKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.loadTeamPlusApplicationKeys', request)
-
-// Not enabled: export const teamsLoadTeamPlusApplicationKeysRpcPromise = (request: TeamsLoadTeamPlusApplicationKeysRpcParam): Promise<TeamsLoadTeamPlusApplicationKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error: RPCError, result: TeamsLoadTeamPlusApplicationKeysResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsLookupImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: TeamsLookupImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupImplicitTeam', request)
-
-// Not enabled: export const teamsLookupImplicitTeamRpcPromise = (request: TeamsLookupImplicitTeamRpcParam): Promise<TeamsLookupImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupImplicitTeam', request, (error: RPCError, result: TeamsLookupImplicitTeamResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsLookupOrCreateImplicitTeamRpcChannelMap = (configKeys: Array<string>, request: TeamsLookupOrCreateImplicitTeamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupOrCreateImplicitTeam', request)
-
-// Not enabled: export const teamsLookupOrCreateImplicitTeamRpcPromise = (request: TeamsLookupOrCreateImplicitTeamRpcParam): Promise<TeamsLookupOrCreateImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error: RPCError, result: TeamsLookupOrCreateImplicitTeamResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsSetTarsDisabledRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTarsDisabledRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTarsDisabled', request)
-
-// Not enabled: export const teamsSetTarsDisabledRpcPromise = (request: TeamsSetTarsDisabledRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTarsDisabled', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const teamsSetTeamMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTeamMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamMemberShowcase', request)
-
-// Not enabled: export const teamsSetTeamShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTeamShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamShowcase', request)
-
-// Not enabled: export const teamsTeamAcceptInviteOrRequestAccessRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInviteOrRequestAccess', request)
-
-// Not enabled: export const teamsTeamAcceptInviteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAcceptInviteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
-
-// Not enabled: export const teamsTeamAcceptInviteRpcPromise = (request: TeamsTeamAcceptInviteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInvite', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const teamsTeamAddEmailsBulkRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAddEmailsBulkRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddEmailsBulk', request)
-
-// Not enabled: export const teamsTeamAddMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamAddMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddMember', request)
-
-// Not enabled: export const teamsTeamChangeMembershipRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamChangeMembershipRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamChangeMembership', request)
-
-// Not enabled: export const teamsTeamChangeMembershipRpcPromise = (request: TeamsTeamChangeMembershipRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const teamsTeamCreateRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreate', request)
-
-// Not enabled: export const teamsTeamCreateSeitanTokenRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateSeitanTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSeitanToken', request)
-
-// Not enabled: export const teamsTeamCreateSeitanTokenRpcPromise = (request: TeamsTeamCreateSeitanTokenRpcParam): Promise<TeamsTeamCreateSeitanTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanToken', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsTeamCreateSeitanTokenV2RpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateSeitanTokenV2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSeitanTokenV2', request)
-
-// Not enabled: export const teamsTeamCreateWithSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateWithSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateWithSettings', request)
-
-// Not enabled: export const teamsTeamCreateWithSettingsRpcPromise = (request: TeamsTeamCreateWithSettingsRpcParam): Promise<TeamsTeamCreateWithSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error: RPCError, result: TeamsTeamCreateWithSettingsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsTeamDebugRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDebugRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDebug', request)
-
-// Not enabled: export const teamsTeamDebugRpcPromise = (request: TeamsTeamDebugRpcParam): Promise<TeamsTeamDebugResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDebug', request, (error: RPCError, result: TeamsTeamDebugResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsTeamDeleteRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamDeleteRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
-
-// Not enabled: export const teamsTeamDeleteRpcPromise = (request: TeamsTeamDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamDelete', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const teamsTeamEditMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamEditMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamEditMember', request)
-
-// Not enabled: export const teamsTeamGetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamGetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamGet', request)
-
-// Not enabled: export const teamsTeamIgnoreRequestRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamIgnoreRequestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamIgnoreRequest', request)
-
-// Not enabled: export const teamsTeamImplicitAdminsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamImplicitAdminsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamImplicitAdmins', request)
-
-// Not enabled: export const teamsTeamImplicitAdminsRpcPromise = (request: TeamsTeamImplicitAdminsRpcParam): Promise<TeamsTeamImplicitAdminsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamImplicitAdmins', request, (error: RPCError, result: TeamsTeamImplicitAdminsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsTeamLeaveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamLeaveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamLeave', request)
-
-// Not enabled: export const teamsTeamListMyAccessRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListMyAccessRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListMyAccessRequests', request)
-
-// Not enabled: export const teamsTeamListRequestsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListRequestsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListRequests', request)
-
-// Not enabled: export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListSubteamsRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListSubteamsRecursive', request)
-
-// Not enabled: export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsTeamListTeammatesRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListTeammatesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListTeammates', request)
-
-// Not enabled: export const teamsTeamListTeammatesRpcPromise = (request: TeamsTeamListTeammatesRpcParam): Promise<TeamsTeamListTeammatesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListTeammates', request, (error: RPCError, result: TeamsTeamListTeammatesResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsTeamListUnverifiedRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListUnverifiedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListUnverified', request)
-
-// Not enabled: export const teamsTeamListVerifiedRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListVerifiedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListVerified', request)
-
-// Not enabled: export const teamsTeamListVerifiedRpcPromise = (request: TeamsTeamListVerifiedRpcParam): Promise<TeamsTeamListVerifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListVerified', request, (error: RPCError, result: TeamsTeamListVerifiedResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
-
-// Not enabled: export const teamsTeamReAddMemberAfterResetRpcPromise = (request: TeamsTeamReAddMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const teamsTeamRemoveMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRemoveMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRemoveMember', request)
-
-// Not enabled: export const teamsTeamRenameRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRenameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRename', request)
-
-// Not enabled: export const teamsTeamRenameRpcPromise = (request: TeamsTeamRenameRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRename', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const teamsTeamRequestAccessRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRequestAccessRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRequestAccess', request)
-
-// Not enabled: export const teamsTeamRequestAccessRpcPromise = (request: TeamsTeamRequestAccessRpcParam): Promise<TeamsTeamRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error: RPCError, result: TeamsTeamRequestAccessResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsTeamRotateKeyRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRotateKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRotateKey', request)
-
-// Not enabled: export const teamsTeamRotateKeyRpcPromise = (request: TeamsTeamRotateKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRotateKey', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const teamsTeamSetSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamSetSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamSetSettings', request)
-
-// Not enabled: export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const teamsTeamTreeRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamTreeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamTree', request)
-
-// Not enabled: export const teamsTryDecryptWithTeamKeyRpcChannelMap = (configKeys: Array<string>, request: TeamsTryDecryptWithTeamKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.tryDecryptWithTeamKey', request)
-
-// Not enabled: export const teamsTryDecryptWithTeamKeyRpcPromise = (request: TeamsTryDecryptWithTeamKeyRpcParam): Promise<TeamsTryDecryptWithTeamKeyResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.tryDecryptWithTeamKey', request, (error: RPCError, result: TeamsTryDecryptWithTeamKeyResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const teamsUploadTeamAvatarRpcChannelMap = (configKeys: Array<string>, request: TeamsUploadTeamAvatarRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.uploadTeamAvatar', request)
-
-// Not enabled: export const teamsUploadTeamAvatarRpcPromise = (request: TeamsUploadTeamAvatarRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.uploadTeamAvatar', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const testPanicRpcChannelMap = (configKeys: Array<string>, request: TestPanicRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.panic', request)
-
-// Not enabled: export const testPanicRpcPromise = (request: TestPanicRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.panic', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const testTestCallbackRpcChannelMap = (configKeys: Array<string>, request: TestTestCallbackRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.testCallback', request)
-
-// Not enabled: export const testTestCallbackRpcPromise = (request: TestTestCallbackRpcParam): Promise<TestTestCallbackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.testCallback', request, (error: RPCError, result: TestTestCallbackResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const testTestRpcChannelMap = (configKeys: Array<string>, request: TestTestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.test', request)
-
-// Not enabled: export const testTestRpcPromise = (request: TestTestRpcParam): Promise<TestTestResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.test.test', request, (error: RPCError, result: TestTestResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const tlfCompleteAndCanonicalizePrivateTlfNameRpcChannelMap = (configKeys: Array<string>, request: TlfCompleteAndCanonicalizePrivateTlfNameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request)
-
-// Not enabled: export const tlfCompleteAndCanonicalizePrivateTlfNameRpcPromise = (request: TlfCompleteAndCanonicalizePrivateTlfNameRpcParam): Promise<TlfCompleteAndCanonicalizePrivateTlfNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request, (error: RPCError, result: TlfCompleteAndCanonicalizePrivateTlfNameResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const tlfCryptKeysRpcChannelMap = (configKeys: Array<string>, request: TlfCryptKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.CryptKeys', request)
-
-// Not enabled: export const tlfCryptKeysRpcPromise = (request: TlfCryptKeysRpcParam): Promise<TlfCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.CryptKeys', request, (error: RPCError, result: TlfCryptKeysResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const tlfKeysGetPublicCanonicalTLFNameAndIDRpcChannelMap = (configKeys: Array<string>, request: TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request)
-
-// Not enabled: export const tlfKeysGetPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfKeysGetPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request, (error: RPCError, result: TlfKeysGetPublicCanonicalTLFNameAndIDResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const tlfKeysGetTLFCryptKeysRpcChannelMap = (configKeys: Array<string>, request: TlfKeysGetTLFCryptKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlfKeys.getTLFCryptKeys', request)
-
-// Not enabled: export const tlfKeysGetTLFCryptKeysRpcPromise = (request: TlfKeysGetTLFCryptKeysRpcParam): Promise<TlfKeysGetTLFCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getTLFCryptKeys', request, (error: RPCError, result: TlfKeysGetTLFCryptKeysResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const tlfPublicCanonicalTLFNameAndIDRpcChannelMap = (configKeys: Array<string>, request: TlfPublicCanonicalTLFNameAndIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.publicCanonicalTLFNameAndID', request)
-
-// Not enabled: export const tlfPublicCanonicalTLFNameAndIDRpcPromise = (request: TlfPublicCanonicalTLFNameAndIDRpcParam): Promise<TlfPublicCanonicalTLFNameAndIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlf.publicCanonicalTLFNameAndID', request, (error: RPCError, result: TlfPublicCanonicalTLFNameAndIDResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const trackCheckTrackingRpcChannelMap = (configKeys: Array<string>, request: TrackCheckTrackingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.checkTracking', request)
-
-// Not enabled: export const trackDismissWithTokenRpcChannelMap = (configKeys: Array<string>, request: TrackDismissWithTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.dismissWithToken', request)
-
-// Not enabled: export const trackFakeTrackingChangedRpcChannelMap = (configKeys: Array<string>, request: TrackFakeTrackingChangedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.fakeTrackingChanged', request)
-
-// Not enabled: export const trackFakeTrackingChangedRpcPromise = (request: TrackFakeTrackingChangedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.fakeTrackingChanged', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const trackTrackRpcChannelMap = (configKeys: Array<string>, request: TrackTrackRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.track', request)
-
-// Not enabled: export const trackTrackRpcPromise = (request: TrackTrackRpcParam): Promise<TrackTrackResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.track', request, (error: RPCError, result: TrackTrackResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const trackTrackWithTokenRpcChannelMap = (configKeys: Array<string>, request: TrackTrackWithTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.trackWithToken', request)
-
-// Not enabled: export const trackUntrackRpcChannelMap = (configKeys: Array<string>, request: TrackUntrackRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.untrack', request)
-
-// Not enabled: export const userFindNextMerkleRootAfterRevokeRpcChannelMap = (configKeys: Array<string>, request: UserFindNextMerkleRootAfterRevokeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.findNextMerkleRootAfterRevoke', request)
-
-// Not enabled: export const userFindNextMerkleRootAfterRevokeRpcPromise = (request: UserFindNextMerkleRootAfterRevokeRpcParam): Promise<UserFindNextMerkleRootAfterRevokeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.findNextMerkleRootAfterRevoke', request, (error: RPCError, result: UserFindNextMerkleRootAfterRevokeResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
-
-// Not enabled: export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userInterestingPeopleRpcChannelMap = (configKeys: Array<string>, request: UserInterestingPeopleRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
-
-// Not enabled: export const userListTrackers2RpcChannelMap = (configKeys: Array<string>, request: UserListTrackers2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackers2', request)
-
-// Not enabled: export const userListTrackersByNameRpcChannelMap = (configKeys: Array<string>, request: UserListTrackersByNameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackersByName', request)
-
-// Not enabled: export const userListTrackersByNameRpcPromise = (request: UserListTrackersByNameRpcParam): Promise<UserListTrackersByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersByName', request, (error: RPCError, result: UserListTrackersByNameResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userListTrackersRpcChannelMap = (configKeys: Array<string>, request: UserListTrackersRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackers', request)
-
-// Not enabled: export const userListTrackersRpcPromise = (request: UserListTrackersRpcParam): Promise<UserListTrackersResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers', request, (error: RPCError, result: UserListTrackersResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userListTrackersSelfRpcChannelMap = (configKeys: Array<string>, request: UserListTrackersSelfRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackersSelf', request)
-
-// Not enabled: export const userListTrackersSelfRpcPromise = (request: UserListTrackersSelfRpcParam): Promise<UserListTrackersSelfResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackersSelf', request, (error: RPCError, result: UserListTrackersSelfResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userListTrackingJSONRpcChannelMap = (configKeys: Array<string>, request: UserListTrackingJSONRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackingJSON', request)
-
-// Not enabled: export const userListTrackingJSONRpcPromise = (request: UserListTrackingJSONRpcParam): Promise<UserListTrackingJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackingJSON', request, (error: RPCError, result: UserListTrackingJSONResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userListTrackingRpcChannelMap = (configKeys: Array<string>, request: UserListTrackingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTracking', request)
-
-// Not enabled: export const userListTrackingRpcPromise = (request: UserListTrackingRpcParam): Promise<UserListTrackingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTracking', request, (error: RPCError, result: UserListTrackingResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userLoadAllPublicKeysUnverifiedRpcChannelMap = (configKeys: Array<string>, request: UserLoadAllPublicKeysUnverifiedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadAllPublicKeysUnverified', request)
-
-// Not enabled: export const userLoadAllPublicKeysUnverifiedRpcPromise = (request: UserLoadAllPublicKeysUnverifiedRpcParam): Promise<UserLoadAllPublicKeysUnverifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadAllPublicKeysUnverified', request, (error: RPCError, result: UserLoadAllPublicKeysUnverifiedResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userLoadMyPublicKeysRpcChannelMap = (configKeys: Array<string>, request: UserLoadMyPublicKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadMyPublicKeys', request)
-
-// Not enabled: export const userLoadMyPublicKeysRpcPromise = (request: UserLoadMyPublicKeysRpcParam): Promise<UserLoadMyPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMyPublicKeys', request, (error: RPCError, result: UserLoadMyPublicKeysResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userLoadMySettingsRpcChannelMap = (configKeys: Array<string>, request: UserLoadMySettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadMySettings', request)
-
-// Not enabled: export const userLoadPublicKeysRpcChannelMap = (configKeys: Array<string>, request: UserLoadPublicKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadPublicKeys', request)
-
-// Not enabled: export const userLoadPublicKeysRpcPromise = (request: UserLoadPublicKeysRpcParam): Promise<UserLoadPublicKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadPublicKeys', request, (error: RPCError, result: UserLoadPublicKeysResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userLoadUncheckedUserSummariesRpcChannelMap = (configKeys: Array<string>, request: UserLoadUncheckedUserSummariesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUncheckedUserSummaries', request)
-
-// Not enabled: export const userLoadUncheckedUserSummariesRpcPromise = (request: UserLoadUncheckedUserSummariesRpcParam): Promise<UserLoadUncheckedUserSummariesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUncheckedUserSummaries', request, (error: RPCError, result: UserLoadUncheckedUserSummariesResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userLoadUserByNameRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserByNameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserByName', request)
-
-// Not enabled: export const userLoadUserByNameRpcPromise = (request: UserLoadUserByNameRpcParam): Promise<UserLoadUserByNameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserByName', request, (error: RPCError, result: UserLoadUserByNameResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userLoadUserPlusKeysRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserPlusKeysRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserPlusKeys', request)
-
-// Not enabled: export const userLoadUserPlusKeysRpcPromise = (request: UserLoadUserPlusKeysRpcParam): Promise<UserLoadUserPlusKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeys', request, (error: RPCError, result: UserLoadUserPlusKeysResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userLoadUserPlusKeysV2RpcChannelMap = (configKeys: Array<string>, request: UserLoadUserPlusKeysV2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserPlusKeysV2', request)
-
-// Not enabled: export const userLoadUserPlusKeysV2RpcPromise = (request: UserLoadUserPlusKeysV2RpcParam): Promise<UserLoadUserPlusKeysV2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeysV2', request, (error: RPCError, result: UserLoadUserPlusKeysV2Result) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userLoadUserRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUser', request)
-
-// Not enabled: export const userLoadUserRpcPromise = (request: UserLoadUserRpcParam): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUser', request, (error: RPCError, result: UserLoadUserResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userMeUserVersionRpcChannelMap = (configKeys: Array<string>, request: UserMeUserVersionRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.meUserVersion', request)
-
-// Not enabled: export const userMeUserVersionRpcPromise = (request: UserMeUserVersionRpcParam): Promise<UserMeUserVersionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.meUserVersion', request, (error: RPCError, result: UserMeUserVersionResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userProfileEditRpcChannelMap = (configKeys: Array<string>, request: UserProfileEditRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.profileEdit', request)
-
-// Not enabled: export const userSearchRpcChannelMap = (configKeys: Array<string>, request: UserSearchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.search', request)
-
-// Not enabled: export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const userUploadUserAvatarRpcChannelMap = (configKeys: Array<string>, request: UserUploadUserAvatarRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.uploadUserAvatar', request)
-
-// Not enabled: export const userUploadUserAvatarRpcPromise = (request: UserUploadUserAvatarRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.uploadUserAvatar', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
 
 export const SimpleFSSimpleFSCancelRpcPromise = (request: SimpleFSSimpleFSCancelRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCancel', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
@@ -1417,7 +334,7 @@ export const delegateUiCtlRegisterSecretUIRpcPromise = (request: DelegateUiCtlRe
 
 export const deviceCheckDeviceNameFormatRpcPromise = (request: DeviceCheckDeviceNameFormatRpcParam): Promise<DeviceCheckDeviceNameFormatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameFormat', request, (error: RPCError, result: DeviceCheckDeviceNameFormatResult) => (error ? reject(error) : resolve(result))))
 
-export const deviceDeviceAddRpcPromise = (request: DeviceDeviceAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceAdd', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const deviceDeviceAddRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceAdd', request)
 
 export const deviceDeviceHistoryListRpcPromise = (request: DeviceDeviceHistoryListRpcParam): Promise<DeviceDeviceHistoryListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceHistoryList', request, (error: RPCError, result: DeviceDeviceHistoryListResult) => (error ? reject(error) : resolve(result))))
 
@@ -1465,6 +382,8 @@ export const gregorDismissCategoryRpcPromise = (request: GregorDismissCategoryRp
 
 export const gregorDismissItemRpcPromise = (request: GregorDismissItemRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissItem', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const gregorGetStateRpcPromise = (request: GregorGetStateRpcParam): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.getState', request, (error: RPCError, result: GregorGetStateResult) => (error ? reject(error) : resolve(result))))
+
 export const gregorInjectItemRpcPromise = (request: GregorInjectItemRpcParam): Promise<GregorInjectItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.injectItem', request, (error: RPCError, result: GregorInjectItemResult) => (error ? reject(error) : resolve(result))))
 
 export const gregorUIPushReason = {
@@ -1472,6 +391,8 @@ export const gregorUIPushReason = {
   reconnected: 1,
   newData: 2,
 }
+
+export const gregorUpdateItemRpcPromise = (request: GregorUpdateItemRpcParam): Promise<GregorUpdateItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.updateItem', request, (error: RPCError, result: GregorUpdateItemResult) => (error ? reject(error) : resolve(result))))
 
 export const homeHomeGetScreenRpcPromise = (request: HomeHomeGetScreenRpcParam): Promise<HomeHomeGetScreenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeGetScreen', request, (error: RPCError, result: HomeHomeGetScreenResult) => (error ? reject(error) : resolve(result))))
 
@@ -1621,11 +542,11 @@ export const loginDeprovisionRpcPromise = (request: LoginDeprovisionRpcParam): P
 
 export const loginGetConfiguredAccountsRpcPromise = (request: LoginGetConfiguredAccountsRpcParam): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.getConfiguredAccounts', request, (error: RPCError, result: LoginGetConfiguredAccountsResult) => (error ? reject(error) : resolve(result))))
 
-export const loginLoginRpcPromise = (request: LoginLoginRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.login', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const loginLoginRpcChannelMap = (configKeys: Array<string>, request: LoginLoginRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.login', request)
 
-export const loginLogoutRpcPromise = (request: LoginLogoutRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.logout', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const loginLogoutRpcChannelMap = (configKeys: Array<string>, request: LoginLogoutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.logout', request)
 
-export const loginPaperKeyRpcPromise = (request: LoginPaperKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const loginPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKey', request)
 
 export const loginPaperKeySubmitRpcPromise = (request: LoginPaperKeySubmitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKeySubmit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
@@ -1638,7 +559,7 @@ export const passphraseCommonPassphraseType = {
   verifyPassPhrase: 3,
 }
 
-export const pgpPgpKeyGenDefaultRpcPromise = (request: PgpPgpKeyGenDefaultRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpKeyGenDefault', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const pgpPgpKeyGenDefaultRpcChannelMap = (configKeys: Array<string>, request: PgpPgpKeyGenDefaultRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGenDefault', request)
 
 export const pgpPgpStorageDismissRpcPromise = (request: PgpPgpStorageDismissRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpStorageDismiss', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
@@ -1733,7 +654,7 @@ export const proveCommonProofType = {
   rooter: 100001,
 }
 
-export const proveStartProofRpcPromise = (request: ProveStartProofRpcParam): Promise<ProveStartProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.startProof', request, (error: RPCError, result: ProveStartProofResult) => (error ? reject(error) : resolve(result))))
+export const proveStartProofRpcChannelMap = (configKeys: Array<string>, request: ProveStartProofRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.startProof', request)
 
 export const proveUiPromptOverwriteType = {
   social: 0,
@@ -2001,15 +922,15 @@ export const userProfileEditRpcPromise = (request: UserProfileEditRpcParam): Pro
 
 export type APIRes = $ReadOnly<{status: String, body: String, httpStatus: Int, appStatus: String}>
 
-export type AccountEmailChangeRpcParam = $ReadOnly<{newEmail: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AccountEmailChangeRpcParam = $ReadOnly<{newEmail: String}>
 
-export type AccountHasServerKeysRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AccountHasServerKeysRpcParam = void
 
-export type AccountPassphraseChangeRpcParam = $ReadOnly<{oldPassphrase: String, passphrase: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AccountPassphraseChangeRpcParam = $ReadOnly<{oldPassphrase: String, passphrase: String, force: Boolean}>
 
-export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg}>
 
-export type AccountResetAccountRpcParam = $ReadOnly<{passphrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AccountResetAccountRpcParam = $ReadOnly<{passphrase: String}>
 
 export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
 
@@ -2017,15 +938,15 @@ export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, t
 
 export type AnnotatedTeamList = $ReadOnly<{teams?: ?Array<AnnotatedMemberInfo>, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}>
 
-export type ApiserverDeleteRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ApiserverDeleteRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
 
-export type ApiserverGetRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ApiserverGetRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
 
-export type ApiserverGetWithSessionRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ApiserverGetWithSessionRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
 
-export type ApiserverPostJSONRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, JSONPayload?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ApiserverPostJSONRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, JSONPayload?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
 
-export type ApiserverPostRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ApiserverPostRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
 
 export type AppState =
   | 0 // FOREGROUND_0
@@ -2034,7 +955,7 @@ export type AppState =
   | 3 // BACKGROUNDACTIVE_3
   | 4 // BACKGROUNDFINAL_4
 
-export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState}>
 
 export type AsyncOps =
   | 0 // LIST_0
@@ -2051,49 +972,49 @@ export type AvatarFormat = String
 
 export type AvatarUrl = String
 
-export type AvatarsLoadTeamAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AvatarsLoadTeamAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>}>
 
-export type AvatarsLoadUserAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AvatarsLoadUserAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>}>
 
-export type BTCRegisterBTCRpcParam = $ReadOnly<{address: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BTCRegisterBTCRpcParam = $ReadOnly<{address: String, force: Boolean}>
 
 export type BadgeConversationInfo = $ReadOnly<{convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int}>
 
 export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>}>
 
-export type BadgerGetBadgeStateRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BadgerGetBadgeStateRpcParam = void
 
 export type BinaryKID = Bytes
 
-export type BlockAddReferenceRpcParam = $ReadOnly<{folder: String, ref: BlockReference, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockAddReferenceRpcParam = $ReadOnly<{folder: String, ref: BlockReference}>
 
-export type BlockArchiveReferenceRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockArchiveReferenceRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>}>
 
-export type BlockArchiveReferenceWithCountRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockArchiveReferenceWithCountRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>}>
 
-export type BlockAuthenticateSessionRpcParam = $ReadOnly<{signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockAuthenticateSessionRpcParam = $ReadOnly<{signature: String}>
 
-export type BlockBlockPingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockBlockPingRpcParam = void
 
-export type BlockDelReferenceRpcParam = $ReadOnly<{folder: String, ref: BlockReference, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockDelReferenceRpcParam = $ReadOnly<{folder: String, ref: BlockReference}>
 
-export type BlockDelReferenceWithCountRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockDelReferenceWithCountRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>}>
 
-export type BlockGetBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockGetBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String}>
 
-export type BlockGetSessionChallengeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockGetSessionChallengeRpcParam = void
 
-export type BlockGetTeamQuotaInfoRpcParam = $ReadOnly<{tid: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockGetTeamQuotaInfoRpcParam = $ReadOnly<{tid: TeamID}>
 
-export type BlockGetUserQuotaInfoRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockGetUserQuotaInfoRpcParam = void
 
 export type BlockIdCombo = $ReadOnly<{blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType}>
 
 export type BlockPingResponse = $ReadOnly<{}>
 
-export type BlockPutBlockAgainRpcParam = $ReadOnly<{folder: String, ref: BlockReference, blockKey: String, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockPutBlockAgainRpcParam = $ReadOnly<{folder: String, ref: BlockReference, blockKey: String, buf: Bytes}>
 
-export type BlockPutBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String, blockKey: String, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type BlockPutBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String, blockKey: String, buf: Bytes}>
 
 export type BlockRefNonce = any
 
@@ -2154,35 +1075,35 @@ export type ComponentResult = $ReadOnly<{name: String, status: Status, exitCode:
 
 export type Config = $ReadOnly<{serverURI: String, socketFile: String, label: String, runMode: String, gpgExists: Boolean, gpgPath: String, version: String, path: String, binaryRealpath: String, configPath: String, versionShort: String, versionFull: String, isAutoForked: Boolean, forkType: ForkType}>
 
-export type ConfigCheckAPIServerOutOfDateWarningRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigCheckAPIServerOutOfDateWarningRpcParam = void
 
-export type ConfigClearValueRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigClearValueRpcParam = $ReadOnly<{path: String}>
 
-export type ConfigGetBootstrapStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigGetBootstrapStatusRpcParam = void
 
-export type ConfigGetConfigRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigGetConfigRpcParam = void
 
-export type ConfigGetCurrentStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigGetCurrentStatusRpcParam = void
 
-export type ConfigGetExtendedStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigGetExtendedStatusRpcParam = void
 
-export type ConfigGetRememberPassphraseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigGetRememberPassphraseRpcParam = void
 
-export type ConfigGetValueRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigGetValueRpcParam = $ReadOnly<{path: String}>
 
-export type ConfigHelloIAmRpcParam = $ReadOnly<{details: ClientDetails, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigHelloIAmRpcParam = $ReadOnly<{details: ClientDetails}>
 
-export type ConfigSetPathRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigSetPathRpcParam = $ReadOnly<{path: String}>
 
-export type ConfigSetRememberPassphraseRpcParam = $ReadOnly<{remember: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigSetRememberPassphraseRpcParam = $ReadOnly<{remember: Boolean}>
 
-export type ConfigSetUserConfigRpcParam = $ReadOnly<{username: String, key: String, value: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigSetUserConfigRpcParam = $ReadOnly<{username: String, key: String, value: String}>
 
-export type ConfigSetValueRpcParam = $ReadOnly<{path: String, value: ConfigValue, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigSetValueRpcParam = $ReadOnly<{path: String, value: ConfigValue}>
 
 export type ConfigValue = $ReadOnly<{isNull: Boolean, b?: ?Boolean, i?: ?Int, s?: ?String, o?: ?String}>
 
-export type ConfigWaitForClientRpcParam = $ReadOnly<{clientType: ClientType, timeout: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ConfigWaitForClientRpcParam = $ReadOnly<{clientType: ClientType, timeout: DurationSec}>
 
 export type ConfiguredAccount = $ReadOnly<{username: String, hasStoredSecret: Boolean}>
 
@@ -2194,37 +1115,37 @@ export type CopyArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
 
 export type CryptKey = $ReadOnly<{KeyGeneration: Int, Key: Bytes32}>
 
-export type CryptoSignED25519ForKBFSRpcParam = $ReadOnly<{msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CryptoSignED25519ForKBFSRpcParam = $ReadOnly<{msg: Bytes, reason: String}>
 
-export type CryptoSignED25519RpcParam = $ReadOnly<{msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CryptoSignED25519RpcParam = $ReadOnly<{msg: Bytes, reason: String}>
 
-export type CryptoSignToStringRpcParam = $ReadOnly<{msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CryptoSignToStringRpcParam = $ReadOnly<{msg: Bytes, reason: String}>
 
-export type CryptoUnboxBytes32AnyRpcParam = $ReadOnly<{bundles?: ?Array<CiphertextBundle>, reason: String, promptPaper: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CryptoUnboxBytes32AnyRpcParam = $ReadOnly<{bundles?: ?Array<CiphertextBundle>, reason: String, promptPaper: Boolean}>
 
-export type CryptoUnboxBytes32RpcParam = $ReadOnly<{encryptedBytes32: EncryptedBytes32, nonce: BoxNonce, peersPublicKey: BoxPublicKey, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CryptoUnboxBytes32RpcParam = $ReadOnly<{encryptedBytes32: EncryptedBytes32, nonce: BoxNonce, peersPublicKey: BoxPublicKey, reason: String}>
 
 export type Cryptocurrency = $ReadOnly<{rowId: Int, pkhash: Bytes, address: String, sigID: SigID, type: String, family: String}>
 
-export type CryptocurrencyRegisterAddressRpcParam = $ReadOnly<{address: String, force: Boolean, wantedFamily: String, sigVersion?: ?SigVersion, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CryptocurrencyRegisterAddressRpcParam = $ReadOnly<{address: String, force: Boolean, wantedFamily: String, sigVersion?: ?SigVersion}>
 
 export type CsrfToken = String
 
-export type CtlAppExitRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CtlAppExitRpcParam = void
 
-export type CtlDbDeleteRpcParam = $ReadOnly<{key: DbKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CtlDbDeleteRpcParam = $ReadOnly<{key: DbKey}>
 
-export type CtlDbGetRpcParam = $ReadOnly<{key: DbKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CtlDbGetRpcParam = $ReadOnly<{key: DbKey}>
 
-export type CtlDbNukeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CtlDbNukeRpcParam = void
 
-export type CtlDbPutRpcParam = $ReadOnly<{key: DbKey, value: DbValue, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CtlDbPutRpcParam = $ReadOnly<{key: DbKey, value: DbValue}>
 
-export type CtlLogRotateRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CtlLogRotateRpcParam = void
 
-export type CtlReloadRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CtlReloadRpcParam = void
 
-export type CtlStopRpcParam = $ReadOnly<{exitCode: ExitCode, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CtlStopRpcParam = $ReadOnly<{exitCode: ExitCode}>
 
 export type DbKey = $ReadOnly<{dbType: DbType, objType: Int, key: String}>
 
@@ -2234,41 +1155,41 @@ export type DbType =
 
 export type DbValue = Bytes
 
-export type DebuggingFirstStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DebuggingFirstStepRpcParam = $ReadOnly<{val: Int}>
 
-export type DebuggingIncrementRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DebuggingIncrementRpcParam = $ReadOnly<{val: Int}>
 
-export type DebuggingScriptRpcParam = $ReadOnly<{script: String, args?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DebuggingScriptRpcParam = $ReadOnly<{script: String, args?: ?Array<String>}>
 
-export type DebuggingSecondStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DebuggingSecondStepRpcParam = $ReadOnly<{val: Int}>
 
-export type DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam = $ReadOnly<{systems?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam = $ReadOnly<{systems?: ?Array<String>}>
 
-export type DelegateUiCtlRegisterGregorFirehoseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DelegateUiCtlRegisterGregorFirehoseRpcParam = void
 
-export type DelegateUiCtlRegisterHomeUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DelegateUiCtlRegisterHomeUIRpcParam = void
 
-export type DelegateUiCtlRegisterIdentifyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DelegateUiCtlRegisterIdentifyUIRpcParam = void
 
-export type DelegateUiCtlRegisterRekeyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DelegateUiCtlRegisterRekeyUIRpcParam = void
 
-export type DelegateUiCtlRegisterSecretUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DelegateUiCtlRegisterSecretUIRpcParam = void
 
-export type DelegateUiCtlRegisterUpdateUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DelegateUiCtlRegisterUpdateUIRpcParam = void
 
 export type Device = $ReadOnly<{type: String, name: String, deviceID: DeviceID, cTime: Time, mTime: Time, lastUsedTime: Time, encryptKey: KID, verifyKey: KID, status: Int}>
 
-export type DeviceCheckDeviceNameForUserRpcParam = $ReadOnly<{username: String, devicename: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DeviceCheckDeviceNameForUserRpcParam = $ReadOnly<{username: String, devicename: String}>
 
-export type DeviceCheckDeviceNameFormatRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DeviceCheckDeviceNameFormatRpcParam = $ReadOnly<{name: String}>
 
 export type DeviceDetail = $ReadOnly<{device: Device, eldest: Boolean, provisioner?: ?Device, provisionedAt?: ?Time, revokedAt?: ?Time, revokedBy: KID, revokedByDevice?: ?Device, currentDevice: Boolean}>
 
-export type DeviceDeviceAddRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DeviceDeviceAddRpcParam = void
 
-export type DeviceDeviceHistoryListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DeviceDeviceHistoryListRpcParam = void
 
-export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type DeviceDeviceListRpcParam = void
 
 export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
@@ -2369,11 +1290,11 @@ export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, totalSyncingOps:
 
 export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
 
-export type FavoriteFavoriteAddRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type FavoriteFavoriteAddRpcParam = $ReadOnly<{folder: Folder}>
 
-export type FavoriteFavoriteIgnoreRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type FavoriteFavoriteIgnoreRpcParam = $ReadOnly<{folder: Folder}>
 
-export type FavoriteGetFavoritesRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type FavoriteGetFavoritesRpcParam = void
 
 export type FavoritesResult = $ReadOnly<{favoriteFolders?: ?Array<Folder>, ignoredFolders?: ?Array<Folder>, newFolders?: ?Array<Folder>}>
 
@@ -2409,7 +1330,7 @@ export type ForkType =
   | 3 // LAUNCHD_3
   | 4 // SYSTEMD_4
 
-export type FsListRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type FsListRpcParam = $ReadOnly<{path: String}>
 
 export type FullName = String
 
@@ -2446,25 +1367,25 @@ export type GetTLFCryptKeysRes = $ReadOnly<{nameIDBreaks: CanonicalTLFNameAndIDW
 
 export type GitCommit = $ReadOnly<{commitHash: String, message: String, authorName: String, authorEmail: String, ctime: Time}>
 
-export type GitCreatePersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitCreatePersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName}>
 
-export type GitCreateTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitCreateTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean}>
 
-export type GitDeleteGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitDeleteGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoName: GitRepoName}>
 
-export type GitDeletePersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitDeletePersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName}>
 
-export type GitDeleteTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitDeleteTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean}>
 
-export type GitGcPersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitGcPersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName, force: Boolean}>
 
-export type GitGcTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitGcTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, force: Boolean}>
 
-export type GitGetAllGitMetadataRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitGetAllGitMetadataRpcParam = void
 
-export type GitGetGitMetadataRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitGetGitMetadataRpcParam = $ReadOnly<{folder: Folder}>
 
-export type GitGetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitGetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID}>
 
 export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>, pushType: GitPushType, previousRepoName: GitRepoName}>
 
@@ -2479,7 +1400,7 @@ export type GitPushType =
   | 1 // CREATEREPO_1
   | 3 // RENAMEREPO_3
 
-export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean}>
 
 export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean, isDelete: Boolean}>
 
@@ -2495,35 +1416,35 @@ export type GitRepoResultState =
 
 export type GitServerMetadata = $ReadOnly<{ctime: Time, mtime: Time, lastModifyingUsername: String, lastModifyingDeviceID: DeviceID, lastModifyingDeviceName: String}>
 
-export type GitSetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, channelName?: ?String, chatDisabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GitSetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, channelName?: ?String, chatDisabled: Boolean}>
 
 export type GitTeamRepoSettings = $ReadOnly<{channelName?: ?String, chatDisabled: Boolean}>
 
-export type GpgUiConfirmDuplicateKeyChosenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GpgUiConfirmDuplicateKeyChosenRpcParam = void
 
-export type GpgUiGetTTYRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GpgUiGetTTYRpcParam = void
 
-export type GpgUiSelectKeyAndPushOptionRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GpgUiSelectKeyAndPushOptionRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>}>
 
-export type GpgUiSelectKeyRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GpgUiSelectKeyRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>}>
 
-export type GpgUiSignRpcParam = $ReadOnly<{msg: Bytes, fingerprint: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GpgUiSignRpcParam = $ReadOnly<{msg: Bytes, fingerprint: Bytes}>
 
-export type GpgUiWantToAddGPGKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GpgUiWantToAddGPGKeyRpcParam = void
 
-export type GregorDismissCategoryRpcParam = $ReadOnly<{category: Gregor1.Category, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GregorDismissCategoryRpcParam = $ReadOnly<{category: Gregor1.Category}>
 
-export type GregorDismissItemRpcParam = $ReadOnly<{id: Gregor1.MsgID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GregorDismissItemRpcParam = $ReadOnly<{id: Gregor1.MsgID}>
 
-export type GregorGetStateRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GregorGetStateRpcParam = void
 
-export type GregorInjectItemRpcParam = $ReadOnly<{cat: String, body: String, dtime: Gregor1.TimeOrOffset, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GregorInjectItemRpcParam = $ReadOnly<{cat: String, body: String, dtime: Gregor1.TimeOrOffset}>
 
-export type GregorUIPushOutOfBandMessagesRpcParam = $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GregorUIPushOutOfBandMessagesRpcParam = $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>}>
 
-export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason: PushReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason: PushReason}>
 
-export type GregorUpdateItemRpcParam = $ReadOnly<{msgID: Gregor1.MsgID, cat: String, body: String, dtime: Gregor1.TimeOrOffset, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type GregorUpdateItemRpcParam = $ReadOnly<{msgID: Gregor1.MsgID, cat: String, body: String, dtime: Gregor1.TimeOrOffset}>
 
 export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
 
@@ -2533,13 +1454,13 @@ export type Hello2Res = $ReadOnly<{encryptionKey: KID, sigPayload: HelloRes, dev
 
 export type HelloRes = String
 
-export type HomeHomeActionTakenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type HomeHomeActionTakenRpcParam = void
 
-export type HomeHomeGetScreenRpcParam = $ReadOnly<{markViewed: Boolean, numFollowSuggestionsWanted: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type HomeHomeGetScreenRpcParam = $ReadOnly<{markViewed: Boolean, numFollowSuggestionsWanted: Int}>
 
-export type HomeHomeMarkViewedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type HomeHomeMarkViewedRpcParam = void
 
-export type HomeHomeSkipTodoTypeRpcParam = $ReadOnly<{t: HomeScreenTodoType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type HomeHomeSkipTodoTypeRpcParam = $ReadOnly<{t: HomeScreenTodoType}>
 
 export type HomeScreen = $ReadOnly<{lastViewed: Time, version: Int, visits: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>}>
 
@@ -2578,15 +1499,15 @@ export type HomeScreenTodoType =
   | 9 // GIT_REPO_9
   | 10 // TEAM_SHOWCASE_10
 
-export type HomeUIHomeUIRefreshRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type HomeUIHomeUIRefreshRpcParam = void
 
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
 
 export type Identify2Res = $ReadOnly<{upk: UserPlusKeys, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks}>
 
-export type IdentifyIdentify2RpcParam = $ReadOnly<{uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyIdentify2RpcParam = $ReadOnly<{uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean}>
 
-export type IdentifyIdentifyLiteRpcParam = $ReadOnly<{id: UserOrTeamID, assertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyIdentifyLiteRpcParam = $ReadOnly<{id: UserOrTeamID, assertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean}>
 
 export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean}>
 
@@ -2608,47 +1529,47 @@ export type IdentifyReasonType =
   | 6 // RESOURCE_6
   | 7 // BACKGROUND_7
 
-export type IdentifyResolve3RpcParam = $ReadOnly<{assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyResolve3RpcParam = $ReadOnly<{assertion: String}>
 
-export type IdentifyResolveIdentifyImplicitTeamRpcParam = $ReadOnly<{assertions: String, suffix: String, isPublic: Boolean, doIdentifies: Boolean, create: Boolean, reason: IdentifyReason, identifyBehavior: TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyResolveIdentifyImplicitTeamRpcParam = $ReadOnly<{assertions: String, suffix: String, isPublic: Boolean, doIdentifies: Boolean, create: Boolean, reason: IdentifyReason, identifyBehavior: TLFIdentifyBehavior}>
 
-export type IdentifyResolveImplicitTeamRpcParam = $ReadOnly<{id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyResolveImplicitTeamRpcParam = $ReadOnly<{id: TeamID}>
 
 export type IdentifyRow = $ReadOnly<{rowId: Int, proof: RemoteProof, trackDiff?: ?TrackDiff}>
 
 export type IdentifyTrackBreaks = $ReadOnly<{keys?: ?Array<IdentifyKey>, proofs?: ?Array<IdentifyProofBreak>}>
 
-export type IdentifyUiCancelRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiCancelRpcParam = void
 
-export type IdentifyUiConfirmRpcParam = $ReadOnly<{outcome: IdentifyOutcome, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiConfirmRpcParam = $ReadOnly<{outcome: IdentifyOutcome}>
 
-export type IdentifyUiDelegateIdentifyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiDelegateIdentifyUIRpcParam = void
 
-export type IdentifyUiDismissRpcParam = $ReadOnly<{username: String, reason: DismissReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiDismissRpcParam = $ReadOnly<{username: String, reason: DismissReason}>
 
-export type IdentifyUiDisplayCryptocurrencyRpcParam = $ReadOnly<{c: Cryptocurrency, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiDisplayCryptocurrencyRpcParam = $ReadOnly<{c: Cryptocurrency}>
 
-export type IdentifyUiDisplayKeyRpcParam = $ReadOnly<{key: IdentifyKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiDisplayKeyRpcParam = $ReadOnly<{key: IdentifyKey}>
 
-export type IdentifyUiDisplayTLFCreateWithInviteRpcParam = $ReadOnly<{folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiDisplayTLFCreateWithInviteRpcParam = $ReadOnly<{folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean}>
 
-export type IdentifyUiDisplayTrackStatementRpcParam = $ReadOnly<{stmt: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiDisplayTrackStatementRpcParam = $ReadOnly<{stmt: String}>
 
-export type IdentifyUiDisplayUserCardRpcParam = $ReadOnly<{card: UserCard, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiDisplayUserCardRpcParam = $ReadOnly<{card: UserCard}>
 
-export type IdentifyUiFinishRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiFinishRpcParam = void
 
-export type IdentifyUiFinishSocialProofCheckRpcParam = $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiFinishSocialProofCheckRpcParam = $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult}>
 
-export type IdentifyUiFinishWebProofCheckRpcParam = $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiFinishWebProofCheckRpcParam = $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult}>
 
-export type IdentifyUiLaunchNetworkChecksRpcParam = $ReadOnly<{identity: Identity, user: User, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiLaunchNetworkChecksRpcParam = $ReadOnly<{identity: Identity, user: User}>
 
-export type IdentifyUiReportLastTrackRpcParam = $ReadOnly<{track?: ?TrackSummary, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiReportLastTrackRpcParam = $ReadOnly<{track?: ?TrackSummary}>
 
-export type IdentifyUiReportTrackTokenRpcParam = $ReadOnly<{trackToken: TrackToken, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiReportTrackTokenRpcParam = $ReadOnly<{trackToken: TrackToken}>
 
-export type IdentifyUiStartRpcParam = $ReadOnly<{username: String, reason: IdentifyReason, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type IdentifyUiStartRpcParam = $ReadOnly<{username: String, reason: IdentifyReason, forceDisplay?: Boolean}>
 
 export type Identity = $ReadOnly<{status?: ?Status, whenLastTracked: Time, proofs?: ?Array<IdentifyRow>, cryptocurrency?: ?Array<Cryptocurrency>, revoked?: ?Array<TrackDiff>, revokedDetails?: ?Array<RevokedProof>, breaksTracking: Boolean}>
 
@@ -2660,9 +1581,9 @@ export type ImplicitTeamConflictInfo = $ReadOnly<{generation: ConflictGeneration
 
 export type ImplicitTeamDisplayName = $ReadOnly<{isPublic: Boolean, writers: ImplicitTeamUserSet, readers: ImplicitTeamUserSet, conflictInfo?: ?ImplicitTeamConflictInfo}>
 
-export type ImplicitTeamMigrationFinalizeMigrationRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ImplicitTeamMigrationFinalizeMigrationRpcParam = $ReadOnly<{folder: Folder}>
 
-export type ImplicitTeamMigrationStartMigrationRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ImplicitTeamMigrationStartMigrationRpcParam = $ReadOnly<{folder: Folder}>
 
 export type ImplicitTeamUserSet = $ReadOnly<{keybaseUsers?: ?Array<String>, unresolvedUsers?: ?Array<SocialAssertion>}>
 
@@ -2673,13 +1594,13 @@ export type InstallAction =
   | 3 // REINSTALL_3
   | 4 // INSTALL_4
 
-export type InstallFuseStatusRpcParam = $ReadOnly<{bundleVersion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type InstallFuseStatusRpcParam = $ReadOnly<{bundleVersion: String}>
 
-export type InstallInstallCommandLinePrivilegedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type InstallInstallCommandLinePrivilegedRpcParam = void
 
-export type InstallInstallFuseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type InstallInstallFuseRpcParam = void
 
-export type InstallInstallKBFSRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type InstallInstallKBFSRpcParam = void
 
 export type InstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status, fatal: Boolean}>
 
@@ -2689,15 +1610,15 @@ export type InstallStatus =
   | 2 // NOT_INSTALLED_2
   | 4 // INSTALLED_4
 
-export type InstallUninstallKBFSRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type InstallUninstallKBFSRpcParam = void
 
 export type InterestingPerson = $ReadOnly<{uid: UID, username: String}>
 
-export type KBFSGitCreateRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KBFSGitCreateRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
 
-export type KBFSGitDeleteRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KBFSGitDeleteRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
 
-export type KBFSGitGcRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, options: GcOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KBFSGitGcRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, options: GcOptions}>
 
 export type KBFSRoot = $ReadOnly<{treeID: MerkleTreeID, root: KBFSRootHash}>
 
@@ -2707,33 +1628,33 @@ export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
 
 export type KID = String
 
-export type KbfsCreateTLFRpcParam = $ReadOnly<{teamID: TeamID, tlfID: TLFID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KbfsCreateTLFRpcParam = $ReadOnly<{teamID: TeamID, tlfID: TLFID}>
 
-export type KbfsFSEditListRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KbfsFSEditListRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>
 
-export type KbfsFSEventRpcParam = $ReadOnly<{event: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KbfsFSEventRpcParam = $ReadOnly<{event: FSNotification}>
 
-export type KbfsFSSyncEventRpcParam = $ReadOnly<{event: FSPathSyncStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KbfsFSSyncEventRpcParam = $ReadOnly<{event: FSPathSyncStatus}>
 
-export type KbfsFSSyncStatusRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KbfsFSSyncStatusRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int}>
 
-export type KbfsGetKBFSTeamSettingsRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KbfsGetKBFSTeamSettingsRpcParam = $ReadOnly<{teamID: TeamID}>
 
-export type KbfsMountGetAllAvailableMountDirsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KbfsMountGetAllAvailableMountDirsRpcParam = void
 
-export type KbfsMountGetCurrentMountDirRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KbfsMountGetCurrentMountDirRpcParam = void
 
-export type KbfsMountSetCurrentMountDirRpcParam = $ReadOnly<{dir: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type KbfsMountSetCurrentMountDirRpcParam = $ReadOnly<{dir: String}>
 
-export type Kex2Provisionee2DidCounterSign2RpcParam = $ReadOnly<{sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, userEkBox?: ?UserEkBoxed, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type Kex2Provisionee2DidCounterSign2RpcParam = $ReadOnly<{sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, userEkBox?: ?UserEkBoxed}>
 
-export type Kex2Provisionee2Hello2RpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type Kex2Provisionee2Hello2RpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, sigBody: String}>
 
-export type Kex2ProvisioneeDidCounterSignRpcParam = $ReadOnly<{sig: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type Kex2ProvisioneeDidCounterSignRpcParam = $ReadOnly<{sig: Bytes}>
 
-export type Kex2ProvisioneeHelloRpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, pps: PassphraseStream, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type Kex2ProvisioneeHelloRpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, pps: PassphraseStream, sigBody: String}>
 
-export type Kex2ProvisionerKexStartRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type Kex2ProvisionerKexStartRpcParam = void
 
 export type KeyBundle = $ReadOnly<{version: Int, bundle: Bytes}>
 
@@ -2784,47 +1705,47 @@ export type LogLevel =
   | 6 // CRITICAL_6
   | 7 // FATAL_7
 
-export type LogRegisterLoggerRpcParam = $ReadOnly<{name: String, level: LogLevel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LogRegisterLoggerRpcParam = $ReadOnly<{name: String, level: LogLevel}>
 
-export type LogUiLogRpcParam = $ReadOnly<{level: LogLevel, text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LogUiLogRpcParam = $ReadOnly<{level: LogLevel, text: Text}>
 
-export type LoginAccountDeleteRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginAccountDeleteRpcParam = void
 
-export type LoginClearStoredSecretRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginClearStoredSecretRpcParam = $ReadOnly<{username: String}>
 
-export type LoginDeprovisionRpcParam = $ReadOnly<{username: String, doRevoke: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginDeprovisionRpcParam = $ReadOnly<{username: String, doRevoke: Boolean}>
 
-export type LoginGetConfiguredAccountsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginGetConfiguredAccountsRpcParam = void
 
-export type LoginLoginOneshotRpcParam = $ReadOnly<{username: String, paperKey: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginLoginOneshotRpcParam = $ReadOnly<{username: String, paperKey: String}>
 
-export type LoginLoginProvisionedDeviceRpcParam = $ReadOnly<{username: String, noPassphrasePrompt: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginLoginProvisionedDeviceRpcParam = $ReadOnly<{username: String, noPassphrasePrompt: Boolean}>
 
-export type LoginLoginRpcParam = $ReadOnly<{deviceType: String, usernameOrEmail: String, clientType: ClientType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginLoginRpcParam = $ReadOnly<{deviceType: String, usernameOrEmail: String, clientType: ClientType}>
 
-export type LoginLoginWithPaperKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginLoginWithPaperKeyRpcParam = void
 
-export type LoginLogoutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginLogoutRpcParam = void
 
-export type LoginPaperKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginPaperKeyRpcParam = void
 
-export type LoginPaperKeySubmitRpcParam = $ReadOnly<{paperPhrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginPaperKeySubmitRpcParam = $ReadOnly<{paperPhrase: String}>
 
-export type LoginRecoverAccountFromEmailAddressRpcParam = $ReadOnly<{email: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginRecoverAccountFromEmailAddressRpcParam = $ReadOnly<{email: String}>
 
-export type LoginUiDisplayPaperKeyPhraseRpcParam = $ReadOnly<{phrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginUiDisplayPaperKeyPhraseRpcParam = $ReadOnly<{phrase: String}>
 
-export type LoginUiDisplayPrimaryPaperKeyRpcParam = $ReadOnly<{phrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginUiDisplayPrimaryPaperKeyRpcParam = $ReadOnly<{phrase: String}>
 
-export type LoginUiGetEmailOrUsernameRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginUiGetEmailOrUsernameRpcParam = void
 
-export type LoginUiPromptRevokePaperKeysRpcParam = $ReadOnly<{device: Device, index: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginUiPromptRevokePaperKeysRpcParam = $ReadOnly<{device: Device, index: Int}>
 
-export type LoginUnlockRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginUnlockRpcParam = void
 
-export type LoginUnlockWithPassphraseRpcParam = $ReadOnly<{passphrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LoginUnlockWithPassphraseRpcParam = $ReadOnly<{passphrase: String}>
 
-export type LogsendPrepareLogsendRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LogsendPrepareLogsendRpcParam = void
 
 export type LookupImplicitTeamRes = $ReadOnly<{teamID: TeamID, name: TeamName, displayName: ImplicitTeamDisplayName, tlfID: TLFID}>
 
@@ -2836,7 +1757,7 @@ export type MaskB64 = Bytes
 
 export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
 
-export type MerkleGetCurrentMerkleRootRpcParam = $ReadOnly<{freshnessMsec: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MerkleGetCurrentMerkleRootRpcParam = $ReadOnly<{freshnessMsec: Int}>
 
 export type MerkleRoot = $ReadOnly<{version: Int, root: Bytes}>
 
@@ -2852,69 +1773,69 @@ export type MerkleTreeID =
 
 export type MerkleTreeLocation = $ReadOnly<{leaf: UserOrTeamID, loc: SigChainLocation}>
 
-export type MerkleVerifyMerkleRootAndKBFSRpcParam = $ReadOnly<{root: MerkleRootV2, expectedKBFSRoot: KBFSRoot, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MerkleVerifyMerkleRootAndKBFSRpcParam = $ReadOnly<{root: MerkleRootV2, expectedKBFSRoot: KBFSRoot}>
 
-export type MetadataAuthenticateRpcParam = $ReadOnly<{signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataAuthenticateRpcParam = $ReadOnly<{signature: String}>
 
-export type MetadataDeleteKeyRpcParam = $ReadOnly<{uid: UID, deviceKID: KID, keyHalfID: Bytes, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataDeleteKeyRpcParam = $ReadOnly<{uid: UID, deviceKID: KID, keyHalfID: Bytes, logTags: {[key: string]: String}}>
 
-export type MetadataFindNextMDRpcParam = $ReadOnly<{seqno: Seqno, folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataFindNextMDRpcParam = $ReadOnly<{seqno: Seqno, folderID: String}>
 
-export type MetadataForceMerkleBuildForTestRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataForceMerkleBuildForTestRpcParam = void
 
-export type MetadataGetChallengeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetChallengeRpcParam = void
 
-export type MetadataGetFolderHandleRpcParam = $ReadOnly<{folderID: String, signature: String, challenge: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetFolderHandleRpcParam = $ReadOnly<{folderID: String, signature: String, challenge: String}>
 
-export type MetadataGetFoldersForRekeyRpcParam = $ReadOnly<{deviceKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetFoldersForRekeyRpcParam = $ReadOnly<{deviceKID: KID}>
 
-export type MetadataGetKeyBundlesRpcParam = $ReadOnly<{folderID: String, writerBundleID: String, readerBundleID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetKeyBundlesRpcParam = $ReadOnly<{folderID: String, writerBundleID: String, readerBundleID: String}>
 
-export type MetadataGetKeyRpcParam = $ReadOnly<{keyHalfID: Bytes, deviceKID: String, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetKeyRpcParam = $ReadOnly<{keyHalfID: Bytes, deviceKID: String, logTags: {[key: string]: String}}>
 
-export type MetadataGetLatestFolderHandleRpcParam = $ReadOnly<{folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetLatestFolderHandleRpcParam = $ReadOnly<{folderID: String}>
 
-export type MetadataGetMerkleNodeRpcParam = $ReadOnly<{hash: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetMerkleNodeRpcParam = $ReadOnly<{hash: String}>
 
-export type MetadataGetMerkleRootLatestRpcParam = $ReadOnly<{treeID: MerkleTreeID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetMerkleRootLatestRpcParam = $ReadOnly<{treeID: MerkleTreeID}>
 
-export type MetadataGetMerkleRootRpcParam = $ReadOnly<{treeID: MerkleTreeID, seqNo: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetMerkleRootRpcParam = $ReadOnly<{treeID: MerkleTreeID, seqNo: Long}>
 
-export type MetadataGetMerkleRootSinceRpcParam = $ReadOnly<{treeID: MerkleTreeID, when: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetMerkleRootSinceRpcParam = $ReadOnly<{treeID: MerkleTreeID, when: Time}>
 
-export type MetadataGetMetadataRpcParam = $ReadOnly<{folderID: String, folderHandle: Bytes, branchID: String, unmerged: Boolean, startRevision: Long, stopRevision: Long, logTags: {[key: string]: String}, lockBeforeGet?: ?LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataGetMetadataRpcParam = $ReadOnly<{folderID: String, folderHandle: Bytes, branchID: String, unmerged: Boolean, startRevision: Long, stopRevision: Long, logTags: {[key: string]: String}, lockBeforeGet?: ?LockID}>
 
-export type MetadataLockRpcParam = $ReadOnly<{folderID: String, lockID: LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataLockRpcParam = $ReadOnly<{folderID: String, lockID: LockID}>
 
-export type MetadataPing2RpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataPing2RpcParam = void
 
-export type MetadataPingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataPingRpcParam = void
 
-export type MetadataPruneBranchRpcParam = $ReadOnly<{folderID: String, branchID: String, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataPruneBranchRpcParam = $ReadOnly<{folderID: String, branchID: String, logTags: {[key: string]: String}}>
 
-export type MetadataPutKeysRpcParam = $ReadOnly<{keyHalves?: ?Array<KeyHalf>, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataPutKeysRpcParam = $ReadOnly<{keyHalves?: ?Array<KeyHalf>, logTags: {[key: string]: String}}>
 
-export type MetadataPutMetadataRpcParam = $ReadOnly<{mdBlock: MDBlock, readerKeyBundle: KeyBundle, writerKeyBundle: KeyBundle, logTags: {[key: string]: String}, lockContext?: ?LockContext, priority: MDPriority, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataPutMetadataRpcParam = $ReadOnly<{mdBlock: MDBlock, readerKeyBundle: KeyBundle, writerKeyBundle: KeyBundle, logTags: {[key: string]: String}, lockContext?: ?LockContext, priority: MDPriority}>
 
-export type MetadataRegisterForUpdatesRpcParam = $ReadOnly<{folderID: String, currRevision: Long, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataRegisterForUpdatesRpcParam = $ReadOnly<{folderID: String, currRevision: Long, logTags: {[key: string]: String}}>
 
-export type MetadataReleaseLockRpcParam = $ReadOnly<{folderID: String, lockID: LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataReleaseLockRpcParam = $ReadOnly<{folderID: String, lockID: LockID}>
 
 export type MetadataResponse = $ReadOnly<{folderID: String, mdBlocks?: ?Array<MDBlock>}>
 
-export type MetadataSetImplicitTeamModeForTestRpcParam = $ReadOnly<{implicitTeamMode: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataSetImplicitTeamModeForTestRpcParam = $ReadOnly<{implicitTeamMode: String}>
 
-export type MetadataStartImplicitTeamMigrationRpcParam = $ReadOnly<{folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataStartImplicitTeamMigrationRpcParam = $ReadOnly<{folderID: String}>
 
-export type MetadataTruncateLockRpcParam = $ReadOnly<{folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataTruncateLockRpcParam = $ReadOnly<{folderID: String}>
 
-export type MetadataTruncateUnlockRpcParam = $ReadOnly<{folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataTruncateUnlockRpcParam = $ReadOnly<{folderID: String}>
 
-export type MetadataUpdateFolderNeedsRekeyRpcParam = $ReadOnly<{folderID: String, revision: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataUpdateFolderNeedsRekeyRpcParam = $ReadOnly<{folderID: String, revision: Long}>
 
-export type MetadataUpdateFoldersNeedRekeyRpcParam = $ReadOnly<{requests?: ?Array<RekeyRequest>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataUpdateFoldersNeedRekeyRpcParam = $ReadOnly<{requests?: ?Array<RekeyRequest>}>
 
-export type MetadataUpdateMetadataUpdateRpcParam = $ReadOnly<{folderID: String, revision: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type MetadataUpdateMetadataUpdateRpcParam = $ReadOnly<{folderID: String, revision: Long}>
 
 export type MoveArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
 
@@ -2930,55 +1851,55 @@ export type NextMerkleRootRes = $ReadOnly<{res?: ?MerkleRootV2}>
 
 export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean}>
 
-export type NotifyAppExitRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyAppExitRpcParam = void
 
-export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState}>
 
-export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels}>
 
-export type NotifyEphemeralNewTeamEkRpcParam = $ReadOnly<{id: TeamID, generation: EkGeneration, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyEphemeralNewTeamEkRpcParam = $ReadOnly<{id: TeamID, generation: EkGeneration}>
 
-export type NotifyFSFSActivityRpcParam = $ReadOnly<{notification: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyFSFSActivityRpcParam = $ReadOnly<{notification: FSNotification}>
 
-export type NotifyFSFSEditListResponseRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyFSFSEditListResponseRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>
 
-export type NotifyFSFSSyncActivityRpcParam = $ReadOnly<{status: FSPathSyncStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyFSFSSyncActivityRpcParam = $ReadOnly<{status: FSPathSyncStatus}>
 
-export type NotifyFSFSSyncStatusResponseRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyFSFSSyncStatusResponseRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int}>
 
-export type NotifyFSRequestFSEditListRequestRpcParam = $ReadOnly<{req: FSEditListRequest, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyFSRequestFSEditListRequestRpcParam = $ReadOnly<{req: FSEditListRequest}>
 
-export type NotifyFSRequestFSSyncStatusRequestRpcParam = $ReadOnly<{req: FSSyncStatusRequest, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyFSRequestFSSyncStatusRequestRpcParam = $ReadOnly<{req: FSSyncStatusRequest}>
 
-export type NotifyFavoritesFavoritesChangedRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyFavoritesFavoritesChangedRpcParam = $ReadOnly<{uid: UID}>
 
-export type NotifyKeyfamilyKeyfamilyChangedRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyKeyfamilyKeyfamilyChangedRpcParam = $ReadOnly<{uid: UID}>
 
-export type NotifyPGPPgpKeyInSecretStoreFileRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyPGPPgpKeyInSecretStoreFileRpcParam = void
 
-export type NotifyPaperKeyPaperKeyCachedRpcParam = $ReadOnly<{uid: UID, encKID: KID, sigKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyPaperKeyPaperKeyCachedRpcParam = $ReadOnly<{uid: UID, encKID: KID, sigKID: KID}>
 
-export type NotifyServiceShutdownRpcParam = $ReadOnly<{code: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyServiceShutdownRpcParam = $ReadOnly<{code: Int}>
 
-export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String}>
 
-export type NotifySessionLoggedInRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifySessionLoggedInRpcParam = $ReadOnly<{username: String}>
 
-export type NotifySessionLoggedOutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifySessionLoggedOutRpcParam = void
 
-export type NotifyTeamTeamAbandonedRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyTeamTeamAbandonedRpcParam = $ReadOnly<{teamID: TeamID}>
 
-export type NotifyTeamTeamChangedByIDRpcParam = $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyTeamTeamChangedByIDRpcParam = $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>
 
-export type NotifyTeamTeamChangedByNameRpcParam = $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyTeamTeamChangedByNameRpcParam = $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>
 
-export type NotifyTeamTeamDeletedRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyTeamTeamDeletedRpcParam = $ReadOnly<{teamID: TeamID}>
 
-export type NotifyTeamTeamExitRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyTeamTeamExitRpcParam = $ReadOnly<{teamID: TeamID}>
 
-export type NotifyTrackingTrackingChangedRpcParam = $ReadOnly<{uid: UID, username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyTrackingTrackingChangedRpcParam = $ReadOnly<{uid: UID, username: String, isTracking: Boolean}>
 
-export type NotifyUsersUserChangedRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyUsersUserChangedRpcParam = $ReadOnly<{uid: UID}>
 
 export type OpDescription = {asyncOp: 0, list: ?ListArgs} | {asyncOp: 1, listRecursive: ?ListArgs} | {asyncOp: 2, read: ?ReadArgs} | {asyncOp: 3, write: ?WriteArgs} | {asyncOp: 4, copy: ?CopyArgs} | {asyncOp: 5, move: ?MoveArgs} | {asyncOp: 6, remove: ?RemoveArgs}
 
@@ -3021,7 +1942,7 @@ export type PGPSignOptions = $ReadOnly<{keyQuery: String, mode: SignMode, binary
 
 export type PGPVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
 
-export type PaperprovisionPaperProvisionRpcParam = $ReadOnly<{username: String, deviceName: String, paperKey: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PaperprovisionPaperProvisionRpcParam = $ReadOnly<{username: String, deviceName: String, paperKey: String}>
 
 export type PassphraseStream = $ReadOnly<{passphraseStream: Bytes, generation: Int}>
 
@@ -3051,47 +1972,47 @@ export type PerUserKeyBox = $ReadOnly<{generation: PerUserKeyGeneration, box: St
 
 export type PerUserKeyGeneration = Int
 
-export type PgpPgpDecryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPDecryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpDecryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPDecryptOptions}>
 
-export type PgpPgpDeletePrimaryRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpDeletePrimaryRpcParam = void
 
-export type PgpPgpEncryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPEncryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpEncryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPEncryptOptions}>
 
-export type PgpPgpExportByFingerprintRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpExportByFingerprintRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean}>
 
-export type PgpPgpExportByKIDRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpExportByKIDRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean}>
 
-export type PgpPgpExportRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpExportRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean}>
 
-export type PgpPgpImportRpcParam = $ReadOnly<{key: Bytes, pushSecret: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpImportRpcParam = $ReadOnly<{key: Bytes, pushSecret: Boolean}>
 
-export type PgpPgpKeyGenDefaultRpcParam = $ReadOnly<{createUids: PGPCreateUids, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpKeyGenDefaultRpcParam = $ReadOnly<{createUids: PGPCreateUids}>
 
-export type PgpPgpKeyGenRpcParam = $ReadOnly<{primaryBits: Int, subkeyBits: Int, createUids: PGPCreateUids, allowMulti: Boolean, doExport: Boolean, exportEncrypted: Boolean, pushSecret: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpKeyGenRpcParam = $ReadOnly<{primaryBits: Int, subkeyBits: Int, createUids: PGPCreateUids, allowMulti: Boolean, doExport: Boolean, exportEncrypted: Boolean, pushSecret: Boolean}>
 
-export type PgpPgpPullRpcParam = $ReadOnly<{userAsserts?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpPullRpcParam = $ReadOnly<{userAsserts?: ?Array<String>}>
 
-export type PgpPgpPurgeRpcParam = $ReadOnly<{doPurge: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpPurgeRpcParam = $ReadOnly<{doPurge: Boolean}>
 
-export type PgpPgpSelectRpcParam = $ReadOnly<{fingerprintQuery: String, allowMulti: Boolean, skipImport: Boolean, onlyImport: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpSelectRpcParam = $ReadOnly<{fingerprintQuery: String, allowMulti: Boolean, skipImport: Boolean, onlyImport: Boolean}>
 
-export type PgpPgpSignRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPSignOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpSignRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPSignOptions}>
 
-export type PgpPgpStorageDismissRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpStorageDismissRpcParam = void
 
-export type PgpPgpUpdateRpcParam = $ReadOnly<{all: Boolean, fingerprints?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpUpdateRpcParam = $ReadOnly<{all: Boolean, fingerprints?: ?Array<String>}>
 
-export type PgpPgpVerifyRpcParam = $ReadOnly<{source: Stream, opts: PGPVerifyOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpPgpVerifyRpcParam = $ReadOnly<{source: Stream, opts: PGPVerifyOptions}>
 
-export type PgpUiFinishedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpUiFinishedRpcParam = void
 
-export type PgpUiKeyGeneratedRpcParam = $ReadOnly<{kid: KID, key: KeyInfo, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpUiKeyGeneratedRpcParam = $ReadOnly<{kid: KID, key: KeyInfo}>
 
-export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = $ReadOnly<{keyID: String, signedAt: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = $ReadOnly<{keyID: String, signedAt: Time}>
 
-export type PgpUiOutputSignatureSuccessRpcParam = $ReadOnly<{fingerprint: String, username: String, signedAt: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpUiOutputSignatureSuccessRpcParam = $ReadOnly<{fingerprint: String, username: String, signedAt: Time}>
 
-export type PgpUiShouldPushPrivateRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PgpUiShouldPushPrivateRpcParam = void
 
 export type Pics = $ReadOnly<{square40: String, square200: String, square360: String}>
 
@@ -3099,13 +2020,13 @@ export type PingResponse = $ReadOnly<{timestamp: Time}>
 
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
 
-export type PprofLogProcessorProfileRpcParam = $ReadOnly<{logDirForMobile: String, profileDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PprofLogProcessorProfileRpcParam = $ReadOnly<{logDirForMobile: String, profileDurationSeconds: DurationSec}>
 
-export type PprofLogTraceRpcParam = $ReadOnly<{logDirForMobile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PprofLogTraceRpcParam = $ReadOnly<{logDirForMobile: String, traceDurationSeconds: DurationSec}>
 
-export type PprofProcessorProfileRpcParam = $ReadOnly<{profileFile: String, profileDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PprofProcessorProfileRpcParam = $ReadOnly<{profileFile: String, profileDurationSeconds: DurationSec}>
 
-export type PprofTraceRpcParam = $ReadOnly<{traceFile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PprofTraceRpcParam = $ReadOnly<{traceFile: String, traceDurationSeconds: DurationSec}>
 
 export type ProblemSet = $ReadOnly<{user: User, kid: KID, tlfs?: ?Array<ProblemTLF>}>
 
@@ -3200,23 +2121,23 @@ export type ProofType =
 
 export type Proofs = $ReadOnly<{social?: ?Array<TrackProof>, web?: ?Array<WebProof>, publicKeys?: ?Array<PublicKey>}>
 
-export type ProveCheckProofRpcParam = $ReadOnly<{sigID: SigID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveCheckProofRpcParam = $ReadOnly<{sigID: SigID}>
 
-export type ProveStartProofRpcParam = $ReadOnly<{service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, sigVersion?: ?SigVersion, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveStartProofRpcParam = $ReadOnly<{service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, sigVersion?: ?SigVersion}>
 
-export type ProveUiDisplayRecheckWarningRpcParam = $ReadOnly<{text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveUiDisplayRecheckWarningRpcParam = $ReadOnly<{text: Text}>
 
-export type ProveUiOkToCheckRpcParam = $ReadOnly<{name: String, attempt: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveUiOkToCheckRpcParam = $ReadOnly<{name: String, attempt: Int}>
 
-export type ProveUiOutputInstructionsRpcParam = $ReadOnly<{instructions: Text, proof: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveUiOutputInstructionsRpcParam = $ReadOnly<{instructions: Text, proof: String}>
 
-export type ProveUiOutputPrechecksRpcParam = $ReadOnly<{text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveUiOutputPrechecksRpcParam = $ReadOnly<{text: Text}>
 
-export type ProveUiPreProofWarningRpcParam = $ReadOnly<{text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveUiPreProofWarningRpcParam = $ReadOnly<{text: Text}>
 
-export type ProveUiPromptOverwriteRpcParam = $ReadOnly<{account: String, typ: PromptOverwriteType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveUiPromptOverwriteRpcParam = $ReadOnly<{account: String, typ: PromptOverwriteType}>
 
-export type ProveUiPromptUsernameRpcParam = $ReadOnly<{prompt: String, prevError?: ?Status, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveUiPromptUsernameRpcParam = $ReadOnly<{prompt: String, prevError?: ?Status}>
 
 export type ProvisionMethod =
   | 0 // DEVICE_0
@@ -3225,25 +2146,25 @@ export type ProvisionMethod =
   | 3 // GPG_IMPORT_3
   | 4 // GPG_SIGN_4
 
-export type ProvisionUiChooseDeviceRpcParam = $ReadOnly<{devices?: ?Array<Device>, canSelectNoDevice: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiChooseDeviceRpcParam = $ReadOnly<{devices?: ?Array<Device>, canSelectNoDevice: Boolean}>
 
-export type ProvisionUiChooseDeviceTypeRpcParam = $ReadOnly<{kind: ChooseType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiChooseDeviceTypeRpcParam = $ReadOnly<{kind: ChooseType}>
 
-export type ProvisionUiChooseGPGMethodRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiChooseGPGMethodRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>}>
 
-export type ProvisionUiChooseProvisioningMethodRpcParam = $ReadOnly<{gpgOption: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiChooseProvisioningMethodRpcParam = $ReadOnly<{gpgOption: Boolean}>
 
-export type ProvisionUiDisplayAndPromptSecretRpcParam = $ReadOnly<{secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiDisplayAndPromptSecretRpcParam = $ReadOnly<{secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String}>
 
-export type ProvisionUiDisplaySecretExchangedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiDisplaySecretExchangedRpcParam = void
 
-export type ProvisionUiPromptNewDeviceNameRpcParam = $ReadOnly<{existingDevices?: ?Array<String>, errorMessage: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiPromptNewDeviceNameRpcParam = $ReadOnly<{existingDevices?: ?Array<String>, errorMessage: String}>
 
-export type ProvisionUiProvisioneeSuccessRpcParam = $ReadOnly<{username: String, deviceName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiProvisioneeSuccessRpcParam = $ReadOnly<{username: String, deviceName: String}>
 
-export type ProvisionUiProvisionerSuccessRpcParam = $ReadOnly<{deviceName: String, deviceType: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiProvisionerSuccessRpcParam = $ReadOnly<{deviceName: String, deviceType: String}>
 
-export type ProvisionUiSwitchToGPGSignOKRpcParam = $ReadOnly<{key: GPGKey, importError: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProvisionUiSwitchToGPGSignOKRpcParam = $ReadOnly<{key: GPGKey, importError: String}>
 
 export type PublicKey = $ReadOnly<{KID: KID, PGPFingerprint: String, PGPIdentities?: ?Array<PGPIdentity>, isSibkey: Boolean, isEldest: Boolean, parentID: String, deviceID: DeviceID, deviceDescription: String, deviceType: String, cTime: Time, eTime: Time, isRevoked: Boolean}>
 
@@ -3260,15 +2181,15 @@ export type PushReason =
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
 
-export type QuotaVerifySessionRpcParam = $ReadOnly<{session: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type QuotaVerifySessionRpcParam = $ReadOnly<{session: String}>
 
 export type Reachability = $ReadOnly<{reachable: Reachable}>
 
-export type ReachabilityCheckReachabilityRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ReachabilityCheckReachabilityRpcParam = void
 
-export type ReachabilityReachabilityChangedRpcParam = $ReadOnly<{reachability: Reachability, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ReachabilityReachabilityChangedRpcParam = $ReadOnly<{reachability: Reachability}>
 
-export type ReachabilityStartReachabilityRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ReachabilityStartReachabilityRpcParam = void
 
 export type Reachable =
   | 0 // UNKNOWN_0
@@ -3281,7 +2202,7 @@ export type ReaderKeyMask = $ReadOnly<{application: TeamApplication, generation:
 
 export type RegisterAddressRes = $ReadOnly<{type: String, family: String}>
 
-export type RekeyDebugShowRekeyStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RekeyDebugShowRekeyStatusRpcParam = void
 
 export type RekeyEvent = $ReadOnly<{eventType: RekeyEventType, interruptType: Int}>
 
@@ -3296,23 +2217,23 @@ export type RekeyEventType =
   | 7 // HARASS_7
   | 8 // NO_GREGOR_MESSAGES_8
 
-export type RekeyGetPendingRekeyStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RekeyGetPendingRekeyStatusRpcParam = void
 
-export type RekeyGetRevokeWarningRpcParam = $ReadOnly<{actingDevice: DeviceID, targetDevice: DeviceID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RekeyGetRevokeWarningRpcParam = $ReadOnly<{actingDevice: DeviceID, targetDevice: DeviceID}>
 
-export type RekeyRekeyStatusFinishRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RekeyRekeyStatusFinishRpcParam = void
 
-export type RekeyRekeySyncRpcParam = $ReadOnly<{force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RekeyRekeySyncRpcParam = $ReadOnly<{force: Boolean}>
 
 export type RekeyRequest = $ReadOnly<{folderID: String, revision: Long}>
 
-export type RekeyShowPendingRekeyStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RekeyShowPendingRekeyStatusRpcParam = void
 
-export type RekeyUIDelegateRekeyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RekeyUIDelegateRekeyUIRpcParam = void
 
-export type RekeyUIRefreshRpcParam = $ReadOnly<{problemSetDevices: ProblemSetDevices, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RekeyUIRefreshRpcParam = $ReadOnly<{problemSetDevices: ProblemSetDevices}>
 
-export type RekeyUIRekeySendEventRpcParam = $ReadOnly<{event: RekeyEvent, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RekeyUIRekeySendEventRpcParam = $ReadOnly<{event: RekeyEvent}>
 
 export type RemoteProof = $ReadOnly<{proofType: ProofType, key: String, value: String, displayMarkup: String, sigID: SigID, mTime: Time}>
 
@@ -3337,11 +2258,11 @@ export type ResetType =
 
 export type ResolveIdentifyImplicitTeamRes = $ReadOnly<{displayName: String, teamID: TeamID, writers?: ?Array<UserVersion>, trackBreaks: {[key: string]: IdentifyTrackBreaks}, folderID: TLFID}>
 
-export type RevokeRevokeDeviceRpcParam = $ReadOnly<{deviceID: DeviceID, forceSelf: Boolean, forceLast: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RevokeRevokeDeviceRpcParam = $ReadOnly<{deviceID: DeviceID, forceSelf: Boolean, forceLast: Boolean}>
 
-export type RevokeRevokeKeyRpcParam = $ReadOnly<{keyID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RevokeRevokeKeyRpcParam = $ReadOnly<{keyID: KID}>
 
-export type RevokeRevokeSigsRpcParam = $ReadOnly<{sigIDQueries?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RevokeRevokeSigsRpcParam = $ReadOnly<{sigIDQueries?: ?Array<String>}>
 
 export type RevokeWarning = $ReadOnly<{endangeredTLFs?: ?Array<TLF>}>
 
@@ -3357,13 +2278,13 @@ export type SaltpackEncryptOptions = $ReadOnly<{recipients?: ?Array<String>, ano
 
 export type SaltpackEncryptedMessageInfo = $ReadOnly<{devices?: ?Array<Device>, numAnonReceivers: Int, receiverIsAnon: Boolean, sender: SaltpackSender}>
 
-export type SaltpackSaltpackDecryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackDecryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SaltpackSaltpackDecryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackDecryptOptions}>
 
-export type SaltpackSaltpackEncryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackEncryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SaltpackSaltpackEncryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackEncryptOptions}>
 
-export type SaltpackSaltpackSignRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackSignOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SaltpackSaltpackSignRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackSignOptions}>
 
-export type SaltpackSaltpackVerifyRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackVerifyOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SaltpackSaltpackVerifyRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackVerifyOptions}>
 
 export type SaltpackSender = $ReadOnly<{uid: UID, username: String, senderType: SaltpackSenderType}>
 
@@ -3379,15 +2300,15 @@ export type SaltpackSenderType =
 
 export type SaltpackSignOptions = $ReadOnly<{detached: Boolean, binary: Boolean, saltpackVersion: Int}>
 
-export type SaltpackUiSaltpackPromptForDecryptRpcParam = $ReadOnly<{sender: SaltpackSender, usedDelegateUI: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SaltpackUiSaltpackPromptForDecryptRpcParam = $ReadOnly<{sender: SaltpackSender, usedDelegateUI: Boolean}>
 
-export type SaltpackUiSaltpackVerifyBadSenderRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SaltpackUiSaltpackVerifyBadSenderRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender}>
 
-export type SaltpackUiSaltpackVerifySuccessRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SaltpackUiSaltpackVerifySuccessRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender}>
 
 export type SaltpackVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
 
-export type ScanProofsScanProofsRpcParam = $ReadOnly<{infile: String, indices: String, sigid: String, ratelimit: Int, cachefile: String, ignorefile: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ScanProofsScanProofsRpcParam = $ReadOnly<{infile: String, indices: String, sigid: String, ratelimit: Int, cachefile: String, ignorefile: String}>
 
 export type SearchComponent = $ReadOnly<{key: String, value: String, score: Double}>
 
@@ -3399,11 +2320,11 @@ export type SecretEntryRes = $ReadOnly<{text: String, canceled: Boolean, storeSe
 
 export type SecretKeys = $ReadOnly<{signing: NaclSigningKeyPrivate, encryption: NaclDHKeyPrivate}>
 
-export type SecretKeysGetSecretKeysRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SecretKeysGetSecretKeysRpcParam = void
 
 export type SecretResponse = $ReadOnly<{secret: Bytes, phrase: String}>
 
-export type SecretUiGetPassphraseRpcParam = $ReadOnly<{pinentry: GUIEntryArg, terminal?: ?SecretEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SecretUiGetPassphraseRpcParam = $ReadOnly<{pinentry: GUIEntryArg, terminal?: ?SecretEntryArg}>
 
 export type SeitanAKey = String
 
@@ -3444,9 +2365,9 @@ export type ServicesStatus = $ReadOnly<{service?: ?Array<ServiceStatus>, kbfs?: 
 
 export type Session = $ReadOnly<{uid: UID, username: String, token: String, deviceSubkeyKid: KID, deviceSibkeyKid: KID}>
 
-export type SessionCurrentSessionRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SessionCurrentSessionRpcParam = void
 
-export type SessionSessionPingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SessionSessionPingRpcParam = void
 
 export type SessionStatus = $ReadOnly<{SessionFor: String, Loaded: Boolean, Cleared: Boolean, SaltOnly: Boolean, Expired: Boolean}>
 
@@ -3473,69 +2394,69 @@ export type SignMode =
 
 export type SignatureMetadata = $ReadOnly<{signingKID: KID, prevMerkleRootSigned: MerkleRootV2, firstAppearedUnverified: Seqno, time: Time, sigChainLocation: SigChainLocation}>
 
-export type SignupCheckInvitationCodeRpcParam = $ReadOnly<{invitationCode: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SignupCheckInvitationCodeRpcParam = $ReadOnly<{invitationCode: String}>
 
-export type SignupCheckUsernameAvailableRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SignupCheckUsernameAvailableRpcParam = $ReadOnly<{username: String}>
 
-export type SignupGetInvitationCodeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SignupGetInvitationCodeRpcParam = void
 
-export type SignupInviteRequestRpcParam = $ReadOnly<{email: String, fullname: String, notes: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SignupInviteRequestRpcParam = $ReadOnly<{email: String, fullname: String, notes: String}>
 
 export type SignupRes = $ReadOnly<{passphraseOk: Boolean, postOk: Boolean, writeOk: Boolean}>
 
-export type SignupSignupRpcParam = $ReadOnly<{email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SignupSignupRpcParam = $ReadOnly<{email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean}>
 
-export type SigsSigListJSONRpcParam = $ReadOnly<{arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SigsSigListJSONRpcParam = $ReadOnly<{arg: SigListArgs}>
 
-export type SigsSigListRpcParam = $ReadOnly<{arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SigsSigListRpcParam = $ReadOnly<{arg: SigListArgs}>
 
 export type SimpleFSGetHTTPAddressAndTokenResponse = $ReadOnly<{address: String, token: String}>
 
 export type SimpleFSListResult = $ReadOnly<{entries?: ?Array<Dirent>, progress: Progress}>
 
-export type SimpleFSSimpleFSCancelRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSCancelRpcParam = $ReadOnly<{opID: OpID}>
 
-export type SimpleFSSimpleFSCheckRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSCheckRpcParam = $ReadOnly<{opID: OpID}>
 
-export type SimpleFSSimpleFSCloseRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSCloseRpcParam = $ReadOnly<{opID: OpID}>
 
-export type SimpleFSSimpleFSCopyRecursiveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSCopyRecursiveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
 
-export type SimpleFSSimpleFSCopyRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSCopyRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
 
-export type SimpleFSSimpleFSDumpDebuggingInfoRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSDumpDebuggingInfoRpcParam = void
 
-export type SimpleFSSimpleFSGetHTTPAddressAndTokenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSGetHTTPAddressAndTokenRpcParam = void
 
-export type SimpleFSSimpleFSGetOpsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSGetOpsRpcParam = void
 
-export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
 
-export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
 
-export type SimpleFSSimpleFSMakeOpidRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSMakeOpidRpcParam = void
 
-export type SimpleFSSimpleFSMoveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSMoveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
 
-export type SimpleFSSimpleFSOpenRpcParam = $ReadOnly<{opID: OpID, dest: Path, flags: OpenFlags, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSOpenRpcParam = $ReadOnly<{opID: OpID, dest: Path, flags: OpenFlags}>
 
-export type SimpleFSSimpleFSReadListRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSReadListRpcParam = $ReadOnly<{opID: OpID}>
 
-export type SimpleFSSimpleFSReadRpcParam = $ReadOnly<{opID: OpID, offset: Long, size: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSReadRpcParam = $ReadOnly<{opID: OpID, offset: Long, size: Int}>
 
-export type SimpleFSSimpleFSRemoveRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSRemoveRpcParam = $ReadOnly<{opID: OpID, path: Path}>
 
-export type SimpleFSSimpleFSRenameRpcParam = $ReadOnly<{src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSRenameRpcParam = $ReadOnly<{src: Path, dest: Path}>
 
-export type SimpleFSSimpleFSSetStatRpcParam = $ReadOnly<{dest: Path, flag: DirentType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSSetStatRpcParam = $ReadOnly<{dest: Path, flag: DirentType}>
 
-export type SimpleFSSimpleFSStatRpcParam = $ReadOnly<{path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSStatRpcParam = $ReadOnly<{path: Path}>
 
-export type SimpleFSSimpleFSSyncStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSSyncStatusRpcParam = void
 
-export type SimpleFSSimpleFSWaitRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSWaitRpcParam = $ReadOnly<{opID: OpID}>
 
-export type SimpleFSSimpleFSWriteRpcParam = $ReadOnly<{opID: OpID, offset: Long, content: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSWriteRpcParam = $ReadOnly<{opID: OpID, offset: Long, content: Bytes}>
 
 export type SocialAssertion = $ReadOnly<{user: String, service: SocialAssertionService}>
 
@@ -3709,13 +2630,13 @@ export type StatusCode =
 
 export type Stream = $ReadOnly<{fd: Int}>
 
-export type StreamUiCloseRpcParam = $ReadOnly<{s: Stream, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type StreamUiCloseRpcParam = $ReadOnly<{s: Stream}>
 
-export type StreamUiReadRpcParam = $ReadOnly<{s: Stream, sz: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type StreamUiReadRpcParam = $ReadOnly<{s: Stream, sz: Int}>
 
-export type StreamUiResetRpcParam = $ReadOnly<{s: Stream, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type StreamUiResetRpcParam = $ReadOnly<{s: Stream}>
 
-export type StreamUiWriteRpcParam = $ReadOnly<{s: Stream, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type StreamUiWriteRpcParam = $ReadOnly<{s: Stream, buf: Bytes}>
 
 export type StringKVPair = $ReadOnly<{key: String, value: String}>
 
@@ -3901,117 +2822,117 @@ export type TeamType =
   | 1 // LEGACY_1
   | 2 // MODERN_2
 
-export type TeamsCanUserPerformRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsCanUserPerformRpcParam = $ReadOnly<{name: String}>
 
-export type TeamsGetTarsDisabledRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsGetTarsDisabledRpcParam = $ReadOnly<{name: String}>
 
-export type TeamsGetTeamAndMemberShowcaseRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsGetTeamAndMemberShowcaseRpcParam = $ReadOnly<{name: String}>
 
-export type TeamsGetTeamRootIDRpcParam = $ReadOnly<{id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsGetTeamRootIDRpcParam = $ReadOnly<{id: TeamID}>
 
-export type TeamsGetTeamShowcaseRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsGetTeamShowcaseRpcParam = $ReadOnly<{name: String}>
 
-export type TeamsLoadTeamPlusApplicationKeysRpcParam = $ReadOnly<{id: TeamID, application: TeamApplication, refreshers: TeamRefreshers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsLoadTeamPlusApplicationKeysRpcParam = $ReadOnly<{id: TeamID, application: TeamApplication, refreshers: TeamRefreshers}>
 
-export type TeamsLookupImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsLookupImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean}>
 
-export type TeamsLookupOrCreateImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsLookupOrCreateImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean}>
 
-export type TeamsSetTarsDisabledRpcParam = $ReadOnly<{name: String, disabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsSetTarsDisabledRpcParam = $ReadOnly<{name: String, disabled: Boolean}>
 
-export type TeamsSetTeamMemberShowcaseRpcParam = $ReadOnly<{name: String, isShowcased: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsSetTeamMemberShowcaseRpcParam = $ReadOnly<{name: String, isShowcased: Boolean}>
 
-export type TeamsSetTeamShowcaseRpcParam = $ReadOnly<{name: String, isShowcased?: ?Boolean, description?: ?String, anyMemberShowcase?: ?Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsSetTeamShowcaseRpcParam = $ReadOnly<{name: String, isShowcased?: ?Boolean, description?: ?String, anyMemberShowcase?: ?Boolean}>
 
-export type TeamsTeamAcceptInviteOrRequestAccessRpcParam = $ReadOnly<{tokenOrName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamAcceptInviteOrRequestAccessRpcParam = $ReadOnly<{tokenOrName: String}>
 
-export type TeamsTeamAcceptInviteRpcParam = $ReadOnly<{token: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamAcceptInviteRpcParam = $ReadOnly<{token: String}>
 
-export type TeamsTeamAddEmailsBulkRpcParam = $ReadOnly<{name: String, emails: String, role: TeamRole, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamAddEmailsBulkRpcParam = $ReadOnly<{name: String, emails: String, role: TeamRole}>
 
-export type TeamsTeamAddMemberRpcParam = $ReadOnly<{name: String, email: String, username: String, role: TeamRole, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamAddMemberRpcParam = $ReadOnly<{name: String, email: String, username: String, role: TeamRole, sendChatNotification: Boolean}>
 
-export type TeamsTeamChangeMembershipRpcParam = $ReadOnly<{name: String, req: TeamChangeReq, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamChangeMembershipRpcParam = $ReadOnly<{name: String, req: TeamChangeReq}>
 
-export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean}>
 
-export type TeamsTeamCreateSeitanTokenRpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateSeitanTokenRpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel}>
 
-export type TeamsTeamCreateSeitanTokenV2RpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateSeitanTokenV2RpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel}>
 
-export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, settings: TeamSettings}>
 
-export type TeamsTeamDebugRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamDebugRpcParam = $ReadOnly<{teamID: TeamID}>
 
-export type TeamsTeamDeleteRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamDeleteRpcParam = $ReadOnly<{name: String}>
 
-export type TeamsTeamEditMemberRpcParam = $ReadOnly<{name: String, username: String, role: TeamRole, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamEditMemberRpcParam = $ReadOnly<{name: String, username: String, role: TeamRole}>
 
-export type TeamsTeamGetRpcParam = $ReadOnly<{name: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamGetRpcParam = $ReadOnly<{name: String, forceRepoll: Boolean}>
 
-export type TeamsTeamIgnoreRequestRpcParam = $ReadOnly<{name: String, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamIgnoreRequestRpcParam = $ReadOnly<{name: String, username: String}>
 
-export type TeamsTeamImplicitAdminsRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamImplicitAdminsRpcParam = $ReadOnly<{teamName: String}>
 
-export type TeamsTeamLeaveRpcParam = $ReadOnly<{name: String, permanent: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamLeaveRpcParam = $ReadOnly<{name: String, permanent: Boolean}>
 
-export type TeamsTeamListMyAccessRequestsRpcParam = $ReadOnly<{teamName?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamListMyAccessRequestsRpcParam = $ReadOnly<{teamName?: ?String}>
 
-export type TeamsTeamListRequestsRpcParam = $ReadOnly<{teamName?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamListRequestsRpcParam = $ReadOnly<{teamName?: ?String}>
 
-export type TeamsTeamListSubteamsRecursiveRpcParam = $ReadOnly<{parentTeamName: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamListSubteamsRecursiveRpcParam = $ReadOnly<{parentTeamName: String, forceRepoll: Boolean}>
 
-export type TeamsTeamListTeammatesRpcParam = $ReadOnly<{includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamListTeammatesRpcParam = $ReadOnly<{includeImplicitTeams: Boolean}>
 
-export type TeamsTeamListUnverifiedRpcParam = $ReadOnly<{userAssertion: String, includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamListUnverifiedRpcParam = $ReadOnly<{userAssertion: String, includeImplicitTeams: Boolean}>
 
-export type TeamsTeamListVerifiedRpcParam = $ReadOnly<{userAssertion: String, includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamListVerifiedRpcParam = $ReadOnly<{userAssertion: String, includeImplicitTeams: Boolean}>
 
-export type TeamsTeamReAddMemberAfterResetRpcParam = $ReadOnly<{id: TeamID, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamReAddMemberAfterResetRpcParam = $ReadOnly<{id: TeamID, username: String}>
 
-export type TeamsTeamRemoveMemberRpcParam = $ReadOnly<{name: String, username: String, email: String, inviteID: TeamInviteID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamRemoveMemberRpcParam = $ReadOnly<{name: String, username: String, email: String, inviteID: TeamInviteID}>
 
-export type TeamsTeamRenameRpcParam = $ReadOnly<{prevName: TeamName, newName: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamRenameRpcParam = $ReadOnly<{prevName: TeamName, newName: TeamName}>
 
-export type TeamsTeamRequestAccessRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamRequestAccessRpcParam = $ReadOnly<{name: String}>
 
-export type TeamsTeamRotateKeyRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamRotateKeyRpcParam = $ReadOnly<{teamID: TeamID}>
 
-export type TeamsTeamSetSettingsRpcParam = $ReadOnly<{name: String, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamSetSettingsRpcParam = $ReadOnly<{name: String, settings: TeamSettings}>
 
-export type TeamsTeamTreeRpcParam = $ReadOnly<{name: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamTreeRpcParam = $ReadOnly<{name: TeamName}>
 
-export type TeamsTryDecryptWithTeamKeyRpcParam = $ReadOnly<{teamID: TeamID, encryptedData: Bytes, nonce: BoxNonce, peersPublicKey: BoxPublicKey, minGeneration: PerTeamKeyGeneration, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTryDecryptWithTeamKeyRpcParam = $ReadOnly<{teamID: TeamID, encryptedData: Bytes, nonce: BoxNonce, peersPublicKey: BoxPublicKey, minGeneration: PerTeamKeyGeneration}>
 
-export type TeamsUiConfirmRootTeamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsUiConfirmRootTeamDeleteRpcParam = $ReadOnly<{teamName: String}>
 
-export type TeamsUiConfirmSubteamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsUiConfirmSubteamDeleteRpcParam = $ReadOnly<{teamName: String}>
 
-export type TeamsUploadTeamAvatarRpcParam = $ReadOnly<{teamname: String, filename: String, crop?: ?ImageCropRect, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsUploadTeamAvatarRpcParam = $ReadOnly<{teamname: String, filename: String, crop?: ?ImageCropRect, sendChatNotification: Boolean}>
 
 export type Test = $ReadOnly<{reply: String}>
 
-export type TestPanicRpcParam = $ReadOnly<{message: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TestPanicRpcParam = $ReadOnly<{message: String}>
 
-export type TestTestCallbackRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TestTestCallbackRpcParam = $ReadOnly<{name: String}>
 
-export type TestTestRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TestTestRpcParam = $ReadOnly<{name: String}>
 
 export type Text = $ReadOnly<{data: String, markup: Boolean}>
 
 export type Time = Long
 
-export type TlfCompleteAndCanonicalizePrivateTlfNameRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TlfCompleteAndCanonicalizePrivateTlfNameRpcParam = $ReadOnly<{query: TLFQuery}>
 
-export type TlfCryptKeysRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TlfCryptKeysRpcParam = $ReadOnly<{query: TLFQuery}>
 
-export type TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = $ReadOnly<{query: TLFQuery}>
 
-export type TlfKeysGetTLFCryptKeysRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TlfKeysGetTLFCryptKeysRpcParam = $ReadOnly<{query: TLFQuery}>
 
-export type TlfPublicCanonicalTLFNameAndIDRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TlfPublicCanonicalTLFNameAndIDRpcParam = $ReadOnly<{query: TLFQuery}>
 
-export type TrackCheckTrackingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TrackCheckTrackingRpcParam = void
 
 export type TrackDiff = $ReadOnly<{type: TrackDiffType, displayMarkup: String}>
 
@@ -4028,9 +2949,9 @@ export type TrackDiffType =
   | 9 // NEW_ELDEST_9
   | 10 // NONE_VIA_TEMPORARY_10
 
-export type TrackDismissWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TrackDismissWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken}>
 
-export type TrackFakeTrackingChangedRpcParam = $ReadOnly<{username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TrackFakeTrackingChangedRpcParam = $ReadOnly<{username: String, isTracking: Boolean}>
 
 export type TrackOptions = $ReadOnly<{localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean, sigVersion?: ?SigVersion}>
 
@@ -4049,11 +2970,11 @@ export type TrackSummary = $ReadOnly<{username: String, time: Time, isRemote: Bo
 
 export type TrackToken = String
 
-export type TrackTrackRpcParam = $ReadOnly<{userAssertion: String, options: TrackOptions, forceRemoteCheck: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TrackTrackRpcParam = $ReadOnly<{userAssertion: String, options: TrackOptions, forceRemoteCheck: Boolean}>
 
-export type TrackTrackWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken, options: TrackOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TrackTrackWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken, options: TrackOptions}>
 
-export type TrackUntrackRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TrackUntrackRpcParam = $ReadOnly<{username: String}>
 
 export type Tracker = $ReadOnly<{tracker: UID, status: Int, mTime: Time}>
 
@@ -4074,7 +2995,7 @@ export type UPK2MinorVersion =
   | 5 // V5_5
   | 6 // V6_6
 
-export type UiPromptYesNoRpcParam = $ReadOnly<{text: Text, promptDefault: PromptDefault, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UiPromptYesNoRpcParam = $ReadOnly<{text: Text, promptDefault: PromptDefault}>
 
 export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 
@@ -4096,45 +3017,45 @@ export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation
 
 export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetadata?: ?Array<UserEkMetadata>}>
 
-export type UserFindNextMerkleRootAfterRevokeRpcParam = $ReadOnly<{uid: UID, kid: KID, loc: SigChainLocation, prev: MerkleRootV2, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserFindNextMerkleRootAfterRevokeRpcParam = $ReadOnly<{uid: UID, kid: KID, loc: SigChainLocation, prev: MerkleRootV2}>
 
-export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID}>
 
-export type UserInterestingPeopleRpcParam = $ReadOnly<{maxUsers: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserInterestingPeopleRpcParam = $ReadOnly<{maxUsers: Int}>
 
-export type UserListTrackers2RpcParam = $ReadOnly<{assertion: String, reverse: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserListTrackers2RpcParam = $ReadOnly<{assertion: String, reverse: Boolean}>
 
-export type UserListTrackersByNameRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserListTrackersByNameRpcParam = $ReadOnly<{username: String}>
 
-export type UserListTrackersRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserListTrackersRpcParam = $ReadOnly<{uid: UID}>
 
-export type UserListTrackersSelfRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserListTrackersSelfRpcParam = void
 
-export type UserListTrackingJSONRpcParam = $ReadOnly<{filter: String, verbose: Boolean, assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserListTrackingJSONRpcParam = $ReadOnly<{filter: String, verbose: Boolean, assertion: String}>
 
-export type UserListTrackingRpcParam = $ReadOnly<{filter: String, assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserListTrackingRpcParam = $ReadOnly<{filter: String, assertion: String}>
 
-export type UserLoadAllPublicKeysUnverifiedRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserLoadAllPublicKeysUnverifiedRpcParam = $ReadOnly<{uid: UID}>
 
-export type UserLoadMyPublicKeysRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserLoadMyPublicKeysRpcParam = void
 
-export type UserLoadMySettingsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserLoadMySettingsRpcParam = void
 
-export type UserLoadPublicKeysRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserLoadPublicKeysRpcParam = $ReadOnly<{uid: UID}>
 
-export type UserLoadUncheckedUserSummariesRpcParam = $ReadOnly<{uids?: ?Array<UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserLoadUncheckedUserSummariesRpcParam = $ReadOnly<{uids?: ?Array<UID>}>
 
-export type UserLoadUserByNameRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserLoadUserByNameRpcParam = $ReadOnly<{username: String}>
 
-export type UserLoadUserPlusKeysRpcParam = $ReadOnly<{uid: UID, pollForKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserLoadUserPlusKeysRpcParam = $ReadOnly<{uid: UID, pollForKID: KID}>
 
-export type UserLoadUserPlusKeysV2RpcParam = $ReadOnly<{uid: UID, pollForKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserLoadUserPlusKeysV2RpcParam = $ReadOnly<{uid: UID, pollForKID: KID}>
 
-export type UserLoadUserRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserLoadUserRpcParam = $ReadOnly<{uid: UID}>
 
 export type UserLogPoint = $ReadOnly<{role: TeamRole, sigMeta: SignatureMetadata}>
 
-export type UserMeUserVersionRpcParam = $ReadOnly<{forcePoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserMeUserVersionRpcParam = $ReadOnly<{forcePoll: Boolean}>
 
 export type UserOrTeamID = String
 
@@ -4152,11 +3073,11 @@ export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno:
 
 export type UserPlusKeysV2AllIncarnations = $ReadOnly<{current: UserPlusKeysV2, pastIncarnations?: ?Array<UserPlusKeysV2>, uvv: UserVersionVector, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPK2MinorVersion}>
 
-export type UserProfileEditRpcParam = $ReadOnly<{fullName: String, location: String, bio: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserProfileEditRpcParam = $ReadOnly<{fullName: String, location: String, bio: String}>
 
 export type UserResolution = $ReadOnly<{assertion: SocialAssertion, userID: UID}>
 
-export type UserSearchRpcParam = $ReadOnly<{query: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserSearchRpcParam = $ReadOnly<{query: String}>
 
 export type UserSettings = $ReadOnly<{emails?: ?Array<Email>}>
 
@@ -4168,7 +3089,7 @@ export type UserSummary2Set = $ReadOnly<{users?: ?Array<UserSummary2>, time: Tim
 
 export type UserTeamShowcase = $ReadOnly<{fqName: String, open: Boolean, teamIsShowcased: Boolean, description: String, role: TeamRole, publicAdmins?: ?Array<String>, numMembers: Int}>
 
-export type UserUploadUserAvatarRpcParam = $ReadOnly<{filename: String, crop?: ?ImageCropRect, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserUploadUserAvatarRpcParam = $ReadOnly<{filename: String, crop?: ?ImageCropRect}>
 
 export type UserVersion = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
 
@@ -4181,6 +3102,220 @@ export type VerifySessionRes = $ReadOnly<{uid: UID, sid: String, generated: Int,
 export type WebProof = $ReadOnly<{hostname: String, protocols?: ?Array<String>}>
 
 export type WriteArgs = $ReadOnly<{opID: OpID, path: Path, offset: Long}>
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
 type AccountHasServerKeysResult = HasServerKeysRes
 type AccountPassphrasePromptResult = GetPassphraseRes
 type ApiserverDeleteResult = APIRes

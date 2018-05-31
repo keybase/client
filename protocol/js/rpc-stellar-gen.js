@@ -5,147 +5,10 @@
 // Not enabled: calls need to be turned on in enabled-calls.json
 import * as Keybase1 from './rpc-gen'
 import engine, {EngineChannel} from '../../engine'
+import engineSaga from '../../engine/saga'
+import * as Saga from '../../util/saga'
+import type {Action} from '../../constants/types/flux'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
-
-// Not enabled: export const localBalancesLocalRpcChannelMap = (configKeys: Array<string>, request: LocalBalancesLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.balancesLocal', request)
-
-// Not enabled: export const localBalancesLocalRpcPromise = (request: LocalBalancesLocalRpcParam): Promise<LocalBalancesLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.balancesLocal', request, (error: RPCError, result: LocalBalancesLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localChangeDisplayCurrencyLocalRpcChannelMap = (configKeys: Array<string>, request: LocalChangeDisplayCurrencyLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.changeDisplayCurrencyLocal', request)
-
-// Not enabled: export const localChangeDisplayCurrencyLocalRpcPromise = (request: LocalChangeDisplayCurrencyLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.changeDisplayCurrencyLocal', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const localChangeWalletAccountNameLocalRpcChannelMap = (configKeys: Array<string>, request: LocalChangeWalletAccountNameLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.changeWalletAccountNameLocal', request)
-
-// Not enabled: export const localChangeWalletAccountNameLocalRpcPromise = (request: LocalChangeWalletAccountNameLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.changeWalletAccountNameLocal', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const localClaimCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalClaimCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.claimCLILocal', request)
-
-// Not enabled: export const localClaimCLILocalRpcPromise = (request: LocalClaimCLILocalRpcParam): Promise<LocalClaimCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.claimCLILocal', request, (error: RPCError, result: LocalClaimCLILocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localDeleteWalletAccountLocalRpcChannelMap = (configKeys: Array<string>, request: LocalDeleteWalletAccountLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.deleteWalletAccountLocal', request)
-
-// Not enabled: export const localDeleteWalletAccountLocalRpcPromise = (request: LocalDeleteWalletAccountLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.deleteWalletAccountLocal', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const localExchangeRateLocalRpcChannelMap = (configKeys: Array<string>, request: LocalExchangeRateLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.exchangeRateLocal', request)
-
-// Not enabled: export const localExchangeRateLocalRpcPromise = (request: LocalExchangeRateLocalRpcParam): Promise<LocalExchangeRateLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.exchangeRateLocal', request, (error: RPCError, result: LocalExchangeRateLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localExportSecretKeyLocalRpcChannelMap = (configKeys: Array<string>, request: LocalExportSecretKeyLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.exportSecretKeyLocal', request)
-
-// Not enabled: export const localExportSecretKeyLocalRpcPromise = (request: LocalExportSecretKeyLocalRpcParam): Promise<LocalExportSecretKeyLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.exportSecretKeyLocal', request, (error: RPCError, result: LocalExportSecretKeyLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localFormatLocalCurrencyStringRpcChannelMap = (configKeys: Array<string>, request: LocalFormatLocalCurrencyStringRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.formatLocalCurrencyString', request)
-
-// Not enabled: export const localFormatLocalCurrencyStringRpcPromise = (request: LocalFormatLocalCurrencyStringRpcParam): Promise<LocalFormatLocalCurrencyStringResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.formatLocalCurrencyString', request, (error: RPCError, result: LocalFormatLocalCurrencyStringResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetAccountAssetsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetAccountAssetsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getAccountAssetsLocal', request)
-
-// Not enabled: export const localGetAccountAssetsLocalRpcPromise = (request: LocalGetAccountAssetsLocalRpcParam): Promise<LocalGetAccountAssetsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getAccountAssetsLocal', request, (error: RPCError, result: LocalGetAccountAssetsLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetAvailableLocalCurrenciesRpcChannelMap = (configKeys: Array<string>, request: LocalGetAvailableLocalCurrenciesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getAvailableLocalCurrencies', request)
-
-// Not enabled: export const localGetAvailableLocalCurrenciesRpcPromise = (request: LocalGetAvailableLocalCurrenciesRpcParam): Promise<LocalGetAvailableLocalCurrenciesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getAvailableLocalCurrencies', request, (error: RPCError, result: LocalGetAvailableLocalCurrenciesResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetDisplayCurrenciesLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetDisplayCurrenciesLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getDisplayCurrenciesLocal', request)
-
-// Not enabled: export const localGetDisplayCurrenciesLocalRpcPromise = (request: LocalGetDisplayCurrenciesLocalRpcParam): Promise<LocalGetDisplayCurrenciesLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getDisplayCurrenciesLocal', request, (error: RPCError, result: LocalGetDisplayCurrenciesLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetUserSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetUserSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getUserSettingsLocal', request)
-
-// Not enabled: export const localGetUserSettingsLocalRpcPromise = (request: LocalGetUserSettingsLocalRpcParam): Promise<LocalGetUserSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getUserSettingsLocal', request, (error: RPCError, result: LocalGetUserSettingsLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localGetWalletAccountsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetWalletAccountsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getWalletAccountsLocal', request)
-
-// Not enabled: export const localGetWalletAccountsLocalRpcPromise = (request: LocalGetWalletAccountsLocalRpcParam): Promise<LocalGetWalletAccountsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getWalletAccountsLocal', request, (error: RPCError, result: LocalGetWalletAccountsLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localImportSecretKeyLocalRpcChannelMap = (configKeys: Array<string>, request: LocalImportSecretKeyLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.importSecretKeyLocal', request)
-
-// Not enabled: export const localImportSecretKeyLocalRpcPromise = (request: LocalImportSecretKeyLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.importSecretKeyLocal', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const localLinkNewWalletAccountLocalRpcChannelMap = (configKeys: Array<string>, request: LocalLinkNewWalletAccountLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.linkNewWalletAccountLocal', request)
-
-// Not enabled: export const localLinkNewWalletAccountLocalRpcPromise = (request: LocalLinkNewWalletAccountLocalRpcParam): Promise<LocalLinkNewWalletAccountLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.linkNewWalletAccountLocal', request, (error: RPCError, result: LocalLinkNewWalletAccountLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localOwnAccountLocalRpcChannelMap = (configKeys: Array<string>, request: LocalOwnAccountLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.ownAccountLocal', request)
-
-// Not enabled: export const localOwnAccountLocalRpcPromise = (request: LocalOwnAccountLocalRpcParam): Promise<LocalOwnAccountLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.ownAccountLocal', request, (error: RPCError, result: LocalOwnAccountLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localPaymentDetailCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalPaymentDetailCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.paymentDetailCLILocal', request)
-
-// Not enabled: export const localPaymentDetailCLILocalRpcPromise = (request: LocalPaymentDetailCLILocalRpcParam): Promise<LocalPaymentDetailCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.paymentDetailCLILocal', request, (error: RPCError, result: LocalPaymentDetailCLILocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localRecentPaymentsCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalRecentPaymentsCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.recentPaymentsCLILocal', request)
-
-// Not enabled: export const localRecentPaymentsCLILocalRpcPromise = (request: LocalRecentPaymentsCLILocalRpcParam): Promise<LocalRecentPaymentsCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.recentPaymentsCLILocal', request, (error: RPCError, result: LocalRecentPaymentsCLILocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localSendCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalSendCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.sendCLILocal', request)
-
-// Not enabled: export const localSendCLILocalRpcPromise = (request: LocalSendCLILocalRpcParam): Promise<LocalSendCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.sendCLILocal', request, (error: RPCError, result: LocalSendCLILocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localSetAcceptedDisclaimerLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetAcceptedDisclaimerLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.setAcceptedDisclaimerLocal', request)
-
-// Not enabled: export const localSetAcceptedDisclaimerLocalRpcPromise = (request: LocalSetAcceptedDisclaimerLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.setAcceptedDisclaimerLocal', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const localSetDisplayCurrencyRpcChannelMap = (configKeys: Array<string>, request: LocalSetDisplayCurrencyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.setDisplayCurrency', request)
-
-// Not enabled: export const localSetDisplayCurrencyRpcPromise = (request: LocalSetDisplayCurrencyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.setDisplayCurrency', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const localSetWalletAccountAsDefaultLocalRpcChannelMap = (configKeys: Array<string>, request: LocalSetWalletAccountAsDefaultLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.setWalletAccountAsDefaultLocal', request)
-
-// Not enabled: export const localSetWalletAccountAsDefaultLocalRpcPromise = (request: LocalSetWalletAccountAsDefaultLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.setWalletAccountAsDefaultLocal', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const localWalletDumpLocalRpcChannelMap = (configKeys: Array<string>, request: LocalWalletDumpLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.walletDumpLocal', request)
-
-// Not enabled: export const localWalletDumpLocalRpcPromise = (request: LocalWalletDumpLocalRpcParam): Promise<LocalWalletDumpLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.walletDumpLocal', request, (error: RPCError, result: LocalWalletDumpLocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localWalletGetAccountsCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalWalletGetAccountsCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.walletGetAccountsCLILocal', request)
-
-// Not enabled: export const localWalletGetAccountsCLILocalRpcPromise = (request: LocalWalletGetAccountsCLILocalRpcParam): Promise<LocalWalletGetAccountsCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.walletGetAccountsCLILocal', request, (error: RPCError, result: LocalWalletGetAccountsCLILocalResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const localWalletInitLocalRpcChannelMap = (configKeys: Array<string>, request: LocalWalletInitLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.walletInitLocal', request)
-
-// Not enabled: export const localWalletInitLocalRpcPromise = (request: LocalWalletInitLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.walletInitLocal', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
-
-// Not enabled: export const remoteAccountSeqnoRpcChannelMap = (configKeys: Array<string>, request: RemoteAccountSeqnoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.accountSeqno', request)
-
-// Not enabled: export const remoteAccountSeqnoRpcPromise = (request: RemoteAccountSeqnoRpcParam): Promise<RemoteAccountSeqnoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.accountSeqno', request, (error: RPCError, result: RemoteAccountSeqnoResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteBalancesRpcChannelMap = (configKeys: Array<string>, request: RemoteBalancesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.balances', request)
-
-// Not enabled: export const remoteBalancesRpcPromise = (request: RemoteBalancesRpcParam): Promise<RemoteBalancesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.balances', request, (error: RPCError, result: RemoteBalancesResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteDetailsRpcChannelMap = (configKeys: Array<string>, request: RemoteDetailsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.details', request)
-
-// Not enabled: export const remoteDetailsRpcPromise = (request: RemoteDetailsRpcParam): Promise<RemoteDetailsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.details', request, (error: RPCError, result: RemoteDetailsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteIsMasterKeyActiveRpcChannelMap = (configKeys: Array<string>, request: RemoteIsMasterKeyActiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.isMasterKeyActive', request)
-
-// Not enabled: export const remoteIsMasterKeyActiveRpcPromise = (request: RemoteIsMasterKeyActiveRpcParam): Promise<RemoteIsMasterKeyActiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.isMasterKeyActive', request, (error: RPCError, result: RemoteIsMasterKeyActiveResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remotePaymentDetailRpcChannelMap = (configKeys: Array<string>, request: RemotePaymentDetailRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.paymentDetail', request)
-
-// Not enabled: export const remotePaymentDetailRpcPromise = (request: RemotePaymentDetailRpcParam): Promise<RemotePaymentDetailResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.paymentDetail', request, (error: RPCError, result: RemotePaymentDetailResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remotePingRpcChannelMap = (configKeys: Array<string>, request: RemotePingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.ping', request)
-
-// Not enabled: export const remotePingRpcPromise = (request: RemotePingRpcParam): Promise<RemotePingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.ping', request, (error: RPCError, result: RemotePingResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteRecentPaymentsRpcChannelMap = (configKeys: Array<string>, request: RemoteRecentPaymentsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.recentPayments', request)
-
-// Not enabled: export const remoteRecentPaymentsRpcPromise = (request: RemoteRecentPaymentsRpcParam): Promise<RemoteRecentPaymentsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.recentPayments', request, (error: RPCError, result: RemoteRecentPaymentsResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSubmitPaymentRpcChannelMap = (configKeys: Array<string>, request: RemoteSubmitPaymentRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.submitPayment', request)
-
-// Not enabled: export const remoteSubmitPaymentRpcPromise = (request: RemoteSubmitPaymentRpcParam): Promise<RemoteSubmitPaymentResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.submitPayment', request, (error: RPCError, result: RemoteSubmitPaymentResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSubmitRelayClaimRpcChannelMap = (configKeys: Array<string>, request: RemoteSubmitRelayClaimRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.submitRelayClaim', request)
-
-// Not enabled: export const remoteSubmitRelayClaimRpcPromise = (request: RemoteSubmitRelayClaimRpcParam): Promise<RemoteSubmitRelayClaimResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.submitRelayClaim', request, (error: RPCError, result: RemoteSubmitRelayClaimResult) => error ? reject(error) : resolve(result)))
-
-// Not enabled: export const remoteSubmitRelayPaymentRpcChannelMap = (configKeys: Array<string>, request: RemoteSubmitRelayPaymentRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.submitRelayPayment', request)
-
-// Not enabled: export const remoteSubmitRelayPaymentRpcPromise = (request: RemoteSubmitRelayPaymentRpcParam): Promise<RemoteSubmitRelayPaymentResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.submitRelayPayment', request, (error: RPCError, result: RemoteSubmitRelayPaymentResult) => error ? reject(error) : resolve(result)))
 
 export const bundleAccountMode = {
   none: 0,
@@ -230,55 +93,55 @@ export type Hash = Bytes
 
 export type KeybaseTransactionID = String
 
-export type LocalBalancesLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalBalancesLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 
-export type LocalChangeDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID, currency: OutsideCurrencyCode, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalChangeDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID, currency: OutsideCurrencyCode}>
 
-export type LocalChangeWalletAccountNameLocalRpcParam = $ReadOnly<{accountID: AccountID, newName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalChangeWalletAccountNameLocalRpcParam = $ReadOnly<{accountID: AccountID, newName: String}>
 
-export type LocalClaimCLILocalRpcParam = $ReadOnly<{txID: String, into?: ?AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalClaimCLILocalRpcParam = $ReadOnly<{txID: String, into?: ?AccountID}>
 
-export type LocalDeleteWalletAccountLocalRpcParam = $ReadOnly<{accountID: AccountID, userAcknowledged: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalDeleteWalletAccountLocalRpcParam = $ReadOnly<{accountID: AccountID, userAcknowledged: String}>
 
-export type LocalExchangeRateLocalRpcParam = $ReadOnly<{currency: OutsideCurrencyCode, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalExchangeRateLocalRpcParam = $ReadOnly<{currency: OutsideCurrencyCode}>
 
-export type LocalExportSecretKeyLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalExportSecretKeyLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 
-export type LocalFormatLocalCurrencyStringRpcParam = $ReadOnly<{amount: String, code: OutsideCurrencyCode, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalFormatLocalCurrencyStringRpcParam = $ReadOnly<{amount: String, code: OutsideCurrencyCode}>
 
-export type LocalGetAccountAssetsLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetAccountAssetsLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 
-export type LocalGetAvailableLocalCurrenciesRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetAvailableLocalCurrenciesRpcParam = void
 
-export type LocalGetDisplayCurrenciesLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetDisplayCurrenciesLocalRpcParam = void
 
-export type LocalGetUserSettingsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetUserSettingsLocalRpcParam = void
 
-export type LocalGetWalletAccountsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetWalletAccountsLocalRpcParam = void
 
-export type LocalImportSecretKeyLocalRpcParam = $ReadOnly<{secretKey: SecretKey, makePrimary: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalImportSecretKeyLocalRpcParam = $ReadOnly<{secretKey: SecretKey, makePrimary: Boolean}>
 
-export type LocalLinkNewWalletAccountLocalRpcParam = $ReadOnly<{secretKey: SecretKey, name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalLinkNewWalletAccountLocalRpcParam = $ReadOnly<{secretKey: SecretKey, name: String}>
 
-export type LocalOwnAccountLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalOwnAccountLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 
-export type LocalPaymentDetailCLILocalRpcParam = $ReadOnly<{txID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPaymentDetailCLILocalRpcParam = $ReadOnly<{txID: String}>
 
-export type LocalRecentPaymentsCLILocalRpcParam = $ReadOnly<{accountID?: ?AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalRecentPaymentsCLILocalRpcParam = $ReadOnly<{accountID?: ?AccountID}>
 
-export type LocalSendCLILocalRpcParam = $ReadOnly<{recipient: String, amount: String, asset: Asset, note: String, displayAmount: String, displayCurrency: String, forceRelay: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSendCLILocalRpcParam = $ReadOnly<{recipient: String, amount: String, asset: Asset, note: String, displayAmount: String, displayCurrency: String, forceRelay: Boolean}>
 
-export type LocalSetAcceptedDisclaimerLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSetAcceptedDisclaimerLocalRpcParam = void
 
-export type LocalSetDisplayCurrencyRpcParam = $ReadOnly<{accountID: AccountID, currency: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSetDisplayCurrencyRpcParam = $ReadOnly<{accountID: AccountID, currency: String}>
 
-export type LocalSetWalletAccountAsDefaultLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSetWalletAccountAsDefaultLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 
-export type LocalWalletDumpLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalWalletDumpLocalRpcParam = void
 
-export type LocalWalletGetAccountsCLILocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalWalletGetAccountsCLILocalRpcParam = void
 
-export type LocalWalletInitLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalWalletInitLocalRpcParam = void
 
 export type NoteContents = $ReadOnly<{note: String, stellarID: TransactionID}>
 
@@ -331,25 +194,25 @@ export type RelayDirection =
   | 0 // CLAIM_0
   | 1 // YANK_1
 
-export type RemoteAccountSeqnoRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteAccountSeqnoRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
 
-export type RemoteBalancesRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteBalancesRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
 
-export type RemoteDetailsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteDetailsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
 
-export type RemoteIsMasterKeyActiveRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteIsMasterKeyActiveRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
 
-export type RemotePaymentDetailRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, txID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemotePaymentDetailRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, txID: String}>
 
-export type RemotePingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemotePingRpcParam = void
 
-export type RemoteRecentPaymentsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, limit: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteRecentPaymentsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, limit: Int}>
 
-export type RemoteSubmitPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentDirectPost, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSubmitPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentDirectPost}>
 
-export type RemoteSubmitRelayClaimRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, claim: RelayClaimPost, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSubmitRelayClaimRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, claim: RelayClaimPost}>
 
-export type RemoteSubmitRelayPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentRelayPost, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSubmitRelayPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentRelayPost}>
 
 export type SecretKey = String
 
@@ -373,6 +236,41 @@ export type TransactionStatus =
 export type UserSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
 
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String}>
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
+// Not enabled:
 type LocalBalancesLocalResult = ?Array<Balance>
 type LocalClaimCLILocalResult = RelayClaimResult
 type LocalExchangeRateLocalResult = OutsideExchangeRate
