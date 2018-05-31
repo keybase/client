@@ -163,15 +163,19 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 		return err
 	}
 
-	// Locally dismiss this now that we have processed it so we can avoid replaying it over and over
+	// Locally dismiss this now that we have processed it so we can
+	// avoid replaying it over and over.
 	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
 		r.G().Log.CDebugf(ctx, "failed to local dismiss team change: %s", err)
 	}
 
-	// check the badge state to see if any team reset badges need dismissal
+	// Check the badge state to see if any team reset badges need dismissal.
 	for _, row := range rows {
-		badges := r.badger.State().FindResetMemberBadges(row.Name)
+		if !row.RemovedResetUsers {
+			continue
+		}
 
+		badges := r.badger.State().FindResetMemberBadges(row.Name)
 		if len(badges) == 0 {
 			continue
 		}
@@ -188,17 +192,23 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 
 		for _, badge := range badges {
 			active, inTeam := activeUsernames[badge.Username]
+			shallDismiss := true
 			if !inTeam {
 				// the user is not in the team anymore, so dismiss the
 				// gregor message for this badge
-				r.G().Log.CDebugf(ctx, "user %s is not in team %s, dismissing TeamMemberOutFromReset badge", badge.Username, row.Name)
-				if err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id); err != nil {
-					r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
-				}
+				r.G().Log.CDebugf(ctx, "user %s is not in team %s, dismissing TeamMemberOutFromReset badge",
+					badge.Username, row.Name)
 			} else if active {
 				// the user is active in the team, so dismiss the gregor message
 				// for this badge
-				r.G().Log.CDebugf(ctx, "user %s is active in team %s, dismissing TeamMemberOutFromReset badge", badge.Username, row.Name)
+				r.G().Log.CDebugf(ctx, "user %s is active in team %s, dismissing TeamMemberOutFromReset badge",
+					badge.Username, row.Name)
+			} else {
+				// User is still reset, do not dismiss.
+				shallDismiss = false
+			}
+
+			if shallDismiss {
 				if err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id); err != nil {
 					r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
 				}

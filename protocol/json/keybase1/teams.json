@@ -954,6 +954,11 @@
           "type": "boolean",
           "name": "misc",
           "jsonkey": "misc"
+        },
+        {
+          "type": "boolean",
+          "name": "removedResetUsers",
+          "jsonkey": "removed_reset_users"
         }
       ]
     },
