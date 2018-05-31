@@ -137,7 +137,8 @@ func TestChatSrvSBS(t *testing.T) {
 		select {
 		case rres := <-listener0.membersUpdate:
 			require.Equal(t, ncres.Conv.GetConvID(), rres.ConvID)
-			require.Equal(t, users[1].Username, rres.Member)
+			require.Equal(t, 1, len(rres.Members))
+			require.Equal(t, users[1].Username, rres.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no resolve")
 		}

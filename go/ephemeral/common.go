@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -66,6 +67,10 @@ func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool 
 
 func keygenNeeded(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
 	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyGenLifetimeSecs
+}
+
+func nextKeygenTime(ctime keybase1.Time) time.Time {
+	return keybase1.TimeFromSeconds(ctime.UnixSeconds() + KeyGenLifetimeSecs).Time()
 }
 
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {

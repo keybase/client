@@ -209,7 +209,7 @@ func (h *UserHandler) loadPublicKeys(ctx context.Context, larg libkb.LoadUserArg
 func (h *UserHandler) LoadAllPublicKeysUnverified(ctx context.Context,
 	arg keybase1.LoadAllPublicKeysUnverifiedArg) (keys []keybase1.PublicKey, err error) {
 
-	u, err := libkb.LoadUserFromServer(ctx, h.G(), arg.Uid, nil)
+	u, err := libkb.LoadUserFromServer(libkb.NewMetaContext(ctx, h.G()), arg.Uid, nil)
 	if err != nil {
 		return
 	}

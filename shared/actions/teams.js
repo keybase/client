@@ -3,7 +3,6 @@ import logger from '../logger'
 import {map, last, upperFirst} from 'lodash-es'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
-import * as GregorGen from './gregor-gen'
 import * as TeamsGen from './teams-gen'
 import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
@@ -517,7 +516,8 @@ function _getDetailsForAllTeams(action: TeamsGen.GetDetailsForAllTeamsPayload, s
 
 function* _addUserToTeams(action: TeamsGen.AddUserToTeamsPayload, state: TypedState) {
   const {role, teams, user} = action.payload
-  const collectedResults = []
+  const teamsAddedTo = []
+  const errorAddingTo = []
   for (const team of teams) {
     try {
       yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
@@ -527,12 +527,40 @@ function* _addUserToTeams(action: TeamsGen.AddUserToTeamsPayload, state: TypedSt
         role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
         sendChatNotification: true,
       })
-      collectedResults.push(`Added ${user} to ${team}.`)
+      teamsAddedTo.push(team)
     } catch (error) {
-      collectedResults.push(`Error adding ${user}: ${error.desc}  `)
+      errorAddingTo.push(team)
     }
   }
-  yield Saga.put(TeamsGen.createSetAddUserToTeamsResults({results: collectedResults.join('\n')}))
+
+  // TODO: We should split these results into two messages, showing one in green and
+  // the other in red instead of lumping them together.
+
+  let result = ''
+
+  if (teamsAddedTo.length) {
+    result += `${user} was added to `
+    if (teamsAddedTo.length > 3) {
+      result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo.length - 2} teams.`
+    } else if (teamsAddedTo.length === 3) {
+      result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo[2]}.`
+    } else if (teamsAddedTo.length === 2) {
+      result += `${teamsAddedTo[0]} and ${teamsAddedTo[1]}.`
+    } else {
+      result += `${teamsAddedTo[0]}.`
+    }
+  }
+
+  if (errorAddingTo.length) {
+    if (result.length > 0) {
+      result += ' But we '
+    } else {
+      result += 'We '
+    }
+    result += `were unable to add ${user} to ${errorAddingTo.join(', ')}.`
+  }
+
+  yield Saga.put(TeamsGen.createSetAddUserToTeamsResults({results: result}))
 }
 
 const _getTeamOperations = function*(
@@ -1029,27 +1057,56 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
   ])
 }
 
-function _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsPayload, state: TypedState) {
+function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsPayload) {
+  const state = yield Saga.select()
   const {teamname} = action.payload
   if (state.teams.teamsWithChosenChannels.has(teamname)) {
+    // we've already dismissed for this team and we already know about it, bail
     return
   }
-  const newTeamsWithChosenChannels = state.teams.teamsWithChosenChannels.add(teamname)
-  // We'd actually like to do this in one message to avoid having the UI glitch
-  // momentarily inbetween the dismiss (and therefore thinking no teams have
-  // had channels selected) and the re-inject.  For now, we have a workaround
-  // of ignoring empty updates from the clearing in the reducer.  (CORE-7663.)
-  return Saga.sequentially([
-    Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
-      category: 'chosenChannelsForTeam',
-    }),
-    Saga.put(
-      GregorGen.createInjectItem({
-        body: JSON.stringify(newTeamsWithChosenChannels.toJSON()),
-        category: 'chosenChannelsForTeam',
-      })
-    ),
-  ])
+  const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
+  let pushState
+  try {
+    pushState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  } catch (err) {
+    // failure getting the push state, don't bother the user with an error
+    // and don't try to move forward updating the state
+    logger.info(`${logPrefix} error fetching gregor state: ${err}`)
+    return
+  }
+  const item = pushState.items.find(i => i.item.category === Constants.chosenChannelsGregorKey)
+  let teams = []
+  let msgID
+  if (item && item.item && item.item.body) {
+    const body = item.item.body
+    msgID = item.md.msgID
+    teams = JSON.parse(body.toString())
+  }
+  teams.push(teamname)
+  // make sure there're no dupes
+  teams = I.Set(teams).toArray()
+
+  const dtime = {
+    offset: 0,
+    time: 0,
+  }
+  // update if exists, else create
+  if (msgID) {
+    logger.info(`${logPrefix} Updating teamsWithChosenChannels`)
+    yield Saga.call(RPCTypes.gregorUpdateItemRpcPromise, {
+      body: JSON.stringify(teams),
+      cat: Constants.chosenChannelsGregorKey,
+      dtime,
+      msgID,
+    })
+  } else {
+    logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
+    yield Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+      body: JSON.stringify(teams),
+      cat: Constants.chosenChannelsGregorKey,
+      dtime,
+    })
+  }
 }
 
 function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: TypedState) {
@@ -1201,7 +1258,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.getTeamRetentionPolicy, _getTeamRetentionPolicy)
   yield Saga.safeTakeEveryPure(TeamsGen.saveTeamRetentionPolicy, _saveTeamRetentionPolicy)
   yield Saga.safeTakeEveryPure(Chat2Gen.updateTeamRetentionPolicy, _updateTeamRetentionPolicy)
-  yield Saga.safeTakeEveryPure(TeamsGen.addTeamWithChosenChannels, _addTeamWithChosenChannels)
+  yield Saga.safeTakeEvery(TeamsGen.addTeamWithChosenChannels, _addTeamWithChosenChannels)
 }
 
 export default teamsSaga

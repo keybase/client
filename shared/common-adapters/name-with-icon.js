@@ -140,7 +140,7 @@ const NameWithIconHorizontal = (props: Props) => {
 // Delegator
 const NameWithIcon = (props: Props) => {
   if (props.username && props.teamname) {
-    throw new Error('Can onlt use username or teamname in NameWithIcon; got both')
+    throw new Error('Can only use username or teamname in NameWithIcon; got both')
   }
   return props.horizontal ? <NameWithIconHorizontal {...props} /> : <NameWithIconVertical {...props} />
 }

@@ -67,11 +67,11 @@ func NewPGPKeyImportEngineFromBytes(g *libkb.GlobalContext, key []byte, pushPriv
 	return
 }
 
-func (e *PGPKeyImportEngine) loadMe() (err error) {
+func (e *PGPKeyImportEngine) loadMe(m libkb.MetaContext) (err error) {
 	if e.me = e.arg.Me; e.me != nil {
 		return
 	}
-	e.me, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
+	e.me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
 	return err
 }
 
@@ -155,7 +155,7 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if err = e.loadMe(); err != nil {
+	if err = e.loadMe(m); err != nil {
 		return err
 	}
 

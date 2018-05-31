@@ -32,6 +32,14 @@ var projects = {
     seenTypes: {},
     enums: {},
   },
+  stellar1: {
+    root: './json/stellar1',
+    out: 'js/rpc-stellar-gen.js',
+    import: "import * as Keybase1 from './rpc-gen'",
+    incomingMaps: {},
+    seenTypes: {},
+    enums: {},
+  },
 }
 
 const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), [])
@@ -172,20 +180,21 @@ function analyzeMessages(json, project) {
 
     lintMessage(m, message)
 
-    const buildParams = (incoming) => {
+    const buildParams = incoming => {
       const arr = message.request
         .filter(r => incoming || r.name !== 'sessionID') // We have the engine handle this under the hood
         .map(r => {
           const rtype = figureType(r.type)
           return `${r.name}${r.hasOwnProperty('default') || rtype.startsWith('?') ? '?' : ''}: ${rtype}`
         })
-        .concat(...(incoming ? [] : [
-          'incomingCallMap?: IncomingCallMapType',
-          'waitingHandler?: WaitingHandlerType',
-        ]))
+        .concat(
+          ...(incoming
+            ? []
+            : ['incomingCallMap?: IncomingCallMapType', 'waitingHandler?: WaitingHandlerType'])
+        )
 
       // if its just the incomingCallMpa or waitingHandler we can skip passing anything
-      const isOptional = (!incoming && arr.length === 2) ? '?' : ''
+      const isOptional = !incoming && arr.length === 2 ? '?' : ''
       return `${isOptional}$ReadOnly<{${arr.join(',')}}>`
     }
 
@@ -208,7 +217,9 @@ function analyzeMessages(json, project) {
 
     const inParams = buildParams(true)
     if (isUIProtocol) {
-      project.incomingMaps[`keybase.1.${json.protocol}.${m}`] = `(params: ${inParams ? `${inParams}` : 'void'}${r}) => void`
+      project.incomingMaps[`keybase.1.${json.protocol}.${m}`] = `(params: ${
+        inParams ? `${inParams}` : 'void'
+      }${r}) => void`
     }
 
     r = ''
@@ -220,9 +231,7 @@ function analyzeMessages(json, project) {
     const paramType = outParams ? `\nexport type ${capitalize(name)}RpcParam = ${outParams}` : ''
     const innerParamType = outParams ? `${capitalize(name)}RpcParam` : null
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
-    const rpcPromise = isUIProtocol
-      ? ''
-      : rpcPromiseGen(methodName, name, r, innerParamType, responseType)
+    const rpcPromise = isUIProtocol ? '' : rpcPromiseGen(methodName, name, r, innerParamType, responseType)
     const rpcChannelMap = isUIProtocol
       ? ''
       : rpcChannelMapGen(methodName, name, r, innerParamType, responseType)
@@ -236,7 +245,9 @@ function rpcChannelMapGen(methodName, name, response, requestType, responseType)
 
 function rpcPromiseGen(methodName, name, response, requestType, responseType) {
   const resultType = responseType !== 'null' ? `${capitalize(name)}Result` : 'void'
-  return `\nexport const ${name}RpcPromise = (request: ${requestType}): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing(${methodName}, request, (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${resultType === 'void' ? '' : 'result'})))`
+  return `\nexport const ${name}RpcPromise = (request: ${requestType}): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing(${methodName}, request, (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
+    resultType === 'void' ? '' : 'result'
+  })))`
 }
 
 // Type parsing
@@ -306,20 +317,18 @@ function parseVariant(t, project) {
   }
 
   var type = parts.shift()
-  return (
-    t.cases
-      .map(c => {
-        if (c.label.def) {
-          const bodyStr = c.body ? `, 'default': ?${c.body}` : ''
-          return `{ ${t.switch.name}: any${bodyStr} }`
-        } else {
-          var label = fixCase(c.label.name)
-          const bodyStr = c.body ? `, ${label}: ?${capitalize(c.body)}` : ''
-          return `{ ${t.switch.name}: ${project.enums[type][label]}${bodyStr} }`
-        }
-      })
-      .join(' | ')
-  )
+  return t.cases
+    .map(c => {
+      if (c.label.def) {
+        const bodyStr = c.body ? `, 'default': ?${c.body}` : ''
+        return `{ ${t.switch.name}: any${bodyStr} }`
+      } else {
+        var label = fixCase(c.label.name)
+        const bodyStr = c.body ? `, ${label}: ?${capitalize(c.body)}` : ''
+        return `{ ${t.switch.name}: ${project.enums[type][label]}${bodyStr} }`
+      }
+    })
+    .join(' | ')
 }
 
 function makeRpcUnionType(typeDefs) {
@@ -359,7 +368,9 @@ import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint6
 `
   const incomingMap =
     `\nexport type IncomingCallMapType = {|` +
-    Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',') +
+    Object.keys(project.incomingMaps)
+      .map(im => `  '${im}'?: ${project.incomingMaps[im]}`)
+      .join(',') +
     '|}\n'
   const toWrite = [typePrelude, typeDefs.join('\n'), incomingMap].join('\n')
   const destinationFile = `types/${project.out.substr(3)}` // Only used by prettier so we can set an override in .prettierrc
