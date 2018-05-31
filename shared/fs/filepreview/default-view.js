@@ -73,20 +73,6 @@ const DefaultView = (props: DefaultViewProps) => (
           onClick={props.onDownload}
         />
       ))}
-    {// We only show this button for files with no extensions, because our
-    // mime type list cannot be exaustive. For example it'd be weird to show
-    // an Illustrator file as plain text.
-    props.pathItem.name.indexOf('.') === -1 &&
-      // We don't want show this button for symlinks.
-      props.pathItem.type === 'file' && (
-        <Button
-          key="open-text"
-          type="Secondary"
-          label="Open as text"
-          style={{marginTop: globalMargins.small}}
-          onClick={props.onOpenAsText}
-        />
-      )}
   </Box>
 )
 
