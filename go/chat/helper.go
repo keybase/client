@@ -672,6 +672,11 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, err error) {
 
 	findConvosWithMembersType := func(membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, err error) {
+		// Don't look for KBFS conversations anymore, they have mostly been converted, and it is better
+		// to just not search for them than to create a double conversation.
+		if membersType == chat1.ConversationMembersType_KBFS {
+			return nil, nil
+		}
 
 		query := &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
