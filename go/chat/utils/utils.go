@@ -477,10 +477,17 @@ func FilterExploded(msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 			if mvalid.IsEphemeral() && mvalid.HideExplosion(now) {
 				continue
 			}
+		} else if msg.IsError() {
+			// If we had an error on an expired message, it's irrelevant now
+			// that the message has exploded so we hide it.
+			merr := msg.Error()
+			if merr.IsEphemeral && merr.IsEphemeralExpired {
+				continue
+			}
 		}
 		res = append(res, msg)
 	}
-	return msgs
+	return res
 }
 
 // GetSupersedes must be called with a valid msg
@@ -1021,6 +1028,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			if showErr {
 				return miscErr(fmt.Errorf("unexpected deleted %v message",
 					strings.ToLower(rawMsg.GetMessageType().String())))
+			}
+		}
+		// Disable reading exploding messages until fully we release support
+		if valid.IsEphemeral() && !valid.IsEphemeralExpired(time.Now()) {
+			if ekLib := g.GetEKLib(); ekLib != nil && !ekLib.ShouldRun(ctx) {
+				return miscErr(fmt.Errorf("Unable to decrypt because current client is out of date. Please update your version of Keybase to view this exploding 💣 message"))
 			}
 		}
 		var strOutboxID *string

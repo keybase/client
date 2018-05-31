@@ -78,17 +78,19 @@ const groups = [
   [
     {label: 'Body small Body small', type: 'BodySmall'},
     {label: 'Body small extrabold Body small extrabold', type: 'BodySmallExtrabold'},
-    {action: true, label: 'Body small semibold', type: 'BodySmallSemibold'},
+    {label: 'Body small semibold', type: 'BodySmallSemibold'},
+    {action: true, label: 'Body small primary link semibold', type: 'BodySmallSemiboldPrimaryLink'},
     {action: true, label: 'Body small primary link', type: 'BodySmallPrimaryLink'},
     {action: true, label: 'Body small secondary link', normalOnly: true, type: 'BodySmallSecondaryLink'},
     {
       action: true,
       label: 'Body small secondary link extrabold',
       normalOnly: true,
-      type: 'BodySmallSecondaryLinkExtrabold',
+      type: 'BodySmallExtraboldSecondaryLink',
     },
     {label: 'Body small error Body small error', normalOnly: true, type: 'BodySmallError'},
     {label: 'Body small success Body small success', normalOnly: true, type: 'BodySmallSuccess'},
+    {label: 'Body small wallet Body small wallet', normalOnly: true, type: 'BodySmallWallet'},
   ],
 ]
 

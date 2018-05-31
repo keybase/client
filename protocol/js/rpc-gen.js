@@ -552,6 +552,10 @@ import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint6
 
 // Not enabled: export const merkleGetCurrentMerkleRootRpcPromise = (request: MerkleGetCurrentMerkleRootRpcParam): Promise<MerkleGetCurrentMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error: RPCError, result: MerkleGetCurrentMerkleRootResult) => error ? reject(error) : resolve(result)))
 
+// Not enabled: export const merkleVerifyMerkleRootAndKBFSRpcChannelMap = (configKeys: Array<string>, request: MerkleVerifyMerkleRootAndKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.verifyMerkleRootAndKBFS', request)
+
+// Not enabled: export const merkleVerifyMerkleRootAndKBFSRpcPromise = (request: MerkleVerifyMerkleRootAndKBFSRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.verifyMerkleRootAndKBFS', request, (error: RPCError, result: void) => error ? reject(error) : resolve()))
+
 // Not enabled: export const metadataAuthenticateRpcChannelMap = (configKeys: Array<string>, request: MetadataAuthenticateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.authenticate', request)
 
 // Not enabled: export const metadataAuthenticateRpcPromise = (request: MetadataAuthenticateRpcParam): Promise<MetadataAuthenticateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.authenticate', request, (error: RPCError, result: MetadataAuthenticateResult) => error ? reject(error) : resolve(result)))
@@ -2268,7 +2272,7 @@ export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCal
 
 export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
-export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time, deviceCtime: Time}>
 
 export type DeviceEkStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
 
@@ -2695,6 +2699,10 @@ export type KBFSGitDeleteRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepo
 
 export type KBFSGitGcRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, options: GcOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type KBFSRoot = $ReadOnly<{treeID: MerkleTreeID, root: KBFSRootHash}>
+
+export type KBFSRootHash = Bytes
+
 export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
 
 export type KID = String
@@ -2843,6 +2851,8 @@ export type MerkleTreeID =
   | 3 // KBFS_PRIVATETEAM_3
 
 export type MerkleTreeLocation = $ReadOnly<{leaf: UserOrTeamID, loc: SigChainLocation}>
+
+export type MerkleVerifyMerkleRootAndKBFSRpcParam = $ReadOnly<{root: MerkleRootV2, expectedKBFSRoot: KBFSRoot, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type MetadataAuthenticateRpcParam = $ReadOnly<{signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

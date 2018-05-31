@@ -36,6 +36,14 @@ var projects = {
     seenTypes: {},
     enums: {},
   },
+  stellar1: {
+    root: './json/stellar1',
+    out: 'js/rpc-stellar-gen.js',
+    import: "import * as Keybase1 from './rpc-gen'",
+    incomingMaps: {},
+    seenTypes: {},
+    enums: {},
+  },
 }
 
 const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), [])

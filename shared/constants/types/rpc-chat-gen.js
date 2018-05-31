@@ -1006,7 +1006,9 @@ export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Arra
 
 export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 
-export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, member: String, status: ConversationMemberStatus}>
+export type MemberInfo = $ReadOnly<{member: String, status: ConversationMemberStatus}>
+
+export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, members?: ?Array<MemberInfo>}>
 
 export type MerkleRoot = $ReadOnly<{seqno: Long, hash: Bytes}>
 

@@ -1192,17 +1192,6 @@ func (s *LoginState) SessionLoadAndCheck(force bool) (bool, error) {
 	return sessionValid, nil
 }
 
-func IsLoggedIn(g *GlobalContext, lih LoggedInHelper) (ret bool, uid keybase1.UID, err error) {
-	if lih == nil {
-		lih = g.LoginState()
-	}
-	ret, err = lih.LoggedInLoad()
-	if ret && err == nil {
-		uid = lih.GetUID()
-	}
-	return ret, uid, err
-}
-
 // UnverifiedPassphraseStream takes a passphrase as a parameter and
 // also the salt from the Account and computes a Triplesec and
 // a passphrase stream.  It's not verified through a Login.
@@ -1219,7 +1208,7 @@ func UnverifiedPassphraseStream(m MetaContext, passphrase string) (tsec Triplese
 		}
 		salt, err = lctx.LoginSession().Salt()
 	} else {
-		aerr := m.G().LoginState().Account(func(a *Account) {
+		aerr := m.G().LoginStateDeprecated().Account(func(a *Account) {
 			if len(username) > 0 {
 				err = a.LoadLoginSession(username)
 				if err != nil {

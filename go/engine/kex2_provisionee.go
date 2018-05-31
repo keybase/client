@@ -669,7 +669,7 @@ func (e *Kex2Provisionee) saveConfig(m libkb.MetaContext) (err error) {
 func (e *Kex2Provisionee) storeEKs(m libkb.MetaContext, deviceEKStatement keybase1.DeviceEkStatement, userEKBox *keybase1.UserEkBoxed) (err error) {
 	defer m.CTrace("Kex2Provisionee.storeEKs", func() error { return err })()
 	ekLib := e.G().GetEKLib()
-	if ekLib == nil || !ekLib.ShouldRun(m.Ctx()) {
+	if ekLib == nil {
 		return nil
 	}
 	if userEKBox == nil {

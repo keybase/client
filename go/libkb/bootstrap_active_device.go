@@ -152,7 +152,7 @@ func LoadProvisionalActiveDevice(m MetaContext, uid keybase1.UID, deviceID keyba
 	return ret, nil
 }
 
-// BootstrapActiveDeviceWithLoginConext will setup an ActiveDevice with a NIST Factory
+// BootstrapActiveDeviceWithMetaContext will setup an ActiveDevice with a NIST Factory
 // for the caller. The m.loginContext passed through isn't really needed
 // for anything aside from assertions, but as we phase out LoginState, we'll
 // leave it here so that assertions in LoginState can still pass.
@@ -161,7 +161,7 @@ func BootstrapActiveDeviceWithMetaContext(m MetaContext) (ok bool, uid keybase1.
 		return BootstrapActiveDeviceFromConfig(m.WithLoginContext(lctx), true)
 	}
 	if lctx := m.LoginContext(); lctx == nil {
-		aerr := m.G().LoginState().Account(func(lctx *Account) {
+		aerr := m.G().LoginStateDeprecated().Account(func(lctx *Account) {
 			uid, err = run(lctx)
 		}, "BootstrapActiveDevice")
 		if err == nil && aerr != nil {

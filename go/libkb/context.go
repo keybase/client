@@ -60,6 +60,10 @@ func (m MetaContext) CTrace(msg string, f func() error) func() {
 	return CTrace(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
+func (m MetaContext) CVTrace(lev VDebugLevel, msg string, f func() error) func() {
+	return m.g.CVTrace(m.ctx, lev, msg, f)
+}
+
 func (m MetaContext) CTraceTimed(msg string, f func() error) func() {
 	return CTraceTimed(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f, m.G().Clock())
 }
@@ -222,7 +226,7 @@ func (m MetaContext) CommitProvisionalLogin() MetaContext {
 		// For now, simply propagate the PassphraseStreamCache and Session
 		// back into login state. Eventually we're going to move it
 		// into G or ActiveDevice.
-		m.G().LoginState().Account(func(a *Account) {
+		m.G().LoginStateDeprecated().Account(func(a *Account) {
 			a.streamCache = ppsc
 			a.localSession = lctx.LocalSession()
 		}, "CommitProvisionalLogin")
@@ -290,6 +294,10 @@ type MetaContextified struct {
 
 func (m MetaContextified) M() MetaContext {
 	return m.m
+}
+
+func (m MetaContextified) G() *GlobalContext {
+	return m.m.g
 }
 
 func NewMetaContextified(m MetaContext) MetaContextified {
@@ -483,7 +491,7 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 
 	defer m.CTrace("GlobalContext#LogoutAndDeprovisionIfRevoked", func() error { return err })()
 
-	in, err := m.G().LoginState().LoggedInLoad()
+	in, err := m.G().LoginStateDeprecated().LoggedInLoad()
 	if err != nil {
 		return err
 	}
@@ -595,4 +603,15 @@ func (m MetaContext) HasAnySession() (ret bool) {
 func (m MetaContext) SyncSecrets() (ss *SecretSyncer, err error) {
 	defer m.CTrace("MetaContext#SyncSecrets", func() error { return err })()
 	return m.ActiveDevice().SyncSecrets(m)
+}
+
+func (m MetaContext) ProvisionalSessionArgs() (token string, csrf string) {
+	if m.LoginContext() == nil {
+		return "", ""
+	}
+	sess := m.LoginContext().LocalSession()
+	if sess == nil || !sess.IsValid() {
+		return "", ""
+	}
+	return sess.token, sess.csrf
 }
