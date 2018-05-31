@@ -853,8 +853,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 						continue
 					}
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
-					require.Equal(t, fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
-						conv.LocalMetadata.Snippet)
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
