@@ -190,6 +190,7 @@ function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
       })
     )
   }
+  return []
 }
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
