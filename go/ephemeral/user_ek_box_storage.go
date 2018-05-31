@@ -119,15 +119,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	// Before we store anything, let's verify that the server returned
 	// signature is valid and the KID it has signed matches the boxed seed.
 	// Otherwise something's fishy..
-	userEKStatement, _, wrongKID, err := verifySigWithLatestPUK(ctx, s.G(), s.G().Env.GetUID(), result.Result.Sig)
-
-	// Check the wrongKID condition before checking the error, since an error
-	// is still returned in this case. TODO: Turn this warning into an error
-	// after EK support is sufficiently widespread.
-	if wrongKID {
-		s.G().Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
-		return userEK, nil
-	}
+	userEKStatement, _, _, err := verifySigWithLatestPUK(ctx, s.G(), s.G().Env.GetUID(), result.Result.Sig)
 	if err != nil {
 		return userEK, err
 	}
