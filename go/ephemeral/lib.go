@@ -234,10 +234,12 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 
 	// Let's see what the latest server statement is.
 	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), e.G().Env.GetUID())
-	if err != nil {
+	if wrongKID {
+		return true, nil
+	} else if err != nil {
 		return false, err
 	}
-	if statement == nil || wrongKID {
+	if statement == nil {
 		return true, nil
 	}
 	// Can we access this generation? If not, let's regenerate.
@@ -265,20 +267,24 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 	if err != nil {
 		return false, err
 	}
-	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
-	if err != nil {
-		return false, err
-	}
-	return e.newTeamEKNeeded(ctx, teamID, *merkleRootPtr, statement)
+	needed, _, err = e.newTeamEKNeeded(ctx, teamID, *merkleRootPtr)
+	return needed, err
 }
 
-func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot, statement *keybase1.TeamEkStatement) (needed bool, err error) {
+func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (needed bool, latestGenerationk keybase1.EkGeneration, err error) {
 	defer e.G().CTraceTimed(ctx, fmt.Sprintf("newTeamEKNeeded: %v", needed), func() error { return err })()
+
+	statement, latestGeneration, wrongKID, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	if wrongKID {
+		return true, latestGeneration, nil
+	} else if err != nil {
+		return false, latestGeneration, err
+	}
 
 	// Let's see what the latest server statement is.
 	// No statement, so we need a teamEK
 	if statement == nil {
-		return true, nil
+		return true, latestGeneration, nil
 	}
 	// Can we access this generation? If not, let's regenerate.
 	s := e.G().GetTeamEKBoxStorage()
@@ -287,14 +293,14 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 		switch err.(type) {
 		case *EKUnboxErr, *EKMissingBoxErr:
 			e.G().Log.Debug(err.Error())
-			return true, nil
+			return true, latestGeneration, nil
 		default:
-			return false, err
+			return false, latestGeneration, err
 		}
 	}
 	// Ok we can access the ek, check lifetime.
 	e.G().Log.CDebugf(ctx, "nextTeamEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime))
-	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), nil
+	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), latestGeneration, nil
 }
 
 type teamEKGenCacheEntry struct {
@@ -373,29 +379,23 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		return teamEK, err
 	}
 
-	statement, _, _, err := fetchTeamEKStatement(ctx, e.G(), teamID)
+	teamEKNeeded, latestGeneration, err := e.newTeamEKNeeded(ctx, teamID, merkleRoot)
 	if err != nil {
 		return teamEK, err
-	}
-
-	var publishedMetadata keybase1.TeamEkMetadata
-	if teamEKNeeded, err := e.newTeamEKNeeded(ctx, teamID, merkleRoot, statement); err != nil {
-		return teamEK, err
 	} else if teamEKNeeded {
-		publishedMetadata, err = publishNewTeamEK(ctx, e.G(), teamID, merkleRoot)
+		publishedMetadata, err := publishNewTeamEK(ctx, e.G(), teamID, merkleRoot)
 		if err != nil {
 			return teamEK, err
 		}
-	} else {
-		publishedMetadata = statement.CurrentTeamEkMetadata
+		latestGeneration = publishedMetadata.Generation
 	}
 
-	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, publishedMetadata.Generation)
+	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, latestGeneration)
 	if err != nil {
 		return teamEK, err
 	}
 	// Cache the latest generation
-	e.teamEKGenCache.Add(key, e.newCacheEntry(publishedMetadata.Generation))
+	e.teamEKGenCache.Add(key, e.newCacheEntry(latestGeneration))
 	return teamEK, nil
 }
 

@@ -61,8 +61,8 @@ func prepareNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		return "", nil, metadata, nil, err
 	}
 
-	prevStatement, latestGeneration, _, err := fetchTeamEKStatement(ctx, g, teamID)
-	if err != nil {
+	prevStatement, latestGeneration, wrongKID, err := fetchTeamEKStatement(ctx, g, teamID)
+	if !wrongKID && err != nil {
 		return "", nil, metadata, nil, err
 	}
 	var generation keybase1.EkGeneration
@@ -293,8 +293,7 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	if wrongKID {
 		g.Log.CDebugf(ctx, "It looks like someone rolled the PTK without generating new ephemeral keys. They might be on an old version.")
 		return nil, latestGeneration, true, nil
-	}
-	if err != nil {
+	} else if err != nil {
 		return nil, latestGeneration, false, err
 	}
 
@@ -437,8 +436,7 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 			g.Log.CDebugf(ctx, "Member %v revoked a device without generating new ephemeral keys. They might be running an old version?", uid)
 			// Don't box for this member since they have no valid userEK
 			continue
-		}
-		if err != nil {
+		} else if err != nil {
 			return nil, err
 		}
 		statementMap[uid] = memberStatement

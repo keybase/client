@@ -67,17 +67,18 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	}
 
 	prevStatement, latestGeneration, wrongKID, err := fetchUserEKStatement(ctx, g, g.Env.GetUID())
-	if err != nil {
+	if !wrongKID && err != nil {
 		return "", nil, newMetadata, nil, err
 	}
 	var newGeneration keybase1.EkGeneration
 	var existingMaybeStaleMetadata []keybase1.UserEkMetadata
 	if prevStatement == nil {
-		if wrongKID {
-			newGeneration = latestGeneration + 1
-		} else {
-			newGeneration = 1 // start at generation 1
-		}
+		// Even if the userEK statement was signed by the wrong key (this can
+		// happen when legacy clients roll the PUK, fetchUserEKStatement will
+		// return the generation number from the last (unverifiable) statement.
+		// If there was never any statement, latestGeneration will be 0, so
+		// adding one is correct in all cases.
+		newGeneration = latestGeneration + 1
 	} else {
 		newGeneration = prevStatement.CurrentUserEkMetadata.Generation + 1
 		existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.ExistingUserEkMetadata...)
@@ -247,8 +248,7 @@ func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []k
 			g.Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
 			// Don't include this statement since it is invalid.
 			continue
-		}
-		if err != nil {
+		} else if err != nil {
 			return nil, err
 		}
 		statements[uid] = statement
@@ -302,8 +302,7 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 	if wrongKID {
 		g.Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
 		return nil, latestGeneration, true, nil
-	}
-	if err != nil {
+	} else if err != nil {
 		return nil, latestGeneration, false, err
 	}
 
