@@ -795,14 +795,16 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 	}
 }
 
-func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) string {
-	if !msg.IsValid() {
-		return ""
+// Sender prefix for msg snippets. Will show if a conversation has > 2 members
+// or is of type TEAM
+func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal, currentUsername string) (senderPrefix string) {
+	var showPrefix bool
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		showPrefix = true
 	}
 
-	mvalid := msg.Valid()
-	var senderPrefix string
-	if len(conv.Names()) > 2 {
+	if showPrefix || len(conv.Names()) > 2 {
 		sender := mvalid.SenderUsername
 		if sender == currentUsername {
 			senderPrefix = "You: "
@@ -810,6 +812,16 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 			senderPrefix = fmt.Sprintf("%s: ", sender)
 		}
 	}
+	return senderPrefix
+}
+
+func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) string {
+	if !msg.IsValid() {
+		return ""
+	}
+
+	mvalid := msg.Valid()
+	senderPrefix := getSenderPrefix(mvalid, conv, currentUsername)
 
 	if !msg.IsValidFull() {
 		if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
