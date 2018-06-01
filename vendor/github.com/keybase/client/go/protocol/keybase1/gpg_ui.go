@@ -28,6 +28,10 @@ type ConfirmDuplicateKeyChosenArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type ConfirmImportSecretToExistingKeyArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type SelectKeyAndPushOptionArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Keys      []GPGKey `codec:"keys" json:"keys"`
@@ -49,6 +53,7 @@ type GetTTYArg struct {
 type GpgUiInterface interface {
 	WantToAddGPGKey(context.Context, int) (bool, error)
 	ConfirmDuplicateKeyChosen(context.Context, int) (bool, error)
+	ConfirmImportSecretToExistingKey(context.Context, int) (bool, error)
 	SelectKeyAndPushOption(context.Context, SelectKeyAndPushOptionArg) (SelectKeyRes, error)
 	SelectKey(context.Context, SelectKeyArg) (string, error)
 	Sign(context.Context, SignArg) (string, error)
@@ -87,6 +92,22 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.ConfirmDuplicateKeyChosen(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"confirmImportSecretToExistingKey": {
+				MakeArg: func() interface{} {
+					ret := make([]ConfirmImportSecretToExistingKeyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ConfirmImportSecretToExistingKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ConfirmImportSecretToExistingKeyArg)(nil), args)
+						return
+					}
+					ret, err = i.ConfirmImportSecretToExistingKey(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -167,6 +188,12 @@ func (c GpgUiClient) WantToAddGPGKey(ctx context.Context, sessionID int) (res bo
 func (c GpgUiClient) ConfirmDuplicateKeyChosen(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := ConfirmDuplicateKeyChosenArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.gpgUi.confirmDuplicateKeyChosen", []interface{}{__arg}, &res)
+	return
+}
+
+func (c GpgUiClient) ConfirmImportSecretToExistingKey(ctx context.Context, sessionID int) (res bool, err error) {
+	__arg := ConfirmImportSecretToExistingKeyArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.confirmImportSecretToExistingKey", []interface{}{__arg}, &res)
 	return
 }
 

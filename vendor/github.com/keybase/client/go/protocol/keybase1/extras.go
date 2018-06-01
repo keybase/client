@@ -128,6 +128,25 @@ func HashMetaFromString(s string) (ret HashMeta, err error) {
 	return HashMeta(b), nil
 }
 
+func KBFSRootHashFromString(s string) (ret KBFSRootHash, err error) {
+	if s == "null" {
+		return nil, nil
+	}
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return ret, err
+	}
+	return KBFSRootHash(b), nil
+}
+
+func (h KBFSRootHash) String() string {
+	return hex.EncodeToString(h)
+}
+
+func (h KBFSRootHash) Eq(h2 KBFSRootHash) bool {
+	return hmac.Equal(h[:], h2[:])
+}
+
 func (h HashMeta) String() string {
 	return hex.EncodeToString(h)
 }
@@ -142,6 +161,15 @@ func (h *HashMeta) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	*h = hm
+	return nil
+}
+
+func (h *KBFSRootHash) UnmarshalJSON(b []byte) error {
+	rh, err := KBFSRootHashFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*h = rh
 	return nil
 }
 
@@ -826,6 +854,10 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
 
+func (u *UID) MarshalJSON() ([]byte, error) {
+	return Quote(u.String()), nil
+}
+
 // Size implements the keybase/kbfs/cache.Measurable interface.
 func (k *KID) Size() int {
 	if k == nil {
@@ -1333,6 +1365,12 @@ func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 		}
 	}
 	return nil
+}
+
+func (u UserPlusKeysV2AllIncarnations) AllIncarnations() (ret []UserPlusKeysV2) {
+	ret = append(ret, u.Current)
+	ret = append(ret, u.PastIncarnations...)
+	return ret
 }
 
 func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
