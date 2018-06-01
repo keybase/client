@@ -37,12 +37,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: Props) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
 })
 
-const mergeProps = ({_serverInfo, mimeType, isSymlink}, {loadMimeType}, {path}) => ({
+const mergeProps = ({_serverInfo, mimeType, isSymlink}, {loadMimeType}, {path, routePath}) => ({
   url: Constants.generateFileURL(path, _serverInfo),
   mimeType,
   isSymlink,
   path,
   loadMimeType,
+  routePath,
 })
 
 const Renderer = ({mimeType, isSymlink, url, path, routePath, loadMimeType}) => {

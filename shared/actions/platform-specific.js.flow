@@ -24,4 +24,4 @@ declare export function displayNewMessageNotification(
   myMsgID: ?number
 ): void
 declare export function clearAllNotifications(): void
-declare export function getMimeTypeFromURL(url: string, cb: {error?: any, statusCode?: number, mimeType?: string}): Promise<string>
+declare export function getContentTypeFromURL(url: string, cb: {error?: any, statusCode?: number, contentType?: string}): Promise<string>

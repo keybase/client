@@ -72,18 +72,18 @@ function openAppSettings(): void {
   throw new Error('Cannot open app settings on desktop')
 }
 
-const getMimeTypeFromURL = (
+const getContentTypeFromURL = (
   url: string,
-  cb: ({error?: any, statusCode?: number, mimeType?: string}) => void
+  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
 ) => {
   const req = SafeElectron.getRemote().net.request({url, method: 'HEAD'})
   req.on('response', response => {
-    let mimeType = ''
+    let contentType = ''
     if (response.statusCode === 200) {
-      const contentType = response.headers['content-type']
-      mimeType = Array.isArray(contentType) && contentType.length ? contentType[0] : ''
+      const contentTypeHeader = response.headers['content-type']
+      contentType = Array.isArray(contentTypeHeader) && contentTypeHeader.length ? contentTypeHeader[0] : ''
     }
-    cb({statusCode: response.statusCode, mimeType})
+    cb({statusCode: response.statusCode, contentType})
   })
   req.on('error', error => cb({error}))
   req.end()
@@ -105,5 +105,5 @@ export {
   downloadAndShowShareActionSheet,
   displayNewMessageNotification,
   clearAllNotifications,
-  getMimeTypeFromURL,
+  getContentTypeFromURL,
 }
