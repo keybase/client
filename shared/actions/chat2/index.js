@@ -1114,11 +1114,15 @@ const previewConversationAfterFindExisting = (
 
   // still looking for this result?
   if (
+    // If action.type === Chat2Gen.setPendingConversationUsers, then
+    // we know that fromSearch is true and participants is non-empty
+    // (see previewConversationFindExisting).
+    action.type === Chat2Gen.setPendingConversationUsers &&
     !Constants.getMeta(state, Constants.pendingConversationIDKey)
       .participants.toSet()
       .equals(I.Set(users))
   ) {
-    console.log('Ignorning old preview find due to participant mismatch')
+    console.log('Ignoring old preview find due to participant mismatch')
     return
   }
 
