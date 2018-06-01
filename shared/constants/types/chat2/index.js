@@ -67,7 +67,6 @@ export type {
   Message,
   MessageAttachment,
   MessageExplodeDescription,
-  MessageExplodeText,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,
