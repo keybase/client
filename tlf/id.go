@@ -7,7 +7,6 @@ package tlf
 import (
 	"encoding"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -168,9 +167,6 @@ var _ encoding.BinaryUnmarshaler = (*ID)(nil)
 var _ encoding.TextMarshaler = ID{}
 var _ encoding.TextUnmarshaler = (*ID)(nil)
 
-var _ json.Marshaler = ID{}
-var _ json.Unmarshaler = (*ID)(nil)
-
 // NullID is an empty ID
 var NullID = ID{}
 
@@ -229,21 +225,6 @@ func (id *ID) UnmarshalText(buf []byte) error {
 		return errors.WithStack(InvalidIDError{s})
 	}
 	return id.UnmarshalBinary(bytes)
-}
-
-// MarshalJSON implements the json.Marshaler interface for ID.
-func (id ID) MarshalJSON() ([]byte, error) {
-	return keybase1.Quote(id.String()), nil
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface for ID.
-func (id *ID) UnmarshalJSON(b []byte) error {
-	newID, err := ParseID(keybase1.Unquote(b))
-	if err != nil {
-		return err
-	}
-	*id = newID
-	return nil
 }
 
 // SafeType returns the type of TLF represented by this ID.  If the ID
