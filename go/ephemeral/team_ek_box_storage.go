@@ -126,6 +126,12 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 		return teamEK, newEKMissingBoxErr(TeamEKStr, generation)
 	}
 
+	// Although we verify the signature is valid, it's possible that this key
+	// was signed with a PTK that is not our latest and greatest. We allow this
+	// when we are using this ek for *decryption*. When getting a key for
+	// *encryption* callers are responsible for verifying the signature is
+	// signed by the latest PTK or generating a new EK. This logic currently
+	// lives in ephemeral/lib.go#GetOrCreateLatestTeamEK (#newTeamEKNeeded)
 	_, teamEKStatement, err := extractTeamEKStatementFromSig(result.Result.Sig)
 	if err != nil {
 		return teamEK, err

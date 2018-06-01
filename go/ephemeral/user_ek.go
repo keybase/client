@@ -74,7 +74,7 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	var existingMaybeStaleMetadata []keybase1.UserEkMetadata
 	if prevStatement == nil {
 		// Even if the userEK statement was signed by the wrong key (this can
-		// happen when legacy clients roll the PUK, fetchUserEKStatement will
+		// happen when legacy clients roll the PUK), fetchUserEKStatement will
 		// return the generation number from the last (unverifiable) statement.
 		// If there was never any statement, latestGeneration will be 0, so
 		// adding one is correct in all cases.

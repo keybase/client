@@ -116,6 +116,12 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 		return userEK, newEKMissingBoxErr(UserEKStr, generation)
 	}
 
+	// Although we verify the signature is valid, it's possible that this key
+	// was signed with a PUK that is not our latest and greatest. We allow this
+	// when we are using this ek for *decryption*. When getting a key for
+	// *encryption* callers are responsible for verifying the signature is
+	// signed by the latest PUK or generating a new EK. This logic currently
+	// lives in ephemeral/lib.go#KeygenIfNeeded (#newUserEKNeeded)
 	_, userEKStatement, err := extractUserEKStatementFromSig(result.Result.Sig)
 	if err != nil {
 		return userEK, err

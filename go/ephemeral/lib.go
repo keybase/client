@@ -142,6 +142,11 @@ func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot)
 		}
 	}
 
+	// newUserEKNeeded checks that the current userEKStatement is signed by our
+	// latest PUK, is accessible to a deviceEK we have access to and that the
+	// key is not expired. It's crucial that this verifies that the latest PUK
+	// was used since we don't want to use a key signed by an old PUK for
+	// encryption.
 	if userEKNeeded, err := e.newUserEKNeeded(ctx, merkleRoot); err != nil {
 		return err
 	} else if userEKNeeded {
@@ -384,6 +389,11 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		return teamEK, err
 	}
 
+	// newTeamEKNeeded checks that the current teamEKStatement is signed by the
+	// latest PTK, is accessible to a userEK we have access to and that the key
+	// is not expired. It's crucial that this verifies that the latest PTK was
+	// used since we don't want to use a key signed by an old PTK for
+	// encryption.
 	teamEKNeeded, latestGeneration, err := e.newTeamEKNeeded(ctx, teamID, merkleRoot)
 	if err != nil {
 		return teamEK, err
