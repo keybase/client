@@ -1173,12 +1173,12 @@ const previewConversationAfterFindExisting = (
 
   let existingConversationIDKey = Constants.noConversationIDKey
 
-  const isTeam = action.type === Chat2Gen.findAndPreviewConversation && action.payload.teamname
   if (results && results.conversations && results.conversations.length > 0) {
     // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
     // and allows quoting privately to work nicely
     existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
 
+    const isTeam = action.type === Chat2Gen.findAndPreviewConversation && action.payload.teamname
     // If we get a conversationIDKey we don't know about (maybe an empty convo) lets treat it as not being found so we can go through the create flow
     // if it's a team avoid the flow and just preview & select the channel
     if (
@@ -1190,12 +1190,12 @@ const previewConversationAfterFindExisting = (
   }
 
   // If we're previewing a team conversation we want to actually make an rpc call and add it to the inbox
-  if (isTeam) {
+  if (action.type === Chat2Gen.findAndPreviewConversation && action.payload.teamname) {
     return Saga.put(
       Chat2Gen.createSelectOrPreviewTeamConversation({
         channelname: 'general',
         conversationIDKey: existingConversationIDKey,
-        teamname: action.payload.teamname || '',
+        teamname: action.payload.teamname,
         reason: 'previewResolved',
       })
     )
