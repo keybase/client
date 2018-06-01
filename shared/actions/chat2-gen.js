@@ -22,6 +22,7 @@ export const blockConversation = 'chat2:blockConversation'
 export const clearLoading = 'chat2:clearLoading'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
+export const findAndPreviewConversation = 'chat2:findAndPreviewConversation'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
@@ -57,7 +58,7 @@ export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
-export const previewConversation = 'chat2:previewConversation'
+export const previewKnownTeamConversation = 'chat2:previewKnownTeamConversation'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
@@ -123,6 +124,12 @@ type _DesktopNotificationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   author: string,
   body: string,
+|}>
+type _FindAndPreviewConversationPayload = $ReadOnly<{|
+  participants?: Array<string>,
+  teamname?: string,
+  channelname?: string,
+  reason: 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView',
 |}>
 type _HandleSeeingExplodingMessagesPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
@@ -252,12 +259,11 @@ type _NotificationSettingsUpdatedPayload = $ReadOnly<{|
   settings: RPCChatTypes.ConversationNotificationInfo,
 |}>
 type _OpenFolderPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _PreviewConversationPayload = $ReadOnly<{|
-  participants?: Array<string>,
+type _PreviewKnownTeamConversationPayload = $ReadOnly<{|
+  channelname: string,
+  conversationIDKey: Types.ConversationIDKey,
   teamname?: string,
-  channelname?: string,
-  conversationIDKey?: Types.ConversationIDKey,
-  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
+  reason: 'manageView' | 'messageLink' | 'newChannel' | 'previewResolved',
 |}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
@@ -338,6 +344,10 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
 /**
+ * Select or preview an existing team conversation.
+ */
+export const createPreviewKnownTeamConversation = (payload: _PreviewKnownTeamConversationPayload) => ({error: false, payload, type: previewKnownTeamConversation})
+/**
  * Set a lock on the exploding mode for a conversation.
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
@@ -371,6 +381,7 @@ export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: 
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({error: false, payload, type: blockConversation})
 export const createClearLoading = (payload: _ClearLoadingPayload) => ({error: false, payload, type: clearLoading})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({error: false, payload, type: desktopNotification})
+export const createFindAndPreviewConversation = (payload: _FindAndPreviewConversationPayload) => ({error: false, payload, type: findAndPreviewConversation})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: _JoinConversationPayload) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: _LeaveConversationPayload) => ({error: false, payload, type: leaveConversation})
@@ -404,7 +415,6 @@ export const createNavigateToInbox = (payload: _NavigateToInboxPayload) => ({err
 export const createNavigateToThread = (payload: _NavigateToThreadPayload) => ({error: false, payload, type: navigateToThread})
 export const createNotificationSettingsUpdated = (payload: _NotificationSettingsUpdatedPayload) => ({error: false, payload, type: notificationSettingsUpdated})
 export const createOpenFolder = (payload: _OpenFolderPayload) => ({error: false, payload, type: openFolder})
-export const createPreviewConversation = (payload: _PreviewConversationPayload) => ({error: false, payload, type: previewConversation})
 export const createResetChatWithoutThem = (payload: _ResetChatWithoutThemPayload) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (payload: _ResetLetThemInPayload) => ({error: false, payload, type: resetLetThemIn})
 export const createSelectConversation = (payload: _SelectConversationPayload) => ({error: false, payload, type: selectConversation})
@@ -431,6 +441,7 @@ export type BlockConversationPayload = $Call<typeof createBlockConversation, _Bl
 export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoadingPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
+export type FindAndPreviewConversationPayload = $Call<typeof createFindAndPreviewConversation, _FindAndPreviewConversationPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
@@ -466,7 +477,7 @@ export type NavigateToInboxPayload = $Call<typeof createNavigateToInbox, _Naviga
 export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _NavigateToThreadPayload>
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
-export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
+export type PreviewKnownTeamConversationPayload = $Call<typeof createPreviewKnownTeamConversation, _PreviewKnownTeamConversationPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
@@ -503,6 +514,7 @@ export type Actions =
   | ClearLoadingPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
+  | FindAndPreviewConversationPayload
   | HandleSeeingExplodingMessagesPayload
   | InboxRefreshPayload
   | JoinConversationPayload
@@ -538,7 +550,7 @@ export type Actions =
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload
   | OpenFolderPayload
-  | PreviewConversationPayload
+  | PreviewKnownTeamConversationPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | SelectConversationPayload

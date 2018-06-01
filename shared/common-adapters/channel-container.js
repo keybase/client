@@ -8,7 +8,7 @@ const mapStateToProps = (state: TypedState) => ({})
 const mapDispatchToProps = (dispatch: Dispatch, {convID, name}) => ({
   onClick: () =>
     dispatch(
-      Chat2Gen.createPreviewConversation({
+      Chat2Gen.createPreviewKnownTeamConversation({
         conversationIDKey: convID,
         channelname: name,
         reason: 'messageLink',

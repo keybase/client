@@ -61,7 +61,9 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
   },
   onChat: () => {
     ownProps.username &&
-      dispatch(Chat2Gen.createPreviewConversation({participants: [ownProps.username], reason: 'teamMember'}))
+      dispatch(
+        Chat2Gen.createFindAndPreviewConversation({participants: [ownProps.username], reason: 'teamMember'})
+      )
   },
   onClick: () => dispatch(navigateAppend([{props: ownProps, selected: 'member'}])),
 })

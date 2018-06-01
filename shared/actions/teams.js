@@ -383,7 +383,7 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(Chat2Gen.createPreviewConversation({teamname, reason: 'convertAdHoc'}))
+      yield Saga.put(Chat2Gen.createFindAndPreviewConversation({teamname, reason: 'convertAdHoc'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
@@ -877,7 +877,7 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
 
     // Select the new channel, and switch to the chat tab.
     yield Saga.put(
-      Chat2Gen.createPreviewConversation({
+      Chat2Gen.createPreviewKnownTeamConversation({
         channelname,
         conversationIDKey: newConversationIDKey,
         reason: 'newChannel',

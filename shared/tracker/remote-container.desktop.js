@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onChat: (username: string) => {
     dispatch(AppGen.createShowMain())
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
+    dispatch(Chat2Gen.createFindAndPreviewConversation({participants: [username], reason: 'tracker'}))
   },
   _onClickAvatar: (username: string) =>
     dispatch(ProfileGen.createOnClickAvatar({openWebsite: true, username})),

@@ -95,7 +95,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
         })
       )
       dispatch(navigateUp())
-      dispatch(Chat2Gen.createPreviewConversation({teamname, channelname, reason: 'manageView'}))
+      // TODO: Use findKnownTeamConversation, use manageView.
+      dispatch(Chat2Gen.createFindAndPreviewConversation({teamname, channelname, reason: 'memberView'}))
     },
   }
 }
