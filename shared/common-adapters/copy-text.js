@@ -31,8 +31,8 @@ type State = {
 
 class _CopyText extends React.Component<Props, State> {
   state = {
-    showingToast: false,
     revealed: false,
+    showingToast: false,
   }
   _attachmentRef = null
 
@@ -90,8 +90,7 @@ class _CopyText extends React.Component<Props, State> {
 }
 const CopyText = HOCTimers(_CopyText)
 
-// border radii aren't literally so big, just sets it to max
-// TODO vertical align text center on native
+// border radii aren't literally so big, just sets it to maximum
 const styles = styleSheetCreate({
   button: platformStyles({
     common: {
