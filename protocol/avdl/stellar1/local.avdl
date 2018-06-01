@@ -26,6 +26,48 @@ protocol local {
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
+  enum BalanceDelta {
+    NONE_0,
+    INCREASE_1,
+    DECREASE_2
+  }
+
+  enum PaymentStatus {
+    NONE_0,
+    PENDING_1,
+    CLAIMABLE_2,
+    COMPLETED_3,
+    ERROR_4,
+    UNKNOWN_5
+  }
+  
+  record PaymentLocal {
+    string id;                 // For relay payments, the funding tx.
+    TimeMs time;
+    PaymentStatus status;      
+    string statusDescription;  // "pending", "completed", "error"
+    string statusDetail;
+    string amountDescription;  // "+ 1,323.1234567 XLM"
+    BalanceDelta delta;        // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string worth;              // "$123.23" 
+    string worthCurrency;      // "USD", "CAD", etc. (the symbols can be ambiguous)
+
+    string source;             // keybase username or stellar public key
+    string sourceType;         // "keybase" or "stellar"
+    string target;             // keybase username, stellar public key, or sbs assertion
+    string targetType;         // "keybase", "stellar", or "sbs"
+
+    string note;
+    string noteErr;
+  }
+
+  record PaymentOrErrorLocal {
+    union { null, PaymentLocal } payment;
+    union { null, string } err;
+  }
+
+  array<PaymentOrErrorLocal> getPaymentsLocal(AccountID accountID, union { null, TransactionID } olderThanTransactionID);
+
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
     OutsideCurrencyCode code;         // "USD", "CAD", etc.
@@ -85,10 +127,9 @@ protocol local {
   // `into` is the account into which to claim. Null will default to the user's primary account.
   RelayClaimResult claimCLILocal(string txID, union { null, AccountID } into);
 
-  record PaymentCLIOptionLocal {
-    // Pointer or error
+  record PaymentOrErrorCLILocal {
     union { null, PaymentCLILocal } payment;
-    string err;
+    union { null, string } err;
   }
 
   record PaymentCLILocal {
@@ -108,7 +149,7 @@ protocol local {
     string note;
     string noteErr;
   }
-  array<PaymentCLIOptionLocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
+  array<PaymentOrErrorCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
 
   // txID can be either a keybase or stellar transaction ID.
   PaymentCLILocal paymentDetailCLILocal(string txID);

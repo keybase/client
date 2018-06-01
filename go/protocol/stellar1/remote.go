@@ -317,6 +317,7 @@ type PaymentSummaryRelay struct {
 	From            keybase1.UserVersion  `codec:"from" json:"from"`
 	FromDeviceID    keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
 	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	ToAssertion     string                `codec:"toAssertion" json:"toAssertion"`
 	RelayAccount    AccountID             `codec:"relayAccount" json:"relayAccount"`
 	Amount          string                `codec:"amount" json:"amount"`
 	DisplayAmount   *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
@@ -344,6 +345,7 @@ func (o PaymentSummaryRelay) DeepCopy() PaymentSummaryRelay {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.To),
+		ToAssertion:  o.ToAssertion,
 		RelayAccount: o.RelayAccount.DeepCopy(),
 		Amount:       o.Amount,
 		DisplayAmount: (func(x *string) *string {

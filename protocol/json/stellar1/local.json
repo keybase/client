@@ -69,6 +69,113 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "BalanceDelta",
+      "symbols": [
+        "NONE_0",
+        "INCREASE_1",
+        "DECREASE_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PaymentStatus",
+      "symbols": [
+        "NONE_0",
+        "PENDING_1",
+        "CLAIMABLE_2",
+        "COMPLETED_3",
+        "ERROR_4",
+        "UNKNOWN_5"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "type": "TimeMs",
+          "name": "time"
+        },
+        {
+          "type": "PaymentStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
+        },
+        {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "BalanceDelta",
+          "name": "delta"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "source"
+        },
+        {
+          "type": "string",
+          "name": "sourceType"
+        },
+        {
+          "type": "string",
+          "name": "target"
+        },
+        {
+          "type": "string",
+          "name": "targetType"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "string",
+          "name": "noteErr"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentOrErrorLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "PaymentLocal"
+          ],
+          "name": "payment"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "err"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "CurrencyLocal",
       "fields": [
@@ -133,7 +240,7 @@
     },
     {
       "type": "record",
-      "name": "PaymentCLIOptionLocal",
+      "name": "PaymentOrErrorCLILocal",
       "fields": [
         {
           "type": [
@@ -143,7 +250,10 @@
           "name": "payment"
         },
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "err"
         }
       ]
@@ -285,6 +395,25 @@
       "response": {
         "type": "array",
         "items": "AccountAssetLocal"
+      }
+    },
+    "getPaymentsLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "olderThanTransactionID",
+          "type": [
+            null,
+            "TransactionID"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentOrErrorLocal"
       }
     },
     "getDisplayCurrenciesLocal": {
@@ -497,7 +626,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "PaymentCLIOptionLocal"
+        "items": "PaymentOrErrorCLILocal"
       }
     },
     "paymentDetailCLILocal": {
