@@ -54,8 +54,8 @@ protocol local {
 
     string source;             // keybase username or stellar public key
     string sourceType;         // "keybase" or "stellar"
-    string target;             // keybase username or stellar public key
-    string targetType;         // "keybase" or "stellar"
+    string target;             // keybase username, stellar public key, or sbs assertion
+    string targetType;         // "keybase", "stellar", or "sbs"
 
     string note;
     string noteErr;

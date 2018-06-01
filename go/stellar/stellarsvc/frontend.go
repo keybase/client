@@ -20,6 +20,7 @@ import (
 const WorthCurrencyErrorCode = "ERR"
 const ParticipantTypeKeybase = "keybase"
 const ParticipantTypeStellar = "stellar"
+const ParticipantTypeSBS = "sbs"
 
 func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (accts []stellar1.WalletAccountLocal, err error) {
 	ctx = s.logTag(ctx)
@@ -357,7 +358,7 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 		loc.TargetType = ParticipantTypeKeybase
 	} else {
 		loc.Target = p.ToAssertion
-		loc.TargetType = ParticipantTypeKeybase
+		loc.TargetType = ParticipantTypeSBS
 	}
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
