@@ -269,13 +269,13 @@ type _ResetLetThemInPayload = $ReadOnly<{|
 |}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'selectOrPreview' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat' | 'manageView' | 'messageLink' | 'newChannel' | 'previewResolved',
+  reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'selectOrPreview' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat' | 'manageView' | 'messageLink' | 'newChannel' | 'teamGeneral',
 |}>
 type _SelectOrPreviewTeamConversationPayload = $ReadOnly<{|
   channelname: string,
   conversationIDKey: Types.ConversationIDKey,
   teamname?: string,
-  reason: 'manageView' | 'messageLink' | 'newChannel' | 'previewResolved',
+  reason: 'manageView' | 'messageLink' | 'newChannel' | 'teamGeneral',
 |}>
 type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
