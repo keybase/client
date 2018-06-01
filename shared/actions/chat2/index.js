@@ -1774,21 +1774,24 @@ const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.Leav
   return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
 }
 
+// Unchecked version of Chat2Gen.createNavigateToThread() --
+// Saga.put() this if you want to select the pending conversation
+// (which doesn't count as valid).
 const navigateToThreadRoute = Route.navigateTo(
   isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
 )
 
 const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload, state: TypedState) => {
-  if (!isMobile && !Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
+  if (!Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
     console.log('Skip nav to thread on invalid conversation')
     return
   }
   return Saga.put(navigateToThreadRoute)
 }
 
-const mobileNavigateToThread = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
+const mobileNavigateOnSelect = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
   if (Constants.isValidConversationIDKey(action.payload.conversationIDKey)) {
-    return Saga.put(Chat2Gen.createNavigateToThread())
+    return Saga.put(navigateToThreadRoute)
   }
 }
 
@@ -2087,7 +2090,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation
-    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, mobileNavigateToThread)
+    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, mobileNavigateOnSelect)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
     // Unselect the conversation when we go to the inbox
