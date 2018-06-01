@@ -287,11 +287,7 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
 //   text/html;charset=UTF-8
 //   Text/HTML;Charset="utf-8"
 //   text/html; charset="utf-8"
-// The last part is optional, so if `;` is missing, it'd be just the mimetype.
-const extractMimeTypeFromContentType = (contentType: string): string => {
-  const ind = contentType.indexOf(';')
-  return (ind > -1 ? contentType.slice(0, ind) : contentType).toLowerCase()
-}
+const extractMimeTypeFromContentType = (contentType: string): string => contentType.toLowerCase()
 
 const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer) =>
   new Promise((resolve, reject) =>
