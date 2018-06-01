@@ -6,8 +6,6 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Types from '../../../../constants/types/chat2'
 import SetExplodeTime from '.'
 
-const items = Constants.messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
-
 type OwnProps = {
   attachTo: ?React.Component<any, any>,
   conversationIDKey: Types.ConversationIDKey,
@@ -17,7 +15,6 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   isNew: Constants.getIsExplodingNew(state),
-  items,
   selected: Constants.getConversationExplodingMode(state, ownProps.conversationIDKey),
 })
 
@@ -35,6 +32,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   attachTo: ownProps.attachTo,
+  items: Constants.messageExplodeDescriptions,
   visible: ownProps.visible,
 })
 

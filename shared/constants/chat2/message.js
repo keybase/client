@@ -702,4 +702,4 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: '24 hours', seconds: 86400},
   {text: '3 days', seconds: 86400 * 3},
   {text: '7 days', seconds: 86400 * 7},
-]
+].reverse()
