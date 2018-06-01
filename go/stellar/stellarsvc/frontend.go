@@ -366,7 +366,7 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 		loc.StatusDetail = p.TxErrMsg
 	} else {
 		loc.Status = stellar1.PaymentStatus_CLAIMABLE
-		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to yank."
+		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to cancel."
 	}
 	if p.Claim != nil {
 		loc.Status = p.Claim.TxStatus.ToPaymentStatus()
