@@ -117,7 +117,7 @@ func (e PaymentStatus) String() string {
 type PaymentLocal struct {
 	Id                string        `codec:"id" json:"id"`
 	Time              TimeMs        `codec:"time" json:"time"`
-	Status            PaymentStatus `codec:"status" json:"status"`
+	StatusSimplified  PaymentStatus `codec:"statusSimplified" json:"statusSimplified"`
 	StatusDescription string        `codec:"statusDescription" json:"statusDescription"`
 	StatusDetail      string        `codec:"statusDetail" json:"statusDetail"`
 	AmountDescription string        `codec:"amountDescription" json:"amountDescription"`
@@ -136,7 +136,7 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 	return PaymentLocal{
 		Id:                o.Id,
 		Time:              o.Time.DeepCopy(),
-		Status:            o.Status.DeepCopy(),
+		StatusSimplified:  o.StatusSimplified.DeepCopy(),
 		StatusDescription: o.StatusDescription,
 		StatusDetail:      o.StatusDetail,
 		AmountDescription: o.AmountDescription,

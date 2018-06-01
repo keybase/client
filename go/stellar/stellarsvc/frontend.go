@@ -299,8 +299,8 @@ func (s *Server) transformPaymentStellar(ctx context.Context, acctID stellar1.Ac
 	loc.Target = p.To.String()
 	loc.TargetType = ParticipantTypeStellar
 
-	loc.Status = stellar1.PaymentStatus_COMPLETED
-	loc.StatusDescription = strings.ToLower(loc.Status.String())
+	loc.StatusSimplified = stellar1.PaymentStatus_COMPLETED
+	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
 
 	return loc, nil
 }
@@ -322,8 +322,8 @@ func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.Acc
 		loc.Target, loc.TargetType = s.lookupUsernameFallback(ctx, p.To.Uid, p.ToStellar)
 	}
 
-	loc.Status = p.TxStatus.ToPaymentStatus()
-	loc.StatusDescription = strings.ToLower(loc.Status.String())
+	loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
+	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
 	loc.StatusDetail = p.TxErrMsg
 
 	loc.Note, loc.NoteErr = s.decryptNote(ctx, p.TxID, p.NoteB64)
@@ -363,14 +363,14 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
 		// If the funding tx is not complete
-		loc.Status = p.TxStatus.ToPaymentStatus()
+		loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
 		loc.StatusDetail = p.TxErrMsg
 	} else {
-		loc.Status = stellar1.PaymentStatus_CLAIMABLE
+		loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
 		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to cancel."
 	}
 	if p.Claim != nil {
-		loc.Status = p.Claim.TxStatus.ToPaymentStatus()
+		loc.StatusSimplified = p.Claim.TxStatus.ToPaymentStatus()
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
 			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
@@ -389,11 +389,11 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 			if p.Claim.TxErrMsg != "" {
 				loc.StatusDetail = p.Claim.TxErrMsg
 			} else {
-				loc.StatusDetail = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, loc.Status.String())
+				loc.StatusDetail = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, loc.StatusSimplified.String())
 			}
 		}
 	}
-	loc.StatusDescription = strings.ToLower(loc.Status.String())
+	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
 
 	relaySecrets, err := relays.DecryptB64(ctx, s.G(), p.TeamID, p.BoxB64)
 	if err == nil {

@@ -103,7 +103,7 @@
         },
         {
           "type": "PaymentStatus",
-          "name": "status"
+          "name": "statusSimplified"
         },
         {
           "type": "string",

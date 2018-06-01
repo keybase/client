@@ -347,7 +347,7 @@ export type PaymentCLILocal = $ReadOnly<{txID: TransactionID, time: TimeMs, stat
 
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String}>
 
-export type PaymentLocal = $ReadOnly<{id: String, time: TimeMs, status: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
+export type PaymentLocal = $ReadOnly<{id: String, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
 
 export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?: ?String}>
 
