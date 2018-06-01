@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   },
   onStartChat: (username: string) => {
     if (username) {
-      dispatch(Chat2Gen.createFindAndPreviewConversation({participants: [username], reason: 'profile'}))
+      dispatch(Chat2Gen.createStartPendingConversation({participants: [username], reason: 'profile'}))
     }
   },
 })

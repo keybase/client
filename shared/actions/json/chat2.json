@@ -49,11 +49,8 @@
         "'teamGeneral'"
       ]
     },
-    // Find a existing conversation and preview it, or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
-    // fromAReset means you were in a reset kbfs convo and you want to make a new one
-    // Chatting from external places in the app should usually call this
-    // If you already know the conversationID for a team channel, use previewKnownTeamConversation instead.
-    "findAndPreviewConversation": {
+    "startPendingConversation": {
+      "_description": "Start a pending conversation with the given participants. fromAReset means you were in a reset kbfs convo and you want to make a new one. Chatting from external places in the app should usually call this.",
       "participants": "Array<string>",
       "reason": [
         "'resetChatWithoutThem'",

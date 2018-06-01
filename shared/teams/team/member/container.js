@@ -69,7 +69,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, nav
   },
   _onChat: username => {
     username &&
-      dispatch(Chat2Gen.createFindAndPreviewConversation({participants: [username], reason: 'memberView'}))
+      dispatch(Chat2Gen.createStartPendingConversation({participants: [username], reason: 'memberView'}))
   },
   onBack: () => dispatch(navigateUp()),
 })

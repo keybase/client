@@ -22,7 +22,6 @@ export const blockConversation = 'chat2:blockConversation'
 export const clearLoading = 'chat2:clearLoading'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
-export const findAndPreviewConversation = 'chat2:findAndPreviewConversation'
 export const findAndSelectTeamGeneral = 'chat2:findAndSelectTeamGeneral'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -75,6 +74,7 @@ export const setPendingConversationExistingConversationIDKey = 'chat2:setPending
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
+export const startPendingConversation = 'chat2:startPendingConversation'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
@@ -125,10 +125,6 @@ type _DesktopNotificationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   author: string,
   body: string,
-|}>
-type _FindAndPreviewConversationPayload = $ReadOnly<{|
-  participants: Array<string>,
-  reason: 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'memberView',
 |}>
 type _FindAndSelectTeamGeneralPayload = $ReadOnly<{|
   teamname: string,
@@ -310,6 +306,10 @@ type _SetPendingConversationUsersPayload = $ReadOnly<{|
 |}>
 type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode|}>
 type _SetupChatHandlersPayload = void
+type _StartPendingConversationPayload = $ReadOnly<{|
+  participants: Array<string>,
+  reason: 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'memberView',
+|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|
@@ -375,6 +375,10 @@ export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPay
  */
 export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplodingMessagesPayload) => ({error: false, payload, type: handleSeeingExplodingMessages})
 /**
+ * Start a pending conversation with the given participants. fromAReset means you were in a reset kbfs convo and you want to make a new one. Chatting from external places in the app should usually call this.
+ */
+export const createStartPendingConversation = (payload: _StartPendingConversationPayload) => ({error: false, payload, type: startPendingConversation})
+/**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
 export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({error: false, payload, type: setPendingConversationExistingConversationIDKey})
@@ -388,7 +392,6 @@ export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: 
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({error: false, payload, type: blockConversation})
 export const createClearLoading = (payload: _ClearLoadingPayload) => ({error: false, payload, type: clearLoading})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({error: false, payload, type: desktopNotification})
-export const createFindAndPreviewConversation = (payload: _FindAndPreviewConversationPayload) => ({error: false, payload, type: findAndPreviewConversation})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: _JoinConversationPayload) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: _LeaveConversationPayload) => ({error: false, payload, type: leaveConversation})
@@ -448,7 +451,6 @@ export type BlockConversationPayload = $Call<typeof createBlockConversation, _Bl
 export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoadingPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
-export type FindAndPreviewConversationPayload = $Call<typeof createFindAndPreviewConversation, _FindAndPreviewConversationPayload>
 export type FindAndSelectTeamGeneralPayload = $Call<typeof createFindAndSelectTeamGeneral, _FindAndSelectTeamGeneralPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
@@ -501,6 +503,7 @@ export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeo
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
+export type StartPendingConversationPayload = $Call<typeof createStartPendingConversation, _StartPendingConversationPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
@@ -522,7 +525,6 @@ export type Actions =
   | ClearLoadingPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
-  | FindAndPreviewConversationPayload
   | FindAndSelectTeamGeneralPayload
   | HandleSeeingExplodingMessagesPayload
   | InboxRefreshPayload
@@ -575,6 +577,7 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetupChatHandlersPayload
+  | StartPendingConversationPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMoreToLoadPayload

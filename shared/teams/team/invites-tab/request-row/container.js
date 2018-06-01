@@ -25,7 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     ),
   _onChat: username => {
     username &&
-      dispatch(Chat2Gen.createFindAndPreviewConversation({participants: [username], reason: 'teamInvite'}))
+      dispatch(Chat2Gen.createStartPendingConversation({participants: [username], reason: 'teamInvite'}))
   },
   _onIgnoreRequest: (teamname: string, username: string) =>
     dispatch(TeamsGen.createIgnoreRequest({teamname, username})),

@@ -78,7 +78,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
     ),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onChat: username =>
-    dispatch(Chat2Gen.createFindAndPreviewConversation({participants: [username], reason: 'profile'})),
+    dispatch(Chat2Gen.createStartPendingConversation({participants: [username], reason: 'profile'})),
   onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
