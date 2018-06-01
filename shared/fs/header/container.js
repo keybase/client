@@ -9,8 +9,10 @@ import {isMobile} from '../../constants/platform'
 import FolderHeader from './header'
 import * as StateMappers from '../utils/state-mappers'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = (state: TypedState, {path}) => ({
   kbfsEnabled: StateMappers.mapStateToKBFSEnabled(state),
+  _pathItem: state.fs.pathItems.get(path, Constants.makeUnknownPathItem()),
+  _username: state.config.username || undefined,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
@@ -39,7 +41,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
 })
 
 const mergeProps = (
-  {kbfsEnabled},
+  {kbfsEnabled, _pathItem, _username},
   {onBack, _onOpenBreadcrumb, _onOpenBreadcrumbDropdown, _openInFileUI, _openFinderPopup},
   {path}
 ) => {
@@ -71,6 +73,10 @@ const mergeProps = (
     path,
     isTeamPath,
     openInFileUI: kbfsEnabled ? () => _openInFileUI(path) : _openFinderPopup,
+    isUserReset: _pathItem.type === 'folder' && _pathItem.resetParticipants ? _pathItem.resetParticipants.includes(_username) : false,
+    resetParticipants: _pathItem.type === 'folder'
+      ? _pathItem.resetParticipants
+      : [],
   }
 }
 

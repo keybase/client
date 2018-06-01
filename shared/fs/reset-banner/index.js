@@ -4,40 +4,43 @@ import {Box, Text, Icon, Button} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 type Props = {
-  showBanner: boolean,
+  isUserReset: boolean,
   resetParticipants: Array<string>,
 }
 
-const Banner = ({showBanner, resetParticipants}: Props) => {
-  if (!showBanner) {
-    return null
+const Banner = ({isUserReset, resetParticipants}: Props) => {
+  if (isUserReset) {
+    // TODO: implement user's reset banner.
+    return <Box />
   }
-  const iconType = 'icon-fancy-finder-132-96'
-  const bannerStyle = {
-    ...globalStyles.flexBoxRow,
-    backgroundColor: globalColors.red,
-    alignItems: 'center',
-    position: 'relative',
-  }
-  const bannerContent = (
-    <Box style={globalStyles.flexBoxColumn}>
-      <Text type="Header" style={textStyle}>
-        Reset Header
-      </Text>
-      <Text type="BodySemibold" style={textStyle}>
-        Reset Content
-      </Text>
-      <Box style={{justifyContent: 'flex-start'}}>
-        <Button type="PrimaryGreen" label="Yes, enable" onClick={() => undefined} />
-      </Box>
-    </Box>
-  )
   return (
     <Box style={bannerStyle}>
-      <Box style={bannerIconStyle}>
-        <Icon type={iconType} />
+      { /* Put in skull image here */ }
+      <Box style={headerTextContainerStyle}>
+        <Text type="BodySemibold" style={textStyle}>
+          foo lost all of their devices and this account has new keys.
+        </Text>
+        <Text type="BodySemibold" style={textStyle}>
+          If you want to let them into this folder and the matching chat, you should either:
+        </Text>
       </Box>
-      <Box style={bannerTextContentStyle}>{bannerContent}</Box>
+      <Box style={listTextContainerStyle}>
+        <Text type="BodySemibold" style={listTextContentStyle}>
+          1. Be satisfied with their new proofs, or
+        </Text>
+        <Text type="BodySemibold" style={listTextContentStyle}>
+          2. Know them outside Keybase and have gotten a thumbs up from them.
+        </Text>
+      </Box>
+      <Box style={headerTextContainerStyle}>
+        <Text type="BodySemibold" style={textStyle}>
+          Don't let them in until one of those is true.
+        </Text>
+      </Box>
+      <Box style={globalStyles.flexBoxRow}>
+        <Button type="PrimaryColoredBackground" backgroundMode="Red" label="Let them in" onClick={() => undefined} />
+        <Button type="SecondaryColoredBackground" label="Check out their profile" onClick={() => undefined} />
+      </Box>
     </Box>
   )
 }
@@ -50,14 +53,35 @@ const bannerIconStyle = {
   paddingBottom: globalMargins.medium,
 }
 
-const bannerTextContentStyle = {
+const bannerStyle = {
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.red,
   alignItems: 'center',
-  paddingRight: globalMargins.xlarge + globalMargins.medium,
+  position: 'relative',
+  paddingTop: globalMargins.large,
+  paddingBottom: globalMargins.large,
+}
+
+const headerTextContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  paddingBottom: globalMargins.xsmall,
+}
+
+const listTextContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  paddingLeft: 3 * globalMargins.xlarge,
+  width: '100%',
 }
 
 const textStyle = {
   color: globalColors.white,
-  paddingBottom: globalMargins.small,
+}
+
+const listTextContentStyle = {
+  ...textStyle,
+  paddingRight: 3 * globalMargins.xlarge,
+  paddingBottom: globalMargins.xsmall,
 }
 
 export default Banner
