@@ -1289,6 +1289,8 @@ const changeSelectedConversation = (
           ),
           ...(isMobile ? [Saga.put(Chat2Gen.createNavigateToThread())] : []),
         ])
+      } else if (isMobile) {
+        return Saga.put(Chat2Gen.createNavigateToInbox())
       }
       break
     }
