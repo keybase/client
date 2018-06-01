@@ -35,13 +35,18 @@
         "'jumpFromReset'", // from older reset convo
         "'jumpToReset'", // going to an older reset convo
         "'justCreated'", // just made it and select it
-        "'manageView'", // clicked from manage screen
-        "'previewResolved'", // did a preview and are now selecting it
+        "'selectOrPreview'", // did a preview and are now selecting it
         "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
         "'push'", // from a push
         "'savedLastState'", // last seen chat tab
         "'startFoundExisting'", // starting a conversation and found one already
-        "'teamChat'" // from team
+        "'teamChat'", // from team
+
+        // From selectOrPreviewTeamConversation (see below).
+        "'manageView'",
+        "'messageLink'",
+        "'newChannel'",
+        "'previewResolved'"
       ]
     },
     // Find a existing conversation and preview it, or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
@@ -75,10 +80,10 @@
       // e.g. for messageLink.
       "teamname?": "string",
       "reason": [
-        "'manageView'",
-        "'messageLink'",
-        "'newChannel'",
-        "'previewResolved'"
+        "'manageView'", // clicked from manage screen
+        "'messageLink'", // clicked channel mention
+        "'newChannel'", // created a new channel
+        "'previewResolved'" // did a preview and are now selecting it
       ]
     },
     "createConversation": {

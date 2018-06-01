@@ -1295,7 +1295,7 @@ const selectOrPreviewTeamConversation = (
     Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: conversationIDKey,
-        reason: 'previewResolved',
+        reason: action.payload.reason,
       })
     ),
     Saga.put(Chat2Gen.createNavigateToThread()),
