@@ -44,7 +44,7 @@ protocol local {
   record PaymentLocal {
     string id;                 // For relay payments, the funding tx.
     TimeMs time;
-    PaymentStatus status;      
+    PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;  // "pending", "completed", "error"
     string statusDetail;
     string amountDescription;  // "+ 1,323.1234567 XLM"

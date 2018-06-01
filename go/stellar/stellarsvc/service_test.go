@@ -529,7 +529,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.NotNil(t, fhistory[0].Payment)
 	require.NotEmpty(t, fhistory[0].Payment.Id)
 	require.NotZero(t, fhistory[0].Payment.Time)
-	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.Status)
+	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
 	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
 	if yank {
 		require.Equal(t, "- 3 XLM", fhistory[0].Payment.AmountDescription)
@@ -567,7 +567,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
-	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.Status)
+	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.StatusSimplified)
 	require.Equal(t, "completed", fhistory[0].Payment.StatusDescription)
 
 	history, err = tcs[0].Srv.RecentPaymentsCLILocal(context.Background(), nil)
@@ -582,7 +582,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
-	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.Status)
+	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.StatusSimplified)
 	require.Equal(t, "completed", fhistory[0].Payment.StatusDescription)
 
 	t.Logf("try to claim again")
