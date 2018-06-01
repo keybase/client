@@ -273,11 +273,6 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.small - containerPadding,
   },
   actionText: {
-    // ...globalStyles.flexBoxColumn,
-    // alignItems: 'center',
-    // justifyContent: 'center',
-    // paddingBottom: 12,
-    // paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
   container: {
