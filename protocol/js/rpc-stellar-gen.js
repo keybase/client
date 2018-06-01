@@ -45,140 +45,78 @@ export const remotePaymentSummaryType = {
   direct: 2,
   relay: 3,
 }
-
 export type AccountAssetLocal = $ReadOnly<{name: String, balanceTotal: String, balanceAvailableToSend: String, assetCode: String, issuer: String, worth: String, worthCurrency: String}>
-
 export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String}>
-
 export type AccountID = String
-
 export type AccountMode =
   | 0 // NONE_0
   | 1 // USER_1
 
 export type Asset = $ReadOnly<{type: String, code: String, issuer: String}>
-
 export type Balance = $ReadOnly<{asset: Asset, amount: String, limit: String}>
-
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
-
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>
-
 export type BundleRevision = Uint64
-
 export type BundleSecretEntry = $ReadOnly<{accountID: AccountID, signers?: ?Array<SecretKey>, name: String}>
-
 export type BundleSecretV1 = $ReadOnly<{visibleHash: Hash, accounts?: ?Array<BundleSecretEntry>}>
-
 export type BundleSecretVersioned = {version: 1, v1: ?BundleSecretV1}
-
 export type BundleVersion = 1 // V1_1
 
 export type BundleVisibleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean}>
-
 export type BundleVisibleV1 = $ReadOnly<{revision: BundleRevision, prev: Hash, accounts?: ?Array<BundleVisibleEntry>}>
-
 export type ClaimSummary = $ReadOnly<{txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, dir: RelayDirection, toStellar: AccountID, to: Keybase1.UserVersion}>
-
 export type CurrencyLocal = $ReadOnly<{description: String, code: OutsideCurrencyCode, symbol: String, name: String}>
-
 export type CurrencySymbol = $ReadOnly<{symbol: String, ambigious: Boolean, postfix: Boolean}>
-
 export type EncryptedBundle = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, gen: Keybase1.PerUserKeyGeneration}>
-
 export type EncryptedNote = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, sender: NoteRecipient, recipient?: ?NoteRecipient}>
-
 export type EncryptedRelaySecret = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, gen: Keybase1.PerTeamKeyGeneration}>
-
 export type Hash = Bytes
-
 export type KeybaseTransactionID = String
-
 export type LocalBalancesLocalRpcParam = $ReadOnly<{accountID: AccountID}>
-
 export type LocalChangeDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID, currency: OutsideCurrencyCode}>
-
 export type LocalChangeWalletAccountNameLocalRpcParam = $ReadOnly<{accountID: AccountID, newName: String}>
-
 export type LocalClaimCLILocalRpcParam = $ReadOnly<{txID: String, into?: ?AccountID}>
-
 export type LocalDeleteWalletAccountLocalRpcParam = $ReadOnly<{accountID: AccountID, userAcknowledged: String}>
-
 export type LocalExchangeRateLocalRpcParam = $ReadOnly<{currency: OutsideCurrencyCode}>
-
 export type LocalExportSecretKeyLocalRpcParam = $ReadOnly<{accountID: AccountID}>
-
 export type LocalFormatLocalCurrencyStringRpcParam = $ReadOnly<{amount: String, code: OutsideCurrencyCode}>
-
 export type LocalGetAccountAssetsLocalRpcParam = $ReadOnly<{accountID: AccountID}>
-
 export type LocalGetAvailableLocalCurrenciesRpcParam = void
-
 export type LocalGetDisplayCurrenciesLocalRpcParam = void
-
 export type LocalGetUserSettingsLocalRpcParam = void
-
 export type LocalGetWalletAccountsLocalRpcParam = void
-
 export type LocalImportSecretKeyLocalRpcParam = $ReadOnly<{secretKey: SecretKey, makePrimary: Boolean}>
-
 export type LocalLinkNewWalletAccountLocalRpcParam = $ReadOnly<{secretKey: SecretKey, name: String}>
-
 export type LocalOwnAccountLocalRpcParam = $ReadOnly<{accountID: AccountID}>
-
 export type LocalPaymentDetailCLILocalRpcParam = $ReadOnly<{txID: String}>
-
 export type LocalRecentPaymentsCLILocalRpcParam = $ReadOnly<{accountID?: ?AccountID}>
-
 export type LocalSendCLILocalRpcParam = $ReadOnly<{recipient: String, amount: String, asset: Asset, note: String, displayAmount: String, displayCurrency: String, forceRelay: Boolean}>
-
 export type LocalSetAcceptedDisclaimerLocalRpcParam = void
-
 export type LocalSetDisplayCurrencyRpcParam = $ReadOnly<{accountID: AccountID, currency: String}>
-
 export type LocalSetWalletAccountAsDefaultLocalRpcParam = $ReadOnly<{accountID: AccountID}>
-
 export type LocalWalletDumpLocalRpcParam = void
-
 export type LocalWalletGetAccountsCLILocalRpcParam = void
-
 export type LocalWalletInitLocalRpcParam = void
-
 export type NoteContents = $ReadOnly<{note: String, stellarID: TransactionID}>
-
 export type NoteRecipient = $ReadOnly<{user: Keybase1.UserVersion, pukGen: Keybase1.PerUserKeyGeneration}>
-
 export type OutsideCurrencyCode = String
-
 export type OutsideCurrencyDefinition = $ReadOnly<{name: String, symbol: CurrencySymbol}>
-
 export type OutsideExchangeRate = $ReadOnly<{currency: OutsideCurrencyCode, rate: String}>
-
 export type OwnAccountCLILocal = $ReadOnly<{accountID: AccountID, isPrimary: Boolean, name: String, balance?: ?Array<Balance>, exchangeRate?: ?OutsideExchangeRate}>
-
 export type PaymentCLILocal = $ReadOnly<{txID: TransactionID, time: TimeMs, status: String, statusDetail: String, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, fromStellar: AccountID, toStellar?: ?AccountID, fromUsername?: ?String, toUsername?: ?String, note: String, noteErr: String}>
-
 export type PaymentCLIOptionLocal = $ReadOnly<{payment?: ?PaymentCLILocal, err: String}>
-
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String}>
-
 export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String}>
-
 export type PaymentResult = $ReadOnly<{keybaseID: KeybaseTransactionID, stellarID: TransactionID}>
-
 export type PaymentStrategy =
   | 0 // NONE_0
   | 1 // DIRECT_1
   | 2 // RELAY_2
 
 export type PaymentSummary = {typ: 1, stellar: ?PaymentSummaryStellar} | {typ: 2, direct: ?PaymentSummaryDirect} | {typ: 3, relay: ?PaymentSummaryRelay}
-
 export type PaymentSummaryDirect = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, fromStellar: AccountID, from: Keybase1.UserVersion, fromDeviceID: Keybase1.DeviceID, toStellar: AccountID, to?: ?Keybase1.UserVersion, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, noteB64: String, ctime: TimeMs, rtime: TimeMs}>
-
 export type PaymentSummaryRelay = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, fromStellar: AccountID, from: Keybase1.UserVersion, fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, relayAccount: AccountID, amount: String, displayAmount?: ?String, displayCurrency?: ?String, ctime: TimeMs, rtime: TimeMs, boxB64: String, teamID: Keybase1.TeamID, claim?: ?ClaimSummary}>
-
 export type PaymentSummaryStellar = $ReadOnly<{txID: TransactionID, from: AccountID, to: AccountID, amount: String, asset: Asset, operationID: Uint64, ctime: TimeMs}>
-
 export type PaymentSummaryType =
   | 0 // NONE_0
   | 1 // STELLAR_1
@@ -186,47 +124,28 @@ export type PaymentSummaryType =
   | 3 // RELAY_3
 
 export type RelayClaimPost = $ReadOnly<{keybaseID: KeybaseTransactionID, dir: RelayDirection, signedTransaction: String}>
-
 export type RelayClaimResult = $ReadOnly<{claimStellarID: TransactionID}>
-
 export type RelayContents = $ReadOnly<{stellarID: TransactionID, sk: SecretKey, note: String}>
-
 export type RelayDirection =
   | 0 // CLAIM_0
   | 1 // YANK_1
 
 export type RemoteAccountSeqnoRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
-
 export type RemoteBalancesRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
-
 export type RemoteDetailsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
-
 export type RemoteIsMasterKeyActiveRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID}>
-
 export type RemotePaymentDetailRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, txID: String}>
-
 export type RemotePingRpcParam = void
-
 export type RemoteRecentPaymentsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, limit: Int}>
-
 export type RemoteSubmitPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentDirectPost}>
-
 export type RemoteSubmitRelayClaimRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, claim: RelayClaimPost}>
-
 export type RemoteSubmitRelayPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentRelayPost}>
-
 export type SecretKey = String
-
 export type SendRelayResultCLILocal = $ReadOnly<{teamID: Keybase1.TeamID}>
-
 export type SendResultCLILocal = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID, relay?: ?SendRelayResultCLILocal}>
-
 export type StellarServerDefinitions = $ReadOnly<{revision: Int, currencies: {[key: string]: OutsideCurrencyDefinition}}>
-
 export type TimeMs = Long
-
 export type TransactionID = String
-
 export type TransactionStatus =
   | 0 // NONE_0
   | 1 // PENDING_1
@@ -235,7 +154,6 @@ export type TransactionStatus =
   | 4 // ERROR_PERMANENT_4
 
 export type UserSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
-
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String}>
 type LocalBalancesLocalResult = ?Array<Balance>
 type LocalClaimCLILocalResult = RelayClaimResult

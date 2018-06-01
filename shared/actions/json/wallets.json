@@ -1,10 +1,8 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/wallets'",
-  ],
+  "prelude": ["import * as Types from '../constants/types/wallets'"],
   "actions": {
     "walletsRefresh": {
-      "_description": "Refresh out list of wallets",
-    },
+      "_description": "Refresh out list of wallets"
+    }
   }
 }

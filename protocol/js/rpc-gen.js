@@ -12,40 +12,6 @@ import type {Action} from '../../constants/types/flux'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
 import type {TypedState} from '../../constants/reducer'
 
-export const SimpleFSSimpleFSCancelRpcPromise = (request: SimpleFSSimpleFSCancelRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCancel', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const SimpleFSSimpleFSCheckRpcPromise = (request: SimpleFSSimpleFSCheckRpcParam): Promise<SimpleFSSimpleFSCheckResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCheck', request, (error: RPCError, result: SimpleFSSimpleFSCheckResult) => (error ? reject(error) : resolve(result))))
-
-export const SimpleFSSimpleFSCopyRecursiveRpcPromise = (request: SimpleFSSimpleFSCopyRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopyRecursive', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise = (request: SimpleFSSimpleFSGetHTTPAddressAndTokenRpcParam): Promise<SimpleFSSimpleFSGetHTTPAddressAndTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken', request, (error: RPCError, result: SimpleFSSimpleFSGetHTTPAddressAndTokenResult) => (error ? reject(error) : resolve(result))))
-
-export const SimpleFSSimpleFSListRpcPromise = (request: SimpleFSSimpleFSListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSList', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const SimpleFSSimpleFSReadListRpcPromise = (request: SimpleFSSimpleFSReadListRpcParam): Promise<SimpleFSSimpleFSReadListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSReadList', request, (error: RPCError, result: SimpleFSSimpleFSReadListResult) => (error ? reject(error) : resolve(result))))
-
-export const SimpleFSSimpleFSStatRpcPromise = (request: SimpleFSSimpleFSStatRpcParam): Promise<SimpleFSSimpleFSStatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSStat', request, (error: RPCError, result: SimpleFSSimpleFSStatResult) => (error ? reject(error) : resolve(result))))
-
-export const SimpleFSSimpleFSSyncStatusRpcPromise = (request: SimpleFSSimpleFSSyncStatusRpcParam): Promise<SimpleFSSimpleFSSyncStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSSyncStatus', request, (error: RPCError, result: SimpleFSSimpleFSSyncStatusResult) => (error ? reject(error) : resolve(result))))
-
-export const SimpleFSSimpleFSWaitRpcPromise = (request: SimpleFSSimpleFSWaitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWait', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const accountEmailChangeRpcPromise = (request: AccountEmailChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.emailChange', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const accountHasServerKeysRpcPromise = (request: AccountHasServerKeysRpcParam): Promise<AccountHasServerKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.hasServerKeys', request, (error: RPCError, result: AccountHasServerKeysResult) => (error ? reject(error) : resolve(result))))
-
-export const accountPassphraseChangeRpcPromise = (request: AccountPassphraseChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphraseChange', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const apiserverDeleteRpcPromise = (request: ApiserverDeleteRpcParam): Promise<ApiserverDeleteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Delete', request, (error: RPCError, result: ApiserverDeleteResult) => (error ? reject(error) : resolve(result))))
-
-export const apiserverGetRpcPromise = (request: ApiserverGetRpcParam): Promise<ApiserverGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Get', request, (error: RPCError, result: ApiserverGetResult) => (error ? reject(error) : resolve(result))))
-
-export const apiserverGetWithSessionRpcPromise = (request: ApiserverGetWithSessionRpcParam): Promise<ApiserverGetWithSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.GetWithSession', request, (error: RPCError, result: ApiserverGetWithSessionResult) => (error ? reject(error) : resolve(result))))
-
-export const apiserverPostJSONRpcPromise = (request: ApiserverPostJSONRpcParam): Promise<ApiserverPostJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.PostJSON', request, (error: RPCError, result: ApiserverPostJSONResult) => (error ? reject(error) : resolve(result))))
-
-export const apiserverPostRpcPromise = (request: ApiserverPostRpcParam): Promise<ApiserverPostResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Post', request, (error: RPCError, result: ApiserverPostResult) => (error ? reject(error) : resolve(result))))
-
 export const appStateAppState = {
   foreground: 0,
   background: 1,
@@ -53,10 +19,6 @@ export const appStateAppState = {
   backgroundactive: 3,
   backgroundfinal: 4,
 }
-
-export const avatarsLoadTeamAvatarsRpcPromise = (request: AvatarsLoadTeamAvatarsRpcParam): Promise<AvatarsLoadTeamAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadTeamAvatars', request, (error: RPCError, result: AvatarsLoadTeamAvatarsResult) => (error ? reject(error) : resolve(result))))
-
-export const avatarsLoadUserAvatarsRpcPromise = (request: AvatarsLoadUserAvatarsRpcParam): Promise<AvatarsLoadUserAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadUserAvatars', request, (error: RPCError, result: AvatarsLoadUserAvatarsResult) => (error ? reject(error) : resolve(result))))
 
 export const backendCommonBlockType = {
   data: 0,
@@ -130,20 +92,6 @@ export const configForkType = {
   launchd: 3,
   systemd: 4,
 }
-
-export const configGetBootstrapStatusRpcPromise = (request: ConfigGetBootstrapStatusRpcParam): Promise<ConfigGetBootstrapStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getBootstrapStatus', request, (error: RPCError, result: ConfigGetBootstrapStatusResult) => (error ? reject(error) : resolve(result))))
-
-export const configGetConfigRpcPromise = (request: ConfigGetConfigRpcParam): Promise<ConfigGetConfigResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getConfig', request, (error: RPCError, result: ConfigGetConfigResult) => (error ? reject(error) : resolve(result))))
-
-export const configGetExtendedStatusRpcPromise = (request: ConfigGetExtendedStatusRpcParam): Promise<ConfigGetExtendedStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getExtendedStatus', request, (error: RPCError, result: ConfigGetExtendedStatusResult) => (error ? reject(error) : resolve(result))))
-
-export const configGetRememberPassphraseRpcPromise = (request: ConfigGetRememberPassphraseRpcParam): Promise<ConfigGetRememberPassphraseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getRememberPassphrase', request, (error: RPCError, result: ConfigGetRememberPassphraseResult) => (error ? reject(error) : resolve(result))))
-
-export const configHelloIAmRpcPromise = (request: ConfigHelloIAmRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.helloIAm', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const configSetRememberPassphraseRpcPromise = (request: ConfigSetRememberPassphraseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setRememberPassphrase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const configWaitForClientRpcPromise = (request: ConfigWaitForClientRpcParam): Promise<ConfigWaitForClientResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.waitForClient', request, (error: RPCError, result: ConfigWaitForClientResult) => (error ? reject(error) : resolve(result))))
 
 export const constantsStatusCode = {
   scok: 0,
@@ -308,10 +256,6 @@ export const constantsStatusCode = {
   scstellarbadprev: 3106,
 }
 
-export const cryptocurrencyRegisterAddressRpcPromise = (request: CryptocurrencyRegisterAddressRpcParam): Promise<CryptocurrencyRegisterAddressResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.cryptocurrency.registerAddress', request, (error: RPCError, result: CryptocurrencyRegisterAddressResult) => (error ? reject(error) : resolve(result))))
-
-export const ctlDbNukeRpcPromise = (request: CtlDbNukeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbNuke', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const ctlDbType = {
   main: 0,
   chat: 1,
@@ -323,44 +267,12 @@ export const ctlExitCode = {
   restart: 4,
 }
 
-export const delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehoseFiltered', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const delegateUiCtlRegisterHomeUIRpcPromise = (request: DelegateUiCtlRegisterHomeUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerHomeUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const delegateUiCtlRegisterIdentifyUIRpcPromise = (request: DelegateUiCtlRegisterIdentifyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const delegateUiCtlRegisterRekeyUIRpcPromise = (request: DelegateUiCtlRegisterRekeyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerRekeyUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const delegateUiCtlRegisterSecretUIRpcPromise = (request: DelegateUiCtlRegisterSecretUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerSecretUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const deviceCheckDeviceNameFormatRpcPromise = (request: DeviceCheckDeviceNameFormatRpcParam): Promise<DeviceCheckDeviceNameFormatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameFormat', request, (error: RPCError, result: DeviceCheckDeviceNameFormatResult) => (error ? reject(error) : resolve(result))))
-
-export const deviceDeviceAddRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceAdd', request)
-
-export const deviceDeviceHistoryListRpcPromise = (request: DeviceDeviceHistoryListRpcParam): Promise<DeviceDeviceHistoryListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceHistoryList', request, (error: RPCError, result: DeviceDeviceHistoryListResult) => (error ? reject(error) : resolve(result))))
-
-export const favoriteFavoriteAddRpcPromise = (request: FavoriteFavoriteAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteAdd', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const favoriteFavoriteIgnoreRpcPromise = (request: FavoriteFavoriteIgnoreRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteIgnore', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const favoriteFolderType = {
   unknown: 0,
   private: 1,
   public: 2,
   team: 3,
 }
-
-export const gitCreatePersonalRepoRpcPromise = (request: GitCreatePersonalRepoRpcParam): Promise<GitCreatePersonalRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createPersonalRepo', request, (error: RPCError, result: GitCreatePersonalRepoResult) => (error ? reject(error) : resolve(result))))
-
-export const gitCreateTeamRepoRpcPromise = (request: GitCreateTeamRepoRpcParam): Promise<GitCreateTeamRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createTeamRepo', request, (error: RPCError, result: GitCreateTeamRepoResult) => (error ? reject(error) : resolve(result))))
-
-export const gitDeletePersonalRepoRpcPromise = (request: GitDeletePersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deletePersonalRepo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const gitDeleteTeamRepoRpcPromise = (request: GitDeleteTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const gitGetAllGitMetadataRpcPromise = (request: GitGetAllGitMetadataRpcParam): Promise<GitGetAllGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getAllGitMetadata', request, (error: RPCError, result: GitGetAllGitMetadataResult) => (error ? reject(error) : resolve(result))))
-
-export const gitGetGitMetadataRpcPromise = (request: GitGetGitMetadataRpcParam): Promise<GitGetGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getGitMetadata', request, (error: RPCError, result: GitGetGitMetadataResult) => (error ? reject(error) : resolve(result))))
 
 export const gitGitLocalMetadataVersion = {
   v1: 1,
@@ -377,27 +289,11 @@ export const gitGitRepoResultState = {
   ok: 1,
 }
 
-export const gitSetTeamRepoSettingsRpcPromise = (request: GitSetTeamRepoSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.setTeamRepoSettings', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const gregorDismissCategoryRpcPromise = (request: GregorDismissCategoryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissCategory', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const gregorDismissItemRpcPromise = (request: GregorDismissItemRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissItem', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const gregorGetStateRpcPromise = (request: GregorGetStateRpcParam): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.getState', request, (error: RPCError, result: GregorGetStateResult) => (error ? reject(error) : resolve(result))))
-
-export const gregorInjectItemRpcPromise = (request: GregorInjectItemRpcParam): Promise<GregorInjectItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.injectItem', request, (error: RPCError, result: GregorInjectItemResult) => (error ? reject(error) : resolve(result))))
-
 export const gregorUIPushReason = {
   none: 0,
   reconnected: 1,
   newData: 2,
 }
-
-export const gregorUpdateItemRpcPromise = (request: GregorUpdateItemRpcParam): Promise<GregorUpdateItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.updateItem', request, (error: RPCError, result: GregorUpdateItemResult) => (error ? reject(error) : resolve(result))))
-
-export const homeHomeGetScreenRpcPromise = (request: HomeHomeGetScreenRpcParam): Promise<HomeHomeGetScreenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeGetScreen', request, (error: RPCError, result: HomeHomeGetScreenResult) => (error ? reject(error) : resolve(result))))
-
-export const homeHomeMarkViewedRpcPromise = (request: HomeHomeMarkViewedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeMarkViewed', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const homeHomeScreenItemType = {
   todo: 1,
@@ -422,8 +318,6 @@ export const homeHomeScreenTodoType = {
   gitRepo: 9,
   teamShowcase: 10,
 }
-
-export const homeHomeSkipTodoTypeRpcPromise = (request: HomeHomeSkipTodoTypeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeSkipTodoType', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const identifyCommonIdentifyReasonType = {
   none: 0,
@@ -460,8 +354,6 @@ export const identifyCommonTrackStatus = {
   updateBrokenRevoked: 7,
 }
 
-export const identifyIdentify2RpcPromise = (request: IdentifyIdentify2RpcParam): Promise<IdentifyIdentify2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identify2', request, (error: RPCError, result: IdentifyIdentify2Result) => (error ? reject(error) : resolve(result))))
-
 export const identifyUiCheckResultFreshness = {
   fresh: 0,
   aged: 1,
@@ -473,8 +365,6 @@ export const identifyUiDismissReasonType = {
   handledElsewhere: 1,
 }
 
-export const installFuseStatusRpcPromise = (request: InstallFuseStatusRpcParam): Promise<InstallFuseStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.fuseStatus', request, (error: RPCError, result: InstallFuseStatusResult) => (error ? reject(error) : resolve(result))))
-
 export const installInstallAction = {
   unknown: 0,
   none: 1,
@@ -483,18 +373,12 @@ export const installInstallAction = {
   install: 4,
 }
 
-export const installInstallFuseRpcPromise = (request: InstallInstallFuseRpcParam): Promise<InstallInstallFuseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installFuse', request, (error: RPCError, result: InstallInstallFuseResult) => (error ? reject(error) : resolve(result))))
-
-export const installInstallKBFSRpcPromise = (request: InstallInstallKBFSRpcParam): Promise<InstallInstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installKBFS', request, (error: RPCError, result: InstallInstallKBFSResult) => (error ? reject(error) : resolve(result))))
-
 export const installInstallStatus = {
   unknown: 0,
   error: 1,
   notInstalled: 2,
   installed: 4,
 }
-
-export const installUninstallKBFSRpcPromise = (request: InstallUninstallKBFSRpcParam): Promise<InstallUninstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.uninstallKBFS', request, (error: RPCError, result: InstallUninstallKBFSResult) => (error ? reject(error) : resolve(result))))
 
 export const kbfsCommonFSErrorType = {
   accessDenied: 0,
@@ -535,24 +419,6 @@ export const kbfsCommonFSStatusCode = {
   error: 2,
 }
 
-export const kbfsMountGetCurrentMountDirRpcPromise = (request: KbfsMountGetCurrentMountDirRpcParam): Promise<KbfsMountGetCurrentMountDirResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetCurrentMountDir', request, (error: RPCError, result: KbfsMountGetCurrentMountDirResult) => (error ? reject(error) : resolve(result))))
-
-export const loginAccountDeleteRpcPromise = (request: LoginAccountDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.accountDelete', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const loginDeprovisionRpcPromise = (request: LoginDeprovisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.deprovision', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const loginGetConfiguredAccountsRpcPromise = (request: LoginGetConfiguredAccountsRpcParam): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.getConfiguredAccounts', request, (error: RPCError, result: LoginGetConfiguredAccountsResult) => (error ? reject(error) : resolve(result))))
-
-export const loginLoginRpcChannelMap = (configKeys: Array<string>, request: LoginLoginRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.login', request)
-
-export const loginLogoutRpcChannelMap = (configKeys: Array<string>, request: LoginLogoutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.logout', request)
-
-export const loginPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKey', request)
-
-export const loginPaperKeySubmitRpcPromise = (request: LoginPaperKeySubmitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKeySubmit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const notifyCtlSetNotificationsRpcPromise = (request: NotifyCtlSetNotificationsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.notifyCtl.setNotifications', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const passphraseCommonPassphraseType = {
   none: 0,
   paperKey: 1,
@@ -560,27 +426,17 @@ export const passphraseCommonPassphraseType = {
   verifyPassPhrase: 3,
 }
 
-export const pgpPgpKeyGenDefaultRpcChannelMap = (configKeys: Array<string>, request: PgpPgpKeyGenDefaultRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGenDefault', request)
-
-export const pgpPgpStorageDismissRpcPromise = (request: PgpPgpStorageDismissRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpStorageDismiss', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const pgpSignMode = {
   attached: 0,
   detached: 1,
   clear: 2,
 }
 
-export const pprofLogProcessorProfileRpcPromise = (request: PprofLogProcessorProfileRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.logProcessorProfile', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const pprofLogTraceRpcPromise = (request: PprofLogTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.logTrace', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const processFileType = {
   unknown: 0,
   directory: 1,
   file: 2,
 }
-
-export const proveCheckProofRpcPromise = (request: ProveCheckProofRpcParam): Promise<ProveCheckProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.checkProof', request, (error: RPCError, result: ProveCheckProofResult) => (error ? reject(error) : resolve(result))))
 
 export const proveCommonProofState = {
   none: 0,
@@ -655,8 +511,6 @@ export const proveCommonProofType = {
   rooter: 100001,
 }
 
-export const proveStartProofRpcChannelMap = (configKeys: Array<string>, request: ProveStartProofRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.startProof', request)
-
 export const proveUiPromptOverwriteType = {
   social: 0,
   site: 1,
@@ -681,27 +535,17 @@ export const provisionUiProvisionMethod = {
   gpgSign: 4,
 }
 
-export const reachabilityCheckReachabilityRpcPromise = (request: ReachabilityCheckReachabilityRpcParam): Promise<ReachabilityCheckReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.checkReachability', request, (error: RPCError, result: ReachabilityCheckReachabilityResult) => (error ? reject(error) : resolve(result))))
-
 export const reachabilityReachable = {
   unknown: 0,
   yes: 1,
   no: 2,
 }
 
-export const reachabilityStartReachabilityRpcPromise = (request: ReachabilityStartReachabilityRpcParam): Promise<ReachabilityStartReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.startReachability', request, (error: RPCError, result: ReachabilityStartReachabilityResult) => (error ? reject(error) : resolve(result))))
-
-export const rekeyGetRevokeWarningRpcPromise = (request: RekeyGetRevokeWarningRpcParam): Promise<RekeyGetRevokeWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getRevokeWarning', request, (error: RPCError, result: RekeyGetRevokeWarningResult) => (error ? reject(error) : resolve(result))))
-
 export const rekeyOutcome = {
   none: 0,
   fixed: 1,
   ignored: 2,
 }
-
-export const rekeyRekeyStatusFinishRpcPromise = (request: RekeyRekeyStatusFinishRpcParam): Promise<RekeyRekeyStatusFinishResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeyStatusFinish', request, (error: RPCError, result: RekeyRekeyStatusFinishResult) => (error ? reject(error) : resolve(result))))
-
-export const rekeyShowPendingRekeyStatusRpcPromise = (request: RekeyShowPendingRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.showPendingRekeyStatus', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const rekeyUIRekeyEventType = {
   none: 0,
@@ -721,12 +565,6 @@ export const resetResetType = {
   delete: 2,
 }
 
-export const revokeRevokeDeviceRpcPromise = (request: RevokeRevokeDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeDevice', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const revokeRevokeKeyRpcPromise = (request: RevokeRevokeKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeKey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const revokeRevokeSigsRpcPromise = (request: RevokeRevokeSigsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeSigs', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const saltpackUiSaltpackSenderType = {
   notTracked: 0,
   unknown: 1,
@@ -737,16 +575,6 @@ export const saltpackUiSaltpackSenderType = {
   revoked: 6,
   expired: 7,
 }
-
-export const signupCheckInvitationCodeRpcPromise = (request: SignupCheckInvitationCodeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkInvitationCode', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const signupCheckUsernameAvailableRpcPromise = (request: SignupCheckUsernameAvailableRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkUsernameAvailable', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const signupGetInvitationCodeRpcPromise = (request: SignupGetInvitationCodeRpcParam): Promise<SignupGetInvitationCodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.getInvitationCode', request, (error: RPCError, result: SignupGetInvitationCodeResult) => (error ? reject(error) : resolve(result))))
-
-export const signupInviteRequestRpcPromise = (request: SignupInviteRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.inviteRequest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const signupSignupRpcPromise = (request: SignupSignupRpcParam): Promise<SignupSignupResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.signup', request, (error: RPCError, result: SignupSignupResult) => (error ? reject(error) : resolve(result))))
 
 export const simpleFSAsyncOps = {
   list: 0,
@@ -784,12 +612,6 @@ export const simpleFSPathType = {
   kbfs: 1,
 }
 
-export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => (error ? reject(error) : resolve(result))))
-
-export const teamsGetTarsDisabledRpcPromise = (request: TeamsGetTarsDisabledRpcParam): Promise<TeamsGetTarsDisabledResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTarsDisabled', request, (error: RPCError, result: TeamsGetTarsDisabledResult) => (error ? reject(error) : resolve(result))))
-
-export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => (error ? reject(error) : resolve(result))))
-
 export const teamsSeitanKeyAndLabelVersion = {
   v1: 1,
   v2: 2,
@@ -798,18 +620,6 @@ export const teamsSeitanKeyAndLabelVersion = {
 export const teamsSeitanKeyLabelType = {
   sms: 1,
 }
-
-export const teamsSetTarsDisabledRpcPromise = (request: TeamsSetTarsDisabledRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTarsDisabled', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const teamsSetTeamMemberShowcaseRpcPromise = (request: TeamsSetTeamMemberShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamMemberShowcase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const teamsSetTeamShowcaseRpcPromise = (request: TeamsSetTeamShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamShowcase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<TeamsTeamAcceptInviteOrRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: TeamsTeamAcceptInviteOrRequestAccessResult) => (error ? reject(error) : resolve(result))))
-
-export const teamsTeamAddEmailsBulkRpcPromise = (request: TeamsTeamAddEmailsBulkRpcParam): Promise<TeamsTeamAddEmailsBulkResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddEmailsBulk', request, (error: RPCError, result: TeamsTeamAddEmailsBulkResult) => (error ? reject(error) : resolve(result))))
-
-export const teamsTeamAddMemberRpcPromise = (request: TeamsTeamAddMemberRpcParam): Promise<TeamsTeamAddMemberResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddMember', request, (error: RPCError, result: TeamsTeamAddMemberResult) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamApplication = {
   kbfs: 1,
@@ -820,16 +630,6 @@ export const teamsTeamApplication = {
   stellarRelay: 6,
 }
 
-export const teamsTeamCreateRpcPromise = (request: TeamsTeamCreateRpcParam): Promise<TeamsTeamCreateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreate', request, (error: RPCError, result: TeamsTeamCreateResult) => (error ? reject(error) : resolve(result))))
-
-export const teamsTeamCreateSeitanTokenV2RpcPromise = (request: TeamsTeamCreateSeitanTokenV2RpcParam): Promise<TeamsTeamCreateSeitanTokenV2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanTokenV2', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenV2Result) => (error ? reject(error) : resolve(result))))
-
-export const teamsTeamEditMemberRpcPromise = (request: TeamsTeamEditMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamEditMember', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const teamsTeamGetRpcPromise = (request: TeamsTeamGetRpcParam): Promise<TeamsTeamGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamGet', request, (error: RPCError, result: TeamsTeamGetResult) => (error ? reject(error) : resolve(result))))
-
-export const teamsTeamIgnoreRequestRpcPromise = (request: TeamsTeamIgnoreRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const teamsTeamInviteCategory = {
   none: 0,
   unknown: 1,
@@ -839,16 +639,6 @@ export const teamsTeamInviteCategory = {
   seitan: 5,
 }
 
-export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const teamsTeamListMyAccessRequestsRpcPromise = (request: TeamsTeamListMyAccessRequestsRpcParam): Promise<TeamsTeamListMyAccessRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListMyAccessRequests', request, (error: RPCError, result: TeamsTeamListMyAccessRequestsResult) => (error ? reject(error) : resolve(result))))
-
-export const teamsTeamListRequestsRpcPromise = (request: TeamsTeamListRequestsRpcParam): Promise<TeamsTeamListRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListRequests', request, (error: RPCError, result: TeamsTeamListRequestsResult) => (error ? reject(error) : resolve(result))))
-
-export const teamsTeamListUnverifiedRpcPromise = (request: TeamsTeamListUnverifiedRpcParam): Promise<TeamsTeamListUnverifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListUnverified', request, (error: RPCError, result: TeamsTeamListUnverifiedResult) => (error ? reject(error) : resolve(result))))
-
-export const teamsTeamRemoveMemberRpcPromise = (request: TeamsTeamRemoveMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const teamsTeamRole = {
   none: 0,
   reader: 1,
@@ -857,16 +647,12 @@ export const teamsTeamRole = {
   owner: 4,
 }
 
-export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const teamsTeamStatus = {
   none: 0,
   live: 1,
   deleted: 2,
   abandoned: 3,
 }
-
-export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => (error ? reject(error) : resolve(result))))
 
 export const tlfKeysTLFIdentifyBehavior = {
   unset: 0,
@@ -881,14 +667,6 @@ export const tlfKeysTLFIdentifyBehavior = {
   gui: 9,
   defaultKbfs: 10,
 }
-
-export const trackCheckTrackingRpcPromise = (request: TrackCheckTrackingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.checkTracking', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const trackDismissWithTokenRpcPromise = (request: TrackDismissWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.dismissWithToken', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const trackTrackWithTokenRpcPromise = (request: TrackTrackWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.trackWithToken', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const trackUntrackRpcPromise = (request: TrackUntrackRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.untrack', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const uPKKeyType = {
   none: 0,
@@ -916,43 +694,135 @@ export const uiPromptDefault = {
   yes: 1,
   no: 2,
 }
-
+export const SimpleFSSimpleFSCancelRpcPromise = (request: SimpleFSSimpleFSCancelRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCancel', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const SimpleFSSimpleFSCheckRpcPromise = (request: SimpleFSSimpleFSCheckRpcParam): Promise<SimpleFSSimpleFSCheckResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCheck', request, (error: RPCError, result: SimpleFSSimpleFSCheckResult) => (error ? reject(error) : resolve(result))))
+export const SimpleFSSimpleFSCopyRecursiveRpcPromise = (request: SimpleFSSimpleFSCopyRecursiveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopyRecursive', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise = (request: SimpleFSSimpleFSGetHTTPAddressAndTokenRpcParam): Promise<SimpleFSSimpleFSGetHTTPAddressAndTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken', request, (error: RPCError, result: SimpleFSSimpleFSGetHTTPAddressAndTokenResult) => (error ? reject(error) : resolve(result))))
+export const SimpleFSSimpleFSListRpcPromise = (request: SimpleFSSimpleFSListRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSList', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const SimpleFSSimpleFSReadListRpcPromise = (request: SimpleFSSimpleFSReadListRpcParam): Promise<SimpleFSSimpleFSReadListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSReadList', request, (error: RPCError, result: SimpleFSSimpleFSReadListResult) => (error ? reject(error) : resolve(result))))
+export const SimpleFSSimpleFSStatRpcPromise = (request: SimpleFSSimpleFSStatRpcParam): Promise<SimpleFSSimpleFSStatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSStat', request, (error: RPCError, result: SimpleFSSimpleFSStatResult) => (error ? reject(error) : resolve(result))))
+export const SimpleFSSimpleFSSyncStatusRpcPromise = (request: SimpleFSSimpleFSSyncStatusRpcParam): Promise<SimpleFSSimpleFSSyncStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSSyncStatus', request, (error: RPCError, result: SimpleFSSimpleFSSyncStatusResult) => (error ? reject(error) : resolve(result))))
+export const SimpleFSSimpleFSWaitRpcPromise = (request: SimpleFSSimpleFSWaitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWait', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const accountEmailChangeRpcPromise = (request: AccountEmailChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.emailChange', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const accountHasServerKeysRpcPromise = (request: AccountHasServerKeysRpcParam): Promise<AccountHasServerKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.hasServerKeys', request, (error: RPCError, result: AccountHasServerKeysResult) => (error ? reject(error) : resolve(result))))
+export const accountPassphraseChangeRpcPromise = (request: AccountPassphraseChangeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.account.passphraseChange', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const apiserverDeleteRpcPromise = (request: ApiserverDeleteRpcParam): Promise<ApiserverDeleteResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Delete', request, (error: RPCError, result: ApiserverDeleteResult) => (error ? reject(error) : resolve(result))))
+export const apiserverGetRpcPromise = (request: ApiserverGetRpcParam): Promise<ApiserverGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Get', request, (error: RPCError, result: ApiserverGetResult) => (error ? reject(error) : resolve(result))))
+export const apiserverGetWithSessionRpcPromise = (request: ApiserverGetWithSessionRpcParam): Promise<ApiserverGetWithSessionResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.GetWithSession', request, (error: RPCError, result: ApiserverGetWithSessionResult) => (error ? reject(error) : resolve(result))))
+export const apiserverPostJSONRpcPromise = (request: ApiserverPostJSONRpcParam): Promise<ApiserverPostJSONResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.PostJSON', request, (error: RPCError, result: ApiserverPostJSONResult) => (error ? reject(error) : resolve(result))))
+export const apiserverPostRpcPromise = (request: ApiserverPostRpcParam): Promise<ApiserverPostResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.apiserver.Post', request, (error: RPCError, result: ApiserverPostResult) => (error ? reject(error) : resolve(result))))
+export const avatarsLoadTeamAvatarsRpcPromise = (request: AvatarsLoadTeamAvatarsRpcParam): Promise<AvatarsLoadTeamAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadTeamAvatars', request, (error: RPCError, result: AvatarsLoadTeamAvatarsResult) => (error ? reject(error) : resolve(result))))
+export const avatarsLoadUserAvatarsRpcPromise = (request: AvatarsLoadUserAvatarsRpcParam): Promise<AvatarsLoadUserAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadUserAvatars', request, (error: RPCError, result: AvatarsLoadUserAvatarsResult) => (error ? reject(error) : resolve(result))))
+export const configGetBootstrapStatusRpcPromise = (request: ConfigGetBootstrapStatusRpcParam): Promise<ConfigGetBootstrapStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getBootstrapStatus', request, (error: RPCError, result: ConfigGetBootstrapStatusResult) => (error ? reject(error) : resolve(result))))
+export const configGetConfigRpcPromise = (request: ConfigGetConfigRpcParam): Promise<ConfigGetConfigResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getConfig', request, (error: RPCError, result: ConfigGetConfigResult) => (error ? reject(error) : resolve(result))))
+export const configGetExtendedStatusRpcPromise = (request: ConfigGetExtendedStatusRpcParam): Promise<ConfigGetExtendedStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getExtendedStatus', request, (error: RPCError, result: ConfigGetExtendedStatusResult) => (error ? reject(error) : resolve(result))))
+export const configGetRememberPassphraseRpcPromise = (request: ConfigGetRememberPassphraseRpcParam): Promise<ConfigGetRememberPassphraseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getRememberPassphrase', request, (error: RPCError, result: ConfigGetRememberPassphraseResult) => (error ? reject(error) : resolve(result))))
+export const configHelloIAmRpcPromise = (request: ConfigHelloIAmRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.helloIAm', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const configSetRememberPassphraseRpcPromise = (request: ConfigSetRememberPassphraseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setRememberPassphrase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const configWaitForClientRpcPromise = (request: ConfigWaitForClientRpcParam): Promise<ConfigWaitForClientResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.waitForClient', request, (error: RPCError, result: ConfigWaitForClientResult) => (error ? reject(error) : resolve(result))))
+export const cryptocurrencyRegisterAddressRpcPromise = (request: CryptocurrencyRegisterAddressRpcParam): Promise<CryptocurrencyRegisterAddressResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.cryptocurrency.registerAddress', request, (error: RPCError, result: CryptocurrencyRegisterAddressResult) => (error ? reject(error) : resolve(result))))
+export const ctlDbNukeRpcPromise = (request: CtlDbNukeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.ctl.dbNuke', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehoseFiltered', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const delegateUiCtlRegisterHomeUIRpcPromise = (request: DelegateUiCtlRegisterHomeUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerHomeUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const delegateUiCtlRegisterIdentifyUIRpcPromise = (request: DelegateUiCtlRegisterIdentifyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const delegateUiCtlRegisterRekeyUIRpcPromise = (request: DelegateUiCtlRegisterRekeyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerRekeyUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const delegateUiCtlRegisterSecretUIRpcPromise = (request: DelegateUiCtlRegisterSecretUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerSecretUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const deviceCheckDeviceNameFormatRpcPromise = (request: DeviceCheckDeviceNameFormatRpcParam): Promise<DeviceCheckDeviceNameFormatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.checkDeviceNameFormat', request, (error: RPCError, result: DeviceCheckDeviceNameFormatResult) => (error ? reject(error) : resolve(result))))
+export const deviceDeviceAddRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceAdd', request)
+export const deviceDeviceHistoryListRpcPromise = (request: DeviceDeviceHistoryListRpcParam): Promise<DeviceDeviceHistoryListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.device.deviceHistoryList', request, (error: RPCError, result: DeviceDeviceHistoryListResult) => (error ? reject(error) : resolve(result))))
+export const favoriteFavoriteAddRpcPromise = (request: FavoriteFavoriteAddRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteAdd', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const favoriteFavoriteIgnoreRpcPromise = (request: FavoriteFavoriteIgnoreRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.favorite.favoriteIgnore', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const gitCreatePersonalRepoRpcPromise = (request: GitCreatePersonalRepoRpcParam): Promise<GitCreatePersonalRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createPersonalRepo', request, (error: RPCError, result: GitCreatePersonalRepoResult) => (error ? reject(error) : resolve(result))))
+export const gitCreateTeamRepoRpcPromise = (request: GitCreateTeamRepoRpcParam): Promise<GitCreateTeamRepoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.createTeamRepo', request, (error: RPCError, result: GitCreateTeamRepoResult) => (error ? reject(error) : resolve(result))))
+export const gitDeletePersonalRepoRpcPromise = (request: GitDeletePersonalRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deletePersonalRepo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const gitDeleteTeamRepoRpcPromise = (request: GitDeleteTeamRepoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const gitGetAllGitMetadataRpcPromise = (request: GitGetAllGitMetadataRpcParam): Promise<GitGetAllGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getAllGitMetadata', request, (error: RPCError, result: GitGetAllGitMetadataResult) => (error ? reject(error) : resolve(result))))
+export const gitGetGitMetadataRpcPromise = (request: GitGetGitMetadataRpcParam): Promise<GitGetGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getGitMetadata', request, (error: RPCError, result: GitGetGitMetadataResult) => (error ? reject(error) : resolve(result))))
+export const gitSetTeamRepoSettingsRpcPromise = (request: GitSetTeamRepoSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.setTeamRepoSettings', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const gregorDismissCategoryRpcPromise = (request: GregorDismissCategoryRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissCategory', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const gregorDismissItemRpcPromise = (request: GregorDismissItemRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.dismissItem', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const gregorGetStateRpcPromise = (request: GregorGetStateRpcParam): Promise<GregorGetStateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.getState', request, (error: RPCError, result: GregorGetStateResult) => (error ? reject(error) : resolve(result))))
+export const gregorInjectItemRpcPromise = (request: GregorInjectItemRpcParam): Promise<GregorInjectItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.injectItem', request, (error: RPCError, result: GregorInjectItemResult) => (error ? reject(error) : resolve(result))))
+export const gregorUpdateItemRpcPromise = (request: GregorUpdateItemRpcParam): Promise<GregorUpdateItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.updateItem', request, (error: RPCError, result: GregorUpdateItemResult) => (error ? reject(error) : resolve(result))))
+export const homeHomeGetScreenRpcPromise = (request: HomeHomeGetScreenRpcParam): Promise<HomeHomeGetScreenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeGetScreen', request, (error: RPCError, result: HomeHomeGetScreenResult) => (error ? reject(error) : resolve(result))))
+export const homeHomeMarkViewedRpcPromise = (request: HomeHomeMarkViewedRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeMarkViewed', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const homeHomeSkipTodoTypeRpcPromise = (request: HomeHomeSkipTodoTypeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeSkipTodoType', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const identifyIdentify2RpcPromise = (request: IdentifyIdentify2RpcParam): Promise<IdentifyIdentify2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.identify.identify2', request, (error: RPCError, result: IdentifyIdentify2Result) => (error ? reject(error) : resolve(result))))
+export const installFuseStatusRpcPromise = (request: InstallFuseStatusRpcParam): Promise<InstallFuseStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.fuseStatus', request, (error: RPCError, result: InstallFuseStatusResult) => (error ? reject(error) : resolve(result))))
+export const installInstallFuseRpcPromise = (request: InstallInstallFuseRpcParam): Promise<InstallInstallFuseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installFuse', request, (error: RPCError, result: InstallInstallFuseResult) => (error ? reject(error) : resolve(result))))
+export const installInstallKBFSRpcPromise = (request: InstallInstallKBFSRpcParam): Promise<InstallInstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.installKBFS', request, (error: RPCError, result: InstallInstallKBFSResult) => (error ? reject(error) : resolve(result))))
+export const installUninstallKBFSRpcPromise = (request: InstallUninstallKBFSRpcParam): Promise<InstallUninstallKBFSResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.install.uninstallKBFS', request, (error: RPCError, result: InstallUninstallKBFSResult) => (error ? reject(error) : resolve(result))))
+export const kbfsMountGetCurrentMountDirRpcPromise = (request: KbfsMountGetCurrentMountDirRpcParam): Promise<KbfsMountGetCurrentMountDirResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.kbfsMount.GetCurrentMountDir', request, (error: RPCError, result: KbfsMountGetCurrentMountDirResult) => (error ? reject(error) : resolve(result))))
+export const loginAccountDeleteRpcPromise = (request: LoginAccountDeleteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.accountDelete', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const loginDeprovisionRpcPromise = (request: LoginDeprovisionRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.deprovision', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const loginGetConfiguredAccountsRpcPromise = (request: LoginGetConfiguredAccountsRpcParam): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.getConfiguredAccounts', request, (error: RPCError, result: LoginGetConfiguredAccountsResult) => (error ? reject(error) : resolve(result))))
+export const loginLoginRpcChannelMap = (configKeys: Array<string>, request: LoginLoginRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.login', request)
+export const loginLogoutRpcChannelMap = (configKeys: Array<string>, request: LoginLogoutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.logout', request)
+export const loginPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKey', request)
+export const loginPaperKeySubmitRpcPromise = (request: LoginPaperKeySubmitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.paperKeySubmit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const notifyCtlSetNotificationsRpcPromise = (request: NotifyCtlSetNotificationsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.notifyCtl.setNotifications', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const pgpPgpKeyGenDefaultRpcChannelMap = (configKeys: Array<string>, request: PgpPgpKeyGenDefaultRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGenDefault', request)
+export const pgpPgpStorageDismissRpcPromise = (request: PgpPgpStorageDismissRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pgp.pgpStorageDismiss', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const pprofLogProcessorProfileRpcPromise = (request: PprofLogProcessorProfileRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.logProcessorProfile', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const pprofLogTraceRpcPromise = (request: PprofLogTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.logTrace', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const proveCheckProofRpcPromise = (request: ProveCheckProofRpcParam): Promise<ProveCheckProofResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.prove.checkProof', request, (error: RPCError, result: ProveCheckProofResult) => (error ? reject(error) : resolve(result))))
+export const proveStartProofRpcChannelMap = (configKeys: Array<string>, request: ProveStartProofRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.startProof', request)
+export const reachabilityCheckReachabilityRpcPromise = (request: ReachabilityCheckReachabilityRpcParam): Promise<ReachabilityCheckReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.checkReachability', request, (error: RPCError, result: ReachabilityCheckReachabilityResult) => (error ? reject(error) : resolve(result))))
+export const reachabilityStartReachabilityRpcPromise = (request: ReachabilityStartReachabilityRpcParam): Promise<ReachabilityStartReachabilityResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.reachability.startReachability', request, (error: RPCError, result: ReachabilityStartReachabilityResult) => (error ? reject(error) : resolve(result))))
+export const rekeyGetRevokeWarningRpcPromise = (request: RekeyGetRevokeWarningRpcParam): Promise<RekeyGetRevokeWarningResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.getRevokeWarning', request, (error: RPCError, result: RekeyGetRevokeWarningResult) => (error ? reject(error) : resolve(result))))
+export const rekeyRekeyStatusFinishRpcPromise = (request: RekeyRekeyStatusFinishRpcParam): Promise<RekeyRekeyStatusFinishResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.rekeyStatusFinish', request, (error: RPCError, result: RekeyRekeyStatusFinishResult) => (error ? reject(error) : resolve(result))))
+export const rekeyShowPendingRekeyStatusRpcPromise = (request: RekeyShowPendingRekeyStatusRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.rekey.showPendingRekeyStatus', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const revokeRevokeDeviceRpcPromise = (request: RevokeRevokeDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeDevice', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const revokeRevokeKeyRpcPromise = (request: RevokeRevokeKeyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeKey', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const revokeRevokeSigsRpcPromise = (request: RevokeRevokeSigsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeSigs', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const signupCheckInvitationCodeRpcPromise = (request: SignupCheckInvitationCodeRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkInvitationCode', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const signupCheckUsernameAvailableRpcPromise = (request: SignupCheckUsernameAvailableRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.checkUsernameAvailable', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const signupGetInvitationCodeRpcPromise = (request: SignupGetInvitationCodeRpcParam): Promise<SignupGetInvitationCodeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.getInvitationCode', request, (error: RPCError, result: SignupGetInvitationCodeResult) => (error ? reject(error) : resolve(result))))
+export const signupInviteRequestRpcPromise = (request: SignupInviteRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.inviteRequest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const signupSignupRpcPromise = (request: SignupSignupRpcParam): Promise<SignupSignupResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.signup.signup', request, (error: RPCError, result: SignupSignupResult) => (error ? reject(error) : resolve(result))))
+export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => (error ? reject(error) : resolve(result))))
+export const teamsGetTarsDisabledRpcPromise = (request: TeamsGetTarsDisabledRpcParam): Promise<TeamsGetTarsDisabledResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTarsDisabled', request, (error: RPCError, result: TeamsGetTarsDisabledResult) => (error ? reject(error) : resolve(result))))
+export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => (error ? reject(error) : resolve(result))))
+export const teamsSetTarsDisabledRpcPromise = (request: TeamsSetTarsDisabledRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTarsDisabled', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const teamsSetTeamMemberShowcaseRpcPromise = (request: TeamsSetTeamMemberShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamMemberShowcase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const teamsSetTeamShowcaseRpcPromise = (request: TeamsSetTeamShowcaseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTeamShowcase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (request: TeamsTeamAcceptInviteOrRequestAccessRpcParam): Promise<TeamsTeamAcceptInviteOrRequestAccessResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error: RPCError, result: TeamsTeamAcceptInviteOrRequestAccessResult) => (error ? reject(error) : resolve(result))))
+export const teamsTeamAddEmailsBulkRpcPromise = (request: TeamsTeamAddEmailsBulkRpcParam): Promise<TeamsTeamAddEmailsBulkResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddEmailsBulk', request, (error: RPCError, result: TeamsTeamAddEmailsBulkResult) => (error ? reject(error) : resolve(result))))
+export const teamsTeamAddMemberRpcPromise = (request: TeamsTeamAddMemberRpcParam): Promise<TeamsTeamAddMemberResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamAddMember', request, (error: RPCError, result: TeamsTeamAddMemberResult) => (error ? reject(error) : resolve(result))))
+export const teamsTeamCreateRpcPromise = (request: TeamsTeamCreateRpcParam): Promise<TeamsTeamCreateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreate', request, (error: RPCError, result: TeamsTeamCreateResult) => (error ? reject(error) : resolve(result))))
+export const teamsTeamCreateSeitanTokenV2RpcPromise = (request: TeamsTeamCreateSeitanTokenV2RpcParam): Promise<TeamsTeamCreateSeitanTokenV2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanTokenV2', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenV2Result) => (error ? reject(error) : resolve(result))))
+export const teamsTeamEditMemberRpcPromise = (request: TeamsTeamEditMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamEditMember', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const teamsTeamGetRpcPromise = (request: TeamsTeamGetRpcParam): Promise<TeamsTeamGetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamGet', request, (error: RPCError, result: TeamsTeamGetResult) => (error ? reject(error) : resolve(result))))
+export const teamsTeamIgnoreRequestRpcPromise = (request: TeamsTeamIgnoreRequestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const teamsTeamLeaveRpcPromise = (request: TeamsTeamLeaveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamLeave', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const teamsTeamListMyAccessRequestsRpcPromise = (request: TeamsTeamListMyAccessRequestsRpcParam): Promise<TeamsTeamListMyAccessRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListMyAccessRequests', request, (error: RPCError, result: TeamsTeamListMyAccessRequestsResult) => (error ? reject(error) : resolve(result))))
+export const teamsTeamListRequestsRpcPromise = (request: TeamsTeamListRequestsRpcParam): Promise<TeamsTeamListRequestsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListRequests', request, (error: RPCError, result: TeamsTeamListRequestsResult) => (error ? reject(error) : resolve(result))))
+export const teamsTeamListUnverifiedRpcPromise = (request: TeamsTeamListUnverifiedRpcParam): Promise<TeamsTeamListUnverifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListUnverified', request, (error: RPCError, result: TeamsTeamListUnverifiedResult) => (error ? reject(error) : resolve(result))))
+export const teamsTeamRemoveMemberRpcPromise = (request: TeamsTeamRemoveMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => (error ? reject(error) : resolve(result))))
+export const trackCheckTrackingRpcPromise = (request: TrackCheckTrackingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.checkTracking', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const trackDismissWithTokenRpcPromise = (request: TrackDismissWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.dismissWithToken', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const trackTrackWithTokenRpcPromise = (request: TrackTrackWithTokenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.trackWithToken', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const trackUntrackRpcPromise = (request: TrackUntrackRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.track.untrack', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 export const userInterestingPeopleRpcPromise = (request: UserInterestingPeopleRpcParam): Promise<UserInterestingPeopleResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.interestingPeople', request, (error: RPCError, result: UserInterestingPeopleResult) => (error ? reject(error) : resolve(result))))
-
 export const userListTrackers2RpcPromise = (request: UserListTrackers2RpcParam): Promise<UserListTrackers2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.listTrackers2', request, (error: RPCError, result: UserListTrackers2Result) => (error ? reject(error) : resolve(result))))
-
 export const userLoadMySettingsRpcPromise = (request: UserLoadMySettingsRpcParam): Promise<UserLoadMySettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadMySettings', request, (error: RPCError, result: UserLoadMySettingsResult) => (error ? reject(error) : resolve(result))))
-
 export const userProfileEditRpcPromise = (request: UserProfileEditRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.profileEdit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export type APIRes = $ReadOnly<{status: String, body: String, httpStatus: Int, appStatus: String}>
-
 export type AccountEmailChangeRpcParam = $ReadOnly<{newEmail: String}>
-
 export type AccountHasServerKeysRpcParam = void
-
 export type AccountPassphraseChangeRpcParam = $ReadOnly<{oldPassphrase: String, passphrase: String, force: Boolean}>
-
 export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg}>
-
 export type AccountResetAccountRpcParam = $ReadOnly<{passphrase: String}>
-
 export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
-
 export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean}>
-
 export type AnnotatedTeamList = $ReadOnly<{teams?: ?Array<AnnotatedMemberInfo>, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}>
-
 export type ApiserverDeleteRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
-
 export type ApiserverGetRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
-
 export type ApiserverGetWithSessionRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
-
 export type ApiserverPostJSONRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, JSONPayload?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
-
 export type ApiserverPostRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
-
 export type AppState =
   | 0 // FOREGROUND_0
   | 1 // BACKGROUND_1
@@ -961,7 +831,6 @@ export type AppState =
   | 4 // BACKGROUNDFINAL_4
 
 export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState}>
-
 export type AsyncOps =
   | 0 // LIST_0
   | 1 // LIST_RECURSIVE_1
@@ -972,88 +841,49 @@ export type AsyncOps =
   | 6 // REMOVE_6
 
 export type AvatarClearCacheMsg = $ReadOnly<{name: String, formats?: ?Array<AvatarFormat>}>
-
 export type AvatarFormat = String
-
 export type AvatarUrl = String
-
 export type AvatarsLoadTeamAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>}>
-
 export type AvatarsLoadUserAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>}>
-
 export type BTCRegisterBTCRpcParam = $ReadOnly<{address: String, force: Boolean}>
-
 export type BadgeConversationInfo = $ReadOnly<{convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int}>
-
 export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>}>
-
 export type BadgerGetBadgeStateRpcParam = void
-
 export type BinaryKID = Bytes
-
 export type BlockAddReferenceRpcParam = $ReadOnly<{folder: String, ref: BlockReference}>
-
 export type BlockArchiveReferenceRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>}>
-
 export type BlockArchiveReferenceWithCountRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>}>
-
 export type BlockAuthenticateSessionRpcParam = $ReadOnly<{signature: String}>
-
 export type BlockBlockPingRpcParam = void
-
 export type BlockDelReferenceRpcParam = $ReadOnly<{folder: String, ref: BlockReference}>
-
 export type BlockDelReferenceWithCountRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>}>
-
 export type BlockGetBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String}>
-
 export type BlockGetSessionChallengeRpcParam = void
-
 export type BlockGetTeamQuotaInfoRpcParam = $ReadOnly<{tid: TeamID}>
-
 export type BlockGetUserQuotaInfoRpcParam = void
-
 export type BlockIdCombo = $ReadOnly<{blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType}>
-
 export type BlockPingResponse = $ReadOnly<{}>
-
 export type BlockPutBlockAgainRpcParam = $ReadOnly<{folder: String, ref: BlockReference, blockKey: String, buf: Bytes}>
-
 export type BlockPutBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String, blockKey: String, buf: Bytes}>
-
 export type BlockRefNonce = any
-
 export type BlockReference = $ReadOnly<{bid: BlockIdCombo, nonce: BlockRefNonce, chargedTo: UserOrTeamID}>
-
 export type BlockReferenceCount = $ReadOnly<{ref: BlockReference, liveCount: Int}>
-
 export type BlockType =
   | 0 // DATA_0
   | 1 // MD_1
   | 2 // GIT_2
 
 export type BootstrapStatus = $ReadOnly<{registered: Boolean, loggedIn: Boolean, uid: UID, username: String, deviceID: DeviceID, deviceName: String, following?: ?Array<String>, followers?: ?Array<String>}>
-
 export type BoxNonce = any
-
 export type BoxPublicKey = any
-
 export type BulkRes = $ReadOnly<{invited?: ?Array<String>, alreadyInvited?: ?Array<String>, malformed?: ?Array<String>}>
-
 export type Bytes32 = any
-
 export type CanonicalTLFNameAndIDWithBreaks = $ReadOnly<{tlfID: TLFID, CanonicalName: CanonicalTlfName, breaks: TLFBreak}>
-
 export type CanonicalTlfName = String
-
 export type ChallengeInfo = $ReadOnly<{now: Long, challenge: String}>
-
 export type ChatConversationID = Bytes
-
 export type CheckProofStatus = $ReadOnly<{found: Boolean, status: ProofStatus, proofText: String, state: ProofState}>
-
 export type CheckResult = $ReadOnly<{proofResult: ProofResult, time: Time, freshness: CheckResultFreshness}>
-
 export type CheckResultFreshness =
   | 0 // FRESH_0
   | 1 // AGED_1
@@ -1064,9 +894,7 @@ export type ChooseType =
   | 1 // NEW_DEVICE_1
 
 export type CiphertextBundle = $ReadOnly<{kid: KID, ciphertext: EncryptedBytes32, nonce: BoxNonce, publicKey: BoxPublicKey}>
-
 export type ClientDetails = $ReadOnly<{pid: Int, clientType: ClientType, argv?: ?Array<String>, desc: String, version: String}>
-
 export type ClientType =
   | 0 // NONE_0
   | 1 // CLI_1
@@ -1075,141 +903,77 @@ export type ClientType =
   | 4 // GUI_HELPER_4
 
 export type CompatibilityTeamID = {typ: 1, legacy: ?TLFID} | {typ: 2, modern: ?TeamID}
-
 export type ComponentResult = $ReadOnly<{name: String, status: Status, exitCode: Int}>
-
 export type Config = $ReadOnly<{serverURI: String, socketFile: String, label: String, runMode: String, gpgExists: Boolean, gpgPath: String, version: String, path: String, binaryRealpath: String, configPath: String, versionShort: String, versionFull: String, isAutoForked: Boolean, forkType: ForkType}>
-
 export type ConfigCheckAPIServerOutOfDateWarningRpcParam = void
-
 export type ConfigClearValueRpcParam = $ReadOnly<{path: String}>
-
 export type ConfigGetBootstrapStatusRpcParam = void
-
 export type ConfigGetConfigRpcParam = void
-
 export type ConfigGetCurrentStatusRpcParam = void
-
 export type ConfigGetExtendedStatusRpcParam = void
-
 export type ConfigGetRememberPassphraseRpcParam = void
-
 export type ConfigGetValueRpcParam = $ReadOnly<{path: String}>
-
 export type ConfigHelloIAmRpcParam = $ReadOnly<{details: ClientDetails}>
-
 export type ConfigSetPathRpcParam = $ReadOnly<{path: String}>
-
 export type ConfigSetRememberPassphraseRpcParam = $ReadOnly<{remember: Boolean}>
-
 export type ConfigSetUserConfigRpcParam = $ReadOnly<{username: String, key: String, value: String}>
-
 export type ConfigSetValueRpcParam = $ReadOnly<{path: String, value: ConfigValue}>
-
 export type ConfigValue = $ReadOnly<{isNull: Boolean, b?: ?Boolean, i?: ?Int, s?: ?String, o?: ?String}>
-
 export type ConfigWaitForClientRpcParam = $ReadOnly<{clientType: ClientType, timeout: DurationSec}>
-
 export type ConfiguredAccount = $ReadOnly<{username: String, hasStoredSecret: Boolean}>
-
 export type ConfirmResult = $ReadOnly<{identityConfirmed: Boolean, remoteConfirmed: Boolean, expiringLocal: Boolean, autoConfirmed: Boolean}>
-
 export type ConflictGeneration = Int
-
 export type CopyArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
-
 export type CryptKey = $ReadOnly<{KeyGeneration: Int, Key: Bytes32}>
-
 export type CryptoSignED25519ForKBFSRpcParam = $ReadOnly<{msg: Bytes, reason: String}>
-
 export type CryptoSignED25519RpcParam = $ReadOnly<{msg: Bytes, reason: String}>
-
 export type CryptoSignToStringRpcParam = $ReadOnly<{msg: Bytes, reason: String}>
-
 export type CryptoUnboxBytes32AnyRpcParam = $ReadOnly<{bundles?: ?Array<CiphertextBundle>, reason: String, promptPaper: Boolean}>
-
 export type CryptoUnboxBytes32RpcParam = $ReadOnly<{encryptedBytes32: EncryptedBytes32, nonce: BoxNonce, peersPublicKey: BoxPublicKey, reason: String}>
-
 export type Cryptocurrency = $ReadOnly<{rowId: Int, pkhash: Bytes, address: String, sigID: SigID, type: String, family: String}>
-
 export type CryptocurrencyRegisterAddressRpcParam = $ReadOnly<{address: String, force: Boolean, wantedFamily: String, sigVersion?: ?SigVersion}>
-
 export type CsrfToken = String
-
 export type CtlAppExitRpcParam = void
-
 export type CtlDbDeleteRpcParam = $ReadOnly<{key: DbKey}>
-
 export type CtlDbGetRpcParam = $ReadOnly<{key: DbKey}>
-
 export type CtlDbNukeRpcParam = void
-
 export type CtlDbPutRpcParam = $ReadOnly<{key: DbKey, value: DbValue}>
-
 export type CtlLogRotateRpcParam = void
-
 export type CtlReloadRpcParam = void
-
 export type CtlStopRpcParam = $ReadOnly<{exitCode: ExitCode}>
-
 export type DbKey = $ReadOnly<{dbType: DbType, objType: Int, key: String}>
-
 export type DbType =
   | 0 // MAIN_0
   | 1 // CHAT_1
 
 export type DbValue = Bytes
-
 export type DebuggingFirstStepRpcParam = $ReadOnly<{val: Int}>
-
 export type DebuggingIncrementRpcParam = $ReadOnly<{val: Int}>
-
 export type DebuggingScriptRpcParam = $ReadOnly<{script: String, args?: ?Array<String>}>
-
 export type DebuggingSecondStepRpcParam = $ReadOnly<{val: Int}>
-
 export type DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam = $ReadOnly<{systems?: ?Array<String>}>
-
 export type DelegateUiCtlRegisterGregorFirehoseRpcParam = void
-
 export type DelegateUiCtlRegisterHomeUIRpcParam = void
-
 export type DelegateUiCtlRegisterIdentifyUIRpcParam = void
-
 export type DelegateUiCtlRegisterRekeyUIRpcParam = void
-
 export type DelegateUiCtlRegisterSecretUIRpcParam = void
-
 export type DelegateUiCtlRegisterUpdateUIRpcParam = void
-
 export type Device = $ReadOnly<{type: String, name: String, deviceID: DeviceID, cTime: Time, mTime: Time, lastUsedTime: Time, encryptKey: KID, verifyKey: KID, status: Int}>
-
 export type DeviceCheckDeviceNameForUserRpcParam = $ReadOnly<{username: String, devicename: String}>
-
 export type DeviceCheckDeviceNameFormatRpcParam = $ReadOnly<{name: String}>
-
 export type DeviceDetail = $ReadOnly<{device: Device, eldest: Boolean, provisioner?: ?Device, provisionedAt?: ?Time, revokedAt?: ?Time, revokedBy: KID, revokedByDevice?: ?Device, currentDevice: Boolean}>
-
 export type DeviceDeviceAddRpcParam = void
-
 export type DeviceDeviceHistoryListRpcParam = void
-
 export type DeviceDeviceListRpcParam = void
-
 export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
-
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time, deviceCtime: Time}>
-
 export type DeviceEkStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
-
 export type DeviceID = String
-
 export type DeviceType =
   | 0 // DESKTOP_0
   | 1 // MOBILE_1
 
 export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User}>
-
 export type DirentType =
   | 0 // FILE_0
   | 1 // DIR_1
@@ -1217,40 +981,27 @@ export type DirentType =
   | 3 // EXEC_3
 
 export type DismissReason = $ReadOnly<{type: DismissReasonType, reason: String, resource: String}>
-
 export type DismissReasonType =
   | 0 // NONE_0
   | 1 // HANDLED_ELSEWHERE_1
 
 export type DowngradeReferenceRes = $ReadOnly<{completed?: ?Array<BlockReferenceCount>, failed: BlockReference}>
-
 export type DurationSec = Double
-
 export type ED25519PublicKey = any
-
 export type ED25519Signature = any
-
 export type ED25519SignatureInfo = $ReadOnly<{sig: ED25519Signature, publicKey: ED25519PublicKey}>
-
 export type EkGeneration = Int64
-
 export type Email = $ReadOnly<{email: String, isVerified: Boolean}>
-
 export type EncryptedBytes32 = any
-
 export type EncryptedGitMetadata = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerTeamKeyGeneration}>
-
 export type ErrorNum = Int
-
 export type ExitCode =
   | 0 // OK_0
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
 export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID}>
-
 export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
-
 export type FSErrorType =
   | 0 // ACCESS_DENIED_0
   | 1 // USER_NOT_FOUND_1
@@ -1269,7 +1020,6 @@ export type FSErrorType =
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
 export type FSNotification = $ReadOnly<{filename: String, status: String, statusCode: FSStatusCode, notificationType: FSNotificationType, errorType: FSErrorType, params: {[key: string]: String}, writerUid: UID, localTime: Time, folderType: FolderType}>
-
 export type FSNotificationType =
   | 0 // ENCRYPTING_0
   | 1 // DECRYPTING_1
@@ -1285,43 +1035,29 @@ export type FSNotificationType =
   | 11 // INITIALIZED_11
 
 export type FSPathSyncStatus = $ReadOnly<{folderType: FolderType, path: String, syncingBytes: Int64, syncingOps: Int64, syncedBytes: Int64}>
-
 export type FSStatusCode =
   | 0 // START_0
   | 1 // FINISH_1
   | 2 // ERROR_2
 
 export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, totalSyncingOps: Int64, pathStatuses?: ?Array<FSPathSyncStatus>}>
-
 export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
-
 export type FavoriteFavoriteAddRpcParam = $ReadOnly<{folder: Folder}>
-
 export type FavoriteFavoriteIgnoreRpcParam = $ReadOnly<{folder: Folder}>
-
 export type FavoriteGetFavoritesRpcParam = void
-
 export type FavoritesResult = $ReadOnly<{favoriteFolders?: ?Array<Folder>, ignoredFolders?: ?Array<Folder>, newFolders?: ?Array<Folder>}>
-
 export type Feature = $ReadOnly<{allow: Boolean, defaultValue: Boolean, readonly: Boolean, label: String}>
-
 export type File = $ReadOnly<{path: String}>
-
 export type FileContent = $ReadOnly<{data: Bytes, progress: Progress}>
-
 export type FileDescriptor = $ReadOnly<{name: String, type: FileType}>
-
 export type FileType =
   | 0 // UNKNOWN_0
   | 1 // DIRECTORY_1
   | 2 // FILE_2
 
 export type FindNextMDResponse = $ReadOnly<{kbfsRoot: MerkleRoot, merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
-
 export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
-
 export type Folder = $ReadOnly<{name: String, private: Boolean, notificationsOn: Boolean, created: Boolean, folderType: FolderType}>
-
 export type FolderType =
   | 0 // UNKNOWN_0
   | 1 // PRIVATE_1
@@ -1336,161 +1072,97 @@ export type ForkType =
   | 4 // SYSTEMD_4
 
 export type FsListRpcParam = $ReadOnly<{path: String}>
-
 export type FullName = String
-
 export type FullNamePackage = $ReadOnly<{version: FullNamePackageVersion, fullName: FullName, eldestSeqno: Seqno, cachedAt: Time}>
-
 export type FullNamePackageVersion =
   | 0 // V0_0
   | 1 // V1_1
 
 export type FuseMountInfo = $ReadOnly<{path: String, fstype: String, output: String}>
-
 export type FuseStatus = $ReadOnly<{version: String, bundleVersion: String, kextID: String, path: String, kextStarted: Boolean, installStatus: InstallStatus, installAction: InstallAction, mountInfos?: ?Array<FuseMountInfo>, status: Status}>
-
 export type GPGKey = $ReadOnly<{algorithm: String, keyID: String, creation: String, expiration: String, identities?: ?Array<PGPIdentity>}>
-
 export type GPGMethod =
   | 0 // GPG_NONE_0
   | 1 // GPG_IMPORT_1
   | 2 // GPG_SIGN_2
 
 export type GUIEntryArg = $ReadOnly<{windowTitle: String, prompt: String, username: String, submitLabel: String, cancelLabel: String, retryLabel: String, type: PassphraseType, features: GUIEntryFeatures}>
-
 export type GUIEntryFeatures = $ReadOnly<{showTyping: Feature}>
-
 export type GcOptions = $ReadOnly<{maxLooseRefs: Int, pruneMinLooseObjects: Int, pruneExpireTime: Time}>
-
 export type GetBlockRes = $ReadOnly<{blockKey: String, buf: Bytes}>
-
 export type GetCurrentStatusRes = $ReadOnly<{configured: Boolean, registered: Boolean, loggedIn: Boolean, sessionIsValid: Boolean, user?: ?User}>
-
 export type GetPassphraseRes = $ReadOnly<{passphrase: String, storeSecret: Boolean}>
-
 export type GetTLFCryptKeysRes = $ReadOnly<{nameIDBreaks: CanonicalTLFNameAndIDWithBreaks, CryptKeys?: ?Array<CryptKey>}>
-
 export type GitCommit = $ReadOnly<{commitHash: String, message: String, authorName: String, authorEmail: String, ctime: Time}>
-
 export type GitCreatePersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName}>
-
 export type GitCreateTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean}>
-
 export type GitDeleteGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoName: GitRepoName}>
-
 export type GitDeletePersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName}>
-
 export type GitDeleteTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean}>
-
 export type GitGcPersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName, force: Boolean}>
-
 export type GitGcTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, force: Boolean}>
-
 export type GitGetAllGitMetadataRpcParam = void
-
 export type GitGetGitMetadataRpcParam = $ReadOnly<{folder: Folder}>
-
 export type GitGetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID}>
-
 export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>, pushType: GitPushType, previousRepoName: GitRepoName}>
-
 export type GitLocalMetadataV1 = $ReadOnly<{repoName: GitRepoName}>
-
 export type GitLocalMetadataVersion = 1 // V1_1
 
 export type GitLocalMetadataVersioned = {version: 1, v1: ?GitLocalMetadataV1}
-
 export type GitPushType =
   | 0 // DEFAULT_0
   | 1 // CREATEREPO_1
   | 3 // RENAMEREPO_3
 
 export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean}>
-
 export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean, isDelete: Boolean}>
-
 export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean, teamRepoSettings?: ?GitTeamRepoSettings}>
-
 export type GitRepoName = String
-
 export type GitRepoResult = {state: 0, err: ?String} | {state: 1, ok: ?GitRepoInfo}
-
 export type GitRepoResultState =
   | 0 // ERR_0
   | 1 // OK_1
 
 export type GitServerMetadata = $ReadOnly<{ctime: Time, mtime: Time, lastModifyingUsername: String, lastModifyingDeviceID: DeviceID, lastModifyingDeviceName: String}>
-
 export type GitSetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, channelName?: ?String, chatDisabled: Boolean}>
-
 export type GitTeamRepoSettings = $ReadOnly<{channelName?: ?String, chatDisabled: Boolean}>
-
 export type GpgUiConfirmDuplicateKeyChosenRpcParam = void
-
 export type GpgUiGetTTYRpcParam = void
-
 export type GpgUiSelectKeyAndPushOptionRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>}>
-
 export type GpgUiSelectKeyRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>}>
-
 export type GpgUiSignRpcParam = $ReadOnly<{msg: Bytes, fingerprint: Bytes}>
-
 export type GpgUiWantToAddGPGKeyRpcParam = void
-
 export type GregorDismissCategoryRpcParam = $ReadOnly<{category: Gregor1.Category}>
-
 export type GregorDismissItemRpcParam = $ReadOnly<{id: Gregor1.MsgID}>
-
 export type GregorGetStateRpcParam = void
-
 export type GregorInjectItemRpcParam = $ReadOnly<{cat: String, body: String, dtime: Gregor1.TimeOrOffset}>
-
 export type GregorUIPushOutOfBandMessagesRpcParam = $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>}>
-
 export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason: PushReason}>
-
 export type GregorUpdateItemRpcParam = $ReadOnly<{msgID: Gregor1.MsgID, cat: String, body: String, dtime: Gregor1.TimeOrOffset}>
-
 export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
-
 export type HashMeta = Bytes
-
 export type Hello2Res = $ReadOnly<{encryptionKey: KID, sigPayload: HelloRes, deviceEkKID: KID}>
-
 export type HelloRes = String
-
 export type HomeHomeActionTakenRpcParam = void
-
 export type HomeHomeGetScreenRpcParam = $ReadOnly<{markViewed: Boolean, numFollowSuggestionsWanted: Int}>
-
 export type HomeHomeMarkViewedRpcParam = void
-
 export type HomeHomeSkipTodoTypeRpcParam = $ReadOnly<{t: HomeScreenTodoType}>
-
 export type HomeScreen = $ReadOnly<{lastViewed: Time, version: Int, visits: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>}>
-
 export type HomeScreenItem = $ReadOnly<{badged: Boolean, data: HomeScreenItemData}>
-
 export type HomeScreenItemData = {t: 1, todo: ?HomeScreenTodo} | {t: 2, people: ?HomeScreenPeopleNotification}
-
 export type HomeScreenItemID = String
-
 export type HomeScreenItemType =
   | 1 // TODO_1
   | 2 // PEOPLE_2
 
 export type HomeScreenPeopleNotification = {t: 1, followed: ?HomeScreenPeopleNotificationFollowed} | {t: 2, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti}
-
 export type HomeScreenPeopleNotificationFollowed = $ReadOnly<{followTime: Time, followedBack: Boolean, user: UserSummary}>
-
 export type HomeScreenPeopleNotificationFollowedMulti = $ReadOnly<{followers?: ?Array<HomeScreenPeopleNotificationFollowed>, numOthers: Int}>
-
 export type HomeScreenPeopleNotificationType =
   | 1 // FOLLOWED_1
   | 2 // FOLLOWED_MULTI_2
 
 export type HomeScreenTodo = {t: any}
-
 export type HomeScreenTodoType =
   | 0 // NONE_0
   | 1 // BIO_1
@@ -1505,25 +1177,15 @@ export type HomeScreenTodoType =
   | 10 // TEAM_SHOWCASE_10
 
 export type HomeUIHomeUIRefreshRpcParam = void
-
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
-
 export type Identify2Res = $ReadOnly<{upk: UserPlusKeys, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks}>
-
 export type IdentifyIdentify2RpcParam = $ReadOnly<{uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean}>
-
 export type IdentifyIdentifyLiteRpcParam = $ReadOnly<{id: UserOrTeamID, assertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean}>
-
 export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean}>
-
 export type IdentifyLiteRes = $ReadOnly<{ul: UserOrTeamLite, trackBreaks?: ?IdentifyTrackBreaks}>
-
 export type IdentifyOutcome = $ReadOnly<{username: String, status?: ?Status, warnings?: ?Array<String>, trackUsed?: ?TrackSummary, trackStatus: TrackStatus, numTrackFailures: Int, numTrackChanges: Int, numProofFailures: Int, numRevoked: Int, numProofSuccesses: Int, revoked?: ?Array<TrackDiff>, trackOptions: TrackOptions, forPGPPull: Boolean, reason: IdentifyReason}>
-
 export type IdentifyProofBreak = $ReadOnly<{remoteProof: RemoteProof, lcr: LinkCheckResult}>
-
 export type IdentifyReason = $ReadOnly<{type: IdentifyReasonType, reason: String, resource: String}>
-
 export type IdentifyReasonType =
   | 0 // NONE_0
   | 1 // ID_1
@@ -1535,63 +1197,34 @@ export type IdentifyReasonType =
   | 7 // BACKGROUND_7
 
 export type IdentifyResolve3RpcParam = $ReadOnly<{assertion: String}>
-
 export type IdentifyResolveIdentifyImplicitTeamRpcParam = $ReadOnly<{assertions: String, suffix: String, isPublic: Boolean, doIdentifies: Boolean, create: Boolean, reason: IdentifyReason, identifyBehavior: TLFIdentifyBehavior}>
-
 export type IdentifyResolveImplicitTeamRpcParam = $ReadOnly<{id: TeamID}>
-
 export type IdentifyRow = $ReadOnly<{rowId: Int, proof: RemoteProof, trackDiff?: ?TrackDiff}>
-
 export type IdentifyTrackBreaks = $ReadOnly<{keys?: ?Array<IdentifyKey>, proofs?: ?Array<IdentifyProofBreak>}>
-
 export type IdentifyUiCancelRpcParam = void
-
 export type IdentifyUiConfirmRpcParam = $ReadOnly<{outcome: IdentifyOutcome}>
-
 export type IdentifyUiDelegateIdentifyUIRpcParam = void
-
 export type IdentifyUiDismissRpcParam = $ReadOnly<{username: String, reason: DismissReason}>
-
 export type IdentifyUiDisplayCryptocurrencyRpcParam = $ReadOnly<{c: Cryptocurrency}>
-
 export type IdentifyUiDisplayKeyRpcParam = $ReadOnly<{key: IdentifyKey}>
-
 export type IdentifyUiDisplayTLFCreateWithInviteRpcParam = $ReadOnly<{folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean}>
-
 export type IdentifyUiDisplayTrackStatementRpcParam = $ReadOnly<{stmt: String}>
-
 export type IdentifyUiDisplayUserCardRpcParam = $ReadOnly<{card: UserCard}>
-
 export type IdentifyUiFinishRpcParam = void
-
 export type IdentifyUiFinishSocialProofCheckRpcParam = $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult}>
-
 export type IdentifyUiFinishWebProofCheckRpcParam = $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult}>
-
 export type IdentifyUiLaunchNetworkChecksRpcParam = $ReadOnly<{identity: Identity, user: User}>
-
 export type IdentifyUiReportLastTrackRpcParam = $ReadOnly<{track?: ?TrackSummary}>
-
 export type IdentifyUiReportTrackTokenRpcParam = $ReadOnly<{trackToken: TrackToken}>
-
 export type IdentifyUiStartRpcParam = $ReadOnly<{username: String, reason: IdentifyReason, forceDisplay?: Boolean}>
-
 export type Identity = $ReadOnly<{status?: ?Status, whenLastTracked: Time, proofs?: ?Array<IdentifyRow>, cryptocurrency?: ?Array<Cryptocurrency>, revoked?: ?Array<TrackDiff>, revokedDetails?: ?Array<RevokedProof>, breaksTracking: Boolean}>
-
 export type ImageCropRect = $ReadOnly<{x0: Int, y0: Int, x1: Int, y1: Int}>
-
 export type ImplicitRole = $ReadOnly<{role: TeamRole, ancestor: TeamID}>
-
 export type ImplicitTeamConflictInfo = $ReadOnly<{generation: ConflictGeneration, time: Time}>
-
 export type ImplicitTeamDisplayName = $ReadOnly<{isPublic: Boolean, writers: ImplicitTeamUserSet, readers: ImplicitTeamUserSet, conflictInfo?: ?ImplicitTeamConflictInfo}>
-
 export type ImplicitTeamMigrationFinalizeMigrationRpcParam = $ReadOnly<{folder: Folder}>
-
 export type ImplicitTeamMigrationStartMigrationRpcParam = $ReadOnly<{folder: Folder}>
-
 export type ImplicitTeamUserSet = $ReadOnly<{keybaseUsers?: ?Array<String>, unresolvedUsers?: ?Array<SocialAssertion>}>
-
 export type InstallAction =
   | 0 // UNKNOWN_0
   | 1 // NONE_1
@@ -1600,15 +1233,10 @@ export type InstallAction =
   | 4 // INSTALL_4
 
 export type InstallFuseStatusRpcParam = $ReadOnly<{bundleVersion: String}>
-
 export type InstallInstallCommandLinePrivilegedRpcParam = void
-
 export type InstallInstallFuseRpcParam = void
-
 export type InstallInstallKBFSRpcParam = void
-
 export type InstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status, fatal: Boolean}>
-
 export type InstallStatus =
   | 0 // UNKNOWN_0
   | 1 // ERROR_1
@@ -1616,90 +1244,52 @@ export type InstallStatus =
   | 4 // INSTALLED_4
 
 export type InstallUninstallKBFSRpcParam = void
-
 export type InterestingPerson = $ReadOnly<{uid: UID, username: String}>
-
 export type KBFSGitCreateRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
-
 export type KBFSGitDeleteRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
-
 export type KBFSGitGcRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, options: GcOptions}>
-
 export type KBFSRoot = $ReadOnly<{treeID: MerkleTreeID, root: KBFSRootHash}>
-
 export type KBFSRootHash = Bytes
-
 export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
-
 export type KID = String
-
 export type KbfsCreateTLFRpcParam = $ReadOnly<{teamID: TeamID, tlfID: TLFID}>
-
 export type KbfsFSEditListRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>
-
 export type KbfsFSEventRpcParam = $ReadOnly<{event: FSNotification}>
-
 export type KbfsFSSyncEventRpcParam = $ReadOnly<{event: FSPathSyncStatus}>
-
 export type KbfsFSSyncStatusRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int}>
-
 export type KbfsGetKBFSTeamSettingsRpcParam = $ReadOnly<{teamID: TeamID}>
-
 export type KbfsMountGetAllAvailableMountDirsRpcParam = void
-
 export type KbfsMountGetCurrentMountDirRpcParam = void
-
 export type KbfsMountSetCurrentMountDirRpcParam = $ReadOnly<{dir: String}>
-
 export type Kex2Provisionee2DidCounterSign2RpcParam = $ReadOnly<{sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, userEkBox?: ?UserEkBoxed}>
-
 export type Kex2Provisionee2Hello2RpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, sigBody: String}>
-
 export type Kex2ProvisioneeDidCounterSignRpcParam = $ReadOnly<{sig: Bytes}>
-
 export type Kex2ProvisioneeHelloRpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, pps: PassphraseStream, sigBody: String}>
-
 export type Kex2ProvisionerKexStartRpcParam = void
-
 export type KeyBundle = $ReadOnly<{version: Int, bundle: Bytes}>
-
 export type KeyBundleResponse = $ReadOnly<{WriterBundle: KeyBundle, ReaderBundle: KeyBundle}>
-
 export type KeyHalf = $ReadOnly<{user: UID, deviceKID: KID, key: Bytes}>
-
 export type KeyInfo = $ReadOnly<{fingerprint: String, key: String, desc: String}>
-
 export type KeyType =
   | 0 // NONE_0
   | 1 // NACL_1
   | 2 // PGP_2
 
 export type KeybaseTime = $ReadOnly<{unix: Time, chain: Seqno}>
-
 export type LeaseID = String
-
 export type LinkCheckResult = $ReadOnly<{proofId: Int, proofResult: ProofResult, snoozedResult: ProofResult, torWarning: Boolean, tmpTrackExpireTime: Time, cached?: ?CheckResult, diff?: ?TrackDiff, remoteDiff?: ?TrackDiff, hint?: ?SigHint, breaksTracking: Boolean}>
-
 export type LinkID = String
-
 export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
-
 export type ListFilter =
   | 0 // NO_FILTER_0
   | 1 // FILTER_ALL_HIDDEN_1
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
-
 export type LoadAvatarsRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: AvatarUrl}}}>
-
 export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
-
 export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean, allowNameLookupBurstCache: Boolean}>
-
 export type LockContext = $ReadOnly<{requireLockID: LockID, releaseAfterSuccess: Boolean}>
-
 export type LockID = Long
-
 export type LogLevel =
   | 0 // NONE_0
   | 1 // DEBUG_1
@@ -1711,65 +1301,35 @@ export type LogLevel =
   | 7 // FATAL_7
 
 export type LogRegisterLoggerRpcParam = $ReadOnly<{name: String, level: LogLevel}>
-
 export type LogUiLogRpcParam = $ReadOnly<{level: LogLevel, text: Text}>
-
 export type LoginAccountDeleteRpcParam = void
-
 export type LoginClearStoredSecretRpcParam = $ReadOnly<{username: String}>
-
 export type LoginDeprovisionRpcParam = $ReadOnly<{username: String, doRevoke: Boolean}>
-
 export type LoginGetConfiguredAccountsRpcParam = void
-
 export type LoginLoginOneshotRpcParam = $ReadOnly<{username: String, paperKey: String}>
-
 export type LoginLoginProvisionedDeviceRpcParam = $ReadOnly<{username: String, noPassphrasePrompt: Boolean}>
-
 export type LoginLoginRpcParam = $ReadOnly<{deviceType: String, usernameOrEmail: String, clientType: ClientType}>
-
 export type LoginLoginWithPaperKeyRpcParam = void
-
 export type LoginLogoutRpcParam = void
-
 export type LoginPaperKeyRpcParam = void
-
 export type LoginPaperKeySubmitRpcParam = $ReadOnly<{paperPhrase: String}>
-
 export type LoginRecoverAccountFromEmailAddressRpcParam = $ReadOnly<{email: String}>
-
 export type LoginUiDisplayPaperKeyPhraseRpcParam = $ReadOnly<{phrase: String}>
-
 export type LoginUiDisplayPrimaryPaperKeyRpcParam = $ReadOnly<{phrase: String}>
-
 export type LoginUiGetEmailOrUsernameRpcParam = void
-
 export type LoginUiPromptRevokePaperKeysRpcParam = $ReadOnly<{device: Device, index: Int}>
-
 export type LoginUnlockRpcParam = void
-
 export type LoginUnlockWithPassphraseRpcParam = $ReadOnly<{passphrase: String}>
-
 export type LogsendPrepareLogsendRpcParam = void
-
 export type LookupImplicitTeamRes = $ReadOnly<{teamID: TeamID, name: TeamName, displayName: ImplicitTeamDisplayName, tlfID: TLFID}>
-
 export type MDBlock = $ReadOnly<{version: Int, timestamp: Time, block: Bytes}>
-
 export type MDPriority = Int
-
 export type MaskB64 = Bytes
-
 export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
-
 export type MerkleGetCurrentMerkleRootRpcParam = $ReadOnly<{freshnessMsec: Int}>
-
 export type MerkleRoot = $ReadOnly<{version: Int, root: Bytes}>
-
 export type MerkleRootAndTime = $ReadOnly<{root: MerkleRootV2, updateTime: Time, fetchTime: Time}>
-
 export type MerkleRootV2 = $ReadOnly<{seqno: Seqno, hashMeta: HashMeta}>
-
 export type MerkleTreeID =
   | 0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
@@ -1777,141 +1337,73 @@ export type MerkleTreeID =
   | 3 // KBFS_PRIVATETEAM_3
 
 export type MerkleTreeLocation = $ReadOnly<{leaf: UserOrTeamID, loc: SigChainLocation}>
-
 export type MerkleVerifyMerkleRootAndKBFSRpcParam = $ReadOnly<{root: MerkleRootV2, expectedKBFSRoot: KBFSRoot}>
-
 export type MetadataAuthenticateRpcParam = $ReadOnly<{signature: String}>
-
 export type MetadataDeleteKeyRpcParam = $ReadOnly<{uid: UID, deviceKID: KID, keyHalfID: Bytes, logTags: {[key: string]: String}}>
-
 export type MetadataFindNextMDRpcParam = $ReadOnly<{seqno: Seqno, folderID: String}>
-
 export type MetadataForceMerkleBuildForTestRpcParam = void
-
 export type MetadataGetChallengeRpcParam = void
-
 export type MetadataGetFolderHandleRpcParam = $ReadOnly<{folderID: String, signature: String, challenge: String}>
-
 export type MetadataGetFoldersForRekeyRpcParam = $ReadOnly<{deviceKID: KID}>
-
 export type MetadataGetKeyBundlesRpcParam = $ReadOnly<{folderID: String, writerBundleID: String, readerBundleID: String}>
-
 export type MetadataGetKeyRpcParam = $ReadOnly<{keyHalfID: Bytes, deviceKID: String, logTags: {[key: string]: String}}>
-
 export type MetadataGetLatestFolderHandleRpcParam = $ReadOnly<{folderID: String}>
-
 export type MetadataGetMerkleNodeRpcParam = $ReadOnly<{hash: String}>
-
 export type MetadataGetMerkleRootLatestRpcParam = $ReadOnly<{treeID: MerkleTreeID}>
-
 export type MetadataGetMerkleRootRpcParam = $ReadOnly<{treeID: MerkleTreeID, seqNo: Long}>
-
 export type MetadataGetMerkleRootSinceRpcParam = $ReadOnly<{treeID: MerkleTreeID, when: Time}>
-
 export type MetadataGetMetadataRpcParam = $ReadOnly<{folderID: String, folderHandle: Bytes, branchID: String, unmerged: Boolean, startRevision: Long, stopRevision: Long, logTags: {[key: string]: String}, lockBeforeGet?: ?LockID}>
-
 export type MetadataLockRpcParam = $ReadOnly<{folderID: String, lockID: LockID}>
-
 export type MetadataPing2RpcParam = void
-
 export type MetadataPingRpcParam = void
-
 export type MetadataPruneBranchRpcParam = $ReadOnly<{folderID: String, branchID: String, logTags: {[key: string]: String}}>
-
 export type MetadataPutKeysRpcParam = $ReadOnly<{keyHalves?: ?Array<KeyHalf>, logTags: {[key: string]: String}}>
-
 export type MetadataPutMetadataRpcParam = $ReadOnly<{mdBlock: MDBlock, readerKeyBundle: KeyBundle, writerKeyBundle: KeyBundle, logTags: {[key: string]: String}, lockContext?: ?LockContext, priority: MDPriority}>
-
 export type MetadataRegisterForUpdatesRpcParam = $ReadOnly<{folderID: String, currRevision: Long, logTags: {[key: string]: String}}>
-
 export type MetadataReleaseLockRpcParam = $ReadOnly<{folderID: String, lockID: LockID}>
-
 export type MetadataResponse = $ReadOnly<{folderID: String, mdBlocks?: ?Array<MDBlock>}>
-
 export type MetadataSetImplicitTeamModeForTestRpcParam = $ReadOnly<{implicitTeamMode: String}>
-
 export type MetadataStartImplicitTeamMigrationRpcParam = $ReadOnly<{folderID: String}>
-
 export type MetadataTruncateLockRpcParam = $ReadOnly<{folderID: String}>
-
 export type MetadataTruncateUnlockRpcParam = $ReadOnly<{folderID: String}>
-
 export type MetadataUpdateFolderNeedsRekeyRpcParam = $ReadOnly<{folderID: String, revision: Long}>
-
 export type MetadataUpdateFoldersNeedRekeyRpcParam = $ReadOnly<{requests?: ?Array<RekeyRequest>}>
-
 export type MetadataUpdateMetadataUpdateRpcParam = $ReadOnly<{folderID: String, revision: Long}>
-
 export type MoveArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
-
 export type NaclDHKeyPrivate = any
-
 export type NaclDHKeyPublic = any
-
 export type NaclSigningKeyPrivate = any
-
 export type NaclSigningKeyPublic = any
-
 export type NextMerkleRootRes = $ReadOnly<{res?: ?MerkleRootV2}>
-
 export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean}>
-
 export type NotifyAppExitRpcParam = void
-
 export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState}>
-
 export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels}>
-
 export type NotifyEphemeralNewTeamEkRpcParam = $ReadOnly<{id: TeamID, generation: EkGeneration}>
-
 export type NotifyFSFSActivityRpcParam = $ReadOnly<{notification: FSNotification}>
-
 export type NotifyFSFSEditListResponseRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>
-
 export type NotifyFSFSSyncActivityRpcParam = $ReadOnly<{status: FSPathSyncStatus}>
-
 export type NotifyFSFSSyncStatusResponseRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int}>
-
 export type NotifyFSRequestFSEditListRequestRpcParam = $ReadOnly<{req: FSEditListRequest}>
-
 export type NotifyFSRequestFSSyncStatusRequestRpcParam = $ReadOnly<{req: FSSyncStatusRequest}>
-
 export type NotifyFavoritesFavoritesChangedRpcParam = $ReadOnly<{uid: UID}>
-
 export type NotifyKeyfamilyKeyfamilyChangedRpcParam = $ReadOnly<{uid: UID}>
-
 export type NotifyPGPPgpKeyInSecretStoreFileRpcParam = void
-
 export type NotifyPaperKeyPaperKeyCachedRpcParam = $ReadOnly<{uid: UID, encKID: KID, sigKID: KID}>
-
 export type NotifyServiceShutdownRpcParam = $ReadOnly<{code: Int}>
-
 export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String}>
-
 export type NotifySessionLoggedInRpcParam = $ReadOnly<{username: String}>
-
 export type NotifySessionLoggedOutRpcParam = void
-
 export type NotifyTeamTeamAbandonedRpcParam = $ReadOnly<{teamID: TeamID}>
-
 export type NotifyTeamTeamChangedByIDRpcParam = $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>
-
 export type NotifyTeamTeamChangedByNameRpcParam = $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>
-
 export type NotifyTeamTeamDeletedRpcParam = $ReadOnly<{teamID: TeamID}>
-
 export type NotifyTeamTeamExitRpcParam = $ReadOnly<{teamID: TeamID}>
-
 export type NotifyTrackingTrackingChangedRpcParam = $ReadOnly<{uid: UID, username: String, isTracking: Boolean}>
-
 export type NotifyUsersUserChangedRpcParam = $ReadOnly<{uid: UID}>
-
 export type OpDescription = {asyncOp: 0, list: ?ListArgs} | {asyncOp: 1, listRecursive: ?ListArgs} | {asyncOp: 2, read: ?ReadArgs} | {asyncOp: 3, write: ?WriteArgs} | {asyncOp: 4, copy: ?CopyArgs} | {asyncOp: 5, move: ?MoveArgs} | {asyncOp: 6, remove: ?RemoveArgs}
-
 export type OpID = any
-
 export type OpProgress = $ReadOnly<{start: Time, endEstimate: Time, opType: AsyncOps, bytesTotal: Int64, bytesRead: Int64, bytesWritten: Int64, filesTotal: Int64, filesRead: Int64, filesWritten: Int64}>
-
 export type OpenFlags =
   | 0 // READ_0
   | 1 // REPLACE_1
@@ -1921,36 +1413,23 @@ export type OpenFlags =
   | 16 // DIRECTORY_16
 
 export type OutOfDateInfo = $ReadOnly<{upgradeTo: String, upgradeURI: String, customMessage: String, criticalClockSkew: Long}>
-
 export type Outcome =
   | 0 // NONE_0
   | 1 // FIXED_1
   | 2 // IGNORED_2
 
 export type PGPCreateUids = $ReadOnly<{useDefault: Boolean, ids?: ?Array<PGPIdentity>}>
-
 export type PGPDecryptOptions = $ReadOnly<{assertSigned: Boolean, signedBy: String}>
-
 export type PGPEncryptOptions = $ReadOnly<{recipients?: ?Array<String>, noSign: Boolean, noSelf: Boolean, binaryOut: Boolean, keyQuery: String}>
-
 export type PGPFingerprint = any
-
 export type PGPIdentity = $ReadOnly<{username: String, comment: String, email: String}>
-
 export type PGPPurgeRes = $ReadOnly<{filenames?: ?Array<String>}>
-
 export type PGPQuery = $ReadOnly<{secret: Boolean, query: String, exactMatch: Boolean}>
-
 export type PGPSigVerification = $ReadOnly<{isSigned: Boolean, verified: Boolean, signer: User, signKey: PublicKey}>
-
 export type PGPSignOptions = $ReadOnly<{keyQuery: String, mode: SignMode, binaryIn: Boolean, binaryOut: Boolean}>
-
 export type PGPVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
-
 export type PaperprovisionPaperProvisionRpcParam = $ReadOnly<{username: String, deviceName: String, paperKey: String}>
-
 export type PassphraseStream = $ReadOnly<{passphraseStream: Bytes, generation: Int}>
-
 export type PassphraseType =
   | 0 // NONE_0
   | 1 // PAPER_KEY_1
@@ -1958,91 +1437,50 @@ export type PassphraseType =
   | 3 // VERIFY_PASS_PHRASE_3
 
 export type Path = {PathType: 0, local: ?String} | {PathType: 1, kbfs: ?String}
-
 export type PathType =
   | 0 // LOCAL_0
   | 1 // KBFS_1
 
 export type PerTeamKey = $ReadOnly<{gen: PerTeamKeyGeneration, seqno: Seqno, sigKID: KID, encKID: KID}>
-
 export type PerTeamKeyGeneration = Int
-
 export type PerTeamKeySeed = any
-
 export type PerTeamKeySeedItem = $ReadOnly<{seed: PerTeamKeySeed, generation: PerTeamKeyGeneration, seqno: Seqno}>
-
 export type PerUserKey = $ReadOnly<{gen: Int, seqno: Seqno, sigKID: KID, encKID: KID, signedByKID: KID}>
-
 export type PerUserKeyBox = $ReadOnly<{generation: PerUserKeyGeneration, box: String, receiverKID: KID}>
-
 export type PerUserKeyGeneration = Int
-
 export type PgpPgpDecryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPDecryptOptions}>
-
 export type PgpPgpDeletePrimaryRpcParam = void
-
 export type PgpPgpEncryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPEncryptOptions}>
-
 export type PgpPgpExportByFingerprintRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean}>
-
 export type PgpPgpExportByKIDRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean}>
-
 export type PgpPgpExportRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean}>
-
 export type PgpPgpImportRpcParam = $ReadOnly<{key: Bytes, pushSecret: Boolean}>
-
 export type PgpPgpKeyGenDefaultRpcParam = $ReadOnly<{createUids: PGPCreateUids}>
-
 export type PgpPgpKeyGenRpcParam = $ReadOnly<{primaryBits: Int, subkeyBits: Int, createUids: PGPCreateUids, allowMulti: Boolean, doExport: Boolean, exportEncrypted: Boolean, pushSecret: Boolean}>
-
 export type PgpPgpPullRpcParam = $ReadOnly<{userAsserts?: ?Array<String>}>
-
 export type PgpPgpPurgeRpcParam = $ReadOnly<{doPurge: Boolean}>
-
 export type PgpPgpSelectRpcParam = $ReadOnly<{fingerprintQuery: String, allowMulti: Boolean, skipImport: Boolean, onlyImport: Boolean}>
-
 export type PgpPgpSignRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPSignOptions}>
-
 export type PgpPgpStorageDismissRpcParam = void
-
 export type PgpPgpUpdateRpcParam = $ReadOnly<{all: Boolean, fingerprints?: ?Array<String>}>
-
 export type PgpPgpVerifyRpcParam = $ReadOnly<{source: Stream, opts: PGPVerifyOptions}>
-
 export type PgpUiFinishedRpcParam = void
-
 export type PgpUiKeyGeneratedRpcParam = $ReadOnly<{kid: KID, key: KeyInfo}>
-
 export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = $ReadOnly<{keyID: String, signedAt: Time}>
-
 export type PgpUiOutputSignatureSuccessRpcParam = $ReadOnly<{fingerprint: String, username: String, signedAt: Time}>
-
 export type PgpUiShouldPushPrivateRpcParam = void
-
 export type Pics = $ReadOnly<{square40: String, square200: String, square360: String}>
-
 export type PingResponse = $ReadOnly<{timestamp: Time}>
-
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
-
 export type PprofLogProcessorProfileRpcParam = $ReadOnly<{logDirForMobile: String, profileDurationSeconds: DurationSec}>
-
 export type PprofLogTraceRpcParam = $ReadOnly<{logDirForMobile: String, traceDurationSeconds: DurationSec}>
-
 export type PprofProcessorProfileRpcParam = $ReadOnly<{profileFile: String, profileDurationSeconds: DurationSec}>
-
 export type PprofTraceRpcParam = $ReadOnly<{traceFile: String, traceDurationSeconds: DurationSec}>
-
 export type ProblemSet = $ReadOnly<{user: User, kid: KID, tlfs?: ?Array<ProblemTLF>}>
-
 export type ProblemSetDevices = $ReadOnly<{problemSet: ProblemSet, devices?: ?Array<Device>}>
-
 export type ProblemTLF = $ReadOnly<{tlf: TLF, score: Int, solution_kids?: ?Array<KID>}>
-
 export type Process = $ReadOnly<{pid: String, command: String, fileDescriptors?: ?Array<FileDescriptor>}>
-
 export type Progress = Int
-
 export type PromptDefault =
   | 0 // NONE_0
   | 1 // YES_1
@@ -2053,7 +1491,6 @@ export type PromptOverwriteType =
   | 1 // SITE_1
 
 export type ProofResult = $ReadOnly<{state: ProofState, status: ProofStatus, desc: String}>
-
 export type ProofState =
   | 0 // NONE_0
   | 1 // OK_1
@@ -2125,25 +1562,15 @@ export type ProofType =
   | 100001 // ROOTER_100001
 
 export type Proofs = $ReadOnly<{social?: ?Array<TrackProof>, web?: ?Array<WebProof>, publicKeys?: ?Array<PublicKey>}>
-
 export type ProveCheckProofRpcParam = $ReadOnly<{sigID: SigID}>
-
 export type ProveStartProofRpcParam = $ReadOnly<{service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, sigVersion?: ?SigVersion}>
-
 export type ProveUiDisplayRecheckWarningRpcParam = $ReadOnly<{text: Text}>
-
 export type ProveUiOkToCheckRpcParam = $ReadOnly<{name: String, attempt: Int}>
-
 export type ProveUiOutputInstructionsRpcParam = $ReadOnly<{instructions: Text, proof: String}>
-
 export type ProveUiOutputPrechecksRpcParam = $ReadOnly<{text: Text}>
-
 export type ProveUiPreProofWarningRpcParam = $ReadOnly<{text: Text}>
-
 export type ProveUiPromptOverwriteRpcParam = $ReadOnly<{account: String, typ: PromptOverwriteType}>
-
 export type ProveUiPromptUsernameRpcParam = $ReadOnly<{prompt: String, prevError?: ?Status}>
-
 export type ProvisionMethod =
   | 0 // DEVICE_0
   | 1 // PAPER_KEY_1
@@ -2152,65 +1579,40 @@ export type ProvisionMethod =
   | 4 // GPG_SIGN_4
 
 export type ProvisionUiChooseDeviceRpcParam = $ReadOnly<{devices?: ?Array<Device>, canSelectNoDevice: Boolean}>
-
 export type ProvisionUiChooseDeviceTypeRpcParam = $ReadOnly<{kind: ChooseType}>
-
 export type ProvisionUiChooseGPGMethodRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>}>
-
 export type ProvisionUiChooseProvisioningMethodRpcParam = $ReadOnly<{gpgOption: Boolean}>
-
 export type ProvisionUiDisplayAndPromptSecretRpcParam = $ReadOnly<{secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String}>
-
 export type ProvisionUiDisplaySecretExchangedRpcParam = void
-
 export type ProvisionUiPromptNewDeviceNameRpcParam = $ReadOnly<{existingDevices?: ?Array<String>, errorMessage: String}>
-
 export type ProvisionUiProvisioneeSuccessRpcParam = $ReadOnly<{username: String, deviceName: String}>
-
 export type ProvisionUiProvisionerSuccessRpcParam = $ReadOnly<{deviceName: String, deviceType: String}>
-
 export type ProvisionUiSwitchToGPGSignOKRpcParam = $ReadOnly<{key: GPGKey, importError: String}>
-
 export type PublicKey = $ReadOnly<{KID: KID, PGPFingerprint: String, PGPIdentities?: ?Array<PGPIdentity>, isSibkey: Boolean, isEldest: Boolean, parentID: String, deviceID: DeviceID, deviceDescription: String, deviceType: String, cTime: Time, eTime: Time, isRevoked: Boolean}>
-
 export type PublicKeyV2 = {keyType: 1, nacl: ?PublicKeyV2NaCl} | {keyType: 2, pgp: ?PublicKeyV2PGPSummary} | {keyType: any}
-
 export type PublicKeyV2Base = $ReadOnly<{kid: KID, isSibkey: Boolean, isEldest: Boolean, cTime: Time, eTime: Time, provisioning: SignatureMetadata, revocation?: ?SignatureMetadata}>
-
 export type PublicKeyV2NaCl = $ReadOnly<{base: PublicKeyV2Base, parent?: ?KID, deviceID: DeviceID, deviceDescription: String, deviceType: String}>
-
 export type PublicKeyV2PGPSummary = $ReadOnly<{base: PublicKeyV2Base, fingerprint: PGPFingerprint, identities?: ?Array<PGPIdentity>}>
-
 export type PushReason =
   | 0 // NONE_0
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
 
 export type QuotaVerifySessionRpcParam = $ReadOnly<{session: String}>
-
 export type Reachability = $ReadOnly<{reachable: Reachable}>
-
 export type ReachabilityCheckReachabilityRpcParam = void
-
 export type ReachabilityReachabilityChangedRpcParam = $ReadOnly<{reachability: Reachability}>
-
 export type ReachabilityStartReachabilityRpcParam = void
-
 export type Reachable =
   | 0 // UNKNOWN_0
   | 1 // YES_1
   | 2 // NO_2
 
 export type ReadArgs = $ReadOnly<{opID: OpID, path: Path, offset: Long, size: Int}>
-
 export type ReaderKeyMask = $ReadOnly<{application: TeamApplication, generation: PerTeamKeyGeneration, mask: MaskB64}>
-
 export type RegisterAddressRes = $ReadOnly<{type: String, family: String}>
-
 export type RekeyDebugShowRekeyStatusRpcParam = void
-
 export type RekeyEvent = $ReadOnly<{eventType: RekeyEventType, interruptType: Int}>
-
 export type RekeyEventType =
   | 0 // NONE_0
   | 1 // NOT_LOGGED_IN_1
@@ -2223,76 +1625,43 @@ export type RekeyEventType =
   | 8 // NO_GREGOR_MESSAGES_8
 
 export type RekeyGetPendingRekeyStatusRpcParam = void
-
 export type RekeyGetRevokeWarningRpcParam = $ReadOnly<{actingDevice: DeviceID, targetDevice: DeviceID}>
-
 export type RekeyRekeyStatusFinishRpcParam = void
-
 export type RekeyRekeySyncRpcParam = $ReadOnly<{force: Boolean}>
-
 export type RekeyRequest = $ReadOnly<{folderID: String, revision: Long}>
-
 export type RekeyShowPendingRekeyStatusRpcParam = void
-
 export type RekeyUIDelegateRekeyUIRpcParam = void
-
 export type RekeyUIRefreshRpcParam = $ReadOnly<{problemSetDevices: ProblemSetDevices}>
-
 export type RekeyUIRekeySendEventRpcParam = $ReadOnly<{event: RekeyEvent}>
-
 export type RemoteProof = $ReadOnly<{proofType: ProofType, key: String, value: String, displayMarkup: String, sigID: SigID, mTime: Time}>
-
 export type RemoteTrack = $ReadOnly<{username: String, uid: UID, linkID: LinkID}>
-
 export type RemoveArgs = $ReadOnly<{opID: OpID, path: Path}>
-
 export type RepoID = String
-
 export type ResetLink = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, prev: ResetPrev, resetSeqno: Seqno, type: ResetType, uid: UID}>
-
 export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>
-
 export type ResetPrev = $ReadOnly<{eldestKID?: ?KID, lastSeqno: Seqno, reset: SHA512}>
-
 export type ResetSummary = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, resetSeqno: Seqno, eldestSeqno: Seqno, type: ResetType}>
-
 export type ResetType =
   | 0 // NONE_0
   | 1 // RESET_1
   | 2 // DELETE_2
 
 export type ResolveIdentifyImplicitTeamRes = $ReadOnly<{displayName: String, teamID: TeamID, writers?: ?Array<UserVersion>, trackBreaks: {[key: string]: IdentifyTrackBreaks}, folderID: TLFID}>
-
 export type RevokeRevokeDeviceRpcParam = $ReadOnly<{deviceID: DeviceID, forceSelf: Boolean, forceLast: Boolean}>
-
 export type RevokeRevokeKeyRpcParam = $ReadOnly<{keyID: KID}>
-
 export type RevokeRevokeSigsRpcParam = $ReadOnly<{sigIDQueries?: ?Array<String>}>
-
 export type RevokeWarning = $ReadOnly<{endangeredTLFs?: ?Array<TLF>}>
-
 export type RevokedKey = $ReadOnly<{key: PublicKey, time: KeybaseTime, by: KID}>
-
 export type RevokedProof = $ReadOnly<{proof: RemoteProof, diff: TrackDiff}>
-
 export type SHA512 = Bytes
-
 export type SaltpackDecryptOptions = $ReadOnly<{interactive: Boolean, forceRemoteCheck: Boolean, usePaperKey: Boolean}>
-
 export type SaltpackEncryptOptions = $ReadOnly<{recipients?: ?Array<String>, anonymousSender: Boolean, encryptionOnlyMode: Boolean, noSelfEncrypt: Boolean, binary: Boolean, saltpackVersion: Int}>
-
 export type SaltpackEncryptedMessageInfo = $ReadOnly<{devices?: ?Array<Device>, numAnonReceivers: Int, receiverIsAnon: Boolean, sender: SaltpackSender}>
-
 export type SaltpackSaltpackDecryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackDecryptOptions}>
-
 export type SaltpackSaltpackEncryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackEncryptOptions}>
-
 export type SaltpackSaltpackSignRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackSignOptions}>
-
 export type SaltpackSaltpackVerifyRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackVerifyOptions}>
-
 export type SaltpackSender = $ReadOnly<{uid: UID, username: String, senderType: SaltpackSenderType}>
-
 export type SaltpackSenderType =
   | 0 // NOT_TRACKED_0
   | 1 // UNKNOWN_1
@@ -2304,173 +1673,97 @@ export type SaltpackSenderType =
   | 7 // EXPIRED_7
 
 export type SaltpackSignOptions = $ReadOnly<{detached: Boolean, binary: Boolean, saltpackVersion: Int}>
-
 export type SaltpackUiSaltpackPromptForDecryptRpcParam = $ReadOnly<{sender: SaltpackSender, usedDelegateUI: Boolean}>
-
 export type SaltpackUiSaltpackVerifyBadSenderRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender}>
-
 export type SaltpackUiSaltpackVerifySuccessRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender}>
-
 export type SaltpackVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
-
 export type ScanProofsScanProofsRpcParam = $ReadOnly<{infile: String, indices: String, sigid: String, ratelimit: Int, cachefile: String, ignorefile: String}>
-
 export type SearchComponent = $ReadOnly<{key: String, value: String, score: Double}>
-
 export type SearchResult = $ReadOnly<{uid: UID, username: String, components?: ?Array<SearchComponent>, score: Double}>
-
 export type SecretEntryArg = $ReadOnly<{desc: String, prompt: String, err: String, cancel: String, ok: String, reason: String, showTyping: Boolean}>
-
 export type SecretEntryRes = $ReadOnly<{text: String, canceled: Boolean, storeSecret: Boolean}>
-
 export type SecretKeys = $ReadOnly<{signing: NaclSigningKeyPrivate, encryption: NaclDHKeyPrivate}>
-
 export type SecretKeysGetSecretKeysRpcParam = void
-
 export type SecretResponse = $ReadOnly<{secret: Bytes, phrase: String}>
-
 export type SecretUiGetPassphraseRpcParam = $ReadOnly<{pinentry: GUIEntryArg, terminal?: ?SecretEntryArg}>
-
 export type SeitanAKey = String
-
 export type SeitanIKey = String
-
 export type SeitanIKeyV2 = String
-
 export type SeitanKeyAndLabel = {v: 1, v1: ?SeitanKeyAndLabelVersion1} | {v: 2, v2: ?SeitanKeyAndLabelVersion2} | {v: any}
-
 export type SeitanKeyAndLabelVersion =
   | 1 // V1_1
   | 2 // V2_2
 
 export type SeitanKeyAndLabelVersion1 = $ReadOnly<{i: SeitanIKey, l: SeitanKeyLabel}>
-
 export type SeitanKeyAndLabelVersion2 = $ReadOnly<{k: SeitanPubKey, l: SeitanKeyLabel}>
-
 export type SeitanKeyLabel = {t: 1, sms: ?SeitanKeyLabelSms} | {t: any}
-
 export type SeitanKeyLabelSms = $ReadOnly<{f: String, n: String}>
-
 export type SeitanKeyLabelType = 1 // SMS_1
 
 export type SeitanPubKey = KID
-
 export type SelectKeyRes = $ReadOnly<{keyID: String, doSecretPush: Boolean}>
-
 export type SeqType =
   | 1 // PUBLIC_1
   | 2 // PRIVATE_2
   | 3 // SEMIPRIVATE_3
 
 export type Seqno = Int64
-
 export type ServiceStatus = $ReadOnly<{version: String, label: String, pid: String, lastExitStatus: String, bundleVersion: String, installStatus: InstallStatus, installAction: InstallAction, status: Status}>
-
 export type ServicesStatus = $ReadOnly<{service?: ?Array<ServiceStatus>, kbfs?: ?Array<ServiceStatus>, updater?: ?Array<ServiceStatus>}>
-
 export type Session = $ReadOnly<{uid: UID, username: String, token: String, deviceSubkeyKid: KID, deviceSibkeyKid: KID}>
-
 export type SessionCurrentSessionRpcParam = void
-
 export type SessionSessionPingRpcParam = void
-
 export type SessionStatus = $ReadOnly<{SessionFor: String, Loaded: Boolean, Cleared: Boolean, SaltOnly: Boolean, Expired: Boolean}>
-
 export type SessionToken = String
-
 export type Sig = $ReadOnly<{seqno: Seqno, sigID: SigID, sigIDDisplay: String, type: String, cTime: Time, revoked: Boolean, active: Boolean, key: String, body: String}>
-
 export type SigChainLocation = $ReadOnly<{seqno: Seqno, seqType: SeqType}>
-
 export type SigHint = $ReadOnly<{remoteId: String, humanUrl: String, apiUrl: String, checkText: String}>
-
 export type SigID = String
-
 export type SigListArgs = $ReadOnly<{sessionID: Int, username: String, allKeys: Boolean, types?: ?SigTypes, filterx: String, verbose: Boolean, revoked: Boolean}>
-
 export type SigTypes = $ReadOnly<{track: Boolean, proof: Boolean, cryptocurrency: Boolean, isSelf: Boolean}>
-
 export type SigVersion = Int
-
 export type SignMode =
   | 0 // ATTACHED_0
   | 1 // DETACHED_1
   | 2 // CLEAR_2
 
 export type SignatureMetadata = $ReadOnly<{signingKID: KID, prevMerkleRootSigned: MerkleRootV2, firstAppearedUnverified: Seqno, time: Time, sigChainLocation: SigChainLocation}>
-
 export type SignupCheckInvitationCodeRpcParam = $ReadOnly<{invitationCode: String}>
-
 export type SignupCheckUsernameAvailableRpcParam = $ReadOnly<{username: String}>
-
 export type SignupGetInvitationCodeRpcParam = void
-
 export type SignupInviteRequestRpcParam = $ReadOnly<{email: String, fullname: String, notes: String}>
-
 export type SignupRes = $ReadOnly<{passphraseOk: Boolean, postOk: Boolean, writeOk: Boolean}>
-
 export type SignupSignupRpcParam = $ReadOnly<{email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean}>
-
 export type SigsSigListJSONRpcParam = $ReadOnly<{arg: SigListArgs}>
-
 export type SigsSigListRpcParam = $ReadOnly<{arg: SigListArgs}>
-
 export type SimpleFSGetHTTPAddressAndTokenResponse = $ReadOnly<{address: String, token: String}>
-
 export type SimpleFSListResult = $ReadOnly<{entries?: ?Array<Dirent>, progress: Progress}>
-
 export type SimpleFSSimpleFSCancelRpcParam = $ReadOnly<{opID: OpID}>
-
 export type SimpleFSSimpleFSCheckRpcParam = $ReadOnly<{opID: OpID}>
-
 export type SimpleFSSimpleFSCloseRpcParam = $ReadOnly<{opID: OpID}>
-
 export type SimpleFSSimpleFSCopyRecursiveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
-
 export type SimpleFSSimpleFSCopyRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
-
 export type SimpleFSSimpleFSDumpDebuggingInfoRpcParam = void
-
 export type SimpleFSSimpleFSGetHTTPAddressAndTokenRpcParam = void
-
 export type SimpleFSSimpleFSGetOpsRpcParam = void
-
 export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
-
 export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
-
 export type SimpleFSSimpleFSMakeOpidRpcParam = void
-
 export type SimpleFSSimpleFSMoveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
-
 export type SimpleFSSimpleFSOpenRpcParam = $ReadOnly<{opID: OpID, dest: Path, flags: OpenFlags}>
-
 export type SimpleFSSimpleFSReadListRpcParam = $ReadOnly<{opID: OpID}>
-
 export type SimpleFSSimpleFSReadRpcParam = $ReadOnly<{opID: OpID, offset: Long, size: Int}>
-
 export type SimpleFSSimpleFSRemoveRpcParam = $ReadOnly<{opID: OpID, path: Path}>
-
 export type SimpleFSSimpleFSRenameRpcParam = $ReadOnly<{src: Path, dest: Path}>
-
 export type SimpleFSSimpleFSSetStatRpcParam = $ReadOnly<{dest: Path, flag: DirentType}>
-
 export type SimpleFSSimpleFSStatRpcParam = $ReadOnly<{path: Path}>
-
 export type SimpleFSSimpleFSSyncStatusRpcParam = void
-
 export type SimpleFSSimpleFSWaitRpcParam = $ReadOnly<{opID: OpID}>
-
 export type SimpleFSSimpleFSWriteRpcParam = $ReadOnly<{opID: OpID, offset: Long, content: Bytes}>
-
 export type SocialAssertion = $ReadOnly<{user: String, service: SocialAssertionService}>
-
 export type SocialAssertionService = String
-
 export type StartProofResult = $ReadOnly<{sigID: SigID}>
-
 export type Status = $ReadOnly<{code: Int, name: String, desc: String, fields?: ?Array<StringKVPair>}>
-
 export type StatusCode =
   | 0 // SCOk_0
   | 100 // SCInputError_100
@@ -2634,25 +1927,15 @@ export type StatusCode =
   | 3106 // SCStellarBadPrev_3106
 
 export type Stream = $ReadOnly<{fd: Int}>
-
 export type StreamUiCloseRpcParam = $ReadOnly<{s: Stream}>
-
 export type StreamUiReadRpcParam = $ReadOnly<{s: Stream, sz: Int}>
-
 export type StreamUiResetRpcParam = $ReadOnly<{s: Stream}>
-
 export type StreamUiWriteRpcParam = $ReadOnly<{s: Stream, buf: Bytes}>
-
 export type StringKVPair = $ReadOnly<{key: String, value: String}>
-
 export type SubteamLogPoint = $ReadOnly<{name: TeamName, seqno: Seqno}>
-
 export type TLF = $ReadOnly<{id: TLFID, name: String, writers?: ?Array<String>, readers?: ?Array<String>, isPrivate: Boolean}>
-
 export type TLFBreak = $ReadOnly<{breaks?: ?Array<TLFIdentifyFailure>}>
-
 export type TLFID = String
-
 export type TLFIdentifyBehavior =
   | 0 // UNSET_0
   | 1 // CHAT_CLI_1
@@ -2667,22 +1950,16 @@ export type TLFIdentifyBehavior =
   | 10 // DEFAULT_KBFS_10
 
 export type TLFIdentifyFailure = $ReadOnly<{user: User, breaks?: ?IdentifyTrackBreaks}>
-
 export type TLFQuery = $ReadOnly<{tlfName: String, identifyBehavior: TLFIdentifyBehavior}>
-
 export type TLFVisibility =
   | 0 // ANY_0
   | 1 // PUBLIC_1
   | 2 // PRIVATE_2
 
 export type TeamAcceptOrRequestResult = $ReadOnly<{wasToken: Boolean, wasSeitan: Boolean, wasTeamName: Boolean, wasOpenTeam: Boolean}>
-
 export type TeamAccessRequest = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
-
 export type TeamAddMemberResult = $ReadOnly<{invited: Boolean, user?: ?User, emailSent: Boolean, chatSent: Boolean}>
-
 export type TeamAndMemberShowcase = $ReadOnly<{teamShowcase: TeamShowcase, isMemberShowcased: Boolean}>
-
 export type TeamApplication =
   | 1 // KBFS_1
   | 2 // CHAT_2
@@ -2692,51 +1969,28 @@ export type TeamApplication =
   | 6 // STELLAR_RELAY_6
 
 export type TeamApplicationKey = $ReadOnly<{application: TeamApplication, keyGeneration: PerTeamKeyGeneration, key: Bytes32}>
-
 export type TeamCLKRMsg = $ReadOnly<{teamID: TeamID, generation: PerTeamKeyGeneration, score: Int, resetUsersUntrusted?: ?Array<TeamCLKRResetUser>}>
-
 export type TeamCLKRResetUser = $ReadOnly<{uid: UID, userEldestSeqno: Seqno, memberEldestSeqno: Seqno}>
-
 export type TeamChangeReq = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>, none?: ?Array<UserVersion>, completedInvites: {[key: string]: UserVersionPercentForm}}>
-
 export type TeamChangeRow = $ReadOnly<{id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean, misc: Boolean}>
-
 export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean, misc: Boolean}>
-
 export type TeamCreateResult = $ReadOnly<{teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean}>
-
 export type TeamData = $ReadOnly<{secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, tlfCryptKeys: {[key: string]: ?Array<CryptKey>}}>
-
 export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
-
 export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
-
 export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
-
 export type TeamEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientUID: UID}>
-
 export type TeamEkBoxed = $ReadOnly<{box: String, userEkGeneration: EkGeneration, metadata: TeamEkMetadata}>
-
 export type TeamEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
-
 export type TeamEkStatement = $ReadOnly<{currentTeamEkMetadata: TeamEkMetadata, existingTeamEkMetadata?: ?Array<TeamEkMetadata>}>
-
 export type TeamEncryptedKBFSKeyset = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
-
 export type TeamEncryptedKBFSKeysetHash = String
-
 export type TeamExitRow = $ReadOnly<{id: TeamID}>
-
 export type TeamGetLegacyTLFUpgrade = $ReadOnly<{encryptedKeyset: String, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
-
 export type TeamID = String
-
 export type TeamIDAndName = $ReadOnly<{id: TeamID, name: TeamName}>
-
 export type TeamIDWithVisibility = $ReadOnly<{teamID: TeamID, visibility: TLFVisibility}>
-
 export type TeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, inviter: UserVersion}>
-
 export type TeamInviteCategory =
   | 0 // NONE_0
   | 1 // UNKNOWN_1
@@ -2746,53 +2000,29 @@ export type TeamInviteCategory =
   | 5 // SEITAN_5
 
 export type TeamInviteID = String
-
 export type TeamInviteName = String
-
 export type TeamInviteSocialNetwork = String
-
 export type TeamInviteType = {c: 1, unknown: ?String} | {c: 4, sbs: ?TeamInviteSocialNetwork} | {c: any}
-
 export type TeamInvitee = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, role: TeamRole}>
-
 export type TeamJoinRequest = $ReadOnly<{name: String, username: String}>
-
 export type TeamKBFSKeyRefresher = $ReadOnly<{generation: Int, appType: TeamApplication}>
-
 export type TeamLegacyTLFUpgradeChainInfo = $ReadOnly<{keysetHash: TeamEncryptedKBFSKeysetHash, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
-
 export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
-
 export type TeamMember = $ReadOnly<{uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno}>
-
 export type TeamMemberDetails = $ReadOnly<{uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean}>
-
 export type TeamMemberOutFromReset = $ReadOnly<{teamName: String, resetUser: TeamResetUser}>
-
 export type TeamMemberOutReset = $ReadOnly<{teamname: String, username: String, id: Gregor1.MsgID}>
-
 export type TeamMembers = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>}>
-
 export type TeamMembersDetails = $ReadOnly<{owners?: ?Array<TeamMemberDetails>, admins?: ?Array<TeamMemberDetails>, writers?: ?Array<TeamMemberDetails>, readers?: ?Array<TeamMemberDetails>}>
-
 export type TeamName = $ReadOnly<{parts?: ?Array<TeamNamePart>}>
-
 export type TeamNameLogPoint = $ReadOnly<{lastPart: TeamNamePart, seqno: Seqno}>
-
 export type TeamNamePart = String
-
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
-
 export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean}>
-
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
-
 export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
-
 export type TeamRequestAccessResult = $ReadOnly<{open: Boolean}>
-
 export type TeamResetUser = $ReadOnly<{username: String, uid: UID, eldestSeqno: Seqno}>
-
 export type TeamRole =
   | 0 // NONE_0
   | 1 // READER_1
@@ -2801,17 +2031,11 @@ export type TeamRole =
   | 4 // OWNER_4
 
 export type TeamSBSMsg = $ReadOnly<{teamID: TeamID, score: Int, invitees?: ?Array<TeamInvitee>}>
-
 export type TeamSeitanMsg = $ReadOnly<{teamID: TeamID, seitans?: ?Array<TeamSeitanRequest>}>
-
 export type TeamSeitanRequest = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, akey: SeitanAKey, role: TeamRole, unixCTime: Int64}>
-
 export type TeamSettings = $ReadOnly<{open: Boolean, joinAs: TeamRole}>
-
 export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean}>
-
 export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}}>
-
 export type TeamStatus =
   | 0 // NONE_0
   | 1 // LIVE_1
@@ -2819,128 +2043,69 @@ export type TeamStatus =
   | 3 // ABANDONED_3
 
 export type TeamTreeEntry = $ReadOnly<{name: TeamName, admin: Boolean}>
-
 export type TeamTreeResult = $ReadOnly<{entries?: ?Array<TeamTreeEntry>}>
-
 export type TeamType =
   | 0 // NONE_0
   | 1 // LEGACY_1
   | 2 // MODERN_2
 
 export type TeamsCanUserPerformRpcParam = $ReadOnly<{name: String}>
-
 export type TeamsGetTarsDisabledRpcParam = $ReadOnly<{name: String}>
-
 export type TeamsGetTeamAndMemberShowcaseRpcParam = $ReadOnly<{name: String}>
-
 export type TeamsGetTeamRootIDRpcParam = $ReadOnly<{id: TeamID}>
-
 export type TeamsGetTeamShowcaseRpcParam = $ReadOnly<{name: String}>
-
 export type TeamsLoadTeamPlusApplicationKeysRpcParam = $ReadOnly<{id: TeamID, application: TeamApplication, refreshers: TeamRefreshers}>
-
 export type TeamsLookupImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean}>
-
 export type TeamsLookupOrCreateImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean}>
-
 export type TeamsSetTarsDisabledRpcParam = $ReadOnly<{name: String, disabled: Boolean}>
-
 export type TeamsSetTeamMemberShowcaseRpcParam = $ReadOnly<{name: String, isShowcased: Boolean}>
-
 export type TeamsSetTeamShowcaseRpcParam = $ReadOnly<{name: String, isShowcased?: ?Boolean, description?: ?String, anyMemberShowcase?: ?Boolean}>
-
 export type TeamsTeamAcceptInviteOrRequestAccessRpcParam = $ReadOnly<{tokenOrName: String}>
-
 export type TeamsTeamAcceptInviteRpcParam = $ReadOnly<{token: String}>
-
 export type TeamsTeamAddEmailsBulkRpcParam = $ReadOnly<{name: String, emails: String, role: TeamRole}>
-
 export type TeamsTeamAddMemberRpcParam = $ReadOnly<{name: String, email: String, username: String, role: TeamRole, sendChatNotification: Boolean}>
-
 export type TeamsTeamChangeMembershipRpcParam = $ReadOnly<{name: String, req: TeamChangeReq}>
-
 export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean}>
-
 export type TeamsTeamCreateSeitanTokenRpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel}>
-
 export type TeamsTeamCreateSeitanTokenV2RpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel}>
-
 export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, settings: TeamSettings}>
-
 export type TeamsTeamDebugRpcParam = $ReadOnly<{teamID: TeamID}>
-
 export type TeamsTeamDeleteRpcParam = $ReadOnly<{name: String}>
-
 export type TeamsTeamEditMemberRpcParam = $ReadOnly<{name: String, username: String, role: TeamRole}>
-
 export type TeamsTeamGetRpcParam = $ReadOnly<{name: String, forceRepoll: Boolean}>
-
 export type TeamsTeamIgnoreRequestRpcParam = $ReadOnly<{name: String, username: String}>
-
 export type TeamsTeamImplicitAdminsRpcParam = $ReadOnly<{teamName: String}>
-
 export type TeamsTeamLeaveRpcParam = $ReadOnly<{name: String, permanent: Boolean}>
-
 export type TeamsTeamListMyAccessRequestsRpcParam = $ReadOnly<{teamName?: ?String}>
-
 export type TeamsTeamListRequestsRpcParam = $ReadOnly<{teamName?: ?String}>
-
 export type TeamsTeamListSubteamsRecursiveRpcParam = $ReadOnly<{parentTeamName: String, forceRepoll: Boolean}>
-
 export type TeamsTeamListTeammatesRpcParam = $ReadOnly<{includeImplicitTeams: Boolean}>
-
 export type TeamsTeamListUnverifiedRpcParam = $ReadOnly<{userAssertion: String, includeImplicitTeams: Boolean}>
-
 export type TeamsTeamListVerifiedRpcParam = $ReadOnly<{userAssertion: String, includeImplicitTeams: Boolean}>
-
 export type TeamsTeamReAddMemberAfterResetRpcParam = $ReadOnly<{id: TeamID, username: String}>
-
 export type TeamsTeamRemoveMemberRpcParam = $ReadOnly<{name: String, username: String, email: String, inviteID: TeamInviteID}>
-
 export type TeamsTeamRenameRpcParam = $ReadOnly<{prevName: TeamName, newName: TeamName}>
-
 export type TeamsTeamRequestAccessRpcParam = $ReadOnly<{name: String}>
-
 export type TeamsTeamRotateKeyRpcParam = $ReadOnly<{teamID: TeamID}>
-
 export type TeamsTeamSetSettingsRpcParam = $ReadOnly<{name: String, settings: TeamSettings}>
-
 export type TeamsTeamTreeRpcParam = $ReadOnly<{name: TeamName}>
-
 export type TeamsTryDecryptWithTeamKeyRpcParam = $ReadOnly<{teamID: TeamID, encryptedData: Bytes, nonce: BoxNonce, peersPublicKey: BoxPublicKey, minGeneration: PerTeamKeyGeneration}>
-
 export type TeamsUiConfirmRootTeamDeleteRpcParam = $ReadOnly<{teamName: String}>
-
 export type TeamsUiConfirmSubteamDeleteRpcParam = $ReadOnly<{teamName: String}>
-
 export type TeamsUploadTeamAvatarRpcParam = $ReadOnly<{teamname: String, filename: String, crop?: ?ImageCropRect, sendChatNotification: Boolean}>
-
 export type Test = $ReadOnly<{reply: String}>
-
 export type TestPanicRpcParam = $ReadOnly<{message: String}>
-
 export type TestTestCallbackRpcParam = $ReadOnly<{name: String}>
-
 export type TestTestRpcParam = $ReadOnly<{name: String}>
-
 export type Text = $ReadOnly<{data: String, markup: Boolean}>
-
 export type Time = Long
-
 export type TlfCompleteAndCanonicalizePrivateTlfNameRpcParam = $ReadOnly<{query: TLFQuery}>
-
 export type TlfCryptKeysRpcParam = $ReadOnly<{query: TLFQuery}>
-
 export type TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = $ReadOnly<{query: TLFQuery}>
-
 export type TlfKeysGetTLFCryptKeysRpcParam = $ReadOnly<{query: TLFQuery}>
-
 export type TlfPublicCanonicalTLFNameAndIDRpcParam = $ReadOnly<{query: TLFQuery}>
-
 export type TrackCheckTrackingRpcParam = void
-
 export type TrackDiff = $ReadOnly<{type: TrackDiffType, displayMarkup: String}>
-
 export type TrackDiffType =
   | 0 // NONE_0
   | 1 // ERROR_1
@@ -2955,13 +2120,9 @@ export type TrackDiffType =
   | 10 // NONE_VIA_TEMPORARY_10
 
 export type TrackDismissWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken}>
-
 export type TrackFakeTrackingChangedRpcParam = $ReadOnly<{username: String, isTracking: Boolean}>
-
 export type TrackOptions = $ReadOnly<{localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean, sigVersion?: ?SigVersion}>
-
 export type TrackProof = $ReadOnly<{proofType: String, proofName: String, idString: String}>
-
 export type TrackStatus =
   | 1 // NEW_OK_1
   | 2 // NEW_ZERO_PROOFS_2
@@ -2972,25 +2133,17 @@ export type TrackStatus =
   | 7 // UPDATE_BROKEN_REVOKED_7
 
 export type TrackSummary = $ReadOnly<{username: String, time: Time, isRemote: Boolean}>
-
 export type TrackToken = String
-
 export type TrackTrackRpcParam = $ReadOnly<{userAssertion: String, options: TrackOptions, forceRemoteCheck: Boolean}>
-
 export type TrackTrackWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken, options: TrackOptions}>
-
 export type TrackUntrackRpcParam = $ReadOnly<{username: String}>
-
 export type Tracker = $ReadOnly<{tracker: UID, status: Int, mTime: Time}>
-
 export type UID = String
-
 export type UPAKVersion =
   | 1 // V1_1
   | 2 // V2_2
 
 export type UPAKVersioned = {v: 1, v1: ?UserPlusAllKeys} | {v: 2, v2: ?UserPlusKeysV2AllIncarnations}
-
 export type UPK2MinorVersion =
   | 0 // V0_0
   | 1 // V1_1
@@ -3001,111 +2154,60 @@ export type UPK2MinorVersion =
   | 6 // V6_6
 
 export type UiPromptYesNoRpcParam = $ReadOnly<{text: Text, promptDefault: PromptDefault}>
-
 export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
-
 export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
-
 export type UnixTime = Long
-
 export type User = $ReadOnly<{uid: UID, username: String}>
-
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
-
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
-
 export type UserEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientDeviceID: DeviceID}>
-
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
-
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
-
 export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetadata?: ?Array<UserEkMetadata>}>
-
 export type UserFindNextMerkleRootAfterRevokeRpcParam = $ReadOnly<{uid: UID, kid: KID, loc: SigChainLocation, prev: MerkleRootV2}>
-
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID}>
-
 export type UserInterestingPeopleRpcParam = $ReadOnly<{maxUsers: Int}>
-
 export type UserListTrackers2RpcParam = $ReadOnly<{assertion: String, reverse: Boolean}>
-
 export type UserListTrackersByNameRpcParam = $ReadOnly<{username: String}>
-
 export type UserListTrackersRpcParam = $ReadOnly<{uid: UID}>
-
 export type UserListTrackersSelfRpcParam = void
-
 export type UserListTrackingJSONRpcParam = $ReadOnly<{filter: String, verbose: Boolean, assertion: String}>
-
 export type UserListTrackingRpcParam = $ReadOnly<{filter: String, assertion: String}>
-
 export type UserLoadAllPublicKeysUnverifiedRpcParam = $ReadOnly<{uid: UID}>
-
 export type UserLoadMyPublicKeysRpcParam = void
-
 export type UserLoadMySettingsRpcParam = void
-
 export type UserLoadPublicKeysRpcParam = $ReadOnly<{uid: UID}>
-
 export type UserLoadUncheckedUserSummariesRpcParam = $ReadOnly<{uids?: ?Array<UID>}>
-
 export type UserLoadUserByNameRpcParam = $ReadOnly<{username: String}>
-
 export type UserLoadUserPlusKeysRpcParam = $ReadOnly<{uid: UID, pollForKID: KID}>
-
 export type UserLoadUserPlusKeysV2RpcParam = $ReadOnly<{uid: UID, pollForKID: KID}>
-
 export type UserLoadUserRpcParam = $ReadOnly<{uid: UID}>
-
 export type UserLogPoint = $ReadOnly<{role: TeamRole, sigMeta: SignatureMetadata}>
-
 export type UserMeUserVersionRpcParam = $ReadOnly<{forcePoll: Boolean}>
-
 export type UserOrTeamID = String
-
 export type UserOrTeamLite = $ReadOnly<{id: UserOrTeamID, name: String}>
-
 export type UserOrTeamResult =
   | 1 // USER_1
   | 2 // TEAM_2
 
 export type UserPlusAllKeys = $ReadOnly<{base: UserPlusKeys, pgpKeys?: ?Array<PublicKey>, remoteTracks?: ?Array<RemoteTrack>}>
-
 export type UserPlusKeys = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys?: ?Array<PublicKey>, revokedDeviceKeys?: ?Array<RevokedKey>, pgpKeyCount: Int, uvv: UserVersionVector, deletedDeviceKeys?: ?Array<PublicKey>, perUserKeys?: ?Array<PerUserKey>, resets?: ?Array<ResetSummary>}>
-
 export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, perUserKeys?: ?Array<PerUserKey>, deviceKeys: {[key: string]: PublicKeyV2NaCl}, pgpKeys: {[key: string]: PublicKeyV2PGPSummary}, remoteTracks: {[key: string]: RemoteTrack}, reset?: ?ResetSummary}>
-
 export type UserPlusKeysV2AllIncarnations = $ReadOnly<{current: UserPlusKeysV2, pastIncarnations?: ?Array<UserPlusKeysV2>, uvv: UserVersionVector, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPK2MinorVersion}>
-
 export type UserProfileEditRpcParam = $ReadOnly<{fullName: String, location: String, bio: String}>
-
 export type UserResolution = $ReadOnly<{assertion: SocialAssertion, userID: UID}>
-
 export type UserSearchRpcParam = $ReadOnly<{query: String}>
-
 export type UserSettings = $ReadOnly<{emails?: ?Array<Email>}>
-
 export type UserSummary = $ReadOnly<{uid: UID, username: String, thumbnail: String, idVersion: Int, fullName: String, bio: String, proofs: Proofs, sigIDDisplay: String, trackTime: Time}>
-
 export type UserSummary2 = $ReadOnly<{uid: UID, username: String, thumbnail: String, fullName: String, isFollower: Boolean, isFollowee: Boolean}>
-
 export type UserSummary2Set = $ReadOnly<{users?: ?Array<UserSummary2>, time: Time, version: Int}>
-
 export type UserTeamShowcase = $ReadOnly<{fqName: String, open: Boolean, teamIsShowcased: Boolean, description: String, role: TeamRole, publicAdmins?: ?Array<String>, numMembers: Int}>
-
 export type UserUploadUserAvatarRpcParam = $ReadOnly<{filename: String, crop?: ?ImageCropRect}>
-
 export type UserVersion = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
-
 export type UserVersionPercentForm = String
-
 export type UserVersionVector = $ReadOnly<{id: Long, sigHints: Int, sigChain: Long, cachedAt: Time}>
-
 export type VerifySessionRes = $ReadOnly<{uid: UID, sid: String, generated: Int, lifetime: Int}>
-
 export type WebProof = $ReadOnly<{hostname: String, protocols?: ?Array<String>}>
-
 export type WriteArgs = $ReadOnly<{opID: OpID, path: Path, offset: Long}>
 type AccountHasServerKeysResult = HasServerKeysRes
 type AccountPassphrasePromptResult = GetPassphraseRes

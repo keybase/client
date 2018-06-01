@@ -1,13 +1,13 @@
 // @noflow
 'use strict'
 const prettier = require('prettier')
-const json5 = require('json5')
 const promise = require('bluebird')
 const fs = promise.promisifyAll(require('fs'))
 const path = require('path')
 const camelcase = require('camelcase')
 const colors = require('colors')
-const enabledCalls = require('./enabled-calls.json')
+const json5 = require('json5')
+const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-calls.json')))
 
 var projects = {
   chat1: {
@@ -125,13 +125,13 @@ function analyzeTypes(json, project) {
 
     switch (t.type) {
       case 'record':
-        return [`\nexport type ${t.name} = ${parseRecord(t)}`]
+        return [`export type ${t.name} = ${parseRecord(t)}`]
       case 'enum':
-        return [`\nexport type ${t.name} =${parseEnum(t)}`]
+        return [`export type ${t.name} =${parseEnum(t)}`]
       case 'variant':
-        return [`\nexport type ${t.name} =${parseVariant(t, project)}`]
+        return [`export type ${t.name} =${parseVariant(t, project)}`]
       case 'fixed':
-        return [`\nexport type ${t.name} = any`]
+        return [`export type ${t.name} = any`]
       default:
         return null
     }
@@ -226,7 +226,7 @@ function analyzeMessages(json, project) {
     }
 
     const outParams = buildParams(false)
-    const paramType = outParams ? `\nexport type ${capitalize(name)}RpcParam = ${outParams}` : ''
+    const paramType = outParams ? `export type ${capitalize(name)}RpcParam = ${outParams}` : ''
     const innerParamType = outParams ? `${capitalize(name)}RpcParam` : null
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
     const rpcPromise = isUIProtocol ? '' : rpcPromiseGen(methodName, name, r, innerParamType, responseType)
@@ -252,14 +252,14 @@ function engineSagaGen(methodName, name, response, requestType, responseType) {
   if (!enabledCall(methodName, 'engineSaga')) {
     return ''
   }
-  return `\nexport const ${name}RpcSaga = (params: ${requestType}, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, ${methodName}, params, incomingCallMap, loading)`
+  return `export const ${name}RpcSaga = (params: ${requestType}, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, ${methodName}, params, incomingCallMap, loading)`
 }
 
 function rpcChannelMapGen(methodName, name, response, requestType, responseType) {
   if (!enabledCall(methodName, 'channelMap')) {
     return ''
   }
-  return `\nexport const ${name}RpcChannelMap = (configKeys: Array<string>, request: ${requestType}): EngineChannel => engine()._channelMapRpcHelper(configKeys, ${methodName}, request)`
+  return `export const ${name}RpcChannelMap = (configKeys: Array<string>, request: ${requestType}): EngineChannel => engine()._channelMapRpcHelper(configKeys, ${methodName}, request)`
 }
 
 function rpcPromiseGen(methodName, name, response, requestType, responseType) {
@@ -267,7 +267,7 @@ function rpcPromiseGen(methodName, name, response, requestType, responseType) {
     return ''
   }
   const resultType = responseType !== 'null' ? `${capitalize(name)}Result` : 'void'
-  return `\nexport const ${name}RpcPromise = (request: ${requestType}): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing(${methodName}, request, (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
+  return `export const ${name}RpcPromise = (request: ${requestType}): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing(${methodName}, request, (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
     resultType === 'void' ? '' : 'result'
   })))`
 }
@@ -368,7 +368,7 @@ function makeRpcUnionType(typeDefs) {
     .join('|')
 
   if (rpcTypes) {
-    const unionRpcType = `\nexport type rpc =
+    const unionRpcType = `export type rpc =
     ${rpcTypes}`
     return typeDefs.concat(unionRpcType)
   }

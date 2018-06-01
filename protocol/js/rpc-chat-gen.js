@@ -108,8 +108,6 @@ export const commonTopicType = {
   kbfsfileedit: 3,
 }
 
-export const localAddTeamMemberAfterResetRpcPromise = (request: LocalAddTeamMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.addTeamMemberAfterReset', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const localAssetMetadataType = {
   none: 0,
   image: 1,
@@ -134,8 +132,6 @@ export const localBodyPlaintextVersion = {
   v10: 10,
 }
 
-export const localCancelPostRpcPromise = (request: LocalCancelPostRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.CancelPost', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const localConversationErrorType = {
   permanent: 0,
   missinginfo: 1,
@@ -145,22 +141,6 @@ export const localConversationErrorType = {
   transient: 5,
   none: 6,
 }
-
-export const localDeleteConversationLocalRpcPromise = (request: LocalDeleteConversationLocalRpcParam): Promise<LocalDeleteConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.deleteConversationLocal', request, (error: RPCError, result: LocalDeleteConversationLocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localDownloadFileAttachmentLocalRpcSaga = (params: LocalDownloadFileAttachmentLocalRpcParam, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, 'chat.1.local.DownloadFileAttachmentLocal', params, incomingCallMap, loading)
-
-export const localFindConversationsLocalRpcPromise = (request: LocalFindConversationsLocalRpcParam): Promise<LocalFindConversationsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.findConversationsLocal', request, (error: RPCError, result: LocalFindConversationsLocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (request: LocalGetGlobalAppNotificationSettingsLocalRpcParam): Promise<LocalGetGlobalAppNotificationSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getGlobalAppNotificationSettingsLocal', request, (error: RPCError, result: LocalGetGlobalAppNotificationSettingsLocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localGetInboxAndUnboxUILocalRpcPromise = (request: LocalGetInboxAndUnboxUILocalRpcParam): Promise<LocalGetInboxAndUnboxUILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxUILocal', request, (error: RPCError, result: LocalGetInboxAndUnboxUILocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localGetInboxNonblockLocalRpcSaga = (params: LocalGetInboxNonblockLocalRpcParam, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, 'chat.1.local.getInboxNonblockLocal', params, incomingCallMap, loading)
-
-export const localGetTLFConversationsLocalRpcPromise = (request: LocalGetTLFConversationsLocalRpcParam): Promise<LocalGetTLFConversationsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getTLFConversationsLocal', request, (error: RPCError, result: LocalGetTLFConversationsLocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localGetTeamRetentionLocalRpcPromise = (request: LocalGetTeamRetentionLocalRpcParam): Promise<LocalGetTeamRetentionLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getTeamRetentionLocal', request, (error: RPCError, result: LocalGetTeamRetentionLocalResult) => (error ? reject(error) : resolve(result))))
 
 export const localGetThreadNonblockCbMode = {
   full: 0,
@@ -178,8 +158,6 @@ export const localGetThreadNonblockReason = {
   foreground: 2,
 }
 
-export const localGetThreadNonblockRpcSaga = (params: LocalGetThreadNonblockRpcParam, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, 'chat.1.local.getThreadNonblock', params, incomingCallMap, loading)
-
 export const localHeaderPlaintextVersion = {
   v1: 1,
   v2: 2,
@@ -192,14 +170,6 @@ export const localHeaderPlaintextVersion = {
   v9: 9,
   v10: 10,
 }
-
-export const localJoinConversationByIDLocalRpcPromise = (request: LocalJoinConversationByIDLocalRpcParam): Promise<LocalJoinConversationByIDLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.joinConversationByIDLocal', request, (error: RPCError, result: LocalJoinConversationByIDLocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localLeaveConversationLocalRpcPromise = (request: LocalLeaveConversationLocalRpcParam): Promise<LocalLeaveConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.leaveConversationLocal', request, (error: RPCError, result: LocalLeaveConversationLocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localMakePreviewRpcPromise = (request: LocalMakePreviewRpcParam): Promise<LocalMakePreviewResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.makePreview', request, (error: RPCError, result: LocalMakePreviewResult) => (error ? reject(error) : resolve(result))))
-
-export const localMarkAsReadLocalRpcPromise = (request: LocalMarkAsReadLocalRpcParam): Promise<LocalMarkAsReadLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.markAsReadLocal', request, (error: RPCError, result: LocalMarkAsReadLocalResult) => (error ? reject(error) : resolve(result))))
 
 export const localMessageSystemType = {
   addedtoteam: 0,
@@ -218,8 +188,6 @@ export const localMessageUnboxedErrorType = {
   ephemeral: 4,
 }
 
-export const localNewConversationLocalRpcPromise = (request: LocalNewConversationLocalRpcParam): Promise<LocalNewConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.newConversationLocal', request, (error: RPCError, result: LocalNewConversationLocalResult) => (error ? reject(error) : resolve(result))))
-
 export const localOutboxErrorType = {
   misc: 0,
   offline: 1,
@@ -233,40 +201,6 @@ export const localOutboxStateType = {
   sending: 0,
   error: 1,
 }
-
-export const localPostDeleteHistoryThroughRpcPromise = (request: LocalPostDeleteHistoryThroughRpcParam): Promise<LocalPostDeleteHistoryThroughResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryThrough', request, (error: RPCError, result: LocalPostDeleteHistoryThroughResult) => (error ? reject(error) : resolve(result))))
-
-export const localPostDeleteNonblockRpcPromise = (request: LocalPostDeleteNonblockRpcParam): Promise<LocalPostDeleteNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteNonblock', request, (error: RPCError, result: LocalPostDeleteNonblockResult) => (error ? reject(error) : resolve(result))))
-
-export const localPostEditNonblockRpcPromise = (request: LocalPostEditNonblockRpcParam): Promise<LocalPostEditNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postEditNonblock', request, (error: RPCError, result: LocalPostEditNonblockResult) => (error ? reject(error) : resolve(result))))
-
-export const localPostFileAttachmentLocalRpcSaga = (params: LocalPostFileAttachmentLocalRpcParam, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, 'chat.1.local.postFileAttachmentLocal', params, incomingCallMap, loading)
-
-export const localPostHeadlineNonblockRpcPromise = (request: LocalPostHeadlineNonblockRpcParam): Promise<LocalPostHeadlineNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postHeadlineNonblock', request, (error: RPCError, result: LocalPostHeadlineNonblockResult) => (error ? reject(error) : resolve(result))))
-
-export const localPostHeadlineRpcPromise = (request: LocalPostHeadlineRpcParam): Promise<LocalPostHeadlineResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postHeadline', request, (error: RPCError, result: LocalPostHeadlineResult) => (error ? reject(error) : resolve(result))))
-
-export const localPostMetadataRpcPromise = (request: LocalPostMetadataRpcParam): Promise<LocalPostMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postMetadata', request, (error: RPCError, result: LocalPostMetadataResult) => (error ? reject(error) : resolve(result))))
-
-export const localPostTextNonblockRpcPromise = (request: LocalPostTextNonblockRpcParam): Promise<LocalPostTextNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postTextNonblock', request, (error: RPCError, result: LocalPostTextNonblockResult) => (error ? reject(error) : resolve(result))))
-
-export const localPreviewConversationByIDLocalRpcPromise = (request: LocalPreviewConversationByIDLocalRpcParam): Promise<LocalPreviewConversationByIDLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.previewConversationByIDLocal', request, (error: RPCError, result: LocalPreviewConversationByIDLocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localRetryPostRpcPromise = (request: LocalRetryPostRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.RetryPost', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const localSetAppNotificationSettingsLocalRpcPromise = (request: LocalSetAppNotificationSettingsLocalRpcParam): Promise<LocalSetAppNotificationSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setAppNotificationSettingsLocal', request, (error: RPCError, result: LocalSetAppNotificationSettingsLocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localSetConvRetentionLocalRpcPromise = (request: LocalSetConvRetentionLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setConvRetentionLocal', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const localSetConversationStatusLocalRpcPromise = (request: LocalSetConversationStatusLocalRpcParam): Promise<LocalSetConversationStatusLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.SetConversationStatusLocal', request, (error: RPCError, result: LocalSetConversationStatusLocalResult) => (error ? reject(error) : resolve(result))))
-
-export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (request: LocalSetGlobalAppNotificationSettingsLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setGlobalAppNotificationSettingsLocal', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const localSetTeamRetentionLocalRpcPromise = (request: LocalSetTeamRetentionLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setTeamRetentionLocal', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-export const localUnboxMobilePushNotificationRpcPromise = (request: LocalUnboxMobilePushNotificationRpcParam): Promise<LocalUnboxMobilePushNotificationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.unboxMobilePushNotification', request, (error: RPCError, result: LocalUnboxMobilePushNotificationResult) => (error ? reject(error) : resolve(result))))
-
-export const localUpdateTypingRpcPromise = (request: LocalUpdateTypingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.updateTyping', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const notifyChatChatActivityType = {
   reserved: 0,
@@ -309,17 +243,44 @@ export const remoteSyncAllProtVers = {
   v0: 0,
   v1: 1,
 }
-
+export const localAddTeamMemberAfterResetRpcPromise = (request: LocalAddTeamMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.addTeamMemberAfterReset', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const localCancelPostRpcPromise = (request: LocalCancelPostRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.CancelPost', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const localDeleteConversationLocalRpcPromise = (request: LocalDeleteConversationLocalRpcParam): Promise<LocalDeleteConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.deleteConversationLocal', request, (error: RPCError, result: LocalDeleteConversationLocalResult) => (error ? reject(error) : resolve(result))))
+export const localDownloadFileAttachmentLocalRpcSaga = (params: LocalDownloadFileAttachmentLocalRpcParam, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, 'chat.1.local.DownloadFileAttachmentLocal', params, incomingCallMap, loading)
+export const localFindConversationsLocalRpcPromise = (request: LocalFindConversationsLocalRpcParam): Promise<LocalFindConversationsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.findConversationsLocal', request, (error: RPCError, result: LocalFindConversationsLocalResult) => (error ? reject(error) : resolve(result))))
+export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (request: LocalGetGlobalAppNotificationSettingsLocalRpcParam): Promise<LocalGetGlobalAppNotificationSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getGlobalAppNotificationSettingsLocal', request, (error: RPCError, result: LocalGetGlobalAppNotificationSettingsLocalResult) => (error ? reject(error) : resolve(result))))
+export const localGetInboxAndUnboxUILocalRpcPromise = (request: LocalGetInboxAndUnboxUILocalRpcParam): Promise<LocalGetInboxAndUnboxUILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxUILocal', request, (error: RPCError, result: LocalGetInboxAndUnboxUILocalResult) => (error ? reject(error) : resolve(result))))
+export const localGetInboxNonblockLocalRpcSaga = (params: LocalGetInboxNonblockLocalRpcParam, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, 'chat.1.local.getInboxNonblockLocal', params, incomingCallMap, loading)
+export const localGetTLFConversationsLocalRpcPromise = (request: LocalGetTLFConversationsLocalRpcParam): Promise<LocalGetTLFConversationsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getTLFConversationsLocal', request, (error: RPCError, result: LocalGetTLFConversationsLocalResult) => (error ? reject(error) : resolve(result))))
+export const localGetTeamRetentionLocalRpcPromise = (request: LocalGetTeamRetentionLocalRpcParam): Promise<LocalGetTeamRetentionLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getTeamRetentionLocal', request, (error: RPCError, result: LocalGetTeamRetentionLocalResult) => (error ? reject(error) : resolve(result))))
+export const localGetThreadNonblockRpcSaga = (params: LocalGetThreadNonblockRpcParam, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, 'chat.1.local.getThreadNonblock', params, incomingCallMap, loading)
+export const localJoinConversationByIDLocalRpcPromise = (request: LocalJoinConversationByIDLocalRpcParam): Promise<LocalJoinConversationByIDLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.joinConversationByIDLocal', request, (error: RPCError, result: LocalJoinConversationByIDLocalResult) => (error ? reject(error) : resolve(result))))
+export const localLeaveConversationLocalRpcPromise = (request: LocalLeaveConversationLocalRpcParam): Promise<LocalLeaveConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.leaveConversationLocal', request, (error: RPCError, result: LocalLeaveConversationLocalResult) => (error ? reject(error) : resolve(result))))
+export const localMakePreviewRpcPromise = (request: LocalMakePreviewRpcParam): Promise<LocalMakePreviewResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.makePreview', request, (error: RPCError, result: LocalMakePreviewResult) => (error ? reject(error) : resolve(result))))
+export const localMarkAsReadLocalRpcPromise = (request: LocalMarkAsReadLocalRpcParam): Promise<LocalMarkAsReadLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.markAsReadLocal', request, (error: RPCError, result: LocalMarkAsReadLocalResult) => (error ? reject(error) : resolve(result))))
+export const localNewConversationLocalRpcPromise = (request: LocalNewConversationLocalRpcParam): Promise<LocalNewConversationLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.newConversationLocal', request, (error: RPCError, result: LocalNewConversationLocalResult) => (error ? reject(error) : resolve(result))))
+export const localPostDeleteHistoryThroughRpcPromise = (request: LocalPostDeleteHistoryThroughRpcParam): Promise<LocalPostDeleteHistoryThroughResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryThrough', request, (error: RPCError, result: LocalPostDeleteHistoryThroughResult) => (error ? reject(error) : resolve(result))))
+export const localPostDeleteNonblockRpcPromise = (request: LocalPostDeleteNonblockRpcParam): Promise<LocalPostDeleteNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteNonblock', request, (error: RPCError, result: LocalPostDeleteNonblockResult) => (error ? reject(error) : resolve(result))))
+export const localPostEditNonblockRpcPromise = (request: LocalPostEditNonblockRpcParam): Promise<LocalPostEditNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postEditNonblock', request, (error: RPCError, result: LocalPostEditNonblockResult) => (error ? reject(error) : resolve(result))))
+export const localPostFileAttachmentLocalRpcSaga = (params: LocalPostFileAttachmentLocalRpcParam, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => ?Action) => Saga.call(engineSaga, 'chat.1.local.postFileAttachmentLocal', params, incomingCallMap, loading)
+export const localPostHeadlineNonblockRpcPromise = (request: LocalPostHeadlineNonblockRpcParam): Promise<LocalPostHeadlineNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postHeadlineNonblock', request, (error: RPCError, result: LocalPostHeadlineNonblockResult) => (error ? reject(error) : resolve(result))))
+export const localPostHeadlineRpcPromise = (request: LocalPostHeadlineRpcParam): Promise<LocalPostHeadlineResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postHeadline', request, (error: RPCError, result: LocalPostHeadlineResult) => (error ? reject(error) : resolve(result))))
+export const localPostMetadataRpcPromise = (request: LocalPostMetadataRpcParam): Promise<LocalPostMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postMetadata', request, (error: RPCError, result: LocalPostMetadataResult) => (error ? reject(error) : resolve(result))))
+export const localPostTextNonblockRpcPromise = (request: LocalPostTextNonblockRpcParam): Promise<LocalPostTextNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postTextNonblock', request, (error: RPCError, result: LocalPostTextNonblockResult) => (error ? reject(error) : resolve(result))))
+export const localPreviewConversationByIDLocalRpcPromise = (request: LocalPreviewConversationByIDLocalRpcParam): Promise<LocalPreviewConversationByIDLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.previewConversationByIDLocal', request, (error: RPCError, result: LocalPreviewConversationByIDLocalResult) => (error ? reject(error) : resolve(result))))
+export const localRetryPostRpcPromise = (request: LocalRetryPostRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.RetryPost', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const localSetAppNotificationSettingsLocalRpcPromise = (request: LocalSetAppNotificationSettingsLocalRpcParam): Promise<LocalSetAppNotificationSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setAppNotificationSettingsLocal', request, (error: RPCError, result: LocalSetAppNotificationSettingsLocalResult) => (error ? reject(error) : resolve(result))))
+export const localSetConvRetentionLocalRpcPromise = (request: LocalSetConvRetentionLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setConvRetentionLocal', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const localSetConversationStatusLocalRpcPromise = (request: LocalSetConversationStatusLocalRpcParam): Promise<LocalSetConversationStatusLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.SetConversationStatusLocal', request, (error: RPCError, result: LocalSetConversationStatusLocalResult) => (error ? reject(error) : resolve(result))))
+export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (request: LocalSetGlobalAppNotificationSettingsLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setGlobalAppNotificationSettingsLocal', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const localSetTeamRetentionLocalRpcPromise = (request: LocalSetTeamRetentionLocalRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.setTeamRetentionLocal', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+export const localUnboxMobilePushNotificationRpcPromise = (request: LocalUnboxMobilePushNotificationRpcParam): Promise<LocalUnboxMobilePushNotificationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.unboxMobilePushNotification', request, (error: RPCError, result: LocalUnboxMobilePushNotificationResult) => (error ? reject(error) : resolve(result))))
+export const localUpdateTypingRpcPromise = (request: LocalUpdateTypingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.updateTyping', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 export type AppNotificationSettingLocal = $ReadOnly<{deviceType: Keybase1.DeviceType, kind: NotificationKind, enabled: Boolean}>
-
 export type Asset = $ReadOnly<{filename: String, region: String, endpoint: String, bucket: String, path: String, size: Long, mimeType: String, encHash: Hash, key: Bytes, verifyKey: Bytes, title: String, nonce: Bytes, metadata: AssetMetadata, tag: AssetTag}>
-
 export type AssetMetadata = {assetType: 1, image: ?AssetMetadataImage} | {assetType: 2, video: ?AssetMetadataVideo} | {assetType: 3, audio: ?AssetMetadataAudio}
-
 export type AssetMetadataAudio = $ReadOnly<{durationMs: Int}>
-
 export type AssetMetadataImage = $ReadOnly<{width: Int, height: Int}>
-
 export type AssetMetadataType =
   | 0 // NONE_0
   | 1 // IMAGE_1
@@ -327,17 +288,12 @@ export type AssetMetadataType =
   | 3 // AUDIO_3
 
 export type AssetMetadataVideo = $ReadOnly<{width: Int, height: Int, durationMs: Int}>
-
 export type AssetTag = 0 // PRIMARY_0
 
 export type BodyPlaintext = {version: 1, v1: ?BodyPlaintextV1} | {version: 2, v2: ?BodyPlaintextUnsupported} | {version: 3, v3: ?BodyPlaintextUnsupported} | {version: 4, v4: ?BodyPlaintextUnsupported} | {version: 5, v5: ?BodyPlaintextUnsupported} | {version: 6, v6: ?BodyPlaintextUnsupported} | {version: 7, v7: ?BodyPlaintextUnsupported} | {version: 8, v8: ?BodyPlaintextUnsupported} | {version: 9, v9: ?BodyPlaintextUnsupported} | {version: 10, v10: ?BodyPlaintextUnsupported}
-
 export type BodyPlaintextMetaInfo = $ReadOnly<{crit: Boolean}>
-
 export type BodyPlaintextUnsupported = $ReadOnly<{mi: BodyPlaintextMetaInfo}>
-
 export type BodyPlaintextV1 = $ReadOnly<{messageBody: MessageBody}>
-
 export type BodyPlaintextVersion =
   | 1 // V1_1
   | 2 // V2_2
@@ -356,9 +312,7 @@ export type ChannelMention =
   | 2 // HERE_2
 
 export type ChannelNameMention = $ReadOnly<{convID: ConversationID, topicName: String}>
-
 export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo} | {activityType: 10, ephemeralPurge: ?EphemeralPurgeNotifInfo}
-
 export type ChatActivityType =
   | 0 // RESERVED_0
   | 1 // INCOMING_MESSAGE_1
@@ -373,57 +327,31 @@ export type ChatActivityType =
   | 10 // EPHEMERAL_PURGE_10
 
 export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<String>}>
-
 export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>}>
-
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1, incremental: ?ChatSyncIncrementalInfo}
-
 export type ChatUiChatAttachmentDownloadDoneRpcParam = void
-
 export type ChatUiChatAttachmentDownloadProgressRpcParam = $ReadOnly<{bytesComplete: Long, bytesTotal: Long}>
-
 export type ChatUiChatAttachmentDownloadStartRpcParam = void
-
 export type ChatUiChatAttachmentPreviewUploadDoneRpcParam = void
-
 export type ChatUiChatAttachmentPreviewUploadStartRpcParam = $ReadOnly<{metadata: AssetMetadata}>
-
 export type ChatUiChatAttachmentUploadDoneRpcParam = void
-
 export type ChatUiChatAttachmentUploadOutboxIDRpcParam = $ReadOnly<{outboxID: OutboxID}>
-
 export type ChatUiChatAttachmentUploadProgressRpcParam = $ReadOnly<{bytesComplete: Long, bytesTotal: Long}>
-
 export type ChatUiChatAttachmentUploadStartRpcParam = $ReadOnly<{metadata: AssetMetadata, placeholderMsgID: MessageID}>
-
 export type ChatUiChatConfirmChannelDeleteRpcParam = $ReadOnly<{channel: String}>
-
 export type ChatUiChatInboxConversationRpcParam = $ReadOnly<{conv: String}>
-
 export type ChatUiChatInboxFailedRpcParam = $ReadOnly<{convID: ConversationID, error: InboxUIItemError}>
-
 export type ChatUiChatInboxUnverifiedRpcParam = $ReadOnly<{inbox: String}>
-
 export type ChatUiChatSearchDoneRpcParam = $ReadOnly<{numHits: Int}>
-
 export type ChatUiChatSearchHitRpcParam = $ReadOnly<{searchHit: ChatSearchHit}>
-
 export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String}>
-
 export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String}>
-
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
-
 export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
-
 export type ConversationCreatorInfo = $ReadOnly<{ctime: Gregor1.Time, uid: Gregor1.UID}>
-
 export type ConversationCreatorInfoLocal = $ReadOnly<{ctime: Gregor1.Time, username: String}>
-
 export type ConversationErrorLocal = $ReadOnly<{typ: ConversationErrorType, message: String, remoteConv: Conversation, unverifiedTLFName: String, rekeyInfo?: ?ConversationErrorRekey}>
-
 export type ConversationErrorRekey = $ReadOnly<{tlfName: String, tlfPublic: Boolean, rekeyers?: ?Array<String>, writerNames?: ?Array<String>, readerNames?: ?Array<String>}>
-
 export type ConversationErrorType =
   | 0 // PERMANENT_0
   | 1 // MISSINGINFO_1
@@ -440,23 +368,14 @@ export type ConversationExistence =
   | 3 // ABANDONED_3
 
 export type ConversationFinalizeInfo = $ReadOnly<{resetUser: String, resetDate: String, resetFull: String, resetTimestamp: Gregor1.Time}>
-
 export type ConversationID = Bytes
-
 export type ConversationIDMessageIDPair = $ReadOnly<{convID: ConversationID, msgID: MessageID}>
-
 export type ConversationIDMessageIDPairs = $ReadOnly<{pairs?: ?Array<ConversationIDMessageIDPair>}>
-
 export type ConversationIDTriple = $ReadOnly<{tlfid: TLFID, topicType: TopicType, topicID: TopicID}>
-
 export type ConversationInfoLocal = $ReadOnly<{id: ConversationID, triple: ConversationIDTriple, tlfName: String, topicName: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, participants?: ?Array<ConversationLocalParticipant>, finalizeInfo?: ?ConversationFinalizeInfo, resetNames?: ?Array<String>}>
-
 export type ConversationLocal = $ReadOnly<{error?: ?ConversationErrorLocal, info: ConversationInfoLocal, readerInfo: ConversationReaderInfo, creatorInfo?: ?ConversationCreatorInfoLocal, notifications?: ?ConversationNotificationInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, maxMessages?: ?Array<MessageUnboxed>, isEmpty: Boolean, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
-
 export type ConversationLocalParticipant = $ReadOnly<{username: String, fullname?: ?String}>
-
 export type ConversationMember = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID}>
-
 export type ConversationMemberStatus =
   | 0 // ACTIVE_0
   | 1 // REMOVED_1
@@ -471,15 +390,10 @@ export type ConversationMembersType =
   | 3 // IMPTEAMUPGRADE_3
 
 export type ConversationMetadata = $ReadOnly<{idTriple: ConversationIDTriple, conversationID: ConversationID, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, activeList?: ?Array<Gregor1.UID>, allList?: ?Array<Gregor1.UID>, resetList?: ?Array<Gregor1.UID>}>
-
 export type ConversationNotificationInfo = $ReadOnly<{channelWide: Boolean, settings: {[key: string]: {[key: string]: Boolean}}}>
-
 export type ConversationReaderInfo = $ReadOnly<{mtime: Gregor1.Time, readMsgid: MessageID, maxMsgid: MessageID, status: ConversationMemberStatus}>
-
 export type ConversationResolveInfo = $ReadOnly<{newTLFName: String}>
-
 export type ConversationStaleUpdate = $ReadOnly<{convID: ConversationID, updateType: StaleUpdateType}>
-
 export type ConversationStatus =
   | 0 // UNFILED_0
   | 1 // FAVORITE_1
@@ -489,71 +403,38 @@ export type ConversationStatus =
   | 5 // REPORTED_5
 
 export type ConversationVers = Uint64
-
 export type DeleteConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
-
 export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
-
 export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
-
 export type EphemeralPurgeInfo = $ReadOnly<{convID: ConversationID, isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
-
 export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>, conv?: ?InboxUIItem}>
-
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
-
 export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, conv?: ?InboxUIItem}>
-
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, unreadUpdate?: ?UnreadUpdate}>
-
 export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>, isEphemeralPurge: Boolean}>
-
 export type FindConversationsLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type GenericPayload = $ReadOnly<{Action: String, inboxVers: InboxVers, convID: ConversationID, unreadUpdate?: ?UnreadUpdate}>
-
 export type GetConversationForCLILocalQuery = $ReadOnly<{markAsRead: Boolean, MessageTypes?: ?Array<MessageType>, Since?: ?String, limit: UnreadFirstNumLimit, conv: ConversationLocal}>
-
 export type GetConversationForCLILocalRes = $ReadOnly<{conversation: ConversationLocal, messages?: ?Array<MessageUnboxed>, offline: Boolean, rateLimits?: ?Array<RateLimit>}>
-
 export type GetConversationMetadataRemoteRes = $ReadOnly<{conv: Conversation, rateLimit?: ?RateLimit}>
-
 export type GetInboxAndUnboxLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, pagination?: ?Pagination, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type GetInboxAndUnboxUILocalRes = $ReadOnly<{conversations?: ?Array<InboxUIItem>, pagination?: ?Pagination, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type GetInboxByTLFIDRemoteRes = $ReadOnly<{convs?: ?Array<Conversation>, rateLimit?: ?RateLimit}>
-
 export type GetInboxLocalQuery = $ReadOnly<{name?: ?NameQuery, topicName?: ?String, convIDs?: ?Array<ConversationID>, topicType?: ?TopicType, tlfVisibility?: ?Keybase1.TLFVisibility, before?: ?Gregor1.Time, after?: ?Gregor1.Time, oneChatTypePerTLF?: ?Boolean, status?: ?Array<ConversationStatus>, unreadOnly: Boolean, readOnly: Boolean, computeActiveList: Boolean}>
-
 export type GetInboxLocalRes = $ReadOnly<{conversationsUnverified?: ?Array<Conversation>, pagination?: ?Pagination, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type GetInboxQuery = $ReadOnly<{convID?: ?ConversationID, topicType?: ?TopicType, tlfID?: ?TLFID, tlfVisibility?: ?Keybase1.TLFVisibility, before?: ?Gregor1.Time, after?: ?Gregor1.Time, oneChatTypePerTLF?: ?Boolean, status?: ?Array<ConversationStatus>, memberStatus?: ?Array<ConversationMemberStatus>, existences?: ?Array<ConversationExistence>, membersTypes?: ?Array<ConversationMembersType>, convIDs?: ?Array<ConversationID>, unreadOnly: Boolean, readOnly: Boolean, computeActiveList: Boolean, summarizeMaxMsgs: Boolean}>
-
 export type GetInboxRemoteRes = $ReadOnly<{inbox: InboxView, rateLimit?: ?RateLimit}>
-
 export type GetInboxSummaryForCLILocalQuery = $ReadOnly<{topicType: TopicType, after: String, before: String, visibility: Keybase1.TLFVisibility, status?: ?Array<ConversationStatus>, unreadFirst: Boolean, unreadFirstLimit: UnreadFirstNumLimit, activitySortedLimit: Int}>
-
 export type GetInboxSummaryForCLILocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, offline: Boolean, rateLimits?: ?Array<RateLimit>}>
-
 export type GetMessageBeforeRes = $ReadOnly<{msgID: MessageID, rateLimit?: ?RateLimit}>
-
 export type GetMessagesLocalRes = $ReadOnly<{messages?: ?Array<MessageUnboxed>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type GetMessagesRemoteRes = $ReadOnly<{msgs?: ?Array<MessageBoxed>, rateLimit?: ?RateLimit}>
-
 export type GetPublicConversationsRes = $ReadOnly<{conversations?: ?Array<Conversation>, rateLimit?: ?RateLimit}>
-
 export type GetSearchRegexpRes = $ReadOnly<{hits?: ?Array<ChatSearchHit>, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type GetTLFConversationsLocalRes = $ReadOnly<{convs?: ?Array<InboxUIItem>, offline: Boolean, rateLimits?: ?Array<RateLimit>}>
-
 export type GetTLFConversationsRes = $ReadOnly<{conversations?: ?Array<Conversation>, rateLimit?: ?RateLimit}>
-
 export type GetThreadLocalRes = $ReadOnly<{thread: ThreadView, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type GetThreadNonblockCbMode =
   | 0 // FULL_0
   | 1 // INCREMENTAL_1
@@ -568,26 +449,18 @@ export type GetThreadNonblockReason =
   | 2 // FOREGROUND_2
 
 export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
-
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
-
 export type GlobalAppNotificationSetting =
   | 0 // NEWMESSAGES_0
   | 1 // PLAINTEXTMOBILE_1
   | 2 // PLAINTEXTDESKTOP_2
 
 export type GlobalAppNotificationSettings = $ReadOnly<{settings: {[key: string]: Bool}}>
-
 export type Hash = Bytes
-
 export type HeaderPlaintext = {version: 1, v1: ?HeaderPlaintextV1} | {version: 2, v2: ?HeaderPlaintextUnsupported} | {version: 3, v3: ?HeaderPlaintextUnsupported} | {version: 4, v4: ?HeaderPlaintextUnsupported} | {version: 5, v5: ?HeaderPlaintextUnsupported} | {version: 6, v6: ?HeaderPlaintextUnsupported} | {version: 7, v7: ?HeaderPlaintextUnsupported} | {version: 8, v8: ?HeaderPlaintextUnsupported} | {version: 9, v9: ?HeaderPlaintextUnsupported} | {version: 10, v10: ?HeaderPlaintextUnsupported}
-
 export type HeaderPlaintextMetaInfo = $ReadOnly<{crit: Boolean}>
-
 export type HeaderPlaintextUnsupported = $ReadOnly<{mi: HeaderPlaintextMetaInfo}>
-
 export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot, ephemeralMetadata?: ?MsgEphemeralMetadata}>
-
 export type HeaderPlaintextVersion =
   | 1 // V1_1
   | 2 // V2_2
@@ -605,151 +478,78 @@ export type InboxResType =
   | 1 // FULL_1
 
 export type InboxUIItem = $ReadOnly<{convID: String, isEmpty: Boolean, name: String, snippet: String, channel: String, headline: String, visibility: Keybase1.TLFVisibility, participants?: ?Array<String>, fullNames: {[key: string]: String}, resetParticipants?: ?Array<String>, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, time: Gregor1.Time, notifications?: ?ConversationNotificationInfo, creatorInfo?: ?ConversationCreatorInfoLocal, version: ConversationVers, maxMsgID: MessageID, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
-
 export type InboxUIItemError = $ReadOnly<{typ: ConversationErrorType, message: String, unverifiedTLFName: String, rekeyInfo?: ?ConversationErrorRekey, remoteConv: UnverifiedInboxUIItem}>
-
 export type InboxUIItems = $ReadOnly<{items?: ?Array<InboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
-
 export type InboxVers = Uint64
-
 export type InboxVersInfo = $ReadOnly<{uid: Gregor1.UID, vers: InboxVers}>
-
 export type InboxView = {rtype: 0} | {rtype: 1, full: ?InboxViewFull}
-
 export type InboxViewFull = $ReadOnly<{vers: InboxVers, conversations?: ?Array<Conversation>, pagination?: ?Pagination}>
-
 export type IncomingMessage = $ReadOnly<{message: UIMessage, convID: ConversationID, displayDesktopNotification: Boolean, desktopNotificationSnippet: String, conv?: ?InboxUIItem, pagination?: ?UIPagination}>
-
 export type JoinLeaveConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
-
 export type JoinLeaveConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
-
 export type KBFSImpteamUpgradeUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers}>
-
 export type LocalAddTeamMemberAfterResetRpcParam = $ReadOnly<{username: String, convID: ConversationID}>
-
 export type LocalCancelPostRpcParam = $ReadOnly<{outboxID: OutboxID}>
-
 export type LocalDeleteConversationLocalRpcParam = $ReadOnly<{convID: ConversationID, channelName: String, confirmed: Boolean}>
-
 export type LocalDownloadAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageID: MessageID, sink: Keybase1.Stream, preview: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalDownloadFileAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageID: MessageID, filename: String, preview: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalFileSource = $ReadOnly<{filename: String}>
-
 export type LocalFindConversationsLocalRpcParam = $ReadOnly<{tlfName: String, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, topicType: TopicType, topicName: String, oneChatPerTLF?: ?Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalGenerateOutboxIDRpcParam = void
-
 export type LocalGetCachedThreadRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalGetConversationForCLILocalRpcParam = $ReadOnly<{query: GetConversationForCLILocalQuery}>
-
 export type LocalGetGlobalAppNotificationSettingsLocalRpcParam = void
-
 export type LocalGetInboxAndUnboxLocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalGetInboxAndUnboxUILocalRpcParam = $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalGetInboxNonblockLocalRpcParam = $ReadOnly<{maxUnbox?: ?Int, skipUnverified: Boolean, query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalGetInboxSummaryForCLILocalRpcParam = $ReadOnly<{query: GetInboxSummaryForCLILocalQuery}>
-
 export type LocalGetMessagesLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, disableResolveSupersedes: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, isRegex: Boolean, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType}>
-
 export type LocalGetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID}>
-
 export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadNonblockReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalJoinConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID}>
-
 export type LocalJoinConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, visibility: Keybase1.TLFVisibility, topicName: String}>
-
 export type LocalLeaveConversationLocalRpcParam = $ReadOnly<{convID: ConversationID}>
-
 export type LocalMakePreviewRpcParam = $ReadOnly<{attachment: LocalFileSource, outputDir: String}>
-
 export type LocalMarkAsReadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, msgID: MessageID}>
-
 export type LocalNewConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, tlfVisibility: Keybase1.TLFVisibility, topicName?: ?String, membersType: ConversationMembersType, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec}>
-
 export type LocalPostDeleteHistoryByAgeRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec}>
-
 export type LocalPostDeleteHistoryThroughRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, through: MessageID}>
-
 export type LocalPostDeleteHistoryUptoRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, upto: MessageID}>
-
 export type LocalPostDeleteNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalPostEditNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalPostFileAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalFileSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec}>
-
 export type LocalPostHeadlineNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalPostHeadlineRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalPostLocalNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, msg: MessagePlaintext, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalPostLocalRpcParam = $ReadOnly<{conversationID: ConversationID, msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalPostMetadataNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalPostMetadataRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalPostTextNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec}>
-
 export type LocalPreviewConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID}>
-
 export type LocalRetryPostRpcParam = $ReadOnly<{outboxID: OutboxID, identifyBehavior?: ?Keybase1.TLFIdentifyBehavior}>
-
 export type LocalSetAppNotificationSettingsLocalRpcParam = $ReadOnly<{convID: ConversationID, channelWide: Boolean, settings?: ?Array<AppNotificationSettingLocal>}>
-
 export type LocalSetConvRetentionLocalRpcParam = $ReadOnly<{convID: ConversationID, policy: RetentionPolicy}>
-
 export type LocalSetConversationStatusLocalRpcParam = $ReadOnly<{conversationID: ConversationID, status: ConversationStatus, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-
 export type LocalSetGlobalAppNotificationSettingsLocalRpcParam = $ReadOnly<{settings: {[key: string]: Bool}}>
-
 export type LocalSetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, policy: RetentionPolicy}>
-
 export type LocalSource = $ReadOnly<{source: Keybase1.Stream, filename: String, size: Int}>
-
 export type LocalUnboxMobilePushNotificationRpcParam = $ReadOnly<{payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>}>
-
 export type LocalUpdateTypingRpcParam = $ReadOnly<{conversationID: ConversationID, typing: Boolean}>
-
 export type LocalUpgradeKBFSConversationToImpteamRpcParam = $ReadOnly<{convID: ConversationID}>
-
 export type MakePreviewRes = $ReadOnly<{mimeType: String, filename?: ?String, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
-
 export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
-
 export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
-
 export type MemberInfo = $ReadOnly<{member: String, status: ConversationMemberStatus}>
-
 export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, members?: ?Array<MemberInfo>}>
-
 export type MerkleRoot = $ReadOnly<{seqno: Long, hash: Bytes}>
-
 export type MessageAttachment = $ReadOnly<{object: Asset, preview?: ?Asset, previews?: ?Array<Asset>, metadata: Bytes, uploaded: Boolean}>
-
 export type MessageAttachmentUploaded = $ReadOnly<{messageID: MessageID, object: Asset, previews?: ?Array<Asset>, metadata: Bytes}>
-
 export type MessageBody = {messageType: 1, text: ?MessageText} | {messageType: 2, attachment: ?MessageAttachment} | {messageType: 3, edit: ?MessageEdit} | {messageType: 4, delete: ?MessageDelete} | {messageType: 5, metadata: ?MessageConversationMetadata} | {messageType: 7, headline: ?MessageHeadline} | {messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded} | {messageType: 9, join: ?MessageJoin} | {messageType: 10, leave: ?MessageLeave} | {messageType: 11, system: ?MessageSystem} | {messageType: 12, deletehistory: ?MessageDeleteHistory}
-
 export type MessageBoxed = $ReadOnly<{version: MessageBoxedVersion, serverHeader?: ?MessageServerHeader, clientHeader: MessageClientHeader, headerCiphertext: SealedData, bodyCiphertext: EncryptedData, verifyKey: Bytes, keyGeneration: Int}>
-
 export type MessageBoxedVersion =
   | 0 // VNONE_0
   | 1 // V1_1
@@ -757,49 +557,27 @@ export type MessageBoxedVersion =
   | 3 // V3_3
 
 export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata}>
-
 export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata, rtime: Gregor1.Time}>
-
 export type MessageConversationMetadata = $ReadOnly<{conversationTitle: String}>
-
 export type MessageDelete = $ReadOnly<{messageIDs?: ?Array<MessageID>}>
-
 export type MessageDeleteHistory = $ReadOnly<{upto: MessageID}>
-
 export type MessageEdit = $ReadOnly<{messageID: MessageID, body: String}>
-
 export type MessageHeadline = $ReadOnly<{headline: String}>
-
 export type MessageID = Uint
-
 export type MessageIDControl = $ReadOnly<{pivot?: ?MessageID, recent: Boolean, num: Int}>
-
 export type MessageJoin = $ReadOnly<{}>
-
 export type MessageLeave = $ReadOnly<{}>
-
 export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, messageBody: MessageBody}>
-
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
-
 export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, ctime: Gregor1.Time, now: Gregor1.Time}>
-
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
-
 export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar}
-
 export type MessageSystemAddedToTeam = $ReadOnly<{team: String, adder: String, addee: String, owners?: ?Array<String>, admins?: ?Array<String>, writers?: ?Array<String>, readers?: ?Array<String>}>
-
 export type MessageSystemChangeAvatar = $ReadOnly<{team: String, user: String}>
-
 export type MessageSystemComplexTeam = $ReadOnly<{team: String}>
-
 export type MessageSystemCreateTeam = $ReadOnly<{team: String, creator: String}>
-
 export type MessageSystemGitPush = $ReadOnly<{team: String, pusher: String, repoName: String, repoID: Keybase1.RepoID, refs?: ?Array<Keybase1.GitRefMetadata>, pushType: Keybase1.GitPushType, previousRepoName: String}>
-
 export type MessageSystemInviteAddedToTeam = $ReadOnly<{team: String, inviter: String, invitee: String, adder: String, inviteType: Keybase1.TeamInviteCategory}>
-
 export type MessageSystemType =
   | 0 // ADDEDTOTEAM_0
   | 1 // INVITEADDEDTOTEAM_1
@@ -809,7 +587,6 @@ export type MessageSystemType =
   | 5 // CHANGEAVATAR_5
 
 export type MessageText = $ReadOnly<{body: String}>
-
 export type MessageType =
   | 0 // NONE_0
   | 1 // TEXT_1
@@ -826,9 +603,7 @@ export type MessageType =
   | 12 // DELETEHISTORY_12
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
-
 export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
-
 export type MessageUnboxedErrorType =
   | 0 // MISC_0
   | 1 // BADVERSION_CRITICAL_1
@@ -837,7 +612,6 @@ export type MessageUnboxedErrorType =
   | 4 // EPHEMERAL_4
 
 export type MessageUnboxedPlaceholder = $ReadOnly<{messageID: MessageID, hidden: Boolean}>
-
 export type MessageUnboxedState =
   | 1 // VALID_1
   | 2 // ERROR_2
@@ -845,57 +619,33 @@ export type MessageUnboxedState =
   | 4 // PLACEHOLDER_4
 
 export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>}>
-
 export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration, explodedBy?: ?String}>
-
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
-
 export type NewConversationInfo = $ReadOnly<{convID: ConversationID, conv?: ?InboxUIItem}>
-
 export type NewConversationLocalRes = $ReadOnly<{conv: ConversationLocal, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type NewConversationPayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate}>
-
 export type NewConversationRemoteRes = $ReadOnly<{convID: ConversationID, createdComplexTeam: Boolean, rateLimit?: ?RateLimit}>
-
 export type NewMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, message: MessageBoxed, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate, maxMsgs?: ?Array<MessageSummary>}>
-
 export type NonblockFetchRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type NotificationKind =
   | 0 // GENERIC_0
   | 1 // ATMENTION_1
 
 export type NotifyChatChatIdentifyUpdateRpcParam = $ReadOnly<{update: Keybase1.CanonicalTLFNameAndIDWithBreaks}>
-
 export type NotifyChatChatInboxStaleRpcParam = $ReadOnly<{uid: Keybase1.UID}>
-
 export type NotifyChatChatInboxSyncStartedRpcParam = $ReadOnly<{uid: Keybase1.UID}>
-
 export type NotifyChatChatInboxSyncedRpcParam = $ReadOnly<{uid: Keybase1.UID, syncRes: ChatSyncResult}>
-
 export type NotifyChatChatJoinedConversationRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem}>
-
 export type NotifyChatChatKBFSToImpteamUpgradeRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>
-
 export type NotifyChatChatLeftConversationRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>
-
 export type NotifyChatChatResetConversationRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>
-
 export type NotifyChatChatSetConvRetentionRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem}>
-
 export type NotifyChatChatSetTeamRetentionRpcParam = $ReadOnly<{uid: Keybase1.UID, teamID: Keybase1.TeamID, convs?: ?Array<InboxUIItem>}>
-
 export type NotifyChatChatTLFFinalizeRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, finalizeInfo: ConversationFinalizeInfo, conv?: ?InboxUIItem}>
-
 export type NotifyChatChatTLFResolveRpcParam = $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, resolveInfo: ConversationResolveInfo}>
-
 export type NotifyChatChatThreadsStaleRpcParam = $ReadOnly<{uid: Keybase1.UID, updates?: ?Array<ConversationStaleUpdate>}>
-
 export type NotifyChatChatTypingUpdateRpcParam = $ReadOnly<{typingUpdates?: ?Array<ConvTypingUpdate>}>
-
 export type NotifyChatNewChatActivityRpcParam = $ReadOnly<{uid: Keybase1.UID, activity: ChatActivity}>
-
 export type OutboxErrorType =
   | 0 // MISC_0
   | 1 // OFFLINE_1
@@ -905,107 +655,58 @@ export type OutboxErrorType =
   | 5 // EXPIRED_5
 
 export type OutboxID = Bytes
-
 export type OutboxInfo = $ReadOnly<{prev: MessageID, composeTime: Gregor1.Time}>
-
 export type OutboxRecord = $ReadOnly<{state: OutboxState, outboxID: OutboxID, convID: ConversationID, ctime: Gregor1.Time, Msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior, ordinal: Int}>
-
 export type OutboxState = {state: 0, sending: ?Int} | {state: 1, error: ?OutboxStateError}
-
 export type OutboxStateError = $ReadOnly<{message: String, typ: OutboxErrorType}>
-
 export type OutboxStateType =
   | 0 // SENDING_0
   | 1 // ERROR_1
 
 export type Pagination = $ReadOnly<{next: Bytes, previous: Bytes, num: Int, last: Boolean}>
-
 export type PostLocalNonblockRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, outboxID: OutboxID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type PostLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, messageID: MessageID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type PostRemoteRes = $ReadOnly<{msgHeader: MessageServerHeader, rateLimit?: ?RateLimit}>
-
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
-
 export type ReadMessageInfo = $ReadOnly<{convID: ConversationID, msgID: MessageID, conv?: ?InboxUIItem}>
-
 export type ReadMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, msgID: MessageID, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate}>
-
 export type RemoteDeleteConversationRpcParam = $ReadOnly<{convID: ConversationID}>
-
 export type RemoteGetGlobalAppNotificationSettingsRpcParam = void
-
 export type RemoteGetInboxRemoteRpcParam = $ReadOnly<{vers: InboxVers, query?: ?GetInboxQuery, pagination?: ?Pagination}>
-
 export type RemoteGetInboxVersionRpcParam = $ReadOnly<{uid: Gregor1.UID}>
-
 export type RemoteGetMessageBeforeRpcParam = $ReadOnly<{convID: ConversationID, age: Gregor1.DurationSec}>
-
 export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>}>
-
 export type RemoteGetPublicConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean}>
-
 export type RemoteGetS3ParamsRpcParam = $ReadOnly<{conversationID: ConversationID}>
-
 export type RemoteGetTLFConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean}>
-
 export type RemoteGetThreadRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination}>
-
 export type RemoteGetUnreadUpdateFullRpcParam = $ReadOnly<{inboxVers: InboxVers}>
-
 export type RemoteJoinConversationRpcParam = $ReadOnly<{convID: ConversationID}>
-
 export type RemoteLeaveConversationRpcParam = $ReadOnly<{convID: ConversationID}>
-
 export type RemoteMarkAsReadRpcParam = $ReadOnly<{conversationID: ConversationID, msgID: MessageID}>
-
 export type RemoteNewConversationRemote2RpcParam = $ReadOnly<{idTriple: ConversationIDTriple, TLFMessage: MessageBoxed, membersType: ConversationMembersType, topicNameState?: ?TopicNameState}>
-
 export type RemoteNewConversationRemoteRpcParam = $ReadOnly<{idTriple: ConversationIDTriple}>
-
 export type RemotePostRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageBoxed: MessageBoxed, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, topicNameState?: ?TopicNameState}>
-
 export type RemotePreviewConversationRpcParam = $ReadOnly<{convID: ConversationID}>
-
 export type RemotePublishReadMessageRpcParam = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID, msgID: MessageID}>
-
 export type RemotePublishSetConversationStatusRpcParam = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID, status: ConversationStatus}>
-
 export type RemoteRemoteNotificationSuccessfulRpcParam = $ReadOnly<{authToken: Gregor1.SessionToken, companionPushIDs?: ?Array<String>}>
-
 export type RemoteRetentionSweepConvRpcParam = $ReadOnly<{convID: ConversationID}>
-
 export type RemoteS3SignRpcParam = $ReadOnly<{version: Int, payload: Bytes}>
-
 export type RemoteSetAppNotificationSettingsRpcParam = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>
-
 export type RemoteSetConvRetentionRpcParam = $ReadOnly<{convID: ConversationID, policy: RetentionPolicy, sweepChannel: Uint64}>
-
 export type RemoteSetConversationStatusRpcParam = $ReadOnly<{conversationID: ConversationID, status: ConversationStatus}>
-
 export type RemoteSetGlobalAppNotificationSettingsRpcParam = $ReadOnly<{settings: GlobalAppNotificationSettings}>
-
 export type RemoteSetTeamRetentionRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, policy: RetentionPolicy, sweepChannel: Uint64}>
-
 export type RemoteSyncAllRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, session: Gregor1.SessionToken, inboxVers: InboxVers, ctime: Gregor1.Time, fresh: Boolean, protVers: SyncAllProtVers, hostName: String}>
-
 export type RemoteSyncChatRpcParam = $ReadOnly<{vers: InboxVers}>
-
 export type RemoteSyncInboxRpcParam = $ReadOnly<{vers: InboxVers}>
-
 export type RemoteTlfFinalizeRpcParam = $ReadOnly<{tlfID: TLFID, resetUser: String, resetDate: String, resetTimestamp: Gregor1.Time, resetFull: String, resetUID?: ?Keybase1.UID}>
-
 export type RemoteTlfResolveRpcParam = $ReadOnly<{tlfID: TLFID, resolvedWriters?: ?Array<Gregor1.UID>, resolvedReaders?: ?Array<Gregor1.UID>}>
-
 export type RemoteUpdateTypingRemoteRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
-
 export type RemoteUpgradeKBFSToImpteamRpcParam = $ReadOnly<{tlfID: TLFID}>
-
 export type RemoteUserTypingUpdate = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
-
 export type RetentionPolicy = {typ: 1, retain: ?RpRetain} | {typ: 2, expire: ?RpExpire} | {typ: 3, inherit: ?RpInherit}
-
 export type RetentionPolicyType =
   | 0 // NONE_0
   | 1 // RETAIN_1
@@ -1013,51 +714,30 @@ export type RetentionPolicyType =
   | 3 // INHERIT_3
 
 export type RpExpire = $ReadOnly<{age: Gregor1.DurationSec}>
-
 export type RpInherit = $ReadOnly<{}>
-
 export type RpRetain = $ReadOnly<{}>
-
 export type S3Params = $ReadOnly<{bucket: String, objectKey: String, accessKey: String, acl: String, regionName: String, regionEndpoint: String, regionBucketEndpoint: String}>
-
 export type SealedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
-
 export type ServerCacheVers = $ReadOnly<{inboxVers: Int, bodiesVers: Int}>
-
 export type SetAppNotificationSettingsInfo = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>
-
 export type SetAppNotificationSettingsLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
-
 export type SetAppNotificationSettingsPayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, settings: ConversationNotificationInfo, unreadUpdate?: ?UnreadUpdate}>
-
 export type SetAppNotificationSettingsRes = $ReadOnly<{rateLimit?: ?RateLimit}>
-
 export type SetConvRetentionUpdate = $ReadOnly<{inboxVers: InboxVers, convID: ConversationID, policy: RetentionPolicy}>
-
 export type SetConversationStatusLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-
 export type SetConversationStatusRes = $ReadOnly<{rateLimit?: ?RateLimit}>
-
 export type SetRetentionRes = $ReadOnly<{rateLimit?: ?RateLimit}>
-
 export type SetStatusInfo = $ReadOnly<{convID: ConversationID, status: ConversationStatus, conv?: ?InboxUIItem}>
-
 export type SetStatusPayload = $ReadOnly<{Action: String, convID: ConversationID, status: ConversationStatus, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate}>
-
 export type SetTeamRetentionUpdate = $ReadOnly<{inboxVers: InboxVers, teamID: Keybase1.TeamID, policy: RetentionPolicy}>
-
 export type SignEncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
-
 export type SignatureInfo = $ReadOnly<{v: Int, s: Bytes, k: Bytes}>
-
 export type StaleUpdateType =
   | 0 // CLEAR_0
   | 1 // NEWACTIVITY_1
 
 export type SweepRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean, expunge: Expunge}>
-
 export type SyncAllNotificationRes = {typ: 0, state: ?Gregor1.State} | {typ: 1, incremental: ?Gregor1.SyncResult}
-
 export type SyncAllNotificationType =
   | 0 // STATE_0
   | 1 // INCREMENTAL_1
@@ -1067,47 +747,31 @@ export type SyncAllProtVers =
   | 1 // V1_1
 
 export type SyncAllResult = $ReadOnly<{auth: Gregor1.AuthResult, chat: SyncChatRes, notification: SyncAllNotificationRes, badge: UnreadUpdateFull}>
-
 export type SyncChatRes = $ReadOnly<{cacheVers: ServerCacheVers, inboxRes: SyncInboxRes}>
-
 export type SyncInboxRes = {typ: 0} | {typ: 1, incremental: ?SyncIncrementalRes} | {typ: 2}
-
 export type SyncInboxResType =
   | 0 // CURRENT_0
   | 1 // INCREMENTAL_1
   | 2 // CLEAR_2
 
 export type SyncIncrementalRes = $ReadOnly<{vers: InboxVers, convs?: ?Array<Conversation>}>
-
 export type TLFConvOrdinal = Uint
-
 export type TLFFinalizeUpdate = $ReadOnly<{finalizeInfo: ConversationFinalizeInfo, convIDs?: ?Array<ConversationID>, inboxVers: InboxVers}>
-
 export type TLFID = Bytes
-
 export type TLFResolveUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers}>
-
 export type TeamChannelUpdate = $ReadOnly<{teamID: TLFID}>
-
 export type TeamType =
   | 0 // NONE_0
   | 1 // SIMPLE_1
   | 2 // COMPLEX_2
 
 export type TeamTypeInfo = $ReadOnly<{convID: ConversationID, teamType: TeamType, conv?: ?InboxUIItem}>
-
 export type TeamTypePayload = $ReadOnly<{Action: String, convID: ConversationID, teamType: TeamType, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate}>
-
 export type ThreadID = Bytes
-
 export type ThreadView = $ReadOnly<{messages?: ?Array<MessageUnboxed>, pagination?: ?Pagination}>
-
 export type ThreadViewBoxed = $ReadOnly<{messages?: ?Array<MessageBoxed>, pagination?: ?Pagination}>
-
 export type TopicID = Bytes
-
 export type TopicNameState = Bytes
-
 export type TopicType =
   | 0 // NONE_0
   | 1 // CHAT_1
@@ -1115,33 +779,19 @@ export type TopicType =
   | 3 // KBFSFILEEDIT_3
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
-
 export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, mimeType: String}>
-
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
-
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
-
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
-
 export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time}>
-
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
-
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
-
 export type UnreadFirstNumLimit = $ReadOnly<{NumRead: Int, AtLeast: Int, AtMost: Int}>
-
 export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, compatUnreadMessages: Int, diff: Boolean}>
-
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
-
 export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, name: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, notifications?: ?ConversationNotificationInfo, time: Gregor1.Time, version: ConversationVers, maxMsgID: MessageID, localMetadata?: ?UnverifiedInboxUIItemMetadata, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
-
 export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, headline: String, snippet: String, writerNames?: ?Array<String>, resetParticipants?: ?Array<String>}>
-
 export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
-
 export type UpdateConversationMembership = $ReadOnly<{inboxVers: InboxVers, joined?: ?Array<ConversationMember>, removed?: ?Array<ConversationMember>, reset?: ?Array<ConversationMember>, previewed?: ?Array<ConversationID>, unreadUpdate?: ?UnreadUpdate, unreadUpdates?: ?Array<UnreadUpdate>}>
 type ChatUiChatConfirmChannelDeleteResult = Boolean
 type LocalDeleteConversationLocalResult = DeleteConversationLocalRes
