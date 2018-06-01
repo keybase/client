@@ -32,10 +32,6 @@ class _CopyText extends React.Component<Props, State> {
   }
   _attachmentRef = null
 
-  componentDidMount() {
-    this.props.setTimeout(() => this.setState({showingToast: true}), 300)
-  }
-
   copy = () => {
     this.setState({showingToast: true}, () =>
       this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
@@ -51,7 +47,11 @@ class _CopyText extends React.Component<Props, State> {
         style={collapseStyles([styles.container, this.props.containerStyle])}
       >
         <Toast position="top center" attachTo={this._attachmentRef} visible={this.state.showingToast}>
-          <Text type="BodySmall" style={{color: globalColors.white}}>
+          {isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+          <Text
+            type={isMobile ? 'BodySmallSemibold' : 'BodySmall'}
+            style={{color: globalColors.white, paddingLeft: 10, paddingRight: 10}}
+          >
             Copied to clipboard
           </Text>
         </Toast>

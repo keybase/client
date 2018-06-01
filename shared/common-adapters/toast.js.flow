@@ -3,7 +3,7 @@ import * as React from 'react'
 import type {Position} from './relative-popup-hoc'
 import type {StylesCrossPlatform} from '../styles'
 
-type Props = {
+export type Props = {
   children: React.Node,
   containerStyle?: StylesCrossPlatform,
   visible: boolean,
