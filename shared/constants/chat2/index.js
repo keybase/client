@@ -12,6 +12,7 @@ import {
   pendingConversationIDKey,
   noConversationIDKey,
   pendingWaitingConversationIDKey,
+  isValidConversationIDKey,
 } from '../types/chat2/common'
 import {makeConversationMeta, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
@@ -28,6 +29,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   metaMap: I.Map([
     [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
   ]),
+  moreToLoadMap: I.Map(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
@@ -39,11 +41,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 // We stash the resolved pending conversation idkey into the meta itself
 export const getResolvedPendingConversationIDKey = (state: TypedState) =>
   getMeta(state, pendingConversationIDKey).conversationIDKey
-export const isValidConversationIDKey = (id: Types.ConversationIDKey) =>
-  id &&
-  id !== pendingConversationIDKey &&
-  id !== noConversationIDKey &&
-  id !== pendingWaitingConversationIDKey
 
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
@@ -190,4 +187,9 @@ export {
   upgradeMessage,
 } from './message'
 
-export {pendingConversationIDKey, noConversationIDKey, pendingWaitingConversationIDKey}
+export {
+  pendingConversationIDKey,
+  noConversationIDKey,
+  pendingWaitingConversationIDKey,
+  isValidConversationIDKey,
+}

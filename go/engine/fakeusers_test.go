@@ -4,9 +4,9 @@
 package engine
 
 import (
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string) {
@@ -52,24 +52,17 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	s := NewSignupEngine(tc.G, nil)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	f := func() error {
-		m = m.WithNewProvisionalLoginContext()
-		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
-			return err
-		}
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
-			return err
-		}
-
-		if err := s.fakeLKS(m); err != nil {
-			return err
-		}
-		m = m.CommitProvisionalLogin()
-		return nil
-	}
-	if err := f(); err != nil {
-		tc.T.Fatal(err)
-	}
+	// Keep this provisional login around indefinitely, since we're going to need it to
+	// post PGP keys below. This isn't a modern use for our software, but we have this code
+	// to emulate old accounts provisioned by deprecated login paths.
+	m = m.WithNewProvisionalLoginContext()
+	err := s.genPassphraseStream(m, fu.Passphrase)
+	require.NoError(t, err)
+	err = s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true)
+	require.NoError(t, err)
+	err = s.fakeLKS(m)
+	require.NoError(t, err)
+	m.Dump()
 
 	// Generate a new test PGP key for the user, and specify the PushSecret
 	// flag so that their triplesec'ed key is pushed to the server.
@@ -85,15 +78,10 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 		NoSave:     true,
 	})
 
-	if err := RunEngine2(m, peng); err != nil {
-		tc.T.Fatal(err)
-	}
-
-	var err error
-	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	err = RunEngine2(m, peng)
+	require.NoError(t, err)
+	fu.User, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
+	require.NoError(t, err)
 
 	return fu
 }

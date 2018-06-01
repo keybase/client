@@ -10,12 +10,27 @@ protocol merkle {
     Time fetchTime;  // when it was fetched from the server
   }
 
+  @typedef("bytes")
+  record KBFSRootHash {}
+
+  record KBFSRoot {
+    MerkleTreeID treeID;
+    KBFSRootHash root;
+  }
+
   /**
-   * getCurrentMerkleRoot gets the current-most Merkle root from the keybase server.
-   * The caller can specify how stale a result can be with freshnessMsec.
-   * If 0 is specified, then any amount of staleness is OK. If -1 is specified, then
-   * we force a GET and a round-trip.
+    GetCurrentMerkleRoot gets the current-most Merkle root from the keybase server.
+    The caller can specify how stale a result can be with freshnessMsec.
+    If 0 is specified, then any amount of staleness is OK. If -1 is specified, then
+    we force a GET and a round-trip.
    */
   MerkleRootAndTime getCurrentMerkleRoot(int freshnessMsec);
+
+  /**
+    VerifyMerkleRootAndKBFS checks that the given merkle root is indeed a valid
+    root of the keybase server's Merkle tree, and that the given KBFS root
+    is included in that global root.
+   */
+  void verifyMerkleRootAndKBFS(MerkleRootV2 root, KBFSRoot expectedKBFSRoot);
 }
 

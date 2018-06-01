@@ -223,7 +223,20 @@ const styles = styleSheetCreate({
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
   hasHeader: {paddingTop: 6},
   leftRightContainer: {...globalStyles.flexBoxRow, width: '100%'},
-  leftSide: {flexShrink: 0, marginLeft: 8, marginRight: 8, position: 'relative', width: 32},
+  leftSide: platformStyles({
+    common: {
+      flexShrink: 0,
+      marginRight: globalMargins.tiny,
+      position: 'relative',
+      width: 32,
+    },
+    isElectron: {
+      marginLeft: globalMargins.small,
+    },
+    isMobile: {
+      marginLeft: globalMargins.tiny,
+    },
+  }),
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
   rightSide: platformStyles({
     common: {

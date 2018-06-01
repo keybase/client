@@ -82,6 +82,15 @@ export function formatTimeForStellarTransaction(timestamp: Date) {
   }
 }
 
+export function formatTimeForStellarTransactionDetails(timestamp: Date) {
+  const m = moment(timestamp)
+  const human = m.format('ddd, MMM D YYYY - h:mm A') // Tue, May 22 2018 - 9:18 AM
+  return {
+    human,
+    tooltip: m.format(),
+  }
+}
+
 export function formatTimeForRevoked(time: number): string {
   const m = moment(time)
   return m.format('ddd MMM DD') // Wed Jan 5 2016

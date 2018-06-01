@@ -20,6 +20,7 @@ import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {stringToConversationIDKey} from '../constants/types/chat2'
+import {chosenChannelsGregorKey} from '../constants/teams'
 
 function isTlfItem(gItem: Types.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
@@ -143,7 +144,7 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
     yield Saga.put(TeamsGen.createSetTeamSawSubteamsBanner())
   }
 
-  const chosenChannels = items.find(i => i.item && i.item.category === 'chosenChannelsForTeam')
+  const chosenChannels = items.find(i => i.item && i.item.category === chosenChannelsGregorKey)
   const teamsWithChosenChannelsStr =
     chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
   const teamsWithChosenChannels = teamsWithChosenChannelsStr

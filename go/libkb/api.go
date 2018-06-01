@@ -475,31 +475,18 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 	return u
 }
 
-func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string, err error) {
+func (a *InternalAPIEngine) sessionArgs(m MetaContext, arg APIArg) (tok, csrf string, err error) {
 	if arg.SessionR != nil {
+		m.CDebugf("using args from SessionR")
 		tok, csrf = arg.SessionR.APIArgs()
 		return tok, csrf, nil
 	}
 
-	a.G().LoginState().Account(func(a *Account) {
-		// since a session is required, try to load one:
-		var in bool
-		in, err = a.LoggedInLoad()
-		if err != nil {
-			return
-		}
-		if !in {
-			err = LoginRequiredError{}
-			return
-		}
-		tok, csrf = a.LocalSession().APIArgs()
-	}, "sessionArgs")
-
-	if err != nil {
-		return "", "", err
+	if tok, csrf := m.ProvisionalSessionArgs(); len(tok) > 0 && len(csrf) > 0 {
+		m.CDebugf("using provisional session args")
+		return tok, csrf, nil
 	}
-
-	return tok, csrf, nil
+	return "", "", LoginRequiredError{"no sessionArgs available since no login path worked"}
 }
 
 func (a *InternalAPIEngine) isExternal() bool { return false }
@@ -606,7 +593,7 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 
 	} else if arg.SessionType != APISessionTypeNONE {
 		m.CDebugf("fixHeaders: falling back to legacy session management")
-		tok, csrf, err := a.sessionArgs(arg)
+		tok, csrf, err := a.sessionArgs(m, arg)
 		if err != nil {
 			if arg.SessionType == APISessionTypeREQUIRED {
 				m.CWarningf("fixHeaders: session required, but error getting sessionArgs: %s", err)
@@ -696,7 +683,7 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) erro
 	if arg.SessionR != nil {
 		loggedIn = arg.SessionR.IsLoggedIn()
 	} else {
-		loggedIn = a.G().LoginState().LoggedIn()
+		loggedIn = a.G().LoginStateDeprecated().LoggedIn()
 	}
 	if !loggedIn {
 		return nil
@@ -705,7 +692,7 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) erro
 	if arg.SessionR != nil {
 		arg.SessionR.Invalidate()
 	} else {
-		a.G().LoginState().LocalSession(func(s *Session) { s.Invalidate() }, "api - checkSessionExpired")
+		a.G().LoginStateDeprecated().LocalSession(func(s *Session) { s.Invalidate() }, "api - checkSessionExpired")
 	}
 
 	// use ReloginRequiredError to signal that the session needs to be refreshed
@@ -946,7 +933,7 @@ func (a *InternalAPIEngine) refreshSession(m MetaContext, arg APIArg, reqErr err
 	}
 
 	username := m.G().Env.GetUsername()
-	if err := m.G().LoginState().LoginWithStoredSecret(m, username.String(), nil); err != nil {
+	if err := m.G().LoginStateDeprecated().LoginWithStoredSecret(m, username.String(), nil); err != nil {
 		m.CDebugf("| API call %s session refresh error: %s", arg.Endpoint, err)
 		return LoginRequiredError{Context: "your session has expired"}
 

@@ -56,6 +56,9 @@ protocol local {
   UserSettings getUserSettingsLocal(int sessionID);
   void setAcceptedDisclaimerLocal(int sessionID); 
 
+  string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);
+  SecretKey getWalletAccountSecretKeyLocal(int sessionID, AccountID accountID);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
