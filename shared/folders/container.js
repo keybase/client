@@ -1,5 +1,5 @@
 // @flow
-import {isLinux} from '../constants/platform'
+import {isLinux, isWindows} from '../constants/platform'
 import Folders, {type FolderType} from '.'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
@@ -14,7 +14,10 @@ type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {selected: FolderType}
 
 const mapStateToProps = (state: TypedState, {routeState, selected}: OwnProps) => {
-  const installed = isLinux || (state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
+  // on Windows, check that the driver is up to date too
+  const installed = isLinux ||
+    (state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted &&
+    !(isWindows && state.favorite.fuseStatus.installAction === 2))
   return {
     ...((state.favorite && state.favorite.folderState) || {}),
     installed,
