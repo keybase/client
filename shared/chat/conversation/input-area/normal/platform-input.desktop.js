@@ -2,7 +2,7 @@
 /* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, styleSheetCreate} from '../../../../styles'
+import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
@@ -299,19 +299,20 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                 />
               )}
             {flags.explodingMessagesEnabled && (
-              <Box
+              <HoverBox
                 onClick={this.props.toggleShowingMenu}
                 ref={this.props.setAttachmentRef}
                 style={styles.explodingIconContainer}
               >
                 <Icon
+                  className="bomb"
                   color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
                   onClick={this.props.toggleShowingMenu}
                   style={styleIcon}
                   type="iconfont-bomb"
                 />
                 <ExplodingMeta explodingModeSeconds={this.props.explodingModeSeconds} />
-              </Box>
+              </HoverBox>
             )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
@@ -449,8 +450,18 @@ const styleFooter = {
 
 const styles = styleSheetCreate({
   explodingIconContainer: {
-    marginRight: globalMargins.small + 4,
-    position: 'relative',
+    ...globalStyles.flexBoxRow,
+    alignItems: 'stretch',
+    alignSelf: 'flex-end',
+    justifyContent: 'flex-start',
+    marginRight: 8,
+    marginTop: 13,
+  },
+})
+
+const HoverBox = glamorous(Box)({
+  ':hover .bomb': {
+    color: globalColors.black_75,
   },
 })
 
