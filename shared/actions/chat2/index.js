@@ -1181,10 +1181,7 @@ const previewConversationAfterFindExisting = (
     const isTeam = action.type === Chat2Gen.findAndPreviewConversation && action.payload.teamname
     // If we get a conversationIDKey we don't know about (maybe an empty convo) lets treat it as not being found so we can go through the create flow
     // if it's a team avoid the flow and just preview & select the channel
-    if (
-      !isTeam &&
-      Constants.getMeta(state, existingConversationIDKey).conversationIDKey === Constants.noConversationIDKey
-    ) {
+    if (!isTeam && !Constants.maybeGetMeta(state, existingConversationIDKey)) {
       existingConversationIDKey = Constants.noConversationIDKey
     }
   }
@@ -1287,11 +1284,15 @@ const selectOrPreviewTeamConversation = (
   if (conversationIDKey === Constants.noConversationIDKey) {
     throw new Error('Tried to preview a non-existent channel?')
   }
-  // TODO: Skip RPC if we already have a row for the channel.
+  // No need for an RPC if we already have the conversation.
+  const previewCall = Constants.maybeGetMeta(state, conversationIDKey)
+    ? null
+    : Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
+        convID: Types.keyToConversationID(conversationIDKey),
+      })
+
   return Saga.sequentially([
-    Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
-      convID: Types.keyToConversationID(conversationIDKey),
-    }),
+    previewCall,
     Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: conversationIDKey,

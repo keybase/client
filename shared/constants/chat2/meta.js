@@ -281,6 +281,8 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   wasFinalizedBy: '',
 })
 
+export const maybeGetMeta = (state: TypedState, id: Types.ConversationIDKey) => state.chat2.metaMap.get(id)
+
 const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)

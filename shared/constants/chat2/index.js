@@ -165,6 +165,7 @@ export const makeInboxQuery = (
 
 export {
   getConversationIDKeyMetasToLoad,
+  maybeGetMeta,
   getMeta,
   getRowParticipants,
   getRowStyles,
