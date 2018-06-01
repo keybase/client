@@ -77,7 +77,7 @@ func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGenera
 
 	// We don't have anything in our cache, fetch from the server
 	s.Unlock() // release the lock while we fetch
-	return s.fetchAndPut(ctx, generation)
+	return s.fetchAndStore(ctx, generation)
 }
 
 type UserEKBoxedResponse struct {
@@ -88,8 +88,8 @@ type UserEKBoxedResponse struct {
 	} `json:"result"`
 }
 
-func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("UserEKBoxStorage#fetchAndPut: generation: %v", generation), func() error { return err })()
+func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("UserEKBoxStorage#fetchAndStore: generation: %v", generation), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek_box",
@@ -116,25 +116,17 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 		return userEK, newEKMissingBoxErr(UserEKStr, generation)
 	}
 
-	// Before we store anything, let's verify that the server returned
-	// signature is valid and the KID it has signed matches the boxed seed.
-	// Otherwise something's fishy..
-	userEKStatement, _, wrongKID, err := verifySigWithLatestPUK(ctx, s.G(), s.G().Env.GetUID(), result.Result.Sig)
-
-	// Check the wrongKID condition before checking the error, since an error
-	// is still returned in this case. TODO: Turn this warning into an error
-	// after EK support is sufficiently widespread.
-	if wrongKID {
-		s.G().Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
-		return userEK, nil
-	}
+	// Although we verify the signature is valid, it's possible that this key
+	// was signed with a PUK that is not our latest and greatest. We allow this
+	// when we are using this ek for *decryption*. When getting a key for
+	// *encryption* callers are responsible for verifying the signature is
+	// signed by the latest PUK or generating a new EK. This logic currently
+	// lives in ephemeral/lib.go#KeygenIfNeeded (#newUserEKNeeded)
+	_, userEKStatement, err := extractUserEKStatementFromSig(result.Result.Sig)
 	if err != nil {
 		return userEK, err
-	}
-
-	if userEKStatement == nil { // shouldn't happen
-		s.G().Log.CDebugf(ctx, "No error but got nil userEKStatement")
-		return userEK, err
+	} else if userEKStatement == nil { // shouldn't happen
+		return userEK, fmt.Errorf("unable to fetch valid userEKStatement")
 	}
 
 	userEKMetadata := userEKStatement.CurrentUserEkMetadata

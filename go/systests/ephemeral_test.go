@@ -266,6 +266,9 @@ func TestRotateSkipTeamEKRoll(t *testing.T) {
 	annG.SetEKLib(ekLib)
 
 	// After rotating, ensure we can create a new TeamEK without issue.
+	needed, err := ekLib.NewTeamEKNeeded(context.Background(), teamID)
+	require.NoError(t, err)
+	require.True(t, needed)
 	merkleRoot, err := ann.tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	metadata, err := ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), ann.tc.G, teamID, *merkleRoot)
