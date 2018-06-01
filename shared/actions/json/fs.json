@@ -97,6 +97,10 @@
       "path": "Types.Path",
       "errorText": "string"
     },
+    "newFolderRow": {
+      "parentPath": "Types.Path"
+    },
+
     "share": {
       "path": "Types.Path",
       "routePath": "I.List<string>"

@@ -21,6 +21,18 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
+export const makeNewPathItem: I.RecordFactory<Types._NewPathItem> = I.Record({
+  type: 'new-folder',
+  status: 'editing',
+  name: 'New Folder',
+  lastModifiedTimestamp: Date.now(),
+
+  size: 0,
+  lastWriter: {uid: '', username: ''},
+  progress: 'pending',
+  badgeCount: 0,
+})
+
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   badgeCount: 0,
   name: 'unknown',
@@ -288,6 +300,7 @@ export const getItemStyles = (
 
   switch (type) {
     case 'folder':
+    case 'new-folder':
       return isPublic ? itemStylesPublicFolder : itemStylesPrivateFolder
     case 'file':
       // TODO: different file types

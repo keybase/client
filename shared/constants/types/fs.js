@@ -8,7 +8,9 @@ import {isWindows} from '../platform'
 
 export opaque type Path = ?string
 
-export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
+export type ExistingPathType = 'folder' | 'file' | 'symlink' | 'unknown'
+export type NewItemPathType = 'new-folder'
+export type PathType = ExistingPathType | NewItemPathType
 export type ProgressType = 'favorite' | 'pending' | 'loaded'
 
 export type Device = {
@@ -43,8 +45,10 @@ export type FavoriteItem = I.RecordOf<_FavoriteItem>
 export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
-  lastWriter: RPCTypes.User,
+
+  // Following fields are zero-value for new items.
   size: number,
+  lastWriter: RPCTypes.User,
   progress: ProgressType,
   badgeCount: number,
   tlfMeta?: FavoriteMetadata,
@@ -75,7 +79,14 @@ export type _UnknownPathItem = {
 } & PathItemMetadata
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
-export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
+export type PathItemEditingStatusType = 'editing' | 'saving' | 'failed'
+export type _NewPathItem = {
+  type: 'new-folder',
+  status: PathItemEditingStatusType,
+} & PathItemMetadata
+export type NewPathItem = I.RecordOf<_NewPathItem>
+
+export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem | NewPathItem
 
 export type SortBy = 'name' | 'time'
 export type SortOrder = 'asc' | 'desc'
@@ -207,6 +218,7 @@ export const stringToPathType = (s: string): PathType => {
     case 'file':
     case 'symlink':
     case 'unknown':
+    case 'new-folder':
       return s
     default:
       // We don't do a flow check here because by now flow knows that we can't
@@ -240,6 +252,10 @@ const _neutralComparer = (a: PathItem, b: PathItem): number => 0
 const _getMeFirstComparer = (meUsername: string): PathItemComparer =>
   _comparerFromLessThan((a: PathItem, b: PathItem): boolean => a.name === meUsername && b.name !== meUsername)
 
+const _newFolderFirstComparer: PathItemComparer = _comparerFromLessThan(
+  (a: PathItem, b: PathItem): boolean => a.type === 'new-folder' && b.type !== 'new-folder'
+)
+
 const _folderFirstComparer: PathItemComparer = _comparerFromLessThan(
   (a: PathItem, b: PathItem): boolean =>
     a.type === 'folder'
@@ -267,7 +283,11 @@ export const sortSettingToCompareFunction = (
   const sortByComparer = _getSortByComparer(sortBy)
   const multiplier = sortOrder === 'desc' ? -1 : 1
   return (a: PathItem, b: PathItem): number =>
-    multiplier * (meFirstComparer(a, b) || _folderFirstComparer(a, b) || sortByComparer(a, b))
+    multiplier *
+    (meFirstComparer(a, b) ||
+      _newFolderFirstComparer(a, b) ||
+      _folderFirstComparer(a, b) ||
+      sortByComparer(a, b))
 }
 type sortSettingDisplayParams = {
   sortSettingText: string,
