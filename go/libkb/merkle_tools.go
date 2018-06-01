@@ -71,9 +71,15 @@ func findFirstLeafWithChainSeqno(m MetaContext, id keybase1.UserOrTeamID, chainS
 		}
 		inc *= 2
 	}
+
 	if hi > last {
 		hi = last
 	}
+
+	if hi < chainSeqno {
+		return nil, nil, MerkleClientError{fmt.Sprintf("given chainSeqno %d is >= max root seqno %d", chainSeqno, hi), merkleErrorNotFound}
+	}
+
 	m.CDebugf("Stopped at hi bookend; binary searching in [%d,%d]", low, hi)
 
 	// Now binary search between prevRootSeqno and the hi we just got
