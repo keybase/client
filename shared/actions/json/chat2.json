@@ -54,8 +54,7 @@
     // Chatting from external places in the app should usually call this
     // If you already know the conversationID for a team channel, use previewKnownTeamConversation instead.
     "findAndPreviewConversation": {
-      "participants?": "Array<string>",
-      "teamname?": "string",
+      "participants": "Array<string>",
       "reason": [
         "'resetChatWithoutThem'",
         "'tracker'",
@@ -65,12 +64,18 @@
         "'fromAReset'",
         "'profile'",
         "'teamMember'",
-        "'teamHeader'",
-        "'convertAdHoc'",
         "'memberView'"
       ]
     },
-    
+    "findAndSelectTeamGeneral": {
+      "_description": "Find the #general channel for the given team, then select it.",
+      "teamname": "string",
+      "reason": [
+        "'files'",
+        "'teamHeader'",
+        "'convertAdHoc'"
+      ]
+    },    
     "selectOrPreviewTeamConversation": {
       "_description": "Select or preview an existing team conversation.",
       // Not strictly needed, but convenient to know when debugging.

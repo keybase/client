@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
     if (participants) {
       dispatch(Chat2Gen.createFindAndPreviewConversation({participants, reason: 'files'}))
     } else if (teamname) {
-      dispatch(Chat2Gen.createFindAndPreviewConversation({teamname, reason: 'files'}))
+      dispatch(Chat2Gen.createFindAndSelectTeamGeneral({teamname, reason: 'files'}))
     }
   },
   onClick: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),

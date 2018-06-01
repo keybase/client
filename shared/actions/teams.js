@@ -383,7 +383,7 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(Chat2Gen.createFindAndPreviewConversation({teamname, reason: 'convertAdHoc'}))
+      yield Saga.put(Chat2Gen.createFindAndSelectTeamGeneral({teamname, reason: 'convertAdHoc'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
