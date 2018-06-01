@@ -290,4 +290,9 @@ protocol SimpleFS {
    */
   @lint("ignore")
   SimpleFSGetHTTPAddressAndTokenResponse SimpleFSGetHTTPAddressAndToken();
+
+  /**
+   Make new folder(s).
+   */
+  void simpleFSMkdirAll(Path path);
 }

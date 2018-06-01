@@ -660,6 +660,16 @@
       "response": "SimpleFSGetHTTPAddressAndTokenResponse",
       "doc": "This RPC generates a random token to be used by a client that needs to\n   access KBFS content through HTTP. It's fine to call this RPC more than once,\n   but it's probably best to call this once and keep using it. Clients should\n   be using HTTP GET methods, with requests in the form of:\n\n     http://<address>/<kbfs_path>?token=<token>\n\n   If the provided token is invalid, 403 Forbidden is returned, with a HTML\n   document that has title of \"KBFS HTTP Token Invalid\". When receiving such\n   response, client should call this RPC (again) to get a new token.",
       "lint": "ignore"
+    },
+    "simpleFSMkdirAll": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Make new folder(s)."
     }
   },
   "namespace": "keybase.1"
