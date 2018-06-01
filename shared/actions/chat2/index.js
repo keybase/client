@@ -1332,7 +1332,7 @@ const changeSelectedConversation = (
               reason: 'setPendingMode',
             })
           ),
-          ...(isMobile ? [Saga.put(Chat2Gen.createNavigateToThread())] : []),
+          Saga.put(navigateToThreadRoute),
         ])
       } else if (isMobile) {
         return Saga.put(Chat2Gen.createNavigateToInbox())
@@ -1773,21 +1773,17 @@ const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.Leav
   }
   return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
 }
-const navigateToThread = (
-  action: Chat2Gen.NavigateToThreadPayload | Chat2Gen.PreviewConversationPayload,
-  state: TypedState
-) => {
-  if (action.type === Chat2Gen.navigateToThread) {
-    if (!isMobile && !Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
-      console.log('Skip nav to thread on invalid conversation')
-      return
-    }
+
+const navigateToThreadRoute = Route.navigateTo(
+  isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+)
+
+const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload, state: TypedState) => {
+  if (!isMobile && !Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
+    console.log('Skip nav to thread on invalid conversation')
+    return
   }
-  return Saga.put(
-    Route.navigateTo(
-      isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
-    )
-  )
+  return Saga.put(navigateToThreadRoute)
 }
 
 const mobileNavigateToThread = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
@@ -2101,7 +2097,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     )
   } else {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
-    yield Saga.safeTakeEveryPure(Chat2Gen.previewConversation, navigateToThread)
   }
 
   // Sometimes change the selection
