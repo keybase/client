@@ -1154,8 +1154,8 @@ const previewConversationAfterFindExisting = (
   if (!_fromPreviewConversation || _fromPreviewConversation.length !== 4) {
     return
   }
-  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
-  const users: Array<string> = _fromPreviewConversation[2]
+  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[2]
+  const users: Array<string> = _fromPreviewConversation[3]
 
   // still looking for this result?
   if (
@@ -1305,7 +1305,8 @@ const previewConversationFindExisting = (
 
   const passUsersDown = Saga.identity(users)
 
-  return Saga.sequentially([markPendingWaiting, makeCall, passUsersDown, updatePendingMode])
+  // updatePendingMode triggers a navigateToThread, so we want to do it before the RPC.
+  return Saga.sequentially([markPendingWaiting, updatePendingMode, makeCall, passUsersDown])
 }
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
