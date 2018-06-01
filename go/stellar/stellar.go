@@ -495,7 +495,7 @@ func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res st
 	return primary.AccountID, nil
 }
 
-func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
+func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.RecentPaymentsCLILocal", func() error { return err })()
 	payments, err := remoter.RecentPayments(ctx, accountID, 0)
 	if err != nil {
@@ -504,12 +504,12 @@ func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter
 	for _, p := range payments {
 		lp, err := localizePayment(ctx, g, p)
 		if err == nil {
-			res = append(res, stellar1.PaymentCLIOptionLocal{
+			res = append(res, stellar1.PaymentOrErrorCLILocal{
 				Payment: &lp,
 			})
 		} else {
 			errStr := err.Error()
-			res = append(res, stellar1.PaymentCLIOptionLocal{
+			res = append(res, stellar1.PaymentOrErrorCLILocal{
 				Err: &errStr,
 			})
 		}

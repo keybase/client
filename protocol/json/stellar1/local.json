@@ -240,7 +240,7 @@
     },
     {
       "type": "record",
-      "name": "PaymentCLIOptionLocal",
+      "name": "PaymentOrErrorCLILocal",
       "fields": [
         {
           "type": [
@@ -626,7 +626,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "PaymentCLIOptionLocal"
+        "items": "PaymentOrErrorCLILocal"
       }
     },
     "paymentDetailCLILocal": {

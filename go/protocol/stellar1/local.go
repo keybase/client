@@ -232,13 +232,13 @@ func (o SendRelayResultCLILocal) DeepCopy() SendRelayResultCLILocal {
 	}
 }
 
-type PaymentCLIOptionLocal struct {
+type PaymentOrErrorCLILocal struct {
 	Payment *PaymentCLILocal `codec:"payment,omitempty" json:"payment,omitempty"`
 	Err     *string          `codec:"err,omitempty" json:"err,omitempty"`
 }
 
-func (o PaymentCLIOptionLocal) DeepCopy() PaymentCLIOptionLocal {
-	return PaymentCLIOptionLocal{
+func (o PaymentOrErrorCLILocal) DeepCopy() PaymentOrErrorCLILocal {
+	return PaymentOrErrorCLILocal{
 		Payment: (func(x *PaymentCLILocal) *PaymentCLILocal {
 			if x == nil {
 				return nil
@@ -504,7 +504,7 @@ type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
-	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLIOptionLocal, error)
+	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
@@ -1043,7 +1043,7 @@ func (c LocalClient) ClaimCLILocal(ctx context.Context, __arg ClaimCLILocalArg) 
 	return
 }
 
-func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentCLIOptionLocal, err error) {
+func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentOrErrorCLILocal, err error) {
 	__arg := RecentPaymentsCLILocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res)
 	return

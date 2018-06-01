@@ -127,7 +127,7 @@ protocol local {
   // `into` is the account into which to claim. Null will default to the user's primary account.
   RelayClaimResult claimCLILocal(string txID, union { null, AccountID } into);
 
-  record PaymentCLIOptionLocal {
+  record PaymentOrErrorCLILocal {
     union { null, PaymentCLILocal } payment;
     union { null, string } err;
   }
@@ -149,7 +149,7 @@ protocol local {
     string note;
     string noteErr;
   }
-  array<PaymentCLIOptionLocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
+  array<PaymentOrErrorCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
 
   // txID can be either a keybase or stellar transaction ID.
   PaymentCLILocal paymentDetailCLILocal(string txID);

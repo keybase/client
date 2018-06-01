@@ -331,7 +331,11 @@ func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.Acc
 }
 
 func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, "", acctID)
+	var toStellar stellar1.AccountID
+	if p.Claim != nil {
+		toStellar = p.Claim.ToStellar
+	}
+	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, toStellar, acctID)
 	if err != nil {
 		return nil, err
 	}
