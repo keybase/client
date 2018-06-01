@@ -57,6 +57,11 @@ func (e *EKLib) NewMetaContext(ctx context.Context) libkb.MetaContext {
 
 func (e *EKLib) checkLoginAndPUK(ctx context.Context) (loggedIn bool, err error) {
 	m := e.NewMetaContext(ctx)
+	if oneshot, err := e.G().IsOneshot(ctx); err != nil || oneshot {
+		e.G().Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s, isOneshot: %v", err, oneshot)
+		return false, err
+	}
+
 	if loggedIn, _, err = libkb.BootstrapActiveDeviceWithMetaContext(m); err != nil {
 		return loggedIn, err
 	} else if !loggedIn {
@@ -86,15 +91,8 @@ func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	willRun := ok || g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 	if !willRun {
 		e.G().Log.CDebugf(ctx, "EKLib skipping run uid: %v", uid)
-		return false
 	}
-
-	oneshot, err := g.IsOneshot(ctx)
-	if err != nil {
-		g.Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s", err)
-		return false
-	}
-	return !oneshot
+	return willRun
 }
 
 func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
