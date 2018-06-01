@@ -77,7 +77,7 @@ func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGenera
 
 	// We don't have anything in our cache, fetch from the server
 	s.Unlock() // release the lock while we fetch
-	return s.fetchAndPut(ctx, generation)
+	return s.fetchAndStore(ctx, generation)
 }
 
 type UserEKBoxedResponse struct {
@@ -88,8 +88,8 @@ type UserEKBoxedResponse struct {
 	} `json:"result"`
 }
 
-func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("UserEKBoxStorage#fetchAndPut: generation: %v", generation), func() error { return err })()
+func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("UserEKBoxStorage#fetchAndStore: generation: %v", generation), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek_box",
@@ -116,17 +116,11 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 		return userEK, newEKMissingBoxErr(UserEKStr, generation)
 	}
 
-	// Before we store anything, let's verify that the server returned
-	// signature is valid and the KID it has signed matches the boxed seed.
-	// Otherwise something's fishy..
-	userEKStatement, _, _, err := verifySigWithLatestPUK(ctx, s.G(), s.G().Env.GetUID(), result.Result.Sig)
+	_, userEKStatement, err := extractUserEKStatementFromSig(result.Result.Sig)
 	if err != nil {
 		return userEK, err
-	}
-
-	if userEKStatement == nil { // shouldn't happen
-		s.G().Log.CDebugf(ctx, "No error but got nil userEKStatement")
-		return userEK, err
+	} else if userEKStatement == nil { // shouldn't happen
+		return userEK, fmt.Errorf("unable to fetch valid userEKStatement")
 	}
 
 	userEKMetadata := userEKStatement.CurrentUserEkMetadata

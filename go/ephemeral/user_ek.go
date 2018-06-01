@@ -309,6 +309,19 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 	return statement, latestGeneration, false, nil
 }
 
+func extractUserEKStatementFromSig(sig string) (signerKey libkb.GenericKey, statement *keybase1.UserEkStatement, err error) {
+	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+	if err != nil {
+		return signerKey, nil, err
+	}
+
+	parsedStatement := keybase1.UserEkStatement{}
+	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
+		return signerKey, nil, err
+	}
+	return signerKey, &parsedStatement, nil
+}
+
 // Verify that the blob is validly signed, and that the signing key is the
 // given user's latest PUK, then parse its contents. If the blob is signed by
 // the wrong KID, that's still an error, but we'll also return this special
@@ -319,13 +332,11 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, sig string) (statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTraceTimed(ctx, "verifySigWithLatestPUK", func() error { return err })()
 
-	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+	// Parse the statement before we verify the signing key. Even if the
+	// signing key is bad (likely because of a legacy PUK roll that didn't
+	// include a userEK statement), we'll still return the generation number.
+	signerKey, parsedStatement, err := extractUserEKStatementFromSig(sig)
 	if err != nil {
-		return nil, latestGeneration, false, err
-	}
-
-	parsedStatement := keybase1.UserEkStatement{}
-	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
 		return nil, latestGeneration, false, err
 	}
 	latestGeneration = parsedStatement.CurrentUserEkMetadata.Generation
@@ -359,7 +370,7 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid key
 		}
 	}
 
-	return &parsedStatement, latestGeneration, false, nil
+	return parsedStatement, latestGeneration, false, nil
 }
 
 func filterStaleUserEKStatements(ctx context.Context, g *libkb.GlobalContext, statementMap map[keybase1.UID]*keybase1.UserEkStatement, merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkStatement, err error) {

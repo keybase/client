@@ -232,7 +232,9 @@ func (e *EKLib) NewUserEKNeeded(ctx context.Context) (needed bool, err error) {
 func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (needed bool, err error) {
 	defer e.G().CTraceTimed(ctx, fmt.Sprintf("newUserEKNeeded: %v", needed), func() error { return err })()
 
-	// Let's see what the latest server statement is.
+	// Let's see what the latest server statement is. This verifies that the
+	// latest statement was signed by the latest PUK and otherwise fails with
+	// wrongKID set.
 	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), e.G().Env.GetUID())
 	if wrongKID {
 		return true, nil
@@ -274,6 +276,9 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (needed bool, latestGenerationk keybase1.EkGeneration, err error) {
 	defer e.G().CTraceTimed(ctx, fmt.Sprintf("newTeamEKNeeded: %v", needed), func() error { return err })()
 
+	// Let's see what the latest server statement is. This verifies that the
+	// latest statement was signed by the latest PTK and otherwise fails with
+	// wrongKID set.
 	statement, latestGeneration, wrongKID, err := fetchTeamEKStatement(ctx, e.G(), teamID)
 	if wrongKID {
 		return true, latestGeneration, nil

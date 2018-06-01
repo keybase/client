@@ -300,6 +300,19 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	return statement, latestGeneration, false, nil
 }
 
+func extractTeamEKStatementFromSig(sig string) (signerKey libkb.GenericKey, statement *keybase1.TeamEkStatement, err error) {
+	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+	if err != nil {
+		return signerKey, nil, err
+	}
+
+	parsedStatement := keybase1.TeamEkStatement{}
+	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
+		return signerKey, nil, err
+	}
+	return signerKey, &parsedStatement, nil
+}
+
 // Verify that the blob is validly signed, and that the signing key is the
 // given team's latest PTK, then parse its contents. If the blob is signed by
 // the wrong KID, that's still an error, but we'll also return this special
@@ -309,16 +322,10 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string) (statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTraceTimed(ctx, "verifySigWithLatestPTK", func() error { return err })()
 
-	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
-	if err != nil {
-		return nil, latestGeneration, false, err
-	}
-
 	// Parse the statement before we verify the signing key. Even if the
 	// signing key is bad (likely because of a legacy PTK roll that didn't
 	// include a teamEK statement), we'll still return the generation number.
-	parsedStatement := keybase1.TeamEkStatement{}
-	err = json.Unmarshal(payload, &parsedStatement)
+	signerKey, parsedStatement, err := extractTeamEKStatementFromSig(sig)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
@@ -359,7 +366,7 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 
 	// If we didn't short circuit above, then the signing key is correct.
 	// Return the parsed statement.
-	return &parsedStatement, latestGeneration, false, nil
+	return parsedStatement, latestGeneration, false, nil
 }
 
 func filterStaleTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, statement *keybase1.TeamEkStatement, merkleRoot libkb.MerkleRoot) (active []keybase1.TeamEkMetadata, err error) {

@@ -56,13 +56,13 @@ func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, gene
 		return teamEK, err
 	} else if !found {
 		s.Unlock() // release the lock while we fetch
-		return s.fetchAndPut(ctx, teamID, generation)
+		return s.fetchAndStore(ctx, teamID, generation)
 	}
 
 	teamEKBoxed, ok := teamEKBoxes[generation]
 	if !ok {
 		s.Unlock() // release the lock while we fetch
-		return s.fetchAndPut(ctx, teamID, generation)
+		return s.fetchAndStore(ctx, teamID, generation)
 	}
 	defer s.Unlock() // release the lock after we unbox
 	return s.unbox(ctx, generation, teamEKBoxed)
@@ -98,8 +98,8 @@ type TeamEKBoxedResponse struct {
 	} `json:"result"`
 }
 
-func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#fetchAndPut: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
+func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#fetchAndStore: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/team_ek_box",
@@ -126,17 +126,11 @@ func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.Team
 		return teamEK, newEKMissingBoxErr(TeamEKStr, generation)
 	}
 
-	// Before we store anything, let's verify that the server returned
-	// signature is valid and the KID it has signed matches the boxed seed.
-	// Otherwise something's fishy..
-	teamEKStatement, _, _, err := verifySigWithLatestPTK(ctx, s.G(), teamID, result.Result.Sig)
+	_, teamEKStatement, err := extractTeamEKStatementFromSig(result.Result.Sig)
 	if err != nil {
 		return teamEK, err
-	}
-
-	if teamEKStatement == nil { // shouldn't happen
-		s.G().Log.CDebugf(ctx, "No error but got nil teamEKMetadata")
-		return teamEK, err
+	} else if teamEKStatement == nil { // shouldn't happen
+		return teamEK, fmt.Errorf("unable to fetch valid teamEKStatement")
 	}
 
 	teamEKMetadata := teamEKStatement.CurrentTeamEkMetadata
