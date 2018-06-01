@@ -7,7 +7,9 @@ import CopyText from './copy-text'
 const load = () => {
   storiesOf('Common/Copy text', module)
     .addDecorator(story => (
-      <Box style={{display: 'flex', flexDirection: 'row', maxWidth: 400, padding: 20}}>{story()}</Box>
+      <Box style={{display: 'flex', flexDirection: 'row', maxWidth: 400, padding: 20, paddingTop: 50}}>
+        {story()}
+      </Box>
     ))
     .add('Basic', () => <CopyText text="hi" />)
 }

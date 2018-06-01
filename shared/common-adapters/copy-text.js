@@ -4,34 +4,68 @@ import {Box2} from './box'
 import Button from './button'
 import Text from './text'
 import Icon from './icon'
+import HOCTimers, {type PropsWithTimer} from './hoc-timers'
+import Toast from './toast'
+import {copyToClipboard} from '../util/clipboard'
 import {
   collapseStyles,
   type StylesCrossPlatform,
   globalColors,
   globalStyles,
   isMobile,
+  platformStyles,
   styleSheetCreate,
 } from '../styles'
 
-type Props = {
+type Props = PropsWithTimer<{
   containerStyle?: StylesCrossPlatform,
   text: string,
+}>
+
+type State = {
+  showingToast: boolean,
 }
 
-class CopyText extends React.Component<Props> {
+class _CopyText extends React.Component<Props, State> {
+  state = {
+    showingToast: false,
+  }
+  _attachmentRef = null
+
+  componentDidMount() {
+    this.props.setTimeout(() => this.setState({showingToast: true}), 300)
+  }
+
+  copy = () => {
+    this.setState({showingToast: true}, () =>
+      this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
+    )
+    copyToClipboard(this.props.text)
+  }
+
   render() {
     return (
-      <Box2 direction="horizontal" style={collapseStyles([styles.container, this.props.containerStyle])}>
+      <Box2
+        ref={r => (this._attachmentRef = r)}
+        direction="horizontal"
+        style={collapseStyles([styles.container, this.props.containerStyle])}
+      >
+        <Toast position="top center" attachTo={this._attachmentRef} visible={this.state.showingToast}>
+          <Text type="BodySmall" style={{color: globalColors.white}}>
+            Copied to clipboard
+          </Text>
+        </Toast>
         <Text type="Body" selectable={true} style={styles.text}>
           {this.props.text}
         </Text>
-        <Button type="Primary" style={styles.button} onClick={() => {}}>
+        <Button type="Primary" style={styles.button} onClick={this.copy}>
           <Icon type="iconfont-clipboard" color={globalColors.white} />
         </Button>
       </Box2>
     )
   }
 }
+const CopyText = HOCTimers(_CopyText)
 
 // border radii aren't literally so big, just sets it to max
 // TODO vertical align text center on native
@@ -54,13 +88,17 @@ const styles = styleSheetCreate({
     paddingTop: 6,
     position: 'relative',
   },
-  text: {
-    ...globalStyles.fontTerminalSemibold,
-    color: globalColors.blue,
-    fontSize: isMobile ? 15 : 13,
-    userSelect: 'all',
-    width: '100%',
-  },
+  text: platformStyles({
+    common: {
+      ...globalStyles.fontTerminalSemibold,
+      color: globalColors.blue,
+      fontSize: isMobile ? 15 : 13,
+      width: '100%',
+    },
+    isElectron: {
+      userSelect: 'all',
+    },
+  }),
 })
 
 export default CopyText
