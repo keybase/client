@@ -1329,7 +1329,7 @@ const changeSelectedConversation = (
           Saga.put(
             Chat2Gen.createSelectConversation({
               conversationIDKey: Constants.pendingConversationIDKey,
-              reason: 'searching',
+              reason: 'setPendingMode',
             })
           ),
           ...(isMobile ? [Saga.put(Chat2Gen.createNavigateToThread())] : []),
