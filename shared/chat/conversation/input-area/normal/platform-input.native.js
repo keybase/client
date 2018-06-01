@@ -201,11 +201,19 @@ const Action = ({
   explodingModeSeconds,
 }) =>
   hasText ? (
-    <Box style={styles.actionText}>
+    <Box2 direction="horizontal" gap="small" style={styles.actionText}>
+      {flags.explodingMessagesEnabled &&
+        isExploding && (
+          <ExplodingIcon
+            explodingModeSeconds={explodingModeSeconds}
+            isExploding={isExploding}
+            openExplodingPicker={openExplodingPicker}
+          />
+        )}
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>
-    </Box>
+    </Box2>
   ) : (
     <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
       {flags.explodingMessagesEnabled && (
@@ -265,11 +273,11 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.small - containerPadding,
   },
   actionText: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 12,
-    paddingLeft: globalMargins.tiny,
+    // ...globalStyles.flexBoxColumn,
+    // alignItems: 'center',
+    // justifyContent: 'center',
+    // paddingBottom: 12,
+    // paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
   container: {
