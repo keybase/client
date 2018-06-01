@@ -305,3 +305,23 @@ func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.Ch
 	}
 	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, string(arg.Currency))
 }
+
+func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {
+	defer s.G().CTraceTimed(ctx, "GetWalletAccountPublicKeyLocal", func() error { return err })()
+	if arg.AccountID.IsNil() {
+		return res, errors.New("passed empty AccountID")
+	}
+	return arg.AccountID.String(), nil
+}
+
+func (s *Server) GetWalletAccountSecretKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountSecretKeyLocalArg) (res stellar1.SecretKey, err error) {
+	defer s.G().CTraceTimed(ctx, "GetWalletAccountSecretKeyLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	if arg.AccountID.IsNil() {
+		return res, errors.New("passed empty AccountID")
+	}
+
+	return stellar.ExportSecretKey(ctx, s.G(), arg.AccountID)
+}

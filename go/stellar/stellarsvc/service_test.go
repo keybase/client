@@ -162,6 +162,20 @@ func TestImportExport(t *testing.T) {
 		require.Equal(t, s1, exported)
 	})
 
+	withWrongPassphrase := func(f func()) {
+		ui := &libkb.TestSecretUI{Passphrase: "notquite" + tcs[0].Fu.Passphrase}
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = ui
+		f()
+		require.True(t, ui.CalledGetPassphrase, "operation should ask for passphrase")
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = nullSecretUI{}
+	}
+
+	withWrongPassphrase(func() {
+		_, err := srv.ExportSecretKeyLocal(context.Background(), a1)
+		require.Error(t, err)
+		require.IsType(t, libkb.PassphraseError{}, err)
+	})
+
 	_, err = srv.ExportSecretKeyLocal(context.Background(), stellar1.AccountID(s1))
 	require.Error(t, err, "export confusing secret and public")
 
