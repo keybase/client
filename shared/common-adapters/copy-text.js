@@ -82,7 +82,7 @@ class _CopyText extends React.Component<Props, State> {
           </Text>
         )}
         <Button type="Primary" style={styles.button} onClick={this.copy}>
-          <Icon type="iconfont-clipboard" color={globalColors.white} />
+          <Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
         </Button>
       </Box2>
     )
@@ -104,8 +104,8 @@ const styles = styleSheetCreate({
       height: '100%',
     },
     isMobile: {
-      top: 0,
       bottom: 0,
+      top: 0,
     },
   }),
   container: platformStyles({
@@ -122,11 +122,12 @@ const styles = styleSheetCreate({
       paddingBottom: 6,
       paddingTop: 6,
       width: '100%',
+      maxWidth: 460,
     },
     isMobile: {
+      height: 40,
       paddingBottom: 10,
       paddingTop: 10,
-      height: 40,
     },
   }),
   reveal: {
