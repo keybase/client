@@ -61,14 +61,14 @@ func prepareNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		return "", nil, metadata, nil, err
 	}
 
-	prevStatement, latestGeneration, _, err := fetchTeamEKStatement(ctx, g, teamID)
-	if err != nil {
+	prevStatement, latestGeneration, wrongKID, err := fetchTeamEKStatement(ctx, g, teamID)
+	if !wrongKID && err != nil {
 		return "", nil, metadata, nil, err
 	}
 	var generation keybase1.EkGeneration
 	if prevStatement == nil {
 		// Even if the teamEK statement was signed by the wrong key (this can
-		// happen when legacy clients roll the PTK, fetchTeamEKStatement will
+		// happen when legacy clients roll the PTK), fetchTeamEKStatement will
 		// return the generation number from the last (unverifiable) statement.
 		// If there was never any statement, latestGeneration will be 0, so
 		// adding one is correct in all cases.
@@ -293,12 +293,24 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	if wrongKID {
 		g.Log.CDebugf(ctx, "It looks like someone rolled the PTK without generating new ephemeral keys. They might be on an old version.")
 		return nil, latestGeneration, true, nil
-	}
-	if err != nil {
+	} else if err != nil {
 		return nil, latestGeneration, false, err
 	}
 
 	return statement, latestGeneration, false, nil
+}
+
+func extractTeamEKStatementFromSig(sig string) (signerKey libkb.GenericKey, statement *keybase1.TeamEkStatement, err error) {
+	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+	if err != nil {
+		return signerKey, nil, err
+	}
+
+	parsedStatement := keybase1.TeamEkStatement{}
+	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
+		return signerKey, nil, err
+	}
+	return signerKey, &parsedStatement, nil
 }
 
 // Verify that the blob is validly signed, and that the signing key is the
@@ -310,16 +322,10 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string) (statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTraceTimed(ctx, "verifySigWithLatestPTK", func() error { return err })()
 
-	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
-	if err != nil {
-		return nil, latestGeneration, false, err
-	}
-
 	// Parse the statement before we verify the signing key. Even if the
 	// signing key is bad (likely because of a legacy PTK roll that didn't
 	// include a teamEK statement), we'll still return the generation number.
-	parsedStatement := keybase1.TeamEkStatement{}
-	err = json.Unmarshal(payload, &parsedStatement)
+	signerKey, parsedStatement, err := extractTeamEKStatementFromSig(sig)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
@@ -360,7 +366,7 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 
 	// If we didn't short circuit above, then the signing key is correct.
 	// Return the parsed statement.
-	return &parsedStatement, latestGeneration, false, nil
+	return parsedStatement, latestGeneration, false, nil
 }
 
 func filterStaleTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, statement *keybase1.TeamEkStatement, merkleRoot libkb.MerkleRoot) (active []keybase1.TeamEkMetadata, err error) {
@@ -437,8 +443,7 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 			g.Log.CDebugf(ctx, "Member %v revoked a device without generating new ephemeral keys. They might be running an old version?", uid)
 			// Don't box for this member since they have no valid userEK
 			continue
-		}
-		if err != nil {
+		} else if err != nil {
 			return nil, err
 		}
 		statementMap[uid] = memberStatement

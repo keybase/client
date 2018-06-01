@@ -398,6 +398,32 @@
       ],
       "response": null
     },
+    "getWalletAccountPublicKeyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "string"
+    },
+    "getWalletAccountSecretKeyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "SecretKey"
+    },
     "balancesLocal": {
       "request": [
         {

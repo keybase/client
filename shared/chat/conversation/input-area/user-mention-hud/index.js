@@ -4,8 +4,10 @@ import {compose, withStateHandlers, lifecycle, withPropsOnChange, withProps} fro
 import {
   Avatar,
   Box,
+  Box2,
   ClickableBox,
   List,
+  ProgressIndicator,
   Text,
   ConnectedUsernames,
   Icon,
@@ -16,6 +18,7 @@ import {isSpecialMention} from '../../../../constants/chat2'
 type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<any>,
   data: Array<D>,
+  loading: boolean,
   style: Object,
   selectedIndex: number,
 }
@@ -66,10 +69,20 @@ const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: Me
 // We want to render Hud even if there's no data so we can still have lifecycle methods so we can still do things
 // This is important if you type a filter that gives you no results and you press enter for instance
 // $FlowIssue doens't like star now
-const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
+const Hud = ({style, data, loading, rowRenderer, selectedIndex}: Props<*>) =>
   data.length ? (
     <Box style={collapseStyles([hudStyle, style])}>
-      <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
+      {loading ? (
+        <Box2
+          direction="horizontal"
+          fullWidth={true}
+          style={{alignItems: 'center', justifyContent: 'center'}}
+        >
+          <ProgressIndicator style={{width: 40, height: 40}} />
+        </Box2>
+      ) : (
+        <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
+      )}
     </Box>
   ) : null
 

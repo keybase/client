@@ -26,7 +26,7 @@ function copyToDownloadDir(path: string, mimeType: string) {
       RNFetchBlob.android.addCompleteDownload({
         title: fileName,
         description: `Keybase downloaded ${fileName}`,
-        mimeType,
+        mime: mimeType,
         path: downloadPath,
         showNotification: true,
       })

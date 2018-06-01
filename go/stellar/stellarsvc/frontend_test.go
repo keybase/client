@@ -403,3 +403,63 @@ func TestSetAcceptedDisclaimer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, true, us.AcceptedDisclaimer)
 }
+
+func TestPublicKeyExporting(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	stellar.CreateWallet(context.Background(), tcs[0].G)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accID := getPrimaryAccountID(tcs[0])
+
+	// Try empty argument.
+	_, err := tcs[0].Srv.GetWalletAccountPublicKeyLocal(context.Background(), stellar1.GetWalletAccountPublicKeyLocalArg{
+		AccountID: stellar1.AccountID(""),
+	})
+	require.Error(t, err)
+
+	// Anything should work - even accounts that don't exist or are
+	// not ours.
+	randomAccID, _ := randomStellarKeypair()
+	pubKey, err := tcs[0].Srv.GetWalletAccountPublicKeyLocal(context.Background(), stellar1.GetWalletAccountPublicKeyLocalArg{
+		AccountID: randomAccID,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, randomAccID, pubKey)
+
+	// Try account of our own.
+	pubKey, err = tcs[0].Srv.GetWalletAccountPublicKeyLocal(context.Background(), stellar1.GetWalletAccountPublicKeyLocalArg{
+		AccountID: accID,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, accID, pubKey)
+}
+
+func TestPrivateKeyExporting(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	stellar.CreateWallet(context.Background(), tcs[0].G)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accID := getPrimaryAccountID(tcs[0])
+
+	// Try empty argument.
+	_, err := tcs[0].Srv.GetWalletAccountSecretKeyLocal(context.Background(), stellar1.GetWalletAccountSecretKeyLocalArg{
+		AccountID: stellar1.AccountID(""),
+	})
+	require.Error(t, err)
+
+	// Try random account ID.
+	randomAccID, _ := randomStellarKeypair()
+	_, err = tcs[0].Srv.GetWalletAccountSecretKeyLocal(context.Background(), stellar1.GetWalletAccountSecretKeyLocalArg{
+		AccountID: randomAccID,
+	})
+	require.Error(t, err)
+
+	// Happy path.
+	privKey, err := tcs[0].Srv.GetWalletAccountSecretKeyLocal(context.Background(), stellar1.GetWalletAccountSecretKeyLocalArg{
+		AccountID: accID,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, tcs[0].Backend.SecretKey(accID), privKey)
+}
