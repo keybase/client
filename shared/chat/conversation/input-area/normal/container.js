@@ -39,6 +39,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     editText: editInfo ? editInfo.text : '',
     explodingModeSeconds,
     isExploding,
+    isExplodingNew: Constants.getIsExplodingNew(state),
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     typing: Constants.getTyping(state, conversationIDKey),
@@ -70,8 +71,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  _selectExplodingMode: (conversationIDKey: Types.ConversationIDKey, seconds: number) =>
-    dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey, seconds})),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
@@ -86,7 +85,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   focusInputCounter: ownProps.focusInputCounter,
   getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
   isEditing: !!stateProps._editOrdinal,
-  isExploding: !!stateProps.isExploding,
+  isExploding: stateProps.isExploding,
+  isExplodingNew: stateProps.isExplodingNew,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
@@ -100,9 +100,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
-  selectExplodingMode: (seconds: number) => {
-    dispatchProps._selectExplodingMode(stateProps.conversationIDKey, seconds)
-  },
   sendTyping: (typing: boolean) => {
     dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },

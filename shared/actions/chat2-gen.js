@@ -23,6 +23,7 @@ export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
+export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -66,6 +67,7 @@ export const sendTyping = 'chat2:sendTyping'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
+export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
@@ -123,6 +125,7 @@ type _DesktopNotificationPayload = $ReadOnly<{|
   author: string,
   body: string,
 |}>
+type _HandleSeeingExplodingMessagesPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|
@@ -285,6 +288,7 @@ type _SetConversationOfflinePayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   offline: boolean,
 |}>
+type _SetExplodingMessagesNewPayload = $ReadOnly<{|new: boolean|}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetLoadingPayload = $ReadOnly<{|
   key: string,
@@ -334,9 +338,17 @@ export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingMode
  */
 export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({error: false, payload, type: setConvExplodingMode})
 /**
+ * Set whether exploding messages are a new feature or not.
+ */
+export const createSetExplodingMessagesNew = (payload: _SetExplodingMessagesNewPayload) => ({error: false, payload, type: setExplodingMessagesNew})
+/**
  * Sets the retention policy for a conversation.
  */
 export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPayload) => ({error: false, payload, type: setConvRetentionPolicy})
+/**
+ * Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things.
+ */
+export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplodingMessagesPayload) => ({error: false, payload, type: handleSeeingExplodingMessages})
 /**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
@@ -413,6 +425,7 @@ export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoading
 export type ClearOrdinalsPayload = $Call<typeof createClearOrdinals, _ClearOrdinalsPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
+export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
 export type LeaveConversationPayload = $Call<typeof createLeaveConversation, _LeaveConversationPayload>
@@ -456,6 +469,7 @@ export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayloa
 export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMode, _SetConvExplodingModePayload>
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
 export type SetConversationOfflinePayload = $Call<typeof createSetConversationOffline, _SetConversationOfflinePayload>
+export type SetExplodingMessagesNewPayload = $Call<typeof createSetExplodingMessagesNew, _SetExplodingMessagesNewPayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
 export type SetLoadingPayload = $Call<typeof createSetLoading, _SetLoadingPayload>
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
@@ -483,6 +497,7 @@ export type Actions =
   | ClearOrdinalsPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
+  | HandleSeeingExplodingMessagesPayload
   | InboxRefreshPayload
   | JoinConversationPayload
   | LeaveConversationPayload
@@ -526,6 +541,7 @@ export type Actions =
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
+  | SetExplodingMessagesNewPayload
   | SetInboxFilterPayload
   | SetLoadingPayload
   | SetPendingConversationExistingConversationIDKeyPayload

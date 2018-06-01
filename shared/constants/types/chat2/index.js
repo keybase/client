@@ -30,6 +30,7 @@ export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
+  isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
@@ -66,7 +67,6 @@ export type {
   Message,
   MessageAttachment,
   MessageExplodeDescription,
-  MessageExplodeText,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,

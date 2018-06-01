@@ -1145,7 +1145,8 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
             state,
             conversationIDKey,
             text,
-            Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+            Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+            ephemeralLifetime
           ),
         ],
       })
@@ -1562,6 +1563,12 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     return
   }
 
+  // disable sending exploding messages if flag is false
+  const ephemeralLifetime = flags.explodingMessagesEnabled
+    ? Constants.getConversationExplodingMode(state, conversationIDKey)
+    : 0
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+
   const attachmentType = Constants.pathToAttachmentType(path)
   const message = Constants.makePendingAttachmentMessage(
     state,
@@ -1569,7 +1576,8 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     attachmentType,
     title,
     (preview && preview.filename) || '',
-    Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+    Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+    ephemeralLifetime
   )
   const ordinal = message.ordinal
   yield Saga.put(
@@ -1579,12 +1587,6 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     })
   )
   yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
-
-  // disable sending exploding messages if flag is false
-  const ephemeralLifetime = flags.explodingMessagesEnabled
-    ? Constants.getConversationExplodingMode(state, conversationIDKey)
-    : 0
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   let lastRatioSent = 0
   const postAttachment = new EngineRpc.EngineRpcCall(
@@ -2050,6 +2052,33 @@ const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePay
   throw e
 }
 
+function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMessagesPayload) {
+  const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  const seenExplodingMessages = !!gregorState.items.filter(
+    i => i.item.category === Constants.seenExplodingGregorKey
+  ).length
+  if (seenExplodingMessages) {
+    // do nothing
+    return
+  }
+  // neither are set, inject both
+  yield Saga.all([
+    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+      cat: Constants.seenExplodingGregorKey,
+      body: 'true',
+      dtime: {time: 0, offset: 0},
+    }),
+    // note that we don't get a push state when this item expires,
+    // it doesn't really affect things here - we can wait for the
+    // next push state to stop displaying 'new' mode
+    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+      cat: Constants.newExplodingGregorKey,
+      body: 'true',
+      dtime: {time: 0, offset: Constants.newExplodingGregorOffset},
+    }),
+  ])
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2183,6 +2212,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeSuccess,
     setConvExplodingModeFailure
   )
+  yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
 }
 
 export default chat2Saga

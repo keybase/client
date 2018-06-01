@@ -12,7 +12,8 @@ import {Input as TextInput} from '../../../../common-adapters'
 type CommonProps = {
   conversationIDKey: Types.ConversationIDKey,
   isEditing: boolean,
-  isExploding?: boolean,
+  isExploding: boolean,
+  isExplodingNew: boolean,
   explodingModeSeconds: number,
   focusInputCounter: number,
   clearInboxFilter: () => void,
@@ -20,7 +21,6 @@ type CommonProps = {
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
   onSubmit: (text: string) => void,
-  selectExplodingMode: (seconds: number) => void,
   typing: I.Set<string>,
 }
 

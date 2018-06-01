@@ -142,7 +142,7 @@ const RightSide = props => (
           attachTo={props.attachmentRef}
           message={props.message}
           onHidden={props.toggleShowingMenu}
-          position="bottom left"
+          position="top center"
           visible={props.showingMenu}
         />
         {props.isRevoked && (
@@ -174,7 +174,14 @@ const RightSide = props => (
         )}
       </Box>
     </Box>
-    {props.exploding && <ExplodingMeta exploded={props.exploded} explodesAt={props.explodesAt} />}
+    {props.exploding && (
+      <ExplodingMeta
+        exploded={props.exploded}
+        explodesAt={props.explodesAt}
+        pending={props.messagePending}
+        onClick={props.exploded ? null : props.toggleShowingMenu}
+      />
+    )}
   </Box>
 )
 

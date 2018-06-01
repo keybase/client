@@ -20,6 +20,7 @@ export type Props = {
   isYou: boolean,
   message: Types.MessageText | Types.MessageAttachment,
   messageFailed: boolean,
+  messagePending: boolean,
   messageSent: boolean,
   onRetry: null | (() => void),
   onEdit: null | (() => void),

@@ -428,7 +428,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
-          return message && message.type === 'text' && message.author === editLastUser
+          return message && message.type === 'text' && message.author === editLastUser && !message.exploded
         })
         if (found) {
           return editingMap.set(conversationIDKey, found)
@@ -669,6 +669,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return map
       }, {})
       return state.set('explodingModes', I.Map(explodingMap))
+    case Chat2Gen.setExplodingMessagesNew:
+      return state.set('isExplodingNew', action.payload.new)
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -725,6 +727,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.previewConversation:
     case Chat2Gen.createConversation:
     case Chat2Gen.setConvExplodingMode:
+    case Chat2Gen.handleSeeingExplodingMessages:
       return state
     default:
       /*::
