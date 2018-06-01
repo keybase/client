@@ -962,7 +962,7 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
   const {conversationIDKey, ordinal} = action.payload
   const message = state.chat2.messageMap.getIn([conversationIDKey, ordinal])
   if (!message || (message.type !== 'text' && message.type !== 'attachment')) {
-    logger.warn('Deleting non-existant or, non-text non-attachment message')
+    logger.warn('Deleting non-existent or, non-text non-attachment message')
     logger.debug('Deleting invalid message:', message)
     return
   }
@@ -1285,7 +1285,7 @@ const selectOrPreviewTeamConversation = (
 ) => {
   const {conversationIDKey} = action.payload
   if (conversationIDKey === Constants.noConversationIDKey) {
-    throw new Error('Tried to preview a non-existant channel?')
+    throw new Error('Tried to preview a non-existent channel?')
   }
   // TODO: Skip RPC if we already have a row for the channel.
   return Saga.sequentially([

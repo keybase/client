@@ -338,7 +338,7 @@ func TestChangeDisplayCurrency(t *testing.T) {
 	})
 	require.Error(t, err)
 
-	// Try non-existant account id.
+	// Try non-existent account id.
 	invalidAccID, _ := randomStellarKeypair()
 	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
 		AccountID: invalidAccID,
