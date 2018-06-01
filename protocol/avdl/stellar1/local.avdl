@@ -66,7 +66,29 @@ protocol local {
     union { null, string } err;
   }
 
-  array<PaymentOrErrorLocal> getPaymentsLocal(AccountID accountID, union { null, TransactionID } olderThanTransactionID);
+  array<PaymentOrErrorLocal> getPaymentsLocal(int sessionID, AccountID accountID, union { null, TransactionID } olderThanTransactionID);
+  
+  record PaymentDetailsLocal {
+    string id;                 // For relay payments, the funding tx.
+    TimeMs time;
+    PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
+    string statusDescription;  // "pending", "completed", "error"
+    string statusDetail;
+    string amountDescription;  // "+ 1,323.1234567 XLM"
+    BalanceDelta delta;        // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string worth;              // "$123.23" 
+    string worthCurrency;      // "USD", "CAD", etc. (the symbols can be ambiguous)
+
+    string source;             // keybase username or stellar public key
+    string sourceType;         // "keybase" or "stellar"
+    string target;             // keybase username, stellar public key, or sbs assertion
+    string targetType;         // "keybase", "stellar", or "sbs"
+
+    string note;
+    string noteErr;
+  }
+
+  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, string id);
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
