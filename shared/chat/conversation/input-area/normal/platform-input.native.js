@@ -4,7 +4,7 @@ import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
-import {isIOS} from '../../../../constants/platform'
+import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import {
@@ -80,7 +80,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
-      hintText = 'Write an exploding message'
+      hintText = isLargeScreen ? 'Write an exploding message' : 'Exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     }
