@@ -1203,7 +1203,7 @@ const previewConversationAfterFindExisting = (
     return Saga.sequentially([
       Saga.put(
         Chat2Gen.createSetPendingConversationExistingConversationIDKey({
-          conversationIDKey: existingConversationIDKey || Constants.noConversationIDKey,
+          conversationIDKey: existingConversationIDKey,
         })
       ),
       Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
