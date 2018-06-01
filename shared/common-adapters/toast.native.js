@@ -2,17 +2,51 @@
 import * as React from 'react'
 import FloatingBox from './floating-box'
 import Box from './box'
-import {globalColors, globalMargins, styleSheetCreate} from '../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../styles'
+import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import type {Props} from './toast'
 
-export default (props: Props) =>
-  props.visible ? (
-    <FloatingBox onHidden={() => {}}>
-      <Box style={styles.wrapper}>
-        <Box style={styles.container}>{props.children}</Box>
-      </Box>
-    </FloatingBox>
-  ) : null
+type State = {
+  opacity: NativeAnimated.Value,
+}
+class Toast extends React.Component<Props, State> {
+  state = {opacity: new NativeAnimated.Value(0)}
+
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.visible && !prevProps.visible) {
+      NativeAnimated.timing(this.state.opacity, {
+        duration: 50,
+        easing: NativeEasing.linear,
+        toValue: 1,
+      }).start()
+    }
+    if (!this.props.visible && prevProps.visible) {
+      NativeAnimated.timing(this.state.opacity, {
+        duration: 50,
+        easing: NativeEasing.linear,
+        toValue: 0,
+      }).start()
+    }
+  }
+
+  render() {
+    return (
+      <FloatingBox onHidden={() => {}}>
+        <Box style={styles.wrapper}>
+          <NativeAnimated.View
+            style={collapseStyles([
+              styles.container,
+              this.props.containerStyle,
+              {opacity: this.state.opacity},
+            ])}
+          >
+            {this.props.children}
+          </NativeAnimated.View>
+        </Box>
+      </FloatingBox>
+    )
+  }
+}
 
 const styles = styleSheetCreate({
   container: {
@@ -40,3 +74,5 @@ const styles = styleSheetCreate({
     alignItems: 'center',
   },
 })
+
+export default Toast
