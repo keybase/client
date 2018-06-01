@@ -1260,20 +1260,19 @@ const selectTeamGeneral = (
   results: ?RPCChatTypes.FindConversationsLocalRes,
   action: Chat2Gen.FindAndSelectTeamGeneralPayload
 ) => {
-  let existingConversationIDKey = Constants.noConversationIDKey
-
   if (results && results.conversations && results.conversations.length > 0) {
-    existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
+    const conversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
+    return Saga.put(
+      Chat2Gen.createSelectOrPreviewTeamConversation({
+        channelname: 'general',
+        conversationIDKey,
+        teamname: action.payload.teamname,
+        reason: 'teamGeneral',
+      })
+    )
   }
 
-  return Saga.put(
-    Chat2Gen.createSelectOrPreviewTeamConversation({
-      channelname: 'general',
-      conversationIDKey: existingConversationIDKey,
-      teamname: action.payload.teamname,
-      reason: 'teamGeneral',
-    })
-  )
+  throw new Error(`Couldn't find #general for ${action.payload.teamname}`)
 }
 
 const selectOrPreviewTeamConversation = (
