@@ -5,6 +5,103 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+// leafPart is a simple accessor that takes the given leaf, and the private/public type,
+// and returns the corresponding object.
+func leafPart(leaf *MerkleGenericLeaf, typ keybase1.SeqType) *MerkleTriple {
+	if leaf == nil {
+		return nil
+	}
+	switch typ {
+	case keybase1.SeqType_PUBLIC:
+		return leaf.Public
+	case keybase1.SeqType_SEMIPRIVATE:
+		return leaf.Private
+	default:
+		return nil
+	}
+}
+
+// lookupLeafAtRootSeqno queries the server for the merkle root at rootSeqno, and then descends the tree to the
+// leaf for the supplied id. It returns the leaf, the root, and the leaf part determed by SeqType.
+func lookupLeafAtRootSeqno(m MetaContext, id keybase1.UserOrTeamID, rootSeqno keybase1.Seqno, typ keybase1.SeqType) (leaf *MerkleGenericLeaf, root *MerkleRoot, userChainSeqno keybase1.Seqno, err error) {
+	m.CDebugf("lookupLeafAtRootSeqno(%s,%d)", id, rootSeqno)
+	leaf, root, err = m.G().GetMerkleClient().LookupLeafAtSeqno(m.Ctx(), id, rootSeqno)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	part := leafPart(leaf, typ)
+	if part == nil {
+		return nil, nil, 0, MerkleClientError{fmt.Sprintf("leaf at root %d returned with nil %v part", rootSeqno, typ), merkleErrorBadLeaf}
+	}
+	return leaf, root, part.Seqno, nil
+}
+
+// findFirstLeafWithChainSeqno finds the first chronological leaf in the merkle tree that contains the given
+// chainSeqno for the given UID. Start this search from the given prevRootSeqno, not from merkle position 1.
+// The algorithm is to jump forward, in exponentially larger jumps, until we find a root that has a leaf
+// that is >= the given chainSeqno. Then, to binary search to find the exact [a,b] pair in which a doesn't
+// contain the leaf seqno, and b does. The leaf and root that correspond to be are returned.
+func findFirstLeafWithChainSeqno(m MetaContext, id keybase1.UserOrTeamID, chainSeqno keybase1.Seqno, typ keybase1.SeqType, prevRootSeqno keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
+	defer m.CTrace(fmt.Sprintf("findFirstLeafWithChainSeqno(%s,%d,%d)", id, chainSeqno, prevRootSeqno), func() error { return err })()
+
+	if m.G().Env.GetRunMode() == ProductionRunMode && prevRootSeqno < FirstProdMerkleTreeWithModernShape {
+		return nil, nil, MerkleClientError{"can't operate on old merkle sequence number", merkleErrorOldTree}
+	}
+
+	cli := m.G().GetMerkleClient()
+	low := prevRootSeqno
+	lastp := cli.LastRoot().Seqno()
+	if lastp == nil {
+		return nil, nil, MerkleClientError{"unexpected nil high seqno", merkleErrorBadRoot}
+	}
+	last := *lastp
+	var hi keybase1.Seqno
+	inc := keybase1.Seqno(1)
+
+	// First bump the hi pointer up to a merkle root that overshoots (or is equal to)
+	// the request chainSeqno. Don't go any higher than the last known Merkle seqno.
+	for hi = low + 1; hi < last; hi += inc {
+		var tmpSeqno keybase1.Seqno
+		leaf, root, tmpSeqno, err = lookupLeafAtRootSeqno(m, id, hi, typ)
+		if err != nil {
+			return nil, nil, err
+		}
+		if tmpSeqno >= chainSeqno {
+			break
+		}
+		inc *= 2
+	}
+	if hi > last {
+		hi = last
+	}
+	m.CDebugf("Stopped at hi bookend; binary searching in [%d,%d]", low, hi)
+
+	// Now binary search between prevRootSeqno and the hi we just got
+	// to find the exact transition. Note that if we never enter this loop,
+	// we'll still have set leaf and root in the above loop. Interestingly, this is
+	// the most common case, since for most signatures, the next merkle root will
+	// contain the signature. In those cases, we don't even go into this loop
+	// (since hi = low + 1).
+	for hi-low > 1 {
+		mid := (hi + low) / 2
+		tmpLeaf, tmpRoot, tmpSeqno, err := lookupLeafAtRootSeqno(m, id, mid, typ)
+		if err != nil {
+			return nil, nil, err
+		}
+		if tmpSeqno >= chainSeqno {
+			hi = mid
+			leaf = tmpLeaf
+			root = tmpRoot
+		} else {
+			low = mid
+		}
+		m.CDebugf("Found user seqno %d; after update: [%d,%d]", tmpSeqno, low, hi)
+	}
+	m.CDebugf("settling at final seqno: %d", hi)
+
+	return leaf, root, nil
+}
+
 // FindNextMerkleRootAfterRevoke loads the user for the given UID, and find the next merkle root
 // after the given key revocation happens. It uses the paremter arg.Prev to figure out where to start
 // looking and then keeps searching forward until finding a leaf that matches arg.Loc.
@@ -18,32 +115,12 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 		return res, err
 	}
 
-	// We won't try more than 100 roots forward
-	maxTries := 100
-	q := arg.Prev.Seqno + 1
-	cli := m.G().GetMerkleClient()
-	var leaf *MerkleGenericLeaf
-	var root *MerkleRoot
-	found := false
-
-	for i := 0; !found && i < maxTries; i++ {
-		m.CDebugf("| Looking at merkle seqno=%d", q)
-		leaf, root, err = cli.LookupLeafAtSeqno(m.Ctx(), arg.Uid.AsUserOrTeam(), q)
-		if err != nil {
-			return res, err
-		}
-		m.CDebugf("Leaf back: %+v", leaf)
-		if leaf.Public == nil {
-			return res, MerkleClientError{"user leaf returned with nil public part", merkleErrorBadLeaf}
-		}
-		if leaf.Public.Seqno >= arg.Loc.Seqno {
-			m.CDebugf("| Found at merkle seqno=%d", q)
-			found = true
-		}
-		q++
+	leaf, root, err := findFirstLeafWithChainSeqno(m, arg.Uid.AsUserOrTeam(), arg.Loc.Seqno, keybase1.SeqType_PUBLIC, arg.Prev.Seqno)
+	if err != nil {
+		return res, err
 	}
-	if !found {
-		return res, MerkleClientError{fmt.Sprintf("tried %d roots, but seqno not found", maxTries), merkleErrorNoUpdates}
+	if leaf == nil {
+		return res, MerkleClientError{"no suitable leaf found", merkleErrorNoUpdates}
 	}
 	sigID := u.GetSigIDFromSeqno(leaf.Public.Seqno)
 	if sigID.IsNil() {

@@ -947,6 +947,18 @@ func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, stri
 func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence, thisRoot *MerkleRoot, lastRoot *MerkleRoot, historical bool) (err error) {
 	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#verifySkipSequence", func() error { return err })()
 
+	var left, right keybase1.Seqno
+	if thisRoot.Seqno() != nil {
+		left = *thisRoot.Seqno()
+	}
+	if lastRoot.Seqno() != nil {
+		right = *lastRoot.Seqno()
+	}
+
+	if historical && left < right {
+		left, right = right, left
+	}
+
 	// In this case, the server did not return a skip sequence. It's OK if
 	// the last known root is too old. It's not OK if the last known root is
 	// from after the server starting providing skip pointers.
@@ -961,8 +973,12 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 			mc.G().VDL.CLogf(ctx, VLog0, "| no known root with skips, so OK")
 			return nil
 		}
-		if *fss > *lastRoot.Seqno() {
-			mc.G().VDL.CLogf(ctx, VLog0, "| lastRoot (%d) is from before first known root with skips (%d), so OK", int(*lastRoot.Seqno()), int(*fss))
+		if *fss > right {
+			mc.G().VDL.CLogf(ctx, VLog0, "| right marker (%d) is from before first known root with skips (%d), so OK", int(right), int(*fss))
+			return nil
+		}
+		if *fss > left {
+			mc.G().VDL.CLogf(ctx, VLog0, "| left marker (%d) is from before first known root with skips (%d), so OK", int(left), int(*fss))
 			return nil
 		}
 		if thisRoot != nil && *lastRoot.Seqno() == *thisRoot.Seqno() {
@@ -971,14 +987,10 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 		}
 		return MerkleClientError{fmt.Sprintf("Expected a skip sequence with last=%d", int(*lastRoot.Seqno())), merkleErrorNoSkipSequence}
 	}
-	if *thisRoot.Seqno() == *lastRoot.Seqno() {
+
+	if left == right {
 		mc.G().VDL.CLogf(ctx, VLog0, "| No change since last check (seqno %d)", *thisRoot.Seqno())
 		return nil
-	}
-	left := *thisRoot.Seqno()
-	right := *lastRoot.Seqno()
-	if historical && left < right {
-		left, right = right, left
 	}
 	return ss.verify(ctx, mc.G(), left, right)
 }
