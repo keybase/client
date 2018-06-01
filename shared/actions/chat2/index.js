@@ -1779,7 +1779,7 @@ const navigateToThread = (
 ) => {
   if (action.type === Chat2Gen.navigateToThread) {
     if (!isMobile && !Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
-      console.log('Skip nav to thread on invalid converastion')
+      console.log('Skip nav to thread on invalid conversation')
       return
     }
   }
