@@ -389,6 +389,8 @@ protocol teams {
     boolean implicitTeam;
     @jsonkey("misc")
     boolean misc;
+    @jsonkey("removed_reset_users")
+    boolean removedResetUsers;
   }
 
   record TeamExitRow {

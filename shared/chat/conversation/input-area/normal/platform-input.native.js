@@ -4,7 +4,7 @@ import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
-import {isIOS} from '../../../../constants/platform'
+import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import {
@@ -80,7 +80,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
-      hintText = 'Write an exploding message'
+      hintText = isLargeScreen ? 'Write an exploding message' : 'Exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     }
@@ -124,9 +124,8 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
         )}
         <Box style={styles.container}>
           {this.props.isEditing && (
-            // TODO: Make this box take up the full height.
             <Box style={styles.editingTabStyle}>
-              <Text type="BodySmall">Editing:</Text>
+              <Text type="BodySmall">Edit:</Text>
               <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
                 Cancel
               </Text>
@@ -202,11 +201,19 @@ const Action = ({
   explodingModeSeconds,
 }) =>
   hasText ? (
-    <Box style={styles.actionText}>
+    <Box2 direction="horizontal" gap="small" style={styles.actionText}>
+      {flags.explodingMessagesEnabled &&
+        isExploding && (
+          <ExplodingIcon
+            explodingModeSeconds={explodingModeSeconds}
+            isExploding={isExploding}
+            openExplodingPicker={openExplodingPicker}
+          />
+        )}
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>
-    </Box>
+    </Box2>
   ) : (
     <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
       {flags.explodingMessagesEnabled && (
@@ -266,11 +273,6 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.small - containerPadding,
   },
   actionText: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 12,
-    paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
   container: {
@@ -286,9 +288,10 @@ const styles = styleSheetCreate({
   editingTabStyle: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    backgroundColor: globalColors.yellow_60,
+    backgroundColor: globalColors.yellow3,
     height: '100%',
-    padding: 3,
+    maxWidth: 32,
+    padding: globalMargins.xtiny,
   },
   input: {
     marginLeft: globalMargins.tiny,
@@ -327,10 +330,7 @@ const styles = styleSheetCreate({
 const explodingIconContainer = platformStyles({
   common: {
     ...globalStyles.flexBoxRow,
-    marginRight: globalMargins.xsmall,
-  },
-  isAndroid: {
-    marginRight: -5,
+    marginRight: -3,
   },
 })
 

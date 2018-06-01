@@ -878,11 +878,23 @@ const loadMoreMessagesSuccess = (results: ?Array<any>) => {
   return Saga.put(Chat2Gen.createSetConversationOffline({conversationIDKey, offline: res.offline}))
 }
 
-const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload, state: TypedState) =>
-  !state.chat2.inboxFilter ||
-  (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
-    ? undefined
-    : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+const clearInboxFilter = (
+  action: Chat2Gen.SelectConversationPayload | Chat2Gen.MessageSendPayload,
+  state: TypedState
+) => {
+  if (!state.chat2.inboxFilter) {
+    return
+  }
+
+  if (
+    action.type === Chat2Gen.selectConversation &&
+    (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
+  ) {
+    return
+  }
+
+  return Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+}
 
 // Show a desktop notification
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
@@ -1114,11 +1126,15 @@ const previewConversationAfterFindExisting = (
 
   // still looking for this result?
   if (
+    // If action.type === Chat2Gen.setPendingConversationUsers, then
+    // we know that fromSearch is true and participants is non-empty
+    // (see previewConversationFindExisting).
+    action.type === Chat2Gen.setPendingConversationUsers &&
     !Constants.getMeta(state, Constants.pendingConversationIDKey)
       .participants.toSet()
       .equals(I.Set(users))
   ) {
-    console.log('Ignorning old preview find due to participant mismatch')
+    console.log('Ignoring old preview find due to participant mismatch')
     return
   }
 
@@ -2062,7 +2078,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
+  yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
   yield Saga.safeTakeEveryPure(
