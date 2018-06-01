@@ -60,7 +60,7 @@ func findFirstLeafWithChainSeqno(m MetaContext, id keybase1.UserOrTeamID, chainS
 
 	// First bump the hi pointer up to a merkle root that overshoots (or is equal to)
 	// the request chainSeqno. Don't go any higher than the last known Merkle seqno.
-	for hi = low + 1; hi < last; hi += inc {
+	for hi = low + 1; hi <= last; hi += inc {
 		var tmpSeqno keybase1.Seqno
 		leaf, root, tmpSeqno, err = lookupLeafAtRootSeqno(m, id, hi, typ)
 		if err != nil {
@@ -73,11 +73,7 @@ func findFirstLeafWithChainSeqno(m MetaContext, id keybase1.UserOrTeamID, chainS
 	}
 
 	if hi > last {
-		hi = last
-	}
-
-	if hi < chainSeqno {
-		return nil, nil, MerkleClientError{fmt.Sprintf("given chainSeqno %d is >= max root seqno %d", chainSeqno, hi), merkleErrorNotFound}
+		return nil, nil, MerkleClientError{fmt.Sprintf("given chainSeqno %d can't be found even as high as Merkle Root %d", chainSeqno, hi), merkleErrorNotFound}
 	}
 
 	m.CDebugf("Stopped at hi bookend; binary searching in [%d,%d]", low, hi)
