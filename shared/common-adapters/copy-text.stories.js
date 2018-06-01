@@ -13,6 +13,12 @@ const load = () => {
     ))
     .add('Basic', () => <CopyText text="hi" />)
     .add('With reveal', () => <CopyText text="surprise!" withReveal={true} />)
+    .add('With long text', () => (
+      <CopyText
+        text="A9IOP56321387YRTPIQSDTAEA9IOP56321A9IOP56321387YRTPIQSDTAEA9IOP56321"
+        withReveal={true}
+      />
+    ))
 }
 
 export default load

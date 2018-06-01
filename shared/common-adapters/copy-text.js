@@ -93,24 +93,42 @@ const CopyText = HOCTimers(_CopyText)
 // border radii aren't literally so big, just sets it to max
 // TODO vertical align text center on native
 const styles = styleSheetCreate({
-  button: {
-    height: '100%',
-    paddingLeft: 17,
-    paddingRight: 17,
-    position: 'absolute',
-    right: -20,
-  },
-  container: {
-    alignItems: 'center',
-    backgroundColor: globalColors.blue4,
-    borderBottomLeftRadius: 100,
-    borderTopLeftRadius: 100,
-    flex: 1,
-    paddingBottom: 6,
-    paddingLeft: 16,
-    paddingTop: 6,
-    position: 'relative',
-  },
+  button: platformStyles({
+    common: {
+      paddingLeft: 17,
+      paddingRight: 17,
+      position: 'absolute',
+      right: 0,
+    },
+    isElectron: {
+      height: '100%',
+    },
+    isMobile: {
+      top: 0,
+      bottom: 0,
+    },
+  }),
+  container: platformStyles({
+    common: {
+      alignItems: 'center',
+      backgroundColor: globalColors.blue4,
+      borderRadius: 100,
+      flex: 1,
+      paddingLeft: 16,
+      position: 'relative',
+    },
+    isElectron: {
+      overflow: 'hidden',
+      paddingBottom: 6,
+      paddingTop: 6,
+      width: '100%',
+    },
+    isMobile: {
+      paddingBottom: 10,
+      paddingTop: 10,
+      height: 40,
+    },
+  }),
   reveal: {
     marginLeft: globalMargins.tiny,
   },
@@ -123,6 +141,9 @@ const styles = styleSheetCreate({
     },
     isElectron: {
       userSelect: 'all',
+    },
+    isMobile: {
+      height: 15,
     },
   }),
 })
