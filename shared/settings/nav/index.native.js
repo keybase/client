@@ -14,7 +14,6 @@ import {
   Text,
 } from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
-import {compose} from 'recompose'
 import flags from '../../util/feature-flags'
 
 import type {Props} from './index'
@@ -192,4 +191,4 @@ const sectionTitleStyle = {
   paddingTop: 7,
 }
 
-export default compose(HeaderHoc)(SettingsNav)
+export default HeaderHoc(SettingsNav)
