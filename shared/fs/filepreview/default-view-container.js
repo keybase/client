@@ -4,7 +4,6 @@ import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import DefaultView from './default-view'
-import {navigateAppend} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState, {path}) => {
   const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
@@ -23,21 +22,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
     dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
   _save: (path: Types.Path) => dispatch(FsGen.createSave({path, routePath})),
   _share: (path: Types.Path) => dispatch(FsGen.createShare({path, routePath})),
-  _openAsText: (path: Types.Path) =>
-    dispatch(
-      navigateAppend([
-        {
-          props: {path, fileViewType: 'text'},
-          selected: 'preview',
-        },
-      ])
-    ),
   _showInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
   const {fileUIEnabled, _path, pathItem, _username} = stateProps
-  const {_download, _openFinderPopup, _save, _share, _showInFileUI, _openAsText} = dispatchProps
+  const {_download, _openFinderPopup, _save, _share, _showInFileUI} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(_path), pathItem.type, _username)
   return {
     fileUIEnabled,
@@ -47,7 +37,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     onDownload: () => _download(_path),
     onSave: () => _save(_path),
     onShare: () => _share(_path),
-    onOpenAsText: () => _openAsText(_path),
     onShowInFileUI: fileUIEnabled ? () => _showInFileUI(_path) : _openFinderPopup,
   }
 }

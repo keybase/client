@@ -449,7 +449,7 @@ export const folderToFavoriteItems = (
 }
 
 export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
-  if (mimeType.startsWith('text/')) {
+  if (mimeType === 'text/plain') {
     return 'text'
   }
   if (mimeType.startsWith('image/')) {

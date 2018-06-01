@@ -12,7 +12,7 @@ import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import {platformSpecificSaga, platformSpecificIntentEffect} from './platform-specific'
-import {getMimeTypeFromURL} from '../platform-specific'
+import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
@@ -285,16 +285,27 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
   }
 }
 
+// Following RFC https://tools.ietf.org/html/rfc7231#section-3.1.1.1 Examples:
+//   text/html;charset=utf-8
+//   text/html;charset=UTF-8
+//   Text/HTML;Charset="utf-8"
+//   text/html; charset="utf-8"
+// The last part is optional, so if `;` is missing, it'd be just the mimetype.
+const extractMimeTypeFromContentType = (contentType: string): string => {
+  const ind = contentType.indexOf(';')
+  return (ind > -1 ? contentType.slice(0, ind) : contentType).toLowerCase()
+}
+
 const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer) =>
   new Promise((resolve, reject) =>
-    getMimeTypeFromURL(Constants.generateFileURL(path, serverInfo), ({error, statusCode, mimeType}) => {
+    getContentTypeFromURL(Constants.generateFileURL(path, serverInfo), ({error, statusCode, contentType}) => {
       if (error) {
         reject(error)
         return
       }
       switch (statusCode) {
         case 200:
-          resolve(mimeType)
+          resolve(extractMimeTypeFromContentType(contentType))
           return
         case 403:
           reject(Constants.invalidTokenError)
