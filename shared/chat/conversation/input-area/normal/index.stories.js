@@ -69,6 +69,7 @@ const InputContainer = (props: Props) => {
     onEditLastMessage: action('onEditLastMessage'),
     onCancelEditing: action('onCancelEditing'),
     onCancelQuoting: action('onCancelQuoting'),
+    onSeenExplodingMessages: action('onSeenExplodingMessages'),
     onSubmit: (text: string) => {
       action('onSubmit')(text)
     },

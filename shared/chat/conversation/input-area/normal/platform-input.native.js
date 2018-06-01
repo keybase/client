@@ -69,6 +69,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   _toggleShowingMenu = () => {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
+    this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
 

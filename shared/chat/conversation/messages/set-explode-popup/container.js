@@ -15,27 +15,15 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   isNew: Constants.getIsExplodingNew(state),
+  items: Constants.messageExplodeDescriptions,
   selected: Constants.getConversationExplodingMode(state, ownProps.conversationIDKey),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  onHidden: () => {
-    dispatch(Chat2Gen.createHandleSeeingExplodingMessages())
-    ownProps.onHidden()
-  },
   onSelect: seconds =>
     dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey: ownProps.conversationIDKey, seconds})),
 })
 
-// make sure we override onHidden with the one in dispatchProps
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  attachTo: ownProps.attachTo,
-  items: Constants.messageExplodeDescriptions,
-  visible: ownProps.visible,
-})
-
-const SetExplodePopup = connect(mapStateToProps, mapDispatchToProps, mergeProps)(SetExplodeTime)
+const SetExplodePopup = connect(mapStateToProps, mapDispatchToProps)(SetExplodeTime)
 
 export default SetExplodePopup

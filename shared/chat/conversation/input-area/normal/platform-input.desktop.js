@@ -187,6 +187,11 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     this.props.setChannelMentionPopupOpen(false)
   }
 
+  _toggleShowingMenu = () => {
+    this.props.onSeenExplodingMessages()
+    this.props.toggleShowingMenu()
+  }
+
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
@@ -289,13 +294,13 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
               )}
             {flags.explodingMessagesEnabled && (
               <Box
-                onClick={this.props.toggleShowingMenu}
+                onClick={this._toggleShowingMenu}
                 ref={this.props.setAttachmentRef}
                 style={styles.explodingIconContainer}
               >
                 <Icon
                   color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
-                  onClick={this.props.toggleShowingMenu}
+                  onClick={this._toggleShowingMenu}
                   style={styleIcon}
                   type="iconfont-bomb"
                 />
