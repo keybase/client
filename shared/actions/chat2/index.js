@@ -962,7 +962,7 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
   const {conversationIDKey, ordinal} = action.payload
   const message = state.chat2.messageMap.getIn([conversationIDKey, ordinal])
   if (!message || (message.type !== 'text' && message.type !== 'attachment')) {
-    logger.warn('Deleting non-existent or, non-text non-attachment message')
+    logger.warn('Deleting non-existent or non-text non-attachment message')
     logger.debug('Deleting invalid message:', message)
     return
   }
