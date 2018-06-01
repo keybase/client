@@ -306,21 +306,20 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
             // check if the delete is acting on an exploding message
             const messageIDs = body.delete.messageIDs
             const messages = state.chat2.messageMap.get(conversationIDKey)
-            let isExplodeNow = false
-            if (messages) {
-              for (let i = 0; i < messageIDs.length; i++) {
-                const id = Types.numberToOrdinal(messageIDs[i])
+            const isExplodeNow =
+              !!messages &&
+              messageIDs.some(_id => {
+                const id = Types.numberToOrdinal(_id)
                 const message = messages.get(id) || messages.find(msg => msg.id === id)
                 if (
                   message &&
                   (message.type === 'text' || message.type === 'attachment') &&
                   message.exploding
                 ) {
-                  isExplodeNow = true
-                  break
+                  return true
                 }
-              }
-            }
+                return false
+              })
 
             actions.push(
               isExplodeNow
