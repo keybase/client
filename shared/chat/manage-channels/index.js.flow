@@ -16,7 +16,7 @@ export type Props = {
   onToggle: (convID: ConversationIDKey) => void,
   onEdit: (convID: ConversationIDKey) => void,
   onClose: () => void,
-  onClickChannel: (channelname: string) => void,
+  onClickChannel: (convID: ConversationIDKey, channelname: string) => void,
   teamname: string,
   unsavedSubscriptions: boolean,
   onSaveSubscriptions: () => void,

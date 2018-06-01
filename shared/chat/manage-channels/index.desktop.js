@@ -124,7 +124,7 @@ const ManageChannels = (props: Props) => {
               onToggle={() => props.onToggle(c.convID)}
               showEdit={!props.unsavedSubscriptions}
               onEdit={() => props.onEdit(c.convID)}
-              onClickChannel={() => props.onClickChannel(c.name)}
+              onClickChannel={() => props.onClickChannel(c.convID, c.name)}
             />
           ))}
         </ScrollView>

@@ -84,6 +84,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState,
       you: string,
+      convID: ChatTypes.ConversationIDKey,
       channelname: string
     ) => {
       dispatch(
@@ -95,8 +96,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
         })
       )
       dispatch(navigateUp())
-      // TODO: Use findKnownTeamConversation, use manageView.
-      dispatch(Chat2Gen.createFindAndPreviewConversation({teamname, channelname, reason: 'memberView'}))
+      dispatch(
+        Chat2Gen.createSelectOrPreviewTeamConversation({
+          conversationIDKey: convID,
+          teamname,
+          channelname,
+          reason: 'manageView',
+        })
+      )
     },
   }
 }
@@ -125,8 +132,8 @@ export default compose(
       }),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props._you),
-    onClickChannel: props => (channelname: string) => {
-      props._onView(props.oldChannelState, props.nextChannelState, props._you, channelname)
+    onClickChannel: props => (convID: ChatTypes.ConversationIDKey, channelname: string) => {
+      props._onView(props.oldChannelState, props.nextChannelState, props._you, convID, channelname)
     },
   }),
   lifecycle({

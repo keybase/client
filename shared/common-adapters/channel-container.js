@@ -12,6 +12,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {convID, name}) => ({
         conversationIDKey: convID,
         channelname: name,
         reason: 'messageLink',
+        // We don't know the teamname here.
       })
     ),
 })
