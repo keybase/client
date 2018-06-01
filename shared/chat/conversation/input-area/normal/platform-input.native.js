@@ -124,7 +124,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
         )}
         <Box style={styles.container}>
           {this.props.isEditing && (
-            // TODO: Make this box take up the full height.
             <Box style={styles.editingTabStyle}>
               <Text type="BodySmall">Editing:</Text>
               <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>

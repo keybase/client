@@ -1,7 +1,7 @@
 // @flow
 /* eslint-env browser */
 import React, {Component} from 'react'
-import {Box, Icon, Input, Text} from '../../../../common-adapters'
+import {Box, Box2, Icon, Input, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
@@ -299,7 +299,8 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                 />
               )}
             {flags.explodingMessagesEnabled && (
-              <Box
+              <Box2
+                direction="horizontal"
                 onClick={this.props.toggleShowingMenu}
                 ref={this.props.setAttachmentRef}
                 style={styles.explodingIconContainer}
@@ -311,7 +312,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                   type="iconfont-bomb"
                 />
                 <ExplodingMeta explodingModeSeconds={this.props.explodingModeSeconds} />
-              </Box>
+              </Box2>
             )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
@@ -451,8 +452,9 @@ const styleFooter = platformStyles({
 
 const styles = styleSheetCreate({
   explodingIconContainer: {
-    marginRight: globalMargins.small + 4,
-    position: 'relative',
+    alignSelf: 'flex-end',
+    marginRight: 8,
+    marginTop: 13,
   },
 })
 
