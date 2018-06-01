@@ -119,3 +119,15 @@ func (k keybaseDaemon) NewCrypto(config Config, params InitParams, ctx Context, 
 	}
 	return crypto, nil
 }
+
+func (k keybaseDaemon) NewChat(
+	config Config, ctx Context, params InitParams, log logger.Logger) (
+	chat Chat, err error) {
+	localUser := libkb.NewNormalizedUsername(params.LocalUser)
+	if localUser == "" {
+		chat = NewChatRPC(config, ctx)
+	} else {
+		// TODO: implement a simple local chat service.
+	}
+	return chat, nil
+}

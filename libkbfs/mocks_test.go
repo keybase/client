@@ -8,6 +8,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	kbfsblock "github.com/keybase/kbfs/kbfsblock"
 	kbfscodec "github.com/keybase/kbfs/kbfscodec"
@@ -7522,4 +7523,93 @@ func (m *MockBlockRetriever) TogglePrefetcher(enable bool, syncCh <-chan struct{
 // TogglePrefetcher indicates an expected call of TogglePrefetcher
 func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(enable, syncCh interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), enable, syncCh)
+}
+
+// MockChat is a mock of Chat interface
+type MockChat struct {
+	ctrl     *gomock.Controller
+	recorder *MockChatMockRecorder
+}
+
+// MockChatMockRecorder is the mock recorder for MockChat
+type MockChatMockRecorder struct {
+	mock *MockChat
+}
+
+// NewMockChat creates a new mock instance
+func NewMockChat(ctrl *gomock.Controller) *MockChat {
+	mock := &MockChat{ctrl: ctrl}
+	mock.recorder = &MockChatMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockChat) EXPECT() *MockChatMockRecorder {
+	return m.recorder
+}
+
+// GetConversationID mocks base method
+func (m *MockChat) GetConversationID(ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type, channelName string, chatType chat1.TopicType) (chat1.ConversationID, error) {
+	ret := m.ctrl.Call(m, "GetConversationID", ctx, tlfName, tlfType, channelName, chatType)
+	ret0, _ := ret[0].(chat1.ConversationID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetConversationID indicates an expected call of GetConversationID
+func (mr *MockChatMockRecorder) GetConversationID(ctx, tlfName, tlfType, channelName, chatType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConversationID", reflect.TypeOf((*MockChat)(nil).GetConversationID), ctx, tlfName, tlfType, channelName, chatType)
+}
+
+// SendTextMessage mocks base method
+func (m *MockChat) SendTextMessage(ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type, convID chat1.ConversationID, body string) error {
+	ret := m.ctrl.Call(m, "SendTextMessage", ctx, tlfName, tlfType, convID, body)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendTextMessage indicates an expected call of SendTextMessage
+func (mr *MockChatMockRecorder) SendTextMessage(ctx, tlfName, tlfType, convID, body interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTextMessage", reflect.TypeOf((*MockChat)(nil).SendTextMessage), ctx, tlfName, tlfType, convID, body)
+}
+
+// GetGroupedInbox mocks base method
+func (m *MockChat) GetGroupedInbox(ctx context.Context, chatType chat1.TopicType, maxChats int) ([]tlf.CanonicalName, error) {
+	ret := m.ctrl.Call(m, "GetGroupedInbox", ctx, chatType, maxChats)
+	ret0, _ := ret[0].([]tlf.CanonicalName)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGroupedInbox indicates an expected call of GetGroupedInbox
+func (mr *MockChatMockRecorder) GetGroupedInbox(ctx, chatType, maxChats interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupedInbox", reflect.TypeOf((*MockChat)(nil).GetGroupedInbox), ctx, chatType, maxChats)
+}
+
+// GetChannels mocks base method
+func (m *MockChat) GetChannels(ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type, chatType chat1.TopicType) ([]chat1.ConversationID, []string, error) {
+	ret := m.ctrl.Call(m, "GetChannels", ctx, tlfName, tlfType, chatType)
+	ret0, _ := ret[0].([]chat1.ConversationID)
+	ret1, _ := ret[1].([]string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetChannels indicates an expected call of GetChannels
+func (mr *MockChatMockRecorder) GetChannels(ctx, tlfName, tlfType, chatType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannels", reflect.TypeOf((*MockChat)(nil).GetChannels), ctx, tlfName, tlfType, chatType)
+}
+
+// ReadChannel mocks base method
+func (m *MockChat) ReadChannel(ctx context.Context, convID chat1.ConversationID, startPage []byte) ([]string, []byte, error) {
+	ret := m.ctrl.Call(m, "ReadChannel", ctx, convID, startPage)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].([]byte)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ReadChannel indicates an expected call of ReadChannel
+func (mr *MockChatMockRecorder) ReadChannel(ctx, convID, startPage interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadChannel", reflect.TypeOf((*MockChat)(nil).ReadChannel), ctx, convID, startPage)
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -559,8 +560,12 @@ type KeybaseService interface {
 // KeybaseServiceCn defines methods needed to construct KeybaseService
 // and Crypto implementations.
 type KeybaseServiceCn interface {
-	NewKeybaseService(config Config, params InitParams, ctx Context, log logger.Logger) (KeybaseService, error)
-	NewCrypto(config Config, params InitParams, ctx Context, log logger.Logger) (Crypto, error)
+	NewKeybaseService(
+		config Config, params InitParams, ctx Context, log logger.Logger) (
+		KeybaseService, error)
+	NewCrypto(
+		config Config, params InitParams, ctx Context, log logger.Logger) (
+		Crypto, error)
 }
 
 type resolver interface {
@@ -2175,4 +2180,42 @@ type BlockRetriever interface {
 		prefetchStatus PrefetchStatus) error
 	// TogglePrefetcher creates a new prefetcher.
 	TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{}
+}
+
+// Chat specifies a minimal interface for Keybase chatting.
+type Chat interface {
+	// GetConversationID returns the chat conversation ID associated
+	// with the given TLF name, type, chat type and channel name.
+	GetConversationID(
+		ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
+		channelName string, chatType chat1.TopicType) (
+		chat1.ConversationID, error)
+
+	// SendTextMessage synchronously sends a text chat message to the
+	// given conversation and channel.
+	SendTextMessage(
+		ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
+		convID chat1.ConversationID, body string) error
+
+	// GetGroupedInbox returns the TLFs with the most-recent chat
+	// messages of the given type, up to `maxChats` of them.
+	GetGroupedInbox(
+		ctx context.Context, chatType chat1.TopicType, maxChats int) (
+		[]tlf.CanonicalName, error)
+
+	// GetChannels returns a list of all the channels for a given
+	// chat. The entries in `convIDs` and `channelNames` have a 1-to-1
+	// correspondence.
+	GetChannels(
+		ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
+		chatType chat1.TopicType) (
+		convIDs []chat1.ConversationID, channelNames []string, err error)
+
+	// ReadChannel returns a set of text messages from a channel, and
+	// a `nextPage` pointer to the following set of messages.  If the
+	// given `startPage` is non-nil, it's used to specify the starting
+	// point for the set of messages returned.
+	ReadChannel(
+		ctx context.Context, convID chat1.ConversationID, startPage []byte) (
+		messages []string, nextPage []byte, err error)
 }
