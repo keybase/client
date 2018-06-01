@@ -249,9 +249,10 @@ func TestRotateSkipTeamEKRoll(t *testing.T) {
 
 	teamID, teamName := ann.createTeam2()
 
-	// After rotate, we should have rolled the teamEK if one existed.
+	// Get our ephemeral keys before the revoke and ensure we can still access
+	// them after.
 	ekLib := annG.GetEKLib()
-	teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	teamEKPreRoll, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
 
 	// This is a hack to skip the teamEK generation during the PTK roll.
@@ -265,15 +266,26 @@ func TestRotateSkipTeamEKRoll(t *testing.T) {
 	ann.waitForRotateByID(teamID, keybase1.Seqno(3))
 	annG.SetEKLib(ekLib)
 
+	// Ensure that we access the old teamEK even though it was signed by a
+	// non-latest PTK
+	teamEKBoxStorage := annG.GetTeamEKBoxStorage()
+	teamEKBoxStorage.ClearCache()
+	_, err = annG.LocalDb.Nuke() // Force us to refetch and verify the key from the server
+	require.NoError(t, err)
+	teamEKPostRoll, err := teamEKBoxStorage.Get(context.Background(), teamID, teamEKPreRoll.Metadata.Generation)
+	require.NoError(t, err)
+	require.Equal(t, teamEKPreRoll, teamEKPostRoll)
+
 	// After rotating, ensure we can create a new TeamEK without issue.
 	needed, err := ekLib.NewTeamEKNeeded(context.Background(), teamID)
 	require.NoError(t, err)
 	require.True(t, needed)
-	merkleRoot, err := ann.tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+
+	merkleRoot, err := annG.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
-	metadata, err := ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), ann.tc.G, teamID, *merkleRoot)
+	metadata, err := ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), annG, teamID, *merkleRoot)
 	require.NoError(t, err)
-	require.Equal(t, teamEK.Metadata.Generation+1, metadata.Generation)
+	require.Equal(t, teamEKPreRoll.Metadata.Generation+1, metadata.Generation)
 }
 
 func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
@@ -284,17 +296,23 @@ func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 
 	teamID, _ := ann.createTeam2()
 
-	ephemeral.ServiceInit(ann.tc.G)
-	ekLib := ann.tc.G.GetEKLib()
+	annG := ann.tc.G
+	ephemeral.ServiceInit(annG)
+	ekLib := annG.GetEKLib()
 
 	_, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	require.NoError(t, err)
+	userEKBoxStorage := annG.GetUserEKBoxStorage()
+	gen, err := userEKBoxStorage.MaxGeneration(context.Background())
+	require.NoError(t, err)
+	userEKPreRevoke, err := userEKBoxStorage.Get(context.Background(), gen)
 	require.NoError(t, err)
 
 	// Provision a new device that we can revoke.
 	newDevice := ann.provisionNewDevice()
 
 	// Revoke it.
-	revokeEngine := engine.NewRevokeDeviceEngine(ann.tc.G, engine.RevokeDeviceEngineArgs{
+	revokeEngine := engine.NewRevokeDeviceEngine(annG, engine.RevokeDeviceEngineArgs{
 		ID:        newDevice.deviceKey.DeviceID,
 		ForceSelf: true,
 		ForceLast: false,
@@ -302,21 +320,30 @@ func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 		SkipUserEKForTesting: true,
 	})
 	uis := libkb.UIs{
-		LogUI:    ann.tc.G.Log,
+		LogUI:    annG.Log,
 		SecretUI: ann.newSecretUI(),
 	}
 	m := libkb.NewMetaContextForTest(*ann.tc).WithUIs(uis)
 	err = engine.RunEngine2(m, revokeEngine)
 	require.NoError(t, err)
 
+	// Ensure that we access the old userEKs even though it was signed by a
+	// non-latest PUK
+	userEKBoxStorage.ClearCache()
+	_, err = annG.LocalDb.Nuke() // Force us to refetch and verify the key from the server
+	require.NoError(t, err)
+	userEKPostRevoke, err := userEKBoxStorage.Get(context.Background(), userEKPreRevoke.Metadata.Generation)
+	require.NoError(t, err)
+	require.Equal(t, userEKPreRevoke, userEKPostRevoke)
+
 	// Now provision a new userEK. This makes sure that we don't get confused
 	// by the revoked device's deviceEKs.
-	merkleRoot, err := ann.tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	merkleRoot, err := annG.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
-	_, err = ephemeral.ForcePublishNewUserEKForTesting(context.Background(), ann.tc.G, *merkleRoot)
+	_, err = ephemeral.ForcePublishNewUserEKForTesting(context.Background(), annG, *merkleRoot)
 	require.NoError(t, err)
 
 	// And do the same for the teamEK, just to be sure.
-	_, err = ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), ann.tc.G, teamID, *merkleRoot)
+	_, err = ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), annG, teamID, *merkleRoot)
 	require.NoError(t, err)
 }
