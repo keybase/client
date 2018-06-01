@@ -11,6 +11,7 @@ import {
   collapseStyles,
   type StylesCrossPlatform,
   globalColors,
+  globalMargins,
   globalStyles,
   isMobile,
   platformStyles,
@@ -19,24 +20,37 @@ import {
 
 type Props = PropsWithTimer<{
   containerStyle?: StylesCrossPlatform,
+  withReveal?: boolean,
   text: string,
 }>
 
 type State = {
   showingToast: boolean,
+  revealed: boolean,
 }
 
 class _CopyText extends React.Component<Props, State> {
   state = {
     showingToast: false,
+    revealed: false,
   }
   _attachmentRef = null
+
+  componendDidMount() {
+    if (!this.props.withReveal) {
+      this.setState({revealed: true})
+    }
+  }
 
   copy = () => {
     this.setState({showingToast: true}, () =>
       this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
     )
     copyToClipboard(this.props.text)
+  }
+
+  reveal = () => {
+    this.setState({revealed: true})
   }
 
   render() {
@@ -55,9 +69,18 @@ class _CopyText extends React.Component<Props, State> {
             Copied to clipboard
           </Text>
         </Toast>
-        <Text type="Body" selectable={true} style={styles.text}>
-          {this.props.text}
+        <Text
+          type="Body"
+          selectable={true}
+          style={collapseStyles([styles.text, !this.state.revealed && {width: 'auto'}])}
+        >
+          {this.state.revealed ? this.props.text : '••••••••••••'}
         </Text>
+        {!this.state.revealed && (
+          <Text type="BodyPrimaryLink" style={styles.reveal} onClick={this.reveal}>
+            Reveal
+          </Text>
+        )}
         <Button type="Primary" style={styles.button} onClick={this.copy}>
           <Icon type="iconfont-clipboard" color={globalColors.white} />
         </Button>
@@ -87,6 +110,9 @@ const styles = styleSheetCreate({
     paddingLeft: 16,
     paddingTop: 6,
     position: 'relative',
+  },
+  reveal: {
+    marginLeft: globalMargins.tiny,
   },
   text: platformStyles({
     common: {

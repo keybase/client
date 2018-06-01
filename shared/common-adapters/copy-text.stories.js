@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import {storiesOf, action} from '../stories/storybook'
+import {storiesOf} from '../stories/storybook'
 import CopyText from './copy-text'
 
 const load = () => {
@@ -12,6 +12,7 @@ const load = () => {
       </Box>
     ))
     .add('Basic', () => <CopyText text="hi" />)
+    .add('With reveal', () => <CopyText text="surprise!" withReveal={true} />)
 }
 
 export default load
