@@ -67,12 +67,13 @@
       ]
     },
     
-    "previewKnownTeamConversation": {
+    "selectOrPreviewTeamConversation": {
       "_description": "Select or preview an existing team conversation.",
       // Not strictly needed, but convenient to know when debugging.
       "channelname": "string",
       "conversationIDKey": "Types.ConversationIDKey",
-      // Also not strictly needed, and may not be known by the caller.
+      // Also not strictly needed, and may not be known by the caller,
+      // e.g. for messageLink.
       "teamname?": "string",
       "reason": [
         "'manageView'",

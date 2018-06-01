@@ -742,7 +742,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateNotificationSettings:
     case Chat2Gen.blockConversation:
     case Chat2Gen.findAndPreviewConversation:
-    case Chat2Gen.previewKnownTeamConversation:
+    case Chat2Gen.selectOrPreviewTeamConversation:
     case Chat2Gen.createConversation:
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.handleSeeingExplodingMessages:

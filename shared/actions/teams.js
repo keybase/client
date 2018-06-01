@@ -877,7 +877,7 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
 
     // Select the new channel, and switch to the chat tab.
     yield Saga.put(
-      Chat2Gen.createPreviewKnownTeamConversation({
+      Chat2Gen.createSelectOrPreviewTeamConversation({
         channelname,
         conversationIDKey: newConversationIDKey,
         reason: 'newChannel',

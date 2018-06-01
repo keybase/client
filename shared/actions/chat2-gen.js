@@ -58,10 +58,10 @@ export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
-export const previewKnownTeamConversation = 'chat2:previewKnownTeamConversation'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
+export const selectOrPreviewTeamConversation = 'chat2:selectOrPreviewTeamConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
@@ -259,12 +259,6 @@ type _NotificationSettingsUpdatedPayload = $ReadOnly<{|
   settings: RPCChatTypes.ConversationNotificationInfo,
 |}>
 type _OpenFolderPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _PreviewKnownTeamConversationPayload = $ReadOnly<{|
-  channelname: string,
-  conversationIDKey: Types.ConversationIDKey,
-  teamname?: string,
-  reason: 'manageView' | 'messageLink' | 'newChannel' | 'previewResolved',
-|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -273,6 +267,12 @@ type _ResetLetThemInPayload = $ReadOnly<{|
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
+|}>
+type _SelectOrPreviewTeamConversationPayload = $ReadOnly<{|
+  channelname: string,
+  conversationIDKey: Types.ConversationIDKey,
+  teamname?: string,
+  reason: 'manageView' | 'messageLink' | 'newChannel' | 'previewResolved',
 |}>
 type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -346,7 +346,7 @@ export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingMode
 /**
  * Select or preview an existing team conversation.
  */
-export const createPreviewKnownTeamConversation = (payload: _PreviewKnownTeamConversationPayload) => ({error: false, payload, type: previewKnownTeamConversation})
+export const createSelectOrPreviewTeamConversation = (payload: _SelectOrPreviewTeamConversationPayload) => ({error: false, payload, type: selectOrPreviewTeamConversation})
 /**
  * Set a lock on the exploding mode for a conversation.
  */
@@ -477,10 +477,10 @@ export type NavigateToInboxPayload = $Call<typeof createNavigateToInbox, _Naviga
 export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _NavigateToThreadPayload>
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
-export type PreviewKnownTeamConversationPayload = $Call<typeof createPreviewKnownTeamConversation, _PreviewKnownTeamConversationPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
+export type SelectOrPreviewTeamConversationPayload = $Call<typeof createSelectOrPreviewTeamConversation, _SelectOrPreviewTeamConversationPayload>
 export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayload>
 export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMode, _SetConvExplodingModePayload>
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
@@ -550,10 +550,10 @@ export type Actions =
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload
   | OpenFolderPayload
-  | PreviewKnownTeamConversationPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | SelectConversationPayload
+  | SelectOrPreviewTeamConversationPayload
   | SendTypingPayload
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
