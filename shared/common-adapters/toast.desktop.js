@@ -2,20 +2,31 @@
 import * as React from 'react'
 import type {Props} from './toast'
 import FloatingBox from './floating-box'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../styles'
+import {collapseStyles, glamorous, globalColors, globalMargins, styleSheetCreate, transition} from '../styles'
 
-export default (props: Props) =>
-  props.visible ? (
-    <FloatingBox
-      containerStyle={collapseStyles([styles.container, props.containerStyle])}
-      onHidden={() => {}}
-      attachTo={props.attachTo}
-      propagateOutsideClicks={true}
-      position={props.position}
+const FadeBox = glamorous.div({
+  ...transition('opacity'),
+  '&.visible': {
+    opacity: 1,
+  },
+  opacity: 0,
+})
+
+export default (props: Props) => (
+  <FloatingBox
+    onHidden={() => {}}
+    attachTo={props.attachTo}
+    propagateOutsideClicks={true}
+    position={props.position}
+  >
+    <FadeBox
+      className={props.visible ? 'visible' : null}
+      style={collapseStyles([styles.container, props.containerStyle])}
     >
       {props.children}
-    </FloatingBox>
-  ) : null
+    </FadeBox>
+  </FloatingBox>
+)
 
 const styles = styleSheetCreate({
   container: {
