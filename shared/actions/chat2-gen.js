@@ -128,7 +128,6 @@ type _DesktopNotificationPayload = $ReadOnly<{|
 type _FindAndPreviewConversationPayload = $ReadOnly<{|
   participants?: Array<string>,
   teamname?: string,
-  channelname?: string,
   reason: 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView',
 |}>
 type _HandleSeeingExplodingMessagesPayload = void

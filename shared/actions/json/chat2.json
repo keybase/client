@@ -51,7 +51,6 @@
     "findAndPreviewConversation": {
       "participants?": "Array<string>",
       "teamname?": "string",
-      "channelname?": "string",
       "reason": [
         "'resetChatWithoutThem'",
         "'tracker'",
