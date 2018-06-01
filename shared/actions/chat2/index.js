@@ -878,11 +878,23 @@ const loadMoreMessagesSuccess = (results: ?Array<any>) => {
   return Saga.put(Chat2Gen.createSetConversationOffline({conversationIDKey, offline: res.offline}))
 }
 
-const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload, state: TypedState) =>
-  !state.chat2.inboxFilter ||
-  (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
-    ? undefined
-    : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+const clearInboxFilter = (
+  action: Chat2Gen.SelectConversationPayload | Chat2Gen.MessageSendPayload,
+  state: TypedState
+) => {
+  if (!state.chat2.inboxFilter) {
+    return
+  }
+
+  if (
+    action.type === Chat2Gen.selectConversation &&
+    (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
+  ) {
+    return
+  }
+
+  return Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+}
 
 // Show a desktop notification
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
@@ -2066,7 +2078,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
+  yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
   yield Saga.safeTakeEveryPure(
