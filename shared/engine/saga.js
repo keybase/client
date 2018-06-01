@@ -3,8 +3,24 @@
 import {getEngine} from '../engine'
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
-import {type TypedState} from '../constants/reducer'
+import type {CommonResponseHandler, RPCError} from './types'
+import type {TypedState} from '../constants/reducer'
 import {printOutstandingRPCs} from '../local-debug'
+
+type EmittedCall = {
+  method: string,
+  params: any,
+  response?: CommonResponseHandler,
+}
+
+type EmittedFinished = {
+  method: null,
+  params: any,
+  error: ?RPCError,
+}
+
+type CallbackWithResponse = (any, CommonResponseHandler, TypedState) => ?RS.Effect | ?Generator<any, any, any>
+type CallbackNoResponse = (any, TypedState) => ?RS.Effect | ?Generator<any, any, any>
 
 // TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
 function* call(
@@ -20,10 +36,10 @@ function* call(
   }
 
   // Event channel lets you use emitter to 'put' things onto a channel in a callback compatible form
-  const eventChannel = yield RS.eventChannel(emitter => {
+  const eventChannel: RS.Channel = yield RS.eventChannel(emitter => {
     // convert call map
     const callMap = Object.keys(incomingCallMap).reduce((map, method) => {
-      map[method] = (params, response) => {
+      map[method] = (params: any, response: CommonResponseHandler) => {
         // If we need a custom reply we pass it down to the action handler to deal with, otherwise by default we handle it immediately
         const customResponseNeeded = incomingCallMap[method].length === 3
         if (!customResponseNeeded && response) {
@@ -32,11 +48,12 @@ function* call(
 
         // defer to process network first
         setTimeout(() => {
-          emitter({
+          const toEmit: EmittedCall = {
             method,
             params,
             ...(customResponseNeeded ? {response} : {}),
-          })
+          }
+          emitter(toEmit)
         }, 5)
       }
       return map
@@ -56,13 +73,14 @@ function* call(
         ...param,
         incomingCallMap: callMap,
       },
-      (error, params) => {
+      (error?: RPCError, params: any) => {
         if (printOutstandingRPCs) {
           clearInterval(intervalID)
         }
         // When done send the special flag
         setTimeout(() => {
-          emitter({error, method: null, params})
+          const toEmit: EmittedFinished = {error, method: null, params}
+          emitter(toEmit)
           emitter(RS.END)
         }, 5)
       }
@@ -71,14 +89,15 @@ function* call(
     return () => {}
   }, RS.buffers.expanding(10)) // allow the buffer to grow always
 
-  let finalParams
-  let finalError
+  let finalParams: any
+  let finalError: ?RPCError
   try {
     while (true) {
       // Take things that we put into the eventChannel above
-      const res = yield RSE.take(eventChannel)
+      const r = yield RSE.take(eventChannel)
 
-      if (res.method) {
+      if (r.method) {
+        const res: EmittedCall = (r: EmittedCall)
         // See if its handled
         const cb = incomingCallMap[res.method]
         if (cb) {
@@ -86,9 +105,11 @@ function* call(
           let action
 
           if (res.response) {
-            action = yield RSE.call(cb, res.params, res.response, state)
+            const c: CallbackWithResponse = (cb: CallbackWithResponse)
+            action = yield RSE.call(c, res.params, res.response, state)
           } else {
-            action = yield RSE.call(cb, res.params, state)
+            const c: CallbackNoResponse = (cb: CallbackNoResponse)
+            action = yield RSE.call(c, res.params, state)
           }
 
           if (action) {
@@ -96,6 +117,7 @@ function* call(
           }
         }
       } else {
+        const res: EmittedFinished = (r: EmittedFinished)
         // finished
         finalParams = res.params
         finalError = res.error
