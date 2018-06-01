@@ -1219,7 +1219,6 @@ const previewConversationFindExisting = (
 ) => {
   let participants
   let teamname
-  let conversationIDKey
   if (action.type === Chat2Gen.findAndPreviewConversation) {
     participants = action.payload.participants
     teamname = action.payload.teamname
@@ -1256,8 +1255,6 @@ const previewConversationFindExisting = (
       tlfName: teamname,
       topicName: 'general',
     }
-  } else if (conversationIDKey) {
-    // we can skip the call if we have a conversationid already
   } else {
     throw new Error('Start conversation called w/ no participants or teamname')
   }
@@ -1268,17 +1265,15 @@ const previewConversationFindExisting = (
     })
   )
 
-  const makeCall = conversationIDKey
-    ? null
-    : Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-        oneChatPerTLF: true,
-        topicName: '',
-        topicType: RPCChatTypes.commonTopicType.chat,
-        visibility: RPCTypes.commonTLFVisibility.private,
-        ...params,
-      })
+  const makeCall = Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+    oneChatPerTLF: true,
+    topicName: '',
+    topicType: RPCChatTypes.commonTopicType.chat,
+    visibility: RPCTypes.commonTLFVisibility.private,
+    ...params,
+  })
 
   const passUsersDown = Saga.identity(users)
 
