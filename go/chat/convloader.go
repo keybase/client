@@ -241,9 +241,14 @@ func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 	}
 	b.suspendCount++
 	if b.activeLoadCtx != nil {
-		b.Debug(b.activeLoadCtx, "Suspend: canceling active load")
-		b.activeLoadCancelFn()
-		canceled = true
+		select {
+		case <-b.activeLoadCtx.Done():
+			b.Debug(b.activeLoadCtx, "Suspend: active load already canceled")
+		default:
+			b.Debug(b.activeLoadCtx, "Suspend: canceling active load")
+			b.activeLoadCancelFn()
+			canceled = true
+		}
 	}
 	return canceled
 }
