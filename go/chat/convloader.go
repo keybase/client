@@ -273,39 +273,6 @@ func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource)
 	b.testingNameInfoSource = ni
 }
 
-// recvWithShutdown receives from a blank channel, and aborts if a shutdown event happens
-func (b *BackgroundConvLoader) recvWithShutdown(ctx context.Context, ch chan struct{}, reason string) bool {
-	select {
-	case <-ch:
-	case <-b.stopCh:
-		b.Debug(ctx, "loop: shutting down: uid: %s reason: %s", b.uid, reason)
-		return false
-	}
-	return true
-}
-
-// recvTimeWithShutdown receives from time channel, and aborts if a shutdown event happens
-func (b *BackgroundConvLoader) recvTimeWithShutdown(ctx context.Context, ch <-chan time.Time, reason string) bool {
-	select {
-	case <-ch:
-	case <-b.stopCh:
-		b.Debug(ctx, "loop: shutting down: uid: %s reason: %s", b.uid, reason)
-		return false
-	}
-	return true
-}
-
-// recvTaskWithShutdown receives a task, but also will abort on shutdown
-func (b *BackgroundConvLoader) recvTaskWithShutdown(ctx context.Context, cb chan *clTask) (*clTask, bool) {
-	select {
-	case task := <-cb:
-		return task, true
-	case <-b.stopCh:
-		b.Debug(ctx, "loop: shutting down: uid: %s reason: load task", b.uid)
-		return nil, false
-	}
-}
-
 func (b *BackgroundConvLoader) loop() {
 	bgctx := context.Background()
 	uid := b.uid
@@ -315,21 +282,19 @@ func (b *BackgroundConvLoader) loop() {
 	// for b.resumeWait amount of time. Returns false if the outer loop should shutdown.
 	waitForResume := func(ch chan struct{}) bool {
 		b.Debug(bgctx, "waitForResume: suspending loop")
-		if !b.recvWithShutdown(bgctx, ch, "waitForResume: resume") {
+		select {
+		case <-ch:
+		case <-b.stopCh:
 			return false
 		}
-		if !b.recvTimeWithShutdown(bgctx, b.clock.After(b.resumeWait), "waitForResume: resumeWait") {
-			return false
-		}
+		b.clock.Sleep(b.resumeWait)
 		b.Debug(bgctx, "waitForResume: resuming loop")
 		return true
 	}
 	// On mobile fresh start, apply the foreground wait
 	if b.G().GetAppType() == libkb.MobileAppType {
 		b.Debug(bgctx, "loop: delaying startup since on mobile")
-		if !b.recvTimeWithShutdown(bgctx, b.clock.After(b.resumeWait), "initial mobile wait") {
-			return
-		}
+		b.clock.Sleep(b.resumeWait)
 	}
 
 	// Main loop
@@ -363,9 +328,6 @@ func (b *BackgroundConvLoader) loop() {
 				if !waitForResume(ch) {
 					return
 				}
-			case <-b.stopCh:
-				b.Debug(bgctx, "loop: shutting down for %s", uid)
-				return
 			}
 			b.Debug(bgctx, "loop: pulled queued task: %s", task.job)
 			select {
