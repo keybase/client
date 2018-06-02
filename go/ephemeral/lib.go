@@ -58,7 +58,7 @@ func (e *EKLib) NewMetaContext(ctx context.Context) libkb.MetaContext {
 func (e *EKLib) checkLoginAndPUK(ctx context.Context) (loggedIn bool, err error) {
 	m := e.NewMetaContext(ctx)
 	if oneshot, err := e.G().IsOneshot(ctx); err != nil || oneshot {
-		e.G().Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s, isOneshot: %v", err, oneshot)
+		e.G().Log.CDebugf(ctx, "EKLib#checkLoginAndPUK error: %s, isOneshot: %v", err, oneshot)
 		return false, err
 	}
 
