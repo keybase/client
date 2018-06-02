@@ -775,6 +775,10 @@ type SimpleFSSyncStatusArg struct {
 type SimpleFSGetHTTPAddressAndTokenArg struct {
 }
 
+type SimpleFSMkdirAllArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path
 	// Retrieve results with readList()
@@ -839,6 +843,8 @@ type SimpleFSInterface interface {
 	// document that has title of "KBFS HTTP Token Invalid". When receiving such
 	// response, client should call this RPC (again) to get a new token.
 	SimpleFSGetHTTPAddressAndToken(context.Context) (SimpleFSGetHTTPAddressAndTokenResponse, error)
+	// Make new folder(s).
+	SimpleFSMkdirAll(context.Context, Path) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1172,6 +1178,22 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"simpleFSMkdirAll": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSMkdirAllArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SimpleFSMkdirAllArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SimpleFSMkdirAllArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSMkdirAll(ctx, (*typedArgs)[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1334,5 +1356,12 @@ func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context) (res FSSyncStatu
 // response, client should call this RPC (again) to get a new token.
 func (c SimpleFSClient) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (res SimpleFSGetHTTPAddressAndTokenResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken", []interface{}{SimpleFSGetHTTPAddressAndTokenArg{}}, &res)
+	return
+}
+
+// Make new folder(s).
+func (c SimpleFSClient) SimpleFSMkdirAll(ctx context.Context, path Path) (err error) {
+	__arg := SimpleFSMkdirAllArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSMkdirAll", []interface{}{__arg}, nil)
 	return
 }

@@ -242,3 +242,12 @@ func (s *SimpleFSHandler) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (k
 	}
 	return cli.SimpleFSGetHTTPAddressAndToken(ctx)
 }
+
+// SimpleFSMkdirAll implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSMkdirAll(ctx context.Context, p keybase1.Path) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSMkdirAll(ctx, p)
+}

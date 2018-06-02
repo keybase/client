@@ -103,6 +103,10 @@ export const SimpleFSSimpleFSMakeOpidRpcChannelMap = (configKeys: Array<string>,
 
 export const SimpleFSSimpleFSMakeOpidRpcPromise = (request: SimpleFSSimpleFSMakeOpidRpcParam): Promise<SimpleFSSimpleFSMakeOpidResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMakeOpid', request, (error: RPCError, result: SimpleFSSimpleFSMakeOpidResult) => (error ? reject(error) : resolve(result))))
 
+export const SimpleFSSimpleFSMkdirAllRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSMkdirAllRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMkdirAll', request)
+
+export const SimpleFSSimpleFSMkdirAllRpcPromise = (request: SimpleFSSimpleFSMkdirAllRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMkdirAll', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const SimpleFSSimpleFSMoveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSMoveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMove', request)
 
 export const SimpleFSSimpleFSMoveRpcPromise = (request: SimpleFSSimpleFSMoveRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSMove', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -3515,6 +3519,8 @@ export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path:
 export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSMakeOpidRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type SimpleFSSimpleFSMkdirAllRpcParam = $ReadOnly<{path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSMoveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
