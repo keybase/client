@@ -67,7 +67,7 @@ func (l *LogProfileContext) LogProfile(path string) ([]string, error) {
 		return nil, err
 	}
 
-	re := regexp.MustCompile("- (.*) -> .* \\[time=(.*)\\]( \\[tags)*")
+	re := regexp.MustCompile("- (.*) -> .* \\[time=(\\d+\\.\\w+)\\]")
 	data := map[string][]time.Duration{}
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
@@ -77,8 +77,11 @@ func (l *LogProfileContext) LogProfile(path string) ([]string, error) {
 		if len(matches) == 0 {
 			continue
 		}
+		fn := matches[0][1]
 		// Some log calls have fnName: args so we want to strip that.
-		fn := strings.Split(matches[0][1], ":")[0]
+		fn = strings.Split(fn, ":")[0]
+		// Some log calls have fnName(args) so we want to strip that.
+		fn = strings.Split(fn, "(")[0]
 		d, err := time.ParseDuration(matches[0][2])
 		if err != nil {
 			l.G().Log.CDebugf(context.TODO(), "Unable to parse duration: %s", err)
