@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
-import {validTeamnamePart} from '../../constants/teamname'
+import {validTeamname} from '../../constants/teamname'
 
 type Props = {
   baseTeam: string,
@@ -29,7 +29,7 @@ type Props = {
 
 class Contents extends React.Component<Props> {
   _onSubmit = () => {
-    if (!validTeamnamePart(this.props.name)) {
+    if (!validTeamname(this.props.name)) {
       this.props.onSetTeamCreationError(
         'Teamnames must be between 2 and 16 characters long, can only contain letters and underscores, and cannot begin with an underscore.'
       )
