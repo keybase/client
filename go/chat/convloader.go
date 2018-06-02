@@ -192,6 +192,7 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	ch := make(chan struct{})
 	if b.started {
 		close(b.stopCh)
+		b.stopCh = make(chan struct{})
 		b.started = false
 	}
 	close(ch)
