@@ -26,7 +26,14 @@ const walletsLoadAssets = (action: WalletsGen.WalletsLoadAssetsPayload) => {
   return Saga.call(Types.localGetAccountAssetsLocalRpcPromise, {accountID})
 }
 
-const walletsLoadAssetsSuccess = (res: any) => res && Saga.put(WalletsGen.createAssetsReceived({assets: Constants.assetsResultToAssets(res)}))
+const walletsLoadAssetsSuccess = (res: any, action: WalletsGen.WalletsLoadAssetsPayload) => {
+  console.warn('res is ', res, action)
+  const {accountID} = action.payload
+  return Saga.put(WalletsGen.createAssetsReceived({
+    accountID,
+    assets: Constants.assetsResultToAssets(res[0]),
+  }))
+}
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.walletsRefresh, walletsRefresh, walletsRefreshSuccess)

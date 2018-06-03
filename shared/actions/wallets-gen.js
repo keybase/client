@@ -14,7 +14,10 @@ export const walletsReceived = 'wallets:walletsReceived'
 export const walletsRefresh = 'wallets:walletsRefresh'
 
 // Payload Types
-type _AssetsReceivedPayload = $ReadOnly<{|assets: any|}>
+type _AssetsReceivedPayload = $ReadOnly<{|
+  accountID: string,
+  assets: any,
+|}>
 type _LoadAssetsPayload = $ReadOnly<{|accountID: string|}>
 type _WalletsReceivedPayload = $ReadOnly<{|wallets: Array<Types.Wallet>|}>
 type _WalletsRefreshPayload = void

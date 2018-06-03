@@ -9,6 +9,7 @@
     },
     "assetsReceived": {
       "_description": "Update our store of assets data",
+      "accountID": "string",
       "assets": "any",
     },
     "walletsReceived": {
