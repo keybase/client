@@ -19,7 +19,7 @@ const Row = compose(connect(mapStateToProps), setDisplayName('Row'))(({path, pat
     case 'unknown':
       return <Still path={path} routePath={routePath} />
     case 'new-folder':
-      return <Editing path={path} routePath={routePath} />
+      return <Editing path={path} routePath={routePath} isCreate={true} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (pathItemType: empty) => any

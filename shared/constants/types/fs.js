@@ -80,13 +80,13 @@ export type _UnknownPathItem = {
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItemEditingStatusType = 'editing' | 'saving' | 'failed'
-export type _NewPathItem = {
+export type _NewFolderPathItem = {
   type: 'new-folder',
   status: PathItemEditingStatusType,
 } & PathItemMetadata
-export type NewPathItem = I.RecordOf<_NewPathItem>
+export type NewFolderPathItem = I.RecordOf<_NewFolderPathItem>
 
-export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem | NewPathItem
+export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem | NewFolderPathItem
 
 export type SortBy = 'name' | 'time'
 export type SortOrder = 'asc' | 'desc'

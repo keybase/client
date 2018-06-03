@@ -21,7 +21,7 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const makeNewPathItem: I.RecordFactory<Types._NewPathItem> = I.Record({
+export const makeNewFolderPathItem: I.RecordFactory<Types._NewFolderPathItem> = I.Record({
   type: 'new-folder',
   status: 'editing',
   name: 'New Folder',

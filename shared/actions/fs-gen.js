@@ -33,7 +33,10 @@ export const loadResetsResult = 'fs:loadResetsResult'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
+export const newFolder = 'fs:newFolder'
+export const newFolderFailed = 'fs:newFolderFailed'
 export const newFolderRow = 'fs:newFolderRow'
+export const newFolderRowClear = 'fs:newFolderRowClear'
 export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
@@ -110,6 +113,9 @@ type _MimeTypeLoadedPayload = $ReadOnly<{|
   path: Types.Path,
   mimeType: string,
 |}>
+type _NewFolderFailedPayload = $ReadOnly<{|path: Types.Path|}>
+type _NewFolderPayload = $ReadOnly<{|path: Types.Path|}>
+type _NewFolderRowClearPayload = $ReadOnly<{|path: Types.Path|}>
 type _NewFolderRowPayload = $ReadOnly<{|parentPath: Types.Path|}>
 type _OpenFinderPopupPayload = $ReadOnly<{|
   targetRect: ?ClientRect,
@@ -178,7 +184,10 @@ export const createLoadResetsResult = (payload: _LoadResetsResultPayload) => ({e
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
 export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: false, payload, type: mimeTypeLoad})
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
+export const createNewFolder = (payload: _NewFolderPayload) => ({error: false, payload, type: newFolder})
+export const createNewFolderFailed = (payload: _NewFolderFailedPayload) => ({error: false, payload, type: newFolderFailed})
 export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({error: false, payload, type: newFolderRow})
+export const createNewFolderRowClear = (payload: _NewFolderRowClearPayload) => ({error: false, payload, type: newFolderRowClear})
 export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({error: false, payload, type: openFinderPopup})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
@@ -219,6 +228,9 @@ export type LoadResetsResultPayload = $Call<typeof createLoadResetsResult, _Load
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
 export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
 export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
+export type NewFolderFailedPayload = $Call<typeof createNewFolderFailed, _NewFolderFailedPayload>
+export type NewFolderPayload = $Call<typeof createNewFolder, _NewFolderPayload>
+export type NewFolderRowClearPayload = $Call<typeof createNewFolderRowClear, _NewFolderRowClearPayload>
 export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRowPayload>
 export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFinderPopupPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
@@ -262,6 +274,9 @@ export type Actions =
   | LocalHTTPServerInfoPayload
   | MimeTypeLoadPayload
   | MimeTypeLoadedPayload
+  | NewFolderFailedPayload
+  | NewFolderPayload
+  | NewFolderRowClearPayload
   | NewFolderRowPayload
   | OpenFinderPopupPayload
   | OpenInFileUIPayload

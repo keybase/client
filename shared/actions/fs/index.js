@@ -347,6 +347,26 @@ function* _loadMimeType(path: Types.Path) {
 
 const loadMimeType = (action: FsGen.MimeTypeLoadPayload) => Saga.call(_loadMimeType, action.payload.path)
 
+const newFolder = (action: FsGen.NewFolderPayload) =>
+  Saga.call(RPCTypes.SimpleFSSimpleFSOpenRpcPromise, {
+    opID: Constants.makeUUID(),
+    dest: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(action.payload.path),
+    },
+    flags: RPCTypes.simpleFSOpenFlags.directory,
+  })
+
+const newFolderSuccess = (res, action) =>
+  Saga.sequentially([
+    Saga.put(FsGen.createNewFolderRowClear({path: action.payload.path})),
+    Saga.put(FsGen.createFolderListLoad({path: Types.getPathParent(action.payload.path)})),
+  ])
+const newFolderFailed = (res, {payload: {path}}) => {
+  console.log(res)
+  return Saga.put(FsGen.createNewFolderFailed({path}))
+}
+
 function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenerator<any, any> {
   const {path, type, targetRect, routePath} = action.payload
   // We may not have the folder loaded yet, but will need metadata to know
@@ -488,6 +508,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.loadResets, loadResets)
+  yield Saga.safeTakeEveryPure(FsGen.newFolder, newFolder, newFolderSuccess, newFolderFailed)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

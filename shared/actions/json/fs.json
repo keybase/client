@@ -100,6 +100,15 @@
     "newFolderRow": {
       "parentPath": "Types.Path"
     },
+    "newFolder": {
+      "path": "Types.Path"
+    },
+    "newFolderFailed": {
+      "path": "Types.Path"
+    },
+    "newFolderRowClear": {
+      "path": "Types.Path"
+    },
 
     "share": {
       "path": "Types.Path",
