@@ -52,12 +52,31 @@ func avgDuration(durations []time.Duration) time.Duration {
 }
 
 func format(fn string, durations []time.Duration) string {
-	return fmt.Sprintf(`%v:
-		max: %v
-		avg: %v
-		min: %v
-		len: %v`,
+	return fmt.Sprintf(`
+		%v:
+			max: %v
+			avg: %v
+			min: %v
+			len: %v`,
 		fn, maxDuration(durations), avgDuration(durations), minDuration(durations), len(durations))
+}
+
+func (l *LogProfileContext) parseMatch(matches []string) (filename, fnName string, d time.Duration) {
+	if len(matches) != 4 {
+		return "", "", 0
+	}
+	filename = matches[1]
+	fnName = matches[2]
+	// Some log calls have fnName: args so we want to strip that.
+	fnName = strings.Split(fnName, ":")[0]
+	// Some log calls have fnName(args) so we want to strip that.
+	fnName = strings.Split(fnName, "(")[0]
+	d, err := time.ParseDuration(matches[3])
+	if err != nil {
+		l.G().Log.CDebugf(context.TODO(), "Unable to parse duration: %s", err)
+		return "", "", 0
+	}
+	return filename, fnName, d
 }
 
 func (l *LogProfileContext) LogProfile(path string) ([]string, error) {
@@ -67,8 +86,9 @@ func (l *LogProfileContext) LogProfile(path string) ([]string, error) {
 		return nil, err
 	}
 
-	re := regexp.MustCompile("- (.*) -> .* \\[time=(\\d+\\.\\w+)\\]")
-	data := map[string][]time.Duration{}
+	re := regexp.MustCompile(`keybase (\w*\.go)\:\d+.*- (.*) -> .* \[time=(\d+\.\w+)\]`)
+	// filename -> functionName -> [durations...]
+	profiles := map[string]map[string][]time.Duration{}
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
@@ -77,28 +97,30 @@ func (l *LogProfileContext) LogProfile(path string) ([]string, error) {
 		if len(matches) == 0 {
 			continue
 		}
-		fn := matches[0][1]
-		// Some log calls have fnName: args so we want to strip that.
-		fn = strings.Split(fn, ":")[0]
-		// Some log calls have fnName(args) so we want to strip that.
-		fn = strings.Split(fn, "(")[0]
-		d, err := time.ParseDuration(matches[0][2])
-		if err != nil {
-			l.G().Log.CDebugf(context.TODO(), "Unable to parse duration: %s", err)
+		filename, fnName, d := l.parseMatch(matches[0])
+		if fnName == "" {
 			continue
 		}
 
-		durations, ok := data[fn]
+		data, ok := profiles[filename]
+		if !ok {
+			data = make(map[string][]time.Duration)
+		}
+		durations, ok := data[fnName]
 		if ok {
 			durations = append(durations, d)
 		} else {
 			durations = []time.Duration{d}
 		}
-		data[fn] = durations
+		data[fnName] = durations
+		profiles[filename] = data
 	}
 	res := []string{}
-	for fn, durations := range data {
-		res = append(res, format(fn, durations))
+	for filename, data := range profiles {
+		res = append(res, filename)
+		for fnName, durations := range data {
+			res = append(res, format(fnName, durations))
+		}
 	}
 	return res, nil
 }
