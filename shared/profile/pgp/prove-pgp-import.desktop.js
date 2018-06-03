@@ -13,14 +13,12 @@ class ProvePgpImport extends Component<Props> {
           Import a PGP key
         </Text>
         <Text style={styleBody} type="Body">
-          To upload your existing PGP key to Keybase, please run the following command from your terminal:
+          To register your existing PGP public key on Keybase, please run the following command from your
+          terminal:
         </Text>
         <Box style={styleTerminal}>
           <Text type="TerminalComment"># import a key from gpg's key chain</Text>
           <Text type="Terminal">keybase pgp select</Text>
-          <Text type="TerminalEmpty" />
-          <Text type="TerminalComment"># import from stdin and send the public half to Keybase</Text>
-          <Text type="Terminal">cat privkey.asc | keybase pgp import</Text>
           <Text type="TerminalEmpty" />
           <Text type="TerminalComment"># for more options</Text>
           <Text type="Terminal">keybase pgp help</Text>

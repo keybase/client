@@ -105,6 +105,13 @@
         {
           "type": "string",
           "name": "signedTransaction"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "autoClaimToken"
         }
       ]
     },
@@ -302,6 +309,10 @@
           "name": "to"
         },
         {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
           "type": "AccountID",
           "name": "relayAccount"
         },
@@ -404,6 +415,16 @@
         {
           "type": "string",
           "name": "available"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AutoClaim",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "kbTxID"
         }
       ]
     }
@@ -522,6 +543,40 @@
         }
       ],
       "response": "RelayClaimResult"
+    },
+    "acquireAutoClaimLock": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        }
+      ],
+      "response": "string"
+    },
+    "releaseAutoClaimLock": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "token",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "nextAutoClaim": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        }
+      ],
+      "response": [
+        null,
+        "AutoClaim"
+      ]
     },
     "isMasterKeyActive": {
       "request": [

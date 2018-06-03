@@ -23,6 +23,7 @@ import java.util.List;
 
 import io.keybase.ossifrage.modules.StorybookConstants;
 import io.keybase.ossifrage.modules.BackgroundJobCreator;
+import io.keybase.ossifrage.modules.BackgroundSyncJob;
 
 public class MainApplication extends Application implements ReactApplication {
   private File logFile;
@@ -31,7 +32,12 @@ public class MainApplication extends Application implements ReactApplication {
   public void onCreate () {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
-    JobManager.create(this).addJobCreator(new BackgroundJobCreator());
+    JobManager manager = JobManager.create(this);
+    manager.addJobCreator(new BackgroundJobCreator());
+    if (manager.getAllJobRequestsForTag(BackgroundSyncJob.TAG).size() == 0) {
+        // Setup a background job
+        BackgroundSyncJob.scheduleJob();
+    }
 
     logFile = this.getFileStreamPath("android.log");
   }

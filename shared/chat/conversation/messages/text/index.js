@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Markdown} from '../../../../common-adapters'
-import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../../styles'
 
 export type Props = {
   text: string,
@@ -33,10 +33,10 @@ const getStyle = (type, isEditing) => {
 }
 
 const editing = {
-  backgroundColor: globalColors.yellow,
-  opacity: 0.6,
-  paddingLeft: 2,
-  paddingRight: 2,
+  backgroundColor: globalColors.yellow3,
+  borderRadius: 2,
+  paddingLeft: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
 }
 const sent = platformStyles({
   common: {
