@@ -2,8 +2,8 @@ package libkb
 
 import (
 	"fmt"
-	"time"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"time"
 )
 
 // leafSlot is a simple accessor that takes the given leaf, and the private/public type,
