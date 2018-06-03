@@ -3,6 +3,14 @@
     "import * as Types from '../constants/types/wallets'",
   ],
   "actions": {
+    "loadAssets": {
+      "_description": "Refresh our list of assets for a given account",
+      "accountID": "string",
+    },
+    "assetsReceived": {
+      "_description": "Update our store of assets data",
+      "assets": "any",
+    },
     "walletsReceived": {
       "_description": "Update our store of wallet data",
       "wallets": "Array<Types.Wallet>",

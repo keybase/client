@@ -13,12 +13,15 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.walletsRefresh:
       return state
     case WalletsGen.walletsReceived:
-      console.warn('a', action)
       const walletMap = I.Map(action.payload.wallets.map(wallet =>
         [ wallet.accountID, wallet ]
       ))
       console.warn(walletMap)
       return state.set('walletMap', walletMap)
+    case WalletsGen.assetsReceived:
+      const {assets} = action.payload
+      console.warn('assets are', assets)
+      return state.update('assetsMap', assetsMap => assetsMap.set(assets.accountID, assets))
     // Saga only actions
     // case WalletsGen.somethingElse:
     // return state
