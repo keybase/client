@@ -4,10 +4,7 @@ import * as WalletsGen from '../actions/wallets-gen'
 import {compose, connect, lifecycle, type TypedState, type Dispatch, isMobile} from '../util/container'
 import {HeaderHoc} from '../common-adapters'
 
-const mapStateToProps = (state: TypedState) => {
-  const {hello} = state.wallets
-  return {hello}
-}
+const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
@@ -15,7 +12,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  hello: stateProps.hello,
   onBack: dispatchProps.onBack,
   refresh: dispatchProps.refresh,
   title: 'Wallets',

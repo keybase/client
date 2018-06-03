@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import * as RPCTypes from './rpc-stellar-gen'
 
 // Reserves held against an account's XLM balance
 export type _Reserve = {
@@ -11,12 +10,48 @@ export type Reserve = I.RecordOf<_Reserve>
 
 export type _State = {
   assetsMap: any,
+  paymentsMap: any,
   walletMap: any,
 }
 export type State = I.RecordOf<_State>
 
-export type _Wallet = RPCTypes.WalletAccountLocal
+export type _Wallet = {
+  accountID: string,
+  balanceDescription: string,
+  isDefault: boolean,
+  name: string,
+}
 
-export type _Assets = AccountAssetLocal
+export type _Assets = {
+  assetCode: string,
+  balanceAvailableToSend: string,
+  balanceTotal: string,
+  issuer: string,
+  name: string,
+  worth: string,
+  worthCurrency: string,
+}
+
+export type _Payment = {
+  amountDescription: string,
+  delta: 'none' | 'increase' | 'decrease',
+  error: string,
+  id: string,
+  note: string,
+  noteErr: string,
+  source: string,
+  sourceType: string,
+  statusDescription: 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown',
+  statusDetail: string,
+  target: string,
+  targetType: string,
+  time: string,
+  worth: string,
+  worthCurrency: string,
+}
 
 export type Wallet = I.RecordOf<_Wallet>
+
+export type Assets = I.RecordOf<_Assets>
+
+export type Payment = I.RecordOf<_Payment>

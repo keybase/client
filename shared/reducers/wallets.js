@@ -10,21 +10,22 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
   switch (action.type) {
     case WalletsGen.resetStore:
       return initialState
-    case WalletsGen.walletsRefresh:
-      return state
     case WalletsGen.walletsReceived:
       const walletMap = I.Map(action.payload.wallets.map(wallet =>
         [ wallet.accountID, wallet ]
       ))
-      console.warn(walletMap)
       return state.set('walletMap', walletMap)
     case WalletsGen.assetsReceived:
-      const {accountID, assets} = action.payload
-      console.warn('assets are', assets, assets.accountID)
-      return state.update('assetsMap', assetsMap => assetsMap.set(accountID, assets))
+      const {assets} = action.payload
+      return state.update('assetsMap', assetsMap => assetsMap.set(action.payload.accountID, assets))
+    case WalletsGen.paymentsReceived:
+      const {payments} = action.payload
+      return state.update('paymentsMap', paymentsMap => paymentsMap.set(action.payload.accountID, payments))
     // Saga only actions
-    // case WalletsGen.somethingElse:
-    // return state
+    case WalletsGen.loadAllAssets:
+    case WalletsGen.loadAssets:
+    case WalletsGen.walletsRefresh:
+      return state
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
