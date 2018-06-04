@@ -148,7 +148,7 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 	if err != nil {
 		return res, err
 	}
-	if leaf == nil {
+	if leaf == nil || root == nil {
 		return res, MerkleClientError{"no suitable leaf found", merkleErrorNoUpdates}
 	}
 	sigID := u.GetSigIDFromSeqno(leaf.Public.Seqno)
