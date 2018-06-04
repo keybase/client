@@ -11,8 +11,11 @@ import (
 	"io"
 	"os"
 
+	"github.com/keybase/client/go/escaper"
 	"github.com/keybase/client/go/libkb"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	isatty "github.com/mattn/go-isatty"
 )
 
 type Source interface {
@@ -197,6 +200,14 @@ func (s *StdoutSink) Write(b []byte) (n int, err error) {
 
 func (s *StdoutSink) HitError(e error) error { return nil }
 
+type EscapedSink struct {
+	Sink
+}
+
+func (s *EscapedSink) Write(p []byte) (n int, err error) {
+	return s.Sink.Write(escaper.EscapeBytes(p, false)) // false is to escape colors as well.
+}
+
 type FileSink struct {
 	libkb.Contextified
 	name   string
@@ -268,13 +279,21 @@ func (s *FileSink) HitError(e error) error {
 }
 
 type UnixFilter struct {
-	sink   Sink
-	source Source
+	libkb.Contextified
+	sink    Sink
+	source  Source
+	msg     string // input
+	infile  string
+	outfile string
 }
 
 func initSink(g *libkb.GlobalContext, fn string) Sink {
 	if len(fn) == 0 || fn == "-" {
-		return &StdoutSink{}
+		if g.Env.GetDisplayRawUntrustedOutput() || !isatty.IsTerminal(os.Stdout.Fd()) {
+			return &StdoutSink{}
+		} else {
+			return &EscapedSink{&StdoutSink{}}
+		}
 	}
 	return NewFileSink(g, fn)
 }
@@ -293,19 +312,27 @@ func initSource(msg, infile string) (Source, error) {
 }
 
 func (u *UnixFilter) FilterInit(g *libkb.GlobalContext, msg, infile, outfile string) (err error) {
-	u.source, err = initSource(msg, infile)
-	if err == nil {
-		u.sink = initSink(g, outfile)
-	}
-	return err
+	u.Contextified = libkb.NewContextified(g)
+	u.msg = msg
+	u.infile = infile
+	u.outfile = outfile
+	return nil // Errors will be raised when the filter is opened.
 }
 
-func (u *UnixFilter) FilterOpen() error {
-	err := u.sink.Open()
-	if err == nil {
-		err = u.source.Open()
+func (u *UnixFilter) FilterOpen() (err error) {
+	if u.source, err = initSource(u.msg, u.infile); err != nil {
+		return err
 	}
-	return err
+	u.sink = initSink(u.G(), u.outfile)
+
+	if err = u.sink.Open(); err != nil {
+		return err
+	}
+	if err = u.source.Open(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *UnixFilter) Close(inerr error) error {

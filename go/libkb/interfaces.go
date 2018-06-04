@@ -41,6 +41,7 @@ type configGetter interface {
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
+	GetDisplayRawUntrustedOutput() (bool, bool)
 	GetUpgradePerUserKey() (bool, bool)
 	GetAutoWallet() (bool, bool)
 	GetGpg() string
