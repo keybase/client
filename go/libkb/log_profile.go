@@ -17,7 +17,7 @@ type LogProfileContext struct {
 	Path string
 }
 
-func maxDuration(durations []time.Duration) time.Duration {
+func (l *LogProfileContext) maxDuration(durations []time.Duration) time.Duration {
 	max := time.Duration(0)
 	for _, d := range durations {
 		if d > max {
@@ -27,7 +27,7 @@ func maxDuration(durations []time.Duration) time.Duration {
 	return max
 }
 
-func minDuration(durations []time.Duration) time.Duration {
+func (l *LogProfileContext) minDuration(durations []time.Duration) time.Duration {
 	if len(durations) == 0 {
 		return 0
 	}
@@ -40,7 +40,7 @@ func minDuration(durations []time.Duration) time.Duration {
 	return min
 }
 
-func avgDuration(durations []time.Duration) time.Duration {
+func (l *LogProfileContext) avgDuration(durations []time.Duration) time.Duration {
 	if len(durations) == 0 {
 		return 0
 	}
@@ -51,14 +51,14 @@ func avgDuration(durations []time.Duration) time.Duration {
 	return time.Duration(total / int64(len(durations)))
 }
 
-func format(fn string, durations []time.Duration) string {
+func (l *LogProfileContext) format(fn string, durations []time.Duration) string {
 	return fmt.Sprintf(`
 		%v:
 			max: %v
 			avg: %v
 			min: %v
 			len: %v`,
-		fn, maxDuration(durations), avgDuration(durations), minDuration(durations), len(durations))
+		fn, l.maxDuration(durations), l.avgDuration(durations), l.minDuration(durations), len(durations))
 }
 
 func (l *LogProfileContext) parseMatch(matches []string) (filename, fnName string, d time.Duration) {
@@ -119,7 +119,7 @@ func (l *LogProfileContext) LogProfile(path string) ([]string, error) {
 	for filename, data := range profiles {
 		res = append(res, filename)
 		for fnName, durations := range data {
-			res = append(res, format(fnName, durations))
+			res = append(res, l.format(fnName, durations))
 		}
 	}
 	return res, nil
