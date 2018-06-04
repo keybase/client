@@ -82,7 +82,7 @@ func (s *FileErasableKVStore) getEncryptionKey(ctx context.Context, noiseBytes l
 }
 
 func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes libkb.NoiseBytes, val interface{}) (err error) {
-	defer s.G().CTrace(ctx, "FileErasableKVStore#unbox", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#unbox", func() error { return err })()
 	// Decode encrypted box
 	var boxed boxedData
 	if err := libkb.MPackDecode(data, &boxed); err != nil {
@@ -105,7 +105,7 @@ func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes
 }
 
 func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseBytes libkb.NoiseBytes) (data []byte, err error) {
-	defer s.G().CTrace(ctx, "FileErasableKVStore#box", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#box", func() error { return err })()
 	data, err = libkb.MPackEncode(val)
 	if err != nil {
 		return data, err
@@ -134,7 +134,7 @@ func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseByt
 }
 
 func (s *FileErasableKVStore) Put(ctx context.Context, key string, val interface{}) (err error) {
-	defer s.G().CTrace(ctx, "FileErasableKVStore#Put", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#Put", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
@@ -152,7 +152,7 @@ func (s *FileErasableKVStore) Put(ctx context.Context, key string, val interface
 }
 
 func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte) (err error) {
-	defer s.G().CTrace(ctx, "FileErasableKVStore#write", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#write", func() error { return err })()
 	filepath := s.filepath(key)
 	if err := libkb.MakeParentDirs(s.G().Log, filepath); err != nil {
 		return err
@@ -210,7 +210,7 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 }
 
 func (s *FileErasableKVStore) Get(ctx context.Context, key string, val interface{}) (err error) {
-	defer s.G().CTrace(ctx, "FileErasableKVStore#Get", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#Get", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	return s.get(ctx, key, val)
@@ -234,13 +234,13 @@ func (s *FileErasableKVStore) get(ctx context.Context, key string, val interface
 }
 
 func (s *FileErasableKVStore) read(ctx context.Context, key string) (data []byte, err error) {
-	defer s.G().CTrace(ctx, "FileErasableKVStore#read", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#read", func() error { return err })()
 	filepath := s.filepath(key)
 	return ioutil.ReadFile(filepath)
 }
 
 func (s *FileErasableKVStore) Erase(ctx context.Context, key string) (err error) {
-	defer s.G().CTrace(ctx, "FileErasableKVStore#Erase", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#Erase", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	noiseKey := s.noiseKey(key)
@@ -266,7 +266,7 @@ func (s *FileErasableKVStore) erase(key string) error {
 }
 
 func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err error) {
-	defer s.G().CTrace(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	if err := os.MkdirAll(s.storageDir, libkb.PermDir); err != nil {
