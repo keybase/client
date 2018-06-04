@@ -1698,7 +1698,7 @@ func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte,
 
 	gcli, err := g.getGregorCli()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	return creation.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *creation)
 }
@@ -1724,14 +1724,14 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 
 	gcli, err := g.getGregorCli()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *msg)
 }
 
-func (g *gregorHandler) InjectOutOfBandMessage(system string, body []byte) error {
+func (g *gregorHandler) InjectOutOfBandMessage(ctx context.Context, system string, body []byte) error {
 	var err error
-	defer g.G().Trace(fmt.Sprintf("gregorHandler.InjectOutOfBandMessage(%s)", system),
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.InjectOutOfBandMessage(%s)", system),
 		func() error { return err },
 	)()
 
@@ -1782,7 +1782,7 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 		return res, errors.New("gregor service not available (are you in standalone?)")
 	}
 
-	s, err = g.gregorCli.StateMachineState(ctx, nil, true, true)
+	s, err = g.gregorCli.StateMachineState(ctx, nil, true)
 	if err != nil {
 		return res, err
 	}

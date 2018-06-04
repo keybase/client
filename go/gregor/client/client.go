@@ -81,7 +81,12 @@ func (c *Client) Save(ctx context.Context) error {
 	}
 	var obm [][]byte
 	for _, m := range outbox {
-		obm = append(obm, m.Bytes())
+		bout, err := m.Marshal()
+		if err != nil {
+			c.Log.CDebugf(ctx, "Save: failed to marshal outbox item, skipping")
+			continue
+		}
+		obm = append(obm, bout)
 	}
 
 	return c.Storage.Store(c.User, b, obm, ldm)
@@ -92,7 +97,7 @@ func (c *Client) Restore(ctx context.Context) error {
 		return errors.New("state machine is non-ephemeral")
 	}
 
-	value, ldm, err := c.Storage.Load(c.User)
+	value, obm, ldm, err := c.Storage.Load(c.User)
 	if err != nil {
 		return fmt.Errorf("Restore(): failed to load: %s", err.Error())
 	}
@@ -102,6 +107,7 @@ func (c *Client) Restore(ctx context.Context) error {
 		return fmt.Errorf("Restore(): failed to unmarshal: %s", err.Error())
 	}
 
+	// Parse local dismissals
 	var localDismissals []gregor.MsgID
 	for _, ld := range ldm {
 		msgID, err := c.Sm.ObjFactory().MakeMsgID(ld)
@@ -111,8 +117,23 @@ func (c *Client) Restore(ctx context.Context) error {
 		localDismissals = append(localDismissals, msgID)
 	}
 
+	// Parse outbox messages
+	var outbox []gregor.Message
+	for _, m := range obm {
+		message, err := c.Sm.ObjFactory().UnmarshalMessage(m)
+		if err != nil {
+			c.Log.CDebugf(ctx, "Restore(): failed to unmarshal message, skipping: %s", err)
+			continue
+		}
+		outbox = append(outbox, message)
+	}
+
 	if err := c.Sm.InitLocalDismissals(ctx, c.User, localDismissals); err != nil {
 		return fmt.Errorf("Restore(): failed to init local dismissals: %s", err)
+	}
+
+	if err := c.Sm.InitOutbox(ctx, c.User, outbox); err != nil {
+		c.Log.CDebugf(ctx, "Restore(): failed to init outbox: %s", err)
 	}
 
 	if err := c.Sm.InitState(state); err != nil {

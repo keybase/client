@@ -126,6 +126,7 @@ type ProtocolState interface {
 type Message interface {
 	ToInBandMessage() InBandMessage
 	ToOutOfBandMessage() OutOfBandMessage
+	Marshal() ([]byte, error)
 }
 
 type ReminderSet interface {
@@ -243,6 +244,7 @@ type ObjFactory interface {
 	MakeTimeOrOffsetFromOffset(d time.Duration) (TimeOrOffset, error)
 	MakeReminderSetFromReminders([]Reminder, bool) (ReminderSet, error)
 	UnmarshalState([]byte) (State, error)
+	UnmarshalMessage([]byte) (Message, error)
 }
 
 type MainLoopServer interface {
