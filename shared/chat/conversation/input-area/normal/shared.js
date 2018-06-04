@@ -17,26 +17,21 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
 const styles = styleSheetCreate({
   newBadge: platformStyles({
     common: {
-      borderColor: 'white',
+      borderColor: globalColors.white,
       borderRadius: 3,
       borderStyle: 'solid',
       borderWidth: 1,
-    },
-    isAndroid: {
-      marginLeft: 3,
-      padding: 3,
-      paddingLeft: 12,
+      paddingBottom: 1,
+      paddingTop: 1,
     },
     isElectron: {
       cursor: 'pointer',
-      left: 12,
-      position: 'absolute',
-      top: -4,
+      marginLeft: -11,
+      marginTop: -6,
     },
-    isIOS: {
-      left: 12,
-      position: 'absolute',
-      top: -4,
+    isMobile: {
+      marginLeft: -5,
+      marginTop: -1,
     },
   }),
 })

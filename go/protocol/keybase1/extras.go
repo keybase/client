@@ -854,6 +854,10 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
 
+func (u *UID) MarshalJSON() ([]byte, error) {
+	return Quote(u.String()), nil
+}
+
 // Size implements the keybase/kbfs/cache.Measurable interface.
 func (k *KID) Size() int {
 	if k == nil {
@@ -1361,6 +1365,12 @@ func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 		}
 	}
 	return nil
+}
+
+func (u UserPlusKeysV2AllIncarnations) AllIncarnations() (ret []UserPlusKeysV2) {
+	ret = append(ret, u.Current)
+	ret = append(ret, u.PastIncarnations...)
+	return ret
 }
 
 func (u UserPlusKeys) FindKID(needle KID) *PublicKey {

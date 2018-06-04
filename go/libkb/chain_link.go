@@ -514,10 +514,15 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 		tmp.ignoreIfUnsupported = SigIgnoreIfUnsupported(ignore)
 	}
 
+	// Due to an earlier error, it's possible for the merkle root that we signed over
+	// to be in one of two places, so check both.
 	if i, err := jsonparser.GetInt(payload, "body", "merkle_root", "seqno"); err == nil {
+		tmp.merkleSeqno = keybase1.Seqno(i)
+	} else if i, err := jsonparser.GetInt(payload, "merkle_root", "seqno"); err == nil {
 		tmp.merkleSeqno = keybase1.Seqno(i)
 	}
 
+	// Hash meta was only ever in the correct place (within body)
 	if s, err := jsonparser.GetString(payload, "body", "merkle_root", "hash_meta"); err == nil {
 		tmp.merkleHashMeta, err = keybase1.HashMetaFromString(s)
 		if err != nil {

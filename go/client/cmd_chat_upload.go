@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/keybase/cli"
@@ -34,16 +33,9 @@ func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			Usage: "Title of attachment (defaults to filename)",
 		},
 	}
-	// TODO move this to mustGetChatFlags once we release
-	ekLib := ephemeral.NewEKLib(g)
-	if ekLib.ShouldRun(context.TODO()) {
-		flags = append(flags,
-			cli.DurationFlag{
-				Name: "exploding-lifetime",
-				Usage: fmt.Sprintf(`Make this message an exploding message and set the lifetime for the given duration.
-	The maximum lifetime is %v (one week) and the minimum lifetime is %v.`,
-					libkb.MaxEphemeralLifetime, libkb.MinEphemeralLifetime),
-			})
+	// TODO remove this check for release.
+	if ephemeral.NewEKLib(g).ShouldRun(context.TODO()) {
+		flags = append(flags, mustGetChatFlags("exploding-lifetime")...)
 	}
 	return cli.Command{
 		Name:         "upload",
