@@ -120,10 +120,13 @@ protocol local {
   // supported currencies, returned from getDisplayCurrenciesLocal.
   void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
 
-  record UserSettings {
+  record WalletSettings {
+    OutsideCurrencyCode displayCurrencyCode; // currency code, e.g. USD
+    string displayCurrency; // Formatted string for frontend use, e.g. `USD ($)`
     boolean acceptedDisclaimer; // whether the user has accepted the usage disclaimer
   }
-  UserSettings getUserSettingsLocal(int sessionID);
+  WalletSettings getWalletSettingsLocal(int sessionID);
+
   void setAcceptedDisclaimerLocal(int sessionID); 
 
   string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);

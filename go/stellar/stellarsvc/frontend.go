@@ -205,22 +205,49 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 	return currencies, nil
 }
 
-func (s *Server) GetUserSettingsLocal(ctx context.Context, sessionID int) (userSettings stellar1.UserSettings, err error) {
+func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret stellar1.WalletSettings, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "GetUserSettingsLocal",
+		RPCName:       "GetWalletSettingsLocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
 	defer fin()
+
+	ret.AcceptedDisclaimer, err = remote.GetAcceptedDisclaimer(ctx, s.G())
 	if err != nil {
-		return userSettings, err
+		return ret, err
 	}
 
-	userSettings, err = remote.GetUserSettings(ctx, s.G())
+	// Need to get primary account id to figure out display currency.
+	// Do this only as temporary measure to satisfy this RPC, we have
+	// to migrate to "display currency per wallet" system (from
+	// "display currency per accountid").
+	accID, err := stellar.GetOwnPrimaryAccountID(ctx, s.G())
 	if err != nil {
-		return userSettings, err
+		if _, ok := err.(remote.UserHasNoAccountsError); ok {
+			ret.DisplayCurrencyCode = stellar1.OutsideCurrencyCode(defaultOutsideCurrency)
+			err = nil
+		} else {
+			return ret, err
+		}
+	} else {
+		displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, s.G(), accID)
+		if err != nil {
+			return ret, err
+		}
+		if displayCurrency != "" {
+			ret.DisplayCurrencyCode = stellar1.OutsideCurrencyCode(displayCurrency)
+		} else {
+			ret.DisplayCurrencyCode = stellar1.OutsideCurrencyCode(defaultOutsideCurrency)
+		}
 	}
-	return userSettings, nil
+
+	ret.DisplayCurrency, err = stellar.FormatCurrencyLabel(ctx, s.G(), ret.DisplayCurrencyCode)
+	if err != nil {
+		return ret, err
+	}
+
+	return ret, nil
 }
 
 func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {

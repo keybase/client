@@ -759,6 +759,18 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
 }
 
+func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stellar1.OutsideCurrencyCode) (string, error) {
+	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return "", err
+	}
+	currency, ok := conf.Currencies[code]
+	if !ok {
+		return "", fmt.Errorf("Could not find currency %q", code)
+	}
+	return fmt.Sprintf("%s (%s)", code, currency.Symbol.Symbol), nil
+}
+
 func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string, error) {
 	desc, err := FormatAmountXLM(amount)
 	if err != nil {

@@ -92,10 +92,6 @@ export const localGetPaymentsLocalRpcChannelMap = (configKeys: Array<string>, re
 
 export const localGetPaymentsLocalRpcPromise = (request: LocalGetPaymentsLocalRpcParam): Promise<LocalGetPaymentsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getPaymentsLocal', request, (error: RPCError, result: LocalGetPaymentsLocalResult) => (error ? reject(error) : resolve(result))))
 
-export const localGetUserSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetUserSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getUserSettingsLocal', request)
-
-export const localGetUserSettingsLocalRpcPromise = (request: LocalGetUserSettingsLocalRpcParam): Promise<LocalGetUserSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getUserSettingsLocal', request, (error: RPCError, result: LocalGetUserSettingsLocalResult) => (error ? reject(error) : resolve(result))))
-
 export const localGetWalletAccountPublicKeyLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetWalletAccountPublicKeyLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getWalletAccountPublicKeyLocal', request)
 
 export const localGetWalletAccountPublicKeyLocalRpcPromise = (request: LocalGetWalletAccountPublicKeyLocalRpcParam): Promise<LocalGetWalletAccountPublicKeyLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getWalletAccountPublicKeyLocal', request, (error: RPCError, result: LocalGetWalletAccountPublicKeyLocalResult) => (error ? reject(error) : resolve(result))))
@@ -107,6 +103,10 @@ export const localGetWalletAccountSecretKeyLocalRpcPromise = (request: LocalGetW
 export const localGetWalletAccountsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetWalletAccountsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getWalletAccountsLocal', request)
 
 export const localGetWalletAccountsLocalRpcPromise = (request: LocalGetWalletAccountsLocalRpcParam): Promise<LocalGetWalletAccountsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getWalletAccountsLocal', request, (error: RPCError, result: LocalGetWalletAccountsLocalResult) => (error ? reject(error) : resolve(result))))
+
+export const localGetWalletSettingsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetWalletSettingsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getWalletSettingsLocal', request)
+
+export const localGetWalletSettingsLocalRpcPromise = (request: LocalGetWalletSettingsLocalRpcParam): Promise<LocalGetWalletSettingsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getWalletSettingsLocal', request, (error: RPCError, result: LocalGetWalletSettingsLocalResult) => (error ? reject(error) : resolve(result))))
 
 export const localImportSecretKeyLocalRpcChannelMap = (configKeys: Array<string>, request: LocalImportSecretKeyLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.importSecretKeyLocal', request)
 
@@ -305,13 +305,13 @@ export type LocalGetPaymentDetailsLocalRpcParam = $ReadOnly<{accountID: AccountI
 
 export type LocalGetPaymentsLocalRpcParam = $ReadOnly<{accountID: AccountID, olderThanTransactionID?: ?TransactionID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetUserSettingsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-
 export type LocalGetWalletAccountPublicKeyLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetWalletAccountSecretKeyLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetWalletAccountsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LocalGetWalletSettingsLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalImportSecretKeyLocalRpcParam = $ReadOnly<{secretKey: SecretKey, makePrimary: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -449,9 +449,9 @@ export type TransactionStatus =
   | 3 // ERROR_TRANSIENT_3
   | 4 // ERROR_PERMANENT_4
 
-export type UserSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
-
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String}>
+
+export type WalletSettings = $ReadOnly<{displayCurrencyCode: OutsideCurrencyCode, displayCurrency: String, acceptedDisclaimer: Boolean}>
 type LocalBalancesLocalResult = ?Array<Balance>
 type LocalClaimCLILocalResult = RelayClaimResult
 type LocalExchangeRateLocalResult = OutsideExchangeRate
@@ -462,10 +462,10 @@ type LocalGetAvailableLocalCurrenciesResult = {[key: string]: OutsideCurrencyDef
 type LocalGetDisplayCurrenciesLocalResult = ?Array<CurrencyLocal>
 type LocalGetPaymentDetailsLocalResult = PaymentDetailsLocal
 type LocalGetPaymentsLocalResult = ?Array<PaymentOrErrorLocal>
-type LocalGetUserSettingsLocalResult = UserSettings
 type LocalGetWalletAccountPublicKeyLocalResult = String
 type LocalGetWalletAccountSecretKeyLocalResult = SecretKey
 type LocalGetWalletAccountsLocalResult = ?Array<WalletAccountLocal>
+type LocalGetWalletSettingsLocalResult = WalletSettings
 type LocalLinkNewWalletAccountLocalResult = AccountID
 type LocalOwnAccountLocalResult = Boolean
 type LocalPaymentDetailCLILocalResult = PaymentCLILocal
