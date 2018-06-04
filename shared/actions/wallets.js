@@ -1,9 +1,7 @@
 // @flow
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
-import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-stellar-gen'
-
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
 import type {TypedState} from '../util/container'
