@@ -4,16 +4,18 @@
 package escaper
 
 import (
-	"github.com/lunixbochs/vtclean"
 	"io"
+
+	"github.com/lunixbochs/vtclean"
 )
 
 type EscapedWriter struct {
 	io.Writer
+	allow_color bool
 }
 
 func (w *EscapedWriter) Write(p []byte) (n int, err error) {
-	return w.Writer.Write(vtclean.CleanBytes(p, false))
+	return w.Writer.Write(vtclean.CleanBytes(p, w.allow_color))
 }
 
 func EscapeBytes(source []byte, allow_color bool) []byte {
