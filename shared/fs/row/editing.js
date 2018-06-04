@@ -8,10 +8,12 @@ import PathItemIcon from '../common/path-item-icon'
 
 type EditingProps = {
   name: string,
-  status: Types.PathItemEditingStatusType,
+  hint: string,
+  status: Types.EditStatusType,
   itemStyles: Types.ItemStyles,
   isCreate: boolean,
-  onSubmit: (name: string) => void,
+  onSubmit: () => void,
+  onUpdate: (name: string) => void,
   onCancel: () => void,
 }
 
@@ -20,15 +22,6 @@ type State = {
 }
 
 class Editing extends React.PureComponent<EditingProps, State> {
-  constructor(props: EditingProps) {
-    super(props)
-    this.state = {
-      name: props.name,
-    }
-  }
-
-  _onSubmit = () => this.props.onSubmit(this.state.name)
-
   _input: any
 
   _setInputRef = r => {
@@ -57,11 +50,11 @@ class Editing extends React.PureComponent<EditingProps, State> {
               ref={this._setInputRef}
               hideUnderline={true}
               small={true}
-              value={this.state.name}
-              hintText={this.props.name}
+              value={this.props.name}
+              hintText={this.props.hint}
               inputStyle={stylesText}
-              onEnterKeyDown={this._onSubmit}
-              onChangeText={name => this.setState({name})}
+              onEnterKeyDown={this.props.onSubmit}
+              onChangeText={name => this.props.onUpdate(name)}
             />
           </Box>
           <Box key="right" style={rowStyles.rightBox}>
@@ -73,7 +66,7 @@ class Editing extends React.PureComponent<EditingProps, State> {
               small={true}
               label={this.props.status === 'failed' ? 'Retry' : this.props.isCreate ? 'Create' : 'Save'}
               waiting={this.props.status === 'saving'}
-              onClick={this.props.status === 'saving' ? undefined : this._onSubmit}
+              onClick={this.props.status === 'saving' ? undefined : this.props.onSubmit}
             />
             <Button
               key="cancel"

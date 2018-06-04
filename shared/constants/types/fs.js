@@ -8,9 +8,7 @@ import {isWindows} from '../platform'
 
 export opaque type Path = ?string
 
-export type ExistingPathType = 'folder' | 'file' | 'symlink' | 'unknown'
-export type NewItemPathType = 'new-folder'
-export type PathType = ExistingPathType | NewItemPathType
+export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
 export type ProgressType = 'favorite' | 'pending' | 'loaded'
 
 export type Device = {
@@ -45,8 +43,6 @@ export type FavoriteItem = I.RecordOf<_FavoriteItem>
 export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
-
-  // Following fields are zero-value for new items.
   size: number,
   lastWriter: RPCTypes.User,
   progress: ProgressType,
@@ -79,14 +75,22 @@ export type _UnknownPathItem = {
 } & PathItemMetadata
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
-export type PathItemEditingStatusType = 'editing' | 'saving' | 'failed'
-export type _NewFolderPathItem = {
-  type: 'new-folder',
-  status: PathItemEditingStatusType,
-} & PathItemMetadata
-export type NewFolderPathItem = I.RecordOf<_NewFolderPathItem>
+export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
-export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem | NewFolderPathItem
+export opaque type EditID = string
+export type EditType = 'new-folder'
+export type EditStatusType = 'editing' | 'saving' | 'failed'
+
+export type _NewFolder = {
+  type: 'new-folder',
+  parentPath: Path,
+  name: string,
+  hint: string,
+  status: EditStatusType,
+}
+export type NewFolder = I.RecordOf<_NewFolder>
+
+export type Edit = NewFolder
 
 export type SortBy = 'name' | 'time'
 export type SortOrder = 'asc' | 'desc'
@@ -161,6 +165,7 @@ export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
+  edits: I.Map<EditID, Edit>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   transfers: I.Map<string, Transfer>,
@@ -172,6 +177,8 @@ export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
 
+export const stringToEditID = (s: string): EditID => s
+export const editIDToString = (s: EditID): string => s
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
 export const pathToString = (p: Path): string => (!p ? '' : p)
 // export const stringToLocalPath = (s: string): LocalPath => s
@@ -218,7 +225,6 @@ export const stringToPathType = (s: string): PathType => {
     case 'file':
     case 'symlink':
     case 'unknown':
-    case 'new-folder':
       return s
     default:
       // We don't do a flow check here because by now flow knows that we can't
@@ -252,10 +258,6 @@ const _neutralComparer = (a: PathItem, b: PathItem): number => 0
 const _getMeFirstComparer = (meUsername: string): PathItemComparer =>
   _comparerFromLessThan((a: PathItem, b: PathItem): boolean => a.name === meUsername && b.name !== meUsername)
 
-const _newFolderFirstComparer: PathItemComparer = _comparerFromLessThan(
-  (a: PathItem, b: PathItem): boolean => a.type === 'new-folder' && b.type !== 'new-folder'
-)
-
 const _folderFirstComparer: PathItemComparer = _comparerFromLessThan(
   (a: PathItem, b: PathItem): boolean =>
     a.type === 'folder'
@@ -283,11 +285,7 @@ export const sortSettingToCompareFunction = (
   const sortByComparer = _getSortByComparer(sortBy)
   const multiplier = sortOrder === 'desc' ? -1 : 1
   return (a: PathItem, b: PathItem): number =>
-    multiplier *
-    (meFirstComparer(a, b) ||
-      _newFolderFirstComparer(a, b) ||
-      _folderFirstComparer(a, b) ||
-      sortByComparer(a, b))
+    multiplier * (meFirstComparer(a, b) || _folderFirstComparer(a, b) || sortByComparer(a, b))
 }
 type sortSettingDisplayParams = {
   sortSettingText: string,

@@ -1,32 +1,44 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import Editing from './editing'
 
-const mapStateToProps = (state: TypedState, {path}) => {
-  const _pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
+type OwnProps = {
+  editID: Types.EditID,
+  routePath: I.List<string>,
+}
+
+const mapStateToProps = (state: TypedState, {editID}: OwnProps) => {
+  const _edit = state.fs.edits.get(editID, Constants.makeNewFolder()) // TODO make missing get better
   const _username = state.config.username || undefined
   return {
     _username,
-    _pathItem,
+    _edit,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path, routePath}) => ({
-  onSubmit: name =>
-    dispatch(FsGen.createNewFolder({path: Types.pathConcat(Types.getPathParent(path), name)})),
-  onCancel: () => dispatch(FsGen.createNewFolderRowClear({path})),
+const mapDispatchToProps = (dispatch: Dispatch, {editID, routePath}: OwnProps) => ({
+  onSubmit: () => dispatch(FsGen.createCommitEdit({editID})),
+  onUpdate: name => dispatch(FsGen.createNewFolderName({editID, name})),
+  onCancel: () => dispatch(FsGen.createDiscardEdit({editID})),
 })
 
-const mergeProps = ({_pathItem, _username}, {onSubmit, onCancel}, {path, isCreate}) => ({
-  name: _pathItem.name,
-  status: _pathItem.status,
-  itemStyles: Constants.getItemStyles(Types.getPathElements(path), _pathItem.type, _username),
-  isCreate,
+const mergeProps = ({_edit, _username}, {onSubmit, onCancel, onUpdate}) => ({
+  name: _edit.name,
+  hint: _edit.hint,
+  status: _edit.status,
+  itemStyles: Constants.getItemStyles(
+    Types.getPathElements(Types.pathConcat(_edit.parentPath, _edit.name)),
+    Constants.editTypeToPathType(_edit.type),
+    _username
+  ),
+  isCreate: _edit.type === 'new-folder',
   onSubmit,
   onCancel,
+  onUpdate,
 })
 
 export default compose(

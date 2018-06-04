@@ -2,20 +2,15 @@
 import {globalStyles, globalMargins, isMobile, platformStyles} from '../../styles'
 import {memoize} from 'lodash-es'
 
-const rowBox = platformStyles({
-  common: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flex: 1,
-    minWidth: 0,
-  },
-  isMobile: {
-    minHeight: 64,
-  },
-  isElectron: {
-    minHeight: 40,
-  },
-})
+const height = isMobile ? 64 : 40
+
+const rowBox = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  flex: 1,
+  minWidth: 0,
+  minHeight: height,
+}
 
 const row = {
   ...rowBox,
@@ -61,6 +56,7 @@ const divider = {
 }
 
 export default {
+  height,
   row,
   rowBox,
   itemBox,

@@ -120,11 +120,12 @@ const load = () => {
         path={Types.stringToPath('/keybase')}
         progress="loaded"
         routePath={I.List([])}
-        items={[
+        stillItems={[
           Types.stringToPath('/keybase/private'),
           Types.stringToPath('/keybase/public'),
           Types.stringToPath('/keybase/team'),
         ]}
+        editingItems={[]}
       />
     ))
     .add('Preview', () => (
@@ -144,34 +145,42 @@ const load = () => {
         />
         <EditingRow
           name="New Folder (editing)"
+          hint="New Folder (editing)"
           status="editing"
           itemStyles={folderItemStyles}
           isCreate={true}
           onSubmit={action('onSubmit')}
+          onUpdate={action('onUpdate')}
           onCancel={action('onCancel')}
         />
         <EditingRow
           name="From Dropbox (rename) (editing)"
+          hint="From Dropbox (rename) (editing)"
           status="editing"
           itemStyles={folderItemStyles}
           isCreate={false}
           onSubmit={action('onSubmit')}
+          onUpdate={action('onUpdate')}
           onCancel={action('onCancel')}
         />
         <EditingRow
           name="New Folder (saving)"
+          hint="New Folder (saving)"
           status="saving"
           itemStyles={folderItemStyles}
           isCreate={true}
           onSubmit={action('onSubmit')}
+          onUpdate={action('onUpdate')}
           onCancel={action('onCancel')}
         />
         <EditingRow
           name="New Folder (failed)"
+          hint="New Folder (failed)"
           status="failed"
           itemStyles={folderItemStyles}
           isCreate={true}
           onSubmit={action('onSubmit')}
+          onUpdate={action('onUpdate')}
           onCancel={action('onCancel')}
         />
         <PlaceholderRow />

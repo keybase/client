@@ -100,14 +100,21 @@
     "newFolderRow": {
       "parentPath": "Types.Path"
     },
-    "newFolder": {
-      "path": "Types.Path"
+    "newFolderName": {
+      "editID": "Types.EditID",
+      "name": "string"
     },
-    "newFolderFailed": {
-      "path": "Types.Path"
+    "commitEdit": {
+      "editID": "Types.EditID"
     },
-    "newFolderRowClear": {
-      "path": "Types.Path"
+    "editSuccess": {
+      "editID": "Types.EditID"
+    },
+    "editFailed": {
+      "editID": "Types.EditID"
+    },
+    "discardEdit": {
+      "editID": "Types.EditID"
     },
 
     "share": {

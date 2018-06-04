@@ -21,16 +21,12 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const makeNewFolderPathItem: I.RecordFactory<Types._NewFolderPathItem> = I.Record({
+export const makeNewFolder: I.RecordFactory<Types._NewFolder> = I.Record({
   type: 'new-folder',
   status: 'editing',
   name: 'New Folder',
-  lastModifiedTimestamp: Date.now(),
-
-  size: 0,
-  lastWriter: {uid: '', username: ''},
-  progress: 'pending',
-  badgeCount: 0,
+  hint: 'New Folder',
+  parentPath: Types.stringToPath('/keybase'),
 })
 
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
@@ -136,6 +132,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
+  edits: I.Map(),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   transfers: I.Map(),
@@ -300,7 +297,6 @@ export const getItemStyles = (
 
   switch (type) {
     case 'folder':
-    case 'new-folder':
       return isPublic ? itemStylesPublicFolder : itemStylesPrivateFolder
     case 'file':
       // TODO: different file types
@@ -309,6 +305,19 @@ export const getItemStyles = (
       return isPublic ? itemStylesPublicFile : itemStylesPrivateFile
     default:
       return isPublic ? itemStylesPublicUnknown : itemStylesPrivateUnknown
+  }
+}
+
+export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
+  switch (type) {
+    case 'new-folder':
+      return 'folder'
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(type);
+      */
+      return 'unknown'
   }
 }
 
@@ -538,3 +547,5 @@ export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types
 }
 
 export const invalidTokenError = new Error('invalid token')
+
+export const makeEditID = (): Types.EditID => Types.stringToEditID(makeUUID())

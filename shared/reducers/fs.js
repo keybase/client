@@ -157,45 +157,43 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       }, [])
       return state.mergeIn(['pathItems'], resetsToMerge)
     case FsGen.newFolderRow:
-      const parentPathItem = state.pathItems.get(action.payload.parentPath, Constants.makeUnknownPathItem())
+      const {parentPath} = action.payload
+      const parentPathItem = state.pathItems.get(parentPath, Constants.makeUnknownPathItem())
       if (parentPathItem.type !== 'folder') {
-        console.warn(`bad parentPath: ${Types.pathToString(action.payload.parentPath)}`)
+        console.warn(`bad parentPath: ${Types.pathToString(parentPath)}`)
         return state
       }
       let newFolderName = 'New Folder'
       for (let i = 2; parentPathItem.children.has(newFolderName); ++i) {
         newFolderName = `New Folder ${i}`
       }
-      return state
-        .mergeIn(
-          ['pathItems'],
-          [
-            [
-              Types.pathToString(Types.pathConcat(action.payload.parentPath, newFolderName)),
-              Constants.makeNewFolderPathItem({
-                name: newFolderName,
-              }),
-            ],
-          ]
-        )
-        .mergeIn(['pathItems', action.payload.parentPath, 'children'], [newFolderName])
-    case FsGen.newFolderRowClear:
-      const pathItem = state.pathItems.get(action.payload.path)
-      if (!pathItem || pathItem.type !== 'new-folder') {
-        return state
-      }
-      return (
-        state
-          // $FlowFixMe
-          .removeIn(['pathItems', pathItems => pathItems.remove(action.payload.path)])
-          .removeIn(['pathItems', Types.getPathParent(action.payload.path), 'children', pathItem.name])
-      )
-    case FsGen.newFolderFailed:
-      return state.updateIn(
-        ['pathItems', action.payload.path],
-        pathItem => (pathItem && pathItem.type === 'new-folder' ? pathItem.set('status', 'failed') : pathItem)
-      )
 
+      return state.mergeIn(
+        ['edits'],
+        [
+          [
+            Constants.makeEditID(),
+            Constants.makeNewFolder({
+              name: newFolderName,
+              hint: newFolderName,
+              parentPath,
+            }),
+          ],
+        ]
+      )
+    case FsGen.newFolderName:
+      return state.updateIn(
+        // $FlowFixMe
+        ['edits', action.payload.editID],
+        editItem => editItem && editItem.set('name', action.payload.name)
+      )
+    case FsGen.editSuccess:
+    case FsGen.discardEdit:
+      // $FlowFixMe
+      return state.removeIn(['edits', action.payload.editID])
+    case FsGen.editFailed:
+      // $FlowFixMe
+      return state.setIn(['edits', action.payload.editID, 'status'], 'failed')
     case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
     case FsGen.download:
@@ -214,7 +212,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
     case FsGen.loadResets:
-    case FsGen.newFolder:
+    case FsGen.commitEdit:
       return state
     default:
       /*::

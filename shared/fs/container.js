@@ -26,6 +26,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
     _itemFavoriteChildren: itemFavoriteChildren,
     _username: state.config.username || undefined,
     _pathItems: state.fs.pathItems,
+    _edits: state.fs.edits,
     _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
     path,
     progress: itemDetail ? itemDetail.progress : 'pending',
@@ -42,12 +43,18 @@ const mergeProps = (stateProps, dispatchProps, {routePath}) => {
   })
   const filteredPathItems = pathItems.filter(item => !(item.tlfMeta && item.tlfMeta.isIgnored)).toList()
   const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
-  const items = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)
+  const stillItems = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)
     .map(({name}) => Types.pathConcat(stateProps.path, name))
     .toArray()
+  const editingItems = stateProps._edits
+    .filter(edit => edit.parentPath === stateProps.path)
+    .keySeq()
+    .toArray()
+    .sort()
   return {
     routePath,
-    items,
+    stillItems,
+    editingItems,
     progress: stateProps.progress,
     path: stateProps.path,
   }
