@@ -53,6 +53,8 @@ class _CopyText extends React.Component<Props, State> {
     this.setState({revealed: true})
   }
 
+  _isRevealed = () => !this.props.withReveal || this.state.revealed
+
   render() {
     return (
       <Box2
@@ -62,21 +64,18 @@ class _CopyText extends React.Component<Props, State> {
       >
         <Toast position="top center" attachTo={this._attachmentRef} visible={this.state.showingToast}>
           {isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
-          <Text
-            type={isMobile ? 'BodySmallSemibold' : 'BodySmall'}
-            style={{color: globalColors.white, paddingLeft: 10, paddingRight: 10}}
-          >
+          <Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
             Copied to clipboard
           </Text>
         </Toast>
         <Text
           type="Body"
           selectable={true}
-          style={collapseStyles([styles.text, !this.state.revealed && {width: 'auto'}])}
+          style={collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
         >
-          {this.state.revealed ? this.props.text : '••••••••••••'}
+          {this._isRevealed() ? this.props.text : '••••••••••••'}
         </Text>
-        {!this.state.revealed && (
+        {!this._isRevealed() && (
           <Text type="BodyPrimaryLink" style={styles.reveal} onClick={this.reveal}>
             Reveal
           </Text>
@@ -144,6 +143,15 @@ const styles = styleSheetCreate({
     },
     isMobile: {
       height: 15,
+    },
+  }),
+  toastText: platformStyles({
+    common: {
+      color: globalColors.white,
+    },
+    isMobile: {
+      paddingLeft: 10,
+      paddingRight: 10,
     },
   }),
 })

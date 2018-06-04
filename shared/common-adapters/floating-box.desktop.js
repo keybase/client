@@ -25,12 +25,16 @@ class FloatingBox extends React.Component<Props, State> {
       : {targetRect: null}
   }
 
+  _onHidden = () => {
+    this.props.onHidden && this.props.onHidden()
+  }
+
   render() {
     return (
       <RelativeFloatingBox
         position={this.props.position || 'bottom center'}
         targetRect={this.state.targetRect}
-        onClosePopup={this.props.onHidden}
+        onClosePopup={this._onHidden}
         propagateOutsideClicks={this.props.propagateOutsideClicks}
         style={this.props.containerStyle}
       >

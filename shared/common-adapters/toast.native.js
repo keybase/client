@@ -31,7 +31,7 @@ class Toast extends React.Component<Props, State> {
 
   render() {
     return (
-      <FloatingBox onHidden={() => {}}>
+      <FloatingBox>
         <Box style={styles.wrapper}>
           <NativeAnimated.View
             style={collapseStyles([

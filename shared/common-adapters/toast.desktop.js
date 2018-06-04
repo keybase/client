@@ -13,12 +13,7 @@ const FadeBox = glamorous.div({
 })
 
 export default (props: Props) => (
-  <FloatingBox
-    onHidden={() => {}}
-    attachTo={props.attachTo}
-    propagateOutsideClicks={true}
-    position={props.position}
-  >
+  <FloatingBox attachTo={props.attachTo} propagateOutsideClicks={true} position={props.position}>
     <FadeBox
       className={props.visible ? 'visible' : null}
       style={collapseStyles([styles.container, props.containerStyle])}
