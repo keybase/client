@@ -1,8 +1,9 @@
 // @flow
 import * as Constants from '../constants/wallets'
+import * as I from 'immutable'
+import * as Saga from '../util/saga'
 import * as Types from '../constants/types/rpc-stellar-gen'
 import * as WalletsGen from './wallets-gen'
-import * as Saga from '../util/saga'
 import type {TypedState} from '../util/container'
 
 const walletsRefresh = (action: WalletsGen.WalletsRefreshPayload) =>
@@ -54,7 +55,7 @@ const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) =
   return Saga.put(
     WalletsGen.createPaymentsReceived({
       accountID,
-      payments: Constants.paymentResultToPayment(res[0]),
+      payments: I.List(res.map(elem => Constants.paymentResultToPayment(elem))),
     })
   )
 }

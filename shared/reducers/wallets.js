@@ -17,6 +17,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       const {assets} = action.payload
       return state.update('assetsMap', assetsMap => assetsMap.set(action.payload.accountID, assets))
     case WalletsGen.paymentsReceived:
+      console.warn('in payments received', action.payload)
       const {payments} = action.payload
       return state.update('paymentsMap', paymentsMap => paymentsMap.set(action.payload.accountID, payments))
     // Saga only actions
