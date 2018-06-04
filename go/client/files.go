@@ -316,7 +316,7 @@ func (u *UnixFilter) FilterInit(g *libkb.GlobalContext, msg, infile, outfile str
 	u.msg = msg
 	u.infile = infile
 	u.outfile = outfile
-	return nil // Errors will be raised when the filter is opened.
+	return nil // Any errors will be raised when the filter is opened.
 }
 
 func (u *UnixFilter) FilterOpen() (err error) {
