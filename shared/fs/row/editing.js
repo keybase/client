@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import rowStyles from './styles'
-import {Input, Box, Button, Text, Divider} from '../../common-adapters'
+import {Icon, ClickableBox, Input, Box, Button, Text, Divider} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 
 type EditingProps = {
@@ -68,14 +68,9 @@ class Editing extends React.PureComponent<EditingProps, State> {
               waiting={this.props.status === 'saving'}
               onClick={this.props.status === 'saving' ? undefined : this.props.onSubmit}
             />
-            <Button
-              key="cancel"
-              style={stylesButton}
-              type="Secondary"
-              small={true}
-              label="Cancel"
-              onClick={this.props.onCancel}
-            />
+            <ClickableBox style={stylesCancelBox} onClick={this.props.onCancel}>
+              <Icon type="iconfont-trash" color={globalColors.black_40} style={stylesIconCancel} />
+            </ClickableBox>
           </Box>
         </Box>
         <Divider style={rowStyles.divider} />
@@ -84,10 +79,30 @@ class Editing extends React.PureComponent<EditingProps, State> {
   }
 }
 
-const stylesText = {
-  ...globalStyles.fontSemibold,
-  maxWidth: '100%',
+const stylesCancelBox = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
 }
+
+const stylesIconCancel = platformStyles({
+  common: {
+    padding: globalMargins.tiny,
+    paddingRight: 0,
+  },
+  isMobile: {
+    fontSize: 22,
+  },
+})
+
+const stylesText = platformStyles({
+  common: {
+    ...globalStyles.fontSemibold,
+    maxWidth: '100%',
+  },
+  isMobile: {
+    marginTop: 22,
+  },
+})
 
 const stylesButton = {
   marginLeft: globalMargins.tiny,

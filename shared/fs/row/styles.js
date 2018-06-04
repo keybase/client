@@ -16,12 +16,12 @@ const row = {
   ...rowBox,
   paddingLeft: globalMargins.small,
   justifyContent: 'space-between',
+  alignItems: 'center',
   paddingRight: globalMargins.small,
 }
 
 const itemBox = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.flexGrow,
   flex: 1,
   justifyContent: 'space-between',
   minWidth: 0,
