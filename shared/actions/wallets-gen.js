@@ -12,24 +12,24 @@ export const assetsReceived = 'wallets:assetsReceived'
 export const loadAssets = 'wallets:loadAssets'
 export const loadEverything = 'wallets:loadEverything'
 export const loadPayments = 'wallets:loadPayments'
+export const loadWallets = 'wallets:loadWallets'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const walletsReceived = 'wallets:walletsReceived'
-export const walletsRefresh = 'wallets:walletsRefresh'
 
 // Payload Types
 type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: string,
-  assets: any,
+  assets: Array<Types.Assets>,
 |}>
 type _LoadAssetsPayload = $ReadOnly<{|accountID: string|}>
 type _LoadEverythingPayload = void
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: string|}>
+type _LoadWalletsPayload = void
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: string,
-  payments: any,
+  payments: Array<Types.Payment>,
 |}>
 type _WalletsReceivedPayload = $ReadOnly<{|wallets: Array<Types.Wallet>|}>
-type _WalletsRefreshPayload = void
 
 // Action Creators
 /**
@@ -47,7 +47,7 @@ export const createLoadPayments = (payload: _LoadPaymentsPayload) => ({error: fa
 /**
  * Refresh our list of wallets
  */
-export const createWalletsRefresh = (payload: _WalletsRefreshPayload) => ({error: false, payload, type: walletsRefresh})
+export const createLoadWallets = (payload: _LoadWalletsPayload) => ({error: false, payload, type: loadWallets})
 /**
  * Update our store of assets data
  */
@@ -66,9 +66,9 @@ export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsRe
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
 export type LoadEverythingPayload = $Call<typeof createLoadEverything, _LoadEverythingPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
+export type LoadWalletsPayload = $Call<typeof createLoadWallets, _LoadWalletsPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type WalletsReceivedPayload = $Call<typeof createWalletsReceived, _WalletsReceivedPayload>
-export type WalletsRefreshPayload = $Call<typeof createWalletsRefresh, _WalletsRefreshPayload>
 
 // All Actions
 // prettier-ignore
@@ -77,7 +77,7 @@ export type Actions =
   | LoadAssetsPayload
   | LoadEverythingPayload
   | LoadPaymentsPayload
+  | LoadWalletsPayload
   | PaymentsReceivedPayload
   | WalletsReceivedPayload
-  | WalletsRefreshPayload
   | {type: 'common:resetStore', payload: void}

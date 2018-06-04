@@ -6,7 +6,7 @@
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "string",
-      "assets": "any",
+      "assets": "Array<Types.Assets>",
     },
     "loadEverything": {
       "_description": "Debugging only -- load wallets/assets/payments for every account at once",
@@ -19,16 +19,19 @@
       "_description": "Refresh our list of payments for a given account",
       "accountID": "string",
     },
+    "loadWallets": {
+      "_description": "Refresh our list of wallets",
+    },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "string",
-      "payments": "any",
+      "payments": "Array<Types.Payment>",
     },
     "walletsReceived": {
       "_description": "Update our store of wallet data",
       "wallets": "Array<Types.Wallet>",
     },
-    "walletsRefresh": {
+    "loadWallets": {
       "_description": "Refresh our list of wallets",
     },
   }
