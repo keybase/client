@@ -4,7 +4,6 @@
 package client
 
 import (
-	"github.com/mattn/go-isatty"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +12,8 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/keybase/client/go/escaper"
+	"github.com/lunixbochs/vtclean"
+	"github.com/mattn/go-isatty"
 
 	"golang.org/x/net/context"
 
@@ -802,18 +802,12 @@ func (ui *UI) Configure() error {
 	ui.unescapedOutputWriter = logger.OutputWriter()
 	if ui.G().Env.GetDisplayRawUntrustedOutput() || !isatty.IsTerminal(os.Stdout.Fd()) {
 		ui.outputWriter = ui.unescapedOutputWriter
+		ui.Terminal = NewTerminal(ui.G(), true)
 	} else {
-		ui.outputWriter = &escaper.EscapedWriter{Writer: ui.unescapedOutputWriter}
+		ui.outputWriter = vtclean.NewUnbufferedWriter(ui.unescapedOutputWriter, false)
+		ui.Terminal = NewTerminal(ui.G(), false)
 	}
 
-	t, err := NewTerminal(ui.G())
-	if err != nil { // CAN THIS BE REMOVED? NewTerminal never returns any errors!
-		// XXX this is only temporary so that SecretEntry will still work
-		// when this is run without a terminal.
-		ui.SecretEntry = NewSecretEntry(ui.G(), nil, "")
-		return err
-	}
-	ui.Terminal = t
 	ui.SecretEntry = NewSecretEntry(ui.G(), ui.Terminal, ui.getTTY())
 	return nil
 }

@@ -7,6 +7,8 @@ import (
 	"io"
 	"sync"
 
+	"github.com/lunixbochs/vtclean"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/minterm"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -14,12 +16,13 @@ import (
 
 type Terminal struct {
 	libkb.Contextified
-	once   sync.Once // protects opening the minterm
-	engine *minterm.MinTerm
+	once      sync.Once // protects opening the minterm
+	engine    *minterm.MinTerm
+	rawWrites bool
 }
 
-func NewTerminal(g *libkb.GlobalContext) (*Terminal, error) {
-	return &Terminal{Contextified: libkb.NewContextified(g)}, nil
+func NewTerminal(g *libkb.GlobalContext, rawWrites bool) *Terminal {
+	return &Terminal{Contextified: libkb.NewContextified(g), rawWrites: rawWrites}
 }
 
 func (t *Terminal) open() error {
@@ -54,6 +57,17 @@ func (t *Terminal) PromptPassword(s string) (string, error) {
 }
 
 func (t *Terminal) Write(s string) error {
+	if err := t.open(); err != nil {
+		return err
+	}
+	if t.rawWrites {
+		return t.engine.Write(s)
+	} else {
+		return t.engine.Write(vtclean.Clean(s, false))
+	}
+}
+
+func (t *Terminal) UnescapedWrite(s string) error {
 	if err := t.open(); err != nil {
 		return err
 	}
