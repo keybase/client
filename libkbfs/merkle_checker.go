@@ -64,6 +64,8 @@ func verifyMerkleNodes(
 	config := merkle.NewConfig(
 		merkle.SHA512Hasher{}, 256, 512, kbfsmd.MerkleLeaf{})
 	tree := merkle.NewTree(mc, config)
+	// If any of the nodes returned by the server fail to match their
+	// expected hashes, `Find` will return an error.
 	foundLeaf, rootHash, err := tree.Find(ctx, merkle.Hash(tlfID.Bytes()))
 	if err != nil {
 		return err
@@ -73,8 +75,9 @@ func verifyMerkleNodes(
 			rootHash, kbfsRoot.Hash)
 	}
 	// If the checker returned all the nodes except the last one
-	// (which is the encoded leaf), we know they all verified and we
-	// reached the expected leaf.
+	// (which is the encoded leaf, and not directly walked by the
+	// `Find` call above), we know they all verified and we reached
+	// the expected leaf.
 	if mc.nextNode != len(nodes)-1 {
 		return errors.Errorf("We checked %d nodes instead of %d",
 			mc.nextNode, len(nodes))
