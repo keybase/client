@@ -23,7 +23,7 @@ type AutoClaimRunner struct {
 func NewAutoClaimRunner(remoter remote.Remoter) *AutoClaimRunner {
 	return &AutoClaimRunner{
 		shutdownCh: make(chan struct{}, 1),
-		kickCh:     make(chan gregor.MsgID, 1),
+		kickCh:     make(chan gregor.MsgID, 100),
 		remoter:    remoter,
 	}
 }
@@ -52,6 +52,14 @@ func (r *AutoClaimRunner) Shutdown(mctx libkb.MetaContext) {
 	close(r.shutdownCh)
 }
 
+type autoClaimLoopAction string
+
+const (
+	autoClaimLoopActionFast      autoClaimLoopAction = "fast"
+	autoClaimLoopActionHibernate autoClaimLoopAction = "hibernate"
+	autoClaimLoopActionSnooze    autoClaimLoopAction = "snooze"
+)
+
 func (r *AutoClaimRunner) loop(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	var i int
 	for {
@@ -66,16 +74,16 @@ func (r *AutoClaimRunner) loop(mctx libkb.MetaContext, trigger gregor.MsgID) {
 		}
 		log("action: %v", action)
 		switch action {
-		case "fast":
+		case autoClaimLoopActionFast:
 			// Go again
-		case "hibernate":
+		case autoClaimLoopActionHibernate:
 			// Wait for a kick
 			select {
 			case trigger = <-r.kickCh:
 			case <-r.shutdownCh:
 				return
 			}
-		case "snooze":
+		case autoClaimLoopActionSnooze:
 			fallthrough
 		default:
 			// Pause for a few minutes
@@ -89,18 +97,18 @@ func (r *AutoClaimRunner) loop(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	}
 }
 
-func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.MsgID) (action string, err error) {
+func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.MsgID) (action autoClaimLoopAction, err error) {
 	log := func(format string, args ...interface{}) {
 		mctx.CDebugf(fmt.Sprintf("AutoClaimRunnner round[%v] ", i) + fmt.Sprintf(format, args...))
 	}
 	log("step begin")
 	token, err := r.remoter.AcquireAutoClaimLock(mctx.Ctx())
 	if err != nil {
-		return "snooze", err
+		return autoClaimLoopActionSnooze, err
 	}
 	if len(token) == 0 {
 		log("autoclaim lock is busy")
-		return "snooze", nil
+		return autoClaimLoopActionSnooze, nil
 	}
 	defer func() {
 		rerr := r.remoter.ReleaseAutoClaimLock(mctx.Ctx(), token)
@@ -110,7 +118,7 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 	}()
 	ac, err := r.remoter.NextAutoClaim(mctx.Ctx())
 	if err != nil {
-		return "snooze", err
+		return autoClaimLoopActionSnooze, err
 	}
 	if ac == nil {
 		log("no more autoclaims")
@@ -118,20 +126,21 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 		err = mctx.G().GregorDismisser.DismissItem(mctx.Ctx(), nil, trigger)
 		if err != nil {
 			log("error dismissing gregor kick: %v", err)
+			return autoClaimLoopActionHibernate, err
 		}
 		log("successfully dismissed kick")
-		return "hibernate", nil
+		return autoClaimLoopActionHibernate, nil
 	}
 	log("got next autoclaim: %v", ac.KbTxID)
-	err = r.claim1(mctx, ac.KbTxID, token)
+	err = r.claim(mctx, ac.KbTxID, token)
 	if err != nil {
-		return "snooze", err
+		return autoClaimLoopActionSnooze, err
 	}
 	log("successfully claimed: %v", ac.KbTxID)
-	return "fast", nil
+	return autoClaimLoopActionFast, nil
 }
 
-func (r *AutoClaimRunner) claim1(mctx libkb.MetaContext, kbTxID stellar1.KeybaseTransactionID, token string) (err error) {
+func (r *AutoClaimRunner) claim(mctx libkb.MetaContext, kbTxID stellar1.KeybaseTransactionID, token string) (err error) {
 	CreateWalletSoft(mctx.Ctx(), mctx.G())
 	into, err := GetOwnPrimaryAccountID(mctx.Ctx(), mctx.G())
 	if err != nil {
