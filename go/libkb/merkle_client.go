@@ -257,6 +257,10 @@ type MerkleGenericLeaf struct {
 	LeafID  keybase1.UserOrTeamID
 	Public  *MerkleTriple
 	Private *MerkleTriple
+
+	// if the leaf is a User leaf, we'll have extra information here, like
+	// reset chain and eldest key. On a team leaf, this will be nil.
+	userExtras *MerkleUserLeaf
 }
 
 func (l MerkleTeamLeaf) MerkleGenericLeaf() *MerkleGenericLeaf {
@@ -269,9 +273,10 @@ func (l MerkleTeamLeaf) MerkleGenericLeaf() *MerkleGenericLeaf {
 
 func (mul MerkleUserLeaf) MerkleGenericLeaf() *MerkleGenericLeaf {
 	return &MerkleGenericLeaf{
-		LeafID:  mul.uid.AsUserOrTeam(),
-		Public:  mul.public,
-		Private: mul.private,
+		LeafID:     mul.uid.AsUserOrTeam(),
+		Public:     mul.public,
+		Private:    mul.private,
+		userExtras: &mul,
 	}
 }
 

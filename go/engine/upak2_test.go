@@ -112,6 +112,19 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	require.Equal(t, reset.Type, keybase1.ResetType_RESET)
 	require.Equal(t, reset.EldestSeqno, keybase1.Seqno(1))
 
+	// Test libkb.FindNextMerkleRootAfterReset --- in this case, the next merkle root
+	// in the sequence should be the right one.
+	m := NewMetaContextForTest(tc)
+	fnmrArg := keybase1.FindNextMerkleRootAfterResetArg{
+		Uid:        u.GetUID(),
+		ResetSeqno: keybase1.Seqno(1),
+		Prev:       reset.MerkleRoot,
+	}
+	res, err := libkb.FindNextMerkleRootAfterReset(m, fnmrArg)
+	require.NoError(t, err)
+	require.NotNil(t, res.Res)
+	require.True(t, res.Res.Seqno > reset.MerkleRoot.Seqno)
+
 	// While we're here, also check that UPK v1 has the right reset summaries.
 	upk1, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, fu.UID(), keybase1.KID(""))
 	require.NoError(t, err)
