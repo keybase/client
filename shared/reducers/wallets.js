@@ -22,7 +22,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.update('paymentsMap', paymentsMap => paymentsMap.set(action.payload.accountID, payments))
     // Saga only actions
     case WalletsGen.loadAllAssets:
+    case WalletsGen.loadAllPayments:
     case WalletsGen.loadAssets:
+    case WalletsGen.loadPayments:
     case WalletsGen.walletsRefresh:
       return state
     default:

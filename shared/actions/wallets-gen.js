@@ -10,6 +10,7 @@ import * as Types from '../constants/types/wallets'
 export const resetStore = 'common:resetStore' // not a part of wallets but is handled by every reducer
 export const assetsReceived = 'wallets:assetsReceived'
 export const loadAllAssets = 'wallets:loadAllAssets'
+export const loadAllPayments = 'wallets:loadAllPayments'
 export const loadAssets = 'wallets:loadAssets'
 export const loadPayments = 'wallets:loadPayments'
 export const paymentsReceived = 'wallets:paymentsReceived'
@@ -22,6 +23,7 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   assets: any,
 |}>
 type _LoadAllAssetsPayload = void
+type _LoadAllPaymentsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: string|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: string|}>
 type _PaymentsReceivedPayload = $ReadOnly<{|
@@ -36,6 +38,10 @@ type _WalletsRefreshPayload = void
  * Debugging only -- load assets for every account at once
  */
 export const createLoadAllAssets = (payload: _LoadAllAssetsPayload) => ({error: false, payload, type: loadAllAssets})
+/**
+ * Debugging only -- load payments for every account at once
+ */
+export const createLoadAllPayments = (payload: _LoadAllPaymentsPayload) => ({error: false, payload, type: loadAllPayments})
 /**
  * Refresh our list of assets for a given account
  */
@@ -64,6 +70,7 @@ export const createWalletsReceived = (payload: _WalletsReceivedPayload) => ({err
 // Action Payloads
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
 export type LoadAllAssetsPayload = $Call<typeof createLoadAllAssets, _LoadAllAssetsPayload>
+export type LoadAllPaymentsPayload = $Call<typeof createLoadAllPayments, _LoadAllPaymentsPayload>
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
@@ -75,6 +82,7 @@ export type WalletsRefreshPayload = $Call<typeof createWalletsRefresh, _WalletsR
 export type Actions =
   | AssetsReceivedPayload
   | LoadAllAssetsPayload
+  | LoadAllPaymentsPayload
   | LoadAssetsPayload
   | LoadPaymentsPayload
   | PaymentsReceivedPayload

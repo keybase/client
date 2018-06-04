@@ -34,7 +34,6 @@ const loadAssets = (action: WalletsGen.LoadAssetsPayload) => {
 }
 
 const loadAssetsSuccess = (res: any, action: WalletsGen.LoadAssetsPayload) => {
-  console.warn('res is ', res, action)
   const {accountID} = action.payload
   return Saga.put(
     WalletsGen.createAssetsReceived({
@@ -50,7 +49,6 @@ const loadPayments = (action: WalletsGen.LoadPaymentsPayload) => {
 }
 
 const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) => {
-  console.warn('res is ', res, action)
   const {accountID} = action.payload
   return Saga.put(
     WalletsGen.createPaymentsReceived({

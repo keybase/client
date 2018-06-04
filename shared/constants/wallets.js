@@ -5,6 +5,7 @@ import * as RPCTypes from './types/rpc-stellar-gen'
 import {invert} from 'lodash'
 
 const balanceDeltaToString = invert(RPCTypes.localBalanceDelta)
+const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
 
 const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
@@ -66,11 +67,12 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   noteErr: '',
   source: '',
   sourceType: '',
-  statusDescription: 'none',
+  statusDescription: '',
   statusDetail: '',
+  statusSimplified: 'none',
   target: '',
   targetType: '',
-  time: '',
+  time: 0,
   worth: '',
   worthCurrency: '',
 })
@@ -80,7 +82,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     return makePayment({error: 'No payments returned'})
   }
   if (!w.payment) {
-    return makePayment({error: w.error})
+    return makePayment({error: w.err})
   }
   const {
     amountDescription,
@@ -92,6 +94,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     sourceType,
     statusDescription,
     statusDetail,
+    statusSimplified,
     target,
     targetType,
     time,
@@ -109,6 +112,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     sourceType,
     statusDescription,
     statusDetail,
+    statusSimplified: statusSimplifiedToString[statusSimplified],
     target,
     targetType,
     time,

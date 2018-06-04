@@ -11,6 +11,9 @@
     "loadAllAssets": {
       "_description": "Debugging only -- load assets for every account at once",
     },
+    "loadAllPayments": {
+      "_description": "Debugging only -- load payments for every account at once",
+    },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
       "accountID": "string",
