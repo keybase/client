@@ -5,9 +5,13 @@ import * as WalletsGen from './wallets-gen'
 import * as Saga from '../util/saga'
 import type {TypedState} from '../util/container'
 
-const walletsRefresh = (action: WalletsGen.WalletsRefreshPayload) => Saga.call(Types.localGetWalletAccountsLocalRpcPromise, {})
+const walletsRefresh = (action: WalletsGen.WalletsRefreshPayload) =>
+  Saga.call(Types.localGetWalletAccountsLocalRpcPromise, {})
 
-const walletsRefreshSuccess = (res: any) => Saga.put(WalletsGen.createWalletsReceived({wallets: res.map(wallet => Constants.walletResultToWallet(wallet))}))
+const walletsRefreshSuccess = (res: any) =>
+  Saga.put(
+    WalletsGen.createWalletsReceived({wallets: res.map(wallet => Constants.walletResultToWallet(wallet))})
+  )
 
 const loadAllAssets = (action: WalletsGen.LoadAllAssetsPayload, state: TypedState) => {
   const wallets = state.wallets.walletMap.keys()
@@ -19,7 +23,9 @@ const loadAllAssets = (action: WalletsGen.LoadAllAssetsPayload, state: TypedStat
   return Saga.sequentially(actions)
 }
 
-const loadAllAssetsSuccess = (res: any) => { console.warn('loadAllAssets done') }
+const loadAllAssetsSuccess = (res: any) => {
+  console.warn('loadAllAssets done')
+}
 
 const loadAssets = (action: WalletsGen.LoadAssetsPayload) => {
   const {accountID} = action.payload
@@ -29,10 +35,12 @@ const loadAssets = (action: WalletsGen.LoadAssetsPayload) => {
 const loadAssetsSuccess = (res: any, action: WalletsGen.LoadAssetsPayload) => {
   console.warn('res is ', res, action)
   const {accountID} = action.payload
-  return Saga.put(WalletsGen.createAssetsReceived({
-    accountID,
-    assets: Constants.assetsResultToAssets(res[0]),
-  }))
+  return Saga.put(
+    WalletsGen.createAssetsReceived({
+      accountID,
+      assets: Constants.assetsResultToAssets(res[0]),
+    })
+  )
 }
 
 const loadPayments = (action: WalletsGen.LoadPaymentsPayload) => {
@@ -43,10 +51,12 @@ const loadPayments = (action: WalletsGen.LoadPaymentsPayload) => {
 const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) => {
   console.warn('res is ', res, action)
   const {accountID} = action.payload
-  return Saga.put(WalletsGen.createPaymentsReceived({
-    accountID,
-    payments: Constants.paymentResultToPayment(res[0]),
-  }))
+  return Saga.put(
+    WalletsGen.createPaymentsReceived({
+      accountID,
+      payments: Constants.paymentResultToPayment(res[0]),
+    })
+  )
 }
 
 const loadAllPayments = (action: WalletsGen.LoadAllPaymentsPayload, state: TypedState) => {
@@ -59,7 +69,9 @@ const loadAllPayments = (action: WalletsGen.LoadAllPaymentsPayload, state: Typed
   return Saga.sequentially(actions)
 }
 
-const loadAllPaymentsSuccess = (res: any) => { console.warn('loadAllPayments done') }
+const loadAllPaymentsSuccess = (res: any) => {
+  console.warn('loadAllPayments done')
+}
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.walletsRefresh, walletsRefresh, walletsRefreshSuccess)

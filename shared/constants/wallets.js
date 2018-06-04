@@ -82,12 +82,48 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w.payment) {
     return makePayment({error: w.error})
   }
-  const {amountDescription, delta, id, note, noteErr, source, sourceType, statusDescription, statusDetail, target, targetType, time, worth, worthCurrency} = w.payment
+  const {
+    amountDescription,
+    delta,
+    id,
+    note,
+    noteErr,
+    source,
+    sourceType,
+    statusDescription,
+    statusDetail,
+    target,
+    targetType,
+    time,
+    worth,
+    worthCurrency,
+  } = w.payment
   return makePayment({
-amountDescription, delta: balanceDeltaToString[delta], error: '', id, note, noteErr, source, sourceType, statusDescription, statusDetail, target, targetType, time,
+    amountDescription,
+    delta: balanceDeltaToString[delta],
+    error: '',
+    id,
+    note,
+    noteErr,
+    source,
+    sourceType,
+    statusDescription,
+    statusDetail,
+    target,
+    targetType,
+    time,
     worth,
     worthCurrency,
   })
 }
 
-export {assetsResultToAssets, makeAssets, makePayment, makeReserve, makeState, makeWallet, paymentResultToPayment, walletResultToWallet}
+export {
+  assetsResultToAssets,
+  makeAssets,
+  makePayment,
+  makeReserve,
+  makeState,
+  makeWallet,
+  paymentResultToPayment,
+  walletResultToWallet,
+}

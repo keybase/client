@@ -11,9 +11,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.resetStore:
       return initialState
     case WalletsGen.walletsReceived:
-      const walletMap = I.Map(action.payload.wallets.map(wallet =>
-        [ wallet.accountID, wallet ]
-      ))
+      const walletMap = I.Map(action.payload.wallets.map(wallet => [wallet.accountID, wallet]))
       return state.set('walletMap', walletMap)
     case WalletsGen.assetsReceived:
       const {assets} = action.payload
