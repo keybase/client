@@ -20,7 +20,7 @@ func (b *bug3964Repairman) attemptRepair(m MetaContext, lksec *LKSec, dkm Device
 	defer m.CTrace("bug3964Repairman#attemptRepair", func() error { return err })()
 	var oldKeyring, newKeyring *SKBKeyringFile
 	lctx := m.LoginContext()
-	oldKeyring, err = lctx.Keyring()
+	oldKeyring, err = lctx.Keyring(m)
 	if err != nil {
 		return false, nil, err
 	}
