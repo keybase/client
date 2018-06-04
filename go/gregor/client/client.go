@@ -15,8 +15,8 @@ import (
 )
 
 type LocalStorageEngine interface {
-	Store(gregor.UID, []byte, [][]byte) error
-	Load(gregor.UID) ([]byte, [][]byte, error)
+	Store(gregor.UID, []byte, [][]byte, [][]byte) error
+	Load(gregor.UID) ([]byte, [][]byte, [][]byte, error)
 }
 
 type Client struct {
@@ -26,19 +26,26 @@ type Client struct {
 	Storage LocalStorageEngine
 	Log     logger.Logger
 
-	SaveTimer <-chan time.Time
+	incomingClient func() gregor1.IncomingInterface
+	outboxSendCh   chan struct{}
+	stopCh         chan struct{}
+	createSm       func() gregor.StateMachine
 }
 
-func NewClient(user gregor.UID, device gregor.DeviceID, sm gregor.StateMachine,
-	storage LocalStorageEngine, saveInterval time.Duration, log logger.Logger) *Client {
+func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.StateMachine,
+	storage LocalStorageEngine, incomingClient func() gregor1.IncomingInterface, log logger.Logger) *Client {
 	c := &Client{
-		User:      user,
-		Device:    device,
-		Sm:        sm,
-		Storage:   storage,
-		Log:       log,
-		SaveTimer: time.Tick(saveInterval), // How often we save to local storage
+		User:           user,
+		Device:         device,
+		Sm:             createSm(),
+		Storage:        storage,
+		Log:            log,
+		outboxSendCh:   make(chan struct{}, 100),
+		stopCh:         make(chan struct{}),
+		incomingClient: incomingClient,
+		createSm:       createSm,
 	}
+	go c.outboxSendLoop()
 	return c
 }
 
@@ -57,6 +64,7 @@ func (c *Client) Save(ctx context.Context) error {
 		return err
 	}
 
+	// Marshal local dismissals
 	localDismissals, err := c.Sm.LocalDismissals(ctx, c.User)
 	if err != nil {
 		return err
@@ -65,7 +73,18 @@ func (c *Client) Save(ctx context.Context) error {
 	for _, ld := range localDismissals {
 		ldm = append(ldm, ld.Bytes())
 	}
-	return c.Storage.Store(c.User, b, ldm)
+
+	// Marshal outbox
+	outbox, err := c.Sm.Outbox(ctx, c.User)
+	if err != nil {
+		return err
+	}
+	var obm [][]byte
+	for _, m := range outbox {
+		obm = append(obm, m.Bytes())
+	}
+
+	return c.Storage.Store(c.User, b, obm, ldm)
 }
 
 func (c *Client) Restore(ctx context.Context) error {
@@ -101,6 +120,10 @@ func (c *Client) Restore(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (c *Client) Stop() {
+	close(c.stopCh)
 }
 
 type ErrHashMismatch struct{}
@@ -196,6 +219,7 @@ func (c *Client) Sync(ctx context.Context, cli gregor1.IncomingInterface,
 	defer func() {
 		if err == nil {
 			c.Log.CDebugf(ctx, "Sync(): sync success!")
+			c.pokeOutbox()
 			if err = c.Save(ctx); err != nil {
 				c.Log.CDebugf(ctx, "Sync(): error save state: %s", err.Error())
 			}
@@ -264,10 +288,11 @@ func (c *Client) State(cli gregor1.IncomingInterface) (res gregor.State, err err
 	return res, nil
 }
 
-func (c *Client) StateMachineConsumeLocalDismissal(ctx context.Context, id gregor.MsgID) error {
-	if err := c.Sm.ConsumeLocalDismissal(ctx, c.User, id); err != nil {
+func (c *Client) ConsumeMessage(ctx context.Context, m gregor.Message) error {
+	if err := c.Sm.ConsumeOutboxMessage(ctx, c.User, m); err != nil {
 		return err
 	}
+	c.pokeOutbox()
 	return c.Save(ctx)
 }
 
@@ -275,18 +300,14 @@ func (c *Client) StateMachineConsumeMessage(ctx context.Context, m gregor1.Messa
 	if _, err := c.Sm.ConsumeMessage(ctx, m); err != nil {
 		return err
 	}
+	return c.Save(ctx)
+}
 
-	// Check to see if we should save
-	select {
-	case <-c.SaveTimer:
-		c.Log.CDebugf(ctx, "StateMachineConsumeMessage(): saving local state")
-		return c.Save(ctx)
-	default:
-		c.Log.CDebugf(ctx, "StateMachineConsumeMessage(): not saving local state")
-		// Plow through if the timer isn't up
+func (c *Client) StateMachineConsumeLocalDismissal(ctx context.Context, id gregor.MsgID) error {
+	if err := c.Sm.ConsumeLocalDismissal(ctx, c.User, id); err != nil {
+		return err
 	}
-
-	return nil
+	return c.Save(ctx)
 }
 
 func (c *Client) StateMachineLatestCTime(ctx context.Context) *time.Time {
@@ -355,13 +376,87 @@ func (c *Client) filterLocalDismissals(ctx context.Context, state gregor.State) 
 	return filteredState
 }
 
-func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset, filterLocalDismissals bool) (gregor.State, error) {
+func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State) gregor.State {
+	msgs, err := c.Sm.Outbox(ctx, c.User)
+	if err != nil {
+		c.Log.CDebugf(ctx, "applyOutboxMessages: failed to read outbox: %s", err)
+		return state
+	}
+	sm := c.createSm()
+	sm.InitState(state)
+	for _, m := range msgs {
+		if _, err := sm.ConsumeMessage(ctx, m); err != nil {
+			c.Log.CDebugf(ctx, "applyOutboxMessages: failed to consume message: %s", err)
+			return state
+		}
+	}
+	astate, err := sm.State(ctx, c.User, c.Device, gregor1.TimeOrOffset{})
+	if err != nil {
+		c.Log.CDebugf(ctx, "applyOutboxMessages: failed to read state back out: %s", err)
+		return state
+	}
+	return astate
+}
+
+func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset,
+	applyLocalState bool) (gregor.State, error) {
 	st, err := c.Sm.State(ctx, c.User, c.Device, t)
 	if err != nil {
 		return st, err
 	}
-	if filterLocalDismissals {
-		return c.filterLocalDismissals(ctx, st), nil
+	if applyLocalState {
+		st = c.filterLocalDismissals(ctx, st)
+		st = c.applyOutboxMessages(ctx, st)
 	}
 	return st, nil
+}
+
+func (c *Client) outboxSend() {
+	var newOutbox []gregor.Message
+	msgs, err := c.Sm.Outbox(context.Background(), c.User)
+	if err != nil {
+		c.Log.Debug("outboxSend: failed to get outbox messages: %s", err)
+		return
+	}
+	if len(msgs) == 0 {
+		return
+	}
+	var index int
+	var m gregor.Message
+	for index, m = range msgs {
+		if err := c.incomingClient().ConsumeMessage(context.Background(), m.(gregor1.Message)); err != nil {
+			c.Log.Debug("outboxSend: failed to consume message: %s", err)
+			break
+		}
+	}
+	for i := index; i < len(msgs); i++ {
+		newOutbox = append(newOutbox, msgs[i])
+	}
+	c.Log.Debug("outboxSend: adding back: %d outbox items", len(newOutbox))
+	if err := c.Sm.InitOutbox(context.Background(), c.User, newOutbox); err != nil {
+		c.Log.Debug("outboxSend: failed to init outbox with new items: %s", err)
+	}
+	if err := c.Save(context.Background()); err != nil {
+		c.Log.Debug("outboxSend: failed to save state: %s", err)
+	}
+}
+
+func (c *Client) outboxSendLoop() {
+	for {
+		select {
+		case <-time.After(time.Minute):
+			c.outboxSend()
+		case <-c.outboxSendCh:
+			c.outboxSend()
+		case <-c.stopCh:
+			return
+		}
+	}
+}
+
+func (c *Client) pokeOutbox() {
+	select {
+	case c.outboxSendCh <- struct{}{}:
+	default:
+	}
 }

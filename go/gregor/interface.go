@@ -211,6 +211,15 @@ type StateMachine interface {
 
 	// Consume a local dismissal in state machine storage
 	ConsumeLocalDismissal(context.Context, UID, MsgID) error
+
+	// Outbox gives all of the pending messages in the outbox
+	Outbox(context.Context, UID) ([]Message, error)
+
+	// InitOutbox sets the outbox for the give user
+	InitOutbox(context.Context, UID, []Message) error
+
+	// ConsumeOutboxMessage add a message to the outbox
+	ConsumeOutboxMessage(context.Context, UID, Message) error
 }
 
 type ObjFactory interface {
