@@ -211,15 +211,19 @@ func (i *Inbox) summarizeConvs(convs []types.RemoteConversation) (res []types.Re
 }
 
 func (i *Inbox) mergeConvs(l []types.RemoteConversation, r []types.RemoteConversation) (res []types.RemoteConversation) {
-	m := make(map[string]bool)
+	m := make(map[string]types.RemoteConversation)
 	for _, conv := range l {
-		m[conv.Conv.Metadata.ConversationID.String()] = true
-		res = append(res, conv)
+		m[conv.GetConvID().String()] = conv
 	}
 	for _, conv := range r {
-		if !m[conv.Conv.Metadata.ConversationID.String()] {
+		key := conv.GetConvID().String()
+		if m[key].GetVersion() <= conv.GetVersion() {
 			res = append(res, conv)
+			delete(m, key)
 		}
+	}
+	for _, conv := range m {
+		res = append(res, conv)
 	}
 	return res
 }
@@ -293,6 +297,9 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 	return i.writeDiskInbox(ctx, ibox)
 }
 
+// Merge add/updates conversations into the inbox. If a given conversation is either missing
+// from the inbox, or is of greater version than what is currently stored, we write it down. Otherwise,
+// we ignore it. If the inbox is currently blank, then we write down the given inbox version.
 func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1.Conversation,
 	query *chat1.GetInboxQuery, p *chat1.Pagination) (err Error) {
 	locks.Inbox.Lock()
@@ -300,7 +307,10 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 	defer i.Trace(ctx, func() error { return err }, "Merge")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
-	i.Debug(ctx, "Merge: vers: %d", vers)
+	i.Debug(ctx, "Merge: vers: %d convs: %d", vers, len(convsIn))
+	if len(convsIn) == 1 {
+		i.Debug(ctx, "Merge: single conversation: %s", convsIn[0].GetConvID())
+	}
 
 	convs := make([]chat1.Conversation, len(convsIn))
 	copy(convs, convsIn)
@@ -322,24 +332,19 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 	qp := inboxDiskQuery{QueryHash: hquery, Pagination: p}
 	var data inboxDiskData
 
-	// Replace the inbox under these conditions
-	if ibox.InboxVersion != vers || err != nil {
-		i.Debug(ctx, "Merge: replacing inbox: ibox.vers: %v vers: %v convs: %d", ibox.InboxVersion, vers,
-			len(convs))
-		data = inboxDiskData{
-			Version:       inboxVersion,
-			InboxVersion:  vers,
-			Conversations: utils.RemoteConvs(convs),
-			Queries:       []inboxDiskQuery{qp},
-		}
+	// Set inbox version if the current inbox is empty. Otherwise, we just use whatever the current
+	// value is.
+	if ibox.InboxVersion != 0 {
+		vers = ibox.InboxVersion
 	} else {
-		i.Debug(ctx, "Merge: merging inbox: version match")
-		data = inboxDiskData{
-			Version:       inboxVersion,
-			InboxVersion:  vers,
-			Conversations: i.mergeConvs(utils.RemoteConvs(convs), ibox.Conversations),
-			Queries:       append(ibox.Queries, qp),
-		}
+		i.Debug(ctx, "Merge: using given version: %d", vers)
+	}
+	i.Debug(ctx, "Merge: merging inbox: vers: %d", vers)
+	data = inboxDiskData{
+		Version:       inboxVersion,
+		InboxVersion:  vers,
+		Conversations: i.mergeConvs(utils.RemoteConvs(convs), ibox.Conversations),
+		Queries:       append(ibox.Queries, qp),
 	}
 
 	// Make sure that the inbox is in the write order before writing out
@@ -805,8 +810,8 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	// Find conversation
 	index, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "NewMessage: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "NewMessage: no conversation found: convID: %s", convID)
+		return nil
 	}
 
 	// Update conversation. Use given max messages if the param is non-empty, otherwise just fill
@@ -899,8 +904,8 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "ReadMessage: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "ReadMessage: no conversation found: convID: %s", convID)
+		return nil
 	}
 
 	// Update conv
@@ -942,8 +947,8 @@ func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "SetStatus: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "SetStatus: no conversation found: convID: %s", convID)
+		return nil
 	}
 
 	conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
@@ -979,8 +984,8 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "SetAppNotificationSettings: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "SetAppNotificationSettings: no conversation found: convID: %s", convID)
+		return nil
 	}
 	for apptype, kindMap := range settings.Settings {
 		for kind, enabled := range kindMap {
@@ -1022,8 +1027,8 @@ func (i *Inbox) Expunge(ctx context.Context, vers chat1.InboxVers,
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "Expunge: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "Expunge: no conversation found: convID: %s", convID)
+		return nil
 	}
 	conv.Conv.Expunge = expunge
 	conv.Conv.Metadata.Version = vers.ToConvVers()
@@ -1067,8 +1072,8 @@ func (i *Inbox) SetConvRetention(ctx context.Context, vers chat1.InboxVers,
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "SetConvRetention: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "SetConvRetention: no conversation found: convID: %s", convID)
+		return nil
 	}
 	conv.Conv.ConvRetention = &policy
 	conv.Conv.Metadata.Version = vers.ToConvVers()
@@ -1141,8 +1146,8 @@ func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, vers chat1.InboxVers,
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "UpgradeKBFSToImpteam: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "UpgradeKBFSToImpteam: no conversation found: convID: %s", convID)
+		return nil
 	}
 	conv.Conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
 
@@ -1175,8 +1180,8 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, vers chat1.InboxVers,
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "TeamTypeChanged: no conversation found: convID: %s, clearing", convID)
-		return i.Clear(ctx)
+		i.Debug(ctx, "TeamTypeChanged: no conversation found: convID: %s", convID)
+		return nil
 	}
 	conv.Conv.Notifications = notifInfo
 	conv.Conv.Metadata.TeamType = teamType

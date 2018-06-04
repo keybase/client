@@ -225,6 +225,10 @@ func (mr MerkleRoot) HashMeta() keybase1.HashMeta {
 	return mr.ShortHash().ExportToHashMeta()
 }
 
+func (mr MerkleRoot) IsNil() bool {
+	return mr == MerkleRoot{}
+}
+
 type SkipSequence []MerkleRootPayload
 
 type MerkleTriple struct {
@@ -253,6 +257,10 @@ type MerkleGenericLeaf struct {
 	LeafID  keybase1.UserOrTeamID
 	Public  *MerkleTriple
 	Private *MerkleTriple
+
+	// if the leaf is a User leaf, we'll have extra information here, like
+	// reset chain and eldest key. On a team leaf, this will be nil.
+	userExtras *MerkleUserLeaf
 }
 
 func (l MerkleTeamLeaf) MerkleGenericLeaf() *MerkleGenericLeaf {
@@ -265,9 +273,10 @@ func (l MerkleTeamLeaf) MerkleGenericLeaf() *MerkleGenericLeaf {
 
 func (mul MerkleUserLeaf) MerkleGenericLeaf() *MerkleGenericLeaf {
 	return &MerkleGenericLeaf{
-		LeafID:  mul.uid.AsUserOrTeam(),
-		Public:  mul.public,
-		Private: mul.private,
+		LeafID:     mul.uid.AsUserOrTeam(),
+		Public:     mul.public,
+		Private:    mul.private,
+		userExtras: &mul,
 	}
 }
 
@@ -306,16 +315,16 @@ type MerkleRootPayloadUnpacked struct {
 	Body struct {
 		Kbfs struct {
 			Private struct {
-				Root    *string `json:"root"`
-				Version *int    `json:"version"`
+				Root    keybase1.KBFSRootHash `json:"root"`
+				Version *keybase1.Seqno       `json:"version"`
 			} `json:"private"`
 			Public struct {
-				Root    *string `json:"root"`
-				Version *int    `json:"version"`
+				Root    keybase1.KBFSRootHash `json:"root"`
+				Version *keybase1.Seqno       `json:"version"`
 			} `json:"public"`
 			PrivateTeam struct {
-				Root    *string `json:"root"`
-				Version *int    `json:"version"`
+				Root    keybase1.KBFSRootHash `json:"root"`
+				Version *keybase1.Seqno       `json:"version"`
 			} `json:"privateteam"`
 		} `json:"kbfs"`
 		LegacyUIDRoot NodeHashShort  `json:"legacy_uid_root"`
@@ -645,7 +654,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceUser(ctx context.Context, q HTT
 	}
 
 	if sigHints != nil {
-		if err = sigHints.RefreshWith(ctx, apiRes.Body.AtKey("sigs")); err != nil {
+		if err = sigHints.RefreshWith(NewMetaContext(ctx, mc.G()), apiRes.Body.AtKey("sigs")); err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}
@@ -943,6 +952,18 @@ func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, stri
 func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence, thisRoot *MerkleRoot, lastRoot *MerkleRoot, historical bool) (err error) {
 	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#verifySkipSequence", func() error { return err })()
 
+	var left, right keybase1.Seqno
+	if thisRoot.Seqno() != nil {
+		left = *thisRoot.Seqno()
+	}
+	if lastRoot.Seqno() != nil {
+		right = *lastRoot.Seqno()
+	}
+
+	if historical && left < right {
+		left, right = right, left
+	}
+
 	// In this case, the server did not return a skip sequence. It's OK if
 	// the last known root is too old. It's not OK if the last known root is
 	// from after the server starting providing skip pointers.
@@ -957,8 +978,12 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 			mc.G().VDL.CLogf(ctx, VLog0, "| no known root with skips, so OK")
 			return nil
 		}
-		if *fss > *lastRoot.Seqno() {
-			mc.G().VDL.CLogf(ctx, VLog0, "| lastRoot (%d) is from before first known root with skips (%d), so OK", int(*lastRoot.Seqno()), int(*fss))
+		if *fss > right {
+			mc.G().VDL.CLogf(ctx, VLog0, "| right marker (%d) is from before first known root with skips (%d), so OK", int(right), int(*fss))
+			return nil
+		}
+		if *fss > left {
+			mc.G().VDL.CLogf(ctx, VLog0, "| left marker (%d) is from before first known root with skips (%d), so OK", int(left), int(*fss))
 			return nil
 		}
 		if thisRoot != nil && *lastRoot.Seqno() == *thisRoot.Seqno() {
@@ -967,14 +992,10 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 		}
 		return MerkleClientError{fmt.Sprintf("Expected a skip sequence with last=%d", int(*lastRoot.Seqno())), merkleErrorNoSkipSequence}
 	}
-	if *thisRoot.Seqno() == *lastRoot.Seqno() {
+
+	if left == right {
 		mc.G().VDL.CLogf(ctx, VLog0, "| No change since last check (seqno %d)", *thisRoot.Seqno())
 		return nil
-	}
-	left := *thisRoot.Seqno()
-	right := *lastRoot.Seqno()
-	if historical && left < right {
-		left, right = right, left
 	}
 	return ss.verify(ctx, mc.G(), left, right)
 }
@@ -1023,10 +1044,6 @@ func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext, thisRoot ke
 
 func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno) error {
 	return mc.verifyAndStoreRootHelper(ctx, root, seqnoWhenCalled, false)
-}
-
-func (mc *MerkleClient) verifyRootHistorical(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno) error {
-	return mc.verifyAndStoreRootHelper(ctx, root, seqnoWhenCalled, true)
 }
 
 func (mc *MerkleClient) verifyAndStoreRootHelper(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno, historical bool) (err error) {
@@ -1520,13 +1537,60 @@ func (vp *VerificationPath) verifyUserOrTeam(ctx context.Context, id keybase1.Us
 
 func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (leaf *MerkleGenericLeaf, err error) {
 	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupLeafAtHashMeta(%v)", leafID)
+	paramer := func(a *HTTPArgs) {
+		a.Add("start_hash_meta", S{Val: hm.String()})
+	}
+	checker := func(path *VerificationPath) error {
+		if !path.root.HashMeta().Eq(hm) {
+			return MerkleClientError{"hash meta failed to match", merkleErrorHashMeta}
+		}
+		return nil
+	}
+	leaf, _, err = mc.lookupLeafHistorical(ctx, leafID, paramer, checker)
+	return leaf, err
+}
+
+func (mc *MerkleClient) checkHistoricalSeqno(s keybase1.Seqno) error {
+	if mc.G().Env.GetRunMode() == ProductionRunMode && s < FirstProdMerkleSeqnoWithSigs {
+		return MerkleClientError{fmt.Sprintf("cannot load seqno=%d; must load at %d or higher", s, FirstProdMerkleSeqnoWithSigs), merkleErrorAncientSeqno}
+	}
+	return nil
+}
+
+func (mc *MerkleClient) LookupLeafAtSeqno(ctx context.Context, leafID keybase1.UserOrTeamID, s keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
+	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupLeafAtHashMeta(%v)", leafID)
+	if err = mc.checkHistoricalSeqno(s); err != nil {
+		return nil, nil, err
+	}
+	paramer := func(a *HTTPArgs) {
+		a.Add("start_seqno", I{Val: int(s)})
+	}
+	checker := func(path *VerificationPath) error {
+		if path.root.Seqno() == nil {
+			return MerkleClientError{"no such seqno was found", merkleErrorNotFound}
+		}
+		if *path.root.Seqno() != s {
+			return MerkleClientError{"seqno mismatch", merkleErrorBadSeqno}
+		}
+		return nil
+	}
+	return mc.lookupLeafHistorical(ctx, leafID, paramer, checker)
+}
+
+func (mc *MerkleClient) LookupRootAtSeqno(ctx context.Context, s keybase1.Seqno) (root *MerkleRoot, err error) {
+	defer mc.G().CVTrace(ctx, VLog0, fmt.Sprintf("LookupRootAtSeqno(%d)", s), func() error { return err })()
+	_, root, err = mc.LookupLeafAtSeqno(ctx, keybase1.UserOrTeamID(""), s)
+	return root, err
+}
+
+func (mc *MerkleClient) lookupLeafHistorical(ctx context.Context, leafID keybase1.UserOrTeamID, paramer func(*HTTPArgs), checker func(*VerificationPath) error) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
 
 	var path *VerificationPath
 	var ss SkipSequence
 	var apiRes *APIRes
 
 	if err = mc.init(ctx); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// The must current root we got. This might be slightly out of date, but all we really care
@@ -1535,28 +1599,34 @@ func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase
 	currentRoot := mc.LastRoot()
 
 	q := NewHTTPArgs()
-	q.Add("leaf_id", S{Val: leafID.String()})
-	q.Add("start_hash_meta", S{Val: hm.String()})
+	if leafID.IsNil() {
+		q.Add("no_leaf", B{Val: true})
+	} else {
+		q.Add("leaf_id", S{Val: leafID.String()})
+	}
+	paramer(&q)
 
 	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(ctx, q, currentRoot); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if !path.root.HashMeta().Eq(hm) {
-		return nil, MerkleClientError{"hash meta failed to match", merkleErrorHashMeta}
+	if err = checker(path); err != nil {
+		return nil, nil, err
 	}
 
 	err = mc.verifySkipSequenceAndRootHistorical(ctx, ss, path.root, currentRoot, apiRes)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	leaf, err = path.verifyUserOrTeam(ctx, leafID)
-	if err != nil {
-		return nil, err
+	if !leafID.IsNil() {
+		leaf, err = path.verifyUserOrTeam(ctx, leafID)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
-	return leaf, nil
+	return leaf, path.root, nil
 }
 
 func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
@@ -1723,21 +1793,21 @@ func (mr *MerkleRoot) Fetched() time.Time {
 	return mr.fetched
 }
 
-func (mr *MerkleRoot) KBFSPrivate() (*string, *int) {
+func (mr *MerkleRoot) KBFSPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	if mr == nil {
 		return nil, nil
 	}
 	return mr.payload.kbfsPrivate()
 }
 
-func (mr *MerkleRoot) KBFSPublic() (*string, *int) {
+func (mr *MerkleRoot) KBFSPublic() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	if mr == nil {
 		return nil, nil
 	}
 	return mr.payload.kbfsPublic()
 }
 
-func (mr *MerkleRoot) KBFSPrivateTeam() (*string, *int) {
+func (mr *MerkleRoot) KBFSPrivateTeam() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	if mr == nil {
 		return nil, nil
 	}
@@ -1756,12 +1826,12 @@ func (mrp MerkleRootPayload) rootHash() NodeHash          { return mrp.unpacked.
 func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.Body.LegacyUIDRoot }
 func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }
 func (mrp MerkleRootPayload) ctime() int64                { return mrp.unpacked.Ctime }
-func (mrp MerkleRootPayload) kbfsPrivate() (*string, *int) {
+func (mrp MerkleRootPayload) kbfsPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.Private.Root, mrp.unpacked.Body.Kbfs.Private.Version
 }
-func (mrp MerkleRootPayload) kbfsPublic() (*string, *int) {
+func (mrp MerkleRootPayload) kbfsPublic() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.Public.Root, mrp.unpacked.Body.Kbfs.Public.Version
 }
-func (mrp MerkleRootPayload) kbfsPrivateTeam() (*string, *int) {
+func (mrp MerkleRootPayload) kbfsPrivateTeam() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.PrivateTeam.Root, mrp.unpacked.Body.Kbfs.PrivateTeam.Version
 }

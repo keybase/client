@@ -28,6 +28,26 @@
           "name": "fetchTime"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSRootHash",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "KBFSRoot",
+      "fields": [
+        {
+          "type": "MerkleTreeID",
+          "name": "treeID"
+        },
+        {
+          "type": "KBFSRootHash",
+          "name": "root"
+        }
+      ]
     }
   ],
   "messages": {
@@ -39,7 +59,21 @@
         }
       ],
       "response": "MerkleRootAndTime",
-      "doc": "* getCurrentMerkleRoot gets the current-most Merkle root from the keybase server.\n   * The caller can specify how stale a result can be with freshnessMsec.\n   * If 0 is specified, then any amount of staleness is OK. If -1 is specified, then\n   * we force a GET and a round-trip."
+      "doc": "GetCurrentMerkleRoot gets the current-most Merkle root from the keybase server.\n    The caller can specify how stale a result can be with freshnessMsec.\n    If 0 is specified, then any amount of staleness is OK. If -1 is specified, then\n    we force a GET and a round-trip."
+    },
+    "verifyMerkleRootAndKBFS": {
+      "request": [
+        {
+          "name": "root",
+          "type": "MerkleRootV2"
+        },
+        {
+          "name": "expectedKBFSRoot",
+          "type": "KBFSRoot"
+        }
+      ],
+      "response": null,
+      "doc": "VerifyMerkleRootAndKBFS checks that the given merkle root is indeed a valid\n    root of the keybase server's Merkle tree, and that the given KBFS root\n    is included in that global root."
     }
   },
   "namespace": "keybase.1"

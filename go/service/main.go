@@ -352,7 +352,7 @@ func (d *Service) startChatModules() {
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
-		//		g.EphemeralPurger.Start(context.Background(), uid)
+		g.EphemeralPurger.Start(context.Background(), uid)
 	}
 }
 
@@ -360,7 +360,7 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().MessageDeliverer.Stop(context.Background())
 	<-d.ChatG().ConvLoader.Stop(context.Background())
 	<-d.ChatG().FetchRetrier.Stop(context.Background())
-	//	<-d.ChatG().EphemeralPurger.Stop(context.Background())
+	<-d.ChatG().EphemeralPurger.Stop(context.Background())
 }
 
 func (d *Service) createChatModules() {
@@ -382,7 +382,7 @@ func (d *Service) createChatModules() {
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)
-	//	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g, chatStorage)
+	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g, chatStorage)
 
 	// Set up push handler with the badger
 	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
@@ -581,14 +581,14 @@ func (d *Service) hourlyChecks() {
 		for {
 			<-ticker.C
 			m.CDebugf("+ hourly check loop")
+			ekLib := m.G().GetEKLib()
+			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
+			ekLib.KeygenIfNeeded(m.Ctx())
+
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
 				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 			}
-
-			ekLib := m.G().GetEKLib()
-			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
-			ekLib.KeygenIfNeeded(m.Ctx())
 
 			m.CDebugf("| checking tracks on an hour timer")
 			libkb.CheckTracking(m.G())
@@ -619,30 +619,12 @@ func (d *Service) slowChecks() {
 }
 
 func (d *Service) tryGregordConnect() error {
-	// If we're logged out, LoggedInLoad() will return false with no error,
-	// even if the network is down. However, if we're logged in and the network
-	// is down, it will still return false, along with the network error. We
-	// need to handle that case specifically, so that we still start the gregor
-	// connect loop.
-	loggedIn, err := d.G().LoginState().LoggedInProvisioned(context.Background())
-	if err != nil {
-		// A network error means we *think* we're logged in, and we tried to
-		// confirm with the API server. In that case we'll swallow the error
-		// and allow control to proceed to the gregor loop. We'll still
-		// short-circuit for any unexpected errors though.
-		switch err.(type) {
-		case libkb.LoginStateTimeoutError, libkb.APINetError:
-			d.G().Log.Debug("Network/timeout error received from LoginState, continuing onward: %s", err)
-		default:
-			d.G().Log.Debug("Unexpected non-network error in tryGregordConnect: %s", err)
-			return err
-		}
-	} else if !loggedIn {
+	loggedIn := d.G().ActiveDevice.Valid()
+	if !loggedIn {
 		// We only respect the loggedIn flag in the no-error case.
 		d.G().Log.Debug("not logged in, so not connecting to gregord")
 		return nil
 	}
-
 	return d.gregordConnect()
 }
 

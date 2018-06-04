@@ -260,7 +260,7 @@ type DisplayBalance struct {
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance) (res stellar1.SendResultCLILocal, err error) {
+func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance, forceRelay bool) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
 	primary, err := LookupSenderPrimary(m.Ctx(), m.G())
@@ -274,7 +274,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 		return res, err
 	}
 
-	if recipient.AccountID == nil {
+	if recipient.AccountID == nil || forceRelay {
 		return sendRelayPayment(m, remoter, primarySeed, recipient, amount, note, displayBalance)
 	}
 
@@ -495,7 +495,7 @@ func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res st
 	return primary.AccountID, nil
 }
 
-func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
+func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.RecentPaymentsCLILocal", func() error { return err })()
 	payments, err := remoter.RecentPayments(ctx, accountID, 0)
 	if err != nil {
@@ -504,12 +504,13 @@ func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter
 	for _, p := range payments {
 		lp, err := localizePayment(ctx, g, p)
 		if err == nil {
-			res = append(res, stellar1.PaymentCLIOptionLocal{
+			res = append(res, stellar1.PaymentOrErrorCLILocal{
 				Payment: &lp,
 			})
 		} else {
-			res = append(res, stellar1.PaymentCLIOptionLocal{
-				Err: err.Error(),
+			errStr := err.Error()
+			res = append(res, stellar1.PaymentOrErrorCLILocal{
+				Err: &errStr,
 			})
 		}
 	}
@@ -529,21 +530,6 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 	typ, err := p.Typ()
 	if err != nil {
 		return res, fmt.Errorf("malformed payment summary: %v", err)
-	}
-	status := func(txStatus stellar1.TransactionStatus, txErrMsg string) (status, statusDetail string) {
-		switch txStatus {
-		case stellar1.TransactionStatus_PENDING:
-			status = "pending"
-		case stellar1.TransactionStatus_SUCCESS:
-			status = "completed"
-		case stellar1.TransactionStatus_ERROR_TRANSIENT, stellar1.TransactionStatus_ERROR_PERMANENT:
-			status = "error"
-			statusDetail = txErrMsg
-		default:
-			status = "unknown"
-			statusDetail = txErrMsg
-		}
-		return status, statusDetail
 	}
 	username := func(uid keybase1.UID) (username *string, err error) {
 		uname, err := g.GetUPAKLoader().LookupUsername(ctx, uid)
@@ -577,7 +563,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 			FromStellar:     p.FromStellar,
 			ToStellar:       &p.ToStellar,
 		}
-		res.Status, res.StatusDetail = status(p.TxStatus, p.TxErrMsg)
+		res.Status, res.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
 		res.FromUsername, err = username(p.From.Uid)
 		if err != nil {
 			return res, err
@@ -617,7 +603,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 		}
 		if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
 			// If the funding tx is not complete
-			res.Status, res.StatusDetail = status(p.TxStatus, p.TxErrMsg)
+			res.Status, res.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
 		} else {
 			res.Status = "claimable"
 			res.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to yank."
@@ -647,7 +633,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				if err != nil {
 					return res, err
 				}
-				res.Status, res.StatusDetail = status(p.Claim.TxStatus, p.Claim.TxErrMsg)
+				res.Status, res.StatusDetail = p.Claim.TxStatus.Details(p.Claim.TxErrMsg)
 				res.Status = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, res.Status)
 			}
 		}
@@ -721,6 +707,34 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 	}
 
 	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
+}
+
+func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string, error) {
+	desc, err := FormatAmountXLM(amount)
+	if err != nil {
+		return "", err
+	}
+
+	switch delta {
+	case stellar1.BalanceDelta_DECREASE:
+		desc = "- " + desc
+	case stellar1.BalanceDelta_INCREASE:
+		desc = "+ " + desc
+	}
+
+	return desc, nil
+}
+
+func FormatAmountXLM(amount string) (string, error) {
+	return FormatAmountWithSuffix(amount, false, "XLM")
+}
+
+func FormatAmountWithSuffix(amount string, precisionTwo bool, suffix string) (string, error) {
+	formatted, err := FormatAmount(amount, precisionTwo)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s %s", formatted, suffix), nil
 }
 
 func FormatAmount(amount string, precisionTwo bool) (string, error) {

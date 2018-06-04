@@ -348,6 +348,7 @@ class ProfileRender extends PureComponent<Props, State> {
               styleScrollHeaderBg,
               {
                 backgroundColor: globalColors.green,
+                minHeight: 40,
                 zIndex: ADD_TO_TEAM_ZINDEX,
               },
             ])}

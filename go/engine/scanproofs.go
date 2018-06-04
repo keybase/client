@@ -416,7 +416,7 @@ func (e *ScanProofsEngine) CheckOne(m libkb.MetaContext, rec map[string]string, 
 
 // GetSigHint gets the SigHint. This can return (nil, nil) if nothing goes wrong but there is no hint.
 func (e *ScanProofsEngine) GetSigHint(m libkb.MetaContext, uid keybase1.UID, sigid keybase1.SigID) (*libkb.SigHint, error) {
-	sighints, err := libkb.LoadAndRefreshSigHints(m.Ctx(), uid, m.G())
+	sighints, err := libkb.LoadAndRefreshSigHints(m, uid)
 	if err != nil {
 		return nil, err
 	}

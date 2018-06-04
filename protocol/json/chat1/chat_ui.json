@@ -474,6 +474,13 @@
           "name": "isEphemeralExpired"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "explodedBy"
+        },
+        {
           "type": "gregor1.Time",
           "name": "etime"
         }

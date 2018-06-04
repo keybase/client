@@ -142,9 +142,6 @@ protocol user {
   }
   array<InterestingPerson> interestingPeople(int maxUsers);
 
-  // resetUser resets the user. Only works in Dev mode since it's so dangerous
-  void resetUser(int sessionID);
-
   UserVersion meUserVersion(int sessionID, boolean forcePoll);
 
   /**
@@ -154,4 +151,23 @@ protocol user {
   UPAKVersioned getUPAK(UID uid);
 
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
+
+  record NextMerkleRootRes {
+    union { null, MerkleRootV2 } res;
+
+  }
+
+  /**
+   FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
+   revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
+   we'll start our search. Usually it's the next one, but not always
+  */
+  NextMerkleRootRes findNextMerkleRootAfterRevoke(UID uid, KID kid, SigChainLocation loc, MerkleRootV2 prev);
+
+  /**
+   FindNextMerkleRootAfterRest finds the first Merkle root that contains the UID reset
+   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
+   the reset. Usually, we'll just turn up the next Merkle root, but not always.
+  */
+  NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 }

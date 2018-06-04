@@ -24,32 +24,23 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
-  const _editingMessage: ?Types.Message = editingOrdinal
-    ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
-    : null
-  const quote = Constants.getQuotingOrdinalAndSource(state, conversationIDKey)
-  let _quotingMessage: ?Types.Message = null
-  if (quote) {
-    const {ordinal, sourceConversationIDKey} = quote
-    _quotingMessage = ordinal ? Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal) : null
-  }
+  const editInfo = Constants.getEditInfo(state, conversationIDKey)
+  const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
 
   const _you = state.config.username || ''
-  const injectedInputMessage: ?Types.Message = _editingMessage || _quotingMessage || null
-  const injectedInput: string =
-    injectedInputMessage && injectedInputMessage.type === 'text'
-      ? injectedInputMessage.text.stringValue()
-      : ''
+
+  const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const isExploding = explodingModeSeconds !== 0
 
   return {
-    _editingMessage,
-    _meta: meta,
-    _quotingMessage,
+    _editOrdinal: editInfo ? editInfo.ordinal : null,
     _you,
     conversationIDKey,
-    injectedInput,
+    editText: editInfo ? editInfo.text : '',
+    explodingModeSeconds,
+    isExploding,
+    quoteCounter: quoteInfo ? quoteInfo.counter : 0,
+    quoteText: quoteInfo ? quoteInfo.text : '',
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -61,14 +52,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     ),
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
-  _onCancelQuoting: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(
-      Chat2Gen.createMessageSetQuoting({
-        ordinal: null,
-        sourceConversationIDKey: conversationIDKey,
-        targetConversationIDKey: conversationIDKey,
-      })
-    ),
   _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
     dispatch(
       Chat2Gen.createMessageSetEditing({
@@ -77,16 +60,18 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         ordinal: null,
       })
     ),
-  _onEditMessage: (message: Types.Message, body: string) =>
+  _onEditMessage: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, body: string) =>
     dispatch(
       Chat2Gen.createMessageEdit({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        conversationIDKey,
+        ordinal,
         text: new HiddenString(body),
       })
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
+  _selectExplodingMode: (conversationIDKey: Types.ConversationIDKey, seconds: number) =>
+    dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey, seconds})),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
@@ -94,42 +79,35 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
-  conversationIDKey: stateProps.conversationIDKey,
-  channelName: stateProps._meta.channelname,
-  isEditing: !!stateProps._editingMessage,
-  focusInputCounter: ownProps.focusInputCounter,
   clearInboxFilter: dispatchProps.clearInboxFilter,
+  conversationIDKey: stateProps.conversationIDKey,
+  editText: stateProps.editText,
+  explodingModeSeconds: stateProps.explodingModeSeconds,
+  focusInputCounter: ownProps.focusInputCounter,
+  getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
+  isEditing: !!stateProps._editOrdinal,
+  isExploding: !!stateProps.isExploding,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
+  onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
-  onCancelEditing: () => {
-    dispatchProps._onCancelQuoting(stateProps.conversationIDKey)
-    dispatchProps._onCancelEditing(stateProps.conversationIDKey)
-  },
-  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
   onSubmit: (text: string) => {
-    const em = stateProps._editingMessage
-    if (em) {
-      if (em.type === 'text' && em.text.stringValue() === text) {
-        dispatchProps._onCancelEditing(stateProps.conversationIDKey)
-      } else {
-        dispatchProps._onEditMessage(em, text)
-      }
+    if (stateProps._editOrdinal) {
+      dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
     } else {
       dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
     }
     ownProps.onScrollDown()
   },
-  typing: stateProps.typing,
-
-  _quotingMessage: stateProps._quotingMessage,
-  _editingMessage: stateProps._editingMessage,
-  injectedInput: stateProps.injectedInput,
-
-  getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
-  setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),
+  quoteCounter: stateProps.quoteCounter,
+  quoteText: stateProps.quoteText,
+  selectExplodingMode: (seconds: number) => {
+    dispatchProps._selectExplodingMode(stateProps.conversationIDKey, seconds)
+  },
   sendTyping: (typing: boolean) => {
     dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },
+  setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),
+  typing: stateProps.typing,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Input)

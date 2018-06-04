@@ -1378,7 +1378,7 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 					TlfName: fromErr.Tlf,
 				}
 			}
-		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		default:
 			if teams.IsTeamReadError(fromErr.Inner()) {
 				convErrTyp = chat1.ConversationErrorType_OTHERREKEYNEEDED
 				rekeyInfo = &chat1.ConversationErrorRekey{

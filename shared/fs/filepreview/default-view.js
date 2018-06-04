@@ -55,47 +55,24 @@ const DefaultView = (props: DefaultViewProps) => (
         onClick={props.onShare}
       />
     )}
-    {isIOS ? (
-      Constants.isMedia(props.pathItem.name) && (
+    {!isIOS &&
+      (props.fileUIEnabled ? (
         <Button
-          key="save"
+          key="open"
           type="Secondary"
-          label={'Save'}
+          label={'Show in ' + fileUIName}
           style={{marginTop: globalMargins.small}}
-          onClick={props.onSave}
+          onClick={props.onShowInFileUI}
         />
-      )
-    ) : props.fileUIEnabled ? (
-      <Button
-        key="open"
-        type="Secondary"
-        label={'Show in ' + fileUIName}
-        style={{marginTop: globalMargins.small}}
-        onClick={props.onShowInFileUI}
-      />
-    ) : (
-      <Button
-        key="download"
-        type="Secondary"
-        label="Download a copy"
-        style={{marginTop: globalMargins.small}}
-        onClick={props.onDownload}
-      />
-    )}
-    {// We only show this button for files with no extensions, because our
-    // mime type list cannot be exaustive. For example it'd be weird to show
-    // an Illustrator file as plain text.
-    props.pathItem.name.indexOf('.') === -1 &&
-      // We don't want show this button for symlinks.
-      props.pathItem.type === 'file' && (
+      ) : (
         <Button
-          key="open-text"
+          key="download"
           type="Secondary"
-          label="Open as text"
+          label="Download a copy"
           style={{marginTop: globalMargins.small}}
-          onClick={props.onOpenAsText}
+          onClick={props.onDownload}
         />
-      )}
+      ))}
   </Box>
 )
 

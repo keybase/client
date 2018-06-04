@@ -38,19 +38,10 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err
 	if err != nil {
 		return dump, err
 	}
-	pwdOk := false
-	_, err = s.G().LoginState().VerifyPlaintextPassphrase(mctx, res.Passphrase, func(lctx libkb.LoginContext) error {
-		pwdOk = true
-
-		return nil
-	})
+	_, err = libkb.VerifyPassphraseForLoggedInUser(mctx, res.Passphrase)
 	if err != nil {
 		return dump, err
 	}
-	if !pwdOk {
-		return dump, libkb.PassphraseError{}
-	}
-
 	dump, _, err = remote.Fetch(ctx, s.G())
 
 	return dump, err

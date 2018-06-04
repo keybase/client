@@ -16,10 +16,10 @@ import (
 )
 
 type CmdPGPSelect struct {
-	query      string
-	multi      bool
-	skipImport bool
-	onlyImport bool
+	query        string
+	multi        bool
+	importSecret bool
+	noPublish    bool
 	libkb.Contextified
 }
 
@@ -31,14 +31,40 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	if err == nil {
 		v.multi = ctx.Bool("multi")
-		v.skipImport = ctx.Bool("no-import")
-		v.onlyImport = ctx.Bool("only-import")
-		if v.onlyImport && v.skipImport {
-			err = fmt.Errorf("Can specify only one of --no-import OR --only-import")
+		v.importSecret = ctx.Bool("import")
+		v.noPublish = ctx.Bool("no-publish")
+		if v.noPublish && !v.importSecret {
+			err = fmt.Errorf("Nothing to do - refused to publish with \"--no-publish\" but did not ask to import secret key (\"--import\")")
 		}
 	}
 	return err
 }
+
+const selectDisclaimer = `You are selecting a PGP key from your local GnuPG keychain, and
+will publish a statement signed with this key to make it part of 
+your Keybase.io identity.
+
+Note that GnuPG will prompt you to perform this signature.
+
+You can also import the secret key to *local*, *encrypted* Keybase
+keyring, enabling decryption and signing with the Keybase client.
+To do that, use "--import" flag.
+
+Learn more: keybase pgp help select
+
+`
+
+const importPrivDisclaimer = `You are selecting a PGP key to publish in your profile, and
+importing secret key to *local*, *encrypted* Keybase keyring.
+
+If your GnuPG key is encrypted, you will be asked for passphrase
+to unlock it. You may be asked *twice* - first by GnuPG, to export
+encrypted key bundle, and then by Keybase, to unlock the secret key.
+
+Please note that this will not work if your secret key lives on a
+hardware device (like a smart card or a Yubikey).
+
+`
 
 func (v *CmdPGPSelect) Run() error {
 	c, err := GetPGPClient(v.G())
@@ -53,11 +79,20 @@ func (v *CmdPGPSelect) Run() error {
 		return err
 	}
 
+	dui := v.G().UI.GetDumbOutputUI()
+	if !v.importSecret && !v.noPublish {
+		// The default setting - inform user what's going on and point
+		// to documentation for more options.
+		dui.Printf(selectDisclaimer)
+	} else if v.importSecret {
+		dui.Printf(importPrivDisclaimer)
+	}
+
 	err = c.PGPSelect(context.TODO(), keybase1.PGPSelectArg{
 		FingerprintQuery: v.query,
 		AllowMulti:       v.multi,
-		SkipImport:       v.skipImport,
-		OnlyImport:       v.onlyImport,
+		SkipImport:       !v.importSecret,
+		OnlyImport:       v.noPublish,
 	})
 	err = AddPGPMultiInstructions(err)
 	return err
@@ -77,26 +112,31 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 				Usage: "Allow multiple PGP keys.",
 			},
 			cli.BoolFlag{
-				Name:  "no-import",
-				Usage: "Don't import private key to the local Keybase keyring.",
+				Name:  "import",
+				Usage: "Import private key to the local Keybase keyring.",
 			},
 			cli.BoolFlag{
-				Name:  "only-import",
-				Usage: "only import the secret key into the local Keybase keyring.",
+				Name:  "no-publish",
+				Usage: "Only import to Keybase keyring, do not publish on user profile.",
 			},
 		},
 		Description: `"keybase pgp select" looks at the local GnuPG keychain for all
    available secret keys. It then makes those keys available for use with keybase.
-   The steps involved are: (1) sign a signature chain link with the selected PGP
-   key and the existing device key; (2) push this signature and the public PGP
-   key to the server; (3) copy the PGP secret half into your local Keybase keyring;
-   and (4) encrypt this secret key with Keybase's local key security
-   mechanism.
+   The steps involved are: (1a) sign a signature chain link with the selected PGP
+   key and the existing device key; (1b) push this signature and the public PGP
+   key to the server; and if "--import" flag is passed: (2a) copy the PGP secret half
+   into your local Keybase keyring; and (2b) encrypt this secret key with Keybase's
+   local key security mechanism.
 
    By default, Keybase suggests only one PGP public key, but if you want to,
-   you can supply the "--multi" flag to override this restriction. If you don't
+   you can supply the "--multi" flag to override this restriction. If you
    want your secret key imported into the local Keybase keyring, then use
-   the "--no-import" flag.
+   the "--import" flag. Importing your secret key to Keybase keyring makes
+   it possible to use Keybase PGP commands like "pgp decrypt" or "pgp sign".
+
+   If you don't want to publish signature chain link to Keybase servers, use
+   "--no-publish" flag. It's only valid when both "--no-publish" and "--import"
+   flags are used.
 
    This operation will never push your secret key, encrypted or otherwise,
    to the Keybase server.`,

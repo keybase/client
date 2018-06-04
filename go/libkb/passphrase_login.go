@@ -426,15 +426,15 @@ func VerifyPassphraseGetStreamInLoginContext(m MetaContext, passphrase string) (
 // VerifyPassphraseForLoggedInUser verifies that the current passphrase is correct for the logged
 // in user, returning nil if correct, and an error if not. Only used in tests right now, but
 // it's fine to use in production code if it seems appropriate.
-func VerifyPassphraseForLoggedInUser(m MetaContext, pp string) (err error) {
+func VerifyPassphraseForLoggedInUser(m MetaContext, pp string) (pps *PassphraseStream, err error) {
 	defer m.CTrace("VerifyPassphraseForLoggedInUser", func() error { return err })()
 	uid, un := m.ActiveDevice().GetUsernameAndUIDIfValid(m)
 	if uid.IsNil() {
-		return NewLoginRequiredError("for VerifyPassphraseForLoggedInUser")
+		return nil, NewLoginRequiredError("for VerifyPassphraseForLoggedInUser")
 	}
 	m = m.WithNewProvisionalLoginContextForUIDAndUsername(uid, un)
-	_, err = VerifyPassphraseGetStreamInLoginContext(m, pp)
-	return err
+	pps, err = VerifyPassphraseGetStreamInLoginContext(m, pp)
+	return pps, err
 }
 
 // ComputeLoginPackage2 computes the login package for the given UID as dictated by
@@ -460,4 +460,21 @@ func ComputeLoginPackage2(m MetaContext, pps *PassphraseStream) (ret PDPKALoginP
 		return ret, err
 	}
 	return computeLoginPackageFromUID(m.CurrentUID(), pps, loginSessionRaw)
+}
+
+// UnverifiedPassphraseStream takes a passphrase as a parameter and
+// also the salt from the Account and computes a Triplesec and
+// a passphrase stream.  It's not verified through a Login.
+func UnverifiedPassphraseStream(m MetaContext, uid keybase1.UID, passphrase string) (tsec Triplesec, ret *PassphraseStream, err error) {
+	var salt []byte
+	if lctx := m.LoginContext(); lctx != nil && lctx.GetUID().Equal(uid) {
+		salt = lctx.Salt()
+	}
+	if salt == nil {
+		salt, err = LookupSaltForUID(m, uid)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return StretchPassphrase(m.G(), passphrase, salt)
 }

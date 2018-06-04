@@ -99,9 +99,7 @@ func (e *PerUserKeyUpgrade) inner(m libkb.MetaContext) error {
 	e.DidNewKey = eng.DidNewKey
 
 	if eng.DidNewKey {
-		go func() {
-			m.G().GetStellar().CreateWalletSoft(context.Background())
-		}()
+		m.G().GetStellar().CreateWalletSoft(context.Background())
 	}
 
 	return err

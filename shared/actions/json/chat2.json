@@ -18,31 +18,31 @@
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
-        // why this happened, sometimes there's different side effects
-        "reason": [
-          "'clearSelected'", // deselect
-          "'justCreated'", // just made one
-          "'desktopNotification'", // clicked notification
-          "'searching'", // searching and found one
-          "'sendingToPending'", // select the pending we sent into
-          "'createdMessagePrivately'", // messaging privately and maybe made it
-          "'findNewestConversation'", // find a new chat to select
-          "'inboxBig'", // inbox row
-          "'inboxFilterArrow'", // arrow keys in inbox filter
-          "'inboxFilterChanged'", // inbox filter made first one selected
-          "'inboxSmall'", // inbox row
-          "'inboxNewConversation'", // new conversation row
-          "'jumpFromReset'", // from older reset convo
-          "'jumpToReset'", // going to an older reset convo
-          "'justCreated'", // just made it and select it
-          "'manageView'", // clicked from manage screen
-          "'previewResolved'", // did a preview and are now selecting it
-          "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
-          "'push'", // from a push
-          "'savedLastState'", // last seen chat tab
-          "'startFoundExisting'", // starting a conversation and found one already
-          "'teamChat'", // from team
-        ]
+      // why this happened, sometimes there's different side effects
+      "reason": [
+        "'clearSelected'", // deselect
+        "'justCreated'", // just made one
+        "'desktopNotification'", // clicked notification
+        "'searching'", // searching and found one
+        "'sendingToPending'", // select the pending we sent into
+        "'createdMessagePrivately'", // messaging privately and maybe made it
+        "'findNewestConversation'", // find a new chat to select
+        "'inboxBig'", // inbox row
+        "'inboxFilterArrow'", // arrow keys in inbox filter
+        "'inboxFilterChanged'", // inbox filter made first one selected
+        "'inboxSmall'", // inbox row
+        "'inboxNewConversation'", // new conversation row
+        "'jumpFromReset'", // from older reset convo
+        "'jumpToReset'", // going to an older reset convo
+        "'justCreated'", // just made it and select it
+        "'manageView'", // clicked from manage screen
+        "'previewResolved'", // did a preview and are now selecting it
+        "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
+        "'push'", // from a push
+        "'savedLastState'", // last seen chat tab
+        "'startFoundExisting'", // starting a conversation and found one already
+        "'teamChat'" // from team
+      ]
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // fromAReset means you were in a reset kbfs convo and you want to make a new one
@@ -67,12 +67,12 @@
         "'teamHeader'",
         "'convertAdHoc'",
         "'memberView'",
-        "'newChannel'",
+        "'newChannel'"
       ]
     },
     "createConversation": {
       "_description": "Actually start a conversation",
-      "participants": "Array<string>",
+      "participants": "Array<string>"
     },
     // Update our badges in the nav
     "badgesUpdated": {
@@ -119,7 +119,8 @@
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
-      "fromEphemeralPurge?": "boolean" // If true, use meta updating logic for when messages explode
+      "fromEphemeralPurge?": "boolean", // If true, use meta updating logic for when messages explode
+      "fromExpunge?": "boolean" // If true, use meta updating logic for retention policy deletes
     },
     // Got some inbox errors
     "metaReceivedError": {
@@ -133,9 +134,9 @@
       "selectSomethingElse": "boolean"
     },
     // We updated our view of a thread
-    "metaUpdatePagination": {
+    "updateMoreToLoad": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paginationKey": "?Types.PaginationKey"
+      "moreToLoad": "boolean"
     },
     // Add a new message
     "messagesAdd": {
@@ -156,8 +157,9 @@
       "outboxID": "Types.OutboxID"
     },
     "setPendingConversationExistingConversationIDKey": {
-      "_description": "When the search changes we need to find any existing conversations to stash into the metaMap",
-      "conversationIDKey": "Types.ConversationIDKey",
+      "_description":
+        "When the search changes we need to find any existing conversations to stash into the metaMap",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
@@ -169,7 +171,7 @@
     "messageSetQuoting": {
       "sourceConversationIDKey": "Types.ConversationIDKey",
       "targetConversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "?Types.Ordinal"
+      "ordinal": "Types.Ordinal"
     },
     // Reply privately to a message with quoting
     "messageReplyPrivately": {
@@ -329,7 +331,8 @@
     },
     // Server told us a conversation is out of date
     "markConversationsStale": {
-      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "updateType": "RPCChatTypes.StaleUpdateType"
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {},

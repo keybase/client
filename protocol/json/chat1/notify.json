@@ -153,12 +153,8 @@
     },
     {
       "type": "record",
-      "name": "MembersUpdateInfo",
+      "name": "MemberInfo",
       "fields": [
-        {
-          "type": "ConversationID",
-          "name": "convID"
-        },
         {
           "type": "string",
           "name": "member"
@@ -166,6 +162,23 @@
         {
           "type": "ConversationMemberStatus",
           "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MembersUpdateInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MemberInfo"
+          },
+          "name": "members"
         }
       ]
     },
@@ -201,6 +214,13 @@
         {
           "type": "Expunge",
           "name": "expunge"
+        },
+        {
+          "type": [
+            null,
+            "InboxUIItem"
+          ],
+          "name": "conv"
         }
       ]
     },

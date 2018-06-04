@@ -111,11 +111,13 @@ func TestGetDisplayCurrenciesLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, currencies, 32)
+	// USD should go first.
 	require.Equal(t, "USD ($)", currencies[0].Description)
-	require.Equal(t, "USD", currencies[0].Code)
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencies[0].Code)
 	require.Equal(t, "$", currencies[0].Symbol)
+	// Rest is in alphabetical order.
 	require.Equal(t, "AUD ($)", currencies[1].Description)
-	require.Equal(t, "AUD", currencies[1].Code)
+	require.Equal(t, stellar1.OutsideCurrencyCode("AUD"), currencies[1].Code)
 	require.Equal(t, "$", currencies[1].Symbol)
 }
 
@@ -313,4 +315,228 @@ func TestDeleteWallet(t *testing.T) {
 	require.Len(t, accs, 1)
 	require.Equal(t, accs[0].AccountID, accID2)
 	require.True(t, accs[0].IsPrimary)
+}
+
+func TestChangeDisplayCurrency(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	stellar.CreateWallet(context.Background(), tcs[0].G)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accID := getPrimaryAccountID(tcs[0])
+
+	// Try invalid currency first.
+	err := tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: accID,
+		Currency:  stellar1.OutsideCurrencyCode("ZZZ"),
+	})
+	require.Error(t, err)
+
+	// Try empty account id.
+	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: stellar1.AccountID(""),
+		Currency:  stellar1.OutsideCurrencyCode("USD"),
+	})
+	require.Error(t, err)
+
+	// Try non-existant account id.
+	invalidAccID, _ := randomStellarKeypair()
+	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: invalidAccID,
+		Currency:  stellar1.OutsideCurrencyCode("USD"),
+	})
+	require.Error(t, err)
+
+	// Make wallet as other user, and try to change the currency as
+	// first user.
+	stellar.CreateWallet(context.Background(), tcs[1].G)
+	tcs[1].Backend.ImportAccountsForUser(tcs[1])
+	accID2 := getPrimaryAccountID(tcs[1])
+	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: accID2,
+		Currency:  stellar1.OutsideCurrencyCode("EUR"),
+	})
+	require.Error(t, err)
+
+	// Finally, a happy path.
+	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: accID,
+		Currency:  stellar1.OutsideCurrencyCode("EUR"),
+	})
+	require.NoError(t, err)
+
+	// Check both CLI and Frontend RPCs.
+	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+	require.NoError(t, err)
+	require.Len(t, accs, 1)
+	require.NotNil(t, accs[0].ExchangeRate)
+	require.EqualValues(t, "EUR", accs[0].ExchangeRate.Currency)
+
+	balances, err := tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{
+		AccountID: accID,
+	})
+	require.NoError(t, err)
+	require.Len(t, balances, 1)
+	require.EqualValues(t, "EUR", balances[0].WorthCurrency)
+}
+
+func TestGetUserSettings(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	us, _ := tcs[0].Srv.GetUserSettingsLocal(context.Background(), 0)
+	require.Equal(t, false, us.AcceptedDisclaimer)
+}
+
+func TestSetAcceptedDisclaimer(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	us, err := tcs[0].Srv.GetUserSettingsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, false, us.AcceptedDisclaimer)
+
+	err = tcs[0].Srv.SetAcceptedDisclaimerLocal(context.Background(), 0)
+	require.NoError(t, err)
+
+	us, err = tcs[0].Srv.GetUserSettingsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, true, us.AcceptedDisclaimer)
+}
+
+func TestPublicKeyExporting(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	stellar.CreateWallet(context.Background(), tcs[0].G)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accID := getPrimaryAccountID(tcs[0])
+
+	// Try empty argument.
+	_, err := tcs[0].Srv.GetWalletAccountPublicKeyLocal(context.Background(), stellar1.GetWalletAccountPublicKeyLocalArg{
+		AccountID: stellar1.AccountID(""),
+	})
+	require.Error(t, err)
+
+	// Anything should work - even accounts that don't exist or are
+	// not ours.
+	randomAccID, _ := randomStellarKeypair()
+	pubKey, err := tcs[0].Srv.GetWalletAccountPublicKeyLocal(context.Background(), stellar1.GetWalletAccountPublicKeyLocalArg{
+		AccountID: randomAccID,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, randomAccID, pubKey)
+
+	// Try account of our own.
+	pubKey, err = tcs[0].Srv.GetWalletAccountPublicKeyLocal(context.Background(), stellar1.GetWalletAccountPublicKeyLocalArg{
+		AccountID: accID,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, accID, pubKey)
+}
+
+func TestPrivateKeyExporting(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	stellar.CreateWallet(context.Background(), tcs[0].G)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accID := getPrimaryAccountID(tcs[0])
+
+	// Try empty argument.
+	_, err := tcs[0].Srv.GetWalletAccountSecretKeyLocal(context.Background(), stellar1.GetWalletAccountSecretKeyLocalArg{
+		AccountID: stellar1.AccountID(""),
+	})
+	require.Error(t, err)
+
+	// Try random account ID.
+	randomAccID, _ := randomStellarKeypair()
+	_, err = tcs[0].Srv.GetWalletAccountSecretKeyLocal(context.Background(), stellar1.GetWalletAccountSecretKeyLocalArg{
+		AccountID: randomAccID,
+	})
+	require.Error(t, err)
+
+	// Happy path.
+	privKey, err := tcs[0].Srv.GetWalletAccountSecretKeyLocal(context.Background(), stellar1.GetWalletAccountSecretKeyLocalArg{
+		AccountID: accID,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, tcs[0].Backend.SecretKey(accID), privKey)
+}
+
+func TestGetPaymentsLocal(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
+	require.NoError(t, err)
+
+	srvSender := tcs[0].Srv
+	rm := tcs[0].Backend
+	accountIDSender := rm.AddAccount()
+	accountIDRecip := rm.AddAccount()
+
+	srvRecip := tcs[1].Srv
+
+	argImport := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(accountIDSender),
+		MakePrimary: true,
+	}
+	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	argImport.SecretKey = rm.SecretKey(accountIDRecip)
+	err = srvRecip.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	arg := stellar1.SendCLILocalArg{
+		Recipient:       tcs[1].Fu.Username,
+		Amount:          "1011.123",
+		Asset:           stellar1.Asset{Type: "native"},
+		DisplayAmount:   "321.87",
+		DisplayCurrency: "USD",
+		Note:            "here you go",
+	}
+	_, err = srvSender.SendCLILocal(context.Background(), arg)
+	require.NoError(t, err)
+
+	checkPayment := func(p stellar1.PaymentLocal, sender bool) {
+		require.NotEmpty(t, p.Id)
+		require.NotZero(t, p.Time)
+		require.Equal(t, stellar1.PaymentStatus_COMPLETED, p.StatusSimplified)
+		require.Equal(t, "completed", p.StatusDescription)
+		require.Empty(t, p.StatusDetail)
+		if sender {
+			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
+		} else {
+			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
+		}
+		require.Equal(t, "$321.87", p.Worth, "Worth")
+		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
+		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
+		require.Equal(t, "keybase", p.SourceType, "SourceType")
+		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
+		require.Equal(t, "keybase", p.TargetType, "TargetType")
+		require.Equal(t, "here you go", p.Note)
+		require.Empty(t, p.NoteErr)
+	}
+	senderPayments, err := srvSender.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDSender})
+	require.NoError(t, err)
+	require.Len(t, senderPayments, 1)
+	t.Logf("senderPayments: %+v", senderPayments)
+	if senderPayments[0].Err != nil {
+		t.Logf("senderPayments error: %+v", *senderPayments[0].Err)
+	}
+	require.NotNil(t, senderPayments[0].Payment)
+	checkPayment(*senderPayments[0].Payment, true)
+
+	recipPayments, err := srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip})
+	require.NoError(t, err)
+	require.Len(t, recipPayments, 1)
+	require.NotNil(t, recipPayments[0].Payment)
+	checkPayment(*recipPayments[0].Payment, false)
 }

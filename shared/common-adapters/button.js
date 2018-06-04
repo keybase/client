@@ -21,7 +21,7 @@ export type Props = {
   onPress?: void,
   onMouseEnter?: Function,
   onMouseLeave?: Function,
-  label: ?string,
+  label?: ?string,
   style?: StylesCrossPlatform,
   labelStyle?: StylesCrossPlatform,
   type:
@@ -31,12 +31,14 @@ export type Props = {
     | 'Danger'
     | 'Wallet'
     | 'PrimaryGreen'
-    | 'PrimaryGreenActive',
+    | 'PrimaryGreenActive'
+    | 'PrimaryColoredBackground'
+    | 'SecondaryColoredBackground',
   disabled?: ?boolean,
   waiting?: ?boolean,
   small?: boolean,
   fullWidth?: boolean,
-  backgroundMode?: 'Normal' | 'Terminal',
+  backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black',
   className?: string,
 }
 
@@ -52,6 +54,10 @@ class Button extends React.Component<Props> {
       ? {
           Normal: '',
           Terminal: 'OnTerminal',
+          Red: 'Red',
+          Green: 'Green',
+          Blue: 'Blue',
+          Black: 'Black',
         }[this.props.backgroundMode]
       : ''
 
@@ -86,14 +92,15 @@ class Button extends React.Component<Props> {
           style={collapseStyles([globalStyles.flexBoxRow, globalStyles.flexBoxCenter, styles.labelContainer])}
         >
           {!this.props.waiting && this.props.children}
-          {!this.props.waiting && (
-            <Text
-              type={this.props.small ? 'BodySemibold' : 'BodyBig'}
-              style={collapseStyles([labelStyle, this.props.labelStyle])}
-            >
-              {this.props.label}
-            </Text>
-          )}
+          {!this.props.waiting &&
+            this.props.label && (
+              <Text
+                type={this.props.small ? 'BodySemibold' : 'BodyBig'}
+                style={collapseStyles([labelStyle, this.props.labelStyle])}
+              >
+                {this.props.label}
+              </Text>
+            )}
           {this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>
@@ -165,6 +172,11 @@ const containerStyles = styleSheetCreate({
   Secondary: {...common, backgroundColor: globalColors.lightGrey2},
   SecondaryOnTerminal: {...common, backgroundColor: globalColors.blue_30},
   Wallet: {...common, backgroundColor: globalColors.purple2},
+  PrimaryColoredBackgroundRed: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundGreen: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundBlue: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundBlack: {...common, backgroundColor: globalColors.white},
+  SecondaryColoredBackground: {...common, backgroundColor: globalColors.black_20},
 })
 
 const labelStyles = styleSheetCreate({
@@ -177,6 +189,11 @@ const labelStyles = styleSheetCreate({
   SecondaryLabel: {...commonLabel, color: globalColors.black_75},
   SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
   WalletLabel: commonLabel,
+  PrimaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.red},
+  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green},
+  PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
+  PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
+  SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},
 })
 
 const progressStyle = small => (isMobile ? undefined : {height: small ? 20 : 20})
