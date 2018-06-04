@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import Text from './text'
 import shallowEqual from 'shallowequal'
-import {collapseStyles, globalStyles, globalColors} from '../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
 import {connect} from 'react-redux'
 import {type TypedState} from '../constants/reducer'
@@ -25,6 +25,23 @@ function usernameText({
   inlineGrammar = false,
   showAnd = false,
 }: Props) {
+  const andStyle = collapseStyles([
+    style,
+    {
+      color: commaColor,
+      marginLeft: globalMargins.xtiny,
+      marginRight: globalMargins.xtiny,
+      ...(isMobile ? {} : {textDecoration: 'none'}),
+    },
+  ])
+  const commaStyle = collapseStyles([
+    style,
+    {
+      color: commaColor,
+      marginRight: 1,
+      ...(isMobile ? {} : {textDecoration: 'none'}),
+    },
+  ])
   return users.map((u, i) => {
     let userStyle = {
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
@@ -41,7 +58,15 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username}>
-        {i === users.length - 1 && showAnd && 'and '}
+        {i === users.length - 1 && showAnd && (
+          <Text
+            type={type}
+            backgroundMode={backgroundMode}
+            style={andStyle}
+          >
+            and
+          </Text>
+        )}
         <Text
           type={type}
           backgroundMode={backgroundMode}
@@ -56,14 +81,7 @@ function usernameText({
             <Text
               type={type}
               backgroundMode={backgroundMode}
-              style={collapseStyles([
-                style,
-                {
-                  color: commaColor,
-                  marginRight: 1,
-                  ...(isMobile ? {} : {textDecoration: 'none'}),
-                },
-              ])}
+              style={commaStyle}
             >
               ,
             </Text>
