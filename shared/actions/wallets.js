@@ -14,18 +14,15 @@ const walletsRefreshSuccess = (res: any) =>
     WalletsGen.createWalletsReceived({wallets: res.map(wallet => Constants.walletResultToWallet(wallet))})
   )
 
-const loadAllAssets = (action: WalletsGen.LoadAllAssetsPayload, state: TypedState) => {
+function* loadEverything(action: WalletsGen.LoadEverythingPayload) {
+  yield Saga.put(WalletsGen.createWalletsRefresh())
+  yield Saga.take(WalletsGen.walletsReceived)
+  const state: TypedState = yield Saga.select()
   const wallets = state.wallets.walletMap.keys()
-  const actions = []
-  console.warn(wallets)
   for (const accountID of wallets) {
-    actions.push(Saga.put(WalletsGen.createLoadAssets({accountID})))
+    yield Saga.put(WalletsGen.createLoadAssets({accountID}))
+    yield Saga.put(WalletsGen.createLoadPayments({accountID}))
   }
-  return Saga.sequentially(actions)
-}
-
-const loadAllAssetsSuccess = (res: any) => {
-  console.warn('loadAllAssets done')
 }
 
 const loadAssets = (action: WalletsGen.LoadAssetsPayload) => {
@@ -58,26 +55,12 @@ const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) =
   )
 }
 
-const loadAllPayments = (action: WalletsGen.LoadAllPaymentsPayload, state: TypedState) => {
-  const wallets = state.wallets.walletMap.keys()
-  const actions = []
-  console.warn(wallets)
-  for (const accountID of wallets) {
-    actions.push(Saga.put(WalletsGen.createLoadPayments({accountID})))
-  }
-  return Saga.sequentially(actions)
-}
-
-const loadAllPaymentsSuccess = (res: any) => {
-  console.warn('loadAllPayments done')
-}
-
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.walletsRefresh, walletsRefresh, walletsRefreshSuccess)
-  yield Saga.safeTakeEveryPure(WalletsGen.walletsReceived, loadAllAssets, loadAllAssetsSuccess)
-  yield Saga.safeTakeEveryPure(WalletsGen.walletsReceived, loadAllPayments, loadAllPaymentsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadAssets, loadAssets, loadAssetsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadPayments, loadPayments, loadPaymentsSuccess)
+  // Debugging saga -- remove before launching.
+  yield Saga.safeTakeEvery(WalletsGen.loadEverything, loadEverything)
 }
 
 export default walletsSaga
