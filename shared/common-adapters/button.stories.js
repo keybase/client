@@ -1,9 +1,9 @@
 // @flow
-import Box from './box'
+import {Box2} from './box'
 import Button from './button'
 import * as React from 'react'
 import {storiesOf, action} from '../stories/storybook'
-import {globalColors, globalStyles} from '../styles'
+import {globalColors, isMobile} from '../styles'
 
 const commonProps = {
   backgroundMode: 'Normal',
@@ -20,106 +20,83 @@ const commonProps = {
   waiting: false,
 }
 
-type PairProps = {
-  ...React.ElementProps<any>,
-  background?: string,
-}
-
-const Pair = ({background, children}: PairProps) => (
-  <Box style={{...globalStyles.flexBoxRow, width: '100%', marginBottom: 20, background: background || '', padding: background ? 4 : 0}}>
-    <Box style={{flex: 1}}>{children[0]}</Box>
-    <Box style={{flex: 1}}>{children[1]}</Box>
-  </Box>
+const Wrapper = ({children}) => (
+  <Box2
+    gap="small"
+    direction={isMobile ? 'vertical' : 'horizontal'}
+    gapStart={true}
+    gapEnd={true}
+    fullWidth={true}
+  >
+    {children}
+  </Box2>
 )
+
+const types = ['Primary', 'Secondary', 'Danger', 'Wallet', 'PrimaryGreen', 'PrimaryGreenActive']
+const backgroundModes = ['Red', 'Green', 'Blue', 'Black']
+const modeToColor = {
+  Black: globalColors.black,
+  Blue: globalColors.blue,
+  Green: globalColors.green,
+  Red: globalColors.red,
+}
 
 const load = () => {
   storiesOf('Common', module).add('Button', () => (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        borderColor: 'grey',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        flex: 1,
-        margin: 20,
-        width: 650,
-      }}
-    >
-      <Pair>
-        <Button {...commonProps} type="Primary" label="Primary" />
-        <Button {...commonProps} type="Primary" label="Primary" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="Secondary" label="Secondary" />
-        <Button {...commonProps} type="Secondary" label="Secondary" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="Danger" label="Danger" />
-        <Button {...commonProps} type="Danger" label="Danger" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="Wallet" label="Wallet" />
-        <Button {...commonProps} type="Wallet" label="Wallet" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="PrimaryGreen" label="Primary Green" />
-        <Button {...commonProps} type="PrimaryGreen" label="Primary Green" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active" />
-        <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active" disabled={true} />
-      </Pair>
-      <Pair background={globalColors.red}>
-        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Red" label="Primary Colored Background Red" />
-        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Red" label="Primary Colored Background Red" disabled={true} />
-      </Pair>
-      <Pair background={globalColors.green}>
-        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Green" label="Primary Colored Background Green" />
-        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Green" label="Primary Colored Background Green" disabled={true} />
-      </Pair>
-      <Pair background={globalColors.blue}>
-        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Blue" label="Primary Colored Background Blue" />
-        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Blue" label="Primary Colored Background Blue" disabled={true} />
-      </Pair>
-      <Pair background={globalColors.black}>
-        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Black" label="Primary Colored Background Black" />
-        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Black" label="Primary Colored Background Black" disabled={true} />
-      </Pair>
-      <Pair background={globalColors.red}>
-        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Red" />
-        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Red" disabled={true} />
-      </Pair>
-      <Pair background={globalColors.green}>
-        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Green" />
-        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Green" disabled={true} />
-      </Pair>
-      <Pair background={globalColors.blue}>
-        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Blue" />
-        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Blue" disabled={true} />
-      </Pair>
-      <Pair background={globalColors.black}>
-        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Black" />
-        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Black" disabled={true} />
-      </Pair>
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'flex-start',
-          alignSelf: 'flex-start',
-          marginTop: 20,
-        }}
-      >
-        <Button {...commonProps} type="Primary" label="Primary small" small={true} />
-        <Box style={{height: 10}} />
-        <Button {...commonProps} type="Secondary" label="Secondary small" small={true} />
-        <Box style={{height: 10}} />
-        <Button {...commonProps} type="Danger" label="Danger small" small={true} />
-        <Box style={{height: 10}} />
-        <Button {...commonProps} type="PrimaryGreen" label="Primary Green small" small={true} />
-        <Box style={{height: 10}} />
-        <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active small" small={true} />
-      </Box>
-    </Box>
+    <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true}>
+      {types.map(t => (
+        <Wrapper key={t}>
+          <Button {...commonProps} type={t} label={t} />
+          <Button {...commonProps} type={t} label={t} disabled={true} />
+          <Button {...commonProps} type={t} label={t} waiting={true} />
+        </Wrapper>
+      ))}
+      <Wrapper>
+        <Box2
+          direction="vertical"
+          gap="small"
+          gapStart={true}
+          gapEnd={true}
+          style={{alignSelf: 'flex-start'}}
+        >
+          {types.map(t => (
+            <Wrapper key={t}>
+              <Button {...commonProps} type={t} label={t} small={true} />
+              <Button {...commonProps} type={t} label={t} small={true} waiting={true} />
+            </Wrapper>
+          ))}
+        </Box2>
+      </Wrapper>
+      <Wrapper>
+        <Box2
+          direction="vertical"
+          gap="small"
+          gapStart={true}
+          gapEnd={true}
+          style={{
+            alignSelf: 'flex-start',
+            borderColor: 'black',
+            borderStyle: 'solid',
+            borderWidth: 1,
+            width: isMobile ? 220 : 400,
+          }}
+        >
+          {types.map(t => (
+            <Box2 direction="vertical" key={t} gap="small" fullWidth={true}>
+              <Button {...commonProps} type={t} label={t} fullWidth={true} />
+              <Button {...commonProps} type={t} label={t} fullWidth={true} waiting={true} />
+            </Box2>
+          ))}
+        </Box2>
+      </Wrapper>
+      <Box2 direction="vertical" style={{alignSelf: 'flex-start'}}>
+        {backgroundModes.map(b => (
+          <Box2 direction="horizontal" key={b} style={{backgroundColor: modeToColor[b], padding: 20}}>
+            <Button {...commonProps} type="PrimaryColoredBackground" label={b} backgroundMode={b} />
+          </Box2>
+        ))}
+      </Box2>
+    </Box2>
   ))
 }
 
