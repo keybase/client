@@ -1,26 +1,21 @@
 package escaper
 
 import (
-	"fmt"
 	"io"
 	"strings"
 )
 
-// Substitutes all characters with their representation, except for newlines \n.
-func Clean(str string) string {
-	strs := strings.Split(str, "\n")
-
-	var buf strings.Builder
-
-	for i, str := range strs {
-		s := fmt.Sprintf("%q", str)
-		buf.Write([]byte(s[1 : len(s)-1]))
-		if i < len(strs)-1 {
-			buf.Write([]byte("\n"))
+func Clean(s string) string {
+	return strings.Map(func(r rune) rune {
+		if r >= 32 && r != 127 { // Allow non escape extended characters
+			return r
+		} else if r == '\n' { // Allow newlines
+			return '\n'
+		} else if r == 0x1b { // Substiture escape byte with '^' (this is how it is usually shown, i.e. in vim)
+			return '^'
 		}
-	}
-
-	return buf.String()
+		return -1
+	}, s)
 }
 
 func CleanBytes(p []byte) []byte {
