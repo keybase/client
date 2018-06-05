@@ -85,7 +85,7 @@ func (c *cmdWalletHistory) Run() (err error) {
 		lineUnescaped("")
 	}
 	if len(payments) == 0 {
-		line("No recent activity")
+		lineUnescaped("No recent activity")
 	}
 	return err
 }
