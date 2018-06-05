@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text, type IconType} from '../../../../common-adapters'
+import {Avatar, Box, Box2, Icon, Text, type IconType} from '../../../../common-adapters'
 import {PopupHeaderText} from '../../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
@@ -65,6 +65,17 @@ const MessagePopupHeader = (props: {
           &nbsp;& SIGNED
         </Text>
       </Box>
+      <Box2 direction="horizontal">
+        <Text type="BodySmall" style={{color: globalColors.black_40}}>
+          by
+        </Text>
+        <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
+          <Avatar username={author} size={16} />
+          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+            {author}
+          </Text>
+        </Box2>
+      </Box2>
       <Box
         style={{
           ...globalStyles.flexBoxRow,
@@ -73,9 +84,7 @@ const MessagePopupHeader = (props: {
         }}
       >
         <Text type="BodySmall">
-          by <Text type="BodySmallSemibold">{author}</Text> using device&nbsp;<Text type="BodySmallSemibold">
-            {deviceName}
-          </Text>
+          using device&nbsp;<Text type="BodySmallSemibold">{deviceName}</Text>
         </Text>
       </Box>
       <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
