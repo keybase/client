@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"bytes"
 	"net/http"
 	"testing"
 	"time"
@@ -180,8 +181,13 @@ func sampleNote() stellar1.NoteContents {
 func gift(t testing.TB, accountID stellar1.AccountID) {
 	t.Logf("gift -> %v", accountID)
 	url := stellarnet.Client().URL + "/friendbot?addr=" + accountID.String()
-	_, err := http.Get(url)
+	t.Logf("gift url: %v", url)
+	res, err := http.Get(url)
 	require.NoError(t, err)
+	bodyBuf := new(bytes.Buffer)
+	bodyBuf.ReadFrom(res.Body)
+	t.Logf("gift res: %v", bodyBuf.String())
+	require.Equal(t, 200, res.StatusCode)
 }
 
 func useStellarTestNet(t testing.TB) {
