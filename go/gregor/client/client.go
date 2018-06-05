@@ -326,6 +326,9 @@ func (c *Client) State(cli gregor1.IncomingInterface) (res gregor.State, err err
 }
 
 func (c *Client) ConsumeMessage(ctx context.Context, m gregor.Message) error {
+	if obm := m.ToOutOfBandMessage(); obm != nil {
+		return c.incomingClient().ConsumeMessage(ctx, m.(gregor1.Message))
+	}
 	if err := c.Sm.ConsumeOutboxMessage(ctx, c.User, m); err != nil {
 		return err
 	}
@@ -458,9 +461,21 @@ func (c *Client) outboxSend() {
 	if len(msgs) == 0 {
 		return
 	}
+	st, err := c.StateMachineState(context.Background(), gregor1.TimeOrOffset{}, false)
+	if err != nil {
+		c.Log.Debug("outboxSend: failed to fetch current state: %s", err)
+		return
+	}
 	var index int
-	var m gregor.Message
-	for index, m = range msgs {
+	for index = 0; index < len(msgs); index++ {
+		m := msgs[index]
+		// Look for a message that we already have in our state and skip
+		if ibm := m.ToInBandMessage(); ibm != nil {
+			if _, ok := st.GetItem(ibm.Metadata().MsgID()); ok {
+				c.Log.Debug("outboxSend: skipping message already in state: %s", ibm.Metadata().MsgID())
+				continue
+			}
+		}
 		if err := c.incomingClient().ConsumeMessage(context.Background(), m.(gregor1.Message)); err != nil {
 			c.Log.Debug("outboxSend: failed to consume message: %s", err)
 			break

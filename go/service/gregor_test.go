@@ -998,7 +998,7 @@ func TestOfflineConsume(t *testing.T) {
 	case msg := <-tev.OutboxSend:
 		require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 			items[0].Metadata().MsgID().String())
-	case <-time.After(2 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no send")
 	}
 	serverState, err = server.State(context.TODO(), gregor1.StateArg{
@@ -1006,6 +1006,8 @@ func TestOfflineConsume(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(serverState.Items_))
+	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
+		serverState.Items_[0].Metadata().MsgID().String())
 	clientState, err = client.StateMachineState(context.TODO(), gregor1.TimeOrOffset{}, true)
 	require.NoError(t, err)
 	items, err = clientState.Items()
