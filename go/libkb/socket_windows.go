@@ -17,15 +17,24 @@ import (
 	"github.com/keybase/npipe"
 )
 
-func NewSocket(g *GlobalContext) (ret Socket, err error) {
+type SocketWindows struct {
+	log       logger.Logger
+	bindFile  string
+	dialFiles []string
+	testOwner bool
+}
+
+var _ Socketer = SocketWindows{}
+
+func NewSocket(g *GlobalContext) (ret Socketer, err error) {
 	var s string
 	s, err = g.Env.GetSocketBindFile()
 	if err != nil {
-		return
+		return nil, err
 	}
 	if len(s) == 0 {
 		err = errors.New("Empty SocketFile, can't make pipe")
-		return
+		return nil, err
 	}
 	s = `\\.\pipe\kbservice` + strings.TrimPrefix(s, filepath.VolumeName(s))
 	log := g.Log
@@ -34,10 +43,9 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 	}
 
 	// ownership tests fail when server is in same proces, as in tests
-	return SocketInfo{
+	return SocketWindows{
 		log:       log,
 		bindFile:  s,
-		dialFiles: []string{s},
 		testOwner: g.Env.Test == nil,
 	}, nil
 }
@@ -46,19 +54,18 @@ func NewSocketWithFiles(
 	log logger.Logger, bindFile string, _ []string) Socket {
 	s := `\\.\pipe\kbservice` +
 		strings.TrimPrefix(bindFile, filepath.VolumeName(bindFile))
-	return SocketInfo{
-		log:       log,
-		bindFile:  s,
-		dialFiles: []string{s},
+	return SocketWindows{
+		log:      log,
+		bindFile: s,
 	}
 }
 
-func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
+func (s SocketWindows) BindToSocket() (ret net.Listener, err error) {
 	s.log.Info("Binding to pipe:%s", s.bindFile)
 	return npipe.Listen(s.bindFile)
 }
 
-func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
+func (s SocketWindows) DialSocket() (ret net.Conn, err error) {
 	pipe, err := npipe.DialTimeout(s.dialFiles[0], time.Duration(1)*time.Second)
 	if err != nil {
 		// Be sure to return a nil interface, and not a nil npipe.PipeConn

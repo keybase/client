@@ -67,7 +67,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	// Make our own stack here, circumventing all of our libraries, so
 	// as not to introduce any incompatibilities with earlier services
 	// (like 1.0.8)
-	socket, err = g.SocketInfo.DialSocket()
+	socket, err = g.Socketer.DialSocket()
 	if err != nil {
 		g.Log.Debug("| Failed to DialSocket, but ignoring error: %s\n", err)
 		return nil

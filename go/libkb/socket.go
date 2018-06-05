@@ -5,31 +5,15 @@ package libkb
 
 import (
 	"fmt"
-	"net"
-
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"net"
 )
 
 // NewSocket() (Socket, err) is defined in the various platform-specific socket_*.go files.
-type Socket interface {
+type Socketer interface {
 	BindToSocket() (net.Listener, error)
 	DialSocket() (net.Conn, error)
-}
-
-type SocketInfo struct {
-	log       logger.Logger
-	bindFile  string
-	dialFiles []string
-	testOwner bool
-}
-
-func (s SocketInfo) GetBindFile() string {
-	return s.bindFile
-}
-
-func (s SocketInfo) GetDialFiles() []string {
-	return s.dialFiles
+	GetBindFile() string
 }
 
 type SocketWrapper struct {
@@ -47,7 +31,7 @@ func (g *GlobalContext) MakeLoopbackServer() (l net.Listener, err error) {
 }
 
 func (g *GlobalContext) BindToSocket() (net.Listener, error) {
-	return g.SocketInfo.BindToSocket()
+	return g.Socketer.BindToSocket()
 }
 
 func NewTransportFromSocket(g *GlobalContext, s net.Conn) rpc.Transporter {
@@ -83,10 +67,10 @@ func (g *GlobalContext) GetSocket(clearError bool) (conn net.Conn, xp rpc.Transp
 		sw := SocketWrapper{}
 		if g.LoopbackListener != nil {
 			sw.Conn, sw.Err = g.LoopbackListener.Dial()
-		} else if g.SocketInfo == nil {
+		} else if g.Socketer == nil {
 			sw.Err = fmt.Errorf("Cannot get socket in standalone mode")
 		} else {
-			sw.Conn, sw.Err = g.SocketInfo.DialSocket()
+			sw.Conn, sw.Err = g.Socketer.DialSocket()
 			g.Log.Debug("| DialSocket -> %s", ErrToOk(sw.Err))
 			isNew = true
 		}

@@ -84,7 +84,7 @@ type GlobalContext struct {
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
-	SocketInfo       Socket         // which socket to bind/connect to
+	Socketer         Socketer       // which socket to bind/connect to
 	socketWrapperMu  *sync.RWMutex
 	SocketWrapper    *SocketWrapper    // only need one connection per
 	LoopbackListener *LoopbackListener // If we're in loopback mode, we'll connect through here
@@ -677,7 +677,7 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 		}
 	}
 	if usage.Socket || !g.Env.GetStandalone() {
-		if err = g.ConfigureSocketInfo(); err != nil {
+		if err = g.ConfigureSocketer(); err != nil {
 			return err
 		}
 	}
@@ -729,8 +729,8 @@ func (g *GlobalContext) GetMyUID() keybase1.UID {
 	return g.Env.GetUID()
 }
 
-func (g *GlobalContext) ConfigureSocketInfo() (err error) {
-	g.SocketInfo, err = NewSocket(g)
+func (g *GlobalContext) ConfigureSocketer() (err error) {
+	g.Socketer, err = NewSocket(g)
 	return err
 }
 

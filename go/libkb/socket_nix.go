@@ -24,7 +24,19 @@ import (
 // can't conflict here.
 var bindLock sync.Mutex
 
-func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
+type SocketUnix struct {
+	log       logger.Logger
+	bindFile  string
+	dialFiles []string
+}
+
+var _ Socketer = SocketUnix{}
+
+func (s SocketUnix) GetBindFile() string {
+	return s.bindFile
+}
+
+func (s SocketUnix) BindToSocket() (ret net.Listener, err error) {
 
 	// Lock so that multiple goroutines can't race over current working dir.
 	// See note above.
@@ -32,7 +44,7 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 	defer bindLock.Unlock()
 
 	bindFile := s.bindFile
-	what := fmt.Sprintf("SocketInfo#BindToSocket(unix:%s)", bindFile)
+	what := fmt.Sprintf("SocketUnix#BindToSocket(unix:%s)", bindFile)
 	defer Trace(s.log, what, func() error { return err })()
 
 	if err := MakeParentDirs(s.log, bindFile); err != nil {
@@ -77,7 +89,7 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 	return ret, err
 }
 
-func (s SocketInfo) DialSocket() (net.Conn, error) {
+func (s SocketUnix) DialSocket() (net.Conn, error) {
 	errs := []error{}
 	for _, file := range s.dialFiles {
 		ret, err := s.dialSocket(file)
@@ -89,14 +101,14 @@ func (s SocketInfo) DialSocket() (net.Conn, error) {
 	return nil, CombineErrors(errs...)
 }
 
-func (s SocketInfo) dialSocket(dialFile string) (ret net.Conn, err error) {
+func (s SocketUnix) dialSocket(dialFile string) (ret net.Conn, err error) {
 
 	// Lock so that multiple goroutines can't race over current working dir.
 	// See note above.
 	bindLock.Lock()
 	defer bindLock.Unlock()
 
-	what := fmt.Sprintf("SocketInfo#dialSocket(unix:%s)", dialFile)
+	what := fmt.Sprintf("SocketUnix#dialSocket(unix:%s)", dialFile)
 	defer Trace(s.log, what, func() error { return err })()
 
 	if dialFile == "" {
@@ -125,32 +137,32 @@ func (s SocketInfo) dialSocket(dialFile string) (ret net.Conn, err error) {
 	return net.Dial("unix", dialFile)
 }
 
-func NewSocket(g *GlobalContext) (ret Socket, err error) {
+func NewSocket(g *GlobalContext) (ret Socketer, err error) {
 	var dialFiles []string
 	dialFiles, err = g.Env.GetSocketDialFiles()
 	if err != nil {
-		return
+		return nil, err
 	}
 	var bindFile string
 	bindFile, err = g.Env.GetSocketBindFile()
 	if err != nil {
-		return
+		return nil, err
 	}
 	log := g.Log
 	if log == nil {
 		log = logger.NewNull()
 	}
-	ret = SocketInfo{
+	ret = SocketUnix{
 		log:       log,
 		dialFiles: dialFiles,
 		bindFile:  bindFile,
 	}
-	return
+	return ret, nil
 }
 
-func NewSocketWithFiles(
-	log logger.Logger, bindFile string, dialFiles []string) Socket {
-	return SocketInfo{
+func NewSocketerWithFiles(
+	log logger.Logger, bindFile string, dialFiles []string) Socketer {
+	return SocketUnix{
 		log:       log,
 		bindFile:  bindFile,
 		dialFiles: dialFiles,
