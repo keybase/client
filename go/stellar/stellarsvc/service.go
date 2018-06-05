@@ -129,7 +129,16 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
 	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount,
-		arg.Note, displayBalance, arg.ForceRelay)
+		arg.Note, displayBalance, arg.ForceRelay, arg.QuickReturn)
+}
+
+func (s *Server) AwaitPendingCLILocal(ctx context.Context, kbTxID stellar1.KeybaseTransactionID) (res stellar1.AwaitResult, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "AwaitPendingCLILocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	return s.remoter.AwaitPending(ctx, kbTxID)
 }
 
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {

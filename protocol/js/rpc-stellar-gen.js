@@ -34,6 +34,10 @@ export const commonTransactionStatus = {
   errorPermanent: 4,
 }
 
+export const localAwaitPendingCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalAwaitPendingCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.awaitPendingCLILocal', request)
+
+export const localAwaitPendingCLILocalRpcPromise = (request: LocalAwaitPendingCLILocalRpcParam): Promise<LocalAwaitPendingCLILocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.awaitPendingCLILocal', request, (error: RPCError, result: LocalAwaitPendingCLILocalResult) => (error ? reject(error) : resolve(result))))
+
 export const localBalanceDelta = {
   none: 0,
   increase: 1,
@@ -275,6 +279,8 @@ export type Hash = Bytes
 
 export type KeybaseTransactionID = String
 
+export type LocalAwaitPendingCLILocalRpcParam = $ReadOnly<{kbTxID: KeybaseTransactionID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type LocalBalancesLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalChangeDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID, currency: OutsideCurrencyCode, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -317,7 +323,7 @@ export type LocalPaymentDetailCLILocalRpcParam = $ReadOnly<{txID: String, incomi
 
 export type LocalRecentPaymentsCLILocalRpcParam = $ReadOnly<{accountID?: ?AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalSendCLILocalRpcParam = $ReadOnly<{recipient: String, amount: String, asset: Asset, note: String, displayAmount: String, displayCurrency: String, forceRelay: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalSendCLILocalRpcParam = $ReadOnly<{recipient: String, amount: String, asset: Asset, note: String, displayAmount: String, displayCurrency: String, forceRelay: Boolean, bool: QuickReturn, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalSetAcceptedDisclaimerLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -442,6 +448,7 @@ export type TransactionStatus =
 export type UserSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
 
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String}>
+type LocalAwaitPendingCLILocalResult = AwaitResult
 type LocalBalancesLocalResult = ?Array<Balance>
 type LocalClaimCLILocalResult = RelayClaimResult
 type LocalExchangeRateLocalResult = OutsideExchangeRate

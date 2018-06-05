@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -111,6 +112,8 @@ func (c *cmdWalletSend) Run() error {
 		return err
 	}
 
+	ui.Printf("Sending...\n\n")
+
 	arg := stellar1.SendCLILocalArg{
 		Recipient:       c.recipient,
 		Amount:          amount,
@@ -119,15 +122,40 @@ func (c *cmdWalletSend) Run() error {
 		DisplayAmount:   displayAmount,
 		DisplayCurrency: displayCurrency,
 		ForceRelay:      c.forceRelay,
+		QuickReturn:     true,
 	}
 	res, err := cli.SendCLILocal(context.Background(), arg)
 	if err != nil {
 		return err
 	}
 
-	ui.Printf("Sent!\nKeybase Transaction ID: %v\nStellar Transaction ID: %v\n", res.KbTxID, res.TxID)
+	ui.Printf("\nPosted.\nKeybase Transaction ID: %v\nStellar Transaction ID: %v\n\nWaiting for payment to complete...\n",
+		res.KbTxID, res.TxID)
 
-	return nil
+	finCh := make(chan stellar1.AwaitResult)
+	finErrCh := make(chan error)
+	go func() {
+		res, err := cli.AwaitPendingCLILocal(context.Background(), res.KbTxID)
+		if err == nil {
+			finCh <- res
+			return
+		}
+		finErrCh <- err
+	}()
+
+	select {
+	case res := <-finCh:
+		if res.Status == stellar1.TransactionStatus_SUCCESS {
+			ui.Printf("Sent!\n")
+			return nil
+		}
+		// xxx - TODO get the details: error message
+		return fmt.Errorf("Payment failed with status: %v\n", res.Status)
+	case err = <-finErrCh:
+		return err
+	case <-time.After(15 * time.Second):
+		return fmt.Errorf("Timed out: Payment was recorded but is still pending.\n")
+	}
 }
 
 func (c *cmdWalletSend) GetUsage() libkb.Usage {

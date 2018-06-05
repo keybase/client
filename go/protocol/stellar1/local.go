@@ -433,11 +433,16 @@ type SendCLILocalArg struct {
 	DisplayAmount   string `codec:"displayAmount" json:"displayAmount"`
 	DisplayCurrency string `codec:"displayCurrency" json:"displayCurrency"`
 	ForceRelay      bool   `codec:"forceRelay" json:"forceRelay"`
+	QuickReturn     bool   `codec:"quickReturn" json:"quickReturn"`
 }
 
 type ClaimCLILocalArg struct {
 	TxID string     `codec:"txID" json:"txID"`
 	Into *AccountID `codec:"into,omitempty" json:"into,omitempty"`
+}
+
+type AwaitPendingCLILocalArg struct {
+	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
 }
 
 type RecentPaymentsCLILocalArg struct {
@@ -504,6 +509,7 @@ type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
+	AwaitPendingCLILocal(context.Context, KeybaseTransactionID) (AwaitResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
@@ -778,6 +784,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"awaitPendingCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]AwaitPendingCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]AwaitPendingCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]AwaitPendingCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.AwaitPendingCLILocal(ctx, (*typedArgs)[0].KbTxID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"recentPaymentsCLILocal": {
 				MakeArg: func() interface{} {
 					ret := make([]RecentPaymentsCLILocalArg, 1)
@@ -1040,6 +1062,12 @@ func (c LocalClient) SendCLILocal(ctx context.Context, __arg SendCLILocalArg) (r
 
 func (c LocalClient) ClaimCLILocal(ctx context.Context, __arg ClaimCLILocalArg) (res RelayClaimResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.claimCLILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) AwaitPendingCLILocal(ctx context.Context, kbTxID KeybaseTransactionID) (res AwaitResult, err error) {
+	__arg := AwaitPendingCLILocalArg{KbTxID: kbTxID}
+	err = c.Cli.Call(ctx, "stellar.1.local.awaitPendingCLILocal", []interface{}{__arg}, &res)
 	return
 }
 

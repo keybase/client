@@ -42,6 +42,10 @@ func (r *RemoteNet) SubmitRelayClaim(ctx context.Context, post stellar1.RelayCla
 	return SubmitRelayClaim(ctx, r.G(), post)
 }
 
+func (r *RemoteNet) AwaitPending(ctx context.Context, kbTxID stellar1.KeybaseTransactionID) (stellar1.AwaitResult, error) {
+	return AwaitPending(ctx, r.G(), kbTxID)
+}
+
 func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
 	return RecentPayments(ctx, r.G(), accountID, limit)
 }

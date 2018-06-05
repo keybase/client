@@ -7,9 +7,15 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizon"
 )
 
 func ServiceInit(g *libkb.GlobalContext) {
+	if g.Env.GetRunMode() != libkb.ProductionRunMode {
+		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
+	}
 	g.SetStellar(NewStellar(g))
 }
 

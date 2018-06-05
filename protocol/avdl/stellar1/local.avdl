@@ -108,7 +108,8 @@ protocol local {
   array<Balance> balancesLocal(AccountID accountID);
 
   SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
-                                  string displayAmount, string displayCurrency, boolean forceRelay);
+                                  string displayAmount, string displayCurrency, boolean forceRelay,
+                                  bool quickReturn);
 
   record SendResultCLILocal {
     KeybaseTransactionID kbTxID;
@@ -126,6 +127,8 @@ protocol local {
   // `txID` is the kbTxID of the relay payment. Can also be the txID of the funding tx.
   // `into` is the account into which to claim. Null will default to the user's primary account.
   RelayClaimResult claimCLILocal(string txID, union { null, AccountID } into);
+
+  AwaitResult awaitPendingCLILocal(KeybaseTransactionID kbTxID);
 
   record PaymentOrErrorCLILocal {
     union { null, PaymentCLILocal } payment;

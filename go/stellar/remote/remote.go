@@ -335,6 +335,27 @@ func SubmitRelayClaim(ctx context.Context, g *libkb.GlobalContext, post stellar1
 	return res.RelayClaimResult, nil
 }
 
+type awaitPendingResult struct {
+	libkb.AppStatusEmbed
+	Result stellar1.AwaitResult `json:"result"`
+}
+
+func AwaitPending(ctx context.Context, g *libkb.GlobalContext, kbTxID stellar1.KeybaseTransactionID) (stellar1.AwaitResult, error) {
+	payload := make(libkb.JSONPayload)
+	payload["kbTxID"] = kbTxID.String()
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/awaitpending",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res awaitPendingResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return stellar1.AwaitResult{}, err
+	}
+	return res.Result, nil
+}
+
 type recentPaymentsResult struct {
 	libkb.AppStatusEmbed
 	Result []stellar1.PaymentSummary `json:"res"`

@@ -594,6 +594,10 @@
         {
           "name": "forceRelay",
           "type": "boolean"
+        },
+        {
+          "name": "quickReturn",
+          "type": "bool"
         }
       ],
       "response": "SendResultCLILocal"
@@ -613,6 +617,15 @@
         }
       ],
       "response": "RelayClaimResult"
+    },
+    "awaitPendingCLILocal": {
+      "request": [
+        {
+          "name": "kbTxID",
+          "type": "KeybaseTransactionID"
+        }
+      ],
+      "response": "AwaitResult"
     },
     "recentPaymentsCLILocal": {
       "request": [

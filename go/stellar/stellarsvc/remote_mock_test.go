@@ -296,6 +296,12 @@ func (r *RemoteClientMock) SubmitRelayClaim(ctx context.Context, post stellar1.R
 	return r.Backend.SubmitRelayClaim(ctx, r.Tc, post)
 }
 
+func (r *RemoteClientMock) AwaitPending(ctx context.Context, kbTxID stellar1.KeybaseTransactionID) (res stellar1.AwaitResult, err error) {
+	msg := "AwaitPending not implemented on BackendMock"
+	r.Backend.T.Fatalf(msg)
+	return res, errors.New(msg)
+}
+
 func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
 	return r.Backend.RecentPayments(ctx, r.Tc, accountID, limit)
 }
