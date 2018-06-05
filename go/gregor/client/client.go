@@ -16,8 +16,8 @@ import (
 )
 
 type LocalStorageEngine interface {
-	Store(gregor.UID, []byte, [][]byte, [][]byte) error
-	Load(gregor.UID) ([]byte, [][]byte, [][]byte, error)
+	Store(uid gregor.UID, state []byte, outbox [][]byte, localdismissals [][]byte) error
+	Load(uid gregor.UID) (state []byte, outbox [][]byte, localdismissals [][]byte, err error)
 }
 
 type TestingEvents struct {
@@ -456,8 +456,9 @@ func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset,
 
 func (c *Client) outboxSend() {
 	c.Log.Debug("outboxSend: running")
+	ctx := context.Background()
 	var newOutbox []gregor.Message
-	msgs, err := c.Sm.Outbox(context.Background(), c.User)
+	msgs, err := c.Sm.Outbox(ctx, c.User)
 	if err != nil {
 		c.Log.Debug("outboxSend: failed to get outbox messages: %s", err)
 		return
@@ -465,7 +466,7 @@ func (c *Client) outboxSend() {
 	if len(msgs) == 0 {
 		return
 	}
-	st, err := c.StateMachineState(context.Background(), gregor1.TimeOrOffset{}, false)
+	st, err := c.StateMachineState(ctx, gregor1.TimeOrOffset{}, false)
 	if err != nil {
 		c.Log.Debug("outboxSend: failed to fetch current state: %s", err)
 		return
@@ -480,7 +481,7 @@ func (c *Client) outboxSend() {
 				continue
 			}
 		}
-		if err := c.incomingClient().ConsumeMessage(context.Background(), m.(gregor1.Message)); err != nil {
+		if err := c.incomingClient().ConsumeMessage(ctx, m.(gregor1.Message)); err != nil {
 			c.Log.Debug("outboxSend: failed to consume message: %s", err)
 			break
 		}
@@ -492,10 +493,10 @@ func (c *Client) outboxSend() {
 		newOutbox = append(newOutbox, msgs[i])
 	}
 	c.Log.Debug("outboxSend: adding back: %d outbox items", len(newOutbox))
-	if err := c.Sm.InitOutbox(context.Background(), c.User, newOutbox); err != nil {
+	if err := c.Sm.InitOutbox(ctx, c.User, newOutbox); err != nil {
 		c.Log.Debug("outboxSend: failed to init outbox with new items: %s", err)
 	}
-	if err := c.Save(context.Background()); err != nil {
+	if err := c.Save(ctx); err != nil {
 		c.Log.Debug("outboxSend: failed to save state: %s", err)
 	}
 
