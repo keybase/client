@@ -80,6 +80,18 @@ func (e EphemeralUnboxingError) Error() string {
 
 //=============================================================================
 
+type PublicTeamEphemeralKeyError struct{}
+
+func NewPublicTeamEphemeralKeyError() PublicTeamEphemeralKeyError {
+	return PublicTeamEphemeralKeyError{}
+}
+
+func (e PublicTeamEphemeralKeyError) Error() string {
+	return "Cannot use ephemeral messages for a public team."
+}
+
+//=============================================================================
+
 type ConsistencyErrorCode int
 
 const (

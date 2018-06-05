@@ -262,6 +262,12 @@ func (m Message) ToOutOfBandMessage() gregor.OutOfBandMessage {
 	return *m.Oobm_
 }
 
+func (m Message) Marshal() ([]byte, error) {
+	var b []byte
+	err := codec.NewEncoderBytes(&b, &codec.MsgpackHandle{WriteExt: true}).Encode(m)
+	return b, err
+}
+
 func (m *Message) SetCTime(ctime time.Time) {
 	if m.Ibm_ != nil && m.Ibm_.StateUpdate_ != nil {
 		m.Ibm_.StateUpdate_.Md_.Ctime_ = ToTime(ctime)
