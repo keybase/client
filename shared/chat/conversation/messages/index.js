@@ -103,6 +103,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 export default compose(
   connect(mapStateToProps, () => ({}), mergeProps),
   lifecycle({
+    componentDidMount() {
+      if (this.props._measure && this.props.message.exploded) {
+        // This fixes an issue with exploding messages not retaining
+        // their height after being exploded and scrolling around.
+        // TODO figure out a real less perf heavy way to do this
+        this.props._measure()
+      }
+    },
     componentDidUpdate(prevProps) {
       if (!this.props.message) {
         return
