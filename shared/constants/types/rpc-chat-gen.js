@@ -226,6 +226,7 @@ export const localGetThreadNonblockPgMode = {
 export const localGetThreadNonblockReason = {
   general: 0,
   push: 1,
+  foreground: 2,
 }
 
 export const localGetThreadNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadNonblock', request)
@@ -772,7 +773,7 @@ export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: 
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
-export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge}>
+export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, conv?: ?InboxUIItem}>
 
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, unreadUpdate?: ?UnreadUpdate}>
 
@@ -833,6 +834,7 @@ export type GetThreadNonblockPgMode =
 export type GetThreadNonblockReason =
   | 0 // GENERAL_0
   | 1 // PUSH_1
+  | 2 // FOREGROUND_2
 
 export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
 
@@ -1003,7 +1005,9 @@ export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Arra
 
 export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 
-export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, member: String, status: ConversationMemberStatus}>
+export type MemberInfo = $ReadOnly<{member: String, status: ConversationMemberStatus}>
+
+export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, members?: ?Array<MemberInfo>}>
 
 export type MerkleRoot = $ReadOnly<{seqno: Long, hash: Bytes}>
 
@@ -1111,7 +1115,7 @@ export type MessageUnboxedState =
 
 export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>}>
 
-export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration}>
+export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration, explodedBy?: ?String}>
 
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
 
@@ -1389,7 +1393,7 @@ export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?
 
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
 
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time}>
 
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 

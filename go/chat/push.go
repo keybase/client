@@ -362,16 +362,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 
 func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal, uid gregor1.UID) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		if conv.Error != nil {
-			// If we get a transient failure, add this to the retrier queue
-			if conv.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
-				g.G().FetchRetrier.Failure(ctx, uid,
-					NewConversationRetry(g.G(), conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
-			}
-		} else {
-			pc := utils.PresentConversationLocal(*conv, g.G().Env.GetUsername().String())
-			res = &pc
-		}
+		return PresentConversationLocalWithFetchRetry(ctx, g.G(), uid, *conv)
 	}
 	return res
 }
@@ -630,7 +621,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.badger.PushChatUpdate(*gm.UnreadUpdate, gm.InboxVers)
 		}
 		if activity != nil {
-			g.notifyNewChatActivity(ctx, m.UID(), convID, conv, activity)
+			g.notifyNewChatActivity(ctx, m.UID(), conv, activity)
 		} else {
 			g.Debug(ctx, "chat activity: skipping notify, activity is nil")
 		}
@@ -639,7 +630,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 }
 
 func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
-	convID chat1.ConversationID, conv *chat1.ConversationLocal, activity *chat1.ChatActivity) error {
+	conv *chat1.ConversationLocal, activity *chat1.ChatActivity) error {
 	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
 	if err != nil {
 		return err
@@ -675,29 +666,46 @@ func (g *PushHandler) notifyReset(ctx context.Context, uid gregor1.UID,
 }
 
 func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
-	member chat1.ConversationMember, status chat1.ConversationMemberStatus) {
-
-	unameFailed := false
-	name, err := g.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(member.Uid.String()))
-	if err != nil {
-		g.Debug(ctx, "notifyMembersUpdate: failed to lookup username for: %s msg: %s", member.Uid,
-			err.Error())
-		unameFailed = true
+	membersRes types.MembershipUpdateRes) {
+	// Build a map of uid -> username for this update
+	var uids []keybase1.UID
+	for _, uid := range membersRes.AllOtherUsers() {
+		uids = append(uids, keybase1.UID(uid.String()))
 	}
-
-	if !unameFailed {
-		activity := chat1.NewChatActivityWithMembersUpdate(chat1.MembersUpdateInfo{
-			ConvID: member.ConvID,
-			Member: name.String(),
-			Status: status,
-		})
-		g.notifyNewChatActivity(ctx, uid, member.ConvID, nil, &activity)
+	uidMap := make(map[string]string)
+	packages, err := g.G().UIDMapper.MapUIDsToUsernamePackages(ctx, g.G(), uids, 0, 0, false)
+	if err == nil {
+		for index, p := range packages {
+			uidMap[uids[index].String()] = p.NormalizedUsername.String()
+		}
 	} else {
-		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
-			ConvID:     member.ConvID,
-			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
-		}}
-		g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
+		g.Debug(ctx, "notifyMembersUpdate: failed to get usernames, not sending them: %s", err)
+	}
+	convMap := make(map[string][]chat1.MemberInfo)
+	addStatus := func(status chat1.ConversationMemberStatus, l []chat1.ConversationMember) {
+		for _, cm := range l {
+			if _, ok := convMap[cm.ConvID.String()]; !ok {
+				convMap[cm.ConvID.String()] = []chat1.MemberInfo{}
+			}
+			if uname, ok := uidMap[cm.Uid.String()]; ok {
+				convMap[cm.ConvID.String()] = append(convMap[cm.ConvID.String()], chat1.MemberInfo{
+					Member: uname,
+					Status: status,
+				})
+			}
+		}
+	}
+	addStatus(chat1.ConversationMemberStatus_ACTIVE, membersRes.OthersJoinedConvs)
+	addStatus(chat1.ConversationMemberStatus_RESET, membersRes.OthersResetConvs)
+	addStatus(chat1.ConversationMemberStatus_REMOVED, membersRes.OthersRemovedConvs)
+	for strConvID, memberInfo := range convMap {
+		bConvID, _ := hex.DecodeString(strConvID)
+		convID := chat1.ConversationID(bConvID)
+		activity := chat1.NewChatActivityWithMembersUpdate(chat1.MembersUpdateInfo{
+			ConvID:  convID,
+			Members: memberInfo,
+		})
+		g.notifyNewChatActivity(ctx, uid, nil, &activity)
 	}
 }
 
@@ -832,15 +840,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		for _, c := range updateRes.UserResetConvs {
 			g.notifyReset(ctx, uid, c)
 		}
-		for _, cm := range updateRes.OthersJoinedConvs {
-			g.notifyMembersUpdate(ctx, uid, cm, chat1.ConversationMemberStatus_ACTIVE)
-		}
-		for _, cm := range updateRes.OthersRemovedConvs {
-			g.notifyMembersUpdate(ctx, uid, cm, chat1.ConversationMemberStatus_REMOVED)
-		}
-		for _, cm := range updateRes.OthersResetConvs {
-			g.notifyMembersUpdate(ctx, uid, cm, chat1.ConversationMemberStatus_RESET)
-		}
+		g.notifyMembersUpdate(ctx, uid, updateRes)
 
 		// Fire off badger updates
 		if g.badger != nil {

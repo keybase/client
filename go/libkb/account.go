@@ -276,7 +276,7 @@ func (a *Account) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
 	return RunSyncer(m, a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
 }
 
-func (a *Account) Keyring() (*SKBKeyringFile, error) {
+func (a *Account) Keyring(m MetaContext) (*SKBKeyringFile, error) {
 	if a.localSession == nil {
 		a.G().Log.Warning("local session is nil")
 	}
@@ -314,76 +314,8 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 	return a.skbKeyring, nil
 }
 
-func (a *Account) getDeviceKey(ckf *ComputedKeyFamily, secretKeyType SecretKeyType, nun NormalizedUsername) (GenericKey, error) {
-	did := a.G().Env.GetDeviceIDForUsername(nun)
-	if did.IsNil() {
-		return nil, errors.New("Could not get device id")
-	}
-
-	switch secretKeyType {
-	case DeviceSigningKeyType:
-		return ckf.GetSibkeyForDevice(did)
-	case DeviceEncryptionKeyType:
-		return ckf.GetEncryptionSubkeyForDevice(did)
-	default:
-		return nil, fmt.Errorf("Invalid type %v", secretKeyType)
-	}
-}
-
-// LockedLocalSecretKey looks in the local keyring to find a key
-// for the given user.  Returns non-nil if one was found, and nil
-// otherwise.
 func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error) {
-	var ret *SKB
-	me := ska.Me
-	a.EnsureUsername(me.GetNormalizedName())
-
-	keyring, err := a.Keyring()
-	if err != nil {
-		return nil, err
-	}
-	if keyring == nil {
-		a.G().Log.Debug("| No secret keyring found: %s", err)
-		return nil, NoKeyringsError{}
-	}
-
-	ckf := me.GetComputedKeyFamily()
-	if ckf == nil {
-		a.G().Log.Warning("No ComputedKeyFamily found for %s", me.name)
-		return nil, KeyFamilyError{Msg: "not found for " + me.name}
-	}
-
-	if (ska.KeyType == DeviceSigningKeyType) || (ska.KeyType == DeviceEncryptionKeyType) {
-		key, err := a.getDeviceKey(ckf, ska.KeyType, me.GetNormalizedName())
-		if err != nil {
-			a.G().Log.Debug("| No key for current device: %s", err)
-			return nil, err
-		}
-
-		if key == nil {
-			a.G().Log.Debug("| Key for current device is nil")
-			return nil, NoKeyError{Msg: "Key for current device is nil"}
-		}
-
-		kid := key.GetKID()
-		a.G().Log.Debug("| Found KID for current device: %s", kid)
-		ret = keyring.LookupByKid(kid)
-		if ret != nil {
-			a.G().Log.Debug("| Using device key: %s", kid)
-		}
-	} else {
-		a.G().Log.Debug("| Looking up secret key in local keychain")
-		blocks := keyring.SearchWithComputedKeyFamily(ckf, ska)
-		if len(blocks) > 0 {
-			ret = blocks[0]
-		}
-	}
-
-	if ret != nil {
-		ret.SetUID(me.GetUID())
-	}
-
-	return ret, nil
+	return nil, errors.New("deprecated")
 }
 
 func (a *Account) Shutdown() error {
@@ -401,33 +333,6 @@ func (a *Account) EnsureUsername(username NormalizedUsername) {
 		a.LocalSession().SetUsername(username)
 	}
 
-}
-
-func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
-	token string, deviceSubkey, deviceSibkey GenericKey, err error) {
-	if !a.LoggedIn() {
-		err = LoginRequiredError{}
-		return
-	}
-
-	arg := NewLoadUserArg(a.G()).WithLoginContext(a).WithSelf(true)
-	err = a.G().GetFullSelfer().WithUser(arg, func(user *User) error {
-		var err error
-		deviceSubkey, err = user.GetDeviceSubkey()
-		if err != nil {
-			return err
-		}
-		deviceSibkey, err = user.GetDeviceSibkey()
-		if err != nil {
-			return err
-		}
-		uid = user.GetUID()
-		username = user.GetNormalizedName()
-		return nil
-
-	})
-	token = a.localSession.GetToken()
-	return
 }
 
 // SaveState saves the logins state to memory, and to the user
@@ -473,81 +378,7 @@ func (a *Account) SetLoginSession(l *LoginSession) {
 }
 
 func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
-	if key == nil {
-		return errors.New("cache of nil secret key attempted")
-	}
-
-	uid := a.G().Env.GetUID()
-	deviceID := a.deviceIDFromDevice(uid, device)
-	if deviceID.IsNil() {
-		a.G().Log.Debug("SetCachedSecretKey with nil deviceID (%+v)", ska)
-	}
-
-	switch ska.KeyType {
-	case DeviceSigningKeyType:
-		a.G().Log.Debug("caching secret device signing key")
-
-		if err := a.G().ActiveDevice.setSigningKey(a.G(), a, uid, deviceID, key); err != nil {
-			return err
-		}
-
-		deviceName := a.deviceNameLookup(device, ska.Me, key)
-		if deviceName == "" {
-			a.G().Log.Debug("no device name found for signing key")
-			return nil
-		}
-
-		a.G().Log.Debug("caching device name %q", deviceName)
-		return a.G().ActiveDevice.setDeviceName(a, uid, deviceID, deviceName)
-	case DeviceEncryptionKeyType:
-		a.G().Log.Debug("caching secret device encryption key")
-		return a.G().ActiveDevice.setEncryptionKey(a, uid, deviceID, key)
-	default:
-		return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
-	}
-}
-
-func (a *Account) deviceIDFromDevice(uid keybase1.UID, device *Device) keybase1.DeviceID {
-	if device != nil {
-		return device.ID
-	}
-	return a.G().Env.GetDeviceIDForUID(uid)
-}
-
-func (a *Account) deviceNameLookup(device *Device, me *User, key GenericKey) string {
-	if device != nil {
-		if device.Description != nil && *device.Description != "" {
-			a.G().Log.Debug("deviceNameLookup: using device name from device: %q", *device.Description)
-			return *device.Description
-		}
-	}
-
-	a.G().Log.Debug("deviceNameLookup: no device name passed in, checking user")
-
-	if me == nil {
-		a.G().Log.Debug("deviceNameLookup: me is nil, skipping device name lookup")
-		return ""
-	}
-	a.G().Log.Debug("deviceNameLookup: looking for device name for device signing key")
-	ckf := me.GetComputedKeyFamily()
-	device, err := ckf.GetDeviceForKey(key)
-	if err != nil {
-		// not fatal
-		a.G().Log.Debug("deviceNameLookup: error getting device for key: %s", err)
-		return ""
-	}
-	if device == nil {
-		a.G().Log.Debug("deviceNameLookup: device for key is nil")
-		return ""
-	}
-	if device.Description == nil {
-		a.G().Log.Debug("deviceNameLookup: device description is nil")
-		return ""
-	}
-
-	a.G().Log.Debug("deviceNameLookup: found device name %q", *device.Description)
-
-	return *device.Description
+	return errors.New("deprecated")
 }
 
 func (a *Account) ClearCachedSecretKeys() {
@@ -608,3 +439,5 @@ func (a *Account) SetDeviceName(name string) error {
 func (a *Account) SetUsernameUID(n NormalizedUsername, u keybase1.UID) error {
 	return errors.New("cannot call SetUsernameUID on legacy Account object")
 }
+
+func (a *Account) Salt() []byte { return nil }

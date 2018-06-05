@@ -8,6 +8,7 @@ type Props = {
   align?: 'flex-start' | 'flex-end' | 'center', // ignored by column
   children: React.Node,
   fullWidth?: boolean,
+  noPadding?: boolean,
   small?: boolean, // ignored by column
   style?: any,
 }
@@ -17,6 +18,7 @@ class ButtonBar extends React.PureComponent<Props> {
     align: 'center',
     direction: 'row',
     fullWidth: false,
+    noPadding: false,
     small: false,
   }
 
@@ -47,6 +49,13 @@ class ButtonBar extends React.PureComponent<Props> {
       return arr
     }, [])
 
+    let minHeight = {}
+    if (!this.props.noPadding) {
+      minHeight = {
+        minHeight: isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
+      }
+    }
+
     const style = {
       alignItems: this.props.fullWidth ? 'stretch' : 'center',
       padding: this.props.fullWidth ? globalMargins.small : 0,
@@ -56,7 +65,7 @@ class ButtonBar extends React.PureComponent<Props> {
         : {
             ...globalStyles.flexBoxRow,
             justifyContent: this.props.align,
-            minHeight: isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
+            ...minHeight,
           }),
       ...this.props.style,
     }

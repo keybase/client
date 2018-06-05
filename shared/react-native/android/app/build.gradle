@@ -91,9 +91,9 @@ android {
     defaultConfig {
         applicationId "io.keybase.ossifrage"
         minSdkVersion 16
-        targetSdkVersion 23
+        targetSdkVersion 28
         versionCode timestamp()
-        versionName "1.0.20"
+        versionName "2.1.0"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }

@@ -10,6 +10,7 @@ const common = {
   attachTo: null,
   onHidden: action('onHidden'),
   onSelect: action('onSelect'),
+  position: 'top left',
   selected: null,
   items,
   visible: true,

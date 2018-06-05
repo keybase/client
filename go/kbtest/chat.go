@@ -579,6 +579,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	for _, m := range conv.MaxMsgs {
 		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, m.Summary())
 	}
+	conv.Metadata.Version++
 	sort.Sort(convByNewlyUpdated{mock: m})
 	res.MsgHeader = *inserted.ServerHeader
 	res.RateLimit = &chat1.RateLimit{}
@@ -643,6 +644,7 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 			ConversationID: res.ConvID,
 			Visibility:     vis,
 			MembersType:    arg.MembersType,
+			Version:        1,
 		},
 		MaxMsgs:         []chat1.MessageBoxed{first},
 		MaxMsgSummaries: []chat1.MessageSummary{first.Summary()},

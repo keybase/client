@@ -216,13 +216,22 @@ const metaData: {[key: TextType]: MetaType} = {
     isLink: true,
     styleOverride: globalStyles.fontRegular,
   },
+  BodySmallSemiboldPrimaryLink: {
+    colorForBackgroundMode: {
+      Normal: globalColors.blue,
+      Terminal: globalColors.white,
+    },
+    fontSize: 11,
+    isLink: true,
+    styleOverride: globalStyles.fontSemibold,
+  },
   BodySmallSecondaryLink: {
     colorForBackgroundMode: {Normal: globalColors.black_60},
     fontSize: 11,
     isLink: true,
     styleOverride: globalStyles.fontRegular,
   },
-  BodySmallSecondaryLinkExtrabold: {
+  BodySmallExtraboldSecondaryLink: {
     colorForBackgroundMode: {Normal: globalColors.black_60},
     fontSize: 11,
     isLink: true,
@@ -235,6 +244,11 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   BodySmallSuccess: {
     colorForBackgroundMode: {Normal: globalColors.green2},
+    fontSize: 11,
+    styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallWallet: {
+    colorForBackgroundMode: {Normal: globalColors.purple2},
     fontSize: 11,
     styleOverride: globalStyles.fontRegular,
   },

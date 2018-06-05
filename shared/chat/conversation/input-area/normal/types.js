@@ -11,23 +11,23 @@ import {Input as TextInput} from '../../../../common-adapters'
 
 type CommonProps = {
   conversationIDKey: Types.ConversationIDKey,
-  channelName: string,
   isEditing: boolean,
   isExploding?: boolean,
+  explodingModeSeconds: number,
   focusInputCounter: number,
   clearInboxFilter: () => void,
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
-  onCancelQuoting: () => void,
   onSubmit: (text: string) => void,
+  selectExplodingMode: (seconds: number) => void,
   typing: I.Set<string>,
 }
 
 type InputProps = CommonProps & {
-  _quotingMessage: ?Types.Message,
-  _editingMessage: ?Types.Message,
-  injectedInput: string,
+  editText: string,
+  quoteCounter: number,
+  quoteText: string,
 
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,

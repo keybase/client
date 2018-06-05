@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -125,6 +126,14 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 		require.NoError(t, err)
 
+		// verify the ekLib teamEKGenCache is working
+		cacheKey := ekLib.cacheKey(teamID)
+		val, ok := ekLib.teamEKGenCache.Get(cacheKey)
+		require.True(t, ok)
+		cacheEntry, valid := ekLib.isEntryValid(val)
+		require.True(t, valid)
+		require.Equal(t, teamEK.Metadata.Generation, cacheEntry.Generation)
+
 		// verify deviceEK
 		deviceEKNeeded, err := ekLib.NewDeviceEKNeeded(context.Background())
 		require.NoError(t, err)
@@ -234,4 +243,37 @@ func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
 
 	err = ekLib.CleanupStaleUserAndDeviceEKs(context.Background())
 	require.NoError(t, err)
+}
+
+func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
+	tc, _ := ephemeralKeyTestSetup(t)
+	defer tc.Cleanup()
+
+	seed, err := newDeviceEphemeralSeed()
+	require.NoError(t, err)
+	s := tc.G.GetDeviceEKStorage()
+	ctimeExpired := keybase1.TimeFromSeconds(time.Now().Unix() - KeyLifetimeSecs*3)
+	err = s.Put(context.Background(), 0, keybase1.DeviceEk{
+		Seed: keybase1.Bytes32(seed),
+		Metadata: keybase1.DeviceEkMetadata{
+			Ctime:       ctimeExpired,
+			DeviceCtime: ctimeExpired,
+		},
+	})
+	require.NoError(t, err)
+
+	ekLib := NewEKLib(tc.G)
+	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
+	require.Error(t, err)
+	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
+
+	// Even though we return an error, we charge through on the deletion
+	// successfully.
+	deviceEK, err := s.Get(context.Background(), 0)
+	require.Error(t, err)
+	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
+
+	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
+	require.Error(t, err)
+	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 }

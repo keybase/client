@@ -28,10 +28,7 @@ func TestBootstrap(t *testing.T) {
 
 	// Simulate restarting the service by wiping out the
 	// passphrase stream cache and cached secret keys
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-		a.ClearCachedSecretKeys()
-	}, "account - clear")
+	clearCaches(tc.G)
 	tc.G.GetUPAKLoader().ClearMemory()
 
 	// set server uri to nonexistent ip so api calls will fail

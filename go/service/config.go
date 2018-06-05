@@ -176,10 +176,7 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	psc := ad.PassphraseStreamCache()
 	res.PassphraseStreamCached = psc.ValidPassphraseStream()
 	res.TsecCached = psc.ValidTsec()
-
-	h.G().LoginState().Account(func(a *libkb.Account) {
-		res.SecretPromptSkip = a.SkipSecretPrompt()
-	}, "ConfigHandler::GetExtendedStatus")
+	res.SecretPromptSkip = m.ActiveDevice().SecretPromptCancelTimer().WasRecentlyCanceled(m)
 
 	current, all, err := h.G().GetAllUserNames()
 	if err != nil {

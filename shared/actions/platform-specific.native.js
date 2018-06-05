@@ -18,7 +18,7 @@ import {
 } from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
-import {isIOS} from '../constants/platform'
+import {isIOS, isAndroid} from '../constants/platform'
 
 const shownPushPrompt = 'shownPushPrompt'
 // Used to listen to the java intent for notifications
@@ -274,12 +274,44 @@ function openAppSettings() {
   Linking.openURL('app-settings:')
 }
 
-const getMimeTypeFromURL = (url: string): Promise<string> =>
-  new Promise((resolve, reject) => {
-    fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
-      .then(response => resolve(response.headers.get('Content-Type')))
-      .catch(reject)
-  })
+const getContentTypeFromURL = (
+  url: string,
+  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
+) =>
+  // For some reason HEAD doesn't work on Android. So just GET one byte.
+  // TODO: fix HEAD for Android and get rid of this hack.
+  isAndroid
+    ? fetch(url, {method: 'GET', headers: {Range: 'bytes=0-0'}}) // eslint-disable-line no-undef
+        .then(response => {
+          let contentType = ''
+          let statusCode = response.status
+          if (
+            statusCode === 200 ||
+            statusCode === 206 ||
+            // 416 can happen if the file is empty.
+            statusCode === 416
+          ) {
+            contentType = response.headers.get('Content-Type')
+            statusCode = 200 // Treat 200, 206, and 416 as 200.
+          }
+          cb({statusCode, contentType})
+        })
+        .catch(error => {
+          console.log(error)
+          cb({error})
+        })
+    : fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
+        .then(response => {
+          let contentType = ''
+          if (response.status === 200) {
+            contentType = response.headers.get('Content-Type')
+          }
+          cb({statusCode: response.status, contentType})
+        })
+        .catch(error => {
+          console.log(error)
+          cb({error})
+        })
 
 export {
   openAppSettings,
@@ -297,5 +329,5 @@ export {
   getShownPushPrompt,
   showShareActionSheet,
   clearAllNotifications,
-  getMimeTypeFromURL,
+  getContentTypeFromURL,
 }

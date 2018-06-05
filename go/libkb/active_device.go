@@ -10,15 +10,16 @@ import (
 )
 
 type ActiveDevice struct {
-	uid           keybase1.UID
-	deviceID      keybase1.DeviceID
-	deviceName    string
-	signingKey    GenericKey   // cached secret signing key
-	encryptionKey GenericKey   // cached secret encryption key
-	nistFactory   *NISTFactory // Non-Interactive Session Token
-	secretSyncer  *SecretSyncer
-	passphrase    *PassphraseStreamCache
-	paperKey      *SelfDestructingDeviceWithKeys
+	uid                     keybase1.UID
+	deviceID                keybase1.DeviceID
+	deviceName              string
+	signingKey              GenericKey   // cached secret signing key
+	encryptionKey           GenericKey   // cached secret encryption key
+	nistFactory             *NISTFactory // Non-Interactive Session Token
+	secretSyncer            *SecretSyncer
+	passphrase              *PassphraseStreamCache
+	paperKey                *SelfDestructingDeviceWithKeys
+	secretPromptCancelTimer CancelTimer
 	sync.RWMutex
 }
 
@@ -54,6 +55,10 @@ func NewProvisionalActiveDevice(m MetaContext, u keybase1.UID, d keybase1.Device
 	}
 }
 
+func NewActiveDevice() *ActiveDevice {
+	return &ActiveDevice{}
+}
+
 func NewPaperKeyActiveDevice(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *ActiveDevice {
 	ret := NewActiveDeviceWithDeviceWithKeys(m, u, d)
 	ret.paperKey = NewSelfDestructingDeviceWithKeys(m, d, PaperKeyMemoryTimeout)
@@ -77,6 +82,7 @@ func (a *ActiveDevice) ClearCaches() {
 	defer a.Unlock()
 	a.passphrase = nil
 	a.paperKey = nil
+	a.secretPromptCancelTimer.Reset()
 }
 
 // Copy ActiveDevice info from the given ActiveDevice.
@@ -126,7 +132,7 @@ func (a *ActiveDevice) Set(m MetaContext, uid keybase1.UID, deviceID keybase1.De
 // setSigningKey acquires the write lock and sets the signing key.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) setSigningKey(g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey) error {
+func (a *ActiveDevice) setSigningKey(g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -135,6 +141,9 @@ func (a *ActiveDevice) setSigningKey(g *GlobalContext, lctx LoginContext, uid ke
 	}
 
 	a.signingKey = sigKey
+	if len(deviceName) > 0 {
+		a.deviceName = deviceName
+	}
 	a.nistFactory = NewNISTFactory(g, uid, deviceID, sigKey)
 	return nil
 }
@@ -213,8 +222,15 @@ func (a *ActiveDevice) clear(acct *Account) error {
 	a.nistFactory = nil
 	a.passphrase = nil
 	a.paperKey = nil
+	a.secretPromptCancelTimer.Reset()
 
 	return nil
+}
+
+func (a *ActiveDevice) SecretPromptCancelTimer() *CancelTimer {
+	a.RLock()
+	defer a.RUnlock()
+	return &a.secretPromptCancelTimer
 }
 
 // UID returns the user ID that was provided when the device keys were cached.
@@ -341,22 +357,34 @@ func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, err
 	return nist, a.uid, err
 }
 
-func (a *ActiveDevice) SyncSecrets(m MetaContext) (ret *SecretSyncer, err error) {
-	defer m.CTrace("ActiveDevice#SyncSecrets", func() error { return err })()
+func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID) (ret *SecretSyncer, err error) {
+	defer m.CTrace("ActiveDevice#SyncSecretsForUID", func() error { return err })()
 
 	a.RLock()
 	s := a.secretSyncer
 	uid := a.uid
 	a.RUnlock()
 
+	if !u.IsNil() && !uid.Equal(u) {
+		return nil, fmt.Errorf("Wrong UID for sync secrets: %s != %s", uid, u)
+	}
 	if s == nil {
 		return nil, fmt.Errorf("Can't sync secrets: nil secret syncer")
+	}
+	if uid.IsNil() {
+		return nil, fmt.Errorf("can't run secret syncer without a UID")
 	}
 	err = RunSyncer(m, s, uid, true, nil)
 	if err != nil {
 		return nil, err
 	}
 	return s, nil
+}
+
+func (a *ActiveDevice) SyncSecrets(m MetaContext) (ret *SecretSyncer, err error) {
+	defer m.CTrace("ActiveDevice#SyncSecrets", func() error { return err })()
+	var zed keybase1.UID
+	return a.SyncSecretsForUID(m, zed)
 }
 
 func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername) (err error) {
@@ -450,7 +478,6 @@ func (a *ActiveDevice) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
 	defer m.CTrace("ActiveDevice#Keyring", func() error { return err })()
 	un := a.Username(m)
 	if un.IsNil() {
-		m.CInfof("ProvisionalLoginContext#Keyring: no username set")
 		return nil, NewNoUsernameError()
 	}
 	m.CDebugf("Account: loading keyring for %s", un)

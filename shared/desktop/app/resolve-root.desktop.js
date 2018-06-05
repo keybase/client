@@ -1,16 +1,16 @@
 // @flow
 import path from 'path'
-import * as SafeElectron from '../util/safe-electron.desktop'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 
 let root
 let prefix = 'file://'
 
 if (__STORYBOOK__) {
-  root = path.resolve(path.join(__dirname, '..'))
+  root = path.resolve(path.join(__dirname, '..', '..'))
   prefix = ''
 } else {
   // Gives a path to the desktop folder in dev/packaged builds. Used to load up runtime assets.
-  root = !__DEV__ ? path.join(SafeElectron.getApp().getAppPath(), './desktop') : path.join(__dirname)
+  root = !__DEV__ ? path.join(SafeElectron.getApp().getAppPath(), './desktop') : path.join(__dirname, '..')
 }
 
 function fix(str) {

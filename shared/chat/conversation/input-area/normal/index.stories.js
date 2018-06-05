@@ -33,6 +33,7 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
 type Props = {
   isEditing: boolean,
   isExploding: boolean,
+  explodingModeSeconds: number,
   pendingWaiting: boolean,
   typing: Set<string>,
 }
@@ -53,9 +54,9 @@ const boxProps = {
 const InputContainer = (props: Props) => {
   const inputProps: InputProps = {
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
-    channelName: 'somechannel',
     isEditing: props.isEditing,
     isExploding: props.isExploding,
+    explodingModeSeconds: props.explodingModeSeconds,
     focusInputCounter: 0,
     clearInboxFilter: action('clearInboxFilter'),
     onAttach: (paths: Array<string>) => {
@@ -72,19 +73,18 @@ const InputContainer = (props: Props) => {
     pendingWaiting: props.pendingWaiting,
     typing: props.typing,
 
-    _quotingMessage: null,
-    _editingMessage: null,
-
-    injectedInput: '',
+    editText: '',
+    quoteCounter: 0,
+    quoteText: '',
 
     getUnsentText: () => {
       action('getUnsentText')()
       return props.isEditing ? 'some text' : ''
     },
 
-    setUnsentText: action('setUnsentText'),
-
+    selectExplodingMode: action('selectExplodingMode'),
     sendTyping: action('sendTyping'),
+    setUnsentText: action('setUnsentText'),
   }
 
   return (
@@ -98,10 +98,22 @@ const load = () => {
   storiesOf('Chat/Conversation/Input', module)
     .addDecorator(provider)
     .add('Normal', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} typing={Set()} isExploding={false} />
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set()}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
     ))
     .add('Typing 1', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris'])} isExploding={false} />
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set(['chris'])}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
     ))
     .add('Typing 2', () => (
       <InputContainer
@@ -109,6 +121,7 @@ const load = () => {
         pendingWaiting={false}
         typing={Set(['chris', 'strib'])}
         isExploding={false}
+        explodingModeSeconds={0}
       />
     ))
     .add('Typing 3', () => (
@@ -117,16 +130,35 @@ const load = () => {
         pendingWaiting={false}
         typing={Set(['chris', 'strib', 'fred'])}
         isExploding={false}
+        explodingModeSeconds={0}
       />
     ))
     .add('Editing', () => (
-      <InputContainer isEditing={true} pendingWaiting={false} typing={Set()} isExploding={false} />
+      <InputContainer
+        isEditing={true}
+        pendingWaiting={false}
+        typing={Set()}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
     ))
     .add('Pending waiting', () => (
-      <InputContainer isEditing={false} pendingWaiting={true} typing={Set()} isExploding={false} />
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={true}
+        typing={Set()}
+        isExploding={false}
+        explodingModeSeconds={0}
+      />
     ))
     .add('Exploding', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} typing={Set()} isExploding={true} />
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        typing={Set()}
+        isExploding={true}
+        explodingModeSeconds={0}
+      />
     ))
 }
 

@@ -14,7 +14,7 @@ const blankMessage = Constants.makeMessageAttachment({})
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
   const ordinal = ownProps.routeProps.get('ordinal')
-  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal, blankMessage)
+  const message = Constants.getMessage(state, conversationIDKey, ordinal) || blankMessage
   return {
     message: message.type === 'attachment' ? message : blankMessage,
   }

@@ -2987,20 +2987,23 @@ func (e GetThreadNonblockCbMode) String() string {
 type GetThreadNonblockReason int
 
 const (
-	GetThreadNonblockReason_GENERAL GetThreadNonblockReason = 0
-	GetThreadNonblockReason_PUSH    GetThreadNonblockReason = 1
+	GetThreadNonblockReason_GENERAL    GetThreadNonblockReason = 0
+	GetThreadNonblockReason_PUSH       GetThreadNonblockReason = 1
+	GetThreadNonblockReason_FOREGROUND GetThreadNonblockReason = 2
 )
 
 func (o GetThreadNonblockReason) DeepCopy() GetThreadNonblockReason { return o }
 
 var GetThreadNonblockReasonMap = map[string]GetThreadNonblockReason{
-	"GENERAL": 0,
-	"PUSH":    1,
+	"GENERAL":    0,
+	"PUSH":       1,
+	"FOREGROUND": 2,
 }
 
 var GetThreadNonblockReasonRevMap = map[GetThreadNonblockReason]string{
 	0: "GENERAL",
 	1: "PUSH",
+	2: "FOREGROUND",
 }
 
 func (e GetThreadNonblockReason) String() string {

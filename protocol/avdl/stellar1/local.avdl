@@ -26,15 +26,80 @@ protocol local {
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
+  enum BalanceDelta {
+    NONE_0,
+    INCREASE_1,
+    DECREASE_2
+  }
+
+  enum PaymentStatus {
+    NONE_0,
+    PENDING_1,
+    CLAIMABLE_2,
+    COMPLETED_3,
+    ERROR_4,
+    UNKNOWN_5
+  }
+  
+  record PaymentLocal {
+    string id;                 // For relay payments, the funding tx.
+    TimeMs time;
+    PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
+    string statusDescription;  // "pending", "completed", "error"
+    string statusDetail;
+    string amountDescription;  // "+ 1,323.1234567 XLM"
+    BalanceDelta delta;        // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string worth;              // "$123.23" 
+    string worthCurrency;      // "USD", "CAD", etc. (the symbols can be ambiguous)
+
+    string source;             // keybase username or stellar public key
+    string sourceType;         // "keybase" or "stellar"
+    string target;             // keybase username, stellar public key, or sbs assertion
+    string targetType;         // "keybase", "stellar", or "sbs"
+
+    string note;
+    string noteErr;
+  }
+
+  record PaymentOrErrorLocal {
+    union { null, PaymentLocal } payment;
+    union { null, string } err;
+  }
+
+  array<PaymentOrErrorLocal> getPaymentsLocal(AccountID accountID, union { null, TransactionID } olderThanTransactionID);
+
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
-    string code;         // "USD", "CAD", etc.
+    OutsideCurrencyCode code;         // "USD", "CAD", etc.
     string symbol;       // "$"
     string name;         // "US Dollar", "Thai Baht", etc.
   }
   array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
 
   void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
+  void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
+
+  // Deleting an account is irreversible, even with Keybase, Inc. help.
+  // Consumer of this API should always prompt the user and warn that if
+  // their secret key is not backed up, they will not be able to access
+  // funds on that account.
+  // This RPC checks if `userAcknowledged` string is equal to "yes".
+  void deleteWalletAccountLocal(int sessionID, AccountID accountID, string userAcknowledged);
+
+  AccountID linkNewWalletAccountLocal(int sessionID, SecretKey secretKey, string name);
+
+  // OutsideCurrencyCode examples: "USD", "EUR". Has to be one of
+  // supported currencies, returned from getDisplayCurrenciesLocal.
+  void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
+
+  record UserSettings {
+    boolean acceptedDisclaimer; // whether the user has accepted the usage disclaimer
+  }
+  UserSettings getUserSettingsLocal(int sessionID);
+  void setAcceptedDisclaimerLocal(int sessionID); 
+
+  string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);
+  SecretKey getWalletAccountSecretKeyLocal(int sessionID, AccountID accountID);
 
   // -------------------------------------------------------
   // CLI protocol
@@ -42,13 +107,14 @@ protocol local {
 
   array<Balance> balancesLocal(AccountID accountID);
 
-  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note, string displayAmount, string displayCurrency);
+  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
+                                  string displayAmount, string displayCurrency, boolean forceRelay);
 
   record SendResultCLILocal {
-    KeybaseTransactionID KbTxID;
+    KeybaseTransactionID kbTxID;
     // Direct: tx ID of the payment tx
     // Relay : tx ID of the funding payment tx
-    TransactionID TxID;
+    TransactionID txID;
     union { null, SendRelayResultCLILocal } relay;
   }
   record SendRelayResultCLILocal {
@@ -61,10 +127,9 @@ protocol local {
   // `into` is the account into which to claim. Null will default to the user's primary account.
   RelayClaimResult claimCLILocal(string txID, union { null, AccountID } into);
 
-  record PaymentCLIOptionLocal {
-    // Pointer or error
+  record PaymentOrErrorCLILocal {
     union { null, PaymentCLILocal } payment;
-    string err;
+    union { null, string } err;
   }
 
   record PaymentCLILocal {
@@ -84,7 +149,7 @@ protocol local {
     string note;
     string noteErr;
   }
-  array<PaymentCLIOptionLocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
+  array<PaymentOrErrorCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
 
   // txID can be either a keybase or stellar transaction ID.
   PaymentCLILocal paymentDetailCLILocal(string txID);

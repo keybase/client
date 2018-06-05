@@ -42,6 +42,7 @@ type LoginContext interface {
 	LoggedInProvisioned(context.Context) (bool, error)
 	Logout() error
 
+	Salt() []byte
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
 	SetStreamCache(c *PassphraseStreamCache)
 	CreateStreamCacheViaStretch(passphrase string) error
@@ -63,7 +64,7 @@ type LoginContext interface {
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
 	SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error
 
-	Keyring() (*SKBKeyringFile, error)
+	Keyring(m MetaContext) (*SKBKeyringFile, error)
 	ClearKeyring()
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
 
@@ -375,49 +376,6 @@ func ComputeLoginPackage(m MetaContext, username string) (ret PDPKALoginPackage,
 		return computeLoginPackageFromUID(lctx.GetUID(), ps, loginSession)
 	}
 	return computeLoginPackageFromEmailOrUsername(username, ps, loginSession)
-}
-
-func (s *LoginState) ResetAccount(m MetaContext, username string) (err error) {
-	return s.resetOrDelete(m, username, "nuke")
-}
-
-func (s *LoginState) DeleteAccount(m MetaContext, username string) (err error) {
-	return s.resetOrDelete(m, username, "delete")
-}
-
-func ResetAccountWithContext(m MetaContext, username string) error {
-	return ResetOrDeleteWithContext(m, username, "nuke")
-}
-
-func DeleteAccountWithContext(m MetaContext, username string) error {
-	return ResetOrDeleteWithContext(m, username, "delete")
-}
-
-func ResetOrDeleteWithContext(m MetaContext, username string, endpoint string) (err error) {
-	lctx := m.LoginContext()
-	err = lctx.LoadLoginSession(username)
-	if err != nil {
-		return err
-	}
-	pdpka, err := ComputeLoginPackage(m, username)
-	if err != nil {
-		return err
-	}
-	arg := APIArg{
-		Endpoint:    endpoint,
-		SessionType: APISessionTypeREQUIRED,
-		Args:        NewHTTPArgs(),
-		SessionR:    lctx.LocalSession(),
-	}
-	pdpka.PopulateArgs(&arg.Args)
-	_, err = m.G().API.Post(arg)
-	return err
-}
-
-func (s *LoginState) resetOrDelete(m MetaContext, username string, endpoint string) (err error) {
-	return s.loginHandle(func(lctx LoginContext) error {
-		return ResetOrDeleteWithContext(m.WithLoginContext(lctx), username, endpoint)
-	}, nil, ("ResetAccount: " + endpoint))
 }
 
 func (s *LoginState) postLoginToServer(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
@@ -853,35 +811,7 @@ func (s *LoginState) verifyPassphraseWithServer(m MetaContext, ui SecretUI) erro
 }
 
 func (s *LoginState) loginWithPromptHelper(m MetaContext, username string, loginUI LoginUI, secretUI SecretUI, force bool) (err error) {
-	var loggedIn bool
-	if loggedIn, err = s.checkLoggedIn(m, username, force); err != nil || loggedIn {
-		return
-	}
-
-	if err = s.switchUser(m, username); err != nil {
-		return
-	}
-
-	if err = s.getEmailOrUsername(m, &username, loginUI); err != nil {
-		return
-	}
-
-	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
-		ska := SecretKeyArg{
-			Me:      me,
-			KeyType: DeviceSigningKeyType,
-		}
-		return keyrings.GetSecretKeyWithoutPrompt(m, ska)
-	}
-
-	// If we're forcing a login to check our passphrase (as in when we're called
-	// from verifyPassphraseWithServer), then don't use public key login at all. See issue #510.
-	if !force {
-		if loggedIn, err = s.tryPubkeyLoginHelper(m, username, getSecretKeyFn); err != nil || loggedIn {
-			return
-		}
-	}
-	return s.tryPassphrasePromptLogin(m, username, secretUI)
+	return errors.New("deprecated")
 }
 
 // loginHandle creates a loginReq from a loginHandler and puts it
@@ -1123,42 +1053,6 @@ func (s *LoginState) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
 	return err
 }
 
-func (s *LoginState) Keyring(h func(*SKBKeyringFile), name string) error {
-	var err error
-	aerr := s.Account(func(a *Account) {
-		var kr *SKBKeyringFile
-		kr, err = a.Keyring()
-		if err != nil {
-			return
-		}
-		h(kr)
-	}, name)
-	if aerr != nil {
-		return aerr
-	}
-	return err
-}
-
-func (s *LoginState) MutateKeyring(h func(*SKBKeyringFile) *SKBKeyringFile, name string) error {
-	var err error
-	aerr := s.Account(func(a *Account) {
-		var kr *SKBKeyringFile
-		kr, err = a.Keyring()
-		if err != nil {
-			return
-		}
-		if h(kr) != nil {
-			// Clear out the in-memory cache of this keyring.
-			a.ClearKeyring()
-		}
-	}, name)
-	if aerr != nil {
-		return aerr
-	}
-	return err
-
-}
-
 func (s *LoginState) LoggedIn() bool {
 	var res bool
 	err := s.Account(func(a *Account) {
@@ -1233,50 +1127,4 @@ func (s *LoginState) SessionLoadAndCheck(force bool) (bool, error) {
 		return false, err
 	}
 	return sessionValid, nil
-}
-
-func IsLoggedIn(g *GlobalContext, lih LoggedInHelper) (ret bool, uid keybase1.UID, err error) {
-	if lih == nil {
-		lih = g.LoginState()
-	}
-	ret, err = lih.LoggedInLoad()
-	if ret && err == nil {
-		uid = lih.GetUID()
-	}
-	return ret, uid, err
-}
-
-// UnverifiedPassphraseStream takes a passphrase as a parameter and
-// also the salt from the Account and computes a Triplesec and
-// a passphrase stream.  It's not verified through a Login.
-func UnverifiedPassphraseStream(m MetaContext, passphrase string) (tsec Triplesec, ret *PassphraseStream, err error) {
-	username := m.G().Env.GetUsername().String()
-	lctx := m.LoginContext()
-	var salt []byte
-	if lctx != nil {
-		if len(username) > 0 {
-			err = lctx.LoadLoginSession(username)
-			if err != nil {
-				return nil, nil, err
-			}
-		}
-		salt, err = lctx.LoginSession().Salt()
-	} else {
-		aerr := m.G().LoginState().Account(func(a *Account) {
-			if len(username) > 0 {
-				err = a.LoadLoginSession(username)
-				if err != nil {
-					return
-				}
-			}
-			salt, err = a.LoginSession().Salt()
-		}, "skb - salt")
-		if aerr != nil {
-			return nil, nil, aerr
-		}
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-	return StretchPassphrase(m.G(), passphrase, salt)
 }

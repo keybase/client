@@ -40,11 +40,6 @@ const metaMapReducer = (metaMap, action) => {
         action.payload.conversationIDKey,
         meta => (meta ? meta.set('offline', action.payload.offline) : meta)
       )
-    case Chat2Gen.metaUpdatePagination:
-      return metaMap.update(
-        action.payload.conversationIDKey,
-        meta => (meta ? meta.set('paginationKey', action.payload.paginationKey) : meta)
-      )
     case Chat2Gen.metaDelete:
       return metaMap.delete(action.payload.conversationIDKey)
     case Chat2Gen.notificationSettingsUpdated:
@@ -117,7 +112,9 @@ const metaMapReducer = (metaMap, action) => {
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
-              return action.payload.fromEphemeralPurge ? meta : Constants.updateMeta(old, meta)
+              return action.payload.fromEphemeralPurge || action.payload.fromExpunge
+                ? meta
+                : Constants.updateMeta(old, meta)
             } else {
               return neverCreate ? old : meta
             }
@@ -150,7 +147,9 @@ const metaMapReducer = (metaMap, action) => {
 const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return messageMap.deleteAll(action.payload.conversationIDKeys)
+      return action.payload.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear
+        ? messageMap.deleteAll(action.payload.conversationIDKeys)
+        : messageMap
     case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete:
       return messageMap.updateIn(
@@ -283,7 +282,9 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
 const messageOrdinalsReducer = (messageOrdinals, action) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return messageOrdinals.deleteAll(action.payload.conversationIDKeys)
+      return action.payload.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear
+        ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
+        : messageOrdinals
     case Chat2Gen.metasReceived:
       const existingPending = messageOrdinals.get(Constants.pendingConversationIDKey)
       if (action.payload.clearExistingMessages) {
@@ -426,15 +427,12 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return editingMap
       })
     case Chat2Gen.messageSetQuoting:
-      return state.update('quotingMap', quotingMap => {
-        const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
-        // clearing
-        if (!ordinal) {
-          return quotingMap.delete(targetConversationIDKey)
-        }
-        // quoting a specific message
-        return quotingMap.set(targetConversationIDKey, {ordinal, sourceConversationIDKey})
-      })
+      const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
+      const counter = (state.quote ? state.quote.counter : 0) + 1
+      return state.set(
+        'quote',
+        Constants.makeQuoteInfo({counter, ordinal, sourceConversationIDKey, targetConversationIDKey})
+      )
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
 
@@ -613,14 +611,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           }
           return arr
         }, upToOrdinals)
-
-        const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
-        ordinals.reduce((arr, ordinal) => {
-          if (Types.ordinalToNumber(ordinal) < upToMessageID) {
-            arr.push(ordinal)
-          }
-          return arr
-        }, upToOrdinals)
       }
 
       const allOrdinals = I.Set(
@@ -663,6 +653,11 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         )
       })
     }
+    case Chat2Gen.updateMoreToLoad:
+      return state.update('moreToLoadMap', moreToLoadMap =>
+        moreToLoadMap.set(action.payload.conversationIDKey, action.payload.moreToLoad)
+      )
+
     case Chat2Gen.updateConvExplodingModes:
       const {modes} = action.payload
       const explodingMap = modes.reduce((map, mode) => {
@@ -686,7 +681,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.markConversationsStale:
     case Chat2Gen.notificationSettingsUpdated:
     case Chat2Gen.metaDelete:
-    case Chat2Gen.metaUpdatePagination:
     case Chat2Gen.setConversationOffline:
     case Chat2Gen.updateConvRetentionPolicy:
     case Chat2Gen.updateTeamRetentionPolicy:

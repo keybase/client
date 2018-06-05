@@ -34,19 +34,7 @@ export type SmallProps = {
 }
 
 const SmallUserNotice = (props: SmallProps) => (
-  <Box
-    style={{
-      flex: 1,
-      marginTop: globalMargins.xtiny,
-      marginBottom: globalMargins.xtiny,
-      marginLeft: globalMargins.tiny,
-      marginRight: globalMargins.medium,
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-    }}
-    title={props.title}
-  >
+  <Box style={styleSmallNotice} title={props.title}>
     <Avatar
       onClick={props.onAvatarClicked}
       size={32}
@@ -59,6 +47,23 @@ const SmallUserNotice = (props: SmallProps) => (
     </Box>
   </Box>
 )
+const styleSmallNotice = platformStyles({
+  common: {
+    flex: 1,
+    marginTop: globalMargins.xtiny,
+    marginBottom: globalMargins.xtiny,
+    marginRight: globalMargins.medium,
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  isElectron: {
+    marginLeft: globalMargins.small,
+  },
+  isMobile: {
+    marginLeft: globalMargins.tiny,
+  },
+})
 
 const styleOuterBox = {
   ...globalStyles.flexBoxColumn,

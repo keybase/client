@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Box, NativeImage} from '../../../../../common-adapters/mobile.native'
 import {collapseStyles} from '../../../../../styles'
+import {isAndroid} from '../../../../../constants/platform'
 import type {Props} from '.'
 
 const explodedUllustrationURL = require('../../../../../images/icons/pattern-ashes-mobile-400-80.png')
@@ -31,7 +32,7 @@ class HeightRetainer extends React.Component<Props, State> {
           <NativeImage
             source={explodedUllustrationURL}
             style={{width: '100%', height: '100%'}}
-            resizeMode="repeat"
+            resizeMode={isAndroid ? 'cover' : 'repeat'}
           />
         )}
         {!this.props.retainHeight && this.props.children}

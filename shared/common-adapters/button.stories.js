@@ -3,7 +3,7 @@ import {Box2} from './box'
 import Button from './button'
 import * as React from 'react'
 import {storiesOf, action} from '../stories/storybook'
-import {isMobile} from '../styles'
+import {globalColors, isMobile} from '../styles'
 
 const commonProps = {
   backgroundMode: 'Normal',
@@ -33,6 +33,13 @@ const Wrapper = ({children}) => (
 )
 
 const types = ['Primary', 'Secondary', 'Danger', 'Wallet', 'PrimaryGreen', 'PrimaryGreenActive']
+const backgroundModes = ['Red', 'Green', 'Blue', 'Black']
+const modeToColor = {
+  Black: globalColors.black,
+  Blue: globalColors.blue,
+  Green: globalColors.green,
+  Red: globalColors.red,
+}
 
 const load = () => {
   storiesOf('Common', module).add('Button', () => (
@@ -82,6 +89,13 @@ const load = () => {
           ))}
         </Box2>
       </Wrapper>
+      <Box2 direction="vertical" style={{alignSelf: 'flex-start'}}>
+        {backgroundModes.map(b => (
+          <Box2 direction="horizontal" key={b} style={{backgroundColor: modeToColor[b], padding: 20}}>
+            <Button {...commonProps} type="PrimaryColoredBackground" label={b} backgroundMode={b} />
+          </Box2>
+        ))}
+      </Box2>
     </Box2>
   ))
 }

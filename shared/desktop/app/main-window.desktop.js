@@ -2,12 +2,11 @@
 import AppState from './app-state.desktop'
 import Window from './window.desktop'
 import getenv from 'getenv'
-import hotPath from '../hot-path.desktop'
+import hotPath from './hot-path.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon.desktop'
-import {injectReactQueryParams} from '../../util/dev'
-import {resolveRootAsURL} from '../resolve-root.desktop'
+import {getRendererHTML} from './dev.desktop'
 import {windowStyle} from '../../styles'
 import {isWindows} from '../../constants/platform'
 
@@ -16,9 +15,15 @@ export default function() {
   // download for webviews. If we decide to start using partitions for
   // webviews, we should make sure to attach this to those partitions too.
   SafeElectron.getSession().defaultSession.on('will-download', event => event.preventDefault())
-  // Disallow any permissions requests
+  // Disallow any permissions requests except for notifications
   SafeElectron.getSession().defaultSession.setPermissionRequestHandler(
     (webContents, permission, callback) => {
+      const ourURL = getRendererHTML('mainWindow')
+      const requestURL = webContents.getURL()
+      if (permission === 'notifications' && requestURL === ourURL) {
+        // Allow notifications
+        return callback(true)
+      }
       return callback(false)
     }
   )
@@ -26,19 +31,16 @@ export default function() {
   let appState = new AppState()
   appState.checkOpenAtLogin()
 
-  const mainWindow = new Window(
-    resolveRootAsURL('renderer', injectReactQueryParams(`renderer${__DEV__ ? '.dev' : ''}.html?mainWindow`)),
-    {
-      backgroundThrottling: false,
-      height: appState.state.height,
-      minHeight: windowStyle.minHeight,
-      minWidth: windowStyle.minWidth,
-      show: false,
-      width: appState.state.width,
-      x: appState.state.x,
-      y: appState.state.y,
-    }
-  )
+  const mainWindow = new Window(getRendererHTML('mainWindow'), {
+    backgroundThrottling: false,
+    height: appState.state.height,
+    minHeight: windowStyle.minHeight,
+    minWidth: windowStyle.minWidth,
+    show: false,
+    width: appState.state.width,
+    x: appState.state.x,
+    y: appState.state.y,
+  })
 
   const webContents = mainWindow.window.webContents
   webContents.on('did-finish-load', () => {
