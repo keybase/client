@@ -31,12 +31,14 @@ export type Props = {
     | 'Danger'
     | 'Wallet'
     | 'PrimaryGreen'
-    | 'PrimaryGreenActive',
+    | 'PrimaryGreenActive'
+    | 'PrimaryColoredBackground'
+    | 'SecondaryColoredBackground',
   disabled?: ?boolean,
   waiting?: ?boolean,
   small?: boolean,
   fullWidth?: boolean,
-  backgroundMode?: 'Normal' | 'Terminal',
+  backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black',
   className?: string,
 }
 
@@ -52,6 +54,10 @@ class Button extends React.Component<Props> {
       ? {
           Normal: '',
           Terminal: 'OnTerminal',
+          Red: 'Red',
+          Green: 'Green',
+          Blue: 'Blue',
+          Black: 'Black',
         }[this.props.backgroundMode]
       : ''
 
@@ -166,6 +172,11 @@ const containerStyles = styleSheetCreate({
   Secondary: {...common, backgroundColor: globalColors.lightGrey2},
   SecondaryOnTerminal: {...common, backgroundColor: globalColors.blue_30},
   Wallet: {...common, backgroundColor: globalColors.purple2},
+  PrimaryColoredBackgroundRed: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundGreen: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundBlue: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundBlack: {...common, backgroundColor: globalColors.white},
+  SecondaryColoredBackground: {...common, backgroundColor: globalColors.black_20},
 })
 
 const labelStyles = styleSheetCreate({
@@ -178,6 +189,11 @@ const labelStyles = styleSheetCreate({
   SecondaryLabel: {...commonLabel, color: globalColors.black_75},
   SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
   WalletLabel: commonLabel,
+  PrimaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.red},
+  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green},
+  PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
+  PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
+  SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},
 })
 
 const progressStyle = small => (isMobile ? undefined : {height: small ? 20 : 20})

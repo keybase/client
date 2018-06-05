@@ -5,7 +5,7 @@ import {Box} from './box'
 import {ModalPositionRelative} from './relative-popup-hoc.desktop'
 import type {Props} from './floating-box'
 
-const StyleOnlyBox = (props: any) => <Box style={props.style} children={props.children} />
+const StyleOnlyBox = (props: any) => <Box children={props.children} />
 const RelativeFloatingBox = ModalPositionRelative(StyleOnlyBox)
 
 type State = {
@@ -25,12 +25,16 @@ class FloatingBox extends React.Component<Props, State> {
       : {targetRect: null}
   }
 
+  _onHidden = () => {
+    this.props.onHidden && this.props.onHidden()
+  }
+
   render() {
     return (
       <RelativeFloatingBox
         position={this.props.position || 'bottom center'}
         targetRect={this.state.targetRect}
-        onClosePopup={this.props.onHidden}
+        onClosePopup={this._onHidden}
         propagateOutsideClicks={this.props.propagateOutsideClicks}
         style={this.props.containerStyle}
       >

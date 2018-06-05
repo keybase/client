@@ -490,9 +490,6 @@ func testRelay(t *testing.T, yank bool) {
 		}
 		getapuk(tcs[1])
 
-		_, err := stellar.CreateWallet(context.Background(), tcs[1].G)
-		require.NoError(t, err)
-
 		tcs[0].Backend.ImportAccountsForUser(tcs[claimant])
 
 		// The implicit team has an invite for the claimant. Now the sender signs them into the team.

@@ -165,7 +165,8 @@ func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username Nor
 	return p.localSession.SetLoggedIn(sessionID, csrf, username, uid, deviceID)
 }
 
-func (p *ProvisionalLoginContext) Keyring() (ret *SKBKeyringFile, err error) {
+func (p *ProvisionalLoginContext) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
+	defer m.CTrace("ProvisionalLoginContext#Keyring", func() error { return err })()
 	if p.skbKeyring != nil {
 		return p.skbKeyring, nil
 	}
@@ -191,6 +192,9 @@ func (p *ProvisionalLoginContext) SecretSyncer() *SecretSyncer {
 	return p.secretSyncer
 }
 func (p *ProvisionalLoginContext) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
+	if uid.IsNil() {
+		uid = p.GetUID()
+	}
 	return RunSyncer(m, p.secretSyncer, uid, (p.localSession != nil), p.localSession)
 }
 func (p *ProvisionalLoginContext) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
@@ -204,4 +208,13 @@ func (p *ProvisionalLoginContext) GetUnlockedPaperEncKey() GenericKey {
 }
 func (p *ProvisionalLoginContext) GetUnlockedPaperSigKey() GenericKey {
 	return nil
+}
+func (p *ProvisionalLoginContext) Salt() []byte {
+	if len(p.salt) > 0 {
+		return p.salt
+	}
+	if p.loginSession == nil {
+		return nil
+	}
+	return p.loginSession.salt
 }
