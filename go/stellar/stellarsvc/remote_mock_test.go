@@ -296,6 +296,18 @@ func (r *RemoteClientMock) SubmitRelayClaim(ctx context.Context, post stellar1.R
 	return r.Backend.SubmitRelayClaim(ctx, r.Tc, post)
 }
 
+func (r *RemoteClientMock) AcquireAutoClaimLock(ctx context.Context) (string, error) {
+	return "", fmt.Errorf("RemoteClientMock does not implement AcquireAutoClaimLock")
+}
+
+func (r *RemoteClientMock) ReleaseAutoClaimLock(ctx context.Context, token string) error {
+	return fmt.Errorf("RemoteClientMock does not implement ReleaseAutoClaimLock")
+}
+
+func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, error) {
+	return nil, fmt.Errorf("RemoteClientMock does not implement NextAutoClaim")
+}
+
 func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
 	return r.Backend.RecentPayments(ctx, r.Tc, accountID, limit)
 }
