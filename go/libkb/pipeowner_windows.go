@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/sys/windows"
 )
 
@@ -68,13 +69,13 @@ func GetFileUserSid(name string) (*windows.SID, error) {
 	return userSID, nil
 }
 
-func IsPipeowner(name string) (bool, error) {
+func IsPipeowner(log logger.Logger, name string) (bool, error) {
 	userSid, err := currentProcessUserSid()
 	if err != nil {
 		return false, err
 	}
 
-	fileSid, err := GetFileUserSid(name)
+	pipeSid, err := GetFileUserSid(name)
 	if err == PipeBusyError {
 		// If at least one instance of the pipe has been created, this function
 		// will wait timeout milliseconds for it to become available.
@@ -85,10 +86,21 @@ func IsPipeowner(name string) (bool, error) {
 		if err2 != nil {
 			return false, err // return original busy error
 		}
-		fileSid, err = GetFileUserSid(name)
+		pipeSid, err = GetFileUserSid(name)
 	}
 	if err != nil {
 		return false, err
 	}
-	return windows.EqualSid(fileSid, userSid), nil
+	isEqual := windows.EqualSid(pipeSid, userSid)
+	if !isEqual {
+		pipeAccount, pipeDomain, pipeAccType, pipeErr := pipeSid.LookupAccount("")
+		userAccount, userDomain, userAccType, userErr := userSid.LookupAccount("")
+		log.Debug("Pipe account: %s, %s, %v, %v", pipeAccount, pipeDomain, pipeAccType, pipeErr)
+		log.Debug("User account: %s, %s, %v, %v", userAccount, userDomain, userAccType, userErr)
+		// If the pipe is served by an admin, let local security policies control access
+		if pipeAccount == "Administrators" && pipeDomain == "BUILTIN" && pipeAccType == syscall.SidTypeAlias {
+			return true, nil
+		}
+	}
+	return isEqual, nil
 }
