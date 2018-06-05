@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -19,17 +20,31 @@ type LocalStorageEngine interface {
 	Load(gregor.UID) ([]byte, [][]byte, [][]byte, error)
 }
 
+type TestingEvents struct {
+	OutboxSend chan gregor1.Message
+}
+
+func NewTestingEvents() *TestingEvents {
+	return &TestingEvents{
+		OutboxSend: make(chan gregor1.Message, 10),
+	}
+}
+
 type Client struct {
 	User    gregor.UID
 	Device  gregor.DeviceID
 	Sm      gregor.StateMachine
 	Storage LocalStorageEngine
 	Log     logger.Logger
+	Clock   clockwork.Clock
 
 	incomingClient func() gregor1.IncomingInterface
 	outboxSendCh   chan struct{}
 	stopCh         chan struct{}
 	createSm       func() gregor.StateMachine
+
+	// testing events
+	TestingEvents *TestingEvents
 }
 
 func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.StateMachine,
@@ -40,6 +55,7 @@ func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.S
 		Sm:             createSm(),
 		Storage:        storage,
 		Log:            log,
+		Clock:          clockwork.NewRealClock(),
 		outboxSendCh:   make(chan struct{}, 100),
 		stopCh:         make(chan struct{}),
 		incomingClient: incomingClient,
@@ -449,6 +465,9 @@ func (c *Client) outboxSend() {
 			c.Log.Debug("outboxSend: failed to consume message: %s", err)
 			break
 		}
+		if c.TestingEvents != nil {
+			c.TestingEvents.OutboxSend <- m.(gregor1.Message)
+		}
 	}
 	for i := index; i < len(msgs); i++ {
 		newOutbox = append(newOutbox, msgs[i])
@@ -460,12 +479,13 @@ func (c *Client) outboxSend() {
 	if err := c.Save(context.Background()); err != nil {
 		c.Log.Debug("outboxSend: failed to save state: %s", err)
 	}
+
 }
 
 func (c *Client) outboxSendLoop() {
 	for {
 		select {
-		case <-time.After(time.Minute):
+		case <-c.Clock.After(time.Minute):
 			c.outboxSend()
 		case <-c.outboxSendCh:
 			c.outboxSend()
