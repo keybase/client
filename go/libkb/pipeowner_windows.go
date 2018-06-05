@@ -70,6 +70,8 @@ func GetFileUserSid(name string) (*windows.SID, error) {
 }
 
 func IsPipeowner(log logger.Logger, name string) (bool, error) {
+	log.Debug("+ IsPipeowner")
+	defer log.Debug("- IsPipeowner")
 	userSid, err := currentProcessUserSid()
 	if err != nil {
 		return false, err
