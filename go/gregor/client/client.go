@@ -397,7 +397,7 @@ func (c *Client) filterLocalDismissals(ctx context.Context, state gregor.State) 
 	return filteredState
 }
 
-func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State) gregor.State {
+func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t gregor.TimeOrOffset) gregor.State {
 	msgs, err := c.Sm.Outbox(ctx, c.User)
 	if err != nil {
 		c.Log.CDebugf(ctx, "applyOutboxMessages: failed to read outbox: %s", err)
@@ -411,7 +411,7 @@ func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State) gr
 			return state
 		}
 	}
-	astate, err := sm.State(ctx, c.User, c.Device, gregor1.TimeOrOffset{})
+	astate, err := sm.State(ctx, c.User, c.Device, t)
 	if err != nil {
 		c.Log.CDebugf(ctx, "applyOutboxMessages: failed to read state back out: %s", err)
 		return state
@@ -427,7 +427,7 @@ func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset,
 	}
 	if applyLocalState {
 		st = c.filterLocalDismissals(ctx, st)
-		st = c.applyOutboxMessages(ctx, st)
+		st = c.applyOutboxMessages(ctx, st, t)
 	}
 	return st, nil
 }
