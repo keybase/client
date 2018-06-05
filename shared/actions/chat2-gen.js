@@ -288,7 +288,7 @@ type _SetConversationOfflinePayload = $ReadOnly<{|
 type _SetExplodingMessagesNewPayload = $ReadOnly<{|new: boolean|}>
 type _SetExplodingModeLockPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  seconds: ?number,
+  unset?: boolean,
 |}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetLoadingPayload = $ReadOnly<{|
@@ -339,7 +339,7 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
 /**
- * Set or unset a lock on the exploding mode for a conversation. Supply `null` for `seconds` to unset
+ * Set a lock on the exploding mode for a conversation.
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
 /**

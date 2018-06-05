@@ -670,11 +670,12 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       }, {})
       return state.set('explodingModes', I.Map(explodingMap))
     case Chat2Gen.setExplodingModeLock:
-      const {conversationIDKey, seconds} = action.payload
-      if (seconds) {
-        return state.setIn(['explodingModeLocks', conversationIDKey], seconds)
+      const {conversationIDKey, unset} = action.payload
+      const mode = state.getIn(['explodingModes', conversationIDKey], 0)
+      if (unset) {
+        return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
-      return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
+      return state.setIn(['explodingModeLocks', conversationIDKey], mode)
     case Chat2Gen.setExplodingMessagesNew:
       return state.set('isExplodingNew', action.payload.new)
     // metaMap/messageMap/messageOrdinalsList only actions

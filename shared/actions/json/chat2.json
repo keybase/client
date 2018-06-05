@@ -389,9 +389,9 @@
       "seconds": "number"
     },
     "setExplodingModeLock": {
-      "_description": "Set or unset a lock on the exploding mode for a conversation. Supply `null` for `seconds` to unset",
+      "_description": "Set a lock on the exploding mode for a conversation.",
       "conversationIDKey": "Types.ConversationIDKey",
-      "seconds": "?number"
+      "unset?": "boolean"
     },
     "updateConvExplodingModes": {
       "_description": "Handle an update to our conversation exploding modes.",
