@@ -106,7 +106,6 @@ function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
     const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
     if (kbfsMount && fs.existsSync(kbfsMount)) {
       status.installStatus = 4 // installed
-      status.installAction = 1 // none
       status.kextStarted = true
     }
   }
