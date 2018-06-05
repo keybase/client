@@ -956,7 +956,7 @@ func TestOfflineConsume(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 	tc.G.SetService()
-	_, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, tc)
 
 	fclient := newFlakeyIncomingClient(func() gregor1.IncomingInterface { return server })
 	client := grclient.NewClient(uid, nil, func() gregor.StateMachine {
@@ -966,6 +966,7 @@ func TestOfflineConsume(t *testing.T) {
 	client.TestingEvents = tev
 	fc := clockwork.NewFakeClock()
 	client.Clock = fc
+	h.gregorCli = client
 
 	// Try to consume offline
 	t.Logf("offline")
@@ -1005,6 +1006,7 @@ func TestOfflineConsume(t *testing.T) {
 		Uid: uid,
 	})
 	require.NoError(t, err)
+	require.NoError(t, broadcastMessageTesting(t, h, msg))
 	require.Equal(t, 1, len(serverState.Items_))
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		serverState.Items_[0].Metadata().MsgID().String())

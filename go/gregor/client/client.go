@@ -422,6 +422,9 @@ func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t 
 		c.Log.CDebugf(ctx, "applyOutboxMessages: failed to read outbox: %s", err)
 		return state
 	}
+	if len(msgs) == 0 {
+		return state
+	}
 	sm := c.createSm()
 	sm.InitState(state)
 	for _, m := range msgs {
@@ -452,6 +455,7 @@ func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset,
 }
 
 func (c *Client) outboxSend() {
+	c.Log.Debug("outboxSend: running")
 	var newOutbox []gregor.Message
 	msgs, err := c.Sm.Outbox(context.Background(), c.User)
 	if err != nil {
@@ -498,15 +502,18 @@ func (c *Client) outboxSend() {
 }
 
 func (c *Client) outboxSendLoop() {
+	deadline := c.Clock.Now().Add(time.Minute)
 	for {
+		var now time.Time
 		select {
-		case <-c.Clock.After(time.Minute):
+		case now = <-c.Clock.AfterTime(deadline):
 			c.outboxSend()
 		case <-c.outboxSendCh:
 			c.outboxSend()
 		case <-c.stopCh:
 			return
 		}
+		deadline = now.Add(time.Minute)
 	}
 }
 
