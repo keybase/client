@@ -185,6 +185,7 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 					"We tried all revisions and couldn't find a working keygen")
 				return nil, errors.Errorf("Can't decrypt merkle leaf")
 			}
+			currRmd = nextRMDs[len(nextRMDs)-1].ReadOnly()
 		}
 	}
 }
