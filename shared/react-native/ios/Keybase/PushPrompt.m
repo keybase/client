@@ -22,15 +22,15 @@ RCT_EXPORT_MODULE(PushPrompt);
   return NO;
 }
 
-RCT_EXPORT_METHOD(getHasShownPushPrompt:resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getHasShownPushPrompt:getHasShownPushPromptWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
   UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
   [current getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
     if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined) {
-      resolve(NO);
+      resolve(@FALSE);
       return;
     }
-    resolve(YES);
+    resolve(@TRUE);
     return;
   }];
 }
