@@ -20,6 +20,7 @@ import {formatTextForQuoting} from '../../util/chat'
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   editingMap: I.Map(),
+  explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
   inboxFilter: '',
   isExplodingNew: true,

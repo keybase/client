@@ -67,6 +67,7 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
+export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
@@ -285,6 +286,10 @@ type _SetConversationOfflinePayload = $ReadOnly<{|
   offline: boolean,
 |}>
 type _SetExplodingMessagesNewPayload = $ReadOnly<{|new: boolean|}>
+type _SetExplodingModeLockPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  seconds: ?number,
+|}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetLoadingPayload = $ReadOnly<{|
   key: string,
@@ -333,6 +338,10 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
+/**
+ * Set or unset a lock on the exploding mode for a conversation. Supply `null` for `seconds` to unset
+ */
+export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
 /**
  * Set the remote exploding mode for a conversation.
  */
@@ -469,6 +478,7 @@ export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMod
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
 export type SetConversationOfflinePayload = $Call<typeof createSetConversationOffline, _SetConversationOfflinePayload>
 export type SetExplodingMessagesNewPayload = $Call<typeof createSetExplodingMessagesNew, _SetExplodingMessagesNewPayload>
+export type SetExplodingModeLockPayload = $Call<typeof createSetExplodingModeLock, _SetExplodingModeLockPayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
 export type SetLoadingPayload = $Call<typeof createSetLoading, _SetLoadingPayload>
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
@@ -541,6 +551,7 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingMessagesNewPayload
+  | SetExplodingModeLockPayload
   | SetInboxFilterPayload
   | SetLoadingPayload
   | SetPendingConversationExistingConversationIDKeyPayload
