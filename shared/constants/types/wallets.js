@@ -8,12 +8,7 @@ export type _Reserve = {
 }
 export type Reserve = I.RecordOf<_Reserve>
 
-export type _State = {
-  accountMap: any,
-  assetsMap: any,
-  paymentsMap: any,
-}
-export type State = I.RecordOf<_State>
+export type AccountID = string
 
 export type _Account = {
   accountID: string,
@@ -56,3 +51,10 @@ export type Account = I.RecordOf<_Account>
 export type Assets = I.RecordOf<_Assets>
 
 export type Payment = I.RecordOf<_Payment>
+
+export type _State = {
+  accountMap: I.Map<AccountID, _Account>,
+  assetsMap: I.Map<AccountID, I.List<_Assets>>,
+  paymentsMap: I.Map<AccountID, I.List<_Payment>>,
+}
+export type State = I.RecordOf<_State>
