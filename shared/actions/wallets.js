@@ -16,10 +16,8 @@ const loadAccountsSuccess = (res: ?Array<Types.Account>) =>
     })
   )
 
-const loadAssets = (action: WalletsGen.LoadAssetsPayload) => {
-  const {accountID} = action.payload
-  return Saga.call(RPCTypes.localGetAccountAssetsLocalRpcPromise, {accountID})
-}
+const loadAssets = (action: WalletsGen.LoadAssetsPayload) =>
+  Saga.call(RPCTypes.localGetAccountAssetsLocalRpcPromise, {accountID: action.payload.accountID})
 
 const loadAssetsSuccess = (res: any, action: WalletsGen.LoadAssetsPayload) => {
   const {accountID} = action.payload
@@ -31,10 +29,8 @@ const loadAssetsSuccess = (res: any, action: WalletsGen.LoadAssetsPayload) => {
   )
 }
 
-const loadPayments = (action: WalletsGen.LoadPaymentsPayload) => {
-  const {accountID} = action.payload
-  return Saga.call(RPCTypes.localGetPaymentsLocalRpcPromise, {accountID})
-}
+const loadPayments = (action: WalletsGen.LoadPaymentsPayload) =>
+  Saga.call(RPCTypes.localGetPaymentsLocalRpcPromise, {accountID: action.payload.accountID})
 
 const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) => {
   const {accountID} = action.payload

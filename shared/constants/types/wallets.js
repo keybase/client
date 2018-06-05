@@ -53,8 +53,8 @@ export type Assets = I.RecordOf<_Assets>
 export type Payment = I.RecordOf<_Payment>
 
 export type _State = {
-  accountMap: I.Map<AccountID, _Account>,
-  assetsMap: I.Map<AccountID, I.List<_Assets>>,
-  paymentsMap: I.Map<AccountID, I.List<_Payment>>,
+  accountMap: I.Map<AccountID, Account>,
+  assetsMap: I.Map<AccountID, I.List<Assets>>,
+  paymentsMap: I.Map<AccountID, I.List<Payment>>,
 }
 export type State = I.RecordOf<_State>
