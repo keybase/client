@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, Button} from '../../common-adapters'
+import {Box, Text, Icon, Button, ConnectedUsernames} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 type Props = {
@@ -9,17 +9,25 @@ type Props = {
 }
 
 const Banner = ({isUserReset, resetParticipants}: Props) => {
+  if (!resetParticipants || resetParticipants.length === 0) {
+    return <Box />
+  }
   if (isUserReset) {
     // TODO: implement user's reset banner.
     return <Box />
   }
   return (
     <Box style={bannerStyle}>
-      { /* Put in skull image here */ }
+      { /* TODO: Put in skull image here */ }
       <Box style={headerTextContainerStyle}>
-        <Text type="BodySemibold" style={textStyle}>
-          foo lost all of their devices and this account has new keys.
-        </Text>
+        <Box style={globalStyles.flexBoxRow}>
+          <Box style={{marginRight: globalMargins.xtiny}}>
+            <ConnectedUsernames type="BodySemiboldLink" showAnd={true} inlineGrammar={true} commaColor={globalColors.white} clickable={true} underline={true} usernames={resetParticipants} style={textStyle} />
+          </Box>
+          <Text type="BodySemibold" style={textStyle}>
+            lost all of their devices and {resetParticipants.length === 1 ? 'this account has' : 'these accounts have'} new keys.
+          </Text>
+        </Box>
         <Text type="BodySemibold" style={textStyle}>
           If you want to let them into this folder and the matching chat, you should either:
         </Text>
@@ -37,9 +45,23 @@ const Banner = ({isUserReset, resetParticipants}: Props) => {
           Don't let them in until one of those is true.
         </Text>
       </Box>
-      <Box style={globalStyles.flexBoxRow}>
-        <Button type="PrimaryColoredBackground" backgroundMode="Red" label="Let them in" onClick={() => undefined} />
-        <Button type="SecondaryColoredBackground" label="Check out their profile" onClick={() => undefined} />
+      <Box style={globalStyles.flexBoxColumn}>
+        {resetParticipants.map(p =>
+          <Box key={p} style={actionRowStyle}>
+            <Button type="SecondaryColoredBackground" label={'View ' + p + '\'s profile'} onClick={() => undefined} style={firstButtonStyle} />
+            <Button type="PrimaryColoredBackground" backgroundMode="Red" label={'Let ' + p + ' back in'} onClick={() => undefined} />
+          </Box>
+        )
+        }
+      </Box>
+      <Box>
+        <Text type="BodySemibold" style={bottomTextStyle}>
+          Or until you're sure,{' '}
+        </Text>
+        <Text type="BodySemiboldLink" style={{...bottomTextStyle, textDecorationLine: 'underline'}}>
+          { /* TODO: put in a link to opening a folder here. */ }
+          open a folder without any of them.
+        </Text>
       </Box>
     </Box>
   )
@@ -82,6 +104,20 @@ const listTextContentStyle = {
   ...textStyle,
   paddingRight: 3 * globalMargins.xlarge,
   paddingBottom: globalMargins.xsmall,
+}
+
+const firstButtonStyle = {
+  marginRight: globalMargins.tiny,
+}
+
+const bottomTextStyle = {
+  ...textStyle,
+  marginTop: globalMargins.tiny,
+}
+
+const actionRowStyle = {
+  ...globalStyles.flexBoxRow,
+  marginBottom: globalMargins.tiny,
 }
 
 export default Banner
