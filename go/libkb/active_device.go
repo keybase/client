@@ -206,12 +206,12 @@ func (a *ActiveDevice) internalUpdateUIDDeviceID(lctx LoginContext, uid keybase1
 	return nil
 }
 
-func (a *ActiveDevice) Clear(acct *Account) error {
-	return a.clear(acct)
+func (a *ActiveDevice) Clear(lctx LoginContext) error {
+	return a.clear(lctx)
 }
 
 // Clear acquires the write lock and resets all the fields to zero values.
-func (a *ActiveDevice) clear(acct *Account) error {
+func (a *ActiveDevice) clear(lctx LoginContext) error {
 	a.Lock()
 	defer a.Unlock()
 

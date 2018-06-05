@@ -105,5 +105,5 @@ func SigningPublicKeyToKeybaseKID(k saltpack.SigningPublicKey) (ret keybase1.KID
 		return ret
 	}
 	p := k.ToKID()
-	return keybase1.KIDFromRawKey(p, KIDNaclEddsa)
+	return keybase1.KIDFromRawKey(p, byte(KIDNaclEddsa))
 }
