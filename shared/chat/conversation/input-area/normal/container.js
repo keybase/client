@@ -76,6 +76,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
+  onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
+    dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
@@ -105,7 +107,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   sendTyping: (typing: boolean) => {
     dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },
-  setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),
+  setUnsentText: (text: string) => {
+    if (text.length > 0) {
+      dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, false)
+    } else {
+      dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, true)
+    }
+    setUnsentText(stateProps.conversationIDKey, text)
+  },
   typing: stateProps.typing,
 })
 

@@ -139,8 +139,13 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
  */
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
-export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) =>
-  state.chat2.getIn(['explodingModeLocks', c], null) || state.chat2.getIn(['explodingModes', c], 0)
+export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) => {
+  let mode = state.chat2.getIn(['explodingModeLocks', c], null)
+  if (mode === null) {
+    mode = state.chat2.getIn(['explodingModes', c], 0)
+  }
+  return mode
+}
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>
