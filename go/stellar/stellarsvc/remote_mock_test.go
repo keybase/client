@@ -404,6 +404,12 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 	defer r.Unlock()
 	kbTxID := randomKeybaseTransactionID(r.T)
 
+	if post.QuickReturn {
+		msg := "SubmitPayment with QuickReturn not implemented on BackendMock"
+		r.T.Fatalf(msg)
+		return res, errors.New(msg)
+	}
+
 	// Unpack signed transaction and checks if Payment matches transaction.
 	unpackedTx, txIDPrecalc, err := unpackTx(post.SignedTransaction)
 
@@ -470,6 +476,12 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 	r.Lock()
 	defer r.Unlock()
 	kbTxID := randomKeybaseTransactionID(r.T)
+
+	if post.QuickReturn {
+		msg := "SubmitRelayPayment with QuickReturn not implemented on BackendMock"
+		r.T.Fatalf(msg)
+		return res, errors.New(msg)
+	}
 
 	unpackedTx, txIDPrecalc, err := unpackTx(post.SignedTransaction)
 	if err != nil {
