@@ -206,7 +206,7 @@ const realCSS = `
 }
 .message .menu-button {
   visibility: hidden;
-  height: 17;
+  height: 19;
   flex-shrink: 0;
   opacity: 0;
 }

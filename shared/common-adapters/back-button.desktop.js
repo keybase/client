@@ -36,6 +36,7 @@ export const styles = {
   },
   icon: {
     marginRight: 6,
+    lineHeight: 19,
   },
 }
 

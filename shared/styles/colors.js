@@ -43,7 +43,7 @@ const colors = {
   // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
   fastBlank: isAndroid ? undefined : '#ffffff',
   green: '#3DCCA6',
-  green2: '#34ad79',
+  green2: '#34AD8D',
   green3: '#E8FAF6',
   grey: '#cccccc',
   lightGrey: '#f0f0f0',

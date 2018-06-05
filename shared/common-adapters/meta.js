@@ -39,7 +39,7 @@ const Meta = (props: Props) => (
       style={collapseStyles([
         styles.text,
         props.color ? {color: props.color} : null,
-        props.size === 'Small' ? {fontSize: 9} : null,
+        props.size === 'Small' ? {fontSize: 10, lineHeight: '12px'} : null,
       ])}
     >
       {props.noUppercase ? props.title : props.title.toUpperCase()}
@@ -53,14 +53,17 @@ const styles = styleSheetCreate({
       ...globalStyles.flexBoxColumn,
       alignItems: 'center',
       alignSelf: 'flex-start',
-      borderRadius: 1,
+      borderRadius: 2,
     },
     isElectron: {
-      paddingLeft: 4,
-      paddingRight: 4,
+      paddingLeft: 2,
+      paddingRight: 3,
     },
     isMobile: {
-      padding: 2,
+      paddingBottom: 1,
+      paddingLeft: 3,
+      paddingTop: 2,
+      paddingRight: 3,
     },
   }),
   text: platformStyles({
@@ -69,15 +72,15 @@ const styles = styleSheetCreate({
     },
     isElectron: {
       display: 'block',
-      fontSize: 10,
-      fontWeight: '700',
-      lineHeight: 'initial',
-    },
-    isMobile: {
       fontSize: 11,
       fontWeight: '700',
-      height: 13,
-      lineHeight: 13,
+      lineHeight: '15px',
+    },
+    isMobile: {
+      fontSize: 13,
+      fontWeight: '700',
+      height: 15,
+      lineHeight: 15,
     },
   }),
 })

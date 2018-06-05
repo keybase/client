@@ -249,7 +249,7 @@ const stylesFullname = {
 }
 const stylesFollowLabel = platformStyles({
   isElectron: {
-    fontSize: 11,
+    fontSize: 12,
     textTransform: 'uppercase',
   },
 })

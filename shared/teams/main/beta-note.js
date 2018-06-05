@@ -10,22 +10,19 @@ export type Props = {
 const BetaNote = (props: Props) => (
   <InfoNote containerStyle={styles.container}>
     <Text
-      type="BodySmallSemibold"
+      type="BodySmallSecondaryLink"
       className="hover-underline"
       onClick={props.onReadMore}
       style={platformStyles({isElectron: {...desktopStyles.clickable}})}
     >
-      Read more about teams here
+      Read more about teams
     </Text>
   </InfoNote>
 )
 
 const styles = styleSheetCreate({
   container: {
-    marginBottom: globalMargins.small,
-    marginLeft: globalMargins.medium,
-    marginRight: globalMargins.medium,
-    marginTop: globalMargins.small,
+    margin: globalMargins.medium,
   },
 })
 
