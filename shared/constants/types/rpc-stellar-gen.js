@@ -169,6 +169,10 @@ export const remoteAcquireAutoClaimLockRpcChannelMap = (configKeys: Array<string
 
 export const remoteAcquireAutoClaimLockRpcPromise = (request: RemoteAcquireAutoClaimLockRpcParam): Promise<RemoteAcquireAutoClaimLockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.acquireAutoClaimLock', request, (error: RPCError, result: RemoteAcquireAutoClaimLockResult) => (error ? reject(error) : resolve(result))))
 
+export const remoteAwaitPendingRpcChannelMap = (configKeys: Array<string>, request: RemoteAwaitPendingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.awaitPending', request)
+
+export const remoteAwaitPendingRpcPromise = (request: RemoteAwaitPendingRpcParam): Promise<RemoteAwaitPendingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.awaitPending', request, (error: RPCError, result: RemoteAwaitPendingResult) => (error ? reject(error) : resolve(result))))
+
 export const remoteBalancesRpcChannelMap = (configKeys: Array<string>, request: RemoteBalancesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.balances', request)
 
 export const remoteBalancesRpcPromise = (request: RemoteBalancesRpcParam): Promise<RemoteBalancesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.balances', request, (error: RPCError, result: RemoteBalancesResult) => (error ? reject(error) : resolve(result))))
@@ -233,6 +237,8 @@ export type AccountMode =
 export type Asset = $ReadOnly<{type: String, code: String, issuer: String}>
 
 export type AutoClaim = $ReadOnly<{kbTxID: KeybaseTransactionID}>
+
+export type AwaitResult = $ReadOnly<{status: TransactionStatus}>
 
 export type Balance = $ReadOnly<{asset: Asset, amount: String, limit: String}>
 
@@ -345,7 +351,7 @@ export type OwnAccountCLILocal = $ReadOnly<{accountID: AccountID, isPrimary: Boo
 
 export type PaymentCLILocal = $ReadOnly<{txID: TransactionID, time: TimeMs, status: String, statusDetail: String, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, fromStellar: AccountID, toStellar?: ?AccountID, fromUsername?: ?String, toUsername?: ?String, note: String, noteErr: String}>
 
-export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String}>
+export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String, quickReturn: Boolean}>
 
 export type PaymentLocal = $ReadOnly<{id: String, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
 
@@ -353,9 +359,9 @@ export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?
 
 export type PaymentOrErrorLocal = $ReadOnly<{payment?: ?PaymentLocal, err?: ?String}>
 
-export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String}>
+export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String, quickReturn: Boolean}>
 
-export type PaymentResult = $ReadOnly<{keybaseID: KeybaseTransactionID, stellarID: TransactionID}>
+export type PaymentResult = $ReadOnly<{keybaseID: KeybaseTransactionID, stellarID: TransactionID, pending: Boolean}>
 
 export type PaymentStatus =
   | 0 // NONE_0
@@ -397,6 +403,8 @@ export type RelayDirection =
 export type RemoteAccountSeqnoRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteAcquireAutoClaimLockRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type RemoteAwaitPendingRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, kbTxID: KeybaseTransactionID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteBalancesRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -464,6 +472,7 @@ type LocalWalletDumpLocalResult = Bundle
 type LocalWalletGetAccountsCLILocalResult = ?Array<OwnAccountCLILocal>
 type RemoteAccountSeqnoResult = String
 type RemoteAcquireAutoClaimLockResult = String
+type RemoteAwaitPendingResult = AwaitResult
 type RemoteBalancesResult = ?Array<Balance>
 type RemoteDetailsResult = AccountDetails
 type RemoteIsMasterKeyActiveResult = Boolean

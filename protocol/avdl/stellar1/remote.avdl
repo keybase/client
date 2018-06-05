@@ -11,6 +11,9 @@ protocol remote {
     string displayCurrency;
     string noteB64; // b64-encoded EncryptedNote or empty string.
     string signedTransaction;
+    // If quickReturn == true then the RPC can return success
+    //   while the payment is still pending on the stellar network.
+    boolean quickReturn;
   }
 
   record PaymentRelayPost {
@@ -23,6 +26,7 @@ protocol remote {
     string displayCurrency;
     string boxB64; // b64-encoded EncryptedRelaySecret
     string signedTransaction; // Funding tx
+    boolean quickReturn; // Same as PaymentDirectPost.quickReturn but success refers to the funding of the relay.
   }
 
   record RelayClaimPost {
@@ -133,6 +137,15 @@ protocol remote {
   PaymentResult submitRelayPayment(keybase1.UserVersion caller, PaymentRelayPost payment);
 
   RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
+
+  // Wait for a direct payment or the funding of a relay payment to exit the PENDING state.
+  // Returns the new state of the payment.
+  // Times out with an error after around 30 seconds.
+  // Useful in combination with submit*'s quickReturn arg.
+  AwaitResult awaitPending(keybase1.UserVersion caller, KeybaseTransactionID kbTxID);
+  record AwaitResult {
+    TransactionStatus status;
+  }
 
   // Acquire the UV-specific lock for autoclaims.
   // Returns a token, or an empty string if the lock is unavailable.
