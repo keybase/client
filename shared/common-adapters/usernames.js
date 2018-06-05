@@ -4,7 +4,7 @@ import Text from './text'
 import shallowEqual from 'shallowequal'
 import {collapseStyles, globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
-import {connect} from 'react-redux'
+import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen.js'
@@ -228,5 +228,5 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const ConnectedUsernames = connect(mapStateToProps, mapDispatchToProps, mergeProps)(Usernames)
+const ConnectedUsernames = compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Usernames'))(Usernames)
 export {usernameText, Usernames, PlaintextUsernames, ConnectedUsernames}

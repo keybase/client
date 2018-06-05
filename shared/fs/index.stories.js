@@ -93,6 +93,14 @@ const provider = createPropProvider({
     onInvalidToken: action('onInvalidToken'),
     loadMimeType: action('loadMimeType'),
   }),
+  ResetBanner: () => ({
+    isUserReset: false,
+    resetParticipants: ['foo'],
+  }),
+  Usernames: () => ({
+    type: 'BodySemibold',
+    users: [{username: 'foo'}],
+  }),
 })
 
 const load = () => {
