@@ -25,15 +25,13 @@ const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   name: '',
 })
 
-const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) => {
-  const {accountID, balanceDescription, isDefault, name} = w
-  return makeAccount({
-    accountID,
-    balanceDescription,
-    isDefault,
-    name,
+const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
+  makeAccount({
+    accountID: w.accountID,
+    balanceDescription: w.balanceDescription,
+    isDefault: w.isDefault,
+    name: w.name,
   })
-}
 
 const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   assetCode: '',
@@ -45,18 +43,16 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   worthCurrency: '',
 })
 
-const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) => {
-  const {assetCode, balanceAvailableToSend, balanceTotal, issuer, name, worth, worthCurrency} = w
-  return makeAssets({
-    assetCode,
-    balanceAvailableToSend,
-    balanceTotal,
-    issuer,
-    name,
-    worth,
-    worthCurrency,
+const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
+  makeAssets({
+    assetCode: w.assetCode,
+    balanceAvailableToSend: w.balanceAvailableToSend,
+    balanceTotal: w.balanceTotal,
+    issuer: w.issuer,
+    name: w.name,
+    worth: w.worth,
+    worthCurrency: w.worthCurrency,
   })
-}
 
 const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
@@ -84,40 +80,24 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w.payment) {
     return makePayment({error: w.err})
   }
-  const {
-    amountDescription,
-    delta,
-    id,
-    note,
-    noteErr,
-    source,
-    sourceType,
-    statusDescription,
-    statusDetail,
-    statusSimplified,
-    target,
-    targetType,
-    time,
-    worth,
-    worthCurrency,
-  } = w.payment
+  const p = w.payment
   return makePayment({
-    amountDescription,
-    delta: balanceDeltaToString[delta],
+    amountDescription: p.amountDescription,
+    delta: balanceDeltaToString[p.delta],
     error: '',
-    id,
-    note,
-    noteErr,
-    source,
-    sourceType,
-    statusDescription,
-    statusDetail,
-    statusSimplified: statusSimplifiedToString[statusSimplified],
-    target,
-    targetType,
-    time,
-    worth,
-    worthCurrency,
+    id: p.id,
+    note: p.note,
+    noteErr: p.noteErr,
+    source: p.source,
+    sourceType: p.sourceType,
+    statusDescription: p.statusDescription,
+    statusDetail: p.statusDetail,
+    statusSimplified: statusSimplifiedToString[p.statusSimplified],
+    target: p.target,
+    targetType: p.targetType,
+    time: p.time,
+    worth: p.worth,
+    worthCurrency: p.worthCurrency,
   })
 }
 
