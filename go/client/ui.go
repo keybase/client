@@ -12,7 +12,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/lunixbochs/vtclean"
+	"github.com/keybase/client/go/escaper"
 	"github.com/mattn/go-isatty"
 
 	"golang.org/x/net/context"
@@ -804,7 +804,7 @@ func (ui *UI) Configure() error {
 		ui.outputWriter = ui.unescapedOutputWriter
 		ui.Terminal = NewTerminal(ui.G(), true)
 	} else {
-		ui.outputWriter = vtclean.NewUnbufferedWriter(ui.unescapedOutputWriter, false)
+		ui.outputWriter = &escaper.Writer{Writer: ui.unescapedOutputWriter}
 		ui.Terminal = NewTerminal(ui.G(), false)
 	}
 

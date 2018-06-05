@@ -7,8 +7,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/lunixbochs/vtclean"
-
+	"github.com/keybase/client/go/escaper"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/minterm"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -63,7 +62,7 @@ func (t *Terminal) Write(s string) error {
 	if t.rawWrites {
 		return t.engine.Write(s)
 	} else {
-		return t.engine.Write(vtclean.Clean(s, false))
+		return t.engine.Write(escaper.Clean(s))
 	}
 }
 

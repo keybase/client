@@ -11,8 +11,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/keybase/client/go/escaper"
 	"github.com/keybase/client/go/libkb"
-	"github.com/lunixbochs/vtclean"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	isatty "github.com/mattn/go-isatty"
@@ -205,7 +205,7 @@ type EscapedSink struct {
 }
 
 func (s *EscapedSink) Write(p []byte) (n int, err error) {
-	return s.Sink.Write(vtclean.CleanBytes(p, false)) // false is to escape colors as well.
+	return s.Sink.Write(escaper.CleanBytes(p))
 }
 
 type FileSink struct {
