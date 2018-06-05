@@ -53,7 +53,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
       : []
   )
 
-  const participants = I.OrderedSet(
+  const participants = I.List(
     i.localMetadata
       ? i.localMetadata.writerNames || []
       : parseFolderNameToUsers(username, i.name).map(ul => ul.username)
@@ -237,7 +237,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
-    participants: I.OrderedSet(i.participants || []),
+    participants: I.List(i.participants || []),
     resetParticipants,
     retentionPolicy,
     snippet: i.snippet,
@@ -265,7 +265,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   notificationsMobile: 'never',
   offline: false,
   orangeLineOrdinal: null,
-  participants: I.OrderedSet(),
+  participants: I.List(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
   retentionPolicy: makeRetentionPolicy(),

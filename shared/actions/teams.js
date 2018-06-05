@@ -644,7 +644,7 @@ function _afterGetChannelInfo(fromGetChannelInfo: any[]) {
   const channelInfo = Constants.makeChannelInfo({
     channelname: meta.channelname,
     description: meta.description,
-    participants: meta.participants,
+    participants: meta.participants.toSet(),
   })
   return Saga.put(TeamsGen.createSetTeamChannelInfo({teamname, conversationIDKey, channelInfo}))
 }

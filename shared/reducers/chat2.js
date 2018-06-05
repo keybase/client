@@ -62,10 +62,10 @@ const metaMapReducer = (metaMap, action) => {
           case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
             const {username, conversationIDKey} = action.payload
             const participants = error.rekeyInfo
-              ? I.OrderedSet(
+              ? I.Set(
                   [].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)
-                )
-              : I.OrderedSet(error.unverifiedTLFName.split(','))
+                ).toList()
+              : I.OrderedSet(error.unverifiedTLFName.split(',')).toList()
 
             const rekeyers = I.Set(
               error.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
@@ -360,7 +360,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         const s = (_s: Types.State)
         s.set('pendingMode', action.payload.pendingMode)
         if (action.payload.pendingMode === 'none') {
-          s.setIn(['metaMap', Constants.pendingConversationIDKey, 'participants'], I.OrderedSet())
+          s.setIn(['metaMap', Constants.pendingConversationIDKey, 'participants'], I.List())
           s.setIn(
             ['metaMap', Constants.pendingConversationIDKey, 'conversationIDKey'],
             Constants.noConversationIDKey
@@ -373,7 +373,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.setPendingConversationUsers:
       return state.setIn(
         ['metaMap', Constants.pendingConversationIDKey, 'participants'],
-        I.OrderedSet(action.payload.users)
+        I.List(action.payload.users)
       )
     case Chat2Gen.setPendingConversationExistingConversationIDKey:
       return state.setIn(
