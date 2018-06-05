@@ -10,6 +10,7 @@ import * as TeamsGen from './teams-gen'
 import * as TrackerGen from './tracker-gen'
 import * as UnlockFoldersGen from './unlock-folders-gen'
 import * as FsTypes from '../constants/types/fs'
+import * as TeamsConstants from '../constants/teams'
 import setUpNotificationActions from '../native/notification-listeners'
 import engine, {Engine} from '../engine'
 import logger from '../logger'
@@ -71,6 +72,7 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
     let team = filtered.get(path)
     if (!team) {
       team = {
+        badgeIDKey: TeamsConstants.resetUserBadgeIDToKey(item.id),
         name: item.teamname,
         visibility: 'team',
         resetParticipants: [],

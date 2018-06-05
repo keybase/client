@@ -451,6 +451,8 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
           ) {
             filtered.push([
               path, {
+                // TODO: should this be blank?
+                badgeIDKey: '',
                 name,
                 visibility,
                 resetParticipants: item.localMetadata.resetParticipants || [],

@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as Devices from './devices'
+import * as TeamsTypes from '../../constants/types/teams'
 import type {IconType} from '../../common-adapters'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
@@ -350,6 +351,7 @@ export type FavoriteFolder = {
 export type FileViewType = 'text' | 'image' | 'av' | 'pdf' | 'default'
 
 export type ResetMetadata = {
+  badgeIDKey: TeamsTypes.ResetUserBadgeIDKey,
   name: string,
   visibility: Visibility,
   resetParticipants: Array<string>,
