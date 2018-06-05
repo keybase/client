@@ -1062,6 +1062,10 @@ func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
 	return fmt.Fprintf(ui.OutputWriter(), format, a...)
 }
 
+func (ui *UI) PrintfUnescaped(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(ui.UnescapedOutputWriter(), format, a...)
+}
+
 func (ui *UI) Println(a ...interface{}) (int, error) {
 	return fmt.Fprintln(ui.OutputWriter(), a...)
 }
