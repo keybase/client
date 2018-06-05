@@ -142,7 +142,7 @@ func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) 
 		time.Sleep(wait)
 		wait = wait * 2
 	}
-	require.True(t, found, "found result after poll")
+	require.True(t, found, "whether condition was satisfied after polling ended")
 }
 
 func TestHome(t *testing.T) {

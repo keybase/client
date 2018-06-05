@@ -316,7 +316,6 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
-	sm := storage.NewMemEngine(of, clockwork.NewRealClock(), g.G().Log)
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID
@@ -348,8 +347,9 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	}
 
 	// Create client object
-	gcli := grclient.NewClient(guid, gdid, sm, storage.NewLocalDB(g.G().ExternalG()),
-		g.G().Env.GetGregorSaveInterval(), g.G().Log)
+	gcli := grclient.NewClient(guid, gdid, func() gregor.StateMachine {
+		return storage.NewMemEngine(of, clockwork.NewRealClock(), g.G().Log)
+	}, storage.NewLocalDB(g.G().ExternalG()), g.GetIncomingClient, g.G().Log)
 
 	// Bring up local state
 	g.Debug(ctx, "restoring state from leveldb")
@@ -358,6 +358,9 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 		g.Debug(ctx, "restore local state failed: %s", err)
 	}
 
+	if g.gregorCli != nil {
+		g.gregorCli.Stop()
+	}
 	g.gregorCli = gcli
 	return nil
 }
@@ -1616,6 +1619,7 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.dismissItem(%s)", id.String()),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	dismissal, err := g.templateMessage()
 	if err != nil {
@@ -1625,12 +1629,11 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
 		MsgIDs_: []gregor1.MsgID{gregor1.MsgID(id.Bytes())},
 	}
-
-	if cli == nil {
-		cli = gregor1.IncomingClient{Cli: g.cli}
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return err
 	}
-	err = cli.ConsumeMessage(ctx, *dismissal)
-	return err
+	return gcli.ConsumeMessage(ctx, *dismissal)
 }
 
 func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (err error) {
@@ -1640,6 +1643,7 @@ func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.localDismissItem(%s)", id.String()),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	cli, err := g.getGregorCli()
 	if err != nil {
@@ -1653,6 +1657,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.DismissCategory(%s)", category.String()),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	dismissal, err := g.templateMessage()
 	if err != nil {
@@ -1671,10 +1676,11 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 				},
 			}},
 	}
-
-	incomingClient := g.GetIncomingClient()
-	err = incomingClient.ConsumeMessage(ctx, *dismissal)
-	return err
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return err
+	}
+	return gcli.ConsumeMessage(ctx, *dismissal)
 }
 
 func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
@@ -1682,6 +1688,7 @@ func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte,
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.InjectItem(%s)", cat),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	creation, err := g.templateMessage()
 	if err != nil {
@@ -1693,9 +1700,11 @@ func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte,
 		Dtime_:    dtime,
 	}
 
-	incomingClient := gregor1.IncomingClient{Cli: g.cli}
-	err = incomingClient.ConsumeMessage(ctx, *creation)
-	return creation.Ibm_.StateUpdate_.Md_.MsgID_, err
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return nil, err
+	}
+	return creation.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *creation)
 }
 
 func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
@@ -1703,6 +1712,7 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.UpdateItem(%s,%s)", msgID.String(), cat),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	msg, err := g.templateMessage()
 	if err != nil {
@@ -1717,21 +1727,22 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 		MsgIDs_: []gregor1.MsgID{msgID},
 	}
 
-	incomingClient := gregor1.IncomingClient{Cli: g.cli}
-	err = incomingClient.ConsumeMessage(ctx, *msg)
-	return msg.Ibm_.StateUpdate_.Md_.MsgID_, err
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return nil, err
+	}
+	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *msg)
 }
 
-func (g *gregorHandler) InjectOutOfBandMessage(system string, body []byte) error {
+func (g *gregorHandler) InjectOutOfBandMessage(ctx context.Context, system string, body []byte) error {
 	var err error
-	defer g.G().Trace(fmt.Sprintf("gregorHandler.InjectOutOfBandMessage(%s)", system),
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.InjectOutOfBandMessage(%s)", system),
 		func() error { return err },
 	)()
 
 	uid := g.G().Env.GetUID()
 	if uid.IsNil() {
-		err = fmt.Errorf("Can't create new gregor items without a current UID.")
-		return err
+		return libkb.LoggedInError{}
 	}
 	gregorUID := gregor1.UID(uid.ToBytes())
 
@@ -1743,10 +1754,11 @@ func (g *gregorHandler) InjectOutOfBandMessage(system string, body []byte) error
 		},
 	}
 
-	incomingClient := gregor1.IncomingClient{Cli: g.cli}
-	// TODO: Should the interface take a context from the caller?
-	err = incomingClient.ConsumeMessage(context.TODO(), msg)
-	return err
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return err
+	}
+	return gcli.ConsumeMessage(ctx, msg)
 }
 
 func (g *gregorHandler) simulateCrashForTesting() {
@@ -1775,7 +1787,7 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 		return res, errors.New("gregor service not available (are you in standalone?)")
 	}
 
-	s, err = g.gregorCli.StateMachineState(ctx, nil, false)
+	s, err = g.gregorCli.StateMachineState(ctx, nil, true)
 	if err != nil {
 		return res, err
 	}

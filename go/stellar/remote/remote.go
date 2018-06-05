@@ -335,6 +335,58 @@ func SubmitRelayClaim(ctx context.Context, g *libkb.GlobalContext, post stellar1
 	return res.RelayClaimResult, nil
 }
 
+type acquireAutoClaimLockResult struct {
+	libkb.AppStatusEmbed
+	Result string `json:"result"`
+}
+
+func AcquireAutoClaimLock(ctx context.Context, g *libkb.GlobalContext) (string, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/acquireautoclaimlock",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  ctx,
+	}
+	var res acquireAutoClaimLockResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return "", err
+	}
+	return res.Result, nil
+}
+
+func ReleaseAutoClaimLock(ctx context.Context, g *libkb.GlobalContext, token string) error {
+	payload := make(libkb.JSONPayload)
+	payload["token"] = token
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/releaseautoclaimlock",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res libkb.AppStatusEmbed
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return err
+	}
+	return nil
+}
+
+type nextAutoClaimResult struct {
+	libkb.AppStatusEmbed
+	Result *stellar1.AutoClaim `json:"result"`
+}
+
+func NextAutoClaim(ctx context.Context, g *libkb.GlobalContext) (*stellar1.AutoClaim, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/nextautoclaim",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  ctx,
+	}
+	var res nextAutoClaimResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return nil, err
+	}
+	return res.Result, nil
+}
+
 type recentPaymentsResult struct {
 	libkb.AppStatusEmbed
 	Result []stellar1.PaymentSummary `json:"res"`

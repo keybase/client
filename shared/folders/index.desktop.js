@@ -24,8 +24,6 @@ export type Props = {
   onOpen?: (path: string) => void,
   onRekey: (path: string) => void,
   onToggleShowIgnored: () => void,
-  showSecurityPrefs?: boolean,
-  installed: boolean,
 }
 
 class FoldersRender extends Component<Props> {
@@ -68,7 +66,6 @@ class FoldersRender extends Component<Props> {
       onOpen: this.props.onOpen,
       onChat: this.props.onChat,
       onClick: this.props.onClick,
-      installed: this.props.installed,
     }
 
     return (
