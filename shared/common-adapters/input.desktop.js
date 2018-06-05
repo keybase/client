@@ -36,6 +36,7 @@ class Input extends React.PureComponent<Props, State> {
 
   componentDidMount = () => {
     this._autoResize()
+    this.props.autoFocus && this.focus()
   }
 
   static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
@@ -134,6 +135,7 @@ class Input extends React.PureComponent<Props, State> {
   focus = () => {
     const n = this._input
     n && n.focus()
+    this.props.selectTextOnFocus && this.select()
   }
 
   select = () => {
@@ -216,6 +218,7 @@ class Input extends React.PureComponent<Props, State> {
   _onFocus = () => {
     this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
+    this.props.selectTextOnFocus && this.select()
   }
 
   _onBlur = () => {

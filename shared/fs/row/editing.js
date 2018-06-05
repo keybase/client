@@ -17,67 +17,42 @@ type EditingProps = {
   onCancel: () => void,
 }
 
-type State = {
-  name: string,
-}
-
-class Editing extends React.PureComponent<EditingProps, State> {
-  _input: any
-
-  _setInputRef = r => {
-    this._input = r
-  }
-
-  _focusInput = () => {
-    if (!this._input) {
-      return
-    }
-    this._input.select()
-    this._input.focus()
-  }
-
-  componentDidMount() {
-    this._focusInput()
-  }
-
-  render() {
-    return (
-      <Box>
-        <Box style={rowStyles.row}>
-          <PathItemIcon spec={this.props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-          <Box key="main" style={rowStyles.itemBox}>
-            <Input
-              ref={this._setInputRef}
-              hideUnderline={true}
-              small={true}
-              value={this.props.name}
-              hintText={this.props.hint}
-              inputStyle={stylesText}
-              onEnterKeyDown={this.props.onSubmit}
-              onChangeText={name => this.props.onUpdate(name)}
-            />
-          </Box>
-          <Box key="right" style={rowStyles.rightBox}>
-            {this.props.status === 'failed' && <Text type="BodyError">Failed</Text>}
-            <Button
-              key="create"
-              style={stylesButton}
-              type="Primary"
-              small={true}
-              label={this.props.status === 'failed' ? 'Retry' : this.props.isCreate ? 'Create' : 'Save'}
-              waiting={this.props.status === 'saving'}
-              onClick={this.props.status === 'saving' ? undefined : this.props.onSubmit}
-            />
-            <ClickableBox style={stylesCancelBox} onClick={this.props.onCancel}>
-              <Icon type="iconfont-trash" color={globalColors.black_40} style={stylesIconCancel} />
-            </ClickableBox>
-          </Box>
-        </Box>
-        <Divider style={rowStyles.divider} />
+const Editing = (props: EditingProps) => (
+  <Box>
+    <Box style={rowStyles.row}>
+      <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
+      <Box key="main" style={rowStyles.itemBox}>
+        <Input
+          hideUnderline={true}
+          small={true}
+          value={props.name}
+          hintText={props.hint}
+          inputStyle={stylesText}
+          onEnterKeyDown={props.onSubmit}
+          onChangeText={name => props.onUpdate(name)}
+          autoFocus={true}
+          selectTextOnFocus={true}
+        />
       </Box>
-    )
-  }
-}
+      <Box key="right" style={rowStyles.rightBox}>
+        {props.status === 'failed' && <Text type="BodyError">Failed</Text>}
+        <Button
+          key="create"
+          style={stylesButton}
+          type="Primary"
+          small={true}
+          label={props.status === 'failed' ? 'Retry' : props.isCreate ? 'Create' : 'Save'}
+          waiting={props.status === 'saving'}
+          onClick={props.status === 'saving' ? undefined : props.onSubmit}
+        />
+        <ClickableBox style={stylesCancelBox} onClick={props.onCancel}>
+          <Icon type="iconfont-trash" color={globalColors.black_40} style={stylesIconCancel} />
+        </ClickableBox>
+      </Box>
+    </Box>
+    <Divider style={rowStyles.divider} />
+  </Box>
+)
 
 const stylesCancelBox = {
   ...globalStyles.flexBoxRow,
