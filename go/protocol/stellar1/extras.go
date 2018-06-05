@@ -178,6 +178,10 @@ func (p PaymentID) String() string {
 	return string(p)
 }
 
+func (p PaymentID) ToTransactionID() TransactionID {
+	return TransactionID(p)
+}
+
 func (p *PaymentSummary) ToDetails() *PaymentDetails {
 	return &PaymentDetails{
 		Summary: *p,

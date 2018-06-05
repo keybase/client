@@ -250,6 +250,10 @@
           "name": "publicNote"
         },
         {
+          "type": "string",
+          "name": "publicNoteType"
+        },
+        {
           "type": "TransactionID",
           "name": "transactionID"
         }

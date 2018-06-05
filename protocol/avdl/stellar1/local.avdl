@@ -90,6 +90,7 @@ protocol local {
     string noteErr;            
 
     string publicNote;           // public memo for the payment 
+    string publicNoteType;       // public memo type: "text", "id", "hash", "return"
     TransactionID transactionID; // stellar transaction ID
   }
 
