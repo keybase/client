@@ -40,9 +40,11 @@ protocol local {
     ERROR_4,
     UNKNOWN_5
   }
+
+  @typedef("string") record PaymentID {}
   
   record PaymentLocal {
-    string id;                 // For relay payments, the funding tx.
+    PaymentID id;               // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;  // "pending", "completed", "error"
@@ -69,7 +71,7 @@ protocol local {
   array<PaymentOrErrorLocal> getPaymentsLocal(int sessionID, AccountID accountID, union { null, TransactionID } olderThanTransactionID);
   
   record PaymentDetailsLocal {
-    string id;                 // For relay payments, the funding tx.
+    PaymentID id;              // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;  // "pending", "completed", "error"
@@ -84,11 +86,17 @@ protocol local {
     string target;             // keybase username, stellar public key, or sbs assertion
     string targetType;         // "keybase", "stellar", or "sbs"
 
-    string note;
-    string noteErr;
+    string note;               // encrypted note
+    string noteErr;            
+
+    string publicNote;           // public memo for the payment 
+    TransactionID transactionID; // stellar transaction ID
   }
 
-  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, string id);
+  // accountID should be the accountID that you want the details for.
+  // This is used for formatting the amountDescription to know if it is a payment that
+  // increases or decreases the balance.
+  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.

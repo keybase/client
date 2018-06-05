@@ -312,8 +312,8 @@ func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar
 	return r.Backend.RecentPayments(ctx, r.Tc, accountID, limit)
 }
 
-func (r *RemoteClientMock) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
-	return r.Backend.PaymentDetail(ctx, r.Tc, txID)
+func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
+	return r.Backend.PaymentDetails(ctx, r.Tc, txID)
 }
 
 func (r *RemoteClientMock) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
@@ -594,15 +594,16 @@ func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accou
 	return r.txLog.Filter(ctx, tc, accountID, limit), nil
 }
 
-func (r *BackendMock) PaymentDetail(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentSummary, err error) {
-	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetail", func() error { return err })()
+func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentDetails, err error) {
+	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetails", func() error { return err })()
 	r.Lock()
 	defer r.Unlock()
 	p := r.txLog.Find(txID)
 	if p == nil {
 		return res, fmt.Errorf("BackendMock: tx not found: '%v'", txID)
 	}
-	return *p, nil
+	res = *(p.ToDetails())
+	return res, nil
 }
 
 func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {

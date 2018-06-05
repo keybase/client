@@ -278,6 +278,18 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
+	details, err := s.remoter.PaymentDetails(ctx, arg.Id.String())
+	if err != nil {
+		return payment, err
+	}
+
+	summary, err := s.transformPaymentSummary(ctx, arg.AccountID, details.Summary)
+	if err != nil {
+		return payment, err
+	}
+
+	_ = summary
+
 	return payment, errors.New("not yet implemented")
 }
 

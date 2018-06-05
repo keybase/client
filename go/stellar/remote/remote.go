@@ -410,11 +410,10 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 
 type paymentDetailResult struct {
 	libkb.AppStatusEmbed
-	Result stellar1.PaymentSummary `json:"res"`
+	Result stellar1.PaymentDetails `json:"res"`
 }
 
-func PaymentDetail(ctx context.Context, g *libkb.GlobalContext,
-	txID string) (res stellar1.PaymentSummary, err error) {
+func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/paymentdetail",
 		SessionType: libkb.APISessionTypeREQUIRED,

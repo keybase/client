@@ -114,8 +114,14 @@ func (e PaymentStatus) String() string {
 	return ""
 }
 
+type PaymentID string
+
+func (o PaymentID) DeepCopy() PaymentID {
+	return o
+}
+
 type PaymentLocal struct {
-	Id                string        `codec:"id" json:"id"`
+	Id                PaymentID     `codec:"id" json:"id"`
 	Time              TimeMs        `codec:"time" json:"time"`
 	StatusSimplified  PaymentStatus `codec:"statusSimplified" json:"statusSimplified"`
 	StatusDescription string        `codec:"statusDescription" json:"statusDescription"`
@@ -134,7 +140,7 @@ type PaymentLocal struct {
 
 func (o PaymentLocal) DeepCopy() PaymentLocal {
 	return PaymentLocal{
-		Id:                o.Id,
+		Id:                o.Id.DeepCopy(),
 		Time:              o.Time.DeepCopy(),
 		StatusSimplified:  o.StatusSimplified.DeepCopy(),
 		StatusDescription: o.StatusDescription,
@@ -177,7 +183,7 @@ func (o PaymentOrErrorLocal) DeepCopy() PaymentOrErrorLocal {
 }
 
 type PaymentDetailsLocal struct {
-	Id                string        `codec:"id" json:"id"`
+	Id                PaymentID     `codec:"id" json:"id"`
 	Time              TimeMs        `codec:"time" json:"time"`
 	StatusSimplified  PaymentStatus `codec:"statusSimplified" json:"statusSimplified"`
 	StatusDescription string        `codec:"statusDescription" json:"statusDescription"`
@@ -192,11 +198,13 @@ type PaymentDetailsLocal struct {
 	TargetType        string        `codec:"targetType" json:"targetType"`
 	Note              string        `codec:"note" json:"note"`
 	NoteErr           string        `codec:"noteErr" json:"noteErr"`
+	PublicNote        string        `codec:"publicNote" json:"publicNote"`
+	TransactionID     TransactionID `codec:"transactionID" json:"transactionID"`
 }
 
 func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 	return PaymentDetailsLocal{
-		Id:                o.Id,
+		Id:                o.Id.DeepCopy(),
 		Time:              o.Time.DeepCopy(),
 		StatusSimplified:  o.StatusSimplified.DeepCopy(),
 		StatusDescription: o.StatusDescription,
@@ -211,6 +219,8 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		TargetType:        o.TargetType,
 		Note:              o.Note,
 		NoteErr:           o.NoteErr,
+		PublicNote:        o.PublicNote,
+		TransactionID:     o.TransactionID.DeepCopy(),
 	}
 }
 
@@ -410,8 +420,9 @@ type GetPaymentsLocalArg struct {
 }
 
 type GetPaymentDetailsLocalArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Id        string `codec:"id" json:"id"`
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Id        PaymentID `codec:"id" json:"id"`
 }
 
 type GetDisplayCurrenciesLocalArg struct {

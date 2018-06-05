@@ -414,10 +414,11 @@ func Claim(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
 	autoClaimToken *string) (res stellar1.RelayClaimResult, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Claim", func() error { return err })()
 	g.Log.CDebugf(ctx, "Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
-	p, err := remoter.PaymentDetail(ctx, txID)
+	details, err := remoter.PaymentDetails(ctx, txID)
 	if err != nil {
 		return res, err
 	}
+	p := details.Summary
 	typ, err := p.Typ()
 	if err != nil {
 		return res, fmt.Errorf("error getting payment details: %v", err)
@@ -542,11 +543,11 @@ func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter
 
 func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, txID string) (res stellar1.PaymentCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PaymentDetailCLILocal", func() error { return err })()
-	payment, err := remoter.PaymentDetail(ctx, txID)
+	payment, err := remoter.PaymentDetails(ctx, txID)
 	if err != nil {
 		return res, err
 	}
-	return localizePayment(ctx, g, payment)
+	return localizePayment(ctx, g, payment.Summary)
 }
 
 func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {

@@ -189,9 +189,9 @@ export const remoteNextAutoClaimRpcChannelMap = (configKeys: Array<string>, requ
 
 export const remoteNextAutoClaimRpcPromise = (request: RemoteNextAutoClaimRpcParam): Promise<RemoteNextAutoClaimResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.nextAutoClaim', request, (error: RPCError, result: RemoteNextAutoClaimResult) => (error ? reject(error) : resolve(result))))
 
-export const remotePaymentDetailRpcChannelMap = (configKeys: Array<string>, request: RemotePaymentDetailRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.paymentDetail', request)
+export const remotePaymentDetailsRpcChannelMap = (configKeys: Array<string>, request: RemotePaymentDetailsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.paymentDetails', request)
 
-export const remotePaymentDetailRpcPromise = (request: RemotePaymentDetailRpcParam): Promise<RemotePaymentDetailResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.paymentDetail', request, (error: RPCError, result: RemotePaymentDetailResult) => (error ? reject(error) : resolve(result))))
+export const remotePaymentDetailsRpcPromise = (request: RemotePaymentDetailsRpcParam): Promise<RemotePaymentDetailsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.paymentDetails', request, (error: RPCError, result: RemotePaymentDetailsResult) => (error ? reject(error) : resolve(result))))
 
 export const remotePaymentSummaryType = {
   none: 0,
@@ -301,7 +301,7 @@ export type LocalGetAvailableLocalCurrenciesRpcParam = ?$ReadOnly<{incomingCallM
 
 export type LocalGetDisplayCurrenciesLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetPaymentDetailsLocalRpcParam = $ReadOnly<{id: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetPaymentDetailsLocalRpcParam = $ReadOnly<{accountID: AccountID, id: PaymentID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetPaymentsLocalRpcParam = $ReadOnly<{accountID: AccountID, olderThanTransactionID?: ?TransactionID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -351,11 +351,15 @@ export type OwnAccountCLILocal = $ReadOnly<{accountID: AccountID, isPrimary: Boo
 
 export type PaymentCLILocal = $ReadOnly<{txID: TransactionID, time: TimeMs, status: String, statusDetail: String, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, fromStellar: AccountID, toStellar?: ?AccountID, fromUsername?: ?String, toUsername?: ?String, note: String, noteErr: String}>
 
-export type PaymentDetailsLocal = $ReadOnly<{id: String, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
+export type PaymentDetails = $ReadOnly<{summary: PaymentSummary, memo: String, memoType: String}>
+
+export type PaymentDetailsLocal = $ReadOnly<{id: PaymentID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String, publicNote: String, transactionID: TransactionID}>
 
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String, quickReturn: Boolean}>
 
-export type PaymentLocal = $ReadOnly<{id: String, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
+export type PaymentID = String
+
+export type PaymentLocal = $ReadOnly<{id: PaymentID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
 
 export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?: ?String}>
 
@@ -414,7 +418,7 @@ export type RemoteIsMasterKeyActiveRpcParam = $ReadOnly<{caller: Keybase1.UserVe
 
 export type RemoteNextAutoClaimRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemotePaymentDetailRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, txID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemotePaymentDetailsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, txID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemotePingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -477,7 +481,7 @@ type RemoteBalancesResult = ?Array<Balance>
 type RemoteDetailsResult = AccountDetails
 type RemoteIsMasterKeyActiveResult = Boolean
 type RemoteNextAutoClaimResult = ?AutoClaim
-type RemotePaymentDetailResult = PaymentSummary
+type RemotePaymentDetailsResult = PaymentDetails
 type RemotePingResult = String
 type RemoteRecentPaymentsResult = ?Array<PaymentSummary>
 type RemoteSubmitPaymentResult = PaymentResult

@@ -58,8 +58,8 @@ func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.Accou
 	return RecentPayments(ctx, r.G(), accountID, limit)
 }
 
-func (r *RemoteNet) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
-	return PaymentDetail(ctx, r.G(), txID)
+func (r *RemoteNet) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
+	return PaymentDetails(ctx, r.G(), txID)
 }
 
 func (r *RemoteNet) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {
