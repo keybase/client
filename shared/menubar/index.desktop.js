@@ -1,5 +1,5 @@
 // @flow
-import Folders, {type FolderType, type Props as FolderProps} from '../folders'
+import Folders, {type FolderType, type Props as FolderProps} from '../folders/index.desktop'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar, type IconType} from '../common-adapters'

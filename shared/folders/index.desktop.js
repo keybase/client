@@ -1,10 +1,9 @@
 // @flow
-import List from './list'
 import React, {Component} from 'react'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import type {Props as ListProps} from './list.desktop'
+import List, {type Props as ListProps} from './list.desktop'
 
 export type FolderType = 'public' | 'private' | 'team'
 

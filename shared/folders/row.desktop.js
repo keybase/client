@@ -4,7 +4,7 @@ import {Box, Button, Text, Icon, MultiAvatar, Avatar, Meta, Usernames} from '../
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, globalMargins, desktopStyles, platformStyles} from '../styles'
 
-import type {Folder} from './list'
+import type {Folder} from './list.desktop'
 
 class Avatars extends React.PureComponent<any> {
   render() {
@@ -109,36 +109,7 @@ type RowType = {
 
 class Row extends React.PureComponent<RowType & Folder> {
   render() {
-    const {
-      users,
-      isPublic,
-      isTeam,
-      hasReadOnlyUsers,
-      ignored,
-      installed,
-      meta,
-      modified,
-      onChat,
-      onOpen,
-      onClick,
-      onRekey,
-      path,
-      // sortName,
-    } = this.props
-    const onOpenClick = event => {
-      event.preventDefault()
-      event.stopPropagation()
-      if (onOpen) {
-        onOpen(path)
-      }
-    }
-    const onChatClick = event => {
-      event.preventDefault()
-      event.stopPropagation()
-      if (onChat) {
-        onChat(path)
-      }
-    }
+    const {users, isPublic, isTeam, ignored, meta, modified, onClick, onRekey, path} = this.props
     const styles = isPublic ? stylesPublic : stylesPrivate
 
     let redColor = globalColors.red

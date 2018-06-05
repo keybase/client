@@ -1,6 +1,6 @@
 // @flow
 import {isLinux} from '../constants/platform'
-import Folders, {type FolderType} from '.'
+import Folders, {type FolderType} from './index.desktop'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as FavoriteGen from '../actions/favorite-gen'

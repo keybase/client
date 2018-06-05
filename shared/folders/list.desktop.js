@@ -1,6 +1,6 @@
 // @flow
-import React, {Component} from 'react'
-import Row from './row'
+import * as React from 'react'
+import Row from './row.desktop'
 import {some} from 'lodash-es'
 import {Box, Text, Icon, List, type IconType} from '../common-adapters'
 import {globalStyles, globalColors, desktopStyles, platformStyles} from '../styles'
@@ -47,7 +47,7 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   )
 }
 
-class ListRender extends Component<Props> {
+class ListRender extends React.Component<Props> {
   static defaultProps: {
     extraRows: Array<any>,
     ignored: Array<any>,
