@@ -14,13 +14,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       const accountMap = I.Map(action.payload.accounts.map(account => [account.accountID, account]))
       return state.set('accountMap', accountMap)
     case WalletsGen.assetsReceived:
-      const {assets} = action.payload
-      return state.update('assetsMap', assetsMap => assetsMap.set(action.payload.accountID, I.List(assets)))
+      return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.paymentsReceived:
-      const {payments} = action.payload
-      return state.update('paymentsMap', paymentsMap =>
-        paymentsMap.set(action.payload.accountID, I.List(payments))
-      )
+      return state.setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
     // Saga only actions
     case WalletsGen.loadEverything:
     case WalletsGen.loadAssets:
