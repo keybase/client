@@ -9,7 +9,7 @@ func CheckTracking(g *GlobalContext) error {
 	// a fresh UPAK, then no op. On the case of a stale UPAK then we trigger
 	// a LoadUser, which will send UserChanged as it refreshes.
 	m := NewMetaContextBackground(g)
-	arg := NewLoadUserArgWithMetaContext(m).WithSelf(true).WithForcePoll(true)
+	arg := NewLoadUserArgWithMetaContext(m).WithUID(m.CurrentUID()).WithSelf(true).WithForcePoll(true)
 	_, _, err := g.GetUPAKLoader().LoadV2(arg)
 	return err
 }
