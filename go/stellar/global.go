@@ -15,7 +15,7 @@ import (
 
 func ServiceInit(g *libkb.GlobalContext, remoter remote.Remoter) {
 	if g.Env.GetRunMode() != libkb.ProductionRunMode {
-		stellarnet.SetClient(horizon.DefaultTestNetClient, build.TestNetwork)
+		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
 	}
 	g.SetStellar(NewStellar(g, remoter))
 }

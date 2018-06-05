@@ -192,5 +192,5 @@ func gift(t testing.TB, accountID stellar1.AccountID) {
 }
 
 func useStellarTestNet(t testing.TB) {
-	stellarnet.SetClient(horizon.DefaultTestNetClient, build.TestNetwork)
+	stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
 }
