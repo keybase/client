@@ -80,13 +80,13 @@ func (e EphemeralUnboxingError) Error() string {
 
 //=============================================================================
 
-type EphemeralKeyError struct{}
+type PublicTeamEphemeralKeyError struct{}
 
-func NewEphemeralKeyError() EphemeralKeyError {
-	return EphemeralKeyError{}
+func NewPublicTeamEphemeralKeyError() PublicTeamEphemeralKeyError {
+	return PublicTeamEphemeralKeyError{}
 }
 
-func (e EphemeralKeyError) Error() string {
+func (e PublicTeamEphemeralKeyError) Error() string {
 	return "Cannot use ephemeral messages for a public team."
 }
 
