@@ -1161,6 +1161,8 @@ const (
 	merkleErrorAncientSeqno
 	merkleErrorKBFSBadTree
 	merkleErrorKBFSMismatch
+	merkleErrorBadRoot
+	merkleErrorOldTree
 )
 
 type MerkleClientError struct {

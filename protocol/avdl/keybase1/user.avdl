@@ -163,4 +163,11 @@ protocol user {
    we'll start our search. Usually it's the next one, but not always
   */
   NextMerkleRootRes findNextMerkleRootAfterRevoke(UID uid, KID kid, SigChainLocation loc, MerkleRootV2 prev);
+
+  /**
+   FindNextMerkleRootAfterRest finds the first Merkle root that contains the UID reset
+   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
+   the reset. Usually, we'll just turn up the next Merkle root, but not always.
+  */
+  NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 }

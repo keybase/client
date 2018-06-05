@@ -23,6 +23,7 @@ export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
+export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -36,7 +37,6 @@ export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
 export const messageErrored = 'chat2:messageErrored'
-export const messageExploded = 'chat2:messageExploded'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
@@ -44,6 +44,7 @@ export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
+export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
 export const metaDelete = 'chat2:metaDelete'
 export const metaHandleQueue = 'chat2:metaHandleQueue'
@@ -65,6 +66,7 @@ export const sendTyping = 'chat2:sendTyping'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
+export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
@@ -123,6 +125,7 @@ type _DesktopNotificationPayload = $ReadOnly<{|
   author: string,
   body: string,
 |}>
+type _HandleSeeingExplodingMessagesPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|
@@ -166,11 +169,6 @@ type _MessageErroredPayload = $ReadOnly<{|
   reason: string,
   outboxID: Types.OutboxID,
 |}>
-type _MessageExplodedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: RPCChatTypes.MessageID,
-  explodedBy?: string,
-|}>
 type _MessageReplyPrivatelyPayload = $ReadOnly<{|
   sourceConversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -204,6 +202,11 @@ type _MessageWasEditedPayload = $ReadOnly<{|
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
   messages: Array<Types.Message>,
+|}>
+type _MessagesExplodedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageIDs: Array<RPCChatTypes.MessageID>,
+  explodedBy?: string,
 |}>
 type _MessagesWereDeletedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -281,6 +284,7 @@ type _SetConversationOfflinePayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   offline: boolean,
 |}>
+type _SetExplodingMessagesNewPayload = $ReadOnly<{|new: boolean|}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetLoadingPayload = $ReadOnly<{|
   key: string,
@@ -314,10 +318,6 @@ type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.Conver
  */
 export const createCreateConversation = (payload: _CreateConversationPayload) => ({error: false, payload, type: createConversation})
 /**
- * An exploding message expired or was manually detonated
- */
-export const createMessageExploded = (payload: _MessageExplodedPayload) => ({error: false, payload, type: messageExploded})
-/**
  * Consume a service notification that a conversation's retention policy has been updated
  */
 export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPolicyPayload) => ({error: false, payload, type: updateConvRetentionPolicy})
@@ -325,6 +325,10 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  * Consume a service notification that a team retention policy was updated
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({error: false, payload, type: updateTeamRetentionPolicy})
+/**
+ * Exploding messages expired or were manually detonated.
+ */
+export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({error: false, payload, type: messagesExploded})
 /**
  * Handle an update to our conversation exploding modes.
  */
@@ -334,9 +338,17 @@ export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingMode
  */
 export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({error: false, payload, type: setConvExplodingMode})
 /**
+ * Set whether exploding messages are a new feature or not.
+ */
+export const createSetExplodingMessagesNew = (payload: _SetExplodingMessagesNewPayload) => ({error: false, payload, type: setExplodingMessagesNew})
+/**
  * Sets the retention policy for a conversation.
  */
 export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPayload) => ({error: false, payload, type: setConvRetentionPolicy})
+/**
+ * Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things.
+ */
+export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplodingMessagesPayload) => ({error: false, payload, type: handleSeeingExplodingMessages})
 /**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
@@ -413,6 +425,7 @@ export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoading
 export type ClearOrdinalsPayload = $Call<typeof createClearOrdinals, _ClearOrdinalsPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
+export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
 export type LeaveConversationPayload = $Call<typeof createLeaveConversation, _LeaveConversationPayload>
@@ -426,7 +439,6 @@ export type MessageDeleteHistoryPayload = $Call<typeof createMessageDeleteHistor
 export type MessageDeletePayload = $Call<typeof createMessageDelete, _MessageDeletePayload>
 export type MessageEditPayload = $Call<typeof createMessageEdit, _MessageEditPayload>
 export type MessageErroredPayload = $Call<typeof createMessageErrored, _MessageErroredPayload>
-export type MessageExplodedPayload = $Call<typeof createMessageExploded, _MessageExplodedPayload>
 export type MessageReplyPrivatelyPayload = $Call<typeof createMessageReplyPrivately, _MessageReplyPrivatelyPayload>
 export type MessageRetryPayload = $Call<typeof createMessageRetry, _MessageRetryPayload>
 export type MessageSendPayload = $Call<typeof createMessageSend, _MessageSendPayload>
@@ -434,6 +446,7 @@ export type MessageSetEditingPayload = $Call<typeof createMessageSetEditing, _Me
 export type MessageSetQuotingPayload = $Call<typeof createMessageSetQuoting, _MessageSetQuotingPayload>
 export type MessageWasEditedPayload = $Call<typeof createMessageWasEdited, _MessageWasEditedPayload>
 export type MessagesAddPayload = $Call<typeof createMessagesAdd, _MessagesAddPayload>
+export type MessagesExplodedPayload = $Call<typeof createMessagesExploded, _MessagesExplodedPayload>
 export type MessagesWereDeletedPayload = $Call<typeof createMessagesWereDeleted, _MessagesWereDeletedPayload>
 export type MetaDeletePayload = $Call<typeof createMetaDelete, _MetaDeletePayload>
 export type MetaHandleQueuePayload = $Call<typeof createMetaHandleQueue, _MetaHandleQueuePayload>
@@ -455,6 +468,7 @@ export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayloa
 export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMode, _SetConvExplodingModePayload>
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
 export type SetConversationOfflinePayload = $Call<typeof createSetConversationOffline, _SetConversationOfflinePayload>
+export type SetExplodingMessagesNewPayload = $Call<typeof createSetExplodingMessagesNew, _SetExplodingMessagesNewPayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
 export type SetLoadingPayload = $Call<typeof createSetLoading, _SetLoadingPayload>
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
@@ -483,6 +497,7 @@ export type Actions =
   | ClearOrdinalsPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
+  | HandleSeeingExplodingMessagesPayload
   | InboxRefreshPayload
   | JoinConversationPayload
   | LeaveConversationPayload
@@ -496,7 +511,6 @@ export type Actions =
   | MessageDeletePayload
   | MessageEditPayload
   | MessageErroredPayload
-  | MessageExplodedPayload
   | MessageReplyPrivatelyPayload
   | MessageRetryPayload
   | MessageSendPayload
@@ -504,6 +518,7 @@ export type Actions =
   | MessageSetQuotingPayload
   | MessageWasEditedPayload
   | MessagesAddPayload
+  | MessagesExplodedPayload
   | MessagesWereDeletedPayload
   | MetaDeletePayload
   | MetaHandleQueuePayload
@@ -525,6 +540,7 @@ export type Actions =
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
+  | SetExplodingMessagesNewPayload
   | SetInboxFilterPayload
   | SetLoadingPayload
   | SetPendingConversationExistingConversationIDKeyPayload

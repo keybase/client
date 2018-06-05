@@ -112,13 +112,13 @@ const styleInner = {
 
 const styleLabel = {
   marginLeft: globalMargins.tiny,
-  marginTop: globalMargins.xtiny,
   flexShrink: 1,
 }
 
 const styleText = {
   ...styleLabel,
   color: globalColors.black_75,
+  marginTop: globalMargins.xtiny,
 }
 
 export default Checkbox

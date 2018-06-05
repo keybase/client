@@ -57,6 +57,11 @@ func (e *EKLib) NewMetaContext(ctx context.Context) libkb.MetaContext {
 
 func (e *EKLib) checkLoginAndPUK(ctx context.Context) (loggedIn bool, err error) {
 	m := e.NewMetaContext(ctx)
+	if oneshot, err := e.G().IsOneshot(ctx); err != nil || oneshot {
+		e.G().Log.CDebugf(ctx, "EKLib#checkLoginAndPUK error: %s, isOneshot: %v", err, oneshot)
+		return false, err
+	}
+
 	if loggedIn, _, err = libkb.BootstrapActiveDeviceWithMetaContext(m); err != nil {
 		return loggedIn, err
 	} else if !loggedIn {
@@ -86,15 +91,8 @@ func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	willRun := ok || g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 	if !willRun {
 		e.G().Log.CDebugf(ctx, "EKLib skipping run uid: %v", uid)
-		return false
 	}
-
-	oneshot, err := g.IsOneshot(ctx)
-	if err != nil {
-		g.Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s", err)
-		return false
-	}
-	return !oneshot
+	return willRun
 }
 
 func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
@@ -326,7 +324,7 @@ func (e *EKLib) newCacheEntry(generation keybase1.EkGeneration) *teamEKGenCacheE
 }
 
 func (e *EKLib) cacheKey(teamID keybase1.TeamID) string {
-	return string(teamID)
+	return teamID.String()
 }
 
 func (e *EKLib) isEntryValid(val interface{}) (*teamEKGenCacheEntry, bool) {
@@ -334,16 +332,16 @@ func (e *EKLib) isEntryValid(val interface{}) (*teamEKGenCacheEntry, bool) {
 	if !ok || cacheEntry == nil {
 		return nil, false
 	}
-	return cacheEntry, (keybase1.TimeFromSeconds(time.Now().Unix()) - cacheEntry.Ctime) < keybase1.TimeFromSeconds(cacheEntryLifetimeSecs)
+	return cacheEntry, time.Now().Sub(cacheEntry.Ctime.Time()) < time.Duration(cacheEntryLifetimeSecs*time.Second)
 }
 
 func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration) {
 
-	key := e.cacheKey(teamID)
-	val, ok := e.teamEKGenCache.Get(teamID)
+	cacheKey := e.cacheKey(teamID)
+	val, ok := e.teamEKGenCache.Get(cacheKey)
 	if ok {
 		if cacheEntry, valid := e.isEntryValid(val); valid && cacheEntry.Generation != generation {
-			e.teamEKGenCache.Remove(key)
+			e.teamEKGenCache.Remove(cacheKey)
 		}
 	}
 }
@@ -369,11 +367,16 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 
 	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
 	// Check if we have a cached latest generation
-	key := e.cacheKey(teamID)
-	val, ok := e.teamEKGenCache.Get(teamID)
+	cacheKey := e.cacheKey(teamID)
+	val, ok := e.teamEKGenCache.Get(cacheKey)
 	if ok {
 		if cacheEntry, valid := e.isEntryValid(val); valid {
-			return teamEKBoxStorage.Get(ctx, teamID, cacheEntry.Generation)
+			teamEK, err = teamEKBoxStorage.Get(ctx, teamID, cacheEntry.Generation)
+			if err == nil {
+				return teamEK, nil
+			}
+			// kill our cached entry and re-generate below
+			e.teamEKGenCache.Remove(cacheKey)
 		}
 	}
 
@@ -410,7 +413,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		return teamEK, err
 	}
 	// Cache the latest generation
-	e.teamEKGenCache.Add(key, e.newCacheEntry(latestGeneration))
+	e.teamEKGenCache.Add(cacheKey, e.newCacheEntry(latestGeneration))
 	return teamEK, nil
 }
 
@@ -565,6 +568,7 @@ func (e *EKLib) OnLogin() error {
 }
 
 func (e *EKLib) OnLogout() error {
+	e.teamEKGenCache.Purge()
 	if deviceEKStorage := e.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.ClearCache()
 	}

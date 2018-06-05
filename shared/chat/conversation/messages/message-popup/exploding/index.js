@@ -59,6 +59,8 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
     const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
     let secondsLeft = Math.floor(this.props.explodesAt / 1000) - now
     if (secondsLeft < 0) {
+      // TODO remove if we end up w/ an "exploded" popup
+      this.props.onHidden()
       secondsLeft = 0
     }
     this.setState({secondsLeft})
@@ -67,10 +69,15 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   render() {
     const {author, deviceName, deviceRevokedAt, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
+    const bombVerticalOffset = isMobile ? 0 : -20
     return (
-      <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
+      <Box2
+        direction="vertical"
+        fullWidth={true}
+        style={{alignItems: 'center', paddingTop: (isMobile ? 96 : 64) + bombVerticalOffset}}
+      >
         <Icon
-          style={{marginBottom: globalMargins.tiny}}
+          style={{marginBottom: globalMargins.tiny, position: 'absolute', top: bombVerticalOffset}}
           type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
         />
         <Box2 direction="horizontal">
@@ -82,10 +89,12 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           <Text type="BodySmall" style={{color: globalColors.black_40}}>
             by
           </Text>
-          <Avatar style={styleAvatar} username={author} size={16} />
-          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-            {author}
-          </Text>
+          <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
+            <Avatar username={author} size={16} />
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+              {author}
+            </Text>
+          </Box2>
         </Box2>
         <Box2 direction="horizontal">
           <Text type="BodySmall" style={{color: globalColors.black_40}}>
@@ -148,6 +157,10 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
   ]
 
   const header = {
+    style: {
+      paddingBottom: 0,
+      paddingTop: 24,
+    },
     title: 'header',
     view: <ExplodingPopupHeader {...props} />,
   }
@@ -179,11 +192,6 @@ const stylePopup = platformStyles({
     width: '100%',
   },
 })
-
-const styleAvatar = {
-  marginLeft: globalMargins.xtiny,
-  marginRight: 1,
-}
 
 const styleRevokedAt = {
   borderBottomLeftRadius: 3,

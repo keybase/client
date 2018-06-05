@@ -2,14 +2,13 @@
 /* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, styleSheetCreate} from '../../../../styles'
+import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import flags from '../../../../util/feature-flags'
-import {messageExplodeDescriptions} from '../../../../constants/chat2'
-import SetExplodingMessagePopup from '../../messages/set-explode-popup'
+import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {ExplodingMeta} from './shared'
@@ -52,10 +51,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
 
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
-  }
-
-  _selectExplodingMode = selected => {
-    this.props.selectExplodingMode(selected.seconds)
   }
 
   _filePickerFiles = () => (this._fileInput && this._fileInput.files) || []
@@ -192,6 +187,11 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     this.props.setChannelMentionPopupOpen(false)
   }
 
+  _toggleShowingMenu = () => {
+    this.props.onSeenExplodingMessages()
+    this.props.toggleShowingMenu()
+  }
+
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
@@ -287,31 +287,29 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
               this.props.showingMenu && (
                 <SetExplodingMessagePopup
                   attachTo={this.props.attachmentRef}
-                  isNew={true}
-                  items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+                  conversationIDKey={this.props.conversationIDKey}
                   onHidden={this.props.toggleShowingMenu}
-                  onSelect={this._selectExplodingMode}
-                  position={'bottom right'}
-                  selected={messageExplodeDescriptions.find(
-                    exploded => exploded.seconds === this.props.explodingModeSeconds
-                  )}
                   visible={this.props.showingMenu}
                 />
               )}
             {flags.explodingMessagesEnabled && (
-              <Box
-                onClick={this.props.toggleShowingMenu}
+              <HoverBox
+                onClick={this._toggleShowingMenu}
                 ref={this.props.setAttachmentRef}
                 style={styles.explodingIconContainer}
               >
                 <Icon
+                  className="bomb"
                   color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
-                  onClick={this.props.toggleShowingMenu}
+                  onClick={this._toggleShowingMenu}
                   style={styleIcon}
                   type="iconfont-bomb"
                 />
-                <ExplodingMeta explodingModeSeconds={this.props.explodingModeSeconds} />
-              </Box>
+                <ExplodingMeta
+                  explodingModeSeconds={this.props.explodingModeSeconds}
+                  isNew={this.props.isExplodingNew}
+                />
+              </HoverBox>
             )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
@@ -449,8 +447,18 @@ const styleFooter = {
 
 const styles = styleSheetCreate({
   explodingIconContainer: {
-    marginRight: globalMargins.small + 4,
-    position: 'relative',
+    ...globalStyles.flexBoxRow,
+    alignItems: 'stretch',
+    alignSelf: 'flex-end',
+    justifyContent: 'flex-start',
+    marginRight: 8,
+    marginTop: 13,
+  },
+})
+
+const HoverBox = glamorous(Box)({
+  ':hover .bomb': {
+    color: globalColors.black_75,
   },
 })
 

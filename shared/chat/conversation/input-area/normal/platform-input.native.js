@@ -4,16 +4,15 @@ import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
-import {isIOS} from '../../../../constants/platform'
+import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import {
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
-import SetExplodingMessagePicker from '../../messages/set-explode-popup'
+import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
@@ -35,10 +34,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   _inputSetRef = (ref: ?Input) => {
     this._input = ref
     this.props.inputSetRef(ref)
-  }
-
-  _selectExplodingMode = selected => {
-    this.props.selectExplodingMode(selected.seconds)
   }
 
   _openFilePicker = () => {
@@ -74,13 +69,14 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   _toggleShowingMenu = () => {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
+    this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
 
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
-      hintText = 'Write an exploding message'
+      hintText = isLargeScreen ? 'Write an exploding message' : 'Exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     }
@@ -112,19 +108,13 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
         {this.props.showingMenu && (
           <SetExplodingMessagePicker
             attachTo={this.props.attachmentRef}
-            isNew={true}
-            items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+            conversationIDKey={this.props.conversationIDKey}
             onHidden={this.props.toggleShowingMenu}
-            onSelect={this._selectExplodingMode}
-            selected={messageExplodeDescriptions.find(
-              exploded => exploded.seconds === this.props.explodingModeSeconds
-            )}
             visible={this.props.showingMenu}
           />
         )}
         <Box style={styles.container}>
           {this.props.isEditing && (
-            // TODO: Make this box take up the full height.
             <Box style={styles.editingTabStyle}>
               <Text type="BodySmall">Edit:</Text>
               <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
@@ -161,6 +151,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}
+            isExplodingNew={this.props.isExplodingNew}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
@@ -199,20 +190,31 @@ const Action = ({
   openFilePicker,
   insertMentionMarker,
   isExploding,
+  isExplodingNew,
   explodingModeSeconds,
 }) =>
   hasText ? (
-    <Box style={styles.actionText}>
+    <Box2 direction="horizontal" gap="small" style={styles.actionText}>
+      {flags.explodingMessagesEnabled &&
+        isExploding && (
+          <ExplodingIcon
+            explodingModeSeconds={explodingModeSeconds}
+            isExploding={isExploding}
+            isExplodingNew={isExplodingNew}
+            openExplodingPicker={openExplodingPicker}
+          />
+        )}
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>
-    </Box>
+    </Box2>
   ) : (
     <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
       {flags.explodingMessagesEnabled && (
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
           isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
           openExplodingPicker={openExplodingPicker}
         />
       )}
@@ -231,7 +233,7 @@ const Action = ({
     </Box2>
   )
 
-const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
+const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
     <Box style={explodingIconContainer}>
       <Icon
@@ -240,7 +242,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
         type="iconfont-bomb"
         fontSize={21}
       />
-      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
+      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />
     </Box>
   </NativeTouchableWithoutFeedback>
 )
@@ -266,11 +268,6 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.small - containerPadding,
   },
   actionText: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 12,
-    paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
   container: {
@@ -328,10 +325,7 @@ const styles = styleSheetCreate({
 const explodingIconContainer = platformStyles({
   common: {
     ...globalStyles.flexBoxRow,
-    marginRight: globalMargins.xsmall,
-  },
-  isAndroid: {
-    marginRight: -5,
+    marginRight: -3,
   },
 })
 

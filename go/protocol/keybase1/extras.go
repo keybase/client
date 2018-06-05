@@ -1367,6 +1367,12 @@ func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 	return nil
 }
 
+func (u UserPlusKeysV2AllIncarnations) AllIncarnations() (ret []UserPlusKeysV2) {
+	ret = append(ret, u.Current)
+	ret = append(ret, u.PastIncarnations...)
+	return ret
+}
+
 func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
 	for _, k := range u.DeviceKeys {
 		if k.KID.Equal(needle) {
