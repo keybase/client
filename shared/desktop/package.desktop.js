@@ -15,7 +15,12 @@ const desktopPath = (...args) => path.join(__dirname, ...args)
 const copySyncFolder = (src, target, onlyExts) => {
   const srcRoot = desktopPath(src)
   const dstRoot = desktopPath(target)
-  const files = klawSync(srcRoot, {filter: item => onlyExts.includes(path.extname(item.path))})
+  const files = klawSync(srcRoot, {
+    filter: item => {
+      const ext = path.extname(item.path)
+      return !ext || onlyExts.includes(ext)
+    },
+  })
   const relSrcs = files.map(f => f.path.substr(srcRoot.length))
   const dsts = relSrcs.map(f => path.join(dstRoot, f))
 
@@ -63,7 +68,9 @@ function main() {
   copySyncFolder('../images', 'build/images', ['.gif', '.png'])
   fs.removeSync(desktopPath('build/images/folders'))
   fs.removeSync(desktopPath('build/images/iconfont'))
+  fs.removeSync(desktopPath('build/images/mock'))
   copySyncFolder('renderer', 'build/desktop/renderer', ['.html'])
+  fs.removeSync(desktopPath('build/desktop/renderer/renderer.dev.html'))
   copySync('renderer/renderer-load.desktop.js', 'build/desktop/renderer/renderer-load.desktop.js')
   fs.removeSync(desktopPath('build/desktop/renderer/fonts'))
 
@@ -127,15 +134,21 @@ function startPack() {
 
           platforms.forEach(plat => {
             archs.forEach(arch => {
-              pack(plat, arch, postPack(plat, arch))
+              pack(plat, arch)
+                .then(postPack(plat, arch))
+                .catch(postPackError)
             })
           })
         } else if (shouldBuildAnArch) {
           // build for a specified arch on current platform only
-          pack(os.platform(), shouldBuildAnArch, postPack(os.platform(), shouldBuildAnArch))
+          pack(os.platform(), shouldBuildAnArch)
+            .then(postPack(os.platform(), shouldBuildAnArch))
+            .catch(postPackError)
         } else {
           // build for current platform only
-          pack(os.platform(), os.arch(), postPack(os.platform(), os.arch()))
+          pack(os.platform(), os.arch())
+            .then(postPack(os.platform(), os.arch()))
+            .catch(postPackError)
         }
       })
       .catch(err => {
@@ -145,9 +158,9 @@ function startPack() {
   })
 }
 
-function pack(plat, arch, cb) {
+function pack(plat, arch): Promise<any> {
   // there is no darwin ia32 electron
-  if (plat === 'darwin' && arch === 'ia32') return
+  if (plat === 'darwin' && arch === 'ia32') return Promise.resolve()
 
   let packageOutDir = outDir
   if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
@@ -173,15 +186,16 @@ function pack(plat, arch, cb) {
     }
   }
 
-  packager(opts, cb)
+  return packager(opts)
+}
+
+const postPackError = err => {
+  console.error(err)
+  process.exit(1)
 }
 
 function postPack(plat, arch) {
-  return (err, filepath) => {
-    if (err) {
-      console.error(err)
-      process.exit(1)
-    }
+  return filepath => {
     const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
     const dir = path.join(filepath[0], subdir, 'app/desktop/dist')
     const files = ['index', 'main', 'component-loader'].map(p => p + '.bundle.js')
