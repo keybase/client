@@ -22,11 +22,12 @@ RCT_EXPORT_MODULE(PushPrompt);
   return NO;
 }
 
-RCT_EXPORT_METHOD(getHasShownPushPrompt:getHasShownPushPromptWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_REMAP_METHOD(getHasShownPushPrompt, getHasShownPushPromptWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
   UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
   [current getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
     if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined) {
+      // We haven't asked yet
       resolve(@FALSE);
       return;
     }

@@ -40,14 +40,16 @@ function requestPushPermissions() {
 function setShownPushPrompt() {
   return new Promise((resolve, reject) => {
     logger.info('Setting shownPushPrompt to true in local storage')
-    AsyncStorage.setItem(shownPushPrompt, 'true', e => {
-      resolve()
-    })
+    resolve()
+    // AsyncStorage.setItem(shownPushPrompt, 'true', e => {
+    //   resolve()
+    // })
   })
 }
 
-function getShownPushPrompt() {
-  return AsyncStorage.getItem(shownPushPrompt)
+function getShownPushPrompt(): Promise<boolean> {
+  const PushPrompt = NativeModules.PushPrompt
+  return PushPrompt.getHasShownPushPrompt()
 }
 
 function checkPermissions() {
