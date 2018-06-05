@@ -36,25 +36,23 @@ const argv = minimist(process.argv.slice(2), {string: ['appVersion']})
 const appName = 'Keybase'
 const shouldUseAsar = argv.asar || argv.a || false
 const shouldBuildAll = argv.all || false
-// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
-const shouldBuildAnArch: ?string = argv.arch
-// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
-const appVersion: string = argv.appVersion || '0.0.0'
-// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
-const comment: string = argv.comment || ''
-// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
-const outDir: string = argv.outDir || ''
+const shouldBuildAnArch: string = (argv.arch: any)
+const appVersion: string = (argv.appVersion: any) || '0.0.0'
+const comment = argv.comment || ''
+const outDir = argv.outDir || ''
 const appCopyright = 'Copyright (c) 2015, Keybase'
 const companyName = 'Keybase, Inc.'
 
-const packagerOpts = {
+const packagerOpts: any = {
   appBundleId: 'keybase.Electron',
   appCopyright: appCopyright,
   appVersion: appVersion,
   asar: shouldUseAsar,
-  buildVersion: appVersion + comment,
+  buildVersion: String(appVersion) + String(comment),
   dir: desktopPath('./build'),
+  electronVersion: 0,
   helperBundleId: 'keybase.ElectronHelper',
+  icon: null,
   ignore: ['.map', '/test($|/)', '/tools($|/)', '/release($|/)', '/node_modules($|/)'],
   name: appName,
 }
@@ -83,14 +81,12 @@ function main() {
   const icon = argv.icon
 
   if (icon) {
-    // $FlowIssue
     packagerOpts.icon = icon
   }
 
   // use the same version as the currently-installed electron
   console.log('Finding electron version')
   try {
-    // $FlowIssue
     packagerOpts.electronVersion = require('../package.json').devDependencies.electron
     console.log('Found electron version:', packagerOpts.electronVersion)
   } catch (err) {
@@ -158,7 +154,7 @@ function startPack() {
   })
 }
 
-function pack(plat, arch): Promise<any> {
+function pack(plat, arch: string): Promise<any> {
   // there is no darwin ia32 electron
   if (plat === 'darwin' && arch === 'ia32') return Promise.resolve()
 
