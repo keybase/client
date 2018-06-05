@@ -58,7 +58,7 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	}
 	dir, err := libkb.SystemDir()
 	if err != nil {
-		log.Info("detectDokanDll error getting system directory: %v", err)
+		log.Info("KeybaseFuseStatus error getting system directory: %v", err)
 		return status
 	}
 	dokanPath := filepath.Join(dir, "dokan1.dll")
