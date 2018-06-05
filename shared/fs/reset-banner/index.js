@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, Button, ConnectedUsernames} from '../../common-adapters'
+import {Box, Text, Button, ConnectedUsernames} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 type Props = {
@@ -68,12 +68,6 @@ const Banner = ({isUserReset, resetParticipants}: Props) => {
 }
 
 const sidePadding = globalMargins.large + globalMargins.tiny
-const bannerIconStyle = {
-  paddingLeft: sidePadding,
-  paddingRight: sidePadding,
-  paddingTop: globalMargins.large,
-  paddingBottom: globalMargins.medium,
-}
 
 const bannerStyle = {
   ...globalStyles.flexBoxColumn,

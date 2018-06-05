@@ -1,5 +1,7 @@
 // @flow
 import * as Constants from '../../constants/fs'
+import * as TeamTypes from '../../constants/types/teams'
+import * as TeamsGen from '../../actions/teams-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import Banner from '.'
 
@@ -16,7 +18,18 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onReAddToTeam: (teamname: string, username: string, role: TeamTypes.TeamRoleType) => {
+    dispatch(
+      TeamsGen.createAddToTeam({
+        role: role,
+        sendChatNotification: false,
+        teamname,
+        username,
+      })
+    )
+  },
+})
 
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
