@@ -169,7 +169,7 @@ func TestPGPPullNotTracked(t *testing.T) {
 	}
 
 	if fui.StartCount != 1 {
-		tc.T.Fatal("Expected 1 ID UI prompt, got %d", fui.StartCount)
+		tc.T.Fatalf("Expected 1 ID UI prompt, got %d", fui.StartCount)
 	}
 
 	assertKeysPresent(t, gpgClient, []string{bobFp, aliceFp})
@@ -199,7 +199,7 @@ func TestPGPPullNotLoggedIn(t *testing.T) {
 	}
 
 	if fui.StartCount != 2 {
-		tc.T.Fatal("Expected 2 ID UI prompts, got %d", fui.StartCount)
+		tc.T.Fatalf("Expected 2 ID UI prompts, got %d", fui.StartCount)
 	}
 
 	assertKeysPresent(t, gpgClient, []string{aliceFp, bobFp})
