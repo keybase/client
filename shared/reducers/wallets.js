@@ -10,9 +10,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
   switch (action.type) {
     case WalletsGen.resetStore:
       return initialState
-    case WalletsGen.walletsReceived:
-      const walletMap = I.Map(action.payload.wallets.map(wallet => [wallet.accountID, wallet]))
-      return state.set('walletMap', walletMap)
+    case WalletsGen.accountsReceived:
+      const accountMap = I.Map(action.payload.accounts.map(account => [account.accountID, account]))
+      return state.set('accountMap', accountMap)
     case WalletsGen.assetsReceived:
       const {assets} = action.payload
       return state.update('assetsMap', assetsMap => assetsMap.set(action.payload.accountID, I.List(assets)))
@@ -25,7 +25,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadEverything:
     case WalletsGen.loadAssets:
     case WalletsGen.loadPayments:
-    case WalletsGen.loadWallets:
+    case WalletsGen.loadAccounts:
       return state
     default:
       /*::

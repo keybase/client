@@ -15,19 +15,19 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 const makeState: I.RecordFactory<Types._State> = I.Record({
   assetsMap: I.Map(),
   paymentsMap: I.Map(),
-  walletMap: I.Map(),
+  accountMap: I.Map(),
 })
 
-const makeWallet: I.RecordFactory<Types._Wallet> = I.Record({
+const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   accountID: '',
   balanceDescription: '',
   isDefault: false,
   name: '',
 })
 
-const walletResultToWallet = (w: RPCTypes.WalletAccountLocal) => {
+const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) => {
   const {accountID, balanceDescription, isDefault, name} = w
-  return makeWallet({
+  return makeAccount({
     accountID,
     balanceDescription,
     isDefault,
@@ -122,12 +122,12 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
 }
 
 export {
+  accountResultToAccount,
   assetsResultToAssets,
+  makeAccount,
   makeAssets,
   makePayment,
   makeReserve,
   makeState,
-  makeWallet,
   paymentResultToPayment,
-  walletResultToWallet,
 }

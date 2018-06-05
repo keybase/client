@@ -9,13 +9,13 @@ export type _Reserve = {
 export type Reserve = I.RecordOf<_Reserve>
 
 export type _State = {
+  accountMap: any,
   assetsMap: any,
   paymentsMap: any,
-  walletMap: any,
 }
 export type State = I.RecordOf<_State>
 
-export type _Wallet = {
+export type _Account = {
   accountID: string,
   balanceDescription: string,
   isDefault: boolean,
@@ -51,7 +51,7 @@ export type _Payment = {
   worthCurrency: string,
 }
 
-export type Wallet = I.RecordOf<_Wallet>
+export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
 
