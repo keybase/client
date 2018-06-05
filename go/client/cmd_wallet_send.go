@@ -124,18 +124,18 @@ func (c *cmdWalletSend) Run() error {
 		ForceRelay:      c.forceRelay,
 		QuickReturn:     true,
 	}
-	res, err := cli.SendCLILocal(context.Background(), arg)
+	sendRes, err := cli.SendCLILocal(context.Background(), arg)
 	if err != nil {
 		return err
 	}
 
 	ui.Printf("\nPosted.\nKeybase Transaction ID: %v\nStellar Transaction ID: %v\n\nWaiting for payment to complete...\n",
-		res.KbTxID, res.TxID)
+		sendRes.KbTxID, sendRes.TxID)
 
 	finCh := make(chan stellar1.AwaitResult)
 	finErrCh := make(chan error)
 	go func() {
-		res, err := cli.AwaitPendingCLILocal(context.Background(), res.KbTxID)
+		res, err := cli.AwaitPendingCLILocal(context.Background(), sendRes.KbTxID)
 		if err == nil {
 			finCh <- res
 			return
@@ -144,13 +144,21 @@ func (c *cmdWalletSend) Run() error {
 	}()
 
 	select {
-	case res := <-finCh:
-		if res.Status == stellar1.TransactionStatus_SUCCESS {
+	case ares := <-finCh:
+		if ares.Status == stellar1.TransactionStatus_SUCCESS {
 			ui.Printf("Sent!\n")
 			return nil
 		}
-		// xxx - TODO get the details: error message
-		return fmt.Errorf("Payment failed with status: %v\n", res.Status)
+		backupErr := fmt.Errorf("Payment failed with status: %v\n", ares.Status)
+		// Get the details of the failure
+		detail, err := cli.PaymentDetailCLILocal(context.TODO(), sendRes.KbTxID.String())
+		if err != nil {
+			ui.Printf("Error getting payment details: %v", err)
+			return backupErr
+		}
+		dui := c.G().UI.GetDumbOutputUI()
+		printPayment(c.G(), detail, false, dui)
+		return fmt.Errorf("payment failed")
 	case err = <-finErrCh:
 		return err
 	case <-time.After(15 * time.Second):
