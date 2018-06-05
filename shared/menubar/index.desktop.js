@@ -143,7 +143,6 @@ class MenubarRender extends Component<Props, State> {
     const mergedProps = {
       ...this.props.folderProps,
       onClick: this.props.onFolderClick,
-      smallMode: true,
       private: newPrivate,
       public: newPublic,
       onSwitchTab: selected => this.setState({selected}),
