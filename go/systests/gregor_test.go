@@ -163,14 +163,17 @@ func TestGregorForwardToElectron(t *testing.T) {
 		}
 	}
 
-	select {
-	case pushArg := <-em.stateCh:
-		checkState(pushArg.State)
-		if pushArg.Reason != keybase1.PushReason_NEW_DATA {
-			t.Errorf("wrong reason for push: %v", pushArg.Reason)
+	// We get two push states, one from the local send, and one from receiving broadcast
+	for i := 0; i < 2; i++ {
+		select {
+		case pushArg := <-em.stateCh:
+			checkState(pushArg.State)
+			if pushArg.Reason != keybase1.PushReason_NEW_DATA {
+				t.Errorf("wrong reason for push: %v", pushArg.Reason)
+			}
+		case <-time.After(3 * time.Second):
+			t.Fatalf("never got an IBM")
 		}
-	case <-time.After(3 * time.Second):
-		t.Fatalf("never got an IBM")
 	}
 
 	pollForTrue(t, tc.G, func(i int) bool {

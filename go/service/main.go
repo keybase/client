@@ -996,7 +996,7 @@ func (d *Service) GregorInjectOutOfBandMessage(sys string, body []byte) error {
 	if d.gregor == nil {
 		return errors.New("can't gregor inject without a gregor")
 	}
-	return d.gregor.InjectOutOfBandMessage(sys, body)
+	return d.gregor.InjectOutOfBandMessage(context.TODO(), sys, body)
 }
 
 func (d *Service) HasGregor() bool {
