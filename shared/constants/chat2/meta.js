@@ -53,7 +53,6 @@ export const unverifiedInboxUIItemToConversationMeta = (
   )
 
   const participants = I.List(i.localMetadata ? i.localMetadata.writerNames || [] : (i.name || '').split(','))
-
   const channelname =
     i.membersType === RPCChatTypes.commonConversationMembersType.team && i.localMetadata
       ? i.localMetadata.channelName

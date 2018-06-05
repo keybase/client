@@ -87,6 +87,7 @@ protocol remote {
     keybase1.UserVersion from;
     keybase1.DeviceID fromDeviceID;
     union { null, keybase1.UserVersion } to;
+    string toAssertion; // Ex: 'mlsteele' or 'maxtaco@reddit'
     AccountID relayAccount;
     string amount; // amount of XLM
     union { null, string } displayAmount;

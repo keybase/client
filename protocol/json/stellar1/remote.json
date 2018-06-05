@@ -309,6 +309,10 @@
           "name": "to"
         },
         {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
           "type": "AccountID",
           "name": "relayAccount"
         },

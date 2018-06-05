@@ -160,7 +160,7 @@ func (e *DeviceHistory) loadDevices(m libkb.MetaContext, user *libkb.User) error
 
 func (e *DeviceHistory) provisioner(m libkb.MetaContext, d *libkb.Device, ckis *libkb.ComputedKeyInfos, info *libkb.ComputedKeyInfo) (*libkb.Device, error) {
 	for _, v := range info.Delegations {
-		if v.GetKeyType() != libkb.KIDNaclEddsa {
+		if libkb.AlgoType(v.GetKeyType()) != libkb.KIDNaclEddsa {
 			// only concerned with device history, not pgp provisioners
 			continue
 		}

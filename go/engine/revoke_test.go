@@ -297,8 +297,8 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	if err == nil {
 		t.Fatal("expected runTrack to return an error")
 	}
-	if _, ok := err.(libkb.LoginRequiredError); !ok {
-		t.Errorf("expected libkb.LoginRequiredError, got %T", err)
+	if _, ok := err.(libkb.BadSessionError); !ok {
+		t.Errorf("expected libkb.BadSessionError, got %T", err)
 	}
 }
 

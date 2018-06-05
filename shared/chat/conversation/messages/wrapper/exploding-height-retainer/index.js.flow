@@ -4,7 +4,8 @@ import type {StylesCrossPlatform} from '../../../../../styles'
 
 export type Props = {
   children?: React.Node,
+  explodedBy: ?string,
   style?: StylesCrossPlatform,
   retainHeight: boolean,
 }
-export default class HeightRetainer extends React.Component<Props> {}
+export default class ExplodingHeightRetainer extends React.Component<Props> {}

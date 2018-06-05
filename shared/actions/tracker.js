@@ -639,7 +639,6 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TrackerGen.getProfile, _getProfile)
   yield Saga.safeTakeEveryPure(TrackerGen.getMyProfile, _getMyProfile)
   yield Saga.safeTakeEveryPure(TrackerGen.openProofUrl, _openProofUrl)
-  yield Saga.safeTakeEveryPure(TrackerGen.openProofUrl, _openProofUrl)
   yield Saga.safeTakeEveryPure(TrackerGen.setupTrackerHandlers, _setupTrackerHandlers)
   yield Saga.safeTakeEveryPure('tracker:_userChanged', _userChanged)
 

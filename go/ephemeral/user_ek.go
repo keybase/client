@@ -67,17 +67,18 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	}
 
 	prevStatement, latestGeneration, wrongKID, err := fetchUserEKStatement(ctx, g, g.Env.GetUID())
-	if err != nil {
+	if !wrongKID && err != nil {
 		return "", nil, newMetadata, nil, err
 	}
 	var newGeneration keybase1.EkGeneration
 	var existingMaybeStaleMetadata []keybase1.UserEkMetadata
 	if prevStatement == nil {
-		if wrongKID {
-			newGeneration = latestGeneration + 1
-		} else {
-			newGeneration = 1 // start at generation 1
-		}
+		// Even if the userEK statement was signed by the wrong key (this can
+		// happen when legacy clients roll the PUK), fetchUserEKStatement will
+		// return the generation number from the last (unverifiable) statement.
+		// If there was never any statement, latestGeneration will be 0, so
+		// adding one is correct in all cases.
+		newGeneration = latestGeneration + 1
 	} else {
 		newGeneration = prevStatement.CurrentUserEkMetadata.Generation + 1
 		existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.ExistingUserEkMetadata...)
@@ -247,8 +248,7 @@ func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []k
 			g.Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
 			// Don't include this statement since it is invalid.
 			continue
-		}
-		if err != nil {
+		} else if err != nil {
 			return nil, err
 		}
 		statements[uid] = statement
@@ -302,12 +302,24 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 	if wrongKID {
 		g.Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
 		return nil, latestGeneration, true, nil
-	}
-	if err != nil {
+	} else if err != nil {
 		return nil, latestGeneration, false, err
 	}
 
 	return statement, latestGeneration, false, nil
+}
+
+func extractUserEKStatementFromSig(sig string) (signerKey libkb.GenericKey, statement *keybase1.UserEkStatement, err error) {
+	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+	if err != nil {
+		return signerKey, nil, err
+	}
+
+	parsedStatement := keybase1.UserEkStatement{}
+	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
+		return signerKey, nil, err
+	}
+	return signerKey, &parsedStatement, nil
 }
 
 // Verify that the blob is validly signed, and that the signing key is the
@@ -320,13 +332,11 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, sig string) (statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTraceTimed(ctx, "verifySigWithLatestPUK", func() error { return err })()
 
-	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+	// Parse the statement before we verify the signing key. Even if the
+	// signing key is bad (likely because of a legacy PUK roll that didn't
+	// include a userEK statement), we'll still return the generation number.
+	signerKey, parsedStatement, err := extractUserEKStatementFromSig(sig)
 	if err != nil {
-		return nil, latestGeneration, false, err
-	}
-
-	parsedStatement := keybase1.UserEkStatement{}
-	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
 		return nil, latestGeneration, false, err
 	}
 	latestGeneration = parsedStatement.CurrentUserEkMetadata.Generation
@@ -360,7 +370,7 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid key
 		}
 	}
 
-	return &parsedStatement, latestGeneration, false, nil
+	return parsedStatement, latestGeneration, false, nil
 }
 
 func filterStaleUserEKStatements(ctx context.Context, g *libkb.GlobalContext, statementMap map[keybase1.UID]*keybase1.UserEkStatement, merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkStatement, err error) {

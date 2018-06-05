@@ -44,7 +44,6 @@ const announcementContainerStyle = {
 type ItemProps = {
   desc: MessageExplodeDescription,
   selected: boolean,
-  onSelect: MessageExplodeDescription => void,
 }
 
 const Item = (props: ItemProps) => (
@@ -59,9 +58,9 @@ const Item = (props: ItemProps) => (
 export default (props: Props) => {
   const selected = props.selected || {text: 'Never', seconds: 0}
   const listItems = props.items.map(it => ({
-    onClick: () => props.onSelect(it),
+    onClick: () => props.onSelect(it.seconds),
     title: it.text,
-    view: <Item desc={it} selected={selected.seconds === it.seconds} onSelect={props.onSelect} />,
+    view: <Item desc={it} selected={selected === it.seconds} />,
   }))
   listItems.unshift({
     title: 'Explode message after:',

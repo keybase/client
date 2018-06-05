@@ -29,17 +29,11 @@ type DeviceEKStorage struct {
 }
 
 func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
-	s := &DeviceEKStorage{
+	return &DeviceEKStorage{
 		Contextified: libkb.NewContextified(g),
 		storage:      erasablekv.NewFileErasableKVStore(g, deviceEKSubDir),
 		cache:        make(DeviceEKMap),
 	}
-	// TODO remove this once the fix is propagated
-	err := s.keyFormatRepair(context.TODO())
-	if err != nil {
-		s.G().Log.CWarningf(context.TODO(), "keyFormatRepair failed: %v", err)
-	}
-	return s
 }
 
 func (s *DeviceEKStorage) keyPrefixFromUsername(username libkb.NormalizedUsername) string {
@@ -365,45 +359,6 @@ func (s *DeviceEKStorage) ForceDeleteAll(ctx context.Context, username libkb.Nor
 	for _, key := range keys {
 		// only delete if the key is owned by the current user
 		if strings.HasPrefix(key, prefix) {
-			epick.Push(s.storage.Erase(ctx, key))
-		}
-	}
-
-	s.clearCache()
-	return epick.Error()
-}
-
-// There was a bug in the deviceEK format introduced in
-// https://github.com/keybase/client/pull/11911 where the key format went from
-//  deviceEKPrefix-username-eldestSeqNo-generation.ek to
-//  deviceEKPrefix-username--eldestSeqNo-generation.ek
-// We repair these keys on startup to fix this.
-func (s *DeviceEKStorage) keyFormatRepair(ctx context.Context) (err error) {
-	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#fixKeyFormat", func() error { return err })()
-
-	s.Lock()
-	defer s.Unlock()
-
-	keys, err := s.storage.AllKeys(ctx)
-	if err != nil {
-		return err
-	}
-	epick := libkb.FirstErrorPicker{}
-	prefix := fmt.Sprintf("%s-%s--", deviceEKPrefix, s.G().Env.GetUsername())
-	for _, key := range keys {
-		if strings.HasPrefix(key, prefix) {
-			deviceEK := keybase1.DeviceEk{}
-			s.storage.Get(ctx, key, &deviceEK)
-			if err != nil {
-				epick.Push(err)
-				continue
-			}
-			newKey := strings.Replace(key, "--", "-", 1)
-			err = s.storage.Put(ctx, newKey, deviceEK)
-			if err != nil {
-				epick.Push(err)
-				continue
-			}
 			epick.Push(s.storage.Erase(ctx, key))
 		}
 	}

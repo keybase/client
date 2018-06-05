@@ -108,7 +108,7 @@ func TestConvLoaderSuspend(t *testing.T) {
 		require.Fail(t, "no load yet")
 	default:
 	}
-	require.True(t, tc.Context().ConvLoader.Suspend(context.TODO()))
+	require.False(t, tc.Context().ConvLoader.Suspend(context.TODO()))
 
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = ri
 	require.False(t, tc.Context().ConvLoader.Resume(context.TODO()))

@@ -157,20 +157,7 @@ func LoadProvisionalActiveDevice(m MetaContext, uid keybase1.UID, deviceID keyba
 // for anything aside from assertions, but as we phase out LoginState, we'll
 // leave it here so that assertions in LoginState can still pass.
 func BootstrapActiveDeviceWithMetaContext(m MetaContext) (ok bool, uid keybase1.UID, err error) {
-	run := func(lctx LoginContext) (keybase1.UID, error) {
-		return BootstrapActiveDeviceFromConfig(m.WithLoginContext(lctx), true)
-	}
-	if lctx := m.LoginContext(); lctx == nil {
-		aerr := m.G().LoginStateDeprecated().Account(func(lctx *Account) {
-			uid, err = run(lctx)
-		}, "BootstrapActiveDevice")
-		if err == nil && aerr != nil {
-			m.CDebugf("LoginOffline: LoginState account error: %s", aerr)
-			err = aerr
-		}
-	} else {
-		uid, err = run(lctx)
-	}
+	uid, err = BootstrapActiveDeviceFromConfig(m, true)
 	ok = false
 	if err == nil {
 		ok = true
