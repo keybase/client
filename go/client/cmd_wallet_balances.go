@@ -105,7 +105,7 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 					}
 				}
 
-				dui.Printf("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
+				dui.PrintfUnescaped("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
 			} else {
 				dui.Printf("%q\t%s\t(issued by %s)\n", balance.Asset.Code, balance.Amount, balance.Asset.Issuer)
 			}

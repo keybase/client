@@ -9,6 +9,7 @@ import (
 )
 
 func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bool, dui libkb.DumbOutputUI) {
+	// TODO whitelist Colorstrings which are fine to print, escape the rest.
 	line := func(format string, args ...interface{}) {
 		dui.Printf(format+"\n", args...)
 	}

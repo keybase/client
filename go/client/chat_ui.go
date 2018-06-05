@@ -164,6 +164,7 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 			msgBody := msg.Valid().MessageBody.Text().Body
 			var hitText string
 			for _, hit := range hits {
+				// TODO: needs special attention for escaping.
 				hitText = strings.Replace(msgBody, hit, ColorString(c.G(), "red", hit), -1)
 			}
 			return getMsgPrefix(msg) + hitText
