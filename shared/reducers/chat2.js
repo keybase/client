@@ -255,24 +255,28 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           : messageMap.clear()
       }
       return messageMap
-    case Chat2Gen.messageExploded:
-      const {conversationIDKey, messageID} = action.payload
-      const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
-      if (!ordinal) {
+    case Chat2Gen.messagesExploded:
+      const {conversationIDKey, messageIDs} = action.payload
+      const ordinals = messageIDs
+        .map(mid => messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, mid))
+        .filter(Boolean)
+      if (ordinals.length === 0) {
+        // found nothing
         return messageMap
       }
-      return messageMap.updateIn([action.payload.conversationIDKey, ordinal], message => {
-        if (!message || !['attachment', 'text'].includes(message.type)) {
-          return message
-        }
-        // set the message to exploded and delete any message body information
-        // $FlowIssue thinks `message` is the inner type
-        return message
-          .set('exploded', true)
-          .set('text', new HiddenString(''))
-          .set('mentionsAt', I.Set())
-          .set('mentionsChannel', 'none')
-          .set('mentionsChannelName', I.Map())
+      return messageMap.updateIn([action.payload.conversationIDKey], messages => {
+        return messages.withMutations(msgs => {
+          ordinals.forEach(ordinal =>
+            msgs.updateIn([ordinal], msg =>
+              // $FlowIssue thinks `message` is the inner type
+              msg
+                .set('exploded', true)
+                .set('explodedBy', action.payload.explodedBy || '')
+                .set('text', new HiddenString(''))
+                .set('mentionsAt', I.Set())
+            )
+          )
+        })
       })
     default:
       return messageMap
@@ -419,7 +423,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
-          return message && message.type === 'text' && message.author === editLastUser
+          return message && message.type === 'text' && message.author === editLastUser && !message.exploded
         })
         if (found) {
           return editingMap.set(conversationIDKey, found)
@@ -665,6 +669,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return map
       }, {})
       return state.set('explodingModes', I.Map(explodingMap))
+    case Chat2Gen.setExplodingMessagesNew:
+      return state.set('isExplodingNew', action.payload.new)
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -684,7 +690,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.setConversationOffline:
     case Chat2Gen.updateConvRetentionPolicy:
     case Chat2Gen.updateTeamRetentionPolicy:
-    case Chat2Gen.messageExploded:
+    case Chat2Gen.messagesExploded:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -720,6 +726,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.previewConversation:
     case Chat2Gen.createConversation:
     case Chat2Gen.setConvExplodingMode:
+    case Chat2Gen.handleSeeingExplodingMessages:
       return state
     default:
       /*::

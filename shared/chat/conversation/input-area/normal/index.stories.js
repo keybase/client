@@ -33,6 +33,7 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
 type Props = {
   isEditing: boolean,
   isExploding: boolean,
+  isExplodingNew: boolean,
   explodingModeSeconds: number,
   pendingWaiting: boolean,
   typing: Set<string>,
@@ -56,6 +57,7 @@ const InputContainer = (props: Props) => {
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
     isEditing: props.isEditing,
     isExploding: props.isExploding,
+    isExplodingNew: props.isExplodingNew,
     explodingModeSeconds: props.explodingModeSeconds,
     focusInputCounter: 0,
     clearInboxFilter: action('clearInboxFilter'),
@@ -67,6 +69,7 @@ const InputContainer = (props: Props) => {
     onEditLastMessage: action('onEditLastMessage'),
     onCancelEditing: action('onCancelEditing'),
     onCancelQuoting: action('onCancelQuoting'),
+    onSeenExplodingMessages: action('onSeenExplodingMessages'),
     onSubmit: (text: string) => {
       action('onSubmit')(text)
     },
@@ -103,6 +106,7 @@ const load = () => {
         pendingWaiting={false}
         typing={Set()}
         isExploding={false}
+        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -112,6 +116,7 @@ const load = () => {
         pendingWaiting={false}
         typing={Set(['chris'])}
         isExploding={false}
+        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -121,6 +126,7 @@ const load = () => {
         pendingWaiting={false}
         typing={Set(['chris', 'strib'])}
         isExploding={false}
+        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -130,6 +136,7 @@ const load = () => {
         pendingWaiting={false}
         typing={Set(['chris', 'strib', 'fred'])}
         isExploding={false}
+        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -139,6 +146,7 @@ const load = () => {
         pendingWaiting={false}
         typing={Set()}
         isExploding={false}
+        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -148,6 +156,7 @@ const load = () => {
         pendingWaiting={true}
         typing={Set()}
         isExploding={false}
+        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -157,6 +166,7 @@ const load = () => {
         pendingWaiting={false}
         typing={Set()}
         isExploding={true}
+        isExplodingNew={true}
         explodingModeSeconds={0}
       />
     ))
