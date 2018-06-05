@@ -9,8 +9,8 @@ func Clean(s string) string {
 	return strings.Map(func(r rune) rune {
 		if r >= 32 && r != 127 { // Allow non escape extended characters
 			return r
-		} else if r == '\n' { // Allow newlines
-			return '\n'
+		} else if r == '\n' || r == '\t' { // Allow newlines and tabs
+			return r
 		} else if r == 0x1b { // Substiture escape byte with '^' (this is how it is usually shown, i.e. in vim)
 			return '^'
 		}

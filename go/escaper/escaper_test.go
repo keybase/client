@@ -22,9 +22,11 @@ var tests = map[string]string{
 	"bbb\\raaa": "bbb\\raaa",
 	"bbb/raaa":  "bbb/raaa",
 
-	// newline is preserved, even in combination with other escpae codes
+	// newline and tab are preserved, even in combination with other escpae codes
 	"\n":                 "\n",
+	"\t":                 "\t",
 	"bbb\naaa":           "bbb\naaa",
+	"bbb\taaa":           "bbb\taaa",
 	"b\naaa\b\b\033[4P":  "b\naaa^[4P",
 	"x\naaa\b\b\033[2Ka": "x\naaa^[2Ka",
 
@@ -32,9 +34,8 @@ var tests = map[string]string{
 	"⌘":     "⌘",
 	"⌘a\n⌘": "⌘a\n⌘",
 
-	// backspace, tab and other similar special characters (except for \n) are stripped out
+	// backspace, carriage return and other similar special characters (except for \n, \t) are stripped out
 	"aaa\b\bb":       "aaab",
-	"aaa\tb":         "aaab",
 	"aaa\b\b\033[1K": "aaa^[1K",
 	"bbb\raaa":       "bbbaaa", //carriage return
 
