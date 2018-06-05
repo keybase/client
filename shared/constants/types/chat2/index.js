@@ -30,10 +30,12 @@ export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
+  isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread, There is a special node for the pending conversation
+  moreToLoadMap: I.Map<Common.ConversationIDKey, boolean>, // if we have more data to load
   explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
   quote: ?QuoteInfo, // last quoted message
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
@@ -57,7 +59,7 @@ export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.
 export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
   Buffer.from(Message.outboxIDToString(outboxID), 'hex')
 
-export type {ConversationMeta, MetaTrustedState, NotificationsType, PaginationKey} from './meta'
+export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta'
 export type {
   AttachmentType,
   MentionsAt,
@@ -66,7 +68,6 @@ export type {
   Message,
   MessageAttachment,
   MessageExplodeDescription,
-  MessageExplodeText,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,
@@ -87,5 +88,4 @@ export {
   outboxIDToString,
   stringToOutboxID,
 } from './message'
-export {stringToPaginationKey} from './meta'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'

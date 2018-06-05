@@ -126,6 +126,14 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 		require.NoError(t, err)
 
+		// verify the ekLib teamEKGenCache is working
+		cacheKey := ekLib.cacheKey(teamID)
+		val, ok := ekLib.teamEKGenCache.Get(cacheKey)
+		require.True(t, ok)
+		cacheEntry, valid := ekLib.isEntryValid(val)
+		require.True(t, valid)
+		require.Equal(t, teamEK.Metadata.Generation, cacheEntry.Generation)
+
 		// verify deviceEK
 		deviceEKNeeded, err := ekLib.NewDeviceEKNeeded(context.Background())
 		require.NoError(t, err)

@@ -19,3 +19,9 @@ export const pendingConversationIDKey = stringToConversationIDKey('PENDING')
 export const noConversationIDKey = stringToConversationIDKey('EMPTY')
 // A pending conversation that we're looking for a real convo or noConvo but don't know yet
 export const pendingWaitingConversationIDKey = stringToConversationIDKey('PENDING-WAITING')
+
+export const isValidConversationIDKey = (id: ConversationIDKey) =>
+  id &&
+  id !== pendingConversationIDKey &&
+  id !== noConversationIDKey &&
+  id !== pendingWaitingConversationIDKey

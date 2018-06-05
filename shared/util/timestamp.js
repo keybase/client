@@ -120,16 +120,16 @@ const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 export function formatDurationShort(ms: number): string {
   if (ms < 0) {
-    return '0'
+    return '0s'
   }
   if (ms > oneDayInMs) {
-    return `${Math.floor(ms / oneDayInMs)}d`
+    return `${Math.round(ms / oneDayInMs)}d`
   }
   if (ms > oneHourInMs) {
-    return `${Math.floor(ms / oneHourInMs)}h`
+    return `${Math.round(ms / oneHourInMs)}h`
   }
   if (ms > oneMinuteInMs) {
-    return `${Math.floor(ms / oneMinuteInMs)}m`
+    return `${Math.round(ms / oneMinuteInMs)}m`
   }
-  return `${Math.floor(ms / 1000)}s`
+  return `${Math.round(ms / 1000)}s`
 }

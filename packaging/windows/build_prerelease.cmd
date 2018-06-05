@@ -5,7 +5,7 @@ echo GOPATH %GOPATH%
 
 :: CGO causes dll loading security vulnerabilities
 set CGO_ENABLED=0
-echo GOROOT %GOROOT%
+go env
 pushd %GOPATH%\src\github.com\keybase\client\go\keybase
 :: Make sure the whole build fails if we can't build keybase
 del keybase.exe
