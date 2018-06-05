@@ -138,15 +138,6 @@ protocol remote {
 
   RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
 
-  // Wait for a direct payment or the funding of a relay payment to exit the PENDING state.
-  // Returns the new state of the payment.
-  // Times out with an error after around 30 seconds.
-  // Useful in combination with submit*'s quickReturn arg.
-  AwaitResult awaitPending(keybase1.UserVersion caller, KeybaseTransactionID kbTxID);
-  record AwaitResult {
-    TransactionStatus status;
-  }
-
   // Acquire the UV-specific lock for autoclaims.
   // Returns a token, or an empty string if the lock is unavailable.
   string acquireAutoClaimLock(keybase1.UserVersion caller);

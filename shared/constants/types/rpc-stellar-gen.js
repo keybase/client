@@ -169,10 +169,6 @@ export const remoteAcquireAutoClaimLockRpcChannelMap = (configKeys: Array<string
 
 export const remoteAcquireAutoClaimLockRpcPromise = (request: RemoteAcquireAutoClaimLockRpcParam): Promise<RemoteAcquireAutoClaimLockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.acquireAutoClaimLock', request, (error: RPCError, result: RemoteAcquireAutoClaimLockResult) => (error ? reject(error) : resolve(result))))
 
-export const remoteAwaitPendingRpcChannelMap = (configKeys: Array<string>, request: RemoteAwaitPendingRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.awaitPending', request)
-
-export const remoteAwaitPendingRpcPromise = (request: RemoteAwaitPendingRpcParam): Promise<RemoteAwaitPendingResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.awaitPending', request, (error: RPCError, result: RemoteAwaitPendingResult) => (error ? reject(error) : resolve(result))))
-
 export const remoteBalancesRpcChannelMap = (configKeys: Array<string>, request: RemoteBalancesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.remote.balances', request)
 
 export const remoteBalancesRpcPromise = (request: RemoteBalancesRpcParam): Promise<RemoteBalancesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.remote.balances', request, (error: RPCError, result: RemoteBalancesResult) => (error ? reject(error) : resolve(result))))
@@ -237,8 +233,6 @@ export type AccountMode =
 export type Asset = $ReadOnly<{type: String, code: String, issuer: String}>
 
 export type AutoClaim = $ReadOnly<{kbTxID: KeybaseTransactionID}>
-
-export type AwaitResult = $ReadOnly<{status: TransactionStatus}>
 
 export type Balance = $ReadOnly<{asset: Asset, amount: String, limit: String}>
 
@@ -404,8 +398,6 @@ export type RemoteAccountSeqnoRpcParam = $ReadOnly<{caller: Keybase1.UserVersion
 
 export type RemoteAcquireAutoClaimLockRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteAwaitPendingRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, kbTxID: KeybaseTransactionID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-
 export type RemoteBalancesRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteDetailsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -472,7 +464,6 @@ type LocalWalletDumpLocalResult = Bundle
 type LocalWalletGetAccountsCLILocalResult = ?Array<OwnAccountCLILocal>
 type RemoteAccountSeqnoResult = String
 type RemoteAcquireAutoClaimLockResult = String
-type RemoteAwaitPendingResult = AwaitResult
 type RemoteBalancesResult = ?Array<Balance>
 type RemoteDetailsResult = AccountDetails
 type RemoteIsMasterKeyActiveResult = Boolean

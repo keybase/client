@@ -428,16 +428,6 @@ func (o AccountDetails) DeepCopy() AccountDetails {
 	}
 }
 
-type AwaitResult struct {
-	Status TransactionStatus `codec:"status" json:"status"`
-}
-
-func (o AwaitResult) DeepCopy() AwaitResult {
-	return AwaitResult{
-		Status: o.Status.DeepCopy(),
-	}
-}
-
 type AutoClaim struct {
 	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
 }
@@ -489,11 +479,6 @@ type SubmitRelayClaimArg struct {
 	Claim  RelayClaimPost       `codec:"claim" json:"claim"`
 }
 
-type AwaitPendingArg struct {
-	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
-	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
-}
-
 type AcquireAutoClaimLockArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 }
@@ -524,7 +509,6 @@ type RemoteInterface interface {
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
 	SubmitRelayPayment(context.Context, SubmitRelayPaymentArg) (PaymentResult, error)
 	SubmitRelayClaim(context.Context, SubmitRelayClaimArg) (RelayClaimResult, error)
-	AwaitPending(context.Context, AwaitPendingArg) (AwaitResult, error)
 	AcquireAutoClaimLock(context.Context, keybase1.UserVersion) (string, error)
 	ReleaseAutoClaimLock(context.Context, ReleaseAutoClaimLockArg) error
 	NextAutoClaim(context.Context, keybase1.UserVersion) (*AutoClaim, error)
@@ -664,22 +648,6 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"awaitPending": {
-				MakeArg: func() interface{} {
-					ret := make([]AwaitPendingArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]AwaitPendingArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]AwaitPendingArg)(nil), args)
-						return
-					}
-					ret, err = i.AwaitPending(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"acquireAutoClaimLock": {
 				MakeArg: func() interface{} {
 					ret := make([]AcquireAutoClaimLockArg, 1)
@@ -800,11 +768,6 @@ func (c RemoteClient) SubmitRelayPayment(ctx context.Context, __arg SubmitRelayP
 
 func (c RemoteClient) SubmitRelayClaim(ctx context.Context, __arg SubmitRelayClaimArg) (res RelayClaimResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayClaim", []interface{}{__arg}, &res)
-	return
-}
-
-func (c RemoteClient) AwaitPending(ctx context.Context, __arg AwaitPendingArg) (res AwaitResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.awaitPending", []interface{}{__arg}, &res)
 	return
 }
 

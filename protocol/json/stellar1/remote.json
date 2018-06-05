@@ -428,16 +428,6 @@
     },
     {
       "type": "record",
-      "name": "AwaitResult",
-      "fields": [
-        {
-          "type": "TransactionStatus",
-          "name": "status"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "AutoClaim",
       "fields": [
         {
@@ -561,19 +551,6 @@
         }
       ],
       "response": "RelayClaimResult"
-    },
-    "awaitPending": {
-      "request": [
-        {
-          "name": "caller",
-          "type": "keybase1.UserVersion"
-        },
-        {
-          "name": "kbTxID",
-          "type": "KeybaseTransactionID"
-        }
-      ],
-      "response": "AwaitResult"
     },
     "acquireAutoClaimLock": {
       "request": [
