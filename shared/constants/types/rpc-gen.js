@@ -1086,6 +1086,10 @@ export const merkleGetCurrentMerkleRootRpcChannelMap = (configKeys: Array<string
 
 export const merkleGetCurrentMerkleRootRpcPromise = (request: MerkleGetCurrentMerkleRootRpcParam): Promise<MerkleGetCurrentMerkleRootResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error: RPCError, result: MerkleGetCurrentMerkleRootResult) => (error ? reject(error) : resolve(result))))
 
+export const merkleVerifyMerkleRootAndKBFSRpcChannelMap = (configKeys: Array<string>, request: MerkleVerifyMerkleRootAndKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.verifyMerkleRootAndKBFS', request)
+
+export const merkleVerifyMerkleRootAndKBFSRpcPromise = (request: MerkleVerifyMerkleRootAndKBFSRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.merkle.verifyMerkleRootAndKBFS', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const metadataAuthenticateRpcChannelMap = (configKeys: Array<string>, request: MetadataAuthenticateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.authenticate', request)
 
 export const metadataAuthenticateRpcPromise = (request: MetadataAuthenticateRpcParam): Promise<MetadataAuthenticateResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.authenticate', request, (error: RPCError, result: MetadataAuthenticateResult) => (error ? reject(error) : resolve(result))))
@@ -1906,6 +1910,10 @@ export const uiPromptDefault = {
   no: 2,
 }
 
+export const userFindNextMerkleRootAfterResetRpcChannelMap = (configKeys: Array<string>, request: UserFindNextMerkleRootAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.findNextMerkleRootAfterReset', request)
+
+export const userFindNextMerkleRootAfterResetRpcPromise = (request: UserFindNextMerkleRootAfterResetRpcParam): Promise<UserFindNextMerkleRootAfterResetResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.findNextMerkleRootAfterReset', request, (error: RPCError, result: UserFindNextMerkleRootAfterResetResult) => (error ? reject(error) : resolve(result))))
+
 export const userFindNextMerkleRootAfterRevokeRpcChannelMap = (configKeys: Array<string>, request: UserFindNextMerkleRootAfterRevokeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.findNextMerkleRootAfterRevoke', request)
 
 export const userFindNextMerkleRootAfterRevokeRpcPromise = (request: UserFindNextMerkleRootAfterRevokeRpcParam): Promise<UserFindNextMerkleRootAfterRevokeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.findNextMerkleRootAfterRevoke', request, (error: RPCError, result: UserFindNextMerkleRootAfterRevokeResult) => (error ? reject(error) : resolve(result))))
@@ -2496,6 +2504,8 @@ export type GitTeamRepoSettings = $ReadOnly<{channelName?: ?String, chatDisabled
 
 export type GpgUiConfirmDuplicateKeyChosenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type GpgUiConfirmImportSecretToExistingKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type GpgUiGetTTYRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type GpgUiSelectKeyAndPushOptionRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -2694,6 +2704,10 @@ export type KBFSGitDeleteRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepo
 
 export type KBFSGitGcRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, options: GcOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type KBFSRoot = $ReadOnly<{treeID: MerkleTreeID, root: KBFSRootHash}>
+
+export type KBFSRootHash = Bytes
+
 export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
 
 export type KID = String
@@ -2842,6 +2856,8 @@ export type MerkleTreeID =
   | 3 // KBFS_PRIVATETEAM_3
 
 export type MerkleTreeLocation = $ReadOnly<{leaf: UserOrTeamID, loc: SigChainLocation}>
+
+export type MerkleVerifyMerkleRootAndKBFSRpcParam = $ReadOnly<{root: MerkleRootV2, expectedKBFSRoot: KBFSRoot, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type MetadataAuthenticateRpcParam = $ReadOnly<{signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3762,7 +3778,7 @@ export type TeamCLKRResetUser = $ReadOnly<{uid: UID, userEldestSeqno: Seqno, mem
 
 export type TeamChangeReq = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>, none?: ?Array<UserVersion>, completedInvites: {[key: string]: UserVersionPercentForm}}>
 
-export type TeamChangeRow = $ReadOnly<{id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean, misc: Boolean}>
+export type TeamChangeRow = $ReadOnly<{id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean, misc: Boolean, removedResetUsers: Boolean}>
 
 export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean, misc: Boolean}>
 
@@ -4085,6 +4101,8 @@ export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation
 
 export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetadata?: ?Array<UserEkMetadata>}>
 
+export type UserFindNextMerkleRootAfterResetRpcParam = $ReadOnly<{uid: UID, resetSeqno: Seqno, prev: ResetMerkleRoot, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type UserFindNextMerkleRootAfterRevokeRpcParam = $ReadOnly<{uid: UID, kid: KID, loc: SigChainLocation, prev: MerkleRootV2, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4218,6 +4236,7 @@ type GitGetAllGitMetadataResult = ?Array<GitRepoResult>
 type GitGetGitMetadataResult = ?Array<GitRepoResult>
 type GitGetTeamRepoSettingsResult = GitTeamRepoSettings
 type GpgUiConfirmDuplicateKeyChosenResult = Boolean
+type GpgUiConfirmImportSecretToExistingKeyResult = Boolean
 type GpgUiGetTTYResult = String
 type GpgUiSelectKeyAndPushOptionResult = SelectKeyRes
 type GpgUiSelectKeyResult = String
@@ -4347,6 +4366,7 @@ type TlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 type TlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 type TrackTrackResult = ConfirmResult
 type UiPromptYesNoResult = Boolean
+type UserFindNextMerkleRootAfterResetResult = NextMerkleRootRes
 type UserFindNextMerkleRootAfterRevokeResult = NextMerkleRootRes
 type UserGetUPAKResult = UPAKVersioned
 type UserInterestingPeopleResult = ?Array<InterestingPerson>
@@ -4371,6 +4391,7 @@ type UserSearchResult = ?Array<SearchResult>
 export type IncomingCallMapType = {|
   'keybase.1.gpgUi.wantToAddGPGKey'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,
   'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,
+  'keybase.1.gpgUi.confirmImportSecretToExistingKey'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiConfirmImportSecretToExistingKeyResult) => void}) => void,
   'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: $ReadOnly<{sessionID: Int, keys?: ?Array<GPGKey>}>, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,
   'keybase.1.gpgUi.selectKey'?: (params: $ReadOnly<{sessionID: Int, keys?: ?Array<GPGKey>}>, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyResult) => void}) => void,
   'keybase.1.gpgUi.sign'?: (params: $ReadOnly<{msg: Bytes, fingerprint: Bytes}>, response: {error: RPCErrorHandler, result: (result: GpgUiSignResult) => void}) => void,

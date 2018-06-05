@@ -13,7 +13,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
-	"golang.org/x/net/context"
 )
 
 type UserBasic interface {
@@ -288,25 +287,24 @@ func (u *User) CheckBasicsFreshness(server int64) (current bool, err error) {
 	return
 }
 
-func (u *User) StoreSigChain(ctx context.Context) error {
+func (u *User) StoreSigChain(m MetaContext) error {
 	var err error
 	if u.sigChain() != nil {
-		err = u.sigChain().Store(ctx)
+		err = u.sigChain().Store(m)
 	}
 	return err
 }
 
-func (u *User) LoadSigChains(ctx context.Context, f *MerkleUserLeaf, self bool) (err error) {
+func (u *User) LoadSigChains(m MetaContext, f *MerkleUserLeaf, self bool) (err error) {
 	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), u.G().Clock().Now(), u.G().Log.Debug)
 
 	loader := SigChainLoader{
-		user:         u,
-		self:         self,
-		leaf:         f,
-		chainType:    PublicChain,
-		Contextified: u.Contextified,
-		preload:      u.sigChain(),
-		ctx:          ctx,
+		user:             u,
+		self:             self,
+		leaf:             f,
+		chainType:        PublicChain,
+		preload:          u.sigChain(),
+		MetaContextified: NewMetaContextified(m),
 	}
 
 	u.sigChainMem, err = loader.Load()
@@ -315,37 +313,37 @@ func (u *User) LoadSigChains(ctx context.Context, f *MerkleUserLeaf, self bool) 
 	return err
 }
 
-func (u *User) Store(ctx context.Context) error {
+func (u *User) Store(m MetaContext) error {
 
-	u.G().Log.CDebugf(ctx, "+ Store user %s", u.name)
+	m.CDebugf("+ Store user %s", u.name)
 
 	// These might be dirty, in which case we can write it back
 	// to local storage. Note, this can be dirty even if the user is clean.
-	if err := u.sigHints.Store(ctx); err != nil {
+	if err := u.sigHints.Store(m); err != nil {
 		return err
 	}
 
 	if !u.dirty {
-		u.G().Log.CDebugf(ctx, "- Store for %s skipped; user wasn't dirty", u.name)
+		m.CDebugf("- Store for %s skipped; user wasn't dirty", u.name)
 		return nil
 	}
 
-	if err := u.StoreSigChain(ctx); err != nil {
+	if err := u.StoreSigChain(m); err != nil {
 		return err
 	}
 
-	if err := u.StoreTopLevel(ctx); err != nil {
+	if err := u.StoreTopLevel(m); err != nil {
 		return err
 	}
 
 	u.dirty = false
-	u.G().Log.CDebugf(ctx, "- Store user %s -> OK", u.name)
+	m.CDebugf("- Store user %s -> OK", u.name)
 
 	return nil
 }
 
-func (u *User) StoreTopLevel(ctx context.Context) error {
-	u.G().Log.CDebugf(ctx, "+ StoreTopLevel")
+func (u *User) StoreTopLevel(m MetaContext) error {
+	m.CDebugf("+ StoreTopLevel")
 
 	jw := jsonw.NewDictionary()
 	jw.SetKey("id", UIDWrapper(u.id))
@@ -358,7 +356,7 @@ func (u *User) StoreTopLevel(ctx context.Context) error {
 		[]DbKey{{Typ: DBLookupUsername, Key: u.name}},
 		jw,
 	)
-	u.G().Log.CDebugf(ctx, "- StoreTopLevel -> %s", ErrToOk(err))
+	m.CDebugf("- StoreTopLevel -> %s", ErrToOk(err))
 	return err
 }
 
@@ -398,14 +396,13 @@ func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 		return
 	}
 
-	aerr := u.G().LoginState().SecretSyncer(func(s *SecretSyncer) {
-		ret, err = s.FindActiveKey(ckf)
-	}, "User - FindActiveKey")
-	if aerr != nil {
-		return nil, aerr
+	syncer, err := m.SyncSecrets()
+	if err != nil {
+		return nil, err
 	}
 
-	return
+	ret, err = syncer.FindActiveKey(ckf)
+	return ret, err
 }
 
 // AllSyncedSecretKeys returns all the PGP key blocks that were
@@ -415,7 +412,7 @@ func (u *User) AllSyncedSecretKeys(m MetaContext) (keys []*SKB, err error) {
 	defer m.CTrace("User#AllSyncedSecretKeys", func() error { return err })()
 	m.Dump()
 
-	ss, err := m.SyncSecrets()
+	ss, err := m.SyncSecretsForUID(u.GetUID())
 	if err != nil {
 		return nil, err
 	}
@@ -431,7 +428,8 @@ func (u *User) AllSyncedSecretKeys(m MetaContext) (keys []*SKB, err error) {
 }
 
 func (u *User) SyncSecrets(m MetaContext) error {
-	return u.G().LoginState().RunSecretSyncer(m, u.id)
+	_, err := m.SyncSecretsForUID(u.GetUID())
+	return err
 }
 
 // May return an empty KID
@@ -453,6 +451,9 @@ func (u *User) IDTable() *IdentityTable {
 // Return the active stellar public address for a user.
 // Returns nil if there is none or it has not been loaded.
 func (u *User) StellarWalletAddress() *stellar1.AccountID {
+	if u.idTable == nil {
+		return nil
+	}
 	return u.idTable.StellarWalletAddress()
 }
 

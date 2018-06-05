@@ -162,6 +162,20 @@ func TestImportExport(t *testing.T) {
 		require.Equal(t, s1, exported)
 	})
 
+	withWrongPassphrase := func(f func()) {
+		ui := &libkb.TestSecretUI{Passphrase: "notquite" + tcs[0].Fu.Passphrase}
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = ui
+		f()
+		require.True(t, ui.CalledGetPassphrase, "operation should ask for passphrase")
+		tcs[0].Srv.uiSource.(*testUISource).secretUI = nullSecretUI{}
+	}
+
+	withWrongPassphrase(func() {
+		_, err := srv.ExportSecretKeyLocal(context.Background(), a1)
+		require.Error(t, err)
+		require.IsType(t, libkb.PassphraseError{}, err)
+	})
+
 	_, err = srv.ExportSecretKeyLocal(context.Background(), stellar1.AccountID(s1))
 	require.Error(t, err, "export confusing secret and public")
 
@@ -382,13 +396,13 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	recipPayments, err := srvRecip.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, recipPayments, 1)
-	require.NotNil(t, senderPayments[0].Payment, senderPayments[0].Err)
+	require.NotNil(t, recipPayments[0].Payment, recipPayments[0].Err)
 	checkPayment(*recipPayments[0].Payment)
 
 	payment, err := srvSender.PaymentDetailCLILocal(context.Background(), senderPayments[0].Payment.TxID.String())
 	require.NoError(t, err)
 	checkPayment(payment)
-	payment, err = srvRecip.PaymentDetailCLILocal(context.Background(), senderPayments[0].Payment.TxID.String())
+	payment, err = srvRecip.PaymentDetailCLILocal(context.Background(), recipPayments[0].Payment.TxID.String())
 	require.NoError(t, err)
 	checkPayment(payment)
 }
@@ -476,9 +490,6 @@ func testRelay(t *testing.T, yank bool) {
 		}
 		getapuk(tcs[1])
 
-		_, err := stellar.CreateWallet(context.Background(), tcs[1].G)
-		require.NoError(t, err)
-
 		tcs[0].Backend.ImportAccountsForUser(tcs[claimant])
 
 		// The implicit team has an invite for the claimant. Now the sender signs them into the team.
@@ -503,10 +514,27 @@ func testRelay(t *testing.T, yank bool) {
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
-	require.Equal(t, "", history[0].Err)
+	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
+
+	fhistory, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	require.NoError(t, err)
+	require.Len(t, fhistory, 1)
+	require.Nil(t, fhistory[0].Err)
+	require.NotNil(t, fhistory[0].Payment)
+	require.NotEmpty(t, fhistory[0].Payment.Id)
+	require.NotZero(t, fhistory[0].Payment.Time)
+	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
+	if yank {
+		require.Equal(t, "- 3 XLM", fhistory[0].Payment.AmountDescription)
+		require.Equal(t, stellar1.BalanceDelta_DECREASE, fhistory[0].Payment.Delta)
+	} else {
+		require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)
+		require.Equal(t, stellar1.BalanceDelta_NONE, fhistory[0].Payment.Delta)
+	}
 
 	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "1.9999900")
 	if !yank {
@@ -527,16 +555,32 @@ func testRelay(t *testing.T, yank bool) {
 	history, err = tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
-	require.Equal(t, "", history[0].Err)
+	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "completed", history[0].Payment.Status)
+
+	fhistory, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	require.NoError(t, err)
+	require.Len(t, fhistory, 1)
+	require.Nil(t, fhistory[0].Err)
+	require.NotNil(t, fhistory[0].Payment)
+	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, "completed", fhistory[0].Payment.StatusDescription)
 
 	history, err = tcs[0].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
-	require.Equal(t, "", history[0].Err)
+	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "completed", history[0].Payment.Status)
+
+	fhistory, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
+	require.NoError(t, err)
+	require.Len(t, fhistory, 1)
+	require.Nil(t, fhistory[0].Err)
+	require.NotNil(t, fhistory[0].Payment)
+	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, "completed", fhistory[0].Payment.StatusDescription)
 
 	t.Logf("try to claim again")
 	res, err = tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})

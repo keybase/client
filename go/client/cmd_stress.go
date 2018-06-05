@@ -302,6 +302,9 @@ func (c *CmdStress) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 func (c *CmdStress) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
+func (c *CmdStress) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
+	return false, nil
+}
 
 func (c *CmdStress) secretUIProtocol() rpc.Protocol {
 	return keybase1.SecretUiProtocol(c)

@@ -3,7 +3,7 @@ import Box from './box'
 import Button from './button'
 import * as React from 'react'
 import {storiesOf, action} from '../stories/storybook'
-import {globalStyles} from '../styles'
+import {globalColors, globalStyles} from '../styles'
 
 const commonProps = {
   backgroundMode: 'Normal',
@@ -20,8 +20,13 @@ const commonProps = {
   waiting: false,
 }
 
-const Pair = ({children}) => (
-  <Box style={{...globalStyles.flexBoxRow, width: '100%', marginBottom: 20}}>
+type PairProps = {
+  ...React.ElementProps<any>,
+  background?: string,
+}
+
+const Pair = ({background, children}: PairProps) => (
+  <Box style={{...globalStyles.flexBoxRow, width: '100%', marginBottom: 20, background: background || '', padding: background ? 4 : 0}}>
     <Box style={{flex: 1}}>{children[0]}</Box>
     <Box style={{flex: 1}}>{children[1]}</Box>
   </Box>
@@ -37,7 +42,7 @@ const load = () => {
         borderWidth: 1,
         flex: 1,
         margin: 20,
-        width: 400,
+        width: 650,
       }}
     >
       <Pair>
@@ -63,6 +68,38 @@ const load = () => {
       <Pair>
         <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active" />
         <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active" disabled={true} />
+      </Pair>
+      <Pair background={globalColors.red}>
+        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Red" label="Primary Colored Background Red" />
+        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Red" label="Primary Colored Background Red" disabled={true} />
+      </Pair>
+      <Pair background={globalColors.green}>
+        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Green" label="Primary Colored Background Green" />
+        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Green" label="Primary Colored Background Green" disabled={true} />
+      </Pair>
+      <Pair background={globalColors.blue}>
+        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Blue" label="Primary Colored Background Blue" />
+        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Blue" label="Primary Colored Background Blue" disabled={true} />
+      </Pair>
+      <Pair background={globalColors.black}>
+        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Black" label="Primary Colored Background Black" />
+        <Button {...commonProps} type="PrimaryColoredBackground" backgroundMode="Black" label="Primary Colored Background Black" disabled={true} />
+      </Pair>
+      <Pair background={globalColors.red}>
+        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Red" />
+        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Red" disabled={true} />
+      </Pair>
+      <Pair background={globalColors.green}>
+        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Green" />
+        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Green" disabled={true} />
+      </Pair>
+      <Pair background={globalColors.blue}>
+        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Blue" />
+        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Blue" disabled={true} />
+      </Pair>
+      <Pair background={globalColors.black}>
+        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Black" />
+        <Button {...commonProps} type="SecondaryColoredBackground" label="Secondary Colored Background Black" disabled={true} />
       </Pair>
       <Box
         style={{

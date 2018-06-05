@@ -66,7 +66,7 @@ const actionTransformMap = {
   [Chat2Gen.clearLoading]: fullOutput,
   [Chat2Gen.selectConversation]: fullOutput,
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
-  [Chat2Gen.metaUpdatePagination]: fullOutput,
+  [Chat2Gen.updateMoreToLoad]: fullOutput,
   [Chat2Gen.setConversationOffline]: fullOutput,
   [ConfigGen.globalError]: a => {
     let err = {}

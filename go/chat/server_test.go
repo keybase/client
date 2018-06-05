@@ -300,11 +300,12 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		ri = mockRemote
 		ctx = newTestContextWithTlfMock(tc, tlf)
 	} else {
-		var sessionToken string
 		ctx = newTestContext(tc)
-		tc.G.LoginState().LocalSession(func(s *libkb.Session) {
-			sessionToken = s.GetToken()
-		}, "test session")
+		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
@@ -689,6 +690,9 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		require.Error(t, err)
 		topicName = ""
+		if mt == chat1.ConversationMembersType_KBFS {
+			arg.TopicName = nil
+		}
 		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
@@ -696,6 +700,7 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		case chat1.ConversationMembersType_TEAM:
 			require.Error(t, err)
 		}
+		arg.TopicName = &topicName
 		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"
 		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		require.Error(t, err)
@@ -2144,8 +2149,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 
 func TestChatSrvFindConversations(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		// XXX: Public chats can't work with teams yet
-		if mt == chat1.ConversationMembersType_TEAM {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_KBFS:
 			return
 		}
 
@@ -3255,8 +3260,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, ncres.Conv.GetConvID())
-			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Status)
-			require.Equal(t, users[1].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
@@ -3322,8 +3328,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Status)
-			require.Equal(t, users[1].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
@@ -3354,8 +3361,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, chat1.ConversationMemberStatus_REMOVED, act.Status)
-			require.Equal(t, users[1].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_REMOVED, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
@@ -3376,8 +3384,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Status)
-			require.Equal(t, users[2].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Members[0].Status)
+			require.Equal(t, users[2].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
@@ -3945,7 +3954,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 0, len(res.Conversations), "conv found")
 		consumeIdentify(ctx, listener0) // impteam
-		consumeIdentify(ctx, listener0) // kbfs
 
 		// create a new conversation
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -3958,7 +3966,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener0) //impteam
-		consumeIdentify(ctx, listener0) //kbfs
 		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
@@ -4348,16 +4355,18 @@ func TestChatSrvUserReset(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
-			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
-			require.Equal(t, users[1].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
 		select {
 		case act := <-listener2.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
-			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
-			require.Equal(t, users[1].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
@@ -4409,8 +4418,9 @@ func TestChatSrvUserReset(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
-			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
-			require.Equal(t, users[2].Username, act.Member)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Members[0].Status)
+			require.Equal(t, users[2].Username, act.Members[0].Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
