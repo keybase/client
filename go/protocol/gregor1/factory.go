@@ -240,6 +240,15 @@ func (o ObjFactory) UnmarshalState(b []byte) (gregor.State, error) {
 	return state, nil
 }
 
+func (o ObjFactory) UnmarshalMessage(b []byte) (gregor.Message, error) {
+	var message Message
+	err := codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true}).Decode(&message)
+	if err != nil {
+		return nil, err
+	}
+	return message, nil
+}
+
 func (o ObjFactory) MakeTimeOrOffsetFromTime(t time.Time) (gregor.TimeOrOffset, error) {
 	return timeToTimeOrOffset(&t), nil
 }

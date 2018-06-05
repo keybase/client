@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -210,6 +211,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	}
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
+	u.stellarClient = stellar1.LocalClient{Cli: cli}
 
 	g.ConfigureConfig()
 
@@ -245,6 +247,7 @@ type userPlusDevice struct {
 	tc                       *libkb.TestContext
 	deviceClient             keybase1.DeviceClient
 	teamsClient              keybase1.TeamsClient
+	stellarClient            stellar1.LocalClient
 	notifications            *teamNotifyHandler
 	suppressTeamChatAnnounce bool
 }

@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/keybase/cli"
@@ -66,6 +67,12 @@ func (c *CmdChatUpload) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdChatUpload) Run() error {
+	// Verify that we are not trying to send an ephemeral message to a public
+	// chat.
+	if c.ephemeralLifetime.Duration > 0 && c.public {
+		return fmt.Errorf("Cannot send ephemeral messages with --public set.")
+	}
+
 	opts := attachOptionsV1{
 		Channel: ChatChannel{
 			Name:   c.tlf,
