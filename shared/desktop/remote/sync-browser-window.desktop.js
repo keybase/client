@@ -19,9 +19,13 @@ const defaultWindowOpts = {
   frame: false,
   fullscreen: false,
   height: 300,
-  nodeIntegration: false,
   resizable: false,
   show: false, // Start hidden and show when we actually get props
+  webPreferences: {
+    affinity: 'keybase',
+    nodeIntegration: true,
+    nodeIntegrationInWorker: false,
+  },
   width: 500,
 }
 
