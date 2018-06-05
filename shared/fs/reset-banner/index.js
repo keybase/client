@@ -13,7 +13,7 @@ const Banner = ({isUserReset, resetParticipants}: Props) => {
     return <Box />
   }
   if (isUserReset) {
-    // TODO: implement user's reset banner.
+    // TODO: implement self reset banner.
     return <Box />
   }
   return (
@@ -66,8 +66,6 @@ const Banner = ({isUserReset, resetParticipants}: Props) => {
     </Box>
   )
 }
-
-const sidePadding = globalMargins.large + globalMargins.tiny
 
 const bannerStyle = {
   ...globalStyles.flexBoxColumn,
