@@ -1151,11 +1151,11 @@ const previewConversationAfterFindExisting = (
   state: TypedState
 ) => {
   // TODO make a sequentially that uses an object map and not all this array nonsense
-  if (!_fromPreviewConversation || _fromPreviewConversation.length !== 4) {
+  if (!_fromPreviewConversation || _fromPreviewConversation.length !== 3) {
     return
   }
-  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[2]
-  const users: Array<string> = _fromPreviewConversation[3]
+  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
+  const users: Array<string> = _fromPreviewConversation[2]
 
   // still looking for this result?
   if (
@@ -1274,17 +1274,6 @@ const previewConversationFindExisting = (
     throw new Error('Start conversation called w/ no participants or teamname')
   }
 
-  const updatePendingMode =
-    action.type === Chat2Gen.previewConversation &&
-    // not dealing with big teams
-    (!action.payload.teamname && !action.payload.channelname) &&
-    // it's a fixed set of users so it's not a search (aka you can't add people to it)
-    Saga.put(
-      Chat2Gen.createSetPendingMode({
-        pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
-      })
-    )
-
   const markPendingWaiting = Saga.put(
     Chat2Gen.createSetPendingConversationExistingConversationIDKey({
       conversationIDKey: Constants.pendingWaitingConversationIDKey,
@@ -1305,8 +1294,7 @@ const previewConversationFindExisting = (
 
   const passUsersDown = Saga.identity(users)
 
-  // updatePendingMode triggers a navigateToThread, so we want to do it before the RPC.
-  return Saga.sequentially([markPendingWaiting, updatePendingMode, makeCall, passUsersDown])
+  return Saga.sequentially([markPendingWaiting, makeCall, passUsersDown])
 }
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
@@ -1935,8 +1923,14 @@ const changePendingMode = (
       // We're selecting a team so we never want to show the row, we'll instead make the rpc call to add it to the inbox
       if (action.payload.teamname || action.payload.channelname) {
         return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+      } else {
+        // Otherwise, we're starting a chat with some users.
+        return Saga.put(
+          Chat2Gen.createSetPendingMode({
+            pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
+          })
+        )
       }
-      break
     case Chat2Gen.selectConversation: {
       if (state.chat2.pendingMode === 'none') {
         return
