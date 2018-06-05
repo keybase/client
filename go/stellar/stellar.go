@@ -744,7 +744,7 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 	}
 	currency, ok := conf.Currencies[code]
 	if !ok {
-		return "", fmt.Errorf("Could not find currency %q", code)
+		return "", fmt.Errorf("FormatCurrency error: cannot find curency code %q", code)
 	}
 
 	amountFmt, err := FormatAmount(amount, true)
@@ -766,7 +766,7 @@ func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stell
 	}
 	currency, ok := conf.Currencies[code]
 	if !ok {
-		return "", fmt.Errorf("Could not find currency %q", code)
+		return "", fmt.Errorf("FormatCurrencyLabel error: cannot find curency code %q", code)
 	}
 	return fmt.Sprintf("%s (%s)", code, currency.Symbol.Symbol), nil
 }
