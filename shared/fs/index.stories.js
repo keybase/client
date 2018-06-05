@@ -7,6 +7,8 @@ import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors} from '../styles'
 import Files from '.'
 import {NormalPreview} from './filepreview'
+import Download from './footer/download'
+import {Box} from '../common-adapters'
 
 const provider = createPropProvider({
   FileRow: ({path}: {path: Types.Path}) => ({
@@ -112,6 +114,61 @@ const load = () => {
     ))
     .add('Preview', () => (
       <NormalPreview routePath={I.List([])} routeProps={I.Map({path: '/keybase/private/foo/bar.jpg'})} />
+    ))
+    .add('Footer Cards', () => (
+      <Box>
+        <Box style={{height: 8}} />
+        <Download
+          filename="fjweio"
+          completePortion={0.42}
+          progressText="4 s"
+          isDone={false}
+          open={action('dismiss')}
+          dismiss={action('dismiss')}
+          cancel={action('dismiss')}
+        />
+        <Box style={{height: 8}} />
+        <Download
+          filename="fjweio afiojwe fweiojf oweijfweoi fjwoeifj ewoijf oew"
+          completePortion={0.42}
+          progressText="4 s"
+          isDone={false}
+          open={action('dismiss')}
+          dismiss={action('dismiss')}
+          cancel={action('dismiss')}
+        />
+        <Box style={{height: 8}} />
+        <Download
+          filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
+          completePortion={0.42}
+          progressText="4 s"
+          isDone={false}
+          open={action('dismiss')}
+          dismiss={action('dismiss')}
+          cancel={action('dismiss')}
+        />
+        <Box style={{height: 8}} />
+        <Download
+          filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
+          completePortion={0.42}
+          progressText="59 min"
+          isDone={false}
+          open={action('dismiss')}
+          dismiss={action('dismiss')}
+          cancel={action('dismiss')}
+        />
+        <Box style={{height: 8}} />
+        <Download
+          filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
+          completePortion={0.42}
+          progressText="1234 hr"
+          isDone={false}
+          open={action('dismiss')}
+          dismiss={action('dismiss')}
+          cancel={action('dismiss')}
+        />
+        <Box style={{height: 8}} />
+      </Box>
     ))
 }
 

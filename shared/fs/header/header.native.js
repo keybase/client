@@ -13,34 +13,44 @@ type Props = {
 
 const Header = ({title, path, onBack}: Props) => (
   <Box style={stylesFolderHeaderContainer}>
-    <Box style={stylesFolderHeaderRoot}>
-      <Text type="BodyBig">{title}</Text>
-    </Box>
     <BackButton title={null} onClick={onBack} />
-    <AddNew path={path} style={stylesAddNew} />
+    <Box style={stylesFolderHeaderRoot}>
+      <Text type="BodyBig" style={stylesTitle}>
+        {title}
+      </Text>
+    </Box>
+    <Box style={stylesAddNewBox}>
+      <AddNew path={path} style={stylesAddNew} />
+    </Box>
   </Box>
 )
 
 const stylesFolderHeaderContainer = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  height: 64,
+  alignItems: 'flex-start',
+  paddingTop: 12,
+  minHeight: 64,
 }
 
 const stylesFolderHeaderRoot = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '100%',
-  position: 'absolute',
-  minHeight: 48,
+  paddingTop: 9,
+  paddingBottom: 21,
+  flexShrink: 1,
+  flexGrow: 1,
 }
 
 const stylesAddNew = {
   padding: globalMargins.tiny,
   paddingRight: globalMargins.small - 4,
   paddingLeft: globalMargins.small,
+}
+
+const stylesTitle = {
+  textAlign: 'center',
+}
+
+const stylesAddNewBox = {
+  minWidth: 50,
 }
 
 export default Header

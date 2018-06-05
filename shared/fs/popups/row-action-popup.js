@@ -32,16 +32,32 @@ const Popup = (props: Props) => {
     view: (
       <Box style={stylesHeader}>
         <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
-        <Text type="BodySmallSemibold" style={{color: props.itemStyles.textColor}} lineClamp={1}>
-          {props.name}
-        </Text>
+        <Box style={stylesNameTextBox}>
+          <Text
+            type="BodySmallSemibold"
+            style={
+              // $FlowFixMe
+              {
+                color: props.itemStyles.textColor,
+                overflowWrap: 'break-word',
+                textAlign: 'center',
+              }
+            }
+          >
+            {props.name}
+          </Text>
+        </Box>
         {props.type === 'file' && <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>}
         {props.type === 'folder' && (
           <Text type="BodySmall">
             {props.childrenFolders
-              ? `${props.childrenFolders} Folders` + (props.childrenFiles ? ', ' : '')
+              ? `${props.childrenFolders} Folder${props.childrenFolders > 1 ? 's' : ''}${
+                  props.childrenFiles ? ', ' : ''
+                }`
               : undefined}
-            {props.childrenFiles ? `${props.childrenFiles} Files` : undefined}
+            {props.childrenFiles
+              ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}`
+              : undefined}
           </Text>
         )}
         <PathItemInfo
@@ -61,6 +77,13 @@ const Popup = (props: Props) => {
   return (
     <ModalLessPopupMenu header={header} items={items} style={stylesContainer} onHidden={props.onHidden} />
   )
+}
+
+const stylesNameTextBox = {
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  width: '100%',
+  textAlign: 'center',
 }
 
 const pathItemIconStyle = {

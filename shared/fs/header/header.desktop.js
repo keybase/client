@@ -43,11 +43,14 @@ const FolderHeader = ({
               </Box>
             )}
             {breadcrumbItems.map(i => (
-              <Box key={Types.pathToString(i.path)} style={folderBreadcrumbStyle}>
+              <Box
+                key={Types.pathToString(i.path)}
+                style={i.isLastItem ? lastFolderBreadcrumbStyle : folderBreadcrumbStyle}
+              >
                 {i.isTlfNameItem &&
                   isTeamPath && <Avatar size={16} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
                 {i.isLastItem ? (
-                  <Text type="BodyBig" style={styleTailBreadcrumb}>
+                  <Text type="BodyBig" style={stylesLastNameText}>
                     {i.name}
                   </Text>
                 ) : (
@@ -84,19 +87,19 @@ const styleHeaderContainer = {
 }
 
 const styleFolderHeader = {
-  ...stylesCommonRow,
-  justifyContent: 'center',
   minHeight: 48,
 }
 
 const folderHeaderStyleRoot = {
   ...stylesCommonRow,
   justifyContent: 'center',
+  width: '100%',
+  height: 48,
 }
 
 const folderHeaderStyleTree = {
   ...stylesCommonRow,
-  alignItems: 'center',
+  alignItems: 'flex-start',
   paddingLeft: 16,
   paddingRight: 16,
 }
@@ -106,6 +109,7 @@ const styleFolderHeaderEnd = {
   alignItems: 'center',
   paddingLeft: 16,
   paddingRight: 16,
+  flexShrink: 0,
 }
 
 const folderBreadcrumbStyle = {
@@ -113,19 +117,27 @@ const folderBreadcrumbStyle = {
   alignItems: 'center',
   paddingLeft: 0,
   paddingRight: 0,
+  flexShrink: 0,
 }
+
+const lastFolderBreadcrumbStyle = {
+  ...folderBreadcrumbStyle,
+  flexShrink: 1,
+}
+
+const stylesLastNameText = {}
 
 const styleFolderHeaderContainer = {
   ...stylesCommonRow,
   justifyContent: 'space-between',
-  flex: 1,
+  marginTop: 15,
+  marginBottom: 15,
+  alignItems: 'flex-start',
 }
 
 const styleParentBreadcrumb = {
   color: globalColors.black_60,
 }
-
-const styleTailBreadcrumb = {}
 
 const iconStyle = {
   marginLeft: globalMargins.xtiny,
