@@ -1619,6 +1619,7 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.dismissItem(%s)", id.String()),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	dismissal, err := g.templateMessage()
 	if err != nil {
@@ -1642,6 +1643,7 @@ func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.localDismissItem(%s)", id.String()),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	cli, err := g.getGregorCli()
 	if err != nil {
@@ -1655,6 +1657,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.DismissCategory(%s)", category.String()),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	dismissal, err := g.templateMessage()
 	if err != nil {
@@ -1685,6 +1688,7 @@ func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte,
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.InjectItem(%s)", cat),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	creation, err := g.templateMessage()
 	if err != nil {
@@ -1708,6 +1712,7 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.UpdateItem(%s,%s)", msgID.String(), cat),
 		func() error { return err },
 	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
 	msg, err := g.templateMessage()
 	if err != nil {
