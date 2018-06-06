@@ -233,7 +233,13 @@ const styles = styleSheetCreate({
   // <Markdown style={{color: ...}}> works.
   link: {fontWeight: undefined},
   neutral: {color: undefined, fontWeight: undefined},
-  quoteBlock: {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8},
+  quoteBlock: {
+    borderLeftColor: globalColors.lightGrey2,
+    borderLeftWidth: 3,
+    marginBottom: globalMargins.xtiny,
+    marginTop: globalMargins.xtiny,
+    paddingLeft: 8,
+  },
   strike: {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'},
 })
 
