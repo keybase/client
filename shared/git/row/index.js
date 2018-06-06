@@ -2,11 +2,12 @@
 import * as React from 'react'
 import {
   Box,
+  Box2,
   Text,
   Icon,
   Checkbox,
   ClickableBox,
-  Input,
+  CopyText,
   Button,
   Avatar,
   Meta,
@@ -15,7 +16,15 @@ import {
   type PropsWithTimer,
 } from '../../common-adapters'
 
-import {globalStyles, globalColors, globalMargins, platformStyles, transition, isMobile} from '../../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  styleSheetCreate,
+  transition,
+  isMobile,
+} from '../../styles'
 
 type _Props = {
   canDelete: boolean,
@@ -136,27 +145,9 @@ class Row extends React.Component<Props, State> {
                 }}
               >
                 <Text type="Body">Clone:</Text>
-                <Box style={_bubbleStyle}>
-                  <Input
-                    small={true}
-                    readonly={true}
-                    value={this.props.url}
-                    onClick={this._inputOnClick}
-                    ref={this._setRef}
-                    style={_inputStyle}
-                    editable={false}
-                    inputStyle={_inputInputStyle}
-                    hideUnderline={true}
-                  />
-                  <ClickableBox style={_copyStyle} onClick={this._onCopy}>
-                    <Icon
-                      type="iconfont-clipboard"
-                      color={globalColors.white}
-                      fontSize={isMobile ? 20 : 16}
-                      hoverColor={isMobile ? undefined : globalColors.blue5}
-                    />
-                  </ClickableBox>
-                </Box>
+                <Box2 direction="horizontal" style={styles.copyTextContainer}>
+                  <CopyText text={this.props.url} />
+                </Box2>
                 {!isMobile &&
                   this.props.canDelete && (
                     <Button
@@ -332,22 +323,12 @@ const _inputStyle = platformStyles({
   },
 })
 
-const _bubbleStyle = {
-  ...globalStyles.flexBoxCenter,
-  backgroundColor: globalColors.white,
-  borderColor: globalColors.black_10,
-  borderRadius: 200,
-  borderStyle: 'solid',
-  borderWidth: 1,
-  flex: isMobile ? 1 : undefined,
-  marginLeft: globalMargins.xtiny,
-  marginRight: globalMargins.tiny,
-  minHeight: isMobile ? 40 : 28,
-  minWidth: isMobile ? undefined : 367,
-  overflow: 'hidden',
-  paddingLeft: globalMargins.small,
-  position: 'relative',
-}
+const styles = styleSheetCreate({
+  copyTextContainer: {
+    marginLeft: globalMargins.xtiny,
+    marginRight: globalMargins.tiny,
+  },
+})
 
 const _deviceStyle = {
   ...globalStyles.fontSemibold,
