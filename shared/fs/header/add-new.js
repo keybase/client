@@ -15,7 +15,7 @@ type AddNewProps = {
     icon: IconType,
     title: string,
   }>,
-  pathElementsNoKeybase: Array<string>,
+  pathElements: Array<string>,
 }
 
 const getIcon = (tlfType: string): IconType => {
@@ -31,79 +31,79 @@ const getIcon = (tlfType: string): IconType => {
   }
 }
 
-const header = (pathElementsNoKeybase: Array<string>) => {
-  return !isMobile
-    ? undefined
-    : {
-        title: 'header',
-        view: (
-          <Box style={stylesHeaderBox}>
-            {[
+const header = (pathElements: Array<string>) => {
+  return (
+    isMobile && {
+      title: 'header',
+      view: (
+        <Box style={stylesHeaderBox}>
+          {[
+            <Icon
+              type={getIcon(pathElements[1])}
+              color={globalColors.blue}
+              style={stylesIconFolderType}
+              key="icon"
+            />,
+            <Text key="text" type="BodySmallSemibold">
+              {pathElements[1]}
+            </Text>,
+            ...pathElements.slice(2).map((elem, idx) => [
               <Icon
-                type={getIcon(pathElementsNoKeybase[0])}
-                color={globalColors.blue}
-                style={stylesIconFolderType}
-                key="icon"
+                key={`icon-${idx}`}
+                type="iconfont-arrow-right"
+                style={stylesIconArrow}
+                color={globalColors.black_20}
+                fontSize={12}
               />,
-              <Text key="text" type="BodySmallSemibold">
-                {pathElementsNoKeybase[0]}
+              <Text key={`text-${idx}`} type="BodySmallSemibold">
+                {elem}
               </Text>,
-              ...[].concat(
-                pathElementsNoKeybase.slice(1).map((elem, idx) => [
-                  <Icon
-                    key={`icon-${idx}`}
-                    type="iconfont-arrow-right"
-                    style={stylesIconArrow}
-                    color={globalColors.black_20}
-                    fontSize={12}
-                  />,
-                  <Text key={`text-${idx}`} type="BodySmallSemibold">
-                    {elem}
-                  </Text>,
-                ])
-              ),
-            ]}
-          </Box>
-        ),
-      }
+            ]),
+          ]}
+        </Box>
+      ),
+    }
+  )
 }
 
 const AddNew = (props: AddNewProps & FloatingMenuParentProps) => {
-  return !props.menuItems.length ? null : (
-    <Box style={props.style}>
-      <ClickableBox style={stylesBox} onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-        <Icon type="iconfont-new" color={globalColors.blue} style={stylesIconNew} />
-        {!isMobile && (
-          <Text type="BodyBigLink" style={stylesText}>
-            New ...
-          </Text>
-        )}
-      </ClickableBox>
-      <FloatingMenu
-        attachTo={props.attachmentRef}
-        visible={props.showingMenu}
-        onHidden={props.toggleShowingMenu}
-        header={header(props.pathElementsNoKeybase)}
-        items={props.menuItems.map(({onClick, title, icon}) => ({
-          onClick,
-          ...(isMobile
-            ? {title}
-            : {
-                title,
-                view: (
-                  <Box style={stylesBox}>
-                    <Icon type={icon} color={globalColors.blue} />
-                    <Text type="Body" style={stylesText}>
-                      {title}
-                    </Text>
-                  </Box>
-                ),
-              }),
-        }))}
-        position="bottom center"
-        closeOnSelect={true}
-      />
-    </Box>
+  return (
+    !!props.menuItems.length && (
+      <Box style={props.style}>
+        <ClickableBox style={stylesBox} onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+          <Icon type="iconfont-new" color={globalColors.blue} style={stylesIconNew} />
+          {!isMobile && (
+            <Text type="BodyBigLink" style={stylesText}>
+              New ...
+            </Text>
+          )}
+        </ClickableBox>
+        <FloatingMenu
+          attachTo={props.attachmentRef}
+          visible={props.showingMenu}
+          onHidden={props.toggleShowingMenu}
+          header={header(props.pathElements) || undefined}
+          items={props.menuItems.map(({onClick, title, icon}) => ({
+            onClick,
+            ...(isMobile
+              ? {title}
+              : {
+                  title,
+                  view: (
+                    <Box style={stylesBox}>
+                      <Icon type={icon} color={globalColors.blue} />
+                      <Text type="Body" style={stylesText}>
+                        {title}
+                      </Text>
+                    </Box>
+                  ),
+                }),
+          }))}
+          position="bottom center"
+          closeOnSelect={true}
+        />
+      </Box>
+    )
   )
 }
 

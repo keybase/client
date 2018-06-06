@@ -8,12 +8,12 @@ const mapStateToProps = (state: TypedState) => ({})
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({})
 
 const mergeProps = (stateProps, dispatchProps, {path, style}) => {
-  const elems = Types.getPathElements(path)
+  const pathElements = Types.getPathElements(path)
   return {
-    pathElementsNoKeybase: elems.slice(1),
+    pathElements,
     style,
     menuItems:
-      elems.length <= 2
+      pathElements.length <= 2
         ? []
         : [
             {
