@@ -8,27 +8,37 @@ import {collapseStyles, globalStyles, globalColors, globalMargins, statusBarHeig
 
 import type {Props} from './header-hoc'
 
+export const HeaderHocHeader = ({
+  headerStyle,
+  customComponent,
+  title,
+  onCancel,
+  onBack,
+  theme = 'light',
+}: Props) => (
+  <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+    {customComponent}
+    {!!title && (
+      <Box style={_titleStyle}>
+        <Text type="BodyBig">{title}</Text>
+      </Box>
+    )}
+    {onCancel && (
+      <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>
+        Cancel
+      </Text>
+    )}
+    {onBack && (
+      <BackButton iconColor={_backButtonIconColorThemed[theme]} style={_buttonStyle} onClick={onBack} />
+    )}
+  </Box>
+)
+
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => {
-    const {onBack, onCancel, headerStyle, title, customComponent, theme = 'light'} = props
     return (
       <Box style={_containerStyle}>
-        <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
-          {customComponent}
-          {!!title && (
-            <Box style={_titleStyle}>
-              <Text type="BodyBig">{title}</Text>
-            </Box>
-          )}
-          {onCancel && (
-            <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>
-              Cancel
-            </Text>
-          )}
-          {onBack && (
-            <BackButton iconColor={_backButtonIconColorThemed[theme]} style={_buttonStyle} onClick={onBack} />
-          )}
-        </Box>
+        <HeaderHocHeader {...props} />
         <Box style={_wrapperStyle}>
           <Box style={_wrapper2Style}>
             <WrappedComponent {...(props: P)} />
