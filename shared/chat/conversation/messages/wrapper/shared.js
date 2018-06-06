@@ -238,17 +238,12 @@ const styles = styleSheetCreate({
     },
   }),
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
-  rightSide: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-      flex: 1,
-      paddingRight: globalMargins.tiny,
-      position: 'relative',
-    },
-    isMobile: {
-      marginRight: sendIndicatorWidth,
-    },
-  }),
+  rightSide: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1,
+    paddingRight: globalMargins.tiny,
+    position: 'relative',
+  },
   rightSideContainer: {
     ...globalStyles.flexBoxRow,
     flex: 1,

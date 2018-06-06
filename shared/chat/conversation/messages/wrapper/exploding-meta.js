@@ -183,8 +183,10 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignSelf: 'flex-end',
     position: 'relative',
-    width: isMobile ? 50 : 72,
+    width: isMobile ? 50 : 40,
     height: isMobile ? 22 : 19,
+    marginLeft: isMobile ? 4 : 12,
+    marginRight: isMobile ? 8 : 16,
   },
   countdownContainer: {
     borderRadius: 2,
