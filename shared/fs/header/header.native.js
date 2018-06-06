@@ -13,7 +13,7 @@ type Props = {
 
 const Header = ({title, path, onBack}: Props) => (
   <Box style={stylesFolderHeaderContainer}>
-    <BackButton title={null} onClick={onBack} />
+    <BackButton onClick={onBack} />
     <Box style={stylesFolderHeaderRoot}>
       <Text type="BodyBig" style={stylesTitle}>
         {title}

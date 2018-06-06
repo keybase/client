@@ -2,11 +2,12 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {globalStyles, globalMargins, isMobile} from '../../styles'
+import {globalStyles, globalMargins, isMobile, platformStyles} from '../../styles'
 import {Box, Text} from '../../common-adapters'
 import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
+import {memoize} from 'lodash'
 
 type Props = {
   name: string,
@@ -33,17 +34,7 @@ const Popup = (props: Props) => {
       <Box style={stylesHeader}>
         <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
         <Box style={stylesNameTextBox}>
-          <Text
-            type="BodySmallSemibold"
-            style={
-              // $FlowFixMe
-              {
-                color: props.itemStyles.textColor,
-                overflowWrap: 'break-word',
-                textAlign: 'center',
-              }
-            }
-          >
+          <Text type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
             {props.name}
           </Text>
         </Box>
@@ -78,6 +69,18 @@ const Popup = (props: Props) => {
     <ModalLessPopupMenu header={header} items={items} style={stylesContainer} onHidden={props.onHidden} />
   )
 }
+
+const stylesNameText = memoize(color =>
+  platformStyles({
+    common: {
+      color,
+      textAlign: 'center',
+    },
+    isElectron: {
+      overflowWrap: 'break-word',
+    },
+  })
+)
 
 const stylesNameTextBox = {
   paddingLeft: globalMargins.small,

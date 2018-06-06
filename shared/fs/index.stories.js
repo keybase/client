@@ -97,6 +97,12 @@ const provider = createPropProvider({
   }),
 })
 
+const downloadCommonActions = {
+  open: action('open'),
+  dismiss: action('dismiss'),
+  cancel: action('cancel'),
+}
+
 const load = () => {
   storiesOf('Files', module)
     .addDecorator(provider)
@@ -123,9 +129,7 @@ const load = () => {
           completePortion={0.42}
           progressText="4 s"
           isDone={false}
-          open={action('dismiss')}
-          dismiss={action('dismiss')}
-          cancel={action('dismiss')}
+          {...downloadCommonActions}
         />
         <Box style={{height: 8}} />
         <Download
@@ -133,9 +137,7 @@ const load = () => {
           completePortion={0.42}
           progressText="4 s"
           isDone={false}
-          open={action('dismiss')}
-          dismiss={action('dismiss')}
-          cancel={action('dismiss')}
+          {...downloadCommonActions}
         />
         <Box style={{height: 8}} />
         <Download
@@ -143,9 +145,7 @@ const load = () => {
           completePortion={0.42}
           progressText="4 s"
           isDone={false}
-          open={action('dismiss')}
-          dismiss={action('dismiss')}
-          cancel={action('dismiss')}
+          {...downloadCommonActions}
         />
         <Box style={{height: 8}} />
         <Download
@@ -153,9 +153,7 @@ const load = () => {
           completePortion={0.42}
           progressText="59 min"
           isDone={false}
-          open={action('dismiss')}
-          dismiss={action('dismiss')}
-          cancel={action('dismiss')}
+          {...downloadCommonActions}
         />
         <Box style={{height: 8}} />
         <Download
@@ -163,9 +161,7 @@ const load = () => {
           completePortion={0.42}
           progressText="1234 hr"
           isDone={false}
-          open={action('dismiss')}
-          dismiss={action('dismiss')}
-          cancel={action('dismiss')}
+          {...downloadCommonActions}
         />
         <Box style={{height: 8}} />
       </Box>
