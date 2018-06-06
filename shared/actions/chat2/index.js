@@ -2000,6 +2000,7 @@ const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
 
   const cat = Constants.explodingModeGregorKey(conversationIDKey)
   // dismiss the category so we don't leave cruft in the push state
+  // TODO switch this out with dismissCategoryAndInjectItem when that exists
   actions.push(Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category: cat}))
   // add the new item
   actions.push(

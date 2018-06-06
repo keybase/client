@@ -18,6 +18,7 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../../styles'
+import {type TickerID, addTicker, removeTicker} from '../../../../util/second-timer'
 import {formatDurationShort} from '../../../../util/timestamp'
 
 const oneMinuteInMs = 60 * 1000
@@ -41,6 +42,7 @@ class ExplodingMeta extends React.Component<Props, State> {
   state = {
     mode: 'none',
   }
+  tickerID: TickerID
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     if (prevState.mode === 'none' && (Date.now() >= nextProps.explodesAt || nextProps.exploded)) {
@@ -62,6 +64,10 @@ class ExplodingMeta extends React.Component<Props, State> {
     this.state.mode === 'countdown' && this._updateLoop()
   }
 
+  componentWillUnmount() {
+    removeTicker(this.tickerID)
+  }
+
   _updateLoop = () => {
     const difference = this.props.explodesAt - Date.now()
     if (difference <= 0 || this.props.exploded) {
@@ -69,9 +75,24 @@ class ExplodingMeta extends React.Component<Props, State> {
       return
     }
     const interval = getLoopInterval(difference)
+    if (interval < 1000) {
+      // switch to 'seconds' mode
+      this.tickerID = addTicker(this._secondLoop)
+      return
+    }
     this.props.setTimeout(() => {
       this.forceUpdate(this._updateLoop)
     }, interval)
+  }
+
+  _secondLoop = () => {
+    const difference = this.props.explodesAt - Date.now()
+    if (difference <= 0 || this.props.exploded) {
+      this.setState({mode: 'boom'})
+      removeTicker(this.tickerID)
+      return
+    }
+    this.forceUpdate()
   }
 
   render() {
