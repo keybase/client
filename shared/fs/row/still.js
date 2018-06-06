@@ -15,6 +15,7 @@ type StillProps = {
   shouldShowMenu: boolean,
   itemStyles: Types.ItemStyles,
   badgeCount: number,
+  isDownloading?: boolean,
   tlfMeta?: Types.FavoriteMetadata,
   resetParticipants: Array<string>,
   isUserReset: boolean,
@@ -37,8 +38,8 @@ const HoverBox = isMobile
       },
     })
 
-const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
-  if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount)) {
+const RowMeta = ({badgeCount, isDownloading, isNew, isIgnored, needsRekey}) => {
+  if (isIgnored || !(isDownloading || isNew || isIgnored || needsRekey || badgeCount)) {
     return null
   }
 
@@ -54,6 +55,11 @@ const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
           <Meta title="new" backgroundColor={globalColors.orange} />
         </Box>
       )}
+      {isDownloading && (
+        <Box style={styleDownloadContainer}>
+          <Icon type="iconfont-download" color={globalColors.green} />
+        </Box>
+      )}
       <Box style={styleBadgeContainer}>
         {!!badgeCount && <Badge badgeNumber={badgeCount} badgeStyle={badgeStyleCount} />}
       </Box>
@@ -66,7 +72,7 @@ const Still = (props: StillProps) => (
     <HoverBox style={rowStyles.row}>
       <ClickableBox onClick={props.onOpen} style={rowStyles.rowBox}>
         <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-        <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} />
+        <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} isDownloading={props.isDownloading} />
         <Box style={rowStyles.itemBox}>
           <Text
             type={props.itemStyles.textType}
@@ -132,6 +138,12 @@ const styleBadgeContainerRekey = {
   ...styleBadgeContainer,
   top: isMobile ? 5 : 24,
   left: isMobile ? -40 : 16,
+}
+
+const styleDownloadContainer = {
+  ...styleBadgeContainer,
+  top: 22,
+  left: 20,
 }
 
 const badgeStyleCount = {

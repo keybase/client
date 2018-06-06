@@ -31,10 +31,29 @@ const pathItemIcon = {
   marginRight: globalMargins.small,
 }
 
+const pathItemIcon_30 = {
+  marginRight: globalMargins.small,
+  opacity: 0.3,
+}
+
 const rowText = memoize(color =>
   platformStyles({
     common: {
       color,
+    },
+    isElectron: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  })
+)
+
+const rowText_30 = memoize(color =>
+  platformStyles({
+    common: {
+      color,
+      opacity: 0.3,
     },
     isElectron: {
       overflow: 'hidden',
@@ -61,7 +80,9 @@ export default {
   rowBox,
   itemBox,
   pathItemIcon,
+  pathItemIcon_30,
   rowText,
+  rowText_30,
   divider,
   rightBox,
 }

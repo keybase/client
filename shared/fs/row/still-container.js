@@ -68,6 +68,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('StillRow'))(
-  Still
-)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('ConnectedStillRow')
+)(Still)
