@@ -57,7 +57,7 @@ const RowMeta = ({badgeCount, isDownloading, isNew, isIgnored, needsRekey}) => {
       )}
       {isDownloading && (
         <Box style={styleDownloadContainer}>
-          <Icon type="iconfont-download" color={globalColors.green} />
+          <Icon type="icon-addon-file-downloading" />
         </Box>
       )}
       <Box style={styleBadgeContainer}>

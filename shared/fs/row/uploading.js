@@ -16,7 +16,7 @@ const Uploading = (props: UploadingProps) => (
     <Box style={rowStyles.row}>
       <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon_30} />
       <Box style={stylesIconBadge}>
-        <Icon type="iconfont-upload" color={globalColors.blue} />
+        <Icon type="icon-addon-file-uploading" />
       </Box>
       <Box key="main" style={rowStyles.itemBox}>
         <Text
