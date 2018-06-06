@@ -1,26 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text, Button} from '../common-adapters'
-import {styleSheetCreate} from '../styles'
+import {Box2, Button} from '../common-adapters'
 
 type Props = {
-  hello: string,
   refresh: () => void,
 }
 
-const Todo = ({hello, refresh}: Props) => (
+const Wallets = ({hello, refresh}: Props) => (
   <Box2 direction="vertical" fullHeight={true} gap="xlarge" gapStart={true} gapEnd={true}>
-    <Text type="Body" style={styles.text}>
-      Wallets hello: {hello}
-    </Text>
-    <Button type="Primary" label="Click" onClick={refresh} />
+    <Button type="Primary" label="Refresh wallets" onClick={refresh} />
   </Box2>
 )
 
-const styles = styleSheetCreate({
-  text: {
-    textAlign: 'center',
-  },
-})
-
-export default Todo
+export default Wallets

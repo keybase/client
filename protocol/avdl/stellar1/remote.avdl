@@ -11,6 +11,9 @@ protocol remote {
     string displayCurrency;
     string noteB64; // b64-encoded EncryptedNote or empty string.
     string signedTransaction;
+    // If quickReturn == true then the RPC can return success
+    //   while the payment is still pending on the stellar network.
+    boolean quickReturn;
   }
 
   record PaymentRelayPost {
@@ -23,6 +26,7 @@ protocol remote {
     string displayCurrency;
     string boxB64; // b64-encoded EncryptedRelaySecret
     string signedTransaction; // Funding tx
+    boolean quickReturn; // Same as PaymentDirectPost.quickReturn but success refers to the funding of the relay.
   }
 
   record RelayClaimPost {

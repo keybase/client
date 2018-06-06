@@ -60,10 +60,6 @@ function checkPermissions() {
   throw new Error('Push permissions unsupported on this platform')
 }
 
-function setShownPushPrompt() {
-  throw new Error('Push permissions unsupported on this platform')
-}
-
 function getShownPushPrompt(): Promise<string> {
   throw new Error('Push permissions unsupported on this platform')
 }
@@ -91,7 +87,6 @@ const getContentTypeFromURL = (
 
 export {
   checkPermissions,
-  setShownPushPrompt,
   getShownPushPrompt,
   openAppSettings,
   requestPushPermissions,
