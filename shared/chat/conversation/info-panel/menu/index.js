@@ -19,6 +19,7 @@ type Props = {
   onLeaveTeam: () => void,
   onManageChannels: () => void,
   onViewTeam: () => void,
+  onTeamFolder: () => void,
 }
 
 const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
@@ -66,6 +67,7 @@ const InfoPanelMenu = (props: Props) => {
   const items = [
     ...(props.canAddPeople ? addPeopleItems : []),
     {title: 'View team', onClick: props.onViewTeam, style: {borderTopWidth: 0}},
+    {title: 'Go to team folder', onClick: props.onTeamFolder, style: {borderTopWidth: 0}},
     channelItem,
     {title: 'Leave team', onClick: props.onLeaveTeam, danger: true},
   ]
