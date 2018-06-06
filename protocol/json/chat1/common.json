@@ -142,7 +142,8 @@
         "JOIN_9",
         "LEAVE_10",
         "SYSTEM_11",
-        "DELETEHISTORY_12"
+        "DELETEHISTORY_12",
+        "REACTION_13"
       ],
       "go": "nostring"
     },
@@ -745,6 +746,13 @@
         {
           "type": "MessageID",
           "name": "supersededBy"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "reactions"
         },
         {
           "type": "gregor1.Time",

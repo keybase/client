@@ -521,6 +521,20 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "MessageReaction",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": "string",
+          "name": "body"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -604,6 +618,13 @@
             "def": false
           },
           "body": "MessageDeleteHistory"
+        },
+        {
+          "label": {
+            "name": "REACTION",
+            "def": false
+          },
+          "body": "MessageReaction"
         }
       ]
     },

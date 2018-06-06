@@ -781,6 +781,18 @@ func (o MessageLeave) DeepCopy() MessageLeave {
 	return MessageLeave{}
 }
 
+type MessageReaction struct {
+	MessageID MessageID `codec:"messageID" json:"messageID"`
+	Body      string    `codec:"body" json:"body"`
+}
+
+func (o MessageReaction) DeepCopy() MessageReaction {
+	return MessageReaction{
+		MessageID: o.MessageID.DeepCopy(),
+		Body:      o.Body,
+	}
+}
+
 type MessageBody struct {
 	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
 	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
@@ -794,6 +806,7 @@ type MessageBody struct {
 	Leave__              *MessageLeave                `codec:"leave,omitempty" json:"leave,omitempty"`
 	System__             *MessageSystem               `codec:"system,omitempty" json:"system,omitempty"`
 	Deletehistory__      *MessageDeleteHistory        `codec:"deletehistory,omitempty" json:"deletehistory,omitempty"`
+	Reaction__           *MessageReaction             `codec:"reaction,omitempty" json:"reaction,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -851,6 +864,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_DELETEHISTORY:
 		if o.Deletehistory__ == nil {
 			err = errors.New("unexpected nil value for Deletehistory__")
+			return ret, err
+		}
+	case MessageType_REACTION:
+		if o.Reaction__ == nil {
+			err = errors.New("unexpected nil value for Reaction__")
 			return ret, err
 		}
 	}
@@ -967,6 +985,16 @@ func (o MessageBody) Deletehistory() (res MessageDeleteHistory) {
 	return *o.Deletehistory__
 }
 
+func (o MessageBody) Reaction() (res MessageReaction) {
+	if o.MessageType__ != MessageType_REACTION {
+		panic("wrong case accessed")
+	}
+	if o.Reaction__ == nil {
+		return
+	}
+	return *o.Reaction__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1041,6 +1069,13 @@ func NewMessageBodyWithDeletehistory(v MessageDeleteHistory) MessageBody {
 	return MessageBody{
 		MessageType__:   MessageType_DELETEHISTORY,
 		Deletehistory__: &v,
+	}
+}
+
+func NewMessageBodyWithReaction(v MessageReaction) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_REACTION,
+		Reaction__:    &v,
 	}
 }
 
@@ -1124,6 +1159,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Deletehistory__),
+		Reaction__: (func(x *MessageReaction) *MessageReaction {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Reaction__),
 	}
 }
 
