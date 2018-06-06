@@ -1810,7 +1810,7 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 }
 
 func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err error) {
-	defer g.G().CTraceTimed(ctx, "GetState", func() error { return err })()
+	defer g.G().CTraceTimed(ctx, "gregorRPCHandler#GetState", func() error { return err })()
 	if res, err = g.gh.getState(ctx); err != nil {
 		return res, err
 	}
@@ -1819,22 +1819,22 @@ func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err
 }
 
 func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectItemArg) (res gregor1.MsgID, err error) {
-	defer g.G().CTraceTimed(ctx, "InjectItem", func() error { return err })()
+	defer g.G().CTraceTimed(ctx, "gregorRPCHandler#InjectItem", func() error { return err })()
 	return g.gh.InjectItem(ctx, arg.Cat, []byte(arg.Body), arg.Dtime)
 }
 
 func (g *gregorRPCHandler) UpdateItem(ctx context.Context, arg keybase1.UpdateItemArg) (res gregor1.MsgID, err error) {
-	defer g.G().CTraceTimed(ctx, "UpdateItem", func() error { return err })()
+	defer g.G().CTraceTimed(ctx, "gregorRPCHandler#UpdateItem", func() error { return err })()
 	return g.gh.UpdateItem(ctx, arg.MsgID, arg.Cat, []byte(arg.Body), arg.Dtime)
 }
 
 func (g *gregorRPCHandler) DismissCategory(ctx context.Context, category gregor1.Category) (err error) {
-	defer g.G().CTraceTimed(ctx, "DismissCategory", func() error { return err })()
+	defer g.G().CTraceTimed(ctx, "gregorRPCHandler#DismissCategory", func() error { return err })()
 	return g.gh.DismissCategory(ctx, category)
 }
 
 func (g *gregorRPCHandler) DismissItem(ctx context.Context, id gregor1.MsgID) (err error) {
-	defer g.G().CTraceTimed(ctx, "DismissItem", func() error { return err })()
+	defer g.G().CTraceTimed(ctx, "gregorRPCHandler#DismissItem", func() error { return err })()
 	return g.gh.DismissItem(ctx, nil, id)
 }
 
