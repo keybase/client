@@ -14,6 +14,8 @@
 		27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */; };
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
+		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
+		3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3791A8A220C71FE6001C2E86 /* UserNotifications.framework */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
@@ -408,6 +410,9 @@
 		3724B72A1FB491F000A12CE6 /* MessageUIManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageUIManager.h; sourceTree = "<group>"; };
 		375CA6641FFD40D300210B11 /* Storybook.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Storybook.m; sourceTree = "<group>"; };
 		375CA6901FFD418D00210B11 /* Storybook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Storybook.h; sourceTree = "<group>"; };
+		3791A87220C71DAA001C2E86 /* PushPrompt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushPrompt.h; sourceTree = "<group>"; };
+		3791A8A020C71DC0001C2E86 /* PushPrompt.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPrompt.m; sourceTree = "<group>"; };
+		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		3FE4C3BB3E1F4B3482EDAED0 /* RCTWKWebView.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTWKWebView.xcodeproj; path = "../../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView.xcodeproj"; sourceTree = "<group>"; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
 		8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
@@ -482,6 +487,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */,
 				DB61D78F201BA2BD0008C059 /* libRCTWebSocket.a in Frameworks */,
 				DBEE30D91FE8551E0020EBA5 /* libRCTContacts.a in Frameworks */,
 				DBEE30D81FE855170020EBA5 /* libRNFetchBlob.a in Frameworks */,
@@ -608,6 +614,7 @@
 		8B23D2F59C5F2B2FA28E899F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3791A8A220C71FE6001C2E86 /* UserNotifications.framework */,
 				274AFB721E972F5300615A64 /* libresolv.tbd */,
 			);
 			name = Frameworks;
@@ -823,6 +830,8 @@
 				370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */,
 				375CA6901FFD418D00210B11 /* Storybook.h */,
 				375CA6641FFD40D300210B11 /* Storybook.m */,
+				3791A87220C71DAA001C2E86 /* PushPrompt.h */,
+				3791A8A020C71DC0001C2E86 /* PushPrompt.m */,
 				A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */,
 				A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */,
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
@@ -1470,6 +1479,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */,
 				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
 				DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */,
 				DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */,

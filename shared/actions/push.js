@@ -17,7 +17,6 @@ import {
   configurePush,
   displayNewMessageNotification,
   clearAllNotifications,
-  setShownPushPrompt,
   getShownPushPrompt,
   openAppSettings,
 } from './platform-specific'
@@ -52,9 +51,6 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
     logger.info('Requesting permissions')
     const permissions = yield Saga.call(requestPushPermissions)
     logger.info('Permissions:', permissions)
-    if (isIOS) {
-      yield Saga.call(setShownPushPrompt)
-    }
     if (permissions.alert || permissions.badge) {
       logger.info('Badge or alert push permissions are enabled')
       yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
@@ -230,12 +226,6 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
       ? 'We have requested push permissions before'
       : 'We have not requested push permissions before'
   )
-  if (!shownPushPrompt && (permissions.alert || permissions.sound || permissions.badge)) {
-    // we've definitely already prompted, set it in local storage
-    // to handle previous users who have notifications on
-    logger.debug('We missed setting shownPushPrompt in local storage, setting now')
-    yield Saga.call(setShownPushPrompt)
-  }
   if (!permissions.alert && !permissions.badge) {
     logger.info('Badge and alert permissions are disabled; showing prompt')
     yield Saga.all([
