@@ -496,6 +496,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		DisplayAmount:   "321.87",
 		DisplayCurrency: "USD",
 		Note:            "here you go",
+		PublicNote:      "public note",
 	}
 	_, err = srvSender.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)
@@ -562,6 +563,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Empty(t, p.NoteErr)
 		require.NotEmpty(t, p.TransactionID)
 		require.Equal(t, p.Id.String(), p.TransactionID.String())
+		require.Equal(t, "public note", p.PublicNote)
+		require.Equal(t, "text", p.PublicNoteType)
 	}
 	argDetails := stellar1.GetPaymentDetailsLocalArg{
 		Id:        senderPayments[0].Payment.Id,

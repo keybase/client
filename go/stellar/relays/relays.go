@@ -102,7 +102,7 @@ func Create(in Input) (res Output, err error) {
 		return res, err
 	}
 	sig, err := stellarnet.CreateAccountXLMTransaction(
-		senderSeed, relayAccountID, in.AmountXLM, in.SeqnoProvider)
+		senderSeed, relayAccountID, in.AmountXLM, "", in.SeqnoProvider)
 	if err != nil {
 		return res, err
 	}

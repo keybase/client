@@ -699,6 +699,10 @@
         {
           "name": "forceRelay",
           "type": "boolean"
+        },
+        {
+          "name": "publicNote",
+          "type": "string"
         }
       ],
       "response": "SendResultCLILocal"

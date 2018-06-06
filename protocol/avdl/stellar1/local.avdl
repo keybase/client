@@ -139,7 +139,8 @@ protocol local {
   array<Balance> balancesLocal(AccountID accountID);
 
   SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
-                                  string displayAmount, string displayCurrency, boolean forceRelay);
+                                  string displayAmount, string displayCurrency, boolean forceRelay,
+                                  string publicNote);
 
   record SendResultCLILocal {
     KeybaseTransactionID kbTxID;

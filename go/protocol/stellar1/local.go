@@ -490,6 +490,7 @@ type SendCLILocalArg struct {
 	DisplayAmount   string `codec:"displayAmount" json:"displayAmount"`
 	DisplayCurrency string `codec:"displayCurrency" json:"displayCurrency"`
 	ForceRelay      bool   `codec:"forceRelay" json:"forceRelay"`
+	PublicNote      string `codec:"publicNote" json:"publicNote"`
 }
 
 type ClaimCLILocalArg struct {
