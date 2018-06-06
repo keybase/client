@@ -222,13 +222,13 @@ const Action = ({
         onClick={insertMentionMarker}
         type="iconfont-mention"
         style={iconCastPlatformStyles(styles.actionButton)}
-        fontSize={21}
+        fontSize={22}
       />
       <Icon
         onClick={openFilePicker}
         type="iconfont-camera"
         style={iconCastPlatformStyles(styles.actionButton)}
-        fontSize={21}
+        fontSize={22}
       />
     </Box2>
   )
@@ -240,7 +240,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openE
         color={isExploding ? globalColors.black_75 : null}
         style={iconCastPlatformStyles(styles.actionButton)}
         type="iconfont-bomb"
-        fontSize={21}
+        fontSize={22}
       />
       <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />
     </Box>
@@ -262,7 +262,6 @@ const styles = styleSheetCreate({
   },
   actionButton: {
     alignSelf: isIOS ? 'flex-end' : 'center',
-    paddingBottom: 2,
   },
   actionIconsContainer: {
     paddingRight: globalMargins.small - containerPadding,
