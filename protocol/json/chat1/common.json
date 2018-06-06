@@ -752,7 +752,9 @@
             "type": "array",
             "items": "MessageID"
           },
-          "name": "reactions"
+          "name": "reactionIDs",
+          "mpackkey": "r",
+          "jsonkey": "r"
         },
         {
           "type": "gregor1.Time",

@@ -1054,7 +1054,7 @@ export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 
 export type MessageReaction = $ReadOnly<{messageID: MessageID, body: String}>
 
-export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, reactions?: ?Array<MessageID>, ctime: Gregor1.Time, now: Gregor1.Time}>
+export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, reactionIDs?: ?Array<MessageID>, ctime: Gregor1.Time, now: Gregor1.Time}>
 
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 

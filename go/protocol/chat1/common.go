@@ -1012,7 +1012,7 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 type MessageServerHeader struct {
 	MessageID    MessageID    `codec:"messageID" json:"messageID"`
 	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
-	Reactions    []MessageID  `codec:"reactions" json:"reactions"`
+	ReactionIDs  []MessageID  `codec:"r" json:"r"`
 	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
 	Now          gregor1.Time `codec:"n" json:"n"`
 }
@@ -1021,7 +1021,7 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 	return MessageServerHeader{
 		MessageID:    o.MessageID.DeepCopy(),
 		SupersededBy: o.SupersededBy.DeepCopy(),
-		Reactions: (func(x []MessageID) []MessageID {
+		ReactionIDs: (func(x []MessageID) []MessageID {
 			if x == nil {
 				return nil
 			}
@@ -1031,7 +1031,7 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.Reactions),
+		})(o.ReactionIDs),
 		Ctime: o.Ctime.DeepCopy(),
 		Now:   o.Now.DeepCopy(),
 	}

@@ -292,7 +292,8 @@
   record MessageServerHeader {
     MessageID messageID;
     MessageID supersededBy;
-    array<MessageID> reactions;
+    @mpackkey("r") @jsonkey("r")
+    array<MessageID> reactionIDs;
     gregor1.Time ctime;
     // server's view of now(), used to calculate ephemeral lifetimes
     @mpackkey("n") @jsonkey("n")
