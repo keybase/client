@@ -284,7 +284,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 	m.CDebugf("using stellar network passphrase: %q", stellarnet.Network().Passphrase)
 
 	if recipient.AccountID == nil || forceRelay {
-		return sendRelayPayment(m, remoter, primarySeed, recipient, amount, note, displayBalance, quickReturn)
+		return sendRelayPayment(m, remoter, primarySeed, recipient, amount, note, displayBalance, quickReturn, publicNote)
 	}
 
 	primarySeed2, err := stellarnet.NewSeedStr(primarySeed.SecureNoLogString())
@@ -360,9 +360,8 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
-func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1.SecretKey,
-	recipient stellarcommon.Recipient, amount, note string,
-	displayBalance DisplayBalance, quickReturn bool) (res stellar1.SendResultCLILocal, err error) {
+func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
+	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount, note string, displayBalance DisplayBalance, quickReturn bool, publicNote string) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
 	if err != nil {
@@ -372,6 +371,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1
 		From:          from,
 		AmountXLM:     amount,
 		Note:          note,
+		PublicNote:    publicNote,
 		EncryptFor:    appKey,
 		SeqnoProvider: NewSeqnoProvider(m.Ctx(), remoter),
 	})
