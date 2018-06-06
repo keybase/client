@@ -12,10 +12,10 @@ type Ref = {
 
 class Ticker {
   refs: Array<Ref> = []
-  intervalID: IntervalID
+  intervalID: ?IntervalID
 
   addObserver = (fn: () => void): TickerID => {
-    if (this.refs.length === 0) {
+    if (!this.intervalID) {
       this.intervalID = setInterval(this.loop, 1000)
     }
     id++
@@ -27,8 +27,9 @@ class Ticker {
     const index = this.refs.findIndex(r => r.id === id)
     if (index >= 0) {
       this.refs.splice(index, 1)
-      if (this.refs.length === 0) {
+      if (this.refs.length === 0 && this.intervalID) {
         clearInterval(this.intervalID)
+        this.intervalID = null
       }
       return true
     }
