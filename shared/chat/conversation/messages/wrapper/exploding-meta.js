@@ -44,24 +44,12 @@ class ExplodingMeta extends React.Component<Props, State> {
   }
   tickerID: TickerID
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (prevState.mode === 'none' && (Date.now() >= nextProps.explodesAt || nextProps.exploded)) {
-      return {mode: 'hidden'}
-    }
-    if (nextProps.exploded && prevState.mode === 'countdown') {
-      // got an explode now
-      // also helps w/ keeping in sync with ash lines
-      return {mode: 'boom'}
-    }
-    if (prevState.mode !== 'none') {
-      // never change away from anything set
-      return null
-    }
-    return {mode: 'countdown'}
-  }
-
   componentDidMount() {
-    this.state.mode === 'countdown' && this._updateLoop()
+    if (this.state.mode === 'none' && (Date.now() >= this.props.explodesAt || this.props.exploded)) {
+      this._setHidden()
+      return
+    }
+    this._setCountdown()
   }
 
   componentWillUnmount() {
@@ -94,6 +82,10 @@ class ExplodingMeta extends React.Component<Props, State> {
     }
     this.forceUpdate()
   }
+
+  _setHidden = () => this.state.mode !== 'hidden' && this.setState({mode: 'hidden'})
+  _setCountdown = () =>
+    this.state.mode !== 'countdown' && this.setState({mode: 'countdown'}, this._updateLoop)
 
   render() {
     const backgroundColor =
@@ -155,6 +147,11 @@ const getLoopInterval = (diff: number) => {
   }
   if (diff > oneMinuteInMs) {
     nearestUnit = oneMinuteInMs
+
+    // special case for when we're coming on a minute
+    if (Math.floor(diff / nearestUnit) === 1) {
+      return diff - nearestUnit
+    }
   }
   if (!nearestUnit) {
     // less than a minute, check every half second

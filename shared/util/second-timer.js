@@ -14,7 +14,7 @@ class Ticker {
   refs: Array<Ref> = []
   intervalID: IntervalID
 
-  addObserver = (fn: () => void) => {
+  addObserver = (fn: () => void): TickerID => {
     if (this.refs.length === 0) {
       this.intervalID = setInterval(this.loop, 500)
     }
@@ -36,7 +36,7 @@ class Ticker {
   }
 
   loop = () => {
-    this.refs.forEach(r => r.fn())
+    this.refs.forEach(r => setImmediate(r.fn))
   }
 }
 

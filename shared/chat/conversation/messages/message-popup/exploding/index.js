@@ -11,6 +11,7 @@ import {
 } from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, secondsToDHMS} from '../../../../../util/timestamp'
+import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {PopupHeaderText} from '../../../../../common-adapters/popup-menu'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -39,23 +40,23 @@ type State = {
 }
 
 class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
-  timer: ?IntervalID = null
+  timer: TickerID
   state = {
     secondsLeft: 0,
   }
 
   componentWillMount() {
     if (!__STORYBOOK__) {
-      this.timer = this.props.setInterval(() => this.tick(), 1000)
+      this.timer = addTicker(this.tick)
     }
     this.tick()
   }
 
   componentWillUnmount() {
-    this.timer && this.props.clearInterval(this.timer)
+    this.timer && removeTicker(this.timer)
   }
 
-  tick() {
+  tick = () => {
     const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
     let secondsLeft = Math.floor(this.props.explodesAt / 1000) - now
     if (secondsLeft < 0) {
