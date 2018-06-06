@@ -4,7 +4,10 @@ import {Box2, Button, CopyText, Icon, InfoNote, MaybePopup, Text} from '../../co
 import {globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
 
 type Props = {
+  federatedAddress: string,
   onClose: () => void,
+  stellarAddress: string,
+  username: string,
 }
 
 const ReceiveModal = (props: Props) => (
@@ -14,7 +17,7 @@ const ReceiveModal = (props: Props) => (
         type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
         style={{marginBottom: globalMargins.small}}
       />
-      <Text type="BodySmallSemibold">cecileb’s wallet</Text>
+      <Text type="BodySmallSemibold">{props.username}’s wallet</Text>
       <Text type="Header" style={{marginBottom: globalMargins.medium}}>
         Receive
       </Text>
@@ -34,7 +37,7 @@ const ReceiveModal = (props: Props) => (
           width: '100%',
         }}
       >
-        <CopyText text="G23T5671ASCZZX09235678ASQ511U12O91AQ" />
+        <CopyText text={props.stellarAddress} />
       </Box2>
       <Text type="Body" style={{marginBottom: globalMargins.tiny}}>
         or
@@ -46,7 +49,7 @@ const ReceiveModal = (props: Props) => (
           width: '100%',
         }}
       >
-        <CopyText text="cecile*keybase.io" />
+        <CopyText text={props.federatedAddress} />
       </Box2>
       <InfoNote>
         <Text type="BodySmall" style={styles.infoNoteText}>
