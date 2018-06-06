@@ -6,7 +6,7 @@ import {type Props} from '.'
 import {globalStyles} from '../styles'
 
 const People = (props: Props) => (
-  <ScrollView style={{...globalStyles.fullHeight, backgroundcolor: 'red'}}>
+  <ScrollView style={{...globalStyles.fullHeight}}>
     {props.waiting && (
       <ProgressIndicator style={{position: 'absolute', top: 8, left: 96, zIndex: 2, width: 32, height: 32}} />
     )}
