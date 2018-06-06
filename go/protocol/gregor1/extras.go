@@ -71,6 +71,12 @@ func (m MsgRange) EndTime() gregor.TimeOrOffset {
 func (m MsgRange) Category() gregor.Category {
 	return m.Category_
 }
+func (m MsgRange) SkipMsgIDs() (res []gregor.MsgID) {
+	for _, s := range m.SkipMsgIDs_ {
+		res = append(res, s)
+	}
+	return res
+}
 
 func (d Dismissal) RangesToDismiss() []gregor.MsgRange {
 	var ret []gregor.MsgRange

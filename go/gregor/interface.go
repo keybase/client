@@ -101,6 +101,7 @@ type Reminder interface {
 type MsgRange interface {
 	EndTime() TimeOrOffset
 	Category() Category
+	SkipMsgIDs() []MsgID
 }
 
 type Dismissal interface {
