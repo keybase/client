@@ -19,14 +19,24 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam}: Props) => {
   }
   return (
     <Box style={bannerStyle}>
-      { /* TODO: Put in skull image here */ }
+      {/* TODO: Put in skull image here */}
       <Box style={headerTextContainerStyle}>
         <Box style={globalStyles.flexBoxRow}>
           <Box style={{marginRight: globalMargins.xtiny}}>
-            <ConnectedUsernames type="BodySemiboldLink" showAnd={true} inlineGrammar={true} commaColor={globalColors.white} clickable={true} underline={true} usernames={resetParticipants} style={textStyle} />
+            <ConnectedUsernames
+              type="BodySemiboldLink"
+              showAnd={true}
+              inlineGrammar={true}
+              commaColor={globalColors.white}
+              clickable={true}
+              underline={true}
+              usernames={resetParticipants}
+              style={textStyle}
+            />
           </Box>
           <Text type="BodySemibold" style={textStyle}>
-            lost all of their devices and {resetParticipants.length === 1 ? 'this account has' : 'these accounts have'} new keys.
+            lost all of their devices and{' '}
+            {resetParticipants.length === 1 ? 'this account has' : 'these accounts have'} new keys.
           </Text>
         </Box>
         <Text type="BodySemibold" style={textStyle}>
@@ -47,20 +57,29 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam}: Props) => {
         </Text>
       </Box>
       <Box style={globalStyles.flexBoxColumn}>
-        {resetParticipants.map(p =>
+        {resetParticipants.map(p => (
           <Box key={p} style={actionRowStyle}>
-            <Button type="SecondaryColoredBackground" label={'View ' + p + '\'s profile'} onClick={() => undefined} style={firstButtonStyle} />
-            <Button type="PrimaryColoredBackground" backgroundMode="Red" label={'Let ' + p + ' back in'} onClick={onReAddToTeam(p)} />
+            <Button
+              type="SecondaryColoredBackground"
+              label={'View ' + p + "'s profile"}
+              onClick={() => undefined}
+              style={firstButtonStyle}
+            />
+            <Button
+              type="PrimaryColoredBackground"
+              backgroundMode="Red"
+              label={'Let ' + p + ' back in'}
+              onClick={onReAddToTeam(p)}
+            />
           </Box>
-        )
-        }
+        ))}
       </Box>
       <Box>
         <Text type="BodySemibold" style={bottomTextStyle}>
           Or until you're sure,{' '}
         </Text>
         <Text type="BodySemiboldLink" style={{...bottomTextStyle, textDecorationLine: 'underline'}}>
-          { /* TODO: put in a link to opening a folder here. */ }
+          {/* TODO: put in a link to opening a folder here. */}
           open a folder without any of them.
         </Text>
       </Box>
