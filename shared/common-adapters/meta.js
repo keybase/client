@@ -58,6 +58,7 @@ const styles = styleSheetCreate({
     isElectron: {
       paddingLeft: 2,
       paddingRight: 3,
+      paddingBottom: 1,
     },
     isMobile: {
       paddingBottom: 1,
@@ -74,7 +75,7 @@ const styles = styleSheetCreate({
       display: 'block',
       fontSize: 11,
       fontWeight: '700',
-      lineHeight: '15px',
+      lineHeight: '13px',
     },
     isMobile: {
       fontSize: 13,

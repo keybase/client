@@ -38,7 +38,6 @@ const newCharmStyle = {
 const openCharmStyle = {
   alignSelf: 'center',
   marginLeft: 4,
-  marginTop: 2,
 }
 
 const TeamRow = ({

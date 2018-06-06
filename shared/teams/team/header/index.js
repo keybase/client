@@ -193,7 +193,6 @@ const stylesTeamHeader = {
 const stylesMeta = {
   alignSelf: 'center',
   marginLeft: globalMargins.tiny,
-  marginTop: 1,
 }
 
 export {TeamHeader}
