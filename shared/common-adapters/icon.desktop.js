@@ -107,8 +107,8 @@ class Icon extends Component<Props, void> {
               ...desktopStyles.noSelect,
               ...styles.icon,
               ...fontSizeHint,
-              ...cleanStyle,
               ...(onClick ? desktopStyles.clickable : {}),
+              ...cleanStyle,
             }}
             className={this.props.className || ''}
             onMouseEnter={this.props.onMouseEnter}
