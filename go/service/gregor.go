@@ -1762,6 +1762,7 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 	if err != nil {
 		return nil, err
 	}
+	msgID := msg.Ibm_.StateUpdate_.Md_.MsgID_
 	msg.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
 		Category_: gregor1.Category(cat),
 		Body_:     gregor1.Body(body),
@@ -1771,7 +1772,7 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 		Ranges_: []gregor1.MsgRange{
 			gregor1.MsgRange{
 				Category_:   gregor1.Category(cat),
-				SkipMsgIDs_: []gregor1.MsgID{msg.Ibm_.Metadata().MsgID().(gregor1.MsgID)},
+				SkipMsgIDs_: []gregor1.MsgID{msgID},
 			}},
 	}
 
@@ -1779,7 +1780,7 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 	if err != nil {
 		return nil, err
 	}
-	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *msg)
+	return msgID, gcli.ConsumeMessage(ctx, *msg)
 }
 
 func (g *gregorHandler) InjectOutOfBandMessage(ctx context.Context, system string, body []byte) error {
