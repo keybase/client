@@ -111,7 +111,7 @@ export function msToDHMS(ms: number): string {
   let mins = Math.floor(ms / oneMinuteInMs)
   let hours = Math.floor(ms / oneHourInMs)
   let days = Math.floor(ms / oneDayInMs)
-  let secs = Math.round((ms % (60 * 1000)) / 1000)
+  let secs = Math.floor((ms % (60 * 1000)) / 1000)
   hours = hours % 24
   mins = mins % 60
 
@@ -131,5 +131,5 @@ export function formatDurationShort(ms: number): string {
   if (ms > oneMinuteInMs) {
     return `${Math.round(ms / oneMinuteInMs)}m`
   }
-  return `${Math.round(ms / 1000)}s`
+  return `${Math.floor(ms / 1000)}s`
 }
