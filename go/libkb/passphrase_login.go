@@ -461,3 +461,20 @@ func ComputeLoginPackage2(m MetaContext, pps *PassphraseStream) (ret PDPKALoginP
 	}
 	return computeLoginPackageFromUID(m.CurrentUID(), pps, loginSessionRaw)
 }
+
+// UnverifiedPassphraseStream takes a passphrase as a parameter and
+// also the salt from the Account and computes a Triplesec and
+// a passphrase stream.  It's not verified through a Login.
+func UnverifiedPassphraseStream(m MetaContext, uid keybase1.UID, passphrase string) (tsec Triplesec, ret *PassphraseStream, err error) {
+	var salt []byte
+	if lctx := m.LoginContext(); lctx != nil && lctx.GetUID().Equal(uid) {
+		salt = lctx.Salt()
+	}
+	if salt == nil {
+		salt, err = LookupSaltForUID(m, uid)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return StretchPassphrase(m.G(), passphrase, salt)
+}

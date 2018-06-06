@@ -17,6 +17,7 @@ type PaymentDirectPost struct {
 	DisplayCurrency   string                `codec:"displayCurrency" json:"displayCurrency"`
 	NoteB64           string                `codec:"noteB64" json:"noteB64"`
 	SignedTransaction string                `codec:"signedTransaction" json:"signedTransaction"`
+	QuickReturn       bool                  `codec:"quickReturn" json:"quickReturn"`
 }
 
 func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
@@ -33,6 +34,7 @@ func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
 		DisplayCurrency:   o.DisplayCurrency,
 		NoteB64:           o.NoteB64,
 		SignedTransaction: o.SignedTransaction,
+		QuickReturn:       o.QuickReturn,
 	}
 }
 
@@ -46,6 +48,7 @@ type PaymentRelayPost struct {
 	DisplayCurrency   string                `codec:"displayCurrency" json:"displayCurrency"`
 	BoxB64            string                `codec:"boxB64" json:"boxB64"`
 	SignedTransaction string                `codec:"signedTransaction" json:"signedTransaction"`
+	QuickReturn       bool                  `codec:"quickReturn" json:"quickReturn"`
 }
 
 func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
@@ -65,6 +68,7 @@ func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
 		DisplayCurrency:   o.DisplayCurrency,
 		BoxB64:            o.BoxB64,
 		SignedTransaction: o.SignedTransaction,
+		QuickReturn:       o.QuickReturn,
 	}
 }
 
@@ -317,6 +321,7 @@ type PaymentSummaryRelay struct {
 	From            keybase1.UserVersion  `codec:"from" json:"from"`
 	FromDeviceID    keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
 	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	ToAssertion     string                `codec:"toAssertion" json:"toAssertion"`
 	RelayAccount    AccountID             `codec:"relayAccount" json:"relayAccount"`
 	Amount          string                `codec:"amount" json:"amount"`
 	DisplayAmount   *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
@@ -344,6 +349,7 @@ func (o PaymentSummaryRelay) DeepCopy() PaymentSummaryRelay {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.To),
+		ToAssertion:  o.ToAssertion,
 		RelayAccount: o.RelayAccount.DeepCopy(),
 		Amount:       o.Amount,
 		DisplayAmount: (func(x *string) *string {

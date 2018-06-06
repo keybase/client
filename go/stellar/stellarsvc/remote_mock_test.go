@@ -247,10 +247,8 @@ func (a *FakeAccount) Check() bool {
 	default:
 		return true
 	}
-	if b == 0 {
-		return false
-	}
-	return true
+
+	return b != 0
 }
 
 func (a *FakeAccount) availableBalance() string {
@@ -296,6 +294,18 @@ func (r *RemoteClientMock) SubmitRelayPayment(ctx context.Context, post stellar1
 
 func (r *RemoteClientMock) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
 	return r.Backend.SubmitRelayClaim(ctx, r.Tc, post)
+}
+
+func (r *RemoteClientMock) AcquireAutoClaimLock(ctx context.Context) (string, error) {
+	return "", fmt.Errorf("RemoteClientMock does not implement AcquireAutoClaimLock")
+}
+
+func (r *RemoteClientMock) ReleaseAutoClaimLock(ctx context.Context, token string) error {
+	return fmt.Errorf("RemoteClientMock does not implement ReleaseAutoClaimLock")
+}
+
+func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, error) {
+	return nil, fmt.Errorf("RemoteClientMock does not implement NextAutoClaim")
 }
 
 func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
@@ -394,6 +404,12 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 	defer r.Unlock()
 	kbTxID := randomKeybaseTransactionID(r.T)
 
+	if post.QuickReturn {
+		msg := "SubmitPayment with QuickReturn not implemented on BackendMock"
+		r.T.Fatalf(msg)
+		return res, errors.New(msg)
+	}
+
 	// Unpack signed transaction and checks if Payment matches transaction.
 	unpackedTx, txIDPrecalc, err := unpackTx(post.SignedTransaction)
 
@@ -460,6 +476,12 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 	r.Lock()
 	defer r.Unlock()
 	kbTxID := randomKeybaseTransactionID(r.T)
+
+	if post.QuickReturn {
+		msg := "SubmitRelayPayment with QuickReturn not implemented on BackendMock"
+		r.T.Fatalf(msg)
+		return res, errors.New(msg)
+	}
 
 	unpackedTx, txIDPrecalc, err := unpackTx(post.SignedTransaction)
 	if err != nil {

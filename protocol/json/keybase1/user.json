@@ -632,6 +632,24 @@
       ],
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID\n   revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where\n   we'll start our search. Usually it's the next one, but not always"
+    },
+    "findNextMerkleRootAfterReset": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "resetSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "prev",
+          "type": "ResetMerkleRoot"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterRest finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
     }
   },
   "namespace": "keybase.1"

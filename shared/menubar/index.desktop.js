@@ -1,5 +1,5 @@
 // @flow
-import Folders, {type FolderType, type Props as FolderProps} from '../folders'
+import Folders, {type FolderType, type Props as FolderProps} from '../folders/index.desktop'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
@@ -143,7 +143,6 @@ class MenubarRender extends Component<Props, State> {
     const mergedProps = {
       ...this.props.folderProps,
       onClick: this.props.onFolderClick,
-      smallMode: true,
       private: newPrivate,
       public: newPublic,
       onSwitchTab: selected => this.setState({selected}),

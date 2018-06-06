@@ -148,10 +148,10 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 			return res, err
 		}
 	}
-	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into)
+	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into, nil, nil)
 }
 
-func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
+func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "RecentPaymentsCLILocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
@@ -318,7 +318,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 		return nil
 	}
 
-	exchangeRate, err := remote.ExchangeRate(ctx, s.G(), arg.DisplayCurrency)
+	exchangeRate, err := s.remoter.ExchangeRate(ctx, arg.DisplayCurrency)
 	if err != nil {
 		return err
 	}
@@ -339,6 +339,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 	}
 
 	if percentageAmountChange(currentAmt, argAmt) > 1.0 {
+		s.G().Log.CDebugf(ctx, "large exchange rate delta: argAmt: %d, currentAmt: %d", argAmt, currentAmt)
 		return errors.New("current exchange rates have changed more than 1%")
 	}
 

@@ -1,2 +1,0 @@
-// @flow
-declare export default function storeEnhancer(middleware: Array<any>): Function

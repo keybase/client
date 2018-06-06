@@ -102,9 +102,10 @@ type BackgroundConvLoader struct {
 	uid           gregor1.UID
 	started       bool
 	queue         *jobQueue
-	stopCh        chan chan struct{}
+	stopCh        chan struct{}
 	suspendCh     chan chan struct{}
 	resumeCh      chan struct{}
+	loadCh        chan *clTask
 	identNotifier types.IdentifyNotifier
 
 	clock      clockwork.Clock
@@ -126,8 +127,9 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
-		stopCh:        make(chan chan struct{}),
-		suspendCh:     make(chan chan struct{}, 10),
+		stopCh:        make(chan struct{}),
+		suspendCh:     make(chan chan struct{}),
+		loadCh:        make(chan *clTask, 100),
 		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
 		resumeWait:    time.Second,
@@ -173,12 +175,14 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	defer b.Unlock()
 	b.Debug(ctx, "Start")
 	if b.started {
-		b.stopCh <- make(chan struct{})
+		close(b.stopCh)
+		b.stopCh = make(chan struct{})
 	}
 	b.newQueue()
 	b.started = true
 	b.uid = uid
 	go b.loop()
+	go b.loadLoop()
 }
 
 func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
@@ -187,11 +191,11 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	b.Debug(ctx, "Stop")
 	ch := make(chan struct{})
 	if b.started {
-		b.stopCh <- ch
+		close(b.stopCh)
+		b.stopCh = make(chan struct{})
 		b.started = false
-	} else {
-		close(ch)
 	}
+	close(ch)
 	return ch
 }
 
@@ -220,30 +224,43 @@ func (b *BackgroundConvLoader) Queue(ctx context.Context, job types.ConvLoaderJo
 }
 
 func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
+	defer b.Trace(ctx, func() error { return nil }, "Suspend")()
 	b.Lock()
 	defer b.Unlock()
 	if !b.started {
 		return false
 	}
 	if b.suspendCount == 0 {
+		b.Debug(ctx, "Suspend: sending on suspendCh")
 		b.resumeCh = make(chan struct{})
-		b.suspendCh <- b.resumeCh
+		select {
+		case b.suspendCh <- b.resumeCh:
+		default:
+			b.Debug(ctx, "Suspend: failed to suspend loop")
+		}
 	}
 	b.suspendCount++
 	if b.activeLoadCtx != nil {
-		b.Debug(b.activeLoadCtx, "Suspend: canceling active load")
-		b.activeLoadCancelFn()
-		canceled = true
+		select {
+		case <-b.activeLoadCtx.Done():
+			b.Debug(b.activeLoadCtx, "Suspend: active load already canceled")
+		default:
+			b.Debug(b.activeLoadCtx, "Suspend: canceling active load")
+			b.activeLoadCancelFn()
+			canceled = true
+		}
 	}
 	return canceled
 }
 
 func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
+	defer b.Trace(ctx, func() error { return nil }, "Resume")()
 	b.Lock()
 	defer b.Unlock()
 	if b.suspendCount > 0 {
 		b.suspendCount--
 		if b.suspendCount == 0 && b.resumeCh != nil {
+			b.Debug(ctx, "Resume: closing resumeCh")
 			close(b.resumeCh)
 			return true
 		}
@@ -262,42 +279,6 @@ func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource)
 	b.testingNameInfoSource = ni
 }
 
-// recvWithShutdown receives from a blank channel, and aborts if a shutdown event happens
-func (b *BackgroundConvLoader) recvWithShutdown(ctx context.Context, ch chan struct{}, reason string) bool {
-	select {
-	case <-ch:
-	case ch := <-b.stopCh:
-		b.Debug(ctx, "loop: shutting down: uid: %s reason: %s", b.uid, reason)
-		close(ch)
-		return false
-	}
-	return true
-}
-
-// recvTimeWithShutdown receives from time channel, and aborts if a shutdown event happens
-func (b *BackgroundConvLoader) recvTimeWithShutdown(ctx context.Context, ch <-chan time.Time, reason string) bool {
-	select {
-	case <-ch:
-	case ch := <-b.stopCh:
-		b.Debug(ctx, "loop: shutting down: uid: %s reason: %s", b.uid, reason)
-		close(ch)
-		return false
-	}
-	return true
-}
-
-// recvTaskWithShutdown receives a task, but also will abort on shutdown
-func (b *BackgroundConvLoader) recvTaskWithShutdown(ctx context.Context, cb chan *clTask) (*clTask, bool) {
-	select {
-	case task := <-cb:
-		return task, true
-	case ch := <-b.stopCh:
-		b.Debug(ctx, "loop: shutting down: uid: %s reason: load task", b.uid)
-		close(ch)
-		return nil, false
-	}
-}
-
 func (b *BackgroundConvLoader) loop() {
 	bgctx := context.Background()
 	uid := b.uid
@@ -307,21 +288,19 @@ func (b *BackgroundConvLoader) loop() {
 	// for b.resumeWait amount of time. Returns false if the outer loop should shutdown.
 	waitForResume := func(ch chan struct{}) bool {
 		b.Debug(bgctx, "waitForResume: suspending loop")
-		if !b.recvWithShutdown(bgctx, ch, "waitForResume: resume") {
+		select {
+		case <-ch:
+		case <-b.stopCh:
 			return false
 		}
-		if !b.recvTimeWithShutdown(bgctx, b.clock.After(b.resumeWait), "waitForResume: resumeWait") {
-			return false
-		}
+		b.clock.Sleep(b.resumeWait)
 		b.Debug(bgctx, "waitForResume: resuming loop")
 		return true
 	}
 	// On mobile fresh start, apply the foreground wait
 	if b.G().GetAppType() == libkb.MobileAppType {
 		b.Debug(bgctx, "loop: delaying startup since on mobile")
-		if !b.recvTimeWithShutdown(bgctx, b.clock.After(b.resumeWait), "initial mobile wait") {
-			return
-		}
+		b.clock.Sleep(b.resumeWait)
 	}
 
 	// Main loop
@@ -337,23 +316,6 @@ func (b *BackgroundConvLoader) loop() {
 				// means we closed this channel
 				continue
 			}
-
-			// Make sure we aren't suspended (also make sure we don't get shutdown). Charge through if
-			// neither have any data on them.
-			select {
-			case ch := <-b.suspendCh:
-				b.Debug(bgctx, "loop: pulled queue task, but suspended, so waiting")
-				if !waitForResume(ch) {
-					return
-				}
-			case ch := <-b.stopCh:
-				b.Debug(bgctx, "loop: shutting down (in queue wait) for %s", uid)
-				close(ch)
-				return
-			default:
-			}
-			b.Debug(bgctx, "loop: pulled queued task: %s", task.job)
-
 			// Wait for a small amount of time before loading, this way we aren't in a tight loop
 			// charging through conversations
 			duration := bgLoaderInitDelay
@@ -363,35 +325,49 @@ func (b *BackgroundConvLoader) loop() {
 					duration = bgLoaderInitDelay
 				}
 			}
-			if !b.recvTimeWithShutdown(bgctx, b.clock.After(duration), "load pause") {
-				return
-			}
-
-			// Run the load of the conversation with a callback so we can abort the loop on shutdown. If
-			// the load failed, it will return a new task to enqueue (if we haven't been shutdown).
-			cb := make(chan *clTask, 1)
-			go func() {
-				gtask := b.load(bgctx, task, uid)
-				cb <- gtask
-			}()
-			nextTask, resume := b.recvTaskWithShutdown(bgctx, cb)
-			if !resume {
-				return
-			}
-			if nextTask != nil {
-				if err := b.enqueue(bgctx, *nextTask); err != nil {
-					b.Debug(bgctx, "enqueue error %s", err)
+			// Make sure we aren't suspended (also make sure we don't get shutdown). Charge through if
+			// neither have any data on them.
+			select {
+			case <-b.clock.After(duration):
+			case ch := <-b.suspendCh:
+				b.Debug(bgctx, "loop: pulled queue task, but suspended, so waiting")
+				if !waitForResume(ch) {
+					return
 				}
-
+			}
+			b.Debug(bgctx, "loop: pulled queued task: %s", task.job)
+			select {
+			case b.loadCh <- &task:
+			default:
+				b.Debug(bgctx, "loop: failed to dispatch load, queue full")
 			}
 		case ch := <-b.suspendCh:
 			b.Debug(bgctx, "loop: received suspend")
 			if !waitForResume(ch) {
 				return
 			}
-		case ch := <-b.stopCh:
+		case <-b.stopCh:
 			b.Debug(bgctx, "loop: shutting down for %s", uid)
-			close(ch)
+			return
+		}
+	}
+}
+
+func (b *BackgroundConvLoader) loadLoop() {
+	bgctx := context.Background()
+	uid := b.uid
+	b.Debug(bgctx, "loadLoop: starting for uid: %s", uid)
+	for {
+		select {
+		case task := <-b.loadCh:
+			b.Debug(bgctx, "loadLoop: running task: %s", task.job)
+			nextTask := b.load(bgctx, *task, uid)
+			if nextTask != nil {
+				if err := b.enqueue(bgctx, *nextTask); err != nil {
+					b.Debug(bgctx, "enqueue error %s", err)
+				}
+			}
+		case <-b.stopCh:
 			return
 		}
 	}

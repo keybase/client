@@ -14,7 +14,7 @@ import {
 import Timestamp from './timestamp'
 import SendIndicator from './chat-send'
 import MessagePopup from '../message-popup'
-import HeightRetainer from './height-retainer'
+import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta'
 
 import type {Props} from '.'
@@ -124,7 +124,8 @@ const RightSide = props => (
       <Box style={styles.textContainer} className="message">
         {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
-        <HeightRetainer
+        <ExplodingHeightRetainer
+          explodedBy={props.explodedBy}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
@@ -134,14 +135,14 @@ const RightSide = props => (
             toggleShowingMenu={props.toggleShowingMenu}
           />
           {props.isEdited && <EditedMark />}
-        </HeightRetainer>
+        </ExplodingHeightRetainer>
         {!isMobile &&
           !props.exploded && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
         <MessagePopup
           attachTo={props.attachmentRef}
           message={props.message}
           onHidden={props.toggleShowingMenu}
-          position="bottom left"
+          position="top center"
           visible={props.showingMenu}
         />
         {props.isRevoked && (
@@ -173,7 +174,14 @@ const RightSide = props => (
         )}
       </Box>
     </Box>
-    {props.exploding && <ExplodingMeta explodesAt={props.explodesAt} />}
+    {props.exploding && (
+      <ExplodingMeta
+        exploded={props.exploded}
+        explodesAt={props.explodesAt}
+        pending={props.messagePending}
+        onClick={props.exploded ? null : props.toggleShowingMenu}
+      />
+    )}
   </Box>
 )
 
@@ -215,7 +223,20 @@ const styles = styleSheetCreate({
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
   hasHeader: {paddingTop: 6},
   leftRightContainer: {...globalStyles.flexBoxRow, width: '100%'},
-  leftSide: {flexShrink: 0, marginLeft: 8, marginRight: 8, position: 'relative', width: 32},
+  leftSide: platformStyles({
+    common: {
+      flexShrink: 0,
+      marginRight: globalMargins.tiny,
+      position: 'relative',
+      width: 32,
+    },
+    isElectron: {
+      marginLeft: globalMargins.small,
+    },
+    isMobile: {
+      marginLeft: globalMargins.tiny,
+    },
+  }),
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
   rightSide: platformStyles({
     common: {

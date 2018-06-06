@@ -31,6 +31,7 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   children: I.Set(),
   favoriteChildren: I.Set(),
   tlfMeta: undefined,
+  resetParticipants: [],
   type: 'folder',
 })
 
@@ -448,7 +449,7 @@ export const folderToFavoriteItems = (
 }
 
 export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
-  if (mimeType.startsWith('text/')) {
+  if (mimeType === 'text/plain') {
     return 'text'
   }
   if (mimeType.startsWith('image/')) {

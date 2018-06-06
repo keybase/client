@@ -64,6 +64,22 @@ tuX4LPcEa+72KyrsweuAJravU8SjgL/gAKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
 	require.IsType(t, err, FishyMsgpackError{}, "p=%+v", p)
 }
 
+// Guard against unexpected codec encoding changes, in particular for
+// ints.
+func TestHardcodedPacketEncode(t *testing.T) {
+	p, err := NewKeybasePacket(nil, TagSignature, KeybasePacketV1)
+	require.NoError(t, err)
+
+	p.Hash = nil
+
+	bytes, err := p.Encode()
+	require.NoError(t, err)
+	// In particular, {0xcd, 0x2, 0x2} shouldn't change to
+	// {0xd1, 0x2, 0x2}.
+	expectedBytes := []byte{0x83, 0xa4, 0x62, 0x6f, 0x64, 0x79, 0xc0, 0xa3, 0x74, 0x61, 0x67, 0xcd, 0x2, 0x2, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x1}
+	require.Equal(t, expectedBytes, bytes)
+}
+
 // This is a regression test for
 // https://github.com/ugorji/go/issues/237 .
 func TestMsgpackReencodeNilHash(t *testing.T) {

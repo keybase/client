@@ -7,8 +7,8 @@ export type Props = {
   visible: boolean,
   onHidden: () => void,
   isNew: boolean,
-  selected: ?MessageExplodeDescription,
-  onSelect: MessageExplodeDescription => void,
+  selected: number,
+  onSelect: number => void,
   items: MessageExplodeDescription[],
 }
 

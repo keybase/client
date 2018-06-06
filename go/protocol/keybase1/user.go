@@ -387,6 +387,12 @@ type FindNextMerkleRootAfterRevokeArg struct {
 	Prev MerkleRootV2     `codec:"prev" json:"prev"`
 }
 
+type FindNextMerkleRootAfterResetArg struct {
+	Uid        UID             `codec:"uid" json:"uid"`
+	ResetSeqno Seqno           `codec:"resetSeqno" json:"resetSeqno"`
+	Prev       ResetMerkleRoot `codec:"prev" json:"prev"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -429,6 +435,10 @@ type UserInterface interface {
 	// revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
 	// we'll start our search. Usually it's the next one, but not always
 	FindNextMerkleRootAfterRevoke(context.Context, FindNextMerkleRootAfterRevokeArg) (NextMerkleRootRes, error)
+	// FindNextMerkleRootAfterRest finds the first Merkle root that contains the UID reset
+	// at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
+	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
+	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -787,6 +797,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"findNextMerkleRootAfterReset": {
+				MakeArg: func() interface{} {
+					ret := make([]FindNextMerkleRootAfterResetArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FindNextMerkleRootAfterResetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FindNextMerkleRootAfterResetArg)(nil), args)
+						return
+					}
+					ret, err = i.FindNextMerkleRootAfterReset(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -926,5 +952,13 @@ func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatar
 // we'll start our search. Usually it's the next one, but not always
 func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg FindNextMerkleRootAfterRevokeArg) (res NextMerkleRootRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterRevoke", []interface{}{__arg}, &res)
+	return
+}
+
+// FindNextMerkleRootAfterRest finds the first Merkle root that contains the UID reset
+// at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
+// the reset. Usually, we'll just turn up the next Merkle root, but not always.
+func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg FindNextMerkleRootAfterResetArg) (res NextMerkleRootRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []interface{}{__arg}, &res)
 	return
 }

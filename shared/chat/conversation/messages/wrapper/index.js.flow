@@ -5,6 +5,7 @@ import * as Types from '../../../../constants/types/chat2'
 export type Props = {
   author: string,
   exploded: boolean,
+  explodedBy: string,
   explodesAt: number,
   exploding: boolean,
   failureDescription: string,
@@ -19,6 +20,7 @@ export type Props = {
   isYou: boolean,
   message: Types.MessageText | Types.MessageAttachment,
   messageFailed: boolean,
+  messagePending: boolean,
   messageSent: boolean,
   onRetry: null | (() => void),
   onEdit: null | (() => void),

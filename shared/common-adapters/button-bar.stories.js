@@ -69,8 +69,13 @@ const load = () => {
       <ButtonBar {...commonButtonBarProps} direction="column" fullWidth={true}>
         <Button {...commonButtonProps} type="Primary" />
       </ButtonBar>
+      <ButtonBar {...commonButtonBarProps} direction="row" fullWidth={true}>
+        <Button {...commonButtonProps} type="Secondary" fullWidth={true} />
+        <Button {...commonButtonProps} type="Primary" fullWidth={true} />
+      </ButtonBar>
     </Box>
   ))
 }
+// style={{flexGrow: 1}}
 
 export default load
