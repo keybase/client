@@ -62,7 +62,8 @@ func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 		teamLoader.ClearMem()
 	}
 	// Now drop caches, since we had the DB's state in-memory too.
-	return c.G().ConfigureCaches()
+	c.G().FlushCaches()
+	return nil
 }
 
 func (c *CtlHandler) AppExit(_ context.Context, sessionID int) error {
@@ -88,7 +89,7 @@ func (c *CtlHandler) DbDelete(_ context.Context, arg keybase1.DbDeleteArg) (err 
 	}
 
 	c.G().Log.Debug("Clearing memory caches after DbDelete")
-	c.G().ConfigureMemCaches()
+	c.G().FlushCaches()
 
 	return nil
 }
@@ -133,7 +134,7 @@ func (c *CtlHandler) DbPut(_ context.Context, arg keybase1.DbPutArg) (err error)
 	}
 
 	c.G().Log.Debug("Clearing memory caches after DbPut")
-	c.G().ConfigureMemCaches()
+	c.G().FlushCaches()
 
 	return nil
 }

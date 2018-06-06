@@ -250,21 +250,6 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 	g.DNSNSFetcher = d
 }
 
-// resetFullSelferWithSwitchUserLock is used to clear the fullSelfer
-// when a switchUserMu is held. This is trickier than it ought to be because
-// of deadlock potential. If we try to reach inside our existing CachedFullSelf
-// and grab the mutex that protects the me object (to clear it), we chance calling
-// into LoadUser, which can attemp to grab the login state, which would deadlock.
-// So just do the stupid thing, which is to throw away the existing CachedFullSelf
-// and swap in a new one.
-func (g *GlobalContext) resetFullSelferWithSwitchUserLock() {
-	g.cacheMu.Lock()
-	defer g.cacheMu.Unlock()
-	if g.fullSelfer != nil {
-		g.fullSelfer = g.fullSelfer.New()
-	}
-}
-
 // simulateServiceRestart simulates what happens when a service restarts for the
 // purposes of testing.
 func (g *GlobalContext) simulateServiceRestart() {
@@ -287,17 +272,9 @@ func (g *GlobalContext) Logout() error {
 
 	g.ClearPerUserKeyring()
 
-	if g.TrackCache != nil {
-		g.TrackCache.Shutdown()
-	}
-	if g.Identify2Cache != nil {
-		g.Identify2Cache.Shutdown()
-	}
-	if g.CardCache != nil {
-		g.CardCache.Shutdown()
-	}
-
-	g.resetFullSelferWithSwitchUserLock()
+	// NB: This will acquire and release the cacheMu lock, so we have to make
+	// sure nothing holding a cacheMu ever looks for the switchUserMu lock.
+	g.FlushCaches()
 
 	tl := g.teamLoader
 	if tl != nil {
@@ -308,10 +285,6 @@ func (g *GlobalContext) Logout() error {
 	if st != nil {
 		st.OnLogout()
 	}
-
-	g.TrackCache = NewTrackCache()
-	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
-	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 
 	// remove stored secret
 	g.secretStoreMu.Lock()
@@ -423,7 +396,7 @@ func (g *GlobalContext) ConfigureAPI() error {
 	return nil
 }
 
-func (g *GlobalContext) configureMemCachesLocked() {
+func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
 	// shutdown any existing ones
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -442,33 +415,45 @@ func (g *GlobalContext) configureMemCachesLocked() {
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created Identify2Cache, max age: %s", g.Env.GetUserCacheMaxAge())
-	g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
+
 	g.LinkCache = NewLinkCache(g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 	g.Log.Debug("Created LinkCache, max size: %d, clean dur: %s", g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created CardCache, max age: %s", g.Env.GetUserCacheMaxAge())
-	g.fullSelfer = NewCachedFullSelf(g)
+
+	// If we're just flushing the caches, and already have a Proof cache, then the right idea
+	// is just to reset what's in the ProofCache. Otherwise, we make a new one.
+	if isFlush && g.ProofCache != nil {
+		g.ProofCache.Reset()
+	} else {
+		g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
+	}
+
+	// If it's startup (and not a "flush"), then install a new full selfer
+	// cache. Otherwise, just make a new instance of the kind that's already there.
+	if isFlush {
+		g.fullSelfer = g.fullSelfer.New()
+	} else {
+		g.fullSelfer = NewCachedFullSelf(g)
+	}
+
 	g.Log.Debug("made a new full self cache")
 	g.upakLoader = NewCachedUPAKLoader(g, CachedUserTimeout)
 	g.Log.Debug("made a new cached UPAK loader (timeout=%v)", CachedUserTimeout)
 	g.PayloadCache = NewPayloadCache(g, g.Env.GetPayloadCacheSize())
 }
 
-func (g *GlobalContext) ConfigureMemCaches() {
-	g.cacheMu.Lock()
-	defer g.cacheMu.Unlock()
-	g.configureMemCachesLocked()
-}
-
 func (g *GlobalContext) ConfigureCaches() error {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
-	g.configureMemCachesLocked()
+	g.configureMemCachesLocked(false)
 	return g.configureDiskCachesLocked()
 }
 
 func (g *GlobalContext) FlushCaches() {
-	g.ConfigureMemCaches()
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.configureMemCachesLocked(true)
 }
 
 func (g *GlobalContext) configureDiskCachesLocked() error {
