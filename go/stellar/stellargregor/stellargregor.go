@@ -11,21 +11,21 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 )
 
-type handler struct {
+type Handler struct {
 	libkb.Contextified
 	remoter remote.Remoter
 }
 
-var _ libkb.GregorInBandMessageHandler = (*handler)(nil)
+var _ libkb.GregorInBandMessageHandler = (*Handler)(nil)
 
-func New(g *libkb.GlobalContext, remoter remote.Remoter) *handler {
-	return &handler{
+func New(g *libkb.GlobalContext, remoter remote.Remoter) *Handler {
+	return &Handler{
 		Contextified: libkb.NewContextified(g),
 		remoter:      remoter,
 	}
 }
 
-func (h *handler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+func (h *Handler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("WGR")
 	switch category {
 	case "stellar.autoclaim":
@@ -38,20 +38,20 @@ func (h *handler) Create(ctx context.Context, cli gregor1.IncomingInterface, cat
 	}
 }
 
-func (h *handler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+func (h *Handler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
 	return false, nil
 }
 
-func (h *handler) IsAlive() bool {
+func (h *Handler) IsAlive() bool {
 	return true
 }
 
-func (h *handler) Name() string {
+func (h *Handler) Name() string {
 	return "stellarHandler"
 }
 
 // The server is telling the client to claim relay payments.
-func (h *handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	mctx.CDebugf("%v: %v received", h.Name(), category)
 	mctx.G().GetStellar().KickAutoClaimRunner(mctx, item.Metadata().MsgID())
 	return nil
