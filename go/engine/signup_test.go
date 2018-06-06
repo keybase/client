@@ -163,7 +163,7 @@ func TestLocalKeySecurity(t *testing.T) {
 	}
 
 	m := NewMetaContextForTest(tc)
-	lks := libkb.NewLKSec(s.ppStream, s.uid, tc.G)
+	lks := libkb.NewLKSec(s.ppStream, s.uid)
 	if err := lks.Load(m); err != nil {
 		t.Fatal(err)
 	}
