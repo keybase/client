@@ -119,13 +119,18 @@ func (o ObjFactory) MakeDismissalByRange(uid gregor.UID, msgid gregor.MsgID, dev
 	if err != nil {
 		return nil, err
 	}
+	var skips []MsgID
+	for _, s := range skipMsgIDs {
+		skips = append(skips, MsgID(s.Bytes()))
+	}
 	return InBandMessage{
 		StateUpdate_: &StateUpdateMessage{
 			Md_: md,
 			Dismissal_: &Dismissal{
 				Ranges_: []MsgRange{{
-					EndTime_:  timeToTimeOrOffset(&d),
-					Category_: Category(c.String()),
+					EndTime_:    timeToTimeOrOffset(&d),
+					Category_:   Category(c.String()),
+					SkipMsgIDs_: skips,
 				}},
 			},
 		},

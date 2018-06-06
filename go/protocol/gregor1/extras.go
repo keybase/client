@@ -27,6 +27,7 @@ func (d DeviceID) Eq(other DeviceID) bool {
 }
 func (m MsgID) Bytes() []byte                 { return []byte(m) }
 func (m MsgID) String() string                { return hex.EncodeToString(m) }
+func (m MsgID) Eq(n MsgID) bool               { return m.String() == n.String() }
 func (s System) String() string               { return string(s) }
 func (c Category) String() string             { return string(c) }
 func (b Body) Bytes() []byte                  { return []byte(b) }
