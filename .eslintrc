@@ -35,7 +35,7 @@
         "flowtype/delimiter-dangle": ["error", "always-multiline"],
         "flowtype/generic-spacing": "off",
         "flowtype/no-dupe-keys": "off",
-        "flowtype/object-type-delimiter": ["error", "comma"],
+        "flowtype/object-type-delimiter": "off",
         "flowtype/require-valid-file-annotation": ["error", "always", {"annotationStyle": "line"}],
         "flowtype/semi": ["error", "never"],
         "flowtype/space-after-type-colon": "off",

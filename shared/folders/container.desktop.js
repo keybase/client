@@ -1,6 +1,5 @@
 // @flow
-import {isLinux, isWindows} from '../constants/platform'
-import Folders, {type FolderType} from '.'
+import Folders, {type FolderType} from './index.desktop'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
@@ -14,17 +13,11 @@ type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {selected: FolderType}
 
 const mapStateToProps = (state: TypedState, {routeState, selected}: OwnProps) => {
-  // on Windows, check that the driver is up to date too
-  const installed = isLinux ||
-    (state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted &&
-    !(isWindows && state.favorite.fuseStatus.installAction === 2))
   return {
     ...((state.favorite && state.favorite.folderState) || {}),
-    installed,
     showingIgnored: !!state.favorite && routeState.get('showingIgnored'),
     selected: !!state.favorite && selected,
     username: state.config.username || '',
-    showSecurityPrefs: !installed && state.favorite.kextPermissionError,
   }
 }
 
