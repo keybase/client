@@ -253,7 +253,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 			// ignoring any of these errors...phrase above will suffice.
 			if err == nil {
 				p.parent.Output("Or, scan this QR Code with the keybase app on your mobile phone:\n\n")
-				p.parent.Output(encodings.Terminal)
+				p.parent.PrintfUnescaped(encodings.Terminal)
 				fname := filepath.Join(os.TempDir(), "keybase_qr.png")
 				f, ferr := os.Create(fname)
 				if ferr == nil {
