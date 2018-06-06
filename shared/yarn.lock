@@ -5057,17 +5057,17 @@ elliptic@^6.0.0:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.0"
 
-emoji-datasource-apple@4.0.3:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/emoji-datasource-apple/-/emoji-datasource-apple-4.0.3.tgz#41898d935840336026d22a9420eb97f2dba422d6"
+emoji-datasource-apple@4.0.4:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/emoji-datasource-apple/-/emoji-datasource-apple-4.0.4.tgz#586048cf338623c1d64f41c0642cfb3f19552503"
 
-emoji-datasource@4.0.3:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/emoji-datasource/-/emoji-datasource-4.0.3.tgz#d600e70f0568327cb28cfa7bf41d53f3c4867901"
+emoji-datasource@4.0.4:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/emoji-datasource/-/emoji-datasource-4.0.4.tgz#516b9ab2f34569e468e4e3753a34a47a0b2b5aa3"
 
-emoji-mart@2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/emoji-mart/-/emoji-mart-2.5.0.tgz#f548a32742f8ce1e601b7a2d8b7cacfad7e6cbfd"
+emoji-mart@2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/emoji-mart/-/emoji-mart-2.6.1.tgz#222b9d8f20c4484758266b847588f84cc2db384c"
 
 emojis-list@^2.0.0:
   version "2.1.0"
@@ -10900,9 +10900,9 @@ react-gateway@3.0.0:
     prop-types "^15.5.0"
     react-prop-types "^0.4.0"
 
-react-hot-loader@4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/react-hot-loader/-/react-hot-loader-4.2.0.tgz#4a2ec79114f872e28ea786e04889d643ad3dfb7c"
+react-hot-loader@4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/react-hot-loader/-/react-hot-loader-4.3.0.tgz#3d417797acd6f78bd0291ee225828f5dd78a3829"
   dependencies:
     fast-levenshtein "^2.0.6"
     global "^4.3.0"
