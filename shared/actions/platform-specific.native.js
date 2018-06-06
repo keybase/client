@@ -10,7 +10,6 @@ import {
   PushNotificationIOS,
   CameraRoll,
   ActionSheetIOS,
-  AsyncStorage,
   Linking,
   NativeModules,
   NativeEventEmitter,
@@ -20,7 +19,6 @@ import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS, isAndroid} from '../constants/platform'
 
-const shownPushPrompt = 'shownPushPrompt'
 // Used to listen to the java intent for notifications
 let RNEmitter
 // Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
@@ -36,18 +34,9 @@ function requestPushPermissions() {
   return isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
 }
 
-// Sets that we've shown the push prompt in local storage
-function setShownPushPrompt() {
-  return new Promise((resolve, reject) => {
-    logger.info('Setting shownPushPrompt to true in local storage')
-    AsyncStorage.setItem(shownPushPrompt, 'true', e => {
-      resolve()
-    })
-  })
-}
-
-function getShownPushPrompt() {
-  return AsyncStorage.getItem(shownPushPrompt)
+function getShownPushPrompt(): Promise<boolean> {
+  const PushPrompt = NativeModules.PushPrompt
+  return PushPrompt.getHasShownPushPrompt()
 }
 
 function checkPermissions() {
@@ -325,7 +314,6 @@ export {
   configurePush,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
-  setShownPushPrompt,
   getShownPushPrompt,
   showShareActionSheet,
   clearAllNotifications,

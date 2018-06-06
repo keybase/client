@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import {globalStyles, isMobile} from '../styles'
+import {globalStyles, isMobile, globalMargins} from '../styles'
 
 type Props = {
   direction: 'row' | 'column',
   align?: 'flex-start' | 'flex-end' | 'center', // ignored by column
   children: React.Node,
-  fullWidth?: boolean, // ignored by column
+  fullWidth?: boolean,
   noPadding?: boolean,
   small?: boolean, // ignored by column
   style?: any,
@@ -57,15 +57,13 @@ class ButtonBar extends React.PureComponent<Props> {
     }
 
     const style = {
+      alignItems: this.props.fullWidth ? 'stretch' : 'center',
+      padding: this.props.fullWidth ? globalMargins.small : 0,
       width: '100%',
       ...(this.props.direction === 'column'
-        ? {
-            ...globalStyles.flexBoxColumn,
-            alignItems: this.props.fullWidth ? 'stretch' : 'center',
-          }
+        ? {...globalStyles.flexBoxColumn}
         : {
             ...globalStyles.flexBoxRow,
-            alignItems: 'center',
             justifyContent: this.props.align,
             ...minHeight,
           }),

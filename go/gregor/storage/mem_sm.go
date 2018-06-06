@@ -72,6 +72,7 @@ type user struct {
 	items           [](*item)
 	log             []loggedMsg
 	localDismissals []gregor.MsgID
+	outbox          []gregor.Message
 }
 
 func newUser(logger logger.Logger) *user {
@@ -433,6 +434,26 @@ func (m *MemEngine) InBandMessagesSince(ctx context.Context, u gregor.UID, d gre
 	msgs, _ := m.getUser(u).replayLog(m.clock.Now(), d, t)
 
 	return msgs, nil
+}
+
+func (m *MemEngine) Outbox(ctx context.Context, u gregor.UID) ([]gregor.Message, error) {
+	m.Lock()
+	defer m.Unlock()
+	return m.getUser(u).outbox, nil
+}
+
+func (m *MemEngine) InitOutbox(ctx context.Context, u gregor.UID, msgs []gregor.Message) error {
+	m.Lock()
+	defer m.Unlock()
+	m.getUser(u).outbox = msgs
+	return nil
+}
+
+func (m *MemEngine) ConsumeOutboxMessage(ctx context.Context, u gregor.UID, msg gregor.Message) error {
+	m.Lock()
+	defer m.Unlock()
+	m.getUser(u).outbox = append(m.getUser(u).outbox, msg)
+	return nil
 }
 
 func (m *MemEngine) Reminders(ctx context.Context, maxReminders int) (gregor.ReminderSet, error) {
