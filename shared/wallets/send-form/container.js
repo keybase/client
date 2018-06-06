@@ -8,4 +8,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps) => ({})
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SendForm)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(SendForm)

@@ -22,4 +22,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onAck: () => dispatch(navigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(EditAvatar)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(EditAvatar)

@@ -29,4 +29,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(UpdateEmail)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(UpdateEmail)

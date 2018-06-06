@@ -14,7 +14,7 @@
  */
 
 declare module '@babel/plugin-proposal-class-properties' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,10 +23,10 @@ declare module '@babel/plugin-proposal-class-properties' {
  * needed.
  */
 declare module '@babel/plugin-proposal-class-properties/lib/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module '@babel/plugin-proposal-class-properties/lib/index.js' {
-  declare module.exports: $Exports<'@babel/plugin-proposal-class-properties/lib/index'>;
+  declare module.exports: $Exports<'@babel/plugin-proposal-class-properties/lib/index'>
 }

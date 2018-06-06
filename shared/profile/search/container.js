@@ -14,7 +14,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInf
 })
 
 export default compose(
-  connect(undefined, mapDispatchToProps),
+  connect(
+    undefined,
+    mapDispatchToProps
+  ),
   defaultProps({
     placeholder: 'Type someone',
     showAddButton: false,

@@ -21,6 +21,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   title: 'Wallets',
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  isMobile ? HeaderHoc(Wallets) : Wallets
-)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(isMobile ? HeaderHoc(Wallets) : Wallets)

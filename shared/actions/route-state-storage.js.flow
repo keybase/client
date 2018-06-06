@@ -31,13 +31,13 @@ import type {Dispatch, GetState} from '../constants/types/flux'
 declare class RouteStateStorage {
   // load returns a promise that, when resolved, means that the route
   // state has been loaded from the storage into the redux state.
-  load: (dispatch: Dispatch, getState: GetState) => Promise<void>,
+  load: (dispatch: Dispatch, getState: GetState) => Promise<void>;
   // store returns a promise that, when resolved, means that the route
   // state in the redux state has been stored.
-  store: (dispatch: Dispatch, getState: GetState) => Promise<void>,
+  store: (dispatch: Dispatch, getState: GetState) => Promise<void>;
   // store returns a promise that, when resolved, means that the route
   // state has been cleared.
-  clear: (dispatch: Dispatch, getState: GetState) => Promise<void>,
+  clear: (dispatch: Dispatch, getState: GetState) => Promise<void>;
 }
 
 export {RouteStateStorage}

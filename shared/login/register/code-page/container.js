@@ -80,4 +80,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(LoginGen.createProvisionTextCodeEntered({phrase: new HiddenString(phrase.trim())})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(_CodePage)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(_CodePage)

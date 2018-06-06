@@ -14,7 +14,7 @@
  */
 
 declare module 'react-native-camera' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,11 +23,10 @@ declare module 'react-native-camera' {
  * needed.
  */
 
-
 // Filename aliases
 declare module 'react-native-camera/index' {
-  declare module.exports: $Exports<'react-native-camera'>;
+  declare module.exports: $Exports<'react-native-camera'>
 }
 declare module 'react-native-camera/index.js' {
-  declare module.exports: $Exports<'react-native-camera'>;
+  declare module.exports: $Exports<'react-native-camera'>
 }

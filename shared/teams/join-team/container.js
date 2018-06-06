@@ -35,7 +35,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   withStateHandlers(({name}) => ({name: name || ''}), {
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),

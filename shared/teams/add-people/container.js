@@ -79,7 +79,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   compose(
     withStateHandlers(
       {role: 'writer', sendNotification: true},

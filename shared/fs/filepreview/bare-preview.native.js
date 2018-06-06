@@ -98,4 +98,8 @@ const stylesFooter = {
   paddingLeft: globalMargins.tiny,
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BarePreview)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(BarePreview)

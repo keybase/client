@@ -14,7 +14,7 @@
  */
 
 declare module 'jsonfile' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,11 +23,10 @@ declare module 'jsonfile' {
  * needed.
  */
 
-
 // Filename aliases
 declare module 'jsonfile/index' {
-  declare module.exports: $Exports<'jsonfile'>;
+  declare module.exports: $Exports<'jsonfile'>
 }
 declare module 'jsonfile/index.js' {
-  declare module.exports: $Exports<'jsonfile'>;
+  declare module.exports: $Exports<'jsonfile'>
 }

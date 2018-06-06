@@ -23,4 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(SystemInviteAccepted)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(SystemInviteAccepted)

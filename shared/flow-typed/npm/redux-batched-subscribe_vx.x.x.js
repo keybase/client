@@ -14,7 +14,7 @@
  */
 
 declare module 'redux-batched-subscribe' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,17 +23,17 @@ declare module 'redux-batched-subscribe' {
  * needed.
  */
 declare module 'redux-batched-subscribe/lib/__tests__/batchedSubscribe-test' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'redux-batched-subscribe/lib/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'redux-batched-subscribe/lib/__tests__/batchedSubscribe-test.js' {
-  declare module.exports: $Exports<'redux-batched-subscribe/lib/__tests__/batchedSubscribe-test'>;
+  declare module.exports: $Exports<'redux-batched-subscribe/lib/__tests__/batchedSubscribe-test'>
 }
 declare module 'redux-batched-subscribe/lib/index.js' {
-  declare module.exports: $Exports<'redux-batched-subscribe/lib/index'>;
+  declare module.exports: $Exports<'redux-batched-subscribe/lib/index'>
 }

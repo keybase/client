@@ -7,4 +7,7 @@ const mapStateToProps = (state: TypedState) => ({
   reachable: state.gregor.reachability.reachable,
 })
 
-export default connect(mapStateToProps, () => ({}))(Offline)
+export default connect(
+  mapStateToProps,
+  () => ({})
+)(Offline)

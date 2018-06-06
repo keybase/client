@@ -14,7 +14,7 @@
  */
 
 declare module '@babel/plugin-proposal-object-rest-spread' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,10 +23,10 @@ declare module '@babel/plugin-proposal-object-rest-spread' {
  * needed.
  */
 declare module '@babel/plugin-proposal-object-rest-spread/lib/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module '@babel/plugin-proposal-object-rest-spread/lib/index.js' {
-  declare module.exports: $Exports<'@babel/plugin-proposal-object-rest-spread/lib/index'>;
+  declare module.exports: $Exports<'@babel/plugin-proposal-object-rest-spread/lib/index'>
 }

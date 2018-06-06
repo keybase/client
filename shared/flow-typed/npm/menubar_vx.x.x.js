@@ -14,7 +14,7 @@
  */
 
 declare module 'menubar' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,16 +23,16 @@ declare module 'menubar' {
  * needed.
  */
 declare module 'menubar/example/main' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'menubar/example/main.js' {
-  declare module.exports: $Exports<'menubar/example/main'>;
+  declare module.exports: $Exports<'menubar/example/main'>
 }
 declare module 'menubar/index' {
-  declare module.exports: $Exports<'menubar'>;
+  declare module.exports: $Exports<'menubar'>
 }
 declare module 'menubar/index.js' {
-  declare module.exports: $Exports<'menubar'>;
+  declare module.exports: $Exports<'menubar'>
 }

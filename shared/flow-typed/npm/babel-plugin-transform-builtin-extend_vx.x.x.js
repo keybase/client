@@ -14,7 +14,7 @@
  */
 
 declare module 'babel-plugin-transform-builtin-extend' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,24 +23,24 @@ declare module 'babel-plugin-transform-builtin-extend' {
  * needed.
  */
 declare module 'babel-plugin-transform-builtin-extend/lib/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-plugin-transform-builtin-extend/test/approximate/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-plugin-transform-builtin-extend/test/standard/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'babel-plugin-transform-builtin-extend/lib/index.js' {
-  declare module.exports: $Exports<'babel-plugin-transform-builtin-extend/lib/index'>;
+  declare module.exports: $Exports<'babel-plugin-transform-builtin-extend/lib/index'>
 }
 declare module 'babel-plugin-transform-builtin-extend/test/approximate/index.js' {
-  declare module.exports: $Exports<'babel-plugin-transform-builtin-extend/test/approximate/index'>;
+  declare module.exports: $Exports<'babel-plugin-transform-builtin-extend/test/approximate/index'>
 }
 declare module 'babel-plugin-transform-builtin-extend/test/standard/index.js' {
-  declare module.exports: $Exports<'babel-plugin-transform-builtin-extend/test/standard/index'>;
+  declare module.exports: $Exports<'babel-plugin-transform-builtin-extend/test/standard/index'>
 }

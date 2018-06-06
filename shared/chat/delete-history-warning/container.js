@@ -45,4 +45,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
   title: 'Delete message history',
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(DeleteHistoryWarning)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  )
+)(DeleteHistoryWarning)

@@ -14,7 +14,7 @@
  */
 
 declare module 'klaw-sync' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,10 +23,10 @@ declare module 'klaw-sync' {
  * needed.
  */
 declare module 'klaw-sync/klaw-sync' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'klaw-sync/klaw-sync.js' {
-  declare module.exports: $Exports<'klaw-sync/klaw-sync'>;
+  declare module.exports: $Exports<'klaw-sync/klaw-sync'>
 }

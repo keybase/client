@@ -29,6 +29,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   branch(props => props._lastOwner, renderComponent(LastOwnerDialog))
 )(ReallyLeaveTeam)

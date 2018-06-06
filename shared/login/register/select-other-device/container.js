@@ -32,6 +32,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   withStateHandlers({showResetLink: false}, {setShowResetLink: () => showResetLink => ({showResetLink})})
 )(SelectOtherDevice)

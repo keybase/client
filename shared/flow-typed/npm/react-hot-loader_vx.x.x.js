@@ -14,7 +14,7 @@
  */
 
 declare module 'react-hot-loader' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,51 +23,51 @@ declare module 'react-hot-loader' {
  * needed.
  */
 declare module 'react-hot-loader/babel' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-hot-loader/dist/babel.development' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-hot-loader/dist/babel.production.min' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-hot-loader/dist/react-hot-loader.development' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-hot-loader/dist/react-hot-loader.production.min' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-hot-loader/patch' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'react-hot-loader/babel.js' {
-  declare module.exports: $Exports<'react-hot-loader/babel'>;
+  declare module.exports: $Exports<'react-hot-loader/babel'>
 }
 declare module 'react-hot-loader/dist/babel.development.js' {
-  declare module.exports: $Exports<'react-hot-loader/dist/babel.development'>;
+  declare module.exports: $Exports<'react-hot-loader/dist/babel.development'>
 }
 declare module 'react-hot-loader/dist/babel.production.min.js' {
-  declare module.exports: $Exports<'react-hot-loader/dist/babel.production.min'>;
+  declare module.exports: $Exports<'react-hot-loader/dist/babel.production.min'>
 }
 declare module 'react-hot-loader/dist/react-hot-loader.development.js' {
-  declare module.exports: $Exports<'react-hot-loader/dist/react-hot-loader.development'>;
+  declare module.exports: $Exports<'react-hot-loader/dist/react-hot-loader.development'>
 }
 declare module 'react-hot-loader/dist/react-hot-loader.production.min.js' {
-  declare module.exports: $Exports<'react-hot-loader/dist/react-hot-loader.production.min'>;
+  declare module.exports: $Exports<'react-hot-loader/dist/react-hot-loader.production.min'>
 }
 declare module 'react-hot-loader/index' {
-  declare module.exports: $Exports<'react-hot-loader'>;
+  declare module.exports: $Exports<'react-hot-loader'>
 }
 declare module 'react-hot-loader/index.js' {
-  declare module.exports: $Exports<'react-hot-loader'>;
+  declare module.exports: $Exports<'react-hot-loader'>
 }
 declare module 'react-hot-loader/patch.js' {
-  declare module.exports: $Exports<'react-hot-loader/patch'>;
+  declare module.exports: $Exports<'react-hot-loader/patch'>
 }

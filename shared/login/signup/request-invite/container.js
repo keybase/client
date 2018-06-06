@@ -58,4 +58,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   requestInvite: (email, name) => dispatch(requestInvite(email, name)),
   restartSignup: () => dispatch(restartSignup()),
 })
-export default connect(mapStateToProps, mapDispatchToProps)(RequestInvite)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(RequestInvite)

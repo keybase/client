@@ -104,4 +104,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   measure: ownProps.measure,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TopMessage)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TopMessage)

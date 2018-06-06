@@ -24,4 +24,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   waiting: false,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Render)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Render)

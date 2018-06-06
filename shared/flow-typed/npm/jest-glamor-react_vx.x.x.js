@@ -14,7 +14,7 @@
  */
 
 declare module 'jest-glamor-react' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,37 +23,37 @@ declare module 'jest-glamor-react' {
  * needed.
  */
 declare module 'jest-glamor-react/dist/matchers' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'jest-glamor-react/dist/replace-selectors' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'jest-glamor-react/dist/serializer' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'jest-glamor-react/dist/utils' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'jest-glamor-react/dist/matchers.js' {
-  declare module.exports: $Exports<'jest-glamor-react/dist/matchers'>;
+  declare module.exports: $Exports<'jest-glamor-react/dist/matchers'>
 }
 declare module 'jest-glamor-react/dist/replace-selectors.js' {
-  declare module.exports: $Exports<'jest-glamor-react/dist/replace-selectors'>;
+  declare module.exports: $Exports<'jest-glamor-react/dist/replace-selectors'>
 }
 declare module 'jest-glamor-react/dist/serializer.js' {
-  declare module.exports: $Exports<'jest-glamor-react/dist/serializer'>;
+  declare module.exports: $Exports<'jest-glamor-react/dist/serializer'>
 }
 declare module 'jest-glamor-react/dist/utils.js' {
-  declare module.exports: $Exports<'jest-glamor-react/dist/utils'>;
+  declare module.exports: $Exports<'jest-glamor-react/dist/utils'>
 }
 declare module 'jest-glamor-react/index' {
-  declare module.exports: $Exports<'jest-glamor-react'>;
+  declare module.exports: $Exports<'jest-glamor-react'>
 }
 declare module 'jest-glamor-react/index.js' {
-  declare module.exports: $Exports<'jest-glamor-react'>;
+  declare module.exports: $Exports<'jest-glamor-react'>
 }

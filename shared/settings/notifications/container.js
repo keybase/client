@@ -21,7 +21,10 @@ const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
   title: 'Notifications',
 })
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props.onRefresh()

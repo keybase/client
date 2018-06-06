@@ -66,4 +66,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default hot(module)(connect(mapStateToProps, mapDispatchToProps)(Main))
+export default hot(module)(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(Main)
+)

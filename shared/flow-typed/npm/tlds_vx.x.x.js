@@ -14,7 +14,7 @@
  */
 
 declare module 'tlds' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,16 +23,16 @@ declare module 'tlds' {
  * needed.
  */
 declare module 'tlds/bin' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'tlds/bin.js' {
-  declare module.exports: $Exports<'tlds/bin'>;
+  declare module.exports: $Exports<'tlds/bin'>
 }
 declare module 'tlds/index' {
-  declare module.exports: $Exports<'tlds'>;
+  declare module.exports: $Exports<'tlds'>
 }
 declare module 'tlds/index.js' {
-  declare module.exports: $Exports<'tlds'>;
+  declare module.exports: $Exports<'tlds'>
 }

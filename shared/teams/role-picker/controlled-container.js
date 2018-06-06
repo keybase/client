@@ -67,7 +67,10 @@ const PopupWrapped = props => (
 )
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   withStateHandlers(
     ({currentType, sendNotificationChecked}) => ({
       selectedRole: currentType,

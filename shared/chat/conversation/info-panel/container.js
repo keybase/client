@@ -100,7 +100,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
 })
 
-const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(InfoPanel)
+const ConnectedInfoPanel = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(InfoPanel)
 
 type SelectorOwnProps = {
   routeProps: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>,
@@ -156,4 +160,7 @@ const panelContainerStyle = {
   flexDirection: 'column',
 }
 
-export default connect(mapStateToSelectorProps, mapDispatchToSelectorProps)(InfoPanelSelector)
+export default connect(
+  mapStateToSelectorProps,
+  mapDispatchToSelectorProps
+)(InfoPanelSelector)

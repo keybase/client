@@ -98,7 +98,11 @@ const Empty = () => null
 
 // Actions are handled by remote-container
 const RemoteTracker = compose(
-  connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
+  connect(
+    trackerMapStateToProps,
+    () => ({}),
+    trackerMergeProps
+  ),
   SyncBrowserWindow,
   SyncAvatarProps,
   SyncProps
@@ -129,4 +133,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ].slice(0, MAX_TRACKERS),
 })
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(RemoteTrackers)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(RemoteTrackers)

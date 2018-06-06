@@ -14,7 +14,7 @@
  */
 
 declare module 'path-parse' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,30 +23,30 @@ declare module 'path-parse' {
  * needed.
  */
 declare module 'path-parse/index.min' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'path-parse/test' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'path-parse/test.min' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'path-parse/index' {
-  declare module.exports: $Exports<'path-parse'>;
+  declare module.exports: $Exports<'path-parse'>
 }
 declare module 'path-parse/index.js' {
-  declare module.exports: $Exports<'path-parse'>;
+  declare module.exports: $Exports<'path-parse'>
 }
 declare module 'path-parse/index.min.js' {
-  declare module.exports: $Exports<'path-parse/index.min'>;
+  declare module.exports: $Exports<'path-parse/index.min'>
 }
 declare module 'path-parse/test.js' {
-  declare module.exports: $Exports<'path-parse/test'>;
+  declare module.exports: $Exports<'path-parse/test'>
 }
 declare module 'path-parse/test.min.js' {
-  declare module.exports: $Exports<'path-parse/test.min'>;
+  declare module.exports: $Exports<'path-parse/test.min'>
 }

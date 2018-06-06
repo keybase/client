@@ -32,4 +32,8 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(OldProfileResetNotice)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(OldProfileResetNotice)

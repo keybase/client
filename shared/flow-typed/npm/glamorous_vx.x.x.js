@@ -14,7 +14,7 @@
  */
 
 declare module 'glamorous' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,115 +23,115 @@ declare module 'glamorous' {
  * needed.
  */
 declare module 'glamorous/dist/glamorous.cjs' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/dist/glamorous.cjs.tiny' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/dist/glamorous.esm' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/dist/glamorous.esm.tiny' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/dist/glamorous.umd' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/dist/glamorous.umd.min' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/dist/glamorous.umd.min.tiny' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/dist/glamorous.umd.tiny' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/preact/dist/glamorous.cjs' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/preact/dist/glamorous.cjs.tiny' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/preact/dist/glamorous.esm' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/preact/dist/glamorous.esm.tiny' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/preact/dist/glamorous.umd' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/preact/dist/glamorous.umd.min' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/preact/dist/glamorous.umd.min.tiny' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'glamorous/preact/dist/glamorous.umd.tiny' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'glamorous/dist/glamorous.cjs.js' {
-  declare module.exports: $Exports<'glamorous/dist/glamorous.cjs'>;
+  declare module.exports: $Exports<'glamorous/dist/glamorous.cjs'>
 }
 declare module 'glamorous/dist/glamorous.cjs.tiny.js' {
-  declare module.exports: $Exports<'glamorous/dist/glamorous.cjs.tiny'>;
+  declare module.exports: $Exports<'glamorous/dist/glamorous.cjs.tiny'>
 }
 declare module 'glamorous/dist/glamorous.esm.js' {
-  declare module.exports: $Exports<'glamorous/dist/glamorous.esm'>;
+  declare module.exports: $Exports<'glamorous/dist/glamorous.esm'>
 }
 declare module 'glamorous/dist/glamorous.esm.tiny.js' {
-  declare module.exports: $Exports<'glamorous/dist/glamorous.esm.tiny'>;
+  declare module.exports: $Exports<'glamorous/dist/glamorous.esm.tiny'>
 }
 declare module 'glamorous/dist/glamorous.umd.js' {
-  declare module.exports: $Exports<'glamorous/dist/glamorous.umd'>;
+  declare module.exports: $Exports<'glamorous/dist/glamorous.umd'>
 }
 declare module 'glamorous/dist/glamorous.umd.min.js' {
-  declare module.exports: $Exports<'glamorous/dist/glamorous.umd.min'>;
+  declare module.exports: $Exports<'glamorous/dist/glamorous.umd.min'>
 }
 declare module 'glamorous/dist/glamorous.umd.min.tiny.js' {
-  declare module.exports: $Exports<'glamorous/dist/glamorous.umd.min.tiny'>;
+  declare module.exports: $Exports<'glamorous/dist/glamorous.umd.min.tiny'>
 }
 declare module 'glamorous/dist/glamorous.umd.tiny.js' {
-  declare module.exports: $Exports<'glamorous/dist/glamorous.umd.tiny'>;
+  declare module.exports: $Exports<'glamorous/dist/glamorous.umd.tiny'>
 }
 declare module 'glamorous/preact/dist/glamorous.cjs.js' {
-  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.cjs'>;
+  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.cjs'>
 }
 declare module 'glamorous/preact/dist/glamorous.cjs.tiny.js' {
-  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.cjs.tiny'>;
+  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.cjs.tiny'>
 }
 declare module 'glamorous/preact/dist/glamorous.esm.js' {
-  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.esm'>;
+  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.esm'>
 }
 declare module 'glamorous/preact/dist/glamorous.esm.tiny.js' {
-  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.esm.tiny'>;
+  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.esm.tiny'>
 }
 declare module 'glamorous/preact/dist/glamorous.umd.js' {
-  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.umd'>;
+  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.umd'>
 }
 declare module 'glamorous/preact/dist/glamorous.umd.min.js' {
-  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.umd.min'>;
+  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.umd.min'>
 }
 declare module 'glamorous/preact/dist/glamorous.umd.min.tiny.js' {
-  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.umd.min.tiny'>;
+  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.umd.min.tiny'>
 }
 declare module 'glamorous/preact/dist/glamorous.umd.tiny.js' {
-  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.umd.tiny'>;
+  declare module.exports: $Exports<'glamorous/preact/dist/glamorous.umd.tiny'>
 }

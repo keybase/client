@@ -434,31 +434,36 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
         const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
         // whatever
         if (!result || !result.items) return EngineRpc.rpcResult()
-        const tlfs: Array<[Types.Path, Types.ResetMetadata]> = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
-          const visibility = item.visibility === RPCTypes.commonTLFVisibility.private
+        const tlfs: Array<[Types.Path, Types.ResetMetadata]> = result.items.reduce(
+          (filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
+            const visibility =
+              item.visibility === RPCTypes.commonTLFVisibility.private
                 ? item.membersType === team
                   ? 'team'
                   : 'private'
                 : 'public'
-          const name = item.name
-          const path = Types.stringToPath(`/keybase/${visibility}/${name}`)
-          if (
-            item &&
+            const name = item.name
+            const path = Types.stringToPath(`/keybase/${visibility}/${name}`)
+            if (
+              item &&
               item.localMetadata &&
               item.localMetadata.resetParticipants &&
               // Ignore KBFS-backed TLFs
               [team, impteamnative, impteamupgrade].includes(item.membersType)
-          ) {
-            filtered.push([
-              path, {
-                name,
-                visibility,
-                resetParticipants: item.localMetadata.resetParticipants || [],
-              },
-            ])
-          }
-          return filtered
-        }, [])
+            ) {
+              filtered.push([
+                path,
+                {
+                  name,
+                  visibility,
+                  resetParticipants: item.localMetadata.resetParticipants || [],
+                },
+              ])
+            }
+            return filtered
+          },
+          []
+        )
         yield Saga.put(FsGen.createLoadResetsResult({tlfs: I.Map(tlfs)}))
         return EngineRpc.rpcResult()
       },

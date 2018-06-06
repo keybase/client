@@ -65,7 +65,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {team}: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props._onSetTeamJoinError('')

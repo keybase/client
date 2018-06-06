@@ -75,6 +75,10 @@ const mergeProps = (
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('FolderHeader')
 )(FolderHeader)

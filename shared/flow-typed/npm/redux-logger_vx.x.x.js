@@ -14,7 +14,7 @@
  */
 
 declare module 'redux-logger' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,45 +23,45 @@ declare module 'redux-logger' {
  * needed.
  */
 declare module 'redux-logger/dist/redux-logger' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'redux-logger/src/core' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'redux-logger/src/defaults' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'redux-logger/src/diff' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'redux-logger/src/helpers' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'redux-logger/src/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'redux-logger/dist/redux-logger.js' {
-  declare module.exports: $Exports<'redux-logger/dist/redux-logger'>;
+  declare module.exports: $Exports<'redux-logger/dist/redux-logger'>
 }
 declare module 'redux-logger/src/core.js' {
-  declare module.exports: $Exports<'redux-logger/src/core'>;
+  declare module.exports: $Exports<'redux-logger/src/core'>
 }
 declare module 'redux-logger/src/defaults.js' {
-  declare module.exports: $Exports<'redux-logger/src/defaults'>;
+  declare module.exports: $Exports<'redux-logger/src/defaults'>
 }
 declare module 'redux-logger/src/diff.js' {
-  declare module.exports: $Exports<'redux-logger/src/diff'>;
+  declare module.exports: $Exports<'redux-logger/src/diff'>
 }
 declare module 'redux-logger/src/helpers.js' {
-  declare module.exports: $Exports<'redux-logger/src/helpers'>;
+  declare module.exports: $Exports<'redux-logger/src/helpers'>
 }
 declare module 'redux-logger/src/index.js' {
-  declare module.exports: $Exports<'redux-logger/src/index'>;
+  declare module.exports: $Exports<'redux-logger/src/index'>
 }

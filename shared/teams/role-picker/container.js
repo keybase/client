@@ -79,7 +79,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(
     ({currentType}: {currentType: Types.TeamRoleType}) => ({
       selectedRole: currentType,

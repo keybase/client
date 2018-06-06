@@ -70,4 +70,8 @@ const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
   username: stateProps.username || '',
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TabBarRender)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TabBarRender)

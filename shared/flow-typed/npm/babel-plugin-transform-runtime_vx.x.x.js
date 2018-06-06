@@ -14,7 +14,7 @@
  */
 
 declare module 'babel-plugin-transform-runtime' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,17 +23,17 @@ declare module 'babel-plugin-transform-runtime' {
  * needed.
  */
 declare module 'babel-plugin-transform-runtime/lib/definitions' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-plugin-transform-runtime/lib/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'babel-plugin-transform-runtime/lib/definitions.js' {
-  declare module.exports: $Exports<'babel-plugin-transform-runtime/lib/definitions'>;
+  declare module.exports: $Exports<'babel-plugin-transform-runtime/lib/definitions'>
 }
 declare module 'babel-plugin-transform-runtime/lib/index.js' {
-  declare module.exports: $Exports<'babel-plugin-transform-runtime/lib/index'>;
+  declare module.exports: $Exports<'babel-plugin-transform-runtime/lib/index'>
 }

@@ -47,4 +47,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   restartSignup: () => dispatch(Creators.restartSignup()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(DeviceName)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DeviceName)

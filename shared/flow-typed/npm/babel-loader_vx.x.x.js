@@ -14,7 +14,7 @@
  */
 
 declare module 'babel-loader' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,59 +23,59 @@ declare module 'babel-loader' {
  * needed.
  */
 declare module 'babel-loader/lib/cache' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-loader/lib/config' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-loader/lib/Error' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-loader/lib/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-loader/lib/transform' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-loader/lib/utils/exists' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-loader/lib/utils/read' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-loader/lib/utils/relative' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'babel-loader/lib/cache.js' {
-  declare module.exports: $Exports<'babel-loader/lib/cache'>;
+  declare module.exports: $Exports<'babel-loader/lib/cache'>
 }
 declare module 'babel-loader/lib/config.js' {
-  declare module.exports: $Exports<'babel-loader/lib/config'>;
+  declare module.exports: $Exports<'babel-loader/lib/config'>
 }
 declare module 'babel-loader/lib/Error.js' {
-  declare module.exports: $Exports<'babel-loader/lib/Error'>;
+  declare module.exports: $Exports<'babel-loader/lib/Error'>
 }
 declare module 'babel-loader/lib/index.js' {
-  declare module.exports: $Exports<'babel-loader/lib/index'>;
+  declare module.exports: $Exports<'babel-loader/lib/index'>
 }
 declare module 'babel-loader/lib/transform.js' {
-  declare module.exports: $Exports<'babel-loader/lib/transform'>;
+  declare module.exports: $Exports<'babel-loader/lib/transform'>
 }
 declare module 'babel-loader/lib/utils/exists.js' {
-  declare module.exports: $Exports<'babel-loader/lib/utils/exists'>;
+  declare module.exports: $Exports<'babel-loader/lib/utils/exists'>
 }
 declare module 'babel-loader/lib/utils/read.js' {
-  declare module.exports: $Exports<'babel-loader/lib/utils/read'>;
+  declare module.exports: $Exports<'babel-loader/lib/utils/read'>
 }
 declare module 'babel-loader/lib/utils/relative.js' {
-  declare module.exports: $Exports<'babel-loader/lib/utils/relative'>;
+  declare module.exports: $Exports<'babel-loader/lib/utils/relative'>
 }

@@ -24,6 +24,9 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey: ownProps.conversationIDKey, seconds})),
 })
 
-const SetExplodePopup = connect(mapStateToProps, mapDispatchToProps)(SetExplodeTime)
+const SetExplodePopup = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(SetExplodeTime)
 
 export default SetExplodePopup

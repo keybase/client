@@ -53,4 +53,7 @@ class Switcher extends React.PureComponent<Props> {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Switcher)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Switcher)

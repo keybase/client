@@ -26,7 +26,11 @@ const dataToProps = mapProps(({data}: {data: Types.PinentryState}) => ({
 }))
 
 // Actions are handled by remote-container
-const RemotePinentry = compose(dataToProps, SyncBrowserWindow, SyncProps)(NullComponent)
+const RemotePinentry = compose(
+  dataToProps,
+  SyncBrowserWindow,
+  SyncProps
+)(NullComponent)
 
 type Props = {
   sessionIDToPinentry: I.Map<number, Types.PinentryState>,
@@ -48,4 +52,7 @@ const mapStateToProps = (state: TypedState) => ({
   sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
 })
 
-export default connect(mapStateToProps, () => ({}))(RemotePinentrys)
+export default connect(
+  mapStateToProps,
+  () => ({})
+)(RemotePinentrys)

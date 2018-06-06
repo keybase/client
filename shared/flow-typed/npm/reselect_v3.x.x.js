@@ -1,17 +1,18 @@
 // flow-typed signature: e0663523c67e4c7624c0b4f221d8663a
 // flow-typed version: ee257adf63/reselect_v3.x.x/flow_>=v0.47.x
 
-declare module "reselect" {
-  declare type InputSelector<-TState, TProps, TResult> =
-    (state: TState, props: TProps, ...rest: any[]) => TResult
+declare module 'reselect' {
+  declare type InputSelector<-TState, TProps, TResult> = (
+    state: TState,
+    props: TProps,
+    ...rest: any[]
+  ) => TResult
 
-  declare type OutputSelector<-TState, TProps, TResult> =
-    & InputSelector<TState, TProps, TResult>
-    & {
-      recomputations(): number,
-      resetRecomputations(): void,
-      resultFunc(state: TState, props: TProps, ...rest: Array<any>): TResult,
-    };
+  declare type OutputSelector<-TState, TProps, TResult> = InputSelector<TState, TProps, TResult> & {
+    recomputations(): number,
+    resetRecomputations(): void,
+    resultFunc(state: TState, props: TProps, ...rest: Array<any>): TResult,
+  }
 
   declare type SelectorCreator = {
     <TState, TProps, TResult, T1>(
@@ -43,7 +44,7 @@ declare module "reselect" {
       selectors: [
         InputSelector<TState, TProps, T1>,
         InputSelector<TState, TProps, T2>,
-        InputSelector<TState, TProps, T3>
+        InputSelector<TState, TProps, T3>,
       ],
       resultFunc: (arg1: T1, arg2: T2, arg3: T3) => TResult
     ): OutputSelector<TState, TProps, TResult>,
@@ -60,7 +61,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T1>,
         InputSelector<TState, TProps, T2>,
         InputSelector<TState, TProps, T3>,
-        InputSelector<TState, TProps, T4>
+        InputSelector<TState, TProps, T4>,
       ],
       resultFunc: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => TResult
     ): OutputSelector<TState, TProps, TResult>,
@@ -79,7 +80,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T2>,
         InputSelector<TState, TProps, T3>,
         InputSelector<TState, TProps, T4>,
-        InputSelector<TState, TProps, T5>
+        InputSelector<TState, TProps, T5>,
       ],
       resultFunc: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => TResult
     ): OutputSelector<TState, TProps, TResult>,
@@ -91,14 +92,7 @@ declare module "reselect" {
       selector4: InputSelector<TState, TProps, T4>,
       selector5: InputSelector<TState, TProps, T5>,
       selector6: InputSelector<TState, TProps, T6>,
-      resultFunc: (
-        arg1: T1,
-        arg2: T2,
-        arg3: T3,
-        arg4: T4,
-        arg5: T5,
-        arg6: T6
-      ) => TResult
+      resultFunc: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => TResult
     ): OutputSelector<TState, TProps, TResult>,
     <TState, TProps, TResult, T1, T2, T3, T4, T5, T6>(
       selectors: [
@@ -107,16 +101,9 @@ declare module "reselect" {
         InputSelector<TState, TProps, T3>,
         InputSelector<TState, TProps, T4>,
         InputSelector<TState, TProps, T5>,
-        InputSelector<TState, TProps, T6>
+        InputSelector<TState, TProps, T6>,
       ],
-      resultFunc: (
-        arg1: T1,
-        arg2: T2,
-        arg3: T3,
-        arg4: T4,
-        arg5: T5,
-        arg6: T6
-      ) => TResult
+      resultFunc: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => TResult
     ): OutputSelector<TState, TProps, TResult>,
 
     <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7>(
@@ -127,15 +114,7 @@ declare module "reselect" {
       selector5: InputSelector<TState, TProps, T5>,
       selector6: InputSelector<TState, TProps, T6>,
       selector7: InputSelector<TState, TProps, T7>,
-      resultFunc: (
-        arg1: T1,
-        arg2: T2,
-        arg3: T3,
-        arg4: T4,
-        arg5: T5,
-        arg6: T6,
-        arg7: T7
-      ) => TResult
+      resultFunc: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => TResult
     ): OutputSelector<TState, TProps, TResult>,
     <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7>(
       selectors: [
@@ -145,17 +124,9 @@ declare module "reselect" {
         InputSelector<TState, TProps, T4>,
         InputSelector<TState, TProps, T5>,
         InputSelector<TState, TProps, T6>,
-        InputSelector<TState, TProps, T7>
+        InputSelector<TState, TProps, T7>,
       ],
-      resultFunc: (
-        arg1: T1,
-        arg2: T2,
-        arg3: T3,
-        arg4: T4,
-        arg5: T5,
-        arg6: T6,
-        arg7: T7
-      ) => TResult
+      resultFunc: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => TResult
     ): OutputSelector<TState, TProps, TResult>,
 
     <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8>(
@@ -167,16 +138,7 @@ declare module "reselect" {
       selector6: InputSelector<TState, TProps, T6>,
       selector7: InputSelector<TState, TProps, T7>,
       selector8: InputSelector<TState, TProps, T8>,
-      resultFunc: (
-        arg1: T1,
-        arg2: T2,
-        arg3: T3,
-        arg4: T4,
-        arg5: T5,
-        arg6: T6,
-        arg7: T7,
-        arg8: T8
-      ) => TResult
+      resultFunc: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => TResult
     ): OutputSelector<TState, TProps, TResult>,
     <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8>(
       selectors: [
@@ -187,18 +149,9 @@ declare module "reselect" {
         InputSelector<TState, TProps, T5>,
         InputSelector<TState, TProps, T6>,
         InputSelector<TState, TProps, T7>,
-        InputSelector<TState, TProps, T8>
+        InputSelector<TState, TProps, T8>,
       ],
-      resultFunc: (
-        arg1: T1,
-        arg2: T2,
-        arg3: T3,
-        arg4: T4,
-        arg5: T5,
-        arg6: T6,
-        arg7: T7,
-        arg8: T8
-      ) => TResult
+      resultFunc: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => TResult
     ): OutputSelector<TState, TProps, TResult>,
 
     <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
@@ -233,7 +186,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T6>,
         InputSelector<TState, TProps, T7>,
         InputSelector<TState, TProps, T8>,
-        InputSelector<TState, TProps, T9>
+        InputSelector<TState, TProps, T9>,
       ],
       resultFunc: (
         arg1: T1,
@@ -283,7 +236,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T7>,
         InputSelector<TState, TProps, T8>,
         InputSelector<TState, TProps, T9>,
-        InputSelector<TState, TProps, T10>
+        InputSelector<TState, TProps, T10>,
       ],
       resultFunc: (
         arg1: T1,
@@ -337,7 +290,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T8>,
         InputSelector<TState, TProps, T9>,
         InputSelector<TState, TProps, T10>,
-        InputSelector<TState, TProps, T11>
+        InputSelector<TState, TProps, T11>,
       ],
       resultFunc: (
         arg1: T1,
@@ -354,23 +307,7 @@ declare module "reselect" {
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
 
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
       selector1: InputSelector<TState, TProps, T1>,
       selector2: InputSelector<TState, TProps, T2>,
       selector3: InputSelector<TState, TProps, T3>,
@@ -398,23 +335,7 @@ declare module "reselect" {
         arg12: T12
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
       selectors: [
         InputSelector<TState, TProps, T1>,
         InputSelector<TState, TProps, T2>,
@@ -427,7 +348,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T9>,
         InputSelector<TState, TProps, T10>,
         InputSelector<TState, TProps, T11>,
-        InputSelector<TState, TProps, T12>
+        InputSelector<TState, TProps, T12>,
       ],
       resultFunc: (
         arg1: T1,
@@ -445,24 +366,7 @@ declare module "reselect" {
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
 
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12,
-      T13
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(
       selector1: InputSelector<TState, TProps, T1>,
       selector2: InputSelector<TState, TProps, T2>,
       selector3: InputSelector<TState, TProps, T3>,
@@ -492,24 +396,7 @@ declare module "reselect" {
         arg13: T13
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12,
-      T13
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(
       selectors: [
         InputSelector<TState, TProps, T1>,
         InputSelector<TState, TProps, T2>,
@@ -523,7 +410,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T10>,
         InputSelector<TState, TProps, T11>,
         InputSelector<TState, TProps, T12>,
-        InputSelector<TState, TProps, T13>
+        InputSelector<TState, TProps, T13>,
       ],
       resultFunc: (
         arg1: T1,
@@ -542,25 +429,7 @@ declare module "reselect" {
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
 
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12,
-      T13,
-      T14
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(
       selector1: InputSelector<TState, TProps, T1>,
       selector2: InputSelector<TState, TProps, T2>,
       selector3: InputSelector<TState, TProps, T3>,
@@ -592,25 +461,7 @@ declare module "reselect" {
         arg14: T14
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12,
-      T13,
-      T14
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(
       selectors: [
         InputSelector<TState, TProps, T1>,
         InputSelector<TState, TProps, T2>,
@@ -625,7 +476,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T11>,
         InputSelector<TState, TProps, T12>,
         InputSelector<TState, TProps, T13>,
-        InputSelector<TState, TProps, T14>
+        InputSelector<TState, TProps, T14>,
       ],
       resultFunc: (
         arg1: T1,
@@ -645,26 +496,7 @@ declare module "reselect" {
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
 
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12,
-      T13,
-      T14,
-      T15
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(
       selector1: InputSelector<TState, TProps, T1>,
       selector2: InputSelector<TState, TProps, T2>,
       selector3: InputSelector<TState, TProps, T3>,
@@ -698,26 +530,7 @@ declare module "reselect" {
         arg15: T15
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12,
-      T13,
-      T14,
-      T15
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(
       selectors: [
         InputSelector<TState, TProps, T1>,
         InputSelector<TState, TProps, T2>,
@@ -733,7 +546,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T12>,
         InputSelector<TState, TProps, T13>,
         InputSelector<TState, TProps, T14>,
-        InputSelector<TState, TProps, T15>
+        InputSelector<TState, TProps, T15>,
       ],
       resultFunc: (
         arg1: T1,
@@ -754,27 +567,7 @@ declare module "reselect" {
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
 
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12,
-      T13,
-      T14,
-      T15,
-      T16
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(
       selector1: InputSelector<TState, TProps, T1>,
       selector2: InputSelector<TState, TProps, T2>,
       selector3: InputSelector<TState, TProps, T3>,
@@ -810,27 +603,7 @@ declare module "reselect" {
         arg16: T16
       ) => TResult
     ): OutputSelector<TState, TProps, TResult>,
-    <
-      TState,
-      TProps,
-      TResult,
-      T1,
-      T2,
-      T3,
-      T4,
-      T5,
-      T6,
-      T7,
-      T8,
-      T9,
-      T10,
-      T11,
-      T12,
-      T13,
-      T14,
-      T15,
-      T16
-    >(
+    <TState, TProps, TResult, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(
       selectors: [
         InputSelector<TState, TProps, T1>,
         InputSelector<TState, TProps, T2>,
@@ -847,7 +620,7 @@ declare module "reselect" {
         InputSelector<TState, TProps, T13>,
         InputSelector<TState, TProps, T14>,
         InputSelector<TState, TProps, T15>,
-        InputSelector<TState, TProps, T16>
+        InputSelector<TState, TProps, T16>,
       ],
       resultFunc: (
         arg1: T1,
@@ -867,29 +640,23 @@ declare module "reselect" {
         arg15: T15,
         arg16: T16
       ) => TResult
-    ): OutputSelector<TState, TProps, TResult>
-  };
+    ): OutputSelector<TState, TProps, TResult>,
+  }
 
   declare type Reselect = {
     createSelector: SelectorCreator,
 
-    defaultMemoize: <TFunc: Function>(
-      func: TFunc,
-      equalityCheck?: (a: any, b: any) => boolean
-    ) => TFunc,
+    defaultMemoize: <TFunc: Function>(func: TFunc, equalityCheck?: (a: any, b: any) => boolean) => TFunc,
 
-    createSelectorCreator: (
-      memoize: Function,
-      ...memoizeOptions: any[]
-    ) => SelectorCreator,
+    createSelectorCreator: (memoize: Function, ...memoizeOptions: any[]) => SelectorCreator,
 
     createStructuredSelector: <TState, TProps>(
       inputSelectors: {
-        [k: string | number]: InputSelector<TState, TProps, any>
+        [k: string | number]: InputSelector<TState, TProps, any>,
       },
       selectorCreator?: SelectorCreator
-    ) => OutputSelector<TState, TProps, any>
-  };
+    ) => OutputSelector<TState, TProps, any>,
+  }
 
-  declare module.exports: Reselect;
+  declare module.exports: Reselect
 }

@@ -14,7 +14,7 @@
  */
 
 declare module '@babel/node' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,24 +23,24 @@ declare module '@babel/node' {
  * needed.
  */
 declare module '@babel/node/bin/babel-node' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module '@babel/node/lib/_babel-node' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module '@babel/node/lib/babel-node' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module '@babel/node/bin/babel-node.js' {
-  declare module.exports: $Exports<'@babel/node/bin/babel-node'>;
+  declare module.exports: $Exports<'@babel/node/bin/babel-node'>
 }
 declare module '@babel/node/lib/_babel-node.js' {
-  declare module.exports: $Exports<'@babel/node/lib/_babel-node'>;
+  declare module.exports: $Exports<'@babel/node/lib/_babel-node'>
 }
 declare module '@babel/node/lib/babel-node.js' {
-  declare module.exports: $Exports<'@babel/node/lib/babel-node'>;
+  declare module.exports: $Exports<'@babel/node/lib/babel-node'>
 }

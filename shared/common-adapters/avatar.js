@@ -226,7 +226,11 @@ class AvatarConnector extends React.PureComponent<Props> {
 }
 
 const Avatar = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('Avatar'),
   HOCTimers
 )(AvatarConnector)

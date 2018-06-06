@@ -17,4 +17,7 @@ const Switcher = ({bootStatus, navigateAppend}) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Switcher)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Switcher)

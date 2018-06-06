@@ -14,7 +14,7 @@
  */
 
 declare module 'react-native-image-picker' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,11 +23,10 @@ declare module 'react-native-image-picker' {
  * needed.
  */
 
-
 // Filename aliases
 declare module 'react-native-image-picker/index' {
-  declare module.exports: $Exports<'react-native-image-picker'>;
+  declare module.exports: $Exports<'react-native-image-picker'>
 }
 declare module 'react-native-image-picker/index.js' {
-  declare module.exports: $Exports<'react-native-image-picker'>;
+  declare module.exports: $Exports<'react-native-image-picker'>
 }

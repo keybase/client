@@ -410,4 +410,9 @@ const styles = styleSheetCreate({
   },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps))(Nav)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )
+)(Nav)

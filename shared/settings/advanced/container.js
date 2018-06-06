@@ -30,5 +30,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
 })
 
-const connectedAdvanced = compose(connect(mapStateToProps, mapDispatchToProps), HeaderHoc)(Advanced)
+const connectedAdvanced = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
+  HeaderHoc
+)(Advanced)
 export default connectedAdvanced

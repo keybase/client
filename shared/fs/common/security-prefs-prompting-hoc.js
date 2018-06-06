@@ -44,7 +44,10 @@ const displayOnce = ({shouldPromptSecurityPrefs, showSecurityPrefsOnce}) => {
 }
 
 const DesktopSecurityPrefsPromptingHoc = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   branch(displayOnce, renderNothing)
 )
 

@@ -72,4 +72,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showUser: () => dispatchProps._showUser(stateProps.username),
   ...ownProps,
 })
-export default compose(connect(state => state, mapDispatchToProps, mergeProps))(Menubar)
+export default compose(
+  connect(
+    state => state,
+    mapDispatchToProps,
+    mergeProps
+  )
+)(Menubar)

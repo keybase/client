@@ -74,4 +74,8 @@ const mergeProps = (stateProps, dispatchProps, {routeProps}) => ({
   ...routeProps.toObject(),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(_Passphrase)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(_Passphrase)

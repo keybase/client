@@ -14,5 +14,5 @@
  */
 
 declare module 'emoji-datasource' {
-  declare module.exports: any;
+  declare module.exports: any
 }

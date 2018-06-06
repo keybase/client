@@ -17,6 +17,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
 })
 export default compose(
-  connect(state => state, mapDispatchToProps, mergeProps),
+  connect(
+    state => state,
+    mapDispatchToProps,
+    mergeProps
+  ),
   branch(props => !props.type, renderNothing)
 )(Pinentry)

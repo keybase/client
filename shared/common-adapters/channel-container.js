@@ -16,4 +16,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {convID, name}) => ({
     ),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('Channel'))(Channel)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
+  setDisplayName('Channel')
+)(Channel)

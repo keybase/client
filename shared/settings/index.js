@@ -29,4 +29,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...dispatchProps,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SettingsContainer)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(SettingsContainer)

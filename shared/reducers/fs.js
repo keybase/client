@@ -47,7 +47,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           .set('favoriteChildren', original.favoriteChildren)
           .set('resetParticipants', original.resetParticipants)
       })
-      return state.mergeIn(['pathItems'], toMerge)
+      return state
+        .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
     }
     case FsGen.folderListLoad:

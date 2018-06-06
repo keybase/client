@@ -14,7 +14,7 @@
  */
 
 declare module 'qrcode-generator' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,31 +23,31 @@ declare module 'qrcode-generator' {
  * needed.
  */
 declare module 'qrcode-generator/qrcode_SJIS' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'qrcode-generator/qrcode_UTF8' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'qrcode-generator/qrcode' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'qrcode-generator/sample' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'qrcode-generator/qrcode_SJIS.js' {
-  declare module.exports: $Exports<'qrcode-generator/qrcode_SJIS'>;
+  declare module.exports: $Exports<'qrcode-generator/qrcode_SJIS'>
 }
 declare module 'qrcode-generator/qrcode_UTF8.js' {
-  declare module.exports: $Exports<'qrcode-generator/qrcode_UTF8'>;
+  declare module.exports: $Exports<'qrcode-generator/qrcode_UTF8'>
 }
 declare module 'qrcode-generator/qrcode.js' {
-  declare module.exports: $Exports<'qrcode-generator/qrcode'>;
+  declare module.exports: $Exports<'qrcode-generator/qrcode'>
 }
 declare module 'qrcode-generator/sample.js' {
-  declare module.exports: $Exports<'qrcode-generator/sample'>;
+  declare module.exports: $Exports<'qrcode-generator/sample'>
 }

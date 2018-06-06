@@ -49,7 +49,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(props => ({selectedUser: props.lastUser, showTyping: false, passphrase: ''}), {
     setSelectedUser: () => selectedUser => ({selectedUser}),
     showTypingChange: () => showTyping => ({showTyping}),

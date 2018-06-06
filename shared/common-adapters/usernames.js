@@ -210,5 +210,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const ConnectedUsernames = connect(mapStateToProps, mapDispatchToProps, mergeProps)(Usernames)
+const ConnectedUsernames = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Usernames)
 export {usernameText, Usernames, PlaintextUsernames, ConnectedUsernames}

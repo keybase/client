@@ -30,4 +30,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(StartConversation)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(StartConversation)

@@ -14,7 +14,7 @@
  */
 
 declare module 'webpack-dashboard' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,86 +23,86 @@ declare module 'webpack-dashboard' {
  * needed.
  */
 declare module 'webpack-dashboard/bin/webpack-dashboard' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/dashboard/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/plugin/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/utils/error-serialization' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/utils/format-assets' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/utils/format-duplicates' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/utils/format-modules' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/utils/format-output' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/utils/format-problems' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/utils/format-versions' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'webpack-dashboard/utils/inspectpack' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'webpack-dashboard/bin/webpack-dashboard.js' {
-  declare module.exports: $Exports<'webpack-dashboard/bin/webpack-dashboard'>;
+  declare module.exports: $Exports<'webpack-dashboard/bin/webpack-dashboard'>
 }
 declare module 'webpack-dashboard/dashboard/index.js' {
-  declare module.exports: $Exports<'webpack-dashboard/dashboard/index'>;
+  declare module.exports: $Exports<'webpack-dashboard/dashboard/index'>
 }
 declare module 'webpack-dashboard/index' {
-  declare module.exports: $Exports<'webpack-dashboard'>;
+  declare module.exports: $Exports<'webpack-dashboard'>
 }
 declare module 'webpack-dashboard/index.js' {
-  declare module.exports: $Exports<'webpack-dashboard'>;
+  declare module.exports: $Exports<'webpack-dashboard'>
 }
 declare module 'webpack-dashboard/plugin/index.js' {
-  declare module.exports: $Exports<'webpack-dashboard/plugin/index'>;
+  declare module.exports: $Exports<'webpack-dashboard/plugin/index'>
 }
 declare module 'webpack-dashboard/utils/error-serialization.js' {
-  declare module.exports: $Exports<'webpack-dashboard/utils/error-serialization'>;
+  declare module.exports: $Exports<'webpack-dashboard/utils/error-serialization'>
 }
 declare module 'webpack-dashboard/utils/format-assets.js' {
-  declare module.exports: $Exports<'webpack-dashboard/utils/format-assets'>;
+  declare module.exports: $Exports<'webpack-dashboard/utils/format-assets'>
 }
 declare module 'webpack-dashboard/utils/format-duplicates.js' {
-  declare module.exports: $Exports<'webpack-dashboard/utils/format-duplicates'>;
+  declare module.exports: $Exports<'webpack-dashboard/utils/format-duplicates'>
 }
 declare module 'webpack-dashboard/utils/format-modules.js' {
-  declare module.exports: $Exports<'webpack-dashboard/utils/format-modules'>;
+  declare module.exports: $Exports<'webpack-dashboard/utils/format-modules'>
 }
 declare module 'webpack-dashboard/utils/format-output.js' {
-  declare module.exports: $Exports<'webpack-dashboard/utils/format-output'>;
+  declare module.exports: $Exports<'webpack-dashboard/utils/format-output'>
 }
 declare module 'webpack-dashboard/utils/format-problems.js' {
-  declare module.exports: $Exports<'webpack-dashboard/utils/format-problems'>;
+  declare module.exports: $Exports<'webpack-dashboard/utils/format-problems'>
 }
 declare module 'webpack-dashboard/utils/format-versions.js' {
-  declare module.exports: $Exports<'webpack-dashboard/utils/format-versions'>;
+  declare module.exports: $Exports<'webpack-dashboard/utils/format-versions'>
 }
 declare module 'webpack-dashboard/utils/inspectpack.js' {
-  declare module.exports: $Exports<'webpack-dashboard/utils/inspectpack'>;
+  declare module.exports: $Exports<'webpack-dashboard/utils/inspectpack'>
 }

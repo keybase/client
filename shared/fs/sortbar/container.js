@@ -49,6 +49,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, {path}
   onOpenSortSettingPopup: () => dispatchProps._getOnOpenSortSettingPopup(path),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('SortBar'))(
-  SortBar
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  setDisplayName('SortBar')
+)(SortBar)

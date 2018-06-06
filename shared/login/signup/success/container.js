@@ -19,4 +19,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(RenderSuccess)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(RenderSuccess)

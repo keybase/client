@@ -198,8 +198,7 @@ function updatedFonts() {
 
   const icons = {}
 
-  fs
-    .readdirSync(path.join(__dirname, '../../images/icons'))
+  fs.readdirSync(path.join(__dirname, '../../images/icons'))
     .filter(i => i.indexOf('@') === -1 && i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
@@ -238,29 +237,31 @@ type IconMeta = {
 }
 
 const iconMeta_ = {
-${/* eslint-disable */
-  Object.keys(icons)
-    .map(name => {
-      const icon = icons[name]
-      const meta = [`isFont: ${icon.isFont},`]
-      if (icon.gridSize) {
-        meta.push(`gridSize: ${icons[name].gridSize},`)
-      }
-      if (icon.extension) {
-        meta.push(`extension: '${icons[name].extension}',`)
-      }
-      if (icon.charCode) {
-        meta.push(`charCode: 0x${icons[name].charCode.toString(16)},`)
-      }
-      if (icon.require) {
-        meta.push(`require: require(${icons[name].require}),`)
-      }
+${
+    /* eslint-disable */
+    Object.keys(icons)
+      .map(name => {
+        const icon = icons[name]
+        const meta = [`isFont: ${icon.isFont},`]
+        if (icon.gridSize) {
+          meta.push(`gridSize: ${icons[name].gridSize},`)
+        }
+        if (icon.extension) {
+          meta.push(`extension: '${icons[name].extension}',`)
+        }
+        if (icon.charCode) {
+          meta.push(`charCode: 0x${icons[name].charCode.toString(16)},`)
+        }
+        if (icon.require) {
+          meta.push(`require: require(${icons[name].require}),`)
+        }
 
-      return `'${name}': {
+        return `'${name}': {
     ${meta.join('\n')}
   },`
-    })
-    .join('\n')}/* eslint-enable */
+      })
+      .join('\n')
+  }/* eslint-enable */
 }
 
 export type IconType = $Keys<typeof iconMeta_>
