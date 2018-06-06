@@ -185,7 +185,7 @@ func (e *PaperProvisionEngine) fetchLKS(m libkb.MetaContext, encKey libkb.Generi
 	if err != nil {
 		return err
 	}
-	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.User.GetUID(), e.G())
+	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.User.GetUID())
 	return nil
 }
 
@@ -241,7 +241,7 @@ func (e *PaperProvisionEngine) ensureLKSec(m libkb.MetaContext) error {
 		return err
 	}
 
-	e.lks = libkb.NewLKSec(pps, e.User.GetUID(), e.G())
+	e.lks = libkb.NewLKSec(pps, e.User.GetUID())
 	return nil
 }
 
