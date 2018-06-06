@@ -1,6 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, CopyText, Icon, InfoNote, MaybePopup, Text} from '../../common-adapters'
+import {
+  Box2,
+  Button,
+  CopyText,
+  Icon,
+  InfoNote,
+  MaybePopup,
+  Text,
+  iconCastPlatformStyles,
+} from '../../common-adapters'
 import {globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
 
 type Props = {
@@ -15,40 +24,22 @@ const ReceiveModal = (props: Props) => (
     <Box2 direction="vertical" style={containerStyle}>
       <Icon
         type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-        style={{marginBottom: globalMargins.small}}
+        style={iconCastPlatformStyles(styles.icon)}
       />
       <Text type="BodySmallSemibold">{props.username}’s wallet</Text>
-      <Text type="Header" style={{marginBottom: globalMargins.medium}}>
+      <Text type="Header" style={styles.headerText}>
         Receive
       </Text>
-      <Text
-        type="Body"
-        style={{
-          marginBottom: globalMargins.medium,
-          textAlign: 'center',
-        }}
-      >
+      <Text type="Body" style={styles.instructionText}>
         To receive Lumens or assets from non-Keybase users, pass your Stellar addresses around:
       </Text>
-      <Box2
-        direction="vertical"
-        style={{
-          marginBottom: globalMargins.tiny,
-          width: '100%',
-        }}
-      >
+      <Box2 direction="vertical" style={styles.stellarAddressContainer}>
         <CopyText text={props.stellarAddress} />
       </Box2>
-      <Text type="Body" style={{marginBottom: globalMargins.tiny}}>
+      <Text type="Body" style={styles.orText}>
         or
       </Text>
-      <Box2
-        direction="vertical"
-        style={{
-          marginBottom: globalMargins.medium,
-          width: '100%',
-        }}
-      >
+      <Box2 direction="vertical" style={styles.federatedAddressContainer}>
         <CopyText text={props.federatedAddress} />
       </Box2>
       <InfoNote>
@@ -62,10 +53,31 @@ const ReceiveModal = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
+  federatedAddressContainer: {
+    marginBottom: globalMargins.medium,
+    width: '100%',
+  },
+  headerText: {
+    marginBottom: globalMargins.medium,
+  },
+  icon: {
+    marginBottom: globalMargins.small,
+  },
   infoNoteText: {
     marginBottom: globalMargins.medium,
     maxWidth: 272,
     textAlign: 'center',
+  },
+  instructionText: {
+    marginBottom: globalMargins.medium,
+    textAlign: 'center',
+  },
+  orText: {
+    marginBottom: globalMargins.tiny,
+  },
+  stellarAddressContainer: {
+    marginBottom: globalMargins.tiny,
+    width: '100%',
   },
 })
 
