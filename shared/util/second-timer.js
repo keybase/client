@@ -19,7 +19,7 @@ class Ticker {
       this.intervalID = setInterval(this.loop, 500)
     }
     id++
-    this.refs.push({id, fn})
+    this.refs.push({fn, id})
     return id
   }
 
