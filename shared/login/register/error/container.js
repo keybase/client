@@ -8,4 +8,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   error: routeProps.get('error'),
 })
 
-export default connect(null, mapDispatchToProps)(RenderError)
+export default connect(
+  null,
+  mapDispatchToProps
+)(RenderError)

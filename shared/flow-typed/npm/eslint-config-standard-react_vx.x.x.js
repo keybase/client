@@ -14,7 +14,7 @@
  */
 
 declare module 'eslint-config-standard-react' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,23 +23,23 @@ declare module 'eslint-config-standard-react' {
  * needed.
  */
 declare module 'eslint-config-standard-react/test/basic' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'eslint-config-standard-react/test/validate-config' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'eslint-config-standard-react/index' {
-  declare module.exports: $Exports<'eslint-config-standard-react'>;
+  declare module.exports: $Exports<'eslint-config-standard-react'>
 }
 declare module 'eslint-config-standard-react/index.js' {
-  declare module.exports: $Exports<'eslint-config-standard-react'>;
+  declare module.exports: $Exports<'eslint-config-standard-react'>
 }
 declare module 'eslint-config-standard-react/test/basic.js' {
-  declare module.exports: $Exports<'eslint-config-standard-react/test/basic'>;
+  declare module.exports: $Exports<'eslint-config-standard-react/test/basic'>
 }
 declare module 'eslint-config-standard-react/test/validate-config.js' {
-  declare module.exports: $Exports<'eslint-config-standard-react/test/validate-config'>;
+  declare module.exports: $Exports<'eslint-config-standard-react/test/validate-config'>
 }

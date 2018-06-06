@@ -72,6 +72,10 @@ class AutoLoadMentionHud extends React.Component<any> {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('UserMentionHud')
 )(AutoLoadMentionHud)

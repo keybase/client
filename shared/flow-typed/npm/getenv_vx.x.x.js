@@ -14,7 +14,7 @@
  */
 
 declare module 'getenv' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,37 +23,37 @@ declare module 'getenv' {
  * needed.
  */
 declare module 'getenv/lib/getenv' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'getenv/test/disableErrors' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'getenv/test/fallbacks' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'getenv/test/getenv' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'getenv/index' {
-  declare module.exports: $Exports<'getenv'>;
+  declare module.exports: $Exports<'getenv'>
 }
 declare module 'getenv/index.js' {
-  declare module.exports: $Exports<'getenv'>;
+  declare module.exports: $Exports<'getenv'>
 }
 declare module 'getenv/lib/getenv.js' {
-  declare module.exports: $Exports<'getenv/lib/getenv'>;
+  declare module.exports: $Exports<'getenv/lib/getenv'>
 }
 declare module 'getenv/test/disableErrors.js' {
-  declare module.exports: $Exports<'getenv/test/disableErrors'>;
+  declare module.exports: $Exports<'getenv/test/disableErrors'>
 }
 declare module 'getenv/test/fallbacks.js' {
-  declare module.exports: $Exports<'getenv/test/fallbacks'>;
+  declare module.exports: $Exports<'getenv/test/fallbacks'>
 }
 declare module 'getenv/test/getenv.js' {
-  declare module.exports: $Exports<'getenv/test/getenv'>;
+  declare module.exports: $Exports<'getenv/test/getenv'>
 }

@@ -14,7 +14,7 @@
  */
 
 declare module 'json5' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,24 +23,24 @@ declare module 'json5' {
  * needed.
  */
 declare module 'json5/lib/cli' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'json5/lib/json5' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'json5/lib/require' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'json5/lib/cli.js' {
-  declare module.exports: $Exports<'json5/lib/cli'>;
+  declare module.exports: $Exports<'json5/lib/cli'>
 }
 declare module 'json5/lib/json5.js' {
-  declare module.exports: $Exports<'json5/lib/json5'>;
+  declare module.exports: $Exports<'json5/lib/json5'>
 }
 declare module 'json5/lib/require.js' {
-  declare module.exports: $Exports<'json5/lib/require'>;
+  declare module.exports: $Exports<'json5/lib/require'>
 }

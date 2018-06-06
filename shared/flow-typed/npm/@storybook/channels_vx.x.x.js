@@ -14,7 +14,7 @@
  */
 
 declare module '@storybook/channels' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,24 +23,24 @@ declare module '@storybook/channels' {
  * needed.
  */
 declare module '@storybook/channels/dist/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module '@storybook/channels/src/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module '@storybook/channels/src/index.test' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module '@storybook/channels/dist/index.js' {
-  declare module.exports: $Exports<'@storybook/channels/dist/index'>;
+  declare module.exports: $Exports<'@storybook/channels/dist/index'>
 }
 declare module '@storybook/channels/src/index.js' {
-  declare module.exports: $Exports<'@storybook/channels/src/index'>;
+  declare module.exports: $Exports<'@storybook/channels/src/index'>
 }
 declare module '@storybook/channels/src/index.test.js' {
-  declare module.exports: $Exports<'@storybook/channels/src/index.test'>;
+  declare module.exports: $Exports<'@storybook/channels/src/index.test'>
 }

@@ -14,7 +14,7 @@
  */
 
 declare module 'url-parse' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,23 +23,23 @@ declare module 'url-parse' {
  * needed.
  */
 declare module 'url-parse/dist/url-parse' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'url-parse/dist/url-parse.min' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'url-parse/dist/url-parse.js' {
-  declare module.exports: $Exports<'url-parse/dist/url-parse'>;
+  declare module.exports: $Exports<'url-parse/dist/url-parse'>
 }
 declare module 'url-parse/dist/url-parse.min.js' {
-  declare module.exports: $Exports<'url-parse/dist/url-parse.min'>;
+  declare module.exports: $Exports<'url-parse/dist/url-parse.min'>
 }
 declare module 'url-parse/index' {
-  declare module.exports: $Exports<'url-parse'>;
+  declare module.exports: $Exports<'url-parse'>
 }
 declare module 'url-parse/index.js' {
-  declare module.exports: $Exports<'url-parse'>;
+  declare module.exports: $Exports<'url-parse'>
 }

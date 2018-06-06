@@ -14,7 +14,7 @@
  */
 
 declare module 'typedarray-to-buffer' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,16 +23,16 @@ declare module 'typedarray-to-buffer' {
  * needed.
  */
 declare module 'typedarray-to-buffer/test/basic' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'typedarray-to-buffer/index' {
-  declare module.exports: $Exports<'typedarray-to-buffer'>;
+  declare module.exports: $Exports<'typedarray-to-buffer'>
 }
 declare module 'typedarray-to-buffer/index.js' {
-  declare module.exports: $Exports<'typedarray-to-buffer'>;
+  declare module.exports: $Exports<'typedarray-to-buffer'>
 }
 declare module 'typedarray-to-buffer/test/basic.js' {
-  declare module.exports: $Exports<'typedarray-to-buffer/test/basic'>;
+  declare module.exports: $Exports<'typedarray-to-buffer/test/basic'>
 }

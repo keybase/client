@@ -14,7 +14,7 @@
  */
 
 declare module 'devtron' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,24 +23,24 @@ declare module 'devtron' {
  * needed.
  */
 declare module 'devtron/api' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'devtron/out/browser-globals' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'devtron/out/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'devtron/api.js' {
-  declare module.exports: $Exports<'devtron/api'>;
+  declare module.exports: $Exports<'devtron/api'>
 }
 declare module 'devtron/out/browser-globals.js' {
-  declare module.exports: $Exports<'devtron/out/browser-globals'>;
+  declare module.exports: $Exports<'devtron/out/browser-globals'>
 }
 declare module 'devtron/out/index.js' {
-  declare module.exports: $Exports<'devtron/out/index'>;
+  declare module.exports: $Exports<'devtron/out/index'>
 }

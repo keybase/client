@@ -27,8 +27,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) =>
   title: 'About',
 })
 
-const connectedHeaderHoc = compose(connect(null, mapDispatchToProps), HeaderHoc, defaultProps({version}))(
-  About
-)
+const connectedHeaderHoc = compose(
+  connect(
+    null,
+    mapDispatchToProps
+  ),
+  HeaderHoc,
+  defaultProps({version})
+)(About)
 
 export default connectedHeaderHoc

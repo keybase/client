@@ -25,9 +25,12 @@ const MaybePopup = isMobile
     )
 
 // TODO properly type this
-const DispatchNavUpHoc: any = connect(undefined, (dispatch: Dispatch, {navigateUp}) => ({
-  connectedNavigateUp: () => dispatch(navigateUp()),
-}))
+const DispatchNavUpHoc: any = connect(
+  undefined,
+  (dispatch: Dispatch, {navigateUp}) => ({
+    connectedNavigateUp: () => dispatch(navigateUp()),
+  })
+)
 
 // TODO properly type this
 const _MaybePopupHoc: any = (cover: boolean) => {

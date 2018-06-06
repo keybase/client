@@ -1,7 +1,7 @@
 // flow-typed signature: 4d9e8253b9b9c1a25b55cc2d1f40b40e
 // flow-typed version: 77852b4474/del_v3.x.x/flow_>=v0.25.x
 
-type $npm$del$Patterns = string[] | string;
+type $npm$del$Patterns = string[] | string
 
 type $npm$del$Options = {
   force?: boolean,
@@ -34,17 +34,14 @@ type $npm$del$Options = {
   ignore?: string | string[],
   follow?: boolean,
   realpath?: boolean,
-  absolute?: boolean
-};
+  absolute?: boolean,
+}
 
-declare module "del" {
+declare module 'del' {
   declare class Del {
-    (
-      patterns: $npm$del$Patterns,
-      options?: $npm$del$Options
-    ): Promise<string[]>,
-    sync(patterns: $npm$del$Patterns, options?: $npm$del$Options): string[]
+    (patterns: $npm$del$Patterns, options?: $npm$del$Options): Promise<string[]>;
+    sync(patterns: $npm$del$Patterns, options?: $npm$del$Options): string[];
   }
 
-  declare module.exports: Del;
+  declare module.exports: Del
 }

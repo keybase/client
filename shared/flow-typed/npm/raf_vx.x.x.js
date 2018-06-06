@@ -14,7 +14,7 @@
  */
 
 declare module 'raf' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,30 +23,30 @@ declare module 'raf' {
  * needed.
  */
 declare module 'raf/polyfill' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'raf/test' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'raf/window' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'raf/index' {
-  declare module.exports: $Exports<'raf'>;
+  declare module.exports: $Exports<'raf'>
 }
 declare module 'raf/index.js' {
-  declare module.exports: $Exports<'raf'>;
+  declare module.exports: $Exports<'raf'>
 }
 declare module 'raf/polyfill.js' {
-  declare module.exports: $Exports<'raf/polyfill'>;
+  declare module.exports: $Exports<'raf/polyfill'>
 }
 declare module 'raf/test.js' {
-  declare module.exports: $Exports<'raf/test'>;
+  declare module.exports: $Exports<'raf/test'>
 }
 declare module 'raf/window.js' {
-  declare module.exports: $Exports<'raf/window'>;
+  declare module.exports: $Exports<'raf/window'>
 }

@@ -54,7 +54,7 @@ type Props = {
   children?: React.Node,
   className?: string,
   lineClamp?: number,
-  onClick?: ?(e: SyntheticEvent<>) => void | ?() => void,
+  onClick?: ?(e: SyntheticEvent<>) => void | ?(() => void),
   onClickURL?: ?string,
   onLongPress?: () => void,
   onPress?: void,

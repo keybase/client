@@ -40,7 +40,10 @@ export default compose(
   withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
     onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
   }),
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   lifecycle({
     componentDidMount() {
       // Facebook proof checking gets enabled after they click continue.

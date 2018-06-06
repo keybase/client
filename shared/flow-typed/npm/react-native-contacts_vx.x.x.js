@@ -14,7 +14,7 @@
  */
 
 declare module 'react-native-contacts' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,11 +23,10 @@ declare module 'react-native-contacts' {
  * needed.
  */
 
-
 // Filename aliases
 declare module 'react-native-contacts/index' {
-  declare module.exports: $Exports<'react-native-contacts'>;
+  declare module.exports: $Exports<'react-native-contacts'>
 }
 declare module 'react-native-contacts/index.js' {
-  declare module.exports: $Exports<'react-native-contacts'>;
+  declare module.exports: $Exports<'react-native-contacts'>
 }

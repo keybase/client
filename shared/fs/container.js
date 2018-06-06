@@ -53,16 +53,24 @@ const mergeProps = (stateProps, dispatchProps, {routePath}) => {
   }
 }
 
-const ConnectedFiles = compose(connect(mapStateToProps, undefined, mergeProps), setDisplayName('Files'))(
-  Files
-)
+const ConnectedFiles = compose(
+  connect(
+    mapStateToProps,
+    undefined,
+    mergeProps
+  ),
+  setDisplayName('Files')
+)(Files)
 
 const FilesLoadingHoc = compose(
-  connect(undefined, (dispatch: Dispatch) => ({
-    loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
-    loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
-    loadResets: () => dispatch(FsGen.createLoadResets()),
-  })),
+  connect(
+    undefined,
+    (dispatch: Dispatch) => ({
+      loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+      loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
+      loadResets: () => dispatch(FsGen.createLoadResets()),
+    })
+  ),
   mapProps(({routePath, routeProps, loadFolderList, loadFavorites, loadResets}) => ({
     routePath,
     path: routeProps.get('path', Constants.defaultPath),
@@ -81,8 +89,8 @@ const FilesLoadingHoc = compose(
       // action menu. So only load folder list when path changes.
       const pathLevel = Types.getPathLevel(this.props.path)
       this.props.path !== prevProps.path && this.props.loadFolderList(this.props.path)
-      pathLevel === 2 && this.props.loadFavorites();
-      [2, 3].includes(pathLevel) && this.props.loadResets()
+      pathLevel === 2 && this.props.loadFavorites()
+      ;[2, 3].includes(pathLevel) && this.props.loadResets()
     },
   }),
   setDisplayName('FilesLoadingHoc')

@@ -14,7 +14,7 @@
  */
 
 declare module 'eslint-config-standard-jsx' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,23 +23,23 @@ declare module 'eslint-config-standard-jsx' {
  * needed.
  */
 declare module 'eslint-config-standard-jsx/test/basic' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'eslint-config-standard-jsx/test/validate-config' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'eslint-config-standard-jsx/index' {
-  declare module.exports: $Exports<'eslint-config-standard-jsx'>;
+  declare module.exports: $Exports<'eslint-config-standard-jsx'>
 }
 declare module 'eslint-config-standard-jsx/index.js' {
-  declare module.exports: $Exports<'eslint-config-standard-jsx'>;
+  declare module.exports: $Exports<'eslint-config-standard-jsx'>
 }
 declare module 'eslint-config-standard-jsx/test/basic.js' {
-  declare module.exports: $Exports<'eslint-config-standard-jsx/test/basic'>;
+  declare module.exports: $Exports<'eslint-config-standard-jsx/test/basic'>
 }
 declare module 'eslint-config-standard-jsx/test/validate-config.js' {
-  declare module.exports: $Exports<'eslint-config-standard-jsx/test/validate-config'>;
+  declare module.exports: $Exports<'eslint-config-standard-jsx/test/validate-config'>
 }

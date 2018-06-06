@@ -68,4 +68,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Nav)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Nav)

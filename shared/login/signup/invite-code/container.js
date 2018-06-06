@@ -15,4 +15,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRequestInvite: () => dispatch(startRequestInvite()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(InviteCode)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(InviteCode)

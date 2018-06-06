@@ -76,4 +76,8 @@ const TeamMenu = ({attachTo, items, onHidden, visible}: Props) => {
   return <FloatingMenu attachTo={attachTo} items={items} onHidden={onHidden} visible={visible} />
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMenu)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TeamMenu)

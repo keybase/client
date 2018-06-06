@@ -92,6 +92,9 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const connector = connect(mapStateToProps, mapDispatchToProps)
+const connector = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)
 
 export {connector, Main}

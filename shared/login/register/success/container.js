@@ -25,4 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(RenderSuccess)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(RenderSuccess)

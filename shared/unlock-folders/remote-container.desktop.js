@@ -11,4 +11,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onFinish: () => dispatch(UnlockFoldersGen.createFinish()),
   toPaperKeyInput: () => dispatch(UnlockFoldersGen.createToPaperKeyInput()),
 })
-export default connect(state => state, mapDispatchToProps)(UnlockFolders)
+export default connect(
+  state => state,
+  mapDispatchToProps
+)(UnlockFolders)

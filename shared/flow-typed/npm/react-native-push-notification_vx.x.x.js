@@ -14,7 +14,7 @@
  */
 
 declare module 'react-native-push-notification' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,30 +23,30 @@ declare module 'react-native-push-notification' {
  * needed.
  */
 declare module 'react-native-push-notification/component/index.android' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-native-push-notification/component/index.ios' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-native-push-notification/component/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'react-native-push-notification/component/index.android.js' {
-  declare module.exports: $Exports<'react-native-push-notification/component/index.android'>;
+  declare module.exports: $Exports<'react-native-push-notification/component/index.android'>
 }
 declare module 'react-native-push-notification/component/index.ios.js' {
-  declare module.exports: $Exports<'react-native-push-notification/component/index.ios'>;
+  declare module.exports: $Exports<'react-native-push-notification/component/index.ios'>
 }
 declare module 'react-native-push-notification/component/index.js' {
-  declare module.exports: $Exports<'react-native-push-notification/component/index'>;
+  declare module.exports: $Exports<'react-native-push-notification/component/index'>
 }
 declare module 'react-native-push-notification/index' {
-  declare module.exports: $Exports<'react-native-push-notification'>;
+  declare module.exports: $Exports<'react-native-push-notification'>
 }
 declare module 'react-native-push-notification/index.js' {
-  declare module.exports: $Exports<'react-native-push-notification'>;
+  declare module.exports: $Exports<'react-native-push-notification'>
 }

@@ -14,7 +14,7 @@
  */
 
 declare module 'base64-js' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,37 +23,37 @@ declare module 'base64-js' {
  * needed.
  */
 declare module 'base64-js/base64js.min' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'base64-js/test/big-data' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'base64-js/test/convert' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'base64-js/test/url-safe' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'base64-js/base64js.min.js' {
-  declare module.exports: $Exports<'base64-js/base64js.min'>;
+  declare module.exports: $Exports<'base64-js/base64js.min'>
 }
 declare module 'base64-js/index' {
-  declare module.exports: $Exports<'base64-js'>;
+  declare module.exports: $Exports<'base64-js'>
 }
 declare module 'base64-js/index.js' {
-  declare module.exports: $Exports<'base64-js'>;
+  declare module.exports: $Exports<'base64-js'>
 }
 declare module 'base64-js/test/big-data.js' {
-  declare module.exports: $Exports<'base64-js/test/big-data'>;
+  declare module.exports: $Exports<'base64-js/test/big-data'>
 }
 declare module 'base64-js/test/convert.js' {
-  declare module.exports: $Exports<'base64-js/test/convert'>;
+  declare module.exports: $Exports<'base64-js/test/convert'>
 }
 declare module 'base64-js/test/url-safe.js' {
-  declare module.exports: $Exports<'base64-js/test/url-safe'>;
+  declare module.exports: $Exports<'base64-js/test/url-safe'>
 }

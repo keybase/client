@@ -45,4 +45,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   checkPassphrase: (pass1: string, pass2: string) => dispatch(Creators.checkPassphrase(pass1, pass2)),
   restartSignup: () => dispatch(Creators.restartSignup()),
 })
-export default connect(mapStateToProps, mapDispatchToProps)(PassphraseForm)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(PassphraseForm)

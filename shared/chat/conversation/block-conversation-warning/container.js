@@ -40,4 +40,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   participants: stateProps.participants,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(RenderBlockConversationWarning)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(RenderBlockConversationWarning)

@@ -55,4 +55,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 const mergeProps = (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BottomMessage)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(BottomMessage)

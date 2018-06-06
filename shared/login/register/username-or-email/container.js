@@ -12,4 +12,7 @@ const dispatchToProps = (dispatch: Dispatch) => ({
   onSubmit: (usernameOrEmail: string) => dispatch(LoginGen.createSubmitUsernameOrEmail({usernameOrEmail})),
 })
 
-export default connect(mapStateToProps, dispatchToProps)(UsernameOrEmail)
+export default connect(
+  mapStateToProps,
+  dispatchToProps
+)(UsernameOrEmail)

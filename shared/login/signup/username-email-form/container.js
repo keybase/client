@@ -52,4 +52,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   restartSignup: () => dispatch(Creators.restartSignup()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(UsernameEmailForm)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(UsernameEmailForm)

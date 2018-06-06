@@ -36,4 +36,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {username}: OwnProps) => ({
       },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('Mention'))(Mention)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
+  setDisplayName('Mention')
+)(Mention)

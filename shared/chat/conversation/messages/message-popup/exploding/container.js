@@ -53,4 +53,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     ),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Exploding)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Exploding)

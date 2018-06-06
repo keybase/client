@@ -8,4 +8,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onSubmit: exportKey => dispatch(LoginGen.createChooseGPGMethod({exportKey})),
 })
 
-export default connect(null, mapDispatchToProps)(GPGSign)
+export default connect(
+  null,
+  mapDispatchToProps
+)(GPGSign)

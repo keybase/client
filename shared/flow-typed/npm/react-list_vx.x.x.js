@@ -14,7 +14,7 @@
  */
 
 declare module 'react-list' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,10 +23,10 @@ declare module 'react-list' {
  * needed.
  */
 declare module 'react-list/react-list' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'react-list/react-list.js' {
-  declare module.exports: $Exports<'react-list/react-list'>;
+  declare module.exports: $Exports<'react-list/react-list'>
 }

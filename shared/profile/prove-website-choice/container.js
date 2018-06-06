@@ -13,4 +13,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(ProfileGen.createAddProof({platform: choice === 'file' ? 'https' : 'dns'})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(ProveWebsiteChoice)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ProveWebsiteChoice)

@@ -14,7 +14,7 @@
  */
 
 declare module 'react-native-wkwebview-reborn' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,30 +23,30 @@ declare module 'react-native-wkwebview-reborn' {
  * needed.
  */
 declare module 'react-native-wkwebview-reborn/WKWebView.android' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-native-wkwebview-reborn/WKWebView.ios' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-native-wkwebview-reborn/WKWebView.windows' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'react-native-wkwebview-reborn/index' {
-  declare module.exports: $Exports<'react-native-wkwebview-reborn'>;
+  declare module.exports: $Exports<'react-native-wkwebview-reborn'>
 }
 declare module 'react-native-wkwebview-reborn/index.js' {
-  declare module.exports: $Exports<'react-native-wkwebview-reborn'>;
+  declare module.exports: $Exports<'react-native-wkwebview-reborn'>
 }
 declare module 'react-native-wkwebview-reborn/WKWebView.android.js' {
-  declare module.exports: $Exports<'react-native-wkwebview-reborn/WKWebView.android'>;
+  declare module.exports: $Exports<'react-native-wkwebview-reborn/WKWebView.android'>
 }
 declare module 'react-native-wkwebview-reborn/WKWebView.ios.js' {
-  declare module.exports: $Exports<'react-native-wkwebview-reborn/WKWebView.ios'>;
+  declare module.exports: $Exports<'react-native-wkwebview-reborn/WKWebView.ios'>
 }
 declare module 'react-native-wkwebview-reborn/WKWebView.windows.js' {
-  declare module.exports: $Exports<'react-native-wkwebview-reborn/WKWebView.windows'>;
+  declare module.exports: $Exports<'react-native-wkwebview-reborn/WKWebView.windows'>
 }

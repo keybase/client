@@ -14,7 +14,7 @@
  */
 
 declare module 'shallowequal' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,11 +23,10 @@ declare module 'shallowequal' {
  * needed.
  */
 
-
 // Filename aliases
 declare module 'shallowequal/index' {
-  declare module.exports: $Exports<'shallowequal'>;
+  declare module.exports: $Exports<'shallowequal'>
 }
 declare module 'shallowequal/index.js' {
-  declare module.exports: $Exports<'shallowequal'>;
+  declare module.exports: $Exports<'shallowequal'>
 }

@@ -14,7 +14,7 @@
  */
 
 declare module '@babel/plugin-transform-flow-strip-types' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,10 +23,10 @@ declare module '@babel/plugin-transform-flow-strip-types' {
  * needed.
  */
 declare module '@babel/plugin-transform-flow-strip-types/lib/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module '@babel/plugin-transform-flow-strip-types/lib/index.js' {
-  declare module.exports: $Exports<'@babel/plugin-transform-flow-strip-types/lib/index'>;
+  declare module.exports: $Exports<'@babel/plugin-transform-flow-strip-types/lib/index'>
 }

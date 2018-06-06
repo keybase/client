@@ -14,7 +14,7 @@
  */
 
 declare module 'applescript' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,31 +23,31 @@ declare module 'applescript' {
  * needed.
  */
 declare module 'applescript/lib/applescript-parser' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'applescript/lib/applescript' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'applescript/samples/execFile' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'applescript/samples/execString' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'applescript/lib/applescript-parser.js' {
-  declare module.exports: $Exports<'applescript/lib/applescript-parser'>;
+  declare module.exports: $Exports<'applescript/lib/applescript-parser'>
 }
 declare module 'applescript/lib/applescript.js' {
-  declare module.exports: $Exports<'applescript/lib/applescript'>;
+  declare module.exports: $Exports<'applescript/lib/applescript'>
 }
 declare module 'applescript/samples/execFile.js' {
-  declare module.exports: $Exports<'applescript/samples/execFile'>;
+  declare module.exports: $Exports<'applescript/samples/execFile'>
 }
 declare module 'applescript/samples/execString.js' {
-  declare module.exports: $Exports<'applescript/samples/execString'>;
+  declare module.exports: $Exports<'applescript/samples/execString'>
 }

@@ -137,7 +137,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
 })
 
 const ConnectedUserInput = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   withStateHandlers(
     {searchText: '', selectedService: 'Keybase'},
     {

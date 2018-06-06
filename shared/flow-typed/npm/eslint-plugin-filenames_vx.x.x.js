@@ -14,7 +14,7 @@
  */
 
 declare module 'eslint-plugin-filenames' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,58 +23,58 @@ declare module 'eslint-plugin-filenames' {
  * needed.
  */
 declare module 'eslint-plugin-filenames/lib/common/getExportedName' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'eslint-plugin-filenames/lib/common/isIgnoredFilename' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'eslint-plugin-filenames/lib/common/isIndexFile' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'eslint-plugin-filenames/lib/common/parseFilename' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'eslint-plugin-filenames/lib/rules/match-exported' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'eslint-plugin-filenames/lib/rules/match-regex' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'eslint-plugin-filenames/lib/rules/no-index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'eslint-plugin-filenames/index' {
-  declare module.exports: $Exports<'eslint-plugin-filenames'>;
+  declare module.exports: $Exports<'eslint-plugin-filenames'>
 }
 declare module 'eslint-plugin-filenames/index.js' {
-  declare module.exports: $Exports<'eslint-plugin-filenames'>;
+  declare module.exports: $Exports<'eslint-plugin-filenames'>
 }
 declare module 'eslint-plugin-filenames/lib/common/getExportedName.js' {
-  declare module.exports: $Exports<'eslint-plugin-filenames/lib/common/getExportedName'>;
+  declare module.exports: $Exports<'eslint-plugin-filenames/lib/common/getExportedName'>
 }
 declare module 'eslint-plugin-filenames/lib/common/isIgnoredFilename.js' {
-  declare module.exports: $Exports<'eslint-plugin-filenames/lib/common/isIgnoredFilename'>;
+  declare module.exports: $Exports<'eslint-plugin-filenames/lib/common/isIgnoredFilename'>
 }
 declare module 'eslint-plugin-filenames/lib/common/isIndexFile.js' {
-  declare module.exports: $Exports<'eslint-plugin-filenames/lib/common/isIndexFile'>;
+  declare module.exports: $Exports<'eslint-plugin-filenames/lib/common/isIndexFile'>
 }
 declare module 'eslint-plugin-filenames/lib/common/parseFilename.js' {
-  declare module.exports: $Exports<'eslint-plugin-filenames/lib/common/parseFilename'>;
+  declare module.exports: $Exports<'eslint-plugin-filenames/lib/common/parseFilename'>
 }
 declare module 'eslint-plugin-filenames/lib/rules/match-exported.js' {
-  declare module.exports: $Exports<'eslint-plugin-filenames/lib/rules/match-exported'>;
+  declare module.exports: $Exports<'eslint-plugin-filenames/lib/rules/match-exported'>
 }
 declare module 'eslint-plugin-filenames/lib/rules/match-regex.js' {
-  declare module.exports: $Exports<'eslint-plugin-filenames/lib/rules/match-regex'>;
+  declare module.exports: $Exports<'eslint-plugin-filenames/lib/rules/match-regex'>
 }
 declare module 'eslint-plugin-filenames/lib/rules/no-index.js' {
-  declare module.exports: $Exports<'eslint-plugin-filenames/lib/rules/no-index'>;
+  declare module.exports: $Exports<'eslint-plugin-filenames/lib/rules/no-index'>
 }

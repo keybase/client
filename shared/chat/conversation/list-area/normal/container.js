@@ -49,7 +49,11 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
 let markedInitiallyLoaded = false
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(
     {
       _conversationIDKey: null,

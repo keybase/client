@@ -12,4 +12,7 @@ const mapDispatchToProps = (dispatch: any) => ({
   onClose: () => dispatch(navigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(InviteGenerated)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(InviteGenerated)

@@ -107,4 +107,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), HeaderHoc)(TeamMember)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  HeaderHoc
+)(TeamMember)

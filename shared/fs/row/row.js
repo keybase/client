@@ -67,7 +67,11 @@ export const Row = (props: RowProps) => (
       <HoverBox style={stylesRowContainer}>
         <ClickableBox onClick={props.onOpen} style={stylesRowBox}>
           <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
-          <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} resetParticipants={props.resetParticipants} />
+          <RowMeta
+            badgeCount={props.badgeCount}
+            {...props.tlfMeta}
+            resetParticipants={props.resetParticipants}
+          />
           <Box style={folderBoxStyle}>
             <Text
               type={props.itemStyles.textType}
@@ -76,9 +80,9 @@ export const Row = (props: RowProps) => (
             >
               {props.name}
             </Text>
-            {props.type === 'folder' && (!props.resetParticipants || props.resetParticipants.length === 0)
-              ? (<Box />)
-              : (
+            {props.type === 'folder' && (!props.resetParticipants || props.resetParticipants.length === 0) ? (
+              <Box />
+            ) : (
               <PathItemInfo
                 lastModifiedTimestamp={props.lastModifiedTimestamp}
                 lastWriter={props.lastWriter}

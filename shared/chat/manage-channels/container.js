@@ -101,7 +101,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   withPropsOnChange(['channels'], props => ({
     oldChannelState: props.channels.reduce((acc, c) => {
       acc[c.convID] = c.selected

@@ -14,7 +14,7 @@
  */
 
 declare module 'source-map-support' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,24 +23,24 @@ declare module 'source-map-support' {
  * needed.
  */
 declare module 'source-map-support/browser-source-map-support' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'source-map-support/register' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'source-map-support/source-map-support' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'source-map-support/browser-source-map-support.js' {
-  declare module.exports: $Exports<'source-map-support/browser-source-map-support'>;
+  declare module.exports: $Exports<'source-map-support/browser-source-map-support'>
 }
 declare module 'source-map-support/register.js' {
-  declare module.exports: $Exports<'source-map-support/register'>;
+  declare module.exports: $Exports<'source-map-support/register'>
 }
 declare module 'source-map-support/source-map-support.js' {
-  declare module.exports: $Exports<'source-map-support/source-map-support'>;
+  declare module.exports: $Exports<'source-map-support/source-map-support'>
 }

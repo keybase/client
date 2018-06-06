@@ -91,7 +91,11 @@ const stylesLoadingText = platformStyles({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ViewContainer'),
   lifecycle({
     componentDidMount() {

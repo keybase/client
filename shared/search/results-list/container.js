@@ -53,4 +53,7 @@ const styleSpinner = {
 }
 
 const Chooser = props => (props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />)
-export default connect(mapStateToProps, mapDispatchToProps)(Chooser)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Chooser)

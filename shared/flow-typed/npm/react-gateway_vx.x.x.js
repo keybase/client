@@ -14,7 +14,7 @@
  */
 
 declare module 'react-gateway' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,38 +23,38 @@ declare module 'react-gateway' {
  * needed.
  */
 declare module 'react-gateway/lib/Gateway' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-gateway/lib/GatewayDest' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-gateway/lib/GatewayProvider' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-gateway/lib/GatewayRegistry' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'react-gateway/lib/index' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'react-gateway/lib/Gateway.js' {
-  declare module.exports: $Exports<'react-gateway/lib/Gateway'>;
+  declare module.exports: $Exports<'react-gateway/lib/Gateway'>
 }
 declare module 'react-gateway/lib/GatewayDest.js' {
-  declare module.exports: $Exports<'react-gateway/lib/GatewayDest'>;
+  declare module.exports: $Exports<'react-gateway/lib/GatewayDest'>
 }
 declare module 'react-gateway/lib/GatewayProvider.js' {
-  declare module.exports: $Exports<'react-gateway/lib/GatewayProvider'>;
+  declare module.exports: $Exports<'react-gateway/lib/GatewayProvider'>
 }
 declare module 'react-gateway/lib/GatewayRegistry.js' {
-  declare module.exports: $Exports<'react-gateway/lib/GatewayRegistry'>;
+  declare module.exports: $Exports<'react-gateway/lib/GatewayRegistry'>
 }
 declare module 'react-gateway/lib/index.js' {
-  declare module.exports: $Exports<'react-gateway/lib/index'>;
+  declare module.exports: $Exports<'react-gateway/lib/index'>
 }

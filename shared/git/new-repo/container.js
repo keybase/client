@@ -29,7 +29,10 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props._loadTeams()

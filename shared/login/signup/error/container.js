@@ -13,4 +13,7 @@ class SignupError extends Component<any> {
 const mapStateToProps = (state: TypedState) => ({errorText: state.signup.signupError})
 const mapDispatchToProps = (dispatch: Dispatch) => ({restartSignup: () => dispatch(restartSignup())})
 
-export default connect(mapStateToProps, mapDispatchToProps)(SignupError)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(SignupError)

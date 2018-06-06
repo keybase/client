@@ -66,20 +66,23 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
     newTeamAccessRequests,
     teamsWithResetUsers,
   } = action.payload.badgeState
-  const tlfs: Map<FsTypes.Path, FsTypes.ResetMetadata> = (teamsWithResetUsers || []).reduce((filtered, item: $ReadOnly<{id: Buffer, teamname: string, username: string}>) => {
-    const path = FsTypes.stringToPath(`/keybase/team/${item.teamname}`)
-    let team = filtered.get(path)
-    if (!team) {
-      team = {
-        name: item.teamname,
-        visibility: 'team',
-        resetParticipants: [],
+  const tlfs: Map<FsTypes.Path, FsTypes.ResetMetadata> = (teamsWithResetUsers || []).reduce(
+    (filtered, item: $ReadOnly<{id: Buffer, teamname: string, username: string}>) => {
+      const path = FsTypes.stringToPath(`/keybase/team/${item.teamname}`)
+      let team = filtered.get(path)
+      if (!team) {
+        team = {
+          name: item.teamname,
+          visibility: 'team',
+          resetParticipants: [],
+        }
+        filtered.set(path, team)
       }
-      filtered.set(path, team)
-    }
-    team.resetParticipants.push(item.username)
-    return filtered
-  }, new Map())
+      team.resetParticipants.push(item.username)
+      return filtered
+    },
+    new Map()
+  )
   return Saga.sequentially([
     Saga.put(Chat2Gen.createBadgesUpdated({conversations: conversations || []})),
     Saga.put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []})),

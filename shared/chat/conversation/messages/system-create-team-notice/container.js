@@ -33,4 +33,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CreateTeamNotice)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(CreateTeamNotice)

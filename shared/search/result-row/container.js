@@ -39,4 +39,7 @@ const mapStateToProps = (
   }
 }
 
-export default compose(connect(mapStateToProps), setDisplayName('SearchResultRow'))(SearchResultRow)
+export default compose(
+  connect(mapStateToProps),
+  setDisplayName('SearchResultRow')
+)(SearchResultRow)

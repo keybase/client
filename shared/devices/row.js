@@ -41,7 +41,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 const RowConnector = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('DeviceRow')
 )
 export {RowConnector}

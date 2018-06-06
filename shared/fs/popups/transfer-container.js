@@ -61,6 +61,10 @@ const mergeProps = (stateProps, {_onHidden, _dismissTransfer, _cancelTransfer}) 
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('TransferPopup')
 )(TransferPopup)

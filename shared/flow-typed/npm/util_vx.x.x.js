@@ -14,7 +14,7 @@
  */
 
 declare module 'util' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,73 +23,73 @@ declare module 'util' {
  * needed.
  */
 declare module 'util/support/isBuffer' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'util/support/isBufferBrowser' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'util/test/browser/inspect' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'util/test/browser/is' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'util/test/node/debug' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'util/test/node/format' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'util/test/node/inspect' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'util/test/node/log' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'util/test/node/util' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'util/util' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'util/support/isBuffer.js' {
-  declare module.exports: $Exports<'util/support/isBuffer'>;
+  declare module.exports: $Exports<'util/support/isBuffer'>
 }
 declare module 'util/support/isBufferBrowser.js' {
-  declare module.exports: $Exports<'util/support/isBufferBrowser'>;
+  declare module.exports: $Exports<'util/support/isBufferBrowser'>
 }
 declare module 'util/test/browser/inspect.js' {
-  declare module.exports: $Exports<'util/test/browser/inspect'>;
+  declare module.exports: $Exports<'util/test/browser/inspect'>
 }
 declare module 'util/test/browser/is.js' {
-  declare module.exports: $Exports<'util/test/browser/is'>;
+  declare module.exports: $Exports<'util/test/browser/is'>
 }
 declare module 'util/test/node/debug.js' {
-  declare module.exports: $Exports<'util/test/node/debug'>;
+  declare module.exports: $Exports<'util/test/node/debug'>
 }
 declare module 'util/test/node/format.js' {
-  declare module.exports: $Exports<'util/test/node/format'>;
+  declare module.exports: $Exports<'util/test/node/format'>
 }
 declare module 'util/test/node/inspect.js' {
-  declare module.exports: $Exports<'util/test/node/inspect'>;
+  declare module.exports: $Exports<'util/test/node/inspect'>
 }
 declare module 'util/test/node/log.js' {
-  declare module.exports: $Exports<'util/test/node/log'>;
+  declare module.exports: $Exports<'util/test/node/log'>
 }
 declare module 'util/test/node/util.js' {
-  declare module.exports: $Exports<'util/test/node/util'>;
+  declare module.exports: $Exports<'util/test/node/util'>
 }
 declare module 'util/util.js' {
-  declare module.exports: $Exports<'util/util'>;
+  declare module.exports: $Exports<'util/util'>
 }

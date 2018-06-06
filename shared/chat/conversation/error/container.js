@@ -14,4 +14,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(Route.navigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Error)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Error)

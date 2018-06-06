@@ -24,7 +24,7 @@ export type Props = {
   memberIsInTeam: {[string]: boolean},
   onBack: () => void,
   onCancel?: () => void,
-  onOpenRolePicker: (role: string, selectedRole: Types.TeamRoleType => void, styleCover?: Object) => void,
+  onOpenRolePicker: (role: string, selectedRole: (Types.TeamRoleType) => void, styleCover?: Object) => void,
   onRoleChange: string => void,
   onSave: (role: string, selectedTeams: {[string]: boolean}) => void,
   onToggle: string => void,

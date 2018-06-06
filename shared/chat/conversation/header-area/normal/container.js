@@ -64,6 +64,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   branch(props => !!props.teamName, renderComponent(ChannelHeader))
 )(UsernameHeader)

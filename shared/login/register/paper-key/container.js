@@ -61,4 +61,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(paperkey), storeSecret: false})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(_PaperKey)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(_PaperKey)

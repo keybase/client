@@ -14,7 +14,7 @@
  */
 
 declare module 'react-native-mime-types' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,11 +23,10 @@ declare module 'react-native-mime-types' {
  * needed.
  */
 
-
 // Filename aliases
 declare module 'react-native-mime-types/index' {
-  declare module.exports: $Exports<'react-native-mime-types'>;
+  declare module.exports: $Exports<'react-native-mime-types'>
 }
 declare module 'react-native-mime-types/index.js' {
-  declare module.exports: $Exports<'react-native-mime-types'>;
+  declare module.exports: $Exports<'react-native-mime-types'>
 }

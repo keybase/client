@@ -65,7 +65,11 @@ export default compose(
     {selectedTeamRect: null},
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),
-  connect(s => s, mapDispatchToProps, mergeProps),
+  connect(
+    s => s,
+    mapDispatchToProps,
+    mergeProps
+  ),
   branch(props => !props.username, renderNothing),
   lifecycle({
     componentDidMount() {
