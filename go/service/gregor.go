@@ -479,6 +479,7 @@ func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler)
 		g.Warning(context.Background(), "Cannot push state in firehose handler: %s", err)
 		return
 	}
+	g.Debug(context.Background(), "PushFirehoseHandler: pushing state with %d items", len(s.Items_))
 	handler.PushState(s, keybase1.PushReason_RECONNECTED)
 }
 
@@ -502,7 +503,10 @@ func (g *gregorHandler) pushState(r keybase1.PushReason) {
 		g.Warning(context.Background(), "Cannot push state in firehose handler: %s", err)
 		return
 	}
-	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.PushState(s, r) })
+	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) {
+		g.Debug(context.Background(), "pushState: pushing state with %d items", len(s.Items_))
+		h.PushState(s, r)
+	})
 
 	// Only send this state update on reception of new data, not a reconnect since we will
 	// be sending that on a different code path altogether (see OnConnect).
@@ -1806,22 +1810,31 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 }
 
 func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err error) {
-	return g.gh.getState(ctx)
+	defer g.G().CTraceTimed(ctx, "GetState", func() error { return err })()
+	if res, err = g.gh.getState(ctx); err != nil {
+		return res, err
+	}
+	g.G().Log.CDebugf(ctx, "GetState: returning %d items", len(res.Items_))
+	return res, nil
 }
 
-func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectItemArg) (gregor1.MsgID, error) {
+func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectItemArg) (res gregor1.MsgID, err error) {
+	defer g.G().CTraceTimed(ctx, "InjectItem", func() error { return err })()
 	return g.gh.InjectItem(ctx, arg.Cat, []byte(arg.Body), arg.Dtime)
 }
 
-func (g *gregorRPCHandler) UpdateItem(ctx context.Context, arg keybase1.UpdateItemArg) (gregor1.MsgID, error) {
+func (g *gregorRPCHandler) UpdateItem(ctx context.Context, arg keybase1.UpdateItemArg) (res gregor1.MsgID, err error) {
+	defer g.G().CTraceTimed(ctx, "UpdateItem", func() error { return err })()
 	return g.gh.UpdateItem(ctx, arg.MsgID, arg.Cat, []byte(arg.Body), arg.Dtime)
 }
 
-func (g *gregorRPCHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
+func (g *gregorRPCHandler) DismissCategory(ctx context.Context, category gregor1.Category) (err error) {
+	defer g.G().CTraceTimed(ctx, "DismissCategory", func() error { return err })()
 	return g.gh.DismissCategory(ctx, category)
 }
 
-func (g *gregorRPCHandler) DismissItem(ctx context.Context, id gregor1.MsgID) error {
+func (g *gregorRPCHandler) DismissItem(ctx context.Context, id gregor1.MsgID) (err error) {
+	defer g.G().CTraceTimed(ctx, "DismissItem", func() error { return err })()
 	return g.gh.DismissItem(ctx, nil, id)
 }
 
