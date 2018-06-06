@@ -84,6 +84,7 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 //
 // Test took 35s with dev servers 2018-05-30
 func TestStellarRelayAutoClaims(t *testing.T) {
+	t.Skip("CORE-8044")
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	useStellarTestNet(t)

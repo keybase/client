@@ -119,6 +119,10 @@
         {
           "type": "TransactionID",
           "name": "stellarID"
+        },
+        {
+          "type": "boolean",
+          "name": "pending"
         }
       ]
     },
