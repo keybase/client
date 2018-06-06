@@ -16,7 +16,7 @@ class Ticker {
 
   addObserver = (fn: () => void): TickerID => {
     if (this.refs.length === 0) {
-      this.intervalID = setInterval(this.loop, 500)
+      this.intervalID = setInterval(this.loop, 1000)
     }
     id++
     this.refs.push({fn, id})
