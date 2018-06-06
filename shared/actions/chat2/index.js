@@ -1999,18 +1999,16 @@ const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
   actions.push(Saga.put(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true})))
 
   const cat = Constants.explodingModeGregorKey(conversationIDKey)
-  if (seconds === 0) {
-    // dismiss the category so we don't leave cruft in the push state
-    actions.push(Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category: cat}))
-  } else {
-    actions.push(
-      Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-        body: seconds.toString(),
-        cat,
-        dtime: {offset: 0, time: 0},
-      })
-    )
-  }
+  // dismiss the category so we don't leave cruft in the push state
+  actions.push(Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category: cat}))
+  // add the new item
+  actions.push(
+    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+      body: seconds.toString(),
+      cat,
+      dtime: {offset: 0, time: 0},
+    })
+  )
   return Saga.sequentially(actions)
 }
 
