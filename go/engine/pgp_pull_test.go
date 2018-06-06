@@ -132,9 +132,75 @@ func TestPGPPullBadIDs(t *testing.T) {
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
 	runPGPPullExpectingError(tc, PGPPullEngineArg{
-		// ID'ing a nonexistent/untracked user should fail the pull.
+		// ID'ing invalid user should fail the pull.
 		UserAsserts: []string{"t_bob", "t_NOT_TRACKED_BY_ME"},
 	})
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
+}
+
+func TestPGPPullNotTracked(t *testing.T) {
+	tc := SetupEngineTest(t, "pgp_pull")
+	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
+
+	// Only tracking alice
+	users := []string{"t_alice"}
+	fu := createUserWhoTracks(tc, users, sigVersion)
+	defer untrackUserList(tc, fu, users, sigVersion)
+	gpgClient := createGpgClient(tc)
+
+	// But want to pull bot alice and bob.
+	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
+
+	fui := &FakeIdentifyUI{FakeConfirm: true}
+	uis := libkb.UIs{
+		LogUI:      tc.G.UI.GetLogUI(),
+		GPGUI:      &gpgtestui{},
+		IdentifyUI: fui,
+	}
+	eng := NewPGPPullEngine(tc.G, &PGPPullEngineArg{
+		UserAsserts: []string{"t_bob", "t_alice"},
+	})
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
+	if err != nil {
+		tc.T.Fatal("Error in PGPPullEngine:", err)
+	}
+
+	if fui.StartCount != 1 {
+		tc.T.Fatalf("Expected 1 ID UI prompt, got %d", fui.StartCount)
+	}
+
+	assertKeysPresent(t, gpgClient, []string{bobFp, aliceFp})
+}
+
+func TestPGPPullNotLoggedIn(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+
+	gpgClient := createGpgClient(tc)
+
+	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
+
+	fui := &FakeIdentifyUI{FakeConfirm: true}
+	uis := libkb.UIs{
+		LogUI:      tc.G.UI.GetLogUI(),
+		GPGUI:      &gpgtestui{},
+		IdentifyUI: fui,
+	}
+	eng := NewPGPPullEngine(tc.G, &PGPPullEngineArg{
+		UserAsserts: []string{"t_bob", "t_alice"},
+	})
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
+	if err != nil {
+		tc.T.Fatal("Error in PGPPullEngine:", err)
+	}
+
+	if fui.StartCount != 2 {
+		tc.T.Fatalf("Expected 2 ID UI prompts, got %d", fui.StartCount)
+	}
+
+	assertKeysPresent(t, gpgClient, []string{aliceFp, bobFp})
 }
