@@ -39,9 +39,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // placeholder), which then gets updated when we hear back from RPC.
           return original
         }
-        // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
-        // can change `pathItems`, we need to make sure that neither one
-        // clobbers the others' work.
 
         toRemove = toRemove.concat(
           original.children
@@ -50,9 +47,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             .map(name => Types.pathConcat(path, name))
         )
         console.log(`Removing entries in state.fs.pathItems: ${JSON.stringify(toRemove)}`)
-        // Since both `folderListLoaded` and `favoritesLoaded` can change
-        // `pathItems`, we need to make sure that neither one clobbers the
-        // other's work.
+
+        // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
+        // can change `pathItems`, we need to make sure that neither one
+        // clobbers the others' work.
         return item
           .set('badgeCount', original.badgeCount)
           .set('tlfMeta', original.tlfMeta)
