@@ -75,7 +75,8 @@ const styleNavBox = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
   borderRight: '1px solid ' + globalColors.black_05,
-  width: 144,
+  paddingTop: globalMargins.small,
+  width: 160,
 }
 const itemStyle = platformStyles({
   common: {
@@ -86,6 +87,9 @@ const itemStyle = platformStyles({
     paddingRight: globalMargins.small,
     alignItems: 'center',
     position: 'relative',
+  },
+  isElectron: {
+    textTransform: 'uppercase',
   },
 })
 const selectedStyle = platformStyles({
