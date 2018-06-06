@@ -187,3 +187,24 @@ func (p *PaymentSummary) ToDetails() *PaymentDetails {
 		Summary: *p,
 	}
 }
+
+func (p *PaymentSummary) TransactionID() (TransactionID, error) {
+	t, err := p.Typ()
+	if err != nil {
+		return "", err
+	}
+
+	switch t {
+	case PaymentSummaryType_STELLAR:
+		s := p.Stellar()
+		return s.TxID, nil
+	case PaymentSummaryType_DIRECT:
+		s := p.Direct()
+		return s.TxID, nil
+	case PaymentSummaryType_RELAY:
+		s := p.Relay()
+		return s.TxID, nil
+	}
+
+	return "", errors.New("unknown payment summary type")
+}
