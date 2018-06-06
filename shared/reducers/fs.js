@@ -151,7 +151,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
           // can change `pathItems`, we need to make sure that neither one
           // clobbers the others' work.
-          original.set('resetParticipants', item.resetParticipants),
+          original.set('resetParticipants', item.resetParticipants)
+            .set('teamID', item.badgeIDKey),
         ]
       }, [])
       return state.mergeIn(['pathItems'], resetsToMerge)
@@ -173,6 +174,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
     case FsGen.loadResets:
+    case FsGen.letResetUserBackIn:
       return state
     default:
       /*::

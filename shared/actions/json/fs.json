@@ -123,6 +123,10 @@
     "loadResetsResult": {
       "tlfs": "I.Map<Types.Path, Types.ResetMetadata>"
     },
+    "letResetUserBackIn": {
+      "id": "RPCTypes.TeamID",
+      "username": "string"
+    },
 
     "setupFSHandlers": {}
   }

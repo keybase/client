@@ -479,6 +479,17 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
   yield Saga.call(resetRpc.run)
 }
 
+function letResetUserBackIn(action: FsGen.LetResetUserBackInPayload) {
+  return Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {
+    id: action.payload.id,
+    username: action.payload.username,
+  })
+}
+
+function letResetUserBackInResult() {
+  return Saga.put(FsGen.createLoadResets())
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -493,6 +504,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEvery(FsGen.loadResets, loadResets)
+  yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

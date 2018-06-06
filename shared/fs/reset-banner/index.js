@@ -6,9 +6,10 @@ import {globalStyles, globalMargins, globalColors} from '../../styles'
 type Props = {
   isUserReset: boolean,
   resetParticipants: Array<string>,
+  onReAddToTeam: (username: string) => () => void,
 }
 
-const Banner = ({isUserReset, resetParticipants}: Props) => {
+const Banner = ({isUserReset, resetParticipants, onReAddToTeam}: Props) => {
   if (!resetParticipants || resetParticipants.length === 0) {
     return <Box />
   }
@@ -49,7 +50,7 @@ const Banner = ({isUserReset, resetParticipants}: Props) => {
         {resetParticipants.map(p =>
           <Box key={p} style={actionRowStyle}>
             <Button type="SecondaryColoredBackground" label={'View ' + p + '\'s profile'} onClick={() => undefined} style={firstButtonStyle} />
-            <Button type="PrimaryColoredBackground" backgroundMode="Red" label={'Let ' + p + ' back in'} onClick={() => undefined} />
+            <Button type="PrimaryColoredBackground" backgroundMode="Red" label={'Let ' + p + ' back in'} onClick={onReAddToTeam(p)} />
           </Box>
         )
         }

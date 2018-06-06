@@ -56,6 +56,7 @@ export type _FolderPathItem = {
   children: I.Set<string>,
   favoriteChildren: I.Set<string>,
   resetParticipants: Array<string>,
+  teamID?: RPCTypes.TeamID,
 } & PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
