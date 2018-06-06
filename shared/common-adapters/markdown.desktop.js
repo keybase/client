@@ -78,7 +78,12 @@ const strikeStyle = platformStyles({
     textDecoration: 'line-through',
   },
 })
-const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 13}
+const quoteStyle = {
+  borderLeft: `3px solid ${globalColors.lightGrey2}`,
+  marginBottom: globalMargins.xtiny,
+  marginTop: globalMargins.xtiny,
+  paddingLeft: globalMargins.small,
+}
 
 function previewCreateComponent(type, key, children, options) {
   switch (type) {

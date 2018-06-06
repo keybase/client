@@ -151,13 +151,7 @@ class BioRender extends Component<Props> {
               </Box>
             )}
             {userInfo.bio && (
-              <Text
-                type={'Body'}
-                selectable={true}
-                style={{...stylesBio, ...stylesBioType[this.props.type]}}
-                {...bioLineClamp}
-                {...bioTweaks}
-              >
+              <Text type={'Body'} selectable={true} style={stylesBio} {...bioLineClamp} {...bioTweaks}>
                 {userInfo.bio}
               </Text>
             )}
@@ -167,7 +161,7 @@ class BioRender extends Component<Props> {
                   type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
                   onClick={editFns.onBioEdit}
                   selectable={true}
-                  style={{...stylesBio, ...stylesBioType[this.props.type], color: globalColors.black_20}}
+                  style={{...stylesBio, color: globalColors.black_20}}
                   {...bioTweaks}
                   {...bioLineClamp}
                 >
@@ -254,15 +248,10 @@ const stylesFollowLabel = platformStyles({
   },
 })
 const stylesBio = {
+  marginBottom: globalMargins.xtiny,
   paddingLeft: 30,
   paddingRight: 30,
   textAlign: 'center',
-}
-const stylesBioType = {
-  Profile: {
-    marginBottom: globalMargins.xtiny,
-  },
-  Tracker: {},
 }
 const stylesLocation = {
   paddingLeft: 30,
