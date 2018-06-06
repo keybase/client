@@ -376,6 +376,11 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 }
 
 func (g *gregorHandler) getGregorCli() (*grclient.Client, error) {
+
+	if g == nil {
+		return nil, errors.New("gregorHandler client unset")
+	}
+
 	g.gregorCliMu.Lock()
 	ret := g.gregorCli
 	g.gregorCliMu.Unlock()
@@ -1797,12 +1802,9 @@ func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err error) {
 	var s gregor.State
 
-	g.gregorCliMu.Lock()
-	gcli := g.gregorCli
-	g.gregorCliMu.Unlock()
-
-	if g == nil || gcli == nil {
-		return res, errors.New("gregor service not available (are you in standalone?)")
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return res, err
 	}
 
 	s, err = gcli.StateMachineState(ctx, nil, true)
