@@ -1,5 +1,0 @@
-// @flow
-import {Component} from 'react'
-import type {Folder} from './list'
-
-export default class Row extends Component<{smallMode?: boolean} & Folder, void> {}

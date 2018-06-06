@@ -154,7 +154,6 @@ type LKSec struct {
 	ppGen      PassphraseGeneration
 	uid        keybase1.UID
 	deviceID   keybase1.DeviceID
-	Contextified
 }
 
 func xorBytes(x *[LKSecLen]byte, y *[LKSecLen]byte) *[LKSecLen]byte {
@@ -184,15 +183,14 @@ func (c LKSecClientHalf) ComputeMask(c2 LKSecClientHalf) LKSecMask {
 	return LKSecMask{m: xorBytes(c.c, c2.c)}
 }
 
-func NewLKSec(pps *PassphraseStream, uid keybase1.UID, gc *GlobalContext) *LKSec {
-	return NewLKSecWithDeviceID(pps, uid, keybase1.DeviceID(""), gc)
+func NewLKSec(pps *PassphraseStream, uid keybase1.UID) *LKSec {
+	return NewLKSecWithDeviceID(pps, uid, keybase1.DeviceID(""))
 }
 
-func NewLKSecWithDeviceID(pps *PassphraseStream, uid keybase1.UID, deviceID keybase1.DeviceID, gc *GlobalContext) *LKSec {
+func NewLKSecWithDeviceID(pps *PassphraseStream, uid keybase1.UID, deviceID keybase1.DeviceID) *LKSec {
 	res := &LKSec{
-		uid:          uid,
-		deviceID:     deviceID,
-		Contextified: NewContextified(gc),
+		uid:      uid,
+		deviceID: deviceID,
 	}
 
 	if pps != nil {
@@ -202,21 +200,19 @@ func NewLKSecWithDeviceID(pps *PassphraseStream, uid keybase1.UID, deviceID keyb
 	return res
 }
 
-func NewLKSecWithClientHalf(clientHalf LKSecClientHalf, ppgen PassphraseGeneration, uid keybase1.UID, gc *GlobalContext) *LKSec {
+func NewLKSecWithClientHalf(clientHalf LKSecClientHalf, ppgen PassphraseGeneration, uid keybase1.UID) *LKSec {
 	return &LKSec{
-		clientHalf:   clientHalf,
-		ppGen:        ppgen,
-		uid:          uid,
-		Contextified: NewContextified(gc),
+		clientHalf: clientHalf,
+		ppGen:      ppgen,
+		uid:        uid,
 	}
 }
 
-func NewLKSecWithFullSecret(secret LKSecFullSecret, uid keybase1.UID, gc *GlobalContext) *LKSec {
+func NewLKSecWithFullSecret(secret LKSecFullSecret, uid keybase1.UID) *LKSec {
 	return &LKSec{
-		secret:       secret,
-		ppGen:        PassphraseGeneration(-1),
-		uid:          uid,
-		Contextified: NewContextified(gc),
+		secret: secret,
+		ppGen:  PassphraseGeneration(-1),
+		uid:    uid,
 	}
 }
 
@@ -283,12 +279,12 @@ func (s *LKSec) Load(m MetaContext) (err error) {
 		return err
 	}
 
-	s.SetFullSecret()
+	s.SetFullSecret(m)
 	return nil
 }
 
-func (s *LKSec) SetFullSecret() {
-	s.G().Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS)")
+func (s *LKSec) SetFullSecret(m MetaContext) {
+	m.CDebugf("| Making XOR'ed secret key for Local Key Security (LKS)")
 	s.secret = s.serverHalf.ComputeFullSecret(s.clientHalf)
 }
 
@@ -358,23 +354,23 @@ func (s *LKSec) attemptBug3964Recovery(m MetaContext, data []byte, nonce *[24]by
 		return nil, 0, LKSecServerHalf{}, err
 	}
 	devices := ss.AllDevices()
-	res, serverHalf, err := s.tryAllDevicesForBug3964Recovery(devices, data, nonce)
+	res, serverHalf, err := s.tryAllDevicesForBug3964Recovery(m, devices, data, nonce)
 	return res, s.ppGen, serverHalf, err
 }
 
-func (s *LKSec) tryAllDevicesForBug3964Recovery(devices DeviceKeyMap, data []byte, nonce *[24]byte) (res []byte, erroneousMask LKSecServerHalf, err error) {
+func (s *LKSec) tryAllDevicesForBug3964Recovery(m MetaContext, devices DeviceKeyMap, data []byte, nonce *[24]byte) (res []byte, erroneousMask LKSecServerHalf, err error) {
 
 	// This logline is asserted in testing in bug_3964_repairman_test
-	defer s.G().Trace("LKSec#tryAllDevicesForBug3964Recovery()", func() error { return err })()
+	defer m.CTrace("LKSec#tryAllDevicesForBug3964Recovery()", func() error { return err })()
 
 	for devid, dev := range devices {
 
 		// This logline is asserted in testing in bug_3964_repairman_test
-		s.G().Log.Debug("| Trying Bug 3964 Recovery w/ device %q {id: %s, lks: %s...}", dev.Description, devid, dev.LksServerHalf[0:8])
+		m.CDebugf("| Trying Bug 3964 Recovery w/ device %q {id: %s, lks: %s...}", dev.Description, devid, dev.LksServerHalf[0:8])
 
 		serverHalf, err := dev.ToLKSec()
 		if err != nil {
-			s.G().Log.Debug("| Failed with error: %s\n", err)
+			m.CDebugf("| Failed with error: %s\n", err)
 			continue
 		}
 		fs := s.secret.bug3964Remask(serverHalf)
@@ -382,7 +378,7 @@ func (s *LKSec) tryAllDevicesForBug3964Recovery(devices DeviceKeyMap, data []byt
 
 		if ok {
 			// This logline is asserted in testing in bug_3964_repairman_test
-			s.G().Log.Debug("| Success")
+			m.CDebugf("| Success")
 			return res, serverHalf, nil
 		}
 	}
@@ -416,15 +412,15 @@ func (s *LKSec) Decrypt(m MetaContext, src []byte) (res []byte, gen PassphraseGe
 	return res, s.ppGen, LKSecServerHalf{}, nil
 }
 
-func (s *LKSec) decryptForBug3964Repair(src []byte, dkm DeviceKeyMap) (res []byte, erroneousMask LKSecServerHalf, err error) {
-	defer s.G().Trace("LKSec#decryptForBug3964Repair()", func() error { return err })()
+func (s *LKSec) decryptForBug3964Repair(m MetaContext, src []byte, dkm DeviceKeyMap) (res []byte, erroneousMask LKSecServerHalf, err error) {
+	defer m.CTrace("LKSec#decryptForBug3964Repair()", func() error { return err })()
 	data, nonce := splitCiphertext(src)
 	res, ok := secretbox.Open(nil, data, nonce, s.secret.f)
 	if ok {
-		s.G().Log.Debug("| Succeeded with intended mask")
+		m.CDebugf("| Succeeded with intended mask")
 		return res, LKSecServerHalf{}, nil
 	}
-	return s.tryAllDevicesForBug3964Recovery(dkm, data, nonce)
+	return s.tryAllDevicesForBug3964Recovery(m, dkm, data, nonce)
 }
 
 func (s *LKSec) ComputeClientHalf() (ret LKSecClientHalf, err error) {
@@ -471,7 +467,7 @@ func NewLKSecForEncrypt(m MetaContext, ui SecretUI, uid keybase1.UID) (ret *LKSe
 	if err != nil {
 		return nil, err
 	}
-	ret = NewLKSec(pps, uid, m.G())
+	ret = NewLKSec(pps, uid)
 	return ret, nil
 }
 
@@ -492,7 +488,7 @@ func (s *LKSec) ToSKB(m MetaContext, key GenericKey) (ret *SKB, err error) {
 	if s == nil {
 		return nil, errors.New("nil lks")
 	}
-	ret = NewSKBWithGlobalContext(s.G())
+	ret = NewSKBWithGlobalContext(m.G())
 
 	var publicKey RawPublicKey
 	var privateKey RawPrivateKey

@@ -31,7 +31,7 @@ export interface AggregateLogger {
   action: LogFn;
   debug: LogFn;
   dump(filter?: Array<LogLevel>): Promise<Array<LogLineWithLevelISOTimestamp>>; // Should return an ordered array of log lines (ordered by timestamp)
-  flush(): Promise<void>; // this calls flush on all logger impls
+  flush(): Promise<void>; // this calls flush on all logger impl,
 }
 
 export const toISOTimestamp = ([level, ts, log]: LogLineWithLevel): LogLineWithLevelISOTimestamp => [

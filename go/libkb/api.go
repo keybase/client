@@ -807,19 +807,6 @@ func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
 
 func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
 	m := arg.GetMetaContext(a.G())
-	res, reqErr := a.doRequest(m, arg, req)
-	if reqErr == nil {
-		return res, nil
-	}
-
-	if req.GetBody != nil {
-		// post request body consumed, need to get it back
-		var err error
-		req.Body, err = req.GetBody()
-		if err != nil {
-			return res, err
-		}
-	}
 	res, err := a.doRequest(m, arg, req)
 	return res, err
 }

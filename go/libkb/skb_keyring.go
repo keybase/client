@@ -364,7 +364,7 @@ func (k *SKBKeyringFile) Bug3964Repair(m MetaContext, lks *LKSec, dkm DeviceKeyM
 
 		var decryption, reencryption []byte
 		var badMask LKSecServerHalf
-		decryption, badMask, err = lks.decryptForBug3964Repair(b.Priv.Data, dkm)
+		decryption, badMask, err = lks.decryptForBug3964Repair(m, b.Priv.Data, dkm)
 		if err != nil {
 			m.CDebugf("| Decryption failed at block=%d; keeping as is (%s)", i, err)
 			newBlocks = append(newBlocks, b)
