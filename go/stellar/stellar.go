@@ -227,6 +227,9 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		social, err := expr.ToSocialAssertion()
 		if err != nil {
 			m.CDebugf("not a social assertion: %s (%s)", to, expr)
+			if _, ok := expr.(libkb.AssertionKeybase); ok {
+				return res, libkb.NotFoundError{Msg: fmt.Sprintf("user not found: %q", to)}
+			}
 			return res, fmt.Errorf("invalid recipient %q: %s", to, err)
 		}
 		res.Assertion = &social
