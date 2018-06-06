@@ -239,6 +239,10 @@ func (t *TeamsNameInfoSource) DecryptionKeys(ctx context.Context, name string, t
 
 func (t *TeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (teamEK keybase1.TeamEk, err error) {
+	if public {
+		return teamEK, NewPublicTeamEphemeralKeyError()
+	}
+
 	teamID, err := keybase1.TeamIDFromString(tlfID.String())
 	if err != nil {
 		return teamEK, err
@@ -248,6 +252,10 @@ func (t *TeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfNam
 
 func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	if public {
+		return teamEK, NewPublicTeamEphemeralKeyError()
+	}
+
 	teamID, err := keybase1.TeamIDFromString(tlfID.String())
 	if err != nil {
 		return teamEK, err
@@ -387,6 +395,10 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKeys(ctx context.Context, name s
 
 func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (teamEK keybase1.TeamEk, err error) {
+	if public {
+		return teamEK, NewPublicTeamEphemeralKeyError()
+	}
+
 	// The native case is the same as regular teams.
 	if membersType == chat1.ConversationMembersType_IMPTEAMNATIVE {
 		teamID, err := keybase1.TeamIDFromString(tlfID.String())
@@ -406,6 +418,10 @@ func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context
 func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	if public {
+		return teamEK, NewPublicTeamEphemeralKeyError()
+	}
+
 	// The native case is the same as regular teams.
 	if membersType == chat1.ConversationMembersType_IMPTEAMNATIVE {
 		teamID, err := keybase1.TeamIDFromString(tlfID.String())

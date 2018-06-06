@@ -42,6 +42,10 @@
         {
           "type": "string",
           "name": "signedTransaction"
+        },
+        {
+          "type": "boolean",
+          "name": "quickReturn"
         }
       ]
     },
@@ -87,6 +91,10 @@
         {
           "type": "string",
           "name": "signedTransaction"
+        },
+        {
+          "type": "boolean",
+          "name": "quickReturn"
         }
       ]
     },

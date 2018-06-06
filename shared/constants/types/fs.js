@@ -54,6 +54,7 @@ export type _FolderPathItem = {
   type: 'folder',
   children: I.Set<string>,
   favoriteChildren: I.Set<string>,
+  resetParticipants: Array<string>,
 } & PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
@@ -347,3 +348,9 @@ export type FavoriteFolder = {
 }
 
 export type FileViewType = 'text' | 'image' | 'av' | 'pdf' | 'default'
+
+export type ResetMetadata = {
+  name: string,
+  visibility: Visibility,
+  resetParticipants: Array<string>,
+}

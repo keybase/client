@@ -43,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onCancel: dispatchProps.onCancel,
   onClick: dispatchProps.onClick,
   shouldShow: stateProps.shouldShow,
-  users: stateProps.users.subtract([stateProps._you]),
+  users: stateProps.users.toSet().subtract([stateProps._you]),
 })
 
 class NewChooser extends React.PureComponent<Props> {

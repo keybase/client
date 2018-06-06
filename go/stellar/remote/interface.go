@@ -13,6 +13,9 @@ type Remoter interface {
 	SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error)
 	SubmitRelayPayment(ctx context.Context, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error)
 	SubmitRelayClaim(context.Context, stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error)
+	AcquireAutoClaimLock(context.Context) (string, error)
+	ReleaseAutoClaimLock(context.Context, string) error
+	NextAutoClaim(context.Context) (*stellar1.AutoClaim, error)
 	RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error)
 	PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error)
 	// GetAccountDisplayCurrency is not used as a mock now - since this

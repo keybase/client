@@ -148,7 +148,7 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 			return res, err
 		}
 	}
-	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into)
+	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into, nil, nil)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {

@@ -16,6 +16,8 @@ type RowProps = {
   itemStyles: Types.ItemStyles,
   badgeCount: number,
   tlfMeta?: Types.FavoriteMetadata,
+  resetParticipants: Array<string>,
+  isUserReset: boolean,
   onOpen: () => void,
   openInFileUI: () => void,
   onAction: (event: SyntheticEvent<>) => void,
@@ -35,8 +37,8 @@ const HoverBox = isMobile
       },
     })
 
-const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
-  if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount)) {
+const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey, resetParticipants}) => {
+  if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount || resetParticipants)) {
     return <Box />
   }
 
@@ -65,7 +67,7 @@ export const Row = (props: RowProps) => (
       <HoverBox style={stylesRowContainer}>
         <ClickableBox onClick={props.onOpen} style={stylesRowBox}>
           <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
-          <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} />
+          <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} resetParticipants={props.resetParticipants} />
           <Box style={folderBoxStyle}>
             <Text
               type={props.itemStyles.textType}
@@ -74,10 +76,14 @@ export const Row = (props: RowProps) => (
             >
               {props.name}
             </Text>
-            {props.type !== 'folder' && (
+            {props.type === 'folder' && (!props.resetParticipants || props.resetParticipants.length === 0)
+              ? (<Box />)
+              : (
               <PathItemInfo
                 lastModifiedTimestamp={props.lastModifiedTimestamp}
                 lastWriter={props.lastWriter}
+                resetParticipants={props.resetParticipants}
+                isUserReset={props.isUserReset}
               />
             )}
           </Box>

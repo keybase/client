@@ -170,12 +170,14 @@ func (e RelayDirection) String() string {
 type PaymentResult struct {
 	KeybaseID KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
 	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
+	Pending   bool                 `codec:"pending" json:"pending"`
 }
 
 func (o PaymentResult) DeepCopy() PaymentResult {
 	return PaymentResult{
 		KeybaseID: o.KeybaseID.DeepCopy(),
 		StellarID: o.StellarID.DeepCopy(),
+		Pending:   o.Pending,
 	}
 }
 
