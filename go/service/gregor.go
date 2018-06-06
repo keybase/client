@@ -1691,12 +1691,6 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 		Ranges_: []gregor1.MsgRange{
 			gregor1.MsgRange{
 				Category_: category,
-				// A small non-zero offset that effectively means "now",
-				// because an actually-zero offset would be interpreted as "not
-				// an offset at all" by the SQL query builder.
-				EndTime_: gregor1.TimeOrOffset{
-					Offset_: gregor1.DurationMsec(1),
-				},
 			}},
 	}
 	gcli, err := g.getGregorCli()
@@ -1778,12 +1772,6 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 			gregor1.MsgRange{
 				Category_:   gregor1.Category(cat),
 				SkipMsgIDs_: []gregor1.MsgID{msg.Ibm_.Metadata().MsgID().(gregor1.MsgID)},
-				// A small non-zero offset that effectively means "now",
-				// because an actually-zero offset would be interpreted as "not
-				// an offset at all" by the SQL query builder.
-				EndTime_: gregor1.TimeOrOffset{
-					Offset_: gregor1.DurationMsec(1),
-				},
 			}},
 	}
 
