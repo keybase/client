@@ -10,7 +10,7 @@ import {
   type PropsWithTimer,
 } from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
-import {formatTimeForPopup, formatTimeForRevoked, secondsToDHMS} from '../../../../../util/timestamp'
+import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {PopupHeaderText} from '../../../../../common-adapters/popup-menu'
 import type {DeviceType} from '../../../../../constants/types/devices'
@@ -128,7 +128,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           }}
         >
           <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
-            {secondsToDHMS(this.state.secondsLeft)}
+            {msToDHMS(this.props.explodesAt - Date.now())}
           </Text>
         </Box2>
       </Box2>

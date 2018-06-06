@@ -104,20 +104,20 @@ export function daysToLabel(days: number): string {
   return label
 }
 
-export function secondsToDHMS(seconds: number): string {
-  let mins = Math.floor(seconds / 60)
-  let hours = Math.floor(seconds / 3600)
-  let days = Math.floor(seconds / 3600 * 24)
-  let secs = seconds % 60
+const oneMinuteInMs = 60 * 1000
+const oneHourInMs = oneMinuteInMs * 60
+const oneDayInMs = oneHourInMs * 24
+export function msToDHMS(ms: number): string {
+  let mins = Math.floor(ms / oneMinuteInMs)
+  let hours = Math.floor(ms / oneHourInMs)
+  let days = Math.floor(ms / oneDayInMs)
+  let secs = Math.round((ms % (60 * 1000)) / 1000)
   hours = hours % 24
   mins = mins % 60
 
   return `${days}d ${hours}h ${mins}m ${secs}s`
 }
 
-const oneMinuteInMs = 60 * 1000
-const oneHourInMs = oneMinuteInMs * 60
-const oneDayInMs = oneHourInMs * 24
 export function formatDurationShort(ms: number): string {
   if (ms < 0) {
     return '0s'
