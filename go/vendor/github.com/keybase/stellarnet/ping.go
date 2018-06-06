@@ -9,7 +9,7 @@ import (
 // HorizonRoot returns the root information from the horizon
 // server.
 func HorizonRoot() (horizon.Root, error) {
-	return client.Root()
+	return Client().Root()
 }
 
 // Ping returns a formatted string of info about the horizon server

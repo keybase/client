@@ -204,7 +204,7 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 
 func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) error {
 	m.CDebugf("SignupEngine#registerDevice")
-	s.lks = libkb.NewLKSec(s.ppStream, s.uid, m.G())
+	s.lks = libkb.NewLKSec(s.ppStream, s.uid)
 	args := &DeviceWrapArgs{
 		Me:         s.me,
 		DeviceName: deviceName,

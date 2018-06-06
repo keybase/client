@@ -102,6 +102,14 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
       return
     }
 
+    if (incoming.finished && incoming.finished.error) {
+      throw incoming.finished.error
+    }
+
+    if (!incoming['keybase.1.pgpUi.keyGenerated']) {
+      throw new Error('KeyGeneration failed')
+    }
+
     yield Saga.call([
       incoming['keybase.1.pgpUi.keyGenerated'].response,
       incoming['keybase.1.pgpUi.keyGenerated'].response.result,
@@ -126,6 +134,8 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
   } catch (e) {
     generatePgpKeyChanMap.close()
     logger.info('error in generating pgp key', e)
+    yield Saga.put(navigateTo([peopleTab, 'profile']))
+    throw e
   }
 }
 

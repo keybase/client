@@ -188,8 +188,13 @@ type gregorHandler struct {
 	// This lock is to protect ibmHandlers and gregorCli and firehoseHandlers. Only public methods
 	// should grab it.
 	sync.Mutex
-	ibmHandlers      []libkb.GregorInBandMessageHandler
-	gregorCli        *grclient.Client
+	ibmHandlers []libkb.GregorInBandMessageHandler
+
+	// gregorCliMu just protecs the gregorCli pointer, since it can be swapped out
+	// in one goroutine and accessed in another.
+	gregorCliMu sync.Mutex
+	gregorCli   *grclient.Client
+
 	firehoseHandlers []libkb.GregorFirehoseHandler
 	badger           *badges.Badger
 	reachability     *reachability
@@ -358,18 +363,32 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 		g.Debug(ctx, "restore local state failed: %s", err)
 	}
 
-	if g.gregorCli != nil {
-		g.gregorCli.Stop()
-	}
+	g.gregorCliMu.Lock()
+	gcliOld := g.gregorCli
 	g.gregorCli = gcli
+	g.gregorCliMu.Unlock()
+
+	if gcliOld != nil {
+		gcliOld.Stop()
+	}
+
 	return nil
 }
 
 func (g *gregorHandler) getGregorCli() (*grclient.Client, error) {
-	if g.gregorCli == nil {
+
+	if g == nil {
+		return nil, errors.New("gregorHandler client unset")
+	}
+
+	g.gregorCliMu.Lock()
+	ret := g.gregorCli
+	g.gregorCliMu.Unlock()
+
+	if ret == nil {
 		return nil, errors.New("client unset")
 	}
-	return g.gregorCli, nil
+	return ret, nil
 }
 
 func (g *gregorHandler) getRPCCli() rpc.GenericClient {
@@ -1787,11 +1806,12 @@ func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err error) {
 	var s gregor.State
 
-	if g == nil || g.gregorCli == nil {
-		return res, errors.New("gregor service not available (are you in standalone?)")
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return res, err
 	}
 
-	s, err = g.gregorCli.StateMachineState(ctx, nil, true)
+	s, err = gcli.StateMachineState(ctx, nil, true)
 	if err != nil {
 		return res, err
 	}
