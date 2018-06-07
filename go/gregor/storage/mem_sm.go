@@ -191,10 +191,20 @@ func toTime(now time.Time, t gregor.TimeOrOffset) time.Time {
 }
 
 func (u *user) dismissRanges(now time.Time, rs []gregor.MsgRange) {
+	isSkipped := func(i *item, r gregor.MsgRange) bool {
+		msgID := i.item.Metadata().MsgID()
+		for _, s := range r.SkipMsgIDs() {
+			if msgID.String() == s.String() {
+				return true
+			}
+		}
+		return false
+	}
 	for _, i := range u.items {
 		for _, r := range rs {
 			if r.Category().String() == i.item.Category().String() &&
-				isBeforeOrSame(i.ctime, toTime(now, r.EndTime())) {
+				isBeforeOrSame(i.ctime, toTime(now, r.EndTime())) &&
+				!isSkipped(i, r) {
 				i.dtime = &now
 				i.dismissedImmediate = true
 				u.removeLocalDismissal(i.item.Metadata().MsgID())
@@ -213,6 +223,9 @@ func (t timeOrOffset) Time() *time.Time {
 func (t timeOrOffset) Offset() *time.Duration { return nil }
 func (t timeOrOffset) Before(t2 time.Time) bool {
 	return time.Time(t).Before(t2)
+}
+func (t timeOrOffset) IsZero() bool {
+	return t.IsZero()
 }
 
 var _ gregor.TimeOrOffset = timeOrOffset{}

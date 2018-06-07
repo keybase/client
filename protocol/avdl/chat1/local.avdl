@@ -162,6 +162,13 @@ protocol local {
 
   record MessageLeave {}
 
+  record MessageReaction {
+    @mpackkey("m") @jsonkey("m")
+    MessageID messageID;
+    @mpackkey("b") @jsonkey("b")
+    string body; // emoji reaction :+1:
+  }
+
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
@@ -174,6 +181,7 @@ protocol local {
     case LEAVE: MessageLeave;
     case SYSTEM: MessageSystem;
     case DELETEHISTORY: MessageDeleteHistory;
+    case REACTION: MessageReaction;
   }
 
   enum OutboxStateType {
