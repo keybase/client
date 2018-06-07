@@ -1,6 +1,8 @@
 package escaper
 
 import (
+	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -49,4 +51,64 @@ func TestMain(t *testing.T) {
 			t.Fail()
 		}
 	}
+}
+
+func TestWriter(t *testing.T) {
+	var c bytes.Buffer
+	w := &Writer{Writer: &c}
+
+	for a, b := range tests {
+		c.Reset()
+		n, err := w.Write([]byte(a))
+		if c.String() != b {
+			t.Logf("Write failed: %#v -> %#v != %#v\n", a, c.String(), b)
+			t.Fail()
+		}
+		if err != nil {
+			t.Logf("Write for %#v failed: %#v \n", a, err)
+			t.Fail()
+		}
+		if n != len([]byte(a)) {
+			t.Logf("Write for %#v returned wrong length: %#v \n", a, n)
+			t.Fail()
+		}
+	}
+}
+
+func TestWriterLocksOnErr(t *testing.T) {
+	w := &Writer{Writer: &mockWriter{}}
+
+	a := []byte("test")
+
+	if n, err := w.Write(a); n != len(a) || err != nil {
+		t.Logf("Write returned unexpected output: %#v, %#v \n", n, err)
+		t.Fail()
+	}
+
+	// This write should fail, as the mock writer errors
+	if n, err := w.Write(a); n != 0 || err == nil {
+		t.Logf("Write returned unexpected output: %#v, %#v \n", n, err)
+		t.Fail()
+	}
+
+	// This write should fail, even if the mock writer would allow it
+	if n, err := w.Write(a); n != 0 || err == nil {
+		t.Logf("Write returned unexpected output: %#v, %#v \n", n, err)
+		t.Fail()
+	}
+}
+
+// Allows even calls, errors on odd calls
+type mockWriter struct {
+	i int
+}
+
+func (m *mockWriter) Write(p []byte) (n int, err error) {
+	if m.i == 0 {
+		m.i++
+		return len(p), nil
+	}
+
+	m.i--
+	return 1, fmt.Errorf("error writing")
 }

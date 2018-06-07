@@ -13,9 +13,9 @@ import (
 
 	"github.com/keybase/client/go/escaper"
 	"github.com/keybase/client/go/libkb"
+	isatty "github.com/mattn/go-isatty"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	isatty "github.com/mattn/go-isatty"
 )
 
 type Source interface {
@@ -200,12 +200,29 @@ func (s *StdoutSink) Write(b []byte) (n int, err error) {
 
 func (s *StdoutSink) HitError(e error) error { return nil }
 
+// EscapedSink can be used to write data to the underlying Sink, while transparently sanitizing it.
+// If an error occurs writing to an EscapedSink, no more data will be
+// accepted and all subsequent writes will return the error.
 type EscapedSink struct {
+	err error
 	Sink
 }
 
+// Write writes p to the underlying Sink, after sanitizing it.
+// It returns n = len(p) on a successful write (regardless of how much data is written to the underlying Sink).
+// This is because the escaping function might alter the actual dimension of the data, but the caller is interested
+// in knowing how much of what they wanted to write was actually written. In case of errors it (conservatively) returns n=0 
+// and the error, and no other writes are possible.
 func (s *EscapedSink) Write(p []byte) (n int, err error) {
-	return s.Sink.Write(escaper.CleanBytes(p))
+	if s.err != nil {
+		return 0, s.err
+	}
+	if _, err := s.Sink.Write(escaper.CleanBytes(p)); err == nil {
+		return len(p), nil
+	} else {
+		s.err = err
+		return 0, err
+	}
 }
 
 type FileSink struct {
@@ -292,7 +309,7 @@ func initSink(g *libkb.GlobalContext, fn string) Sink {
 		if g.Env.GetDisplayRawUntrustedOutput() || !isatty.IsTerminal(os.Stdout.Fd()) {
 			return &StdoutSink{}
 		} else {
-			return &EscapedSink{&StdoutSink{}}
+			return &EscapedSink{Sink: &StdoutSink{}}
 		}
 	}
 	return NewFileSink(g, fn)
