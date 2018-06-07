@@ -52,6 +52,12 @@ class ExplodingMeta extends React.Component<Props, State> {
     this._setCountdown()
   }
 
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.exploded && !prevProps.exploded) {
+      this.setState({mode: 'boom'})
+    }
+  }
+
   componentWillUnmount() {
     removeTicker(this.tickerID)
   }
