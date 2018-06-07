@@ -454,6 +454,21 @@
       "notify": "",
       "lint": "ignore"
     },
+    "NewChatKBFSFileEditActivity": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "activity",
+          "type": "ChatActivity"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
     "ChatIdentifyUpdate": {
       "request": [
         {

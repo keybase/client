@@ -21,6 +21,7 @@ protocol notifyCtl {
     boolean reachability;
     boolean team;
     boolean ephemeral;
+    boolean chatkbfsedits;
   }
 
   void setNotifications(NotificationChannels channels);

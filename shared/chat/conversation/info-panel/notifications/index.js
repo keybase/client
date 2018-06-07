@@ -28,18 +28,19 @@ const UnmutedNotificationPrefs = (props: Props) => {
   }
   return (
     <React.Fragment>
-      <Checkbox
-        checked={!props.channelWide && !allNotifsEnabled}
-        disabled={allNotifsEnabled}
-        label=""
-        labelComponent={
-          <Text type="Body">
-            Ignore <Text type="BodySemibold">@here</Text> and <Text type="BodySemibold">@channel</Text>{' '}
-            mentions {ignoreMentionsSuffix}
-          </Text>
-        }
-        onCheck={props.toggleChannelWide}
-      />
+      {!allNotifsEnabled && (
+        <Checkbox
+          checked={!props.channelWide}
+          label=""
+          labelComponent={
+            <Text type="Body">
+              Ignore <Text type="BodySemibold">@here</Text> and <Text type="BodySemibold">@channel</Text>{' '}
+              mentions {ignoreMentionsSuffix}
+            </Text>
+          }
+          onCheck={props.toggleChannelWide}
+        />
+      )}
 
       <Box style={isMobile ? styleHeaderMobile : styleHeader}>
         <Text type="BodySmallSemibold">Desktop notifications</Text>
