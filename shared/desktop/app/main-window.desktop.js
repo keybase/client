@@ -21,7 +21,10 @@ export default function() {
     (webContents, permission, callback) => {
       const ourURL = new URL(getRendererHTML('mainWindow'))
       const requestURL = new URL(webContents.getURL())
-      if (permission === 'notifications' && requestURL.pathname.localeCompare(ourURL.pathname)) {
+      if (
+        permission === 'notifications' &&
+        requestURL.pathname.localeCompare(ourURL.pathname, {sensitivity: 'base'}) === 0
+      ) {
         // Allow notifications
         return callback(true)
       }
