@@ -813,15 +813,16 @@ const loadMoreMessages = (
 
   const loadingKey = `loadingThread:${conversationIDKey}`
 
-  let shouldClearOthers = false
   let calledClear = false
   const onGotThread = ({thread}: {+thread: ?string}, context: 'full' | 'cached') => {
     if (!thread) {
       return
     }
+
     const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
     const actions = []
 
+    let shouldClearOthers = false
     if (!isScrollingBack && !calledClear) {
       shouldClearOthers = true
       calledClear = true
@@ -857,11 +858,6 @@ const loadMoreMessages = (
       )
     }
 
-    if (conversationIDKey === '0000d53e032fe03ef52b67275ad6b9b62cd901b4f363e6a70a0169d802752402') {
-      console.log('aaa', context)
-      console.log('aaaa', messages[0].text.stringValue())
-      console.log('aaaa', actions)
-    }
     return actions
   }
 
