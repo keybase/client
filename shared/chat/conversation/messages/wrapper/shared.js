@@ -166,7 +166,7 @@ const RightSide = props => (
       <Box style={styles.sendIndicatorContainer}>
         {props.isYou && (
           <SendIndicator
-            sent={props.messageSent}
+            sent={props.messageSent || props.exploded}
             failed={props.messageFailed}
             style={{marginBottom: 2}}
             id={props.message.timestamp}
