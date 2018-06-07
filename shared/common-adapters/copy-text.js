@@ -116,11 +116,11 @@ const styles = styleSheetCreate({
       position: 'relative',
     },
     isElectron: {
+      maxWidth: 460,
       overflow: 'hidden',
       paddingBottom: 6,
       paddingTop: 6,
       width: '100%',
-      maxWidth: 460,
     },
     isMobile: {
       height: 40,
@@ -148,10 +148,12 @@ const styles = styleSheetCreate({
   toastText: platformStyles({
     common: {
       color: globalColors.white,
+      textAlign: 'center',
     },
     isMobile: {
       paddingLeft: 10,
       paddingRight: 10,
+      paddingTop: 5,
     },
   }),
 })
