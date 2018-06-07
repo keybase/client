@@ -190,14 +190,17 @@ type serviceCn struct {
 }
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
-	keybaseService := libkbfs.NewKeybaseDaemonRPC(
-		config, ctx, log, true, simplefs.NewSimpleFS, nil)
 	// TODO: plumb the func somewhere it can be called on shutdown?
-	gitrpc, _ := libgit.NewRPCHandlerWithCtx(ctx, config, nil)
-	keybaseService.AddProtocols([]rpc.Protocol{
-		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
+	gitrpc, _ := libgit.NewRPCHandlerWithCtx(
+		ctx, config, nil)
+	additionalProtocols := []rpc.Protocol{
+		keybase1.SimpleFSProtocol(
+			simplefs.NewSimpleFS(ctx.GetGlobalContext(), config)),
 		keybase1.KBFSGitProtocol(gitrpc),
-	})
+		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
+	}
+	keybaseService := libkbfs.NewKeybaseDaemonRPC(
+		config, ctx, log, true, additionalProtocols)
 	return keybaseService, nil
 }
 
