@@ -37,6 +37,9 @@ const (
 	InitConstrainedString = "constrained"
 )
 
+// AdditionalProtocolCreater creates an additional protocol.
+type AdditionalProtocolCreater func(Context, Config) (rpc.Protocol, error)
+
 // InitParams contains the initialization parameters for Init(). It is
 // usually filled in by the flags parser passed into AddFlags().
 type InitParams struct {
@@ -86,14 +89,9 @@ type InitParams struct {
 	// EnableJournal is non-empty.
 	TLFJournalBackgroundWorkStatus TLFJournalBackgroundWorkStatus
 
-	// CreateSimpleFSInstance creates a SimpleFSInterface from config.
-	// If this is nil then simplefs will be omitted in the rpc api.
-	CreateSimpleFSInstance func(
-		*libkb.GlobalContext, Config) keybase1.SimpleFSInterface
-
-	// CreateGitHandlerInstance creates a KBFSGitInterface from config.
-	// If this is nil then git will be omitted in the rpc api.
-	CreateGitHandlerInstance func(Config) keybase1.KBFSGitInterface
+	// AdditionalProtocolCreaters are for addin additional protocols that we
+	// should handle for service to call in.
+	AdditionalProtocolCreaters []AdditionalProtocolCreater
 
 	// EnableJournal enables journaling.
 	EnableJournal bool

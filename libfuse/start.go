@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/systemd"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
@@ -85,18 +86,28 @@ func startMounting(ctx context.Context,
 // Start the filesystem
 func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
-	options.KbfsParams.CreateSimpleFSInstance = simplefs.NewSimpleFS
+	createSimpleFS := func(
+		libkbfsCtx libkbfs.Context, cfg libkbfs.Config) (rpc.Protocol, error) {
+		return keybase1.SimpleFSProtocol(
+			simplefs.NewSimpleFS(libkbfsCtx.GetGlobalContext(), cfg)), nil
+	}
 	// Hook git implementation in.
 	shutdownGit := func() {}
-	options.KbfsParams.CreateGitHandlerInstance =
-		func(config libkbfs.Config) (i keybase1.KBFSGitInterface) {
-			i, shutdownGit = libgit.NewRPCHandlerWithCtx(
-				kbCtx, config, &options.KbfsParams)
-			return i
-		}
+	createGitHandler := func(
+		libkbfsCtx libkbfs.Context, config libkbfs.Config) (rpc.Protocol, error) {
+		var handler keybase1.KBFSGitInterface
+		handler, shutdownGit = libgit.NewRPCHandlerWithCtx(
+			libkbfsCtx, config, &options.KbfsParams)
+		return keybase1.KBFSGitProtocol(handler), nil
+	}
 	defer func() {
 		shutdownGit()
 	}()
+
+	// Patch the kbfsParams to inject two additional protocols.
+	options.KbfsParams.AdditionalProtocolCreaters = []libkbfs.AdditionalProtocolCreater{
+		createSimpleFS, createGitHandler,
+	}
 
 	log, err := libkbfs.InitLog(options.KbfsParams, kbCtx)
 	if err != nil {

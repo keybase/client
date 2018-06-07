@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 // keybaseDaemon is the default KeybaseServiceCn implementation, which
@@ -25,10 +26,18 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 		if err != nil {
 			return nil, err
 		}
+
+		var additionalProtocols []rpc.Protocol
+		for _, creater := range params.AdditionalProtocolCreaters {
+			p, err := creater(ctx, config)
+			if err != nil {
+				return nil, err
+			}
+			additionalProtocols = append(additionalProtocols, p)
+		}
+
 		return NewKeybaseDaemonRPC(
-			config, ctx, log, params.Debug, params.CreateSimpleFSInstance,
-			params.CreateGitHandlerInstance,
-		), nil
+			config, ctx, log, params.Debug, additionalProtocols), nil
 	}
 
 	users := []libkb.NormalizedUsername{

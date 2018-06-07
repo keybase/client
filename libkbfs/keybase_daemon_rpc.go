@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"os"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -29,7 +30,11 @@ type KeybaseDaemonRPC struct {
 	keepAliveCancel context.CancelFunc
 
 	// protocols (additional to required protocols) to register on server connect
+	lock      sync.RWMutex
 	protocols []rpc.Protocol
+	// server is set in OnConnect. If this is non-nil, subsequent AddProtocol
+	// calls triggers a server.Register.
+	server *rpc.Server
 
 	// simplefs is the simplefs implementation used (if not nil)
 	simplefs keybase1.SimpleFSInterface
@@ -56,22 +61,36 @@ var _ KeybaseService = (*KeybaseDaemonRPC)(nil)
 
 var _ keybase1.ImplicitTeamMigrationInterface = (*KeybaseDaemonRPC)(nil)
 
+func (k *KeybaseDaemonRPC) addKBFSProtocols() {
+	// Protocols that KBFS requires
+	protocols := []rpc.Protocol{
+		keybase1.LogUiProtocol(daemonLogUI{k.daemonLog}),
+		keybase1.IdentifyUiProtocol(daemonIdentifyUI{k.daemonLog}),
+		keybase1.NotifySessionProtocol(k),
+		keybase1.NotifyKeyfamilyProtocol(k),
+		keybase1.NotifyPaperKeyProtocol(k),
+		keybase1.NotifyFSRequestProtocol(k),
+		keybase1.NotifyTeamProtocol(k),
+		keybase1.TlfKeysProtocol(k),
+		keybase1.ReachabilityProtocol(k),
+		keybase1.ImplicitTeamMigrationProtocol(k),
+	}
+
+	if k.notifyService != nil {
+		k.log.Warning("adding NotifyService protocol")
+		protocols = append(protocols, keybase1.NotifyServiceProtocol(k.notifyService))
+	}
+
+	k.AddProtocols(protocols)
+}
+
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
 func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
-	debug bool, createSimpleFS func(
-		*libkb.GlobalContext, Config) keybase1.SimpleFSInterface,
-	createGitHandler func(Config) keybase1.KBFSGitInterface,
-) *KeybaseDaemonRPC {
+	debug bool, additionalProtocols []rpc.Protocol) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(config, kbCtx, log)
 	k.config = config
 	k.daemonLog = logger.New("daemon")
-	if createSimpleFS != nil {
-		k.simplefs = createSimpleFS(kbCtx.GetGlobalContext(), config)
-	}
-	if createGitHandler != nil {
-		k.gitHandler = createGitHandler(config)
-	}
 	if debug {
 		k.daemonLog.Configure("", true, "")
 	}
@@ -85,6 +104,9 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 		go k.keepAliveLoop(ctx)
 	}
 	k.notifyService = newNotifyServiceHandler(config, log)
+
+	k.addKBFSProtocols()
+	k.AddProtocols(additionalProtocols)
 
 	return k
 }
@@ -255,47 +277,28 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 	} else {
 		k.protocols = protocols
 	}
+
+	// If we are already connected, register these protocols.
+	k.lock.RLock()
+	defer k.lock.RUnlock()
+	if k.server != nil {
+		for _, p := range protocols {
+			err := k.server.Register(p)
+			if err != nil {
+				k.log.Warning("add protocol %q error", p.Name)
+			}
+		}
+	}
 }
 
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	conn *rpc.Connection, rawClient rpc.GenericClient,
 	server *rpc.Server) error {
+	k.lock.Lock()
+	defer k.lock.Unlock()
 
-	// Protocols that KBFS requires
-	protocols := []rpc.Protocol{
-		keybase1.LogUiProtocol(daemonLogUI{k.daemonLog}),
-		keybase1.IdentifyUiProtocol(daemonIdentifyUI{k.daemonLog}),
-		keybase1.NotifySessionProtocol(k),
-		keybase1.NotifyKeyfamilyProtocol(k),
-		keybase1.NotifyPaperKeyProtocol(k),
-		keybase1.NotifyFSRequestProtocol(k),
-		keybase1.NotifyTeamProtocol(k),
-		keybase1.TlfKeysProtocol(k),
-		keybase1.ReachabilityProtocol(k),
-		keybase1.ImplicitTeamMigrationProtocol(k),
-	}
-
-	// Add simplefs if set
-	if k.simplefs != nil {
-		protocols = append(protocols, keybase1.SimpleFSProtocol(k.simplefs))
-	}
-
-	// Add git if set
-	if k.gitHandler != nil {
-		protocols = append(protocols, keybase1.KBFSGitProtocol(k.gitHandler))
-	}
-
-	if k.protocols != nil {
-		protocols = append(protocols, k.protocols...)
-	}
-
-	if k.notifyService != nil {
-		k.log.Warning("adding NotifyService protocol")
-		protocols = append(protocols, keybase1.NotifyServiceProtocol(k.notifyService))
-	}
-
-	for _, p := range protocols {
+	for _, p := range k.protocols {
 		err := server.Register(p)
 		if err != nil {
 			if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
@@ -332,6 +335,9 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	if err != nil {
 		return err
 	}
+
+	// Set k.server only if err == nil.
+	k.server = server
 
 	return nil
 }
