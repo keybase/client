@@ -8,17 +8,21 @@ import type {Props} from './toast'
 
 type State = {
   opacity: NativeAnimated.Value,
+  visible: boolean,
 }
 class Toast extends React.Component<Props, State> {
-  state = {opacity: new NativeAnimated.Value(0)}
+  state = {opacity: new NativeAnimated.Value(0), visible: false}
+  timeoutID: TimeoutID
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.visible && !prevProps.visible) {
-      NativeAnimated.timing(this.state.opacity, {
-        duration: 100,
-        easing: NativeEasing.linear,
-        toValue: 1,
-      }).start()
+      this.setState({visible: true}, () =>
+        NativeAnimated.timing(this.state.opacity, {
+          duration: 100,
+          easing: NativeEasing.linear,
+          toValue: 1,
+        }).start()
+      )
     }
     if (!this.props.visible && prevProps.visible) {
       NativeAnimated.timing(this.state.opacity, {
@@ -26,10 +30,18 @@ class Toast extends React.Component<Props, State> {
         easing: NativeEasing.linear,
         toValue: 0,
       }).start()
+      this.timeoutID = setTimeout(() => this.setState({visible: false}), 100)
     }
   }
 
+  componentWillUnmount() {
+    clearTimeout(this.timeoutID)
+  }
+
   render() {
+    if (!this.state.visible) {
+      return null
+    }
     return (
       <FloatingBox>
         <Box pointerEvents="none" style={styles.wrapper}>
