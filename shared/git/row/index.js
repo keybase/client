@@ -244,6 +244,8 @@ const styles = styleSheetCreate({
     flexShrink: 1,
     marginLeft: globalMargins.xtiny,
     marginRight: globalMargins.tiny,
+    maxWidth: 460,
+    width: '100%',
   },
 })
 
@@ -255,8 +257,9 @@ const _deviceStyle = {
 
 const _rowBottomStyle = {
   ...globalStyles.flexBoxColumn,
-  paddingLeft: globalMargins.medium,
   paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  width: '100%',
 }
 
 const _iconCaretStyle = platformStyles({
