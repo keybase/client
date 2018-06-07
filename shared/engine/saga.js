@@ -3,9 +3,11 @@
 import {getEngine} from '../engine'
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
+import {sequentially} from '../util/saga'
 import type {CommonResponseHandler, RPCError} from './types'
 import type {TypedState} from '../constants/reducer'
 import {printOutstandingRPCs} from '../local-debug'
+import {isArray} from 'lodash'
 
 type EmittedCall = {
   method: string,
@@ -102,18 +104,22 @@ function* call(
         const cb = incomingCallMap[res.method]
         if (cb) {
           const state: TypedState = yield RSE.select()
-          let action
+          let actions
 
           if (res.response) {
             const c: CallbackWithResponse = (cb: CallbackWithResponse)
-            action = yield RSE.call(c, res.params, res.response, state)
+            actions = yield RSE.call(c, res.params, res.response, state)
           } else {
             const c: CallbackNoResponse = (cb: CallbackNoResponse)
-            action = yield RSE.call(c, res.params, state)
+            actions = yield RSE.call(c, res.params, state)
           }
 
-          if (action) {
-            yield action
+          if (actions) {
+            if (isArray(actions)) {
+              yield sequentially(actions)
+            } else {
+              yield actions
+            }
           }
         }
       } else {

@@ -217,7 +217,7 @@ function analyzeMessages(json, project) {
     if (isUIProtocol) {
       project.incomingMaps[`${json.namespace}.${json.protocol}.${m}`] = `(params: ${
         inParams ? `${inParams}` : 'void'
-      }${r}, state: TypedState) => ?Saga.Effect | Generator<any,any,any>`
+      }${r}, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void`
     }
 
     r = ''

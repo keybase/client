@@ -856,7 +856,13 @@ const loadMoreMessages = (
         )
       )
     }
-    return Saga.sequentially(actions)
+
+    if (conversationIDKey === '0000d53e032fe03ef52b67275ad6b9b62cd901b4f363e6a70a0169d802752402') {
+      console.log('aaa', context)
+      console.log('aaaa', messages[0].text.stringValue())
+      console.log('aaaa', actions)
+    }
+    return actions
   }
 
   const makeCall = RPCChatTypes.localGetThreadNonblockRpcSaga(
