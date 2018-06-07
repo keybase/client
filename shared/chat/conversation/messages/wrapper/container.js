@@ -100,6 +100,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     isYou: stateProps.isYou,
     message,
     messageFailed: stateProps.messageFailed,
+    // `messageKey` must always be unique and immutable for the message
+    // or else it will wreak havoc on the conversation list view
     messageKey: `${message.conversationIDKey}:${message.id}`,
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,

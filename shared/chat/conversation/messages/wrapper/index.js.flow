@@ -20,7 +20,7 @@ export type Props = {
   isYou: boolean,
   message: Types.MessageText | Types.MessageAttachment,
   messageFailed: boolean,
-  messageKey: string,
+  messageKey: string, // must always be unique and immutable for the message
   messagePending: boolean,
   messageSent: boolean,
   onRetry: null | (() => void),

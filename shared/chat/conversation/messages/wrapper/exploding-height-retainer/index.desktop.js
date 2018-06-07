@@ -34,6 +34,8 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       const height = node.clientHeight
       if (height && height !== this.state.height) {
         this.setState({height})
+      }
+      if (!messageHeights[this.props.messageKey] && this.props.exploding) {
         messageHeights[this.props.messageKey] = height
       }
     }
