@@ -94,6 +94,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     const text = this._getText()
     if (text) {
       this.props.onSubmit(text)
+      this.setState({hasText: false})
     }
   }
 
