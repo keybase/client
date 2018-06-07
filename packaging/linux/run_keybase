@@ -225,7 +225,26 @@ start_background() {
   write_startup_token "background"
 }
 
+# Sometimes people get into weird configurations, where the `keybase` binary in
+# their PATH isn't what it should be. This can particularly happen on machines
+# that used to run an ancient version of Keybase, when it was installed via
+# NPM. Detect cases like this and print a warning.
+warn_if_weird_path() {
+    # Users who know they're doing interesting custom things, and don't want to
+    # see this warning, can set KEYBASE_PATH_WARNING=0 in their environment to
+    # silence it.
+    if [ "${KEYBASE_PATH_WARNING:-}" = "0" ] ; then
+        return
+    fi
+    if [ "$(which keybase)" != "/usr/bin/keybase" ] ; then
+        echo "WARNING: Expected the keybase executable to be /usr/bin/keybase, but it's"
+        echo "         $(which keybase) instead. Do you have multiple versions installed?"
+    fi
+}
+
 main() {
+  warn_if_weird_path
+
   # Always stop any running services. With systemd, we could've decided to just
   # `start` services and no-op if they're already running, however:
   # 1) We still need to handle the case where services started outside systemd
