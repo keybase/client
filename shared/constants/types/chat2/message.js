@@ -34,16 +34,7 @@ export type MentionsAt = I.Set<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
 export type MentionsChannelName = I.Map<string, Common.ConversationIDKey>
 
-export type MessageExplodeText =
-  | 'Never'
-  | '3 minutes'
-  | '1 hour'
-  | '3 hours'
-  | '12 hours'
-  | '24 hours'
-  | '3 days'
-  | '7 days'
-export type MessageExplodeDescription = {text: MessageExplodeText, seconds: number}
+export type MessageExplodeDescription = {text: string, seconds: number}
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
@@ -85,6 +76,9 @@ export type _MessageText = {
   errorReason: ?string,
   exploded: boolean,
   explodedBy: string, // only if 'explode now' happened
+  exploding: boolean,
+  explodingTime: number,
+  explodingUnreadable: boolean, // if we can't read this message bc we have no keys
   hasBeenEdited: boolean,
   id: MessageID,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
@@ -114,7 +108,10 @@ export type _MessageAttachment = {
   downloadPath: ?string, // string if downloaded
   errorReason: ?string,
   exploded: boolean,
-  explodedBy: string,
+  explodedBy: string, // only if 'explode now' happened
+  exploding: boolean,
+  explodingTime: number,
+  explodingUnreadable: boolean, // if we can't read this message bc we have no keys
   fileName: string,
   fileSize: number,
   hasBeenEdited: boolean,

@@ -288,33 +288,47 @@ services:
 
     # validate url and extract username
     { regex_capture: {
-      , pattern: "^https://twitter\\.com/([^/]+)/.*$"
+      , pattern: "^https://twitter\\.com/([^/]+)/(.*)$"
       , from: "hint_url"
-      , into: ["username_from_url"]
+      , into: ["username_from_url", "remainder"]
       , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://twitter.com/%{username_service}/'"] } },
     { assert_compare: {
       , cmp: "cicmp"
       , a: "username_from_url"
       , b: "username_service"
       , error: ["BAD_API_URL", "Bad hint from server; URL should contain username matching %{username_service}; got %{username_from_url}"] } },
+    # Create the mobile site url
+    { fill: {
+      , with: "https://mobile.twitter.com/%{username_from_url}/%{remainder}"
+      , into: "our_url" } },
     # url validation passed
     { fetch: {
-      , from: "hint_url"
+      , from: "our_url"
       , kind: "html" } },
+
     # Check the author.
     { selector_css: {
-      , selectors: [ "div.permalink-tweet-container div.permalink-tweet", 0 ]
-      , attr: "data-screen-name"
-      , into: "data_screen_name"
-      , error: ["FAILED_PARSE", "Couldn't find a div $(div.permalink-tweet-container div.permalink-tweet).eq(0)"] } },
+      , selectors: [".main-tweet-container .main-tweet", 0, ".user-info-username", 0 ]
+      , into: "tweet_poster_1" # has a @ and extra newlines
+      , error: ["FAILED_PARSE", "Couldn't find a div .user-info-username"] } },
+    { whitespace_normalize: {
+      , from: "tweet_poster_1"
+      , into: "tweet_poster_2" } },
+    # Strip the '@' off the username
+    { regex_capture: {
+      , pattern: "^@?(.*)$"
+      , from: "tweet_poster_2"
+      , into: ["tweet_poster_3"]
+      , error: ["FAILED_PARSE", "Could not process username '%{tweet_poster_2}'"] } },
+    # Check the username in the tweet. Case insensitive.
     { assert_compare: {
       , cmp: "cicmp"
-      , a: "data_screen_name"
+      , a: "tweet_poster_3"
       , b: "username_service"
-      , error: ["BAD_USERNAME", "Bad post authored: wanted '%{username_service}' but got '%{data_screen_name}'"] } },
-    # Check the username in the tweet. Case insensitive.
+      , error: ["BAD_USERNAME", "Bad post authored: wanted '%{username_service}' but got '%{tweet_poster_2}'"] } },
+
     { selector_css: {
-      , selectors: ["div.permalink-tweet-container div.permalink-tweet", 0, "p.tweet-text", 0]
+      , selectors: [".main-tweet-container .main-tweet", 0, ".tweet-content .tweet-text", 0 ]
       , into: "tweet_contents"
       , error: ["CONTENT_MISSING", "Missing <div class='tweet-text'> container for tweet"] } },
     { whitespace_normalize: {

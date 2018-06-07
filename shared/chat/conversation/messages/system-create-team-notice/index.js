@@ -13,12 +13,7 @@ const CreateTeamNotice = ({onShowNewTeamDialog}: Props) => (
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
       Make it a team? You'll be able to add and delete members as you wish.
     </Text>
-    <Text
-      type="BodySmallPrimaryLink"
-      backgroundMode="Announcements"
-      style={{color: globalColors.blue}}
-      onClick={onShowNewTeamDialog}
-    >
+    <Text type="BodySmallPrimaryLink" style={{fontWeight: '600'}} onClick={onShowNewTeamDialog}>
       Enter a team name
     </Text>
   </UserNotice>

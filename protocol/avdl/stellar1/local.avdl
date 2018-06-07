@@ -1,5 +1,6 @@
 @namespace("stellar.1")
 protocol local {
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
 
   // -------------------------------------------------------
@@ -7,12 +8,98 @@ protocol local {
   // -------------------------------------------------------
 
   record WalletAccountLocal {
-    AccountID accountID;  // string "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K"
+    AccountID accountID;        // string "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K"
     boolean isDefault;          // true if this is the default sending/receiving account
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM"
   }
-  array<WalletAccountLocal> GetWalletAccountsLocal(int sessionID);
+  array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
+
+  record AccountAssetLocal {
+    string name;                    // "Lumens"
+    string balanceTotal;            // "280.9192933"
+    string balanceAvailableToSend;  // "279.9192933"
+    string assetCode;               // "XLM"
+    string issuer;                  // "Stellar"
+    string worth;                   // "$98.13" or error string if worthCurrency == "ERR"
+    string worthCurrency;           // "USD", "CAD", etc.  if it is "ERR" then an exchange rate error occurred
+  }
+  array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
+
+  enum BalanceDelta {
+    NONE_0,
+    INCREASE_1,
+    DECREASE_2
+  }
+
+  enum PaymentStatus {
+    NONE_0,
+    PENDING_1,
+    CLAIMABLE_2,
+    COMPLETED_3,
+    ERROR_4,
+    UNKNOWN_5
+  }
+  
+  record PaymentLocal {
+    string id;                 // For relay payments, the funding tx.
+    TimeMs time;
+    PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
+    string statusDescription;  // "pending", "completed", "error"
+    string statusDetail;
+    string amountDescription;  // "+ 1,323.1234567 XLM"
+    BalanceDelta delta;        // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string worth;              // "$123.23" 
+    string worthCurrency;      // "USD", "CAD", etc. (the symbols can be ambiguous)
+
+    string source;             // keybase username or stellar public key
+    string sourceType;         // "keybase" or "stellar"
+    string target;             // keybase username, stellar public key, or sbs assertion
+    string targetType;         // "keybase", "stellar", or "sbs"
+
+    string note;
+    string noteErr;
+  }
+
+  record PaymentOrErrorLocal {
+    union { null, PaymentLocal } payment;
+    union { null, string } err;
+  }
+
+  array<PaymentOrErrorLocal> getPaymentsLocal(AccountID accountID, union { null, TransactionID } olderThanTransactionID);
+
+  record CurrencyLocal {
+    string description;  // "USD ($)", "CAD ($)", etc.
+    OutsideCurrencyCode code;         // "USD", "CAD", etc.
+    string symbol;       // "$"
+    string name;         // "US Dollar", "Thai Baht", etc.
+  }
+  array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
+
+  void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
+  void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
+
+  // Deleting an account is irreversible, even with Keybase, Inc. help.
+  // Consumer of this API should always prompt the user and warn that if
+  // their secret key is not backed up, they will not be able to access
+  // funds on that account.
+  // This RPC checks if `userAcknowledged` string is equal to "yes".
+  void deleteWalletAccountLocal(int sessionID, AccountID accountID, string userAcknowledged);
+
+  AccountID linkNewWalletAccountLocal(int sessionID, SecretKey secretKey, string name);
+
+  // OutsideCurrencyCode examples: "USD", "EUR". Has to be one of
+  // supported currencies, returned from getDisplayCurrenciesLocal.
+  void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
+
+  record UserSettings {
+    boolean acceptedDisclaimer; // whether the user has accepted the usage disclaimer
+  }
+  UserSettings getUserSettingsLocal(int sessionID);
+  void setAcceptedDisclaimerLocal(int sessionID); 
+
+  string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);
+  SecretKey getWalletAccountSecretKeyLocal(int sessionID, AccountID accountID);
 
   // -------------------------------------------------------
   // CLI protocol
@@ -20,13 +107,31 @@ protocol local {
 
   array<Balance> balancesLocal(AccountID accountID);
 
-  PaymentResult sendLocal(string recipient, string amount, Asset asset, string note, string displayAmount, string displayCurrency);
+  SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
+                                  string displayAmount, string displayCurrency, boolean forceRelay);
 
-  record PaymentCLIOptionLocal {
-    // Pointer or error
-    union { null, PaymentCLILocal } payment;
-    string err;
+  record SendResultCLILocal {
+    KeybaseTransactionID kbTxID;
+    // Direct: tx ID of the payment tx
+    // Relay : tx ID of the funding payment tx
+    TransactionID txID;
+    union { null, SendRelayResultCLILocal } relay;
   }
+  record SendRelayResultCLILocal {
+    // Implicit team that the relay secret is encrypted for.
+    keybase1.TeamID teamID;
+  }
+
+  // Claim a relay payment
+  // `txID` is the kbTxID of the relay payment. Can also be the txID of the funding tx.
+  // `into` is the account into which to claim. Null will default to the user's primary account.
+  RelayClaimResult claimCLILocal(string txID, union { null, AccountID } into);
+
+  record PaymentOrErrorCLILocal {
+    union { null, PaymentCLILocal } payment;
+    union { null, string } err;
+  }
+
   record PaymentCLILocal {
     TransactionID txID; // For relay payments, the funding tx.
     TimeMs time;
@@ -44,7 +149,7 @@ protocol local {
     string note;
     string noteErr;
   }
-  array<PaymentCLIOptionLocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
+  array<PaymentOrErrorCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
 
   // txID can be either a keybase or stellar transaction ID.
   PaymentCLILocal paymentDetailCLILocal(string txID);

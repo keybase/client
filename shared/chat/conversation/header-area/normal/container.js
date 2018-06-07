@@ -16,18 +16,21 @@ import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {chatTab} from '../../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
-  let _participants
-  if (state.chat2.pendingSelected) {
-    _participants = state.chat2.pendingConversationUsers.toSet()
-  } else {
-    _participants = meta.teamname ? I.Set() : meta.participants
+  const _isPending = conversationIDKey === Constants.pendingConversationIDKey
+  let meta = Constants.getMeta(state, conversationIDKey)
+  if (_isPending) {
+    const resolved = Constants.getResolvedPendingConversationIDKey(state)
+    if (Constants.isValidConversationIDKey(resolved)) {
+      meta = Constants.getMeta(state, resolved)
+    }
   }
+  const _participants = meta.teamname ? I.Set() : meta.participants
+
   return {
     _conversationIDKey: conversationIDKey,
+    _isPending,
     _participants,
     badgeNumber: state.notifications.getIn(['navBadges', chatTab]),
-    canOpenInfoPanel: !state.chat2.pendingSelected,
     channelName: meta.channelname,
     infoPanelOpen,
     muted: meta.isMuted,
@@ -37,6 +40,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
+  _onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   onBack: () => dispatch(RouteTree.navigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
@@ -45,12 +49,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel, conversation
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   badgeNumber: stateProps.badgeNumber,
-  canOpenInfoPanel: stateProps.canOpenInfoPanel,
+  canOpenInfoPanel: !stateProps._isPending,
   channelName: stateProps.channelName,
   infoPanelOpen: stateProps.infoPanelOpen,
   muted: stateProps.muted,
   onBack: dispatchProps.onBack,
-  onOpenFolder: dispatchProps._onOpenFolder,
+  onCancelPending: stateProps._isPending ? dispatchProps._onCancel : null,
+  onOpenFolder: stateProps._isPending ? null : dispatchProps._onOpenFolder,
   onShowProfile: dispatchProps.onShowProfile,
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
   participants: stateProps._participants.toArray(),

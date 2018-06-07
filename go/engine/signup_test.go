@@ -54,6 +54,10 @@ func subTestSignupEngine(t *testing.T, upgradePerUserKey bool) {
 		t.Fatal(err)
 	}
 
+	if err := AssertLoggedOut(tc); err != nil {
+		t.Fatal(err)
+	}
+
 	fu.LoginOrBust(tc)
 
 	if err = AssertDeviceID(tc.G); err != nil {
@@ -75,16 +79,13 @@ func subTestSignupEngine(t *testing.T, upgradePerUserKey bool) {
 		t.Fatal(err)
 	}
 
-	mockGetPassphrase := &GetPassphraseMock{
-		Passphrase: fu.Passphrase,
-	}
-	if err = tc.G.LoginState().LoginWithPrompt(NewMetaContextForTest(tc), fu.Username, nil, mockGetPassphrase, nil); err != nil {
+	secretUI := fu.NewSecretUI()
+	err = fu.LoginWithSecretUI(secretUI, tc.G)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	mockGetPassphrase.CheckLastErr(t)
-
-	if !mockGetPassphrase.Called {
+	if !secretUI.CalledGetPassphrase {
 		t.Errorf("secretUI.GetKeybasePassphrase() not called")
 	}
 
@@ -162,7 +163,7 @@ func TestLocalKeySecurity(t *testing.T) {
 	}
 
 	m := NewMetaContextForTest(tc)
-	lks := libkb.NewLKSec(s.ppStream, s.uid, tc.G)
+	lks := libkb.NewLKSec(s.ppStream, s.uid)
 	if err := lks.Load(m); err != nil {
 		t.Fatal(err)
 	}

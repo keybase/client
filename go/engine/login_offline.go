@@ -47,24 +47,12 @@ func (e *LoginOffline) Run(m libkb.MetaContext) error {
 	return nil
 }
 
-func (e *LoginOffline) run(m libkb.MetaContext) error {
-	var gerr error
-	aerr := m.G().LoginState().Account(func(a *libkb.Account) {
-		m := m.WithLoginContext(a)
-		_, err := libkb.BootstrapActiveDeviceFromConfig(m, false)
-		if err != nil {
-			gerr = libkb.NewLoginRequiredError(err.Error())
-		}
-		return
-	}, "LoginOffline")
-
-	if aerr != nil {
-		m.CDebugf("LoginOffline: LoginState account error: %s", aerr)
-		return aerr
+func (e *LoginOffline) run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginOffline#run", func() error { return err })()
+	_, err = libkb.BootstrapActiveDeviceFromConfig(m, false)
+	if err != nil {
+		err = libkb.NewLoginRequiredError(err.Error())
+		return err
 	}
-	if gerr != nil {
-		return gerr
-	}
-	m.CDebugf("LoginOffline: run success")
 	return nil
 }

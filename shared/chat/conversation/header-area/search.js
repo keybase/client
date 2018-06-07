@@ -1,5 +1,6 @@
 // @flow
 import UserInput from '../../../search/user-input/container'
+import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {
   connect,
@@ -12,12 +13,12 @@ import {
 } from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  pendingConversationUsers: state.chat2.pendingConversationUsers,
+  pendingConversationUsers: Constants.getMeta(state, Constants.pendingConversationIDKey).participants,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClearSearch: () => dispatch(Chat2Gen.createExitSearch({canceled: true})),
-  onExitSearch: () => dispatch(Chat2Gen.createExitSearch({canceled: false})),
+  onClearSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+  onExitSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
 })
 
 export default compose(
@@ -36,5 +37,6 @@ export default compose(
   withProps({
     autoFocus: true,
     searchKey: 'chatSearch',
+    placeholder: 'Search someone',
   })
 )(UserInput)

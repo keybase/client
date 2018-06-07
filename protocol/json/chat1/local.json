@@ -521,6 +521,24 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "MessageReaction",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID",
+          "mpackkey": "m",
+          "jsonkey": "m"
+        },
+        {
+          "type": "string",
+          "name": "body",
+          "mpackkey": "b",
+          "jsonkey": "b"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -604,6 +622,13 @@
             "def": false
           },
           "body": "MessageDeleteHistory"
+        },
+        {
+          "label": {
+            "name": "REACTION",
+            "def": false
+          },
+          "body": "MessageReaction"
         }
       ]
     },
@@ -624,7 +649,8 @@
         "IDENTIFY_2",
         "TOOLONG_3",
         "DUPLICATE_4",
-        "EXPIRED_5"
+        "EXPIRED_5",
+        "TOOMANYATTEMPTS_6"
       ]
     },
     {
@@ -1174,21 +1200,15 @@
         },
         {
           "type": "boolean",
-          "name": "isEphemeral",
-          "mpackkey": "ie",
-          "jsonkey": "ie"
+          "name": "isEphemeral"
         },
         {
           "type": "boolean",
-          "name": "isEphemeralExpired",
-          "mpackkey": "iex",
-          "jsonkey": "iex"
+          "name": "isEphemeralExpired"
         },
         {
           "type": "gregor1.Time",
-          "name": "etime",
-          "mpackkey": "e",
-          "jsonkey": "e"
+          "name": "etime"
         }
       ]
     },
@@ -1663,7 +1683,8 @@
       "name": "GetThreadNonblockReason",
       "symbols": [
         "GENERAL_0",
-        "PUSH_1"
+        "PUSH_1",
+        "FOREGROUND_2"
       ]
     },
     {
@@ -1815,6 +1836,44 @@
           "type": {
             "type": "array",
             "items": "ConversationLocal"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxAndUnboxUILocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
           },
           "name": "conversations"
         },
@@ -2469,6 +2528,29 @@
       ],
       "response": "GetInboxAndUnboxLocalRes"
     },
+    "getInboxAndUnboxUILocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetInboxAndUnboxUILocalRes"
+    },
     "getInboxNonblockLocal": {
       "request": [
         {
@@ -2671,13 +2753,6 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
-        },
-        {
-          "name": "ephemeralLifetime",
-          "type": [
-            null,
-            "gregor1.DurationSec"
-          ]
         }
       ],
       "response": "PostLocalNonblockRes"

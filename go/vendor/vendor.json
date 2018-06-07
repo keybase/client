@@ -154,6 +154,12 @@
 			"revisionTime": "2016-05-19T03:34:20Z"
 		},
 		{
+			"checksumSHA1": "B7tNNRFtE+SkHjYAx3L8xak8zLU=",
+			"path": "github.com/gonutz/w32",
+			"revision": "7b87625ae312b3dc5a34773dfbf819ed486f2685",
+			"revisionTime": "2018-05-16T16:26:43Z"
+		},
+		{
 			"path": "github.com/google/go-snappy/snappy",
 			"revision": "eaa750b9bf4dcb7cb20454be850613b66cda3273",
 			"revisionTime": "2015-06-08T14:53:52-07:00"
@@ -420,10 +426,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "9bzqMvSXr8Lr+Na6YXvMyN6QqjI=",
+			"checksumSHA1": "6ttia+9vIEXd7xEjtcVgk2/vtiw=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "da171d2552e171473bca077282694b83051304a9",
-			"revisionTime": "2018-04-25T21:28:23Z"
+			"revision": "6d17a07cebff634488ddd3eacf1a022cc1b29534",
+			"revisionTime": "2018-06-01T19:52:31Z"
 		},
 		{
 			"path": "github.com/kr/pty",

@@ -217,7 +217,7 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
-	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true)
+	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true /* useLocalData */)
 	if err != nil {
 		return nil, err
 	}
@@ -578,6 +578,7 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 }
 
 var errGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation not found")
+var errGetVerifiedConvNotFound = errors.New("GetVerifiedConv: conversation not found")
 
 func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, error) {
@@ -596,6 +597,40 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			inbox.ConvsUnverified[0].GetConvID(), convID)
 	}
 	return inbox.ConvsUnverified[0].Conv, nil
+}
+
+func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, useLocalData bool) (res chat1.ConversationLocal, err error) {
+
+	inbox, err := g.InboxSource.Read(ctx, uid, nil, useLocalData, &chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}, nil)
+	if err != nil {
+		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
+	}
+	if len(inbox.Convs) == 0 {
+		return res, errGetVerifiedConvNotFound
+	}
+	if !inbox.Convs[0].GetConvID().Eq(convID) {
+		return res, fmt.Errorf("GetVerifiedConv: convID mismatch: %s != %s",
+			inbox.Convs[0].GetConvID(), convID)
+	}
+	return inbox.Convs[0], nil
+}
+
+func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Context,
+	uid gregor1.UID, conv chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	if conv.Error != nil {
+		// If we get a transient failure, add this to the retrier queue
+		if conv.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
+			g.FetchRetrier.Failure(ctx, uid,
+				NewConversationRetry(g, conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
+		}
+	} else {
+		pc := utils.PresentConversationLocal(conv, g.Env.GetUsername().String())
+		res = &pc
+	}
+	return res
 }
 
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
@@ -637,6 +672,13 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, err error) {
 
 	findConvosWithMembersType := func(membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, err error) {
+		// Don't look for KBFS conversations anymore, they have mostly been converted, and it is better
+		// to just not search for them than to create a double conversation. Make an exception for
+		// public conversations.
+		if g.GetEnv().GetChatMemberType() != "kbfs" && membersType == chat1.ConversationMembersType_KBFS &&
+			vis == keybase1.TLFVisibility_PRIVATE {
+			return nil, nil
+		}
 
 		query := &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
@@ -1057,8 +1099,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err != nil {
 			return res, fmt.Errorf("error creating topic ID: %s", err)
 		}
-		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v]", i, triple.Tlfid,
-			triple.TopicType, triple.TopicID, info.CanonicalName, isPublic)
+		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v mt: %v]",
+			i, triple.Tlfid, triple.TopicType, triple.TopicID, info.CanonicalName, isPublic,
+			n.membersType)
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
 		if err != nil {
@@ -1186,6 +1229,9 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 				}),
 		}
 	} else {
+		if membersType == chat1.ConversationMembersType_TEAM {
+			return nil, nil, errors.New("team conversations require a topic name")
+		}
 		msg = chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,

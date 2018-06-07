@@ -1,15 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
-    <title>FC508D80-7AD1-402A-85DA-1CF3268A6275</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Colors,-icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons-2" transform="translate(-338.000000, -278.000000)">
-            <g id="kb-iconfont-folder-public-16" transform="translate(338.000000, 278.000000)">
-                <rect id="icon-area" x="0" y="0" width="16" height="16"></rect>
-                <path d="M7.33324667,3 L5.9999,1 L1.33334667,1 C0.596974887,1.00003682 3.68158279e-05,1.59697489 0,2.33334667 L0,13.5 C3.68158279e-05,14.2363718 0.596974887,14.9999632 1.33334667,15 L14.6666533,15 C15.4030251,14.9999632 15.9999632,14.2363718 16,13.5 L16,4.5 C15.9999632,3.76362822 15.4030251,3.00003682 14.6666533,3 L7.33324667,3 Z M10.0001,7.00006 C10.0001,8.10464055 9.10466055,9.00008 8.00008,9.00008 C6.89549946,9.00008 6.00006,8.10464055 6.00006,7.00006 C6.00132381,5.89600337 6.89602337,5.00130381 8.00008,5.00004 C9.10466055,5.00004 10.0001,5.89547946 10.0001,7.00006 Z M4.71278046,13.00012 C5.04035369,11.4458726 6.41169127,10.3334318 8.00008333,10.3334318 C9.5884754,10.3334318 10.959813,11.4458726 11.2873862,13.00012 L4.71278046,13.00012 Z" id="folder-user" fill="#000000" fill-rule="nonzero"></path>
-            </g>
-        </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <g fill="none" fill-rule="evenodd">
+        <path d="M0 0h16v16H0z"/>
+        <path fill="#000" fill-rule="nonzero" d="M7.333 3L6 1H1.333C.597 1 0 1.597 0 2.333V13.5c0 .736.597 1.5 1.333 1.5h13.334c.736 0 1.333-.764 1.333-1.5v-9c0-.736-.597-1.5-1.333-1.5H7.333zM10 7a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-5.287 6a3.36 3.36 0 0 1 6.574 0H4.713z"/>
     </g>
 </svg>

@@ -184,7 +184,9 @@ type SafeWriteLogger interface {
 func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) (err error) {
 	fn := t.GetFilename()
 	g.Debug("+ SafeWriteToFile(%q)", fn)
-	defer g.Debug("- SafeWriteToFile(%q) -> %s", fn, ErrToOk(err))
+	defer func() {
+		g.Debug("- SafeWriteToFile(%q) -> %s", fn, ErrToOk(err))
+	}()
 
 	tmpfn, tmp, err := OpenTempFile(fn, "", mode)
 	if err != nil {

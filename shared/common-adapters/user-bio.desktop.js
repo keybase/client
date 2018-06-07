@@ -4,7 +4,6 @@ import React, {Component} from 'react'
 import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
-
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
 
@@ -50,9 +49,7 @@ class BioRender extends Component<Props> {
       return null
     }
 
-    const {followsYou} = userInfo
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
-
     const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let [bioLineClamp, locationLineClamp] = [{}, {}]
@@ -97,8 +94,7 @@ class BioRender extends Component<Props> {
               style={onClickAvatar ? platformStyles({isElectron: desktopStyles.clickable}) : null}
               username={username}
               size={avatarSize}
-              following={currentlyFollowing && !editFns}
-              followsYou={followsYou && !editFns}
+              showFollowingStatus={true}
             />
             {editFns && (
               <Box style={{height: 16, width: 0}}>
@@ -205,7 +201,7 @@ class BioRender extends Component<Props> {
             {editFns && (
               <Button
                 style={{marginTop: globalMargins.small}}
-                type="Primary"
+                type="Secondary"
                 label="Edit profile"
                 onClick={editFns.onEditProfile}
               />

@@ -4,8 +4,6 @@
 package engine
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -77,8 +75,7 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(m libkb.MetaContext) error {
 			ForceLast: true,
 		}
 		revokeEng := NewRevokeDeviceEngine(m.G(), revokeArg)
-		err = revokeEng.Run(m)
-		if err != nil {
+		if err = revokeEng.Run(m); err != nil {
 			m.CDebugf("DeprovisionEngine error during revoke: %s", err)
 			return err
 		}
@@ -100,44 +97,18 @@ func (e *DeprovisionEngine) Run(m libkb.MetaContext) (err error) {
 	//   a) Revoke all the current device's keys.
 	//   b) Log out.
 	// 2. Delete all the user's secret keys!!!
-	// 3. Delete the user from the config file.
-	// 4. Db nuke.
+	// 3. Delete the user's ephemeralKeys
+	// 4. Delete the user from the config file.
+	// 5. Db nuke.
 
 	if e.doRevoke {
-		err = e.attemptLoggedInRevoke(m)
-		if err != nil {
-			return
+		if err = e.attemptLoggedInRevoke(m); err != nil {
+			return err
 		}
 	}
 
-	logui := m.UIs().LogUI
-
-	if clearSecretErr := libkb.ClearStoredSecret(m.G(), e.username); clearSecretErr != nil {
-		m.CWarningf("ClearStoredSecret error: %s", clearSecretErr)
+	if err = libkb.ClearSecretsOnDeprovision(m, e.username); err != nil {
+		m.CDebugf("DeprovisionEngine error during clear secrets: %s", err)
 	}
-
-	// XXX: Delete the user's secret keyring. It's very important that we never
-	// do this to the wrong user. Please do not copy this code :)
-	logui.Info("Deleting %s's secret keys file...", e.username.String())
-	filename := m.G().SKBFilenameForUser(e.username)
-	err = libkb.ShredFile(filename)
-	if err != nil {
-		return fmt.Errorf("Failed to delete secret key file: %s", err)
-	}
-
-	logui.Info("Deleting %s from config.json...", e.username.String())
-	if err = m.G().Env.GetConfigWriter().NukeUser(e.username); err != nil {
-		return
-	}
-
-	// The config entries we just nuked could still be in memory. Clear them.
-	m.G().Env.GetConfigWriter().SetUserConfig(nil, true /* overwrite; ignored */)
-
-	logui.Info("Clearing the local cache db...")
-	if _, err = m.G().LocalDb.Nuke(); err != nil {
-		return
-	}
-
-	logui.Info("Deprovision finished.")
-	return
+	return nil
 }

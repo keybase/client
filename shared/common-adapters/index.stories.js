@@ -6,6 +6,7 @@ import button from './button.stories'
 import buttonBar from './button-bar.stories'
 import checkbox from './checkbox.stories'
 import choiceList from './choice-list.stories'
+import copyText from './copy-text.stories'
 import dropdown from './dropdown.stories'
 import formWithCheckbox from './form-with-checkbox.stories'
 import icon from './icon.stories'
@@ -14,6 +15,8 @@ import listItem from './list-item.stories'
 import markdown from './markdown.stories'
 import meta from './meta.stories'
 import nameWithIcon from './name-with-icon.stories'
+import newInput from './new-input.stories'
+import plainInput from './plain-input.stories'
 import popupMenu from './popup-menu.stories'
 import popupDialog from './popup-dialog.stories'
 import radiobutton from './radio-button.stories'
@@ -30,6 +33,7 @@ const load = () => {
     buttonBar,
     checkbox,
     choiceList,
+    copyText,
     dropdown,
     formWithCheckbox,
     icon,
@@ -38,6 +42,8 @@ const load = () => {
     markdown,
     meta,
     nameWithIcon,
+    newInput,
+    plainInput,
     popupDialog,
     popupMenu,
     radiobutton,

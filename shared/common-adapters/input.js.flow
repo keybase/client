@@ -1,6 +1,7 @@
 // @flow
 import {Component} from 'react'
 import {type StylesCrossPlatform} from '../styles'
+import {type TextType} from './text'
 
 export type KeyboardType =
   | 'default'

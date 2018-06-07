@@ -1,13 +1,12 @@
 // @flow
-import Folders, {type FolderType, type Props as FolderProps} from '../folders'
+import Folders, {type FolderType, type Props as FolderProps} from '../folders/index.desktop'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
-import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar} from '../common-adapters/index'
-import type {IconType} from '../common-adapters/icon'
+import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
 import {fsTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
-import {remote} from 'electron'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
 
 export type Props = {
@@ -44,7 +43,9 @@ class MenubarRender extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    remote.getCurrentWindow().on('show', this._onShow)
+    SafeElectron.getRemote()
+      .getCurrentWindow()
+      .on('show', this._onShow)
   }
 
   render() {
@@ -142,7 +143,6 @@ class MenubarRender extends Component<Props, State> {
     const mergedProps = {
       ...this.props.folderProps,
       onClick: this.props.onFolderClick,
-      smallMode: true,
       private: newPrivate,
       public: newPublic,
       onSwitchTab: selected => this.setState({selected}),

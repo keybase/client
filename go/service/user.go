@@ -4,7 +4,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/avatars"
@@ -210,7 +209,7 @@ func (h *UserHandler) loadPublicKeys(ctx context.Context, larg libkb.LoadUserArg
 func (h *UserHandler) LoadAllPublicKeysUnverified(ctx context.Context,
 	arg keybase1.LoadAllPublicKeysUnverifiedArg) (keys []keybase1.PublicKey, err error) {
 
-	u, err := libkb.LoadUserFromServer(ctx, h.G(), arg.Uid, nil)
+	u, err := libkb.LoadUserFromServer(libkb.NewMetaContext(ctx, h.G()), arg.Uid, nil)
 	if err != nil {
 		return
 	}
@@ -236,21 +235,6 @@ func (h *UserHandler) ListTrackers2(ctx context.Context, arg keybase1.ListTracke
 		res = eng.GetResults()
 	}
 	return res, err
-}
-
-func (h *UserHandler) ResetUser(ctx context.Context, sessionID int) error {
-	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
-		return errors.New("can only reset user via service RPC in dev mode")
-	}
-	err := h.G().LoginState().ResetAccount(libkb.NewMetaContext(ctx, h.G()), h.G().Env.GetUsername().String())
-	if err != nil {
-		return err
-	}
-	err = h.G().Logout()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEditArg) error {
@@ -361,4 +345,18 @@ func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadU
 
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	return avatars.UploadImage(mctx, arg.Filename, nil /* teamname */, arg.Crop)
+}
+
+func (h *UserHandler) FindNextMerkleRootAfterRevoke(ctx context.Context, arg keybase1.FindNextMerkleRootAfterRevokeArg) (ret keybase1.NextMerkleRootRes, err error) {
+	m := libkb.NewMetaContext(ctx, h.G())
+	m = m.WithLogTag("FNMR")
+	defer m.CTraceTimed("UserHandler#FindNextMerkleRootAfterRevoke", func() error { return err })()
+	return libkb.FindNextMerkleRootAfterRevoke(m, arg)
+}
+
+func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keybase1.FindNextMerkleRootAfterResetArg) (ret keybase1.NextMerkleRootRes, err error) {
+	m := libkb.NewMetaContext(ctx, h.G())
+	m = m.WithLogTag("FNMR")
+	defer m.CTraceTimed("UserHandler#FindNextMerkleRootAfterReset", func() error { return err })()
+	return libkb.FindNextMerkleRootAfterReset(m, arg)
 }

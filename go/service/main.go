@@ -35,6 +35,8 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellargregor"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/tlfupgrade"
@@ -312,7 +314,7 @@ func (d *Service) setupTeams() error {
 }
 
 func (d *Service) setupStellar() error {
-	stellar.ServiceInit(d.G())
+	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()))
 	return nil
 }
 
@@ -332,7 +334,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
-	d.chatEphemeralPurgeChecks()
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
@@ -353,6 +354,7 @@ func (d *Service) startChatModules() {
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
+		g.EphemeralPurger.Start(context.Background(), uid)
 	}
 }
 
@@ -360,6 +362,7 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().MessageDeliverer.Stop(context.Background())
 	<-d.ChatG().ConvLoader.Stop(context.Background())
 	<-d.ChatG().FetchRetrier.Stop(context.Background())
+	<-d.ChatG().EphemeralPurger.Stop(context.Background())
 }
 
 func (d *Service) createChatModules() {
@@ -381,6 +384,7 @@ func (d *Service) createChatModules() {
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)
+	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g, chatStorage)
 
 	// Set up push handler with the badger
 	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
@@ -503,6 +507,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
+		d.gregor.PushHandler(stellargregor.New(d.G(), remote.NewRemoteNet(d.G())))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
@@ -561,32 +566,6 @@ func (d *Service) writeServiceInfo() error {
 	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath(), d.G().Log)
 }
 
-func (d *Service) chatEphemeralPurgeChecks() {
-	ticker := libkb.NewBgTicker(5 * time.Minute)
-	d.G().PushShutdownHook(func() error {
-		d.G().Log.Debug("stopping chatEphemeralPurgeChecks loop")
-		ticker.Stop()
-		return nil
-	})
-	go func() {
-		for {
-			<-ticker.C
-			uid := d.G().Env.GetUID()
-			if uid.IsNil() {
-				continue
-			}
-			gregorUID := gregor1.UID(uid.ToBytes())
-			d.G().Log.Debug("+ chat ephemeral purge loop")
-			g := globals.NewContext(d.G(), d.ChatG())
-			// Purge any conversations that have expired ephemeral messages
-			storage.New(g, g.ConvSource).QueueEphemeralBackgroundPurges(context.Background(), gregorUID)
-			// Check the outbox for stuck ephemeral messages that need purging
-			storage.NewOutbox(g, gregorUID).EphemeralPurge(context.Background())
-			d.G().Log.Debug("- chat ephemeral chat loop")
-		}
-	}()
-}
-
 func (d *Service) hourlyChecks() {
 	ticker := libkb.NewBgTicker(1 * time.Hour)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("HRLY")
@@ -597,23 +576,23 @@ func (d *Service) hourlyChecks() {
 	})
 	go func() {
 		// do this quickly
-		if err := m.LogoutIfRevoked(); err != nil {
-			m.CDebugf("LogoutIfRevoked error: %s", err)
+		if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
+			m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 		}
 		ekLib := m.G().GetEKLib()
 		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
-			m.CDebugf("| checking if current device revoked")
-			if err := m.LogoutIfRevoked(); err != nil {
-				m.CDebugf("LogoutIfRevoked error: %s", err)
-			}
-
+			m.CDebugf("+ hourly check loop")
 			ekLib := m.G().GetEKLib()
 			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
 			ekLib.KeygenIfNeeded(m.Ctx())
 
-			m.CDebugf("+ hourly check loop")
+			m.CDebugf("| checking if current device revoked")
+			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
+				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
+			}
+
 			m.CDebugf("| checking tracks on an hour timer")
 			libkb.CheckTracking(m.G())
 
@@ -643,30 +622,12 @@ func (d *Service) slowChecks() {
 }
 
 func (d *Service) tryGregordConnect() error {
-	// If we're logged out, LoggedInLoad() will return false with no error,
-	// even if the network is down. However, if we're logged in and the network
-	// is down, it will still return false, along with the network error. We
-	// need to handle that case specifically, so that we still start the gregor
-	// connect loop.
-	loggedIn, err := d.G().LoginState().LoggedInProvisioned(context.Background())
-	if err != nil {
-		// A network error means we *think* we're logged in, and we tried to
-		// confirm with the API server. In that case we'll swallow the error
-		// and allow control to proceed to the gregor loop. We'll still
-		// short-circuit for any unexpected errors though.
-		switch err.(type) {
-		case libkb.LoginStateTimeoutError, libkb.APINetError:
-			d.G().Log.Debug("Network/timeout error received from LoginState, continuing onward: %s", err)
-		default:
-			d.G().Log.Debug("Unexpected non-network error in tryGregordConnect: %s", err)
-			return err
-		}
-	} else if !loggedIn {
+	loggedIn := d.G().ActiveDevice.Valid()
+	if !loggedIn {
 		// We only respect the loggedIn flag in the no-error case.
 		d.G().Log.Debug("not logged in, so not connecting to gregord")
 		return nil
 	}
-
 	return d.gregordConnect()
 }
 
@@ -1038,7 +999,7 @@ func (d *Service) GregorInjectOutOfBandMessage(sys string, body []byte) error {
 	if d.gregor == nil {
 		return errors.New("can't gregor inject without a gregor")
 	}
-	return d.gregor.InjectOutOfBandMessage(sys, body)
+	return d.gregor.InjectOutOfBandMessage(context.TODO(), sys, body)
 }
 
 func (d *Service) HasGregor() bool {

@@ -4,8 +4,6 @@
 package service
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -153,21 +151,6 @@ func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, sessionID int) err
 	}
 	eng := engine.NewLoginWithPaperKey(h.G())
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	return engine.RunEngine2(m, eng)
-}
-
-func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisionArg) error {
-	if h.G().Env.GetRunMode() == libkb.ProductionRunMode {
-		return errors.New("PGPProvision is a devel-only RPC")
-	}
-	uis := libkb.UIs{
-		LogUI:     h.getLogUI(arg.SessionID),
-		LoginUI:   h.getLoginUI(arg.SessionID),
-		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
-		SessionID: arg.SessionID,
-	}
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	eng := engine.NewPGPProvision(h.G(), arg.Username, arg.DeviceName, arg.Passphrase)
 	return engine.RunEngine2(m, eng)
 }
 

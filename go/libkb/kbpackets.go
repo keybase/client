@@ -26,7 +26,7 @@ type FishyMsgpackError struct {
 }
 
 func (e FishyMsgpackError) Error() string {
-	return fmt.Sprintf("Original msgpack data didn't match re-encoded version: %#v != %#v", e.reencoded, e.original)
+	return fmt.Sprintf("Original msgpack data didn't match re-encoded version: reencoded=%x != original=%x", e.reencoded, e.original)
 }
 
 func codecHandle() *codec.MsgpackHandle {
@@ -45,13 +45,13 @@ type KeybasePacketHash struct {
 type KeybasePacket struct {
 	Body    interface{}        `codec:"body"`
 	Hash    *KeybasePacketHash `codec:"hash,omitempty"`
-	Tag     int                `codec:"tag"`
-	Version int                `codec:"version"`
+	Tag     PacketTag          `codec:"tag"`
+	Version PacketVersion      `codec:"version"`
 }
 
 type KeybasePackets []*KeybasePacket
 
-func NewKeybasePacket(body interface{}, tag int, version int) (*KeybasePacket, error) {
+func NewKeybasePacket(body interface{}, tag PacketTag, version PacketVersion) (*KeybasePacket, error) {
 	ret := KeybasePacket{
 		Body:    body,
 		Tag:     tag,
@@ -212,7 +212,7 @@ func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 			copy(si.Sig[:], sig)
 		}
 		if st, ok := mb["sig_type"].(int64); ok {
-			si.SigType = int(st)
+			si.SigType = AlgoType(st)
 		}
 		if v, ok := mb["version"].(int64); ok {
 			si.Version = int(v)

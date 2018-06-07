@@ -28,8 +28,16 @@ func (k KeybaseTransactionID) String() string {
 	return string(k)
 }
 
+func (k KeybaseTransactionID) Eq(b KeybaseTransactionID) bool {
+	return k == b
+}
+
 func (t TransactionID) String() string {
 	return string(t)
+}
+
+func (t TransactionID) Eq(b TransactionID) bool {
+	return t == b
 }
 
 func ToTimeMs(t time.Time) TimeMs {
@@ -125,5 +133,43 @@ func AssetNative() Asset {
 		Type:   "native",
 		Code:   "",
 		Issuer: "",
+	}
+}
+
+func (t TransactionStatus) ToPaymentStatus() PaymentStatus {
+	switch t {
+	case TransactionStatus_PENDING:
+		return PaymentStatus_PENDING
+	case TransactionStatus_SUCCESS:
+		return PaymentStatus_COMPLETED
+	case TransactionStatus_ERROR_TRANSIENT, TransactionStatus_ERROR_PERMANENT:
+		return PaymentStatus_ERROR
+	default:
+		return PaymentStatus_UNKNOWN
+	}
+
+}
+
+func (t TransactionStatus) Details(errMsg string) (status, detail string) {
+	switch t {
+	case TransactionStatus_PENDING:
+		status = "pending"
+	case TransactionStatus_SUCCESS:
+		status = "completed"
+	case TransactionStatus_ERROR_TRANSIENT, TransactionStatus_ERROR_PERMANENT:
+		status = "error"
+		detail = errMsg
+	default:
+		status = "unknown"
+		detail = errMsg
+	}
+
+	return status, detail
+}
+
+func NewPaymentLocal(txid TransactionID, ctime TimeMs) *PaymentLocal {
+	return &PaymentLocal{
+		Id:   txid.String(),
+		Time: ctime,
 	}
 }

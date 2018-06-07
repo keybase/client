@@ -1,11 +1,29 @@
 // @flow
-import React, {Component} from 'react'
-import Row from './row'
+import * as React from 'react'
+import Row from './row.desktop'
 import {some} from 'lodash-es'
-import type {IconType} from '../common-adapters/icon'
-import type {Props} from './list'
-import {Box, Text, Icon, List} from '../common-adapters'
+import {Box, Text, Icon, List, type IconType} from '../common-adapters'
 import {globalStyles, globalColors, desktopStyles, platformStyles} from '../styles'
+import * as Types from '../constants/types/folders'
+
+export type FolderType = 'public' | 'private' | 'team'
+export type Folder = Types.Folder
+
+export type Props = {
+  isPublic: boolean,
+  tlfs: Array<Types.Folder>,
+  ignored: Array<Types.Folder>,
+  installed: boolean,
+  type: FolderType,
+  style?: any,
+  onChat?: (tlf: string) => void,
+  onClick?: (path: string) => void,
+  onRekey?: (path: string) => void,
+  onOpen?: (path: string) => void,
+  extraRows: Array<React.Node>,
+  onToggleShowIgnored: () => void,
+  showIgnored: boolean,
+}
 
 const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-right'
@@ -29,7 +47,7 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   )
 }
 
-class ListRender extends Component<Props> {
+class ListRender extends React.Component<Props> {
   static defaultProps: {
     extraRows: Array<any>,
     ignored: Array<any>,
@@ -72,7 +90,6 @@ class ListRender extends Component<Props> {
         onClick={this.props.onClick}
         onRekey={this.props.onRekey}
         onOpen={this.props.onOpen}
-        smallMode={this.props.smallMode}
       />
     )
   }
@@ -88,14 +105,9 @@ class ListRender extends Component<Props> {
       <Box style={{...stylesContainer, ...this.props.style}}>
         <style>{realCSS}</style>
         <List
-          items={[
-            ...this.props.extraRows,
-            ...this.props.tlfs,
-            ...(!this.props.smallMode && this.props.ignored.length ? ['ignoreDivider'] : []),
-            ...(!this.props.smallMode && this.props.showIgnored ? this.props.ignored : []),
-          ]}
+          items={[...this.props.extraRows, ...this.props.tlfs]}
           renderItem={this._renderItem}
-          fixedHeight={this.props.smallMode ? 48 : 56}
+          fixedHeight={48}
         />
       </Box>
     )

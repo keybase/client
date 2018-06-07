@@ -1,7 +1,7 @@
 // @flow
-import {showDockIcon} from '../desktop/app/dock-icon'
-import {getMainWindow} from '../desktop/remote/util'
-import {ipcRenderer} from 'electron'
+import {showDockIcon} from '../desktop/app/dock-icon.desktop'
+import {getMainWindow} from '../desktop/remote/util.desktop'
+import * as SafeElectron from '../util/safe-electron.desktop'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -32,13 +32,13 @@ function configurePush() {
 }
 
 function setAppState(toMerge: Object) {
-  ipcRenderer.send('setAppState', toMerge)
+  SafeElectron.getIpcRenderer().send('setAppState', toMerge)
 }
 
 function getAppState() {
   return new Promise((resolve, reject) => {
-    ipcRenderer.once('getAppStateReply', (event, data) => resolve(data))
-    ipcRenderer.send('getAppState')
+    SafeElectron.getIpcRenderer().once('getAppStateReply', (event, data) => resolve(data))
+    SafeElectron.getIpcRenderer().send('getAppState')
   })
 }
 
@@ -60,10 +60,6 @@ function checkPermissions() {
   throw new Error('Push permissions unsupported on this platform')
 }
 
-function setShownPushPrompt() {
-  throw new Error('Push permissions unsupported on this platform')
-}
-
 function getShownPushPrompt(): Promise<string> {
   throw new Error('Push permissions unsupported on this platform')
 }
@@ -72,9 +68,25 @@ function openAppSettings(): void {
   throw new Error('Cannot open app settings on desktop')
 }
 
+const getContentTypeFromURL = (
+  url: string,
+  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
+) => {
+  const req = SafeElectron.getRemote().net.request({url, method: 'HEAD'})
+  req.on('response', response => {
+    let contentType = ''
+    if (response.statusCode === 200) {
+      const contentTypeHeader = response.headers['content-type']
+      contentType = Array.isArray(contentTypeHeader) && contentTypeHeader.length ? contentTypeHeader[0] : ''
+    }
+    cb({statusCode: response.statusCode, contentType})
+  })
+  req.on('error', error => cb({error}))
+  req.end()
+}
+
 export {
   checkPermissions,
-  setShownPushPrompt,
   getShownPushPrompt,
   openAppSettings,
   requestPushPermissions,
@@ -88,4 +100,5 @@ export {
   downloadAndShowShareActionSheet,
   displayNewMessageNotification,
   clearAllNotifications,
+  getContentTypeFromURL,
 }

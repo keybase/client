@@ -619,12 +619,12 @@ type TeamLoader interface {
 }
 
 type Stellar interface {
+	OnLogout()
 	CreateWalletGated(context.Context) (bool, error)
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
-	OnLogout()
-
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
+	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 }
 
 type DeviceEKStorage interface {
@@ -634,6 +634,8 @@ type DeviceEKStorage interface {
 	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
+	// Dangerous! Only for deprovisioning.
+	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
 }
 
 type UserEKBoxStorage interface {
@@ -665,6 +667,8 @@ type EKLib interface {
 	BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
 	PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
 	ShouldRun(ctx context.Context) bool
+	// For testing
+	NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (bool, error)
 }
 
 type ImplicitTeamConflictInfoCacher interface {

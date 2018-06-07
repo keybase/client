@@ -63,7 +63,7 @@ func (c *ConversationRetry) RekeyFixable(ctx context.Context, tlfID chat1.TLFID)
 func (c *ConversationRetry) SendStale(ctx context.Context, uid gregor1.UID) {
 	supdates := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
 		ConvID:     c.convID,
-		UpdateType: chat1.StaleUpdateType_CLEAR,
+		UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
 	}}
 	c.G().Syncer.SendChatStaleNotifications(ctx, uid, supdates, false)
 }

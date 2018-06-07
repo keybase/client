@@ -166,7 +166,12 @@ class RetentionPicker extends React.Component<Props, State> {
         />
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
-          <Icon type="iconfont-timer" style={{marginLeft: globalMargins.xtiny}} fontSize={16} />
+          <Icon
+            type="iconfont-timer"
+            style={{marginLeft: globalMargins.xtiny}}
+            fontSize={isMobile ? 22 : 16}
+            color={globalColors.black_20}
+          />
         </Box>
         <ClickableBox
           onClick={this._toggleShowMenu}
@@ -218,7 +223,12 @@ const RetentionDisplay = (props: Props & {entityType: RetentionEntityType}) => {
     <Box style={collapseStyles([globalStyles.flexBoxColumn, props.containerStyle])}>
       <Box style={displayHeadingStyle}>
         <Text type="BodySmallSemibold">Message deletion</Text>
-        <Icon type="iconfont-timer" style={{marginLeft: globalMargins.xtiny}} fontSize={16} />
+        <Icon
+          type="iconfont-timer"
+          color={globalColors.black_20}
+          fontSize={isMobile ? 22 : 16}
+          style={{marginLeft: globalMargins.xtiny}}
+        />
       </Box>
       <Text type="BodySmall">{text}</Text>
     </Box>

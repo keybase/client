@@ -8,16 +8,12 @@ import type {RetentionPolicy} from '../teams'
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
 
-// When we scroll backwards we get an opaque string back to use as a token to get the next page
-export opaque type PaginationKey: string = string
-export const stringToPaginationKey = (s: string): PaginationKey => s
-
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type _ConversationMeta = {
   channelname: string,
-  conversationIDKey: Common.ConversationIDKey,
+  conversationIDKey: Common.ConversationIDKey, // should be the key for this meta EXCEPT for pendingConversationIDKey, in that case its the resolved conversation we're previewing
   description: string,
   inboxVersion: number,
   isMuted: boolean,
@@ -28,14 +24,13 @@ export type _ConversationMeta = {
   notificationsGlobalIgnoreMentions: boolean,
   offline: boolean,
   orangeLineOrdinal: ?Ordinal,
-  paginationKey: ?PaginationKey,
-  participants: I.OrderedSet<string>,
+  participants: I.List<string>, // was OrderedSet but is quite slow
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,
   retentionPolicy: RetentionPolicy,
   snippet: string,
-  supersededBy: ?Common.ConversationIDKey,
-  supersedes: ?Common.ConversationIDKey,
+  supersededBy: Common.ConversationIDKey,
+  supersedes: Common.ConversationIDKey,
   teamType: TeamType,
   teamname: string,
   // We have a place in the team store that also stores `teamRetentionPolicy`.

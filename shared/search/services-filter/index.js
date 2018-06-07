@@ -2,10 +2,8 @@
 // The filter bar for search. Lets you select a search provider
 import * as Types from '../../constants/types/search'
 import React, {Component} from 'react'
-import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
+import {Box, Icon, ClickableBox, Text, type IconType} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition, isMobile, platformStyles} from '../../styles'
-
-import type {IconType} from '../../common-adapters/icon'
 
 type Props = {
   selectedService: Types.Service,
@@ -77,16 +75,18 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
   return (
     <ClickableBox key={service} onClick={() => onSelect(service)} {...boxProps}>
       <Icon type={selected ? selectedIconMap[service] : unselectedIconMap[service]} />
-      <Box
-        style={{
-          ...serviceTooltipStyle,
-          opacity: hovering ? 1 : 0,
-        }}
-      >
-        <Text type="BodySmall" style={{color: globalColors.white}}>
-          {service}
-        </Text>
-      </Box>
+      {!isMobile && (
+        <Box
+          style={{
+            ...serviceTooltipStyle,
+            opacity: hovering ? 1 : 0,
+          }}
+        >
+          <Text type="BodySmall" style={{color: globalColors.white}}>
+            {service}
+          </Text>
+        </Box>
+      )}
     </ClickableBox>
   )
 }

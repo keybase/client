@@ -72,12 +72,6 @@ protocol login {
   void unlockWithPassphrase(int sessionID, string passphrase);
 
   /**
-    pgpProvision is for devel/testing to provision a device via pgp using CLI
-    with no user interaction.
-    */
-  void pgpProvision(int sessionID, string username, string passphrase, string deviceName);
-
-  /**
     accountDelete is for devel/testing to delete the current user's account.
     */
   void accountDelete(int sessionID);

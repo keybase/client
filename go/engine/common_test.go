@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
@@ -257,7 +256,8 @@ func (fu *FakeUser) NewCountSecretUI() *libkb.TestCountSecretUI {
 }
 
 func AssertProvisioned(tc libkb.TestContext) error {
-	prov, err := tc.G.LoginState().LoggedInProvisioned(context.TODO())
+	m := NewMetaContextForTest(tc)
+	prov, err := isLoggedInWithError(m)
 	if err != nil {
 		return err
 	}
@@ -268,12 +268,13 @@ func AssertProvisioned(tc libkb.TestContext) error {
 }
 
 func AssertNotProvisioned(tc libkb.TestContext) error {
-	prov, err := tc.G.LoginState().LoggedInProvisioned(context.TODO())
+	m := NewMetaContextForTest(tc)
+	prov, err := isLoggedInWithError(m)
 	if err != nil {
 		return err
 	}
 	if prov {
-		return errors.New("AssertNotProvisioned failed:  user is provisioned")
+		return errors.New("AssertNotProvisioned failed: user is provisioned")
 	}
 	return nil
 }
@@ -293,8 +294,7 @@ func AssertLoggedOut(tc libkb.TestContext) error {
 }
 
 func LoggedIn(tc libkb.TestContext) bool {
-	lin, _ := tc.G.LoginState().LoggedInLoad()
-	return lin
+	return tc.G.ActiveDevice.Valid()
 }
 
 func Logout(tc libkb.TestContext) {
@@ -317,7 +317,7 @@ func testEngineWithSecretStore(
 	defer tc.Cleanup()
 
 	fu := SignupFakeUserStoreSecret(tc, "wss")
-	tc.ResetLoginState()
+	tc.SimulateServiceRestart()
 
 	testSecretUI := libkb.TestSecretUI{
 		Passphrase:  fu.Passphrase,
@@ -411,16 +411,13 @@ func NewMetaContextForTestWithLogUI(tc libkb.TestContext) libkb.MetaContext {
 }
 
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
-	err := tc.G.LoginState().ResetAccount(NewMetaContextForTest(tc), u.Username)
-	if err != nil {
-		tc.T.Fatalf("In account reset: %s", err)
-	}
-	tc.T.Logf("Account reset for user %s", u.Username)
+	ResetAccountNoLogout(tc, u)
 	Logout(tc)
 }
 
 func ResetAccountNoLogout(tc libkb.TestContext, u *FakeUser) {
-	err := tc.G.LoginState().ResetAccount(NewMetaContextForTest(tc), u.Username)
+	m := NewMetaContextForTest(tc)
+	err := libkb.ResetAccount(m, u.NormalizedUsername(), u.Passphrase)
 	if err != nil {
 		tc.T.Fatalf("In account reset: %s", err)
 	}
@@ -454,4 +451,12 @@ func getUserSeqno(tc *libkb.TestContext, uid keybase1.UID) keybase1.Seqno {
 
 func checkUserSeqno(tc *libkb.TestContext, uid keybase1.UID, expected keybase1.Seqno) {
 	require.Equal(tc.T, expected, getUserSeqno(tc, uid))
+}
+
+func fakeSalt() []byte {
+	return []byte("fakeSALTfakeSALT")
+}
+
+func clearCaches(g *libkb.GlobalContext) {
+	g.ActiveDevice.ClearCaches()
 }

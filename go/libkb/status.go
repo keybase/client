@@ -24,14 +24,14 @@ type CurrentStatus struct {
 func GetCurrentStatus(ctx context.Context, g *GlobalContext) (res CurrentStatus, err error) {
 	cr := g.Env.GetConfig()
 	if cr == nil {
-		return
+		return res, nil
 	}
 	res.Configured = true
 	if uid := cr.GetUID(); uid.Exists() {
 		res.Registered = true
 		res.User = NewUserThin(cr.GetUsername().String(), uid)
 	}
-	res.SessionIsValid, err = g.LoginState().LoggedInProvisioned(ctx)
+	res.SessionIsValid = g.ActiveDevice.Valid()
 	res.LoggedIn = res.SessionIsValid
-	return
+	return res, nil
 }

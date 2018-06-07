@@ -115,11 +115,9 @@ protocol chatUi {
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
-    @mpackkey("ie") @jsonkey("ie")
     boolean isEphemeral;
-    @mpackkey("iex") @jsonkey("iex")
     boolean isEphemeralExpired;
-    @mpackkey("e") @jsonkey("e")
+    union { null, string} explodedBy;
     gregor1.Time etime;
   }
 

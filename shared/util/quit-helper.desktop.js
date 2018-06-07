@@ -1,7 +1,7 @@
 // @flow
-import {ipcRenderer, ipcMain, app} from 'electron'
-import {quit} from '../desktop/app/ctl'
-import {hideDockIcon} from '../desktop/app/dock-icon'
+import * as SafeElectron from '../util/safe-electron.desktop'
+import {quit} from '../desktop/app/ctl.desktop'
+import {hideDockIcon} from '../desktop/app/dock-icon.desktop'
 
 export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
 export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
@@ -33,7 +33,7 @@ function _executeActions(actions: Array<Action>) {
         hideDockIcon()
         break
       case 'closePopups':
-        app.emit('close-windows')
+        SafeElectron.getApp().emit('close-windows')
         break
       case 'quitApp':
         quit()
@@ -44,7 +44,7 @@ function _executeActions(actions: Array<Action>) {
 
 // Takes an array of actions, but makes an ipc call to have the main thread execute the actions
 function _executeActionsFromRenderer(actions: Array<Action>) {
-  ipcRenderer.send('executeActions', actions)
+  SafeElectron.getIpcRenderer().send('executeActions', actions)
 }
 
 export function executeActionsForContext(context: Context) {
@@ -57,7 +57,7 @@ export function executeActionsForContext(context: Context) {
 }
 
 export function setupExecuteActionsListener() {
-  ipcMain.on('executeActions', (event, actions) => {
+  SafeElectron.getIpcMain().on('executeActions', (event, actions) => {
     console.log('executeActionsRecieved', actions)
     _executeActions(actions)
   })

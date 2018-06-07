@@ -132,6 +132,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	// We set the initial tracker info when we merge in
 	expectedPurgeInfo := &chat1.EphemeralPurgeInfo{
+		ConvID:          convID,
 		NextPurgeTime:   msgC.Valid().Etime(),
 		MinUnexplodedID: msgC.GetMessageID(),
 		IsActive:        true,
@@ -163,7 +164,8 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// Once we run EphemeralPurge and sweep all messages, we update our tracker
 	// state
 	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
-		NextPurgeTime:   msgF.Valid().Etime(),
+		ConvID:          convID,
+		NextPurgeTime:   msgE.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
 		IsActive:        true,
 	}
@@ -172,7 +174,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	t.Logf("mergeH")
 	// We add msgH, which is already expired, so it should get purged on entry,
-	// but our nextPurgeTime should be unchanged, since msgF's etime is still
+	// but our nextPurgeTime should be unchanged, since msgE's etime is still
 	// the min.
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgH}))
 	verifyTrackerState(expectedPurgeInfo)
@@ -184,6 +186,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// we've slept for ~ lifetime*2, F's lifetime is up
 	clock.Advance(sleepLifetime)
 	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
+		ConvID:          convID,
 		NextPurgeTime:   msgE.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
 		IsActive:        true,
@@ -195,6 +198,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// we've slept for ~ lifetime*3, E's lifetime is up
 	clock.Advance(sleepLifetime)
 	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
+		ConvID:          convID,
 		NextPurgeTime:   0,
 		MinUnexplodedID: msgH.GetMessageID(),
 		IsActive:        false,
@@ -214,6 +218,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// Force a purge with 0 messages, and make sure we process it correctly.
 	newPurgeInfo, purgedMsgs, err := storage.EphemeralPurge(context.Background(), convID, uid,
 		&chat1.EphemeralPurgeInfo{
+			ConvID:          convID,
 			NextPurgeTime:   0,
 			MinUnexplodedID: msgH.GetMessageID() + 1,
 			IsActive:        false,

@@ -12,7 +12,7 @@ export type Props = {
   onClickAvatar?: () => void,
 }
 
-const AVATAR_SIZE = isMobile ? 32 : 24
+const AVATAR_SIZE = 32
 
 const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>
@@ -34,22 +34,10 @@ export type SmallProps = {
 }
 
 const SmallUserNotice = (props: SmallProps) => (
-  <Box
-    style={{
-      flex: 1,
-      marginTop: 3,
-      marginBottom: 3,
-      marginLeft: globalMargins.tiny,
-      marginRight: globalMargins.medium,
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-    }}
-    title={props.title}
-  >
+  <Box style={styleSmallNotice} title={props.title}>
     <Avatar
       onClick={props.onAvatarClicked}
-      size={24}
+      size={32}
       username={props.avatarUsername}
       style={{marginRight: globalMargins.tiny}}
     />
@@ -59,6 +47,23 @@ const SmallUserNotice = (props: SmallProps) => (
     </Box>
   </Box>
 )
+const styleSmallNotice = platformStyles({
+  common: {
+    flex: 1,
+    marginTop: globalMargins.xtiny,
+    marginBottom: globalMargins.xtiny,
+    marginRight: globalMargins.medium,
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  isElectron: {
+    marginLeft: globalMargins.small,
+  },
+  isMobile: {
+    marginLeft: globalMargins.tiny,
+  },
+})
 
 const styleOuterBox = {
   ...globalStyles.flexBoxColumn,

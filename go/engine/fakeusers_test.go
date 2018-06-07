@@ -4,9 +4,9 @@
 package engine
 
 import (
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string) {
@@ -15,16 +15,21 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 	m := NewMetaContextForTest(tc)
 	s := NewSignupEngine(tc.G, nil)
 
-	f := func(a libkb.LoginContext) error {
-		m = m.WithLoginContext(a)
+	f := func() error {
+		m = m.WithNewProvisionalLoginContext()
+
 		// going to just run the join step of signup engine
 		if err := s.genPassphraseStream(m, passphrase); err != nil {
 			return err
 		}
 
-		return s.join(m, username, email, libkb.TestInvitationCode, true)
+		if err := s.join(m, username, email, libkb.TestInvitationCode, true); err != nil {
+			return err
+		}
+		m = m.CommitProvisionalLogin()
+		return nil
 	}
-	if err := m.G().LoginState().ExternalFunc(f, "createFakeUserWithNoKeys"); err != nil {
+	if err := f(); err != nil {
 		tc.T.Fatal(err)
 	}
 
@@ -47,21 +52,17 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	s := NewSignupEngine(tc.G, nil)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	f := func(a libkb.LoginContext) error {
-		m = m.WithLoginContext(a)
-		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
-			return err
-		}
-
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
-			return err
-		}
-
-		return s.fakeLKS(m)
-	}
-	if err := m.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPOnly"); err != nil {
-		tc.T.Fatal(err)
-	}
+	// Keep this provisional login around indefinitely, since we're going to need it to
+	// post PGP keys below. This isn't a modern use for our software, but we have this code
+	// to emulate old accounts provisioned by deprecated login paths.
+	m = m.WithNewProvisionalLoginContext()
+	err := s.genPassphraseStream(m, fu.Passphrase)
+	require.NoError(t, err)
+	err = s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true)
+	require.NoError(t, err)
+	err = s.fakeLKS(m)
+	require.NoError(t, err)
+	m.Dump()
 
 	// Generate a new test PGP key for the user, and specify the PushSecret
 	// flag so that their triplesec'ed key is pushed to the server.
@@ -77,15 +78,10 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 		NoSave:     true,
 	})
 
-	if err := RunEngine2(m, peng); err != nil {
-		tc.T.Fatal(err)
-	}
-
-	var err error
-	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	err = RunEngine2(m, peng)
+	require.NoError(t, err)
+	fu.User, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
+	require.NoError(t, err)
 
 	return fu
 }
@@ -107,8 +103,8 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	f := func(a libkb.LoginContext) error {
-		m = m.WithLoginContext(a)
+	f := func() error {
+		m = m.WithNewProvisionalLoginContext()
 		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
 			return err
 		}
@@ -121,9 +117,13 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 			return err
 		}
 
-		return s.addGPG(m, false, false)
+		if err := s.addGPG(m, false, false); err != nil {
+			return err
+		}
+		m = m.CommitProvisionalLogin()
+		return nil
 	}
-	if err := m.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPPubOnly"); err != nil {
+	if err := f(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -147,8 +147,8 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	f := func(a libkb.LoginContext) error {
-		m = m.WithLoginContext(a)
+	f := func() error {
+		m = m.WithNewProvisionalLoginContext()
 		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
 			return err
 		}
@@ -170,12 +170,17 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 		// hack the gpg ui to select a different key:
 		m = m.WithGPGUI(&gpgtestui{index: 1})
-		return s.addGPG(m, true, false)
+		if err := s.addGPG(m, true, false); err != nil {
+			return nil
+		}
+		m = m.CommitProvisionalLogin()
+		return nil
 	}
 
-	if err := m.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPPubMult"); err != nil {
+	if err := f(); err != nil {
 		t.Fatal(err)
 	}
+
 	// now it should have two pgp keys...
 
 	return fu
@@ -199,8 +204,8 @@ func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alterna
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	f := func(a libkb.LoginContext) error {
-		m = m.WithLoginContext(a)
+	f := func() error {
+		m = m.WithNewProvisionalLoginContext()
 		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
 			return err
 		}
@@ -217,10 +222,14 @@ func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alterna
 		}
 
 		// this will add the GPG key for fu.Email to their account
-		return s.addGPG(m, false, false)
+		if err := s.addGPG(m, false, false); err != nil {
+			return err
+		}
+		m = m.CommitProvisionalLogin()
+		return nil
 	}
 
-	if err := m.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPMultSubset"); err != nil {
+	if err := f(); err != nil {
 		t.Fatal(err)
 	}
 	// now it should have two pgp keys...
@@ -327,6 +336,6 @@ func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
 // fakeLKS is used to create a lks that has the server half when
 // creating a fake user that doesn't have a device.
 func (s *SignupEngine) fakeLKS(m libkb.MetaContext) error {
-	s.lks = libkb.NewLKSec(s.ppStream, s.uid, m.G())
+	s.lks = libkb.NewLKSec(s.ppStream, s.uid)
 	return s.lks.GenerateServerHalf()
 }

@@ -35,7 +35,7 @@ func NewBackgroundTLFUpdater(g *libkb.GlobalContext) *BackgroundTLFUpdater {
 		Contextified: libkb.NewContextified(g),
 		initialWait:  10 * time.Second,
 		errWait:      20 * time.Second,
-		successWait:  time.Minute,
+		successWait:  20 * time.Second,
 		shutdownCh:   make(chan struct{}),
 		clock:        clockwork.NewRealClock(),
 	}

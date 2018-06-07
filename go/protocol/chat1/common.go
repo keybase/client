@@ -232,6 +232,7 @@ const (
 	MessageType_LEAVE              MessageType = 10
 	MessageType_SYSTEM             MessageType = 11
 	MessageType_DELETEHISTORY      MessageType = 12
+	MessageType_REACTION           MessageType = 13
 )
 
 func (o MessageType) DeepCopy() MessageType { return o }
@@ -250,6 +251,7 @@ var MessageTypeMap = map[string]MessageType{
 	"LEAVE":              10,
 	"SYSTEM":             11,
 	"DELETEHISTORY":      12,
+	"REACTION":           13,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -266,28 +268,32 @@ var MessageTypeRevMap = map[MessageType]string{
 	10: "LEAVE",
 	11: "SYSTEM",
 	12: "DELETEHISTORY",
+	13: "REACTION",
 }
 
 type TopicType int
 
 const (
-	TopicType_NONE TopicType = 0
-	TopicType_CHAT TopicType = 1
-	TopicType_DEV  TopicType = 2
+	TopicType_NONE         TopicType = 0
+	TopicType_CHAT         TopicType = 1
+	TopicType_DEV          TopicType = 2
+	TopicType_KBFSFILEEDIT TopicType = 3
 )
 
 func (o TopicType) DeepCopy() TopicType { return o }
 
 var TopicTypeMap = map[string]TopicType{
-	"NONE": 0,
-	"CHAT": 1,
-	"DEV":  2,
+	"NONE":         0,
+	"CHAT":         1,
+	"DEV":          2,
+	"KBFSFILEEDIT": 3,
 }
 
 var TopicTypeRevMap = map[TopicType]string{
 	0: "NONE",
 	1: "CHAT",
 	2: "DEV",
+	3: "KBFSFILEEDIT",
 }
 
 type TeamType int
@@ -1006,6 +1012,7 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 type MessageServerHeader struct {
 	MessageID    MessageID    `codec:"messageID" json:"messageID"`
 	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
+	ReactionIDs  []MessageID  `codec:"r" json:"r"`
 	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
 	Now          gregor1.Time `codec:"n" json:"n"`
 }
@@ -1014,8 +1021,19 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 	return MessageServerHeader{
 		MessageID:    o.MessageID.DeepCopy(),
 		SupersededBy: o.SupersededBy.DeepCopy(),
-		Ctime:        o.Ctime.DeepCopy(),
-		Now:          o.Now.DeepCopy(),
+		ReactionIDs: (func(x []MessageID) []MessageID {
+			if x == nil {
+				return nil
+			}
+			var ret []MessageID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ReactionIDs),
+		Ctime: o.Ctime.DeepCopy(),
+		Now:   o.Now.DeepCopy(),
 	}
 }
 
@@ -1046,23 +1064,33 @@ func (o OutboxInfo) DeepCopy() OutboxInfo {
 type MsgEphemeralMetadata struct {
 	Lifetime   gregor1.DurationSec   `codec:"l" json:"l"`
 	Generation keybase1.EkGeneration `codec:"g" json:"g"`
+	ExplodedBy *string               `codec:"u,omitempty" json:"u,omitempty"`
 }
 
 func (o MsgEphemeralMetadata) DeepCopy() MsgEphemeralMetadata {
 	return MsgEphemeralMetadata{
 		Lifetime:   o.Lifetime.DeepCopy(),
 		Generation: o.Generation.DeepCopy(),
+		ExplodedBy: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ExplodedBy),
 	}
 }
 
 type EphemeralPurgeInfo struct {
-	IsActive        bool         `codec:"a" json:"a"`
-	NextPurgeTime   gregor1.Time `codec:"n" json:"n"`
-	MinUnexplodedID MessageID    `codec:"e" json:"e"`
+	ConvID          ConversationID `codec:"c" json:"c"`
+	IsActive        bool           `codec:"a" json:"a"`
+	NextPurgeTime   gregor1.Time   `codec:"n" json:"n"`
+	MinUnexplodedID MessageID      `codec:"e" json:"e"`
 }
 
 func (o EphemeralPurgeInfo) DeepCopy() EphemeralPurgeInfo {
 	return EphemeralPurgeInfo{
+		ConvID:          o.ConvID.DeepCopy(),
 		IsActive:        o.IsActive,
 		NextPurgeTime:   o.NextPurgeTime.DeepCopy(),
 		MinUnexplodedID: o.MinUnexplodedID.DeepCopy(),

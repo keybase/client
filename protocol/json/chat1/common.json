@@ -142,7 +142,8 @@
         "JOIN_9",
         "LEAVE_10",
         "SYSTEM_11",
-        "DELETEHISTORY_12"
+        "DELETEHISTORY_12",
+        "REACTION_13"
       ],
       "go": "nostring"
     },
@@ -152,7 +153,8 @@
       "symbols": [
         "NONE_0",
         "CHAT_1",
-        "DEV_2"
+        "DEV_2",
+        "KBFSFILEEDIT_3"
       ],
       "go": "nostring"
     },
@@ -746,6 +748,15 @@
           "name": "supersededBy"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "reactionIDs",
+          "mpackkey": "r",
+          "jsonkey": "r"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
@@ -800,6 +811,15 @@
           "name": "generation",
           "mpackkey": "g",
           "jsonkey": "g"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "explodedBy",
+          "mpackkey": "u",
+          "jsonkey": "u"
         }
       ],
       "mpackkey": "em",
@@ -809,6 +829,12 @@
       "type": "record",
       "name": "EphemeralPurgeInfo",
       "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID",
+          "mpackkey": "c",
+          "jsonkey": "c"
+        },
         {
           "type": "boolean",
           "name": "isActive",

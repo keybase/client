@@ -1,17 +1,18 @@
 // @flow
-import * as Chat2Gen from '../actions/chat2-gen'
+import * as I from 'immutable'
+import * as Chat2Gen from './chat2-gen'
 import * as FsGen from './fs-gen'
-import * as GitGen from '../actions/git-gen'
-import * as NotificationsGen from '../actions/notifications-gen'
+import * as GitGen from './git-gen'
+import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
-import * as TeamsGen from '../actions/teams-gen'
-import * as TrackerGen from '../actions/tracker-gen'
+import * as TeamsGen from './teams-gen'
+import * as TrackerGen from './tracker-gen'
 import * as UnlockFoldersGen from './unlock-folders-gen'
-import ListenerCreator from '../native/notification-listeners'
+import * as FsTypes from '../constants/types/fs'
+import setUpNotificationActions from '../native/notification-listeners'
 import engine, {Engine} from '../engine'
 import logger from '../logger'
-import {NotifyPopup} from '../native/notifications'
 import {isMobile} from '../constants/platform'
 import {createSetupPeopleHandlers} from './people-gen'
 
@@ -20,6 +21,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     app: true,
     badges: true,
     chat: true,
+    ephemeral: false,
     favorites: false,
     kbfs: !isMobile,
     kbfsrequest: !isMobile,
@@ -32,7 +34,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     team: true,
     tracking: true,
     users: true,
-    ephemeral: false,
+    chatkbfsedits: false,
   }
 
   const engineInst: Engine = yield Saga.call(engine)
@@ -44,19 +46,13 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     })
   })
 
-  const setHandlers = (dispatch, getState) => {
-    const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
-    Object.keys(listeners).forEach(key => {
-      engine().setIncomingHandler(key, listeners[key])
-    })
-  }
-  yield Saga.put(setHandlers)
+  setUpNotificationActions()
+
   yield Saga.put(TrackerGen.createSetupTrackerHandlers())
 }
 
 function* _listenKBFSSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createSetupFSHandlers())
-  yield Saga.put(FsGen.createRefreshLocalHTTPServerInfo())
   yield Saga.put(Chat2Gen.createSetupChatHandlers())
   yield Saga.put(TeamsGen.createSetupTeamHandlers())
   yield Saga.put(UnlockFoldersGen.createRegisterRekeyListener())
@@ -71,6 +67,20 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
     newTeamAccessRequests,
     teamsWithResetUsers,
   } = action.payload.badgeState
+  const tlfs: Map<FsTypes.Path, FsTypes.ResetMetadata> = (teamsWithResetUsers || []).reduce((filtered, item: $ReadOnly<{id: Buffer, teamname: string, username: string}>) => {
+    const path = FsTypes.stringToPath(`/keybase/team/${item.teamname}`)
+    let team = filtered.get(path)
+    if (!team) {
+      team = {
+        name: item.teamname,
+        visibility: 'team',
+        resetParticipants: [],
+      }
+      filtered.set(path, team)
+    }
+    team.resetParticipants.push(item.username)
+    return filtered
+  }, new Map())
   return Saga.sequentially([
     Saga.put(Chat2Gen.createBadgesUpdated({conversations: conversations || []})),
     Saga.put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []})),
@@ -81,6 +91,7 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
         teamsWithResetUsers: teamsWithResetUsers || [],
       })
     ),
+    Saga.put(FsGen.createLoadResetsResult({tlfs: I.Map(tlfs)})),
   ])
 }
 

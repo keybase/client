@@ -63,7 +63,7 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 	if err != nil {
 		return err
 	}
-	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary)
+	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, "")
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
@@ -85,18 +85,10 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 	if err != nil {
 		return res, err
 	}
-	pwdOk := false
-	_, err = s.G().LoginState().VerifyPlaintextPassphrase(mctx, ppRes.Passphrase, func(lctx libkb.LoginContext) error {
-		pwdOk = true
-		return nil
-	})
+	_, err = libkb.VerifyPassphraseForLoggedInUser(mctx, ppRes.Passphrase)
 	if err != nil {
 		return res, err
 	}
-	if !pwdOk {
-		return res, libkb.PassphraseError{}
-	}
-
 	return stellar.ExportSecretKey(ctx, s.G(), accountID)
 }
 
@@ -111,21 +103,20 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 	return stellar.OwnAccount(ctx, s.G(), accountID)
 }
 
-func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
-	var err error
+func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg) (res stellar1.SendResultCLILocal, err error) {
 	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "SendLocal", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "SendCLILocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
-		return stellar1.PaymentResult{}, err
+		return res, err
 	}
 	if !arg.Asset.IsNativeXLM() {
-		return stellar1.PaymentResult{}, fmt.Errorf("sending non-XLM assets is not supported")
+		return res, fmt.Errorf("sending non-XLM assets is not supported")
 	}
 
 	// make sure that the xlm amount is close to the display amount the
 	// user thinks they are sending.
 	if err = s.checkDisplayAmount(ctx, arg); err != nil {
-		return stellar1.PaymentResult{}, err
+		return res, err
 	}
 
 	displayBalance := stellar.DisplayBalance{
@@ -137,10 +128,31 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount, arg.Note, displayBalance)
+	quickReturn := false
+	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount,
+		arg.Note, displayBalance, arg.ForceRelay, quickReturn)
 }
 
-func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLIOptionLocal, err error) {
+func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "ClaimCLILocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	var into stellar1.AccountID
+	if arg.Into != nil {
+		into = *arg.Into
+	} else {
+		// Default to claiming into the user's primary wallet.
+		into, err = stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		if err != nil {
+			return res, err
+		}
+	}
+	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into, nil, nil)
+}
+
+func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "RecentPaymentsCLILocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
@@ -207,7 +219,7 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 	}
 	if displayCurrency == "" {
 		displayCurrency = defaultOutsideCurrency
-		g.Log.CDebugf(ctx, "Setting default display currency %s for account %s",
+		g.Log.CDebugf(ctx, "Using default display currency %s for account %s",
 			displayCurrency, account.AccountID)
 	}
 	rate, ok := exchangeRates[displayCurrency]
@@ -296,35 +308,18 @@ func (s *Server) GetAvailableLocalCurrencies(ctx context.Context) (ret map[stell
 
 func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.FormatLocalCurrencyStringArg) (res string, err error) {
 	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "FormatCurrencyString", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "FormatLocalCurrencyString", func() error { return err })()
 
-	res = arg.Amount
-	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
-	if err != nil {
-		return res, err
-	}
-
-	currency, ok := conf.Currencies[arg.Code]
-	if !ok {
-		return res, fmt.Errorf("Could not find currency %q", arg.Code)
-	}
-
-	if currency.Symbol.Postfix {
-		res = fmt.Sprintf("%s %s", arg.Amount, currency.Symbol.Symbol)
-	} else {
-		res = fmt.Sprintf("%s%s", currency.Symbol.Symbol, arg.Amount)
-	}
-
-	return res, nil
+	return stellar.FormatCurrency(ctx, s.G(), arg.Amount, arg.Code)
 }
 
 // check that the display amount is within 1% of current exchange rates
-func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendLocalArg) error {
+func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILocalArg) error {
 	if arg.DisplayAmount == "" {
 		return nil
 	}
 
-	exchangeRate, err := remote.ExchangeRate(ctx, s.G(), arg.DisplayCurrency)
+	exchangeRate, err := s.remoter.ExchangeRate(ctx, arg.DisplayCurrency)
 	if err != nil {
 		return err
 	}
@@ -345,6 +340,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendLocalA
 	}
 
 	if percentageAmountChange(currentAmt, argAmt) > 1.0 {
+		s.G().Log.CDebugf(ctx, "large exchange rate delta: argAmt: %d, currentAmt: %d", argAmt, currentAmt)
 		return errors.New("current exchange rates have changed more than 1%")
 	}
 

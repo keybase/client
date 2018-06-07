@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
+// RemoteNet is the real implementation of Remoter that talks to servers.
 type RemoteNet struct {
 	libkb.Contextified
 }
@@ -25,6 +26,10 @@ func (r *RemoteNet) Balances(ctx context.Context, accountID stellar1.AccountID) 
 	return Balances(ctx, r.G(), accountID)
 }
 
+func (r *RemoteNet) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
+	return Details(ctx, r.G(), accountID)
+}
+
 func (r *RemoteNet) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
 	return SubmitPayment(ctx, r.G(), post)
 }
@@ -33,10 +38,34 @@ func (r *RemoteNet) SubmitRelayPayment(ctx context.Context, post stellar1.Paymen
 	return SubmitRelayPayment(ctx, r.G(), post)
 }
 
+func (r *RemoteNet) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
+	return SubmitRelayClaim(ctx, r.G(), post)
+}
+
+func (r *RemoteNet) AcquireAutoClaimLock(ctx context.Context) (string, error) {
+	return AcquireAutoClaimLock(ctx, r.G())
+}
+
+func (r *RemoteNet) ReleaseAutoClaimLock(ctx context.Context, token string) error {
+	return ReleaseAutoClaimLock(ctx, r.G(), token)
+}
+
+func (r *RemoteNet) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, error) {
+	return NextAutoClaim(ctx, r.G())
+}
+
 func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
 	return RecentPayments(ctx, r.G(), accountID, limit)
 }
 
 func (r *RemoteNet) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
 	return PaymentDetail(ctx, r.G(), txID)
+}
+
+func (r *RemoteNet) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {
+	return GetAccountDisplayCurrency(ctx, r.G(), accountID)
+}
+
+func (r *RemoteNet) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
+	return ExchangeRate(ctx, r.G(), currency)
 }

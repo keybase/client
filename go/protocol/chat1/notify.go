@@ -67,6 +67,7 @@ type IncomingMessage struct {
 	Message                    UIMessage      `codec:"message" json:"message"`
 	ConvID                     ConversationID `codec:"convID" json:"convID"`
 	DisplayDesktopNotification bool           `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
+	DesktopNotificationSnippet string         `codec:"desktopNotificationSnippet" json:"desktopNotificationSnippet"`
 	Conv                       *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
 	Pagination                 *UIPagination  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
@@ -76,6 +77,7 @@ func (o IncomingMessage) DeepCopy() IncomingMessage {
 		Message: o.Message.DeepCopy(),
 		ConvID:  o.ConvID.DeepCopy(),
 		DisplayDesktopNotification: o.DisplayDesktopNotification,
+		DesktopNotificationSnippet: o.DesktopNotificationSnippet,
 		Conv: (func(x *InboxUIItem) *InboxUIItem {
 			if x == nil {
 				return nil
@@ -185,17 +187,37 @@ func (o FailedMessageInfo) DeepCopy() FailedMessageInfo {
 	}
 }
 
-type MembersUpdateInfo struct {
-	ConvID ConversationID           `codec:"convID" json:"convID"`
+type MemberInfo struct {
 	Member string                   `codec:"member" json:"member"`
 	Status ConversationMemberStatus `codec:"status" json:"status"`
+}
+
+func (o MemberInfo) DeepCopy() MemberInfo {
+	return MemberInfo{
+		Member: o.Member,
+		Status: o.Status.DeepCopy(),
+	}
+}
+
+type MembersUpdateInfo struct {
+	ConvID  ConversationID `codec:"convID" json:"convID"`
+	Members []MemberInfo   `codec:"members" json:"members"`
 }
 
 func (o MembersUpdateInfo) DeepCopy() MembersUpdateInfo {
 	return MembersUpdateInfo{
 		ConvID: o.ConvID.DeepCopy(),
-		Member: o.Member,
-		Status: o.Status.DeepCopy(),
+		Members: (func(x []MemberInfo) []MemberInfo {
+			if x == nil {
+				return nil
+			}
+			var ret []MemberInfo
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Members),
 	}
 }
 
@@ -222,12 +244,20 @@ func (o TeamTypeInfo) DeepCopy() TeamTypeInfo {
 type ExpungeInfo struct {
 	ConvID  ConversationID `codec:"convID" json:"convID"`
 	Expunge Expunge        `codec:"expunge" json:"expunge"`
+	Conv    *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o ExpungeInfo) DeepCopy() ExpungeInfo {
 	return ExpungeInfo{
 		ConvID:  o.ConvID.DeepCopy(),
 		Expunge: o.Expunge.DeepCopy(),
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Conv),
 	}
 }
 
@@ -738,6 +768,11 @@ type NewChatActivityArg struct {
 	Activity ChatActivity `codec:"activity" json:"activity"`
 }
 
+type NewChatKBFSFileEditActivityArg struct {
+	Uid      keybase1.UID `codec:"uid" json:"uid"`
+	Activity ChatActivity `codec:"activity" json:"activity"`
+}
+
 type ChatIdentifyUpdateArg struct {
 	Update keybase1.CanonicalTLFNameAndIDWithBreaks `codec:"update" json:"update"`
 }
@@ -812,6 +847,7 @@ type ChatKBFSToImpteamUpgradeArg struct {
 
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
+	NewChatKBFSFileEditActivity(context.Context, NewChatKBFSFileEditActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
 	ChatTLFFinalize(context.Context, ChatTLFFinalizeArg) error
 	ChatTLFResolve(context.Context, ChatTLFResolveArg) error
@@ -844,6 +880,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						return
 					}
 					err = i.NewChatActivity(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"NewChatKBFSFileEditActivity": {
+				MakeArg: func() interface{} {
+					ret := make([]NewChatKBFSFileEditActivityArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]NewChatKBFSFileEditActivityArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]NewChatKBFSFileEditActivityArg)(nil), args)
+						return
+					}
+					err = i.NewChatKBFSFileEditActivity(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -1082,6 +1134,11 @@ type NotifyChatClient struct {
 
 func (c NotifyChatClient) NewChatActivity(ctx context.Context, __arg NewChatActivityArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.NewChatActivity", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) NewChatKBFSFileEditActivity(ctx context.Context, __arg NewChatKBFSFileEditActivityArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.NewChatKBFSFileEditActivity", []interface{}{__arg})
 	return
 }
 

@@ -2,22 +2,29 @@
 /* eslint-env browser */
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Box2, Icon, Input, Text} from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
-import {isIOS} from '../../../../constants/platform'
+import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
+import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
-
+import {
+  NativeKeyboard,
+  NativeTouchableWithoutFeedback,
+} from '../../../../common-adapters/native-wrappers.native'
+import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
+import {ExplodingMeta} from './shared'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import type {PlatformInputProps} from './types'
+import flags from '../../../../util/feature-flags'
 
 type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps, State> {
+class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
   _input: ?Input
 
-  constructor(props: PlatformInputProps) {
+  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
     super(props)
     this.state = {
       hasText: false,
@@ -59,14 +66,19 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     }
   }
 
-  render = () => {
-    const multilineOpts = {rowsMax: 3, rowsMin: 1}
+  _toggleShowingMenu = () => {
+    // Hide the keyboard on mobile when showing the menu.
+    NativeKeyboard.dismiss()
+    this.props.onSeenExplodingMessages()
+    this.props.toggleShowingMenu()
+  }
 
+  render = () => {
     let hintText = 'Write a message'
-    if (this.props.isEditing) {
+    if (this.props.isExploding) {
+      hintText = isLargeScreen ? 'Write an exploding message' : 'Exploding message'
+    } else if (this.props.isEditing) {
       hintText = 'Edit your message'
-    } else if (this.props.pendingWaiting) {
-      hintText = 'Creating conversation...'
     }
 
     return (
@@ -93,11 +105,18 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             filter={this.props.channelMentionFilter}
           />
         )}
+        {this.props.showingMenu && (
+          <SetExplodingMessagePicker
+            attachTo={this.props.attachmentRef}
+            conversationIDKey={this.props.conversationIDKey}
+            onHidden={this.props.toggleShowingMenu}
+            visible={this.props.showingMenu}
+          />
+        )}
         <Box style={styles.container}>
           {this.props.isEditing && (
-            // TODO: Make this box take up the full height.
             <Box style={styles.editingTabStyle}>
-              <Text type="BodySmall">Editing:</Text>
+              <Text type="BodySmall">Edit:</Text>
               <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
                 Cancel
               </Text>
@@ -107,7 +126,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             autoCorrect={true}
             autoCapitalize="sentences"
             autoFocus={false}
-            editable={!this.props.pendingWaiting}
             hideUnderline={true}
             hintText={hintText}
             multiline={true}
@@ -120,7 +138,8 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             small={true}
             style={styles.input}
             uncontrolled={true}
-            {...multilineOpts}
+            rowsMax={3}
+            rowsMin={1}
           />
 
           {this.props.typing.size > 0 && <Typing />}
@@ -128,9 +147,12 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
-            pendingWaiting={this.props.pendingWaiting}
+            openExplodingPicker={this._toggleShowingMenu}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
+            isExploding={this.props.isExploding}
+            isExplodingNew={this.props.isExplodingNew}
+            explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
       </Box>
@@ -156,34 +178,76 @@ const ChannelMentionHud = InputAccessory(props => (
 
 const Typing = () => (
   <Box style={styles.typing}>
-    <Icon type="icon-typing-24" style={styles.typingIcon} />
+    <Icon type="icon-typing-24" style={iconCastPlatformStyles(styles.typingIcon)} />
   </Box>
 )
 
-const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
+const Action = ({
+  hasText,
+  onSubmit,
+  isEditing,
+  openExplodingPicker,
+  openFilePicker,
+  insertMentionMarker,
+  isExploding,
+  isExplodingNew,
+  explodingModeSeconds,
+}) =>
   hasText ? (
-    <Box style={styles.actionText}>
+    <Box2 direction="horizontal" gap="small" style={styles.actionText}>
+      {flags.explodingMessagesEnabled &&
+        isExploding && (
+          <ExplodingIcon
+            explodingModeSeconds={explodingModeSeconds}
+            isExploding={isExploding}
+            isExplodingNew={isExplodingNew}
+            openExplodingPicker={openExplodingPicker}
+          />
+        )}
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>
-    </Box>
+    </Box2>
   ) : (
-    <Box2 direction="horizontal" gap="tiny" gapEnd={true}>
+    <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
+      {flags.explodingMessagesEnabled && (
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
+          openExplodingPicker={openExplodingPicker}
+        />
+      )}
       <Icon
-        onClick={pendingWaiting ? undefined : insertMentionMarker}
+        onClick={insertMentionMarker}
         type="iconfont-mention"
-        style={styles.actionButton}
-        fontSize={21}
+        style={iconCastPlatformStyles(styles.actionButton)}
+        fontSize={22}
       />
       <Icon
-        onClick={pendingWaiting ? undefined : openFilePicker}
+        onClick={openFilePicker}
         type="iconfont-camera"
-        style={styles.actionButton}
-        fontSize={21}
+        style={iconCastPlatformStyles(styles.actionButton)}
+        fontSize={22}
       />
     </Box2>
   )
 
+const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openExplodingPicker}) => (
+  <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
+    <Box style={explodingIconContainer}>
+      <Icon
+        color={isExploding ? globalColors.black_75 : null}
+        style={iconCastPlatformStyles(styles.actionButton)}
+        type="iconfont-bomb"
+        fontSize={22}
+      />
+      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />
+    </Box>
+  </NativeTouchableWithoutFeedback>
+)
+
+const containerPadding = 6
 const styles = styleSheetCreate({
   accessory: {
     bottom: 1,
@@ -198,14 +262,11 @@ const styles = styleSheetCreate({
   },
   actionButton: {
     alignSelf: isIOS ? 'flex-end' : 'center',
-    paddingBottom: 2,
+  },
+  actionIconsContainer: {
+    paddingRight: globalMargins.small - containerPadding,
   },
   actionText: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 12,
-    paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
   container: {
@@ -216,14 +277,15 @@ const styles = styleSheetCreate({
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
-    paddingRight: 6,
+    paddingRight: containerPadding,
   },
   editingTabStyle: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    backgroundColor: globalColors.yellow_60,
+    backgroundColor: globalColors.yellow3,
     height: '100%',
-    padding: 3,
+    maxWidth: 32,
+    padding: globalMargins.xtiny,
   },
   input: {
     marginLeft: globalMargins.tiny,
@@ -246,9 +308,11 @@ const styles = styleSheetCreate({
   typing: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    alignSelf: 'center',
     borderRadius: 10,
     height: 20,
     justifyContent: 'center',
+    marginRight: globalMargins.tiny,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
@@ -257,4 +321,11 @@ const styles = styleSheetCreate({
   },
 })
 
-export default PlatformInput
+const explodingIconContainer = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    marginRight: -3,
+  },
+})
+
+export default FloatingMenuParentHOC(PlatformInput)

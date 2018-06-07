@@ -71,21 +71,13 @@ func CanEncrypt(key GenericKey) bool {
 	}
 }
 
-func skbPushAndSave(m MetaContext, skb *SKB) error {
-	if lctx := m.LoginContext(); lctx != nil {
-		kr, err := lctx.Keyring()
-		if err != nil {
-			return err
-		}
-		return kr.PushAndSave(skb)
+func skbPushAndSave(m MetaContext, skb *SKB) (err error) {
+	defer m.CTrace("skbPushAndSave", func() error { return err })()
+	ring, err := m.Keyring()
+	if err != nil {
+		return err
 	}
-	var err error
-	kerr := m.G().LoginState().Keyring(func(ring *SKBKeyringFile) {
-		err = ring.PushAndSave(skb)
-	}, "PushAndSave")
-	if kerr != nil {
-		return kerr
-	}
+	err = ring.PushAndSave(skb)
 	if err != nil {
 		return err
 	}

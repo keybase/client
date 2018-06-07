@@ -53,54 +53,48 @@ type SettingProps = {|
 |}
 
 const SetMemberShowcase = (props: SettingProps) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-    }}
-  >
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Checkbox
-        checked={props.newPublicityMember}
-        disabled={!props.yourOperations.setMemberShowcase}
-        label=""
-        onCheck={props.setBoolSettings('newPublicityMember')}
-        style={{paddingRight: globalMargins.xtiny}}
-      />
-    </Box>
-    <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-      <Text
-        style={{
-          color: props.yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
-        }}
-        type="Body"
-      >
-        Publish team on your own profile
-      </Text>
-      <Text type="BodySmall">
-        {props.yourOperations.setMemberShowcase
-          ? 'Your profile will mention this team. Team description and number of members will be public.'
-          : props.yourOperations.joinTeam
-            ? 'You must join this team to publish it on your profile.'
-            : "Admins aren't allowing members to publish this team on their profile."}
-      </Text>
-    </Box>
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', paddingRight: globalMargins.small}}>
+    <Checkbox
+      checked={props.newPublicityMember}
+      disabled={!props.yourOperations.setMemberShowcase}
+      labelComponent={
+        <Box style={{...globalStyles.flexBoxColumn}}>
+          <Text
+            style={{
+              color: props.yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
+            }}
+            type="Body"
+          >
+            Publish team on your own profile
+          </Text>
+          <Text type="BodySmall">
+            {props.yourOperations.setMemberShowcase
+              ? 'Your profile will mention this team. Team description and number of members will be public.'
+              : props.yourOperations.joinTeam
+                ? 'You must join this team to publish it on your profile.'
+                : "Admins aren't allowing members to publish this team on their profile."}
+          </Text>
+        </Box>
+      }
+      onCheck={props.setBoolSettings('newPublicityMember')}
+      style={{paddingRight: globalMargins.xtiny}}
+    />
   </Box>
 )
 
 const PublicityAnyMember = (props: SettingProps) =>
   props.yourOperations.setPublicityAny && (
-    <Box style={stylesSettingsTabRow}>
-      <Box style={stylesPublicitySettingsBox}>
-        <Checkbox
-          checked={props.newPublicityAnyMember}
-          label=""
-          onCheck={props.setBoolSettings('newPublicityAnyMember')}
-        />
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-        <Text type="Body">Allow non-admin members to publish the team on their profile</Text>
-        <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
-      </Box>
+    <Box style={stylesPublicitySettingsBox}>
+      <Checkbox
+        checked={props.newPublicityAnyMember}
+        labelComponent={
+          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+            <Text type="Body">Allow non-admin members to publish the team on their profile</Text>
+            <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
+          </Box>
+        }
+        onCheck={props.setBoolSettings('newPublicityAnyMember')}
+      />
     </Box>
   )
 
@@ -108,63 +102,78 @@ const teamsLink = 'keybase.io/popular-teams'
 
 const PublicityTeam = (props: SettingProps) =>
   props.yourOperations.setTeamShowcase && (
-    <Box style={stylesSettingsTabRow}>
-      <Box style={stylesPublicitySettingsBox}>
-        <Checkbox
-          checked={props.newPublicityTeam}
-          label=""
-          onCheck={props.setBoolSettings('newPublicityTeam')}
-        />
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-        <Text type="Body">
-          Publicize this team on{' '}
-          <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
-            {teamsLink}
-          </Text>
-        </Text>
-        <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
-      </Box>
+    <Box style={stylesPublicitySettingsBox}>
+      <Checkbox
+        checked={props.newPublicityTeam}
+        labelComponent={
+          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+            <Text type="Body">
+              Publicize this team on{' '}
+              <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
+                {teamsLink}
+              </Text>
+            </Text>
+            <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
+          </Box>
+        }
+        onCheck={props.setBoolSettings('newPublicityTeam')}
+      />
     </Box>
   )
 
-const OpenTeam = (props: SettingProps) =>
-  props.yourOperations.changeOpenTeam && (
-    <Box style={stylesSettingsTabRow}>
-      <Box style={stylesPublicitySettingsBox}>
-        <Checkbox checked={props.newOpenTeam} label="" onCheck={props.setBoolSettings('newOpenTeam')} />
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}>
-        <Text type="Body">Make this an open team</Text>
-        <Text type="BodySmall">
-          Anyone will be able to join immediately. Users will join as{' '}
-          <Text
-            type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
-            onClick={props.newOpenTeam ? props.onSetOpenTeamRole : undefined}
-          >
-            {pluralize(props.newOpenTeamRole)}
-          </Text>
-          .
-        </Text>
-      </Box>
+const OpenTeam = (props: SettingProps) => {
+  if (!props.yourOperations.changeOpenTeam) {
+    return
+  }
+
+  const _onSetOpenTeamRole = props.onSetOpenTeamRole
+
+  const onSetOpenTeamRole = _onSetOpenTeamRole
+    ? (e: SyntheticEvent<>) => {
+        e.stopPropagation()
+        _onSetOpenTeamRole()
+      }
+    : undefined
+
+  return (
+    <Box style={stylesPublicitySettingsBox}>
+      <Checkbox
+        checked={props.newOpenTeam}
+        labelComponent={
+          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}>
+            <Text type="Body">Make this an open team</Text>
+            <Text type="BodySmall">
+              Anyone will be able to join immediately. Users will join as{' '}
+              <Text
+                type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
+                onClick={props.newOpenTeam ? onSetOpenTeamRole : undefined}
+              >
+                {pluralize(props.newOpenTeamRole)}
+              </Text>
+              .
+            </Text>
+          </Box>
+        }
+        onCheck={props.setBoolSettings('newOpenTeam')}
+      />
     </Box>
   )
+}
 
 const IgnoreAccessRequests = (props: SettingProps) =>
   !props.newOpenTeam &&
   props.yourOperations.changeTarsDisabled && (
-    <Box style={stylesSettingsTabRow}>
-      <Box style={stylesPublicitySettingsBox}>
-        <Checkbox
-          checked={props.newIgnoreAccessRequests}
-          label=""
-          onCheck={props.setBoolSettings('newIgnoreAccessRequests')}
-        />
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-        <Text type="Body">Ignore requests to join this team</Text>
-        <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
-      </Box>
+    <Box style={stylesPublicitySettingsBox}>
+      <Checkbox
+        checked={props.newIgnoreAccessRequests}
+        labelComponent={
+          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+            <Text type="Body">Ignore requests to join this team</Text>
+            <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
+          </Box>
+        }
+        onCheck={props.setBoolSettings('newIgnoreAccessRequests')}
+      />
     </Box>
   )
 
@@ -265,7 +274,7 @@ export class Settings extends React.Component<Props, State> {
           this.props.yourOperations.setTeamShowcase ||
           this.props.yourOperations.setPublicityAny) && (
           <React.Fragment>
-            <Box style={stylesSettingsTabRow}>
+            <Box style={{...globalStyles.flexBoxRow, paddingTop: globalMargins.small}}>
               <Text type="Header">Team</Text>
             </Box>
             <PublicityAnyMember {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
@@ -291,7 +300,7 @@ export class Settings extends React.Component<Props, State> {
         )}
         <Box
           style={{
-            ...stylesSettingsTabRow,
+            ...globalStyles.flexBoxRow,
             justifyContent: 'center',
             paddingBottom: isMobile ? globalMargins.tiny : globalMargins.small,
             paddingTop: isMobile ? globalMargins.tiny : globalMargins.small,
@@ -312,11 +321,7 @@ export class Settings extends React.Component<Props, State> {
 
 const stylesPublicitySettingsBox = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  paddingRight: globalMargins.small,
-}
-
-const stylesSettingsTabRow = {
-  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
   paddingTop: globalMargins.small,
+  paddingRight: globalMargins.small,
 }

@@ -20,7 +20,6 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		NewCmdFakeTrackingChanged(cl, g),
 		NewCmdFavorite(cl, g),
 		NewCmdPaperProvision(cl, g),
-		NewCmdPGPProvision(cl, g),
 		NewCmdSecretKey(cl, g),
 		NewCmdShowNotifications(cl, g),
 		NewCmdStress(cl, g),
@@ -54,6 +53,12 @@ func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalC
 	return []cli.Command{
 		newCmdWalletDump(cl, g),
 		newCmdWalletInit(cl, g),
+	}
+}
+
+func getBuildSpecificLogCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		NewCmdLogProfile(cl, g),
 	}
 }
 

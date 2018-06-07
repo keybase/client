@@ -26,6 +26,7 @@ const config = (_, {mode}) => {
       loader: 'babel-loader',
       options: {
         cacheDirectory: true,
+        ignore: [/\.(native|ios|android)\.js$/],
         plugins: [...(isHot ? ['react-hot-loader/babel'] : [])],
         presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '1.8.4'}}]],
       },
@@ -79,8 +80,8 @@ const config = (_, {mode}) => {
     const defines = {
       __DEV__: isDev,
       __HOT__: isHot,
-      __SCREENSHOT__: false,
       __STORYBOOK__: false,
+      __STORYSHOT: false,
       __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
     }
     console.warn('Injecting defines: ', defines)
@@ -141,7 +142,7 @@ const config = (_, {mode}) => {
   const commonConfig = makeCommonConfig()
   const mainThreadConfig = merge(commonConfig, {
     context: path.resolve(__dirname, '..'),
-    entry: {main: './desktop/app/index.js'},
+    entry: {main: './desktop/app/index.desktop.js'},
     name: 'mainThread',
     stats: {
       ...(isDev ? {} : {usedExports: false}), // ignore exports warnings as its mostly used in the render thread
@@ -152,8 +153,8 @@ const config = (_, {mode}) => {
     context: path.resolve(__dirname, '..'),
     devtool: isDev ? 'eval' : 'source-map',
     entry: {
-      'component-loader': './desktop/remote/component-loader.js',
-      index: './desktop/renderer/index.js',
+      'component-loader': './desktop/remote/component-loader.desktop.js',
+      index: './desktop/renderer/index.desktop.js',
     },
     name: 'renderThread',
     plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])],

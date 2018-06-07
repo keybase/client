@@ -35,7 +35,7 @@ const FolderHeader = ({
                 : breadcrumbItems[breadcrumbItems.length - 1].name}
             </Text>
           </Box>
-          <BackButton title={null} onClick={onBack} style={{marginLeft: globalMargins.small}} />
+          <BackButton title={null} onClick={onBack} />
         </Box>
       ) : breadcrumbItems.length === 1 ? (
         <Box style={folderHeaderStyleRoot}>
@@ -55,7 +55,7 @@ const FolderHeader = ({
             {breadcrumbItems.map(i => (
               <Box key={Types.pathToString(i.path)} style={folderBreadcrumbStyle}>
                 {i.isTlfNameItem &&
-                  isTeamPath && <Avatar size={12} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
+                  isTeamPath && <Avatar size={16} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
                 {i.isLastItem ? (
                   <Text type="BodyBig" style={styleTailBreadcrumb}>
                     {i.name}
@@ -95,7 +95,7 @@ const styleHeaderContainer = {
 const styleFolderHeader = {
   ...stylesCommonRow,
   justifyContent: 'center',
-  minHeight: isMobile ? 64 : 48,
+  minHeight: 48,
 }
 
 const folderHeaderStyleRoot = platformStyles({

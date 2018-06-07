@@ -20,7 +20,7 @@ import {
   Text,
   UserBio,
   UserProofs,
-} from '../common-adapters/index.native'
+} from '../common-adapters/mobile.native'
 import UserActions from './user-actions'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import ShowcasedTeamInfo from './showcased-team-info/container'
@@ -76,7 +76,7 @@ const _ShowcasedTeamRow = (
       visible={props.showingMenu}
     />
     <Box style={styleShowcasedTeamAvatar}>
-      <Avatar teamname={props.team.fqName} size={40} />
+      <Avatar teamname={props.team.fqName} size={48} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
@@ -257,24 +257,25 @@ class Profile extends Component<Props, State> {
           <Box
             style={{
               ...globalStyles.flexBoxRow,
+              alignItems: 'center',
               backgroundColor: globalColors.green,
+              justifyContent: 'center',
+              maxWidth: '100%',
+              minHeight: 40,
+              paddingBottom: 8,
+              paddingTop: 8,
               zIndex: ADD_TO_TEAM_ZINDEX,
             }}
           >
-            <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
-              <Text
-                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
-                type="BodySemibold"
-                backgroundMode="HighRisk"
-              >
+            <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 8}}>
+              <Text style={{textAlign: 'center'}} type="BodySemibold" backgroundMode="HighRisk">
                 {this.props.addUserToTeamsResults}
               </Text>
             </Box>
-            <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', flexShrink: 1}}>
+            <Box style={{...globalStyles.flexBoxColumn, padding: 8}}>
               <Icon
                 color={globalColors.black_40}
                 onClick={this.props.onClearAddUserToTeamsResults}
-                style={{padding: globalMargins.tiny}}
                 type="iconfont-close"
               />
             </Box>
@@ -551,8 +552,7 @@ const UserEntry = ({onClick, username, fullname, followsYou, following}) => (
         style={userEntryAvatarStyle}
         size={64}
         username={username}
-        followsYou={followsYou}
-        following={following}
+        showFollowingStatus={true}
         skipBackgroundAfterLoaded={true}
       />
       <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
@@ -599,9 +599,9 @@ const userEntryFullnameStyle = {
 }
 
 const styleBack = {
-  left: globalMargins.tiny,
+  left: 0,
   position: 'absolute',
-  top: isIPhoneX ? 44 : 30,
+  top: isIPhoneX ? 36 : 22,
 }
 
 const styleHeader = {
@@ -678,18 +678,18 @@ const styleShowcasedTeamContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
-  minHeight: 32,
-  paddingBottom: globalMargins.xtiny,
+  minHeight: 48,
+  paddingTop: globalMargins.tiny,
 }
 
 const styleShowcasedTeamAvatar = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   alignSelf: 'flex-start',
-  height: 40,
-  minHeight: 40,
-  minWidth: 40,
-  width: 40,
+  height: 48,
+  minHeight: 48,
+  minWidth: 48,
+  width: 48,
 }
 
 const styleShowcasedTeamName = {

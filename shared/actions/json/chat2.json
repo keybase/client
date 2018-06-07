@@ -15,29 +15,29 @@
     "clearLoading": {
       "key": "string"
     },
-    // Select the pending conversation (building a search or a set of users from a folder)
-    "setPendingSelected": {
-      "selected": "boolean"
-    },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       // why this happened, sometimes there's different side effects
       "reason": [
         "'clearSelected'", // deselect
+        "'justCreated'", // just made one
         "'desktopNotification'", // clicked notification
-        "'existingSearch'", // searching and found one
+        "'searching'", // searching and found one
+        "'sendingToPending'", // select the pending we sent into
+        "'createdMessagePrivately'", // messaging privately and maybe made it
         "'findNewestConversation'", // find a new chat to select
         "'inboxBig'", // inbox row
         "'inboxFilterArrow'", // arrow keys in inbox filter
         "'inboxFilterChanged'", // inbox filter made first one selected
         "'inboxSmall'", // inbox row
+        "'inboxNewConversation'", // new conversation row
         "'jumpFromReset'", // from older reset convo
         "'jumpToReset'", // going to an older reset convo
         "'justCreated'", // just made it and select it
         "'manageView'", // clicked from manage screen
-        "'messageLink'", // link in a message
-        "'preview'", // preview from manage screen
+        "'previewResolved'", // did a preview and are now selecting it
+        "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
         "'push'", // from a push
         "'savedLastState'", // last seen chat tab
         "'startFoundExisting'", // starting a conversation and found one already
@@ -46,10 +46,33 @@
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // fromAReset means you were in a reset kbfs convo and you want to make a new one
-    "startConversation": {
-      "participants?": "?Array<string>",
-      "tlf?": "?string",
-      "fromAReset?": "boolean"
+    // Chatting from external places in the app should usually call this
+    // if you want to preview a team chat (and add it to the inbox use selectConversation instead)
+    "previewConversation": {
+      "participants?": "Array<string>",
+      "teamname?": "string",
+      "channelname?": "string",
+      "conversationIDKey?": "Types.ConversationIDKey", // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
+      "reason": [
+        "'manageView'",
+        "'messageLink'",
+        "'resetChatWithoutThem'",
+        "'tracker'",
+        "'teamHeader'",
+        "'files'",
+        "'teamInvite'",
+        "'fromAReset'",
+        "'profile'",
+        "'teamMember'",
+        "'teamHeader'",
+        "'convertAdHoc'",
+        "'memberView'",
+        "'newChannel'"
+      ]
+    },
+    "createConversation": {
+      "_description": "Actually start a conversation",
+      "participants": "Array<string>"
     },
     // Update our badges in the nav
     "badgesUpdated": {
@@ -95,7 +118,9 @@
       "metas": "Array<Types.ConversationMeta>",
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
-      "clearExistingMessages?": "boolean" // If true, clear out any message data we already have.
+      "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
+      "fromEphemeralPurge?": "boolean", // If true, use meta updating logic for when messages explode
+      "fromExpunge?": "boolean" // If true, use meta updating logic for retention policy deletes
     },
     // Got some inbox errors
     "metaReceivedError": {
@@ -109,9 +134,9 @@
       "selectSomethingElse": "boolean"
     },
     // We updated our view of a thread
-    "metaUpdatePagination": {
+    "updateMoreToLoad": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paginationKey": "?Types.PaginationKey"
+      "moreToLoad": "boolean"
     },
     // Add a new message
     "messagesAdd": {
@@ -123,7 +148,9 @@
         "{type: 'incoming'}",
         "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
       ],
-      "messages": "Array<Types.Message>"
+      "messages": "Array<Types.Message>",
+      // true if these should be the only messages we know about
+      "shouldClearOthers?": "boolean"
     },
     // Got an error sending a message
     "messageErrored": {
@@ -131,17 +158,10 @@
       "reason": "string",
       "outboxID": "Types.OutboxID"
     },
-    "setPendingMessageSubmitState": {
-      "_description": "Sets pending messages in the store to the supplied state and logs the reason",
-      "reason": "string",
-      "submitState": ["'failed'", "'pending'"]
-    },
-    "cancelPendingConversation": {
+    "setPendingConversationExistingConversationIDKey": {
       "_description":
-        "Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox"
-    },
-    "retryPendingConversation": {
-      "_description": "Retries sending the pending message that is currently stored in the metaMap"
+        "When the search changes we need to find any existing conversations to stash into the metaMap",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
@@ -152,9 +172,8 @@
     // Start quoting a message / or clear quoting
     "messageSetQuoting": {
       "sourceConversationIDKey": "Types.ConversationIDKey",
-      // Has to be a string because it can be "pending".
-      "targetConversationIDKey": "string",
-      "ordinal": "?Types.Ordinal"
+      "targetConversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     },
     // Reply privately to a message with quoting
     "messageReplyPrivately": {
@@ -183,6 +202,12 @@
       "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
       "ordinals?": "Array<Types.Ordinal>"
     },
+    "messagesExploded": {
+      "_description": "Exploding messages expired or were manually detonated.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageIDs": "Array<RPCChatTypes.MessageID>",
+      "explodedBy?": "string"
+    },
     // Delete a message
     "messageDelete": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -193,18 +218,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    // Clear our knowledge of which messages are in a thread
-    "clearOrdinals": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
     "setPendingMode": {
       "pendingMode": "Types.PendingMode"
-    },
-    "setPendingStatus": {
-      "_description":
-        "Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.",
-      "pendingStatus": "Types.PendingStatus"
     },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {
@@ -249,30 +265,16 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
     },
-    // You're done searching
-    "exitSearch": {
-      "canceled": "boolean"
-    },
     // Update the pending conversation users
     "setPendingConversationUsers": {
       "users": "Array<string>",
       "fromSearch": "boolean"
     },
-    // Actually starting a conversation from a search. SendingAction is what happens after the chat is created
-    "sendToPendingConversation": {
-      "users": "Array<string>",
-      "sendingAction": [
-        "MessageSendPayload",
-        "AttachmentUploadPayload"
-      ]
-    },
-    // We've made a new conversation successfully and want to clean up the pending info now
-    "clearPendingConversation": {},
     // We want to save an attachment to the local disk
     "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
-      "forShare?": "boolean",
+      "forShare?": "boolean"
     },
     // Update the loading bars
     "attachmentLoading": {
@@ -286,7 +288,7 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "path?": "string",
-      "forShare?": "boolean",
+      "forShare?": "boolean"
     },
     // We want to upload an attachment
     "attachmentUpload": {
@@ -327,7 +329,8 @@
     },
     // Server told us a conversation is out of date
     "markConversationsStale": {
-      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "updateType": "RPCChatTypes.StaleUpdateType"
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {},
@@ -377,6 +380,23 @@
     "updateTeamRetentionPolicy": {
       "_description": "Consume a service notification that a team retention policy was updated",
       "convs": "Array<RPCChatTypes.InboxUIItem>"
+    },
+    "setConvExplodingMode": {
+      "_description": "Set the remote exploding mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "seconds": "number"
+    },
+    "updateConvExplodingModes": {
+      "_description": "Handle an update to our conversation exploding modes.",
+      "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
+    },
+    "setExplodingMessagesNew": {
+      "_description": "Set whether exploding messages are a new feature or not.",
+      "new": "boolean"
+    },
+    "handleSeeingExplodingMessages": {
+      "_description":
+        "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
     }
   }
 }

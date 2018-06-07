@@ -1,17 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
-    <title>EDEA050C-D992-4598-B440-C2DF7C3A0A0C</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Colors,-icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons-2" transform="translate(-94.000000, -190.000000)">
-            <g id="kb-iconfont-nav-people-24" transform="translate(94.000000, 190.000000)">
-                <rect id="icon-area" x="0" y="0" width="24" height="24"></rect>
-                <g id="Group-26" transform="translate(1.000000, 1.000000)" fill="#000000" fill-rule="nonzero">
-                    <path d="M11,0 C4.92486775,0 0,4.92486775 0,11 C0,17.0751322 4.92486775,22 11,22 C17.0751322,22 22,17.0751322 22,11 C22,4.92486775 17.0751322,0 11,0 Z M7.5,7 C8.32842712,7 9,7.67157288 9,8.5 C9,9.32842712 8.32842712,10 7.5,10 C6.67157288,10 6,9.32842712 6,8.5 C6.00003866,7.67158889 6.67158889,7.00003866 7.5,7 Z M16.69727,15.7168 C13.5090901,18.7610668 8.49090993,18.7610668 5.30273,15.7168 C5.01092677,15.4330556 4.92022886,15.0007547 5.07338548,14.6236564 C5.22654211,14.2465582 5.59298645,13.9999234 6,14 L16,14 C16.4070136,13.9999234 16.7734579,14.2465582 16.9266145,14.6236564 C17.0797711,15.0007547 16.9890732,15.4330556 16.69727,15.7168 Z M14.5,10 C13.6715729,10 13,9.32842712 13,8.5 C13,7.67157288 13.6715729,7 14.5,7 C15.3284271,7 16,7.67157288 16,8.5 C15.9999613,9.32841111 15.3284111,9.99996134 14.5,10 Z" id="happy"></path>
-                </g>
-            </g>
-        </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+    <g fill="none" fill-rule="evenodd">
+        <path d="M0 0h24v24H0z"/>
+        <path fill="#000" fill-rule="nonzero" d="M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zM8.5 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm9.197 8.717a8.25 8.25 0 0 1-11.394 0A1 1 0 0 1 7 15h10a1 1 0 0 1 .697 1.717zM15.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
     </g>
 </svg>

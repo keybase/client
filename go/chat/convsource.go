@@ -862,7 +862,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 }
 
 func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
-	return s.storage.MaybeNuke(ctx, true, nil, convID, uid)
+	return s.storage.ClearAll(ctx, convID, uid)
 }
 
 type ByMsgID []chat1.MessageUnboxed
@@ -1014,9 +1014,17 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
+		var inboxItem *chat1.InboxUIItem
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
+		if err != nil {
+			s.Debug(ctx, "expungeNotify: failed to get conversations: %s", err)
+		} else {
+			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
+		}
 		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
 			ConvID:  convID,
 			Expunge: *mergeRes.Expunged,
+			Conv:    inboxItem,
 		})
 		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
 	}
@@ -1027,14 +1035,18 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
+	if expunge.Upto == 0 {
+		// just get out of here as quickly as possible with a 0 upto
+		return nil
+	}
 
 	s.lockTab.Acquire(ctx, uid, convID)
 	defer s.lockTab.Release(ctx, uid, convID)
-
 	mergeRes, err := s.storage.Expunge(ctx, convID, uid, expunge)
 	if err != nil {
 		return err
 	}
+
 	s.expungeNotify(ctx, uid, convID, mergeRes)
 	return nil
 }

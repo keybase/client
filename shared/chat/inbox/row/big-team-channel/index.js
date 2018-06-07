@@ -125,7 +125,7 @@ const channelBackgroundStyle = {
   ...globalStyles.flexBoxRow,
   ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
   alignItems: 'center',
-  marginLeft: globalMargins.medium,
+  marginLeft: globalMargins.large,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
 }

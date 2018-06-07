@@ -10,7 +10,8 @@ const common = {
   attachTo: null,
   onHidden: action('onHidden'),
   onSelect: action('onSelect'),
-  selected: null,
+  position: 'top left',
+  selected: 0,
   items,
   visible: true,
 }
@@ -19,9 +20,7 @@ const load = () => {
   storiesOf('Chat/Conversation/Set explode time', module)
     .add('New', () => <SetExplodingPopup {...common} isNew={true} />)
     .add('Old', () => <SetExplodingPopup {...common} isNew={false} />)
-    .add('Selected', () => (
-      <SetExplodingPopup {...common} isNew={false} selected={{text: '12 hours', seconds: 3600 * 12}} />
-    ))
+    .add('Selected', () => <SetExplodingPopup {...common} isNew={false} selected={3600 * 12} />)
 }
 
 export default load

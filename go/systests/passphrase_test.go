@@ -50,9 +50,8 @@ func TestPassphraseChange(t *testing.T) {
 	}
 
 	m := libkb.NewMetaContextForTest(*tc)
-	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(m, userInfo.passphrase, nil); err != nil {
-		t.Fatal(err)
-	}
+	_, err := libkb.VerifyPassphraseForLoggedInUser(m, userInfo.passphrase)
+	require.NoError(t, err, "verified passphrase")
 
 	oldPassphrase := userInfo.passphrase
 	newPassphrase := userInfo.passphrase + userInfo.passphrase
@@ -63,13 +62,10 @@ func TestPassphraseChange(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(m, newPassphrase, nil); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(m, oldPassphrase, nil); err == nil {
-		t.Fatal("old passphrase passed verification after passphrase change")
-	}
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m, newPassphrase)
+	require.NoError(t, err, "verified passphrase")
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m, oldPassphrase)
+	require.Error(t, err, "old passphrase failed to verify")
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -167,7 +163,7 @@ func TestPassphraseRecover(t *testing.T) {
 	m1 := libkb.NewMetaContextForTest(*tc1)
 
 	t.Logf("Verify on tc1")
-	_, err = tc1.G.LoginState().VerifyPlaintextPassphrase(m1, userInfo.passphrase, nil)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m1, userInfo.passphrase)
 	require.NoError(t, err)
 
 	oldPassphrase := userInfo.passphrase
@@ -193,15 +189,15 @@ func TestPassphraseRecover(t *testing.T) {
 
 	t.Logf("Verify new passphrase on tc2")
 	m2 := libkb.NewMetaContextForTest(*tc2)
-	_, err = tc2.G.LoginState().VerifyPlaintextPassphrase(m2, newPassphrase, nil)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m2, newPassphrase)
 	require.NoError(t, err)
 
 	t.Logf("Verify new passphrase on tc1")
-	_, err = tc2.G.LoginState().VerifyPlaintextPassphrase(m2, newPassphrase, nil)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m1, newPassphrase)
 	require.NoError(t, err)
 
 	t.Logf("Verify old passphrase on tc1")
-	_, err = tc1.G.LoginState().VerifyPlaintextPassphrase(m2, oldPassphrase, nil)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m1, oldPassphrase)
 	require.Error(t, err, "old passphrase passed verification after passphrase change")
 
 	t.Logf("Stop tc1")

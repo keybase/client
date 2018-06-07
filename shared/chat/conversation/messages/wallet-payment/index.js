@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, Divider, Icon, Markdown, Text} from '../../../../common-adapters'
-import type {IconType} from '../../../../common-adapters/icon.constants'
+import {Box2, Button, Divider, Icon, Markdown, Text, type IconType} from '../../../../common-adapters'
 import {globalColors, styleSheetCreate} from '../../../../styles'
 
 export type Props = {

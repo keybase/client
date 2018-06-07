@@ -16,28 +16,33 @@ export type PendingStatus =
   | 'waiting' // attempting to create conversation
   | 'failed' // creating conversation failed
 
-export type _quotedOrdConv = {
+export type _QuoteInfo = {
+  // Always positive and monotonically increasing.
+  counter: number,
   ordinal: Message.Ordinal,
   sourceConversationIDKey: Common.ConversationIDKey,
+  targetConversationIDKey: Common.ConversationIDKey,
 }
+
+export type QuoteInfo = I.RecordOf<_QuoteInfo>
 
 export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
+  isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
-  metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread
-  quotingMap: I.Map<string, _quotedOrdConv>, // current message being quoted
+  metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread, There is a special node for the pending conversation
+  moreToLoadMap: I.Map<Common.ConversationIDKey, boolean>, // if we have more data to load
+  explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
+  quote: ?QuoteInfo, // last quoted message
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
-  pendingConversationUsers: I.Set<string>, // users we're trying to start a conversation with
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
-  pendingSelected: boolean, // did we select the pending conversation or not
-  pendingStatus: PendingStatus, // where are we at in submitting the conversation
 }
 
 export type State = I.RecordOf<_State>
@@ -54,7 +59,7 @@ export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.
 export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
   Buffer.from(Message.outboxIDToString(outboxID), 'hex')
 
-export type {ConversationMeta, MetaTrustedState, NotificationsType, PaginationKey} from './meta'
+export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta'
 export type {
   AttachmentType,
   MentionsAt,
@@ -63,7 +68,6 @@ export type {
   Message,
   MessageAttachment,
   MessageExplodeDescription,
-  MessageExplodeText,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,
@@ -84,5 +88,4 @@ export {
   outboxIDToString,
   stringToOutboxID,
 } from './message'
-export {stringToPaginationKey} from './meta'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'

@@ -19,6 +19,13 @@
       "path": "Types.Path",
       "meta": "Types.PathItem"
     },
+    "mimeTypeLoad": {
+      "path": "Types.Path"
+    },
+    "mimeTypeLoaded": {
+      "path": "Types.Path",
+      "mimeType": "string"
+    },
     "sortSetting": {
       "path": "Types.Path",
       "sortSetting": "Types.SortSetting"
@@ -90,9 +97,6 @@
       "path": "Types.Path",
       "errorText": "string"
     },
-
-    "setupFSHandlers": {},
-
     "share": {
       "path": "Types.Path",
       "routePath": "I.List<string>"
@@ -110,6 +114,16 @@
     "openFinderPopup": {
       "targetRect": "?ClientRect",
       "routePath": "I.List<string>"
-    }
+    },
+    "openPathItem": {
+      "path": "Types.Path",
+      "routePath": "I.List<string>"
+    },
+    "loadResets": {},
+    "loadResetsResult": {
+      "tlfs": "I.Map<Types.Path, Types.ResetMetadata>"
+    },
+
+    "setupFSHandlers": {}
   }
 }

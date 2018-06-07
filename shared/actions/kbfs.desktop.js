@@ -5,7 +5,7 @@ import * as KBFSGen from './kbfs-gen'
 import * as Constants from '../constants/config'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import electron, {shell} from 'electron'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
 import {ExitCodeFuseKextPermissionError} from '../constants/favorite'
@@ -47,7 +47,7 @@ function openInDefaultDirectory(openPath: string): Promise<void> {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      shell.openExternal(url, {}, err => {
+      SafeElectron.getShell().openExternal(url, {activate: true}, err => {
         if (err) {
           reject(err)
           return
@@ -81,13 +81,13 @@ function _open(openPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     isDirectory(openPath).then(isDir => {
       if (isDir && isWindows) {
-        if (!shell.openItem(openPath)) {
+        if (!SafeElectron.getShell().openItem(openPath)) {
           reject(new Error(`Unable to open item: ${openPath}`))
         }
       } else if (isDir) {
         openInDefaultDirectory(openPath).then(resolve, reject)
       } else {
-        if (!shell.showItemInFolder(openPath)) {
+        if (!SafeElectron.getShell().showItemInFolder(openPath)) {
           reject(new Error(`Unable to open item in folder: ${openPath}`))
         }
         resolve()
@@ -106,7 +106,6 @@ function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
     const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
     if (kbfsMount && fs.existsSync(kbfsMount)) {
       status.installStatus = 4 // installed
-      status.installAction = 1 // none
       status.kextStarted = true
     }
   }
@@ -215,9 +214,8 @@ function uninstallKBFSSaga() {
 
 function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-  const app = electron.remote.app
-  app.relaunch()
-  app.exit(0)
+  SafeElectron.getApp().relaunch()
+  SafeElectron.getApp().exit(0)
   return Saga.put(KBFSGen.createUninstallKBFSResult({result}))
 }
 

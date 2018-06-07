@@ -2,6 +2,12 @@
 import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {type TextViewProps} from './text-view'
+import {WebView} from '../../common-adapters'
+import type {WebViewInjections} from '../../common-adapters'
+
+const TextView = (props: TextViewProps) => (
+  <WebView url={props.url} style={globalStyles.flexGrow} injections={injections} />
+)
 
 // We need to do the spacing in the guest content of the webView rather than
 // the component's styles, to make it feel like the whole "view" is
@@ -25,24 +31,8 @@ body{
 }
 `
 
-class TextView extends React.PureComponent<TextViewProps> {
-  webviewRef: any
-
-  constructor(props: TextViewProps) {
-    super(props)
-    this.webviewRef = React.createRef()
-  }
-  componentDidMount() {
-    this.webviewRef.current.addEventListener('dom-ready', () => {
-      this.webviewRef.current.insertCSS(webviewCSS)
-    })
-    this.webviewRef.current.addEventListener('did-get-response-details', ({httpResponseCode}) => {
-      httpResponseCode === 403 && this.props.onInvalidToken()
-    })
-  }
-  render() {
-    return <webview ref={this.webviewRef} style={globalStyles.flexGrow} src={this.props.url} />
-  }
+const injections: WebViewInjections = {
+  css: webviewCSS,
 }
 
 export default TextView

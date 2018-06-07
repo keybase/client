@@ -42,6 +42,10 @@
         {
           "type": "string",
           "name": "signedTransaction"
+        },
+        {
+          "type": "boolean",
+          "name": "quickReturn"
         }
       ]
     },
@@ -87,6 +91,10 @@
         {
           "type": "string",
           "name": "signedTransaction"
+        },
+        {
+          "type": "boolean",
+          "name": "quickReturn"
         }
       ]
     },
@@ -105,6 +113,13 @@
         {
           "type": "string",
           "name": "signedTransaction"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "autoClaimToken"
         }
       ]
     },
@@ -302,6 +317,10 @@
           "name": "to"
         },
         {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
           "type": "AccountID",
           "name": "relayAccount"
         },
@@ -377,6 +396,45 @@
           "name": "to"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AccountDetails",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "string",
+          "name": "seqno"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Balance"
+          },
+          "name": "balances"
+        },
+        {
+          "type": "int",
+          "name": "subentryCount"
+        },
+        {
+          "type": "string",
+          "name": "available"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AutoClaim",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "kbTxID"
+        }
+      ]
     }
   ],
   "messages": {
@@ -395,6 +453,19 @@
         "type": "array",
         "items": "Balance"
       }
+    },
+    "details": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "AccountDetails"
     },
     "recentPayments": {
       "request": [
@@ -480,6 +551,40 @@
         }
       ],
       "response": "RelayClaimResult"
+    },
+    "acquireAutoClaimLock": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        }
+      ],
+      "response": "string"
+    },
+    "releaseAutoClaimLock": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "token",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "nextAutoClaim": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        }
+      ],
+      "response": [
+        null,
+        "AutoClaim"
+      ]
     },
     "isMasterKeyActive": {
       "request": [

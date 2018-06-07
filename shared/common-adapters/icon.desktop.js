@@ -1,13 +1,12 @@
 // @flow
-import * as shared from './icon.shared'
+import * as Shared from './icon.shared'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
 import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
-import {resolveImageAsURL} from '../desktop/resolve-root'
+import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import Box from './box'
-
 import type {Props, IconType} from './icon'
 
 const StyledSpan = glamorous.span(props => ({
@@ -32,9 +31,9 @@ class Icon extends Component<Props, void> {
   }
 
   render() {
-    let color = shared.defaultColor(this.props.type)
-    let hoverColor = shared.defaultHoverColor(this.props.type)
-    let iconType = shared.typeToIconMapper(this.props.type)
+    let color = Shared.defaultColor(this.props.type)
+    let hoverColor = Shared.defaultHoverColor(this.props.type)
+    let iconType = Shared.typeToIconMapper(this.props.type)
 
     if (!iconType) {
       logger.warn('Null iconType passed')
@@ -54,7 +53,7 @@ class Icon extends Component<Props, void> {
     }
 
     const isFontIcon = iconType.startsWith('iconfont-')
-    const fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : shared.fontSize(iconType)
+    const fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : Shared.fontSize(iconType)
     const onClick = this.props.onClick
       ? e => {
           e.stopPropagation()
@@ -108,8 +107,8 @@ class Icon extends Component<Props, void> {
               ...desktopStyles.noSelect,
               ...styles.icon,
               ...fontSizeHint,
-              ...cleanStyle,
               ...(onClick ? desktopStyles.clickable : {}),
+              ...cleanStyle,
             }}
             className={this.props.className || ''}
             onMouseEnter={this.props.onMouseEnter}
@@ -132,52 +131,47 @@ const imgName = (type: IconType, ext: string, mult: number, prefix: ?string, pos
     ''} ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
-  const ext = shared.typeExtension(type)
+  const ext = Shared.typeExtension(type)
   return [1, 2].map(mult => imgName(type, ext, mult)).join(', ')
 }
 
-export function iconTypeToImgSet(type: IconType) {
-  const ext = shared.typeExtension(type)
-  const imgs = [1, 2].map(mult => `url${imgName(type, ext, mult, "('", "')")}`).join(', ')
-  return `-webkit-image-set(${imgs})`
+export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+  const sets = Object.keys(multsMap)
+    .map(mult => {
+      const img = imgMap[multsMap[mult]]
+      if (!img) return null
+      const url = resolveImageAsURL('icons', img)
+      return `url('${url}.png') ${mult}x`
+    })
+    .filter(Boolean)
+    .join(', ')
+  return sets ? `-webkit-image-set(${sets})` : null
 }
 
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
-  let sizes: any = Object.keys(imgMap)
-
-  if (!sizes.length) {
-    return null
-  }
-
-  sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
-
-  // We used to just generate whatever the multiple was based on the imgMap but this would create multiples like
-  // 1.5x 5.7x 20x and the browser wouldn't ever choose a higher multiple so it'd often fall back to 1.5x and
-  // show non retina images. Instead lets generate our own 1/2/3x ones
-
-  const multsMap: any = {
-    '1': null,
-    '2': null,
-    '3': null,
-  }
-
-  Object.keys(multsMap).forEach(mult => {
-    const ideal = parseInt(mult, 10) * targetSize
-    // Find a larger than ideal size or just the largest possible
-    const size = sizes.find(size => size >= ideal)
-    multsMap[mult] = size || sizes[sizes.length - 1]
-  })
-
-  const str = Object.keys(multsMap)
-    .map(mult => `url(${imgMap[multsMap[mult]]}) ${mult}x`)
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+  const sets = Object.keys(multsMap)
+    .map(mult => {
+      const url = imgMap[multsMap[mult]]
+      if (!url) {
+        return null
+      }
+      return `url(${url}) ${mult}x`
+    })
+    .filter(Boolean)
     .join(', ')
-  return `-webkit-image-set(${str})`
+  return sets ? `-webkit-image-set(${sets})` : null
 }
 
 export const styles = {
   icon: {
     fontSize: 16,
   },
+}
+
+export function castPlatformStyles(styles: any) {
+  return Shared.castPlatformStyles(styles)
 }
 
 export default Icon

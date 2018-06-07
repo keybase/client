@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -114,15 +115,19 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, false)
+	return tt.addUserHelper(pre, true, false, true)
 }
 
 func (tt *teamTester) addUserWithPaper(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, true)
+	return tt.addUserHelper(pre, true, true, true)
 }
 
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false, false)
+	return tt.addUserHelper(pre, false, false, true)
+}
+
+func (tt *teamTester) addWalletlessUser(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true, false, false)
 }
 
 func (tt *teamTester) logUserNames() {
@@ -145,10 +150,13 @@ func installInsecureTriplesec(g *libkb.GlobalContext) {
 	}
 }
 
-func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
+func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
+	}
+	if !wallet {
+		tctx.Tp.DisableAutoWallet = true
 	}
 
 	var u userPlusDevice
@@ -186,6 +194,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 
 	u.deviceClient = keybase1.DeviceClient{Cli: cli}
 	u.device.userClient = keybase1.UserClient{Cli: cli}
+	u.device.accountClient = keybase1.AccountClient{Cli: cli}
 
 	// register for notifications
 	u.notifications = newTeamNotifyHandler()
@@ -209,6 +218,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	}
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
+	u.stellarClient = stellar1.LocalClient{Cli: cli}
 
 	g.ConfigureConfig()
 
@@ -244,6 +254,7 @@ type userPlusDevice struct {
 	tc                       *libkb.TestContext
 	deviceClient             keybase1.DeviceClient
 	teamsClient              keybase1.TeamsClient
+	stellarClient            stellar1.LocalClient
 	notifications            *teamNotifyHandler
 	suppressTeamChatAnnounce bool
 }
@@ -282,16 +293,18 @@ func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.Team
 		Settings: settings,
 	})
 	require.NoError(u.tc.T, err)
-	changeByID := false
-	for {
-		select {
-		case arg := <-u.notifications.changeCh:
-			changeByID = arg.Changes.Misc
-		case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G)):
-			u.tc.T.Fatal("no notification on teamSetSettings")
-		}
-		if changeByID {
-			return
+	if u.notifications != nil {
+		changeByID := false
+		for {
+			select {
+			case arg := <-u.notifications.changeCh:
+				changeByID = arg.Changes.Misc
+			case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G)):
+				u.tc.T.Fatal("no notification on teamSetSettings")
+			}
+			if changeByID {
+				return
+			}
 		}
 	}
 }
@@ -686,10 +699,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	require.NoError(t, err, "login")
 
 	// Clear the paper key.
-	err = g.LoginState().Account(func(a *libkb.Account) {
-		a.ClearPaperKeys()
-	}, "provisionNewDevice")
-	require.NoError(t, err, "clear paper key")
+	g.ActiveDevice.ClearCaches()
 
 	skey, err := g.ActiveDevice.SigningKey()
 	require.NoError(t, err)
@@ -704,7 +714,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 func (u *userPlusDevice) reset() {
 	u.device.tctx.Tp.SkipLogoutIfRevokedCheck = true
 	uvBefore := u.userVersion()
-	err := u.device.userClient.ResetUser(context.TODO(), 0)
+	err := u.device.accountClient.ResetAccount(context.TODO(), keybase1.ResetAccountArg{Passphrase: u.passphrase})
 	require.NoError(u.tc.T, err)
 	uvAfter := u.userVersion()
 	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,

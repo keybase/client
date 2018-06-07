@@ -12,6 +12,7 @@ import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 import {makeRetentionPolicy, serviceRetentionPolicyToRetentionPolicy} from '../teams'
+import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -37,6 +38,11 @@ export const unverifiedInboxUIItemToConversationMeta = (
     return null
   }
 
+  // Should be impossible
+  if (!i.convID) {
+    return null
+  }
+
   // We only treat implicit adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.localMetadata &&
@@ -47,7 +53,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
       : []
   )
 
-  const participants = I.OrderedSet(
+  const participants = I.List(
     i.localMetadata
       ? i.localMetadata.writerNames || []
       : parseFolderNameToUsers(username, i.name).map(ul => ul.username)
@@ -71,8 +77,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
     participants,
     resetParticipants,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
-    supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
-    supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
+    supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
+    supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
     teamType: getTeamType(i),
     teamname,
     timestamp: i.time,
@@ -119,7 +125,6 @@ export const updateMeta = (
 
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
-    m.set('paginationKey', old.paginationKey)
     m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
@@ -175,13 +180,13 @@ export const updateMetaWithNotificationSettings = (
     .set('notificationsMobile', notificationsMobile)
 }
 
-export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
+export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {
   // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
   }
-  // Ignore empty
-  if (i.isEmpty) {
+  // Ignore empty unless we explicitly allow it (making new conversations)
+  if (i.isEmpty && !allowEmpty) {
     return null
   }
   // We don't support mixed reader/writers
@@ -232,15 +237,15 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
-    participants: I.OrderedSet(i.participants || []),
+    participants: I.List(i.participants || []),
     resetParticipants,
     retentionPolicy,
     snippet: i.snippet,
-    supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
-    supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
+    supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
+    supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
-    teamRetentionPolicy,
     timestamp: i.time,
     tlfname: i.name,
     trustedState: 'trusted',
@@ -250,7 +255,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
 
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
   channelname: '',
-  conversationIDKey: Types.stringToConversationIDKey(''),
+  conversationIDKey: noConversationIDKey,
   description: '',
   inboxVersion: -1,
   isMuted: false,
@@ -260,17 +265,16 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   notificationsMobile: 'never',
   offline: false,
   orangeLineOrdinal: null,
-  paginationKey: null,
-  participants: I.OrderedSet(),
+  participants: I.List(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
   retentionPolicy: makeRetentionPolicy(),
   snippet: '',
-  supersededBy: null,
-  supersedes: null,
+  supersededBy: noConversationIDKey,
+  supersedes: noConversationIDKey,
+  teamRetentionPolicy: makeRetentionPolicy(),
   teamType: 'adhoc',
   teamname: '',
-  teamRetentionPolicy: makeRetentionPolicy(),
   timestamp: 0,
   tlfname: '',
   trustedState: 'untrusted',
@@ -310,7 +314,7 @@ export const getConversationIDKeyMetasToLoad = (
   metaMap: I.Map<Types.ConversationIDKey, Types.ConversationMeta>
 ) =>
   conversationIDKeys.reduce((arr, id) => {
-    if (id) {
+    if (id && isValidConversationIDKey(id)) {
       const trustedState = metaMap.getIn([id, 'trustedState'])
       if (trustedState !== 'requesting' && trustedState !== 'trusted') {
         arr.push(id)
@@ -326,15 +330,6 @@ export const getRowParticipants = (meta: Types.ConversationMeta, username: strin
 
 export const timestampToString = (meta: Types.ConversationMeta) =>
   formatTimeForConversationList(meta.timestamp)
-
-export const findConversationFromParticipants = (state: TypedState, participants: I.Set<string>) => {
-  const toFind = participants.concat([state.config.username])
-  return state.chat2.metaMap.findKey(
-    meta =>
-      // Ignore the order of participants
-      meta.teamType === 'adhoc' && meta.participants.toSet().equals(toFind)
-  )
-}
 
 export const getConversationRetentionPolicy = (
   state: TypedState,

@@ -3,7 +3,11 @@
 
 package libkb
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestBadMsgpack(t *testing.T) {
 	p, err := DecodeArmoredPacket(`
@@ -29,9 +33,7 @@ MDljYmQ4MmFmYTdmYzZkZWQxOGI0OWI3YjZiMiIsInNlcW5vIjo0LCJ0YWciOiJzaWduYXR1cmUi
 faNzaWfEQG3uIt5g6X6NRAjnHdF1NSRO5UYJD1B0Ku1ixBIeS2zuSAGR0pts2Lbl+Cz3BGvu9isq
 7MHrgCa2r1PEo4C/4ACoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==
 `)
-	if err == nil {
-		t.Fatalf("Malformed msgpack should fail to decode, but decoded to: %#v", p)
-	}
+	require.Error(t, err, "Malformed msgpack should fail to decode, but decoded to: %#v", p)
 }
 
 func TestFishyMsgpack(t *testing.T) {
@@ -59,7 +61,34 @@ NGQwYjE5NTMwMzIwOWNiZDgyYWZhN2ZjNmRlZDE4YjQ5YjdiNmIyIiwic2Vxbm8iOjQsInRhZyI6
 InNpZ25hdHVyZSJ9o3NpZ8RAbe4i3mDpfo1ECOcd0XU1JE7lRgkPUHQq7WLEEh5LbO5IAZHSm2zY
 tuX4LPcEa+72KyrsweuAJravU8SjgL/gAKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
 `)
-	if _, ok := err.(FishyMsgpackError); !ok {
-		t.Fatalf("Expected a FishyMsgpackError, got %#v %#v", err, p)
-	}
+	require.IsType(t, err, FishyMsgpackError{}, "p=%+v", p)
+}
+
+// Guard against unexpected codec encoding changes, in particular for
+// ints.
+func TestHardcodedPacketEncode(t *testing.T) {
+	p, err := NewKeybasePacket(nil, TagSignature, KeybasePacketV1)
+	require.NoError(t, err)
+
+	p.Hash = nil
+
+	bytes, err := p.Encode()
+	require.NoError(t, err)
+	// In particular, {0xcd, 0x2, 0x2} shouldn't change to
+	// {0xd1, 0x2, 0x2}.
+	expectedBytes := []byte{0x83, 0xa4, 0x62, 0x6f, 0x64, 0x79, 0xc0, 0xa3, 0x74, 0x61, 0x67, 0xcd, 0x2, 0x2, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x1}
+	require.Equal(t, expectedBytes, bytes)
+}
+
+// This is a regression test for
+// https://github.com/ugorji/go/issues/237 .
+func TestMsgpackReencodeNilHash(t *testing.T) {
+	// This message has a nil hash.
+	p, err := DecodeArmoredPacket(`
+hKRib2R5hapjaXBoZXJ0ZXh0wKhlbmNfdHlwZQClbm9uY2XArHJlY2VpdmVyX2tlecCqc2VuZGVy
+X2tlecCkaGFzaIKkdHlwZQildmFsdWXEIJZSZH19AzYud7qy9x3yx1hN2MooqnhjsytUSqTK+VMZ
+o3RhZ80CA6d2ZXJzaW9uAQ==
+`)
+	// In particular, shouldn't return a FishyMsgpackError.
+	require.NoError(t, err, "p=%+v", p)
 }

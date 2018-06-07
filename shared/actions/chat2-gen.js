@@ -19,12 +19,10 @@ export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
-export const cancelPendingConversation = 'chat2:cancelPendingConversation'
 export const clearLoading = 'chat2:clearLoading'
-export const clearOrdinals = 'chat2:clearOrdinals'
-export const clearPendingConversation = 'chat2:clearPendingConversation'
+export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
-export const exitSearch = 'chat2:exitSearch'
+export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -45,6 +43,7 @@ export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
+export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
 export const metaDelete = 'chat2:metaDelete'
 export const metaHandleQueue = 'chat2:metaHandleQueue'
@@ -52,31 +51,30 @@ export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
 export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
-export const metaUpdatePagination = 'chat2:metaUpdatePagination'
 export const metasReceived = 'chat2:metasReceived'
 export const muteConversation = 'chat2:muteConversation'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
+export const previewConversation = 'chat2:previewConversation'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
-export const retryPendingConversation = 'chat2:retryPendingConversation'
 export const selectConversation = 'chat2:selectConversation'
-export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
+export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
+export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
+export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
-export const setPendingMessageSubmitState = 'chat2:setPendingMessageSubmitState'
 export const setPendingMode = 'chat2:setPendingMode'
-export const setPendingSelected = 'chat2:setPendingSelected'
-export const setPendingStatus = 'chat2:setPendingStatus'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
-export const startConversation = 'chat2:startConversation'
+export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
+export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
@@ -118,16 +116,14 @@ type _BlockConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   reportUser: boolean,
 |}>
-type _CancelPendingConversationPayload = void
 type _ClearLoadingPayload = $ReadOnly<{|key: string|}>
-type _ClearOrdinalsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _ClearPendingConversationPayload = void
+type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   author: string,
   body: string,
 |}>
-type _ExitSearchPayload = $ReadOnly<{|canceled: boolean|}>
+type _HandleSeeingExplodingMessagesPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|
@@ -135,7 +131,10 @@ type _LeaveConversationPayload = $ReadOnly<{|
   dontNavigateToInbox?: boolean,
 |}>
 type _LoadOlderMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _MarkConversationsStalePayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>|}>
+type _MarkConversationsStalePayload = $ReadOnly<{|
+  conversationIDKeys: Array<Types.ConversationIDKey>,
+  updateType: RPCChatTypes.StaleUpdateType,
+|}>
 type _MarkInitiallyLoadedThreadAsReadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _MessageAttachmentNativeSavePayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -187,8 +186,8 @@ type _MessageSetEditingPayload = $ReadOnly<{|
 |}>
 type _MessageSetQuotingPayload = $ReadOnly<{|
   sourceConversationIDKey: Types.ConversationIDKey,
-  targetConversationIDKey: string,
-  ordinal: ?Types.Ordinal,
+  targetConversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
 |}>
 type _MessageWasEditedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -201,6 +200,12 @@ type _MessageWasEditedPayload = $ReadOnly<{|
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
   messages: Array<Types.Message>,
+  shouldClearOthers?: boolean,
+|}>
+type _MessagesExplodedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageIDs: Array<RPCChatTypes.MessageID>,
+  explodedBy?: string,
 |}>
 type _MessagesWereDeletedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -227,15 +232,13 @@ type _MetaRequestTrustedPayload = $ReadOnly<{|
   conversationIDKeys: Array<Types.ConversationIDKey>,
 |}>
 type _MetaRequestingTrustedPayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>|}>
-type _MetaUpdatePaginationPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  paginationKey: ?Types.PaginationKey,
-|}>
 type _MetasReceivedPayload = $ReadOnly<{|
   metas: Array<Types.ConversationMeta>,
   neverCreate?: boolean,
   clearExistingMetas?: boolean,
   clearExistingMessages?: boolean,
+  fromEphemeralPurge?: boolean,
+  fromExpunge?: boolean,
 |}>
 type _MuteConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -248,23 +251,29 @@ type _NotificationSettingsUpdatedPayload = $ReadOnly<{|
   settings: RPCChatTypes.ConversationNotificationInfo,
 |}>
 type _OpenFolderPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
+type _PreviewConversationPayload = $ReadOnly<{|
+  participants?: Array<string>,
+  teamname?: string,
+  channelname?: string,
+  conversationIDKey?: Types.ConversationIDKey,
+  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
+|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   username: string,
 |}>
-type _RetryPendingConversationPayload = void
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  reason: 'clearSelected' | 'desktopNotification' | 'existingSearch' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
-|}>
-type _SendToPendingConversationPayload = $ReadOnly<{|
-  users: Array<string>,
-  sendingAction: MessageSendPayload | AttachmentUploadPayload,
+  reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'searching' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
 |}>
 type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   typing: boolean,
+|}>
+type _SetConvExplodingModePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  seconds: number,
 |}>
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -274,29 +283,25 @@ type _SetConversationOfflinePayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   offline: boolean,
 |}>
+type _SetExplodingMessagesNewPayload = $ReadOnly<{|new: boolean|}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetLoadingPayload = $ReadOnly<{|
   key: string,
   loading: boolean,
 |}>
+type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _SetPendingConversationUsersPayload = $ReadOnly<{|
   users: Array<string>,
   fromSearch: boolean,
 |}>
-type _SetPendingMessageSubmitStatePayload = $ReadOnly<{|
-  reason: string,
-  submitState: 'failed' | 'pending',
-|}>
 type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode|}>
-type _SetPendingSelectedPayload = $ReadOnly<{|selected: boolean|}>
-type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}>
 type _SetupChatHandlersPayload = void
-type _StartConversationPayload = $ReadOnly<{|
-  participants?: ?Array<string>,
-  tlf?: ?string,
-  fromAReset?: boolean,
-|}>
+type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
+type _UpdateMoreToLoadPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  moreToLoad: boolean,
+|}>
 type _UpdateNotificationSettingsPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   notificationsDesktop: Types.NotificationsType,
@@ -308,9 +313,9 @@ type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.Conver
 
 // Action Creators
 /**
- * Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox
+ * Actually start a conversation
  */
-export const createCancelPendingConversation = (payload: _CancelPendingConversationPayload) => ({error: false, payload, type: cancelPendingConversation})
+export const createCreateConversation = (payload: _CreateConversationPayload) => ({error: false, payload, type: createConversation})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
@@ -320,21 +325,33 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({error: false, payload, type: updateTeamRetentionPolicy})
 /**
- * Retries sending the pending message that is currently stored in the metaMap
+ * Exploding messages expired or were manually detonated.
  */
-export const createRetryPendingConversation = (payload: _RetryPendingConversationPayload) => ({error: false, payload, type: retryPendingConversation})
+export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({error: false, payload, type: messagesExploded})
 /**
- * Sets pending messages in the store to the supplied state and logs the reason
+ * Handle an update to our conversation exploding modes.
  */
-export const createSetPendingMessageSubmitState = (payload: _SetPendingMessageSubmitStatePayload) => ({error: false, payload, type: setPendingMessageSubmitState})
+export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
 /**
- * Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.
+ * Set the remote exploding mode for a conversation.
  */
-export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({error: false, payload, type: setPendingStatus})
+export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({error: false, payload, type: setConvExplodingMode})
+/**
+ * Set whether exploding messages are a new feature or not.
+ */
+export const createSetExplodingMessagesNew = (payload: _SetExplodingMessagesNewPayload) => ({error: false, payload, type: setExplodingMessagesNew})
 /**
  * Sets the retention policy for a conversation.
  */
 export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPayload) => ({error: false, payload, type: setConvRetentionPolicy})
+/**
+ * Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things.
+ */
+export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplodingMessagesPayload) => ({error: false, payload, type: handleSeeingExplodingMessages})
+/**
+ * When the search changes we need to find any existing conversations to stash into the metaMap
+ */
+export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({error: false, payload, type: setPendingConversationExistingConversationIDKey})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({error: false, payload, type: attachmentDownloaded})
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({error: false, payload, type: attachmentLoading})
@@ -344,10 +361,7 @@ export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) 
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: false, payload, type: badgesUpdated})
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({error: false, payload, type: blockConversation})
 export const createClearLoading = (payload: _ClearLoadingPayload) => ({error: false, payload, type: clearLoading})
-export const createClearOrdinals = (payload: _ClearOrdinalsPayload) => ({error: false, payload, type: clearOrdinals})
-export const createClearPendingConversation = (payload: _ClearPendingConversationPayload) => ({error: false, payload, type: clearPendingConversation})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({error: false, payload, type: desktopNotification})
-export const createExitSearch = (payload: _ExitSearchPayload) => ({error: false, payload, type: exitSearch})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: _JoinConversationPayload) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: _LeaveConversationPayload) => ({error: false, payload, type: leaveConversation})
@@ -375,26 +389,24 @@ export const createMetaNeedsUpdating = (payload: _MetaNeedsUpdatingPayload) => (
 export const createMetaReceivedError = (payload: _MetaReceivedErrorPayload) => ({error: false, payload, type: metaReceivedError})
 export const createMetaRequestTrusted = (payload: _MetaRequestTrustedPayload) => ({error: false, payload, type: metaRequestTrusted})
 export const createMetaRequestingTrusted = (payload: _MetaRequestingTrustedPayload) => ({error: false, payload, type: metaRequestingTrusted})
-export const createMetaUpdatePagination = (payload: _MetaUpdatePaginationPayload) => ({error: false, payload, type: metaUpdatePagination})
 export const createMetasReceived = (payload: _MetasReceivedPayload) => ({error: false, payload, type: metasReceived})
 export const createMuteConversation = (payload: _MuteConversationPayload) => ({error: false, payload, type: muteConversation})
 export const createNavigateToInbox = (payload: _NavigateToInboxPayload) => ({error: false, payload, type: navigateToInbox})
 export const createNavigateToThread = (payload: _NavigateToThreadPayload) => ({error: false, payload, type: navigateToThread})
 export const createNotificationSettingsUpdated = (payload: _NotificationSettingsUpdatedPayload) => ({error: false, payload, type: notificationSettingsUpdated})
 export const createOpenFolder = (payload: _OpenFolderPayload) => ({error: false, payload, type: openFolder})
+export const createPreviewConversation = (payload: _PreviewConversationPayload) => ({error: false, payload, type: previewConversation})
 export const createResetChatWithoutThem = (payload: _ResetChatWithoutThemPayload) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (payload: _ResetLetThemInPayload) => ({error: false, payload, type: resetLetThemIn})
 export const createSelectConversation = (payload: _SelectConversationPayload) => ({error: false, payload, type: selectConversation})
-export const createSendToPendingConversation = (payload: _SendToPendingConversationPayload) => ({error: false, payload, type: sendToPendingConversation})
 export const createSendTyping = (payload: _SendTypingPayload) => ({error: false, payload, type: sendTyping})
 export const createSetConversationOffline = (payload: _SetConversationOfflinePayload) => ({error: false, payload, type: setConversationOffline})
 export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({error: false, payload, type: setInboxFilter})
 export const createSetLoading = (payload: _SetLoadingPayload) => ({error: false, payload, type: setLoading})
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({error: false, payload, type: setPendingMode})
-export const createSetPendingSelected = (payload: _SetPendingSelectedPayload) => ({error: false, payload, type: setPendingSelected})
 export const createSetupChatHandlers = (payload: _SetupChatHandlersPayload) => ({error: false, payload, type: setupChatHandlers})
-export const createStartConversation = (payload: _StartConversationPayload) => ({error: false, payload, type: startConversation})
+export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({error: false, payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({error: false, payload, type: updateNotificationSettings})
 export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: false, payload, type: updateTypers})
 
@@ -407,12 +419,10 @@ export type AttachmentUploadedPayload = $Call<typeof createAttachmentUploaded, _
 export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading, _AttachmentUploadingPayload>
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
 export type BlockConversationPayload = $Call<typeof createBlockConversation, _BlockConversationPayload>
-export type CancelPendingConversationPayload = $Call<typeof createCancelPendingConversation, _CancelPendingConversationPayload>
 export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoadingPayload>
-export type ClearOrdinalsPayload = $Call<typeof createClearOrdinals, _ClearOrdinalsPayload>
-export type ClearPendingConversationPayload = $Call<typeof createClearPendingConversation, _ClearPendingConversationPayload>
+export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
-export type ExitSearchPayload = $Call<typeof createExitSearch, _ExitSearchPayload>
+export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
 export type LeaveConversationPayload = $Call<typeof createLeaveConversation, _LeaveConversationPayload>
@@ -433,6 +443,7 @@ export type MessageSetEditingPayload = $Call<typeof createMessageSetEditing, _Me
 export type MessageSetQuotingPayload = $Call<typeof createMessageSetQuoting, _MessageSetQuotingPayload>
 export type MessageWasEditedPayload = $Call<typeof createMessageWasEdited, _MessageWasEditedPayload>
 export type MessagesAddPayload = $Call<typeof createMessagesAdd, _MessagesAddPayload>
+export type MessagesExplodedPayload = $Call<typeof createMessagesExploded, _MessagesExplodedPayload>
 export type MessagesWereDeletedPayload = $Call<typeof createMessagesWereDeleted, _MessagesWereDeletedPayload>
 export type MetaDeletePayload = $Call<typeof createMetaDelete, _MetaDeletePayload>
 export type MetaHandleQueuePayload = $Call<typeof createMetaHandleQueue, _MetaHandleQueuePayload>
@@ -440,31 +451,30 @@ export type MetaNeedsUpdatingPayload = $Call<typeof createMetaNeedsUpdating, _Me
 export type MetaReceivedErrorPayload = $Call<typeof createMetaReceivedError, _MetaReceivedErrorPayload>
 export type MetaRequestTrustedPayload = $Call<typeof createMetaRequestTrusted, _MetaRequestTrustedPayload>
 export type MetaRequestingTrustedPayload = $Call<typeof createMetaRequestingTrusted, _MetaRequestingTrustedPayload>
-export type MetaUpdatePaginationPayload = $Call<typeof createMetaUpdatePagination, _MetaUpdatePaginationPayload>
 export type MetasReceivedPayload = $Call<typeof createMetasReceived, _MetasReceivedPayload>
 export type MuteConversationPayload = $Call<typeof createMuteConversation, _MuteConversationPayload>
 export type NavigateToInboxPayload = $Call<typeof createNavigateToInbox, _NavigateToInboxPayload>
 export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _NavigateToThreadPayload>
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
+export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
-export type RetryPendingConversationPayload = $Call<typeof createRetryPendingConversation, _RetryPendingConversationPayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
-export type SendToPendingConversationPayload = $Call<typeof createSendToPendingConversation, _SendToPendingConversationPayload>
 export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayload>
+export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMode, _SetConvExplodingModePayload>
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
 export type SetConversationOfflinePayload = $Call<typeof createSetConversationOffline, _SetConversationOfflinePayload>
+export type SetExplodingMessagesNewPayload = $Call<typeof createSetExplodingMessagesNew, _SetExplodingMessagesNewPayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
 export type SetLoadingPayload = $Call<typeof createSetLoading, _SetLoadingPayload>
+export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
-export type SetPendingMessageSubmitStatePayload = $Call<typeof createSetPendingMessageSubmitState, _SetPendingMessageSubmitStatePayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
-export type SetPendingSelectedPayload = $Call<typeof createSetPendingSelected, _SetPendingSelectedPayload>
-export type SetPendingStatusPayload = $Call<typeof createSetPendingStatus, _SetPendingStatusPayload>
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
-export type StartConversationPayload = $Call<typeof createStartConversation, _StartConversationPayload>
+export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
+export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
 export type UpdateNotificationSettingsPayload = $Call<typeof createUpdateNotificationSettings, _UpdateNotificationSettingsPayload>
 export type UpdateTeamRetentionPolicyPayload = $Call<typeof createUpdateTeamRetentionPolicy, _UpdateTeamRetentionPolicyPayload>
 export type UpdateTypersPayload = $Call<typeof createUpdateTypers, _UpdateTypersPayload>
@@ -480,12 +490,10 @@ export type Actions =
   | AttachmentUploadingPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
-  | CancelPendingConversationPayload
   | ClearLoadingPayload
-  | ClearOrdinalsPayload
-  | ClearPendingConversationPayload
+  | CreateConversationPayload
   | DesktopNotificationPayload
-  | ExitSearchPayload
+  | HandleSeeingExplodingMessagesPayload
   | InboxRefreshPayload
   | JoinConversationPayload
   | LeaveConversationPayload
@@ -506,6 +514,7 @@ export type Actions =
   | MessageSetQuotingPayload
   | MessageWasEditedPayload
   | MessagesAddPayload
+  | MessagesExplodedPayload
   | MessagesWereDeletedPayload
   | MetaDeletePayload
   | MetaHandleQueuePayload
@@ -513,31 +522,30 @@ export type Actions =
   | MetaReceivedErrorPayload
   | MetaRequestTrustedPayload
   | MetaRequestingTrustedPayload
-  | MetaUpdatePaginationPayload
   | MetasReceivedPayload
   | MuteConversationPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload
   | OpenFolderPayload
+  | PreviewConversationPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
-  | RetryPendingConversationPayload
   | SelectConversationPayload
-  | SendToPendingConversationPayload
   | SendTypingPayload
+  | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
+  | SetExplodingMessagesNewPayload
   | SetInboxFilterPayload
   | SetLoadingPayload
+  | SetPendingConversationExistingConversationIDKeyPayload
   | SetPendingConversationUsersPayload
-  | SetPendingMessageSubmitStatePayload
   | SetPendingModePayload
-  | SetPendingSelectedPayload
-  | SetPendingStatusPayload
   | SetupChatHandlersPayload
-  | StartConversationPayload
+  | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
+  | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
   | UpdateTeamRetentionPolicyPayload
   | UpdateTypersPayload

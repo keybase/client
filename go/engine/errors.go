@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 //=============================================================================
@@ -39,6 +40,17 @@ type PGPImportStubbedError struct {
 }
 
 func (e PGPImportStubbedError) Error() string {
-	return fmt.Sprintf("Key %s has private part stubbed - cannot import to Keybase keychain. Try again with --no-import.",
+	return fmt.Sprintf("Key %s has a stubbed private key, so we can't import it to the Keybase keychain.",
 		e.KeyIDString)
+}
+
+//=============================================================================
+
+type PGPNotActiveForLocalImport struct {
+	kid keybase1.KID
+}
+
+func (e PGPNotActiveForLocalImport) Error() string {
+	return fmt.Sprintf("Key %s is not active in user's sigchain. Publish key first to be able to import to local Keybase keychain.",
+		e.kid)
 }

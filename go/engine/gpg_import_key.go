@@ -176,7 +176,30 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		err = RunEngine2(m, eng)
 		e.duplicatedFingerprints = eng.duplicatedFingerprints
 
-		return err
+		if err != nil {
+			return err
+		}
+
+		if !e.arg.SkipImport {
+			// Key is duplicate, but caller wants to import secret
+			// half.
+			res, err := m.UIs().GPGUI.ConfirmImportSecretToExistingKey(m.Ctx(), 0)
+			if err != nil {
+				return err
+			}
+			if !res {
+				// But update itself has finished, so this
+				// cancellation is not an error.
+				m.CInfof("User cancelled secret key import.")
+				return nil
+			}
+			// Fall through with OnlyImport=true so it skips sig posting
+			// (which would be rejected because of duplicate kid).
+			e.arg.OnlyImport = true
+		} else {
+			// Nothing to more do.
+			return nil
+		}
 	}
 
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
@@ -201,11 +224,20 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 			return fmt.Errorf("ImportKey (secret: true) error: %s", err)
 		}
 
+		if err := bundle.Unlock(m, "Import of key into Keybase keyring", m.UIs().SecretUI); err != nil {
+			return err
+		}
+
 		if !libkb.FindPGPPrivateKey(bundle) {
 			return PGPImportStubbedError{KeyIDString: selected.GetFingerprint().ToKeyID()}
 		}
+	}
 
-		if err := bundle.Unlock(m, "Import of key into Keybase keyring", m.UIs().SecretUI); err != nil {
+	if e.arg.OnlyImport {
+		if err := e.ensurePublicPartIsPublished(me, bundle.GetKID()); err != nil {
+			// Make sure key is active in user's sigchain. Otherwise,
+			// after importing to local keychain, Keybase will refuse
+			// to use it for any operation anyway.
 			return err
 		}
 	}
@@ -243,4 +275,16 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 
 func (e *GPGImportKeyEngine) LastKey() *libkb.PGPKeyBundle {
 	return e.last
+}
+
+func (e *GPGImportKeyEngine) ensurePublicPartIsPublished(me *libkb.User, kid keybase1.KID) error {
+	ckf := me.GetComputedKeyFamily()
+	if ckf == nil {
+		return fmt.Errorf("cannot get ComputedKeyFamily")
+	}
+	active := ckf.GetKeyRole(kid)
+	if active != libkb.DLGSibkey {
+		return PGPNotActiveForLocalImport{kid}
+	}
+	return nil
 }

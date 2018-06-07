@@ -6,9 +6,7 @@ package engine
 import (
 	"errors"
 	"fmt"
-
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type PaperProvisionEngine struct {
@@ -61,11 +59,16 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	m = m.WithNewProvisionalLoginContext()
+
 	// From this point on, if there's an error, we abort the
 	// transaction.
 	defer func() {
 		if tx != nil {
 			tx.Abort()
+		}
+		if err == nil {
+			m = m.CommitProvisionalLogin()
 		}
 	}()
 
@@ -93,11 +96,11 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	kp := &keypair{sigKey: bkeng.SigKey(), encKey: bkeng.EncKey()}
+	keys := bkeng.DeviceWithKeys()
 
 	// Make sure the key matches the logged in user
 	// use the KID to find the uid
-	uid, err := e.uidByKID(kp.sigKey.GetKID())
+	uid, err := keys.Populate(m)
 	if err != nil {
 		return err
 	}
@@ -113,7 +116,7 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	// Make new device keys and sign them with this paper key
-	err = e.paper(m, kp)
+	err = e.paper(m, keys)
 	if err != nil {
 		return err
 	}
@@ -132,51 +135,34 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 }
 
-// Copied from login_provision.go
-func (e *PaperProvisionEngine) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
-	var nilUID keybase1.UID
-	arg := libkb.APIArg{
-		Endpoint:    "key/owner",
-		SessionType: libkb.APISessionTypeNONE,
-		Args:        libkb.HTTPArgs{"kid": libkb.S{Val: kid.String()}},
-	}
-	res, err := e.G().API.Get(arg)
-	if err != nil {
-		return nilUID, err
-	}
-	suid, err := res.Body.AtPath("uid").GetString()
-	if err != nil {
-		return nilUID, err
-	}
-	return keybase1.UIDFromString(suid)
-}
-
 // copied more or less from loginProvision.paper()
-func (e *PaperProvisionEngine) paper(m libkb.MetaContext, kp *keypair) error {
+func (e *PaperProvisionEngine) paper(m libkb.MetaContext, keys *libkb.DeviceWithKeys) error {
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the paper key.
-	var afterLogin = func(lctx libkb.LoginContext) error {
-		m = m.WithLoginContext(lctx)
+	u := e.User
+	uid := u.GetUID()
+	nn := u.GetNormalizedName()
 
-		// need lksec to store device keys locally
-		if err := e.fetchLKS(m, kp.encKey); err != nil {
-			return err
-		}
+	// Set the active device to be a special paper key active device, which keeps
+	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
+	// It also will establish a NIST so that API calls can proceed on behalf of the user.
+	m = m.WithPaperKeyActiveDevice(keys, uid)
+	m.LoginContext().SetUsernameUID(nn, uid)
 
-		lctx.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
-
-		if err := e.makeDeviceKeysWithSigner(m, kp.sigKey); err != nil {
-			return err
-		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
-			// not a fatal error, session will stay in memory
-			m.CWarningf("error saving session file: %s", err)
-		}
-		return nil
+	// need lksec to store device keys locally
+	if err := e.fetchLKS(m, keys.EncryptionKey()); err != nil {
+		return err
 	}
 
-	// need a session to continue to provision, login with paper sigKey
-	return e.G().LoginState().LoginWithKey(m, e.User, kp.sigKey, afterLogin)
+	if err := e.makeDeviceKeysWithSigner(m, keys.SigningKey()); err != nil {
+		return err
+	}
+
+	// Cache the paper keys globally now that we're logged in
+	m = m.WithGlobalActiveDevice()
+	m.ActiveDevice().CachePaperKey(m, keys)
+
+	return nil
 }
 
 func (e *PaperProvisionEngine) sendNotification() {
@@ -199,7 +185,7 @@ func (e *PaperProvisionEngine) fetchLKS(m libkb.MetaContext, encKey libkb.Generi
 	if err != nil {
 		return err
 	}
-	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.User.GetUID(), e.G())
+	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.User.GetUID())
 	return nil
 }
 
@@ -255,7 +241,7 @@ func (e *PaperProvisionEngine) ensureLKSec(m libkb.MetaContext) error {
 		return err
 	}
 
-	e.lks = libkb.NewLKSec(pps, e.User.GetUID(), e.G())
+	e.lks = libkb.NewLKSec(pps, e.User.GetUID())
 	return nil
 }
 

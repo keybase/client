@@ -8,7 +8,7 @@ import {
   NativeImage,
   ZoomableBox,
   NativeDimensions,
-} from '../../../common-adapters/index.native'
+} from '../../../common-adapters/mobile.native'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import MessagePopup from '../messages/message-popup/'
 import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../styles'
@@ -81,7 +81,7 @@ class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, {load
           Close
         </Text>
         <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
-          {this.props.path && (
+          {!!this.props.path && (
             <AutoMaxSizeImage
               source={{uri: `${this.props.path}`}}
               onLoad={this._setLoaded}

@@ -42,6 +42,10 @@
           "name": "displayDesktopNotification"
         },
         {
+          "type": "string",
+          "name": "desktopNotificationSnippet"
+        },
+        {
           "type": [
             null,
             "InboxUIItem"
@@ -149,12 +153,8 @@
     },
     {
       "type": "record",
-      "name": "MembersUpdateInfo",
+      "name": "MemberInfo",
       "fields": [
-        {
-          "type": "ConversationID",
-          "name": "convID"
-        },
         {
           "type": "string",
           "name": "member"
@@ -162,6 +162,23 @@
         {
           "type": "ConversationMemberStatus",
           "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MembersUpdateInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MemberInfo"
+          },
+          "name": "members"
         }
       ]
     },
@@ -197,6 +214,13 @@
         {
           "type": "Expunge",
           "name": "expunge"
+        },
+        {
+          "type": [
+            null,
+            "InboxUIItem"
+          ],
+          "name": "conv"
         }
       ]
     },
@@ -416,6 +440,21 @@
   ],
   "messages": {
     "NewChatActivity": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "activity",
+          "type": "ChatActivity"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "NewChatKBFSFileEditActivity": {
       "request": [
         {
           "name": "uid",

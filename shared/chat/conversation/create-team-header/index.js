@@ -31,9 +31,9 @@ const stylesDesktopContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   backgroundColor: globalColors.blue,
-  height: 56,
+  paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
   justifyContent: 'center',
-  minHeight: 56,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
 }
@@ -43,13 +43,10 @@ const stylesMobileContainer = {
   alignItems: 'center',
   backgroundColor: globalColors.blue,
   justifyContent: 'center',
-  minHeight: 56,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  paddingTop: globalMargins.medium,
-  paddingBottom: globalMargins.medium,
-  marginTop: globalMargins.medium,
-  marginBottom: globalMargins.medium,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
 }
 
 export default CreateTeamHeader

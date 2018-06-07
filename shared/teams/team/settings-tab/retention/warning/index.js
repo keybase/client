@@ -57,7 +57,7 @@ const RetentionWarning = (props: Props) => {
           checked={props.enabled}
           onCheck={props.setEnabled}
           style={checkboxStyle}
-          label="I understand."
+          label=""
           labelComponent={
             <Box style={confirmLabelStyle}>
               <Text type="Body">

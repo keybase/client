@@ -14,14 +14,17 @@ import {
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  listScrollDownCounter: number,
   onFocusInput: () => void,
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => ({
-  conversationIDKey,
-  editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
-  messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
-})
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+  return {
+    conversationIDKey,
+    editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
+    messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
+  }
+}
 
 type DispatchProps = {
   _loadMoreMessages: () => void,
@@ -37,6 +40,7 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
   _loadMoreMessages: dispatchProps._loadMoreMessages,
   conversationIDKey: stateProps.conversationIDKey,
   editingOrdinal: stateProps.editingOrdinal,
+  listScrollDownCounter: ownProps.listScrollDownCounter,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,

@@ -244,6 +244,10 @@ func (k *SKBKeyringFile) saveLocked() error {
 		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: not dirty, so skipping save", k.filename)
 		return nil
 	}
+	if err := MakeParentDirs(k.G().Log, k.filename); err != nil {
+		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: failed to make parent dirs: %s", k.filename, err)
+		return err
+	}
 	k.G().Log.Debug("SKBKeyringFile: saveLocked %s: dirty, safe saving", k.filename)
 	if err := SafeWriteToFile(k.G().Log, k, 0); err != nil {
 		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: SafeWriteToFile error: %s", k.filename, err)
@@ -360,7 +364,7 @@ func (k *SKBKeyringFile) Bug3964Repair(m MetaContext, lks *LKSec, dkm DeviceKeyM
 
 		var decryption, reencryption []byte
 		var badMask LKSecServerHalf
-		decryption, badMask, err = lks.decryptForBug3964Repair(b.Priv.Data, dkm)
+		decryption, badMask, err = lks.decryptForBug3964Repair(m, b.Priv.Data, dkm)
 		if err != nil {
 			m.CDebugf("| Decryption failed at block=%d; keeping as is (%s)", i, err)
 			newBlocks = append(newBlocks, b)

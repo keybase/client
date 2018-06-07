@@ -5,6 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import CreateTeamNotice from './system-create-team-notice/container'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
+import shallowEqual from 'shallowequal'
 import {Text, Box, Icon} from '../../../common-adapters'
 import {connect, type TypedState} from '../../../util/container'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
@@ -20,12 +21,7 @@ type Props = {
 
 class TopMessage extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
-    // remeasure if the layout changes. On purpose we don't change size when loadMoreType changes
-    if (
-      this.props.measure &&
-      (this.props.hasOlderResetConversation !== prevProps.hasOlderResetConversation ||
-        this.props.showTeamOffer !== prevProps.showTeamOffer)
-    ) {
+    if (this.props.measure && !shallowEqual(this.props, prevProps)) {
       this.props.measure()
     }
   }
@@ -84,9 +80,11 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  const loadMoreType = meta.paginationKey ? 'moreToLoad' : 'noMoreToLoad'
+  const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
+    ? 'moreToLoad'
+    : 'noMoreToLoad'
   const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
-  const hasOlderResetConversation = !!meta.supersedes
+  const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
   // don't show default header in the case of the retention notice being visible
   const showRetentionNotice =
     meta.retentionPolicy.type !== 'retain' &&
@@ -94,8 +92,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     conversationIDKey: ownProps.conversationIDKey,
     hasOlderResetConversation,
-    showRetentionNotice,
     loadMoreType,
+    showRetentionNotice,
     showTeamOffer,
   }
 }

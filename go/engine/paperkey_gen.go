@@ -80,6 +80,10 @@ func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 	return e.encKey
 }
 
+func (e *PaperKeyGen) DeviceWithKeys() *libkb.DeviceWithKeys {
+	return libkb.NewDeviceWithKeysOnly(e.sigKey, e.encKey)
+}
+
 // Run starts the engine.
 func (e *PaperKeyGen) Run(m libkb.MetaContext) error {
 	if !e.arg.SkipPush {
@@ -181,50 +185,45 @@ func (e *PaperKeyGen) makeEncKey(seed []byte) error {
 	return nil
 }
 
-func (e *PaperKeyGen) getClientHalfFromSecretStore() (libkb.LKSecClientHalf, libkb.PassphraseGeneration, error) {
-	zeroGen := libkb.PassphraseGeneration(0)
-	var dummy libkb.LKSecClientHalf
+func (e *PaperKeyGen) getClientHalfFromSecretStore(m libkb.MetaContext) (clientHalf libkb.LKSecClientHalf, ppgen libkb.PassphraseGeneration, err error) {
+	defer m.CTrace("PaperKeyGen#getClientHalfFromSecretStore", func() error { return err })
 
 	secretStore := libkb.NewSecretStore(e.G(), e.arg.Me.GetNormalizedName())
 	if secretStore == nil {
-		return dummy, zeroGen, errors.New("No secret store available")
+		return clientHalf, ppgen, errors.New("No secret store available")
 	}
 
 	secret, err := secretStore.RetrieveSecret()
 	if err != nil {
-		return dummy, zeroGen, err
+		return clientHalf, ppgen, err
 	}
 
 	devid := e.G().Env.GetDeviceID()
 	if devid.IsNil() {
-		return dummy, zeroGen, fmt.Errorf("no device id set")
+		return clientHalf, ppgen, fmt.Errorf("no device id set")
 	}
-
-	var dev libkb.DeviceKey
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-		if err = libkb.RunSyncer(a.SecretSyncer(), e.arg.Me.GetUID(), a.LoggedIn(), a.LocalSession()); err != nil {
-			return
-		}
-		dev, err = a.SecretSyncer().FindDevice(devid)
-	}, "BackupKeygen.Run() -- retrieving passphrase generation)")
-	if aerr != nil {
-		return dummy, zeroGen, aerr
-	}
+	var ss *libkb.SecretSyncer
+	ss, err = m.ActiveDevice().SyncSecrets(m)
 	if err != nil {
-		return dummy, zeroGen, err
+		return clientHalf, ppgen, err
+	}
+	var dev libkb.DeviceKey
+	dev, err = ss.FindDevice(devid)
+	if err != nil {
+		return clientHalf, ppgen, err
 	}
 	serverHalf, err := libkb.NewLKSecServerHalfFromHex(dev.LksServerHalf)
 	if err != nil {
-		return dummy, zeroGen, err
+		return clientHalf, ppgen, err
 	}
 
-	clientHalf := serverHalf.ComputeClientHalf(secret)
+	clientHalf = serverHalf.ComputeClientHalf(secret)
 
 	return clientHalf, dev.PPGen, nil
 }
 
-func (e *PaperKeyGen) push(m libkb.MetaContext) error {
-	m.CDebugf("PaperKeyGen#push")
+func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
+	defer m.CTrace("PaperKeyGen#push", func() error { return err })()
 	if e.arg.SkipPush {
 		return nil
 	}
@@ -244,39 +243,25 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) error {
 	// create lks halves for this device.  Note that they aren't used for
 	// local, encrypted storage of the paper keys, but just for recovery
 	// purposes.
+	m.Dump()
 
-	foundStream := false
 	var ppgen libkb.PassphraseGeneration
 	var clientHalf libkb.LKSecClientHalf
-	if lctx := m.LoginContext(); lctx != nil {
-		stream := lctx.PassphraseStreamCache().PassphraseStream()
-		if stream != nil {
-			foundStream = true
-			ppgen = stream.Generation()
-			clientHalf = stream.LksClientHalf()
-		}
+	if stream := m.PassphraseStream(); stream != nil {
+		m.CDebugf("Got cached passphrase stream")
+		clientHalf = stream.LksClientHalf()
+		ppgen = stream.Generation()
 	} else {
-		m.G().LoginState().Account(func(a *libkb.Account) {
-			stream := a.PassphraseStream()
-			if stream == nil {
-				return
-			}
-			foundStream = true
-			ppgen = stream.Generation()
-			clientHalf = stream.LksClientHalf()
-		}, "BackupKeygen - push")
-	}
-
-	// stream was nil, so we must have loaded lks from the secret
-	// store.
-	if !foundStream {
-		clientHalf, ppgen, err = e.getClientHalfFromSecretStore()
+		m.CDebugf("Got nil passphrase stream; going to secret store")
+		// stream was nil, so we must have loaded lks from the secret
+		// store.
+		clientHalf, ppgen, err = e.getClientHalfFromSecretStore(m)
 		if err != nil {
 			return err
 		}
 	}
 
-	backupLks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
+	backupLks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID())
 	backupLks.SetServerHalf(libkb.NewLKSecServerHalfZeros())
 
 	ctext, err := backupLks.EncryptClientHalfRecovery(e.encKey)
@@ -289,7 +274,7 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) error {
 	if lctx := m.LoginContext(); lctx != nil {
 		sr = lctx.LocalSession()
 	}
-	if err := libkb.PostDeviceLKS(m.Ctx(), e.G(), sr, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(m, sr, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 
@@ -321,7 +306,7 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) error {
 	}
 
 	m.CDebugf("PaperKeyGen#push running delegators")
-	return libkb.DelegatorAggregator(m.LoginContext(), []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil)
+	return libkb.DelegatorAggregator(m, []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil)
 }
 
 func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {

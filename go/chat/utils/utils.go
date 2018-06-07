@@ -477,10 +477,17 @@ func FilterExploded(msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 			if mvalid.IsEphemeral() && mvalid.HideExplosion(now) {
 				continue
 			}
+		} else if msg.IsError() {
+			// If we had an error on an expired message, it's irrelevant now
+			// that the message has exploded so we hide it.
+			merr := msg.Error()
+			if merr.IsEphemeral && merr.IsEphemeralExpired {
+				continue
+			}
 		}
 		res = append(res, msg)
 	}
-	return msgs
+	return res
 }
 
 // GetSupersedes must be called with a valid msg
@@ -788,29 +795,82 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 	}
 }
 
-func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) string {
-	if !msg.IsValidFull() {
-		return ""
-	}
-	var prefix string
+// Sender prefix for msg snippets. Will show if a conversation has > 2 members
+// or is of type TEAM
+func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal, currentUsername string) (senderPrefix string) {
+	var showPrefix bool
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
-		sender := msg.Valid().SenderUsername
+		showPrefix = true
+	default:
+		showPrefix = len(conv.Names()) > 2
+	}
+
+	if showPrefix {
+		sender := mvalid.SenderUsername
 		if sender == currentUsername {
-			prefix = "You: "
+			senderPrefix = "You: "
 		} else {
-			prefix = fmt.Sprintf("%s: ", sender)
+			senderPrefix = fmt.Sprintf("%s: ", sender)
 		}
 	}
+	return senderPrefix
+}
+
+func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) string {
+	if !msg.IsValid() {
+		return ""
+	}
+
+	mvalid := msg.Valid()
+	senderPrefix := getSenderPrefix(mvalid, conv, currentUsername)
+
+	if !msg.IsValidFull() {
+		if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
+			return fmt.Sprintf("💥 %s ----------------------------", senderPrefix)
+		}
+		return ""
+	}
+	var explodingPrefix string
+	if mvalid.IsEphemeral() {
+		explodingPrefix = "💣 "
+	}
+
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
-		return prefix + msg.Valid().MessageBody.Text().Body
+		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Text().Body
 	case chat1.MessageType_ATTACHMENT:
-		return prefix + msg.Valid().MessageBody.Attachment().Object.Title
+		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System())
 	}
 	return ""
+}
+
+// We don't want to display the contents of an exploding message in notifications
+func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string) string {
+	if conv == nil {
+		return ""
+	}
+	msg, err := PickLatestMessageUnboxed(*conv, VisibleChatMessageTypes())
+	if err != nil || !msg.IsValid() {
+		return ""
+	}
+	mvalid := msg.Valid()
+	if !mvalid.IsEphemeral() {
+		return GetMsgSnippet(msg, *conv, currentUsername)
+	}
+
+	// If the message is already exploded, nothing to see here.
+	if !msg.IsValidFull() {
+		return ""
+	}
+	switch msg.GetMessageType() {
+	case chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT:
+		return "💣 exploding message."
+	default:
+		return ""
+	}
 }
 
 func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
@@ -991,6 +1051,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 					strings.ToLower(rawMsg.GetMessageType().String())))
 			}
 		}
+		// Disable reading exploding messages until fully we release support
+		if valid.IsEphemeral() && !valid.IsEphemeralExpired(time.Now()) {
+			if ekLib := g.GetEKLib(); ekLib != nil && !ekLib.ShouldRun(ctx) {
+				return miscErr(fmt.Errorf("Unable to decrypt because current client is out of date. Please update your version of Keybase to view this exploding 💣 message"))
+			}
+		}
 		var strOutboxID *string
 		if valid.ClientHeader.OutboxID != nil {
 			so := valid.ClientHeader.OutboxID.String()
@@ -1012,6 +1078,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
 			IsEphemeral:           valid.IsEphemeral(),
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
+			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
