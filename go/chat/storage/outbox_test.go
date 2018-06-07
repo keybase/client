@@ -90,10 +90,15 @@ func TestChatOutbox(t *testing.T) {
 	require.Equal(t, 1, res[0].State.Sending(), "wrong attempts")
 
 	// Mark one as an error
-	require.NoError(t, ob.MarkAsError(context.TODO(), obrs[2], chat1.OutboxStateError{
+	newObr, err := ob.MarkAsError(context.TODO(), obrs[2], chat1.OutboxStateError{
 		Message: "failed",
 		Typ:     chat1.OutboxErrorType_MISC,
-	}))
+	})
+	require.NoError(t, err)
+	st, err := newObr.State.State()
+	require.NoError(t, err)
+	require.Equal(t, chat1.OutboxStateType_ERROR, st)
+	require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
 
 	// Check for correct order
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
@@ -131,10 +136,15 @@ func TestChatOutbox(t *testing.T) {
 	var tv chat1.ThreadView
 	require.NoError(t, ob.SprinkleIntoThread(context.TODO(), conv.GetConvID(), &tv))
 	require.Equal(t, 1, len(tv.Messages))
-	require.NoError(t, ob.MarkAsError(context.TODO(), obrs[3], chat1.OutboxStateError{
+	newObr, err = ob.MarkAsError(context.TODO(), obrs[3], chat1.OutboxStateError{
 		Message: "failed",
 		Typ:     chat1.OutboxErrorType_DUPLICATE,
-	}))
+	})
+	require.NoError(t, err)
+	st, err = newObr.State.State()
+	require.NoError(t, err)
+	require.Equal(t, chat1.OutboxStateType_ERROR, st)
+	require.Equal(t, chat1.OutboxErrorType_DUPLICATE, newObr.State.Error().Typ)
 	tv.Messages = nil
 	require.NoError(t, ob.SprinkleIntoThread(context.TODO(), conv.GetConvID(), &tv))
 	require.Zero(t, len(tv.Messages))
@@ -176,8 +186,8 @@ func TestChatOutboxEphemeralPurge(t *testing.T) {
 		Message: "failed",
 		Typ:     chat1.OutboxErrorType_MISC,
 	}
-	require.NoError(t, ob.MarkAsError(context.TODO(), obrs[0], errRec))
-	obrs[0].State = chat1.NewOutboxStateWithError(errRec)
+	obrs[0], err = ob.MarkAsError(context.TODO(), obrs[0], errRec)
+	require.NoError(t, err)
 
 	err = ob.EphemeralPurge(context.TODO())
 	require.NoError(t, err)

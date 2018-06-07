@@ -266,16 +266,45 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 	return nil
 }
 
+func (o *Outbox) MarkAllAsError(ctx context.Context, errRec chat1.OutboxStateError) (res []chat1.OutboxRecord, err error) {
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+	obox, serr := o.readDiskOutbox(ctx)
+	if serr != nil {
+		return res, o.maybeNuke(serr, o.dbKey())
+	}
+	var recs []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		state, err := obr.State.State()
+		if err != nil {
+			o.Debug(ctx, "MarkAllAsError: unknown state item: adding: err: %s", err.Error())
+			recs = append(recs, obr)
+			continue
+		}
+		if state != chat1.OutboxStateType_ERROR {
+			obr.State = chat1.NewOutboxStateWithError(errRec)
+			res = append(res, obr)
+		}
+		recs = append(recs, obr)
+	}
+	obox.Records = recs
+	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
+		return res, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	}
+	return res, nil
+}
+
 // MarkAsError will either mark an existing record as an error, or it will add the passed
 // record as an error with the specified error state
-func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec chat1.OutboxStateError) error {
+func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec chat1.OutboxStateError) (res chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
-	if err != nil {
-		return o.maybeNuke(err, o.dbKey())
+	obox, serr := o.readDiskOutbox(ctx)
+	if serr != nil {
+		return res, o.maybeNuke(serr, o.dbKey())
 	}
 
 	// Loop through and find record
@@ -285,11 +314,13 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 		if iobr.OutboxID.Eq(&obr.OutboxID) {
 			iobr.State = chat1.NewOutboxStateWithError(errRec)
 			added = true
+			res = iobr
 		}
 		recs = append(recs, iobr)
 	}
 	if !added {
 		obr.State = chat1.NewOutboxStateWithError(errRec)
+		res = obr
 		recs = append(recs, obr)
 		sort.Sort(ByCtimeOrder(recs))
 	}
@@ -297,11 +328,11 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 	// Write out box
 	obox.Records = recs
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+		return res, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
-	return nil
+	return res, nil
 }
 
 func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,

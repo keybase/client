@@ -195,7 +195,8 @@ protocol local {
     IDENTIFY_2,
     TOOLONG_3,
     DUPLICATE_4,
-    EXPIRED_5
+    EXPIRED_5,
+    TOOMANYATTEMPTS_6
   }
 
   record OutboxStateError {
