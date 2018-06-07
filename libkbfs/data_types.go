@@ -36,6 +36,8 @@ type revokedKeyInfo struct {
 
 	// These fields never need copying.
 	sigChainLocation keybase1.SigChainLocation
+	resetSeqno       keybase1.Seqno
+	isReset          bool
 	filledInMerkle   bool
 }
 

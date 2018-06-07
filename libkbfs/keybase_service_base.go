@@ -213,8 +213,11 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 			info.Time = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
 			info.MerkleRoot.Seqno = reset.MerkleRoot.Seqno
 			info.MerkleRoot.HashMeta = reset.MerkleRoot.HashMeta
-			// We can't yet get better merkle info from the service.
-			info.filledInMerkle = true
+			// If we don't have a prev seqno, then we already have the
+			// best merkle data we're going to get.
+			info.filledInMerkle = info.MerkleRoot.Seqno <= 0
+			info.resetSeqno = reset.ResetSeqno
+			info.isReset = true
 		} else {
 			// Not revoked.
 			continue
@@ -586,13 +589,26 @@ func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 		// merkle root in those cases, and will be relying only on
 		// server trust.
 		if info.MerkleRoot.Seqno > 0 {
-			res, err := k.userClient.FindNextMerkleRootAfterRevoke(ctx,
-				keybase1.FindNextMerkleRootAfterRevokeArg{
-					Uid:  currUserInfo.UID,
-					Kid:  kid,
-					Loc:  info.sigChainLocation,
-					Prev: info.MerkleRoot,
-				})
+			var res keybase1.NextMerkleRootRes
+			if info.isReset {
+				res, err = k.userClient.FindNextMerkleRootAfterReset(ctx,
+					keybase1.FindNextMerkleRootAfterResetArg{
+						Uid:        currUserInfo.UID,
+						ResetSeqno: info.resetSeqno,
+						Prev: keybase1.ResetMerkleRoot{
+							Seqno:    info.MerkleRoot.Seqno,
+							HashMeta: info.MerkleRoot.HashMeta,
+						},
+					})
+			} else {
+				res, err = k.userClient.FindNextMerkleRootAfterRevoke(ctx,
+					keybase1.FindNextMerkleRootAfterRevokeArg{
+						Uid:  currUserInfo.UID,
+						Kid:  kid,
+						Loc:  info.sigChainLocation,
+						Prev: info.MerkleRoot,
+					})
+			}
 			if err != nil {
 				return UserInfo{}, false, err
 			}
