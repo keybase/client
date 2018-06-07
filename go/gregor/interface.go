@@ -82,6 +82,7 @@ type TimeOrOffset interface {
 	Time() *time.Time
 	Offset() *time.Duration
 	Before(t time.Time) bool
+	IsZero() bool
 }
 
 type Item interface {
