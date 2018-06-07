@@ -242,6 +242,7 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 		unlocked = s.Priv.Data
 	case int(triplesec.Version):
 		m.CDebugf("case: Triplesec")
+		tsecIn := tsec
 		if tsec == nil {
 			tsec, err = s.G().NewTriplesec([]byte(passphrase), nil)
 			if err != nil {
@@ -249,7 +250,10 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			}
 		}
 		unlocked, err = s.tsecUnlock(tsec)
-		if err == nil {
+		if err != nil {
+			return nil, err
+		}
+		if tsecIn == nil {
 			m.CDebugf("Caching passphrase stream: tsec=%v, pps=%v", (tsec != nil), (pps != nil))
 			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
 		}
@@ -263,17 +267,18 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			}
 		}
 		unlocked, err = s.lksUnlock(m, pps, secretStorer)
-		if err == nil && ppsIn == nil {
+		if err != nil {
+			return nil, err
+		}
+		if ppsIn == nil {
+			m.CDebugf("Caching passphrase stream: tsec=%v, pps=%v", (tsec != nil), (pps != nil))
 			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
-		} else {
-			m.CDebugf("| not caching passphrase stream: err = %v, ppsIn == nil? %v", err, ppsIn == nil)
 		}
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
+		return nil, err
 	}
-	if err == nil {
-		key, err = s.parseUnlocked(unlocked)
-	}
+	key, err = s.parseUnlocked(unlocked)
 	return key, err
 }
 
