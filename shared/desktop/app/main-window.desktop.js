@@ -23,7 +23,7 @@ export default function() {
       const requestURL = new URL(webContents.getURL())
       if (
         permission === 'notifications' &&
-        requestURL.pathname.localeCompare(ourURL.pathname, {sensitivity: 'base'}) === 0
+        requestURL.pathname.toLowerCase() === ourURL.pathname.toLowerCase()
       ) {
         // Allow notifications
         return callback(true)
