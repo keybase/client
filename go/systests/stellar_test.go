@@ -72,19 +72,28 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 	require.Equal(t, sampleNote(), note)
 }
 
+// Test took 38s on a dev server 2018-06-07
+func TestStellarRelayAutoClaims(t *testing.T) {
+	testStellarRelayAutoClaims(t, false, false)
+}
+
+// Test took 29s on a dev server 2018-06-07
+func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
+	testStellarRelayAutoClaims(t, true, true)
+}
+
 // Part 1:
-// XLM is sent to a user before they have a PUK.
+// XLM is sent to a user before they have a [PUK / wallet].
 // In the form of multiple relay payments.
-// They then get a PUK, add a wallet, and enter the impteam,
+// They then [get a PUK,] add a wallet, and enter the impteam,
 // which all kick the autoclaim into gear.
+//
 // Part 2:
 // A relay payment is sent to the user who already has a wallet.
 // The funds should be claimed asap.
 //
 // To debug this test use log filter "stellar_test|poll-|AutoClaim|stellar.claim|pollfor"
-//
-// Test took 35s with dev servers 2018-05-30
-func TestStellarRelayAutoClaims(t *testing.T) {
+func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 	if os.Getenv("UNSKIP_CORE_8044") != "1" {
 		t.Skip("CORE-8044")
 	}
@@ -93,7 +102,12 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 	useStellarTestNet(t)
 
 	alice := tt.addUser("alice")
-	bob := tt.addPuklessUser("bob")
+	var bob *userPlusDevice
+	if startWithPUK {
+		bob = tt.addWalletlessUser("bob")
+	} else {
+		bob = tt.addPuklessUser("bob")
+	}
 	alice.kickTeamRekeyd()
 
 	t.Logf("alice gets funded")
@@ -123,12 +137,18 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 	require.NoError(t, err)
 	nextSeqno := team.NextSeqno()
 
-	t.Logf("bob gets a PUK and wallet")
-	bob.perUserKeyUpgrade()
-	bob.tc.G.GetStellar().CreateWalletSoft(context.Background())
+	if startWithPUK {
+		t.Logf("bob gets a wallet")
+		bob.tc.Tp.DisableAutoWallet = false
+		bob.tc.G.GetStellar().CreateWalletSoft(context.Background())
+	} else {
+		t.Logf("bob gets a PUK and wallet")
+		bob.perUserKeyUpgrade()
+		bob.tc.G.GetStellar().CreateWalletSoft(context.Background())
 
-	t.Logf("wait for alice to add bob to their impteam")
-	alice.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: team.ID}, nextSeqno)
+		t.Logf("wait for alice to add bob to their impteam")
+		alice.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: team.ID}, nextSeqno)
+	}
 
 	pollFor(t, "claims to complete", 10*time.Second, bob.tc.G, func(i int) bool {
 		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
@@ -149,6 +169,11 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 		require.Equal(t, "79.9999700 XLM", res[0].BalanceDescription)
 		return true
 	})
+
+	if skipPart2 {
+		t.Logf("Skipping part 2")
+		return
+	}
 
 	t.Logf("--------------------")
 	t.Logf("Part 2: Alice sends a relay payment to bob who now already has a wallet")
