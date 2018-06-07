@@ -128,7 +128,7 @@ func (s *SKB) newLKSec(pps *PassphraseStream) *LKSec {
 	if s.uid.IsNil() {
 		panic("no uid set in skb")
 	}
-	return NewLKSec(pps, s.uid, s.G())
+	return NewLKSec(pps, s.uid)
 }
 
 func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
@@ -352,7 +352,7 @@ func (s *SKB) lksUnlockWithSecretRetriever(m MetaContext, secretRetriever Secret
 	if s.uid.IsNil() {
 		panic("no uid set in skb")
 	}
-	lks := NewLKSecWithFullSecret(secret, s.uid, m.G())
+	lks := NewLKSecWithFullSecret(secret, s.uid)
 	unlocked, _, _, err = lks.Decrypt(m, s.Priv.Data)
 
 	return

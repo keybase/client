@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 	samount "github.com/stellar/go/amount"
@@ -15,27 +16,66 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-var client = horizon.DefaultPublicNetClient
-var network = build.PublicNetwork
+var configLock sync.Mutex
+var gclient = horizon.DefaultPublicNetClient
+var gnetwork = build.PublicNetwork
 
 const defaultMemo = "via keybase"
 const baseReserve = 5000000
 
+// SetClient sets the horizon client and network. Used by stellarnet/testclient.
+func SetClientAndNetwork(c *horizon.Client, n build.Network) {
+	configLock.Lock()
+	defer configLock.Unlock()
+	gclient = c
+	gnetwork = n
+}
+
+func SetClientURLAndNetwork(url string, n build.Network) {
+	configLock.Lock()
+	defer configLock.Unlock()
+	gclient = &horizon.Client{
+		URL:  url,
+		HTTP: http.DefaultClient,
+	}
+	gnetwork = n
+}
+
+func SetClient(c *horizon.Client) {
+	configLock.Lock()
+	defer configLock.Unlock()
+	gclient = c
+}
+
 // SetClientURL sets the url for the horizon server this client
 // connects to.
 func SetClientURL(url string) {
-	client.URL = url
+	configLock.Lock()
+	defer configLock.Unlock()
+	gclient = &horizon.Client{
+		URL:  url,
+		HTTP: http.DefaultClient,
+	}
 }
 
-// SetClient sets the horizon client and network. Used by stellarnet/testclient.
-func SetClient(c *horizon.Client, n build.Network) {
-	client = c
-	network = n
+func SetNetwork(n build.Network) {
+	configLock.Lock()
+	defer configLock.Unlock()
+	gnetwork = n
 }
 
 // Client returns the horizon client.
 func Client() *horizon.Client {
-	return client
+	configLock.Lock()
+	defer configLock.Unlock()
+	return gclient
+}
+
+// Network returns the horizon network
+func Network() build.Network {
+	configLock.Lock()
+	defer configLock.Unlock()
+	return gnetwork
 }
 
 // Account represents a Stellar account.
@@ -52,7 +92,7 @@ func NewAccount(address AddressStr) *Account {
 // load uses the horizon client to get the current account
 // information.
 func (a *Account) load() error {
-	internal, err := client.LoadAccount(a.address.String())
+	internal, err := Client().LoadAccount(a.address.String())
 	if err != nil {
 		return errMap(err)
 	}
@@ -194,7 +234,7 @@ func IsMasterKeyActive(accountID AddressStr) (bool, error) {
 
 // AccountSeqno returns the account sequence number.
 func AccountSeqno(address AddressStr) (uint64, error) {
-	seqno, err := client.SequenceForAccount(address.String())
+	seqno, err := Client().SequenceForAccount(address.String())
 	if err != nil {
 		return 0, errMap(err)
 	}
@@ -211,7 +251,7 @@ func (a *Account) RecentPayments() ([]horizon.Payment, error) {
 		return nil, err
 	}
 	var page PaymentsPage
-	err = getDecodeJSONStrict(link+"?order=desc&limit=10", client.HTTP.Get, &page)
+	err = getDecodeJSONStrict(link+"?order=desc&limit=10", Client().HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +266,7 @@ func (a *Account) RecentTransactions() ([]Transaction, error) {
 		return nil, err
 	}
 	var page TransactionsPage
-	err = getDecodeJSONStrict(link+"?order=desc&limit=10", client.HTTP.Get, &page)
+	err = getDecodeJSONStrict(link+"?order=desc&limit=10", Client().HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +290,7 @@ func (a *Account) RecentTransactions() ([]Transaction, error) {
 func (a *Account) loadOperations(tx Transaction) ([]Operation, error) {
 	link := a.linkHref(tx.Internal.Links.Operations)
 	var page OperationsPage
-	err := getDecodeJSONStrict(link, client.HTTP.Get, &page)
+	err := getDecodeJSONStrict(link, Client().HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +305,7 @@ func TxPayments(txID string) ([]horizon.Payment, error) {
 		return nil, err
 	}
 	var page PaymentsPage
-	err = getDecodeJSONStrict(client.URL+"/transactions/"+txID+"/payments", client.HTTP.Get, &page)
+	err = getDecodeJSONStrict(Client().URL+"/transactions/"+txID+"/payments", Client().HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +314,7 @@ func TxPayments(txID string) ([]horizon.Payment, error) {
 
 // HashTx returns the hex transaction ID using the active network passphrase.
 func HashTx(tx xdr.Transaction) (string, error) {
-	bs, err := snetwork.HashTransaction(&tx, network.Passphrase)
+	bs, err := snetwork.HashTransaction(&tx, Network().Passphrase)
 	if err != nil {
 		return "", err
 	}
@@ -339,7 +379,7 @@ func SendXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid str
 
 // paymentXLM creates a payment transaction from 'from' to 'to' for 'amount' lumens.
 func paymentXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	sig, err := PaymentXLMTransaction(from, to, amount, client)
+	sig, err := PaymentXLMTransaction(from, to, amount, Client())
 	if err != nil {
 		return 0, "", err
 	}
@@ -351,7 +391,7 @@ func PaymentXLMTransaction(from SeedStr, to AddressStr, amount string,
 	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		network,
+		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.Payment(
 			build.Destination{AddressOrSeed: to.String()},
@@ -367,7 +407,7 @@ func PaymentXLMTransaction(from SeedStr, to AddressStr, amount string,
 
 // createAccountXLM funds an new account 'to' from 'from' with a starting balance of 'amount'.
 func createAccountXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	sig, err := CreateAccountXLMTransaction(from, to, amount, client)
+	sig, err := CreateAccountXLMTransaction(from, to, amount, Client())
 	if err != nil {
 		return 0, "", err
 	}
@@ -380,7 +420,7 @@ func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string,
 	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		network,
+		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.CreateAccount(
 			build.Destination{AddressOrSeed: to.String()},
@@ -399,7 +439,7 @@ func AccountMergeTransaction(from SeedStr, to AddressStr,
 	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		network,
+		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.AccountMerge(
 			build.Destination{AddressOrSeed: to.String()},
@@ -423,7 +463,7 @@ func RelocateTransaction(from SeedStr, to AddressStr, toIsFunded bool,
 	}
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		network,
+		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.CreateAccount(
 			build.Destination{AddressOrSeed: to.String()},
@@ -471,7 +511,7 @@ func sign(from SeedStr, tx *build.TransactionBuilder) (res SignResult, err error
 
 // Submit submits a signed transaction to horizon.
 func Submit(signed string) (ledger int32, txid string, err error) {
-	resp, err := client.SubmitTransaction(signed)
+	resp, err := Client().SubmitTransaction(signed)
 	if err != nil {
 		return 0, "", errMap(err)
 	}

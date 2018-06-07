@@ -9,6 +9,7 @@ protocol gregor {
         string Action;
         InboxVers inboxVers;
         ConversationID convID;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
@@ -17,6 +18,7 @@ protocol gregor {
         string Action;
         ConversationID convID;
         InboxVers inboxVers;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
@@ -26,6 +28,7 @@ protocol gregor {
         ConversationID convID;
         MessageBoxed message;
         InboxVers inboxVers;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
 
         // Optionally the server can send down the new set of max messages
@@ -38,6 +41,7 @@ protocol gregor {
         ConversationID convID;
         MessageID msgID;
         InboxVers inboxVers;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
@@ -47,6 +51,7 @@ protocol gregor {
         ConversationID convID;
         ConversationStatus status;
         InboxVers inboxVers;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
@@ -56,6 +61,7 @@ protocol gregor {
         ConversationID convID;
         TeamType teamType;
         InboxVers inboxVers;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
@@ -65,6 +71,7 @@ protocol gregor {
         ConversationID convID;
         InboxVers inboxVers;
         ConversationNotificationInfo settings;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
@@ -75,6 +82,7 @@ protocol gregor {
         InboxVers inboxVers;
         Expunge expunge;
         array<MessageSummary> maxMsgs;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 

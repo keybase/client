@@ -5,7 +5,7 @@ import Splash from '.'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  _stillTrying: state.config.bootstrapTriesRemaining === Constants.maxBootstrapTries,
+  _stillTrying: state.config.bootstrapTriesRemaining !== Constants.maxBootstrapTries,
   failed: state.config.bootStatus === 'bootStatusFailure',
 })
 

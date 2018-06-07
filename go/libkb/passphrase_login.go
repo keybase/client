@@ -217,7 +217,7 @@ func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts in
 
 func StoreSecretAfterLogin(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
 	defer m.CTrace("StoreSecretAfterLogin", func() error { return err })()
-	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID, m.G())
+	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID)
 	return StoreSecretAfterLoginWithLKS(m, n, lksec)
 }
 
@@ -281,7 +281,7 @@ func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {
 	if err != nil {
 		return nil, err
 	}
-	lks := NewLKSecWithFullSecret(fullSecret, m.CurrentUID(), m.G())
+	lks := NewLKSecWithFullSecret(fullSecret, m.CurrentUID())
 	if err = lks.LoadServerHalf(m); err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package systests
 import (
 	"bytes"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -84,7 +85,9 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 //
 // Test took 35s with dev servers 2018-05-30
 func TestStellarRelayAutoClaims(t *testing.T) {
-	t.Skip("CORE-8044")
+	if os.Getenv("UNSKIP_CORE_8044") != "1" {
+		t.Skip("CORE-8044")
+	}
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	useStellarTestNet(t)
@@ -192,5 +195,5 @@ func gift(t testing.TB, accountID stellar1.AccountID) {
 }
 
 func useStellarTestNet(t testing.TB) {
-	stellarnet.SetClient(horizon.DefaultTestNetClient, build.TestNetwork)
+	stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
 }

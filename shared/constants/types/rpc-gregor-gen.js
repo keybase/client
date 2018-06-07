@@ -126,7 +126,7 @@ export type Metadata = $ReadOnly<{uid: UID, msgID: MsgID, ctime: Time, deviceID:
 
 export type MsgID = Bytes
 
-export type MsgRange = $ReadOnly<{endTime: TimeOrOffset, category: Category}>
+export type MsgRange = $ReadOnly<{endTime: TimeOrOffset, category: Category, skipMsgIDs?: ?Array<MsgID>}>
 
 export type OutOfBandMessage = $ReadOnly<{uid: UID, system: System, body: Body}>
 

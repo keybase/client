@@ -570,7 +570,7 @@ func (e *Kex2Provisionee) pushLKSServerHalf(m libkb.MetaContext) (err error) {
 	// make new lks
 	ppstream := libkb.NewPassphraseStream(e.pps.PassphraseStream)
 	ppstream.SetGeneration(libkb.PassphraseGeneration(e.pps.Generation))
-	e.lks = libkb.NewLKSec(ppstream, e.uid, e.G())
+	e.lks = libkb.NewLKSec(ppstream, e.uid)
 	e.lks.GenerateServerHalf()
 
 	// make client half recovery

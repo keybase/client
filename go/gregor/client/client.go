@@ -425,6 +425,7 @@ func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t 
 	if len(msgs) == 0 {
 		return state
 	}
+	c.Log.CDebugf(ctx, "applyOutboxMessages: applying %d outbox messages", len(msgs))
 	sm := c.createSm()
 	sm.InitState(state)
 	for _, m := range msgs {

@@ -188,8 +188,13 @@ type gregorHandler struct {
 	// This lock is to protect ibmHandlers and gregorCli and firehoseHandlers. Only public methods
 	// should grab it.
 	sync.Mutex
-	ibmHandlers      []libkb.GregorInBandMessageHandler
-	gregorCli        *grclient.Client
+	ibmHandlers []libkb.GregorInBandMessageHandler
+
+	// gregorCliMu just protecs the gregorCli pointer, since it can be swapped out
+	// in one goroutine and accessed in another.
+	gregorCliMu sync.Mutex
+	gregorCli   *grclient.Client
+
 	firehoseHandlers []libkb.GregorFirehoseHandler
 	badger           *badges.Badger
 	reachability     *reachability
@@ -358,18 +363,32 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 		g.Debug(ctx, "restore local state failed: %s", err)
 	}
 
-	if g.gregorCli != nil {
-		g.gregorCli.Stop()
-	}
+	g.gregorCliMu.Lock()
+	gcliOld := g.gregorCli
 	g.gregorCli = gcli
+	g.gregorCliMu.Unlock()
+
+	if gcliOld != nil {
+		gcliOld.Stop()
+	}
+
 	return nil
 }
 
 func (g *gregorHandler) getGregorCli() (*grclient.Client, error) {
-	if g.gregorCli == nil {
+
+	if g == nil {
+		return nil, errors.New("gregorHandler client unset")
+	}
+
+	g.gregorCliMu.Lock()
+	ret := g.gregorCli
+	g.gregorCliMu.Unlock()
+
+	if ret == nil {
 		return nil, errors.New("client unset")
 	}
-	return g.gregorCli, nil
+	return ret, nil
 }
 
 func (g *gregorHandler) getRPCCli() rpc.GenericClient {
@@ -1672,12 +1691,6 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 		Ranges_: []gregor1.MsgRange{
 			gregor1.MsgRange{
 				Category_: category,
-				// A small non-zero offset that effectively means "now",
-				// because an actually-zero offset would be interpreted as "not
-				// an offset at all" by the SQL query builder.
-				EndTime_: gregor1.TimeOrOffset{
-					Offset_: gregor1.DurationMsec(1),
-				},
 			}},
 	}
 	gcli, err := g.getGregorCli()
@@ -1738,6 +1751,38 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *msg)
 }
 
+func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []byte,
+	dtime gregor1.TimeOrOffset) (res gregor1.MsgID, err error) {
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.UpdateCategory(%s)", cat),
+		func() error { return err },
+	)()
+	defer g.pushState(keybase1.PushReason_NEW_DATA)
+
+	msg, err := g.templateMessage()
+	if err != nil {
+		return nil, err
+	}
+	msgID := msg.Ibm_.StateUpdate_.Md_.MsgID_
+	msg.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
+		Category_: gregor1.Category(cat),
+		Body_:     gregor1.Body(body),
+		Dtime_:    dtime,
+	}
+	msg.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
+		Ranges_: []gregor1.MsgRange{
+			gregor1.MsgRange{
+				Category_:   gregor1.Category(cat),
+				SkipMsgIDs_: []gregor1.MsgID{msgID},
+			}},
+	}
+
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return nil, err
+	}
+	return msgID, gcli.ConsumeMessage(ctx, *msg)
+}
+
 func (g *gregorHandler) InjectOutOfBandMessage(ctx context.Context, system string, body []byte) error {
 	var err error
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.InjectOutOfBandMessage(%s)", system),
@@ -1787,11 +1832,12 @@ func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err error) {
 	var s gregor.State
 
-	if g == nil || g.gregorCli == nil {
-		return res, errors.New("gregor service not available (are you in standalone?)")
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return res, err
 	}
 
-	s, err = g.gregorCli.StateMachineState(ctx, nil, true)
+	s, err = gcli.StateMachineState(ctx, nil, true)
 	if err != nil {
 		return res, err
 	}
@@ -1826,6 +1872,11 @@ func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectIt
 func (g *gregorRPCHandler) UpdateItem(ctx context.Context, arg keybase1.UpdateItemArg) (res gregor1.MsgID, err error) {
 	defer g.G().CTraceTimed(ctx, "gregorRPCHandler#UpdateItem", func() error { return err })()
 	return g.gh.UpdateItem(ctx, arg.MsgID, arg.Cat, []byte(arg.Body), arg.Dtime)
+}
+
+func (g *gregorRPCHandler) UpdateCategory(ctx context.Context, arg keybase1.UpdateCategoryArg) (res gregor1.MsgID, err error) {
+	defer g.G().CTraceTimed(ctx, "gregorRPCHandler#UpdateCategory", func() error { return err })()
+	return g.gh.UpdateCategory(ctx, arg.Category, []byte(arg.Body), arg.Dtime)
 }
 
 func (g *gregorRPCHandler) DismissCategory(ctx context.Context, category gregor1.Category) (err error) {
