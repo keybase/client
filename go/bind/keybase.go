@@ -205,6 +205,10 @@ func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, c
 	return libkbfs.NewCryptoClientRPC(config, ctx), nil
 }
 
+func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.Chat, error) {
+	return libkbfs.NewChatRPC(config, ctx), nil
+}
+
 // LogSend sends a log to Keybase
 func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir string) (string, error) {
 	logSendContext.Logs.Desktop = uiLogPath
