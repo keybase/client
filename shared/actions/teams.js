@@ -1054,6 +1054,7 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
 
 function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsPayload) {
   const state = yield Saga.select()
+  const existingTeams = state.teams.teamsWithChosenChannels
   const {teamname} = action.payload
   if (state.teams.teamsWithChosenChannels.has(teamname)) {
     // we've already dismissed for this team and we already know about it, bail
@@ -1066,7 +1067,7 @@ function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsP
   } catch (err) {
     // failure getting the push state, don't bother the user with an error
     // and don't try to move forward updating the state
-    logger.info(`${logPrefix} error fetching gregor state: ${err}`)
+    logger.error(`${logPrefix} error fetching gregor state: ${err}`)
     return
   }
   const item = pushState.items.find(i => i.item.category === Constants.chosenChannelsGregorKey)
@@ -1076,6 +1077,21 @@ function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsP
     const body = item.item.body
     msgID = item.md.msgID
     teams = JSON.parse(body.toString())
+  } else {
+    logger.info(
+      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
+        pushState.items.length
+      }`
+    )
+  }
+  if (existingTeams.size > teams.length) {
+    // Bad - we don't have an accurate view of things. Log and bail
+    logger.warn(
+      `${logPrefix} Existing list longer than list in gregor state, got list with length ${
+        teams.length
+      } when we have ${existingTeams.size} already. Bailing on update.`
+    )
+    return
   }
   teams.push(teamname)
   // make sure there're no dupes

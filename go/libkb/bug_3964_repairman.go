@@ -45,7 +45,7 @@ func (b *bug3964Repairman) loadLKSecServerDetails(m MetaContext, lksec *LKSec) (
 	if err != nil {
 		return nil, err
 	}
-	lksec.SetFullSecret()
+	lksec.SetFullSecret(m)
 	return ret, err
 }
 
@@ -188,7 +188,7 @@ func (b *bug3964Repairman) Run(m MetaContext) (err error) {
 	// This logline is asserted in testing in bug_3964_repairman_test
 	m.G().Log.CDebugf(m.Ctx(), "| Repairman wasn't short-circuited")
 
-	lksec, err = pps.ToLKSec(m.G(), lctx.GetUID())
+	lksec, err = pps.ToLKSec(lctx.GetUID())
 	if err != nil {
 		return err
 	}

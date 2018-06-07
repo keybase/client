@@ -62,6 +62,7 @@ func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, p
 		ConvID:    conv.GetConvID(),
 		Message:   *boxed,
 		InboxVers: iboxXform(vers),
+		TopicType: chat1.TopicType_CHAT,
 	}
 	var data []byte
 	enc := codec.NewEncoderBytes(&data, &codec.MsgpackHandle{WriteExt: true})

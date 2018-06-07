@@ -336,6 +336,6 @@ func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
 // fakeLKS is used to create a lks that has the server half when
 // creating a fake user that doesn't have a device.
 func (s *SignupEngine) fakeLKS(m libkb.MetaContext) error {
-	s.lks = libkb.NewLKSec(s.ppStream, s.uid, m.G())
+	s.lks = libkb.NewLKSec(s.ppStream, s.uid)
 	return s.lks.GenerateServerHalf()
 }

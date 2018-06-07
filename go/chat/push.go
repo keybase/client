@@ -621,7 +621,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.badger.PushChatUpdate(*gm.UnreadUpdate, gm.InboxVers)
 		}
 		if activity != nil {
-			g.notifyNewChatActivity(ctx, m.UID(), conv, activity)
+			g.notifyNewChatActivity(ctx, m.UID(), gm.TopicType, activity)
 		} else {
 			g.Debug(ctx, "chat activity: skipping notify, activity is nil")
 		}
@@ -630,16 +630,22 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 }
 
 func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
-	conv *chat1.ConversationLocal, activity *chat1.ChatActivity) error {
+	topicType chat1.TopicType, activity *chat1.ChatActivity) error {
 	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
 	if err != nil {
 		return err
 	}
-	// Don't send any notifications for non-chat topic types
-	if conv != nil && conv.GetTopicType() != chat1.TopicType_CHAT {
+	switch topicType {
+	case chat1.TopicType_CHAT:
+		g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
+	case chat1.TopicType_DEV:
+		// ignore these
 		return nil
+	case chat1.TopicType_KBFSFILEEDIT:
+		g.G().NotifyRouter.HandleChatKBFSFileEditActivity(ctx, kbUID, activity)
+	default:
+		g.Debug(ctx, "notifyNewChatActivity: unknown topic type: %v", topicType)
 	}
-	g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
 	return nil
 }
 
@@ -705,7 +711,7 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 			ConvID:  convID,
 			Members: memberInfo,
 		})
-		g.notifyNewChatActivity(ctx, uid, nil, &activity)
+		g.notifyNewChatActivity(ctx, uid, chat1.TopicType_CHAT, &activity)
 	}
 }
 
