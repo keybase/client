@@ -53,6 +53,10 @@ type cryptoGetter interface {
 	Crypto() Crypto
 }
 
+type chatGetter interface {
+	Chat() Chat
+}
+
 type currentSessionGetterGetter interface {
 	CurrentSessionGetter() CurrentSessionGetter
 }
@@ -566,6 +570,9 @@ type KeybaseServiceCn interface {
 	NewCrypto(
 		config Config, params InitParams, ctx Context, log logger.Logger) (
 		Crypto, error)
+	NewChat(
+		config Config, params InitParams, ctx Context, log logger.Logger) (
+		Chat, error)
 }
 
 type resolver interface {
@@ -1866,6 +1873,7 @@ type Config interface {
 	cryptoPureGetter
 	keyGetterGetter
 	cryptoGetter
+	chatGetter
 	signerGetter
 	currentSessionGetterGetter
 	diskBlockCacheGetter
@@ -1893,6 +1901,7 @@ type Config interface {
 	DirtyBlockCache() DirtyBlockCache
 	SetDirtyBlockCache(DirtyBlockCache)
 	SetCrypto(Crypto)
+	SetChat(Chat)
 	SetCodec(kbfscodec.Codec)
 	MDOps() MDOps
 	SetMDOps(MDOps)

@@ -301,6 +301,41 @@ func (mr *MockcryptoGetterMockRecorder) Crypto() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Crypto", reflect.TypeOf((*MockcryptoGetter)(nil).Crypto))
 }
 
+// MockchatGetter is a mock of chatGetter interface
+type MockchatGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockchatGetterMockRecorder
+}
+
+// MockchatGetterMockRecorder is the mock recorder for MockchatGetter
+type MockchatGetterMockRecorder struct {
+	mock *MockchatGetter
+}
+
+// NewMockchatGetter creates a new mock instance
+func NewMockchatGetter(ctrl *gomock.Controller) *MockchatGetter {
+	mock := &MockchatGetter{ctrl: ctrl}
+	mock.recorder = &MockchatGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockchatGetter) EXPECT() *MockchatGetterMockRecorder {
+	return m.recorder
+}
+
+// Chat mocks base method
+func (m *MockchatGetter) Chat() Chat {
+	ret := m.ctrl.Call(m, "Chat")
+	ret0, _ := ret[0].(Chat)
+	return ret0
+}
+
+// Chat indicates an expected call of Chat
+func (mr *MockchatGetterMockRecorder) Chat() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chat", reflect.TypeOf((*MockchatGetter)(nil).Chat))
+}
+
 // MockcurrentSessionGetterGetter is a mock of currentSessionGetterGetter interface
 type MockcurrentSessionGetterGetter struct {
 	ctrl     *gomock.Controller
@@ -1781,6 +1816,19 @@ func (m *MockKeybaseServiceCn) NewCrypto(config Config, params InitParams, ctx C
 // NewCrypto indicates an expected call of NewCrypto
 func (mr *MockKeybaseServiceCnMockRecorder) NewCrypto(config, params, ctx, log interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewCrypto", reflect.TypeOf((*MockKeybaseServiceCn)(nil).NewCrypto), config, params, ctx, log)
+}
+
+// NewChat mocks base method
+func (m *MockKeybaseServiceCn) NewChat(config Config, params InitParams, ctx Context, log logger.Logger) (Chat, error) {
+	ret := m.ctrl.Call(m, "NewChat", config, params, ctx, log)
+	ret0, _ := ret[0].(Chat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewChat indicates an expected call of NewChat
+func (mr *MockKeybaseServiceCnMockRecorder) NewChat(config, params, ctx, log interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewChat", reflect.TypeOf((*MockKeybaseServiceCn)(nil).NewChat), config, params, ctx, log)
 }
 
 // Mockresolver is a mock of resolver interface
@@ -6170,6 +6218,18 @@ func (mr *MockConfigMockRecorder) Crypto() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Crypto", reflect.TypeOf((*MockConfig)(nil).Crypto))
 }
 
+// Chat mocks base method
+func (m *MockConfig) Chat() Chat {
+	ret := m.ctrl.Call(m, "Chat")
+	ret0, _ := ret[0].(Chat)
+	return ret0
+}
+
+// Chat indicates an expected call of Chat
+func (mr *MockConfigMockRecorder) Chat() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chat", reflect.TypeOf((*MockConfig)(nil).Chat))
+}
+
 // Signer mocks base method
 func (m *MockConfig) Signer() kbfscrypto.Signer {
 	ret := m.ctrl.Call(m, "Signer")
@@ -6506,6 +6566,16 @@ func (m *MockConfig) SetCrypto(arg0 Crypto) {
 // SetCrypto indicates an expected call of SetCrypto
 func (mr *MockConfigMockRecorder) SetCrypto(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCrypto", reflect.TypeOf((*MockConfig)(nil).SetCrypto), arg0)
+}
+
+// SetChat mocks base method
+func (m *MockConfig) SetChat(arg0 Chat) {
+	m.ctrl.Call(m, "SetChat", arg0)
+}
+
+// SetChat indicates an expected call of SetChat
+func (mr *MockConfigMockRecorder) SetChat(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetChat", reflect.TypeOf((*MockConfig)(nil).SetChat), arg0)
 }
 
 // SetCodec mocks base method

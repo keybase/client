@@ -657,6 +657,13 @@ func doInit(
 	}
 	config.SetCrypto(crypto)
 
+	// Initialize Chat client (for file edit notifications).
+	chat, err := keybaseServiceCn.NewChat(config, params, kbCtx, kbfsLog)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating chat: %s", err)
+	}
+	config.SetChat(chat)
+
 	// Initialize MDServer connection.
 	mdServer, err := makeMDServer(
 		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)

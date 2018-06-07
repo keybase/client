@@ -83,6 +83,7 @@ type ConfigLocal struct {
 	mdops            MDOps
 	kops             KeyOps
 	crypto           Crypto
+	chat             Chat
 	mdcache          MDCache
 	bops             BlockOps
 	mdserv           MDServer
@@ -565,6 +566,13 @@ func (c *ConfigLocal) Crypto() Crypto {
 	return c.crypto
 }
 
+// Chat implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) Chat() Chat {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.chat
+}
+
 // Signer implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Signer() kbfscrypto.Signer {
 	c.lock.RLock()
@@ -577,6 +585,13 @@ func (c *ConfigLocal) SetCrypto(cr Crypto) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.crypto = cr
+}
+
+// SetChat implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetChat(ch Chat) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.chat = ch
 }
 
 // CryptoPure implements the Config interface for ConfigLocal.

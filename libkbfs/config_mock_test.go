@@ -50,6 +50,7 @@ type ConfigMock struct {
 	mockBcache      *MockBlockCache
 	mockDirtyBcache *MockDirtyBlockCache
 	mockCrypto      *MockCrypto
+	mockChat        *MockChat
 	mockCodec       *kbfscodec.MockCodec
 	mockMdops       *MockMDOps
 	mockKops        *MockKeyOps
@@ -93,6 +94,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetDirtyBlockCache(config.mockDirtyBcache)
 	config.mockCrypto = NewMockCrypto(c)
 	config.SetCrypto(config.mockCrypto)
+	config.mockChat = NewMockChat(c)
+	config.SetChat(config.mockChat)
 	config.mockCodec = kbfscodec.NewMockCodec(c)
 	config.mockCodec.EXPECT().RegisterType(gomock.Any(), gomock.Any()).
 		AnyTimes().Return()

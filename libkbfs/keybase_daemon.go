@@ -130,7 +130,7 @@ func (k keybaseDaemon) NewCrypto(config Config, params InitParams, ctx Context, 
 }
 
 func (k keybaseDaemon) NewChat(
-	config Config, ctx Context, params InitParams, log logger.Logger) (
+	config Config, params InitParams, ctx Context, log logger.Logger) (
 	chat Chat, err error) {
 	localUser := libkb.NewNormalizedUsername(params.LocalUser)
 	if localUser == "" {

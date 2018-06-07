@@ -129,6 +129,12 @@ func (ksp keybaseServicePassthrough) NewCrypto(
 	return ksp.config.Crypto(), nil
 }
 
+func (ksp keybaseServicePassthrough) NewChat(
+	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
+	_ logger.Logger) (libkbfs.Chat, error) {
+	return ksp.config.Chat(), nil
+}
+
 var _ libkbfs.KeybaseServiceCn = keybaseServicePassthrough{}
 
 func getNewConfig(
