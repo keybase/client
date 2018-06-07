@@ -1,5 +1,12 @@
 // @flow
 
+/**
+ * A synchronized clock that ticks once every second
+ * Instantiates one global timer and keeps it running as long
+ * as there are any listeners. Listening functions will be
+ * invoked on every tick.
+ */
+
 export opaque type TickerID: number = number
 
 // Global ID for refs
@@ -37,7 +44,7 @@ class Ticker {
   }
 
   loop = () => {
-    this.refs.forEach(r => setImmediate(r.fn))
+    this.refs.forEach(r => r.fn())
   }
 }
 

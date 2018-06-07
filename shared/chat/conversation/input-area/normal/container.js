@@ -108,11 +108,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },
   setUnsentText: (text: string) => {
-    if (text.length > 0) {
-      dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, false)
-    } else {
-      dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, true)
-    }
+    const unset = text.length <= 0
+    dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     setUnsentText(stateProps.conversationIDKey, text)
   },
   typing: stateProps.typing,

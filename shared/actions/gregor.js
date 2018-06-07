@@ -181,6 +181,11 @@ function handleConvExplodingModes(items: Array<Types.NonNullGregorItem>) {
 function getIsExplodingNewDismissActions(items: Array<Types.NonNullGregorItem>) {
   const seenExplodings = items.filter(i => i.item.category === ChatConstants.seenExplodingGregorKey)
   const newExplodings = items.filter(i => i.item.category === ChatConstants.newExplodingGregorKey)
+
+  if (seenExplodings.length > 1) {
+    logger.warn('Found some extra seenExploding gregor items. Dismissing...')
+  }
+
   const ret = []
   let oldestSeenExploding
   if (seenExplodings.length > 1) {
@@ -202,7 +207,10 @@ function getIsExplodingNewDismissActions(items: Array<Types.NonNullGregorItem>) 
   }
   ret.push(...newExplodings)
 
-  console.log('dannydebug', ret)
+  if (newExplodings.length) {
+    logger.warn('Found some extra newExploding gregor items. Dismissing...')
+  }
+
   return ret.map(i => Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: i.md.msgID}))
 }
 
