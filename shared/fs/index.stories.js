@@ -102,6 +102,7 @@ const provider = createPropProvider({
   Usernames: () => ({
     type: 'BodySemibold',
     users: [{username: 'foo'}],
+    style: {color: globalColors.white},
   }),
 })
 
