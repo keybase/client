@@ -151,7 +151,7 @@ class BioRender extends Component<Props> {
               </Box>
             )}
             {userInfo.bio && (
-              <Text type={'Body'} selectable={true} style={stylesBio} {...bioLineClamp} {...bioTweaks}>
+              <Text type="Body" selectable={true} style={stylesBio} {...bioLineClamp} {...bioTweaks}>
                 {userInfo.bio}
               </Text>
             )}
