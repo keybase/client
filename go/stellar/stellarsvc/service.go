@@ -46,30 +46,81 @@ func (s *Server) logTag(ctx context.Context) context.Context {
 	return libkb.WithLogTag(ctx, "WA")
 }
 
+type preambleArg struct {
+	RpcName string
+	// Pointer to the RPC's error return value.
+	// Can be nil for RPCs that do not err.
+	Err            *error
+	RequireWallet  bool
+	AllowLoggedOut bool
+}
+
+// Preamble
+// Example usage:
+//   ctx, err, fin := c.Preamble(...)
+//   defer fin()
+//   if err != nil { return err }
+func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (ctx context.Context, err error, fin func()) {
+	ctx = s.logTag(inCtx)
+	getFinalErr := func() error {
+		if opts.Err == nil {
+			return nil
+		}
+		return *opts.Err
+	}
+	fin = s.G().CTraceTimed(ctx, opts.RpcName, getFinalErr)
+	if !opts.AllowLoggedOut {
+		if err = s.assertLoggedIn(ctx); err != nil {
+			return ctx, err, fin
+		}
+	}
+	if opts.RequireWallet {
+		s.G().Log.CDebugf(ctx, "wallet needed for %v", opts.RpcName)
+		_, hasWallet, err := stellar.CreateWalletGated(ctx, s.G())
+		if err != nil {
+			return ctx, err, fin
+		}
+		if !hasWallet {
+			return ctx, errors.New("logged-in user does not have a wallet"), fin
+		}
+	}
+	return ctx, nil, fin
+}
+
 func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) (ret []stellar1.Balance, err error) {
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "BalancesLocal", func() error { return err })()
-	if err = s.assertLoggedIn(ctx); err != nil {
-		return nil, err
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RpcName: "BalancesLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return ret, err
 	}
 
 	return s.remoter.Balances(ctx, accountID)
 }
 
 func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "ImportSecretKeyLocal", func() error { return err })()
-	err = s.assertLoggedIn(ctx)
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RpcName:       "ImportSecretKeyLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
 	if err != nil {
 		return err
 	}
+
 	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, "")
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "ExportSecretKeyLocal", func() error { return err })()
-	err = s.assertLoggedIn(ctx)
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RpcName:       "ExportSecretKeyLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
 	if err != nil {
 		return res, err
 	}
@@ -93,11 +144,14 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 }
 
 func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.AccountID) (isOwn bool, err error) {
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "OwnAccountLocal", func() error { return err })()
-	err = s.assertLoggedIn(ctx)
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RpcName:       "ExportSecretKeyLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
 	if err != nil {
-		return false, err
+		return isOwn, err
 	}
 
 	return stellar.OwnAccount(ctx, s.G(), accountID)
@@ -236,21 +290,24 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 }
 
 func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.OwnAccountCLILocal, err error) {
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "WalletGetAccountsCLILocal", func() error { return err })()
-	err = s.assertLoggedIn(ctx)
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RpcName:       "WalletGetAccountsCLILocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
 	if err != nil {
-		return nil, err
+		return ret, err
 	}
 
-	dump, _, err := remote.Fetch(ctx, s.G())
+	currentBundle, _, err := remote.Fetch(ctx, s.G())
 	if err != nil {
 		return nil, err
 	}
 
 	var accountError error
 	exchangeRates := make(exchangeRateMap)
-	for _, account := range dump.Accounts {
+	for _, account := range currentBundle.Accounts {
 		accID := account.AccountID
 		acc := stellar1.OwnAccountCLILocal{
 			AccountID: accID,

@@ -23,13 +23,16 @@ import (
 
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
-// Safe to call even if the user has a bundle already.
+// Safe (but wasteful) to call even if the user has a bundle already.
 func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.CreateWallet", func() error { return err })()
-	// TODO: short-circuit if the user has a bundle already
 	clearBundle, err := bundle.NewInitialBundle()
 	if err != nil {
 		return created, err
+	}
+	meUV, err := g.GetMeUV(ctx)
+	if err != nil {
+		return false, err
 	}
 	err = remote.PostWithChainlink(ctx, g, clearBundle)
 	switch e := err.(type) {
@@ -47,25 +50,49 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	default:
 		return false, err
 	}
+	getGlobal(g).InformHasWallet(ctx, meUV)
 	return true, err
 }
 
-func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (created bool, err error) {
+// CreateWalletGated may create a wallet for the user.
+// Taking into account settings from the server and env.
+// It should be speedy to call repeatedly _if_ the user gets a wallet.
+// `hasWallet` returns whether the user has by the time this call returns.
+func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (justCreated, hasWallet bool, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.CreateWalletGated", func() error { return err })()
-	// TODO: short-circuit if the user has a bundle already
-	if !g.Env.GetAutoWallet() {
-		g.Log.CDebugf(ctx, "CreateWalletGated disabled by env setting")
-		return false, nil
-	}
-	should, err := remote.ShouldCreate(ctx, g)
+	defer func() {
+		g.Log.CDebugf(ctx, "CreateWalletGated: (justCreated:%v, hasWallet:%v, err:%v)", justCreated, hasWallet, err != nil)
+	}()
+	meUV, err := g.GetMeUV(ctx)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
-	if !should {
-		g.Log.CDebugf(ctx, "server did not recommend wallet creation")
-		return false, nil
+	if getGlobal(g).CachedHasWallet(ctx, meUV) {
+		g.Log.CDebugf(ctx, "CreateWalletGated: local cache says we already have a wallet")
+		return false, true, nil
 	}
-	return CreateWallet(ctx, g)
+	shouldCreate, hasWallet, err := remote.ShouldCreate(ctx, g)
+	if err != nil {
+		return false, false, err
+	}
+	if hasWallet {
+		g.Log.CDebugf(ctx, "CreateWalletGated: server says we already have a wallet")
+		getGlobal(g).InformHasWallet(ctx, meUV)
+		return false, hasWallet, nil
+	}
+	if !shouldCreate {
+		g.Log.CDebugf(ctx, "CreateWalletGated: server did not recommend wallet creation")
+		return false, hasWallet, nil
+	}
+	if !g.Env.GetAutoWallet() {
+		g.Log.CDebugf(ctx, "CreateWalletGated: disabled by env setting")
+		return false, hasWallet, nil
+	}
+	justCreated, err = CreateWallet(ctx, g)
+	if err != nil {
+		return false, hasWallet, err
+	}
+	return justCreated, true, nil
 }
 
 // CreateWalletSoft creates a user's initial wallet if they don't already have one.
@@ -77,7 +104,7 @@ func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 		err = fmt.Errorf("yielding to guard")
 		return
 	}
-	_, err = CreateWalletGated(ctx, g)
+	_, _, err = CreateWalletGated(ctx, g)
 	return
 }
 
