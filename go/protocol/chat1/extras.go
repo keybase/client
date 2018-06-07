@@ -85,6 +85,10 @@ func DbShortFormToString(cid ConvIDShort) string {
 	return hex.EncodeToString(cid)
 }
 
+func DbShortFormFromString(cid string) (ConvIDShort, error) {
+	return hex.DecodeString(cid)
+}
+
 func MakeTLFID(val string) (TLFID, error) {
 	return hex.DecodeString(val)
 }
