@@ -113,6 +113,7 @@ const load = () => {
         path={Types.stringToPath('/keybase')}
         progress="loaded"
         routePath={I.List([])}
+        isUserReset={false}
         items={[
           Types.stringToPath('/keybase/private'),
           Types.stringToPath('/keybase/public'),
