@@ -82,6 +82,7 @@ type TimeOrOffset interface {
 	Time() *time.Time
 	Offset() *time.Duration
 	Before(t time.Time) bool
+	IsZero() bool
 }
 
 type Item interface {
@@ -101,6 +102,7 @@ type Reminder interface {
 type MsgRange interface {
 	EndTime() TimeOrOffset
 	Category() Category
+	SkipMsgIDs() []MsgID
 }
 
 type Dismissal interface {
@@ -232,7 +234,8 @@ type ObjFactory interface {
 	MakeItem(u UID, msgid MsgID, deviceid DeviceID, ctime time.Time, c Category, dtime *time.Time, body Body) (Item, error)
 	MakeReminder(i Item, seqno int, t time.Time) (Reminder, error)
 	MakeReminderID(u UID, msgid MsgID, seqno int) (ReminderID, error)
-	MakeDismissalByRange(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, c Category, d time.Time) (InBandMessage, error)
+	MakeDismissalByRange(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, c Category, d time.Time,
+		skipMsgIDs []MsgID) (InBandMessage, error)
 	MakeDismissalByIDs(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, d []MsgID) (InBandMessage, error)
 	MakeStateSyncMessage(uid UID, msgid MsgID, devid DeviceID, ctime time.Time) (InBandMessage, error)
 	MakeState(i []Item) (State, error)

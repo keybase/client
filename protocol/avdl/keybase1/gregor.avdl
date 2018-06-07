@@ -7,4 +7,5 @@ protocol gregor {
   void dismissCategory(gregor1.Category category);
   void dismissItem(gregor1.MsgID id);
   gregor1.MsgID updateItem(gregor1.MsgID msgID, string cat, string body, gregor1.TimeOrOffset dtime);
+  gregor1.MsgID updateCategory(string category, string body, gregor1.TimeOrOffset dtime);
 }

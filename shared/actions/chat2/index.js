@@ -819,9 +819,10 @@ const loadMoreMessages = (
     if (thread) {
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
 
+      let shouldClearOthers = false
       if (!isScrollingBack && !calledClear) {
+        shouldClearOthers = true
         calledClear = true
-        yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
       }
 
       const messages = (uiMessages.messages || []).reduce((arr, m) => {
@@ -844,7 +845,11 @@ const loadMoreMessages = (
 
       if (messages.length) {
         yield Saga.put(
-          Chat2Gen.createMessagesAdd({context: {conversationIDKey, type: 'threadLoad'}, messages})
+          Chat2Gen.createMessagesAdd({
+            context: {conversationIDKey, type: 'threadLoad'},
+            messages,
+            shouldClearOthers,
+          })
         )
       }
     }

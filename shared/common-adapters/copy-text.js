@@ -136,6 +136,7 @@ const styles = styleSheetCreate({
       ...globalStyles.fontTerminalSemibold,
       color: globalColors.blue,
       fontSize: isMobile ? 15 : 13,
+      textAlign: 'left',
       width: '100%',
     },
     isElectron: {
