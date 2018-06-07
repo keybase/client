@@ -1171,6 +1171,24 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	return h.PostLocalNonblock(ctx, parg)
 }
 
+func (h *Server) PostReactionNonblock(ctx context.Context, arg chat1.PostReactionNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_REACTION
+	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+		MessageID: arg.Supersedes,
+		Body:      arg.Body,
+	})
+
+	return h.PostLocalNonblock(ctx, parg)
+}
+
 func (h *Server) PostHeadlineNonblock(ctx context.Context, arg chat1.PostHeadlineNonblockArg) (chat1.PostLocalNonblockRes, error) {
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
@@ -1355,7 +1373,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // ephemeralMetadata on this superseder message.
 func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 	switch msg.ClientHeader.MessageType {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
+	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION:
 	default:
 		return msg.ClientHeader.EphemeralMetadata, nil
 	}

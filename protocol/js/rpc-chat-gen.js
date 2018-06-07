@@ -355,6 +355,10 @@ export const localPostMetadataRpcChannelMap = (configKeys: Array<string>, reques
 
 export const localPostMetadataRpcPromise = (request: LocalPostMetadataRpcParam): Promise<LocalPostMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postMetadata', request, (error: RPCError, result: LocalPostMetadataResult) => (error ? reject(error) : resolve(result))))
 
+export const localPostReactionNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostReactionNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postReactionNonblock', request)
+
+export const localPostReactionNonblockRpcPromise = (request: LocalPostReactionNonblockRpcParam): Promise<LocalPostReactionNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postReactionNonblock', request, (error: RPCError, result: LocalPostReactionNonblockResult) => (error ? reject(error) : resolve(result))))
+
 export const localPostTextNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostTextNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postTextNonblock', request)
 
 export const localPostTextNonblockRpcPromise = (request: LocalPostTextNonblockRpcParam): Promise<LocalPostTextNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postTextNonblock', request, (error: RPCError, result: LocalPostTextNonblockResult) => (error ? reject(error) : resolve(result))))
@@ -977,6 +981,8 @@ export type LocalPostMetadataNonblockRpcParam = $ReadOnly<{conversationID: Conve
 
 export type LocalPostMetadataRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type LocalPostReactionNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type LocalPostTextNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPreviewConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -1458,6 +1464,7 @@ type LocalPostLocalNonblockResult = PostLocalNonblockRes
 type LocalPostLocalResult = PostLocalRes
 type LocalPostMetadataNonblockResult = PostLocalNonblockRes
 type LocalPostMetadataResult = PostLocalRes
+type LocalPostReactionNonblockResult = PostLocalNonblockRes
 type LocalPostTextNonblockResult = PostLocalNonblockRes
 type LocalPreviewConversationByIDLocalResult = JoinLeaveConversationLocalRes
 type LocalSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes
