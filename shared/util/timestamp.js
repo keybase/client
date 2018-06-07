@@ -108,6 +108,9 @@ const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 export function msToDHMS(ms: number): string {
+  if (ms < 0) {
+    return `0d 0h 0m 0s`
+  }
   let mins = Math.floor(ms / oneMinuteInMs)
   let hours = Math.floor(ms / oneHourInMs)
   let days = Math.floor(ms / oneDayInMs)
