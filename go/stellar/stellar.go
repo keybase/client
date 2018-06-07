@@ -21,6 +21,21 @@ import (
 	"github.com/stellar/go/amount"
 )
 
+// setNewWalletDisplayCurrency takes initial bundle that user creates
+// and sets primary account display currency based on OS region
+// settings (that part's TODO - right now it just sets "USD").
+func setNewWalletDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, bundle stellar1.Bundle) error {
+	primary, err := bundle.PrimaryAccount()
+	if err != nil {
+		return err
+	}
+	err = remote.SetAccountDefaultCurrency(ctx, g, primary.AccountID, "USD")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
 // Safe (but wasteful) to call even if the user has a bundle already.
@@ -51,7 +66,10 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 		return false, err
 	}
 	getGlobal(g).InformHasWallet(ctx, meUV)
-	return true, err
+	if err := setNewWalletDisplayCurrency(ctx, g, clearBundle); err != nil {
+		g.Log.CWarningf(ctx, "Failed to set default currency for primary account: %s", err)
+	}
+	return true, nil
 }
 
 // CreateWalletGated may create a wallet for the user.

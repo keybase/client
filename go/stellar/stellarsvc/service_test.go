@@ -598,6 +598,47 @@ func TestGetAvailableCurrencies(t *testing.T) {
 	require.Equal(t, conf.Currencies["EUR"].Name, "Euro")
 }
 
+func TestDefaultCurrency(t *testing.T) {
+	// Initial account should be created with display currency set
+	// according to system locale/region. Additional accounts display
+	// currencies should be set to primary account currency (and can
+	// later be changed by the user).
+
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	primary := getPrimaryAccountID(tcs[0])
+	currency, err := remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
+	require.NoError(t, err)
+	require.EqualValues(t, "USD", currency)
+
+	err = tcs[0].Srv.SetDisplayCurrency(context.Background(), stellar1.SetDisplayCurrencyArg{
+		AccountID: primary,
+		Currency:  "EUR",
+	})
+	require.NoError(t, err)
+
+	currency, err = remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
+	require.NoError(t, err)
+	require.EqualValues(t, "EUR", currency)
+
+	a1, s1 := randomStellarKeypair()
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+	})
+	require.NoError(t, err)
+
+	// Should be "EUR" as well, inherited from primary account.
+	currency, err = remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, a1)
+	require.NoError(t, err)
+	require.EqualValues(t, "EUR", currency)
+}
+
 type TestContext struct {
 	libkb.TestContext
 	Fu      *kbtest.FakeUser
