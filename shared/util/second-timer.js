@@ -14,6 +14,9 @@ export opaque type TickerID: number = number
 // Global ID for refs
 let id: TickerID = 0
 
+// Counter for printing outstanding timers
+let logCounter = 0
+
 type Ref = {
   id: TickerID,
   fn: () => void,
@@ -22,25 +25,6 @@ type Ref = {
 class Ticker {
   refs: Array<Ref> = []
   intervalID: ?IntervalID
-
-  constructor() {
-    this._setupDebugging()
-  }
-
-  _setupDebugging = () => {
-    if (!__DEV__) {
-      return
-    }
-
-    if (printOutstandingTimerListeners) {
-      // Print any listeners to this periodically
-      setInterval(() => {
-        if (this.refs.length > 0) {
-          localLog('Outstanding timer listener debugger:', this.refs)
-        }
-      }, 10 * 1000)
-    }
-  }
 
   addObserver = (fn: () => void): TickerID => {
     if (!this.intervalID) {
@@ -66,6 +50,13 @@ class Ticker {
 
   loop = () => {
     this.refs.forEach(r => r.fn())
+    if (printOutstandingTimerListeners) {
+      logCounter++
+      if (logCounter % 10 === 0 && this.refs.length > 0) {
+        // 10 seconds
+        localLog('Outstanding timer listener debugger:', this.refs)
+      }
+    }
   }
 }
 
