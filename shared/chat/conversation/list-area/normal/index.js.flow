@@ -12,6 +12,7 @@ export type Props = {|
   loadMoreMessages: (ordinal: ?Types.Ordinal) => void,
   editingOrdinal: ?Types.Ordinal,
   lastLoadMoreOrdinal: ?Types.Ordinal,
+  listScrollDownCounter: number,
 |}
 
 export default class ConversationList extends React.Component<Props> {}
