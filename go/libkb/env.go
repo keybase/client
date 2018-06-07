@@ -684,7 +684,7 @@ func (e *Env) GetGregorPingInterval() time.Duration {
 }
 
 func (e *Env) GetGregorPingTimeout() time.Duration {
-	return e.GetDuration(5*time.Second,
+	return e.GetDuration(30*time.Second,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_PING_TIMEOUT") },
 		func() (time.Duration, bool) { return e.GetConfig().GetGregorPingTimeout() },
 		func() (time.Duration, bool) { return e.cmd.GetGregorPingTimeout() },
@@ -692,7 +692,7 @@ func (e *Env) GetGregorPingTimeout() time.Duration {
 }
 
 func (e *Env) GetChatDelivererInterval() time.Duration {
-	return e.GetDuration(30*time.Second,
+	return e.GetDuration(5*time.Second,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_CHAT_DELIVERER_INTERVAL") },
 		func() (time.Duration, bool) { return e.GetConfig().GetChatDelivererInterval() },
 		func() (time.Duration, bool) { return e.cmd.GetChatDelivererInterval() },

@@ -647,7 +647,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	return []byte{}, boxed, nil
 }
 
-const deliverMaxAttempts = 5
+const deliverMaxAttempts = 10
 const deliverDisconnectLimitMinutes = 10 // need to be offline for at least 10 minutes before auto failing a send
 
 type DelivererInfoError interface {
@@ -879,7 +879,7 @@ func (s *Deliverer) deliverLoop() {
 		}
 
 		// Fetch outbox
-		obrs, err := s.outbox.PullAllConversations(bgctx, false, true)
+		obrs, err := s.outbox.PullAllConversations(bgctx, false, false)
 		if err != nil {
 			if _, ok := err.(storage.MissError); !ok {
 				s.Debug(bgctx, "unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(),
@@ -894,7 +894,6 @@ func (s *Deliverer) deliverLoop() {
 		// Send messages
 		var breaks []keybase1.TLFIdentifyFailure
 		for _, obr := range obrs {
-
 			bctx := Context(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 				s.identNotifier)
 			if s.testingNameInfoSource != nil {
@@ -934,6 +933,7 @@ func (s *Deliverer) deliverLoop() {
 							s.outbox.GetUID(), err.Error())
 					}
 				}
+				break
 			}
 		}
 	}
