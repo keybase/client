@@ -79,12 +79,16 @@ function* call(
         if (printOutstandingRPCs) {
           clearInterval(intervalID)
         }
-        // When done send the special flag
+        // Send results
         setTimeout(() => {
           const toEmit: EmittedFinished = {error, method: null, params}
           emitter(toEmit)
-          emitter(RS.END)
         }, 5)
+
+        // Send special value to close out channel a little later in case we get racy incoming calls
+        setTimeout(() => {
+          emitter(RS.END)
+        }, 100)
       }
     )
 
