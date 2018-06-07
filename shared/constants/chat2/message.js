@@ -641,12 +641,23 @@ export const makePendingAttachmentMessage = (
   })
 }
 
-// We only pass message ids to the service so let's just truncate it so a messageid-like value instead of searching back for it.
-// this value is a hint to the service and how the ordinals work this is always a valid messageid
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const lastOrdinal =
-    state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).last() || Types.numberToOrdinal(0)
-  return Math.floor(Types.ordinalToNumber(lastOrdinal))
+  let clientPrev
+
+  const mm = state.chat2.messageMap.get(conversationIDKey)
+  if (mm) {
+    // find last valid messageid we know about
+    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).findLast(o =>
+      // $FlowIssue not going to fix this message resolution stuff now, they all have ids that we care about
+      mm.getIn([o, 'id'])
+    )
+
+    if (goodOrdinal) {
+      clientPrev = mm.getIn([goodOrdinal, 'id'])
+    }
+  }
+
+  return clientPrev || 0
 }
 
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
