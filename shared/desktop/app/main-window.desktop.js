@@ -1,4 +1,5 @@
 // @flow
+import URL from 'url-parse'
 import AppState from './app-state.desktop'
 import Window from './window.desktop'
 import getenv from 'getenv'
@@ -18,9 +19,9 @@ export default function() {
   // Disallow any permissions requests except for notifications
   SafeElectron.getSession().defaultSession.setPermissionRequestHandler(
     (webContents, permission, callback) => {
-      const ourURL = getRendererHTML('mainWindow')
-      const requestURL = webContents.getURL()
-      if (permission === 'notifications' && requestURL === ourURL) {
+      const ourURL = new URL(getRendererHTML('mainWindow'))
+      const requestURL = new URL(webContents.getURL())
+      if (permission === 'notifications' && requestURL.pathname.localeCompare(ourURL.pathname)) {
         // Allow notifications
         return callback(true)
       }
