@@ -78,5 +78,4 @@ const resetContainerStyle = {
   justifyContent: 'center',
 }
 
-
 export default Files
