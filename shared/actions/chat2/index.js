@@ -813,6 +813,7 @@ const loadMoreMessages = (
 
   const loadingKey = `loadingThread:${conversationIDKey}`
 
+  let shouldClearOthers = false
   let calledClear = false
   const onGotThread = ({thread}: {+thread: ?string}, context: 'full' | 'cached') => {
     if (!thread) {
@@ -822,8 +823,8 @@ const loadMoreMessages = (
     const actions = []
 
     if (!isScrollingBack && !calledClear) {
+      shouldClearOthers = true
       calledClear = true
-      actions.push(Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey})))
     }
 
     const messages = (uiMessages.messages || []).reduce((arr, m) => {
@@ -846,7 +847,13 @@ const loadMoreMessages = (
 
     if (messages.length) {
       actions.push(
-        Saga.put(Chat2Gen.createMessagesAdd({context: {conversationIDKey, type: 'threadLoad'}, messages}))
+        Saga.put(
+          Chat2Gen.createMessagesAdd({
+            context: {conversationIDKey, type: 'threadLoad'},
+            messages,
+            shouldClearOthers,
+          })
+        )
       )
     }
     return Saga.sequentially(actions)
