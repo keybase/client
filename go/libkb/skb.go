@@ -249,6 +249,10 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			}
 		}
 		unlocked, err = s.tsecUnlock(tsec)
+		if err == nil {
+			m.CDebugf("Caching passphrase stream: tsec=%v, pps=%v", (tsec != nil), (pps != nil))
+			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
+		}
 	case LKSecVersion:
 		m.CDebugf("case: LKSec")
 		ppsIn := pps
@@ -400,7 +404,8 @@ func (s *SKB) UnlockWithStoredSecret(m MetaContext, secretRetriever SecretRetrie
 
 var ErrUnlockNotPossible = errors.New("unlock not possible")
 
-func (s *SKB) UnlockNoPrompt(m MetaContext, secretStore SecretStore) (GenericKey, error) {
+func (s *SKB) UnlockNoPrompt(m MetaContext, secretStore SecretStore) (ret GenericKey, err error) {
+	defer m.CTrace("SKB#UnlockNoPrompt", func() error { return err })()
 	// already have decrypted secret?
 	if s.decryptedSecret != nil {
 		return s.decryptedSecret, nil
