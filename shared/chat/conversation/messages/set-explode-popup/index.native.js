@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box2, Icon, Text, FloatingPicker} from '../../../../common-adapters/mobile.native'
 import {globalColors, globalMargins} from '../../../../styles'
 import type {Props} from '.'
@@ -47,17 +46,20 @@ const promptContainerStyle = {
   justifyContent: 'center',
 }
 
-type State = {selected: MessageExplodeDescription}
+type State = {selected: number}
 class SetExplodePopup extends React.Component<Props, State> {
-  state = {selected: {text: 'Never', seconds: 0}}
+  state = {selected: 0}
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    return {selected: nextProps.selected || {text: 'Never', seconds: 0}}
+    return {selected: nextProps.selected || 0}
   }
 
   setSelected = (value: number | string) => {
-    const selected = this.props.items.find(item => item.seconds === value) || {text: 'Never', seconds: 0}
-    this.setState({selected})
+    if (typeof value === 'string') {
+      // never happens. makes flow happy.
+      return
+    }
+    this.setState({selected: value})
   }
 
   onDone = () => {
@@ -78,7 +80,7 @@ class SetExplodePopup extends React.Component<Props, State> {
         prompt={<Prompt />}
         promptString="Explode message after"
         visible={this.props.visible}
-        selectedValue={this.state.selected.seconds}
+        selectedValue={this.state.selected}
       />
     )
   }

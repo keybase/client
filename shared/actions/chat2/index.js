@@ -286,7 +286,9 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
         }
       }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
-      const body = cMsg.valid.messageBody
+      const valid = cMsg.valid
+      const body = valid.messageBody
+      logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
       // Types that are mutations
       switch (body.messageType) {
         case RPCChatTypes.commonMessageType.edit:
@@ -294,15 +296,39 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
             actions.push(
               Chat2Gen.createMessageWasEdited({
                 conversationIDKey,
-                ...Constants.uiMessageEditToMessage(body.edit, cMsg.valid),
+                ...Constants.uiMessageEditToMessage(body.edit, valid),
               })
             )
           }
           break
         case RPCChatTypes.commonMessageType.delete:
           if (body.delete && body.delete.messageIDs) {
+            // check if the delete is acting on an exploding message
+            const messageIDs = body.delete.messageIDs
+            const messages = state.chat2.messageMap.get(conversationIDKey)
+            const isExplodeNow =
+              !!messages &&
+              messageIDs.some(_id => {
+                const id = Types.numberToOrdinal(_id)
+                const message = messages.get(id) || messages.find(msg => msg.id === id)
+                if (
+                  message &&
+                  (message.type === 'text' || message.type === 'attachment') &&
+                  message.exploding
+                ) {
+                  return true
+                }
+                return false
+              })
+
             actions.push(
-              Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs: body.delete.messageIDs})
+              isExplodeNow
+                ? Chat2Gen.createMessagesExploded({
+                    conversationIDKey,
+                    explodedBy: valid.senderUsername,
+                    messageIDs: messageIDs,
+                  })
+                : Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs})
             )
           }
           break
@@ -518,16 +544,17 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
     actions.push(Chat2Gen.createMetasReceived({fromEphemeralPurge: true, metas: [meta]}))
   }
   const conversationIDKey = Types.conversationIDToKey(info.convID)
-  const messageActions =
+  const messageIDs =
     !!info.msgs &&
     info.msgs.reduce((arr, msg) => {
       const msgID = Constants.getMessageID(msg)
       if (msgID) {
-        arr.push(Chat2Gen.createMessageExploded({conversationIDKey, messageID: msgID}))
+        arr.push(msgID)
       }
       return arr
     }, [])
-  return actions.concat(messageActions)
+  !!messageIDs && actions.push(Chat2Gen.createMessagesExploded({conversationIDKey, messageIDs}))
+  return actions
 }
 
 // Handle calls that come from the service
@@ -792,9 +819,10 @@ const loadMoreMessages = (
     if (thread) {
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
 
+      let shouldClearOthers = false
       if (!isScrollingBack && !calledClear) {
+        shouldClearOthers = true
         calledClear = true
-        yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
       }
 
       const messages = (uiMessages.messages || []).reduce((arr, m) => {
@@ -817,7 +845,11 @@ const loadMoreMessages = (
 
       if (messages.length) {
         yield Saga.put(
-          Chat2Gen.createMessagesAdd({context: {conversationIDKey, type: 'threadLoad'}, messages})
+          Chat2Gen.createMessagesAdd({
+            context: {conversationIDKey, type: 'threadLoad'},
+            messages,
+            shouldClearOthers,
+          })
         )
       }
     }
@@ -1094,7 +1126,8 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
             state,
             conversationIDKey,
             text,
-            Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+            Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+            ephemeralLifetime
           ),
         ],
       })
@@ -1301,6 +1334,8 @@ const changeSelectedConversation = (
           ),
           ...(isMobile ? [Saga.put(Chat2Gen.createNavigateToThread())] : []),
         ])
+      } else if (isMobile) {
+        return Saga.put(Chat2Gen.createNavigateToInbox())
       }
       break
     }
@@ -1525,6 +1560,12 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     return
   }
 
+  // disable sending exploding messages if flag is false
+  const ephemeralLifetime = flags.explodingMessagesEnabled
+    ? Constants.getConversationExplodingMode(state, conversationIDKey)
+    : 0
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+
   const attachmentType = Constants.pathToAttachmentType(path)
   const message = Constants.makePendingAttachmentMessage(
     state,
@@ -1532,7 +1573,8 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     attachmentType,
     title,
     (preview && preview.filename) || '',
-    Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+    Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+    ephemeralLifetime
   )
   const ordinal = message.ordinal
   yield Saga.put(
@@ -1542,12 +1584,6 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     })
   )
   yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
-
-  // disable sending exploding messages if flag is false
-  const ephemeralLifetime = flags.explodingMessagesEnabled
-    ? Constants.getConversationExplodingMode(state, conversationIDKey)
-    : 0
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   let lastRatioSent = 0
   const postAttachment = new EngineRpc.EngineRpcCall(
@@ -1621,7 +1657,7 @@ const resetChatWithoutThem = (action: Chat2Gen.ResetChatWithoutThemPayload, stat
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   // remove all bad people
-  const goodParticipants = meta.participants.subtract(meta.resetParticipants)
+  const goodParticipants = meta.participants.toSet().subtract(meta.resetParticipants)
   return Saga.put(
     Chat2Gen.createPreviewConversation({
       participants: goodParticipants.toArray(),
@@ -2013,6 +2049,33 @@ const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePay
   throw e
 }
 
+function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMessagesPayload) {
+  const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  const seenExplodingMessages = !!gregorState.items.filter(
+    i => i.item.category === Constants.seenExplodingGregorKey
+  ).length
+  if (seenExplodingMessages) {
+    // do nothing
+    return
+  }
+  // neither are set, inject both
+  yield Saga.all([
+    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+      cat: Constants.seenExplodingGregorKey,
+      body: 'true',
+      dtime: {time: 0, offset: 0},
+    }),
+    // note that we don't get a push state when this item expires,
+    // it doesn't really affect things here - we can wait for the
+    // next push state to stop displaying 'new' mode
+    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+      cat: Constants.newExplodingGregorKey,
+      body: 'true',
+      dtime: {time: 0, offset: Constants.newExplodingGregorOffset},
+    }),
+  ])
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2146,6 +2209,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeSuccess,
     setConvExplodingModeFailure
   )
+  yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
 }
 
 export default chat2Saga

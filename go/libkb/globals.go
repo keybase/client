@@ -95,8 +95,6 @@ type GlobalContext struct {
 	Standalone       bool              // whether we're launched as standalone command
 
 	shutdownOnce      *sync.Once         // whether we've shut down or not
-	loginStateMu      *sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
-	loginState        *LoginState        // What phase of login the user's in
 	ConnectionManager *ConnectionManager // keep tabs on all active client connections
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	// How to route UIs. Nil if we're in standalone mode or in
@@ -175,7 +173,6 @@ func NewGlobalContext() *GlobalContext {
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),
-		loginStateMu:       new(sync.RWMutex),
 		clockMu:            new(sync.Mutex),
 		clock:              clockwork.NewRealClock(),
 		hookMu:             new(sync.RWMutex),
@@ -185,7 +182,7 @@ func NewGlobalContext() *GlobalContext {
 		uchMu:              new(sync.Mutex),
 		secretStoreMu:      new(sync.Mutex),
 		NewTriplesec:       NewSecureTriplesec,
-		ActiveDevice:       new(ActiveDevice),
+		ActiveDevice:       NewActiveDevice(),
 		switchUserMu:       new(sync.Mutex),
 		NetContext:         context.TODO(),
 	}
@@ -218,7 +215,6 @@ func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
 	g.Service = false
-	g.createLoginState()
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
@@ -254,54 +250,21 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 	g.DNSNSFetcher = d
 }
 
-// requires lock on loginStateMu before calling
-func (g *GlobalContext) createLoginStateLocked() {
-	if g.loginState != nil {
-		g.loginState.Shutdown()
-	}
-	g.loginState = NewLoginState(g)
-	g.loginState.Account(func(a *Account) {
-		g.ActiveDevice.clear(a)
-	}, "ActiveDevice.clear")
-}
-
-func (g *GlobalContext) createLoginState() {
-	g.loginStateMu.Lock()
-	defer g.loginStateMu.Unlock()
-	g.createLoginStateLocked()
-}
-
-func (g *GlobalContext) LoginStateDeprecated() *LoginState {
-	g.loginStateMu.RLock()
-	defer g.loginStateMu.RUnlock()
-
-	return g.loginState
-}
-
-// resetFullSelferWithLoginStateLock is used to clear the fullSelfer
-// when a loginStateMu is held. This is trickier than it ought to be because
-// of deadlock potential. If we try to reach inside our existing CachedFullSelf
-// and grab the mutex that protects the me object (to clear it), we chance calling
-// into LoadUser, which can attemp to grab the login state, which would deadlock.
-// So just do the stupid thing, which is to throw away the existing CachedFullSelf
-// and swap in a new one.
-func (g *GlobalContext) resetFullSelferWithLoginStateLock() {
-	g.cacheMu.Lock()
-	defer g.cacheMu.Unlock()
-	if g.fullSelfer != nil {
-		g.fullSelfer = g.fullSelfer.New()
-	}
+// simulateServiceRestart simulates what happens when a service restarts for the
+// purposes of testing.
+func (g *GlobalContext) simulateServiceRestart() {
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	g.ActiveDevice.Clear(nil)
 }
 
 func (g *GlobalContext) Logout() error {
-	g.loginStateMu.Lock()
-	defer g.loginStateMu.Unlock()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
 
 	username := g.Env.GetUsername()
 
-	if err := g.loginState.Logout(); err != nil {
-		return err
-	}
+	g.ActiveDevice.Clear(nil)
 
 	g.LocalSigchainGuard().Clear(context.TODO(), "Logout")
 
@@ -309,17 +272,9 @@ func (g *GlobalContext) Logout() error {
 
 	g.ClearPerUserKeyring()
 
-	if g.TrackCache != nil {
-		g.TrackCache.Shutdown()
-	}
-	if g.Identify2Cache != nil {
-		g.Identify2Cache.Shutdown()
-	}
-	if g.CardCache != nil {
-		g.CardCache.Shutdown()
-	}
-
-	g.resetFullSelferWithLoginStateLock()
+	// NB: This will acquire and release the cacheMu lock, so we have to make
+	// sure nothing holding a cacheMu ever looks for the switchUserMu lock.
+	g.FlushCaches()
 
 	tl := g.teamLoader
 	if tl != nil {
@@ -330,13 +285,6 @@ func (g *GlobalContext) Logout() error {
 	if st != nil {
 		st.OnLogout()
 	}
-
-	g.TrackCache = NewTrackCache()
-	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
-	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
-
-	// get a clean LoginState:
-	g.createLoginStateLocked()
 
 	// remove stored secret
 	g.secretStoreMu.Lock()
@@ -448,7 +396,7 @@ func (g *GlobalContext) ConfigureAPI() error {
 	return nil
 }
 
-func (g *GlobalContext) configureMemCachesLocked() {
+func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
 	// shutdown any existing ones
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -467,33 +415,45 @@ func (g *GlobalContext) configureMemCachesLocked() {
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created Identify2Cache, max age: %s", g.Env.GetUserCacheMaxAge())
-	g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
+
 	g.LinkCache = NewLinkCache(g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 	g.Log.Debug("Created LinkCache, max size: %d, clean dur: %s", g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created CardCache, max age: %s", g.Env.GetUserCacheMaxAge())
-	g.fullSelfer = NewCachedFullSelf(g)
+
+	// If we're just flushing the caches, and already have a Proof cache, then the right idea
+	// is just to reset what's in the ProofCache. Otherwise, we make a new one.
+	if isFlush && g.ProofCache != nil {
+		g.ProofCache.Reset()
+	} else {
+		g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
+	}
+
+	// If it's startup (and not a "flush"), then install a new full selfer
+	// cache. Otherwise, just make a new instance of the kind that's already there.
+	if isFlush {
+		g.fullSelfer = g.fullSelfer.New()
+	} else {
+		g.fullSelfer = NewCachedFullSelf(g)
+	}
+
 	g.Log.Debug("made a new full self cache")
 	g.upakLoader = NewCachedUPAKLoader(g, CachedUserTimeout)
 	g.Log.Debug("made a new cached UPAK loader (timeout=%v)", CachedUserTimeout)
 	g.PayloadCache = NewPayloadCache(g, g.Env.GetPayloadCacheSize())
 }
 
-func (g *GlobalContext) ConfigureMemCaches() {
-	g.cacheMu.Lock()
-	defer g.cacheMu.Unlock()
-	g.configureMemCachesLocked()
-}
-
 func (g *GlobalContext) ConfigureCaches() error {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
-	g.configureMemCachesLocked()
+	g.configureMemCachesLocked(false)
 	return g.configureDiskCachesLocked()
 }
 
 func (g *GlobalContext) FlushCaches() {
-	g.ConfigureMemCaches()
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.configureMemCachesLocked(true)
 }
 
 func (g *GlobalContext) configureDiskCachesLocked() error {
@@ -596,16 +556,6 @@ func (g *GlobalContext) Shutdown() error {
 		didShutdown = true
 
 		epick := FirstErrorPicker{}
-
-		// loginState request loop should be shut down first
-		// so that any active requests can use all of the
-		// services that are about to be shut down below.
-		// (for example, g.LocalDb)
-		g.loginStateMu.Lock()
-		if g.loginState != nil {
-			epick.Push(g.loginState.Shutdown())
-		}
-		g.loginStateMu.Unlock()
 
 		if g.NotifyRouter != nil {
 			g.NotifyRouter.Shutdown()
@@ -757,19 +707,10 @@ func (g *GlobalContext) GetMyUID() keybase1.UID {
 
 	// Prefer ActiveDevice, that's the prefered way
 	// to figure out what the current user's UID is.
-	// We are phasing out LoginState().
 	uid = g.ActiveDevice.UID()
 	if uid.Exists() {
 		return uid
 	}
-
-	g.LoginStateDeprecated().LocalSession(func(s *Session) {
-		uid = s.GetUID()
-	}, "G - GetMyUID - GetUID")
-	if uid.Exists() {
-		return uid
-	}
-
 	return g.Env.GetUID()
 }
 

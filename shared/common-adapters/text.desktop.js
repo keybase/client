@@ -50,8 +50,12 @@ class Text extends Component<Props> {
     return classNames.join(' ') || undefined
   }
 
-  _urlClick = () => {
-    this.props.onClickURL && openURL(this.props.onClickURL)
+  _urlClick = (e: MouseEvent) => {
+    if (!this.props.onClickURL) {
+      return
+    }
+    e.stopPropagation()
+    openURL(this.props.onClickURL)
   }
 
   render() {

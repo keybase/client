@@ -62,11 +62,12 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 	if verbose {
 		line("Transaction Hash: %v", p.TxID)
 	}
-	switch p.Status {
-	case "", "completed":
+	switch {
+	case p.Status == "":
+	case cicmp(p.Status, "completed"):
 	default:
 		color := "red"
-		if p.Status == "claimable" {
+		if cicmp(p.Status, "claimable") {
 			color = "yellow"
 		}
 		line("Status: %v", ColorString(g, color, p.Status))
@@ -83,4 +84,8 @@ func printPaymentFilterNote(note string) string {
 		return ""
 	}
 	return strings.TrimSpace(lines[0])
+}
+
+func cicmp(a, b string) bool {
+	return strings.ToLower(a) == strings.ToLower(b)
 }

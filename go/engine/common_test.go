@@ -459,8 +459,4 @@ func fakeSalt() []byte {
 
 func clearCaches(g *libkb.GlobalContext) {
 	g.ActiveDevice.ClearCaches()
-	g.LoginStateDeprecated().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-		a.ClearPaperKeys()
-	}, "account - clear")
 }

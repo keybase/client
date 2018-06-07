@@ -321,6 +321,7 @@ const validUIMessagetoMessage = (
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
     exploded: m.isEphemeralExpired,
+    explodedBy: m.explodedBy || '',
     exploding: m.isEphemeral,
     explodingTime: m.etime,
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
@@ -580,7 +581,8 @@ export const makePendingTextMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   text: HiddenString,
-  outboxID: Types.OutboxID
+  outboxID: Types.OutboxID,
+  explodeTime?: number
 ) => {
   // we could read the exploding mode for the convo from state here, but that
   // would cause the timer to count down while the message is still pending
@@ -590,7 +592,10 @@ export const makePendingTextMessage = (
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
+  const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
+
   return makeMessageText({
+    ...explodeInfo,
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
@@ -610,13 +615,17 @@ export const makePendingAttachmentMessage = (
   attachmentType: Types.AttachmentType,
   title: string,
   previewURL: string,
-  outboxID: Types.OutboxID
+  outboxID: Types.OutboxID,
+  explodeTime?: number
 ) => {
   const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
+  const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
+
   return makeMessageAttachment({
+    ...explodeInfo,
     attachmentType,
     author: state.config.username || '',
     conversationIDKey,
@@ -632,12 +641,23 @@ export const makePendingAttachmentMessage = (
   })
 }
 
-// We only pass message ids to the service so let's just truncate it so a messageid-like value instead of searching back for it.
-// this value is a hint to the service and how the ordinals work this is always a valid messageid
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const lastOrdinal =
-    state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).last() || Types.numberToOrdinal(0)
-  return Math.floor(Types.ordinalToNumber(lastOrdinal))
+  let clientPrev
+
+  const mm = state.chat2.messageMap.get(conversationIDKey)
+  if (mm) {
+    // find last valid messageid we know about
+    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).findLast(o =>
+      // $FlowIssue not going to fix this message resolution stuff now, they all have ids that we care about
+      mm.getIn([o, 'id'])
+    )
+
+    if (goodOrdinal) {
+      clientPrev = mm.getIn([goodOrdinal, 'id'])
+    }
+  }
+
+  return clientPrev || 0
 }
 
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
@@ -682,11 +702,15 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: 'Never', seconds: 0},
+  {text: '30 seconds', seconds: 30},
+  {text: '1 minute', seconds: 60},
   {text: '3 minutes', seconds: 180},
+  {text: '10 minutes', seconds: 600},
+  {text: '30 minutes', seconds: 600 * 3},
   {text: '1 hour', seconds: 3600},
   {text: '3 hours', seconds: 3600 * 3},
   {text: '12 hours', seconds: 3600 * 12},
   {text: '24 hours', seconds: 86400},
   {text: '3 days', seconds: 86400 * 3},
   {text: '7 days', seconds: 86400 * 7},
-]
+].reverse()

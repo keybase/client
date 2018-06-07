@@ -466,13 +466,47 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	return ncres.Conv.Info
 }
 
+func postLocalEphemeralForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody, ephemeralLifetime *gregor1.DurationSec) (chat1.PostLocalRes, error) {
+	defer ctc.advanceFakeClock(time.Second)
+	mt, err := msg.MessageType()
+	require.NoError(t, err)
+	tc := ctc.as(t, asUser)
+	var ephemeralMetadata *chat1.MsgEphemeralMetadata
+	if ephemeralLifetime != nil {
+		ephemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *ephemeralLifetime,
+		}
+	}
+	return tc.chatLocalHandler().PostLocal(tc.startCtx, chat1.PostLocalArg{
+		ConversationID: conv.Id,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:              conv.Triple,
+				MessageType:       mt,
+				TlfName:           conv.TlfName,
+				EphemeralMetadata: ephemeralMetadata,
+			},
+			MessageBody: msg,
+		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+}
+
+func mustPostLocalEphemeralForTest(t *testing.T, ctc *chatTestContext,
+	asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody, ephemeralLifetime *gregor1.DurationSec) chat1.MessageID {
+	res, err := postLocalEphemeralForTest(t, ctc, asUser, conv, msg, ephemeralLifetime)
+	require.NoError(t, err)
+	ctc.advanceFakeClock(time.Second)
+	return res.MessageID
+}
+
 func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) (chat1.PostLocalRes, error) {
 	mt, err := msg.MessageType()
 	if err != nil {
 		t.Fatalf("msg.MessageType() error: %v\n", err)
 	}
 	tc := ctc.as(t, asUser)
-	return ctc.as(t, asUser).chatLocalHandler().PostLocal(tc.startCtx, chat1.PostLocalArg{
+	return tc.chatLocalHandler().PostLocal(tc.startCtx, chat1.PostLocalArg{
 		ConversationID: conv.Id,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -2040,13 +2074,40 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
+			textUnboxed := unboxed
+
+			t.Logf("react to the message")
+			// An ephemeralLifetime is added if we are editing an ephemeral message
+			rarg := chat1.PostReactionNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       textUnboxed.GetMessageID(),
+				Body:             ":+1:",
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
+			require.NoError(t, err)
+			select {
+			case info := <-listener.newMessage:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_REACTION, unboxed.GetMessageType(), "invalid type")
+				assertEphemeral(ephemeralLifetime, unboxed)
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsg(t, listener, chat1.MessageType_REACTION)
+
 			t.Logf("edit the message")
 			// An ephemeralLifetime is added if we are editing an ephemeral message
 			earg := chat1.PostEditNonblockArg{
 				ConversationID:   created.Id,
 				TlfName:          created.TlfName,
 				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-				Supersedes:       unboxed.GetMessageID(),
+				Supersedes:       textUnboxed.GetMessageID(),
 				Body:             "hi2",
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}

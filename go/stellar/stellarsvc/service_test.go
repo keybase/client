@@ -24,7 +24,7 @@ import (
 
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 	tc = externalstest.SetupTest(tb, name, depth+1)
-	stellar.ServiceInit(tc.G)
+	stellar.ServiceInit(tc.G, nil)
 	teams.ServiceInit(tc.G)
 	// use an insecure triplesec in tests
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
@@ -490,9 +490,6 @@ func testRelay(t *testing.T, yank bool) {
 		}
 		getapuk(tcs[1])
 
-		_, err := stellar.CreateWallet(context.Background(), tcs[1].G)
-		require.NoError(t, err)
-
 		tcs[0].Backend.ImportAccountsForUser(tcs[claimant])
 
 		// The implicit team has an invite for the claimant. Now the sender signs them into the team.
@@ -519,7 +516,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "claimable", history[0].Payment.Status)
+	require.Equal(t, "Claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
 
 	fhistory, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
@@ -560,7 +557,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "completed", history[0].Payment.Status)
+	require.Equal(t, "Completed", history[0].Payment.Status)
 
 	fhistory, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
@@ -575,7 +572,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "completed", history[0].Payment.Status)
+	require.Equal(t, "Completed", history[0].Payment.Status)
 
 	fhistory, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
@@ -595,7 +592,6 @@ func TestGetAvailableCurrencies(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	stellar.ServiceInit(tcs[0].G)
 	conf, err := tcs[0].G.GetStellar().GetServerDefinitions(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, conf.Currencies["USD"].Name, "US Dollar")

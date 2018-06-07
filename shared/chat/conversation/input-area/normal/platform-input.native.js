@@ -11,9 +11,8 @@ import {
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
-import SetExplodingMessagePicker from '../../messages/set-explode-popup'
+import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
@@ -35,10 +34,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   _inputSetRef = (ref: ?Input) => {
     this._input = ref
     this.props.inputSetRef(ref)
-  }
-
-  _selectExplodingMode = selected => {
-    this.props.selectExplodingMode(selected.seconds)
   }
 
   _openFilePicker = () => {
@@ -74,6 +69,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   _toggleShowingMenu = () => {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
+    this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
 
@@ -112,13 +108,8 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
         {this.props.showingMenu && (
           <SetExplodingMessagePicker
             attachTo={this.props.attachmentRef}
-            isNew={true}
-            items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+            conversationIDKey={this.props.conversationIDKey}
             onHidden={this.props.toggleShowingMenu}
-            onSelect={this._selectExplodingMode}
-            selected={messageExplodeDescriptions.find(
-              exploded => exploded.seconds === this.props.explodingModeSeconds
-            )}
             visible={this.props.showingMenu}
           />
         )}
@@ -160,6 +151,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}
+            isExplodingNew={this.props.isExplodingNew}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
@@ -198,6 +190,7 @@ const Action = ({
   openFilePicker,
   insertMentionMarker,
   isExploding,
+  isExplodingNew,
   explodingModeSeconds,
 }) =>
   hasText ? (
@@ -207,6 +200,7 @@ const Action = ({
           <ExplodingIcon
             explodingModeSeconds={explodingModeSeconds}
             isExploding={isExploding}
+            isExplodingNew={isExplodingNew}
             openExplodingPicker={openExplodingPicker}
           />
         )}
@@ -220,6 +214,7 @@ const Action = ({
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
           isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
           openExplodingPicker={openExplodingPicker}
         />
       )}
@@ -227,27 +222,27 @@ const Action = ({
         onClick={insertMentionMarker}
         type="iconfont-mention"
         style={iconCastPlatformStyles(styles.actionButton)}
-        fontSize={21}
+        fontSize={22}
       />
       <Icon
         onClick={openFilePicker}
         type="iconfont-camera"
         style={iconCastPlatformStyles(styles.actionButton)}
-        fontSize={21}
+        fontSize={22}
       />
     </Box2>
   )
 
-const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
+const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
     <Box style={explodingIconContainer}>
       <Icon
         color={isExploding ? globalColors.black_75 : null}
         style={iconCastPlatformStyles(styles.actionButton)}
         type="iconfont-bomb"
-        fontSize={21}
+        fontSize={22}
       />
-      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
+      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />
     </Box>
   </NativeTouchableWithoutFeedback>
 )
@@ -267,7 +262,6 @@ const styles = styleSheetCreate({
   },
   actionButton: {
     alignSelf: isIOS ? 'flex-end' : 'center',
-    paddingBottom: 2,
   },
   actionIconsContainer: {
     paddingRight: globalMargins.small - containerPadding,

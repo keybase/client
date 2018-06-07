@@ -232,6 +232,7 @@ const (
 	MessageType_LEAVE              MessageType = 10
 	MessageType_SYSTEM             MessageType = 11
 	MessageType_DELETEHISTORY      MessageType = 12
+	MessageType_REACTION           MessageType = 13
 )
 
 func (o MessageType) DeepCopy() MessageType { return o }
@@ -250,6 +251,7 @@ var MessageTypeMap = map[string]MessageType{
 	"LEAVE":              10,
 	"SYSTEM":             11,
 	"DELETEHISTORY":      12,
+	"REACTION":           13,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -266,6 +268,7 @@ var MessageTypeRevMap = map[MessageType]string{
 	10: "LEAVE",
 	11: "SYSTEM",
 	12: "DELETEHISTORY",
+	13: "REACTION",
 }
 
 type TopicType int
@@ -1009,6 +1012,7 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 type MessageServerHeader struct {
 	MessageID    MessageID    `codec:"messageID" json:"messageID"`
 	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
+	ReactionIDs  []MessageID  `codec:"r" json:"r"`
 	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
 	Now          gregor1.Time `codec:"n" json:"n"`
 }
@@ -1017,8 +1021,19 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 	return MessageServerHeader{
 		MessageID:    o.MessageID.DeepCopy(),
 		SupersededBy: o.SupersededBy.DeepCopy(),
-		Ctime:        o.Ctime.DeepCopy(),
-		Now:          o.Now.DeepCopy(),
+		ReactionIDs: (func(x []MessageID) []MessageID {
+			if x == nil {
+				return nil
+			}
+			var ret []MessageID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ReactionIDs),
+		Ctime: o.Ctime.DeepCopy(),
+		Now:   o.Now.DeepCopy(),
 	}
 }
 

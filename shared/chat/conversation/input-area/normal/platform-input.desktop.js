@@ -2,14 +2,20 @@
 /* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} from '../../../../styles'
+import {
+  glamorous,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import flags from '../../../../util/feature-flags'
-import {messageExplodeDescriptions} from '../../../../constants/chat2'
-import SetExplodingMessagePopup from '../../messages/set-explode-popup'
+import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {ExplodingMeta} from './shared'
@@ -54,10 +60,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
   }
 
-  _selectExplodingMode = selected => {
-    this.props.selectExplodingMode(selected.seconds)
-  }
-
   _filePickerFiles = () => (this._fileInput && this._fileInput.files) || []
 
   _filePickerOpen = () => {
@@ -92,6 +94,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     const text = this._getText()
     if (text) {
       this.props.onSubmit(text)
+      this.setState({hasText: false})
     }
   }
 
@@ -192,6 +195,11 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     this.props.setChannelMentionPopupOpen(false)
   }
 
+  _toggleShowingMenu = () => {
+    this.props.onSeenExplodingMessages()
+    this.props.toggleShowingMenu()
+  }
+
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
@@ -275,11 +283,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                   fontSize={34}
                   hoverColor={globalColors.black_20}
                   onClick={this._inputFocus}
-                  style={{
-                    left: 183,
-                    marginTop: -27,
-                    position: 'absolute',
-                  }}
+                  style={styleBoomIcon}
                   type="iconfont-boom"
                 />
               )}
@@ -287,31 +291,28 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
               this.props.showingMenu && (
                 <SetExplodingMessagePopup
                   attachTo={this.props.attachmentRef}
-                  isNew={true}
-                  items={messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))}
+                  conversationIDKey={this.props.conversationIDKey}
                   onHidden={this.props.toggleShowingMenu}
-                  onSelect={this._selectExplodingMode}
-                  position={'bottom right'}
-                  selected={messageExplodeDescriptions.find(
-                    exploded => exploded.seconds === this.props.explodingModeSeconds
-                  )}
                   visible={this.props.showingMenu}
                 />
               )}
             {flags.explodingMessagesEnabled && (
               <HoverBox
-                onClick={this.props.toggleShowingMenu}
+                onClick={this._toggleShowingMenu}
                 ref={this.props.setAttachmentRef}
                 style={styles.explodingIconContainer}
               >
                 <Icon
                   className="bomb"
                   color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
-                  onClick={this.props.toggleShowingMenu}
+                  onClick={this._toggleShowingMenu}
                   style={styleIcon}
                   type="iconfont-bomb"
                 />
-                <ExplodingMeta explodingModeSeconds={this.props.explodingModeSeconds} />
+                <ExplodingMeta
+                  explodingModeSeconds={this.props.explodingModeSeconds}
+                  isNew={this.props.isExplodingNew}
+                />
               </HoverBox>
             )}
             {this.state.emojiPickerOpen && (
@@ -438,6 +439,17 @@ const styleIcon = {
   paddingRight: globalMargins.tiny,
   paddingTop: globalMargins.tiny,
 }
+
+const styleBoomIcon = platformStyles({
+  common: {
+    left: 183,
+    marginTop: -27,
+    position: 'absolute',
+  },
+  isElectron: {
+    cursor: 'text',
+  },
+})
 
 const styleFooter = {
   color: globalColors.black_20,

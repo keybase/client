@@ -1,7 +1,7 @@
 // @flow
 import Box from './box'
 import ClickableBox from './clickable-box'
-import ProgressIndicator from './progress-indicator'
+import Icon, {castPlatformStyles} from './icon'
 import * as React from 'react'
 import Text from './text'
 import {
@@ -43,8 +43,11 @@ export type Props = {
 }
 
 const Progress = ({small, white}) => (
-  <Box style={styles.progress}>
-    <ProgressIndicator style={progressStyle(small)} white={white} />
+  <Box style={styles.progressContainer}>
+    <Icon
+      style={castPlatformStyles(small ? styles.progressSmall : styles.progressNormal)}
+      type={white ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
+    />
   </Box>
 )
 
@@ -76,15 +79,14 @@ class Button extends React.Component<Props> {
       containerStyle = collapseStyles([containerStyle, styles.opacity30])
     }
 
-    if (!isMobile && this.props.waiting) {
+    if (this.props.waiting) {
       labelStyle = collapseStyles([labelStyle, styles.opacity0])
     }
 
     containerStyle = collapseStyles([containerStyle, this.props.style])
 
     const onClick = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
-
-    const whiteSpinner = this.props.type !== 'PrimaryGreenActive'
+    const whiteSpinner = !(this.props.type === 'PrimaryGreenActive' || this.props.type === 'Secondary')
 
     return (
       <ClickableBox style={containerStyle} onClick={onClick}>
@@ -92,15 +94,12 @@ class Button extends React.Component<Props> {
           style={collapseStyles([globalStyles.flexBoxRow, globalStyles.flexBoxCenter, styles.labelContainer])}
         >
           {!this.props.waiting && this.props.children}
-          {!this.props.waiting &&
-            this.props.label && (
-              <Text
-                type={this.props.small ? 'BodySemibold' : 'BodyBig'}
-                style={collapseStyles([labelStyle, this.props.labelStyle])}
-              >
-                {this.props.label}
-              </Text>
-            )}
+          <Text
+            type={this.props.small ? 'BodySemibold' : 'BodyBig'}
+            style={collapseStyles([labelStyle, this.props.labelStyle])}
+          >
+            {this.props.label}
+          </Text>
           {this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>
@@ -142,15 +141,16 @@ const commonLabel = platformStyles({
 const styles = styleSheetCreate({
   fullWidth: {
     alignSelf: undefined,
+    flexGrow: 1,
     height: fullWidthHeight,
     width: undefined,
   },
   labelContainer: {height: '100%', position: 'relative'},
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
-  progress: platformStyles({
-    isElectron: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
-  }),
+  progressContainer: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
+  progressNormal: {height: isMobile ? 32 : 24},
+  progressSmall: {height: isMobile ? 28 : 20},
   small: {
     borderRadius: smallBorderRadius,
     height: smallHeight,
@@ -200,7 +200,5 @@ const labelStyles = styleSheetCreate({
   PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
   SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},
 })
-
-const progressStyle = small => (isMobile ? undefined : {height: small ? 20 : 20})
 
 export default Button

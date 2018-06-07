@@ -128,8 +128,9 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
+	quickReturn := false
 	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount,
-		arg.Note, displayBalance, arg.ForceRelay)
+		arg.Note, displayBalance, arg.ForceRelay, quickReturn)
 }
 
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {
@@ -148,7 +149,7 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 			return res, err
 		}
 	}
-	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into)
+	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into, nil, nil)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {

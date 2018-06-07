@@ -1,12 +1,11 @@
 // @flow
 import logger from '../logger'
 import rootReducer from '../reducers'
-import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
 import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 import {createLogger} from 'redux-logger'
-import {createStore} from 'redux'
+import {createStore, applyMiddleware} from 'redux'
 import {enableStoreLogging, enableActionLogging, filterActionLogs} from '../local-debug'
 import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
@@ -81,13 +80,13 @@ const errorCatching = store => next => action => {
   }
 }
 
-let middlewares = [errorCatching, createSagaMiddleware(crashHandler), thunkMiddleware]
-
-if (enableStoreLogging) {
-  middlewares.push(loggerMiddleware)
-} else if (enableActionLogging) {
-  middlewares.push(actionLogger)
-}
+const middlewares = [
+  errorCatching,
+  createSagaMiddleware(crashHandler),
+  thunkMiddleware,
+  ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
+  ...(enableActionLogging ? [actionLogger] : []),
+]
 
 if (__DEV__ && typeof window !== 'undefined') {
   window.debugActionLoop = () => {
@@ -98,7 +97,7 @@ if (__DEV__ && typeof window !== 'undefined') {
 }
 
 export default function configureStore() {
-  const store = createStore(rootReducer, storeEnhancer(middlewares))
+  const store = createStore(rootReducer, undefined, applyMiddleware(...middlewares))
   theStore = store
 
   if (module.hot && !isMobile) {
