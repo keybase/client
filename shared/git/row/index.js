@@ -12,8 +12,6 @@ import {
   Avatar,
   Meta,
   Usernames,
-  HOCTimers,
-  type PropsWithTimer,
 } from '../../common-adapters'
 
 import {
@@ -22,11 +20,10 @@ import {
   globalMargins,
   platformStyles,
   styleSheetCreate,
-  transition,
   isMobile,
 } from '../../styles'
 
-type _Props = {
+type Props = {
   canDelete: boolean,
   canEdit: boolean,
   channelName: ?string,
@@ -50,31 +47,7 @@ type _Props = {
   openUserTracker: (username: string) => void,
 }
 
-export type Props = PropsWithTimer<_Props>
-
-type State = {
-  showingCopy: boolean,
-}
-
-class Row extends React.Component<Props, State> {
-  state = {
-    showingCopy: false,
-  }
-
-  _input: any
-
-  _inputOnClick = () => {
-    this._input && this._input.select()
-  }
-
-  _setRef = r => (this._input = r)
-
-  _onCopy = () => {
-    this.props.onCopy()
-    this.setState({showingCopy: true})
-    this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
-  }
-
+class Row extends React.Component<Props> {
   _channelNameToString = (channelName: ?string) => {
     return channelName ? `#${channelName}` : '#general'
   }
@@ -157,9 +130,6 @@ class Row extends React.Component<Props, State> {
                       onClick={this.props.onShowDelete}
                     />
                   )}
-                <Box style={{alignSelf: 'flex-start', position: 'relative'}}>
-                  <Copied showing={this.state.showingCopy} />
-                </Box>
               </Box>
               <Box
                 style={{
@@ -268,61 +238,6 @@ class Row extends React.Component<Props, State> {
   }
 }
 
-const Copied = ({showing}) => (
-  <Box
-    style={{
-      ...transition('opacity'),
-      backgroundColor: globalColors.black_60,
-      borderRadius: 20,
-      left: -165,
-      opacity: showing ? 1 : 0,
-      paddingBottom: 5,
-      paddingTop: globalMargins.xtiny,
-      paddingLeft: globalMargins.tiny,
-      paddingRight: globalMargins.tiny,
-      position: 'absolute',
-      top: -28,
-    }}
-  >
-    <Text type="BodySmall" backgroundMode="Terminal" style={{color: globalColors.white}}>
-      Copied!
-    </Text>
-  </Box>
-)
-
-const _copyStyle = {
-  ...globalStyles.fillAbsolute,
-  ...globalStyles.flexBoxCenter,
-  backgroundColor: globalColors.blue,
-  borderRadius: 0,
-  left: undefined,
-  paddingLeft: isMobile ? 24 : 12,
-  paddingRight: isMobile ? 24 : 12,
-}
-
-const _inputInputStyle = platformStyles({
-  common: {
-    ...globalStyles.fontTerminal,
-    color: globalColors.darkBlue,
-  },
-  // on desktop the input text isn't vertically aligned
-  isMobile: {fontSize: 15},
-  isElectron: {
-    display: 'inline-block',
-    fontSize: 13,
-    paddingTop: 3,
-  },
-})
-
-const _inputStyle = platformStyles({
-  common: {
-    width: '100%',
-  },
-  isMobile: {
-    paddingTop: 10,
-  },
-})
-
 const styles = styleSheetCreate({
   copyTextContainer: {
     marginLeft: globalMargins.xtiny,
@@ -384,4 +299,4 @@ const _rowClickStyleExpanded = {
   paddingBottom: 0,
 }
 
-export default HOCTimers(Row)
+export default Row
