@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Button, ConnectedUsernames} from '../../common-adapters'
+import {Box, Icon, Text, Button, ConnectedUsernames} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {isMobile} from '../../constants/platform'
+import YouAreReset from './you-are-reset'
 
 type Props = {
   isUserReset: boolean,
@@ -15,12 +17,14 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile}: 
     return <Box />
   }
   if (isUserReset) {
-    // TODO: implement self reset banner.
-    return <Box />
+    return <YouAreReset />
   }
   return (
     <Box style={bannerStyle}>
-      {/* TODO: Put in skull image here */}
+      <Box style={iconContainerStyle}>
+        <Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
+        <Icon type="icon-access-denied-266" />
+      </Box>
       <Box style={headerTextContainerStyle}>
         <Box style={globalStyles.flexBoxRow}>
           <Box style={{marginRight: globalMargins.xtiny}}>
@@ -131,6 +135,13 @@ const bottomTextStyle = {
 const actionRowStyle = {
   ...globalStyles.flexBoxRow,
   marginBottom: globalMargins.tiny,
+}
+
+const iconContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  flex: 1,
+  justifyContent: 'center',
 }
 
 export default Banner
