@@ -58,7 +58,7 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username}>
-        {i === users.length - 1 && showAnd && (
+        {i !== 0 && i === users.length - 1 && showAnd && (
           <Text
             type={type}
             backgroundMode={backgroundMode}

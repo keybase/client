@@ -23,7 +23,6 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile}: 
     <Box style={bannerStyle}>
       <Box style={iconContainerStyle}>
         <Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
-        <Icon type="icon-access-denied-266" />
       </Box>
       <Box style={headerTextContainerStyle}>
         <Box style={globalStyles.flexBoxRow}>
@@ -97,8 +96,8 @@ const bannerStyle = {
   backgroundColor: globalColors.red,
   alignItems: 'center',
   position: 'relative',
-  paddingTop: globalMargins.large,
-  paddingBottom: globalMargins.large,
+  paddingTop: globalMargins.medium,
+  paddingBottom: globalMargins.medium,
 }
 
 const headerTextContainerStyle = {
@@ -142,6 +141,7 @@ const iconContainerStyle = {
   alignItems: 'center',
   flex: 1,
   justifyContent: 'center',
+  marginBottom: globalMargins.medium,
 }
 
 export default Banner
