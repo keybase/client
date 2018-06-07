@@ -114,6 +114,7 @@ class Row extends React.Component<Props> {
                 style={{
                   ...globalStyles.flexBoxRow,
                   alignItems: 'center',
+                  maxWidth: '100%',
                   position: 'relative',
                 }}
               >
@@ -240,6 +241,7 @@ class Row extends React.Component<Props> {
 
 const styles = styleSheetCreate({
   copyTextContainer: {
+    flexShrink: 1,
     marginLeft: globalMargins.xtiny,
     marginRight: globalMargins.tiny,
   },
