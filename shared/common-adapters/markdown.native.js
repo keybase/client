@@ -212,7 +212,6 @@ const styles = styleSheetCreate({
   },
   codeSnippetBlock: {
     ...globalStyles.rounded,
-
     backgroundColor: globalColors.beige,
     marginBottom: globalMargins.xtiny,
     marginTop: globalMargins.xtiny,
