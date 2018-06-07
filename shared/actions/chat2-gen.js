@@ -20,7 +20,6 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const clearLoading = 'chat2:clearLoading'
-export const clearOrdinals = 'chat2:clearOrdinals'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
@@ -119,7 +118,6 @@ type _BlockConversationPayload = $ReadOnly<{|
   reportUser: boolean,
 |}>
 type _ClearLoadingPayload = $ReadOnly<{|key: string|}>
-type _ClearOrdinalsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -203,6 +201,7 @@ type _MessageWasEditedPayload = $ReadOnly<{|
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
   messages: Array<Types.Message>,
+  shouldClearOthers?: boolean,
 |}>
 type _MessagesExplodedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -371,7 +370,6 @@ export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) 
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: false, payload, type: badgesUpdated})
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({error: false, payload, type: blockConversation})
 export const createClearLoading = (payload: _ClearLoadingPayload) => ({error: false, payload, type: clearLoading})
-export const createClearOrdinals = (payload: _ClearOrdinalsPayload) => ({error: false, payload, type: clearOrdinals})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({error: false, payload, type: desktopNotification})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: _JoinConversationPayload) => ({error: false, payload, type: joinConversation})
@@ -431,7 +429,6 @@ export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading,
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
 export type BlockConversationPayload = $Call<typeof createBlockConversation, _BlockConversationPayload>
 export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoadingPayload>
-export type ClearOrdinalsPayload = $Call<typeof createClearOrdinals, _ClearOrdinalsPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
@@ -504,7 +501,6 @@ export type Actions =
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ClearLoadingPayload
-  | ClearOrdinalsPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
   | HandleSeeingExplodingMessagesPayload

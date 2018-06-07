@@ -56,7 +56,10 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
                     style={{...stylesRow, ...styleClickable}}
                     onClick={event => {
                       i.onClick && i.onClick()
-                      this.props.closeOnClick && this.props.onHidden && this.props.onHidden()
+                      if (this.props.closeOnClick && this.props.onHidden) {
+                        this.props.onHidden()
+                        event.stopPropagation()
+                      }
                     }}
                   >
                     {i.view ? (

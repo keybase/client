@@ -1198,23 +1198,25 @@ func (e OutboxStateType) String() string {
 type OutboxErrorType int
 
 const (
-	OutboxErrorType_MISC      OutboxErrorType = 0
-	OutboxErrorType_OFFLINE   OutboxErrorType = 1
-	OutboxErrorType_IDENTIFY  OutboxErrorType = 2
-	OutboxErrorType_TOOLONG   OutboxErrorType = 3
-	OutboxErrorType_DUPLICATE OutboxErrorType = 4
-	OutboxErrorType_EXPIRED   OutboxErrorType = 5
+	OutboxErrorType_MISC            OutboxErrorType = 0
+	OutboxErrorType_OFFLINE         OutboxErrorType = 1
+	OutboxErrorType_IDENTIFY        OutboxErrorType = 2
+	OutboxErrorType_TOOLONG         OutboxErrorType = 3
+	OutboxErrorType_DUPLICATE       OutboxErrorType = 4
+	OutboxErrorType_EXPIRED         OutboxErrorType = 5
+	OutboxErrorType_TOOMANYATTEMPTS OutboxErrorType = 6
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
 
 var OutboxErrorTypeMap = map[string]OutboxErrorType{
-	"MISC":      0,
-	"OFFLINE":   1,
-	"IDENTIFY":  2,
-	"TOOLONG":   3,
-	"DUPLICATE": 4,
-	"EXPIRED":   5,
+	"MISC":            0,
+	"OFFLINE":         1,
+	"IDENTIFY":        2,
+	"TOOLONG":         3,
+	"DUPLICATE":       4,
+	"EXPIRED":         5,
+	"TOOMANYATTEMPTS": 6,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1224,6 +1226,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	3: "TOOLONG",
 	4: "DUPLICATE",
 	5: "EXPIRED",
+	6: "TOOMANYATTEMPTS",
 }
 
 func (e OutboxErrorType) String() string {

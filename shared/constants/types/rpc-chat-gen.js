@@ -295,6 +295,7 @@ export const localOutboxErrorType = {
   toolong: 3,
   duplicate: 4,
   expired: 5,
+  toomanyattempts: 6,
 }
 
 export const localOutboxStateType = {
@@ -1178,6 +1179,7 @@ export type OutboxErrorType =
   | 3 // TOOLONG_3
   | 4 // DUPLICATE_4
   | 5 // EXPIRED_5
+  | 6 // TOOMANYATTEMPTS_6
 
 export type OutboxID = Bytes
 

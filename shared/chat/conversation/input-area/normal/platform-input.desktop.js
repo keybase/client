@@ -2,7 +2,14 @@
 /* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} from '../../../../styles'
+import {
+  glamorous,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
@@ -87,6 +94,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     const text = this._getText()
     if (text) {
       this.props.onSubmit(text)
+      this.setState({hasText: false})
     }
   }
 
@@ -275,11 +283,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                   fontSize={34}
                   hoverColor={globalColors.black_20}
                   onClick={this._inputFocus}
-                  style={{
-                    left: 183,
-                    marginTop: -27,
-                    position: 'absolute',
-                  }}
+                  style={styleBoomIcon}
                   type="iconfont-boom"
                 />
               )}
@@ -435,6 +439,17 @@ const styleIcon = {
   paddingRight: globalMargins.tiny,
   paddingTop: globalMargins.tiny,
 }
+
+const styleBoomIcon = platformStyles({
+  common: {
+    left: 183,
+    marginTop: -27,
+    position: 'absolute',
+  },
+  isElectron: {
+    cursor: 'text',
+  },
+})
 
 const styleFooter = {
   color: globalColors.black_20,
