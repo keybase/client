@@ -97,6 +97,7 @@ const provider = createPropProvider({
     isUserReset: false,
     resetParticipants: ['foo'],
     onReAddToTeam: () => () => undefined,
+    onViewProfile: () => () => undefined,
   }),
   Usernames: () => ({
     type: 'BodySemibold',

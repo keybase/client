@@ -7,9 +7,10 @@ type Props = {
   isUserReset: boolean,
   resetParticipants: Array<string>,
   onReAddToTeam: (username: string) => () => void,
+  onViewProfile: (username: string) => () => void,
 }
 
-const Banner = ({isUserReset, resetParticipants, onReAddToTeam}: Props) => {
+const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile}: Props) => {
   if (!resetParticipants || resetParticipants.length === 0) {
     return <Box />
   }
@@ -62,7 +63,7 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam}: Props) => {
             <Button
               type="SecondaryColoredBackground"
               label={'View ' + p + "'s profile"}
-              onClick={() => undefined}
+              onClick={onViewProfile(p)}
               style={firstButtonStyle}
             />
             <Button
