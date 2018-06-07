@@ -10,11 +10,21 @@ import type {Props} from '.'
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
 const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
 
+const messageHeights = {}
+
 type State = {
   height: ?number,
 }
 class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {height: 17}
+
+  constructor(props: Props) {
+    super(props)
+    if (messageHeights[props.messageKey]) {
+      this.state = {height: messageHeights[props.messageKey]}
+    }
+  }
+
   componentDidUpdate() {
     if (this.props.retainHeight) {
       return
@@ -24,6 +34,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       const height = node.clientHeight
       if (height && height !== this.state.height) {
         this.setState({height})
+        messageHeights[this.props.messageKey] = height
       }
     }
   }

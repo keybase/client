@@ -100,6 +100,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     isYou: stateProps.isYou,
     message,
     messageFailed: stateProps.messageFailed,
+    messageKey: `${message.conversationIDKey}:${message.id}`,
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),

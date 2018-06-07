@@ -126,6 +126,7 @@ const RightSide = props => (
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
         <ExplodingHeightRetainer
           explodedBy={props.explodedBy}
+          messageKey={props.messageKey}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
