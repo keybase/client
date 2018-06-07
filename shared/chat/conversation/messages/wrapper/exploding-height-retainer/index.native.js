@@ -4,6 +4,8 @@ import {Box, ConnectedUsernames, NativeImage, Text} from '../../../../../common-
 import {collapseStyles, globalColors, styleSheetCreate} from '../../../../../styles'
 import type {Props} from '.'
 
+// If this image changes, some hard coded dimensions
+// in this file also need to change.
 const explodedIllustrationURL = require('../../../../../images/icons/pattern-ashes-mobile-400-80.png')
 
 type State = {
