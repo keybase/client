@@ -2,6 +2,7 @@
 import * as React from 'react'
 import FloatingBox from './floating-box'
 import Box from './box'
+import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../styles'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import type {Props} from './toast'
@@ -10,9 +11,8 @@ type State = {
   opacity: NativeAnimated.Value,
   visible: boolean,
 }
-class Toast extends React.Component<Props, State> {
+class _Toast extends React.Component<PropsWithTimer<Props>, State> {
   state = {opacity: new NativeAnimated.Value(0), visible: false}
-  timeoutID: TimeoutID
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.visible && !prevProps.visible) {
@@ -30,12 +30,8 @@ class Toast extends React.Component<Props, State> {
         easing: NativeEasing.linear,
         toValue: 0,
       }).start()
-      this.timeoutID = setTimeout(() => this.setState({visible: false}), 100)
+      this.props.setTimeout(() => this.setState({visible: false}), 100)
     }
-  }
-
-  componentWillUnmount() {
-    clearTimeout(this.timeoutID)
   }
 
   render() {
@@ -59,6 +55,7 @@ class Toast extends React.Component<Props, State> {
     )
   }
 }
+const Toast = HOCTimers(_Toast)
 
 const styles = styleSheetCreate({
   container: {
