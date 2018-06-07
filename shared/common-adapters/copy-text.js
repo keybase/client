@@ -69,6 +69,7 @@ class _CopyText extends React.Component<Props, State> {
           </Text>
         </Toast>
         <Text
+          lineClamp={1}
           type="Body"
           selectable={true}
           style={collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
@@ -138,6 +139,10 @@ const styles = styleSheetCreate({
       fontSize: isMobile ? 15 : 13,
       textAlign: 'left',
       width: '100%',
+    },
+    isAndroid: {
+      position: 'relative',
+      top: 3,
     },
     isElectron: {
       userSelect: 'all',
