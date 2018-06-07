@@ -14,6 +14,7 @@ import {
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  listScrollDownCounter: number,
   onFocusInput: () => void,
 }
 
@@ -39,6 +40,7 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
   _loadMoreMessages: dispatchProps._loadMoreMessages,
   conversationIDKey: stateProps.conversationIDKey,
   editingOrdinal: stateProps.editingOrdinal,
+  listScrollDownCounter: ownProps.listScrollDownCounter,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
