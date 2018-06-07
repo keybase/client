@@ -203,3 +203,40 @@ func TestChatOutboxEphemeralPurge(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, obrs[1:], res, "wrong obids")
 }
+
+func TestChatOutboxMarkAll(t *testing.T) {
+	_, ob, uid, cl := setupOutboxTest(t, "outbox")
+
+	var obrs []chat1.OutboxRecord
+	conv := makeConvo(gregor1.Time(5), 1, 1)
+	for i := 0; i < 5; i++ {
+		obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(), makeMsgPlaintext("hi", uid),
+			nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		require.NoError(t, err)
+		obrs = append(obrs, obr)
+		cl.Advance(time.Millisecond)
+	}
+
+	newObr, err := ob.MarkAsError(context.TODO(), obrs[0], chat1.OutboxStateError{
+		Message: "failed",
+		Typ:     chat1.OutboxErrorType_MISC,
+	})
+	require.NoError(t, err)
+	st, err := newObr.State.State()
+	require.NoError(t, err)
+	require.Equal(t, chat1.OutboxStateType_ERROR, st)
+	require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
+
+	newObrs, err := ob.MarkAllAsError(context.TODO(), chat1.OutboxStateError{
+		Message: "failed",
+		Typ:     chat1.OutboxErrorType_MISC,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 4, len(newObrs))
+	for _, newObr := range newObrs {
+		st, err := newObr.State.State()
+		require.NoError(t, err)
+		require.Equal(t, chat1.OutboxStateType_ERROR, st)
+		require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
+	}
+}
