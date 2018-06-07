@@ -71,7 +71,7 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
     return null
   }
 
-  return {text: message.text.stringValue(), ordinal}
+  return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
 }
 
 export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => {
