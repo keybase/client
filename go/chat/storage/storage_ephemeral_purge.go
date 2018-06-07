@@ -129,7 +129,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 				allAssets = append(allAssets, assets...)
 				explodedMsgs = append(explodedMsgs, msgPurged)
 				msgs[i] = msgPurged
-				s.Debug(ctx, "purging ephemeral msg: %v", msgPurged.GetMessageID())
+				s.Debug(ctx, "purging ephemeral msg: %v, now:%v etime: %v", msgPurged.GetMessageID(), s.clock.Now(), mvalid.Etime().Time())
 			}
 		}
 	}

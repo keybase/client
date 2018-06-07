@@ -1427,3 +1427,16 @@ func (i EphemeralPurgeInfo) String() string {
 	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
 }
+
+func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found bool, reactionMsgID MessageID) {
+	reactions, ok := r.Reactions[reactionText]
+	if !ok {
+		return false, 0
+	}
+	for _, reaction := range reactions {
+		if reaction.Username == username {
+			return true, reaction.ReactionMsgID
+		}
+	}
+	return false, 0
+}

@@ -217,7 +217,12 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
-	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true /* useLocalData */)
+	return GetMessages(ctx, h.G(), uid, convID, msgIDs, resolveSupersedes)
+}
+
+func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
+	conv, err := GetUnverifiedConv(ctx, g, uid, convID, true /* useLocalData */)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +235,7 @@ func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.
 
 	// unless arg says not to, transform the superseded messages
 	if resolveSupersedes {
-		messages, err = h.G().ConvSource.TransformSupersedes(ctx, conv, uid, messages)
+		messages, err = g.ConvSource.TransformSupersedes(ctx, conv, uid, messages)
 		if err != nil {
 			return nil, err
 		}

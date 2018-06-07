@@ -1009,6 +1009,49 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 	}
 }
 
+type Reaction struct {
+	Username      string    `codec:"username" json:"username"`
+	ReactionMsgID MessageID `codec:"reactionMsgID" json:"reactionMsgID"`
+}
+
+func (o Reaction) DeepCopy() Reaction {
+	return Reaction{
+		Username:      o.Username,
+		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
+	}
+}
+
+type ReactionMap struct {
+	Reactions map[string][]Reaction `codec:"reactions" json:"reactions"`
+}
+
+func (o ReactionMap) DeepCopy() ReactionMap {
+	return ReactionMap{
+		Reactions: (func(x map[string][]Reaction) map[string][]Reaction {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string][]Reaction)
+			for k, v := range x {
+				kCopy := k
+				vCopy := (func(x []Reaction) []Reaction {
+					if x == nil {
+						return nil
+					}
+					var ret []Reaction
+					for _, v := range x {
+						vCopy := v.DeepCopy()
+						ret = append(ret, vCopy)
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Reactions),
+	}
+}
+
 type MessageServerHeader struct {
 	MessageID    MessageID     `codec:"messageID" json:"messageID"`
 	SupersededBy MessageID     `codec:"supersededBy" json:"supersededBy"`
