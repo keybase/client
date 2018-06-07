@@ -1151,11 +1151,11 @@ const previewConversationAfterFindExisting = (
   state: TypedState
 ) => {
   // TODO make a sequentially that uses an object map and not all this array nonsense
-  if (!_fromPreviewConversation || _fromPreviewConversation.length !== 3) {
+  if (!_fromPreviewConversation || _fromPreviewConversation.length !== 4) {
     return
   }
-  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
-  const users: Array<string> = _fromPreviewConversation[2]
+  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[2]
+  const users: Array<string> = _fromPreviewConversation[3]
 
   // still looking for this result?
   if (
@@ -1254,6 +1254,7 @@ const previewConversationFindExisting = (
 
   let params
   let users
+  let setUsers
 
   // we handled participants or teams
   if (participants) {
@@ -1262,6 +1263,7 @@ const previewConversationFindExisting = (
     users = I.Set(participants)
       .subtract([you])
       .toArray()
+    setUsers = Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
   } else if (teamname) {
     params = {
       membersType: RPCChatTypes.commonConversationMembersType.team,
@@ -1294,7 +1296,7 @@ const previewConversationFindExisting = (
 
   const passUsersDown = Saga.identity(users)
 
-  return Saga.sequentially([markPendingWaiting, makeCall, passUsersDown])
+  return Saga.sequentially([markPendingWaiting, setUsers, makeCall, passUsersDown])
 }
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
