@@ -15,14 +15,14 @@ class Toast extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.visible && !prevProps.visible) {
       NativeAnimated.timing(this.state.opacity, {
-        duration: 50,
+        duration: 100,
         easing: NativeEasing.linear,
         toValue: 1,
       }).start()
     }
     if (!this.props.visible && prevProps.visible) {
       NativeAnimated.timing(this.state.opacity, {
-        duration: 50,
+        duration: 100,
         easing: NativeEasing.linear,
         toValue: 0,
       }).start()
@@ -32,7 +32,7 @@ class Toast extends React.Component<Props, State> {
   render() {
     return (
       <FloatingBox>
-        <Box style={styles.wrapper}>
+        <Box pointerEvents="none" style={styles.wrapper}>
           <NativeAnimated.View
             style={collapseStyles([
               styles.container,
