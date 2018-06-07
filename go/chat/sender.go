@@ -803,6 +803,10 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 }
 
 func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, bool) {
+	// Check attempts
+	if obr.State.Sending() >= deliverMaxAttempts {
+		return chat1.OutboxErrorType_MISC, true
+	}
 
 	if !s.connected {
 		// Check to see how long we have been disconnected to see if this should be retried
@@ -813,7 +817,9 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 			s.Debug(ctx, "doNotRetryFailure: not retrying offline failure, disconnected for: %v",
 				disconnTime)
 		}
-		return chat1.OutboxErrorType_OFFLINE, noretry
+		if noretry {
+			return chat1.OutboxErrorType_OFFLINE, noretry
+		}
 	}
 
 	// Check for an identify error
@@ -826,11 +832,6 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 	// Check for duplicate message
 	if _, ok := err.(libkb.ChatDuplicateMessageError); ok {
 		return chat1.OutboxErrorType_DUPLICATE, true
-	}
-
-	// Check attempts otherwise
-	if obr.State.Sending() >= deliverMaxAttempts {
-		return chat1.OutboxErrorType_MISC, true
 	}
 
 	return 0, false
@@ -934,6 +935,10 @@ func (s *Deliverer) deliverLoop() {
 					}
 				}
 				break
+			} else {
+				if err = s.outbox.RemoveMessage(bgctx, obr.OutboxID); err != nil {
+					s.Debug(bgctx, "failed to remove successful message send: %s", err)
+				}
 			}
 		}
 	}
