@@ -1,4 +1,6 @@
 // @flow
+import {printOutstandingTimerListeners} from '../local-debug'
+import {localLog} from './forward-logs'
 
 /**
  * A synchronized clock that ticks once every second
@@ -20,6 +22,25 @@ type Ref = {
 class Ticker {
   refs: Array<Ref> = []
   intervalID: ?IntervalID
+
+  constructor() {
+    this._setupDebugging()
+  }
+
+  _setupDebugging = () => {
+    if (!__DEV__) {
+      return
+    }
+
+    if (printOutstandingTimerListeners) {
+      // Print any listeners to this periodically
+      setInterval(() => {
+        if (this.refs.length > 0) {
+          localLog('Outstanding timer listener debugger:', this.refs)
+        }
+      }, 10 * 1000)
+    }
+  }
 
   addObserver = (fn: () => void): TickerID => {
     if (!this.intervalID) {
