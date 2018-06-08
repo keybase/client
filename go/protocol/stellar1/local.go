@@ -235,16 +235,12 @@ func (o CurrencyLocal) DeepCopy() CurrencyLocal {
 }
 
 type WalletSettings struct {
-	DisplayCurrencyCode OutsideCurrencyCode `codec:"displayCurrencyCode" json:"displayCurrencyCode"`
-	DisplayCurrency     string              `codec:"displayCurrency" json:"displayCurrency"`
-	AcceptedDisclaimer  bool                `codec:"acceptedDisclaimer" json:"acceptedDisclaimer"`
+	AcceptedDisclaimer bool `codec:"acceptedDisclaimer" json:"acceptedDisclaimer"`
 }
 
 func (o WalletSettings) DeepCopy() WalletSettings {
 	return WalletSettings{
-		DisplayCurrencyCode: o.DisplayCurrencyCode.DeepCopy(),
-		DisplayCurrency:     o.DisplayCurrency,
-		AcceptedDisclaimer:  o.AcceptedDisclaimer,
+		AcceptedDisclaimer: o.AcceptedDisclaimer,
 	}
 }
 
@@ -456,6 +452,11 @@ type ChangeDisplayCurrencyLocalArg struct {
 	Currency  OutsideCurrencyCode `codec:"currency" json:"currency"`
 }
 
+type GetDisplayCurrencyLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
 type GetWalletSettingsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -552,6 +553,7 @@ type LocalInterface interface {
 	DeleteWalletAccountLocal(context.Context, DeleteWalletAccountLocalArg) error
 	LinkNewWalletAccountLocal(context.Context, LinkNewWalletAccountLocalArg) (AccountID, error)
 	ChangeDisplayCurrencyLocal(context.Context, ChangeDisplayCurrencyLocalArg) error
+	GetDisplayCurrencyLocal(context.Context, GetDisplayCurrencyLocalArg) (OutsideCurrencyCode, error)
 	GetWalletSettingsLocal(context.Context, int) (WalletSettings, error)
 	SetAcceptedDisclaimerLocal(context.Context, int) error
 	GetWalletAccountPublicKeyLocal(context.Context, GetWalletAccountPublicKeyLocalArg) (string, error)
@@ -733,6 +735,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChangeDisplayCurrencyLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getDisplayCurrencyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetDisplayCurrencyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetDisplayCurrencyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetDisplayCurrencyLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetDisplayCurrencyLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1078,6 +1096,11 @@ func (c LocalClient) LinkNewWalletAccountLocal(ctx context.Context, __arg LinkNe
 
 func (c LocalClient) ChangeDisplayCurrencyLocal(ctx context.Context, __arg ChangeDisplayCurrencyLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.changeDisplayCurrencyLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetDisplayCurrencyLocal(ctx context.Context, __arg GetDisplayCurrencyLocalArg) (res OutsideCurrencyCode, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrencyLocal", []interface{}{__arg}, &res)
 	return
 }
 

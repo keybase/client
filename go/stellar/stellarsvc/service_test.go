@@ -633,10 +633,14 @@ func TestDefaultCurrency(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Should be "EUR" as well, inherited from primary account.
-	currency, err = remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, a1)
+	// Should be "EUR" as well, inherited from primary account. Try to
+	// use RPC instead of remote endpoint directly this time.
+	currencyCode, err := tcs[0].Srv.GetDisplayCurrencyLocal(context.Background(), stellar1.GetDisplayCurrencyLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
-	require.EqualValues(t, "EUR", currency)
+	require.EqualValues(t, "EUR", currencyCode)
+	require.IsType(t, stellar1.OutsideCurrencyCode(""), currencyCode)
 }
 
 type TestContext struct {

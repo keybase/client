@@ -84,6 +84,10 @@ export const localGetDisplayCurrenciesLocalRpcChannelMap = (configKeys: Array<st
 
 export const localGetDisplayCurrenciesLocalRpcPromise = (request: LocalGetDisplayCurrenciesLocalRpcParam): Promise<LocalGetDisplayCurrenciesLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getDisplayCurrenciesLocal', request, (error: RPCError, result: LocalGetDisplayCurrenciesLocalResult) => (error ? reject(error) : resolve(result))))
 
+export const localGetDisplayCurrencyLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetDisplayCurrencyLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getDisplayCurrencyLocal', request)
+
+export const localGetDisplayCurrencyLocalRpcPromise = (request: LocalGetDisplayCurrencyLocalRpcParam): Promise<LocalGetDisplayCurrencyLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getDisplayCurrencyLocal', request, (error: RPCError, result: LocalGetDisplayCurrencyLocalResult) => (error ? reject(error) : resolve(result))))
+
 export const localGetPaymentDetailsLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetPaymentDetailsLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'stellar.1.local.getPaymentDetailsLocal', request)
 
 export const localGetPaymentDetailsLocalRpcPromise = (request: LocalGetPaymentDetailsLocalRpcParam): Promise<LocalGetPaymentDetailsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getPaymentDetailsLocal', request, (error: RPCError, result: LocalGetPaymentDetailsLocalResult) => (error ? reject(error) : resolve(result))))
@@ -301,6 +305,8 @@ export type LocalGetAvailableLocalCurrenciesRpcParam = ?$ReadOnly<{incomingCallM
 
 export type LocalGetDisplayCurrenciesLocalRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type LocalGetDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type LocalGetPaymentDetailsLocalRpcParam = $ReadOnly<{accountID: AccountID, id: TransactionID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetPaymentsLocalRpcParam = $ReadOnly<{accountID: AccountID, olderThanTransactionID?: ?TransactionID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -451,7 +457,7 @@ export type TransactionStatus =
 
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String}>
 
-export type WalletSettings = $ReadOnly<{displayCurrencyCode: OutsideCurrencyCode, displayCurrency: String, acceptedDisclaimer: Boolean}>
+export type WalletSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
 type LocalBalancesLocalResult = ?Array<Balance>
 type LocalClaimCLILocalResult = RelayClaimResult
 type LocalExchangeRateLocalResult = OutsideExchangeRate
@@ -460,6 +466,7 @@ type LocalFormatLocalCurrencyStringResult = String
 type LocalGetAccountAssetsLocalResult = ?Array<AccountAssetLocal>
 type LocalGetAvailableLocalCurrenciesResult = {[key: string]: OutsideCurrencyDefinition}
 type LocalGetDisplayCurrenciesLocalResult = ?Array<CurrencyLocal>
+type LocalGetDisplayCurrencyLocalResult = OutsideCurrencyCode
 type LocalGetPaymentDetailsLocalResult = PaymentDetailsLocal
 type LocalGetPaymentsLocalResult = ?Array<PaymentOrErrorLocal>
 type LocalGetWalletAccountPublicKeyLocalResult = String

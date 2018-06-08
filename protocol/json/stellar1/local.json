@@ -276,14 +276,6 @@
       "name": "WalletSettings",
       "fields": [
         {
-          "type": "OutsideCurrencyCode",
-          "name": "displayCurrencyCode"
-        },
-        {
-          "type": "string",
-          "name": "displayCurrency"
-        },
-        {
           "type": "boolean",
           "name": "acceptedDisclaimer"
         }
@@ -611,6 +603,19 @@
         }
       ],
       "response": null
+    },
+    "getDisplayCurrencyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "OutsideCurrencyCode"
     },
     "getWalletSettingsLocal": {
       "request": [

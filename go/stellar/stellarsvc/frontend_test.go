@@ -377,12 +377,6 @@ func TestChangeDisplayCurrency(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, balances, 1)
 	require.EqualValues(t, "EUR", balances[0].WorthCurrency)
-
-	// See if GetWalletSettings endpoint also returns proper result.
-	ret, err := tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
-	require.NoError(t, err)
-	require.EqualValues(t, "EUR", ret.DisplayCurrencyCode)
-	require.Equal(t, "EUR (€)", ret.DisplayCurrency)
 }
 
 func TestGetWalletSettingsNoAccount(t *testing.T) {
@@ -392,8 +386,6 @@ func TestGetWalletSettingsNoAccount(t *testing.T) {
 	ret, err := tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, false, ret.AcceptedDisclaimer)
-	require.EqualValues(t, "USD", ret.DisplayCurrencyCode)
-	require.Equal(t, "USD ($)", ret.DisplayCurrency)
 }
 
 func TestGetWalletSettings(t *testing.T) {
@@ -403,8 +395,6 @@ func TestGetWalletSettings(t *testing.T) {
 	ret, err := tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, false, ret.AcceptedDisclaimer)
-	require.EqualValues(t, "USD", ret.DisplayCurrencyCode)
-	require.Equal(t, "USD ($)", ret.DisplayCurrency)
 }
 
 func TestSetAcceptedDisclaimer(t *testing.T) {

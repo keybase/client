@@ -212,41 +212,13 @@ func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret
 		RequireWallet: true,
 	})
 	defer fin()
-
+	if err != nil {
+		return ret, err
+	}
 	ret.AcceptedDisclaimer, err = remote.GetAcceptedDisclaimer(ctx, s.G())
 	if err != nil {
 		return ret, err
 	}
-
-	// Need to get primary account id to figure out display currency.
-	// Do this only as temporary measure to satisfy this RPC, we have
-	// to migrate to "display currency per wallet" system (from
-	// "display currency per accountid").
-	accID, err := stellar.GetOwnPrimaryAccountID(ctx, s.G())
-	if err != nil {
-		if _, ok := err.(remote.UserHasNoAccountsError); ok {
-			ret.DisplayCurrencyCode = stellar1.OutsideCurrencyCode(defaultOutsideCurrency)
-			err = nil
-		} else {
-			return ret, err
-		}
-	} else {
-		displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, s.G(), accID)
-		if err != nil {
-			return ret, err
-		}
-		if displayCurrency != "" {
-			ret.DisplayCurrencyCode = stellar1.OutsideCurrencyCode(displayCurrency)
-		} else {
-			ret.DisplayCurrencyCode = stellar1.OutsideCurrencyCode(defaultOutsideCurrency)
-		}
-	}
-
-	ret.DisplayCurrency, err = stellar.FormatCurrencyLabel(ctx, s.G(), ret.DisplayCurrencyCode)
-	if err != nil {
-		return ret, err
-	}
-
 	return ret, nil
 }
 
@@ -621,6 +593,21 @@ func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.Ch
 		return fmt.Errorf("Unknown currency code: %q", arg.Currency)
 	}
 	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, string(arg.Currency))
+}
+
+func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDisplayCurrencyLocalArg) (res stellar1.OutsideCurrencyCode, err error) {
+	defer s.G().CTraceTimed(ctx, "GetDisplayCurrencyLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	if arg.AccountID.IsNil() {
+		return res, errors.New("passed empty AccountID")
+	}
+	codeStr, err := remote.GetAccountDisplayCurrency(ctx, s.G(), arg.AccountID)
+	if err != nil {
+		return res, err
+	}
+	return stellar1.OutsideCurrencyCode(codeStr), nil
 }
 
 func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {
