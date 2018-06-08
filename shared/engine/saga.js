@@ -4,6 +4,7 @@ import {getEngine} from '../engine'
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
 import {sequentially} from '../util/saga'
+import type {Action} from '../constants/types/flux'
 import type {CommonResponseHandler, RPCError} from './types'
 import type {TypedState} from '../constants/reducer'
 import {printOutstandingRPCs} from '../local-debug'
@@ -29,7 +30,7 @@ function* call(
   method: string,
   param: Object,
   incomingCallMap: {[method: string]: any}, // this is typed by the generated helpers
-  waitingActionCreator?: (waiting: boolean) => any
+  waitingActionCreator?: (waiting: boolean) => Action
 ): Generator<any, any, any> {
   const engine = getEngine()
 
@@ -120,7 +121,7 @@ function* call(
 
           if (actions) {
             if (isArray(actions)) {
-              yield sequentially(actions)
+              yield sequentially(actions.filter(Boolean))
             } else {
               yield actions
             }

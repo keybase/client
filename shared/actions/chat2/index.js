@@ -1298,7 +1298,8 @@ const previewConversationFindExisting = (
   return Saga.sequentially([markPendingWaiting, makeCall, passUsersDown, updatePendingMode])
 }
 
-const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
+const bootstrapSuccess = (_, state: TypedState) =>
+  state.config.username && Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
 const changeSelectedConversation = (
   action:

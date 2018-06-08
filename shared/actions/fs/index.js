@@ -470,8 +470,7 @@ function loadResets(action: FsGen.LoadResetsPayload) {
       query: inboxQuery,
       skipUnverified: false,
     },
-    {'chat.1.chatUi.chatInboxUnverified': onUnverified},
-    loading => {}
+    {'chat.1.chatUi.chatInboxUnverified': onUnverified}
   )
 }
 

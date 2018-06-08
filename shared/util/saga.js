@@ -2,7 +2,7 @@
 import logger from '../logger'
 import {mapValues, isEqual, map, forEach} from 'lodash-es'
 import {buffers, channel, delay} from 'redux-saga'
-import type {Pattern, ForkEffect, Saga as _Saga, Effect} from 'redux-saga'
+import type {Pattern, ForkEffect, Saga as _Saga, Effect, PutEffect} from 'redux-saga'
 import {
   actionChannel,
   all,
@@ -319,7 +319,7 @@ function callAndWrap<R, A1, A2, A3, A4, A5, Fn: (a1: A1, a2: A2, a3: A3, a4: A4,
   return call(wrapper)
 }
 
-export type {SagaGenerator, Ok, Err, Result, Effect}
+export type {SagaGenerator, Ok, Err, Result, Effect, PutEffect}
 
 export {
   actionChannel,
