@@ -122,6 +122,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_ATTACHMENT,
 	MessageType_EDIT,
 	MessageType_ATTACHMENTUPLOADED,
+	MessageType_REACTION,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -237,6 +238,13 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsError() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_ERROR
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -343,6 +351,19 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 	return m.MessageBody.Deletehistory(), nil
 }
 
+func (m *MsgEphemeralMetadata) String() string {
+	if m == nil {
+		return "<nil>"
+	}
+	var explodedBy string
+	if m.ExplodedBy == nil {
+		explodedBy = "<nil>"
+	} else {
+		explodedBy = *m.ExplodedBy
+	}
+	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", time.Second*time.Duration(m.Lifetime), m.Generation, explodedBy)
+}
+
 func (m MessagePlaintext) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
@@ -366,9 +387,16 @@ func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
 }
 
+func (m MessageUnboxedValid) ExplodedBy() *string {
+	if !m.IsEphemeral() {
+		return nil
+	}
+	return m.EphemeralMetadata().ExplodedBy
+}
+
 func Etime(lifetime gregor1.DurationSec, ctime, rtime, now gregor1.Time) gregor1.Time {
 	originalLifetime := time.Second * time.Duration(lifetime)
-	elapsedLifetime := ctime.Time().Sub(now.Time())
+	elapsedLifetime := now.Time().Sub(ctime.Time())
 	remainingLifetime := originalLifetime - elapsedLifetime
 	// If the server's view doesn't make sense, just use the signed lifetime
 	// from the message.
@@ -391,7 +419,7 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 	return Etime(metadata.Lifetime, header.Ctime, m.ClientHeader.Rtime, header.Now)
 }
 
-func (m MessageUnboxedValid) RemainingLifetime(now time.Time) time.Duration {
+func (m MessageUnboxedValid) RemainingEphemeralLifetime(now time.Time) time.Duration {
 	remainingLifetime := m.Etime().Time().Sub(now).Round(time.Second)
 	return remainingLifetime
 }
@@ -401,7 +429,11 @@ func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 		return false
 	}
 	etime := m.Etime().Time()
-	return etime.Before(now) || etime.Equal(now)
+	// There are a few ways a message could be considered expired
+	// 1. Our body is already nil (deleted from DELETEHISTORY or a server purge)
+	// 2. We were "exploded now"
+	// 3. Our lifetime is up
+	return m.MessageBody.IsNil() || m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
 
 func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
@@ -512,7 +544,7 @@ func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
 		return false
 	}
 	etime := m.Etime().Time()
-	return etime.Before(now) || etime.Equal(now)
+	return m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
 
 func (m MessageBoxed) HideExplosion(now time.Time) bool {
@@ -686,14 +718,28 @@ func (f *ConversationFinalizeInfo) BeforeSummary() string {
 	return fmt.Sprintf("(before %s account reset %s)", f.ResetUser, f.ResetDate)
 }
 
-func (p Pagination) Eq(other Pagination) bool {
-	return p.Last == other.Last && bytes.Equal(p.Next, other.Next) &&
-		bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
+func (p *Pagination) Eq(other *Pagination) bool {
+	if p == nil && other == nil {
+		return true
+	}
+	if p != nil && other != nil {
+		return p.Last == other.Last && bytes.Equal(p.Next, other.Next) &&
+			bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
+	}
+	return false
 }
 
-func (p Pagination) String() string {
+func (p *Pagination) String() string {
+	if p == nil {
+		return "<nil>"
+	}
 	return fmt.Sprintf("[Num: %d n: %s p: %s last: %v]", p.Num, hex.EncodeToString(p.Next),
 		hex.EncodeToString(p.Previous), p.Last)
+}
+
+// FirstPage returns true if the pagination object is not pointing in any direction
+func (p *Pagination) FirstPage() bool {
+	return p == nil || (len(p.Next) == 0 && len(p.Previous) == 0)
 }
 
 func (c ConversationLocal) GetMtime() gregor1.Time {
@@ -901,6 +947,10 @@ func (r *GetInboxAndUnboxLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetInboxAndUnboxUILocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *GetThreadLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1058,6 +1108,14 @@ func (r *GetInboxAndUnboxLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetInboxAndUnboxUILocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetInboxAndUnboxUILocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -1355,4 +1413,9 @@ func (r *SetRetentionRes) GetRateLimit() (res []RateLimit) {
 
 func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimit = &rl[0]
+}
+
+func (i EphemeralPurgeInfo) String() string {
+	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
+		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
 }
