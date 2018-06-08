@@ -139,7 +139,7 @@ protocol local {
 
   SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
                                   string displayAmount, string displayCurrency, boolean forceRelay,
-                                  string publicNote);
+                                  string publicNote, AccountID fromAccountID);
 
   record SendResultCLILocal {
     KeybaseTransactionID kbTxID;
