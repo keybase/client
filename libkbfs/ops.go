@@ -11,9 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsedits"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 )
 
@@ -59,6 +63,12 @@ type op interface {
 	// processed/readied, at which point the real new pointer will be
 	// filled in.
 	AddSelfUpdate(ptr BlockPointer)
+
+	// ToEditNotification returns an edit notification if this op
+	// needs one, otherwise it returns nil.
+	ToEditNotification(
+		rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
+		uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage
 }
 
 // op codes
@@ -290,6 +300,14 @@ func (oc *OpCommon) stringWithRefs(indent string) string {
 	return res
 }
 
+// ToEditNotification implements the op interface for OpCommon.
+func (oc *OpCommon) ToEditNotification(
+	_ kbfsmd.Revision, _ time.Time, _ kbfscrypto.VerifyingKey,
+	_ keybase1.UID, _ tlf.ID) *kbfsedits.NotificationMessage {
+	// Ops embedding this that can be converted should override this.
+	return nil
+}
+
 // createOp is an op representing a file or subdirectory creation
 type createOp struct {
 	OpCommon
@@ -475,6 +493,39 @@ func (co *createOp) getDefaultAction(mergedPath path) crAction {
 	}
 }
 
+func makeBaseEditNotification(
+	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
+	uid keybase1.UID, tlfID tlf.ID,
+	et EntryType) kbfsedits.NotificationMessage {
+	var t kbfsedits.EntryType
+	switch et {
+	case File, Exec:
+		t = kbfsedits.EntryTypeFile
+	case Dir:
+		t = kbfsedits.EntryTypeDir
+	case Sym:
+		t = kbfsedits.EntryTypeSym
+	}
+	return kbfsedits.NotificationMessage{
+		Version:  kbfsedits.NotificationV2,
+		FileType: t,
+		Time:     revTime,
+		Revision: rev,
+		Device:   device,
+		UID:      uid,
+		FolderID: tlfID,
+	}
+}
+
+func (co *createOp) ToEditNotification(
+	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
+	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
+	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, co.Type)
+	n.Filename = co.getFinalPath().ChildPathNoPtr(co.NewName).String()
+	n.Type = kbfsedits.NotificationCreate
+	return &n
+}
+
 // rmOp is an op representing a file or subdirectory removal
 type rmOp struct {
 	OpCommon
@@ -578,6 +629,16 @@ func (ro *rmOp) getDefaultAction(mergedPath path) crAction {
 		return &dropUnmergedAction{op: ro}
 	}
 	return &rmMergedEntryAction{name: ro.OldName}
+}
+
+func (ro *rmOp) ToEditNotification(
+	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
+	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
+	n := makeBaseEditNotification(
+		rev, revTime, device, uid, tlfID, ro.RemovedType)
+	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.OldName).String()
+	n.Type = kbfsedits.NotificationDelete
+	return &n
 }
 
 // renameOp is an op representing a rename of a file/subdirectory from
@@ -711,6 +772,19 @@ func (ro *renameOp) checkConflict(
 
 func (ro *renameOp) getDefaultAction(mergedPath path) crAction {
 	return nil
+}
+
+func (ro *renameOp) ToEditNotification(
+	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
+	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
+	n := makeBaseEditNotification(
+		rev, revTime, device, uid, tlfID, ro.RenamedType)
+	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.NewName).String()
+	n.Type = kbfsedits.NotificationRename
+	n.Params = &kbfsedits.NotificationParams{
+		OldFilename: ro.oldFinalPath.ChildPathNoPtr(ro.OldName).String(),
+	}
+	return &n
 }
 
 // WriteRange represents a file modification.  Len is 0 for a
@@ -901,6 +975,25 @@ func (so *syncOp) getDefaultAction(mergedPath path) crAction {
 	}
 }
 
+func (so *syncOp) ToEditNotification(
+	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
+	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
+	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, File)
+	n.Filename = so.getFinalPath().String()
+	n.Type = kbfsedits.NotificationModify
+	var mods []kbfsedits.ModifyRange
+	for _, w := range so.Writes {
+		mods = append(mods, kbfsedits.ModifyRange{
+			Offset: w.Off,
+			Length: w.Len,
+		})
+	}
+	n.Params = &kbfsedits.NotificationParams{
+		Modifies: mods,
+	}
+	return &n
+}
+
 // In the functions below. a collapsed []WriteRange is a sequence of
 // non-overlapping writes with strictly increasing Off, and maybe a
 // trailing truncate (with strictly greater Off).
@@ -910,8 +1003,7 @@ func (so *syncOp) getDefaultAction(mergedPath path) crAction {
 // new write is {5, 100}, and `existingWrites` = [{7,5}, {18,10},
 // {98,10}], the returned write will be {5,103}.  There may be a
 // truncate at the end of the returned slice as well.
-func coalesceWrites(existingWrites []WriteRange,
-	wNew WriteRange) []WriteRange {
+func coalesceWrites(existingWrites []WriteRange, wNew WriteRange) []WriteRange {
 	if wNew.isTruncate() {
 		panic("coalesceWrites cannot be called with a new truncate.")
 	}

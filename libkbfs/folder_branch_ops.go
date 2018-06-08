@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsedits"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
@@ -6313,6 +6314,56 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID kbfsmd.BranchID) {
 	}()
 }
 
+func (fbo *folderBranchOps) makeEditNotifications(
+	ctx context.Context, rmd ImmutableRootMetadata) (
+	edits []kbfsedits.NotificationMessage, err error) {
+	if rmd.IsWriterMetadataCopiedSet() {
+		return nil, nil
+	}
+
+	if rmd.MergedStatus() != kbfsmd.Merged {
+		return nil, nil
+	}
+
+	// If journaling is enabled, this MD is coming from the journal,
+	// and the final paths will not be set on the ops.  Use crChains
+	// to set them.
+	ops := rmd.data.Changes.Ops
+	if TLFJournalEnabled(fbo.config, fbo.id()) {
+		chains, err := newCRChainsForIRMDs(
+			ctx, fbo.config.Codec(), []ImmutableRootMetadata{rmd},
+			&fbo.blocks, true)
+		if err != nil {
+			return nil, err
+		}
+		err = fbo.blocks.populateChainPaths(ctx, fbo.log, chains, true)
+		if err != nil {
+			return nil, err
+		}
+		ops = make([]op, 0, len(ops))
+		for _, chain := range chains.byMostRecent {
+			ops = append(ops, chain.ops...)
+		}
+	}
+
+	rev := rmd.Revision()
+	// We want the server's view of the time.
+	revTime := rmd.localTimestamp
+	if offset, ok := fbo.config.MDServer().OffsetFromServerTime(); ok {
+		revTime = revTime.Add(-offset)
+	}
+
+	for _, op := range ops {
+		edit := op.ToEditNotification(
+			rev, revTime, rmd.lastWriterVerifyingKey,
+			rmd.LastModifyingWriter(), fbo.id())
+		if edit != nil {
+			edits = append(edits, *edit)
+		}
+	}
+	return edits, nil
+}
+
 func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid kbfsmd.BranchID,
 	rev kbfsmd.Revision) {
 	fbo.log.CDebugf(ctx, "Considering archiving references for flushed MD revision %d", rev)
@@ -6332,6 +6383,14 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid kbfsmd.Branch
 			rev, err)
 		return
 	}
+
+	edits, err := fbo.makeEditNotifications(ctx, rmd)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't make edit notifications for "+
+			"revision %d: %+v", rev, err)
+		return
+	}
+	fbo.log.CDebugf(ctx, "Made %d edit notifications", len(edits))
 
 	if err := isArchivableMDOrError(rmd.ReadOnly()); err != nil {
 		fbo.log.CDebugf(

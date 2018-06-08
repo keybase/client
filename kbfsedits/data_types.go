@@ -58,11 +58,15 @@ const (
 	EntryTypeSym EntryType = "sym"
 )
 
+type ModifyRange struct {
+	Offset uint64
+	Length uint64
+}
+
 // NotificationParams is used for op-type-specific data.
 type NotificationParams struct {
-	OldFileName string `json:",omitempty"` // for renames
-	Offset      uint64 `json:",omitempty"` // for modifies
-	Length      uint64 `json:",omitempty"` // for modifies
+	OldFilename string        `json:",omitempty"` // for renames
+	Modifies    []ModifyRange `json:",omitempty"` // for modifies
 }
 
 // NotificationMessage is a summary of a single edit notification in
