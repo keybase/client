@@ -295,6 +295,7 @@ func TestDeleteWallet(t *testing.T) {
 		SecretKey:   tcs[0].Backend.SecretKey(accID2),
 		MakePrimary: true,
 	})
+	require.NoError(t, err)
 
 	// First try without `UserAcknowledged`.
 	err = tcs[0].Srv.DeleteWalletAccountLocal(context.Background(), stellar1.DeleteWalletAccountLocalArg{
