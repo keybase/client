@@ -56,7 +56,7 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 		return err
 	}
 	if err := remote.SetAccountDefaultCurrency(ctx, g, primary.AccountID, "USD"); err != nil {
-		return err
+		g.Log.CWarningf("Error during setting display currency for %q: %s", primary.AccountID, err)
 	}
 	getGlobal(g).InformHasWallet(ctx, meUV)
 	return true, nil
