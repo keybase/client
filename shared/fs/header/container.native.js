@@ -12,7 +12,7 @@ const mergeProps = (stateProps, {onBack}, {path}) => {
   const elems = Types.getPathElements(path)
   return {
     path,
-    title: elems.length > 1 ? elems.pop() : 'Keybase Files',
+    title: elems.length > 1 ? elems[elems.length - 1] : 'Keybase Files',
     onBack,
   }
 }
