@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {platformStyles, globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
-import {Avatar, BackButton, Box, ClickableBox, Icon, Text} from '../../common-adapters'
-import ConnectedFilesBanner from '../fileui-banner/container'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
+import ConnectedFilesBanner from '../banner/container'
 import ConnectedResetBanner from '../reset-banner/container'
+import AddNew from './add-new-container'
 
 export type FolderHeaderProps = {
   breadcrumbItems: Array<Types.PathBreadcrumbItem>,
@@ -27,18 +28,7 @@ const FolderHeader = ({
 }: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
     <Box style={styleFolderHeader}>
-      {isMobile ? (
-        <Box style={styleFolderHeaderContainer}>
-          <Box style={folderHeaderStyleRoot}>
-            <Text type="BodyBig">
-              {breadcrumbItems.length === 1
-                ? 'Keybase Files'
-                : breadcrumbItems[breadcrumbItems.length - 1].name}
-            </Text>
-          </Box>
-          <BackButton title={null} onClick={onBack} />
-        </Box>
-      ) : breadcrumbItems.length === 1 ? (
+      {breadcrumbItems.length === 1 ? (
         <Box style={folderHeaderStyleRoot}>
           <Text type="BodyBig">Keybase Files</Text>
         </Box>
@@ -75,6 +65,7 @@ const FolderHeader = ({
             ))}
           </Box>
           <Box style={styleFolderHeaderEnd}>
+            <AddNew path={path} style={styleAddNew} />
             <Icon type="iconfont-finder" color={globalColors.black_40} fontSize={16} onClick={openInFileUI} />
           </Box>
         </Box>
@@ -100,16 +91,10 @@ const styleFolderHeader = {
   minHeight: 48,
 }
 
-const folderHeaderStyleRoot = platformStyles({
-  common: {
-    ...stylesCommonRow,
-    justifyContent: 'center',
-  },
-  isMobile: {
-    width: '100%',
-    position: 'absolute',
-  },
-})
+const folderHeaderStyleRoot = {
+  ...stylesCommonRow,
+  justifyContent: 'center',
+}
 
 const folderHeaderStyleTree = {
   ...stylesCommonRow,
@@ -160,6 +145,10 @@ const styleBreadcrumbDropdownIconBox = {
 
 const styleTeamAvatar = {
   marginRight: globalMargins.xtiny,
+}
+
+const styleAddNew = {
+  marginRight: globalMargins.small,
 }
 
 export default FolderHeader

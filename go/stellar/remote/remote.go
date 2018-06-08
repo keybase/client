@@ -15,16 +15,17 @@ import (
 type shouldCreateRes struct {
 	libkb.AppStatusEmbed
 	ShouldCreate bool `json:"shouldcreate"`
+	HasWallet    bool `json:"haswallet"`
 }
 
 // ShouldCreate asks the server whether to create this user's initial wallet.
-func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (should bool, err error) {
+func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (shouldCreate, hasWallet bool, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.ShouldCreate", func() error { return err })()
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/shouldcreate")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes shouldCreateRes
 	err = g.API.GetDecode(arg, &apiRes)
-	return apiRes.ShouldCreate, err
+	return apiRes.ShouldCreate, apiRes.HasWallet, err
 }
 
 // Post a bundle to the server with a chainlink.
@@ -410,11 +411,10 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 
 type paymentDetailResult struct {
 	libkb.AppStatusEmbed
-	Result stellar1.PaymentSummary `json:"res"`
+	Result stellar1.PaymentDetails `json:"res"`
 }
 
-func PaymentDetail(ctx context.Context, g *libkb.GlobalContext,
-	txID string) (res stellar1.PaymentSummary, err error) {
+func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/paymentdetail",
 		SessionType: libkb.APISessionTypeREQUIRED,

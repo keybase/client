@@ -647,7 +647,6 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 		}
 		mvalid := msg.Valid()
 		if mvalid.MessageBody.IsNil() {
-			de("skipping already deleted msg: %v", msg.GetMessageID())
 			continue
 		}
 		mvalid.ServerHeader.SupersededBy = expunge.Basis // Can be 0

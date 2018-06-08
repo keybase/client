@@ -1182,7 +1182,8 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
-		TLFIdentifyBehavior_SALTPACK:
+		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_KBFS_CHAT:
 		return true
 	default:
 		return false
@@ -1222,7 +1223,8 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
-		TLFIdentifyBehavior_SALTPACK:
+		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_KBFS_CHAT:
 		// These are identifies that either happen without user interaction at
 		// all, or happen while you're staring at some Keybase UI that can
 		// report errors on its own. No popups needed.

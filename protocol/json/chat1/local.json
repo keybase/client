@@ -649,7 +649,8 @@
         "IDENTIFY_2",
         "TOOLONG_3",
         "DUPLICATE_4",
-        "EXPIRED_5"
+        "EXPIRED_5",
+        "TOOMANYATTEMPTS_6"
       ]
     },
     {
@@ -2717,6 +2718,46 @@
       "response": "PostLocalNonblockRes"
     },
     "postEditNonblock": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "supersedes",
+          "type": "MessageID"
+        },
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
+          "name": "clientPrev",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalNonblockRes"
+    },
+    "postReactionNonblock": {
       "request": [
         {
           "name": "conversationID",

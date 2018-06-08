@@ -23,7 +23,7 @@
         "'clearSelected'", // deselect
         "'justCreated'", // just made one
         "'desktopNotification'", // clicked notification
-        "'searching'", // searching and found one
+        "'setPendingMode'", // set to pending
         "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
         "'findNewestConversation'", // find a new chat to select
@@ -385,6 +385,11 @@
       "_description": "Set the remote exploding mode for a conversation.",
       "conversationIDKey": "Types.ConversationIDKey",
       "seconds": "number"
+    },
+    "setExplodingModeLock": {
+      "_description": "Set a lock on the exploding mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "unset?": "boolean"
     },
     "updateConvExplodingModes": {
       "_description": "Handle an update to our conversation exploding modes.",
