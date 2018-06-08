@@ -162,7 +162,7 @@ func (c *ChatRPC) GetConversationID(
 		TopicType:        chatType,
 		TlfVisibility:    vis,
 		MembersType:      membersTypeFromTlfType(tlfType),
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
 
 	// Try creating the conversation to get back the ID -- if the
@@ -185,7 +185,7 @@ func (c *ChatRPC) SendTextMessage(
 		TlfName:          string(tlfName),
 		TlfPublic:        tlfType == tlf.Public,
 		Body:             body,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
 	_, err := c.client.PostTextNonblock(ctx, arg)
 	return err
@@ -260,7 +260,7 @@ func (c *ChatRPC) ReadChannel(
 	arg := chat1.GetThreadLocalArg{
 		ConversationID:   convID,
 		Pagination:       pagination,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
 	res, err := c.client.GetThreadLocal(ctx, arg)
 	if err != nil {
