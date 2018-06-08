@@ -1958,6 +1958,10 @@ func (e ChatClientError) Error() string {
 	return fmt.Sprintf("error from chat server: %s", e.Msg)
 }
 
+func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 //=============================================================================
 
 type ChatStalePreviousStateError struct{}
