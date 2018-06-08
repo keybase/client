@@ -46,7 +46,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             .toArray()
             .map(name => Types.pathConcat(path, name))
         )
-        console.log(`Removing entries in state.fs.pathItems: ${JSON.stringify(toRemove)}`)
+        console.log({msg: 'Removing entries in state.fs.pathItems', toRemove: toRemove})
 
         // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
         // can change `pathItems`, we need to make sure that neither one
@@ -171,7 +171,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       const {parentPath} = action.payload
       const parentPathItem = state.pathItems.get(parentPath, Constants.makeUnknownPathItem())
       if (parentPathItem.type !== 'folder') {
-        console.warn(`bad parentPath: ${Types.pathToString(parentPath)}`)
+        console.warn(`bad parentPath: ${parentPathItem.type}`)
         return state
       }
       let newFolderName = 'New Folder'

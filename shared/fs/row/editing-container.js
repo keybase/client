@@ -13,7 +13,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, {editID}: OwnProps) => {
   const _edit = state.fs.edits.get(editID, Constants.makeNewFolder()) // TODO make missing get better
-  const _username = state.config.username || undefined
+  const _username = state.config.username
   return {
     _username,
     _edit,
@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState, {editID}: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {editID, routePath}: OwnProps) => ({
   onSubmit: () => dispatch(FsGen.createCommitEdit({editID})),
-  onUpdate: name => dispatch(FsGen.createNewFolderName({editID, name})),
+  onUpdate: (name: string) => dispatch(FsGen.createNewFolderName({editID, name})),
   onCancel: () => dispatch(FsGen.createDiscardEdit({editID})),
 })
 

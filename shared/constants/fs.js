@@ -222,7 +222,7 @@ const itemStylesKeybase = {
   textType: folderTextType,
 }
 
-const getIconSpecFromUsernames = (usernames: Array<string>, me?: string) => {
+const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
   if (usernames.length === 1) {
     return makeAvatarPathItemIconSpec(usernames[0])
   } else if (usernames.length > 1) {
@@ -236,12 +236,12 @@ const splitTlfIntoUsernames = (tlf: string): Array<string> =>
     .replace(/#/g, ',')
     .split(',')
 
-const itemStylesPublicTlf = memoize((tlf: string, me?: string) => ({
+const itemStylesPublicTlf = memoize((tlf: string, me?: ?string) => ({
   iconSpec: getIconSpecFromUsernames(splitTlfIntoUsernames(tlf), me),
   textColor: publicTextColor,
   textType: folderTextType,
 }))
-const itemStylesPrivateTlf = memoize((tlf: string, me?: string) => ({
+const itemStylesPrivateTlf = memoize((tlf: string, me?: ?string) => ({
   iconSpec: getIconSpecFromUsernames(splitTlfIntoUsernames(tlf), me),
   textColor: privateTextColor,
   textType: folderTextType,
@@ -269,7 +269,7 @@ export const humanReadableFileSize = (size: number) => {
 export const getItemStyles = (
   pathElems: Array<string>,
   type: Types.PathType,
-  username?: string
+  username?: ?string
 ): Types.ItemStyles => {
   if (pathElems.length === 1 && pathElems[0] === 'keybase') {
     return itemStylesKeybase

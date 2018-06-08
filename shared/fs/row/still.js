@@ -39,7 +39,7 @@ const HoverBox = isMobile
 
 const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey, resetParticipants}) => {
   if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount || resetParticipants)) {
-    return <Box />
+    return null
   }
 
   return (
@@ -79,9 +79,8 @@ const Still = (props: StillProps) => (
           >
             {props.name}
           </Text>
-          {props.type === 'folder' && (!props.resetParticipants || props.resetParticipants.length === 0) ? (
-            <Box />
-          ) : (
+          {props.type === 'folder' &&
+          (!props.resetParticipants || props.resetParticipants.length === 0) ? null : (
             <PathItemInfo
               lastModifiedTimestamp={props.lastModifiedTimestamp}
               lastWriter={props.lastWriter}
