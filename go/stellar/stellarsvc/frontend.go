@@ -270,6 +270,47 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	return payments, nil
 }
 
+func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetPaymentDetailsLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return payment, err
+	}
+
+	details, err := s.remoter.PaymentDetails(ctx, arg.Id.String())
+	if err != nil {
+		return payment, err
+	}
+
+	summary, err := s.transformPaymentSummary(ctx, arg.AccountID, details.Summary)
+	if err != nil {
+		return payment, err
+	}
+
+	payment = stellar1.PaymentDetailsLocal{
+		Id:                summary.Id,
+		Time:              summary.Time,
+		StatusSimplified:  summary.StatusSimplified,
+		StatusDescription: summary.StatusDescription,
+		StatusDetail:      summary.StatusDetail,
+		AmountDescription: summary.AmountDescription,
+		Delta:             summary.Delta,
+		Worth:             summary.Worth,
+		WorthCurrency:     summary.WorthCurrency,
+		Source:            summary.Source,
+		SourceType:        summary.SourceType,
+		Target:            summary.Target,
+		TargetType:        summary.TargetType,
+		Note:              summary.Note,
+		NoteErr:           summary.NoteErr,
+		PublicNote:        details.Memo,
+		PublicNoteType:    details.MemoType,
+	}
+
+	return payment, nil
+}
+
 func (s *Server) transformPaymentSummary(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummary) (*stellar1.PaymentLocal, error) {
 	typ, err := p.Typ()
 	if err != nil {

@@ -496,6 +496,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		DisplayAmount:   "321.87",
 		DisplayCurrency: "USD",
 		Note:            "here you go",
+		PublicNote:      "public note",
 	}
 	_, err = srvSender.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)
@@ -537,4 +538,45 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Len(t, recipPayments, 1)
 	require.NotNil(t, recipPayments[0].Payment)
 	checkPayment(*recipPayments[0].Payment, false)
+
+	// check the details
+	checkPaymentDetails := func(p stellar1.PaymentDetailsLocal, sender bool) {
+		require.NotEmpty(t, p.Id)
+		require.NotZero(t, p.Time)
+		require.Equal(t, stellar1.PaymentStatus_COMPLETED, p.StatusSimplified)
+		require.Equal(t, "completed", p.StatusDescription)
+		require.Empty(t, p.StatusDetail)
+		if sender {
+			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
+		} else {
+			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
+		}
+		require.Equal(t, "$321.87", p.Worth, "Worth")
+		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
+		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
+		require.Equal(t, "keybase", p.SourceType, "SourceType")
+		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
+		require.Equal(t, "keybase", p.TargetType, "TargetType")
+		require.Equal(t, "here you go", p.Note)
+		require.Empty(t, p.NoteErr)
+		require.Equal(t, "public note", p.PublicNote)
+		require.Equal(t, "text", p.PublicNoteType)
+	}
+	argDetails := stellar1.GetPaymentDetailsLocalArg{
+		Id:        senderPayments[0].Payment.Id,
+		AccountID: accountIDSender,
+	}
+	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	checkPaymentDetails(details, true)
+
+	argDetails = stellar1.GetPaymentDetailsLocalArg{
+		Id:        recipPayments[0].Payment.Id,
+		AccountID: accountIDRecip,
+	}
+	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	checkPaymentDetails(details, false)
 }

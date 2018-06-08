@@ -267,8 +267,7 @@ type DisplayBalance struct {
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string,
-	note string, displayBalance DisplayBalance, forceRelay bool, quickReturn bool) (res stellar1.SendResultCLILocal, err error) {
+func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance, forceRelay, quickReturn bool, publicNote string) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
 	primary, err := LookupSenderPrimary(m.Ctx(), m.G())
@@ -285,7 +284,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 	m.CDebugf("using stellar network passphrase: %q", stellarnet.Network().Passphrase)
 
 	if recipient.AccountID == nil || forceRelay {
-		return sendRelayPayment(m, remoter, primarySeed, recipient, amount, note, displayBalance, quickReturn)
+		return sendRelayPayment(m, remoter, primarySeed, recipient, amount, note, displayBalance, quickReturn, publicNote)
 	}
 
 	primarySeed2, err := stellarnet.NewSeedStr(primarySeed.SecureNoLogString())
@@ -316,7 +315,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 		// if no balance, create_account operation
 		// we could check here to make sure that amount is at least 1XLM
 		// but for now, just let stellar-core tell us there was an error
-		sig, err := stellarnet.CreateAccountXLMTransaction(primarySeed2, *recipient.AccountID, amount, sp)
+		sig, err := stellarnet.CreateAccountXLMTransaction(primarySeed2, *recipient.AccountID, amount, publicNote, sp)
 		if err != nil {
 			return res, err
 		}
@@ -324,7 +323,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 		txID = sig.TxHash
 	} else {
 		// if balance, payment operation
-		sig, err := stellarnet.PaymentXLMTransaction(primarySeed2, *recipient.AccountID, amount, sp)
+		sig, err := stellarnet.PaymentXLMTransaction(primarySeed2, *recipient.AccountID, amount, publicNote, sp)
 		if err != nil {
 			return res, err
 		}
@@ -361,9 +360,8 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, to stellarcommon.R
 
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
-func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1.SecretKey,
-	recipient stellarcommon.Recipient, amount, note string,
-	displayBalance DisplayBalance, quickReturn bool) (res stellar1.SendResultCLILocal, err error) {
+func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
+	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount, note string, displayBalance DisplayBalance, quickReturn bool, publicNote string) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
 	if err != nil {
@@ -373,6 +371,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1
 		From:          from,
 		AmountXLM:     amount,
 		Note:          note,
+		PublicNote:    publicNote,
 		EncryptFor:    appKey,
 		SeqnoProvider: NewSeqnoProvider(m.Ctx(), remoter),
 	})
@@ -414,10 +413,11 @@ func Claim(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
 	autoClaimToken *string) (res stellar1.RelayClaimResult, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Claim", func() error { return err })()
 	g.Log.CDebugf(ctx, "Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
-	p, err := remoter.PaymentDetail(ctx, txID)
+	details, err := remoter.PaymentDetails(ctx, txID)
 	if err != nil {
 		return res, err
 	}
+	p := details.Summary
 	typ, err := p.Typ()
 	if err != nil {
 		return res, fmt.Errorf("error getting payment details: %v", err)
@@ -542,11 +542,11 @@ func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter
 
 func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, txID string) (res stellar1.PaymentCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PaymentDetailCLILocal", func() error { return err })()
-	payment, err := remoter.PaymentDetail(ctx, txID)
+	payment, err := remoter.PaymentDetails(ctx, txID)
 	if err != nil {
 		return res, err
 	}
-	return localizePayment(ctx, g, payment)
+	return localizePayment(ctx, g, payment.Summary)
 }
 
 func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {
