@@ -44,7 +44,7 @@ class BottomLine extends PureComponent<Props> {
             style={platformStyles({
               common: {
                 color: globalColors.white,
-                fontSize: 11,
+                fontSize: 12,
                 lineHeight: 14,
               },
             })}
@@ -61,7 +61,7 @@ class BottomLine extends PureComponent<Props> {
           style={platformStyles({
             common: {
               color: this.props.isSelected ? globalColors.white : globalColors.red,
-              fontSize: isMobile ? 13 : 11,
+              fontSize: isMobile ? 13 : 12,
               lineHeight: 14,
             },
           })}
@@ -157,9 +157,9 @@ const styles = styleSheetCreate({
     isElectron: {
       color: globalColors.black_40,
       display: 'block',
-      fontSize: 11,
+      fontSize: 12,
       lineHeight: '15px',
-      minHeight: 15,
+      minHeight: 16,
       overflow: 'hidden',
       paddingRight: 30,
       textOverflow: 'ellipsis',

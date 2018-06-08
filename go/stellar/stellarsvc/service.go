@@ -47,7 +47,7 @@ func (s *Server) logTag(ctx context.Context) context.Context {
 }
 
 type preambleArg struct {
-	RpcName string
+	RPCName string
 	// Pointer to the RPC's error return value.
 	// Can be nil for RPCs that do not err.
 	Err            *error
@@ -68,14 +68,14 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (ctx context.
 		}
 		return *opts.Err
 	}
-	fin = s.G().CTraceTimed(ctx, opts.RpcName, getFinalErr)
+	fin = s.G().CTraceTimed(ctx, opts.RPCName, getFinalErr)
 	if !opts.AllowLoggedOut {
 		if err = s.assertLoggedIn(ctx); err != nil {
 			return ctx, err, fin
 		}
 	}
 	if opts.RequireWallet {
-		s.G().Log.CDebugf(ctx, "wallet needed for %v", opts.RpcName)
+		s.G().Log.CDebugf(ctx, "wallet needed for %v", opts.RPCName)
 		_, hasWallet, err := stellar.CreateWalletGated(ctx, s.G())
 		if err != nil {
 			return ctx, err, fin
@@ -89,7 +89,7 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (ctx context.
 
 func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) (ret []stellar1.Balance, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName: "BalancesLocal",
+		RPCName: "BalancesLocal",
 		Err:     &err,
 	})
 	defer fin()
@@ -102,7 +102,7 @@ func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID
 
 func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:       "ImportSecretKeyLocal",
+		RPCName:       "ImportSecretKeyLocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -116,7 +116,7 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:       "ExportSecretKeyLocal",
+		RPCName:       "ExportSecretKeyLocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -145,7 +145,7 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 
 func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.AccountID) (isOwn bool, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:       "ExportSecretKeyLocal",
+		RPCName:       "ExportSecretKeyLocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -159,7 +159,7 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 
 func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg) (res stellar1.SendResultCLILocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:       "SendCLILocal",
+		RPCName:       "SendCLILocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -194,7 +194,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:       "ClaimCLILocal",
+		RPCName:       "ClaimCLILocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -218,7 +218,7 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:       "RecentPaymentsCLILocal",
+		RPCName:       "RecentPaymentsCLILocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -241,7 +241,7 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 
 func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res stellar1.PaymentCLILocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName: "PaymentDetailCLILocal",
+		RPCName: "PaymentDetailCLILocal",
 		Err:     &err,
 	})
 	defer fin()
@@ -257,7 +257,7 @@ func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res st
 // Safe to call even if the user has a bundle already.
 func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName: "WalletInitLocal",
+		RPCName: "WalletInitLocal",
 		Err:     &err,
 	})
 	defer fin()
@@ -271,7 +271,7 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 
 func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplayCurrencyArg) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:       fmt.Sprintf("SetDisplayCurrency(%s, %s)", arg.AccountID, arg.Currency),
+		RPCName:       fmt.Sprintf("SetDisplayCurrency(%s, %s)", arg.AccountID, arg.Currency),
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -316,7 +316,7 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 
 func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.OwnAccountCLILocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:       "WalletGetAccountsCLILocal",
+		RPCName:       "WalletGetAccountsCLILocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -372,7 +372,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 
 func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.OutsideCurrencyCode) (res stellar1.OutsideExchangeRate, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:        fmt.Sprintf("ExchangeRateLocal(%s)", string(currency)),
+		RPCName:        fmt.Sprintf("ExchangeRateLocal(%s)", string(currency)),
 		Err:            &err,
 		AllowLoggedOut: true,
 	})
@@ -386,7 +386,7 @@ func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.Outsid
 
 func (s *Server) GetAvailableLocalCurrencies(ctx context.Context) (ret map[stellar1.OutsideCurrencyCode]stellar1.OutsideCurrencyDefinition, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:        "GetAvailableLocalCurrencies",
+		RPCName:        "GetAvailableLocalCurrencies",
 		Err:            &err,
 		AllowLoggedOut: true,
 	})
@@ -404,7 +404,7 @@ func (s *Server) GetAvailableLocalCurrencies(ctx context.Context) (ret map[stell
 
 func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.FormatLocalCurrencyStringArg) (res string, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RpcName:        "FormatLocalCurrencyString",
+		RPCName:        "FormatLocalCurrencyString",
 		Err:            &err,
 		AllowLoggedOut: true,
 	})
