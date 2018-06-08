@@ -28,7 +28,7 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 		}
 
 		var additionalProtocols []rpc.Protocol
-		for _, creater := range params.AdditionalProtocolCreaters {
+		for _, creater := range params.AdditionalProtocolCreators {
 			p, err := creater(ctx, config)
 			if err != nil {
 				return nil, err

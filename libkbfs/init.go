@@ -37,8 +37,8 @@ const (
 	InitConstrainedString = "constrained"
 )
 
-// AdditionalProtocolCreater creates an additional protocol.
-type AdditionalProtocolCreater func(Context, Config) (rpc.Protocol, error)
+// AdditionalProtocolCreator creates an additional protocol.
+type AdditionalProtocolCreator func(Context, Config) (rpc.Protocol, error)
 
 // InitParams contains the initialization parameters for Init(). It is
 // usually filled in by the flags parser passed into AddFlags().
@@ -89,9 +89,9 @@ type InitParams struct {
 	// EnableJournal is non-empty.
 	TLFJournalBackgroundWorkStatus TLFJournalBackgroundWorkStatus
 
-	// AdditionalProtocolCreaters are for adding additional protocols that we
+	// AdditionalProtocolCreators are for adding additional protocols that we
 	// should handle for service to call in.
-	AdditionalProtocolCreaters []AdditionalProtocolCreater
+	AdditionalProtocolCreators []AdditionalProtocolCreator
 
 	// EnableJournal enables journaling.
 	EnableJournal bool

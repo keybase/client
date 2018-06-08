@@ -273,8 +273,8 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 		return
 	}
 
-	k.lock.RLock()
-	defer k.lock.RUnlock()
+	k.lock.Lock()
+	defer k.lock.Unlock()
 
 	if k.protocols != nil {
 		k.protocols = append(k.protocols, protocols...)
@@ -303,10 +303,10 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 
 		for _, p := range k.protocols {
 			err := server.Register(p)
-			if err != nil {
-				if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
-					return err
-				}
+			switch err.(type) {
+			case nil, rpc.AlreadyRegisteredError:
+			default:
+				return err
 			}
 		}
 

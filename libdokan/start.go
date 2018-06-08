@@ -47,9 +47,9 @@ func startMounting(options StartOptions,
 func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
 	createSimpleFS := func(
-		libkbfsCtx libkbfs.Context, cfg libkbfs.Config) (rpc.Protocol, error) {
+		libkbfsCtx libkbfs.Context, config libkbfs.Config) (rpc.Protocol, error) {
 		return keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(libkbfsCtx.GetGlobalContext(), cfg)), nil
+			simplefs.NewSimpleFS(libkbfsCtx.GetGlobalContext(), config)), nil
 	}
 	// Hook git implementation in.
 	shutdownGit := func() {}
@@ -65,7 +65,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	}()
 
 	// Patch the kbfsParams to inject two additional protocols.
-	options.KbfsParams.AdditionalProtocolCreaters = []libkbfs.AdditionalProtocolCreater{
+	options.KbfsParams.AdditionalProtocolCreators = []libkbfs.AdditionalProtocolCreator{
 		createSimpleFS, createGitHandler,
 	}
 
