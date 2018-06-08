@@ -1875,6 +1875,10 @@ func (e ChatBadMsgError) Error() string {
 	return e.Msg
 }
 
+func (e ChatBadMsgError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 //=============================================================================
 
 type ChatBroadcastError struct {
