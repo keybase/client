@@ -241,7 +241,7 @@ func TestCRChainsRenameOp(t *testing.T) {
 	require.NoError(t, err)
 	co.renamed = true
 	testCRCheckOps(t, cc, dir2Unref, []op{co})
-	rmo, err := newRmOp(oldName, dir1Unref)
+	rmo, err := newRmOp(oldName, dir1Unref, Dir)
 	require.NoError(t, err)
 	testCRCheckOps(t, cc, dir1Unref, []op{rmo})
 }
@@ -324,7 +324,7 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	multiChainMDs = append(multiChainMDs, newChainMD)
 
 	// rm root/dir1/dir2/file1
-	op5, err := newRmOp(f1, dir2Unref)
+	op5, err := newRmOp(f1, dir2Unref, File)
 	require.NoError(t, err)
 	_ = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref], dir2Unref},
@@ -357,7 +357,7 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	testCRCheckOps(t, cc, dir2Unref, []op{op5})
 
 	// dir3 should have the rm part of a rename
-	ro3, err := newRmOp(f2, op3.OldDir.Unref)
+	ro3, err := newRmOp(f2, op3.OldDir.Unref, File)
 	require.NoError(t, err)
 	testCRCheckOps(t, cc, dir3Unref, []op{ro3})
 
@@ -456,7 +456,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	chainMD.AddOp(op4)
 
 	// rm root/dir1/file2
-	op5, err := newRmOp(f2, expected[dir1Unref])
+	op5, err := newRmOp(f2, expected[dir1Unref], File)
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op5)
@@ -473,7 +473,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	chainMD.AddOp(op6)
 
 	// rm root/dir1/file3
-	op7, err := newRmOp(f3, expected[dir1Unref])
+	op7, err := newRmOp(f3, expected[dir1Unref], File)
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op7)
@@ -517,7 +517,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	testCRCheckOps(t, cc, dir1Unref, []op{co1})
 
 	// dir2 should have the rm part of a rename
-	ro2, err := newRmOp(f1, op6.OldDir.Unref)
+	ro2, err := newRmOp(f1, op6.OldDir.Unref, File)
 	require.NoError(t, err)
 	testCRCheckOps(t, cc, dir2Unref, []op{ro2})
 

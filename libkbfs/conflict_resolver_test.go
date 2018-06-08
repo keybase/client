@@ -999,7 +999,7 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	mergedPathB := cr1.fbo.nodeCache.PathFromNode(dirB1)
 	mergedPaths[unmergedPathB.tailPointer()] = mergedPathB
 
-	ro, err := newRmOp("dirA", unmergedPathRoot.tailPointer())
+	ro, err := newRmOp("dirA", unmergedPathRoot.tailPointer(), Dir)
 	require.NoError(t, err)
 	err = ro.Dir.setRef(unmergedPathRoot.tailPointer())
 	require.NoError(t, err)

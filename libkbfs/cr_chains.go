@@ -539,7 +539,8 @@ func (ccs *crChains) makeChainForOp(op op) error {
 	case *renameOp:
 		// split rename op into two separate operations, one for
 		// remove and one for create
-		ro, err := newRmOp(realOp.OldName, realOp.OldDir.Unref)
+		ro, err := newRmOp(
+			realOp.OldName, realOp.OldDir.Unref, realOp.RenamedType)
 		if err != nil {
 			return err
 		}
@@ -564,7 +565,10 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		if len(realOp.Unrefs()) > 0 {
 			// Something was overwritten; make an explicit rm for it
 			// so we can check for conflicts.
-			roOverwrite, err := newRmOp(realOp.NewName, ndu)
+			roOverwrite, err := newRmOp(realOp.NewName, ndu,
+				// We don't know the real type, but this op is only
+				// used locally so it doesn't matter.
+				File)
 			if err != nil {
 				return err
 			}

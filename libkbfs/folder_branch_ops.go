@@ -3354,7 +3354,7 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	}
 
 	parentPtr := dirPath.tailPointer()
-	ro, err := newRmOp(name, parentPtr)
+	ro, err := newRmOp(name, parentPtr, de.Type)
 	if err != nil {
 		return err
 	}

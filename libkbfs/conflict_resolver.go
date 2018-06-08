@@ -1354,6 +1354,7 @@ outer:
 				continue
 			}
 
+			oldType := cop.Type
 			if cop.Type == Dir {
 				cop.Type = Sym
 				cop.crSymPath = symPath
@@ -1380,7 +1381,7 @@ outer:
 			} else {
 				// invert the op in the merged chains
 				invertCreate, err := newRmOp(info.newName,
-					info.originalNewParent)
+					info.originalNewParent, oldType)
 				if err != nil {
 					return err
 				}

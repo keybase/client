@@ -33,7 +33,7 @@ func TestCreateOpCustomUpdate(t *testing.T) {
 
 func TestRmOpCustomUpdate(t *testing.T) {
 	oldDir := makeRandomBlockPointer(t)
-	ro, err := newRmOp("name", oldDir)
+	ro, err := newRmOp("name", oldDir, File)
 	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldDir}, ro.Dir)
 
@@ -271,6 +271,7 @@ func makeFakeRmOpFuture(t *testing.T) rmOpFuture {
 			makeFakeOpCommon(t, true),
 			"old name",
 			makeFakeBlockUpdate(t),
+			File,
 			false,
 		},
 		kbfscodec.MakeExtraOrBust("rmOp", t),
@@ -483,7 +484,7 @@ func TestOpSerialization(t *testing.T) {
 	// add a couple ops of different types
 	co, err := newCreateOp("test1", BlockPointer{ID: kbfsblock.FakeID(42)}, File)
 	require.NoError(t, err)
-	ro, err := newRmOp("test2", BlockPointer{ID: kbfsblock.FakeID(43)})
+	ro, err := newRmOp("test2", BlockPointer{ID: kbfsblock.FakeID(43)}, File)
 	require.NoError(t, err)
 	ops.Ops = append(ops.Ops, co, ro)
 
@@ -524,7 +525,7 @@ func TestOpInversion(t *testing.T) {
 	require.NoError(t, err)
 	cop.AddUpdate(oldPtr1, newPtr1)
 	cop.AddUpdate(oldPtr2, newPtr2)
-	expectedIOp, err := newRmOp("test1", newPtr1)
+	expectedIOp, err := newRmOp("test1", newPtr1, File)
 	require.NoError(t, err)
 	expectedIOp.AddUpdate(newPtr1, oldPtr1)
 	expectedIOp.AddUpdate(newPtr2, oldPtr2)

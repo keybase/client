@@ -478,17 +478,20 @@ func (co *createOp) getDefaultAction(mergedPath path) crAction {
 // rmOp is an op representing a file or subdirectory removal
 type rmOp struct {
 	OpCommon
-	OldName string      `codec:"n"`
-	Dir     blockUpdate `codec:"d"`
+	OldName     string      `codec:"n"`
+	Dir         blockUpdate `codec:"d"`
+	RemovedType EntryType   `codec:"rt"`
 
 	// Indicates that the resolution process should skip this rm op.
 	// Likely indicates the rm half of a cycle-creating rename.
 	dropThis bool
 }
 
-func newRmOp(name string, oldDir BlockPointer) (*rmOp, error) {
+func newRmOp(name string, oldDir BlockPointer, removedType EntryType) (
+	*rmOp, error) {
 	ro := &rmOp{
-		OldName: name,
+		OldName:     name,
+		RemovedType: removedType,
 	}
 	err := ro.Dir.setUnref(oldDir)
 	if err != nil {
@@ -1340,7 +1343,7 @@ func invertOpForLocalNotifications(oldOp op) (newOp op, err error) {
 	default:
 		panic(fmt.Sprintf("Unrecognized operation: %v", op))
 	case *createOp:
-		newOp, err = newRmOp(op.NewName, op.Dir.Ref)
+		newOp, err = newRmOp(op.NewName, op.Dir.Ref, op.Type)
 		if err != nil {
 			return nil, err
 		}
