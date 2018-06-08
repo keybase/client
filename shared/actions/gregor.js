@@ -144,13 +144,54 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
     yield Saga.put(TeamsGen.createSetTeamSawSubteamsBanner())
   }
 
-  const chosenChannels = items.find(i => i.item && i.item.category === chosenChannelsGregorKey)
-  const teamsWithChosenChannelsStr =
-    chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
-  const teamsWithChosenChannels = teamsWithChosenChannelsStr
-    ? Set(JSON.parse(teamsWithChosenChannelsStr))
-    : Set()
-  yield Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
+  yield handleTeamsWithChosenChannels(items)
+}
+
+function handleTeamsWithChosenChannels(items: Array<Types.NonNullGregorItem>) {
+  logger.info('Got push state; parsing teamsWithChosenChannels')
+  const chosenChannelItems = items.filter(i => i.item.category === chosenChannelsGregorKey)
+  const actions = []
+  let teamsWithChosenChannels
+  if (chosenChannelItems.length > 1) {
+    // multiple items. take the union of all of them and update the category
+    const arrays = chosenChannelItems.map(i => JSON.parse(i.item.body.toString()))
+    const lengths = arrays.map(a => a.length)
+    const ctimes = chosenChannelItems.map(i => i.md.ctime)
+    logger.warn(
+      `Found multiple teamsWithChosenChannels arrays in pushState with lengths ${JSON.stringify(
+        lengths
+      )} and ctimes ${JSON.stringify(ctimes)}`
+    )
+    teamsWithChosenChannels = arrays.reduce((set, current) => {
+      return Set.union([set, Set(current)])
+    }, Set())
+    logger.info(
+      `Updating category with new teamsWithChosenChannels of length ${teamsWithChosenChannels.size}`
+    )
+    actions.push(
+      Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+        body: JSON.stringify(teamsWithChosenChannels.toArray()),
+        category: chosenChannelsGregorKey,
+        dtime: {
+          time: 0,
+          offset: 0,
+        },
+      }),
+      Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
+    )
+  } else if (chosenChannelItems.length === 1) {
+    const i = chosenChannelItems[0]
+    const array = JSON.parse(i.item.body.toString())
+    const ctime = i.md.ctime
+    logger.info(
+      `Found one teamsWithChosenChannels array in pushState with length ${array.length} and ctime ${ctime}`
+    )
+    teamsWithChosenChannels = Set(array)
+    actions.push(Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels})))
+  } else {
+    logger.info('Got push state with no teamsWithChosenChannels; doing nothing.')
+  }
+  return Saga.all(actions)
 }
 
 function handleConvExplodingModes(items: Array<Types.NonNullGregorItem>) {
