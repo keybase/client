@@ -2,22 +2,28 @@
 import * as React from 'react'
 import {
   Box,
+  Box2,
   Text,
   Icon,
   Checkbox,
   ClickableBox,
-  Input,
+  CopyText,
   Button,
   Avatar,
   Meta,
   Usernames,
-  HOCTimers,
-  type PropsWithTimer,
 } from '../../common-adapters'
 
-import {globalStyles, globalColors, globalMargins, platformStyles, transition, isMobile} from '../../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  styleSheetCreate,
+  isMobile,
+} from '../../styles'
 
-type _Props = {
+type Props = {
   canDelete: boolean,
   canEdit: boolean,
   channelName: ?string,
@@ -41,31 +47,7 @@ type _Props = {
   openUserTracker: (username: string) => void,
 }
 
-export type Props = PropsWithTimer<_Props>
-
-type State = {
-  showingCopy: boolean,
-}
-
-class Row extends React.Component<Props, State> {
-  state = {
-    showingCopy: false,
-  }
-
-  _input: any
-
-  _inputOnClick = () => {
-    this._input && this._input.select()
-  }
-
-  _setRef = r => (this._input = r)
-
-  _onCopy = () => {
-    this.props.onCopy()
-    this.setState({showingCopy: true})
-    this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
-  }
-
+class Row extends React.Component<Props> {
   _channelNameToString = (channelName: ?string) => {
     return channelName ? `#${channelName}` : '#general'
   }
@@ -132,31 +114,14 @@ class Row extends React.Component<Props, State> {
                 style={{
                   ...globalStyles.flexBoxRow,
                   alignItems: 'center',
+                  maxWidth: '100%',
                   position: 'relative',
                 }}
               >
                 <Text type="Body">Clone:</Text>
-                <Box style={_bubbleStyle}>
-                  <Input
-                    small={true}
-                    readonly={true}
-                    value={this.props.url}
-                    onClick={this._inputOnClick}
-                    ref={this._setRef}
-                    style={_inputStyle}
-                    editable={false}
-                    inputStyle={_inputInputStyle}
-                    hideUnderline={true}
-                  />
-                  <ClickableBox style={_copyStyle} onClick={this._onCopy}>
-                    <Icon
-                      type="iconfont-clipboard"
-                      color={globalColors.white}
-                      fontSize={isMobile ? 20 : 16}
-                      hoverColor={isMobile ? undefined : globalColors.blue5}
-                    />
-                  </ClickableBox>
-                </Box>
+                <Box2 direction="horizontal" style={styles.copyTextContainer}>
+                  <CopyText text={this.props.url} />
+                </Box2>
                 {!isMobile &&
                   this.props.canDelete && (
                     <Button
@@ -166,9 +131,6 @@ class Row extends React.Component<Props, State> {
                       onClick={this.props.onShowDelete}
                     />
                   )}
-                <Box style={{alignSelf: 'flex-start', position: 'relative'}}>
-                  <Copied showing={this.state.showingCopy} />
-                </Box>
               </Box>
               <Box
                 style={{
@@ -277,77 +239,15 @@ class Row extends React.Component<Props, State> {
   }
 }
 
-const Copied = ({showing}) => (
-  <Box
-    style={{
-      ...transition('opacity'),
-      backgroundColor: globalColors.black_60,
-      borderRadius: 20,
-      left: -165,
-      opacity: showing ? 1 : 0,
-      paddingBottom: 5,
-      paddingTop: globalMargins.xtiny,
-      paddingLeft: globalMargins.tiny,
-      paddingRight: globalMargins.tiny,
-      position: 'absolute',
-      top: -28,
-    }}
-  >
-    <Text type="BodySmall" backgroundMode="Terminal" style={{color: globalColors.white}}>
-      Copied!
-    </Text>
-  </Box>
-)
-
-const _copyStyle = {
-  ...globalStyles.fillAbsolute,
-  ...globalStyles.flexBoxCenter,
-  backgroundColor: globalColors.blue,
-  borderRadius: 0,
-  left: undefined,
-  paddingLeft: isMobile ? 24 : 12,
-  paddingRight: isMobile ? 24 : 12,
-}
-
-const _inputInputStyle = platformStyles({
-  common: {
-    ...globalStyles.fontTerminal,
-    color: globalColors.darkBlue,
-  },
-  // on desktop the input text isn't vertically aligned
-  isMobile: {fontSize: 15},
-  isElectron: {
-    display: 'inline-block',
-    fontSize: 13,
-    paddingTop: 3,
-  },
-})
-
-const _inputStyle = platformStyles({
-  common: {
+const styles = styleSheetCreate({
+  copyTextContainer: {
+    flexShrink: 1,
+    marginLeft: globalMargins.xtiny,
+    marginRight: globalMargins.tiny,
+    maxWidth: 460,
     width: '100%',
   },
-  isMobile: {
-    paddingTop: 10,
-  },
 })
-
-const _bubbleStyle = {
-  ...globalStyles.flexBoxCenter,
-  backgroundColor: globalColors.white,
-  borderColor: globalColors.black_10,
-  borderRadius: 200,
-  borderStyle: 'solid',
-  borderWidth: 1,
-  flex: isMobile ? 1 : undefined,
-  marginLeft: globalMargins.xtiny,
-  marginRight: globalMargins.tiny,
-  minHeight: isMobile ? 40 : 28,
-  minWidth: isMobile ? undefined : 367,
-  overflow: 'hidden',
-  paddingLeft: globalMargins.small,
-  position: 'relative',
-}
 
 const _deviceStyle = {
   ...globalStyles.fontSemibold,
@@ -357,8 +257,9 @@ const _deviceStyle = {
 
 const _rowBottomStyle = {
   ...globalStyles.flexBoxColumn,
-  paddingLeft: globalMargins.medium,
   paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  width: '100%',
 }
 
 const _iconCaretStyle = platformStyles({
@@ -403,4 +304,4 @@ const _rowClickStyleExpanded = {
   paddingBottom: 0,
 }
 
-export default HOCTimers(Row)
+export default Row

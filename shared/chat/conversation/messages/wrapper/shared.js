@@ -126,6 +126,8 @@ const RightSide = props => (
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
         <ExplodingHeightRetainer
           explodedBy={props.explodedBy}
+          exploding={props.exploding}
+          messageKey={props.messageKey}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
@@ -166,7 +168,7 @@ const RightSide = props => (
       <Box style={styles.sendIndicatorContainer}>
         {props.isYou && (
           <SendIndicator
-            sent={props.messageSent}
+            sent={props.messageSent || props.exploded}
             failed={props.messageFailed}
             style={{marginBottom: 2}}
             id={props.message.timestamp}
@@ -238,17 +240,12 @@ const styles = styleSheetCreate({
     },
   }),
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
-  rightSide: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-      flex: 1,
-      paddingRight: globalMargins.tiny,
-      position: 'relative',
-    },
-    isMobile: {
-      marginRight: sendIndicatorWidth,
-    },
-  }),
+  rightSide: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1,
+    paddingRight: globalMargins.tiny,
+    position: 'relative',
+  },
   rightSideContainer: {
     ...globalStyles.flexBoxRow,
     flex: 1,

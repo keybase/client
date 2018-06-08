@@ -531,6 +531,7 @@ func (m *ChatRemoteMock) createBogusBody(typ chat1.MessageType) chat1.MessageBod
 		Leave__:              &chat1.MessageLeave{},
 		Headline__:           &chat1.MessageHeadline{},
 		Metadata__:           &chat1.MessageConversationMetadata{},
+		Reaction__:           &chat1.MessageReaction{},
 	}
 }
 

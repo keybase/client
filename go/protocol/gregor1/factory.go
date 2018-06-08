@@ -114,18 +114,23 @@ func (o ObjFactory) MakeReminder(i gregor.Item, seqno int, t time.Time) (gregor.
 	}, nil
 }
 
-func (o ObjFactory) MakeDismissalByRange(uid gregor.UID, msgid gregor.MsgID, devid gregor.DeviceID, ctime time.Time, c gregor.Category, d time.Time) (gregor.InBandMessage, error) {
+func (o ObjFactory) MakeDismissalByRange(uid gregor.UID, msgid gregor.MsgID, devid gregor.DeviceID, ctime time.Time, c gregor.Category, d time.Time, skipMsgIDs []gregor.MsgID) (gregor.InBandMessage, error) {
 	md, err := o.makeMetadata(uid, msgid, devid, ctime, gregor.InBandMsgTypeUpdate)
 	if err != nil {
 		return nil, err
+	}
+	var skips []MsgID
+	for _, s := range skipMsgIDs {
+		skips = append(skips, MsgID(s.Bytes()))
 	}
 	return InBandMessage{
 		StateUpdate_: &StateUpdateMessage{
 			Md_: md,
 			Dismissal_: &Dismissal{
 				Ranges_: []MsgRange{{
-					EndTime_:  timeToTimeOrOffset(&d),
-					Category_: Category(c.String()),
+					EndTime_:    timeToTimeOrOffset(&d),
+					Category_:   Category(c.String()),
+					SkipMsgIDs_: skips,
 				}},
 			},
 		},

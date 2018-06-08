@@ -20,7 +20,6 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const clearLoading = 'chat2:clearLoading'
-export const clearOrdinals = 'chat2:clearOrdinals'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
@@ -67,6 +66,7 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
+export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
@@ -118,7 +118,6 @@ type _BlockConversationPayload = $ReadOnly<{|
   reportUser: boolean,
 |}>
 type _ClearLoadingPayload = $ReadOnly<{|key: string|}>
-type _ClearOrdinalsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -202,6 +201,7 @@ type _MessageWasEditedPayload = $ReadOnly<{|
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
   messages: Array<Types.Message>,
+  shouldClearOthers?: boolean,
 |}>
 type _MessagesExplodedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -285,6 +285,10 @@ type _SetConversationOfflinePayload = $ReadOnly<{|
   offline: boolean,
 |}>
 type _SetExplodingMessagesNewPayload = $ReadOnly<{|new: boolean|}>
+type _SetExplodingModeLockPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  unset?: boolean,
+|}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetLoadingPayload = $ReadOnly<{|
   key: string,
@@ -334,6 +338,10 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
 /**
+ * Set a lock on the exploding mode for a conversation.
+ */
+export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
+/**
  * Set the remote exploding mode for a conversation.
  */
 export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({error: false, payload, type: setConvExplodingMode})
@@ -362,7 +370,6 @@ export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) 
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: false, payload, type: badgesUpdated})
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({error: false, payload, type: blockConversation})
 export const createClearLoading = (payload: _ClearLoadingPayload) => ({error: false, payload, type: clearLoading})
-export const createClearOrdinals = (payload: _ClearOrdinalsPayload) => ({error: false, payload, type: clearOrdinals})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({error: false, payload, type: desktopNotification})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: _JoinConversationPayload) => ({error: false, payload, type: joinConversation})
@@ -422,7 +429,6 @@ export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading,
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
 export type BlockConversationPayload = $Call<typeof createBlockConversation, _BlockConversationPayload>
 export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoadingPayload>
-export type ClearOrdinalsPayload = $Call<typeof createClearOrdinals, _ClearOrdinalsPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
@@ -469,6 +475,7 @@ export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMod
 export type SetConvRetentionPolicyPayload = $Call<typeof createSetConvRetentionPolicy, _SetConvRetentionPolicyPayload>
 export type SetConversationOfflinePayload = $Call<typeof createSetConversationOffline, _SetConversationOfflinePayload>
 export type SetExplodingMessagesNewPayload = $Call<typeof createSetExplodingMessagesNew, _SetExplodingMessagesNewPayload>
+export type SetExplodingModeLockPayload = $Call<typeof createSetExplodingModeLock, _SetExplodingModeLockPayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
 export type SetLoadingPayload = $Call<typeof createSetLoading, _SetLoadingPayload>
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
@@ -494,7 +501,6 @@ export type Actions =
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ClearLoadingPayload
-  | ClearOrdinalsPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
   | HandleSeeingExplodingMessagesPayload
@@ -541,6 +547,7 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingMessagesNewPayload
+  | SetExplodingModeLockPayload
   | SetInboxFilterPayload
   | SetLoadingPayload
   | SetPendingConversationExistingConversationIDKeyPayload

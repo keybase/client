@@ -148,7 +148,9 @@
         "{type: 'incoming'}",
         "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
       ],
-      "messages": "Array<Types.Message>"
+      "messages": "Array<Types.Message>",
+      // true if these should be the only messages we know about
+      "shouldClearOthers?": "boolean"
     },
     // Got an error sending a message
     "messageErrored": {
@@ -215,10 +217,6 @@
     "messageDeleteHistory": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
-    },
-    // Clear our knowledge of which messages are in a thread
-    "clearOrdinals": {
-      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
     "setPendingMode": {
@@ -387,6 +385,11 @@
       "_description": "Set the remote exploding mode for a conversation.",
       "conversationIDKey": "Types.ConversationIDKey",
       "seconds": "number"
+    },
+    "setExplodingModeLock": {
+      "_description": "Set a lock on the exploding mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "unset?": "boolean"
     },
     "updateConvExplodingModes": {
       "_description": "Handle an update to our conversation exploding modes.",

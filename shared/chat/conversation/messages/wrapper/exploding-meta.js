@@ -18,6 +18,7 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../../styles'
+import {type TickerID, addTicker, removeTicker} from '../../../../util/second-timer'
 import {formatDurationShort} from '../../../../util/timestamp'
 
 const oneMinuteInMs = 60 * 1000
@@ -41,25 +42,24 @@ class ExplodingMeta extends React.Component<Props, State> {
   state = {
     mode: 'none',
   }
-
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (prevState.mode === 'none' && (Date.now() >= nextProps.explodesAt || nextProps.exploded)) {
-      return {mode: 'hidden'}
-    }
-    if (nextProps.exploded && prevState.mode === 'countdown') {
-      // got an explode now
-      // also helps w/ keeping in sync with ash lines
-      return {mode: 'boom'}
-    }
-    if (prevState.mode !== 'none') {
-      // never change away from anything set
-      return null
-    }
-    return {mode: 'countdown'}
-  }
+  tickerID: TickerID
 
   componentDidMount() {
-    this.state.mode === 'countdown' && this._updateLoop()
+    if (this.state.mode === 'none' && (Date.now() >= this.props.explodesAt || this.props.exploded)) {
+      this._setHidden()
+      return
+    }
+    this._setCountdown()
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.exploded && !prevProps.exploded) {
+      this.setState({mode: 'boom'})
+    }
+  }
+
+  componentWillUnmount() {
+    removeTicker(this.tickerID)
   }
 
   _updateLoop = () => {
@@ -69,10 +69,29 @@ class ExplodingMeta extends React.Component<Props, State> {
       return
     }
     const interval = getLoopInterval(difference)
+    if (interval < 1000) {
+      // switch to 'seconds' mode
+      this.tickerID = addTicker(this._secondLoop)
+      return
+    }
     this.props.setTimeout(() => {
       this.forceUpdate(this._updateLoop)
     }, interval)
   }
+
+  _secondLoop = () => {
+    const difference = this.props.explodesAt - Date.now()
+    if (difference <= 0 || this.props.exploded) {
+      this.setState({mode: 'boom'})
+      removeTicker(this.tickerID)
+      return
+    }
+    this.forceUpdate()
+  }
+
+  _setHidden = () => this.state.mode !== 'hidden' && this.setState({mode: 'hidden'})
+  _setCountdown = () =>
+    this.state.mode !== 'countdown' && this.setState({mode: 'countdown'}, this._updateLoop)
 
   render() {
     const backgroundColor =
@@ -134,6 +153,11 @@ const getLoopInterval = (diff: number) => {
   }
   if (diff > oneMinuteInMs) {
     nearestUnit = oneMinuteInMs
+
+    // special case for when we're coming on a minute
+    if (Math.floor(diff / nearestUnit) === 1) {
+      return diff - nearestUnit
+    }
   }
   if (!nearestUnit) {
     // less than a minute, check every half second
@@ -165,8 +189,10 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignSelf: 'flex-end',
     position: 'relative',
-    width: isMobile ? 50 : 72,
+    width: isMobile ? 50 : 40,
     height: isMobile ? 22 : 19,
+    marginLeft: isMobile ? 4 : 12,
+    marginRight: isMobile ? 8 : 16,
   },
   countdownContainer: {
     borderRadius: 2,

@@ -80,6 +80,17 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 		return err
 	}
 	f.jw = jsonw.NewWrapper(obj)
+
+	if runtime.GOOS == "android" {
+		// marshal it into json without indents to make it one line
+		out, err := json.Marshal(obj)
+		if err != nil {
+			f.G().Log.Debug("JSONFile.Load: error marshaling decoded config obj: %s", err)
+		} else {
+			f.G().Log.Debug("JSONFile.Load: %s contents (marshaled): %s", f.filename, string(out))
+		}
+	}
+
 	f.G().Log.Debug("- successfully loaded %s file", f.which)
 	return nil
 }
@@ -259,6 +270,37 @@ func (f *JSONFile) save() (err error) {
 		if info.Size() != int64(len(encoded)) {
 			f.G().Log.Errorf("| File info size (%d) does not match encoded len (%d)", info.Size(), len(encoded))
 			return fmt.Errorf("file info size (%d) does not match encoded len (%d)", info.Size(), len(encoded))
+		}
+
+		// write out the `dat` that was marshaled into filename
+		encodedForLog, err := json.Marshal(dat)
+		if err != nil {
+			f.G().Log.Debug("error marshaling for log dump: %s", err)
+		} else {
+			f.G().Log.Debug("data written to %s:", filename)
+			f.G().Log.Debug(string(encodedForLog))
+		}
+
+		// load the file and dump its contents to the log
+		fc, err := os.Open(filename)
+		if err != nil {
+			f.G().Log.Debug("error opening %s to check its contents: %s", filename, err)
+		} else {
+			defer fc.Close()
+
+			decoder := json.NewDecoder(fc)
+			obj := make(map[string]interface{})
+			if err := decoder.Decode(&obj); err != nil {
+				f.G().Log.Debug("error decoding %s: %s", filename, err)
+			} else {
+				// marshal it into json without indents to make it one line
+				out, err := json.Marshal(obj)
+				if err != nil {
+					f.G().Log.Debug("error marshaling decoded obj: %s", err)
+				} else {
+					f.G().Log.Debug("%s contents (marshaled): %s", filename, string(out))
+				}
+			}
 		}
 
 		f.G().Log.Debug("| Android extra checks done")

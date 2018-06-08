@@ -819,9 +819,10 @@ const loadMoreMessages = (
     if (thread) {
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
 
+      let shouldClearOthers = false
       if (!isScrollingBack && !calledClear) {
+        shouldClearOthers = true
         calledClear = true
-        yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
       }
 
       const messages = (uiMessages.messages || []).reduce((arr, m) => {
@@ -844,7 +845,11 @@ const loadMoreMessages = (
 
       if (messages.length) {
         yield Saga.put(
-          Chat2Gen.createMessagesAdd({context: {conversationIDKey, type: 'threadLoad'}, messages})
+          Chat2Gen.createMessagesAdd({
+            context: {conversationIDKey, type: 'threadLoad'},
+            messages,
+            shouldClearOthers,
+          })
         )
       }
     }
@@ -1992,17 +1997,28 @@ const createConversationSelectIt = (results: Array<any>) => {
 
 const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
   const {conversationIDKey, seconds} = action.payload
+  const actions = []
   logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-  const cat = Constants.explodingModeGregorKey(conversationIDKey)
+
+  // unset a conversation exploding lock for this convo so we accept the new one
+  actions.push(Saga.put(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true})))
+
+  const category = Constants.explodingModeGregorKey(conversationIDKey)
   if (seconds === 0) {
     // dismiss the category so we don't leave cruft in the push state
-    return Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category: cat})
+    actions.push(Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category}))
+  } else {
+    // update the category with the exploding time
+    actions.push(
+      Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+        body: seconds.toString(),
+        category,
+        dtime: {offset: 0, time: 0},
+      })
+    )
   }
-  return Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-    body: seconds.toString(),
-    cat,
-    dtime: {offset: 0, time: 0},
-  })
+
+  return Saga.sequentially(actions)
 }
 
 const setConvExplodingModeSuccess = (

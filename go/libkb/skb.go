@@ -128,7 +128,7 @@ func (s *SKB) newLKSec(pps *PassphraseStream) *LKSec {
 	if s.uid.IsNil() {
 		panic("no uid set in skb")
 	}
-	return NewLKSec(pps, s.uid, s.G())
+	return NewLKSec(pps, s.uid)
 }
 
 func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
@@ -242,6 +242,7 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 		unlocked = s.Priv.Data
 	case int(triplesec.Version):
 		m.CDebugf("case: Triplesec")
+		tsecIn := tsec
 		if tsec == nil {
 			tsec, err = s.G().NewTriplesec([]byte(passphrase), nil)
 			if err != nil {
@@ -249,6 +250,13 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			}
 		}
 		unlocked, err = s.tsecUnlock(tsec)
+		if err != nil {
+			return nil, err
+		}
+		if tsecIn == nil {
+			m.CDebugf("Caching passphrase stream: tsec=%v, pps=%v", (tsec != nil), (pps != nil))
+			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
+		}
 	case LKSecVersion:
 		m.CDebugf("case: LKSec")
 		ppsIn := pps
@@ -259,17 +267,18 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			}
 		}
 		unlocked, err = s.lksUnlock(m, pps, secretStorer)
-		if err == nil && ppsIn == nil {
+		if err != nil {
+			return nil, err
+		}
+		if ppsIn == nil {
+			m.CDebugf("Caching passphrase stream: tsec=%v, pps=%v", (tsec != nil), (pps != nil))
 			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
-		} else {
-			m.CDebugf("| not caching passphrase stream: err = %v, ppsIn == nil? %v", err, ppsIn == nil)
 		}
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
+		return nil, err
 	}
-	if err == nil {
-		key, err = s.parseUnlocked(unlocked)
-	}
+	key, err = s.parseUnlocked(unlocked)
 	return key, err
 }
 
@@ -352,7 +361,7 @@ func (s *SKB) lksUnlockWithSecretRetriever(m MetaContext, secretRetriever Secret
 	if s.uid.IsNil() {
 		panic("no uid set in skb")
 	}
-	lks := NewLKSecWithFullSecret(secret, s.uid, m.G())
+	lks := NewLKSecWithFullSecret(secret, s.uid)
 	unlocked, _, _, err = lks.Decrypt(m, s.Priv.Data)
 
 	return
@@ -400,7 +409,8 @@ func (s *SKB) UnlockWithStoredSecret(m MetaContext, secretRetriever SecretRetrie
 
 var ErrUnlockNotPossible = errors.New("unlock not possible")
 
-func (s *SKB) UnlockNoPrompt(m MetaContext, secretStore SecretStore) (GenericKey, error) {
+func (s *SKB) UnlockNoPrompt(m MetaContext, secretStore SecretStore) (ret GenericKey, err error) {
+	defer m.CTrace("SKB#UnlockNoPrompt", func() error { return err })()
 	// already have decrypted secret?
 	if s.decryptedSecret != nil {
 		return s.decryptedSecret, nil

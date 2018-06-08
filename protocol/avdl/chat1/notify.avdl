@@ -134,6 +134,10 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
+  void NewChatKBFSFileEditActivity(keybase1.UID uid, ChatActivity activity);
+
+  @notify("")
+  @lint("ignore")
   void ChatIdentifyUpdate(keybase1.CanonicalTLFNameAndIDWithBreaks update);
 
   @notify("")
