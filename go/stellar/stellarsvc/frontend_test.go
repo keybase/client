@@ -561,8 +561,6 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "keybase", p.TargetType, "TargetType")
 		require.Equal(t, "here you go", p.Note)
 		require.Empty(t, p.NoteErr)
-		require.NotEmpty(t, p.TransactionID)
-		require.Equal(t, p.Id.String(), p.TransactionID.String())
 		require.Equal(t, "public note", p.PublicNote)
 		require.Equal(t, "text", p.PublicNoteType)
 	}

@@ -91,16 +91,10 @@
     },
     {
       "type": "record",
-      "name": "PaymentID",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
       "name": "PaymentLocal",
       "fields": [
         {
-          "type": "PaymentID",
+          "type": "TransactionID",
           "name": "id"
         },
         {
@@ -186,7 +180,7 @@
       "name": "PaymentDetailsLocal",
       "fields": [
         {
-          "type": "PaymentID",
+          "type": "TransactionID",
           "name": "id"
         },
         {
@@ -252,10 +246,6 @@
         {
           "type": "string",
           "name": "publicNoteType"
-        },
-        {
-          "type": "TransactionID",
-          "name": "transactionID"
         }
       ]
     },
@@ -516,7 +506,7 @@
         },
         {
           "name": "id",
-          "type": "PaymentID"
+          "type": "TransactionID"
         }
       ],
       "response": "PaymentDetailsLocal"

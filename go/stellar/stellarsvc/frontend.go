@@ -306,7 +306,6 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		NoteErr:           summary.NoteErr,
 		PublicNote:        details.Memo,
 		PublicNoteType:    details.MemoType,
-		TransactionID:     summary.Id.ToTransactionID(),
 	}
 
 	return payment, nil

@@ -114,14 +114,8 @@ func (e PaymentStatus) String() string {
 	return ""
 }
 
-type PaymentID string
-
-func (o PaymentID) DeepCopy() PaymentID {
-	return o
-}
-
 type PaymentLocal struct {
-	Id                PaymentID     `codec:"id" json:"id"`
+	Id                TransactionID `codec:"id" json:"id"`
 	Time              TimeMs        `codec:"time" json:"time"`
 	StatusSimplified  PaymentStatus `codec:"statusSimplified" json:"statusSimplified"`
 	StatusDescription string        `codec:"statusDescription" json:"statusDescription"`
@@ -183,7 +177,7 @@ func (o PaymentOrErrorLocal) DeepCopy() PaymentOrErrorLocal {
 }
 
 type PaymentDetailsLocal struct {
-	Id                PaymentID     `codec:"id" json:"id"`
+	Id                TransactionID `codec:"id" json:"id"`
 	Time              TimeMs        `codec:"time" json:"time"`
 	StatusSimplified  PaymentStatus `codec:"statusSimplified" json:"statusSimplified"`
 	StatusDescription string        `codec:"statusDescription" json:"statusDescription"`
@@ -200,7 +194,6 @@ type PaymentDetailsLocal struct {
 	NoteErr           string        `codec:"noteErr" json:"noteErr"`
 	PublicNote        string        `codec:"publicNote" json:"publicNote"`
 	PublicNoteType    string        `codec:"publicNoteType" json:"publicNoteType"`
-	TransactionID     TransactionID `codec:"transactionID" json:"transactionID"`
 }
 
 func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
@@ -222,7 +215,6 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		NoteErr:           o.NoteErr,
 		PublicNote:        o.PublicNote,
 		PublicNoteType:    o.PublicNoteType,
-		TransactionID:     o.TransactionID.DeepCopy(),
 	}
 }
 
@@ -422,9 +414,9 @@ type GetPaymentsLocalArg struct {
 }
 
 type GetPaymentDetailsLocalArg struct {
-	SessionID int       `codec:"sessionID" json:"sessionID"`
-	AccountID AccountID `codec:"accountID" json:"accountID"`
-	Id        PaymentID `codec:"id" json:"id"`
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID     `codec:"accountID" json:"accountID"`
+	Id        TransactionID `codec:"id" json:"id"`
 }
 
 type GetDisplayCurrenciesLocalArg struct {

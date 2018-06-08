@@ -41,18 +41,16 @@ protocol local {
     UNKNOWN_5
   }
 
-  @typedef("string") record PaymentID {}
-  
   record PaymentLocal {
-    PaymentID id;               // For relay payments, the funding tx.
+    TransactionID id;               // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
-    string statusDescription;  // "pending", "completed", "error"
+    string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
-    string amountDescription;  // "+ 1,323.1234567 XLM"
-    BalanceDelta delta;        // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;              // "$123.23" 
-    string worthCurrency;      // "USD", "CAD", etc. (the symbols can be ambiguous)
+    string amountDescription;       // "+ 1,323.1234567 XLM"
+    BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string worth;                   // "$123.23" 
+    string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
     string source;             // keybase username or stellar public key
     string sourceType;         // "keybase" or "stellar"
@@ -71,33 +69,32 @@ protocol local {
   array<PaymentOrErrorLocal> getPaymentsLocal(int sessionID, AccountID accountID, union { null, TransactionID } olderThanTransactionID);
   
   record PaymentDetailsLocal {
-    PaymentID id;              // For relay payments, the funding tx.
+    TransactionID id;               // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
-    string statusDescription;  // "pending", "completed", "error"
+    string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
-    string amountDescription;  // "+ 1,323.1234567 XLM"
-    BalanceDelta delta;        // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;              // "$123.23" 
-    string worthCurrency;      // "USD", "CAD", etc. (the symbols can be ambiguous)
+    string amountDescription;       // "+ 1,323.1234567 XLM"
+    BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string worth;                   // "$123.23" 
+    string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
-    string source;             // keybase username or stellar public key
-    string sourceType;         // "keybase" or "stellar"
-    string target;             // keybase username, stellar public key, or sbs assertion
-    string targetType;         // "keybase", "stellar", or "sbs"
+    string source;                  // keybase username or stellar public key
+    string sourceType;              // "keybase" or "stellar"
+    string target;                  // keybase username, stellar public key, or sbs assertion
+    string targetType;              // "keybase", "stellar", or "sbs"
 
-    string note;               // encrypted note
+    string note;                    // encrypted note
     string noteErr;            
 
-    string publicNote;           // public memo for the payment 
-    string publicNoteType;       // public memo type: "text", "id", "hash", "return"
-    TransactionID transactionID; // stellar transaction ID
+    string publicNote;              // public memo for the payment 
+    string publicNoteType;          // public memo type: "text", "id", "hash", "return"
   }
 
   // accountID should be the accountID that you want the details for.
   // This is used for formatting the amountDescription to know if it is a payment that
   // increases or decreases the balance.
-  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
+  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, TransactionID id);
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
