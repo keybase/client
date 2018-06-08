@@ -553,7 +553,7 @@ type LocalInterface interface {
 	DeleteWalletAccountLocal(context.Context, DeleteWalletAccountLocalArg) error
 	LinkNewWalletAccountLocal(context.Context, LinkNewWalletAccountLocalArg) (AccountID, error)
 	ChangeDisplayCurrencyLocal(context.Context, ChangeDisplayCurrencyLocalArg) error
-	GetDisplayCurrencyLocal(context.Context, GetDisplayCurrencyLocalArg) (OutsideCurrencyCode, error)
+	GetDisplayCurrencyLocal(context.Context, GetDisplayCurrencyLocalArg) (CurrencyLocal, error)
 	GetWalletSettingsLocal(context.Context, int) (WalletSettings, error)
 	SetAcceptedDisclaimerLocal(context.Context, int) error
 	GetWalletAccountPublicKeyLocal(context.Context, GetWalletAccountPublicKeyLocalArg) (string, error)
@@ -1099,7 +1099,7 @@ func (c LocalClient) ChangeDisplayCurrencyLocal(ctx context.Context, __arg Chang
 	return
 }
 
-func (c LocalClient) GetDisplayCurrencyLocal(ctx context.Context, __arg GetDisplayCurrencyLocalArg) (res OutsideCurrencyCode, err error) {
+func (c LocalClient) GetDisplayCurrencyLocal(ctx context.Context, __arg GetDisplayCurrencyLocalArg) (res CurrencyLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrencyLocal", []interface{}{__arg}, &res)
 	return
 }

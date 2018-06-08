@@ -615,7 +615,7 @@
           "type": "AccountID"
         }
       ],
-      "response": "OutsideCurrencyCode"
+      "response": "CurrencyLocal"
     },
     "getWalletSettingsLocal": {
       "request": [

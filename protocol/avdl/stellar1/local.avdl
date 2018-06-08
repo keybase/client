@@ -119,7 +119,7 @@ protocol local {
   // OutsideCurrencyCode examples: "USD", "EUR". Has to be one of
   // supported currencies, returned from getDisplayCurrenciesLocal.
   void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
-  OutsideCurrencyCode getDisplayCurrencyLocal(int sessionID, AccountID accountID);
+  CurrencyLocal getDisplayCurrencyLocal(int sessionID, AccountID accountID);
 
   record WalletSettings {
     boolean acceptedDisclaimer; // whether the user has accepted the usage disclaimer
