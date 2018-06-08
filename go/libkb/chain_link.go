@@ -956,7 +956,7 @@ func (c *ChainLink) getSeqnoFromPayload() keybase1.Seqno {
 	if c.unpacked != nil {
 		return c.unpacked.seqno
 	}
-	return keybase1.Seqno(-1)
+	return keybase1.InvalidSeqno()
 }
 
 func (c *ChainLink) GetSeqno() keybase1.Seqno {

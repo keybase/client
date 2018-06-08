@@ -3448,7 +3448,7 @@ export type SeqType =
   | 2 // PRIVATE_2
   | 3 // SEMIPRIVATE_3
 
-export type Seqno = Int64
+export type Seqno = Uint64
 
 export type ServiceStatus = $ReadOnly<{version: String, label: String, pid: String, lastExitStatus: String, bundleVersion: String, installStatus: InstallStatus, installAction: InstallAction, status: Status}>
 

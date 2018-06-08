@@ -219,7 +219,7 @@
       "type": "record",
       "name": "Seqno",
       "fields": [],
-      "typedef": "int64",
+      "typedef": "uint64",
       "lint": "ignore"
     },
     {

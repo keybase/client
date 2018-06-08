@@ -316,7 +316,7 @@ func (o TeamIDAndName) DeepCopy() TeamIDAndName {
 	}
 }
 
-type Seqno int64
+type Seqno uint64
 
 func (o Seqno) DeepCopy() Seqno {
 	return o

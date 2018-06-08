@@ -409,6 +409,8 @@ func (l LinkID) Eq(l2 LinkID) bool {
 	return l == l2
 }
 
+func InvalidSeqno() Seqno { return ^Seqno(0) }
+
 func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
 }
