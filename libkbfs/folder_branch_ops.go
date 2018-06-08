@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -344,6 +345,9 @@ type folderBranchOps struct {
 	// reconnect as soon as possible in case of a deployment causes
 	// disconnection.
 	lastGetHead time.Time
+
+	convLock sync.Mutex
+	convID   chat1.ConversationID
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -6312,6 +6316,47 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID kbfsmd.BranchID) {
 
 		fbo.handleTLFBranchChange(ctx, newBID)
 	}()
+}
+
+func (fbo *folderBranchOps) getConvID(ctx context.Context) (
+	chat1.ConversationID, error) {
+	fbo.convLock.Lock()
+	defer fbo.convLock.Unlock()
+	if len(fbo.convID) == 0 {
+		handle, err := fbo.GetTLFHandle(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+		if err != nil {
+			return nil, err
+		}
+		channelName := string(session.Name)
+
+		id, err := fbo.config.Chat().GetConversationID(
+			ctx, handle.GetCanonicalName(), fbo.id().Type(),
+			channelName, chat1.TopicType_KBFSFILEEDIT)
+		if err != nil {
+			return nil, err
+		}
+		fbo.convID = id
+	}
+	return fbo.convID, nil
+}
+
+func (fbo *folderBranchOps) sendEditNotification(
+	ctx context.Context, body string) error {
+	convID, err := fbo.getConvID(ctx)
+	if err != nil {
+		return err
+	}
+	handle, err := fbo.GetTLFHandle(ctx, nil)
+	if err != nil {
+		return err
+	}
+	return fbo.config.Chat().SendTextMessage(
+		ctx, handle.GetCanonicalName(), fbo.id().Type(), convID, body)
 }
 
 func (fbo *folderBranchOps) makeEditNotifications(
