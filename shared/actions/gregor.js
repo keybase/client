@@ -158,6 +158,7 @@ function handleTeamsWithChosenChannels(items: Array<Types.NonNullGregorItem>) {
     arrays = chosenChannelItems.reduce((res, i) => {
       try {
         const arr = JSON.parse(i.item.body.toString())
+        // this has to be an array
         if (!(arr instanceof Array)) {
           throw new Error(
             `Found invalid teamsWithChosenChannels item with ctime ${
@@ -167,8 +168,9 @@ function handleTeamsWithChosenChannels(items: Array<Types.NonNullGregorItem>) {
         }
         res.push(arr)
       } catch (e) {
-        logger.error(`Error in parsing teamsWithChosenChannels: ${e.message}; dismissing bad item`)
-        actions.push(Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: i.md.msgID}))
+        logger.error(`Error in parsing teamsWithChosenChannels: ${e.message}; skipping`)
+        // no need to dismiss the bad item, it will be excluded from the union
+        // and updateCategory will dismiss all existing ones
       }
       return res
     }, [])
@@ -201,6 +203,7 @@ function handleTeamsWithChosenChannels(items: Array<Types.NonNullGregorItem>) {
     let array = []
     try {
       array = JSON.parse(i.item.body.toString())
+      // this has to be an array
       if (!(array instanceof Array)) {
         throw new Error(
           `Found invalid teamsWithChosenChannels item with ctime ${
@@ -211,7 +214,8 @@ function handleTeamsWithChosenChannels(items: Array<Types.NonNullGregorItem>) {
     } catch (e) {
       logger.error(`Error in parsing teamsWithChosenChannels: ${e.message}; dismissing bad item`)
       actions.push(Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: i.md.msgID}))
-      return actions
+      // just return the one dismiss action
+      return Saga.all(actions)
     }
     const ctime = i.md.ctime
     logger.info(
