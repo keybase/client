@@ -2,7 +2,6 @@
 // @flow
 import * as I from 'immutable'
 import * as Common from './common'
-import type {Ordinal} from './message'
 import type {RetentionPolicy} from '../teams'
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
