@@ -25,6 +25,7 @@
     "build-prod": "yarn run _helper build-prod",
     "build-actions": "yarn run _node desktop/yarn-helper/action-creator-creator",
     "build-flow-stubs": "flow-typed create-stub",
+    "update-flow-typed": "flow-typed update -s",
     "package": "yarn run _helper package",
     "hot-server": "yarn run _helper hot-server",
     "hot-server-dumb": "cross-env-shell DUMB=true yarn run _helper hot-server",
