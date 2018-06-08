@@ -31,7 +31,7 @@ func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			Usage: "Include a message with the payment.",
 		},
 		cli.StringFlag{
-			Name:  "f, from-account-id",
+			Name:  "from",
 			Usage: "Specify the source account for the payment.",
 		},
 	}
@@ -72,7 +72,7 @@ func (c *CmdWalletSend) ParseArgv(ctx *cli.Context) error {
 	}
 	c.Note = ctx.String("message")
 	c.ForceRelay = ctx.Bool("relay")
-	c.FromAccountID = stellar1.AccountID(ctx.String("from-account-id"))
+	c.FromAccountID = stellar1.AccountID(ctx.String("from"))
 	return nil
 }
 
