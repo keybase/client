@@ -7,7 +7,10 @@ import type {Props} from './floating-box'
 export default (props: Props) => {
   return (
     <Gateway into="popup-root">
-      <Box style={[{position: 'relative', width: '100%', height: '100%'}, props.containerStyle]}>
+      <Box
+        pointerEvents="box-none"
+        style={[{position: 'relative', width: '100%', height: '100%'}, props.containerStyle]}
+      >
         {props.children}
       </Box>
     </Gateway>
