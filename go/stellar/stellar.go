@@ -52,11 +52,11 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	}
 	primary, err := clearBundle.PrimaryAccount()
 	if err != nil {
-		g.Log.CErrorf("We've just posted a bundle that's missing PrimaryAccount: %s", err)
-		return err
+		g.Log.CErrorf(ctx, "We've just posted a bundle that's missing PrimaryAccount: %s", err)
+		return false, err
 	}
 	if err := remote.SetAccountDefaultCurrency(ctx, g, primary.AccountID, "USD"); err != nil {
-		g.Log.CWarningf("Error during setting display currency for %q: %s", primary.AccountID, err)
+		g.Log.CWarningf(ctx, "Error during setting display currency for %q: %s", primary.AccountID, err)
 	}
 	getGlobal(g).InformHasWallet(ctx, meUV)
 	return true, nil
