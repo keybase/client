@@ -82,6 +82,7 @@
   "keybase.1.gregor.getState": {"promise": true},
   "keybase.1.gregor.injectItem": {"promise": true},
   "keybase.1.gregor.updateItem": {"promise": true},
+  "keybase.1.gregor.updateCategory": {"promise": true},
   "keybase.1.home.homeGetScreen": {"promise": true},
   "keybase.1.home.homeMarkViewed": {"promise": true},
   "keybase.1.home.homeSkipTodoType": {"promise": true},
