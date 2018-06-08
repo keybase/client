@@ -152,8 +152,6 @@ func (c *ChatRPC) GetConversationID(
 	ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
 	channelName string, chatType chat1.TopicType) (
 	chat1.ConversationID, error) {
-	// Try creating the conversation to get back the ID -- it's a
-	// no-op if the conversation already exists.
 	vis := keybase1.TLFVisibility_PRIVATE
 	if tlfType == tlf.Public {
 		vis = keybase1.TLFVisibility_PUBLIC
@@ -166,6 +164,10 @@ func (c *ChatRPC) GetConversationID(
 		MembersType:      membersTypeFromTlfType(tlfType),
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
+
+	// Try creating the conversation to get back the ID -- if the
+	// conversation already exists, this just returns the existing
+	// conversation.
 	res, err := c.client.NewConversationLocal(ctx, arg)
 	if err != nil {
 		return nil, err

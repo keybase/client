@@ -2191,8 +2191,8 @@ type Chat interface {
 		channelName string, chatType chat1.TopicType) (
 		chat1.ConversationID, error)
 
-	// SendTextMessage synchronously sends a text chat message to the
-	// given conversation and channel.
+	// SendTextMessage (asynchronously) sends a text chat message to
+	// the given conversation and channel.
 	SendTextMessage(
 		ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
 		convID chat1.ConversationID, body string) error
