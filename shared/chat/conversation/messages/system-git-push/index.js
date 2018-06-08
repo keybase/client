@@ -33,7 +33,7 @@ class GitPush extends React.PureComponent<Props> {
           onClickAvatar={() => this.props.onClickUserAvatar(pusher)}
         >
           {!isMobile && (
-            <Icon type="icon-team-git-16" style={{marginLeft: 20, marginTop: -18, zIndex: 999}} />
+            <Icon type="icon-team-git-16" style={{marginLeft: 20, marginTop: -12, zIndex: 999}} />
           )}
           <Text
             type="BodySmallSemibold"
@@ -79,7 +79,7 @@ class GitPush extends React.PureComponent<Props> {
                         style={platformStyles({
                           common: {
                             color: globalColors.blue,
-                            fontSize: 11,
+                            fontSize: 12,
                             lineHeight: 16,
                           },
                         })}

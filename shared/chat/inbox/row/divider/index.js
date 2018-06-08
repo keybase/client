@@ -36,7 +36,7 @@ const _toggleButtonStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'center',
-  backgroundColor: globalColors.black_05_on_white,
+  backgroundColor: globalColors.black_05,
   borderRadius: 19,
   height: isMobile ? 28 : 20,
   marginBottom: isMobile ? 16 : 8,
@@ -51,7 +51,7 @@ const _badgeStyle = {
 }
 
 const _dividerStyle = {
-  backgroundColor: globalColors.black_05_on_white,
+  backgroundColor: globalColors.black_05,
   height: 1,
   width: '100%',
 }

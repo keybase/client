@@ -180,7 +180,6 @@ const styleContainer = platformStyles({
 
 const styleMeta = {
   alignSelf: 'center',
-  borderRadius: 1,
   marginLeft: globalMargins.xtiny,
   marginTop: 2,
 }

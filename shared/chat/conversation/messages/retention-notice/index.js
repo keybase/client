@@ -15,7 +15,9 @@ export default (props: Props) => {
   return (
     <Box style={containerStyle}>
       <Icon type={iconType} style={iconStyle} />
-      <Text type="BodySmallSemibold">{props.explanation}</Text>
+      <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+        {props.explanation}
+      </Text>
       {props.canChange && (
         <Text type="BodySmallSemibold" style={{color: globalColors.blue}} onClick={props.onChange}>
           Change this
@@ -29,6 +31,8 @@ const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   backgroundColor: globalColors.blue5,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
   paddingBottom: globalMargins.small,
   paddingTop: globalMargins.small,
   width: '100%',

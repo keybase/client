@@ -62,11 +62,7 @@ const Header = (props: Props) => (
   <Box style={_headerStyle}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
       <Avatar isTeam={true} teamname={props.teamname} size={16} />
-      <Text
-        type="BodySmallSemibold"
-        style={{fontSize: 11, lineHeight: 16, marginLeft: globalMargins.xtiny}}
-        lineClamp={1}
-      >
+      <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}} lineClamp={1}>
         {props.teamname}
       </Text>
     </Box>

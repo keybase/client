@@ -62,6 +62,8 @@ class Checkbox extends Component<Props> {
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
+  paddingBottom: 2,
+  paddingTop: 2,
 }
 
 const styleIcon = {

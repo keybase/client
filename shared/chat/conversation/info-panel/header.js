@@ -106,8 +106,8 @@ const styles = styleSheetCreate({
     position: 'relative',
   },
   description: {
-    paddingLeft: 4,
-    paddingRight: 4,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
     textAlign: 'center',
   },
   editBox: {
