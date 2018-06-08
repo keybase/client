@@ -154,7 +154,24 @@ function handleTeamsWithChosenChannels(items: Array<Types.NonNullGregorItem>) {
   let teamsWithChosenChannels
   if (chosenChannelItems.length > 1) {
     // multiple items. take the union of all of them and update the category
-    const arrays = chosenChannelItems.map(i => JSON.parse(i.item.body.toString()))
+    let arrays = []
+    arrays = chosenChannelItems.reduce((res, i) => {
+      try {
+        const arr = JSON.parse(i.item.body.toString())
+        if (!(arr instanceof Array)) {
+          throw new Error(
+            `Found invalid teamsWithChosenChannels item with ctime ${
+              i.md.ctime
+            } and body ${i.item.body.toString()}`
+          )
+        }
+        res.push(arr)
+      } catch (e) {
+        logger.error(`Error in parsing teamsWithChosenChannels: ${e.message}; dismissing bad item`)
+        actions.push(Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: i.md.msgID}))
+      }
+      return res
+    }, [])
     const lengths = arrays.map(a => a.length)
     const ctimes = chosenChannelItems.map(i => i.md.ctime)
     logger.warn(
@@ -181,7 +198,21 @@ function handleTeamsWithChosenChannels(items: Array<Types.NonNullGregorItem>) {
     )
   } else if (chosenChannelItems.length === 1) {
     const i = chosenChannelItems[0]
-    const array = JSON.parse(i.item.body.toString())
+    let array = []
+    try {
+      array = JSON.parse(i.item.body.toString())
+      if (!(array instanceof Array)) {
+        throw new Error(
+          `Found invalid teamsWithChosenChannels item with ctime ${
+            i.md.ctime
+          } and body ${i.item.body.toString()}`
+        )
+      }
+    } catch (e) {
+      logger.error(`Error in parsing teamsWithChosenChannels: ${e.message}; dismissing bad item`)
+      actions.push(Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: i.md.msgID}))
+      return actions
+    }
     const ctime = i.md.ctime
     logger.info(
       `Found one teamsWithChosenChannels array in pushState with length ${array.length} and ctime ${ctime}`
