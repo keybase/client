@@ -25,68 +25,70 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
         <style>{realCSS}</style>
         <Box style={{...stylesMenu, ...this.props.style}}>
           {this.props.header && this.props.header.view}
-          <Box
-            style={{
-              ...globalStyles.flexBoxColumn,
-              flexShrink: 0,
-              paddingTop: globalMargins.tiny,
-              paddingBottom: globalMargins.tiny,
-            }}
-          >
-            {this.props.items.filter(Boolean).map((i, idx) => {
-              if (i === 'Divider') {
-                return <Divider key={idx} />
-              }
+          {this.props.items.length > 0 && (
+            <Box
+              style={{
+                ...globalStyles.flexBoxColumn,
+                flexShrink: 0,
+                paddingTop: globalMargins.tiny,
+                paddingBottom: globalMargins.tiny,
+              }}
+            >
+              {this.props.items.filter(Boolean).map((i, idx) => {
+                if (i === 'Divider') {
+                  return <Divider key={idx} />
+                }
 
-              let hoverClassName
-              let styleDisabled = {}
-              if (!i.disabled) {
-                hoverClassName = i.danger ? 'menu-hover-danger' : 'menu-hover'
-              } else {
-                styleDisabled = {opacity: 0.4}
-              }
+                let hoverClassName
+                let styleDisabled = {}
+                if (!i.disabled) {
+                  hoverClassName = i.danger ? 'menu-hover-danger' : 'menu-hover'
+                } else {
+                  styleDisabled = {opacity: 0.4}
+                }
 
-              const styleClickable = i.disabled ? {} : desktopStyles.clickable
+                const styleClickable = i.disabled ? {} : desktopStyles.clickable
 
-              return (
-                <Box
-                  key={i.title}
-                  className={hoverClassName}
-                  style={{...stylesRow, ...styleClickable}}
-                  onClick={event => {
-                    i.onClick && i.onClick()
-                    if (this.props.closeOnClick && this.props.onHidden) {
-                      this.props.onHidden()
-                      event.stopPropagation()
-                    }
-                  }}
-                >
-                  {i.view ? (
-                    i.view
-                  ) : (
-                    <Text
-                      className="title"
-                      type="Body"
-                      style={{...stylesMenuText, ...i.style, ...styleDisabled}}
-                    >
-                      {i.title}
-                    </Text>
-                  )}
-                  {!i.view &&
-                    i.subTitle && (
+                return (
+                  <Box
+                    key={i.title}
+                    className={hoverClassName}
+                    style={{...stylesRow, ...styleClickable}}
+                    onClick={event => {
+                      i.onClick && i.onClick()
+                      if (this.props.closeOnClick && this.props.onHidden) {
+                        this.props.onHidden()
+                        event.stopPropagation()
+                      }
+                    }}
+                  >
+                    {i.view ? (
+                      i.view
+                    ) : (
                       <Text
-                        className="subtitle"
-                        key={i.subTitle}
-                        type="BodySmall"
-                        style={{...stylesMenuText, ...i.style}}
+                        className="title"
+                        type="Body"
+                        style={{...stylesMenuText, ...i.style, ...styleDisabled}}
                       >
-                        {i.subTitle}
+                        {i.title}
                       </Text>
                     )}
-                </Box>
-              )
-            })}
-          </Box>
+                    {!i.view &&
+                      i.subTitle && (
+                        <Text
+                          className="subtitle"
+                          key={i.subTitle}
+                          type="BodySmall"
+                          style={{...stylesMenuText, ...i.style}}
+                        >
+                          {i.subTitle}
+                        </Text>
+                      )}
+                  </Box>
+                )
+              })}
+            </Box>
+          )}
         </Box>
       </Box>
     )

@@ -191,9 +191,6 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				continue
 			}
 			if newMsg.GetMessageID() < deleteHistoryUpto && chat1.IsDeletableByDeleteHistory(newMsg.GetMessageType()) {
-				// Hide messages which are or should have been deleted by a DeleteHistory.
-				t.Debug(ctx, "skipping: %d because of delete history: %v", msg.GetMessageID(),
-					deleteHistoryUpto)
 				continue
 			}
 			if !newMsg.IsValidFull() {

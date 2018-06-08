@@ -38,6 +38,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     conversationIDKey,
     editText: editInfo ? editInfo.text : '',
     explodingModeSeconds,
+    isEditExploded: editInfo ? editInfo.exploded : false,
     isExploding,
     isExplodingNew: Constants.getIsExplodingNew(state),
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
@@ -76,6 +77,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
+  onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
+    dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
@@ -85,6 +88,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   explodingModeSeconds: stateProps.explodingModeSeconds,
   focusInputCounter: ownProps.focusInputCounter,
   getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
+  isEditExploded: stateProps.isEditExploded,
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
   isExplodingNew: stateProps.isExplodingNew,
@@ -105,7 +109,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   sendTyping: (typing: boolean) => {
     dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },
-  setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),
+  setUnsentText: (text: string) => {
+    const unset = text.length <= 0
+    dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
+    setUnsentText(stateProps.conversationIDKey, text)
+  },
   typing: stateProps.typing,
 })
 
