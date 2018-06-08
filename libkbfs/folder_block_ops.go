@@ -1734,12 +1734,8 @@ func (fbo *folderBlockOps) PrepRename(
 		return nil, nil, DirEntry{}, nil, err
 	}
 	ro.AddUpdate(oldParentPtr, oldParentPtr)
-
-	// A renameOp doesn't have a single path to represent it, so we
-	// can't call setFinalPath here unfortunately.  That means any
-	// rename may force a manual paths population at other layers
-	// (e.g., for journal statuses).  TODO: allow a way to set more
-	// than one final path for renameOps?
+	ro.setFinalPath(newParent)
+	ro.oldFinalPath = oldParent
 
 	// TODO: Write a SameBlock() function that can deal properly with
 	// dedup'd blocks that share an ID but can be updated separately.

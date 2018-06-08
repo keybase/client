@@ -306,6 +306,7 @@ func makeFakeRenameOpFuture(t *testing.T) renameOpFuture {
 			makeFakeBlockUpdate(t),
 			makeFakeBlockPointer(t),
 			Exec,
+			path{},
 		},
 		kbfscodec.MakeExtraOrBust("renameOp", t),
 	}

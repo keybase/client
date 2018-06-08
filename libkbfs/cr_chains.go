@@ -1094,6 +1094,7 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 	[]path, error) {
 	newPtrs := make(map[BlockPointer]bool)
 	var ptrs []BlockPointer
+	renameOps := make(map[BlockPointer][]*renameOp)
 	for ptr, chain := range ccs.byMostRecent {
 		newPtrs[ptr] = true
 		// We only care about the paths for ptrs that are directly
@@ -1104,6 +1105,22 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 			(includeCreates || !ccs.isCreated(chain.original)) &&
 			!ccs.isDeleted(chain.original) {
 			ptrs = append(ptrs, ptr)
+			// Also resolve the old name for any renames, if needed.
+			for _, op := range chain.ops {
+				ro, ok := op.(*renameOp)
+				if !ok {
+					continue
+				}
+
+				oldDirPtr := ro.OldDir.Ref
+				if ro.NewDir != (blockUpdate{}) {
+					if !newPtrs[oldDirPtr] {
+						ptrs = append(ptrs, oldDirPtr)
+						newPtrs[oldDirPtr] = true
+					}
+					renameOps[oldDirPtr] = append(renameOps[oldDirPtr], ro)
+				}
+			}
 		}
 	}
 
@@ -1124,13 +1141,13 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 		paths = append(paths, p)
 
 		// update the unmerged final paths
-		chain, ok := ccs.byMostRecent[ptr]
-		if !ok {
-			log.CErrorf(ctx, "Couldn't find chain for found path: %v", ptr)
-			continue
+		if chain, ok := ccs.byMostRecent[ptr]; ok {
+			for _, op := range chain.ops {
+				op.setFinalPath(p)
+			}
 		}
-		for _, op := range chain.ops {
-			op.setFinalPath(p)
+		for _, ro := range renameOps[ptr] {
+			ro.oldFinalPath = p
 		}
 	}
 

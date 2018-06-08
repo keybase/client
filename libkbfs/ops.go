@@ -594,6 +594,10 @@ type renameOp struct {
 	NewDir      blockUpdate  `codec:"nd"`
 	Renamed     BlockPointer `codec:"re"`
 	RenamedType EntryType    `codec:"rt"`
+
+	// oldFinalPath is the final resolved path to the old directory
+	// containing the renamed node.  Not exported; only used locally.
+	oldFinalPath path
 }
 
 func newRenameOp(oldName string, oldOldDir BlockPointer,
