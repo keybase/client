@@ -479,16 +479,13 @@ function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, a
   yield Saga.call(resetRpc.run)
 }
 
-function letResetUserBackIn(action: FsGen.LetResetUserBackInPayload) {
-  return Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {
+const letResetUserBackIn = (action: FsGen.LetResetUserBackInPayload) =>
+  Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {
     id: action.payload.id,
     username: action.payload.username,
   })
-}
 
-function letResetUserBackInResult() {
-  return Saga.put(FsGen.createLoadResets())
-}
+const letResetUserBackInResult = () => Saga.put(FsGen.createLoadResets())
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(

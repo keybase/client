@@ -15,10 +15,6 @@ const mapStateToProps = (state: TypedState, {path}) => {
     _pathItem,
     _username,
     path,
-    isUserReset:
-      _pathItem.type === 'folder' && _pathItem.resetParticipants
-        ? _pathItem.resetParticipants.includes(_username)
-        : false,
     resetParticipants: _pathItem.type === 'folder' ? _pathItem.resetParticipants : [],
   }
 }
@@ -33,10 +29,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, {_onReAddToTeam, onViewProfile}) => ({
-  ...stateProps,
+  isUserReset:
+    stateProps._pathItem.type === 'folder' && stateProps._pathItem.resetParticipants
+      ? stateProps._pathItem.resetParticipants.includes(stateProps._username)
+      : false,
   onReAddToTeam: (username: string) => () =>
     stateProps._pathItem.type === 'folder' && stateProps._pathItem.teamID ? _onReAddToTeam(stateProps._pathItem.teamID, username) : undefined,
   onViewProfile,
+  path: stateProps.path,
+  resetParticipants: stateProps.resetParticipants,
 })
 
 export default compose(

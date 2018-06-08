@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import Text from './text'
 import shallowEqual from 'shallowequal'
-import {collapseStyles, globalStyles, globalColors, globalMargins} from '../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins, styleSheetCreate} from '../styles'
 import {isMobile} from '../constants/platform'
 import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'
@@ -27,20 +27,13 @@ function usernameText({
 }: Props) {
   const andStyle = collapseStyles([
     style,
-    {
-      color: commaColor,
-      marginLeft: globalMargins.xtiny,
-      marginRight: globalMargins.xtiny,
-      ...(isMobile ? {} : {textDecoration: 'none'}),
-    },
+    styles.andStyle,
+    {color: commaColor},
   ])
   const commaStyle = collapseStyles([
     style,
-    {
-      color: commaColor,
-      marginRight: 1,
-      ...(isMobile ? {} : {textDecoration: 'none'}),
-    },
+    styles.commaStyle,
+    {color: commaColor},
   ])
   return users.map((u, i) => {
     let userStyle = {
@@ -92,21 +85,6 @@ function usernameText({
   })
 }
 
-const inlineStyle = isMobile
-  ? {}
-  : {
-      display: 'inline',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      width: '100%',
-    }
-
-const nonInlineStyle = {
-  ...globalStyles.flexBoxRow,
-  flexWrap: 'wrap',
-  ...(isMobile ? null : {textDecoration: 'inherit'}),
-}
 const inlineProps = isMobile ? {lineClamp: 1} : {}
 
 class Usernames extends Component<Props> {
@@ -120,7 +98,7 @@ class Usernames extends Component<Props> {
   }
 
   render() {
-    const containerStyle = this.props.inline ? inlineStyle : nonInlineStyle
+    const containerStyle = this.props.inline ? styles.inlineStyle : styles.nonInlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
 
@@ -171,7 +149,7 @@ class PlaintextUsernames extends Component<PlaintextProps> {
   }
 
   render() {
-    const containerStyle = inlineStyle
+    const containerStyle = styles.inlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
 
     return (
@@ -226,6 +204,32 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     users: userData,
     ...(onUsernameClicked ? {onUsernameClicked} : {}),
   }
+}
+
+const styles = {
+  andStyle: {
+    marginLeft: globalMargins.xtiny,
+    marginRight: globalMargins.xtiny,
+    ...(isMobile ? {} : {textDecoration: 'none'}),
+  },
+  commaStyle: {
+    marginRight: 1,
+    ...(isMobile ? {} : {textDecoration: 'none'}),
+  },
+  inlineStyle: isMobile
+    ? {}
+    : {
+        display: 'inline',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        width: '100%',
+      },
+  nonInlineStyle: {
+    ...globalStyles.flexBoxRow,
+    flexWrap: 'wrap',
+    ...(isMobile ? null : {textDecoration: 'inherit'}),
+  },
 }
 
 const ConnectedUsernames = compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Usernames'))(Usernames)

@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
-import ConnectedFilesBanner from '../banner/container'
+import ConnectedFilesBanner from '../fileui-banner/container'
 import ConnectedResetBanner from '../reset-banner/container'
 import AddNew from './add-new-container'
 
