@@ -272,6 +272,10 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 	if protocols == nil {
 		return
 	}
+
+	k.lock.RLock()
+	defer k.lock.RUnlock()
+
 	if k.protocols != nil {
 		k.protocols = append(k.protocols, protocols...)
 	} else {
@@ -279,8 +283,6 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 	}
 
 	// If we are already connected, register these protocols.
-	k.lock.RLock()
-	defer k.lock.RUnlock()
 	if k.server != nil {
 		for _, p := range protocols {
 			err := k.server.Register(p)
@@ -294,23 +296,30 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	conn *rpc.Connection, rawClient rpc.GenericClient,
-	server *rpc.Server) error {
-	k.lock.Lock()
-	defer k.lock.Unlock()
+	server *rpc.Server) (err error) {
+	err = func() error {
+		k.lock.RLock()
+		defer k.lock.RUnlock()
 
-	for _, p := range k.protocols {
-		err := server.Register(p)
-		if err != nil {
-			if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
-				return err
+		for _, p := range k.protocols {
+			err := server.Register(p)
+			if err != nil {
+				if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
+					return err
+				}
 			}
 		}
+
+		return nil
+	}()
+	if err != nil {
+		return err
 	}
 
 	// Using conn.GetClient() here would cause problematic
 	// recursion.
 	c := keybase1.NotifyCtlClient{Cli: rawClient}
-	err := c.SetNotifications(ctx, keybase1.NotificationChannels{
+	err = c.SetNotifications(ctx, keybase1.NotificationChannels{
 		Session:      true,
 		Paperkeys:    true,
 		Keyfamily:    true,
@@ -337,6 +346,8 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	}
 
 	// Set k.server only if err == nil.
+	k.lock.Lock()
+	defer k.lock.Unlock()
 	k.server = server
 
 	return nil
@@ -362,6 +373,10 @@ func (k *KeybaseDaemonRPC) OnDisconnected(_ context.Context,
 	}
 
 	k.clearCaches()
+
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	k.server = nil
 }
 
 // ShouldRetry implements the ConnectionHandler interface.

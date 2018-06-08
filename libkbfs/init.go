@@ -89,7 +89,7 @@ type InitParams struct {
 	// EnableJournal is non-empty.
 	TLFJournalBackgroundWorkStatus TLFJournalBackgroundWorkStatus
 
-	// AdditionalProtocolCreaters are for addin additional protocols that we
+	// AdditionalProtocolCreaters are for adding additional protocols that we
 	// should handle for service to call in.
 	AdditionalProtocolCreaters []AdditionalProtocolCreater
 
