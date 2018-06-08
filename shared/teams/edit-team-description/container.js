@@ -2,10 +2,8 @@
 import * as TeamsGen from '../../actions/teams-gen'
 import EditTeamDescription from '.'
 import {connect} from 'react-redux'
-import {compose, withStateHandlers, withHandlers} from 'recompose'
+import {compose, withStateHandlers, withHandlers, type Dispatch, type TypedState} from '../../util/container'
 import {getTeamPublicitySettings} from '../../constants/teams'
-
-import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const teamname = routeProps.get('teamname')
@@ -19,7 +17,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   _onSetDescription: (description: string) => {
     dispatch(TeamsGen.createEditTeamDescription({teamname: routeProps.get('teamname'), description}))
     dispatch(navigateUp())
