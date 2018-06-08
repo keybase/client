@@ -5,6 +5,8 @@ import type {StylesCrossPlatform} from '../../../../../styles'
 export type Props = {
   children?: React.Node,
   explodedBy: ?string,
+  exploding: boolean,
+  messageKey: string,
   style?: StylesCrossPlatform,
   retainHeight: boolean,
 }

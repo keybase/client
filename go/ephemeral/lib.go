@@ -28,6 +28,15 @@ var adminWhitelist = map[keybase1.UID]bool{
 	"69da56f622a2ac750b8e590c3658a700": true, // jzila
 	"1563ec26dc20fd162a4f783551141200": true, // patrick
 	"6f95d3982877016f117303145a0eea19": true, // amarcedone
+	"dbb165b7879fe7b1174df73bed0b9500": true, // max
+	"237e85db5d939fbd4b84999331638200": true, // cjb
+	"673a740cd20fb4bd348738b16d228219": true, // zanderz
+	"ef2e49961eddaa77094b45ed635cfc00": true, // strib
+	"9403ede05906b942fd7361f40a679500": true, // jinyang
+	"ebbe1d99410ab70123262cf8dfc87900": true, // akalin
+	"e0b4166c9c839275cf5633ff65c3e819": true, // chrisnojima
+	"ee71dbc8e4e3e671e29a94caef5e1b19": true, // zapu
+	"d73af57c418a917ba6665575eba13500": true, // adamjspooner
 }
 
 const cacheEntryLifetimeSecs = 60 * 5 // 5 minutes

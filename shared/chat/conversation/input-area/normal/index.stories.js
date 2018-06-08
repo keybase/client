@@ -31,6 +31,7 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
 })
 
 type Props = {
+  isEditExploded: boolean,
   isEditing: boolean,
   isExploding: boolean,
   isExplodingNew: boolean,
@@ -55,6 +56,7 @@ const boxProps = {
 const InputContainer = (props: Props) => {
   const inputProps: InputProps = {
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
+    isEditExploded: props.isEditExploded,
     isEditing: props.isEditing,
     isExploding: props.isExploding,
     isExplodingNew: props.isExplodingNew,
@@ -103,6 +105,7 @@ const load = () => {
     .add('Normal', () => (
       <InputContainer
         isEditing={false}
+        isEditExploded={false}
         pendingWaiting={false}
         typing={Set()}
         isExploding={false}
@@ -113,6 +116,7 @@ const load = () => {
     .add('Typing 1', () => (
       <InputContainer
         isEditing={false}
+        isEditExploded={false}
         pendingWaiting={false}
         typing={Set(['chris'])}
         isExploding={false}
@@ -123,6 +127,7 @@ const load = () => {
     .add('Typing 2', () => (
       <InputContainer
         isEditing={false}
+        isEditExploded={false}
         pendingWaiting={false}
         typing={Set(['chris', 'strib'])}
         isExploding={false}
@@ -133,6 +138,7 @@ const load = () => {
     .add('Typing 3', () => (
       <InputContainer
         isEditing={false}
+        isEditExploded={false}
         pendingWaiting={false}
         typing={Set(['chris', 'strib', 'fred'])}
         isExploding={false}
@@ -143,6 +149,7 @@ const load = () => {
     .add('Editing', () => (
       <InputContainer
         isEditing={true}
+        isEditExploded={false}
         pendingWaiting={false}
         typing={Set()}
         isExploding={false}
@@ -153,6 +160,7 @@ const load = () => {
     .add('Pending waiting', () => (
       <InputContainer
         isEditing={false}
+        isEditExploded={false}
         pendingWaiting={true}
         typing={Set()}
         isExploding={false}
@@ -163,6 +171,7 @@ const load = () => {
     .add('Exploding', () => (
       <InputContainer
         isEditing={false}
+        isEditExploded={false}
         pendingWaiting={false}
         typing={Set()}
         isExploding={true}

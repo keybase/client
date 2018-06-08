@@ -386,6 +386,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "seconds": "number"
     },
+    "setExplodingModeLock": {
+      "_description": "Set a lock on the exploding mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "unset?": "boolean"
+    },
     "updateConvExplodingModes": {
       "_description": "Handle an update to our conversation exploding modes.",
       "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"

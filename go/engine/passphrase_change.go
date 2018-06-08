@@ -299,6 +299,11 @@ func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	// Reset the passphrase stream cache on the global Active Device, since if it exists,
+	// it was for a previous version of the passphrase.
+	m = m.WithGlobalActiveDevice()
+	m.ActiveDevice().ClearCaches()
+
 	return nil
 }
 
