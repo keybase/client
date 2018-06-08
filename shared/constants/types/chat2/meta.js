@@ -23,7 +23,6 @@ export type _ConversationMeta = {
   notificationsMobile: NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,
   offline: boolean,
-  orangeLineOrdinal: ?Ordinal,
   participants: I.List<string>, // was OrderedSet but is quite slow
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,
