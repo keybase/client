@@ -807,7 +807,6 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 	if obr.State.Sending() >= deliverMaxAttempts {
 		return chat1.OutboxErrorType_TOOMANYATTEMPTS, errors.New("max send attempts reached"), true
 	}
-
 	if !s.connected {
 		// Check to see how long we have been disconnected to see if this should be retried
 		disconnTime := s.disconnectedTime()
@@ -821,19 +820,12 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 			return chat1.OutboxErrorType_OFFLINE, err, noretry
 		}
 	}
-
-	// Check for an identify error
+	// Check for any errors that should cause us to give up right away
 	if berr, ok := err.(DelivererInfoError); ok {
 		if typ, ok := berr.IsImmediateFail(); ok {
 			return typ, err, true
 		}
 	}
-
-	// Check for duplicate message
-	if _, ok := err.(libkb.ChatDuplicateMessageError); ok {
-		return chat1.OutboxErrorType_DUPLICATE, err, true
-	}
-
 	return 0, err, false
 }
 
