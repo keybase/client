@@ -273,7 +273,7 @@
     },
     {
       "type": "record",
-      "name": "UserSettings",
+      "name": "WalletSettings",
       "fields": [
         {
           "type": "boolean",
@@ -604,14 +604,27 @@
       ],
       "response": null
     },
-    "getUserSettingsLocal": {
+    "getDisplayCurrencyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "CurrencyLocal"
+    },
+    "getWalletSettingsLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": "UserSettings"
+      "response": "WalletSettings"
     },
     "setAcceptedDisclaimerLocal": {
       "request": [

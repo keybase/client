@@ -50,8 +50,16 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	default:
 		return false, err
 	}
+	primary, err := clearBundle.PrimaryAccount()
+	if err != nil {
+		g.Log.CErrorf(ctx, "We've just posted a bundle that's missing PrimaryAccount: %s", err)
+		return false, err
+	}
+	if err := remote.SetAccountDefaultCurrency(ctx, g, primary.AccountID, "USD"); err != nil {
+		g.Log.CWarningf(ctx, "Error during setting display currency for %q: %s", primary.AccountID, err)
+	}
 	getGlobal(g).InformHasWallet(ctx, meUV)
-	return true, err
+	return true, nil
 }
 
 // CreateWalletGated may create a wallet for the user.
@@ -744,7 +752,7 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 	}
 	currency, ok := conf.Currencies[code]
 	if !ok {
-		return "", fmt.Errorf("Could not find currency %q", code)
+		return "", fmt.Errorf("FormatCurrency error: cannot find curency code %q", code)
 	}
 
 	amountFmt, err := FormatAmount(amount, true)
@@ -757,6 +765,18 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 	}
 
 	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
+}
+
+func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stellar1.OutsideCurrencyCode) (string, error) {
+	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return "", err
+	}
+	currency, ok := conf.Currencies[code]
+	if !ok {
+		return "", fmt.Errorf("FormatCurrencyLabel error: cannot find curency code %q", code)
+	}
+	return fmt.Sprintf("%s (%s)", code, currency.Symbol.Symbol), nil
 }
 
 func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string, error) {
