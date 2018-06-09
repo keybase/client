@@ -6345,8 +6345,19 @@ func (fbo *folderBranchOps) getConvID(ctx context.Context) (
 	return fbo.convID, nil
 }
 
-func (fbo *folderBranchOps) sendEditNotification(
+func (fbo *folderBranchOps) sendEditNotifications(
 	ctx context.Context, body string) error {
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return err
+	}
+	// For now only write out the notifications if we're an admin,
+	// just in case we decide to change the notification format before
+	// we launch.
+	if !libkb.IsKeybaseAdmin(session.UID) {
+		return nil
+	}
+
 	convID, err := fbo.getConvID(ctx)
 	if err != nil {
 		return err
@@ -6435,7 +6446,18 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid kbfsmd.Branch
 			"revision %d: %+v", rev, err)
 		return
 	}
-	fbo.log.CDebugf(ctx, "Made %d edit notifications", len(edits))
+	body, err := kbfsedits.Prepare(edits)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't prepare edit notifications for "+
+			"revision %d: %+v", rev, err)
+		return
+	}
+	err = fbo.sendEditNotifications(ctx, body)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
+			"revision %d: %+v", rev, err)
+		return
+	}
 
 	if err := isArchivableMDOrError(rmd.ReadOnly()); err != nil {
 		fbo.log.CDebugf(
