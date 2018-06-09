@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, Text} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {Box, Text} from '../../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 const YouAreReset = () => (
   <Box style={containerStyle}>

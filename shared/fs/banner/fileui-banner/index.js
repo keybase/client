@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
-import {Box, Text, Icon, Button} from '../../common-adapters'
-import {fileUIName} from '../../constants/platform'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import * as Types from '../../../constants/types/fs'
+import {Box, Text, Icon, Button} from '../../../common-adapters'
+import {fileUIName} from '../../../constants/platform'
+import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
 type Props = {
   kbfsEnabled: boolean,

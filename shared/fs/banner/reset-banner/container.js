@@ -1,11 +1,11 @@
 // @flow
-import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
-import {isMobile} from '../../constants/platform'
-import {createShowUserProfile} from '../../actions/profile-gen'
-import {createGetProfile} from '../../actions/tracker-gen.js'
+import * as Constants from '../../../constants/fs'
+import * as FsGen from '../../../actions/fs-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
+import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import {isMobile} from '../../../constants/platform'
+import {createShowUserProfile} from '../../../actions/profile-gen'
+import {createGetProfile} from '../../../actions/tracker-gen.js'
 import Banner from '.'
 
 const mapStateToProps = (state: TypedState, {path}) => {

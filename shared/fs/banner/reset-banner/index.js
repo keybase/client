@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text, Button, ConnectedUsernames} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import {Box, Icon, Text, Button, ConnectedUsernames} from '../../../common-adapters'
+import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {isMobile} from '../../../constants/platform'
 import YouAreReset from './you-are-reset'
 
 type Props = {
