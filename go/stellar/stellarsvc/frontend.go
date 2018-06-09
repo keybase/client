@@ -204,9 +204,8 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 
 func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret stellar1.WalletSettings, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "GetWalletSettingsLocal",
-		Err:           &err,
-		RequireWallet: true,
+		RPCName: "GetWalletSettingsLocal",
+		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
