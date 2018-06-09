@@ -21,12 +21,11 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => {
-  const uninstall = () => dispatch(FsGen.createUninstallKBFS())
   return {
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
     onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),
     onInstall: () => dispatch(FsGen.createInstallFuse()),
-    onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm({onSuccess: uninstall})),
+    onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
     _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
   }
 }

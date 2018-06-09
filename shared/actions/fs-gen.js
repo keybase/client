@@ -44,7 +44,6 @@ export const setupFSHandlers = 'fs:setupFSHandlers'
 export const share = 'fs:share'
 export const sortSetting = 'fs:sortSetting'
 export const transferProgress = 'fs:transferProgress'
-export const uninstallKBFS = 'fs:uninstallKBFS'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 
 // Payload Types
@@ -147,8 +146,7 @@ type _TransferProgressPayload = $ReadOnly<{|
   completePortion: number,
   endEstimate?: number,
 |}>
-type _UninstallKBFSConfirmPayload = $ReadOnly<{|onSuccess: () => void|}>
-type _UninstallKBFSPayload = void
+type _UninstallKBFSConfirmPayload = void
 
 // Action Creators
 export const createCancelTransfer = (payload: _CancelTransferPayload) => ({error: false, payload, type: cancelTransfer})
@@ -187,7 +185,6 @@ export const createSetupFSHandlers = (payload: _SetupFSHandlersPayload) => ({err
 export const createShare = (payload: _SharePayload) => ({error: false, payload, type: share})
 export const createSortSetting = (payload: _SortSettingPayload) => ({error: false, payload, type: sortSetting})
 export const createTransferProgress = (payload: _TransferProgressPayload) => ({error: false, payload, type: transferProgress})
-export const createUninstallKBFS = (payload: _UninstallKBFSPayload) => ({error: false, payload, type: uninstallKBFS})
 export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({error: false, payload, type: uninstallKBFSConfirm})
 
 // Action Payloads
@@ -228,7 +225,6 @@ export type SharePayload = $Call<typeof createShare, _SharePayload>
 export type SortSettingPayload = $Call<typeof createSortSetting, _SortSettingPayload>
 export type TransferProgressPayload = $Call<typeof createTransferProgress, _TransferProgressPayload>
 export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfirm, _UninstallKBFSConfirmPayload>
-export type UninstallKBFSPayload = $Call<typeof createUninstallKBFS, _UninstallKBFSPayload>
 
 // All Actions
 // prettier-ignore
@@ -270,5 +266,4 @@ export type Actions =
   | SortSettingPayload
   | TransferProgressPayload
   | UninstallKBFSConfirmPayload
-  | UninstallKBFSPayload
   | {type: 'common:resetStore', payload: void}

@@ -79,10 +79,7 @@
       "kextPermissionError": "boolean"
     },
     "installKBFS": {},
-    "uninstallKBFSConfirm": {
-      "onSuccess": "() => void"
-    },
-    "uninstallKBFS": {},
+    "uninstallKBFSConfirm": {},
     "fsActivity": {},
     "openSecurityPreferences": {},
     "refreshLocalHTTPServerInfo": {},

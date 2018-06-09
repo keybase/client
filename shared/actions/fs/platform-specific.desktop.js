@@ -181,9 +181,10 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createInstallFuseResult({kextPermissionError}))
   yield Saga.put(FsGen.createFuseStatus())
   yield Saga.put(FsGen.createSetFlags({fuseInstalling: false}))
+  // TODO: do something like uninstallConfirmSaga here
 }
 
-function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
+const uninstallKBFSConfirmSaga = (action: FsGen.UninstallKBFSConfirmPayload) =>
   SafeElectron.getDialog().showMessageBox(
     null,
     {
@@ -192,19 +193,16 @@ function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
       message: `Remove Keybase from ${fileUIName}`,
       type: 'question',
     },
-    resp => (resp ? undefined : action.payload.onSuccess())
+    resp => (resp ? undefined : Saga.sequentially([
+      Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
+      Saga.call(() => {
+          // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+          SafeElectron.getApp().relaunch()
+          SafeElectron.getApp().exit(0)
+        }
+      )
+    ]))
   )
-}
-
-function uninstallKBFS() {
-  return Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
-}
-
-function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
-  // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-  SafeElectron.getApp().relaunch()
-  SafeElectron.getApp().exit(0)
-}
 
 function openSecurityPreferences() {
   return Saga.call(
