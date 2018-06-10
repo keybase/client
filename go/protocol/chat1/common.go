@@ -1655,6 +1655,9 @@ const (
 	GetThreadReason_PUSH               GetThreadReason = 1
 	GetThreadReason_FOREGROUND         GetThreadReason = 2
 	GetThreadReason_BACKGROUNDCONVLOAD GetThreadReason = 3
+	GetThreadReason_FIXRETRY           GetThreadReason = 4
+	GetThreadReason_PREPARE            GetThreadReason = 5
+	GetThreadReason_SEARCHER           GetThreadReason = 6
 )
 
 func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
@@ -1664,6 +1667,9 @@ var GetThreadReasonMap = map[string]GetThreadReason{
 	"PUSH":               1,
 	"FOREGROUND":         2,
 	"BACKGROUNDCONVLOAD": 3,
+	"FIXRETRY":           4,
+	"PREPARE":            5,
+	"SEARCHER":           6,
 }
 
 var GetThreadReasonRevMap = map[GetThreadReason]string{
@@ -1671,6 +1677,9 @@ var GetThreadReasonRevMap = map[GetThreadReason]string{
 	1: "PUSH",
 	2: "FOREGROUND",
 	3: "BACKGROUNDCONVLOAD",
+	4: "FIXRETRY",
+	5: "PREPARE",
+	6: "SEARCHER",
 }
 
 func (e GetThreadReason) String() string {

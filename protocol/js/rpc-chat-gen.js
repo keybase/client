@@ -50,6 +50,9 @@ export const commonGetThreadReason = {
   push: 1,
   foreground: 2,
   backgroundconvload: 3,
+  fixretry: 4,
+  prepare: 5,
+  searcher: 6,
 }
 
 export const commonGlobalAppNotificationSetting = {
@@ -845,6 +848,9 @@ export type GetThreadReason =
   | 1 // PUSH_1
   | 2 // FOREGROUND_2
   | 3 // BACKGROUNDCONVLOAD_3
+  | 4 // FIXRETRY_4
+  | 5 // PREPARE_5
+  | 6 // SEARCHER_6
 
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
 

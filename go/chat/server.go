@@ -442,7 +442,6 @@ func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadA
 func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (res chat1.GetThreadLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	ctx = CtxAddGetThreadReason(ctx, arg.Reason)
 	defer h.Trace(ctx, func() error { return err }, "GetThreadLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
@@ -458,7 +457,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	// Get messages from the source
 	uid := h.G().Env.GetUID()
 	thread, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
-		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+		gregor1.UID(uid.ToBytes()), arg.Reason, arg.Query, arg.Pagination)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
@@ -615,7 +614,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	var pagination, resultPagination *chat1.Pagination
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	ctx = CtxAddGetThreadReason(ctx, arg.Reason)
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	defer h.Trace(ctx, func() error { return fullErr },
 		fmt.Sprintf("GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason))()
@@ -762,7 +760,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		}
 		var remoteThread chat1.ThreadView
 		remoteThread, fullErr = h.G().ConvSource.Pull(bctx, arg.ConversationID,
-			uid, arg.Query, pagination)
+			uid, arg.Reason, arg.Query, pagination)
 		if fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
 			return

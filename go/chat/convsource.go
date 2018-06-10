@@ -189,7 +189,7 @@ func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, convID chat1
 }
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
 
 	if convID.IsNil() {
 		return chat1.ThreadView{}, errors.New("RemoteConversationSource.Pull called with empty convID")
@@ -213,7 +213,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		ConversationID: convID,
 		Query:          query,
 		Pagination:     pagination,
-		Reason:         CtxGetThreadReason(ctx),
+		Reason:         reason,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
 	rl = append(rl, boxed.RateLimit)
@@ -664,7 +664,7 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 var maxHolesForPull = 10
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
+	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Pull(%s)", convID)()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, errors.New("HybridConversationSource.Pull called with empty convID")
@@ -741,7 +741,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		ConversationID: convID,
 		Query:          query,
 		Pagination:     pagination,
-		Reason:         CtxGetThreadReason(ctx),
+		Reason:         reason,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
 	if err != nil {
