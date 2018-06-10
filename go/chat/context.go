@@ -22,7 +22,6 @@ type chatTrace int
 type identifyModeKey int
 type upakfinderKey int
 type rateLimitKey int
-type getThreadReasonKey int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
@@ -30,7 +29,6 @@ var chatTraceKey chatTrace
 var identModeKey identifyModeKey
 var upKey upakfinderKey
 var rlKey rateLimitKey
-var gtKey getThreadReasonKey
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
