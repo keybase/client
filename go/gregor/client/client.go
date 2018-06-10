@@ -232,7 +232,7 @@ func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, s
 
 	if state == nil {
 		state = new(gregor.State)
-		*state, err = c.State(cli)
+		*state, err = c.State(ctx, cli)
 		if err != nil {
 			return msgs, err
 		}
@@ -311,8 +311,7 @@ func (c *Client) InBandMessagesFromState(s gregor.State) ([]gregor.InBandMessage
 	return res, nil
 }
 
-func (c *Client) State(cli gregor1.IncomingInterface) (res gregor.State, err error) {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (c *Client) State(ctx context.Context, cli gregor1.IncomingInterface) (res gregor.State, err error) {
 	arg := gregor1.StateArg{
 		Uid:          gregor1.UID(c.User.Bytes()),
 		Deviceid:     gregor1.DeviceID(c.Device.Bytes()),
