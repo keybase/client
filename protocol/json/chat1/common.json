@@ -1231,6 +1231,16 @@
       "type": "record",
       "name": "RpInherit",
       "fields": []
+    },
+    {
+      "type": "enum",
+      "name": "GetThreadReason",
+      "symbols": [
+        "GENERAL_0",
+        "PUSH_1",
+        "FOREGROUND_2",
+        "BACKGROUNDCONVLOAD_3"
+      ]
     }
   ],
   "messages": {},

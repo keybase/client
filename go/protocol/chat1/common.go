@@ -1648,6 +1648,38 @@ func (o RpInherit) DeepCopy() RpInherit {
 	return RpInherit{}
 }
 
+type GetThreadReason int
+
+const (
+	GetThreadReason_GENERAL            GetThreadReason = 0
+	GetThreadReason_PUSH               GetThreadReason = 1
+	GetThreadReason_FOREGROUND         GetThreadReason = 2
+	GetThreadReason_BACKGROUNDCONVLOAD GetThreadReason = 3
+)
+
+func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
+
+var GetThreadReasonMap = map[string]GetThreadReason{
+	"GENERAL":            0,
+	"PUSH":               1,
+	"FOREGROUND":         2,
+	"BACKGROUNDCONVLOAD": 3,
+}
+
+var GetThreadReasonRevMap = map[GetThreadReason]string{
+	0: "GENERAL",
+	1: "PUSH",
+	2: "FOREGROUND",
+	3: "BACKGROUNDCONVLOAD",
+}
+
+func (e GetThreadReason) String() string {
+	if v, ok := GetThreadReasonRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type CommonInterface interface {
 }
 

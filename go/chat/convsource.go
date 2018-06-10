@@ -213,6 +213,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		ConversationID: convID,
 		Query:          query,
 		Pagination:     pagination,
+		Reason:         CtxGetThreadReason(ctx),
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
 	rl = append(rl, boxed.RateLimit)
@@ -740,6 +741,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		ConversationID: convID,
 		Query:          query,
 		Pagination:     pagination,
+		Reason:         CtxGetThreadReason(ctx),
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
 	if err != nil {

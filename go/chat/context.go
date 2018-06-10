@@ -22,6 +22,7 @@ type chatTrace int
 type identifyModeKey int
 type upakfinderKey int
 type rateLimitKey int
+type getThreadReasonKey int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
@@ -29,6 +30,7 @@ var chatTraceKey chatTrace
 var identModeKey identifyModeKey
 var upKey upakfinderKey
 var rlKey rateLimitKey
+var gtKey getThreadReasonKey
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -134,6 +136,20 @@ func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 	return ctx
 }
 
+func CtxAddGetThreadReason(ctx context.Context, reason chat1.GetThreadReason) context.Context {
+	return context.WithValue(ctx, gtKey, reason)
+}
+
+func CtxGetThreadReason(ctx context.Context) chat1.GetThreadReason {
+	var reason chat1.GetThreadReason
+	var ok bool
+	val := ctx.Value(gtKey)
+	if reason, ok = val.(chat1.GetThreadReason); ok {
+		return reason
+	}
+	return chat1.GetThreadReason_GENERAL
+}
+
 func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier types.IdentifyNotifier) context.Context {
 	if breaks == nil {
@@ -183,6 +199,6 @@ func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Co
 	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, upKey, CtxUPAKFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, inKey, in)
-
+	rctx = context.WithValue(rctx, gtKey, CtxGetThreadReason(sourceCtx))
 	return rctx
 }
