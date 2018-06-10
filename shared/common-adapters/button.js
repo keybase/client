@@ -4,6 +4,8 @@ import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles} from './icon'
 import * as React from 'react'
 import Text from './text'
+import * as WaitingGen from '../actions/waiting-gen'
+import {connect} from '../util/container'
 import {
   type StylesCrossPlatform,
   collapseStyles,
@@ -50,6 +52,52 @@ const Progress = ({small, white}) => (
     />
   </Box>
 )
+
+type WaitingButtonProps = {
+  waitingKey?: string,
+}
+
+type WaitingButtonState = {
+  waiting: boolean,
+}
+
+class UnconnectedWaitingButton extends React.Component<Props & WaitingButtonProps, WaitingButtonState> {
+  constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      waiting: false,
+    }
+  }
+
+  _onClick = () => {
+    if (this.props.waitingKey) {
+    } else {
+      this.setState({waiting: true})
+    }
+    this.props.onClick && this.props.onClick()
+  }
+
+  render() {
+    console.warn('waitingkey', this.props.waitingKey)
+    console.warn('waitingState', this.state.waiting)
+    return <Button {...this.props} onClick={this._onClick} waiting={this.state.waiting} />
+  }
+}
+
+const mapStateToProps = (state: TypedState) => {
+  return ({})
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  makeWaiting: (waitingKey: string) => WaitingGen.createIncrementWaiting({key: waitingKey}),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {...ownProps}
+}
+
+export const WaitingButton = connect(mapStateToProps, mapDispatchToProps, mergeProps)(UnconnectedWaitingButton)
 
 class Button extends React.Component<Props> {
   render() {
