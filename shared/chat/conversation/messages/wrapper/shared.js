@@ -266,7 +266,7 @@ const styles = styleSheetCreate({
     },
     isElectron: {pointerEvents: 'none'},
     isMobile: {
-      right: -sendIndicatorWidth,
+      right: -18,
     },
   }),
   textContainer: {
