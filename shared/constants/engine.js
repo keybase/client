@@ -1,5 +1,5 @@
 // @flow
-// TODO Deprecated .Instead use engine/saga helper
+// TODO Deprecated. Instead use engine/saga helper
 // Handles sending requests to the daemon
 import logger from '../logger'
 import * as EngineGen from '../actions/engine-gen'
