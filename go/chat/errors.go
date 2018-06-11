@@ -192,6 +192,8 @@ type VersionError struct {
 	Critical bool
 }
 
+// NOTE: If the error message here changes format,
+// chat1/extras.go#ParseableVersion must also be changed to match.
 func (e VersionError) Error() string {
 	return fmt.Sprintf("Unable to decrypt because current client is out of date. Please update your version of Keybase! Chat version error: [ unhandled: %s version: %d critical: %v ]", e.Kind, e.Version, e.Critical)
 }
@@ -205,7 +207,7 @@ func (e VersionError) ExportType() chat1.MessageUnboxedErrorType {
 
 func NewMessageBoxedVersionError(version chat1.MessageBoxedVersion) VersionError {
 	return VersionError{
-		Kind:     "messageboxed",
+		Kind:     chat1.VersionErrorMessageBoxed,
 		Version:  int(version),
 		Critical: true,
 	}
@@ -214,7 +216,7 @@ func NewMessageBoxedVersionError(version chat1.MessageBoxedVersion) VersionError
 func NewHeaderVersionError(version chat1.HeaderPlaintextVersion,
 	defaultHeader chat1.HeaderPlaintextUnsupported) VersionError {
 	return VersionError{
-		Kind:     "header",
+		Kind:     chat1.VersionErrorHeader,
 		Version:  int(version),
 		Critical: defaultHeader.Mi.Crit,
 	}
@@ -222,7 +224,7 @@ func NewHeaderVersionError(version chat1.HeaderPlaintextVersion,
 
 func NewBodyVersionError(version chat1.BodyPlaintextVersion, defaultBody chat1.BodyPlaintextUnsupported) VersionError {
 	return VersionError{
-		Kind:     "body",
+		Kind:     chat1.VersionErrorBody,
 		Version:  int(version),
 		Critical: defaultBody.Mi.Crit,
 	}

@@ -406,6 +406,9 @@ func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
 			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
 		}
 		return res, err
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return nil,
 			NewPermanentUnboxingError(NewMessageBoxedVersionError(boxed.Version))
@@ -557,6 +560,9 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			Rtime:             gregor1.ToTime(b.clock.Now()),
 		}
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return nil,
 			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
@@ -586,6 +592,9 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		switch bodyVersion {
 		case chat1.BodyPlaintextVersion_V1:
 			body = bodyVersioned.V1().MessageBody
+		// NOTE: When adding new versions here, you must also update
+		// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+		// new max version
 		default:
 			return nil,
 				NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
@@ -794,6 +803,9 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 			EphemeralMetadata: hp.EphemeralMetadata,
 			Rtime:             gregor1.ToTime(b.clock.Now()),
 		}, hp.BodyHash, nil
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,
 			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
@@ -809,6 +821,9 @@ func (b *Boxer) unversionBody(ctx context.Context, bodyVersioned chat1.BodyPlain
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V1:
 		return bodyVersioned.V1().MessageBody, nil
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return chat1.MessageBody{},
 			NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
@@ -1560,6 +1575,9 @@ func (b *Boxer) verifyMessageV1(ctx context.Context, header chat1.HeaderPlaintex
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
 		return b.verifyMessageHeaderV1(ctx, header.V1(), msg, skipBodyVerification)
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return verifyMessageRes{},
 			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,

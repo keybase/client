@@ -897,7 +897,14 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 			}
 		}
 		sres = rc.Result()
-		res = append(res, &sres[0])
+		msg := &sres[0]
+
+		// If we have a versioning error but our client now understands the new
+		// version, don't return the error message
+		if msg.IsError() && msg.Error().ParseableVersion() {
+			msg = nil
+		}
+		res = append(res, msg)
 	}
 
 	return res, nil
