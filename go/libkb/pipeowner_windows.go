@@ -106,5 +106,5 @@ func IsPipeowner(log logger.Logger, name string) (isOwner bool, err error) {
 			isOwner = true
 		}
 	}
-	return
+	return isOwner, nil
 }
