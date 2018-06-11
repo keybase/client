@@ -3,119 +3,192 @@ import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
 import * as Constants from '../../constants/settings'
 import {StyleSheet} from 'react-native'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Badge, ClickableBox, Text, HeaderHoc, NativeScrollView} from '../../common-adapters/mobile.native'
+import {globalStyles, globalColors, globalMargins, type Color} from '../../styles'
+import {
+  Badge,
+  Box,
+  ClickableBox,
+  HeaderHoc,
+  Icon,
+  NativeSectionList,
+  Text,
+} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
-import {compose, defaultProps} from 'recompose'
 import flags from '../../util/feature-flags'
 
 import type {Props} from './index'
 
-export function SettingsItem({
-  text,
-  onClick,
+function SettingsItem({
   badgeNumber,
+  icon,
+  onClick,
+  text,
+  textColor,
 }: {
-  text: string,
-  onClick: () => void,
   badgeNumber: number,
+  icon?: any,
+  onClick: () => void,
+  text: string,
+  textColor?: Color,
 }) {
-  return (
+  return text ? (
     <ClickableBox onClick={onClick} style={itemStyle}>
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Text type={'BodySmallSemibold'} style={itemTextStyle}>
-          {text.toUpperCase()}
+        {icon && (
+          <Icon type={icon} color={globalColors.black_20} style={{marginRight: globalMargins.small}} />
+        )}
+        <Text
+          type="BodySemibold"
+          style={{color: textColor || globalColors.black_75, position: 'relative', top: 3}}
+        >
+          {text}
         </Text>
         {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
       </Box>
     </ClickableBox>
-  )
+  ) : null
+}
+
+const renderItem = ({item}) => {
+  return <SettingsItem {...item} />
 }
 
 function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange, onLogout}: Props) {
   return (
-    <NativeScrollView style={{width: '100%', height: '100%'}}>
-      <Box style={styleNavBox}>
-        <SettingsItem
-          text="Files"
-          badgeNumber={badgeNumbers[TabConstants.fsTab]}
-          onClick={() => onTabChange(Constants.fsTab)}
-        />
-        <SettingsItem
-          text="Git"
-          badgeNumber={badgeNumbers[TabConstants.gitTab]}
-          onClick={() => onTabChange(Constants.gitTab)}
-        />
-        <SettingsItem
-          text="Devices"
-          badgeNumber={badgeNumbers[TabConstants.devicesTab]}
-          onClick={() => onTabChange(Constants.devicesTab)}
-        />
-        {flags.walletsEnabled && (
-          <SettingsItem
-            text="Wallets"
-            badgeNumber={badgeNumbers[TabConstants.walletsTab]}
-            onClick={() => onTabChange(Constants.walletsTab)}
-          />
-        )}
-        <SettingsItem
-          text="Notifications"
-          badgeNumber={badgeNotifications ? 1 : 0}
-          onClick={() => onTabChange(Constants.notificationsTab)}
-        />
-        <SettingsItem
-          text="Passphrase"
-          badgeNumber={0}
-          onClick={() => onTabChange(Constants.passphraseTab)}
-        />
-        <SettingsItem text="About" badgeNumber={0} onClick={() => onTabChange(Constants.aboutTab)} />
-        <SettingsItem text="Feedback" badgeNumber={0} onClick={() => onTabChange(Constants.feedbackTab)} />
-        {isAndroid && (
-          <SettingsItem
-            text="Screen Protector"
-            badgeNumber={0}
-            onClick={() => onTabChange(Constants.screenprotectorTab)}
-          />
-        )}
-        <SettingsItem
-          text="Advanced"
-          selected={selectedTab === Constants.advancedTab}
-          badgeNumber={0}
-          onClick={() => onTabChange(Constants.advancedTab)}
-        />
-        <SettingsItem text="Sign out" badgeNumber={0} onClick={onLogout} />
-        {__DEV__ && (
-          <SettingsItem
-            text="😎 &nbsp; Dev Menu"
-            badgeNumber={0}
-            onClick={() => onTabChange(Constants.devMenuTab)}
-          />
-        )}
-      </Box>
-    </NativeScrollView>
+    <NativeSectionList
+      keyExtractor={(item, index) => item.text + index}
+      renderItem={renderItem}
+      renderSectionHeader={({section: {title}}) =>
+        title ? (
+          <Text type="BodySmallSemibold" style={sectionTitleStyle}>
+            {title}
+          </Text>
+        ) : null
+      }
+      style={globalStyles.fullHeight}
+      sections={[
+        {
+          data: [
+            {
+              badgeNumber: badgeNumbers[TabConstants.fsTab],
+              icon: 'iconfont-nav-files',
+              onClick: () => onTabChange(Constants.fsTab),
+              text: 'Files',
+            },
+            {
+              badgeNumber: badgeNumbers[TabConstants.gitTab],
+              icon: 'iconfont-nav-git',
+              onClick: () => onTabChange(Constants.gitTab),
+              text: 'Git',
+            },
+            {
+              badgeNumber: badgeNumbers[TabConstants.devicesTab],
+              icon: 'iconfont-nav-devices',
+              onClick: () => onTabChange(Constants.devicesTab),
+              text: 'Devices',
+            },
+            {
+              ...(flags.walletsEnabled
+                ? {
+                    badgeNumber: badgeNumbers[TabConstants.walletsTab],
+                    icon: 'iconfont-nav-wallets',
+                    onClick: () => onTabChange(Constants.walletsTab),
+                    text: 'Wallet',
+                  }
+                : {}),
+            },
+            {
+              ...(__DEV__
+                ? {
+                    badgeNumber: 0,
+                    icon: 'iconfont-nav-settings',
+                    onClick: () => onTabChange(Constants.devMenuTab),
+                    text: 'Dev menu',
+                  }
+                : {}),
+            },
+          ],
+          title: '',
+        },
+        {
+          data: [
+            {
+              badgeNumber: badgeNotifications ? 1 : 0,
+              onClick: () => onTabChange(Constants.notificationsTab),
+              text: 'Notifications',
+            },
+            {
+              badgeNumber: 0,
+              onClick: () => onTabChange(Constants.passphraseTab),
+              text: 'Change passphrase',
+            },
+            {
+              ...(isAndroid
+                ? {
+                    badgeNumber: 0,
+                    onClick: () => onTabChange(Constants.screenprotectorTab),
+                    text: 'Screen Protector',
+                  }
+                : {}),
+            },
+          ],
+          title: 'Settings',
+        },
+        {
+          data: [
+            {
+              badgeNumber: 0,
+              onClick: () => onTabChange(Constants.aboutTab),
+              text: 'About',
+            },
+            {
+              badgeNumber: 0,
+              onClick: () => onTabChange(Constants.feedbackTab),
+              text: 'Feedback',
+            },
+            {
+              badgeNumber: 0,
+              onClick: () => onTabChange(Constants.advancedTab),
+              text: 'Advanced',
+            },
+            {
+              badgeNumber: 0,
+              onClick: onLogout,
+              text: 'Sign out',
+              textColor: globalColors.red,
+            },
+          ],
+          title: 'More',
+        },
+      ]}
+    />
   )
 }
-const styleNavBox = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  borderBottomColor: globalColors.black_05,
-}
+
 const itemStyle = {
   ...globalStyles.flexBoxRow,
-  height: 64,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
   alignItems: 'center',
-  position: 'relative',
   borderBottomColor: globalColors.black_05,
   borderBottomWidth: StyleSheet.hairlineWidth,
+  height: 56,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  position: 'relative',
 }
-const itemTextStyle = {
-  color: globalColors.black_60,
-}
+
 const badgeStyle = {
-  marginRight: 0,
   marginLeft: 4,
+  marginRight: 0,
   marginTop: 2,
 }
-export default compose(defaultProps({title: 'SETTINGS'}), HeaderHoc)(SettingsNav)
+
+const sectionTitleStyle = {
+  backgroundColor: globalColors.blue5,
+  color: globalColors.black_40,
+  paddingBottom: 7,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  paddingTop: 7,
+}
+
+export default HeaderHoc(SettingsNav)

@@ -34,16 +34,7 @@ export type MentionsAt = I.Set<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
 export type MentionsChannelName = I.Map<string, Common.ConversationIDKey>
 
-export type MessageExplodeText =
-  | 'Never'
-  | '3 minutes'
-  | '1 hour'
-  | '3 hours'
-  | '12 hours'
-  | '24 hours'
-  | '3 days'
-  | '7 days'
-export type MessageExplodeDescription = {text: MessageExplodeText, seconds: number}
+export type MessageExplodeDescription = {text: string, seconds: number}
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand

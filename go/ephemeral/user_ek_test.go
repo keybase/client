@@ -153,9 +153,14 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 	var existingMetadata []keybase1.UserEkMetadata
+	ekLib := NewEKLib(tc.G)
+	needed, err := ekLib.NewUserEKNeeded(context.Background())
+	require.NoError(t, err)
 	if skipUserEKForTesting {
+		require.True(t, needed)
 		existingMetadata = []keybase1.UserEkMetadata{}
 	} else {
+		require.False(t, needed)
 		existingMetadata = statement.ExistingUserEkMetadata
 		existingMetadata = append(existingMetadata, statement.CurrentUserEkMetadata)
 	}
@@ -163,12 +168,8 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 }
 
 func TestPukRollNewUserEK(t *testing.T) {
-	tc := libkb.SetupTest(t, "kex2provision", 2)
+	tc, user := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
-	NewEphemeralStorageAndInstall(tc.G)
-
-	user, err := kbtest.CreateAndSignupFakeUser("e", tc.G)
-	require.NoError(t, err)
 
 	// Confirm that the user has a userEK.
 	uid := tc.G.Env.GetUID()

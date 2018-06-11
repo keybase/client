@@ -19,11 +19,11 @@ func GetKID(w *jsonw.Wrapper) (kid keybase1.KID, err error) {
 }
 
 func KIDIsDeviceVerify(kid keybase1.KID) bool {
-	return kid.GetKeyType() == KIDNaclEddsa
+	return AlgoType(kid.GetKeyType()) == KIDNaclEddsa
 }
 
 func KIDIsDeviceEncrypt(kid keybase1.KID) bool {
-	return kid.GetKeyType() == KIDNaclDH
+	return AlgoType(kid.GetKeyType()) == KIDNaclDH
 }
 
 func KIDIsPGP(kid keybase1.KID) bool {

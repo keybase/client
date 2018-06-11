@@ -69,6 +69,187 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "BalanceDelta",
+      "symbols": [
+        "NONE_0",
+        "INCREASE_1",
+        "DECREASE_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PaymentStatus",
+      "symbols": [
+        "NONE_0",
+        "PENDING_1",
+        "CLAIMABLE_2",
+        "COMPLETED_3",
+        "ERROR_4",
+        "UNKNOWN_5"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentLocal",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "id"
+        },
+        {
+          "type": "TimeMs",
+          "name": "time"
+        },
+        {
+          "type": "PaymentStatus",
+          "name": "statusSimplified"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
+        },
+        {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "BalanceDelta",
+          "name": "delta"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "source"
+        },
+        {
+          "type": "string",
+          "name": "sourceType"
+        },
+        {
+          "type": "string",
+          "name": "target"
+        },
+        {
+          "type": "string",
+          "name": "targetType"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "string",
+          "name": "noteErr"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentOrErrorLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "PaymentLocal"
+          ],
+          "name": "payment"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "err"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentDetailsLocal",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "id"
+        },
+        {
+          "type": "TimeMs",
+          "name": "time"
+        },
+        {
+          "type": "PaymentStatus",
+          "name": "statusSimplified"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
+        },
+        {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "BalanceDelta",
+          "name": "delta"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "source"
+        },
+        {
+          "type": "string",
+          "name": "sourceType"
+        },
+        {
+          "type": "string",
+          "name": "target"
+        },
+        {
+          "type": "string",
+          "name": "targetType"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "string",
+          "name": "noteErr"
+        },
+        {
+          "type": "string",
+          "name": "publicNote"
+        },
+        {
+          "type": "string",
+          "name": "publicNoteType"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "CurrencyLocal",
       "fields": [
@@ -92,7 +273,7 @@
     },
     {
       "type": "record",
-      "name": "UserSettings",
+      "name": "WalletSettings",
       "fields": [
         {
           "type": "boolean",
@@ -133,7 +314,7 @@
     },
     {
       "type": "record",
-      "name": "PaymentCLIOptionLocal",
+      "name": "PaymentOrErrorCLILocal",
       "fields": [
         {
           "type": [
@@ -143,7 +324,10 @@
           "name": "payment"
         },
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "err"
         }
       ]
@@ -287,6 +471,46 @@
         "items": "AccountAssetLocal"
       }
     },
+    "getPaymentsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "olderThanTransactionID",
+          "type": [
+            null,
+            "TransactionID"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentOrErrorLocal"
+      }
+    },
+    "getPaymentDetailsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "id",
+          "type": "TransactionID"
+        }
+      ],
+      "response": "PaymentDetailsLocal"
+    },
     "getDisplayCurrenciesLocal": {
       "request": [
         {
@@ -380,14 +604,27 @@
       ],
       "response": null
     },
-    "getUserSettingsLocal": {
+    "getDisplayCurrencyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "CurrencyLocal"
+    },
+    "getWalletSettingsLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": "UserSettings"
+      "response": "WalletSettings"
     },
     "setAcceptedDisclaimerLocal": {
       "request": [
@@ -397,6 +634,32 @@
         }
       ],
       "response": null
+    },
+    "getWalletAccountPublicKeyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "string"
+    },
+    "getWalletAccountSecretKeyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "SecretKey"
     },
     "balancesLocal": {
       "request": [
@@ -439,6 +702,10 @@
         {
           "name": "forceRelay",
           "type": "boolean"
+        },
+        {
+          "name": "publicNote",
+          "type": "string"
         }
       ],
       "response": "SendResultCLILocal"
@@ -471,7 +738,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "PaymentCLIOptionLocal"
+        "items": "PaymentOrErrorCLILocal"
       }
     },
     "paymentDetailCLILocal": {

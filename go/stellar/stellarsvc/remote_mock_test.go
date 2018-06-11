@@ -2,6 +2,7 @@ package stellarsvc
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -23,17 +24,17 @@ import (
 )
 
 type txlogger struct {
-	transactions []stellar1.PaymentSummary
+	transactions []stellar1.PaymentDetails
 	sync.Mutex
 	T testing.TB
 }
 
 func newTxLogger(t testing.TB) *txlogger { return &txlogger{T: t} }
 
-func (t *txlogger) Add(tx stellar1.PaymentSummary) {
+func (t *txlogger) Add(tx stellar1.PaymentDetails) {
 	t.Lock()
 	defer t.Unlock()
-	t.transactions = append([]stellar1.PaymentSummary{tx}, t.transactions...)
+	t.transactions = append([]stellar1.PaymentDetails{tx}, t.transactions...)
 }
 
 func (t *txlogger) AddClaim(kbTxID stellar1.KeybaseTransactionID, c stellar1.ClaimSummary) {
@@ -41,15 +42,15 @@ func (t *txlogger) AddClaim(kbTxID stellar1.KeybaseTransactionID, c stellar1.Cla
 	defer t.Unlock()
 	for i := range t.transactions {
 		p := &t.transactions[i]
-		typ, err := p.Typ()
+		typ, err := p.Summary.Typ()
 		require.NoError(t.T, err)
 		if typ != stellar1.PaymentSummaryType_RELAY {
 			continue
 		}
-		if !p.Relay().KbTxID.Eq(kbTxID) {
+		if !p.Summary.Relay().KbTxID.Eq(kbTxID) {
 			continue
 		}
-		p.Relay__.Claim = &c
+		p.Summary.Relay__.Claim = &c
 		return
 	}
 	require.Fail(t.T, "should find relay to attach claim to", "%v", kbTxID)
@@ -83,27 +84,27 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 			break
 		}
 
-		typ, err := tx.Typ()
+		typ, err := tx.Summary.Typ()
 		require.NoError(t.T, err)
 		switch typ {
 		case stellar1.PaymentSummaryType_STELLAR:
-			p := tx.Stellar()
+			p := tx.Summary.Stellar()
 			for _, acc := range []stellar1.AccountID{p.From, p.To} {
 				if acc.Eq(accountID) {
-					res = append(res, tx)
+					res = append(res, tx.Summary)
 					continue
 				}
 			}
 		case stellar1.PaymentSummaryType_DIRECT:
-			p := tx.Direct()
+			p := tx.Summary.Direct()
 			for _, acc := range []stellar1.AccountID{p.FromStellar, p.ToStellar} {
 				if acc.Eq(accountID) {
-					res = append(res, tx)
+					res = append(res, tx.Summary)
 					continue
 				}
 			}
 		case stellar1.PaymentSummaryType_RELAY:
-			p := tx.Relay()
+			p := tx.Summary.Relay()
 
 			// Caller must be a member of the impteam.
 			if !t.isCallerInImplicitTeam(tc, p.TeamID) {
@@ -139,7 +140,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 					p.KbTxID, accountID, callerAccountID)
 				continue
 			}
-			res = append(res, tx)
+			res = append(res, tx.Summary)
 		default:
 			require.Fail(t.T, "unrecognized variant", "%v", typ)
 		}
@@ -162,23 +163,23 @@ func (t *txlogger) isCallerInImplicitTeam(tc *TestContext, teamID keybase1.TeamI
 	return team.Chain.Implicit
 }
 
-func (t *txlogger) Find(txID string) *stellar1.PaymentSummary {
+func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
 	for _, tx := range t.transactions {
 
-		typ, err := tx.Typ()
+		typ, err := tx.Summary.Typ()
 		require.NoError(t.T, err)
 		switch typ {
 		case stellar1.PaymentSummaryType_STELLAR:
-			if tx.Stellar().TxID.String() == txID {
+			if tx.Summary.Stellar().TxID.String() == txID {
 				return &tx
 			}
 		case stellar1.PaymentSummaryType_DIRECT:
-			p := tx.Direct()
+			p := tx.Summary.Direct()
 			if p.TxID.String() == txID || p.KbTxID.String() == txID {
 				return &tx
 			}
 		case stellar1.PaymentSummaryType_RELAY:
-			if tx.Relay().TxID.String() == txID || tx.Relay().KbTxID.String() == txID {
+			if tx.Summary.Relay().TxID.String() == txID || tx.Summary.Relay().KbTxID.String() == txID {
 				return &tx
 			}
 		default:
@@ -247,10 +248,8 @@ func (a *FakeAccount) Check() bool {
 	default:
 		return true
 	}
-	if b == 0 {
-		return false
-	}
-	return true
+
+	return b != 0
 }
 
 func (a *FakeAccount) availableBalance() string {
@@ -298,12 +297,24 @@ func (r *RemoteClientMock) SubmitRelayClaim(ctx context.Context, post stellar1.R
 	return r.Backend.SubmitRelayClaim(ctx, r.Tc, post)
 }
 
+func (r *RemoteClientMock) AcquireAutoClaimLock(ctx context.Context) (string, error) {
+	return "", fmt.Errorf("RemoteClientMock does not implement AcquireAutoClaimLock")
+}
+
+func (r *RemoteClientMock) ReleaseAutoClaimLock(ctx context.Context, token string) error {
+	return fmt.Errorf("RemoteClientMock does not implement ReleaseAutoClaimLock")
+}
+
+func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, error) {
+	return nil, fmt.Errorf("RemoteClientMock does not implement NextAutoClaim")
+}
+
 func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
 	return r.Backend.RecentPayments(ctx, r.Tc, accountID, limit)
 }
 
-func (r *RemoteClientMock) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
-	return r.Backend.PaymentDetail(ctx, r.Tc, txID)
+func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
+	return r.Backend.PaymentDetails(ctx, r.Tc, txID)
 }
 
 func (r *RemoteClientMock) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
@@ -355,9 +366,9 @@ func (r *BackendMock) trace(err *error, name string, format string, args ...inte
 	}
 }
 
-func (r *BackendMock) addPayment(summary stellar1.PaymentSummary) {
+func (r *BackendMock) addPayment(payment stellar1.PaymentDetails) {
 	defer r.trace(nil, "BackendMock.addPayment", "")()
-	r.txLog.Add(summary)
+	r.txLog.Add(payment)
 }
 
 func (r *BackendMock) addClaim(kbTxID stellar1.KeybaseTransactionID, summary stellar1.ClaimSummary) {
@@ -393,6 +404,12 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 	r.Lock()
 	defer r.Unlock()
 	kbTxID := randomKeybaseTransactionID(r.T)
+
+	if post.QuickReturn {
+		msg := "SubmitPayment with QuickReturn not implemented on BackendMock"
+		r.T.Fatalf(msg)
+		return res, errors.New(msg)
+	}
 
 	// Unpack signed transaction and checks if Payment matches transaction.
 	unpackedTx, txIDPrecalc, err := unpackTx(post.SignedTransaction)
@@ -431,7 +448,7 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 	if err != nil {
 		return stellar1.PaymentResult{}, fmt.Errorf("could not get self UV: %v", err)
 	}
-	r.addPayment(stellar1.NewPaymentSummaryWithDirect(stellar1.PaymentSummaryDirect{
+	summary := stellar1.NewPaymentSummaryWithDirect(stellar1.PaymentSummaryDirect{
 		KbTxID:          kbTxID,
 		TxID:            stellar1.TransactionID(txIDPrecalc),
 		TxStatus:        stellar1.TransactionStatus_SUCCESS,
@@ -447,7 +464,15 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 		NoteB64:         post.NoteB64,
 		Ctime:           stellar1.ToTimeMs(time.Now()),
 		Rtime:           stellar1.ToTimeMs(time.Now()),
-	}))
+	})
+
+	memo, memoType := extractMemo(unpackedTx.Tx)
+
+	r.addPayment(stellar1.PaymentDetails{
+		Summary:  summary,
+		Memo:     memo,
+		MemoType: memoType,
+	})
 
 	return stellar1.PaymentResult{
 		StellarID: stellar1.TransactionID(txIDPrecalc),
@@ -460,6 +485,12 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 	r.Lock()
 	defer r.Unlock()
 	kbTxID := randomKeybaseTransactionID(r.T)
+
+	if post.QuickReturn {
+		msg := "SubmitRelayPayment with QuickReturn not implemented on BackendMock"
+		r.T.Fatalf(msg)
+		return res, errors.New(msg)
+	}
 
 	unpackedTx, txIDPrecalc, err := unpackTx(post.SignedTransaction)
 	if err != nil {
@@ -496,7 +527,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 	if err != nil {
 		return stellar1.PaymentResult{}, fmt.Errorf("could not get self UV: %v", err)
 	}
-	r.addPayment(stellar1.NewPaymentSummaryWithRelay(stellar1.PaymentSummaryRelay{
+	summary := stellar1.NewPaymentSummaryWithRelay(stellar1.PaymentSummaryRelay{
 		KbTxID:          kbTxID,
 		TxID:            stellar1.TransactionID(txIDPrecalc),
 		TxStatus:        stellar1.TransactionStatus_SUCCESS,
@@ -512,7 +543,8 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 		Rtime:           stellar1.ToTimeMs(time.Now()),
 		BoxB64:          post.BoxB64,
 		TeamID:          post.TeamID,
-	}))
+	})
+	r.addPayment(stellar1.PaymentDetails{Summary: summary})
 
 	return stellar1.PaymentResult{
 		StellarID: stellar1.TransactionID(txIDPrecalc),
@@ -572,8 +604,8 @@ func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accou
 	return r.txLog.Filter(ctx, tc, accountID, limit), nil
 }
 
-func (r *BackendMock) PaymentDetail(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentSummary, err error) {
-	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetail", func() error { return err })()
+func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentDetails, err error) {
+	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetails", func() error { return err })()
 	r.Lock()
 	defer r.Unlock()
 	p := r.txLog.Find(txID)
@@ -722,4 +754,23 @@ func randomKeybaseTransactionID(t testing.TB) stellar1.KeybaseTransactionID {
 	res, err := stellar1.KeybaseTransactionIDFromString(hex.EncodeToString(b))
 	require.NoError(t, err)
 	return res
+}
+
+func extractMemo(tx xdr.Transaction) (memo, memoType string) {
+	switch tx.Memo.Type {
+	case xdr.MemoTypeMemoNone:
+		return "", "none"
+	case xdr.MemoTypeMemoText:
+		return tx.Memo.MustText(), "text"
+	case xdr.MemoTypeMemoId:
+		return fmt.Sprintf("%d", tx.Memo.MustId()), "id"
+	case xdr.MemoTypeMemoHash:
+		h := tx.Memo.MustHash()
+		return base64.StdEncoding.EncodeToString(h[:]), "hash"
+	case xdr.MemoTypeMemoReturn:
+		h := tx.Memo.MustRetHash()
+		return base64.StdEncoding.EncodeToString(h[:]), "return"
+	default:
+		panic(fmt.Errorf("invalid memo type: %v", tx.Memo.Type))
+	}
 }

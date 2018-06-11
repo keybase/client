@@ -854,6 +854,10 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
 
+func (u *UID) MarshalJSON() ([]byte, error) {
+	return Quote(u.String()), nil
+}
+
 // Size implements the keybase/kbfs/cache.Measurable interface.
 func (k *KID) Size() int {
 	if k == nil {
@@ -1178,7 +1182,8 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
-		TLFIdentifyBehavior_SALTPACK:
+		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_KBFS_CHAT:
 		return true
 	default:
 		return false
@@ -1218,7 +1223,8 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
-		TLFIdentifyBehavior_SALTPACK:
+		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_KBFS_CHAT:
 		// These are identifies that either happen without user interaction at
 		// all, or happen while you're staring at some Keybase UI that can
 		// report errors on its own. No popups needed.
@@ -1361,6 +1367,12 @@ func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 		}
 	}
 	return nil
+}
+
+func (u UserPlusKeysV2AllIncarnations) AllIncarnations() (ret []UserPlusKeysV2) {
+	ret = append(ret, u.Current)
+	ret = append(ret, u.PastIncarnations...)
+	return ret
 }
 
 func (u UserPlusKeys) FindKID(needle KID) *PublicKey {

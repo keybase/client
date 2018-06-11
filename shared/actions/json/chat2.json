@@ -23,7 +23,7 @@
         "'clearSelected'", // deselect
         "'justCreated'", // just made one
         "'desktopNotification'", // clicked notification
-        "'searching'", // searching and found one
+        "'setPendingMode'", // set to pending
         "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
         "'findNewestConversation'", // find a new chat to select
@@ -134,9 +134,9 @@
       "selectSomethingElse": "boolean"
     },
     // We updated our view of a thread
-    "metaUpdatePagination": {
+    "updateMoreToLoad": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paginationKey": "?Types.PaginationKey"
+      "moreToLoad": "boolean"
     },
     // Add a new message
     "messagesAdd": {
@@ -148,7 +148,9 @@
         "{type: 'incoming'}",
         "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
       ],
-      "messages": "Array<Types.Message>"
+      "messages": "Array<Types.Message>",
+      // true if these should be the only messages we know about
+      "shouldClearOthers?": "boolean"
     },
     // Got an error sending a message
     "messageErrored": {
@@ -200,10 +202,10 @@
       "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
       "ordinals?": "Array<Types.Ordinal>"
     },
-    "messageExploded": {
-      "_description": "An exploding message expired or was manually detonated",
+    "messagesExploded": {
+      "_description": "Exploding messages expired or were manually detonated.",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "RPCChatTypes.MessageID",
+      "messageIDs": "Array<RPCChatTypes.MessageID>",
       "explodedBy?": "string"
     },
     // Delete a message
@@ -215,10 +217,6 @@
     "messageDeleteHistory": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
-    },
-    // Clear our knowledge of which messages are in a thread
-    "clearOrdinals": {
-      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
     "setPendingMode": {
@@ -388,9 +386,22 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "seconds": "number"
     },
+    "setExplodingModeLock": {
+      "_description": "Set a lock on the exploding mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "unset?": "boolean"
+    },
     "updateConvExplodingModes": {
       "_description": "Handle an update to our conversation exploding modes.",
       "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
+    },
+    "setExplodingMessagesNew": {
+      "_description": "Set whether exploding messages are a new feature or not.",
+      "new": "boolean"
+    },
+    "handleSeeingExplodingMessages": {
+      "_description":
+        "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
     }
   }
 }

@@ -12,7 +12,7 @@ import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 import {makeRetentionPolicy, serviceRetentionPolicyToRetentionPolicy} from '../teams'
-import {noConversationIDKey} from '../types/chat2/common'
+import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -53,7 +53,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
       : []
   )
 
-  const participants = I.OrderedSet(
+  const participants = I.List(
     i.localMetadata
       ? i.localMetadata.writerNames || []
       : parseFolderNameToUsers(username, i.name).map(ul => ul.username)
@@ -125,8 +125,6 @@ export const updateMeta = (
 
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
-    m.set('paginationKey', old.paginationKey)
-    m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
     m.set('resetParticipants', resetParticipants)
@@ -238,7 +236,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
-    participants: I.OrderedSet(i.participants || []),
+    participants: I.List(i.participants || []),
     resetParticipants,
     retentionPolicy,
     snippet: i.snippet,
@@ -265,9 +263,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never',
   offline: false,
-  orangeLineOrdinal: null,
-  paginationKey: null,
-  participants: I.OrderedSet(),
+  participants: I.List(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
   retentionPolicy: makeRetentionPolicy(),
@@ -316,7 +312,7 @@ export const getConversationIDKeyMetasToLoad = (
   metaMap: I.Map<Types.ConversationIDKey, Types.ConversationMeta>
 ) =>
   conversationIDKeys.reduce((arr, id) => {
-    if (id) {
+    if (id && isValidConversationIDKey(id)) {
       const trustedState = metaMap.getIn([id, 'trustedState'])
       if (trustedState !== 'requesting' && trustedState !== 'trusted') {
         arr.push(id)

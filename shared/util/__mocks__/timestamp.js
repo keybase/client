@@ -36,7 +36,7 @@ export function daysToLabel(days: number): string {
   return '[mocked]'
 }
 
-export function secondsToDHMS(seconds: number): string {
+export function msToDHMS(ms: number): string {
   return '[mocked]'
 }
 

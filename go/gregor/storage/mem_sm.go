@@ -72,6 +72,7 @@ type user struct {
 	items           [](*item)
 	log             []loggedMsg
 	localDismissals []gregor.MsgID
+	outbox          []gregor.Message
 }
 
 func newUser(logger logger.Logger) *user {
@@ -190,10 +191,20 @@ func toTime(now time.Time, t gregor.TimeOrOffset) time.Time {
 }
 
 func (u *user) dismissRanges(now time.Time, rs []gregor.MsgRange) {
+	isSkipped := func(i *item, r gregor.MsgRange) bool {
+		msgID := i.item.Metadata().MsgID()
+		for _, s := range r.SkipMsgIDs() {
+			if msgID.String() == s.String() {
+				return true
+			}
+		}
+		return false
+	}
 	for _, i := range u.items {
 		for _, r := range rs {
 			if r.Category().String() == i.item.Category().String() &&
-				isBeforeOrSame(i.ctime, toTime(now, r.EndTime())) {
+				isBeforeOrSame(i.ctime, toTime(now, r.EndTime())) &&
+				!isSkipped(i, r) {
 				i.dtime = &now
 				i.dismissedImmediate = true
 				u.removeLocalDismissal(i.item.Metadata().MsgID())
@@ -212,6 +223,9 @@ func (t timeOrOffset) Time() *time.Time {
 func (t timeOrOffset) Offset() *time.Duration { return nil }
 func (t timeOrOffset) Before(t2 time.Time) bool {
 	return time.Time(t).Before(t2)
+}
+func (t timeOrOffset) IsZero() bool {
+	return t.IsZero()
 }
 
 var _ gregor.TimeOrOffset = timeOrOffset{}
@@ -433,6 +447,26 @@ func (m *MemEngine) InBandMessagesSince(ctx context.Context, u gregor.UID, d gre
 	msgs, _ := m.getUser(u).replayLog(m.clock.Now(), d, t)
 
 	return msgs, nil
+}
+
+func (m *MemEngine) Outbox(ctx context.Context, u gregor.UID) ([]gregor.Message, error) {
+	m.Lock()
+	defer m.Unlock()
+	return m.getUser(u).outbox, nil
+}
+
+func (m *MemEngine) InitOutbox(ctx context.Context, u gregor.UID, msgs []gregor.Message) error {
+	m.Lock()
+	defer m.Unlock()
+	m.getUser(u).outbox = msgs
+	return nil
+}
+
+func (m *MemEngine) ConsumeOutboxMessage(ctx context.Context, u gregor.UID, msg gregor.Message) error {
+	m.Lock()
+	defer m.Unlock()
+	m.getUser(u).outbox = append(m.getUser(u).outbox, msg)
+	return nil
 }
 
 func (m *MemEngine) Reminders(ctx context.Context, maxReminders int) (gregor.ReminderSet, error) {

@@ -3,8 +3,36 @@
     "import * as Types from '../constants/types/wallets'",
   ],
   "actions": {
-    "walletsRefresh": {
-      "_description": "Refresh out list of wallets",
+    "assetsReceived": {
+      "_description": "Update our store of assets data",
+      "accountID": "string",
+      "assets": "Array<Types.Assets>",
+    },
+    "loadEverything": {
+      "_description": "Debugging only -- load accounts/assets/payments for every account at once",
+    },
+    "loadAssets": {
+      "_description": "Refresh our list of assets for a given account",
+      "accountID": "string",
+    },
+    "loadPayments": {
+      "_description": "Refresh our list of payments for a given account",
+      "accountID": "string",
+    },
+    "loadAccounts": {
+      "_description": "Refresh our list of accounts",
+    },
+    "paymentsReceived": {
+      "_description": "Update our store of payments data",
+      "accountID": "string",
+      "payments": "Array<Types.Payment>",
+    },
+    "accountsReceived": {
+      "_description": "Update our store of account data",
+      "accounts": "Array<Types.Account>",
+    },
+    "loadAccounts": {
+      "_description": "Refresh our list of accounts",
     },
   }
 }

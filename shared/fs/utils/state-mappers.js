@@ -1,6 +1,8 @@
 // @flow
 import {type TypedState} from '../../util/container'
-import {isLinux} from '../../constants/platform'
+import {isLinux, isWindows} from '../../constants/platform'
 
 export const mapStateToKBFSEnabled = (state: TypedState) =>
-  isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+  // on Windows, check that the driver is up to date too
+  isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted &&
+    !(isWindows && state.fs.fuseStatus.installAction === 2))

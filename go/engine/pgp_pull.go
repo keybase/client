@@ -71,16 +71,16 @@ func proofSetFromUserSummary(summary keybase1.UserSummary) *libkb.ProofSet {
 	return libkb.NewProofSet(proofs)
 }
 
-func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1.UserSummary, error) {
+func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1.UserSummary, []string, error) {
 	err := RunEngine2(m, e.listTrackingEngine)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	allTrackedSummaries := e.listTrackingEngine.TableResult()
 
-	// Without any userAsserts specified, just return everything.
+	// Without any userAsserts specified, just all summaries and no leftovers.
 	if e.userAsserts == nil || len(e.userAsserts) == 0 {
-		return allTrackedSummaries, nil
+		return allTrackedSummaries, nil, nil
 	}
 
 	// With userAsserts specified, return only those summaries. If an assert
@@ -93,7 +93,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1
 	for _, assertString := range e.userAsserts {
 		assertExpr, err := libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), assertString)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		parsedAsserts[assertString] = assertExpr
 	}
@@ -107,7 +107,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1
 		for assertStr, parsedAssert := range parsedAsserts {
 			if parsedAssert.MatchSet(*proofSet) {
 				if assertionsUsed[assertStr] {
-					return nil, fmt.Errorf("Assertion \"%s\" matched more than one tracked user.", assertStr)
+					return nil, nil, fmt.Errorf("Assertion \"%s\" matched more than one tracked user.", assertStr)
 				}
 				assertionsUsed[assertStr] = true
 				matchedSummaries[summary.Username] = summary
@@ -115,10 +115,12 @@ func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1
 		}
 	}
 
+	var leftovers []string
 	// Make sure every assertion found a match.
 	for _, assertString := range e.userAsserts {
 		if !assertionsUsed[assertString] {
-			return nil, fmt.Errorf("Assertion \"%s\" did not match any tracked users.", assertString)
+			m.CInfof("Assertion \"%s\" did not match any tracked users.", assertString)
+			leftovers = append(leftovers, assertString)
 		}
 	}
 
@@ -126,7 +128,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1
 	for _, summary := range matchedSummaries {
 		matchedList = append(matchedList, summary)
 	}
-	return matchedList, nil
+	return matchedList, leftovers, nil
 }
 
 func (e *PGPPullEngine) runLoggedOut(m libkb.MetaContext) error {
@@ -136,14 +138,16 @@ func (e *PGPPullEngine) runLoggedOut(m libkb.MetaContext) error {
 	t := time.Now()
 	for i, assertString := range e.userAsserts {
 		t = e.rateLimit(t, i)
-		if err := e.processUserWhenLoggedOut(m, assertString); err != nil {
+		if err := e.processUserWithIdentify(m, assertString); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (e *PGPPullEngine) processUserWhenLoggedOut(m libkb.MetaContext, u string) error {
+func (e *PGPPullEngine) processUserWithIdentify(m libkb.MetaContext, u string) error {
+	m.CDebugf("Processing with identify: %s", u)
+
 	iarg := keybase1.Identify2Arg{
 		UserAssertion:    u,
 		ForceRemoteCheck: true,
@@ -192,15 +196,16 @@ func (e *PGPPullEngine) Run(m libkb.MetaContext) error {
 		return e.runLoggedOut(m)
 	}
 
-	summaries, err := e.getTrackedUserSummaries(m)
+	return e.runLoggedIn(m)
+}
+
+func (e *PGPPullEngine) runLoggedIn(m libkb.MetaContext) error {
+	summaries, leftovers, err := e.getTrackedUserSummaries(m)
+	// leftovers contains unmatched assertions, likely users
+	// we want to pull but we do not track.
 	if err != nil {
 		return err
 	}
-
-	return e.runLoggedIn(m, summaries)
-}
-
-func (e *PGPPullEngine) runLoggedIn(m libkb.MetaContext, summaries []keybase1.UserSummary) error {
 
 	// Loop over the list of all users we track.
 	t := time.Now()
@@ -220,7 +225,7 @@ func (e *PGPPullEngine) runLoggedIn(m libkb.MetaContext, summaries []keybase1.Us
 			libkb.NewLoadUserByNameArg(e.G(), userSummary.Username).
 				WithPublicKeyOptional())
 		if err != nil {
-			m.UIs().LogUI.Errorf("Failed to load user %s: %s", userSummary.Username, err)
+			m.CErrorf("Failed to load user %s: %s", userSummary.Username, err)
 			continue
 		}
 		if user.GetStatus() == keybase1.StatusCode_SCDeleted {
@@ -232,6 +237,15 @@ func (e *PGPPullEngine) runLoggedIn(m libkb.MetaContext, summaries []keybase1.Us
 			return err
 		}
 	}
+
+	// Loop over unmatched list and process with identify prompts.
+	for i, assertString := range leftovers {
+		t = e.rateLimit(t, i)
+		if err := e.processUserWithIdentify(m, assertString); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -239,7 +253,7 @@ func (e *PGPPullEngine) exportKeysToGPG(m libkb.MetaContext, user *libkb.User, t
 	for _, bundle := range user.GetActivePGPKeys(false) {
 		// Check each key against the tracked set.
 		if tfp != nil && !tfp[bundle.GetFingerprint().String()] {
-			m.UIs().LogUI.Warning("Keybase says that %s owns key %s, but you have not tracked this fingerprint before.", user.GetName(), bundle.GetFingerprint())
+			m.CWarningf("Keybase says that %s owns key %s, but you have not tracked this fingerprint before.", user.GetName(), bundle.GetFingerprint())
 			continue
 		}
 
@@ -247,7 +261,7 @@ func (e *PGPPullEngine) exportKeysToGPG(m libkb.MetaContext, user *libkb.User, t
 			return err
 		}
 
-		m.UIs().LogUI.Info("Imported key for %s.", user.GetName())
+		m.CInfof("Imported key for %s.", user.GetName())
 	}
 	return nil
 }

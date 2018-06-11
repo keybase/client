@@ -9,7 +9,7 @@ import {compose, connect, type TypedState, type Dispatch} from '../../../../util
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const username = meta.resetParticipants.first() || ''
-  const nonResetUsers = meta.participants.subtract(meta.resetParticipants)
+  const nonResetUsers = meta.participants.toSet().subtract(meta.resetParticipants)
   const allowChatWithoutThem = nonResetUsers.size > 1
   return {_conversationIDKey: conversationIDKey, allowChatWithoutThem, username}
 }

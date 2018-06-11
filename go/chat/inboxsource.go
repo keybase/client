@@ -1170,7 +1170,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				uid, conversationRemote.MaxMsgSummaries, conversationRemote.Metadata.FinalizeInfo)
 		} else {
 			msgs, err = s.G().ConvSource.GetMessages(ctx, conversationRemote,
-				uid, utils.PluckMessageIDs(conversationRemote.MaxMsgSummaries))
+				uid, utils.PluckMessageIDs(conversationRemote.MaxMsgSummaries), nil)
 			if !s.isErrPermanent(err) {
 				errTyp = chat1.ConversationErrorType_TRANSIENT
 			}

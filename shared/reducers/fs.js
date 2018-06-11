@@ -38,18 +38,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // placeholder), which then gets updated when we hear back from RPC.
           return original
         }
-        // Since both `folderListLoaded` and `favoritesLoaded` can change
-        // `pathItems`, we need to make sure that neither one clobbers the
-        // other's work.
+        // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
+        // can change `pathItems`, we need to make sure that neither one
+        // clobbers the others' work.
         return item
           .set('badgeCount', original.badgeCount)
           .set('tlfMeta', original.tlfMeta)
           .set('favoriteChildren', original.favoriteChildren)
+          .set('resetParticipants', original.resetParticipants)
       })
-      const s = state
-        .mergeIn(['pathItems'], toMerge)
+      return state.mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
-      return s
     }
     case FsGen.folderListLoad:
       return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
@@ -64,17 +63,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
         return [
           path,
-          // Since both `folderListLoaded` and `favoritesLoaded` can change
-          // `pathItems`, we need to make sure that neither one clobbers the
-          // other's work.
+          // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
+          // can change `pathItems`, we need to make sure that neither one
+          // clobbers the others' work.
           original
             .set('badgeCount', item.badgeCount)
             .set('tlfMeta', item.tlfMeta)
             .set('favoriteChildren', item.favoriteChildren),
         ]
       })
-      const s = state.mergeIn(['pathItems'], toMerge)
-      return s
+      return state.mergeIn(['pathItems'], toMerge)
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
@@ -142,6 +140,21 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['pathItems', action.payload.path],
         pathItem => (pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem)
       )
+    case FsGen.loadResetsResult:
+      const resetsToMerge = action.payload.tlfs.mapEntries(([path, item]) => {
+        const original = state.pathItems.get(path) || Constants.makeFolder({name: item.name})
+        // This cannot happen, but it's needed to make Flow happy.
+        if (original.type !== 'folder') return [path, original]
+
+        return [
+          path,
+          // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
+          // can change `pathItems`, we need to make sure that neither one
+          // clobbers the others' work.
+          original.set('resetParticipants', item.resetParticipants),
+        ]
+      }, [])
+      return state.mergeIn(['pathItems'], resetsToMerge)
     case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
     case FsGen.download:
@@ -153,12 +166,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
-    case FsGen.mimeTypeLoad:
     case FsGen.share:
     case FsGen.save:
     case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
+    case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
+    case FsGen.loadResets:
       return state
     default:
       /*::

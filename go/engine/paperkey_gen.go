@@ -261,7 +261,7 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 		}
 	}
 
-	backupLks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
+	backupLks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID())
 	backupLks.SetServerHalf(libkb.NewLKSecServerHalfZeros())
 
 	ctext, err := backupLks.EncryptClientHalfRecovery(e.encKey)

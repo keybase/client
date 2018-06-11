@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -114,15 +115,19 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, false)
+	return tt.addUserHelper(pre, true, false, true)
 }
 
 func (tt *teamTester) addUserWithPaper(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, true)
+	return tt.addUserHelper(pre, true, true, true)
 }
 
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false, false)
+	return tt.addUserHelper(pre, false, false, true)
+}
+
+func (tt *teamTester) addWalletlessUser(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true, false, false)
 }
 
 func (tt *teamTester) logUserNames() {
@@ -145,10 +150,13 @@ func installInsecureTriplesec(g *libkb.GlobalContext) {
 	}
 }
 
-func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
+func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
+	}
+	if !wallet {
+		tctx.Tp.DisableAutoWallet = true
 	}
 
 	var u userPlusDevice
@@ -210,6 +218,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	}
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
+	u.stellarClient = stellar1.LocalClient{Cli: cli}
 
 	g.ConfigureConfig()
 
@@ -245,6 +254,7 @@ type userPlusDevice struct {
 	tc                       *libkb.TestContext
 	deviceClient             keybase1.DeviceClient
 	teamsClient              keybase1.TeamsClient
+	stellarClient            stellar1.LocalClient
 	notifications            *teamNotifyHandler
 	suppressTeamChatAnnounce bool
 }

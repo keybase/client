@@ -795,31 +795,52 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 	}
 }
 
+// Sender prefix for msg snippets. Will show if a conversation has > 2 members
+// or is of type TEAM
+func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal, currentUsername string) (senderPrefix string) {
+	var showPrefix bool
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		showPrefix = true
+	default:
+		showPrefix = len(conv.Names()) > 2
+	}
+
+	if showPrefix {
+		sender := mvalid.SenderUsername
+		if sender == currentUsername {
+			senderPrefix = "You: "
+		} else {
+			senderPrefix = fmt.Sprintf("%s: ", sender)
+		}
+	}
+	return senderPrefix
+}
+
 func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) string {
+	if !msg.IsValid() {
+		return ""
+	}
+
+	mvalid := msg.Valid()
+	senderPrefix := getSenderPrefix(mvalid, conv, currentUsername)
+
 	if !msg.IsValidFull() {
-		if msg.IsValid() {
-			mvalid := msg.Valid()
-			if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
-				return "[exploded message 💥]"
-			}
+		if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
+			return fmt.Sprintf("💥 %s ----------------------------", senderPrefix)
 		}
 		return ""
 	}
-	var prefix string
-	switch conv.GetMembersType() {
-	case chat1.ConversationMembersType_TEAM:
-		sender := msg.Valid().SenderUsername
-		if sender == currentUsername {
-			prefix = "You: "
-		} else {
-			prefix = fmt.Sprintf("%s: ", sender)
-		}
+	var explodingPrefix string
+	if mvalid.IsEphemeral() {
+		explodingPrefix = "💣 "
 	}
+
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
-		return prefix + msg.Valid().MessageBody.Text().Body
+		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Text().Body
 	case chat1.MessageType_ATTACHMENT:
-		return prefix + msg.Valid().MessageBody.Attachment().Object.Title
+		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System())
 	}
@@ -864,6 +885,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
+	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
@@ -929,6 +951,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
 	return res

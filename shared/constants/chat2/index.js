@@ -12,6 +12,7 @@ import {
   pendingConversationIDKey,
   noConversationIDKey,
   pendingWaitingConversationIDKey,
+  isValidConversationIDKey,
 } from '../types/chat2/common'
 import {makeConversationMeta, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
@@ -19,14 +20,18 @@ import {formatTextForQuoting} from '../../util/chat'
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   editingMap: I.Map(),
+  explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
   inboxFilter: '',
+  isExplodingNew: true,
   loadingMap: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
     [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
   ]),
+  moreToLoadMap: I.Map(),
+  orangeLineMap: I.Map(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
@@ -38,11 +43,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 // We stash the resolved pending conversation idkey into the meta itself
 export const getResolvedPendingConversationIDKey = (state: TypedState) =>
   getMeta(state, pendingConversationIDKey).conversationIDKey
-export const isValidConversationIDKey = (id: Types.ConversationIDKey) =>
-  id &&
-  id !== pendingConversationIDKey &&
-  id !== noConversationIDKey &&
-  id !== pendingWaitingConversationIDKey
 
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
@@ -72,7 +72,7 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
     return null
   }
 
-  return {text: message.text.stringValue(), ordinal}
+  return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
 }
 
 export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => {
@@ -121,6 +121,17 @@ export const isInfoPanelOpen = (state: TypedState) => {
 
 export const creatingLoadingKey = 'creatingConvo'
 
+// When we see that exploding messages are in the app, we set
+// seenExplodingGregorKey as well as newExplodingGregorKey.
+// newExploding.. is set with a dtime of a couple days.
+// seenExploding.. never expires.
+// 1. Neither exist: new and user hasn't seen them
+// 2. Both exist: new and user has seen them
+// 3. One exists (seenExploding...): old; unset tag
+export const seenExplodingGregorKey = 'hasSeenExplodingMessages'
+export const newExplodingGregorKey = 'explodingMessagesAreNew'
+export const newExplodingGregorOffset = 1000 * 3600 * 24 * 3 // 3 days in ms
+export const getIsExplodingNew = (state: TypedState) => state.chat2.get('isExplodingNew')
 export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
  * Gregor key for exploding conversations
@@ -129,8 +140,13 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
  */
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
-export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) =>
-  state.chat2.getIn(['explodingModes', c], 0)
+export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) => {
+  let mode = state.chat2.getIn(['explodingModeLocks', c], null)
+  if (mode === null) {
+    mode = state.chat2.getIn(['explodingModes', c], 0)
+  }
+  return mode
+}
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>
@@ -178,4 +194,9 @@ export {
   upgradeMessage,
 } from './message'
 
-export {pendingConversationIDKey, noConversationIDKey, pendingWaitingConversationIDKey}
+export {
+  pendingConversationIDKey,
+  noConversationIDKey,
+  pendingWaitingConversationIDKey,
+  isValidConversationIDKey,
+}

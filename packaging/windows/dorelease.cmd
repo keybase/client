@@ -153,7 +153,10 @@ pushd %GOPATH%\src\github.com\keybase\%~1
 git checkout master || EXIT /B 1
 git pull || EXIT /B 1
 git checkout %~2 || EXIT /B 1
-git pull || EXIT /B 1
+for /f %%i in ('git rev-parse --abbrev-ref HEAD') do set currentCommit=%%i
+if NOT [%currentCommit%] == [HEAD] (
+    git pull || EXIT /B 1
+)
 popd
 EXIT /B 0
 

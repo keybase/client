@@ -43,7 +43,7 @@ func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.C
 	require.NoError(t, err)
 
 	// Check that the initial message stored as a success.
-	tv, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, nil, nil)
+	tv, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, chat1.GetThreadReason_GENERAL, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tv.Messages))
 	require.True(t, tv.Messages[0].IsValid(), "initial message invalid")
@@ -143,7 +143,7 @@ func TestSyncerConnected(t *testing.T) {
 
 	t.Logf("test incremental")
 	mconv := convs[1]
-	_, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, nil, nil)
+	_, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil)
 	require.NoError(t, cerr)
 	_, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, serr)
@@ -465,7 +465,7 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	mconv := newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username)
 
 	t.Logf("test incremental")
-	_, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, nil, nil)
+	_, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil)
 	require.NoError(t, cerr)
 	_, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, serr)

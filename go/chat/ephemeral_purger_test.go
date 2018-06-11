@@ -95,9 +95,11 @@ func TestBackgroundPurge(t *testing.T) {
 	sendEphemeral(lifetime)
 	sendEphemeral(lifetime * 2)
 
-	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, &chat1.GetThreadQuery{
-		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-	}, nil)
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid,
+		chat1.GetThreadReason_GENERAL,
+		&chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
 	require.NoError(t, err)
 	msgs := thread.Messages
 	require.Len(t, msgs, 2)

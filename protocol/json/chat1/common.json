@@ -142,7 +142,8 @@
         "JOIN_9",
         "LEAVE_10",
         "SYSTEM_11",
-        "DELETEHISTORY_12"
+        "DELETEHISTORY_12",
+        "REACTION_13"
       ],
       "go": "nostring"
     },
@@ -747,6 +748,15 @@
           "name": "supersededBy"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "reactionIDs",
+          "mpackkey": "r",
+          "jsonkey": "r"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
@@ -1221,6 +1231,19 @@
       "type": "record",
       "name": "RpInherit",
       "fields": []
+    },
+    {
+      "type": "enum",
+      "name": "GetThreadReason",
+      "symbols": [
+        "GENERAL_0",
+        "PUSH_1",
+        "FOREGROUND_2",
+        "BACKGROUNDCONVLOAD_3",
+        "FIXRETRY_4",
+        "PREPARE_5",
+        "SEARCHER_6"
+      ]
     }
   ],
   "messages": {},

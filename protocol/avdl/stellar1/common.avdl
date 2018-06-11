@@ -45,6 +45,11 @@ protocol common {
     // Direct: tx ID of the payment tx
     // Relay : tx ID of the funding payment tx
     TransactionID stellarID;
+    // If (arg.quickReturn && result.pending) then the payment
+    //   was recorded but may still be pending on the stellar network
+    //   and could still fail.
+    // If arg.quickReturn == false then result.pending should be ignored.
+    boolean pending;
   }
 
   record RelayClaimResult {
