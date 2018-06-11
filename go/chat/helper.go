@@ -228,7 +228,7 @@ func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convI
 	}
 
 	// use ConvSource to get the messages, to try the cache first
-	messages, err := h.G().ConvSource.GetMessages(ctx, conv, uid, msgIDs, nil)
+	messages, err := g.ConvSource.GetMessages(ctx, conv, uid, msgIDs, nil)
 	if err != nil {
 		return nil, err
 	}

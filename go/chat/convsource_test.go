@@ -316,6 +316,7 @@ func TestReactions(t *testing.T) {
 	verifyThread := func(msgID, supersededBy chat1.MessageID, body string,
 		reactionIDs []chat1.MessageID, reactionMap chat1.ReactionMap) {
 		thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+			chat1.GetThreadReason_GENERAL,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			}, nil)
@@ -479,6 +480,7 @@ func TestReactions(t *testing.T) {
 	require.NoError(t, err)
 
 	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		chat1.GetThreadReason_GENERAL,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)

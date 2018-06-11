@@ -1392,7 +1392,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 }
 
 func (h *Server) getMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
-	messages, err := GetMessages(ctx, h.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, nil)
+	messages, err := GetMessages(ctx, h.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes)
 	if err != nil {
 		return mvalid, err
 
