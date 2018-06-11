@@ -1233,7 +1233,7 @@ export type RemoteGetInboxVersionRpcParam = $ReadOnly<{uid: Gregor1.UID, incomin
 
 export type RemoteGetMessageBeforeRpcParam = $ReadOnly<{convID: ConversationID, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, threadReason?: ?GetThreadReason, messageIDs?: ?Array<MessageID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteGetPublicConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

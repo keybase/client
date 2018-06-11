@@ -804,8 +804,9 @@ type NewConversationRemote2Arg struct {
 }
 
 type GetMessagesRemoteArg struct {
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	MessageIDs     []MessageID    `codec:"messageIDs" json:"messageIDs"`
+	ConversationID ConversationID   `codec:"conversationID" json:"conversationID"`
+	ThreadReason   *GetThreadReason `codec:"threadReason,omitempty" json:"threadReason,omitempty"`
+	MessageIDs     []MessageID      `codec:"messageIDs" json:"messageIDs"`
 }
 
 type MarkAsReadArg struct {

@@ -1022,7 +1022,7 @@ func TestClearFromDelete(t *testing.T) {
 	}
 
 	require.NoError(t, hcs.storage.MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
-	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2})
+	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2}, nil)
 	require.NoError(t, err)
 	tv, err := hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil, 0)
 	require.NoError(t, err)

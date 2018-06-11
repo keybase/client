@@ -717,6 +717,13 @@
           "type": "ConversationID"
         },
         {
+          "name": "threadReason",
+          "type": [
+            null,
+            "GetThreadReason"
+          ]
+        },
+        {
           "name": "messageIDs",
           "type": {
             "type": "array",

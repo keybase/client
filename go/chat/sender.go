@@ -216,7 +216,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 
 	// Get the one message to be deleted by ID.
 	var uid gregor1.UID = s.G().Env.GetUID().ToBytes()
-	deleteTargets, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{deleteTargetID})
+	deleteTargets, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{deleteTargetID}, nil)
 	if err != nil {
 		return msg, nil, err
 	}

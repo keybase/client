@@ -1384,7 +1384,7 @@ func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1
 	}
 
 	messages, err := h.G().ConvSource.GetMessages(ctx, conv, uid,
-		[]chat1.MessageID{msg.ClientHeader.Supersedes})
+		[]chat1.MessageID{msg.ClientHeader.Supersedes}, nil)
 	if err != nil {
 		return nil, err
 	}
