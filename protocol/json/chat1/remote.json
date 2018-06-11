@@ -608,6 +608,10 @@
           "type": "ConversationID"
         },
         {
+          "name": "reason",
+          "type": "GetThreadReason"
+        },
+        {
           "name": "query",
           "type": [
             null,
@@ -711,6 +715,13 @@
         {
           "name": "conversationID",
           "type": "ConversationID"
+        },
+        {
+          "name": "threadReason",
+          "type": [
+            null,
+            "GetThreadReason"
+          ]
         },
         {
           "name": "messageIDs",
