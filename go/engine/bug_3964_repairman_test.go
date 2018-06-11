@@ -124,7 +124,7 @@ func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.Devi
 	if pps == nil {
 		return nil, errors.New("empty passphrase stream on m1, but expected one since we just signed up")
 	}
-	goodLksec := libkb.NewLKSec(pps, m2.CurrentUID(), m2.G())
+	goodLksec := libkb.NewLKSec(pps, m2.CurrentUID())
 
 	if err = goodLksec.LoadServerHalf(m2); err != nil {
 		return nil, err
@@ -138,7 +138,6 @@ func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.Devi
 	badLskec := libkb.NewLKSecWithFullSecret(
 		goodLksec.CorruptedFullSecretForBug3964Testing(dev1ServerHalf),
 		dev2.G.Env.GetUID(),
-		dev2.G,
 	)
 	var krf *libkb.SKBKeyringFile
 	krf, err = libkb.LoadSKBKeyringFromMetaContext(m2)

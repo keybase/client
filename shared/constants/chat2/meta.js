@@ -9,7 +9,6 @@ import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isIOS, isAndroid} from '../platform'
-import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 import {makeRetentionPolicy, serviceRetentionPolicyToRetentionPolicy} from '../teams'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
@@ -53,12 +52,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
       : []
   )
 
-  const participants = I.List(
-    i.localMetadata
-      ? i.localMetadata.writerNames || []
-      : parseFolderNameToUsers(username, i.name).map(ul => ul.username)
-  )
-
+  const participants = I.List(i.localMetadata ? i.localMetadata.writerNames || [] : (i.name || '').split(','))
   const channelname =
     i.membersType === RPCChatTypes.commonConversationMembersType.team && i.localMetadata
       ? i.localMetadata.channelName
@@ -125,7 +119,6 @@ export const updateMeta = (
 
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
-    m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
     m.set('resetParticipants', resetParticipants)
@@ -264,7 +257,6 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never',
   offline: false,
-  orangeLineOrdinal: null,
   participants: I.List(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),

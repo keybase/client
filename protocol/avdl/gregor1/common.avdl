@@ -37,6 +37,7 @@ protocol common {
   record MsgRange {
     TimeOrOffset endTime;
     Category category;
+    array<MsgID> skipMsgIDs;
   }
 
   record Dismissal {

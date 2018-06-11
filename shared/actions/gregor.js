@@ -178,10 +178,46 @@ function handleConvExplodingModes(items: Array<Types.NonNullGregorItem>) {
   return Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes}))
 }
 
+function getIsExplodingNewDismissActions(items: Array<Types.NonNullGregorItem>) {
+  const seenExplodings = items.filter(i => i.item.category === ChatConstants.seenExplodingGregorKey)
+  const newExplodings = items.filter(i => i.item.category === ChatConstants.newExplodingGregorKey)
+
+  if (seenExplodings.length > 1) {
+    logger.warn('Found some extra seenExploding gregor items. Dismissing...')
+  }
+
+  const ret = []
+  let oldestSeenExploding
+  if (seenExplodings.length > 1) {
+    // keep the oldest one, dismiss the rest
+    oldestSeenExploding = seenExplodings.sort((a, b) => (a.md.ctime > b.md.ctime ? 0 : 1)).pop()
+    ret.push(...seenExplodings)
+  } else if (seenExplodings.length === 1) {
+    oldestSeenExploding = seenExplodings[0]
+  }
+
+  // keep the oldest one, or dismiss all if oldest one was created > offset between seenExploding and newExploding
+  const oldest = newExplodings.sort((a, b) => (a.md.ctime > b.md.ctime ? 0 : 1)).pop()
+  if (
+    oldestSeenExploding &&
+    oldest &&
+    oldest.md.ctime - oldestSeenExploding.md.ctime > ChatConstants.newExplodingGregorOffset
+  ) {
+    newExplodings.push(oldest)
+  }
+  ret.push(...newExplodings)
+
+  if (newExplodings.length) {
+    logger.warn('Found some extra newExploding gregor items. Dismissing...')
+  }
+
+  return ret.map(i => Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: i.md.msgID}))
+}
+
 function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
   const seenExploding = items.find(i => i.item.category === ChatConstants.seenExplodingGregorKey)
   const newExploding = items.find(i => i.item.category === ChatConstants.newExplodingGregorKey)
-  const actions = []
+  const actions = getIsExplodingNewDismissActions(items)
   if (!seenExploding && !newExploding) {
     // neither exist. we haven't been here before - set flag in store to new.
     actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: true})))

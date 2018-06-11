@@ -295,6 +295,7 @@ func TestDeleteWallet(t *testing.T) {
 		SecretKey:   tcs[0].Backend.SecretKey(accID2),
 		MakePrimary: true,
 	})
+	require.NoError(t, err)
 
 	// First try without `UserAcknowledged`.
 	err = tcs[0].Srv.DeleteWalletAccountLocal(context.Background(), stellar1.DeleteWalletAccountLocalArg{
@@ -378,26 +379,36 @@ func TestChangeDisplayCurrency(t *testing.T) {
 	require.EqualValues(t, "EUR", balances[0].WorthCurrency)
 }
 
-func TestGetUserSettings(t *testing.T) {
+func TestGetWalletSettingsNoAccount(t *testing.T) {
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingWalletless})
+	defer cleanup()
+
+	ret, err := tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, false, ret.AcceptedDisclaimer)
+}
+
+func TestGetWalletSettings(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	us, _ := tcs[0].Srv.GetUserSettingsLocal(context.Background(), 0)
-	require.Equal(t, false, us.AcceptedDisclaimer)
+	ret, err := tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, false, ret.AcceptedDisclaimer)
 }
 
 func TestSetAcceptedDisclaimer(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	us, err := tcs[0].Srv.GetUserSettingsLocal(context.Background(), 0)
+	us, err := tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, false, us.AcceptedDisclaimer)
 
 	err = tcs[0].Srv.SetAcceptedDisclaimerLocal(context.Background(), 0)
 	require.NoError(t, err)
 
-	us, err = tcs[0].Srv.GetUserSettingsLocal(context.Background(), 0)
+	us, err = tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, true, us.AcceptedDisclaimer)
 }
@@ -496,6 +507,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		DisplayAmount:   "321.87",
 		DisplayCurrency: "USD",
 		Note:            "here you go",
+		PublicNote:      "public note",
 	}
 	_, err = srvSender.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)
@@ -537,4 +549,45 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Len(t, recipPayments, 1)
 	require.NotNil(t, recipPayments[0].Payment)
 	checkPayment(*recipPayments[0].Payment, false)
+
+	// check the details
+	checkPaymentDetails := func(p stellar1.PaymentDetailsLocal, sender bool) {
+		require.NotEmpty(t, p.Id)
+		require.NotZero(t, p.Time)
+		require.Equal(t, stellar1.PaymentStatus_COMPLETED, p.StatusSimplified)
+		require.Equal(t, "completed", p.StatusDescription)
+		require.Empty(t, p.StatusDetail)
+		if sender {
+			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
+		} else {
+			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
+		}
+		require.Equal(t, "$321.87", p.Worth, "Worth")
+		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
+		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
+		require.Equal(t, "keybase", p.SourceType, "SourceType")
+		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
+		require.Equal(t, "keybase", p.TargetType, "TargetType")
+		require.Equal(t, "here you go", p.Note)
+		require.Empty(t, p.NoteErr)
+		require.Equal(t, "public note", p.PublicNote)
+		require.Equal(t, "text", p.PublicNoteType)
+	}
+	argDetails := stellar1.GetPaymentDetailsLocalArg{
+		Id:        senderPayments[0].Payment.Id,
+		AccountID: accountIDSender,
+	}
+	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	checkPaymentDetails(details, true)
+
+	argDetails = stellar1.GetPaymentDetailsLocalArg{
+		Id:        recipPayments[0].Payment.Id,
+		AccountID: accountIDRecip,
+	}
+	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	checkPaymentDetails(details, false)
 }

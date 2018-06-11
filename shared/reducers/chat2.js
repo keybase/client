@@ -325,31 +325,24 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       })
     // fallthrough actually select it
     case Chat2Gen.selectConversation:
+      // ignore non-changing
+      if (state.selectedConversation === action.payload.conversationIDKey) {
+        return state
+      }
       return state.withMutations(s => {
         // Update the orange line on the previous conversation
         if (state.selectedConversation) {
-          s.updateIn(
-            ['metaMap', state.selectedConversation],
-            meta =>
-              meta
-                ? meta.set(
-                    'orangeLineOrdinal',
-                    state.messageOrdinals.get(state.selectedConversation, I.Set()).last()
-                  )
-                : meta
-          )
+          const lastOrdinal = state.messageOrdinals.get(state.selectedConversation, I.Set()).last()
+          s.setIn(['orangeLineMap', state.selectedConversation], lastOrdinal)
         }
-        // Update the current conversation. If the ordinal is the last item, just remove it so we don't get an orange bar as we type
+        // If the convo you just went into has no orange line (its at the bottom), just clear it so it doens't show up if you type or as stuff comes in
         if (action.payload.conversationIDKey) {
-          s.updateIn(['metaMap', action.payload.conversationIDKey], meta => {
-            if (meta) {
-              const lastOrdinal = state.messageOrdinals.get(action.payload.conversationIDKey, I.Set()).last()
-              if (lastOrdinal === meta.orangeLineOrdinal) {
-                return meta.set('orangeLineOrdinal', null)
-              }
-            }
-            return meta
-          })
+          const oldOrange = s.getIn(['orangeLineMap', action.payload.conversationIDKey])
+          const lastOrdinal = s.messageOrdinals.get(action.payload.conversationIDKey, I.Set()).last()
+
+          if (oldOrange === lastOrdinal) {
+            s.setIn(['orangeLineMap', action.payload.conversationIDKey], null)
+          }
         }
         s.set('selectedConversation', action.payload.conversationIDKey)
       })
@@ -438,7 +431,11 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         Constants.makeQuoteInfo({counter, ordinal, sourceConversationIDKey, targetConversationIDKey})
       )
     case Chat2Gen.messagesAdd: {
-      const {messages, context} = action.payload
+      const {messages, context, shouldClearOthers} = action.payload
+      // we want the clear applied when we call findExisting
+      let oldMessageOrdinals = state.messageOrdinals
+      let oldPendingOutboxToOrdinal = state.pendingOutboxToOrdinal
+      let oldMessageMap = state.messageMap
 
       // first group into convoid
       const convoToMessages: {[cid: string]: Array<Types.Message>} = messages.reduce((map, m) => {
@@ -448,12 +445,24 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return map
       }, {})
 
+      if (shouldClearOthers) {
+        oldMessageOrdinals = oldMessageOrdinals.withMutations(map => {
+          Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
+        })
+        oldPendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(map => {
+          Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
+        })
+        oldMessageMap = oldMessageMap.withMutations(map => {
+          Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
+        })
+      }
+
       // Types we can send and have to deal with outbox ids
       const canSendType = (m: Types.Message): ?Types.MessageText | ?Types.MessageAttachment =>
         m.type === 'text' || m.type === 'attachment' ? m : null
 
       // Update any pending messages
-      const pendingOutboxToOrdinal = state.pendingOutboxToOrdinal.withMutations(
+      const pendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) => {
           if (context.type === 'sent' || context.type === 'threadLoad') {
             messages.forEach(message => {
@@ -473,24 +482,24 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         // something we sent
         if (m.outboxID) {
           // and we know about it
-          const ordinal = state.pendingOutboxToOrdinal.getIn([conversationIDKey, m.outboxID])
+          const ordinal = oldPendingOutboxToOrdinal.getIn([conversationIDKey, m.outboxID])
           if (ordinal) {
-            return state.messageMap.getIn([conversationIDKey, ordinal])
+            return oldMessageMap.getIn([conversationIDKey, ordinal])
           }
         }
         const pendingOrdinal = messageIDToOrdinal(
-          state.messageMap,
-          state.pendingOutboxToOrdinal,
+          oldMessageMap,
+          oldPendingOutboxToOrdinal,
           conversationIDKey,
           m.id
         )
         if (pendingOrdinal) {
-          return state.messageMap.getIn([conversationIDKey, pendingOrdinal])
+          return oldMessageMap.getIn([conversationIDKey, pendingOrdinal])
         }
         return null
       }
 
-      const messageOrdinals = state.messageOrdinals.withMutations(
+      const messageOrdinals = oldMessageOrdinals.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.SortedSet<Types.Ordinal>>) => {
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
@@ -507,7 +516,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
                 // and ignore the placeholder in that instance
                 logger.info(`Got placeholder message with id: ${message.id}`)
                 const existingOrdinal = messageIDToOrdinal(
-                  state.messageMap,
+                  oldMessageMap,
                   pendingOutboxToOrdinal,
                   conversationIDKey,
                   message.id
@@ -530,7 +539,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         }
       )
 
-      const messageMap = state.messageMap.withMutations(
+      const messageMap = oldMessageMap.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
@@ -549,13 +558,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageMap', messageMap)
         s.set('messageOrdinals', messageOrdinals)
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
-      })
-    }
-    case Chat2Gen.clearOrdinals: {
-      return state.withMutations(s => {
-        s.deleteIn(['messageOrdinals', action.payload.conversationIDKey])
-        s.deleteIn(['pendingOutboxToOrdinal', action.payload.conversationIDKey])
-        s.deleteIn(['messageMap', action.payload.conversationIDKey])
       })
     }
     case Chat2Gen.messageRetry: {
@@ -669,6 +671,15 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return map
       }, {})
       return state.set('explodingModes', I.Map(explodingMap))
+    case Chat2Gen.setExplodingModeLock:
+      const {conversationIDKey, unset} = action.payload
+      const mode = state.getIn(['explodingModes', conversationIDKey], 0)
+      // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
+      const alreadyLocked = state.getIn(['explodingModeLocks', conversationIDKey], null) !== null
+      if (unset) {
+        return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
+      }
+      return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
     case Chat2Gen.setExplodingMessagesNew:
       return state.set('isExplodingNew', action.payload.new)
     // metaMap/messageMap/messageOrdinalsList only actions

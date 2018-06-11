@@ -768,6 +768,11 @@ type NewChatActivityArg struct {
 	Activity ChatActivity `codec:"activity" json:"activity"`
 }
 
+type NewChatKBFSFileEditActivityArg struct {
+	Uid      keybase1.UID `codec:"uid" json:"uid"`
+	Activity ChatActivity `codec:"activity" json:"activity"`
+}
+
 type ChatIdentifyUpdateArg struct {
 	Update keybase1.CanonicalTLFNameAndIDWithBreaks `codec:"update" json:"update"`
 }
@@ -842,6 +847,7 @@ type ChatKBFSToImpteamUpgradeArg struct {
 
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
+	NewChatKBFSFileEditActivity(context.Context, NewChatKBFSFileEditActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
 	ChatTLFFinalize(context.Context, ChatTLFFinalizeArg) error
 	ChatTLFResolve(context.Context, ChatTLFResolveArg) error
@@ -874,6 +880,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						return
 					}
 					err = i.NewChatActivity(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"NewChatKBFSFileEditActivity": {
+				MakeArg: func() interface{} {
+					ret := make([]NewChatKBFSFileEditActivityArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]NewChatKBFSFileEditActivityArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]NewChatKBFSFileEditActivityArg)(nil), args)
+						return
+					}
+					err = i.NewChatKBFSFileEditActivity(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -1112,6 +1134,11 @@ type NotifyChatClient struct {
 
 func (c NotifyChatClient) NewChatActivity(ctx context.Context, __arg NewChatActivityArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.NewChatActivity", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) NewChatKBFSFileEditActivity(ctx context.Context, __arg NewChatKBFSFileEditActivityArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.NewChatKBFSFileEditActivity", []interface{}{__arg})
 	return
 }
 

@@ -21,6 +21,7 @@ type Props = {
   message: Types.Message,
   previous: ?Types.Message,
   isEditing: boolean,
+  measure: null | (() => void),
 }
 
 class MessageFactory extends React.PureComponent<Props> {
@@ -36,6 +37,7 @@ class MessageFactory extends React.PureComponent<Props> {
             isEditing={this.props.isEditing}
             message={this.props.message}
             previous={this.props.previous}
+            measure={this.props.measure}
           />
         )
       case 'attachment':
@@ -45,6 +47,7 @@ class MessageFactory extends React.PureComponent<Props> {
             isEditing={this.props.isEditing}
             message={this.props.message}
             previous={this.props.previous}
+            measure={this.props.measure}
           />
         )
       case 'placeholder':
@@ -94,8 +97,8 @@ const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKe
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  _measure: ownProps.measure,
   isEditing: stateProps.isEditing,
+  measure: ownProps.measure,
   message: stateProps.message,
   previous: stateProps.previous,
 })
@@ -109,11 +112,11 @@ export default compose(
       }
       // If our message is the same id but anything else changed then we need to remeasure
       if (
-        this.props._measure &&
+        this.props.measure &&
         this.props.message !== prevProps.message &&
         (prevProps.message && this.props.message.ordinal === prevProps.message.ordinal)
       ) {
-        this.props._measure()
+        this.props.measure()
       }
     },
   })

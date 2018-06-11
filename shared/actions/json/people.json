@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/people'"
-  ],
+  "prelude": ["import * as Types from '../constants/types/people'"],
   "actions": {
     "getPeopleData": {
       "markViewed": "boolean",

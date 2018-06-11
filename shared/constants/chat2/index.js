@@ -20,6 +20,7 @@ import {formatTextForQuoting} from '../../util/chat'
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   editingMap: I.Map(),
+  explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
   inboxFilter: '',
   isExplodingNew: true,
@@ -30,6 +31,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
     [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
   ]),
   moreToLoadMap: I.Map(),
+  orangeLineMap: I.Map(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
@@ -70,7 +72,7 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
     return null
   }
 
-  return {text: message.text.stringValue(), ordinal}
+  return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
 }
 
 export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => {
@@ -138,8 +140,13 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
  */
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
-export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) =>
-  state.chat2.getIn(['explodingModes', c], 0)
+export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) => {
+  let mode = state.chat2.getIn(['explodingModeLocks', c], null)
+  if (mode === null) {
+    mode = state.chat2.getIn(['explodingModes', c], 0)
+  }
+  return mode
+}
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>

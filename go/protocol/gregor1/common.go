@@ -118,14 +118,26 @@ func (o StateSyncMessage) DeepCopy() StateSyncMessage {
 }
 
 type MsgRange struct {
-	EndTime_  TimeOrOffset `codec:"endTime" json:"endTime"`
-	Category_ Category     `codec:"category" json:"category"`
+	EndTime_    TimeOrOffset `codec:"endTime" json:"endTime"`
+	Category_   Category     `codec:"category" json:"category"`
+	SkipMsgIDs_ []MsgID      `codec:"skipMsgIDs" json:"skipMsgIDs"`
 }
 
 func (o MsgRange) DeepCopy() MsgRange {
 	return MsgRange{
 		EndTime_:  o.EndTime_.DeepCopy(),
 		Category_: o.Category_.DeepCopy(),
+		SkipMsgIDs_: (func(x []MsgID) []MsgID {
+			if x == nil {
+				return nil
+			}
+			var ret []MsgID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.SkipMsgIDs_),
 	}
 }
 

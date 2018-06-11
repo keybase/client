@@ -668,7 +668,7 @@ const styleSearch = {
 
 const styleSearchText = {
   ...styleSearch,
-  fontSize: 15,
+  fontSize: 16,
   position: 'relative',
   top: -1,
   color: globalColors.white_75,

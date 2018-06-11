@@ -577,9 +577,7 @@ func TestPGPDecryptWithSyncedKey(t *testing.T) {
 	decryptCalledPassphrase = decryptIt()
 	require.True(t, decryptCalledPassphrase, "passphrase get was called")
 
-	// See CORE-7929, we shouldn't really need a passphrase here, but for now,
-	// assert the buggy behavior.
 	decryptCalledPassphrase = decryptIt()
-	require.True(t, decryptCalledPassphrase, "passphrase get was called")
+	require.False(t, decryptCalledPassphrase, "passphrase get wasn't called")
 
 }

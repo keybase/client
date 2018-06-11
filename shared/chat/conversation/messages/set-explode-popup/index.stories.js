@@ -4,15 +4,13 @@ import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {action, storiesOf} from '../../../../stories/storybook'
 import SetExplodingPopup from '.'
 
-const items = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
-
 const common = {
   attachTo: null,
   onHidden: action('onHidden'),
   onSelect: action('onSelect'),
   position: 'top left',
   selected: 0,
-  items,
+  items: messageExplodeDescriptions,
   visible: true,
 }
 

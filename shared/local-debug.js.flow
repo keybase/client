@@ -12,6 +12,7 @@ declare export var isTesting: boolean
 declare export var maskStrings: boolean
 declare export var printBridgeB64: boolean
 declare export var printOutstandingRPCs: boolean
+declare export var printOutstandingTimerListeners: boolean
 declare export var printRPC: boolean
 declare export var reduxSagaLogger: boolean
 declare export var reduxSagaLoggerMasked: boolean

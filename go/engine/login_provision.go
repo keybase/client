@@ -471,7 +471,7 @@ func (e *loginProvision) ensureLKSec(m libkb.MetaContext) error {
 		return err
 	}
 
-	e.lks = libkb.NewLKSec(pps, e.arg.User.GetUID(), m.G())
+	e.lks = libkb.NewLKSec(pps, e.arg.User.GetUID())
 	return nil
 }
 
@@ -1031,7 +1031,7 @@ func (e *loginProvision) fetchLKS(m libkb.MetaContext, encKey libkb.GenericKey) 
 	if err != nil {
 		return err
 	}
-	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.arg.User.GetUID(), m.G())
+	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.arg.User.GetUID())
 	return nil
 }
 

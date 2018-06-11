@@ -457,7 +457,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	// Get messages from the source
 	uid := h.G().Env.GetUID()
 	thread, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
-		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+		gregor1.UID(uid.ToBytes()), arg.Reason, arg.Query, arg.Pagination)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
@@ -646,7 +646,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 	// If this is from a push or foreground, set us into the foreground
 	switch arg.Reason {
-	case chat1.GetThreadNonblockReason_PUSH, chat1.GetThreadNonblockReason_FOREGROUND:
+	case chat1.GetThreadReason_PUSH, chat1.GetThreadReason_FOREGROUND:
 		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
 		// to reset any delay checks or timers
 		switch h.G().AppState.State() {
@@ -760,7 +760,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		}
 		var remoteThread chat1.ThreadView
 		remoteThread, fullErr = h.G().ConvSource.Pull(bctx, arg.ConversationID,
-			uid, arg.Query, pagination)
+			uid, arg.Reason, arg.Query, pagination)
 		if fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
 			return
@@ -1171,6 +1171,24 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	return h.PostLocalNonblock(ctx, parg)
 }
 
+func (h *Server) PostReactionNonblock(ctx context.Context, arg chat1.PostReactionNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_REACTION
+	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+		MessageID: arg.Supersedes,
+		Body:      arg.Body,
+	})
+
+	return h.PostLocalNonblock(ctx, parg)
+}
+
 func (h *Server) PostHeadlineNonblock(ctx context.Context, arg chat1.PostHeadlineNonblockArg) (chat1.PostLocalNonblockRes, error) {
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
@@ -1355,7 +1373,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // ephemeralMetadata on this superseder message.
 func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 	switch msg.ClientHeader.MessageType {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
+	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION:
 	default:
 		return msg.ClientHeader.EphemeralMetadata, nil
 	}
@@ -1366,7 +1384,7 @@ func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1
 	}
 
 	messages, err := h.G().ConvSource.GetMessages(ctx, conv, uid,
-		[]chat1.MessageID{msg.ClientHeader.Supersedes})
+		[]chat1.MessageID{msg.ClientHeader.Supersedes}, nil)
 	if err != nil {
 		return nil, err
 	}

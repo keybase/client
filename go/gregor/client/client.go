@@ -230,10 +230,9 @@ func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, s
 	var msgs []gregor.InBandMessage
 	var err error
 
-	c.Sm.Clear()
 	if state == nil {
 		state = new(gregor.State)
-		*state, err = c.State(cli)
+		*state, err = c.State(ctx, cli)
 		if err != nil {
 			return msgs, err
 		}
@@ -244,6 +243,7 @@ func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, s
 	if msgs, err = c.InBandMessagesFromState(*state); err != nil {
 		return msgs, err
 	}
+	c.Sm.Clear()
 	if err = c.Sm.InitState(*state); err != nil {
 		return msgs, err
 	}
@@ -288,7 +288,7 @@ func (c *Client) Sync(ctx context.Context, cli gregor1.IncomingInterface,
 	msgs, err := c.SyncFromTime(ctx, cli, c.Sm.LatestCTime(ctx, c.User, c.Device), syncResult)
 	if err != nil {
 		if _, ok := err.(ErrHashMismatch); ok {
-			c.Log.Debug("Sync(): hash check failure: %v", err)
+			c.Log.CDebugf(ctx, "Sync(): hash check failure: %v", err)
 			return c.freshSync(ctx, cli, nil)
 		}
 		return msgs, err
@@ -311,8 +311,7 @@ func (c *Client) InBandMessagesFromState(s gregor.State) ([]gregor.InBandMessage
 	return res, nil
 }
 
-func (c *Client) State(cli gregor1.IncomingInterface) (res gregor.State, err error) {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (c *Client) State(ctx context.Context, cli gregor1.IncomingInterface) (res gregor.State, err error) {
 	arg := gregor1.StateArg{
 		Uid:          gregor1.UID(c.User.Bytes()),
 		Deviceid:     gregor1.DeviceID(c.Device.Bytes()),
@@ -425,6 +424,7 @@ func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t 
 	if len(msgs) == 0 {
 		return state
 	}
+	c.Log.CDebugf(ctx, "applyOutboxMessages: applying %d outbox messages", len(msgs))
 	sm := c.createSm()
 	sm.InitState(state)
 	for _, m := range msgs {

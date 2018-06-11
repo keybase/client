@@ -10,7 +10,8 @@ import {
   type PropsWithTimer,
 } from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
-import {formatTimeForPopup, formatTimeForRevoked, secondsToDHMS} from '../../../../../util/timestamp'
+import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
+import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {PopupHeaderText} from '../../../../../common-adapters/popup-menu'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -18,12 +19,14 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 type Props = {
   attachTo: ?React.Component<any, any>,
   author: string,
+  canDeleteHistory: boolean,
   canEdit: boolean,
   canExplodeNow: boolean,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   explodesAt: number,
+  onDeleteHistory: () => void,
   onEdit: () => void,
   onExplodeNow: () => void,
   onHidden: () => void,
@@ -39,25 +42,25 @@ type State = {
 }
 
 class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
-  timer: ?IntervalID = null
+  timer: TickerID
   state = {
     secondsLeft: 0,
   }
 
   componentWillMount() {
     if (!__STORYBOOK__) {
-      this.timer = this.props.setInterval(() => this.tick(), 1000)
+      this.timer = addTicker(this.tick)
     }
     this.tick()
   }
 
   componentWillUnmount() {
-    this.timer && this.props.clearInterval(this.timer)
+    this.timer && removeTicker(this.timer)
   }
 
-  tick() {
-    const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
-    let secondsLeft = Math.floor(this.props.explodesAt / 1000) - now
+  tick = () => {
+    const now = __STORYBOOK__ ? 1999999999000 : Date.now()
+    let secondsLeft = Math.floor((this.props.explodesAt - now) / 1000)
     if (secondsLeft < 0) {
       // TODO remove if we end up w/ an "exploded" popup
       this.props.onHidden()
@@ -127,7 +130,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           }}
         >
           <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
-            {secondsToDHMS(this.state.secondsLeft)}
+            {msToDHMS(this.props.explodesAt - Date.now())}
           </Text>
         </Box2>
       </Box2>
@@ -153,6 +156,9 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
             title: 'Explode now',
           },
         ]
+      : []),
+    ...(props.canDeleteHistory
+      ? [{danger: true, onClick: props.onDeleteHistory, title: 'Delete this + everything above'}]
       : []),
   ]
 

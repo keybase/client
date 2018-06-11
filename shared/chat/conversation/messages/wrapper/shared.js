@@ -126,6 +126,8 @@ const RightSide = props => (
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
         <ExplodingHeightRetainer
           explodedBy={props.explodedBy}
+          exploding={props.exploding}
+          messageKey={props.messageKey}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
@@ -150,7 +152,7 @@ const RightSide = props => (
             type="iconfont-exclamation"
             style={iconCastPlatformStyles(styles.exclamation)}
             color={globalColors.blue}
-            fontSize={11}
+            fontSize={14}
           />
         )}
       </Box>
@@ -166,7 +168,7 @@ const RightSide = props => (
       <Box style={styles.sendIndicatorContainer}>
         {props.isYou && (
           <SendIndicator
-            sent={props.messageSent}
+            sent={props.messageSent || props.exploded}
             failed={props.messageFailed}
             style={{marginBottom: 2}}
             id={props.message.timestamp}
@@ -186,6 +188,18 @@ const RightSide = props => (
 )
 
 class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps> {
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.measure) {
+      if (
+        this.props.orangeLineAbove !== prevProps.orangeLineAbove ||
+        this.props.timestamp !== prevProps.timestamp ||
+        this.props.includeHeader !== prevProps.includeHeader
+      ) {
+        this.props.measure()
+      }
+    }
+  }
+
   render() {
     const props = this.props
     return (
@@ -238,17 +252,12 @@ const styles = styleSheetCreate({
     },
   }),
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
-  rightSide: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-      flex: 1,
-      paddingRight: globalMargins.tiny,
-      position: 'relative',
-    },
-    isMobile: {
-      marginRight: sendIndicatorWidth,
-    },
-  }),
+  rightSide: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1,
+    paddingRight: globalMargins.tiny,
+    position: 'relative',
+  },
   rightSideContainer: {
     ...globalStyles.flexBoxRow,
     flex: 1,
@@ -269,7 +278,7 @@ const styles = styleSheetCreate({
     },
     isElectron: {pointerEvents: 'none'},
     isMobile: {
-      right: -sendIndicatorWidth,
+      right: -18,
     },
   }),
   textContainer: {

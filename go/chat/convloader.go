@@ -303,6 +303,11 @@ func (b *BackgroundConvLoader) loop() {
 		b.clock.Sleep(b.resumeWait)
 	}
 
+	// Only access stopCh under lock to avoid racing with b.stopCh = make(chan{}) above.
+	b.Lock()
+	stopCh := b.stopCh
+	b.Unlock()
+
 	// Main loop
 	for {
 		b.Debug(bgctx, "loop: waiting for job")
@@ -346,7 +351,7 @@ func (b *BackgroundConvLoader) loop() {
 			if !waitForResume(ch) {
 				return
 			}
-		case <-b.stopCh:
+		case <-stopCh:
 			b.Debug(bgctx, "loop: shutting down for %s", uid)
 			return
 		}
@@ -357,6 +362,11 @@ func (b *BackgroundConvLoader) loadLoop() {
 	bgctx := context.Background()
 	uid := b.uid
 	b.Debug(bgctx, "loadLoop: starting for uid: %s", uid)
+
+	b.Lock()
+	stopCh := b.stopCh
+	b.Unlock()
+
 	for {
 		select {
 		case task := <-b.loadCh:
@@ -367,7 +377,7 @@ func (b *BackgroundConvLoader) loadLoop() {
 					b.Debug(bgctx, "enqueue error %s", err)
 				}
 			}
-		case <-b.stopCh:
+		case <-stopCh:
 			return
 		}
 	}
@@ -413,7 +423,8 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	if pagination == nil {
 		pagination = &chat1.Pagination{Num: 50}
 	}
-	tv, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid, query, pagination)
+	tv, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid, chat1.GetThreadReason_BACKGROUNDCONVLOAD, query,
+		pagination)
 	if err != nil {
 		b.Debug(ctx, "load: ConvSource.Pull error: %s (%T)", err, err)
 		if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {

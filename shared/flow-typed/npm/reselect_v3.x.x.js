@@ -1,5 +1,7 @@
-// flow-typed signature: e0663523c67e4c7624c0b4f221d8663a
-// flow-typed version: ee257adf63/reselect_v3.x.x/flow_>=v0.47.x
+// flow-typed signature: 84ab000391e0f17dd212d57ed0b180f5
+// flow-typed version: 5d8678f464/reselect_v3.x.x/flow_>=v0.47.x
+
+type ExtractReturnType = <Return>((...rest: any[]) => Return) => Return;
 
 declare module "reselect" {
   declare type InputSelector<-TState, TProps, TResult> =
@@ -883,12 +885,10 @@ declare module "reselect" {
       ...memoizeOptions: any[]
     ) => SelectorCreator,
 
-    createStructuredSelector: <TState, TProps>(
-      inputSelectors: {
-        [k: string | number]: InputSelector<TState, TProps, any>
-      },
+    createStructuredSelector: <TState, TProps, InputSelectors: {[k: string | number]: InputSelector<TState, TProps, any>}>(
+      inputSelectors: InputSelectors,
       selectorCreator?: SelectorCreator
-    ) => OutputSelector<TState, TProps, any>
+    ) => OutputSelector<TState, TProps, $ObjMap<InputSelectors, ExtractReturnType>>
   };
 
   declare module.exports: Reselect;

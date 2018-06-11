@@ -232,6 +232,7 @@ const (
 	MessageType_LEAVE              MessageType = 10
 	MessageType_SYSTEM             MessageType = 11
 	MessageType_DELETEHISTORY      MessageType = 12
+	MessageType_REACTION           MessageType = 13
 )
 
 func (o MessageType) DeepCopy() MessageType { return o }
@@ -250,6 +251,7 @@ var MessageTypeMap = map[string]MessageType{
 	"LEAVE":              10,
 	"SYSTEM":             11,
 	"DELETEHISTORY":      12,
+	"REACTION":           13,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -266,6 +268,7 @@ var MessageTypeRevMap = map[MessageType]string{
 	10: "LEAVE",
 	11: "SYSTEM",
 	12: "DELETEHISTORY",
+	13: "REACTION",
 }
 
 type TopicType int
@@ -1009,6 +1012,7 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 type MessageServerHeader struct {
 	MessageID    MessageID    `codec:"messageID" json:"messageID"`
 	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
+	ReactionIDs  []MessageID  `codec:"r" json:"r"`
 	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
 	Now          gregor1.Time `codec:"n" json:"n"`
 }
@@ -1017,8 +1021,19 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 	return MessageServerHeader{
 		MessageID:    o.MessageID.DeepCopy(),
 		SupersededBy: o.SupersededBy.DeepCopy(),
-		Ctime:        o.Ctime.DeepCopy(),
-		Now:          o.Now.DeepCopy(),
+		ReactionIDs: (func(x []MessageID) []MessageID {
+			if x == nil {
+				return nil
+			}
+			var ret []MessageID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ReactionIDs),
+		Ctime: o.Ctime.DeepCopy(),
+		Now:   o.Now.DeepCopy(),
 	}
 }
 
@@ -1631,6 +1646,47 @@ type RpInherit struct {
 
 func (o RpInherit) DeepCopy() RpInherit {
 	return RpInherit{}
+}
+
+type GetThreadReason int
+
+const (
+	GetThreadReason_GENERAL            GetThreadReason = 0
+	GetThreadReason_PUSH               GetThreadReason = 1
+	GetThreadReason_FOREGROUND         GetThreadReason = 2
+	GetThreadReason_BACKGROUNDCONVLOAD GetThreadReason = 3
+	GetThreadReason_FIXRETRY           GetThreadReason = 4
+	GetThreadReason_PREPARE            GetThreadReason = 5
+	GetThreadReason_SEARCHER           GetThreadReason = 6
+)
+
+func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
+
+var GetThreadReasonMap = map[string]GetThreadReason{
+	"GENERAL":            0,
+	"PUSH":               1,
+	"FOREGROUND":         2,
+	"BACKGROUNDCONVLOAD": 3,
+	"FIXRETRY":           4,
+	"PREPARE":            5,
+	"SEARCHER":           6,
+}
+
+var GetThreadReasonRevMap = map[GetThreadReason]string{
+	0: "GENERAL",
+	1: "PUSH",
+	2: "FOREGROUND",
+	3: "BACKGROUNDCONVLOAD",
+	4: "FIXRETRY",
+	5: "PREPARE",
+	6: "SEARCHER",
+}
+
+func (e GetThreadReason) String() string {
+	if v, ok := GetThreadReasonRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type CommonInterface interface {

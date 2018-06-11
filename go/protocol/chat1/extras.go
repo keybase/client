@@ -122,6 +122,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_ATTACHMENT,
 	MessageType_EDIT,
 	MessageType_ATTACHMENTUPLOADED,
+	MessageType_REACTION,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.

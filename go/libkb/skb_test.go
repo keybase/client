@@ -74,7 +74,7 @@ func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
 	if err != nil {
 		t.Fatal(err)
 	}
-	lks := NewLKSec(pps, keybase1.UID("00000000000000000000000000000019"), gc)
+	lks := NewLKSec(pps, keybase1.UID("00000000000000000000000000000019"))
 	if err := lks.GenerateServerHalf(); err != nil {
 		t.Fatal(err)
 	}

@@ -34,6 +34,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     team: true,
     tracking: true,
     users: true,
+    chatkbfsedits: false,
   }
 
   const engineInst: Engine = yield Saga.call(engine)
