@@ -1,9 +1,9 @@
 // @flow
-import Box from './box'
+import {Box2} from './box'
 import Button from './button'
 import * as React from 'react'
 import {storiesOf, action} from '../stories/storybook'
-import {globalStyles} from '../styles'
+import {globalColors, isMobile} from '../styles'
 
 const commonProps = {
   backgroundMode: 'Normal',
@@ -20,69 +20,83 @@ const commonProps = {
   waiting: false,
 }
 
-const Pair = ({children}) => (
-  <Box style={{...globalStyles.flexBoxRow, width: '100%', marginBottom: 20}}>
-    <Box style={{flex: 1}}>{children[0]}</Box>
-    <Box style={{flex: 1}}>{children[1]}</Box>
-  </Box>
+const Wrapper = ({children}) => (
+  <Box2
+    gap="small"
+    direction={isMobile ? 'vertical' : 'horizontal'}
+    gapStart={true}
+    gapEnd={true}
+    fullWidth={true}
+  >
+    {children}
+  </Box2>
 )
+
+const types = ['Primary', 'Secondary', 'Danger', 'Wallet', 'PrimaryGreen', 'PrimaryGreenActive']
+const backgroundModes = ['Red', 'Green', 'Blue', 'Black']
+const modeToColor = {
+  Black: globalColors.black,
+  Blue: globalColors.blue,
+  Green: globalColors.green,
+  Red: globalColors.red,
+}
 
 const load = () => {
   storiesOf('Common', module).add('Button', () => (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        borderColor: 'grey',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        flex: 1,
-        margin: 20,
-        width: 400,
-      }}
-    >
-      <Pair>
-        <Button {...commonProps} type="Primary" label="Primary" />
-        <Button {...commonProps} type="Primary" label="Primary" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="Secondary" label="Secondary" />
-        <Button {...commonProps} type="Secondary" label="Secondary" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="Danger" label="Danger" />
-        <Button {...commonProps} type="Danger" label="Danger" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="Wallet" label="Wallet" />
-        <Button {...commonProps} type="Wallet" label="Wallet" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="PrimaryGreen" label="Primary Green" />
-        <Button {...commonProps} type="PrimaryGreen" label="Primary Green" disabled={true} />
-      </Pair>
-      <Pair>
-        <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active" />
-        <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active" disabled={true} />
-      </Pair>
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'flex-start',
-          alignSelf: 'flex-start',
-          marginTop: 20,
-        }}
-      >
-        <Button {...commonProps} type="Primary" label="Primary small" small={true} />
-        <Box style={{height: 10}} />
-        <Button {...commonProps} type="Secondary" label="Secondary small" small={true} />
-        <Box style={{height: 10}} />
-        <Button {...commonProps} type="Danger" label="Danger small" small={true} />
-        <Box style={{height: 10}} />
-        <Button {...commonProps} type="PrimaryGreen" label="Primary Green small" small={true} />
-        <Box style={{height: 10}} />
-        <Button {...commonProps} type="PrimaryGreenActive" label="Primary Green Active small" small={true} />
-      </Box>
-    </Box>
+    <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true}>
+      {types.map(t => (
+        <Wrapper key={t}>
+          <Button {...commonProps} type={t} label={t} />
+          <Button {...commonProps} type={t} label={t} disabled={true} />
+          <Button {...commonProps} type={t} label={t} waiting={true} />
+        </Wrapper>
+      ))}
+      <Wrapper>
+        <Box2
+          direction="vertical"
+          gap="small"
+          gapStart={true}
+          gapEnd={true}
+          style={{alignSelf: 'flex-start'}}
+        >
+          {types.map(t => (
+            <Wrapper key={t}>
+              <Button {...commonProps} type={t} label={t} small={true} />
+              <Button {...commonProps} type={t} label={t} small={true} waiting={true} />
+            </Wrapper>
+          ))}
+        </Box2>
+      </Wrapper>
+      <Wrapper>
+        <Box2
+          direction="vertical"
+          gap="small"
+          gapStart={true}
+          gapEnd={true}
+          style={{
+            alignSelf: 'flex-start',
+            borderColor: 'black',
+            borderStyle: 'solid',
+            borderWidth: 1,
+            width: isMobile ? 220 : 400,
+          }}
+        >
+          {types.map(t => (
+            <Box2 direction="vertical" key={t} gap="small" fullWidth={true}>
+              <Button {...commonProps} type={t} label={t} fullWidth={true} />
+              <Button {...commonProps} type={t} label={t} fullWidth={true} waiting={true} />
+            </Box2>
+          ))}
+        </Box2>
+      </Wrapper>
+      <Box2 direction="vertical" style={{alignSelf: 'flex-start'}}>
+        {backgroundModes.map(b => (
+          <Box2 direction="horizontal" key={b} style={{backgroundColor: modeToColor[b], padding: 20}}>
+            <Button {...commonProps} type="PrimaryColoredBackground" label={b} backgroundMode={b} />
+          </Box2>
+        ))}
+      </Box2>
+    </Box2>
   ))
 }
 

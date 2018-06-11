@@ -4,12 +4,15 @@ import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Saga from '../../util/saga'
+import * as EngineRpc from '../../constants/engine'
+import * as ChatConstants from '../../constants/chat2'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import {platformSpecificSaga, platformSpecificIntentEffect} from './platform-specific'
-import {getMimeTypeFromURL} from '../platform-specific'
+import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
@@ -282,16 +285,27 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
   }
 }
 
+// Following RFC https://tools.ietf.org/html/rfc7231#section-3.1.1.1 Examples:
+//   text/html;charset=utf-8
+//   text/html;charset=UTF-8
+//   Text/HTML;Charset="utf-8"
+//   text/html; charset="utf-8"
+// The last part is optional, so if `;` is missing, it'd be just the mimetype.
+const extractMimeTypeFromContentType = (contentType: string): string => {
+  const ind = contentType.indexOf(';')
+  return (ind > -1 ? contentType.slice(0, ind) : contentType).toLowerCase()
+}
+
 const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer) =>
   new Promise((resolve, reject) =>
-    getMimeTypeFromURL(Constants.generateFileURL(path, serverInfo), ({error, statusCode, mimeType}) => {
+    getContentTypeFromURL(Constants.generateFileURL(path, serverInfo), ({error, statusCode, contentType}) => {
       if (error) {
         reject(error)
         return
       }
       switch (statusCode) {
         case 200:
-          resolve(mimeType)
+          resolve(extractMimeTypeFromContentType(contentType))
           return
         case 403:
           reject(Constants.invalidTokenError)
@@ -398,6 +412,71 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
   )
 }
 
+const inboxQuery = {
+  ...ChatConstants.makeInboxQuery([]),
+  computeActiveList: false,
+  tlfVisibility: RPCTypes.commonTLFVisibility.any,
+}
+
+const {team, impteamnative, impteamupgrade} = RPCChatTypes.commonConversationMembersType
+
+function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, any> {
+  // TODO: maybe uncomment?
+  // const conversations = yield Saga.call(
+  //   RpcChatTypes.localFindConversationsLocalRpcPromise,
+  //   action.payload.tlfName
+  // )
+  const resetRpc = new EngineRpc.EngineRpcCall(
+    {
+      'chat.1.chatUi.chatInboxUnverified': function*({
+        inbox,
+      }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
+        const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+        // whatever
+        if (!result || !result.items) return EngineRpc.rpcResult()
+        const tlfs: Array<[Types.Path, Types.ResetMetadata]> = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
+          const visibility = item.visibility === RPCTypes.commonTLFVisibility.private
+                ? item.membersType === team
+                  ? 'team'
+                  : 'private'
+                : 'public'
+          const name = item.name
+          const path = Types.stringToPath(`/keybase/${visibility}/${name}`)
+          if (
+            item &&
+              item.localMetadata &&
+              item.localMetadata.resetParticipants &&
+              // Ignore KBFS-backed TLFs
+              [team, impteamnative, impteamupgrade].includes(item.membersType)
+          ) {
+            filtered.push([
+              path, {
+                name,
+                visibility,
+                resetParticipants: item.localMetadata.resetParticipants || [],
+              },
+            ])
+          }
+          return filtered
+        }, [])
+        yield Saga.put(FsGen.createLoadResetsResult({tlfs: I.Map(tlfs)}))
+        return EngineRpc.rpcResult()
+      },
+    },
+    RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+    'tlfCall',
+    {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      maxUnbox: 0,
+      query: inboxQuery,
+      skipUnverified: false,
+    },
+    false,
+    loading => {}
+  )
+  yield Saga.call(resetRpc.run)
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -411,6 +490,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
+  yield Saga.safeTakeEvery(FsGen.loadResets, loadResets)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

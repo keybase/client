@@ -256,13 +256,15 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 // be able to access it from inside the accessor with exclusion.
 func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusKeysV2AllIncarnations) error, shouldReturnFullUser bool) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error) {
 
-	// Shorthand
-	g := u.G()
-
 	// Add a LU= tax to this context, for all subsequent debugging
-	ctx := arg.WithLogTag()
+	arg = arg.EnsureCtxAndLogTag()
 
-	defer g.CVTrace(ctx, VLog0, culDebug(arg.uid), func() error { return err })()
+	// Shorthands
+	m := arg.MetaContext()
+	g := m.G()
+	ctx := m.Ctx()
+
+	defer m.CVTrace(VLog0, culDebug(arg.uid), func() error { return err })()
 
 	if arg.uid.IsNil() {
 		if len(arg.name) == 0 {
@@ -286,7 +288,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		if user != nil && err == nil {
 			// Update the full-self cacher after the lock is released, to avoid
 			// any circular locking.
-			if fs := u.G().GetFullSelfer(); fs != nil && arg.self {
+			if fs := g.GetFullSelfer(); fs != nil && arg.self {
 				fs.Update(ctx, user)
 			}
 		}
@@ -330,7 +332,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		var sigHints *SigHints
 		var leaf *MerkleUserLeaf
 
-		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(ctx, u.G(), arg.uid, true)
+		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(m, arg.uid, true)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -403,7 +405,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	}
 
 	if err := u.putUPAKToCache(ctx, ret); err != nil {
-		u.G().Log.CDebugf(ctx, "continuing past error in putUPAKToCache: %s", err)
+		m.CDebugf("continuing past error in putUPAKToCache: %s", err)
 	}
 
 	if u.TestDeadlocker != nil {

@@ -1,5 +1,5 @@
-// flow-typed signature: bd5e8cb9294f7dbf31e40cd033242d30
-// flow-typed version: dee84acd50/react-transition-group_v2.x.x/flow_>=v0.60.x
+// flow-typed signature: f141dfa8c0b7f5df073148a65aa8cf8d
+// flow-typed version: b55e88afb4/react-transition-group_v2.x.x/flow_>=v0.60.x
 
 // @flow
 
@@ -21,7 +21,7 @@ declare module 'react-transition-group' {
   declare export type EnterHandler = (node: HTMLElement, isAppearing: boolean) => void;
   declare export type ExitHandler = (node: HTMLElement) => void;
 
-  declare interface TransitionActions {
+  declare type TransitionActions = {
     appear?: boolean;
     enter?: boolean;
     exit?: boolean;
@@ -49,11 +49,8 @@ declare module 'react-transition-group' {
     children: ((status: TransitionStatus) => React$Node) | React$Node,
   }> {}
 
-  declare export class TransitionGroup extends React$Component<{
+  declare export class TransitionGroup extends React$Component<TransitionActions & {
     component?: React$ElementType | null,
-    appear?: boolean,
-    enter?: boolean,
-    exit?: boolean,
     children?: React$Node,
     childFactory?: (child: React$Node) => React$Node,
   }> {}

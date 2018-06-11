@@ -38,8 +38,8 @@ class _SimpleTopLine extends React.Component<Props> {
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
           flexGrow: 1,
-          height: isMobile ? 20 : 17,
-          maxHeight: isMobile ? 20 : 17,
+          height: isMobile ? 21 : 17,
+          maxHeight: isMobile ? 21 : 17,
         }}
       >
         {this.props.showGear && (
@@ -103,8 +103,7 @@ class _SimpleTopLine extends React.Component<Props> {
             className="small-team-gear"
             onClick={this.props.toggleShowingMenu}
             ref={this.props.setAttachmentRef}
-            color={this.props.subColor}
-            fontSize={14}
+            color={globalColors.black_20}
             hoverColor={this.props.iconHoverColor}
             style={{position: 'relative', right: globalMargins.xtiny}}
           />

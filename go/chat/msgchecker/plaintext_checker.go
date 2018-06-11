@@ -41,12 +41,13 @@ func validateTopicName(topicName string) validateTopicNameRes {
 }
 
 type MessagePlaintextLengthExceedingError struct {
+	ActualLength         int
 	MaxLength            int
 	DescriptibleItemName string
 }
 
 func (e MessagePlaintextLengthExceedingError) Error() string {
-	return fmt.Sprintf("%s exceeds the maximum length of %d bytes", e.DescriptibleItemName, e.MaxLength)
+	return fmt.Sprintf("%s of size %d bytes exceeds the maximum length of %d bytes", e.DescriptibleItemName, e.ActualLength, e.MaxLength)
 }
 
 func (e MessagePlaintextLengthExceedingError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
@@ -56,6 +57,7 @@ func (e MessagePlaintextLengthExceedingError) IsImmediateFail() (chat1.OutboxErr
 func plaintextFieldLengthChecker(descriptibleItemName string, actualLength int, maxLength int) error {
 	if actualLength > maxLength {
 		return MessagePlaintextLengthExceedingError{
+			ActualLength:         actualLength,
 			MaxLength:            maxLength,
 			DescriptibleItemName: descriptibleItemName,
 		}
@@ -83,6 +85,8 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), TextMessageMaxLength)
 	case chat1.MessageType_EDIT:
 		return plaintextFieldLengthChecker("message edit", len(msg.MessageBody.Edit().Body), TextMessageMaxLength)
+	case chat1.MessageType_REACTION:
+		return plaintextFieldLengthChecker("message reaction", len(msg.MessageBody.Reaction().Body), ReactionMessageMaxLength)
 	case chat1.MessageType_HEADLINE:
 		return plaintextFieldLengthChecker("headline", len(msg.MessageBody.Headline().Headline), HeadlineMaxLength)
 	case chat1.MessageType_METADATA:

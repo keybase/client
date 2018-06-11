@@ -24,7 +24,7 @@ const commonProps = {
 }
 
 const load = () => {
-  storiesOf('Teams/Retention', module)
+  storiesOf('Teams/Settings/Retention', module)
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))

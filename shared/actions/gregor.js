@@ -10,6 +10,7 @@ import * as GregorGen from './gregor-gen'
 import * as TeamsGen from './teams-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
+import * as ChatConstants from '../constants/chat2/'
 import engine from '../engine'
 import {folderFromPath} from '../constants/favorite.js'
 import {nativeReachabilityEvents} from '../util/reachability'
@@ -18,8 +19,8 @@ import {type State as GregorState, type OutOfBandMessage} from '../constants/typ
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
-import {explodingModeGregorKeyPrefix} from '../constants/chat2/'
 import {stringToConversationIDKey} from '../constants/types/chat2'
+import {chosenChannelsGregorKey} from '../constants/teams'
 
 function isTlfItem(gItem: Types.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
@@ -143,7 +144,7 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
     yield Saga.put(TeamsGen.createSetTeamSawSubteamsBanner())
   }
 
-  const chosenChannels = items.find(i => i.item && i.item.category === 'chosenChannelsForTeam')
+  const chosenChannels = items.find(i => i.item && i.item.category === chosenChannelsGregorKey)
   const teamsWithChosenChannelsStr =
     chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
   const teamsWithChosenChannels = teamsWithChosenChannelsStr
@@ -153,7 +154,9 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
 }
 
 function handleConvExplodingModes(items: Array<Types.NonNullGregorItem>) {
-  const explodingItems = items.filter(i => i.item.category.startsWith(explodingModeGregorKeyPrefix))
+  const explodingItems = items.filter(i =>
+    i.item.category.startsWith(ChatConstants.explodingModeGregorKeyPrefix)
+  )
   if (!explodingItems.length) {
     // No conversations have exploding modes, clear out what is set
     return Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
@@ -167,12 +170,75 @@ function handleConvExplodingModes(items: Array<Types.NonNullGregorItem>) {
       logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
       return current
     }
-    const _conversationIDKey = category.substring(explodingModeGregorKeyPrefix.length)
+    const _conversationIDKey = category.substring(ChatConstants.explodingModeGregorKeyPrefix.length)
     const conversationIDKey = stringToConversationIDKey(_conversationIDKey)
     current.push({conversationIDKey, seconds})
     return current
   }, [])
   return Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes}))
+}
+
+function getIsExplodingNewDismissActions(items: Array<Types.NonNullGregorItem>) {
+  const seenExplodings = items.filter(i => i.item.category === ChatConstants.seenExplodingGregorKey)
+  const newExplodings = items.filter(i => i.item.category === ChatConstants.newExplodingGregorKey)
+
+  if (seenExplodings.length > 1) {
+    logger.warn('Found some extra seenExploding gregor items. Dismissing...')
+  }
+
+  const ret = []
+  let oldestSeenExploding
+  if (seenExplodings.length > 1) {
+    // keep the oldest one, dismiss the rest
+    oldestSeenExploding = seenExplodings.sort((a, b) => (a.md.ctime > b.md.ctime ? 0 : 1)).pop()
+    ret.push(...seenExplodings)
+  } else if (seenExplodings.length === 1) {
+    oldestSeenExploding = seenExplodings[0]
+  }
+
+  // keep the oldest one, or dismiss all if oldest one was created > offset between seenExploding and newExploding
+  const oldest = newExplodings.sort((a, b) => (a.md.ctime > b.md.ctime ? 0 : 1)).pop()
+  if (
+    oldestSeenExploding &&
+    oldest &&
+    oldest.md.ctime - oldestSeenExploding.md.ctime > ChatConstants.newExplodingGregorOffset
+  ) {
+    newExplodings.push(oldest)
+  }
+  ret.push(...newExplodings)
+
+  if (newExplodings.length) {
+    logger.warn('Found some extra newExploding gregor items. Dismissing...')
+  }
+
+  return ret.map(i => Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: i.md.msgID}))
+}
+
+function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
+  const seenExploding = items.find(i => i.item.category === ChatConstants.seenExplodingGregorKey)
+  const newExploding = items.find(i => i.item.category === ChatConstants.newExplodingGregorKey)
+  const actions = getIsExplodingNewDismissActions(items)
+  if (!seenExploding && !newExploding) {
+    // neither exist. we haven't been here before - set flag in store to new.
+    actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: true})))
+  } else if (!seenExploding) {
+    // newExploding && !seenExploding. this should never happen
+    logger.warn('Got newExploding but not seenExploding! Setting seenExploding...')
+    actions.push(
+      Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+        cat: ChatConstants.seenExplodingGregorKey,
+        body: 'true',
+        dtime: {time: 0, offset: 0},
+      })
+    )
+  } else if (!newExploding) {
+    // seenExploding but not newExploding, set flag in store to old
+    actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: false})))
+  } else {
+    // both exist. exploding messages are new.
+    actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: true})))
+  }
+  return Saga.all(actions)
 }
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
@@ -189,6 +255,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
       Saga.call(handleTLFUpdate, nonNullItems),
       Saga.call(handleBannersAndBadges, nonNullItems),
       handleConvExplodingModes(nonNullItems),
+      handleIsExplodingNew(nonNullItems),
     ])
   } else {
     logger.debug('Error in gregor pushState', pushAction.payload)

@@ -5,6 +5,7 @@ import * as Types from '../../../../constants/types/chat2'
 export type Props = {
   author: string,
   exploded: boolean,
+  explodedBy: string,
   explodesAt: number,
   exploding: boolean,
   failureDescription: string,
@@ -17,8 +18,11 @@ export type Props = {
   isFollowing: boolean,
   isRevoked: boolean,
   isYou: boolean,
+  measure: null | (() => void),
   message: Types.MessageText | Types.MessageAttachment,
   messageFailed: boolean,
+  messageKey: string, // must always be unique and immutable for the message
+  messagePending: boolean,
   messageSent: boolean,
   onRetry: null | (() => void),
   onEdit: null | (() => void),

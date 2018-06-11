@@ -75,8 +75,7 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(m libkb.MetaContext) error {
 			ForceLast: true,
 		}
 		revokeEng := NewRevokeDeviceEngine(m.G(), revokeArg)
-		err = revokeEng.Run(m)
-		if err != nil {
+		if err = revokeEng.Run(m); err != nil {
 			m.CDebugf("DeprovisionEngine error during revoke: %s", err)
 			return err
 		}
@@ -108,5 +107,8 @@ func (e *DeprovisionEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
-	return libkb.ClearSecretsOnDeprovision(m, e.username)
+	if err = libkb.ClearSecretsOnDeprovision(m, e.username); err != nil {
+		m.CDebugf("DeprovisionEngine error during clear secrets: %s", err)
+	}
+	return nil
 }

@@ -2,15 +2,10 @@
 // @flow
 import * as I from 'immutable'
 import * as Common from './common'
-import type {Ordinal} from './message'
 import type {RetentionPolicy} from '../teams'
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
-
-// When we scroll backwards we get an opaque string back to use as a token to get the next page
-export opaque type PaginationKey: string = string
-export const stringToPaginationKey = (s: string): PaginationKey => s
 
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
@@ -27,9 +22,7 @@ export type _ConversationMeta = {
   notificationsMobile: NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,
   offline: boolean,
-  orangeLineOrdinal: ?Ordinal,
-  paginationKey: ?PaginationKey,
-  participants: I.OrderedSet<string>,
+  participants: I.List<string>, // was OrderedSet but is quite slow
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,
   retentionPolicy: RetentionPolicy,

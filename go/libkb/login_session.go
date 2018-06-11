@@ -196,3 +196,28 @@ func (s *LoginSession) Load(m MetaContext) error {
 
 	return nil
 }
+
+func LookupSaltForUID(m MetaContext, uid keybase1.UID) (salt []byte, err error) {
+	defer m.CTrace(fmt.Sprintf("GetSaltForUID(%s)", uid), func() error { return err })()
+	res, err := m.G().API.Get(APIArg{
+		Endpoint:    "getsalt",
+		SessionType: APISessionTypeNONE,
+		Args: HTTPArgs{
+			"uid": S{Val: uid.String()},
+		},
+		MetaContext: m,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var shex string
+	shex, err = res.Body.AtKey("salt").GetString()
+	if err != nil {
+		return nil, err
+	}
+	salt, err = hex.DecodeString(shex)
+	if err != nil {
+		return nil, err
+	}
+	return salt, err
+}

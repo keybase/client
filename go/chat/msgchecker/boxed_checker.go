@@ -8,16 +8,20 @@ import (
 
 type MessageBoxedLengthExceedingError struct {
 	DescriptibleItemName string
+	ActualLength         int
+	MaxLength            int
 }
 
 func (e MessageBoxedLengthExceedingError) Error() string {
-	return fmt.Sprintf("%s exceeds the maximum length", e.DescriptibleItemName)
+	return fmt.Sprintf("%s exceeds the maximum length (%v > %v)", e.DescriptibleItemName, e.ActualLength, e.MaxLength)
 }
 
 func boxedFieldLengthChecker(descriptibleItemName string, actualLength int, maxLength int) error {
 	if actualLength > maxLength {
 		return MessageBoxedLengthExceedingError{
 			DescriptibleItemName: descriptibleItemName,
+			ActualLength:         actualLength,
+			MaxLength:            maxLength,
 		}
 	}
 	return nil
@@ -35,6 +39,8 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 		return boxedFieldLengthChecker("TEXT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
 	case chat1.MessageType_EDIT:
 		return boxedFieldLengthChecker("EDIT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
+	case chat1.MessageType_REACTION:
+		return boxedFieldLengthChecker("REACTION message", len(msg.BodyCiphertext.E), BoxedReactionMessageBodyMaxLength)
 	case chat1.MessageType_HEADLINE:
 		return boxedFieldLengthChecker("HEADLINE message", len(msg.BodyCiphertext.E), BoxedHeadlineMessageBodyMaxLength)
 	case chat1.MessageType_METADATA:

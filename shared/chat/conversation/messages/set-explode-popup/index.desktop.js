@@ -41,27 +41,53 @@ const announcementContainerStyle = {
   paddingBottom: globalMargins.tiny,
 }
 
+const quantityTextStyle = platformStyles({
+  common: {
+    textAlign: 'right',
+    // NOTE if times are added that have three digits, this will need to be increased.
+    width: 15,
+  },
+  isElectron: {
+    display: 'inline-block',
+  },
+})
+
 type ItemProps = {
   desc: MessageExplodeDescription,
   selected: boolean,
-  onSelect: MessageExplodeDescription => void,
 }
 
-const Item = (props: ItemProps) => (
-  <Box2 direction="horizontal" fullWidth={true}>
-    <Text type="Body" style={{flex: 1}}>
-      {props.desc.text}
-    </Text>
-    {props.selected && <Icon type="iconfont-check" color={globalColors.blue} />}
-  </Box2>
-)
+const Item = (props: ItemProps) => {
+  let content
+  const words = props.desc.text.split(' ')
+  if (words.length === 1) {
+    content = props.desc.text
+  } else {
+    content = (
+      <React.Fragment>
+        <Text type="Body" style={quantityTextStyle}>
+          {words[0]}
+        </Text>
+        {' ' + words.slice(1).join(' ')}
+      </React.Fragment>
+    )
+  }
+  return (
+    <Box2 direction="horizontal" fullWidth={true}>
+      <Text type="Body" style={{flex: 1}}>
+        {content}
+      </Text>
+      {props.selected && <Icon type="iconfont-check" color={globalColors.blue} />}
+    </Box2>
+  )
+}
 
 export default (props: Props) => {
   const selected = props.selected || {text: 'Never', seconds: 0}
   const listItems = props.items.map(it => ({
-    onClick: () => props.onSelect(it),
+    onClick: () => props.onSelect(it.seconds),
     title: it.text,
-    view: <Item desc={it} selected={selected.seconds === it.seconds} onSelect={props.onSelect} />,
+    view: <Item desc={it} selected={selected === it.seconds} />,
   }))
   listItems.unshift({
     title: 'Explode message after:',

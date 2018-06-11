@@ -77,7 +77,7 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	lks := libkb.NewLKSecWithClientHalf(clientLKS, gen, me.GetUID(), m.G())
+	lks := libkb.NewLKSecWithClientHalf(clientLKS, gen, me.GetUID())
 	m.CDebugf("Got LKS client half")
 
 	// Get the LKS server half.

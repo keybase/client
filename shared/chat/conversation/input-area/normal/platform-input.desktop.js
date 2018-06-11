@@ -2,14 +2,23 @@
 /* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
+import {
+  glamorous,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import flags from '../../../../util/feature-flags'
-
+import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import {ExplodingMeta} from './shared'
 
 const MentionCatcher = ({onClick}) => (
   <Box
@@ -26,11 +35,11 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps, State> {
+class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
   _input: ?Input
   _fileInput: ?HTMLInputElement
 
-  constructor(props: PlatformInputProps) {
+  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
     super(props)
     this.state = {
       emojiPickerOpen: false,
@@ -85,6 +94,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     const text = this._getText()
     if (text) {
       this.props.onSubmit(text)
+      this.setState({hasText: false})
     }
   }
 
@@ -185,6 +195,11 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     this.props.setChannelMentionPopupOpen(false)
   }
 
+  _toggleShowingMenu = () => {
+    this.props.onSeenExplodingMessages()
+    this.props.toggleShowingMenu()
+  }
+
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
@@ -203,7 +218,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
       >
         {this.props.isEditing && (
           <Box style={editingTabStyle}>
-            <Text type="BodySmall">Editing:</Text>
+            <Text type="BodySmall">Edit:</Text>
             <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
               Cancel
             </Text>
@@ -268,14 +283,38 @@ class PlatformInput extends Component<PlatformInputProps, State> {
                   fontSize={34}
                   hoverColor={globalColors.black_20}
                   onClick={this._inputFocus}
-                  style={{
-                    left: 183,
-                    marginTop: -12,
-                    position: 'absolute',
-                  }}
+                  style={styleBoomIcon}
                   type="iconfont-boom"
                 />
               )}
+            {flags.explodingMessagesEnabled &&
+              this.props.showingMenu && (
+                <SetExplodingMessagePopup
+                  attachTo={this.props.attachmentRef}
+                  conversationIDKey={this.props.conversationIDKey}
+                  onHidden={this.props.toggleShowingMenu}
+                  visible={this.props.showingMenu}
+                />
+              )}
+            {flags.explodingMessagesEnabled && (
+              <HoverBox
+                onClick={this._toggleShowingMenu}
+                ref={this.props.setAttachmentRef}
+                style={styles.explodingIconContainer}
+              >
+                <Icon
+                  className="bomb"
+                  color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
+                  onClick={this._toggleShowingMenu}
+                  style={styleIcon}
+                  type="iconfont-bomb"
+                />
+                <ExplodingMeta
+                  explodingModeSeconds={this.props.explodingModeSeconds}
+                  isNew={this.props.isExplodingNew}
+                />
+              </HoverBox>
+            )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
@@ -294,7 +333,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             >
               {isTyping(this.props.typing)}
             </Text>
-            <Text type="BodySmall" style={{...styleFooter, textAlign: 'right'}} onClick={this._inputFocus}>
+            <Text type="BodySmall" style={styleFooter} onClick={this._inputFocus} selectable={true}>
               *bold*, _italics_, `code`, >quote
             </Text>
           </Box>
@@ -374,16 +413,17 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
 const editingTabStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
-  backgroundColor: globalColors.yellow_60,
-  padding: 4,
+  backgroundColor: globalColors.yellow3,
+  maxWidth: 48,
+  padding: globalMargins.tiny,
 }
 
 const styleMentionHud = {
   borderRadius: 4,
   boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
-  height: 220,
-  marginLeft: 20,
-  marginRight: 20,
+  height: 224,
+  marginLeft: globalMargins.tiny,
+  marginRight: globalMargins.small,
   width: '100%',
 }
 
@@ -400,16 +440,41 @@ const styleIcon = {
   paddingTop: globalMargins.tiny,
 }
 
-const styleFooter = platformStyles({
+const styleBoomIcon = platformStyles({
+  common: {
+    left: 183,
+    marginTop: -27,
+    position: 'absolute',
+  },
   isElectron: {
-    color: globalColors.black_20,
     cursor: 'text',
-    marginBottom: globalMargins.xtiny,
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
-    marginTop: 0,
-    textAlign: 'right',
   },
 })
 
-export default PlatformInput
+const styleFooter = {
+  color: globalColors.black_20,
+  marginBottom: globalMargins.xtiny,
+  marginLeft: globalMargins.tiny,
+  marginRight: globalMargins.tiny,
+  marginTop: 0,
+  textAlign: 'right',
+}
+
+const styles = styleSheetCreate({
+  explodingIconContainer: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'stretch',
+    alignSelf: 'flex-end',
+    justifyContent: 'flex-start',
+    marginRight: 8,
+    marginTop: 13,
+  },
+})
+
+const HoverBox = glamorous(Box)({
+  ':hover .bomb': {
+    color: globalColors.black_75,
+  },
+})
+
+export default FloatingMenuParentHOC(PlatformInput)

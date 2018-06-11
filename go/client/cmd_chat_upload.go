@@ -34,16 +34,9 @@ func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			Usage: "Title of attachment (defaults to filename)",
 		},
 	}
-	// TODO move this to mustGetChatFlags once we release
-	ekLib := ephemeral.NewEKLib(g)
-	if ekLib.ShouldRun(context.TODO()) {
-		flags = append(flags,
-			cli.DurationFlag{
-				Name: "exploding-lifetime",
-				Usage: fmt.Sprintf(`Make this message an exploding message and set the lifetime for the given duration.
-	The maximum lifetime is %v (one week) and the minimum lifetime is %v.`,
-					libkb.MaxEphemeralLifetime, libkb.MinEphemeralLifetime),
-			})
+	// TODO remove this check for release.
+	if ephemeral.NewEKLib(g).ShouldRun(context.TODO()) {
+		flags = append(flags, mustGetChatFlags("exploding-lifetime")...)
 	}
 	return cli.Command{
 		Name:         "upload",
@@ -74,6 +67,12 @@ func (c *CmdChatUpload) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdChatUpload) Run() error {
+	// Verify that we are not trying to send an ephemeral message to a public
+	// chat.
+	if c.ephemeralLifetime.Duration > 0 && c.public {
+		return fmt.Errorf("Cannot send ephemeral messages with --public set.")
+	}
+
 	opts := attachOptionsV1{
 		Channel: ChatChannel{
 			Name:   c.tlf,

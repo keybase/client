@@ -10,7 +10,6 @@ import {
   PushNotificationIOS,
   CameraRoll,
   ActionSheetIOS,
-  AsyncStorage,
   Linking,
   NativeModules,
   NativeEventEmitter,
@@ -20,7 +19,6 @@ import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS, isAndroid} from '../constants/platform'
 
-const shownPushPrompt = 'shownPushPrompt'
 // Used to listen to the java intent for notifications
 let RNEmitter
 // Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
@@ -36,18 +34,9 @@ function requestPushPermissions() {
   return isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
 }
 
-// Sets that we've shown the push prompt in local storage
-function setShownPushPrompt() {
-  return new Promise((resolve, reject) => {
-    logger.info('Setting shownPushPrompt to true in local storage')
-    AsyncStorage.setItem(shownPushPrompt, 'true', e => {
-      resolve()
-    })
-  })
-}
-
-function getShownPushPrompt() {
-  return AsyncStorage.getItem(shownPushPrompt)
+function getShownPushPrompt(): Promise<boolean> {
+  const PushPrompt = NativeModules.PushPrompt
+  return PushPrompt.getHasShownPushPrompt()
 }
 
 function checkPermissions() {
@@ -274,16 +263,16 @@ function openAppSettings() {
   Linking.openURL('app-settings:')
 }
 
-const getMimeTypeFromURL = (
+const getContentTypeFromURL = (
   url: string,
-  cb: ({error?: any, statusCode?: number, mimeType?: string}) => void
+  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
 ) =>
   // For some reason HEAD doesn't work on Android. So just GET one byte.
   // TODO: fix HEAD for Android and get rid of this hack.
   isAndroid
     ? fetch(url, {method: 'GET', headers: {Range: 'bytes=0-0'}}) // eslint-disable-line no-undef
         .then(response => {
-          let mimeType = ''
+          let contentType = ''
           let statusCode = response.status
           if (
             statusCode === 200 ||
@@ -291,10 +280,10 @@ const getMimeTypeFromURL = (
             // 416 can happen if the file is empty.
             statusCode === 416
           ) {
-            mimeType = response.headers.get('Content-Type')
+            contentType = response.headers.get('Content-Type')
             statusCode = 200 // Treat 200, 206, and 416 as 200.
           }
-          cb({statusCode, mimeType})
+          cb({statusCode, contentType})
         })
         .catch(error => {
           console.log(error)
@@ -302,11 +291,11 @@ const getMimeTypeFromURL = (
         })
     : fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
         .then(response => {
-          let mimeType = ''
+          let contentType = ''
           if (response.status === 200) {
-            mimeType = response.headers.get('Content-Type')
+            contentType = response.headers.get('Content-Type')
           }
-          cb({statusCode: response.status, mimeType})
+          cb({statusCode: response.status, contentType})
         })
         .catch(error => {
           console.log(error)
@@ -325,9 +314,8 @@ export {
   configurePush,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
-  setShownPushPrompt,
   getShownPushPrompt,
   showShareActionSheet,
   clearAllNotifications,
-  getMimeTypeFromURL,
+  getContentTypeFromURL,
 }

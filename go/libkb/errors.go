@@ -1158,6 +1158,11 @@ const (
 	merkleErrorBadLeaf
 	merkleErrorNoUpdates
 	merkleErrorBadSigID
+	merkleErrorAncientSeqno
+	merkleErrorKBFSBadTree
+	merkleErrorKBFSMismatch
+	merkleErrorBadRoot
+	merkleErrorOldTree
 )
 
 type MerkleClientError struct {
@@ -1870,6 +1875,10 @@ func (e ChatBadMsgError) Error() string {
 	return e.Msg
 }
 
+func (e ChatBadMsgError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 //=============================================================================
 
 type ChatBroadcastError struct {
@@ -1901,6 +1910,10 @@ func (e ChatAlreadySupersededError) Error() string {
 	return e.Msg
 }
 
+func (e ChatAlreadySupersededError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 //=============================================================================
 
 type ChatAlreadyDeletedError struct {
@@ -1909,6 +1922,10 @@ type ChatAlreadyDeletedError struct {
 
 func (e ChatAlreadyDeletedError) Error() string {
 	return e.Msg
+}
+
+func (e ChatAlreadyDeletedError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
 }
 
 //=============================================================================
@@ -1931,6 +1948,10 @@ func (e ChatDuplicateMessageError) Error() string {
 	return fmt.Sprintf("duplicate message send: outboxID: %s", e.OutboxID)
 }
 
+func (e ChatDuplicateMessageError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_DUPLICATE, true
+}
+
 //=============================================================================
 
 type ChatClientError struct {
@@ -1939,6 +1960,10 @@ type ChatClientError struct {
 
 func (e ChatClientError) Error() string {
 	return fmt.Sprintf("error from chat server: %s", e.Msg)
+}
+
+func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
 }
 
 //=============================================================================

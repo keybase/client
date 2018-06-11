@@ -63,11 +63,12 @@ type ConversationSource interface {
 		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
 	PushUnboxed(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, msg chat1.MessageUnboxed) (continuousUpdate bool, err error)
-	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
-		pagination *chat1.Pagination) (chat1.ThreadView, error)
+	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
+		query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
-	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
+	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID,
+		threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error

@@ -362,7 +362,7 @@ class Input extends React.PureComponent<Props, State> {
       this.props.smallLabelStyle,
     ])
 
-    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }`
+    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.4); }`
 
     return (
       <Box style={collapseStyles([containerStyle, this.props.style])}>

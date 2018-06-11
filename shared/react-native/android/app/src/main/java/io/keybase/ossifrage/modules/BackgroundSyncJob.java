@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import keybase.Keybase;
 
 public class BackgroundSyncJob extends Job {
-    protected static final String TAG = "background_sync_job";
+    public static final String TAG = "background_sync_job";
 
     @Override
     @NonNull

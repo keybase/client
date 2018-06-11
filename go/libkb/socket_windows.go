@@ -74,7 +74,7 @@ func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
 
 	// Test ownership
 	if s.testOwner {
-		owner, err := IsPipeowner(s.dialFiles[0])
+		owner, err := IsPipeowner(s.log, s.dialFiles[0])
 		if err != nil {
 			return nil, err
 		}

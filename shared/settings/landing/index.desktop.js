@@ -73,7 +73,7 @@ function SpaceInfo({
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Text
-        style={{marginRight: globalMargins.xtiny, fontSize: 11, color: globalColors.black_40}}
+        style={{marginRight: globalMargins.xtiny, fontSize: 12, color: globalColors.black_40}}
         type={'BodySmallSemibold'}
       >
         {freeSpace} FREE

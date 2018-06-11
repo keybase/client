@@ -35,6 +35,8 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellargregor"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/tlfupgrade"
@@ -312,7 +314,7 @@ func (d *Service) setupTeams() error {
 }
 
 func (d *Service) setupStellar() error {
-	stellar.ServiceInit(d.G())
+	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()))
 	return nil
 }
 
@@ -505,6 +507,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
+		d.gregor.PushHandler(stellargregor.New(d.G(), remote.NewRemoteNet(d.G())))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
@@ -619,30 +622,12 @@ func (d *Service) slowChecks() {
 }
 
 func (d *Service) tryGregordConnect() error {
-	// If we're logged out, LoggedInLoad() will return false with no error,
-	// even if the network is down. However, if we're logged in and the network
-	// is down, it will still return false, along with the network error. We
-	// need to handle that case specifically, so that we still start the gregor
-	// connect loop.
-	loggedIn, err := d.G().LoginState().LoggedInProvisioned(context.Background())
-	if err != nil {
-		// A network error means we *think* we're logged in, and we tried to
-		// confirm with the API server. In that case we'll swallow the error
-		// and allow control to proceed to the gregor loop. We'll still
-		// short-circuit for any unexpected errors though.
-		switch err.(type) {
-		case libkb.LoginStateTimeoutError, libkb.APINetError:
-			d.G().Log.Debug("Network/timeout error received from LoginState, continuing onward: %s", err)
-		default:
-			d.G().Log.Debug("Unexpected non-network error in tryGregordConnect: %s", err)
-			return err
-		}
-	} else if !loggedIn {
+	loggedIn := d.G().ActiveDevice.Valid()
+	if !loggedIn {
 		// We only respect the loggedIn flag in the no-error case.
 		d.G().Log.Debug("not logged in, so not connecting to gregord")
 		return nil
 	}
-
 	return d.gregordConnect()
 }
 
@@ -1014,7 +999,7 @@ func (d *Service) GregorInjectOutOfBandMessage(sys string, body []byte) error {
 	if d.gregor == nil {
 		return errors.New("can't gregor inject without a gregor")
 	}
-	return d.gregor.InjectOutOfBandMessage(sys, body)
+	return d.gregor.InjectOutOfBandMessage(context.TODO(), sys, body)
 }
 
 func (d *Service) HasGregor() bool {

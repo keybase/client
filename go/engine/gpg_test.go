@@ -49,6 +49,10 @@ func (g *gpgtestui) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, e
 	return true, nil
 }
 
+func (g *gpgtestui) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
+	return false, nil
+}
+
 func (g *gpgtestui) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
 	fp, err := libkb.PGPFingerprintFromSlice(arg.Fingerprint)
 	if err != nil {

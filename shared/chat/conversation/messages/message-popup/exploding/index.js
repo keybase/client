@@ -10,7 +10,8 @@ import {
   type PropsWithTimer,
 } from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
-import {formatTimeForPopup, formatTimeForRevoked, secondsToDHMS} from '../../../../../util/timestamp'
+import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
+import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {PopupHeaderText} from '../../../../../common-adapters/popup-menu'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -39,26 +40,28 @@ type State = {
 }
 
 class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
-  timer: ?IntervalID = null
+  timer: TickerID
   state = {
     secondsLeft: 0,
   }
 
   componentWillMount() {
     if (!__STORYBOOK__) {
-      this.timer = this.props.setInterval(() => this.tick(), 1000)
+      this.timer = addTicker(this.tick)
     }
     this.tick()
   }
 
   componentWillUnmount() {
-    this.timer && this.props.clearInterval(this.timer)
+    this.timer && removeTicker(this.timer)
   }
 
-  tick() {
-    const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
-    let secondsLeft = Math.floor(this.props.explodesAt / 1000) - now
+  tick = () => {
+    const now = __STORYBOOK__ ? 1999999999000 : Date.now()
+    let secondsLeft = Math.floor((this.props.explodesAt - now) / 1000)
     if (secondsLeft < 0) {
+      // TODO remove if we end up w/ an "exploded" popup
+      this.props.onHidden()
       secondsLeft = 0
     }
     this.setState({secondsLeft})
@@ -67,10 +70,15 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   render() {
     const {author, deviceName, deviceRevokedAt, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
+    const bombVerticalOffset = isMobile ? 0 : -20
     return (
-      <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
+      <Box2
+        direction="vertical"
+        fullWidth={true}
+        style={{alignItems: 'center', paddingTop: (isMobile ? 96 : 64) + bombVerticalOffset}}
+      >
         <Icon
-          style={{marginBottom: globalMargins.tiny}}
+          style={{marginBottom: globalMargins.tiny, position: 'absolute', top: bombVerticalOffset}}
           type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
         />
         <Box2 direction="horizontal">
@@ -82,10 +90,12 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           <Text type="BodySmall" style={{color: globalColors.black_40}}>
             by
           </Text>
-          <Avatar style={styleAvatar} username={author} size={16} />
-          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-            {author}
-          </Text>
+          <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
+            <Avatar username={author} size={16} />
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+              {author}
+            </Text>
+          </Box2>
         </Box2>
         <Box2 direction="horizontal">
           <Text type="BodySmall" style={{color: globalColors.black_40}}>
@@ -118,7 +128,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           }}
         >
           <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
-            {secondsToDHMS(this.state.secondsLeft)}
+            {msToDHMS(this.props.explodesAt - Date.now())}
           </Text>
         </Box2>
       </Box2>
@@ -148,6 +158,10 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
   ]
 
   const header = {
+    style: {
+      paddingBottom: 0,
+      paddingTop: 24,
+    },
     title: 'header',
     view: <ExplodingPopupHeader {...props} />,
   }
@@ -179,11 +193,6 @@ const stylePopup = platformStyles({
     width: '100%',
   },
 })
-
-const styleAvatar = {
-  marginLeft: globalMargins.xtiny,
-  marginRight: 1,
-}
 
 const styleRevokedAt = {
   borderBottomLeftRadius: 3,

@@ -15,16 +15,17 @@ import (
 type shouldCreateRes struct {
 	libkb.AppStatusEmbed
 	ShouldCreate bool `json:"shouldcreate"`
+	HasWallet    bool `json:"haswallet"`
 }
 
 // ShouldCreate asks the server whether to create this user's initial wallet.
-func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (should bool, err error) {
+func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (shouldCreate, hasWallet bool, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.ShouldCreate", func() error { return err })()
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/shouldcreate")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes shouldCreateRes
 	err = g.API.GetDecode(arg, &apiRes)
-	return apiRes.ShouldCreate, err
+	return apiRes.ShouldCreate, apiRes.HasWallet, err
 }
 
 // Post a bundle to the server with a chainlink.
@@ -150,6 +151,12 @@ func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.
 	return pukGen, pukSeed, err
 }
 
+type UserHasNoAccountsError struct{}
+
+func (e UserHasNoAccountsError) Error() string {
+	return "logged-in user has no wallet accounts"
+}
+
 type fetchRes struct {
 	libkb.AppStatusEmbed
 	EncryptedB64 string `json:"encrypted"`
@@ -169,7 +176,7 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 		switch keybase1.StatusCode(err.Code) {
 		case keybase1.StatusCode_SCNotFound:
 			g.Log.CDebugf(ctx, "replacing error: %v", err)
-			return res, 0, errors.New("logged-in user has no wallet accounts")
+			return res, 0, UserHasNoAccountsError{}
 		}
 	default:
 		return res, 0, err
@@ -335,6 +342,58 @@ func SubmitRelayClaim(ctx context.Context, g *libkb.GlobalContext, post stellar1
 	return res.RelayClaimResult, nil
 }
 
+type acquireAutoClaimLockResult struct {
+	libkb.AppStatusEmbed
+	Result string `json:"result"`
+}
+
+func AcquireAutoClaimLock(ctx context.Context, g *libkb.GlobalContext) (string, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/acquireautoclaimlock",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  ctx,
+	}
+	var res acquireAutoClaimLockResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return "", err
+	}
+	return res.Result, nil
+}
+
+func ReleaseAutoClaimLock(ctx context.Context, g *libkb.GlobalContext, token string) error {
+	payload := make(libkb.JSONPayload)
+	payload["token"] = token
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/releaseautoclaimlock",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res libkb.AppStatusEmbed
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return err
+	}
+	return nil
+}
+
+type nextAutoClaimResult struct {
+	libkb.AppStatusEmbed
+	Result *stellar1.AutoClaim `json:"result"`
+}
+
+func NextAutoClaim(ctx context.Context, g *libkb.GlobalContext) (*stellar1.AutoClaim, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/nextautoclaim",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  ctx,
+	}
+	var res nextAutoClaimResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return nil, err
+	}
+	return res.Result, nil
+}
+
 type recentPaymentsResult struct {
 	libkb.AppStatusEmbed
 	Result []stellar1.PaymentSummary `json:"res"`
@@ -358,11 +417,10 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 
 type paymentDetailResult struct {
 	libkb.AppStatusEmbed
-	Result stellar1.PaymentSummary `json:"res"`
+	Result stellar1.PaymentDetails `json:"res"`
 }
 
-func PaymentDetail(ctx context.Context, g *libkb.GlobalContext,
-	txID string) (res stellar1.PaymentSummary, err error) {
+func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/paymentdetail",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -443,7 +501,7 @@ type disclaimerResult struct {
 	AcceptedDisclaimer bool `json:"accepted_disclaimer"`
 }
 
-func GetUserSettings(ctx context.Context, g *libkb.GlobalContext) (res stellar1.UserSettings, err error) {
+func GetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (ret bool, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/disclaimer",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -452,9 +510,9 @@ func GetUserSettings(ctx context.Context, g *libkb.GlobalContext) (res stellar1.
 	var apiRes disclaimerResult
 	err = g.API.GetDecode(apiArg, &apiRes)
 	if err != nil {
-		return res, err
+		return ret, err
 	}
-	return stellar1.UserSettings{AcceptedDisclaimer: apiRes.AcceptedDisclaimer}, nil
+	return apiRes.AcceptedDisclaimer, nil
 }
 
 func SetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) error {

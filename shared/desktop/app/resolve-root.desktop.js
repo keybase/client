@@ -1,9 +1,10 @@
 // @flow
 import path from 'path'
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import {isWindows} from '../../constants/platform'
 
 let root
-let prefix = 'file://'
+let prefix = isWindows ? 'file:///' : 'file://'
 
 if (__STORYBOOK__) {
   root = path.resolve(path.join(__dirname, '..', '..'))

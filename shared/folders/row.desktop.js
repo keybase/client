@@ -1,13 +1,14 @@
 // @flow
 import * as React from 'react'
-import type {Folder} from './list'
 import {Box, Button, Text, Icon, MultiAvatar, Avatar, Meta, Usernames} from '../common-adapters'
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, globalMargins, desktopStyles, platformStyles} from '../styles'
 
+import type {Folder} from './list.desktop'
+
 class Avatars extends React.PureComponent<any> {
   render() {
-    const {smallMode, ignored, isPublic, isTeam} = this.props
+    const {ignored, isPublic, isTeam} = this.props
     let users = this.props.users
     if (!isPublic && users.length > 1) {
       users = users.filter(({you}) => !you)
@@ -31,26 +32,21 @@ class Avatars extends React.PureComponent<any> {
         style={{
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
-          height: smallMode ? 48 : 56,
+          height: 48,
           justifyContent: 'flex-start',
-          padding: smallMode ? 0 : globalMargins.xtiny,
+          padding: 0,
           width: 56,
         }}
       >
         {isTeam ? (
           <Avatar
-            size={smallMode ? 32 : 48}
+            size={32}
             teamname={teamname}
             isTeam={true}
             style={{opacity, marginLeft: globalMargins.xtiny, marginTop: globalMargins.xtiny}}
           />
         ) : (
-          <MultiAvatar
-            singleSize={smallMode ? 32 : 48}
-            multiSize={32}
-            avatarProps={avatarProps}
-            style={{opacity}}
-          />
+          <MultiAvatar singleSize={32} multiSize={32} avatarProps={avatarProps} style={{opacity}} />
         )}
       </Box>
     )
@@ -59,11 +55,11 @@ class Avatars extends React.PureComponent<any> {
 
 class Modified extends React.PureComponent<any> {
   render() {
-    const {smallMode, styles, modified} = this.props
+    const {styles, modified} = this.props
     const iconColor = getStyle('BodySmall', styles.modifiedMode).color
     const boltStyle = {
       alignSelf: 'center',
-      ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}),
+      marginTop: 2,
     }
 
     return (
@@ -104,7 +100,6 @@ class RowMeta extends React.PureComponent<any> {
 type RowType = {
   hasReadOnlyUsers: boolean,
   installed: boolean,
-  smallMode: boolean,
   sortName: string,
   onOpen: (path: string) => void,
   onChat: (tlf: string) => void,
@@ -114,37 +109,7 @@ type RowType = {
 
 class Row extends React.PureComponent<RowType & Folder> {
   render() {
-    const {
-      users,
-      isPublic,
-      isTeam,
-      hasReadOnlyUsers,
-      ignored,
-      installed,
-      meta,
-      modified,
-      smallMode,
-      onChat,
-      onOpen,
-      onClick,
-      onRekey,
-      path,
-      // sortName,
-    } = this.props
-    const onOpenClick = event => {
-      event.preventDefault()
-      event.stopPropagation()
-      if (onOpen) {
-        onOpen(path)
-      }
-    }
-    const onChatClick = event => {
-      event.preventDefault()
-      event.stopPropagation()
-      if (onChat) {
-        onChat(path)
-      }
-    }
+    const {users, isPublic, isTeam, ignored, meta, modified, onClick, onRekey, path} = this.props
     const styles = isPublic ? stylesPublic : stylesPrivate
 
     let redColor = globalColors.red
@@ -155,26 +120,18 @@ class Row extends React.PureComponent<RowType & Folder> {
 
     const containerStyle = {
       ...styles.rowContainer,
-      minHeight: smallMode ? 40 : 48,
+      minHeight: 40,
       backgroundColor: globalColors.white,
-      opacity: !smallMode && !installed ? 0.4 : 1,
     }
 
     return (
       <Box style={containerStyle} className="folder-row" onClick={() => onClick && onClick(path)}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Avatars
-            users={users}
-            styles={styles}
-            smallMode={smallMode}
-            ignored={ignored}
-            isPublic={isPublic}
-            isTeam={isTeam}
-          />
+          <Avatars users={users} styles={styles} ignored={ignored} isPublic={isPublic} isTeam={isTeam} />
           <Box style={stylesBodyContainer}>
             <Usernames
               users={users}
-              type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'}
+              type={'BodySmallSemibold'}
               style={{
                 color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue,
                 opacity: ignored ? 0.6 : 1,
@@ -182,42 +139,15 @@ class Row extends React.PureComponent<RowType & Folder> {
               redColor={redColor}
             />
             {meta && !ignored && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
-            {!(meta || ignored) &&
-              modified && <Modified modified={modified} styles={styles} smallMode={smallMode} />}
+            {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
           </Box>
-          {!smallMode &&
-            !isPublic &&
-            !hasReadOnlyUsers &&
-            meta !== 'rekey' && (
-              <Box style={{...stylesActionContainer, width: smallMode ? undefined : 64}}>
-                <Text
-                  type="BodySmallSecondaryLink"
-                  className="folder-row-hover-action"
-                  onClick={onChatClick}
-                  style={styles.action}
-                >
-                  Chat
-                </Text>
-              </Box>
-            )}
           <Box
             style={{
               ...stylesActionContainer,
-              width: smallMode ? undefined : 64,
+              width: undefined,
               marginRight: globalMargins.small,
             }}
           >
-            {!smallMode &&
-              meta !== 'rekey' && (
-                <Text
-                  type="BodySmallSecondaryLink"
-                  className="folder-row-hover-action"
-                  onClick={onOpenClick}
-                  style={styles.action}
-                >
-                  Open
-                </Text>
-              )}
             {meta === 'rekey' && (
               <Button
                 small={true}

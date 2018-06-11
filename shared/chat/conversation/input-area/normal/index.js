@@ -62,6 +62,10 @@ class Input extends React.Component<InputProps> {
       this._inputFocus()
     }
 
+    if (this.props.isEditing && this.props.isEditExploded) {
+      this.props.onCancelEditing()
+    }
+
     // Inject the appropriate text when entering or existing edit
     // mode, but only when on the same conversation; otherwise we'd
     // incorrectly inject when switching to/from a conversation with

@@ -120,6 +120,13 @@
         {
           "type": "Category",
           "name": "category"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MsgID"
+          },
+          "name": "skipMsgIDs"
         }
       ]
     },

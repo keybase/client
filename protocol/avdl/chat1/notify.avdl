@@ -54,10 +54,14 @@ protocol NotifyChat {
     boolean isEphemeralPurge;
   }
 
-  record MembersUpdateInfo {
-    ConversationID convID;
+  record MemberInfo {
     string member;
     ConversationMemberStatus status;
+  }
+
+  record MembersUpdateInfo {
+    ConversationID convID;
+    array<MemberInfo> members;
   }
 
   record TeamTypeInfo {
@@ -127,6 +131,10 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void NewChatActivity(keybase1.UID uid, ChatActivity activity);
+
+  @notify("")
+  @lint("ignore")
+  void NewChatKBFSFileEditActivity(keybase1.UID uid, ChatActivity activity);
 
   @notify("")
   @lint("ignore")

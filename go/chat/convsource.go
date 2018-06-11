@@ -189,7 +189,7 @@ func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, convID chat1
 }
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
 
 	if convID.IsNil() {
 		return chat1.ThreadView{}, errors.New("RemoteConversationSource.Pull called with empty convID")
@@ -213,6 +213,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		ConversationID: convID,
 		Query:          query,
 		Pagination:     pagination,
+		Reason:         reason,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
 	rl = append(rl, boxed.RateLimit)
@@ -243,7 +244,7 @@ func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.Conve
 }
 
 func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 
 	// Insta fail if we are offline
 	if s.IsOffline(ctx) {
@@ -253,6 +254,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.U
 	rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 		ConversationID: conv.GetConvID(),
 		MessageIDs:     msgIDs,
+		ThreadReason:   threadReason,
 	})
 	if err != nil {
 		return nil, err
@@ -601,7 +603,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 }
 
 func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1.UID,
-	thread *chat1.ThreadView, conv chat1.Conversation) (err error) {
+	thread *chat1.ThreadView, conv chat1.Conversation, reason chat1.GetThreadReason) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "resolveHoles")()
 	var msgIDs []chat1.MessageID
 	// Gather all placeholder messages so we can go fetch them
@@ -629,7 +631,7 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 	}
 
 	// Fetch all missing messages from server, and sub in the real ones into the placeholder slots
-	msgs, err := s.GetMessages(ctx, conv, uid, msgIDs)
+	msgs, err := s.GetMessages(ctx, conv, uid, msgIDs, &reason)
 	if err != nil {
 		s.Debug(ctx, "resolveHoles: failed to get missing messages: %s", err.Error())
 		return err
@@ -663,7 +665,7 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 var maxHolesForPull = 10
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
+	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Pull(%s)", convID)()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, errors.New("HybridConversationSource.Pull called with empty convID")
@@ -687,7 +689,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// messages that may have been fetched.
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d msgs: %d", unboxConv.GetConvID(), uid,
 				rc.Holes(), len(thread.Messages))
-			err = s.resolveHoles(ctx, uid, &thread, conv)
+			err = s.resolveHoles(ctx, uid, &thread, conv, reason)
 		}
 		if err == nil {
 			// Do online only things
@@ -740,6 +742,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		ConversationID: convID,
 		Query:          query,
 		Pagination:     pagination,
+		Reason:         reason,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
 	if err != nil {
@@ -811,7 +814,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		if err == nil {
 			superXform := newBasicSupersedesTransform(s.G())
 			superXform.SetMessagesFunc(func(ctx context.Context, conv types.UnboxConversationInfo,
-				uid gregor1.UID, msgIDs []chat1.MessageID) (res []chat1.MessageUnboxed, err error) {
+				uid gregor1.UID, msgIDs []chat1.MessageID,
+				_ *chat1.GetThreadReason) (res []chat1.MessageUnboxed, err error) {
 				msgs, err := storage.New(s.G(), s).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
 				if err != nil {
 					return nil, err
@@ -872,7 +876,7 @@ func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMessageID() }
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 	convID := conv.GetConvID()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return nil, err
@@ -907,6 +911,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 		rmsgs, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 			ConversationID: convID,
 			MessageIDs:     remoteMsgs,
+			ThreadReason:   threadReason,
 		})
 		if err != nil {
 			return nil, err

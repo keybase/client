@@ -97,9 +97,6 @@
       "path": "Types.Path",
       "errorText": "string"
     },
-
-    "setupFSHandlers": {},
-
     "share": {
       "path": "Types.Path",
       "routePath": "I.List<string>"
@@ -121,6 +118,12 @@
     "openPathItem": {
       "path": "Types.Path",
       "routePath": "I.List<string>"
-    }
+    },
+    "loadResets": {},
+    "loadResetsResult": {
+      "tlfs": "I.Map<Types.Path, Types.ResetMetadata>"
+    },
+
+    "setupFSHandlers": {}
   }
 }

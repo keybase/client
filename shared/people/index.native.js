@@ -26,7 +26,7 @@ const People = (props: Props) => (
         {...props}
         styleRowContainer={{left: 0}}
         styleSearchContainer={searchContainerStyle}
-        styleSearchText={{fontSize: 15}}
+        styleSearchText={{fontSize: 16}}
       />
       <Avatar
         username={props.myUsername}
