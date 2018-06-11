@@ -136,7 +136,7 @@ func (k keybaseDaemon) NewChat(
 	if localUser == "" {
 		chat = NewChatRPC(config, ctx)
 	} else {
-		// TODO: implement a simple local chat service.
+		chat = NewChatLocal(config)
 	}
 	return chat, nil
 }
