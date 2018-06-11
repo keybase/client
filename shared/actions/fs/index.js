@@ -489,14 +489,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
-<<<<<<< HEAD
-  yield Saga.safeTakeEvery(FsGen.loadResets, loadResets)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
-||||||| merged common ancestors
-  yield Saga.safeTakeEvery(FsGen.loadResets, loadResets)
-=======
   yield Saga.safeTakeEveryPure(FsGen.loadResets, loadResets)
->>>>>>> origin/master
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.
