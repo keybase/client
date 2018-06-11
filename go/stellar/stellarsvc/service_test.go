@@ -474,7 +474,9 @@ func testRelay(t *testing.T, yank bool) {
 		Asset:     stellar1.Asset{Type: "native"},
 	})
 	require.NoError(t, err)
-	require.NotNil(t, sendRes.Relay)
+
+	details, err := tcs[0].Backend.PaymentDetails(context.Background(), tcs[0], sendRes.KbTxID.String())
+	require.NoError(t, err)
 
 	claimant := 0
 	if !yank {
@@ -494,7 +496,7 @@ func testRelay(t *testing.T, yank bool) {
 
 		// The implicit team has an invite for the claimant. Now the sender signs them into the team.
 		t.Logf("Sender keys recipient into implicit team")
-		teamID := sendRes.Relay.TeamID
+		teamID := details.Summary.Relay().TeamID
 		team, err := teams.Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamID})
 		require.NoError(t, err)
 		invite, _, found := team.FindActiveKeybaseInvite(tcs[claimant].Fu.GetUID())

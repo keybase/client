@@ -1,6 +1,5 @@
 @namespace("stellar.1")
 protocol local {
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
 
   // -------------------------------------------------------
@@ -126,10 +125,118 @@ protocol local {
   }
   WalletSettings getWalletSettingsLocal(int sessionID);
 
-  void setAcceptedDisclaimerLocal(int sessionID); 
+  void setAcceptedDisclaimerLocal(int sessionID);
 
   string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);
   SecretKey getWalletAccountSecretKeyLocal(int sessionID, AccountID accountID);
+
+  // Not implemented. CORE-8087
+  // Get the non-XLM assets for sending.
+  array<SendAssetChoiceLocal> getSendAssetChoicesLocal(
+    int sessionID,
+    AccountID from,
+    string to // Optional. Username, acctID, or assertion.
+  );
+  record SendAssetChoiceLocal {
+    Asset asset;
+    // Enable the row. True means the recipient accepts this asset.
+    // False if there's no recipient, or an error loading them, or they don't accept.
+    boolean enabled;
+    string left; // Example: "BTC"
+    string right; // Examples: "Stronghold.com", "GBSTRH4QOTWNSVA6E4HFERETX4ZLSR3CIUBLK7AXYII277PFJC4BBYOG"
+    string subtext; // Examples: "", "max doesn't accept HUGZ"
+  }
+
+  // Not implemented. CORE-7871
+  // Check but do not send a payment.
+  // Opt  - Optional field.
+  // Opt* - Optional for this RPC but required for res.readyToSend to be set.
+  BuildPaymentResLocal buildPaymentLocal(
+    int sessionID,
+    AccountID from,
+    // Opt. Stellar seqno of the sender when the user started the form.
+    // If it is old, the payment will be blocked blocked.
+    string fromSeqno,
+    // Opt*. Recipient username, acctID, or assertion.
+    // Examples: "", "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
+    string to,
+    boolean toIsAccountID,
+    string amount, // Opt*. Amount of the asset OR outside currency being sent. Example: "3.005"
+    // Zero or one of `asset` and `currency` should be set.
+    // If both are null or `asset` is native XLM then XLM are being sent.
+    // If `currency` is set then XLM is being sent after converting `amount`.
+    union { null, OutsideCurrencyCode } currency,
+    union { null, Asset } asset,
+    string secretNote,   // Opt. Encrypted for the sender, and recipient if possible.
+    string publicMemo    // Opt. Public stellar memo field.
+  );
+  record BuildPaymentResLocal {
+    boolean readyToSend;
+
+    // Optional. Error to show with the To field.
+    // All errMsg fields are in 'keybase chat language' markdown.
+    // Example: "This stellar address is incorrect"
+    string toErrMsg;
+
+    // Optional. Error to show with the amount field.
+    // Example: "russel doesn't accept *BTC/Stronghold.com*\nPlease pick another asset."
+    // Example: "Your available to send is *128.4567890 XLM*."
+    string amountErrMsg;
+
+    // Optional. Error to show with the encrypted note field.
+    // Example: "Note is too long"
+    string secretNoteErrMsg;
+
+    // Optional. Error to show with the public memo field.
+    // Example: "Public memo is too long"
+    string publicMemoErrMsg;
+
+    // Optional. Blank if non-native assets are being sent or if there is a global error.
+    // Example: "This is *96.5634762 XLM*."
+    // Example: "This is *$246.47*."
+    string worthDescription;
+    // Set with `worthDescription`
+    // Example: "$1 = 5.0992345 XLM\nSource: coinmarketcap.com"
+    string worthInfo;
+    array<SendBannerLocal> banners;
+  }
+  record SendBannerLocal {
+    string level; // One of: "info", "warning", "error"
+    // Example (info): "Because it’s russel’s first transaction, you must send at least 1 XLM."
+    // Example (warning): "You are not following russel. Are you sure this is the right person?"
+    string message;
+    // Set if this banner means the user's proofs have changed and that is blocking the payment.
+    // `message` may be blank in this case.
+    boolean proofsChanged;
+  }
+
+  // Send a payment
+  SendPaymentResLocal sendPaymentLocal(
+    int sessionID,
+    AccountID from,
+    // Optional. Stellar seqno of the sender when the user started the form.
+    // If it is old, the payment will be blocked.
+    string fromSeqno,
+    string to,                             // Username, acctID, or assertion. Examples: "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
+    boolean toIsAccountID,
+    string amount,                         // Amount of the Stellar asset. Example: "30.005"
+    Asset asset,                           // Asset to send.
+    string worthAmount,                    // Optional. Example: "2.00"
+    union { null, OutsideCurrencyCode } worthCurrency, // Set with `worthAmount`.
+    string secretNote,                     // Optional. Encrypted for the sender, and recipient if possible.
+    string publicMemo,                     // Optional. Public stellar memo field.
+    // If quickReturn == true then the RPC can return success
+    //   while the payment is still pending on the stellar network.
+    boolean quickReturn
+  );
+  record SendPaymentResLocal {
+    KeybaseTransactionID kbTxID;
+    // If (arg.quickReturn && result.pending) then the payment
+    //   was recorded but may still be pending on the stellar network
+    //   and could still fail.
+    // If arg.quickReturn == false then result.pending should be ignored.
+    boolean pending;
+  }
 
   // -------------------------------------------------------
   // CLI protocol
@@ -146,11 +253,6 @@ protocol local {
     // Direct: tx ID of the payment tx
     // Relay : tx ID of the funding payment tx
     TransactionID txID;
-    union { null, SendRelayResultCLILocal } relay;
-  }
-  record SendRelayResultCLILocal {
-    // Implicit team that the relay secret is encrypted for.
-    keybase1.TeamID teamID;
   }
 
   // Claim a relay payment
