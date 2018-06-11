@@ -53,7 +53,7 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
           style={platformStyles({
             common: {
               color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
-              fontSize: 11,
+              fontSize: 12,
             },
             isElectron: {
               ...desktopStyles.clickable,
@@ -140,7 +140,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
             type="BodySmallSemiboldItalic"
             style={{
               color: undefined,
-              fontSize: 11,
+              fontSize: 12,
               textAlign: 'center',
               ...desktopStyles.clickable,
               ...this.props.styleLabel,

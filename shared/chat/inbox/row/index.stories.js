@@ -15,7 +15,7 @@ const simpleCommon = {
   conversationIDKey: '',
   hasResetUsers: false,
   hasUnread: false,
-  iconHoverColor: globalColors.black_75,
+  iconHoverColor: globalColors.black_60,
   isMuted: false,
   isSelected: false,
   onSelectConversation: action('onSelectConversation'),
@@ -110,7 +110,7 @@ const load = () => {
   storiesOf('Chat/Inbox', module)
     .addDecorator(provider)
     .add('Simple', () => (
-      <Box style={{width: 240}}>
+      <Box style={{width: 270}}>
         {mocks.map(m => (
           <SmallTeam
             key={m.conversationIDKey}
@@ -123,7 +123,7 @@ const load = () => {
       </Box>
     ))
     .add('Team', () => (
-      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
+      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 270}}>
         <BigTeamHeader badgeSubscribe={false} memberCount={30} teamname="Keybase" />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#general" />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#random" showBold={true} />
@@ -155,7 +155,7 @@ const load = () => {
       </Box>
     ))
     .add('Filtered', () => (
-      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
+      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 270}}>
         <FilterSmallTeam {...commonFiltered} />
         <FilterSmallTeam {...commonFiltered} participants={['chris']} />
         <FilterSmallTeam {...commonFiltered} teamname="pokerpals" />

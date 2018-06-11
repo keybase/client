@@ -666,6 +666,7 @@ export const tlfKeysTLFIdentifyBehavior = {
   cli: 8,
   gui: 9,
   defaultKbfs: 10,
+  kbfsChat: 11,
 }
 
 export const uPKKeyType = {
@@ -1951,6 +1952,7 @@ export type TLFIdentifyBehavior =
   | 8 // CLI_8
   | 9 // GUI_9
   | 10 // DEFAULT_KBFS_10
+  | 11 // KBFS_CHAT_11
 
 export type TLFIdentifyFailure = $ReadOnly<{user: User, breaks?: ?IdentifyTrackBreaks}>
 export type TLFQuery = $ReadOnly<{tlfName: String, identifyBehavior: TLFIdentifyBehavior}>

@@ -19,7 +19,6 @@ const Announcement = () => (
         paddingLeft: globalMargins.medium,
         paddingRight: globalMargins.medium,
         flexGrow: 1,
-        fontSize: 15,
         textAlign: 'center',
       }}
     >

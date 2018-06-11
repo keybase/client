@@ -35,7 +35,7 @@ const AssetInput = (props: Props) => (
       placeholder={props.inputPlaceholder}
     />
     <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-      <Text type="BodySmall" style={styles.label}>
+      <Text type="BodySmall" style={styles.labelMargin}>
         {props.bottomLabel}
       </Text>
       <Icon

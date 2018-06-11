@@ -31,6 +31,7 @@
 
 [libs]
 ./libs/flow-interface.js.flow
+./libs/electron_vx.x.x.js.flow
 ./flow-typed
 
 [options]

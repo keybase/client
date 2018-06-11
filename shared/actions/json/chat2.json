@@ -23,7 +23,7 @@
         "'clearSelected'", // deselect
         "'justCreated'", // just made one
         "'desktopNotification'", // clicked notification
-        "'searching'", // searching and found one
+        "'setPendingMode'", // set to pending
         "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
         "'findNewestConversation'", // find a new chat to select

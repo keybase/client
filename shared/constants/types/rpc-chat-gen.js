@@ -50,6 +50,16 @@ export const commonConversationStatus = {
   reported: 5,
 }
 
+export const commonGetThreadReason = {
+  general: 0,
+  push: 1,
+  foreground: 2,
+  backgroundconvload: 3,
+  fixretry: 4,
+  prepare: 5,
+  searcher: 6,
+}
+
 export const commonGlobalAppNotificationSetting = {
   newmessages: 0,
   plaintextmobile: 1,
@@ -151,12 +161,6 @@ export const localGetThreadNonblockCbMode = {
 export const localGetThreadNonblockPgMode = {
   default: 0,
   server: 1,
-}
-
-export const localGetThreadNonblockReason = {
-  general: 0,
-  push: 1,
-  foreground: 2,
 }
 
 export const localHeaderPlaintextVersion = {
@@ -445,12 +449,16 @@ export type GetThreadNonblockPgMode =
   | 0 // DEFAULT_0
   | 1 // SERVER_1
 
-export type GetThreadNonblockReason =
+export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
+export type GetThreadReason =
   | 0 // GENERAL_0
   | 1 // PUSH_1
   | 2 // FOREGROUND_2
+  | 3 // BACKGROUNDCONVLOAD_3
+  | 4 // FIXRETRY_4
+  | 5 // PREPARE_5
+  | 6 // SEARCHER_6
 
-export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
 export type GlobalAppNotificationSetting =
   | 0 // NEWMESSAGES_0
@@ -509,8 +517,8 @@ export type LocalGetMessagesLocalRpcParam = $ReadOnly<{conversationID: Conversat
 export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, isRegex: Boolean, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType}>
 export type LocalGetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID}>
-export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
-export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadNonblockReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
+export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, reason: GetThreadReason, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
+export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 export type LocalJoinConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID}>
 export type LocalJoinConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, visibility: Keybase1.TLFVisibility, topicName: String}>
 export type LocalLeaveConversationLocalRpcParam = $ReadOnly<{convID: ConversationID}>
@@ -682,11 +690,11 @@ export type RemoteGetGlobalAppNotificationSettingsRpcParam = void
 export type RemoteGetInboxRemoteRpcParam = $ReadOnly<{vers: InboxVers, query?: ?GetInboxQuery, pagination?: ?Pagination}>
 export type RemoteGetInboxVersionRpcParam = $ReadOnly<{uid: Gregor1.UID}>
 export type RemoteGetMessageBeforeRpcParam = $ReadOnly<{convID: ConversationID, age: Gregor1.DurationSec}>
-export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>}>
+export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, threadReason?: ?GetThreadReason, messageIDs?: ?Array<MessageID>}>
 export type RemoteGetPublicConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean}>
 export type RemoteGetS3ParamsRpcParam = $ReadOnly<{conversationID: ConversationID}>
 export type RemoteGetTLFConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean}>
-export type RemoteGetThreadRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination}>
+export type RemoteGetThreadRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, reason: GetThreadReason, query?: ?GetThreadQuery, pagination?: ?Pagination}>
 export type RemoteGetUnreadUpdateFullRpcParam = $ReadOnly<{inboxVers: InboxVers}>
 export type RemoteJoinConversationRpcParam = $ReadOnly<{convID: ConversationID}>
 export type RemoteLeaveConversationRpcParam = $ReadOnly<{convID: ConversationID}>
