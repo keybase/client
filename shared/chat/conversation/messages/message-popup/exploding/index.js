@@ -19,12 +19,14 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 type Props = {
   attachTo: ?React.Component<any, any>,
   author: string,
+  canDeleteHistory: boolean,
   canEdit: boolean,
   canExplodeNow: boolean,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   explodesAt: number,
+  onDeleteHistory: () => void,
   onEdit: () => void,
   onExplodeNow: () => void,
   onHidden: () => void,
@@ -154,6 +156,9 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
             title: 'Explode now',
           },
         ]
+      : []),
+    ...(props.canDeleteHistory
+      ? [{danger: true, onClick: props.onDeleteHistory, title: 'Delete this + everything above'}]
       : []),
   ]
 
