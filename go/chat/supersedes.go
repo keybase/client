@@ -17,7 +17,8 @@ type supersedesTransform interface {
 		conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 }
 
-type getMessagesFunc func(context.Context, types.UnboxConversationInfo, gregor1.UID, []chat1.MessageID) ([]chat1.MessageUnboxed, error)
+type getMessagesFunc func(context.Context, types.UnboxConversationInfo, gregor1.UID, []chat1.MessageID,
+	*chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 
 type basicSupersedesTransform struct {
 	globals.Contextified
@@ -149,7 +150,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	// If there are no superseding messages we still need to run
 	// the bottom loop to filter out messages deleted by retention.
 	if len(superMsgIDs) > 0 {
-		msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs)
+		msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs, nil)
 		if err != nil {
 			return nil, err
 		}

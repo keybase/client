@@ -45,6 +45,16 @@ export const commonConversationStatus = {
   reported: 5,
 }
 
+export const commonGetThreadReason = {
+  general: 0,
+  push: 1,
+  foreground: 2,
+  backgroundconvload: 3,
+  fixretry: 4,
+  prepare: 5,
+  searcher: 6,
+}
+
 export const commonGlobalAppNotificationSetting = {
   newmessages: 0,
   plaintextmobile: 1,
@@ -222,12 +232,6 @@ export const localGetThreadNonblockCbMode = {
 export const localGetThreadNonblockPgMode = {
   default: 0,
   server: 1,
-}
-
-export const localGetThreadNonblockReason = {
-  general: 0,
-  push: 1,
-  foreground: 2,
 }
 
 export const localGetThreadNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadNonblock', request)
@@ -837,12 +841,16 @@ export type GetThreadNonblockPgMode =
   | 0 // DEFAULT_0
   | 1 // SERVER_1
 
-export type GetThreadNonblockReason =
+export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
+
+export type GetThreadReason =
   | 0 // GENERAL_0
   | 1 // PUSH_1
   | 2 // FOREGROUND_2
-
-export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
+  | 3 // BACKGROUNDCONVLOAD_3
+  | 4 // FIXRETRY_4
+  | 5 // PREPARE_5
+  | 6 // SEARCHER_6
 
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
 
@@ -939,9 +947,9 @@ export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, 
 
 export type LocalGetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, reason: GetThreadReason, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadNonblockReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalJoinConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1225,7 +1233,7 @@ export type RemoteGetInboxVersionRpcParam = $ReadOnly<{uid: Gregor1.UID, incomin
 
 export type RemoteGetMessageBeforeRpcParam = $ReadOnly<{convID: ConversationID, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, threadReason?: ?GetThreadReason, messageIDs?: ?Array<MessageID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteGetPublicConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1233,7 +1241,7 @@ export type RemoteGetS3ParamsRpcParam = $ReadOnly<{conversationID: ConversationI
 
 export type RemoteGetTLFConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteGetThreadRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetThreadRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, reason: GetThreadReason, query?: ?GetThreadQuery, pagination?: ?Pagination, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteGetUnreadUpdateFullRpcParam = $ReadOnly<{inboxVers: InboxVers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

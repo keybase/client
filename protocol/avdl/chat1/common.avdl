@@ -470,4 +470,14 @@
 
   record RpInherit {}
 
+  enum GetThreadReason {
+    GENERAL_0,
+    PUSH_1,
+    FOREGROUND_2,
+    BACKGROUNDCONVLOAD_3,
+    FIXRETRY_4,
+    PREPARE_5,
+    SEARCHER_6
+  }
+
 }

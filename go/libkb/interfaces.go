@@ -620,7 +620,7 @@ type TeamLoader interface {
 
 type Stellar interface {
 	OnLogout()
-	CreateWalletGated(context.Context) (bool, error)
+	CreateWalletGated(context.Context) error
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)

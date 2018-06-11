@@ -103,7 +103,7 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
                     badgeNumber: 0,
                     icon: 'iconfont-nav-settings',
                     onClick: () => onTabChange(Constants.devMenuTab),
-                    text: 'Dev Menu',
+                    text: 'Dev menu',
                   }
                 : {}),
             },

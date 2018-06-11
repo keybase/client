@@ -114,8 +114,8 @@ const styleFullname = {
 
 const styleServiceLabel = platformStyles({
   common: {
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 16,
     marginTop: globalMargins.xtiny,
   },
   isElectron: {

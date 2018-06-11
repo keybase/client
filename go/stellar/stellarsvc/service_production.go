@@ -13,7 +13,15 @@ import (
 )
 
 func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "WalletDumpLocal", func() error { return err })()
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:        "WalletDumpLocal",
+		Err:            &err,
+		AllowLoggedOut: true,
+	})
+	defer fin()
+	if err != nil {
+		return dump, err
+	}
+
 	return dump, fmt.Errorf("WalletDumpLocal is disabled in prod mode")
 }
