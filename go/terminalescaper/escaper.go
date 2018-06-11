@@ -1,23 +1,26 @@
-package escaper
+package terminalescaper
 
 import (
 	"io"
 	"strings"
 )
 
+// Clean escapes the UTF8 encoded string provided as input so it is safe to print on a unix terminal.
+// It removes non printing characters and substitutes the vt100 escape character 0x1b with '^'.
 func Clean(s string) string {
 	return strings.Map(func(r rune) rune {
-		if r >= 32 && r != 127 { // Allow non escape extended characters
+		if r >= 32 && r != 127 { // Values below 32 (and 127) are special non printing characters (i.e. DEL, ESC, carriage return).
 			return r
-		} else if r == '\n' || r == '\t' { // Allow newlines and tabs
+		} else if r == '\n' || r == '\t' { // Allow newlines and tabs.
 			return r
-		} else if r == 0x1b { // Substiture escape byte with '^' (this is how it is usually shown, i.e. in vim)
+		} else if r == 0x1b { // 0x1b denotes the start of a vt100 escape sequence. Substiture it with '^' (this is how it is usually shown, i.e. in vim).
 			return '^'
 		}
 		return -1
 	}, s)
 }
 
+// CleanBytes is a wrapper around Clean to work on byte slices instead of strings.
 func CleanBytes(p []byte) []byte {
 	return []byte(Clean(string(p)))
 }
@@ -39,10 +42,10 @@ func (w *Writer) Write(p []byte) (int, error) {
 	if w.err != nil {
 		return 0, w.err
 	}
-	if _, err := w.Writer.Write(CleanBytes(p)); err == nil {
+	_, err := w.Writer.Write(CleanBytes(p))
+	if err == nil {
 		return len(p), nil
-	} else {
-		w.err = err
-		return 0, err
 	}
+	w.err = err
+	return 0, err
 }

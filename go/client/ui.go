@@ -12,7 +12,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/keybase/client/go/escaper"
+	"github.com/keybase/client/go/terminalescaper"
 	"github.com/mattn/go-isatty"
 
 	"golang.org/x/net/context"
@@ -802,10 +802,10 @@ func (ui *UI) Configure() error {
 	ui.unescapedOutputWriter = logger.OutputWriter()
 	if ui.G().Env.GetDisplayRawUntrustedOutput() || !isatty.IsTerminal(os.Stdout.Fd()) {
 		ui.outputWriter = ui.unescapedOutputWriter
-		ui.Terminal = NewTerminal(ui.G(), true)
+		ui.Terminal = NewTerminalUnescaped(ui.G())
 	} else {
-		ui.outputWriter = &escaper.Writer{Writer: ui.unescapedOutputWriter}
-		ui.Terminal = NewTerminal(ui.G(), false)
+		ui.outputWriter = &terminalescaper.Writer{Writer: ui.unescapedOutputWriter}
+		ui.Terminal = NewTerminalEscaped(ui.G())
 	}
 
 	ui.SecretEntry = NewSecretEntry(ui.G(), ui.Terminal, ui.getTTY())

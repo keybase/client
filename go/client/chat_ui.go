@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/keybase/client/go/escaper"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/terminalescaper"
 )
 
 type ChatUI struct {
@@ -164,12 +163,12 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 	highlightEscapeHits := func(msg chat1.UIMessage, hits []string) string {
 		if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
 			msgBody := msg.Valid().MessageBody.Text().Body
-			escapedHitText := escaper.Clean(msgBody)
+			escapedHitText := terminalescaper.Clean(msgBody)
 			for _, hit := range hits {
-				escapedHit := escaper.Clean(hit)
+				escapedHit := terminalescaper.Clean(hit)
 				escapedHitText = strings.Replace(escapedHitText, escapedHit, ColorString(c.G(), "red", escapedHit), -1)
 			}
-			return escaper.Clean(getMsgPrefix(msg)) + escapedHitText
+			return terminalescaper.Clean(getMsgPrefix(msg)) + escapedHitText
 		}
 		return ""
 	}

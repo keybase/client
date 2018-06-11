@@ -1,4 +1,4 @@
-package escaper
+package terminalescaper
 
 import (
 	"bytes"
@@ -75,7 +75,7 @@ func TestWriter(t *testing.T) {
 	}
 }
 
-func TestWriterLocksOnErr(t *testing.T) {
+func TestWriterStopsOnErr(t *testing.T) {
 	w := &Writer{Writer: &mockWriter{}}
 
 	a := []byte("test")
