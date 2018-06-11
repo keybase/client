@@ -125,7 +125,6 @@ export const updateMeta = (
 
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
-    m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
     m.set('resetParticipants', resetParticipants)
@@ -264,7 +263,6 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never',
   offline: false,
-  orangeLineOrdinal: null,
   participants: I.List(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
