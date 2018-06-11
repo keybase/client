@@ -166,14 +166,6 @@ export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 
-export const sortPathItems = (
-  items: I.List<Types.PathItem>,
-  sortSetting: Types.SortSetting,
-  username?: string
-): I.List<Types.PathItem> => {
-  return items.sort(Types.sortSettingToCompareFunction(sortSetting, username))
-}
-
 const privateIconColor = globalColors.darkBlue2
 const privateTextColor = globalColors.darkBlue
 const publicIconColor = globalColors.yellowGreen
@@ -325,6 +317,8 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
 
 export const makeDownloadKey = (path: Types.Path, localPath: string) =>
   `download:${Types.pathToString(path)}:${localPath}`
+export const makeUploadKey = (localPath: string, path: Types.Path) =>
+  `upload:${Types.pathToString(path)}:${localPath}`
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))

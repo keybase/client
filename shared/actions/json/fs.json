@@ -35,16 +35,22 @@
       "path": "Types.Path",
       "localPath?": "string"
     },
-    "downloadStarted": {
+    "transferStarted": {
+      "type": "Types.TransferType",
+      "entryType?": "Types.PathType",
       "key": "string",
       "path": "Types.Path",
       "localPath": "Types.LocalPath",
       "intent": "Types.TransferIntent",
       "opID": "RPCTypes.OpID"
     },
-    "downloadFinished": {
+    "transferFinished": {
       "key": "string",
       "error?": "string"
+    },
+    "upload": {
+      "parentPath": "Types.Path",
+      "localPath": "string"
     },
     "transferProgress": {
       "key": "string",
@@ -139,6 +145,10 @@
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",
       "username": "string"
+    },
+    "pickAndUpload": {
+      "type": "Types.OpenDialogType",
+      "parentPath": "Types.Path"
     },
 
     "setupFSHandlers": {}

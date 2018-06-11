@@ -13,6 +13,13 @@ import Files from '.'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import {
+  sortRowItems,
+  type SortableStillRowItem,
+  type SortableEditingRowItem,
+  type SortableUploadingRowItem,
+  type SortableRowItem,
+} from './utils/sort'
 import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
 
 const mapStateToProps = (state: TypedState, {path}) => {
@@ -30,6 +37,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
       ? itemDetail.tlfMeta.resetParticipants.map(i => i.username)
       : []
   const isUserReset = resetParticipants.includes(_username)
+  const _transfers = state.fs.transfers
   return {
     _itemChildren: itemChildren,
     _itemFavoriteChildren: itemFavoriteChildren,
@@ -39,34 +47,113 @@ const mapStateToProps = (state: TypedState, {path}) => {
     _username,
     isUserReset,
     resetParticipants,
+    _transfers,
     path,
     progress: itemDetail ? itemDetail.progress : 'pending',
   }
 }
 
+const getEditingRows = (
+  edits: I.Map<Types.EditID, Types.Edit>,
+  parentPath: Types.Path
+): Array<SortableEditingRowItem> =>
+  edits
+    .filter(edit => edit.parentPath === parentPath)
+    .toArray()
+    .map(([editID, edit]) => ({
+      rowType: 'editing',
+      editID,
+      name: edit.name,
+
+      editType: edit.type,
+      type: 'folder',
+    }))
+
+const getStillRows = (
+  pathItems: I.Map<Types.Path, Types.PathItem>,
+  parentPath: Types.Path,
+  names: Array<string>
+): Array<SortableStillRowItem> =>
+  names
+    .map(name => pathItems.get(Types.pathConcat(parentPath, name), Constants.makeUnknownPathItem({name})))
+    .filter(item => !(item.tlfMeta && item.tlfMeta.isIgnored))
+    .map(item => ({
+      rowType: 'still',
+      path: Types.pathConcat(parentPath, item.name),
+      name: item.name,
+
+      type: item.type,
+      tlfMeta: item.tlfMeta,
+      lastModifiedTimestamp: item.lastModifiedTimestamp,
+    }))
+
+const getUploadingRows = (
+  transfers: I.Map<string, Types.Transfer>,
+  parentPath: Types.Path
+): Array<SortableUploadingRowItem> =>
+  transfers
+    .filter(t => t.meta.type === 'upload' && Types.getPathParent(t.meta.path) === parentPath)
+    .toArray()
+    .map(([transferID, transfer]) => ({
+      rowType: 'uploading',
+      transferID,
+      name: Types.getPathName(transfer.meta.path),
+
+      type: transfer.meta.entryType,
+      isDone: transfer.state.isDone,
+    }))
+
+// Assumption: folder list gets reloaded (and correcponding state updates in
+// store) before a transfer is marked as done. In other words, a done upload
+// must appear in the `children` of its parent PathItem, unless the item has
+// been deleted.
+//
+// TODO: when we have renames, reconsile editing rows in here too.
+const reconcileUploadingAndStillRows = (
+  uploadings: Array<SortableUploadingRowItem>,
+  stills: Array<SortableStillRowItem>
+): Array<SortableRowItem> => {
+  const pendingUploads: Array<SortableUploadingRowItem> = uploadings.filter(uploading => !uploading.isDone)
+  const pendingUploadsNameSet = new Set(pendingUploads)
+  const doneStills: Array<SortableStillRowItem> = stills.filter(
+    still => !pendingUploadsNameSet.has(still.name)
+  )
+  return [...doneStills, ...pendingUploads]
+}
+
+const placeholderRows = [
+  {rowType: 'placeholder', name: '1'},
+  {rowType: 'placeholder', name: '2'},
+  {rowType: 'placeholder', name: '3'},
+]
+
 const mergeProps = (stateProps, dispatchProps, {routePath}) => {
-  const itemNames = stateProps._itemChildren.union(stateProps._itemFavoriteChildren)
-  const pathItems = itemNames.map(name => {
-    return (
-      stateProps._pathItems.get(Types.pathConcat(stateProps.path, name)) ||
-      Constants.makeUnknownPathItem({name})
-    )
-  })
-  const filteredPathItems = pathItems.filter(item => !(item.tlfMeta && item.tlfMeta.isIgnored)).toList()
-  const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
-  const stillItems = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)
-    .map(({name}) => Types.pathConcat(stateProps.path, name))
-    .toArray()
-  const editingItems = stateProps._edits
-    .filter(edit => edit.parentPath === stateProps.path)
-    .keySeq()
-    .toArray()
-    .sort()
+  if (stateProps.progress === 'pending') {
+    return {
+      routePath,
+      items: placeholderRows,
+      path: stateProps.path,
+    }
+  }
+
+  const editingRows = getEditingRows(stateProps._edits, stateProps.path)
+  const uploadingRows = getUploadingRows(stateProps._transfers, stateProps.path)
+  const stillRows = getStillRows(
+    stateProps._pathItems,
+    stateProps.path,
+    stateProps._itemChildren.union(stateProps._itemFavoriteChildren).toArray()
+  )
+
+  const items = sortRowItems(
+    editingRows.concat(reconcileUploadingAndStillRows(uploadingRows, stillRows)),
+    stateProps._sortSetting,
+    Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
+  )
+
   return {
-    stillItems,
-    editingItems,
     isUserReset: stateProps.isUserReset,
     resetParticipants: stateProps.resetParticipants,
+    items,
     path: stateProps.path,
     progress: stateProps.progress,
     routePath,

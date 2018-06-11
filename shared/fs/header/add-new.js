@@ -10,11 +10,14 @@ import FloatingMenu, {
 type AddNewProps = {
   style?: Object,
   showText: boolean,
-  menuItems: Array<{
-    onClick: () => void,
-    icon: IconType,
-    title: string,
-  }>,
+  menuItems: Array<
+    | {
+        onClick: () => void,
+        icon: IconType,
+        title: string,
+      }
+    | 'Divider'
+  >,
   pathElements: Array<string>,
 }
 
@@ -83,22 +86,27 @@ const AddNew = (props: AddNewProps & FloatingMenuParentProps) => {
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           header={header(props.pathElements) || undefined}
-          items={props.menuItems.map(({onClick, title, icon}) => ({
-            onClick,
-            ...(isMobile
-              ? {title}
-              : {
-                  title,
-                  view: (
-                    <Box style={stylesBox}>
-                      <Icon type={icon} color={globalColors.blue} />
-                      <Text type="Body" style={stylesText}>
-                        {title}
-                      </Text>
-                    </Box>
-                  ),
-                }),
-          }))}
+          items={props.menuItems.map(
+            item =>
+              item === 'Divider'
+                ? 'Divider'
+                : {
+                    onClick: item.onClick,
+                    ...(isMobile
+                      ? {title: item.title}
+                      : {
+                          title: item.title,
+                          view: (
+                            <Box style={stylesBox}>
+                              <Icon type={item.icon} color={globalColors.blue} />
+                              <Text type="Body" style={stylesText}>
+                                {item.title}
+                              </Text>
+                            </Box>
+                          ),
+                        }),
+                  }
+          )}
           position="bottom center"
           closeOnSelect={true}
         />

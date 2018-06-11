@@ -144,6 +144,9 @@ export type _Transfer = {
 }
 export type Transfer = I.RecordOf<_Transfer>
 
+// 'both' is only supported on macOS
+export type OpenDialogType = 'file' | 'directory' | 'both'
+
 export type PathBreadcrumbItem = {
   isTlfNameItem: boolean,
   isLastItem: boolean,
@@ -183,6 +186,20 @@ export type _State = {
 export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
+
+export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
+  switch (d.direntType) {
+    case RPCTypes.simpleFSDirentType.dir:
+      return 'folder'
+    case RPCTypes.simpleFSDirentType.sym:
+      return 'symlink'
+    case RPCTypes.simpleFSDirentType.file:
+    case RPCTypes.simpleFSDirentType.exec:
+      return 'file'
+    default:
+      return 'unknown'
+  }
+}
 
 export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
@@ -251,49 +268,17 @@ export const getPathDir = (p: Path): Path => pathToString(p).slice(0, pathToStri
 const localSep = isWindows ? '\\' : '/'
 
 export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + localSep + s
-export const getLocalPathName = (p: LocalPath): string => p.split(localSep).pop()
+export const getLocalPathName = (localPath: LocalPath): string => {
+  const elems = localPath.split('/')
+  for (let elem = elems.pop(); elems.length; elem = elems.pop()) {
+    if (elem !== '') {
+      return elem
+    }
+  }
+  return ''
+}
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
 
-type PathItemComparer = (a: PathItem, b: PathItem) => number
-type PathItemLessThan = (a: PathItem, b: PathItem) => boolean
-
-const _comparerFromLessThan = (lt: PathItemLessThan): PathItemComparer => (a, b) =>
-  lt(a, b) ? -1 : lt(b, a) ? 1 : 0
-
-const _neutralComparer = (a: PathItem, b: PathItem): number => 0
-
-const _getMeFirstComparer = (meUsername: string): PathItemComparer =>
-  _comparerFromLessThan((a: PathItem, b: PathItem): boolean => a.name === meUsername && b.name !== meUsername)
-
-const _folderFirstComparer: PathItemComparer = _comparerFromLessThan(
-  (a: PathItem, b: PathItem): boolean =>
-    a.type === 'folder'
-      ? b.type !== 'folder' || (!!a.tlfMeta && a.tlfMeta.isNew && !(b.tlfMeta && b.tlfMeta.isNew))
-      : false
-)
-
-export const _getSortByComparer = (sortBy: SortBy): PathItemComparer => {
-  switch (sortBy) {
-    case 'name':
-      return (a: PathItem, b: PathItem): number => a.name.localeCompare(b.name)
-    case 'time':
-      return (a: PathItem, b: PathItem): number =>
-        b.lastModifiedTimestamp - a.lastModifiedTimestamp || a.name.localeCompare(b.name)
-    default:
-      throw new Error('invalid SortBy: ' + sortBy)
-  }
-}
-
-export const sortSettingToCompareFunction = (
-  {sortBy, sortOrder}: SortSetting,
-  meUsername?: string
-): PathItemComparer => {
-  const meFirstComparer = meUsername ? _getMeFirstComparer(meUsername) : _neutralComparer
-  const sortByComparer = _getSortByComparer(sortBy)
-  const multiplier = sortOrder === 'desc' ? -1 : 1
-  return (a: PathItem, b: PathItem): number =>
-    multiplier * (meFirstComparer(a, b) || _folderFirstComparer(a, b) || sortByComparer(a, b))
-}
 type sortSettingDisplayParams = {
   sortSettingText: string,
   sortSettingIconType: IconType,
@@ -384,3 +369,28 @@ export type ResetMetadata = {
   visibility: Visibility,
   resetParticipants: Array<string>,
 }
+
+export type StillRowItem = {
+  rowType: 'still',
+  path: Path,
+  name: string,
+}
+
+export type EditingRowItem = {
+  rowType: 'editing',
+  editID: EditID,
+  name: string,
+}
+
+export type UploadingRowItem = {
+  rowType: 'uploading',
+  transferID: string,
+  name: string,
+}
+
+export type PlaceholderRowItem = {
+  rowType: 'placeholder',
+  name: string,
+}
+
+export type RowItem = StillRowItem | EditingRowItem | UploadingRowItem | PlaceholderRowItem

@@ -175,7 +175,17 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
 
   const key = Constants.makeDownloadKey(path, localPath)
 
-  yield Saga.put(FsGen.createDownloadStarted({key, path, localPath, intent, opID}))
+  yield Saga.put(
+    FsGen.createTransferStarted({
+      type: 'download',
+      key,
+      path,
+      localPath,
+      intent,
+      opID,
+      // Omit entryType to let reducer figure out.
+    })
+  )
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     opID,
@@ -206,11 +216,75 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     intentEffect && (yield intentEffect)
   } catch (error) {
     console.log(`Download for intent[${intent}] error: ${error}`)
-    yield Saga.put(FsGen.createDownloadFinished({key, error}))
+    yield Saga.put(FsGen.createTransferFinished({key, error}))
     return
   }
 
-  yield Saga.put(FsGen.createDownloadFinished({key}))
+  yield Saga.put(FsGen.createTransferFinished({key}))
+}
+
+function* upload(action: FsGen.UploadPayload) {
+  const {parentPath, localPath} = action.payload
+  const opID = Constants.makeUUID()
+  const name = Types.getLocalPathName(localPath)
+  const path = Types.pathConcat(parentPath, name)
+  const key = Constants.makeUploadKey(localPath, path)
+
+  // Call stat to figure out path type.
+  const dirent = yield Saga.call(RPCTypes.SimpleFSSimpleFSStatRpcPromise, {
+    path: {
+      PathType: RPCTypes.simpleFSPathType.local,
+      local: localPath,
+    },
+  })
+  const entryType = Types.direntToPathType(dirent)
+
+  yield Saga.put(
+    FsGen.createTransferStarted({
+      type: 'upload',
+      entryType,
+      key,
+      path,
+      localPath,
+      intent: 'none',
+      opID,
+    })
+  )
+
+  // TODO: confirm overwrites?
+  // TODO: what about directory merges?
+  yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
+    opID,
+    src: {
+      PathType: RPCTypes.simpleFSPathType.local,
+      local: localPath,
+    },
+    dest: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(path),
+    },
+  })
+
+  try {
+    yield Saga.race({
+      monitor: Saga.call(monitorTransferProgress, key, opID),
+      wait: Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
+    })
+
+    // No error, so the upload has finished successfully. Set the
+    // completePortion to 1.
+    yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
+  } catch (error) {
+    console.log(`Upload error: ${error}`)
+    yield Saga.put(FsGen.createTransferFinished({key, error}))
+    return
+  }
+
+  // Reload folder list before marking the transfer as done so we don't go into
+  // a state where we think upload is finished but the item is not loaded
+  // (which causes UI to skip that row).
+  yield Saga.call(folderList, FsGen.createFolderListLoad({path: parentPath}))
+  yield Saga.put(FsGen.createTransferFinished({key}))
 }
 
 function cancelTransfer({payload: {key}}: FsGen.CancelTransferPayload, state: TypedState) {
@@ -474,6 +548,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(FsGen.cancelTransfer, cancelTransfer)
   yield Saga.safeTakeEvery(FsGen.download, download)
+  yield Saga.safeTakeEvery(FsGen.upload, upload)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
