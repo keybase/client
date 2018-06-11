@@ -2242,6 +2242,114 @@ func isRevisionConflict(err error) bool {
 		isConflictFolderMapping || isJournal
 }
 
+func (fbo *folderBranchOps) getConvID(
+	ctx context.Context, handle *TlfHandle) (
+	chat1.ConversationID, error) {
+	fbo.convLock.Lock()
+	defer fbo.convLock.Unlock()
+	if len(fbo.convID) == 0 {
+		session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+		if err != nil {
+			return nil, err
+		}
+		channelName := string(session.Name)
+
+		id, err := fbo.config.Chat().GetConversationID(
+			ctx, handle.GetCanonicalName(), fbo.id().Type(),
+			channelName, chat1.TopicType_KBFSFILEEDIT)
+		if err != nil {
+			return nil, err
+		}
+		fbo.convID = id
+	}
+	return fbo.convID, nil
+}
+
+func (fbo *folderBranchOps) sendEditNotifications(
+	ctx context.Context, rmd ImmutableRootMetadata, body string) error {
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return err
+	}
+	// For now only write out the notifications if we're an admin or
+	// if we're in test mode, just in case we decide to change the
+	// notification format before we launch.
+	if !fbo.config.Mode().IsTestMode() && !libkb.IsKeybaseAdmin(session.UID) {
+		return nil
+	}
+
+	handle := rmd.GetTlfHandle()
+	convID, err := fbo.getConvID(ctx, handle)
+	if err != nil {
+		return err
+	}
+	return fbo.config.Chat().SendTextMessage(
+		ctx, handle.GetCanonicalName(), fbo.id().Type(), convID, body)
+}
+
+func (fbo *folderBranchOps) makeEditNotifications(
+	ctx context.Context, rmd ImmutableRootMetadata) (
+	edits []kbfsedits.NotificationMessage, err error) {
+	if rmd.IsWriterMetadataCopiedSet() {
+		return nil, nil
+	}
+
+	if rmd.MergedStatus() != kbfsmd.Merged {
+		return nil, nil
+	}
+
+	// If journaling is enabled, this MD is coming from the journal,
+	// and the final paths will not be set on the ops.  Use crChains
+	// to set them.
+	ops := rmd.data.Changes.Ops
+	if TLFJournalEnabled(fbo.config, fbo.id()) {
+		chains, err := newCRChainsForIRMDs(
+			ctx, fbo.config.Codec(), []ImmutableRootMetadata{rmd},
+			&fbo.blocks, true)
+		if err != nil {
+			return nil, err
+		}
+		err = fbo.blocks.populateChainPaths(ctx, fbo.log, chains, true)
+		if err != nil {
+			return nil, err
+		}
+		ops = make([]op, 0, len(ops))
+		for _, chain := range chains.byMostRecent {
+			ops = append(ops, chain.ops...)
+		}
+	}
+
+	rev := rmd.Revision()
+	// We want the server's view of the time.
+	revTime := rmd.localTimestamp
+	if offset, ok := fbo.config.MDServer().OffsetFromServerTime(); ok {
+		revTime = revTime.Add(-offset)
+	}
+
+	for _, op := range ops {
+		edit := op.ToEditNotification(
+			rev, revTime, rmd.lastWriterVerifyingKey,
+			rmd.LastModifyingWriter(), fbo.id())
+		if edit != nil {
+			edits = append(edits, *edit)
+		}
+	}
+	return edits, nil
+}
+
+func (fbo *folderBranchOps) handleEditNotifications(
+	ctx context.Context, rmd ImmutableRootMetadata) error {
+	edits, err := fbo.makeEditNotifications(ctx, rmd)
+	if err != nil {
+		return err
+	}
+	body, err := kbfsedits.Prepare(edits)
+	if err != nil {
+		return err
+	}
+	return fbo.sendEditNotifications(ctx, rmd, body)
+}
+
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState, excl Excl,
 	notifyFn func(ImmutableRootMetadata) error) (
@@ -2406,8 +2514,14 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		return err
 	}
 
-	// Archive the old, unref'd blocks if journaling is off.
+	// Send edit notifications and archive the old, unref'd blocks if
+	// journaling is off.
 	if !TLFJournalEnabled(fbo.config, fbo.id()) {
+		err := fbo.handleEditNotifications(ctx, irmd)
+		if err != nil {
+			fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
+				"revision %d: %+v", irmd.Revision(), err)
+		}
 		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
 	}
 
@@ -6178,8 +6292,14 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	}
 	fbo.setBranchIDLocked(lState, kbfsmd.NullBranchID)
 
-	// Archive the old, unref'd blocks if journaling is off.
+	// Send edit notifications and archive the old, unref'd blocks if
+	// journaling is off.
 	if !TLFJournalEnabled(fbo.config, fbo.id()) {
+		err := fbo.handleEditNotifications(ctx, irmd)
+		if err != nil {
+			fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
+				"revision %d: %+v", irmd.Revision(), err)
+		}
 		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
 	}
 
@@ -6318,108 +6438,6 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID kbfsmd.BranchID) {
 	}()
 }
 
-func (fbo *folderBranchOps) getConvID(ctx context.Context) (
-	chat1.ConversationID, error) {
-	fbo.convLock.Lock()
-	defer fbo.convLock.Unlock()
-	if len(fbo.convID) == 0 {
-		handle, err := fbo.GetTLFHandle(ctx, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
-		if err != nil {
-			return nil, err
-		}
-		channelName := string(session.Name)
-
-		id, err := fbo.config.Chat().GetConversationID(
-			ctx, handle.GetCanonicalName(), fbo.id().Type(),
-			channelName, chat1.TopicType_KBFSFILEEDIT)
-		if err != nil {
-			return nil, err
-		}
-		fbo.convID = id
-	}
-	return fbo.convID, nil
-}
-
-func (fbo *folderBranchOps) sendEditNotifications(
-	ctx context.Context, body string) error {
-	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		return err
-	}
-	// For now only write out the notifications if we're an admin or
-	// if we're in test mode, just in case we decide to change the
-	// notification format before we launch.
-	if !fbo.config.Mode().IsTestMode() && !libkb.IsKeybaseAdmin(session.UID) {
-		return nil
-	}
-
-	convID, err := fbo.getConvID(ctx)
-	if err != nil {
-		return err
-	}
-	handle, err := fbo.GetTLFHandle(ctx, nil)
-	if err != nil {
-		return err
-	}
-	return fbo.config.Chat().SendTextMessage(
-		ctx, handle.GetCanonicalName(), fbo.id().Type(), convID, body)
-}
-
-func (fbo *folderBranchOps) makeEditNotifications(
-	ctx context.Context, rmd ImmutableRootMetadata) (
-	edits []kbfsedits.NotificationMessage, err error) {
-	if rmd.IsWriterMetadataCopiedSet() {
-		return nil, nil
-	}
-
-	if rmd.MergedStatus() != kbfsmd.Merged {
-		return nil, nil
-	}
-
-	// If journaling is enabled, this MD is coming from the journal,
-	// and the final paths will not be set on the ops.  Use crChains
-	// to set them.
-	ops := rmd.data.Changes.Ops
-	if TLFJournalEnabled(fbo.config, fbo.id()) {
-		chains, err := newCRChainsForIRMDs(
-			ctx, fbo.config.Codec(), []ImmutableRootMetadata{rmd},
-			&fbo.blocks, true)
-		if err != nil {
-			return nil, err
-		}
-		err = fbo.blocks.populateChainPaths(ctx, fbo.log, chains, true)
-		if err != nil {
-			return nil, err
-		}
-		ops = make([]op, 0, len(ops))
-		for _, chain := range chains.byMostRecent {
-			ops = append(ops, chain.ops...)
-		}
-	}
-
-	rev := rmd.Revision()
-	// We want the server's view of the time.
-	revTime := rmd.localTimestamp
-	if offset, ok := fbo.config.MDServer().OffsetFromServerTime(); ok {
-		revTime = revTime.Add(-offset)
-	}
-
-	for _, op := range ops {
-		edit := op.ToEditNotification(
-			rev, revTime, rmd.lastWriterVerifyingKey,
-			rmd.LastModifyingWriter(), fbo.id())
-		if edit != nil {
-			edits = append(edits, *edit)
-		}
-	}
-	return edits, nil
-}
-
 func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid kbfsmd.BranchID,
 	rev kbfsmd.Revision) {
 	fbo.log.CDebugf(ctx, "Considering archiving references for flushed MD revision %d", rev)
@@ -6440,23 +6458,10 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid kbfsmd.Branch
 		return
 	}
 
-	edits, err := fbo.makeEditNotifications(ctx, rmd)
-	if err != nil {
-		fbo.log.CWarningf(ctx, "Couldn't make edit notifications for "+
-			"revision %d: %+v", rev, err)
-		return
-	}
-	body, err := kbfsedits.Prepare(edits)
-	if err != nil {
-		fbo.log.CWarningf(ctx, "Couldn't prepare edit notifications for "+
-			"revision %d: %+v", rev, err)
-		return
-	}
-	err = fbo.sendEditNotifications(ctx, body)
+	err = fbo.handleEditNotifications(ctx, rmd)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
 			"revision %d: %+v", rev, err)
-		return
 	}
 
 	if err := isArchivableMDOrError(rmd.ReadOnly()); err != nil {
