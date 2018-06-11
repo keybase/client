@@ -19,13 +19,13 @@ const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
 const copyChildren = children =>
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
-const animationDuration = 0.5
+const animationDuration = 1.5
 
 const messageHeights = {}
 
 type State = {
   children: ?React.Node,
-  height: ?number,
+  height: number,
 }
 class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {children: copyChildren(this.props.children), height: 17}
@@ -36,6 +36,10 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     if (messageHeights[props.messageKey]) {
       this.state = {children: copyChildren(props.children), height: messageHeights[props.messageKey]}
     }
+  }
+
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    return {children: copyChildren(nextProps.children)}
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -65,11 +69,21 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
           this.props.style,
           // paddingRight is to compensate for the message menu
           // to make sure we don't rewrap text when showing the animation
-          this.props.retainHeight && {height: this.state.height, paddingRight: 28, position: 'relative'},
+          this.props.retainHeight && {
+            height: this.state.height,
+            paddingRight: 28,
+            position: 'relative',
+            overflow: 'hidden',
+          },
         ])}
       >
         {this.state.children}
-        <Ashes exploded={this.props.retainHeight} explodedBy={this.props.explodedBy} />
+        <Ashes
+          doneExploding={!this.state.children}
+          exploded={this.props.retainHeight}
+          explodedBy={this.props.explodedBy}
+          height={this.state.height}
+        />
       </Box>
     )
   }
@@ -78,6 +92,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 const AshBox = glamorous.div(props => ({
   '&.full-width': {
     width: '100%',
+    overflow: 'visible',
   },
   backgroundColor: globalColors.white,
   backgroundImage: explodedIllustrationUrl,
@@ -91,7 +106,7 @@ const AshBox = glamorous.div(props => ({
   transition: `width ${animationDuration}s ease-in-out`,
   width: 0,
 }))
-const Ashes = (props: {exploded: boolean, explodedBy: ?string}) => {
+const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?string, height: number}) => {
   const explodedTag = props.explodedBy ? (
     <Text type="BodySmall" style={styles.exploded}>
       EXPLODED BY{' '}
@@ -108,7 +123,69 @@ const Ashes = (props: {exploded: boolean, explodedBy: ?string}) => {
       EXPLODED
     </Text>
   )
-  return <AshBox className={props.exploded ? 'full-width' : undefined}>{explodedTag}</AshBox>
+  return (
+    <AshBox className={props.exploded ? 'full-width' : undefined}>
+      {explodedTag}
+      <FlameFront height={props.height} stop={props.doneExploding} />
+    </AshBox>
+  )
+}
+
+const maxFlameWidth = 50
+const FlameFront = (props: {height: number, stop: boolean}) => {
+  const numBoxes = Math.ceil(props.height / 17)
+  const children = []
+  for (let i = 0; i < numBoxes; i++) {
+    children.push(<Flame key={i} stop={props.stop} />)
+  }
+  return (
+    <Box className="flame-container" style={styles.flameContainer}>
+      {children}
+    </Box>
+  )
+}
+
+const colors = [globalColors.red, globalColors.yellow, globalColors.grey]
+const randWidth = () => Math.round(Math.random() * maxFlameWidth)
+const randColor = () => colors[Math.floor(Math.random() * colors.length)]
+
+class Flame extends React.Component<{stop: boolean}, {color: string, width: number}> {
+  state = {color: randColor(), width: randWidth()}
+  intervalID: ?IntervalID
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.state.width !== nextState.width || this.state.color !== nextState.color) {
+      return true
+    }
+    return this.props.stop !== nextProps.stop
+  }
+
+  componentDidMount() {
+    if (!this.props.stop) {
+      this.intervalID = setInterval(() => this.setState({color: randColor(), width: randWidth()}), 100)
+    }
+  }
+
+  componentDidUpate() {
+    if (this.props.stop && this.intervalID) {
+      clearInterval(this.intervalID)
+      this.intervalID = null
+    }
+  }
+
+  render() {
+    return (
+      <Box
+        style={{
+          backgroundColor: this.state.color,
+          width: this.state.width,
+          height: 15,
+          marginTop: 1,
+          marginBottom: 1,
+          opacity: 0.9,
+        }}
+      />
+    )
+  }
 }
 
 const styles = styleSheetCreate({
@@ -124,6 +201,11 @@ const styles = styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
+  flameContainer: {
+    width: maxFlameWidth,
+    position: 'absolute',
+    right: -1 * maxFlameWidth,
+  },
 })
 
 export default ExplodingHeightRetainer
