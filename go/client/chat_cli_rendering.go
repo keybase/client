@@ -546,13 +546,17 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		m.SenderUsername, possiblyRevokedMark, m.SenderDeviceName, shortDurationFromNow(t))
 
 	if m.IsEphemeral() {
-		remainingEphemeralLifetime := m.RemainingEphemeralLifetime(time.Now())
-		if remainingEphemeralLifetime <= 0 {
-			mv.Body = "[exploded]"
+		if m.IsEphemeralExpired(time.Now()) {
+			var explodedByText string
+			if m.ExplodedBy() != nil {
+				explodedByText = fmt.Sprintf(" by %s", *m.ExplodedBy())
+			}
+			mv.Body = fmt.Sprintf("[exploded%s] ", explodedByText)
 			for i := 0; i < 40; i++ {
 				mv.Body += "* "
 			}
 		} else {
+			remainingEphemeralLifetime := m.RemainingEphemeralLifetime(time.Now())
 			mv.EphemeralInfo = fmt.Sprintf("[expires in %s]", remainingEphemeralLifetime)
 		}
 	}
