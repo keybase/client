@@ -17,10 +17,11 @@ buildscript {
 allprojects {
     repositories {
         mavenLocal()
-        jcenter()
+        // Needed per https://github.com/zo0r/react-native-push-notification/issues/748#issuecomment-392523852 .
         maven {
             url 'https://maven.google.com'
         }
+        jcenter()
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url "$rootDir/../../node_modules/react-native/android"

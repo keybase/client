@@ -58,8 +58,11 @@ class ConversationList extends React.PureComponent<Props> {
   _onViewableItemsChanged = ({viewableItems}) => {
     const topRecord = viewableItems[viewableItems.length - 1]
     if (topRecord && topRecord.item === 'specialTop') {
-      const ordinalRecord = viewableItems[viewableItems.length - 2] || {}
-      this.props.loadMoreMessages(this.props.messageOrdinals.get(ordinalRecord.item))
+      const ordinalRecord = viewableItems[viewableItems.length - 2]
+      // ignore if we don't have real messages
+      if (ordinalRecord && ordinalRecord.item !== 'specialBottom') {
+        this.props.loadMoreMessages(this.props.messageOrdinals.get(ordinalRecord.item))
+      }
     }
   }
 
