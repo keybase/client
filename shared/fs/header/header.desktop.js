@@ -3,9 +3,8 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
-import ConnectedFilesBanner from '../banner/fileui-banner/container'
-import ConnectedResetBanner from '../banner/reset-banner/container'
 import AddNew from './add-new-container'
+import ConnectedBanner from '../banner/container'
 
 export type FolderHeaderProps = {
   breadcrumbItems: Array<Types.PathBreadcrumbItem>,
@@ -71,8 +70,7 @@ const FolderHeader = ({
         </Box>
       )}
     </Box>
-    <ConnectedFilesBanner path={path} />
-    <ConnectedResetBanner path={path} />
+    <ConnectedBanner path={path} />
   </Box>
 )
 

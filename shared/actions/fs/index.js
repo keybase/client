@@ -444,6 +444,7 @@ function loadResets(action: FsGen.LoadResetsPayload) {
           filtered.push([
             path,
             {
+              badgeIDKey: '',
               name,
               resetParticipants: item.localMetadata.resetParticipants || [],
               visibility,
