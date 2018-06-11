@@ -9,8 +9,7 @@ import {ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
-
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const lockedToBottomSlop = 20
 

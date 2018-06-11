@@ -6,10 +6,6 @@
 #D1 .*/*[.]android.js
 #D1 .*/*[.]ios.js
 #D1 .*/*[.]native.js
-.*/*[.]android.js
-.*/*[.]ios.js
-.*/*[.]native.js
-
 # Will start to ignore js.flow files soon
 #.*/*[.].js.flow
 #.*/*[.]desktop.js
@@ -59,8 +55,6 @@ module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
 # module.system.haste.name_reducers='^\(.*\)\.android$' -> '\1'
 # module.system.haste.name_reducers='^\(.*\)\.native$' -> '\1'
 # module.system.haste.name_reducers='^\(.*\)\.desktop\.js$' -> '\1'
-module.file_ext=.js
-module.file_ext=.desktop.js
 #D1 module.file_ext=.js
 #D1 module.file_ext=.desktop.js
 # module.file_ext=.ios.js

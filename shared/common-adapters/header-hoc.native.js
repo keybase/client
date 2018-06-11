@@ -5,8 +5,7 @@ import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
 import Box from './box'
 import {collapseStyles, globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
-
-import type {Props} from './header-hoc'
+import type {Props} from './header-hoc.types'
 
 export const HeaderHocHeader = ({
   headerStyle,

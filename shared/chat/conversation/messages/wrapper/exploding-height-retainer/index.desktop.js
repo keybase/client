@@ -5,7 +5,7 @@ import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
 import {Box, ConnectedUsernames, Text} from '../../../../../common-adapters'
 import {collapseStyles, globalColors, styleSheetCreate} from '../../../../../styles'
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
 const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)

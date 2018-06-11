@@ -1,0 +1,33 @@
+// @flow
+import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
+
+export type Props = {
+  author: string,
+  exploded: boolean,
+  explodedBy: string,
+  explodesAt: number,
+  exploding: boolean,
+  failureDescription: string,
+  includeHeader: boolean,
+  innerClass: React.ComponentType<any>,
+  isBroken: boolean,
+  isEdited: boolean,
+  isEditing: boolean,
+  isExplodingUnreadable: boolean,
+  isFollowing: boolean,
+  isRevoked: boolean,
+  isYou: boolean,
+  measure: null | (() => void),
+  message: Types.MessageText | Types.MessageAttachment,
+  messageFailed: boolean,
+  messageKey: string, // must always be unique and immutable for the message
+  messagePending: boolean,
+  messageSent: boolean,
+  onRetry: null | (() => void),
+  onEdit: null | (() => void),
+  onCancel: null | (() => void),
+  onAuthorClick: () => void,
+  orangeLineAbove: boolean,
+  timestamp: string,
+}

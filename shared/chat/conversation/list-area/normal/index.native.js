@@ -4,8 +4,7 @@ import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/mobile.native'
-
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 class ConversationList extends React.PureComponent<Props> {
   _renderItem = ({index, item}) => {

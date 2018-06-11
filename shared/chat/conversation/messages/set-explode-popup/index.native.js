@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Icon, Text, FloatingPicker} from '../../../../common-adapters/mobile.native'
 import {globalColors, globalMargins} from '../../../../styles'
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const Announcement = () => (
   <Box2 direction="vertical" fullWidth={true} style={announcementContainerStyle}>

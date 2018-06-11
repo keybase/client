@@ -17,7 +17,7 @@ import MessagePopup from '../message-popup'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta'
 
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {

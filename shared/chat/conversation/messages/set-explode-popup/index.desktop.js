@@ -3,7 +3,7 @@ import * as React from 'react'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
 import {platformStyles, globalColors, globalMargins} from '../../../../styles'
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 type HeaderProps = {
   isNew: boolean,

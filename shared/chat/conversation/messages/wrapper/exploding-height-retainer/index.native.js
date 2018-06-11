@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box, ConnectedUsernames, NativeImage, Text} from '../../../../../common-adapters/mobile.native'
 import {collapseStyles, globalColors, styleSheetCreate} from '../../../../../styles'
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 // If this image changes, some hard coded dimensions
 // in this file also need to change.
