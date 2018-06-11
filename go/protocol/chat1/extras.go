@@ -420,6 +420,7 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 }
 
 func (m MessageUnboxedValid) RemainingEphemeralLifetime(now time.Time) time.Duration {
+	now = keybase1.ForceWallClock(now)
 	remainingLifetime := m.Etime().Time().Sub(now).Round(time.Second)
 	return remainingLifetime
 }
@@ -428,6 +429,7 @@ func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 	if !m.IsEphemeral() {
 		return false
 	}
+	now = keybase1.ForceWallClock(now)
 	etime := m.Etime().Time()
 	// There are a few ways a message could be considered expired
 	// 1. Our body is already nil (deleted from DELETEHISTORY or a server purge)
@@ -441,6 +443,7 @@ func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
 		return false
 	}
 	etime := m.Etime()
+	now = keybase1.ForceWallClock(now)
 	return etime.Time().Add(explosionLifetime).Before(now)
 }
 
@@ -536,13 +539,15 @@ func (m MessageBoxed) Etime() gregor1.Time {
 	if metadata == nil {
 		return 0
 	}
-	return Etime(metadata.Lifetime, m.ServerHeader.Ctime, gregor1.ToTime(time.Now()), m.ServerHeader.Now)
+	now := gregor1.ToTime(keybase1.ForceWallClock(time.Now()))
+	return Etime(metadata.Lifetime, m.ServerHeader.Ctime, now, m.ServerHeader.Now)
 }
 
 func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
 	if !m.IsEphemeral() {
 		return false
 	}
+	now = keybase1.ForceWallClock(now)
 	etime := m.Etime().Time()
 	return m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
@@ -551,6 +556,7 @@ func (m MessageBoxed) HideExplosion(now time.Time) bool {
 	if !m.IsEphemeral() {
 		return false
 	}
+	now = keybase1.ForceWallClock(now)
 	etime := m.Etime()
 	return etime.Time().Add(explosionLifetime).Before(now)
 }
