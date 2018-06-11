@@ -17,6 +17,12 @@
       "options": {
         "printWidth": 9999
       }
+    },
+    {
+      "files": "*.json",
+      "options": {
+        "printWidth": 100
+      }
     }
   ]
 }

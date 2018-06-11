@@ -414,7 +414,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	stellarSender, err := stellar.LookupSenderPrimary(context.Background(), tcs[0].G)
+	stellarSender, err := stellar.LookupSender(context.Background(), tcs[0].G, "")
 	require.NoError(t, err)
 
 	u1, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcs[0].G, tcs[1].Fu.Username))
