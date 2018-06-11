@@ -32,12 +32,14 @@
       "results": "string"
     },
     "getChannelInfo": {
-      "_description": "Fetches the channel information for a single channel in a team from the server.",
+      "_description":
+        "Fetches the channel information for a single channel in a team from the server.",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
-      "teamname": "string",
+      "teamname": "string"
     },
     "getChannels": {
-      "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
+      "_description":
+        "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
     "getTeams": {},
@@ -152,15 +154,15 @@
     },
     "setTeamRetentionPolicy": {
       "teamname": "string",
-      "retentionPolicy": "Types.RetentionPolicy",
+      "retentionPolicy": "Types.RetentionPolicy"
     },
     "setTeamLoadingInvites": {
       "teamname": "string",
       "invitees": "string",
-      "loadingInvites": "boolean",
+      "loadingInvites": "boolean"
     },
     "clearTeamRequests": {
-      "teamname": "string",
+      "teamname": "string"
     },
     "setTeamDetails": {
       "teamname": "string",
@@ -168,27 +170,27 @@
       "settings": "Types.TeamSettings",
       "invites": "I.Set<Types.InviteInfo>",
       "subteams": "I.Set<Types.Teamname>",
-      "requests": "I.Map<string, I.Set<Types.RequestInfo>>",
+      "requests": "I.Map<string, I.Set<Types.RequestInfo>>"
     },
     "setTeamCanPerform": {
       "teamname": "string",
-      "teamOperation": "Types.TeamOperations",
+      "teamOperation": "Types.TeamOperations"
     },
     "setTeamPublicitySettings": {
       "teamname": "string",
-      "publicity": "Types._PublicitySettings",
+      "publicity": "Types._PublicitySettings"
     },
     "setTeamChannelInfo": {
       "teamname": "string",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
-      "channelInfo": "Types.ChannelInfo",
+      "channelInfo": "Types.ChannelInfo"
     },
     "setTeamChannels": {
       "teamname": "string",
-      "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>",
+      "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
     },
     "setLoaded": {
-      "loaded": "boolean",
+      "loaded": "boolean"
     },
     "setTeamInfo": {
       "teamnames": "I.Set<Types.Teamname>",
@@ -197,15 +199,15 @@
       "teamNameToRole": "I.Map<Types.Teamname, Types.MaybeTeamRoleType>",
       "teamNameToAllowPromote": "I.Map<Types.Teamname, boolean>",
       "teamNameToIsShowcasing": "I.Map<Types.Teamname, boolean>",
-      "teamNameToID": "I.Map<Types.Teamname, string>",
+      "teamNameToID": "I.Map<Types.Teamname, string>"
     },
     "setTeamAccessRequestsPending": {
-      "accessRequestsPending": "I.Set<Types.Teamname>",
+      "accessRequestsPending": "I.Set<Types.Teamname>"
     },
     "setNewTeamInfo": {
       "newTeams": "I.Set<string>",
       "newTeamRequests": "I.List<string>",
-      "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>",
+      "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
@@ -232,11 +234,11 @@
     },
     "deleteChannelConfirmed": {
       "teamname": "Types.Teamname",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "deleteChannelInfo": {
       "teamname": "Types.Teamname",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "badgeAppForTeams": {
       "newTeamNames": "Array<string>",
@@ -247,11 +249,13 @@
       "teamname": "string"
     },
     "getTeamRetentionPolicy": {
-      "_description": "Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.",
+      "_description":
+        "Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.",
       "teamname": "string"
     },
     "saveTeamRetentionPolicy": {
-      "_description": "Sets the retention policy for a team. The store will be updated automatically.",
+      "_description":
+        "Sets the retention policy for a team. The store will be updated automatically.",
       "teamname": "string",
       "policy": "Types.RetentionPolicy"
     }

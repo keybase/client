@@ -701,7 +701,7 @@ function* _logout() {
   yield Saga.all([Saga.call(deletePushTokenSaga), Saga.put(ConfigGen.createClearRouteState())])
 
   yield Saga.put(LoginGen.createWaitingForResponse({waiting: true}))
-  const chanMap = RPCTypes.loginLogoutRpcChannelMap(['finished'], {})
+  const chanMap = RPCTypes.loginLogoutRpcChannelMap(['finished'])
   const incoming = yield chanMap.take('finished')
   yield Saga.put(LoginGen.createWaitingForResponse({waiting: false}))
   if (incoming.error) {
