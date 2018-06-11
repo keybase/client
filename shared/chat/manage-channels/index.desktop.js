@@ -14,7 +14,7 @@ import {
 } from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous, platformStyles} from '../../styles'
 
-import type {Props, RowProps} from '.'
+import type {Props, RowProps} from './index.types'
 
 const HoverBox = glamorous(Box)({
   opacity: 0,

@@ -1,27 +1,4 @@
 // @flow
 import * as React from 'react'
-import {type ChannelMembershipState} from '../../constants/types/teams'
-import {type ConversationIDKey} from '../../constants/types/chat2'
-
-export type RowProps = {
-  description: string,
-  name: string,
-}
-
-export type Props = {
-  canCreateChannels: boolean,
-  canEditChannels: boolean,
-  channels: Array<RowProps & {convID: ConversationIDKey}>,
-  onCreate: () => void,
-  onToggle: (convID: ConversationIDKey) => void,
-  onEdit: (convID: ConversationIDKey) => void,
-  onClose: () => void,
-  onClickChannel: (channelname: string) => void,
-  teamname: string,
-  unsavedSubscriptions: boolean,
-  onSaveSubscriptions: () => void,
-  waitingForGet: boolean,
-  nextChannelState: ChannelMembershipState,
-}
-
+import type {Props} from './index.types'
 declare export default class ManageChannels extends React.Component<Props> {}
