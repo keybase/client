@@ -5,8 +5,7 @@ import flags from '../../util/feature-flags'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-
-import type {Props} from './index.render'
+import type {Props} from './index.types'
 
 const _icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',
