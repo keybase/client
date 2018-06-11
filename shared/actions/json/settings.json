@@ -55,7 +55,7 @@
       "passphrase": "HiddenString"
     },
     "onChangeRememberPassphrase": {
-      "remember": "boolean",
+      "remember": "boolean"
     },
     "onChangeShowPassphrase": {},
     "onSubmitNewEmail": {},
@@ -74,10 +74,10 @@
       "allow": "boolean"
     },
     "trace": {
-      "durationSeconds": "number",
+      "durationSeconds": "number"
     },
     "processorProfile": {
-      "durationSeconds": "number",
+      "durationSeconds": "number"
     },
     "waitingForResponse": {
       "waiting": "boolean"

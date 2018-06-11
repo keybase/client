@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import HiddenString from '../util/hidden-string'"
-  ],
+  "prelude": ["import HiddenString from '../util/hidden-string'"],
   "actions": {
     "checkInviteCode": {
       "inviteCode": "string",
@@ -45,7 +43,7 @@
       "paperkey": "HiddenString"
     },
     "signupError": {
-       "signupError": "HiddenString"
+      "signupError": "HiddenString"
     },
     "waiting": {
       "waiting": "boolean"
