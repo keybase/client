@@ -706,6 +706,10 @@
         {
           "name": "publicNote",
           "type": "string"
+        },
+        {
+          "name": "fromAccountID",
+          "type": "AccountID"
         }
       ],
       "response": "SendResultCLILocal"
