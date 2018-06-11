@@ -390,7 +390,7 @@ import engine, {EngineChannel} from '../../engine'
 import engineSaga from '../../engine/saga'
 import * as Saga from '../../util/saga'
 import type {Action} from '../../constants/types/flux'
-import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
+import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, RPCError} from '../../engine/types'
 import type {TypedState} from '../../constants/reducer'
 `
   const incomingMap =
