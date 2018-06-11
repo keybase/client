@@ -61,7 +61,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 const AshTower = (props: {numImages: number}) => {
   const children = []
   for (let i = 0; i < props.numImages; i++) {
-    children.push(<NativeImage key={i} source={explodedIllustrationURL} style={styles.image} />)
+    children.push(<NativeImage key={i} source={explodedIllustrationURL} style={styles.ashes} />)
   }
   return <React.Fragment>{children}</React.Fragment>
 }

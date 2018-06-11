@@ -77,7 +77,7 @@ class _CopyText extends React.Component<Props, State> {
           {this._isRevealed() ? this.props.text : '••••••••••••'}
         </Text>
         {!this._isRevealed() && (
-          <Text type="BodyPrimaryLink" style={styles.reveal} onClick={this.reveal}>
+          <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
             Reveal
           </Text>
         )}

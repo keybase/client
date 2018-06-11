@@ -152,7 +152,7 @@ const RightSide = props => (
             type="iconfont-exclamation"
             style={iconCastPlatformStyles(styles.exclamation)}
             color={globalColors.blue}
-            fontSize={11}
+            fontSize={14}
           />
         )}
       </Box>

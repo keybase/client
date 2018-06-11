@@ -20,20 +20,21 @@ const SetChannelname = (props: Props) => {
       onAvatarClicked={props.onUsernameClicked}
       title={formatTimeForMessages(props.timestamp)}
       topLine={
+        <ConnectedUsernames
+          inline={true}
+          type="BodySmallSemibold"
+          onUsernameClicked={props.onUsernameClicked}
+          colorFollowing={true}
+          underline={true}
+          usernames={[props.author]}
+          style={props.setUsernameBlack ? {color: globalColors.black_75} : undefined}
+        />
+      }
+      bottomLine={
         <Text type="BodySmall">
-          <ConnectedUsernames
-            inline={true}
-            type="BodySmallSemibold"
-            onUsernameClicked={props.onUsernameClicked}
-            colorFollowing={true}
-            underline={true}
-            usernames={[props.author]}
-            style={props.setUsernameBlack ? {color: globalColors.black_75} : undefined}
-          />{' '}
           set the channel name to <Text type="BodySmallItalic">#{props.channelname}</Text>
         </Text>
       }
-      bottomLine={null}
     />
   )
 }
