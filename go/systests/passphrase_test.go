@@ -298,11 +298,19 @@ func (n *testRecoverUIRecover) Printf(f string, args ...interface{}) (int, error
 	n.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
 }
+func (n *testRecoverUIRecover) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+	s := fmt.Sprintf(f, args...)
+	n.G().Log.Debug("Terminal PrintfUnescaped: %s", s)
+	return len(s), nil
+}
 func (n *testRecoverUIRecover) Write(b []byte) (int, error) {
 	n.G().Log.Debug("Terminal write: %s", string(b))
 	return len(b), nil
 }
 func (n *testRecoverUIRecover) OutputWriter() io.Writer {
+	return n
+}
+func (n *testRecoverUIRecover) UnescapedOutputWriter() io.Writer {
 	return n
 }
 func (n *testRecoverUIRecover) ErrorWriter() io.Writer {
