@@ -42,7 +42,6 @@ export default function() {
     minWidth: windowStyle.minWidth,
     show: false,
     webPreferences: {
-      affinity: 'keybase',
       devTools: showDevTools,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
