@@ -1,33 +1,39 @@
 // @flow
 import * as React from 'react'
-import {StandardScreen, Avatar, Box, Text, Button, ButtonBar} from '../../common-adapters'
+import {showImagePicker} from 'react-native-image-picker'
+import {StandardScreen, Box, Button, ButtonBar} from '../../common-adapters'
+import {isIOS} from '../../constants/platform'
 import {globalStyles, globalMargins} from '../../styles'
-import {noAvatarMessage, hasAvatarMessage} from './shared'
 import type {Props} from '.'
 
-const EditAvatar = ({keybaseUsername, hasAvatar, onAck}: Props) => {
-  const text = !hasAvatar ? noAvatarMessage : hasAvatarMessage
+class EditAvatar extends React.Component<Props> {
+  _openFilePicker = () => {
+    showImagePicker({mediaType: 'photo'}, response => {
+      if (response.didCancel) {
+        return
+      }
+      if (response.error) {
+        console.error(response.error)
+        throw new Error(response.error)
+      }
+      const filename = isIOS ? response.uri.replace('file://', '') : response.path
+      this._paintImage(filename)
+    })
+  }
 
-  return (
-    <StandardScreen style={{...globalStyles.flexBoxColumn, flex: 1}} onBack={onAck}>
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.small}}>
-        <Avatar size={128} username={keybaseUsername} />
-        <Text type="Body" style={styleCaption}>
-          {text}
-        </Text>
-        <ButtonBar>
-          <Button type="Primary" fullWidth={true} onClick={onAck} label="Got it!" />
-        </ButtonBar>
-      </Box>
-    </StandardScreen>
-  )
-}
+  _paintImage = (path: string) => {}
 
-const styleCaption = {
-  marginTop: globalMargins.medium,
-  marginLeft: globalMargins.small,
-  marginRight: globalMargins.small,
-  textAlign: 'center',
+  render() {
+    return (
+      <StandardScreen style={{...globalStyles.flexBoxColumn, flex: 1}} onBack={this.props.onClose}>
+        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.small}}>
+          <ButtonBar>
+            <Button type="Secondary" fullWidth={true} onClick={this.props.onClose} label="Cancel" />
+          </ButtonBar>
+        </Box>
+      </StandardScreen>
+    )
+  }
 }
 
 export default EditAvatar

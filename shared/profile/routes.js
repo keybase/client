@@ -55,6 +55,7 @@ const profileRoute = makeRouteDefNode({
     },
     editAvatar: {
       component: EditAvatar,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     nonUserProfile: {
       component: NonUserProfile,

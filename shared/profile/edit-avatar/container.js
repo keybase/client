@@ -9,17 +9,14 @@ const mapStateToProps = (state: TypedState) => {
     throw new Error('Not logged in')
   }
 
-  const trackerState = username && state.tracker.userTrackers[username]
-  const userProofs = trackerState && trackerState.proofs
-  const hasAvatarProof = userProofs && userProofs.some(p => p.type === 'github' || p.type === 'twitter')
   return {
     keybaseUsername: username,
-    hasAvatar: hasAvatarProof,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onAck: () => dispatch(navigateUp()),
+  onClose: () => dispatch(navigateUp()),
+  onSave: () => {},
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditAvatar)

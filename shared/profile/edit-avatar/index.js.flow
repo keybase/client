@@ -2,9 +2,8 @@
 import {Component} from 'react'
 
 export type Props = {
-  keybaseUsername: string,
-  hasAvatar: boolean,
-  onAck: () => void,
+  onClose: () => void,
+  onSave: () => void,
 }
 
 export default class Render extends Component<Props> {}
