@@ -45,6 +45,16 @@ export const commonConversationStatus = {
   reported: 5,
 }
 
+export const commonGetThreadReason = {
+  general: 0,
+  push: 1,
+  foreground: 2,
+  backgroundconvload: 3,
+  fixretry: 4,
+  prepare: 5,
+  searcher: 6,
+}
+
 export const commonGlobalAppNotificationSetting = {
   newmessages: 0,
   plaintextmobile: 1,
@@ -224,12 +234,6 @@ export const localGetThreadNonblockPgMode = {
   server: 1,
 }
 
-export const localGetThreadNonblockReason = {
-  general: 0,
-  push: 1,
-  foreground: 2,
-}
-
 export const localGetThreadNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadNonblock', request)
 
 export const localGetThreadNonblockRpcPromise = (request: LocalGetThreadNonblockRpcParam): Promise<LocalGetThreadNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getThreadNonblock', request, (error: RPCError, result: LocalGetThreadNonblockResult) => (error ? reject(error) : resolve(result))))
@@ -295,6 +299,7 @@ export const localOutboxErrorType = {
   toolong: 3,
   duplicate: 4,
   expired: 5,
+  toomanyattempts: 6,
 }
 
 export const localOutboxStateType = {
@@ -353,6 +358,10 @@ export const localPostMetadataNonblockRpcPromise = (request: LocalPostMetadataNo
 export const localPostMetadataRpcChannelMap = (configKeys: Array<string>, request: LocalPostMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postMetadata', request)
 
 export const localPostMetadataRpcPromise = (request: LocalPostMetadataRpcParam): Promise<LocalPostMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postMetadata', request, (error: RPCError, result: LocalPostMetadataResult) => (error ? reject(error) : resolve(result))))
+
+export const localPostReactionNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostReactionNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postReactionNonblock', request)
+
+export const localPostReactionNonblockRpcPromise = (request: LocalPostReactionNonblockRpcParam): Promise<LocalPostReactionNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postReactionNonblock', request, (error: RPCError, result: LocalPostReactionNonblockResult) => (error ? reject(error) : resolve(result))))
 
 export const localPostTextNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostTextNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postTextNonblock', request)
 
@@ -832,12 +841,16 @@ export type GetThreadNonblockPgMode =
   | 0 // DEFAULT_0
   | 1 // SERVER_1
 
-export type GetThreadNonblockReason =
+export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
+
+export type GetThreadReason =
   | 0 // GENERAL_0
   | 1 // PUSH_1
   | 2 // FOREGROUND_2
-
-export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
+  | 3 // BACKGROUNDCONVLOAD_3
+  | 4 // FIXRETRY_4
+  | 5 // PREPARE_5
+  | 6 // SEARCHER_6
 
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
 
@@ -874,7 +887,7 @@ export type InboxResType =
   | 0 // VERSIONHIT_0
   | 1 // FULL_1
 
-export type InboxUIItem = $ReadOnly<{convID: String, isEmpty: Boolean, name: String, snippet: String, channel: String, headline: String, visibility: Keybase1.TLFVisibility, participants?: ?Array<String>, fullNames: {[key: string]: String}, resetParticipants?: ?Array<String>, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, time: Gregor1.Time, notifications?: ?ConversationNotificationInfo, creatorInfo?: ?ConversationCreatorInfoLocal, version: ConversationVers, maxMsgID: MessageID, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
+export type InboxUIItem = $ReadOnly<{convID: String, isEmpty: Boolean, name: String, snippet: String, channel: String, headline: String, visibility: Keybase1.TLFVisibility, participants?: ?Array<String>, fullNames: {[key: string]: String}, resetParticipants?: ?Array<String>, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, time: Gregor1.Time, notifications?: ?ConversationNotificationInfo, creatorInfo?: ?ConversationCreatorInfoLocal, version: ConversationVers, maxMsgID: MessageID, readMsgID: MessageID, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
 
 export type InboxUIItemError = $ReadOnly<{typ: ConversationErrorType, message: String, unverifiedTLFName: String, rekeyInfo?: ?ConversationErrorRekey, remoteConv: UnverifiedInboxUIItem}>
 
@@ -934,9 +947,9 @@ export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, 
 
 export type LocalGetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, reason: GetThreadReason, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadNonblockReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalJoinConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -975,6 +988,8 @@ export type LocalPostLocalRpcParam = $ReadOnly<{conversationID: ConversationID, 
 export type LocalPostMetadataNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPostMetadataRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LocalPostReactionNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPostTextNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1178,6 +1193,7 @@ export type OutboxErrorType =
   | 3 // TOOLONG_3
   | 4 // DUPLICATE_4
   | 5 // EXPIRED_5
+  | 6 // TOOMANYATTEMPTS_6
 
 export type OutboxID = Bytes
 
@@ -1217,7 +1233,7 @@ export type RemoteGetInboxVersionRpcParam = $ReadOnly<{uid: Gregor1.UID, incomin
 
 export type RemoteGetMessageBeforeRpcParam = $ReadOnly<{convID: ConversationID, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetMessagesRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, threadReason?: ?GetThreadReason, messageIDs?: ?Array<MessageID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteGetPublicConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1225,7 +1241,7 @@ export type RemoteGetS3ParamsRpcParam = $ReadOnly<{conversationID: ConversationI
 
 export type RemoteGetTLFConversationsRpcParam = $ReadOnly<{tlfID: TLFID, topicType: TopicType, summarizeMaxMsgs: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteGetThreadRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteGetThreadRemoteRpcParam = $ReadOnly<{conversationID: ConversationID, reason: GetThreadReason, query?: ?GetThreadQuery, pagination?: ?Pagination, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteGetUnreadUpdateFullRpcParam = $ReadOnly<{inboxVers: InboxVers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1411,7 +1427,7 @@ export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: In
 
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
 
-export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, name: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, notifications?: ?ConversationNotificationInfo, time: Gregor1.Time, version: ConversationVers, maxMsgID: MessageID, localMetadata?: ?UnverifiedInboxUIItemMetadata, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
+export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, name: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, notifications?: ?ConversationNotificationInfo, time: Gregor1.Time, version: ConversationVers, maxMsgID: MessageID, readMsgID: MessageID, localMetadata?: ?UnverifiedInboxUIItemMetadata, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
 
 export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, headline: String, snippet: String, writerNames?: ?Array<String>, resetParticipants?: ?Array<String>}>
 
@@ -1456,6 +1472,7 @@ type LocalPostLocalNonblockResult = PostLocalNonblockRes
 type LocalPostLocalResult = PostLocalRes
 type LocalPostMetadataNonblockResult = PostLocalNonblockRes
 type LocalPostMetadataResult = PostLocalRes
+type LocalPostReactionNonblockResult = PostLocalNonblockRes
 type LocalPostTextNonblockResult = PostLocalNonblockRes
 type LocalPreviewConversationByIDLocalResult = JoinLeaveConversationLocalRes
 type LocalSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes

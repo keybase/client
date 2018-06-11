@@ -115,15 +115,19 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, false)
+	return tt.addUserHelper(pre, true, false, true)
 }
 
 func (tt *teamTester) addUserWithPaper(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, true)
+	return tt.addUserHelper(pre, true, true, true)
 }
 
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false, false)
+	return tt.addUserHelper(pre, false, false, true)
+}
+
+func (tt *teamTester) addWalletlessUser(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true, false, false)
 }
 
 func (tt *teamTester) logUserNames() {
@@ -146,10 +150,13 @@ func installInsecureTriplesec(g *libkb.GlobalContext) {
 	}
 }
 
-func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
+func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
+	}
+	if !wallet {
+		tctx.Tp.DisableAutoWallet = true
 	}
 
 	var u userPlusDevice

@@ -14,7 +14,7 @@ const ItemBox = glamorous(Box)({
   ':hover': {
     backgroundColor: globalColors.blue3_40,
   },
-  border: `1px solid ${globalColors.lightGrey2}`,
+  borderBottom: `1px solid ${globalColors.lightGrey2}`,
   minHeight: 40,
   width: '100%',
 })
@@ -37,7 +37,7 @@ const other = 'Someone else...'
 
 const UserRow = ({user, onClick}) => (
   <ItemBox onClick={onClick}>
-    <Text type="Header" style={{color: user === other ? globalColors.black : globalColors.orange}}>
+    <Text type="Header" style={{color: user === other ? globalColors.black_75 : globalColors.orange}}>
       {user}
     </Text>
   </ItemBox>
@@ -88,7 +88,7 @@ class Login extends Component<Props, State> {
               }}
               style={{backgroundColor: globalColors.white, flex: 1}}
             />
-            <Icon type="iconfont-caret-down" inheritColor={true} fontSize={11} />
+            <Icon type="iconfont-caret-down" color={globalColors.black_40} style={{marginBottom: 4}} />
           </ButtonBox>
           {this.state.open && (
             <PopupDialog
@@ -103,6 +103,7 @@ class Login extends Component<Props, State> {
                     ...globalStyles.flexBoxColumn,
                     ...desktopStyles.scrollable,
                     border: `1px solid ${globalColors.blue}`,
+                    borderRadius: 4,
                     maxHeight: 300,
                     width: 270,
                   }}

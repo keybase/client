@@ -11,16 +11,14 @@ function DeleteMe(props: Props) {
       style={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
+        justifyContent: 'center',
         flex: 1,
-        padding: globalMargins.medium,
-        paddingTop: globalMargins.xlarge,
-        paddingBottom: globalMargins.xlarge,
       }}
     >
       <Text type="Header" style={{marginTop: globalMargins.medium}}>
         So this is goodbye?
       </Text>
-      <Text type="Body" style={{textAlign: 'center', padding: globalMargins.small}}>
+      <Text type="Body" style={{textAlign: 'center', padding: globalMargins.small, maxWidth: 440}}>
         If you delete your account, you can't get it back, and you can't create another account with the same
         name.
       </Text>
@@ -30,7 +28,6 @@ function DeleteMe(props: Props) {
         label="Delete my account forever"
         onClick={props.onDelete}
       />
-      <Box style={{flex: 1}} />
     </Box>
   )
 }

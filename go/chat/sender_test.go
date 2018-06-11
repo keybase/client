@@ -421,6 +421,7 @@ func TestNonblockTimer(t *testing.T) {
 	// Check get thread, make sure it makes sense
 	typs := []chat1.MessageType{chat1.MessageType_TEXT}
 	tres, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		chat1.GetThreadReason_GENERAL,
 		&chat1.GetThreadQuery{MessageTypes: typs}, nil)
 	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs}, true)
 	t.Logf("source size: %d", len(tres.Messages))
@@ -945,9 +946,11 @@ func TestKBFSCryptKeysBit(t *testing.T) {
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 		}, 0, nil)
 		require.NoError(t, err)
-		tv, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, &chat1.GetThreadQuery{
-			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-		}, nil)
+		tv, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid,
+			chat1.GetThreadReason_GENERAL,
+			&chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			}, nil)
 		require.NoError(t, err)
 		require.Len(t, tv.Messages, 1)
 		msg := tv.Messages[0]
@@ -998,9 +1001,10 @@ func TestPrevPointerAddition(t *testing.T) {
 		require.NoError(t, storage.New(tc.Context(), tc.ChatG.ConvSource).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
 
 		// Fetch a subset into the cache
-		_, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, nil, &chat1.Pagination{
-			Num: 2,
-		})
+		_, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil,
+			&chat1.Pagination{
+				Num: 2,
+			})
 		require.NoError(t, err)
 
 		// Prepare a regular message and make sure it gets prev pointers

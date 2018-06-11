@@ -36,6 +36,8 @@ export type _State = {
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread, There is a special node for the pending conversation
   moreToLoadMap: I.Map<Common.ConversationIDKey, boolean>, // if we have more data to load
+  orangeLineMap: I.Map<Common.ConversationIDKey, ?Message.Ordinal>, // last message we've seen
+  explodingModeLocks: I.Map<Common.ConversationIDKey, number>, // locks set on exploding mode while user is inputting text
   explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
   quote: ?QuoteInfo, // last quoted message
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any

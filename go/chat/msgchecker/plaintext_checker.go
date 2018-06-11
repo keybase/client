@@ -85,6 +85,8 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), TextMessageMaxLength)
 	case chat1.MessageType_EDIT:
 		return plaintextFieldLengthChecker("message edit", len(msg.MessageBody.Edit().Body), TextMessageMaxLength)
+	case chat1.MessageType_REACTION:
+		return plaintextFieldLengthChecker("message reaction", len(msg.MessageBody.Reaction().Body), ReactionMessageMaxLength)
 	case chat1.MessageType_HEADLINE:
 		return plaintextFieldLengthChecker("headline", len(msg.MessageBody.Headline().Headline), HeadlineMaxLength)
 	case chat1.MessageType_METADATA:

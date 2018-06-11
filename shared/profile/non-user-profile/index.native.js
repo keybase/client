@@ -75,8 +75,8 @@ const styleFullname = {
 
 const styleServiceLabel = platformStyles({
   common: {
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: 14,
+    lineHeight: 19,
     marginTop: globalMargins.xtiny,
   },
 })

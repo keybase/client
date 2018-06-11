@@ -54,7 +54,7 @@ const styleSmallNotice = platformStyles({
     marginBottom: globalMargins.xtiny,
     marginRight: globalMargins.medium,
     ...globalStyles.flexBoxRow,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'flex-start',
   },
   isElectron: {

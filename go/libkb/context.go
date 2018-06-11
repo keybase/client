@@ -550,8 +550,7 @@ func (m MetaContext) PassphraseStreamAndTriplesec() (*PassphraseStream, Triplese
 	if ppsc == nil {
 		return nil, nil
 	}
-	tsec, _ := ppsc.TriplesecAndGeneration()
-	return ppsc.PassphraseStream(), tsec
+	return ppsc.PassphraseStreamAndTriplesec()
 }
 
 func (m MetaContext) TriplesecAndGeneration() (ret Triplesec, ppgen PassphraseGeneration) {

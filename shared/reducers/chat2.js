@@ -325,31 +325,24 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       })
     // fallthrough actually select it
     case Chat2Gen.selectConversation:
+      // ignore non-changing
+      if (state.selectedConversation === action.payload.conversationIDKey) {
+        return state
+      }
       return state.withMutations(s => {
         // Update the orange line on the previous conversation
         if (state.selectedConversation) {
-          s.updateIn(
-            ['metaMap', state.selectedConversation],
-            meta =>
-              meta
-                ? meta.set(
-                    'orangeLineOrdinal',
-                    state.messageOrdinals.get(state.selectedConversation, I.Set()).last()
-                  )
-                : meta
-          )
+          const lastOrdinal = state.messageOrdinals.get(state.selectedConversation, I.Set()).last()
+          s.setIn(['orangeLineMap', state.selectedConversation], lastOrdinal)
         }
-        // Update the current conversation. If the ordinal is the last item, just remove it so we don't get an orange bar as we type
+        // If the convo you just went into has no orange line (its at the bottom), just clear it so it doens't show up if you type or as stuff comes in
         if (action.payload.conversationIDKey) {
-          s.updateIn(['metaMap', action.payload.conversationIDKey], meta => {
-            if (meta) {
-              const lastOrdinal = state.messageOrdinals.get(action.payload.conversationIDKey, I.Set()).last()
-              if (lastOrdinal === meta.orangeLineOrdinal) {
-                return meta.set('orangeLineOrdinal', null)
-              }
-            }
-            return meta
-          })
+          const oldOrange = s.getIn(['orangeLineMap', action.payload.conversationIDKey])
+          const lastOrdinal = s.messageOrdinals.get(action.payload.conversationIDKey, I.Set()).last()
+
+          if (oldOrange === lastOrdinal) {
+            s.setIn(['orangeLineMap', action.payload.conversationIDKey], null)
+          }
         }
         s.set('selectedConversation', action.payload.conversationIDKey)
       })
@@ -678,6 +671,15 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return map
       }, {})
       return state.set('explodingModes', I.Map(explodingMap))
+    case Chat2Gen.setExplodingModeLock:
+      const {conversationIDKey, unset} = action.payload
+      const mode = state.getIn(['explodingModes', conversationIDKey], 0)
+      // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
+      const alreadyLocked = state.getIn(['explodingModeLocks', conversationIDKey], null) !== null
+      if (unset) {
+        return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
+      }
+      return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
     case Chat2Gen.setExplodingMessagesNew:
       return state.set('isExplodingNew', action.payload.new)
     // metaMap/messageMap/messageOrdinalsList only actions

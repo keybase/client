@@ -694,14 +694,14 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   return arr
 }, [])
 
-const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadNonblockReason => {
+const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
   switch (reason) {
     case 'push':
-      return RPCChatTypes.localGetThreadNonblockReason.push
+      return RPCChatTypes.commonGetThreadReason.push
     case 'foregrounding':
-      return RPCChatTypes.localGetThreadNonblockReason.foreground
+      return RPCChatTypes.commonGetThreadReason.foreground
     default:
-      return RPCChatTypes.localGetThreadNonblockReason.general
+      return RPCChatTypes.commonGetThreadReason.general
   }
 }
 
@@ -1154,8 +1154,8 @@ const previewConversationAfterFindExisting = (
   if (!_fromPreviewConversation || _fromPreviewConversation.length !== 4) {
     return
   }
-  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
-  const users: Array<string> = _fromPreviewConversation[2]
+  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[2]
+  const users: Array<string> = _fromPreviewConversation[3]
 
   // still looking for this result?
   if (
@@ -1254,6 +1254,7 @@ const previewConversationFindExisting = (
 
   let params
   let users
+  let setUsers
 
   // we handled participants or teams
   if (participants) {
@@ -1262,6 +1263,7 @@ const previewConversationFindExisting = (
     users = I.Set(participants)
       .subtract([you])
       .toArray()
+    setUsers = Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
   } else if (teamname) {
     params = {
       membersType: RPCChatTypes.commonConversationMembersType.team,
@@ -1273,17 +1275,6 @@ const previewConversationFindExisting = (
   } else {
     throw new Error('Start conversation called w/ no participants or teamname')
   }
-
-  const updatePendingMode =
-    action.type === Chat2Gen.previewConversation &&
-    // not dealing with big teams
-    (!action.payload.teamname && !action.payload.channelname) &&
-    // it's a fixed set of users so it's not a search (aka you can't add people to it)
-    Saga.put(
-      Chat2Gen.createSetPendingMode({
-        pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
-      })
-    )
 
   const markPendingWaiting = Saga.put(
     Chat2Gen.createSetPendingConversationExistingConversationIDKey({
@@ -1305,7 +1296,7 @@ const previewConversationFindExisting = (
 
   const passUsersDown = Saga.identity(users)
 
-  return Saga.sequentially([markPendingWaiting, makeCall, passUsersDown, updatePendingMode])
+  return Saga.sequentially([markPendingWaiting, setUsers, makeCall, passUsersDown])
 }
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
@@ -1329,10 +1320,10 @@ const changeSelectedConversation = (
           Saga.put(
             Chat2Gen.createSelectConversation({
               conversationIDKey: Constants.pendingConversationIDKey,
-              reason: 'searching',
+              reason: 'setPendingMode',
             })
           ),
-          ...(isMobile ? [Saga.put(Chat2Gen.createNavigateToThread())] : []),
+          Saga.put(navigateToThreadRoute),
         ])
       } else if (isMobile) {
         return Saga.put(Chat2Gen.createNavigateToInbox())
@@ -1773,26 +1764,25 @@ const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.Leav
   }
   return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
 }
-const navigateToThread = (
-  action: Chat2Gen.NavigateToThreadPayload | Chat2Gen.PreviewConversationPayload,
-  state: TypedState
-) => {
-  if (action.type === Chat2Gen.navigateToThread) {
-    if (!isMobile && !Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
-      console.log('Skip nav to thread on invalid converastion')
-      return
-    }
+
+// Unchecked version of Chat2Gen.createNavigateToThread() --
+// Saga.put() this if you want to select the pending conversation
+// (which doesn't count as valid).
+const navigateToThreadRoute = Route.navigateTo(
+  isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+)
+
+const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload, state: TypedState) => {
+  if (!Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
+    console.log('Skip nav to thread on invalid conversation')
+    return
   }
-  return Saga.put(
-    Route.navigateTo(
-      isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
-    )
-  )
+  return Saga.put(navigateToThreadRoute)
 }
 
-const mobileNavigateToThread = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
+const mobileNavigateOnSelect = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
   if (Constants.isValidConversationIDKey(action.payload.conversationIDKey)) {
-    return Saga.put(Chat2Gen.createNavigateToThread())
+    return Saga.put(navigateToThreadRoute)
   }
 }
 
@@ -1935,8 +1925,14 @@ const changePendingMode = (
       // We're selecting a team so we never want to show the row, we'll instead make the rpc call to add it to the inbox
       if (action.payload.teamname || action.payload.channelname) {
         return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+      } else {
+        // Otherwise, we're starting a chat with some users.
+        return Saga.put(
+          Chat2Gen.createSetPendingMode({
+            pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
+          })
+        )
       }
-      break
     case Chat2Gen.selectConversation: {
       if (state.chat2.pendingMode === 'none') {
         return
@@ -1997,17 +1993,28 @@ const createConversationSelectIt = (results: Array<any>) => {
 
 const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
   const {conversationIDKey, seconds} = action.payload
+  const actions = []
   logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-  const cat = Constants.explodingModeGregorKey(conversationIDKey)
+
+  // unset a conversation exploding lock for this convo so we accept the new one
+  actions.push(Saga.put(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true})))
+
+  const category = Constants.explodingModeGregorKey(conversationIDKey)
   if (seconds === 0) {
     // dismiss the category so we don't leave cruft in the push state
-    return Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category: cat})
+    actions.push(Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category}))
+  } else {
+    // update the category with the exploding time
+    actions.push(
+      Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+        body: seconds.toString(),
+        category,
+        dtime: {offset: 0, time: 0},
+      })
+    )
   }
-  return Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-    body: seconds.toString(),
-    cat,
-    dtime: {offset: 0, time: 0},
-  })
+
+  return Saga.sequentially(actions)
 }
 
 const setConvExplodingModeSuccess = (
@@ -2080,7 +2087,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation
-    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, mobileNavigateToThread)
+    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, mobileNavigateOnSelect)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
     // Unselect the conversation when we go to the inbox
@@ -2090,7 +2097,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     )
   } else {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
-    yield Saga.safeTakeEveryPure(Chat2Gen.previewConversation, navigateToThread)
   }
 
   // Sometimes change the selection

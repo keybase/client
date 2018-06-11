@@ -758,30 +758,31 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 			g.forceSessionCheck = true
 			nist.MarkFailure()
 		}
-		return fmt.Errorf("error running SyncAll: %s", err.Error())
+		return fmt.Errorf("error running SyncAll: %s", err)
 	}
 
 	// Use the client parameter instead of conn.GetClient(), since we can get stuck
 	// in a recursive loop if we keep retrying on reconnect.
 	if err := g.auth(ctx, timeoutCli, &syncAllRes.Auth); err != nil {
-		return fmt.Errorf("error authenticating: %s", err.Error())
+		return fmt.Errorf("error authenticating: %s", err)
 	}
 
 	// Sync chat data using a Syncer object
 	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
-		return fmt.Errorf("error running chat sync: %s", err.Error())
+		return fmt.Errorf("error running chat sync: %s", err)
 	}
 
 	// Sync down events since we have been dead
 	if _, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli}, gcli,
 		&syncAllRes.Notification); err != nil {
-		g.chatLog.Debug(ctx, "serverSync: failure: %s", err.Error())
+		g.chatLog.Debug(ctx, "serverSync: failure: %s", err)
+		return fmt.Errorf("error running state sync: %s", err)
 	}
 
 	// Sync badge state in the background
 	if g.badger != nil {
 		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
-			g.chatLog.Debug(ctx, "badger failure: %s", err.Error())
+			g.chatLog.Debug(ctx, "badger failure: %s", err)
 		}
 	}
 

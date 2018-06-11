@@ -39,6 +39,8 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 		return boxedFieldLengthChecker("TEXT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
 	case chat1.MessageType_EDIT:
 		return boxedFieldLengthChecker("EDIT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
+	case chat1.MessageType_REACTION:
+		return boxedFieldLengthChecker("REACTION message", len(msg.BodyCiphertext.E), BoxedReactionMessageBodyMaxLength)
 	case chat1.MessageType_HEADLINE:
 		return boxedFieldLengthChecker("HEADLINE message", len(msg.BodyCiphertext.E), BoxedHeadlineMessageBodyMaxLength)
 	case chat1.MessageType_METADATA:

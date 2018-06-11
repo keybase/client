@@ -31,16 +31,13 @@ type RowProps = {
 }
 
 const newCharmStyle = {
-  borderRadius: 1,
   marginRight: 4,
   alignSelf: 'center',
 }
 
 const openCharmStyle = {
   alignSelf: 'center',
-  borderRadius: 1,
   marginLeft: 4,
-  marginTop: 2,
 }
 
 const TeamRow = ({

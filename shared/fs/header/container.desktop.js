@@ -6,7 +6,7 @@ import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '
 import {fsTab} from '../../constants/tabs'
 import {navigateAppend, navigateTo, navigateUp} from '../../actions/route-tree'
 import {isMobile} from '../../constants/platform'
-import FolderHeader from './header'
+import FolderHeader from './header.desktop'
 import * as StateMappers from '../utils/state-mappers'
 
 const mapStateToProps = (state: TypedState) => ({

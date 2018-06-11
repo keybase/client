@@ -1198,23 +1198,25 @@ func (e OutboxStateType) String() string {
 type OutboxErrorType int
 
 const (
-	OutboxErrorType_MISC      OutboxErrorType = 0
-	OutboxErrorType_OFFLINE   OutboxErrorType = 1
-	OutboxErrorType_IDENTIFY  OutboxErrorType = 2
-	OutboxErrorType_TOOLONG   OutboxErrorType = 3
-	OutboxErrorType_DUPLICATE OutboxErrorType = 4
-	OutboxErrorType_EXPIRED   OutboxErrorType = 5
+	OutboxErrorType_MISC            OutboxErrorType = 0
+	OutboxErrorType_OFFLINE         OutboxErrorType = 1
+	OutboxErrorType_IDENTIFY        OutboxErrorType = 2
+	OutboxErrorType_TOOLONG         OutboxErrorType = 3
+	OutboxErrorType_DUPLICATE       OutboxErrorType = 4
+	OutboxErrorType_EXPIRED         OutboxErrorType = 5
+	OutboxErrorType_TOOMANYATTEMPTS OutboxErrorType = 6
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
 
 var OutboxErrorTypeMap = map[string]OutboxErrorType{
-	"MISC":      0,
-	"OFFLINE":   1,
-	"IDENTIFY":  2,
-	"TOOLONG":   3,
-	"DUPLICATE": 4,
-	"EXPIRED":   5,
+	"MISC":            0,
+	"OFFLINE":         1,
+	"IDENTIFY":        2,
+	"TOOLONG":         3,
+	"DUPLICATE":       4,
+	"EXPIRED":         5,
+	"TOOMANYATTEMPTS": 6,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1224,6 +1226,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	3: "TOOLONG",
 	4: "DUPLICATE",
 	5: "EXPIRED",
+	6: "TOOMANYATTEMPTS",
 }
 
 func (e OutboxErrorType) String() string {
@@ -3026,35 +3029,6 @@ func (e GetThreadNonblockCbMode) String() string {
 	return ""
 }
 
-type GetThreadNonblockReason int
-
-const (
-	GetThreadNonblockReason_GENERAL    GetThreadNonblockReason = 0
-	GetThreadNonblockReason_PUSH       GetThreadNonblockReason = 1
-	GetThreadNonblockReason_FOREGROUND GetThreadNonblockReason = 2
-)
-
-func (o GetThreadNonblockReason) DeepCopy() GetThreadNonblockReason { return o }
-
-var GetThreadNonblockReasonMap = map[string]GetThreadNonblockReason{
-	"GENERAL":    0,
-	"PUSH":       1,
-	"FOREGROUND": 2,
-}
-
-var GetThreadNonblockReasonRevMap = map[GetThreadNonblockReason]string{
-	0: "GENERAL",
-	1: "PUSH",
-	2: "FOREGROUND",
-}
-
-func (e GetThreadNonblockReason) String() string {
-	if v, ok := GetThreadNonblockReasonRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
 type GetThreadNonblockPgMode int
 
 const (
@@ -3987,6 +3961,7 @@ func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
 
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Reason           GetThreadReason              `codec:"reason" json:"reason"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -4003,7 +3978,7 @@ type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	CbMode           GetThreadNonblockCbMode      `codec:"cbMode" json:"cbMode"`
-	Reason           GetThreadNonblockReason      `codec:"reason" json:"reason"`
+	Reason           GetThreadReason              `codec:"reason" json:"reason"`
 	Pgmode           GetThreadNonblockPgMode      `codec:"pgmode" json:"pgmode"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -4070,6 +4045,17 @@ type PostDeleteNonblockArg struct {
 }
 
 type PostEditNonblockArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
+	Body             string                       `codec:"body" json:"body"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type PostReactionNonblockArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
@@ -4352,6 +4338,7 @@ type LocalInterface interface {
 	PostTextNonblock(context.Context, PostTextNonblockArg) (PostLocalNonblockRes, error)
 	PostDeleteNonblock(context.Context, PostDeleteNonblockArg) (PostLocalNonblockRes, error)
 	PostEditNonblock(context.Context, PostEditNonblockArg) (PostLocalNonblockRes, error)
+	PostReactionNonblock(context.Context, PostReactionNonblockArg) (PostLocalNonblockRes, error)
 	PostHeadlineNonblock(context.Context, PostHeadlineNonblockArg) (PostLocalNonblockRes, error)
 	PostHeadline(context.Context, PostHeadlineArg) (PostLocalRes, error)
 	PostMetadataNonblock(context.Context, PostMetadataNonblockArg) (PostLocalNonblockRes, error)
@@ -4579,6 +4566,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostEditNonblock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postReactionNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]PostReactionNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostReactionNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostReactionNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.PostReactionNonblock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5251,6 +5254,11 @@ func (c LocalClient) PostDeleteNonblock(ctx context.Context, __arg PostDeleteNon
 
 func (c LocalClient) PostEditNonblock(ctx context.Context, __arg PostEditNonblockArg) (res PostLocalNonblockRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postEditNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostReactionNonblock(ctx context.Context, __arg PostReactionNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postReactionNonblock", []interface{}{__arg}, &res)
 	return
 }
 
