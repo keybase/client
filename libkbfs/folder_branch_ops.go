@@ -2832,6 +2832,16 @@ func (fbo *folderBranchOps) createEntryLocked(
 		},
 	}
 
+	// Set the TeamWriter for team TLFs, so we can return the
+	// LastWriterUnverified before the writes are flushed from memory.
+	if fbo.id().Type() == tlf.SingleTeam {
+		session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+		if err != nil {
+			return nil, DirEntry{}, err
+		}
+		de.TeamWriter = session.UID
+	}
+
 	dirCacheUndoFn := fbo.blocks.AddDirEntryInCache(lState, dirPath, name, de)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{co, []Node{dir, node}})
 	added := fbo.status.addDirtyNode(dir)
