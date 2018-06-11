@@ -263,7 +263,7 @@
     NOTE this is not invoked yet, because we're still stuck with a bundle .exe -->
     <CustomAction Id="RemoveLegacyBundle"
               Directory="LocalAppDataFolder"
-              ExeCommand="[LocalAppDataFolder]\Package Cache\{896ea78e-a79b-4c72-890d-ad5e23ed036c}\Keybase_1.0.48-20180516084028+b56432f520.386.exe /quiet /uninstall"
+              ExeCommand="[LocalAppDataFolder]\Package Cache\{2db7fc7d-8c3f-43a3-bfd9-dfa625366b99}\Keybase_2.1.0-20180607152232+f31e011ea5.386.exe /quiet /uninstall"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
