@@ -85,7 +85,10 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
       this.props.onEditLastMessage()
     } else if (e.key === 'Escape' && this.props.isEditing) {
       this.props.onCancelEditing()
+    } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
+      this._filePickerOpen()
     }
+
     this.props.onKeyDown && this.props.onKeyDown(e)
   }
 
@@ -132,6 +135,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     }
 
     const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
+    const isUploadKey = ev.key === 'u' && (ev.ctrlKey || ev.metaKey)
     const isValidSpecialKey = [
       'Backspace',
       'Delete',
@@ -141,7 +145,9 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
       'ArrowDown',
       'Enter',
     ].includes(ev.key)
-    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+    if (isUploadKey) {
+      this._filePickerOpen()
+    } else if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._inputFocus()
     }
   }
