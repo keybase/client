@@ -267,6 +267,8 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.small - containerPadding,
   },
   actionText: {
+    alignSelf: 'flex-end',
+    paddingBottom: globalMargins.xsmall,
     paddingRight: globalMargins.tiny,
   },
   container: {
