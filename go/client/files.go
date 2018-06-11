@@ -211,7 +211,7 @@ type EscapedSink struct {
 // Write writes p to the underlying Sink, after sanitizing it.
 // It returns n = len(p) on a successful write (regardless of how much data is written to the underlying Sink).
 // This is because the escaping function might alter the actual dimension of the data, but the caller is interested
-// in knowing how much of what they wanted to write was actually written. In case of errors it (conservatively) returns n=0 
+// in knowing how much of what they wanted to write was actually written. In case of errors it (conservatively) returns n=0
 // and the error, and no other writes are possible.
 func (s *EscapedSink) Write(p []byte) (n int, err error) {
 	if s.err != nil {
