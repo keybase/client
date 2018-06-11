@@ -183,14 +183,11 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 		return nil, err
 	}
 
-	for code, def := range conf.Currencies {
-		c := stellar1.CurrencyLocal{
-			Description: fmt.Sprintf("%s (%s)", code, def.Symbol.Symbol),
-			Code:        code,
-			Symbol:      def.Symbol.Symbol,
-			Name:        def.Name,
+	for code := range conf.Currencies {
+		c, ok := conf.GetCurrencyLocal(code)
+		if ok {
+			currencies = append(currencies, c)
 		}
-		currencies = append(currencies, c)
 	}
 	sort.Slice(currencies, func(i, j int) bool {
 		if currencies[i].Code == "USD" {
@@ -205,22 +202,20 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 	return currencies, nil
 }
 
-func (s *Server) GetUserSettingsLocal(ctx context.Context, sessionID int) (userSettings stellar1.UserSettings, err error) {
+func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret stellar1.WalletSettings, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "GetUserSettingsLocal",
-		Err:           &err,
-		RequireWallet: true,
+		RPCName: "GetWalletSettingsLocal",
+		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
-		return userSettings, err
+		return ret, err
 	}
-
-	userSettings, err = remote.GetUserSettings(ctx, s.G())
+	ret.AcceptedDisclaimer, err = remote.GetAcceptedDisclaimer(ctx, s.G())
 	if err != nil {
-		return userSettings, err
+		return ret, err
 	}
-	return userSettings, nil
+	return ret, nil
 }
 
 func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
@@ -594,6 +589,30 @@ func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.Ch
 		return fmt.Errorf("Unknown currency code: %q", arg.Currency)
 	}
 	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, string(arg.Currency))
+}
+
+func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {
+	defer s.G().CTraceTimed(ctx, "GetDisplayCurrencyLocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	if arg.AccountID.IsNil() {
+		return res, errors.New("passed empty AccountID")
+	}
+	codeStr, err := remote.GetAccountDisplayCurrency(ctx, s.G(), arg.AccountID)
+	if err != nil {
+		return res, err
+	}
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return res, err
+	}
+	currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(codeStr))
+	if !ok {
+		s.G().Log.CWarningf(ctx, "Got currency code %q for account %q that is not recognized.",
+			codeStr, arg.AccountID)
+	}
+	return currency, nil
 }
 
 func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {

@@ -931,7 +931,6 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   const calls = []
   if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
     calls.push(
-      // $FlowIssue doens't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {
         name: teamname,
         settings: {
@@ -943,7 +942,6 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   }
   if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
     calls.push(
-      // $FlowIssue doesn't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTarsDisabledRpcPromise, {
         disabled: settings.ignoreAccessRequests,
         name: teamname,
@@ -952,7 +950,6 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   }
   if (publicityAnyMember !== settings.publicityAnyMember) {
     calls.push(
-      // $FlowIssue doesn't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
         anyMemberShowcase: settings.publicityAnyMember,
         name: teamname,
@@ -961,7 +958,6 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   }
   if (publicityMember !== settings.publicityMember) {
     calls.push(
-      // $FlowIssue doesn't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
         isShowcased: settings.publicityMember,
         name: teamname,
@@ -970,7 +966,6 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   }
   if (publicityTeam !== settings.publicityTeam) {
     calls.push(
-      // $FlowIssue doesn't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
         isShowcased: settings.publicityTeam,
         name: teamname,

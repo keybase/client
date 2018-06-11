@@ -81,4 +81,4 @@ untyped-import=off
 deprecated-type=error
 
 [version]
-^0.73.0
+^0.74.0

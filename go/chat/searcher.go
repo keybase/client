@@ -46,9 +46,11 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 	var prevPage, curPage, nextPage *chat1.ThreadView
 
 	getNextPage := func() (*chat1.ThreadView, error) {
-		thread, err := s.G().ConvSource.Pull(ctx, conversationID, uid, &chat1.GetThreadQuery{
-			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-		}, pagination)
+		thread, err := s.G().ConvSource.Pull(ctx, conversationID, uid,
+			chat1.GetThreadReason_SEARCHER,
+			&chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			}, pagination)
 		if err != nil {
 			return nil, err
 		}
