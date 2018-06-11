@@ -1089,7 +1089,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		uid := users[0].User.GetUID().ToBytes()
 		tc := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
-		tv, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
+		tv, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid, chat1.GetThreadReason_GENERAL, nil,
 			nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
@@ -1112,7 +1112,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		})
 		require.NoError(t, err)
 		t.Logf("headline -> msgid:%v", res.MessageID)
-		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
+		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, chat1.GetThreadReason_GENERAL, nil,
 			nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
@@ -1129,7 +1129,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 			Age:              0,
 		})
 		require.NoError(t, err)
-		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil, nil)
+		tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
 		// Teams don't use the remote mock. So PostDeleteHistoryByAge won't have gotten a good answer from GetMessageBefore.

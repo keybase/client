@@ -190,8 +190,8 @@ const summaryRowStyle = {
 
 const detailStyle = {
   color: globalColors.white_75,
-  fontSize: 13,
-  lineHeight: 17,
+  fontSize: 14,
+  lineHeight: 19,
   padding: globalMargins.xtiny,
   paddingTop: globalMargins.tiny,
 }

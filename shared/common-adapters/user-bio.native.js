@@ -201,7 +201,7 @@ const stylesFullname = {
   color: globalColors.black_75,
 }
 const stylesFollowLabel = {
-  fontSize: 13,
+  fontSize: 14,
   marginTop: globalMargins.xtiny,
   marginBottom: globalMargins.xtiny,
   color: globalColors.black_40,

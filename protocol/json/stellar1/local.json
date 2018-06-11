@@ -94,7 +94,7 @@
       "name": "PaymentLocal",
       "fields": [
         {
-          "type": "string",
+          "type": "TransactionID",
           "name": "id"
         },
         {
@@ -177,6 +177,80 @@
     },
     {
       "type": "record",
+      "name": "PaymentDetailsLocal",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "id"
+        },
+        {
+          "type": "TimeMs",
+          "name": "time"
+        },
+        {
+          "type": "PaymentStatus",
+          "name": "statusSimplified"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
+        },
+        {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "BalanceDelta",
+          "name": "delta"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "source"
+        },
+        {
+          "type": "string",
+          "name": "sourceType"
+        },
+        {
+          "type": "string",
+          "name": "target"
+        },
+        {
+          "type": "string",
+          "name": "targetType"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "string",
+          "name": "noteErr"
+        },
+        {
+          "type": "string",
+          "name": "publicNote"
+        },
+        {
+          "type": "string",
+          "name": "publicNoteType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "CurrencyLocal",
       "fields": [
         {
@@ -199,7 +273,7 @@
     },
     {
       "type": "record",
-      "name": "UserSettings",
+      "name": "WalletSettings",
       "fields": [
         {
           "type": "boolean",
@@ -400,6 +474,10 @@
     "getPaymentsLocal": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "accountID",
           "type": "AccountID"
         },
@@ -415,6 +493,23 @@
         "type": "array",
         "items": "PaymentOrErrorLocal"
       }
+    },
+    "getPaymentDetailsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "id",
+          "type": "TransactionID"
+        }
+      ],
+      "response": "PaymentDetailsLocal"
     },
     "getDisplayCurrenciesLocal": {
       "request": [
@@ -509,14 +604,27 @@
       ],
       "response": null
     },
-    "getUserSettingsLocal": {
+    "getDisplayCurrencyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "CurrencyLocal"
+    },
+    "getWalletSettingsLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": "UserSettings"
+      "response": "WalletSettings"
     },
     "setAcceptedDisclaimerLocal": {
       "request": [
@@ -594,6 +702,10 @@
         {
           "name": "forceRelay",
           "type": "boolean"
+        },
+        {
+          "name": "publicNote",
+          "type": "string"
         }
       ],
       "response": "SendResultCLILocal"

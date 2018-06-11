@@ -92,9 +92,11 @@ func TestSendTextByName(t *testing.T) {
 		inbox, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
-		tv, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
-			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-		}, nil)
+		tv, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid,
+			chat1.GetThreadReason_GENERAL,
+			&chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			}, nil)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(tv.Messages))
 

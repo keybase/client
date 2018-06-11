@@ -165,7 +165,12 @@ const containerStyles = styleSheetCreate({
   Primary: {...common, backgroundColor: globalColors.blue},
   PrimaryGreen: {...common, backgroundColor: globalColors.green},
   PrimaryGreenActive: platformStyles({
-    common: {...common, backgroundColor: globalColors.white, borderColor: globalColors.green, borderWidth: 2},
+    common: {
+      ...common,
+      backgroundColor: globalColors.white,
+      borderColor: globalColors.green2,
+      borderWidth: 2,
+    },
     isElectron: {borderStyle: 'solid'},
   }),
   PrimaryPrivate: {...common, backgroundColor: globalColors.darkBlue2},
@@ -182,7 +187,7 @@ const containerStyles = styleSheetCreate({
 const labelStyles = styleSheetCreate({
   CustomLabel: {color: globalColors.black_75, textAlign: 'center'},
   DangerLabel: commonLabel,
-  PrimaryGreenActiveLabel: {...commonLabel, color: globalColors.green},
+  PrimaryGreenActiveLabel: {...commonLabel, color: globalColors.green2},
   PrimaryGreenLabel: commonLabel,
   PrimaryLabel: commonLabel,
   PrimaryPrivateLabel: commonLabel,

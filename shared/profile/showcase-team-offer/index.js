@@ -147,7 +147,6 @@ const styleContainer = {
 
 const styleMeta = {
   alignSelf: 'center',
-  borderRadius: 1,
   marginLeft: globalMargins.xtiny,
   marginTop: 2,
 }

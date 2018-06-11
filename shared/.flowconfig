@@ -31,6 +31,7 @@
 
 [libs]
 ./libs/flow-interface.js.flow
+./libs/electron_vx.x.x.js.flow
 ./flow-typed
 
 [options]
@@ -80,4 +81,4 @@ untyped-import=off
 deprecated-type=error
 
 [version]
-^0.73.0
+^0.74.0

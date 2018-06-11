@@ -1,6 +1,5 @@
 // @flow
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Constants from '../../../../constants/chat2'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as Types from '../../../../constants/types/chat2'
@@ -15,8 +14,8 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
-  const meta = Constants.getMeta(state, message.conversationIDKey)
-  const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
+  const orangeLineOrdinal = state.chat2.orangeLineMap.get(message.conversationIDKey)
+  const orangeLineAbove = !!previous && orangeLineOrdinal === previous.ordinal
   const messageSent = !message.submitState
   const messageFailed = message.submitState === 'failed'
   const messagePending = message.submitState === 'pending'
@@ -51,7 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, {measure}) => {
   const {message, previous} = stateProps
 
   const continuingTextBlock =
@@ -98,6 +97,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     isFollowing: stateProps.isFollowing,
     isRevoked: !!message.deviceRevokedAt,
     isYou: stateProps.isYou,
+    measure,
     message,
     messageFailed: stateProps.messageFailed,
     // `messageKey` must always be unique and immutable for the message

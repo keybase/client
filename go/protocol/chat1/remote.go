@@ -773,6 +773,7 @@ type GetInboxRemoteArg struct {
 
 type GetThreadRemoteArg struct {
 	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
+	Reason         GetThreadReason `codec:"reason" json:"reason"`
 	Query          *GetThreadQuery `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination     *Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
@@ -803,8 +804,9 @@ type NewConversationRemote2Arg struct {
 }
 
 type GetMessagesRemoteArg struct {
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	MessageIDs     []MessageID    `codec:"messageIDs" json:"messageIDs"`
+	ConversationID ConversationID   `codec:"conversationID" json:"conversationID"`
+	ThreadReason   *GetThreadReason `codec:"threadReason,omitempty" json:"threadReason,omitempty"`
+	MessageIDs     []MessageID      `codec:"messageIDs" json:"messageIDs"`
 }
 
 type MarkAsReadArg struct {

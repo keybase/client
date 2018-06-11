@@ -152,7 +152,7 @@ const RightSide = props => (
             type="iconfont-exclamation"
             style={iconCastPlatformStyles(styles.exclamation)}
             color={globalColors.blue}
-            fontSize={11}
+            fontSize={14}
           />
         )}
       </Box>
@@ -188,6 +188,18 @@ const RightSide = props => (
 )
 
 class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps> {
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.measure) {
+      if (
+        this.props.orangeLineAbove !== prevProps.orangeLineAbove ||
+        this.props.timestamp !== prevProps.timestamp ||
+        this.props.includeHeader !== prevProps.includeHeader
+      ) {
+        this.props.measure()
+      }
+    }
+  }
+
   render() {
     const props = this.props
     return (
@@ -266,7 +278,7 @@ const styles = styleSheetCreate({
     },
     isElectron: {pointerEvents: 'none'},
     isMobile: {
-      right: -sendIndicatorWidth,
+      right: -18,
     },
   }),
   textContainer: {

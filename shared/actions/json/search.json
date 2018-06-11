@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/search'"
-  ],
+  "prelude": ["import * as Types from '../constants/types/search'"],
   "actions": {
     "search": {
       "term": "string",

@@ -281,6 +281,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-files-public-delete-64.png'),
   },
+  'icon-folder-private-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-private-16.png'),
+  },
   'icon-folder-private-24': {
     isFont: false,
     extension: 'png',
@@ -320,6 +325,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-folder-private-success-negative-48.png'),
+  },
+  'icon-folder-public-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-public-16.png'),
   },
   'icon-folder-public-24': {
     isFont: false,
@@ -370,6 +380,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-folder-public-success-negative-48.png'),
+  },
+  'icon-folder-team-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-team-16.png'),
   },
   'icon-folder-team-32': {
     isFont: false,

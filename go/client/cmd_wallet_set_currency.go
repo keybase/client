@@ -22,8 +22,9 @@ func newCmdWalletSetCurrency(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name:  "set-currency",
-		Usage: "Set stellar account display currency",
+		Name:         "set-currency",
+		Usage:        "Set stellar account display currency",
+		ArgumentHelp: "<account ID>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "set-currency", c)
 		},

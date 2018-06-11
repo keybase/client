@@ -94,10 +94,10 @@ const dispatchDevicesLoaded = (results: Array<RPCTypes.DeviceDetail>) => {
 function* makePaperKey(): Saga.SagaGenerator<any, any> {
   let channelMap
   try {
-    channelMap = RPCTypes.loginPaperKeyRpcChannelMap(
-      ['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'],
-      {}
-    )
+    channelMap = RPCTypes.loginPaperKeyRpcChannelMap([
+      'keybase.1.loginUi.promptRevokePaperKeys',
+      'keybase.1.loginUi.displayPaperKeyPhrase',
+    ])
 
     while (true) {
       const incoming = yield channelMap.race()
