@@ -1015,6 +1015,7 @@ type MessageServerHeader struct {
 	ReactionIDs  []MessageID  `codec:"r" json:"r"`
 	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
 	Now          gregor1.Time `codec:"n" json:"n"`
+	Rtime        gregor1.Time `codec:"rt" json:"rt"`
 }
 
 func (o MessageServerHeader) DeepCopy() MessageServerHeader {
@@ -1034,6 +1035,7 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 		})(o.ReactionIDs),
 		Ctime: o.Ctime.DeepCopy(),
 		Now:   o.Now.DeepCopy(),
+		Rtime: o.Rtime.DeepCopy(),
 	}
 }
 

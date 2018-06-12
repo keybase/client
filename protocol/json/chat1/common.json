@@ -765,6 +765,12 @@
           "name": "now",
           "mpackkey": "n",
           "jsonkey": "n"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "rtime",
+          "mpackkey": "rt",
+          "jsonkey": "rt"
         }
       ]
     },

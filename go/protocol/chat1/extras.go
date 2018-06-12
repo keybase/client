@@ -540,7 +540,7 @@ func (m MessageBoxed) Etime() gregor1.Time {
 	if metadata == nil {
 		return 0
 	}
-	return Etime(metadata.Lifetime, m.ServerHeader.Ctime, gregor1.ToTime(time.Now()), m.ServerHeader.Now)
+	return Etime(metadata.Lifetime, m.ServerHeader.Ctime, m.ServerHeader.Rtime, m.ServerHeader.Now)
 }
 
 func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
