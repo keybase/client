@@ -58,6 +58,8 @@ const (
 	EntryTypeSym EntryType = "sym"
 )
 
+// ModifyRange represents a file modification.  Length is 0 for a
+// truncate.
 type ModifyRange struct {
 	Offset uint64
 	Length uint64
