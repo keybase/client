@@ -379,6 +379,8 @@ protocol local {
     array<gregor1.UID> atMentions;
     ChannelMention channelMention;
     array<ChannelNameMention> channelNameMentions;
+    // reactionText -> [Reaction(username, reactionMsgID)...]
+    ReactionMap reactions;
   }
 
   enum MessageUnboxedErrorType {

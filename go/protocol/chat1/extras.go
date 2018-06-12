@@ -85,6 +85,10 @@ func DbShortFormToString(cid ConvIDShort) string {
 	return hex.EncodeToString(cid)
 }
 
+func DbShortFormFromString(cid string) (ConvIDShort, error) {
+	return hex.DecodeString(cid)
+}
+
 func MakeTLFID(val string) (TLFID, error) {
 	return hex.DecodeString(val)
 }
@@ -536,7 +540,11 @@ func (m MessageBoxed) Etime() gregor1.Time {
 	if metadata == nil {
 		return 0
 	}
-	return Etime(metadata.Lifetime, m.ServerHeader.Ctime, gregor1.ToTime(time.Now()), m.ServerHeader.Now)
+	rtime := gregor1.ToTime(time.Now())
+	if m.ServerHeader.Rtime != nil {
+		rtime = *m.ServerHeader.Rtime
+	}
+	return Etime(metadata.Lifetime, m.ServerHeader.Ctime, rtime, m.ServerHeader.Now)
 }
 
 func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
@@ -1418,4 +1426,17 @@ func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 func (i EphemeralPurgeInfo) String() string {
 	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
+}
+
+func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found bool, reactionMsgID MessageID) {
+	reactions, ok := r.Reactions[reactionText]
+	if !ok {
+		return false, 0
+	}
+	for _, reaction := range reactions {
+		if reaction.Username == username {
+			return true, reaction.ReactionMsgID
+		}
+	}
+	return false, 0
 }

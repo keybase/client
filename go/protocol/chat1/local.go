@@ -2238,6 +2238,7 @@ type MessageUnboxedValid struct {
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
+	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2310,6 +2311,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		Reactions: o.Reactions.DeepCopy(),
 	}
 }
 

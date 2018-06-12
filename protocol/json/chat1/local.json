@@ -1148,6 +1148,10 @@
             "items": "ChannelNameMention"
           },
           "name": "channelNameMentions"
+        },
+        {
+          "type": "ReactionMap",
+          "name": "reactions"
         }
       ]
     },
