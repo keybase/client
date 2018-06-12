@@ -409,11 +409,8 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
   )
 }
 
-const letResetUserBackIn = (action: FsGen.LetResetUserBackInPayload) =>
-  Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {
-    id: action.payload.id,
-    username: action.payload.username,
-  })
+const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
+  Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {id, username})
 
 const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadResets())
 

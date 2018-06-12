@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
     _username,
     path,
     resetParticipants: _pathItem.type === 'folder' && _pathItem.tlfMeta ? _pathItem.tlfMeta.resetParticipants : [],
-    teamId: _pathItem.type === 'folder' && _pathItem.tlfMeta ? _pathItem.tlfMeta.teamId : '',
+    _teamId: _pathItem.type === 'folder' && _pathItem.tlfMeta ? _pathItem.tlfMeta.teamId : '',
   }
 }
 
@@ -34,7 +34,7 @@ const mergeProps = (stateProps, {_onReAddToTeam, onViewProfile}) => ({
     ? stateProps.resetParticipants.includes(stateProps._username)
     : false,
   onReAddToTeam: (username: string) => () =>
-    stateProps.teamId ? _onReAddToTeam(stateProps.teamId, username) : undefined,
+    stateProps._teamId ? _onReAddToTeam(stateProps._teamId, username) : undefined,
   onViewProfile,
   path: stateProps.path,
   resetParticipants: stateProps.resetParticipants.map(i => i.username),
