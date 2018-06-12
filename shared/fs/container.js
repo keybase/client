@@ -114,7 +114,7 @@ const reconcileUploadingAndStillRows = (
   stills: Array<SortableStillRowItem>
 ): Array<SortableRowItem> => {
   const pendingUploads: Array<SortableUploadingRowItem> = uploadings.filter(uploading => !uploading.isDone)
-  const pendingUploadsNameSet = new Set(pendingUploads)
+  const pendingUploadsNameSet = new Set(pendingUploads.map(uploading => uploading.name))
   const doneStills: Array<SortableStillRowItem> = stills.filter(
     still => !pendingUploadsNameSet.has(still.name)
   )

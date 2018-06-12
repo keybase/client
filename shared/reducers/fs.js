@@ -51,7 +51,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
         toRemove = toRemove.concat(
           originalFolder.children
-            .filter(child => newItem.children.includes(child))
+            .filter(child => !newItem.children.includes(child))
             .toArray()
             .map(name => Types.pathConcat(path, name))
         )
