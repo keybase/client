@@ -303,10 +303,10 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
           chatGlobalSettings.settings[`${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`],
       },
       {
-        name: 'soundoverridemobile',
+        name: 'defaultsoundmobile',
         description: 'Use system default notification sound',
         subscribed:
-          chatGlobalSettings.settings[`${ChatTypes.commonGlobalAppNotificationSetting.soundoverridemobile}`],
+          chatGlobalSettings.settings[`${ChatTypes.commonGlobalAppNotificationSetting.defaultsoundmobile}`],
       },
     ],
     unsub: false,
