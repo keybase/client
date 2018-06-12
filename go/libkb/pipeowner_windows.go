@@ -6,6 +6,7 @@
 package libkb
 
 import (
+	"fmt"
 	"syscall"
 	"unsafe"
 
@@ -69,14 +70,14 @@ func GetFileUserSid(name string) (*windows.SID, error) {
 	return userSID, nil
 }
 
-func IsPipeowner(log logger.Logger, name string) (isOwner bool, err error) {
+func IsPipeowner(log logger.Logger, name string, getNames bool) (isOwner bool, names string, err error) {
 	log.Debug("+ IsPipeowner(%s)", name)
 	defer func() {
 		log.Debug("- IsPiperowner -> (%v, %v)", isOwner, err)
 	}()
 	userSid, err := currentProcessUserSid()
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 
 	pipeSid, err := GetFileUserSid(name)
@@ -88,23 +89,25 @@ func IsPipeowner(log logger.Logger, name string) (isOwner bool, err error) {
 		// If this returns with no error, there is a pipe available.
 		err2 := waitNamedPipe(name, 1000)
 		if err2 != nil {
-			return false, err // return original busy error
+			return false, "", err // return original busy error
 		}
 		pipeSid, err = GetFileUserSid(name)
 	}
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 	isOwner = windows.EqualSid(pipeSid, userSid)
-	if !isOwner {
+	if !isOwner || getNames {
 		pipeAccount, pipeDomain, pipeAccType, pipeErr := pipeSid.LookupAccount("")
 		userAccount, userDomain, userAccType, userErr := userSid.LookupAccount("")
-		log.Debug("Pipe account: %s, %s, %v, %v", pipeAccount, pipeDomain, pipeAccType, pipeErr)
-		log.Debug("User account: %s, %s, %v, %v", userAccount, userDomain, userAccType, userErr)
+		names = fmt.Sprintf("Pipe account: %s, %s, %v, %v\nUser account: %s, %s, %v, %v",
+			pipeAccount, pipeDomain, pipeAccType, pipeErr,
+			userAccount, userDomain, userAccType, userErr)
+		log.Debug(names)
 		// If the pipe is served by an admin, let local security policies control access
 		if pipeAccount == "Administrators" && pipeDomain == "BUILTIN" && pipeAccType == syscall.SidTypeAlias {
 			isOwner = true
 		}
 	}
-	return isOwner, nil
+	return isOwner, names, nil
 }
