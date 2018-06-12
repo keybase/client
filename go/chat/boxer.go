@@ -555,7 +555,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 			OutboxID:          hp.OutboxID,
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
-			Rtime:             gregor1.ToTime(b.clock.Now()),
+			Rtime:             gregor1.ToTime(keybase1.ForceWallClock(b.clock.Now())),
 		}
 	default:
 		return nil,
@@ -792,7 +792,7 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			EphemeralMetadata: hp.EphemeralMetadata,
-			Rtime:             gregor1.ToTime(b.clock.Now()),
+			Rtime:             gregor1.ToTime(keybase1.ForceWallClock(b.clock.Now())),
 		}, hp.BodyHash, nil
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,

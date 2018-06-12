@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -149,5 +150,5 @@ func hasMonotonicClock(t time.Time) bool {
 func TestForceWallClock(t *testing.T) {
 	n := time.Now()
 	require.True(t, hasMonotonicClock(n))
-	require.False(t, hasMonotonicClock(ForceWallClock(n)))
+	require.False(t, hasMonotonicClock(keybase1.ForceWallClock(n)))
 }

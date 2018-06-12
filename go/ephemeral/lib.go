@@ -328,7 +328,7 @@ type teamEKGenCacheEntry struct {
 func (e *EKLib) newCacheEntry(generation keybase1.EkGeneration) *teamEKGenCacheEntry {
 	return &teamEKGenCacheEntry{
 		Generation: generation,
-		Ctime:      keybase1.TimeFromSeconds(time.Now().Unix()),
+		Ctime:      keybase1.ToTime(libkb.WallClockNow()),
 	}
 }
 
@@ -341,7 +341,7 @@ func (e *EKLib) isEntryValid(val interface{}) (*teamEKGenCacheEntry, bool) {
 	if !ok || cacheEntry == nil {
 		return nil, false
 	}
-	return cacheEntry, time.Now().Sub(cacheEntry.Ctime.Time()) < time.Duration(cacheEntryLifetimeSecs*time.Second)
+	return cacheEntry, libkb.WallClockNow().Sub(cacheEntry.Ctime.Time()) < time.Duration(cacheEntryLifetimeSecs*time.Second)
 }
 
 func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration) {

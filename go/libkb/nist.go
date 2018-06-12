@@ -5,10 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
-	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 //
@@ -122,7 +123,7 @@ func durationToSeconds(d time.Duration) int64 {
 func (n *NIST) IsStillValid() (bool, time.Duration) {
 	n.RLock()
 	defer n.RUnlock()
-	now := ForceWallClock(n.G().Clock().Now())
+	now := keybase1.ForceWallClock(n.G().Clock().Now())
 	diff := n.expiresAt.Sub(now) - nistExpirationMargin
 	return (diff > 0), diff
 }
@@ -293,7 +294,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 
 	n.long = longTmp
 	n.short = shortTmp
-	n.expiresAt = ForceWallClock(expires)
+	n.expiresAt = keybase1.ForceWallClock(expires)
 
 	return nil
 }

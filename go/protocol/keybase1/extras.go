@@ -693,6 +693,12 @@ func encode(b []byte) string {
 	return strings.TrimRight(base64.URLEncoding.EncodeToString(b), "=")
 }
 
+// ForceWallClock takes a multi-personality Go time and converts it to
+// a regular old WallClock time.
+func ForceWallClock(t time.Time) time.Time {
+	return t.Round(0)
+}
+
 func FromTime(t Time) time.Time {
 	if t == 0 {
 		return time.Time{}

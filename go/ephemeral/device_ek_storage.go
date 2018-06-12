@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
@@ -108,7 +107,7 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 	}
 	// Fill in this puppy.
 	if deviceEK.Metadata.DeviceCtime == 0 {
-		deviceEK.Metadata.DeviceCtime = keybase1.ToTime(time.Now())
+		deviceEK.Metadata.DeviceCtime = keybase1.ToTime(libkb.WallClockNow())
 	}
 	err = s.storage.Put(ctx, key, deviceEK)
 	if err != nil {
@@ -293,7 +292,7 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 	// we can complete deletions offline.
 	var now keybase1.Time
 	if merkleRoot.IsNil() {
-		now = keybase1.ToTime(time.Now())
+		now = keybase1.ToTime(libkb.WallClockNow())
 	} else {
 		now = keybase1.TimeFromSeconds(merkleRoot.Ctime())
 	}
