@@ -21,6 +21,7 @@ type CmdWalletSend struct {
 	Note          string
 	LocalCurrency string
 	ForceRelay    bool
+	FromAccountID stellar1.AccountID
 }
 
 func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -28,6 +29,10 @@ func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		cli.StringFlag{
 			Name:  "m, message",
 			Usage: "Include a message with the payment.",
+		},
+		cli.StringFlag{
+			Name:  "from",
+			Usage: "Specify the source account for the payment.",
 		},
 	}
 	if develUsage {
@@ -58,6 +63,7 @@ func (c *CmdWalletSend) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.Recipient = ctx.Args()[0]
+	// TODO ensure amount is numeric and does not contain escape characters
 	c.Amount = ctx.Args()[1]
 	if len(ctx.Args()) == 3 {
 		c.LocalCurrency = strings.ToUpper(ctx.Args()[2])
@@ -67,6 +73,7 @@ func (c *CmdWalletSend) ParseArgv(ctx *cli.Context) error {
 	}
 	c.Note = ctx.String("message")
 	c.ForceRelay = ctx.Bool("relay")
+	c.FromAccountID = stellar1.AccountID(ctx.String("from"))
 	return nil
 }
 
@@ -119,6 +126,7 @@ func (c *CmdWalletSend) Run() error {
 		DisplayAmount:   displayAmount,
 		DisplayCurrency: displayCurrency,
 		ForceRelay:      c.ForceRelay,
+		FromAccountID:   c.FromAccountID,
 	}
 	res, err := cli.SendCLILocal(context.Background(), arg)
 	if err != nil {

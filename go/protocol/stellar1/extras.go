@@ -200,3 +200,22 @@ func (p *PaymentSummary) TransactionID() (TransactionID, error) {
 
 	return "", errors.New("unknown payment summary type")
 }
+
+func (d *StellarServerDefinitions) GetCurrencyLocal(code OutsideCurrencyCode) (res CurrencyLocal, ok bool) {
+	def, found := d.Currencies[code]
+	if found {
+		res = CurrencyLocal{
+			Description: fmt.Sprintf("%s (%s)", string(code), def.Symbol.Symbol),
+			Code:        code,
+			Symbol:      def.Symbol.Symbol,
+			Name:        def.Name,
+		}
+		ok = true
+	} else {
+		res = CurrencyLocal{
+			Code: code,
+		}
+		ok = false
+	}
+	return res, ok
+}

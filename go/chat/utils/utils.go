@@ -505,6 +505,8 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	switch typ {
 	case chat1.MessageType_EDIT:
 		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
+	case chat1.MessageType_REACTION:
+		return []chat1.MessageID{msg.Valid().MessageBody.Reaction().MessageID}, nil
 	case chat1.MessageType_DELETE:
 		return msg.Valid().MessageBody.Delete().MessageIDs, nil
 	case chat1.MessageType_ATTACHMENTUPLOADED:
@@ -885,6 +887,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
+	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
@@ -950,6 +953,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
 	return res
@@ -1080,6 +1084,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
 			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
+			Reactions:             valid.Reactions,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

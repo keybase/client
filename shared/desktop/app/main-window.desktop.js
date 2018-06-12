@@ -41,6 +41,11 @@ export default function() {
     minHeight: windowStyle.minHeight,
     minWidth: windowStyle.minWidth,
     show: false,
+    webPreferences: {
+      devTools: showDevTools,
+      nodeIntegration: true,
+      nodeIntegrationInWorker: false,
+    },
     width: appState.state.width,
     x: appState.state.x,
     y: appState.state.y,
@@ -59,7 +64,7 @@ export default function() {
   })
 
   if (showDevTools) {
-    webContents.openDevTools('detach')
+    webContents.openDevTools({mode: 'detach'})
   }
 
   appState.manageWindow(mainWindow.window)

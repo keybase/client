@@ -2238,6 +2238,7 @@ type MessageUnboxedValid struct {
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
+	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2310,6 +2311,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		Reactions: o.Reactions.DeepCopy(),
 	}
 }
 
@@ -3024,35 +3026,6 @@ var GetThreadNonblockCbModeRevMap = map[GetThreadNonblockCbMode]string{
 
 func (e GetThreadNonblockCbMode) String() string {
 	if v, ok := GetThreadNonblockCbModeRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
-type GetThreadNonblockReason int
-
-const (
-	GetThreadNonblockReason_GENERAL    GetThreadNonblockReason = 0
-	GetThreadNonblockReason_PUSH       GetThreadNonblockReason = 1
-	GetThreadNonblockReason_FOREGROUND GetThreadNonblockReason = 2
-)
-
-func (o GetThreadNonblockReason) DeepCopy() GetThreadNonblockReason { return o }
-
-var GetThreadNonblockReasonMap = map[string]GetThreadNonblockReason{
-	"GENERAL":    0,
-	"PUSH":       1,
-	"FOREGROUND": 2,
-}
-
-var GetThreadNonblockReasonRevMap = map[GetThreadNonblockReason]string{
-	0: "GENERAL",
-	1: "PUSH",
-	2: "FOREGROUND",
-}
-
-func (e GetThreadNonblockReason) String() string {
-	if v, ok := GetThreadNonblockReasonRevMap[e]; ok {
 		return v
 	}
 	return ""
@@ -3990,6 +3963,7 @@ func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
 
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Reason           GetThreadReason              `codec:"reason" json:"reason"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -4006,7 +3980,7 @@ type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	CbMode           GetThreadNonblockCbMode      `codec:"cbMode" json:"cbMode"`
-	Reason           GetThreadNonblockReason      `codec:"reason" json:"reason"`
+	Reason           GetThreadReason              `codec:"reason" json:"reason"`
 	Pgmode           GetThreadNonblockPgMode      `codec:"pgmode" json:"pgmode"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`

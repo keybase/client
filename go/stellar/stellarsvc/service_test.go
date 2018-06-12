@@ -414,7 +414,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	stellarSender, err := stellar.LookupSenderPrimary(context.Background(), tcs[0].G)
+	stellarSender, err := stellar.LookupSender(context.Background(), tcs[0].G, "")
 	require.NoError(t, err)
 
 	u1, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcs[0].G, tcs[1].Fu.Username))
@@ -596,6 +596,51 @@ func TestGetAvailableCurrencies(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, conf.Currencies["USD"].Name, "US Dollar")
 	require.Equal(t, conf.Currencies["EUR"].Name, "Euro")
+}
+
+func TestDefaultCurrency(t *testing.T) {
+	// Initial account should be created with display currency set
+	// according to system locale/region. Additional accounts display
+	// currencies should be set to primary account currency (and can
+	// later be changed by the user).
+
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	primary := getPrimaryAccountID(tcs[0])
+	currency, err := remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
+	require.NoError(t, err)
+	require.EqualValues(t, "USD", currency)
+
+	err = tcs[0].Srv.SetDisplayCurrency(context.Background(), stellar1.SetDisplayCurrencyArg{
+		AccountID: primary,
+		Currency:  "EUR",
+	})
+	require.NoError(t, err)
+
+	currency, err = remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
+	require.NoError(t, err)
+	require.EqualValues(t, "EUR", currency)
+
+	a1, s1 := randomStellarKeypair()
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+	})
+	require.NoError(t, err)
+
+	// Should be "EUR" as well, inherited from primary account. Try to
+	// use RPC instead of remote endpoint directly this time.
+	currencyObj, err := tcs[0].Srv.GetDisplayCurrencyLocal(context.Background(), stellar1.GetDisplayCurrencyLocalArg{
+		AccountID: a1,
+	})
+	require.NoError(t, err)
+	require.IsType(t, stellar1.CurrencyLocal{}, currencyObj)
+	require.Equal(t, stellar1.OutsideCurrencyCode("EUR"), currencyObj.Code)
 }
 
 type TestContext struct {

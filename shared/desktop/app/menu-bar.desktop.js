@@ -36,7 +36,6 @@ const getIcon = invertColors => {
 export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
     index: getRendererHTML('menubar'),
-    nodeIntegration: false,
     width: 320,
     height: 350,
     resizable: false,
@@ -48,6 +47,10 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
     showDockIcon: true,
+    webPreferences: {
+      nodeIntegration: true,
+      nodeIntegrationInWorker: false,
+    },
   })
 
   const updateIcon = invertColors => {

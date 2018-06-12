@@ -39,7 +39,7 @@ const Meta = (props: Props) => (
       style={collapseStyles([
         styles.text,
         props.color ? {color: props.color} : null,
-        props.size === 'Small' ? {fontSize: 10, lineHeight: '12px'} : null,
+        props.size === 'Small' ? platformStyles({common: {fontSize: 10, lineHeight: 12}}) : null,
       ])}
     >
       {props.noUppercase ? props.title : props.title.toUpperCase()}

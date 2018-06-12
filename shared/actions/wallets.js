@@ -8,7 +8,7 @@ import * as WalletsGen from './wallets-gen'
 import type {TypedState} from '../util/container'
 
 const loadAccounts = (action: WalletsGen.LoadAccountsPayload) =>
-  Saga.call(RPCTypes.localGetWalletAccountsLocalRpcPromise, {})
+  Saga.call(RPCTypes.localGetWalletAccountsLocalRpcPromise)
 
 const loadAccountsSuccess = (res: ?Array<Types.Account>) =>
   Saga.put(

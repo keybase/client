@@ -6,7 +6,6 @@ import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Saga from '../../util/saga'
-import * as EngineRpc from '../../constants/engine'
 import * as ChatConstants from '../../constants/chat2'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
@@ -420,61 +419,59 @@ const inboxQuery = {
 
 const {team, impteamnative, impteamupgrade} = RPCChatTypes.commonConversationMembersType
 
-function* loadResets(action: FsGen.LoadResetsPayload): Saga.SagaGenerator<any, any> {
+function loadResets(action: FsGen.LoadResetsPayload) {
   // TODO: maybe uncomment?
   // const conversations = yield Saga.call(
   //   RpcChatTypes.localFindConversationsLocalRpcPromise,
   //   action.payload.tlfName
   // )
-  const resetRpc = new EngineRpc.EngineRpcCall(
-    {
-      'chat.1.chatUi.chatInboxUnverified': function*({
-        inbox,
-      }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
-        const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
-        // whatever
-        if (!result || !result.items) return EngineRpc.rpcResult()
-        const tlfs: Array<[Types.Path, Types.ResetMetadata]> = result.items.reduce((filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
-          const visibility = item.visibility === RPCTypes.commonTLFVisibility.private
-                ? item.membersType === team
-                  ? 'team'
-                  : 'private'
-                : 'public'
-          const name = item.name
-          const path = Types.stringToPath(`/keybase/${visibility}/${name}`)
-          if (
-            item &&
-              item.localMetadata &&
-              item.localMetadata.resetParticipants &&
-              // Ignore KBFS-backed TLFs
-              [team, impteamnative, impteamupgrade].includes(item.membersType)
-          ) {
-            filtered.push([
-              path, {
-                name,
-                visibility,
-                resetParticipants: item.localMetadata.resetParticipants || [],
-              },
-            ])
-          }
-          return filtered
-        }, [])
-        yield Saga.put(FsGen.createLoadResetsResult({tlfs: I.Map(tlfs)}))
-        return EngineRpc.rpcResult()
+
+  const onUnverified = function({inbox}: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
+    const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+    // whatever
+    if (!result || !result.items) return null
+    const tlfs: Array<[Types.Path, Types.ResetMetadata]> = result.items.reduce(
+      (filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
+        const visibility =
+          item.visibility === RPCTypes.commonTLFVisibility.private
+            ? item.membersType === team
+              ? 'team'
+              : 'private'
+            : 'public'
+        const name = item.name
+        const path = Types.stringToPath(`/keybase/${visibility}/${name}`)
+        if (
+          item &&
+          item.localMetadata &&
+          item.localMetadata.resetParticipants &&
+          // Ignore KBFS-backed TLFs
+          [team, impteamnative, impteamupgrade].includes(item.membersType)
+        ) {
+          filtered.push([
+            path,
+            {
+              name,
+              resetParticipants: item.localMetadata.resetParticipants || [],
+              visibility,
+            },
+          ])
+        }
+        return filtered
       },
-    },
-    RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
-    'tlfCall',
+      []
+    )
+    return Saga.put(FsGen.createLoadResetsResult({tlfs: I.Map(tlfs)}))
+  }
+
+  return RPCChatTypes.localGetInboxNonblockLocalRpcSaga(
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       maxUnbox: 0,
       query: inboxQuery,
       skipUnverified: false,
     },
-    false,
-    loading => {}
+    {'chat.1.chatUi.chatInboxUnverified': onUnverified}
   )
-  yield Saga.call(resetRpc.run)
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
@@ -490,7 +487,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
-  yield Saga.safeTakeEvery(FsGen.loadResets, loadResets)
+  yield Saga.safeTakeEveryPure(FsGen.loadResets, loadResets)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

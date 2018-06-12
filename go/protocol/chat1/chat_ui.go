@@ -77,6 +77,7 @@ type UnverifiedInboxUIItem struct {
 	Time          gregor1.Time                   `codec:"time" json:"time"`
 	Version       ConversationVers               `codec:"version" json:"version"`
 	MaxMsgID      MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
+	ReadMsgID     MessageID                      `codec:"readMsgID" json:"readMsgID"`
 	LocalMetadata *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
 	FinalizeInfo  *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes    []ConversationMetadata         `codec:"supersedes" json:"supersedes"`
@@ -99,9 +100,10 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time:     o.Time.DeepCopy(),
-		Version:  o.Version.DeepCopy(),
-		MaxMsgID: o.MaxMsgID.DeepCopy(),
+		Time:      o.Time.DeepCopy(),
+		Version:   o.Version.DeepCopy(),
+		MaxMsgID:  o.MaxMsgID.DeepCopy(),
+		ReadMsgID: o.ReadMsgID.DeepCopy(),
 		LocalMetadata: (func(x *UnverifiedInboxUIItemMetadata) *UnverifiedInboxUIItemMetadata {
 			if x == nil {
 				return nil
@@ -191,6 +193,7 @@ type InboxUIItem struct {
 	CreatorInfo       *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Version           ConversationVers              `codec:"version" json:"version"`
 	MaxMsgID          MessageID                     `codec:"maxMsgID" json:"maxMsgID"`
+	ReadMsgID         MessageID                     `codec:"readMsgID" json:"readMsgID"`
 	ConvRetention     *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention     *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	FinalizeInfo      *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
@@ -260,8 +263,9 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreatorInfo),
-		Version:  o.Version.DeepCopy(),
-		MaxMsgID: o.MaxMsgID.DeepCopy(),
+		Version:   o.Version.DeepCopy(),
+		MaxMsgID:  o.MaxMsgID.DeepCopy(),
+		ReadMsgID: o.ReadMsgID.DeepCopy(),
 		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
 			if x == nil {
 				return nil
@@ -406,6 +410,7 @@ type UIMessageValid struct {
 	IsEphemeralExpired    bool                   `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
 	ExplodedBy            *string                `codec:"explodedBy,omitempty" json:"explodedBy,omitempty"`
 	Etime                 gregor1.Time           `codec:"etime" json:"etime"`
+	Reactions             ReactionMap            `codec:"reactions" json:"reactions"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -470,7 +475,8 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x)
 			return &tmp
 		})(o.ExplodedBy),
-		Etime: o.Etime.DeepCopy(),
+		Etime:     o.Etime.DeepCopy(),
+		Reactions: o.Reactions.DeepCopy(),
 	}
 }
 

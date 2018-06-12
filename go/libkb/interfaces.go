@@ -41,6 +41,7 @@ type configGetter interface {
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
+	GetDisplayRawUntrustedOutput() (bool, bool)
 	GetUpgradePerUserKey() (bool, bool)
 	GetAutoWallet() (bool, bool)
 	GetGpg() string
@@ -390,11 +391,15 @@ type PromptDescriptor int
 type OutputDescriptor int
 
 type TerminalUI interface {
+	// The ErrorWriter is not escaped: 	it should not be used to show unescaped user-originated data.
 	ErrorWriter() io.Writer
 	Output(string) error
 	OutputDesc(OutputDescriptor, string) error
 	OutputWriter() io.Writer
+	UnescapedOutputWriter() io.Writer
 	Printf(fmt string, args ...interface{}) (int, error)
+	PrintfUnescaped(fmt string, args ...interface{}) (int, error)
+	// Prompt strings are not escaped: they should not be used to show unescaped user-originated data.
 	Prompt(PromptDescriptor, string) (string, error)
 	PromptForConfirmation(prompt string) error
 	PromptPassword(PromptDescriptor, string) (string, error)
@@ -406,6 +411,7 @@ type TerminalUI interface {
 type DumbOutputUI interface {
 	Printf(fmt string, args ...interface{}) (int, error)
 	PrintfStderr(fmt string, args ...interface{}) (int, error)
+	PrintfUnescaped(fmt string, args ...interface{}) (int, error)
 }
 
 type UI interface {

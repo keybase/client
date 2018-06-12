@@ -31,10 +31,16 @@ function cleanupOpenDevtools() {
 }
 
 export default function() {
-  SafeElectron.getApp().on('ready', () => {
-    setupDevToolsExtensions()
+  const app = SafeElectron.getApp()
+  if (app.isReady()) {
     setupOpenDevtools()
-  })
+    setupDevToolsExtensions()
+  } else {
+    app.on('ready', () => {
+      setupOpenDevtools()
+      setupDevToolsExtensions()
+    })
+  }
 
   SafeElectron.getApp().on('will-quit', () => {
     cleanupOpenDevtools()

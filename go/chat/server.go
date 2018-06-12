@@ -457,7 +457,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	// Get messages from the source
 	uid := h.G().Env.GetUID()
 	thread, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
-		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+		gregor1.UID(uid.ToBytes()), arg.Reason, arg.Query, arg.Pagination)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
@@ -646,7 +646,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 	// If this is from a push or foreground, set us into the foreground
 	switch arg.Reason {
-	case chat1.GetThreadNonblockReason_PUSH, chat1.GetThreadNonblockReason_FOREGROUND:
+	case chat1.GetThreadReason_PUSH, chat1.GetThreadReason_FOREGROUND:
 		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
 		// to reset any delay checks or timers
 		switch h.G().AppState.State() {
@@ -760,7 +760,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		}
 		var remoteThread chat1.ThreadView
 		remoteThread, fullErr = h.G().ConvSource.Pull(bctx, arg.ConversationID,
-			uid, arg.Query, pagination)
+			uid, arg.Reason, arg.Query, pagination)
 		if fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
 			return
@@ -1171,7 +1171,29 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	return h.PostLocalNonblock(ctx, parg)
 }
 
-func (h *Server) PostReactionNonblock(ctx context.Context, arg chat1.PostReactionNonblockArg) (chat1.PostLocalNonblockRes, error) {
+func (h *Server) PostReactionNonblock(ctx context.Context, arg chat1.PostReactionNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
+	}
+	// We could either be posting a reaction or removing one that we already posted.
+	supersededMsg, err := h.getMessage(ctx, uid, arg.ConversationID, arg.Supersedes, true /* resolveSupersedes */)
+	if err != nil {
+		return res, err
+	}
+	if found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(arg.Body, h.G().Env.GetUsername().String()); found {
+		deleteArg := chat1.PostDeleteNonblockArg{
+			ClientPrev:       arg.ClientPrev,
+			ConversationID:   arg.ConversationID,
+			IdentifyBehavior: arg.IdentifyBehavior,
+			OutboxID:         arg.OutboxID,
+			Supersedes:       reactionMsgID,
+			TlfName:          arg.TlfName,
+			TlfPublic:        arg.TlfPublic,
+		}
+		return h.PostDeleteNonblock(ctx, deleteArg)
+	}
+
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -1369,6 +1391,18 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}, nil
 }
 
+func (h *Server) getMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
+	messages, err := GetMessages(ctx, h.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes)
+	if err != nil {
+		return mvalid, err
+
+	}
+	if len(messages) != 1 || !messages[0].IsValid() {
+		return mvalid, fmt.Errorf("GetMessages returned multiple messages or an invalid result for msgID: %v", msgID)
+	}
+	return messages[0].Valid(), nil
+}
+
 // If we are superseding an ephemeral message, we have to set the
 // ephemeralMetadata on this superseder message.
 func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
@@ -1378,20 +1412,10 @@ func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1
 		return msg.ClientHeader.EphemeralMetadata, nil
 	}
 
-	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true /* useLocalData */)
+	supersededMsg, err := h.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, false /* resolveSupersedes */)
 	if err != nil {
 		return nil, err
 	}
-
-	messages, err := h.G().ConvSource.GetMessages(ctx, conv, uid,
-		[]chat1.MessageID{msg.ClientHeader.Supersedes})
-	if err != nil {
-		return nil, err
-	}
-	if len(messages) != 1 || !messages[0].IsValid() {
-		return nil, fmt.Errorf("GetMessages returned multiple messages or an invalid result for msgID: %v", msg.ClientHeader.Supersedes)
-	}
-	supersededMsg := messages[0].Valid()
 	if supersededMsg.IsEphemeral() {
 		metadata = supersededMsg.EphemeralMetadata()
 		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingEphemeralLifetime(h.clock.Now()))

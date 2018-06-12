@@ -1148,6 +1148,10 @@
             "items": "ChannelNameMention"
           },
           "name": "channelNameMentions"
+        },
+        {
+          "type": "ReactionMap",
+          "name": "reactions"
         }
       ]
     },
@@ -1676,15 +1680,6 @@
       "symbols": [
         "FULL_0",
         "INCREMENTAL_1"
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "GetThreadNonblockReason",
-      "symbols": [
-        "GENERAL_0",
-        "PUSH_1",
-        "FOREGROUND_2"
       ]
     },
     {
@@ -2415,6 +2410,10 @@
           "type": "ConversationID"
         },
         {
+          "name": "reason",
+          "type": "GetThreadReason"
+        },
+        {
           "name": "query",
           "type": [
             null,
@@ -2478,7 +2477,7 @@
         },
         {
           "name": "reason",
-          "type": "GetThreadNonblockReason"
+          "type": "GetThreadReason"
         },
         {
           "name": "pgmode",

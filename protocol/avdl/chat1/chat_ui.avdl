@@ -33,6 +33,7 @@ protocol chatUi {
     gregor1.Time time;
     ConversationVers version;
     MessageID maxMsgID;
+    MessageID readMsgID;
     union { null , UnverifiedInboxUIItemMetadata } localMetadata;
 
     union { null, ConversationFinalizeInfo } finalizeInfo;
@@ -66,6 +67,7 @@ protocol chatUi {
     union { null, ConversationCreatorInfoLocal } creatorInfo;
     ConversationVers version;
     MessageID maxMsgID;
+    MessageID readMsgID;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
 
@@ -119,6 +121,8 @@ protocol chatUi {
     boolean isEphemeralExpired;
     union { null, string} explodedBy;
     gregor1.Time etime;
+    // reactionText -> [Reaction(username, reactionMsgID)...]
+    ReactionMap reactions;
   }
 
   record UIMessageOutbox {
