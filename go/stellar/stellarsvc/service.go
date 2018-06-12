@@ -434,7 +434,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 		return err
 	}
 
-	xlmAmount, err := stellar.ConvertLocalToXLM(arg.DisplayAmount, exchangeRate)
+	xlmAmount, err := stellar.ConvertOutsideToXLM(arg.DisplayAmount, exchangeRate)
 	if err != nil {
 		return err
 	}
