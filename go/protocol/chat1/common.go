@@ -347,23 +347,26 @@ var NotificationKindRevMap = map[NotificationKind]string{
 type GlobalAppNotificationSetting int
 
 const (
-	GlobalAppNotificationSetting_NEWMESSAGES      GlobalAppNotificationSetting = 0
-	GlobalAppNotificationSetting_PLAINTEXTMOBILE  GlobalAppNotificationSetting = 1
-	GlobalAppNotificationSetting_PLAINTEXTDESKTOP GlobalAppNotificationSetting = 2
+	GlobalAppNotificationSetting_NEWMESSAGES         GlobalAppNotificationSetting = 0
+	GlobalAppNotificationSetting_PLAINTEXTMOBILE     GlobalAppNotificationSetting = 1
+	GlobalAppNotificationSetting_PLAINTEXTDESKTOP    GlobalAppNotificationSetting = 2
+	GlobalAppNotificationSetting_SOUNDOVERRIDEMOBILE GlobalAppNotificationSetting = 3
 )
 
 func (o GlobalAppNotificationSetting) DeepCopy() GlobalAppNotificationSetting { return o }
 
 var GlobalAppNotificationSettingMap = map[string]GlobalAppNotificationSetting{
-	"NEWMESSAGES":      0,
-	"PLAINTEXTMOBILE":  1,
-	"PLAINTEXTDESKTOP": 2,
+	"NEWMESSAGES":         0,
+	"PLAINTEXTMOBILE":     1,
+	"PLAINTEXTDESKTOP":    2,
+	"SOUNDOVERRIDEMOBILE": 3,
 }
 
 var GlobalAppNotificationSettingRevMap = map[GlobalAppNotificationSetting]string{
 	0: "NEWMESSAGES",
 	1: "PLAINTEXTMOBILE",
 	2: "PLAINTEXTDESKTOP",
+	3: "SOUNDOVERRIDEMOBILE",
 }
 
 func (e GlobalAppNotificationSetting) String() string {
