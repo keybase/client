@@ -118,7 +118,7 @@ func TestWindowsPipeOwner(t *testing.T) {
 	}
 
 	// Test nonexisting
-	owner, err := IsPipeowner(tc.G.Log, testPipeName + "_nonexistent")
+	owner, err := IsPipeowner(tc.G.Log, testPipeName+"_nonexistent")
 	if err == nil {
 		t.Fatal(errors.New("Expected error getting owner of nonexistent pipe"))
 	}
