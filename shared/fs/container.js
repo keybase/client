@@ -68,26 +68,23 @@ const FilesLoadingHoc = compose(
     loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
     loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
   })),
-  mapProps(({routePath, routeProps, loadFolderList, loadFavorites, loadResets}) => ({
+  mapProps(({routePath, routeProps, loadFolderList, loadFavorites}) => ({
     routePath,
     path: routeProps.get('path', Constants.defaultPath),
     loadFolderList,
     loadFavorites,
-    loadResets,
   })),
   lifecycle({
     componentDidMount() {
       this.props.loadFolderList(this.props.path)
       this.props.loadFavorites()
-      this.props.loadResets()
     },
     componentDidUpdate(prevProps) {
       // This gets called on route changes too, e.g. when user clicks the
       // action menu. So only load folder list when path changes.
       const pathLevel = Types.getPathLevel(this.props.path)
       this.props.path !== prevProps.path && this.props.loadFolderList(this.props.path)
-      pathLevel === 2 && this.props.loadFavorites();
-      [2, 3].includes(pathLevel) && this.props.loadResets()
+      pathLevel === 2 && this.props.loadFavorites()
     },
   }),
   setDisplayName('FilesLoadingHoc')
