@@ -12,14 +12,18 @@ import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
+// set this to true to see size overlays
+const debugSizing = __STORYBOOK__
+
 const lockedToBottomSlop = 20
 
 type State = {
   isLockedToBottom: boolean, // MUST be in state else virtualized will re-render itself and will jump down w/o us re-rendering
+  width: number,
 }
 
 class Thread extends React.Component<Props, State> {
-  state = {isLockedToBottom: true}
+  state = {isLockedToBottom: true, width: 0}
 
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
@@ -38,9 +42,17 @@ class Thread extends React.Component<Props, State> {
 
   _list: any
 
+  _reMeasureAll = () => {
+    this._cellCache.clearAll()
+    this._list && this._list.Grid && this._list.Grid.measureAllCells()
+  }
+
+  componentDidMount() {
+    this._reMeasureAll()
+  }
   componentDidUpdate(prevProps: Props) {
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
-      this._cellCache.clearAll()
+      this._reMeasureAll()
       this.setState({isLockedToBottom: true})
       return
     }
@@ -56,7 +68,7 @@ class Thread extends React.Component<Props, State> {
         // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
         // another cache from row -> style which is out of sync
         this._cellCache.clearAll()
-        this._list && this._list.Grid && this._list.recomputeRowHeights(0)
+        this._reMeasureAll()
       }
 
       if (this._list) {
@@ -107,11 +119,15 @@ class Thread extends React.Component<Props, State> {
     if (this._cellCache.columnWidth({index: 0}) !== width) {
       this._cellCache.clearAll()
     }
+    if (debugSizing) {
+      this.setState({width})
+    }
   }
 
   _getItemCount = () => this.props.messageOrdinals.size + 2
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
+    style.height === 'auto' && console.log('aaa', index, isScrolling, isVisible, key)
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}
@@ -144,7 +160,16 @@ class Thread extends React.Component<Props, State> {
               )
             }
           }
-          return <div style={style}>{content}</div>
+          return (
+            <div style={style}>
+              {content}
+              {debugSizing && (
+                <div style={debugSizingStyle}>
+                  h: {style.height} t: {style.top}
+                </div>
+              )}
+            </div>
+          )
         }}
       </Virtualized.CellMeasurer>
     )
@@ -174,6 +199,7 @@ class Thread extends React.Component<Props, State> {
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
+          {debugSizing && <div style={debugSizingStyle}>w: {this.state.width}</div>}
           <Virtualized.AutoSizer onResize={this._onResize}>
             {({height, width}) => (
               <Virtualized.List
@@ -197,6 +223,14 @@ class Thread extends React.Component<Props, State> {
       </ErrorBoundary>
     )
   }
+}
+
+const debugSizingStyle = {
+  backgroundColor: 'rgba(255,255,0, 1)',
+  fontSize: 14,
+  position: 'absolute',
+  right: 0,
+  top: 0,
 }
 
 // We need to use both visibility and opacity css properties for the

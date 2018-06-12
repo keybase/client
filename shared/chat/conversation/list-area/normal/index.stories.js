@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import I from 'immutable'
-import {Box2} from '../../../../common-adapters'
+import {Box2, Text} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import {storiesOf, action} from '../../../../stories/storybook'
 import * as PropProviders from '../../../../stories/prop-providers'
@@ -154,6 +154,9 @@ const load = () => {
       </Box2>
     ))
     .add('Normal', () => <Thread {...props} />)
+    .add('Readme', () => (
+      <Text type="Body">If you load Normal on start the fonts wont be loaded so it'll look wrong</Text>
+    ))
 }
 
 export default load
