@@ -5,7 +5,7 @@ import Icon, {castPlatformStyles} from './icon'
 import * as React from 'react'
 import Text from './text'
 import * as WaitingGen from '../actions/waiting-gen'
-import {connect} from '../util/container'
+import {compose, connect, withStateHandlers} from '../util/container'
 import {
   type StylesCrossPlatform,
   collapseStyles,
@@ -57,47 +57,42 @@ type WaitingButtonProps = {
   waitingKey?: string,
 }
 
-type WaitingButtonState = {
-  waiting: boolean,
-}
-
 class UnconnectedWaitingButton extends React.Component<Props & WaitingButtonProps, WaitingButtonState> {
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      waiting: false,
-    }
-  }
-
   _onClick = () => {
-    if (this.props.waitingKey) {
-    } else {
-      this.setState({waiting: true})
+    if (!this.props.waitingKey) {
+      console.warn('calling onSetWaiting')
+      this.props.onSetWaiting(true)
     }
     this.props.onClick && this.props.onClick()
   }
 
   render() {
-    console.warn('waitingkey', this.props.waitingKey)
-    console.warn('waitingState', this.state.waiting)
-    return <Button {...this.props} onClick={this._onClick} waiting={this.state.waiting} />
+    console.warn('waitingkey', this.props.waitingKey, this.props.isWaiting)
+    return <Button {...this.props} onClick={this._onClick} waiting={this.props.isWaiting} />
   }
 }
 
-const mapStateToProps = (state: TypedState) => {
-  return ({})
+const mapStateToProps = (state: TypedState, ownProps) => {
+  return ({
+    isWaiting: state.waiting.get(ownProps.waitingKey, 0) !== 0,
+  })
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  makeWaiting: (waitingKey: string) => WaitingGen.createIncrementWaiting({key: waitingKey}),
+
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  return {...ownProps}
-}
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  isWaiting: stateProps.isWaiting || ownProps.isWaiting,
+})
 
-export const WaitingButton = connect(mapStateToProps, mapDispatchToProps, mergeProps)(UnconnectedWaitingButton)
+export const WaitingButton = compose(
+  withStateHandlers(({isWaiting: boolean}) => ({isWaiting: false}), {
+    onSetWaiting: () => (isWaiting: boolean) => ({isWaiting}),
+  }),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps)
+)(UnconnectedWaitingButton)
 
 class Button extends React.Component<Props> {
   render() {
