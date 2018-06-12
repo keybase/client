@@ -43,27 +43,22 @@ const FolderHeader = ({
               </Box>
             )}
             {breadcrumbItems.map(i => (
-              <Box
-                key={Types.pathToString(i.path)}
-                style={i.isLastItem ? lastFolderBreadcrumbStyle : folderBreadcrumbStyle}
-              >
+              <React.Fragment key={i.name}>
                 {i.isTlfNameItem &&
                   isTeamPath && <Avatar size={16} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
-                {i.isLastItem ? (
-                  <Text type="BodyBig" style={stylesLastNameText}>
-                    {i.name}
+                {i.name.split(',').map((sub, idx) => (
+                  <Text
+                    key={idx}
+                    onClick={i.onOpenBreadcrumb}
+                    type={i.isLastItem ? 'BodyBig' : 'BodySmallSemibold'}
+                    style={i.isLastItem ? stylesLastNameText : styleParentBreadcrumb}
+                  >
+                    {idx ? ',' : ''}
+                    {sub}
                   </Text>
-                ) : (
-                  <Box style={folderBreadcrumbStyle}>
-                    <ClickableBox onClick={i.onOpenBreadcrumb}>
-                      <Text type="BodySmallSemibold" style={styleParentBreadcrumb}>
-                        {i.name}
-                      </Text>
-                    </ClickableBox>
-                    <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />
-                  </Box>
-                )}
-              </Box>
+                ))}
+                {!i.isLastItem && <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />}
+              </React.Fragment>
             ))}
           </Box>
           <Box style={styleFolderHeaderEnd}>
@@ -84,6 +79,7 @@ const stylesCommonRow = {
 
 const styleHeaderContainer = {
   ...globalStyles.flexBoxColumn,
+  width: '100%',
 }
 
 const styleFolderHeader = {
@@ -99,9 +95,13 @@ const folderHeaderStyleRoot = {
 
 const folderHeaderStyleTree = {
   ...stylesCommonRow,
+  left: 0,
+  right: 0,
+  flexGrow: 1,
   alignItems: 'flex-start',
   paddingLeft: 16,
   paddingRight: 16,
+  flexWrap: 'wrap',
 }
 
 const styleFolderHeaderEnd = {
@@ -118,6 +118,7 @@ const folderBreadcrumbStyle = {
   paddingLeft: 0,
   paddingRight: 0,
   flexShrink: 0,
+  flexWrap: 'wrap',
 }
 
 const lastFolderBreadcrumbStyle = {
@@ -127,21 +128,26 @@ const lastFolderBreadcrumbStyle = {
 
 const stylesLastNameText = platformStyles({
   isElectron: {
-    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
   },
 })
 
 const styleFolderHeaderContainer = {
   ...stylesCommonRow,
-  justifyContent: 'space-between',
+  position: 'relative',
   marginTop: 15,
   marginBottom: 15,
   alignItems: 'flex-start',
 }
 
-const styleParentBreadcrumb = {
-  color: globalColors.black_60,
-}
+const styleParentBreadcrumb = platformStyles({
+  common: {
+    color: globalColors.black_60,
+  },
+  isElectron: {
+    wordBreak: 'break-word',
+  },
+})
 
 const iconStyle = {
   marginLeft: globalMargins.xtiny,
