@@ -431,6 +431,11 @@ type KBFSOps interface {
 	// nothing to folders that have not scheduled a rekey. This should be
 	// called when we receive an event of "paper key cached" from service.
 	KickoffAllOutstandingRekeys() error
+	// NewNotificationChannel is called to notify any existing TLF
+	// matching `handle` that a new kbfs-edits channel is available.
+	NewNotificationChannel(
+		ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
+		channelName string)
 }
 
 type merkleRootGetter interface {
@@ -2191,6 +2196,10 @@ type BlockRetriever interface {
 	TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{}
 }
 
+// ChatChannelNewMessageCB is a callback function that can be called
+// when there's a new message on a given conversation.
+type ChatChannelNewMessageCB func(convID chat1.ConversationID, body string)
+
 // Chat specifies a minimal interface for Keybase chatting.
 type Chat interface {
 	// GetConversationID returns the chat conversation ID associated
@@ -2227,4 +2236,8 @@ type Chat interface {
 	ReadChannel(
 		ctx context.Context, convID chat1.ConversationID, startPage []byte) (
 		messages []string, nextPage []byte, err error)
+
+	// RegisterForMessages registers a callback that will be called
+	// for each new messages that reaches convID.
+	RegisterForMessages(convID chat1.ConversationID, cb ChatChannelNewMessageCB)
 }

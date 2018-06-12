@@ -6841,10 +6841,20 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 }
 
 // KickoffAllOutstandingRekeys (does not) implement the KBFSOps interface for
-// KBFSOpsStandard.
+// folderBranchOps.
 func (fbo *folderBranchOps) KickoffAllOutstandingRekeys() error {
 	return errors.New(
 		"KickoffAllOutstandingRekeys is not supported on *folderBranchOps")
+}
+
+// NewNotificationChannel implements the KBFSOps interface for
+// folderBranchOps.
+func (fbo *folderBranchOps) NewNotificationChannel(
+	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
+	channelName string) {
+	// TODO(KBFS-2996): invalidate the local edit notification
+	// tracker, and register for notifications of new messages on the
+	// channel.
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.

@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -23,6 +24,9 @@ type ChatRPC struct {
 	log      logger.Logger
 	deferLog logger.Logger
 	client   chat1.LocalInterface
+
+	convLock sync.RWMutex
+	convCBs  map[string][]ChatChannelNewMessageCB
 }
 
 var _ rpc.ConnectionHandler = (*ChatRPC)(nil)
@@ -35,6 +39,7 @@ func NewChatRPC(config Config, kbCtx Context) *ChatRPC {
 		log:      log,
 		deferLog: deferLog,
 		config:   config,
+		convCBs:  make(map[string][]ChatChannelNewMessageCB),
 	}
 	conn := NewSharedKeybaseConnection(kbCtx, config, c)
 	c.client = chat1.LocalClient{Cli: conn.GetClient()}
@@ -42,7 +47,7 @@ func NewChatRPC(config Config, kbCtx Context) *ChatRPC {
 }
 
 // HandlerName implements the ConnectionHandler interface.
-func (ChatRPC) HandlerName() string {
+func (c *ChatRPC) HandlerName() string {
 	return "Chat"
 }
 
@@ -305,6 +310,15 @@ func (c *ChatRPC) ReadChannel(
 	return messages, nextPage, nil
 }
 
+// RegisterForMessages implements the Chat interface.
+func (c *ChatRPC) RegisterForMessages(
+	convID chat1.ConversationID, cb ChatChannelNewMessageCB) {
+	str := convID.String()
+	c.convLock.Lock()
+	defer c.convLock.Unlock()
+	c.convCBs[str] = append(c.convCBs[str], cb)
+}
+
 // We only register for the kbfs-edits type of notification in
 // keybase_daemon_rpc, so all the other methods below besides
 // `NewChatKBFSFileEditActivity` should never be called.
@@ -320,7 +334,59 @@ func (c *ChatRPC) NewChatActivity(
 // NewChatKBFSFileEditActivity implements the
 // chat1.NotifyChatInterface for ChatRPC.
 func (c *ChatRPC) NewChatKBFSFileEditActivity(
-	context.Context, chat1.NewChatKBFSFileEditActivityArg) error {
+	ctx context.Context, arg chat1.NewChatKBFSFileEditActivityArg) error {
+	activityType, err := arg.Activity.ActivityType()
+	if err != nil {
+		return err
+	}
+	switch activityType {
+	case chat1.ChatActivityType_NEW_CONVERSATION:
+		// If we learn about a new conversation for a given TLF,
+		// attempt to route it to the TLF.
+		info := arg.Activity.NewConversation()
+		tlfType := tlf.Private
+		if info.Conv.Visibility == keybase1.TLFVisibility_PUBLIC {
+			tlfType = tlf.Public
+		} else if info.Conv.MembersType == chat1.ConversationMembersType_TEAM {
+			tlfType = tlf.SingleTeam
+		}
+		tlfHandle, err := GetHandleFromFolderNameAndType(
+			ctx, c.config.KBPKI(), c.config.MDOps(), info.Conv.Name, tlfType)
+		if err != nil {
+			return err
+		}
+		c.config.KBFSOps().NewNotificationChannel(
+			ctx, tlfHandle, info.ConvID, info.Conv.Channel)
+	case chat1.ChatActivityType_INCOMING_MESSAGE:
+		// If we learn about a new message for a given conversation ID,
+		// let any registered callbacks for that conversation ID know.
+		msg := arg.Activity.IncomingMessage()
+		state, err := msg.Message.State()
+		if err != nil {
+			return err
+		}
+		if state != chat1.MessageUnboxedState_VALID {
+			return nil
+		}
+
+		validMsg := msg.Message.Valid()
+		msgType, err := validMsg.MessageBody.MessageType()
+		if err != nil {
+			return err
+		}
+		if msgType != chat1.MessageType_TEXT {
+			return nil
+		}
+		body := validMsg.MessageBody.Text().Body
+
+		c.convLock.RLock()
+		cbs := c.convCBs[msg.ConvID.String()]
+		c.convLock.RUnlock()
+
+		for _, cb := range cbs {
+			cb(msg.ConvID, body)
+		}
+	}
 	return nil
 }
 

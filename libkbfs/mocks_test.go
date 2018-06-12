@@ -1414,6 +1414,16 @@ func (mr *MockKBFSOpsMockRecorder) KickoffAllOutstandingRekeys() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KickoffAllOutstandingRekeys", reflect.TypeOf((*MockKBFSOps)(nil).KickoffAllOutstandingRekeys))
 }
 
+// NewNotificationChannel mocks base method
+func (m *MockKBFSOps) NewNotificationChannel(ctx context.Context, handle *TlfHandle, convID chat1.ConversationID, channelName string) {
+	m.ctrl.Call(m, "NewNotificationChannel", ctx, handle, convID, channelName)
+}
+
+// NewNotificationChannel indicates an expected call of NewNotificationChannel
+func (mr *MockKBFSOpsMockRecorder) NewNotificationChannel(ctx, handle, convID, channelName interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewNotificationChannel", reflect.TypeOf((*MockKBFSOps)(nil).NewNotificationChannel), ctx, handle, convID, channelName)
+}
+
 // MockmerkleRootGetter is a mock of merkleRootGetter interface
 type MockmerkleRootGetter struct {
 	ctrl     *gomock.Controller
@@ -7682,4 +7692,14 @@ func (m *MockChat) ReadChannel(ctx context.Context, convID chat1.ConversationID,
 // ReadChannel indicates an expected call of ReadChannel
 func (mr *MockChatMockRecorder) ReadChannel(ctx, convID, startPage interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadChannel", reflect.TypeOf((*MockChat)(nil).ReadChannel), ctx, convID, startPage)
+}
+
+// RegisterForMessages mocks base method
+func (m *MockChat) RegisterForMessages(convID chat1.ConversationID, cb ChatChannelNewMessageCB) {
+	m.ctrl.Call(m, "RegisterForMessages", convID, cb)
+}
+
+// RegisterForMessages indicates an expected call of RegisterForMessages
+func (mr *MockChatMockRecorder) RegisterForMessages(convID, cb interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterForMessages", reflect.TypeOf((*MockChat)(nil).RegisterForMessages), convID, cb)
 }

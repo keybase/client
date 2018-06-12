@@ -72,3 +72,8 @@ func (c *ChatLocal) ReadChannel(
 	messages []string, nextPage []byte, err error) {
 	return nil, nil, nil
 }
+
+// RegisterForMessages implements the Chat interface.
+func (c *ChatLocal) RegisterForMessages(
+	convID chat1.ConversationID, cb ChatChannelNewMessageCB) {
+}

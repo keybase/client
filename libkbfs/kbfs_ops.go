@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -1033,6 +1034,16 @@ func (fs *KBFSOpsStandard) KickoffAllOutstandingRekeys() error {
 		op.rekeyFSM.Event(newRekeyKickoffEvent())
 	}
 	return nil
+}
+
+// NewNotificationChannel implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) NewNotificationChannel(
+	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
+	channelName string) {
+	// TODO(KBFS-2996): find the right TLF using the handle, and let
+	// it know of the new channel.  Also, invalidate the overall edit
+	// activity tracker.
 }
 
 func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
