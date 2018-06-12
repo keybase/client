@@ -62,17 +62,6 @@ function checkRPCOwnership(): Promise<void> {
         resolve()
         return
       }
-      // log the names of the owners
-      const args2 = ['pipeowner', socketPath, '--names']
-      execFile(binPath, args2, {windowsHide: true}, (error, stdout, stderr) => {
-        if (error) {
-          logger.info(`pipeowner check returns: ${error.message}`)
-          reject(error)
-          return
-        }
-        const result = stdout.toString().trim()
-        logger.info(`${result}`)
-      })
       reject(new Error(`pipeowner check returns: ${result}`))
     })
   })

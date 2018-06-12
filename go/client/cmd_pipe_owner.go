@@ -17,14 +17,8 @@ func NewCmdPipeOwner(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 	return cli.Command{
 		Name:  "pipeowner",
 		Usage: "ensure the named pipe is owned by the logged in user",
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "names",
-				Usage: "print the owner names",
-			},
-		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPipeOwner{libkb.NewContextified(g), "", false}, "pipeowner", c)
+			cl.ChooseCommand(&CmdPipeOwner{libkb.NewContextified(g), ""}, "pipeowner", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetSkipOutOfDateCheck()
@@ -35,11 +29,9 @@ func NewCmdPipeOwner(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 type CmdPipeOwner struct {
 	libkb.Contextified
 	arg string
-	getNames bool
 }
 
 func (s *CmdPipeOwner) ParseArgv(ctx *cli.Context) error {
-	s.getNames = ctx.Bool("names")
 	if len(ctx.Args()) < 1 {
 		return errors.New("pipeowner needs a pipe name")
 	}
@@ -48,14 +40,11 @@ func (s *CmdPipeOwner) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPipeOwner) Run() error {
-	owner, names, err := libkb.IsPipeowner(s.G().Log, s.arg, s.getNames)
+	owner, err := libkb.IsPipeowner(s.G().Log, s.arg)
 	if err != nil {
 		return err
 	}
 	dui := s.G().UI.GetDumbOutputUI()
-	if s.getNames {
-		dui.Printf("%v\n", names)	
-	}
 	dui.Printf("%v\n", owner)
 	if !owner {
 		err = errors.New("failed to establish pipe ownership")
