@@ -1,6 +1,6 @@
 // @flow
 import * as Types from '../../constants/types/fs'
-import {connect, type Dispatch, type TypedState} from '../../util/container'
+import {compose, setDisplayName, connect, type Dispatch, type TypedState} from '../../util/container'
 import AddNew from './add-new'
 
 const mapStateToProps = (state: TypedState) => ({})
@@ -30,4 +30,7 @@ const mergeProps = (stateProps, dispatchProps, {path, style}) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(AddNew)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('ConnectedAddNew')
+)(AddNew)

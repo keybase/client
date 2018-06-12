@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import ConnectedFilesBanner from '../banner/container'
 import AddNew from './add-new-container'
@@ -125,7 +125,11 @@ const lastFolderBreadcrumbStyle = {
   flexShrink: 1,
 }
 
-const stylesLastNameText = {}
+const stylesLastNameText = platformStyles({
+  isElectron: {
+    overflowWrap: 'break-word',
+  },
+})
 
 const styleFolderHeaderContainer = {
   ...stylesCommonRow,

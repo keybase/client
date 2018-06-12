@@ -4,11 +4,13 @@ import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
-import {globalColors} from '../styles'
+import {globalColors, globalMargins} from '../styles'
 import Files from '.'
 import {NormalPreview} from './filepreview'
 import Download from './footer/download'
 import {Box} from '../common-adapters'
+import RowActionPopup from './popups/row-action-popup'
+import FolderHeader from './header/header.desktop'
 
 const provider = createPropProvider({
   FileRow: ({path}: {path: Types.Path}) => ({
@@ -95,6 +97,11 @@ const provider = createPropProvider({
     onInvalidToken: action('onInvalidToken'),
     loadMimeType: action('loadMimeType'),
   }),
+  ConnectedAddNew: () => ({
+    pathElements: [],
+    style: {},
+    menuItems: [],
+  }),
 })
 
 const downloadCommonActions = {
@@ -102,6 +109,55 @@ const downloadCommonActions = {
   dismiss: action('dismiss'),
   cancel: action('cancel'),
 }
+
+const rowActionPopupCommonProps = {
+  size: 0,
+  type: 'folder',
+  lastModifiedTimestamp: 0,
+  lastWriter: 'meatball',
+  childrenFolders: 0,
+  childrenFiles: 0,
+  itemStyles: Constants.getItemStyles(['keybase', 'private', 'foo', 'treat'], 'folder', 'meatball'),
+  menuItems: [
+    {
+      title: 'menu item',
+      onClick: action('onClick'),
+    },
+  ],
+  onHidden: action('onHidden'),
+}
+
+const folderHeaderProps = (finalName: string) => ({
+  breadcrumbItems: [
+    {
+      isTlfNameItem: false,
+      isLastItem: false,
+      name: 'keybase',
+      path: Types.stringToPath('/keybase'),
+      onOpenBreadcrumb: action('onOpenBreadcrumb'),
+    },
+    {
+      isTlfNameItem: false,
+      isLastItem: false,
+      name: 'private',
+      path: Types.stringToPath('/keybase/private'),
+      onOpenBreadcrumb: action('onOpenBreadcrumb'),
+    },
+    {
+      isTlfNameItem: false,
+      isLastItem: true,
+      name: finalName,
+      path: Types.stringToPath(`/keybase/private/${finalName}`),
+      onOpenBreadcrumb: action('onOpenBreadcrumb'),
+    },
+  ],
+  dropdownPath: '',
+  isTeamPath: false,
+  path: Types.stringToPath(`/keybase/private/${finalName}`),
+  onBack: action('onBack'),
+  onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
+  openInFileUI: action('openInFileUI'),
+})
 
 const load = () => {
   storiesOf('Files', module)
@@ -164,6 +220,34 @@ const load = () => {
           {...downloadCommonActions}
         />
         <Box style={{height: 8}} />
+      </Box>
+    ))
+    .add('RowActionPopup', () => (
+      <Box style={{padding: globalMargins.small}}>
+        <RowActionPopup name="treat" {...rowActionPopupCommonProps} />
+        <RowActionPopup
+          name="treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat"
+          {...rowActionPopupCommonProps}
+        />
+        <RowActionPopup
+          name="foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar"
+          {...rowActionPopupCommonProps}
+        />
+      </Box>
+    ))
+    .add('FolderHeader', () => (
+      <Box>
+        <FolderHeader {...folderHeaderProps('foo')} />
+        <FolderHeader
+          {...folderHeaderProps(
+            'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo'
+          )}
+        />
+        <FolderHeader
+          {...folderHeaderProps(
+            'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
+          )}
+        />
       </Box>
     ))
 }
