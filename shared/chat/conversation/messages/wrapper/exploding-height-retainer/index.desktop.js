@@ -19,16 +19,17 @@ const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
 const copyChildren = children =>
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
-const animationDuration = 1
+const animationDuration = 1.5
 
 const retainedHeights = {}
 
 type State = {
+  animating: boolean,
   children: ?React.Node,
   height: number,
 }
 class ExplodingHeightRetainer extends React.Component<Props, State> {
-  state = {children: copyChildren(this.props.children), height: 17}
+  state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timeoutID: ?TimeoutID = null
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
@@ -47,7 +48,12 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     if (this.props.retainHeight) {
       if (!prevProps.retainHeight && !this.timeoutID) {
         // destroy local copy of children when animation finishes
-        this.timeoutID = setTimeout(() => this.setState({children: null}), animationDuration * 1000)
+        this.setState({animating: true}, () => {
+          this.timeoutID = setTimeout(
+            () => this.setState({animating: false, children: null}),
+            animationDuration * 1000
+          )
+        })
       }
       return
     }
@@ -85,7 +91,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       >
         {this.state.children}
         <Ashes
-          doneExploding={!this.state.children}
+          doneExploding={!this.state.animating}
           exploded={this.props.retainHeight}
           explodedBy={this.props.explodedBy}
           height={this.state.height}
@@ -138,8 +144,12 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
   )
 }
 
-const maxFlameWidth = 20
+const maxFlameWidth = 10
+const flameOffset = 5
 const FlameFront = (props: {height: number, stop: boolean}) => {
+  if (props.stop) {
+    return null
+  }
   const numBoxes = Math.ceil(props.height / 15)
   const children = []
   for (let i = 0; i < numBoxes; i++) {
@@ -152,31 +162,16 @@ const FlameFront = (props: {height: number, stop: boolean}) => {
   )
 }
 
-const colors = [globalColors.red, globalColors.yellow, globalColors.grey]
-const randWidth = () => Math.round(Math.random() * maxFlameWidth)
+const colors = ['red', 'yellow', 'orange', globalColors.black]
+const randWidth = () => Math.round(Math.random() * maxFlameWidth) + flameOffset
 const randColor = () => colors[Math.floor(Math.random() * colors.length)]
 
-class Flame extends React.Component<{stop: boolean}, {color: string, width: number}> {
-  state = {color: randColor(), width: randWidth()}
+class Flame extends React.Component<{}, {color: string, timer: number, width: number}> {
+  state = {color: randColor(), timer: 0, width: randWidth()}
   intervalID: ?IntervalID
-  shouldComponentUpdate(nextProps, nextState) {
-    if (this.state.width !== nextState.width || this.state.color !== nextState.color) {
-      return true
-    }
-    return this.props.stop !== nextProps.stop
-  }
 
   componentDidMount() {
-    if (!this.props.stop) {
-      this.intervalID = setInterval(() => this.setState({color: randColor(), width: randWidth()}), 100)
-    }
-  }
-
-  componentDidUpate() {
-    if (this.props.stop && this.intervalID) {
-      clearInterval(this.intervalID)
-      this.intervalID = null
-    }
+    this.intervalID = setInterval(this._randomize, 100)
   }
 
   componentWillUnmount() {
@@ -186,13 +181,20 @@ class Flame extends React.Component<{stop: boolean}, {color: string, width: numb
     }
   }
 
+  _randomize = () =>
+    this.setState(prevState => ({
+      color: randColor(),
+      timer: prevState.timer + 100,
+      width: randWidth(),
+    }))
+
   render() {
     return (
       <Box
         style={collapseStyles([
           {
             backgroundColor: this.state.color,
-            width: this.state.width,
+            width: this.state.width * (1 + this.state.timer / 1000),
           },
           styles.flame,
         ])}
@@ -218,12 +220,12 @@ const styles = styleSheetCreate({
     height: 17,
     marginBottom: 1,
     marginTop: 1,
-    opacity: 0.9,
+    opacity: 1,
   },
   flameContainer: {
     position: 'absolute',
-    right: -1 * maxFlameWidth,
-    width: maxFlameWidth,
+    right: -1 * (maxFlameWidth + flameOffset),
+    width: maxFlameWidth + flameOffset,
   },
 })
 
