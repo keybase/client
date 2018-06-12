@@ -698,6 +698,12 @@
 			"revisionTime": "2013-09-23T14:52:12Z"
 		},
 		{
+			"checksumSHA1": "f9Z/DsjYMY7bwwrPjFsmZ8zUXQ8=",
+			"path": "github.com/vividcortex/ewma",
+			"revision": "43880d236f695d39c62cf7aa4ebd4508c258e6c0",
+			"revisionTime": "2017-08-04T03:51:56Z"
+		},
+		{
 			"path": "github.com/xanzy/ssh-agent",
 			"revision": "ba9c9e33906f58169366275e3450db66139a31a9",
 			"revisionTime": "2015-12-15T16:34:51+01:00"
