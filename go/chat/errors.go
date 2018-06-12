@@ -261,7 +261,7 @@ func (e VersionError) IsCritical() bool {
 
 func NewMessageBoxedVersionError(version chat1.MessageBoxedVersion) VersionError {
 	return VersionError{
-		Kind:     chat1.VersionErrorMessageBoxed,
+		Kind:     string(chat1.VersionErrorMessageBoxed),
 		Version:  int(version),
 		Critical: true,
 	}
@@ -270,7 +270,7 @@ func NewMessageBoxedVersionError(version chat1.MessageBoxedVersion) VersionError
 func NewHeaderVersionError(version chat1.HeaderPlaintextVersion,
 	defaultHeader chat1.HeaderPlaintextUnsupported) VersionError {
 	return VersionError{
-		Kind:     chat1.VersionErrorHeader,
+		Kind:     string(chat1.VersionErrorHeader),
 		Version:  int(version),
 		Critical: defaultHeader.Mi.Crit,
 	}
@@ -278,7 +278,7 @@ func NewHeaderVersionError(version chat1.HeaderPlaintextVersion,
 
 func NewBodyVersionError(version chat1.BodyPlaintextVersion, defaultBody chat1.BodyPlaintextUnsupported) VersionError {
 	return VersionError{
-		Kind:     chat1.VersionErrorBody,
+		Kind:     string(chat1.VersionErrorBody),
 		Version:  int(version),
 		Critical: defaultBody.Mi.Crit,
 	}

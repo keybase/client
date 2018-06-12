@@ -23,6 +23,12 @@
   "types": [
     {
       "type": "record",
+      "name": "VersionKind",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "MessageText",
       "fields": [
         {
@@ -1173,6 +1179,18 @@
         {
           "type": "string",
           "name": "errMsg"
+        },
+        {
+          "type": "VersionKind",
+          "name": "versionKind"
+        },
+        {
+          "type": "int",
+          "name": "versionNumber"
+        },
+        {
+          "type": "boolean",
+          "name": "isCritical"
         },
         {
           "type": "string",

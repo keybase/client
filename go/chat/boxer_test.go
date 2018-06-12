@@ -1571,7 +1571,8 @@ func TestExplodingMessageUnbox(t *testing.T) {
 }
 
 func TestVersionErrorBasic(t *testing.T) {
-	// Test basic functionality
+	// Test basic functionality for parsing the error message
+	// TODO remove this when we drop parsing
 	maxMessageBoxedVersion := chat1.MaxMessageBoxedVersion
 	err := NewMessageBoxedVersionError(maxMessageBoxedVersion)
 	e := chat1.MessageUnboxedError{
@@ -1579,6 +1580,16 @@ func TestVersionErrorBasic(t *testing.T) {
 		ErrMsg:  err.Error(),
 	}
 	require.True(t, e.ParseableVersion())
+
+	err2 := NewMessageBoxedVersionError(maxMessageBoxedVersion)
+	e2 := chat1.MessageUnboxedError{
+		ErrType:       err2.ExportType(),
+		ErrMsg:        err2.Error(),
+		VersionKind:   err2.VersionKind(),
+		VersionNumber: err2.VersionNumber(),
+		IsCritical:    err2.IsCritical(),
+	}
+	require.True(t, e2.ParseableVersion())
 
 	// not recoverable until we bump the max
 	err = NewMessageBoxedVersionError(maxMessageBoxedVersion + 1)

@@ -339,12 +339,10 @@ func MessageUnboxedDebugLines(ms []MessageUnboxed) string {
 	return strings.Join(MessageUnboxedDebugStrings(ms), "\n")
 }
 
-type VersionKind string
-
 const (
 	VersionErrorMessageBoxed VersionKind = "messageboxed"
-	VersionErrorHeader                   = "header"
-	VersionErrorBody                     = "body"
+	VersionErrorHeader       VersionKind = "header"
+	VersionErrorBody         VersionKind = "body"
 )
 
 // NOTE: these values correspond to the maximum accepted values in
@@ -364,10 +362,10 @@ func (m MessageUnboxedError) ParseableVersion() bool {
 		return false
 	}
 
-	kind := m.VersionKind()
-	version := m.VersionNumber()
-
-	// This error was stored from an old client, we have parse out the info we need from the error message.
+	kind := m.VersionKind
+	version := m.VersionNumber
+	// This error was stored from an old client, we have parse out the info we
+	// need from the error message.
 	// TODO remove this check once it has be live for a few cycles.
 	if kind == "" && version == 0 {
 		re := regexp.MustCompile(`.* Chat version error: \[ unhandled: (\w+) version: (\d+) .*\]`)
@@ -376,6 +374,7 @@ func (m MessageUnboxedError) ParseableVersion() bool {
 			return false
 		}
 		kind = VersionKind(matches[1])
+		var err error
 		version, err = strconv.Atoi(matches[2])
 		if err != nil {
 			return false

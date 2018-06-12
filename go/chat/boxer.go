@@ -90,6 +90,9 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 	e := chat1.MessageUnboxedError{
 		ErrType:            err.ExportType(),
 		ErrMsg:             err.Error(),
+		VersionKind:        err.VersionKind(),
+		VersionNumber:      err.VersionNumber(),
+		IsCritical:         err.IsCritical(),
 		MessageID:          msg.GetMessageID(),
 		MessageType:        msg.GetMessageType(),
 		Ctime:              msg.ServerHeader.Ctime,
