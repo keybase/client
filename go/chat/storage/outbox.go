@@ -408,6 +408,9 @@ func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) chat1.MessageID {
 	case chat1.MessageUnboxedState_OUTBOX:
 		return msg.Outbox().Msg.ClientHeader.OutboxInfo.Prev
 	default:
+		if msg.IsValid() && msg.Valid().ClientHeader.OutboxInfo != nil {
+			return msg.Valid().ClientHeader.OutboxInfo.Prev
+		}
 		return msg.GetMessageID()
 	}
 }
@@ -439,8 +442,7 @@ func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, ob
 
 	// If we didn't insert this guy, then put it at the front just so the user can see it
 	if !inserted {
-		o.Debug(ctx, "failed to insert instream, placing at front: obid: %s prev: %d", obr.OutboxID,
-			prev)
+		o.Debug(ctx, "failed to insert instream, placing at front: obid: %s prev: %d", obr.OutboxID, prev)
 		res = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
 			res...)
 	}
