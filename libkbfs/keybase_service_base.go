@@ -375,6 +375,12 @@ func (k *KeybaseServiceBase) KeyfamilyChanged(ctx context.Context,
 func (k *KeybaseServiceBase) ReachabilityChanged(ctx context.Context,
 	reachability keybase1.Reachability) error {
 	k.log.CDebugf(ctx, "CheckReachability invoked: %v", reachability)
+	if reachability.Reachable == keybase1.Reachable_YES {
+		k.config.KBFSOps().PushConnectionStatusChange(GregorServiceName, nil)
+	} else {
+		k.config.KBFSOps().PushConnectionStatusChange(
+			GregorServiceName, errDisconnected{})
+	}
 	mdServer := k.config.MDServer()
 	if mdServer != nil {
 		mdServer.CheckReachability(ctx)

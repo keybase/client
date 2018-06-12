@@ -12,6 +12,7 @@ import (
 const (
 	KeybaseServiceName     = "keybase-service"
 	MDServiceName          = "md-server"
+	GregorServiceName      = "gregor"
 	LoginStatusUpdateName  = "login"
 	LogoutStatusUpdateName = "logout"
 )
