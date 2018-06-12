@@ -594,6 +594,9 @@ func (f JSONConfigFile) GetProxy() string {
 func (f JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
 }
+func (f JSONConfigFile) GetDisplayRawUntrustedOutput() (bool, bool) {
+	return f.GetTopLevelBool("display_raw_untrusted_output")
+}
 func (f JSONConfigFile) GetVDebugSetting() string {
 	return f.GetTopLevelString("vdebug")
 }

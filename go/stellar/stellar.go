@@ -309,34 +309,45 @@ type DisplayBalance struct {
 	Currency string
 }
 
-// SendPayment sends XLM
-// from is optional.
-// `note` is optional. An empty string will not attach a note.
+type SendPaymentArg struct {
+	From           stellar1.AccountID // Optional. Defaults to primary account.
+	To             stellarcommon.RecipientInput
+	Amount         string // Amount of XLM to send.
+	DisplayBalance DisplayBalance
+	SecretNote     string // Optional.
+	PublicMemo     string // Optional.
+	ForceRelay     bool
+	QuickReturn    bool
+}
+
+// SendPayment sends XLM.
 // Recipient:
 // Stellar address        : Standard payment
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1.AccountID, to stellarcommon.RecipientInput, amount string, note string, displayBalance DisplayBalance, forceRelay, quickReturn bool, publicNote string) (res stellar1.SendResultCLILocal, err error) {
+func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
 	// look up sender account
-	senderEntry, err := LookupSender(m.Ctx(), m.G(), from)
+	senderEntry, err := LookupSender(m.Ctx(), m.G(), sendArg.From)
 	if err != nil {
 		return res, err
 	}
 	senderSeed := senderEntry.Signers[0]
 
 	// look up recipient
-	recipient, err := LookupRecipient(m, to)
+	recipient, err := LookupRecipient(m, sendArg.To)
 	if err != nil {
 		return res, err
 	}
 
 	m.CDebugf("using stellar network passphrase: %q", stellarnet.Network().Passphrase)
 
-	if recipient.AccountID == nil || forceRelay {
-		return sendRelayPayment(m, remoter, senderSeed, recipient, amount, note, displayBalance, quickReturn, publicNote)
+	if recipient.AccountID == nil || sendArg.ForceRelay {
+		return sendRelayPayment(m, remoter,
+			senderSeed, recipient, sendArg.Amount, sendArg.DisplayBalance,
+			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
 
 	senderSeed2, err := stellarnet.NewSeedStr(senderSeed.SecureNoLogString())
@@ -346,9 +357,9 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1.Acco
 
 	post := stellar1.PaymentDirectPost{
 		FromDeviceID:    m.G().ActiveDevice.DeviceID(),
-		DisplayAmount:   displayBalance.Amount,
-		DisplayCurrency: displayBalance.Currency,
-		QuickReturn:     quickReturn,
+		DisplayAmount:   sendArg.DisplayBalance.Amount,
+		DisplayCurrency: sendArg.DisplayBalance.Currency,
+		QuickReturn:     sendArg.QuickReturn,
 	}
 	if recipient.User != nil {
 		tmp := recipient.User.ToUserVersion()
@@ -367,7 +378,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1.Acco
 		// if no balance, create_account operation
 		// we could check here to make sure that amount is at least 1XLM
 		// but for now, just let stellar-core tell us there was an error
-		sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed2, *recipient.AccountID, amount, publicNote, sp)
+		sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp)
 		if err != nil {
 			return res, err
 		}
@@ -375,7 +386,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1.Acco
 		txID = sig.TxHash
 	} else {
 		// if balance, payment operation
-		sig, err := stellarnet.PaymentXLMTransaction(senderSeed2, *recipient.AccountID, amount, publicNote, sp)
+		sig, err := stellarnet.PaymentXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp)
 		if err != nil {
 			return res, err
 		}
@@ -383,9 +394,9 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1.Acco
 		txID = sig.TxHash
 	}
 
-	if len(note) > 0 {
+	if len(sendArg.SecretNote) > 0 {
 		noteClear := stellar1.NoteContents{
-			Note:      note,
+			Note:      sendArg.SecretNote,
 			StellarID: stellar1.TransactionID(txID),
 		}
 		var recipientUv *keybase1.UserVersion
@@ -413,7 +424,8 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, from stellar1.Acco
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
 func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
-	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount, note string, displayBalance DisplayBalance, quickReturn bool, publicNote string) (res stellar1.SendResultCLILocal, err error) {
+	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
+	secretNote string, publicMemo string, quickReturn bool) (res stellar1.SendResultCLILocal, err error) {
 	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
 	if err != nil {
@@ -422,8 +434,8 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 	relay, err := relays.Create(relays.Input{
 		From:          from,
 		AmountXLM:     amount,
-		Note:          note,
-		PublicNote:    publicNote,
+		Note:          secretNote,
+		PublicMemo:    publicMemo,
 		EncryptFor:    appKey,
 		SeqnoProvider: NewSeqnoProvider(m.Ctx(), remoter),
 	})

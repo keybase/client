@@ -48,7 +48,6 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     // prevents menubar from changing the state.
     showDockIcon: true,
     webPreferences: {
-      affinity: 'keybase',
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
     },

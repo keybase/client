@@ -70,7 +70,7 @@ type Input struct {
 	From       stellar1.SecretKey
 	AmountXLM  string
 	Note       string
-	PublicNote string
+	PublicMemo string
 	// Implicit-team key to encrypt for
 	EncryptFor    keybase1.TeamApplicationKey
 	SeqnoProvider build.SequenceProvider
@@ -103,7 +103,7 @@ func Create(in Input) (res Output, err error) {
 		return res, err
 	}
 	sig, err := stellarnet.CreateAccountXLMTransaction(
-		senderSeed, relayAccountID, in.AmountXLM, in.PublicNote, in.SeqnoProvider)
+		senderSeed, relayAccountID, in.AmountXLM, in.PublicMemo, in.SeqnoProvider)
 	if err != nil {
 		return res, err
 	}
