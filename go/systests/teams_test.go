@@ -818,6 +818,18 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	require.NoError(t, err)
 }
 
+func clearServerUIDMapCache(g *libkb.GlobalContext, t libkb.TestingTB, uids []keybase1.UID) {
+	arg := libkb.NewAPIArg("user/names")
+	arg.SessionType = libkb.APISessionTypeNONE
+	arg.Args = libkb.HTTPArgs{
+		"uids":     libkb.S{Val: libkb.UidsToString(uids)},
+		"no_cache": libkb.B{Val: true},
+	}
+	t.Logf("Calling user/names with uids: %v and no_cache: true to clear serverside uidmap cache", uids)
+	_, err := g.API.Post(arg)
+	require.NoError(t, err)
+}
+
 func GetTeamForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*teams.Team, error) {
 	return teams.Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
