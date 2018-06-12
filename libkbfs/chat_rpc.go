@@ -50,6 +50,14 @@ func (ChatRPC) HandlerName() string {
 func (c *ChatRPC) OnConnect(ctx context.Context, conn *rpc.Connection,
 	_ rpc.GenericClient, server *rpc.Server) error {
 	c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, nil)
+
+	err := server.Register(chat1.NotifyChatProtocol(c))
+	switch err.(type) {
+	case nil, rpc.AlreadyRegisteredError:
+	default:
+		return err
+	}
+
 	return nil
 }
 
@@ -295,4 +303,120 @@ func (c *ChatRPC) ReadChannel(
 		nextPage = res.Thread.Pagination.Next
 	}
 	return messages, nextPage, nil
+}
+
+// We only register for the kbfs-edits type of notification in
+// keybase_daemon_rpc, so all the other methods below besides
+// `NewChatKBFSFileEditActivity` should never be called.
+var _ chat1.NotifyChatInterface = (*ChatRPC)(nil)
+
+// NewChatActivity implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) NewChatActivity(
+	_ context.Context, _ chat1.NewChatActivityArg) error {
+	return nil
+}
+
+// NewChatKBFSFileEditActivity implements the
+// chat1.NotifyChatInterface for ChatRPC.
+func (c *ChatRPC) NewChatKBFSFileEditActivity(
+	context.Context, chat1.NewChatKBFSFileEditActivityArg) error {
+	return nil
+}
+
+// ChatIdentifyUpdate implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatIdentifyUpdate(
+	_ context.Context, _ keybase1.CanonicalTLFNameAndIDWithBreaks) error {
+	return nil
+}
+
+// ChatTLFFinalize implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatTLFFinalize(
+	_ context.Context, _ chat1.ChatTLFFinalizeArg) error {
+	return nil
+}
+
+// ChatTLFResolve implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatTLFResolve(
+	_ context.Context, _ chat1.ChatTLFResolveArg) error {
+	return nil
+}
+
+// ChatInboxStale implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatInboxStale(_ context.Context, _ keybase1.UID) error {
+	return nil
+}
+
+// ChatThreadsStale implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatThreadsStale(
+	_ context.Context, _ chat1.ChatThreadsStaleArg) error {
+	return nil
+}
+
+// ChatTypingUpdate implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatTypingUpdate(
+	_ context.Context, _ []chat1.ConvTypingUpdate) error {
+	return nil
+}
+
+// ChatJoinedConversation implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatJoinedConversation(
+	_ context.Context, _ chat1.ChatJoinedConversationArg) error {
+	return nil
+}
+
+// ChatLeftConversation implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatLeftConversation(
+	_ context.Context, _ chat1.ChatLeftConversationArg) error {
+	return nil
+}
+
+// ChatResetConversation implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatResetConversation(
+	_ context.Context, _ chat1.ChatResetConversationArg) error {
+	return nil
+}
+
+// ChatInboxSyncStarted implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatInboxSyncStarted(
+	_ context.Context, _ keybase1.UID) error {
+	return nil
+}
+
+// ChatInboxSynced implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatInboxSynced(
+	_ context.Context, _ chat1.ChatInboxSyncedArg) error {
+	return nil
+}
+
+// ChatSetConvRetention implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatSetConvRetention(
+	_ context.Context, _ chat1.ChatSetConvRetentionArg) error {
+	return nil
+}
+
+// ChatSetTeamRetention implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatSetTeamRetention(
+	_ context.Context, _ chat1.ChatSetTeamRetentionArg) error {
+	return nil
+}
+
+// ChatKBFSToImpteamUpgrade implements the chat1.NotifyChatInterface
+// for ChatRPC.
+func (c *ChatRPC) ChatKBFSToImpteamUpgrade(
+	_ context.Context, _ chat1.ChatKBFSToImpteamUpgradeArg) error {
+	return nil
 }
