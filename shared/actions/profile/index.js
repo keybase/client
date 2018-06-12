@@ -33,6 +33,17 @@ function _editProfile(action: ProfileGen.EditProfilePayload) {
   ])
 }
 
+function _uploadAvatar(action: ProfileGen.UploadAvatarPayload) {
+  const {filename, coordinates} = action.payload
+  return Saga.sequentially([
+    Saga.call(RPCTypes.userUploadUserAvatarRpcPromise, {
+      crop: coordinates,
+      filename,
+    }),
+    Saga.put(navigateUp()),
+  ])
+}
+
 function _finishRevoking() {
   return Saga.sequentially([
     Saga.put(TrackerGen.createGetMyProfile({ignoreCache: true})),
@@ -168,6 +179,7 @@ function* _profileSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ProfileGen.submitRevokeProof, _submitRevokeProof)
   yield Saga.safeTakeEveryPure(ProfileGen.backToProfile, _backToProfile)
   yield Saga.safeTakeEveryPure(ProfileGen.editProfile, _editProfile)
+  yield Saga.safeTakeEveryPure(ProfileGen.uploadAvatar, _uploadAvatar)
   yield Saga.safeTakeEveryPure(ProfileGen.finishRevoking, _finishRevoking)
   yield Saga.safeTakeEveryPure(ProfileGen.onClickAvatar, _onClickAvatar)
   yield Saga.safeTakeEveryPure(

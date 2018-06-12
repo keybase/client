@@ -8,9 +8,9 @@ import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} 
 import type {Props} from '.'
 
 type State = {
+  coords: Object,
+  dragging: boolean,
   hasPreview: boolean,
-  originalHeight: number,
-  originalWidth: number,
   scale: number,
 }
 
@@ -22,9 +22,14 @@ class EditAvatar extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
+      coords: {
+        ox: 0,
+        oy: 0,
+        x: 0,
+        y: 0,
+      },
+      dragging: false,
       hasPreview: false,
-      originalHeight: 0,
-      originalWidth: 0,
       scale: 0,
     }
   }
@@ -104,10 +109,10 @@ class EditAvatar extends React.Component<Props, State> {
 
   _paintImage = (path: string) => {
     if (this._image) {
+      this._image.onload = () => {
+        this.setState({hasPreview: true})
+      }
       this._image.src = path
-      this.setState({originalHeight: this._image.height})
-      this.setState({originalWidth: this._image.width})
-      this.setState({hasPreview: true})
     }
   }
 
@@ -122,13 +127,43 @@ class EditAvatar extends React.Component<Props, State> {
   _setScale = e => {
     this.setState({scale: e.target.value})
 
-    if (this._image) {
-      const multiplier = 1 + parseFloat(this.state.scale)
-      console.log('SPOONER', multiplier)
-
-      this._image.height = this.state.originalHeight * multiplier
-      this._image.width = this.state.originalWidth * multiplier
+    if (this._image && this._image.style) {
+      this._image.style.maxWidth = `${(1 + parseFloat(this.state.scale)) * 100}%`
     }
+  }
+
+  _onMouseDown = e => {
+    this.setState({dragging: true})
+    this.setState({
+      coords: {
+        ox: e.pageX,
+        oy: e.pageY,
+        x: e.target.offsetTop,
+        y: e.target.offsetLeft,
+        // x: this._image.offsetTop,
+        // y: this._image.offsetLeft,
+      },
+    })
+  }
+
+  _onMouseUp = e => {
+    this.setState({dragging: false})
+  }
+
+  _onMouseMove = e => {
+    if (!this.state.dragging) return
+
+    e.target.style.left = `${this.state.coords.x + e.pageX - this.state.coords.ox}px`
+    e.target.style.top = `${this.state.coords.y + e.pageY - this.state.coords.oy}px`
+    // this._image.style.left = `${this.state.coords.x + e.pageX - this.state.coords.ox}px`
+    // this._image.style.top = `${this.state.coords.y + e.pageY - this.state.coords.oy}px`
+
+    return false
+  }
+
+  _onSave = e => {
+    console.log('saving...')
+    this.props.onSave({filename: this._image.src})
   }
 
   render = () => {
@@ -139,6 +174,7 @@ class EditAvatar extends React.Component<Props, State> {
           onDragOver={this._onDragOver}
           onDragLeave={this._onDragLeave}
           onDrop={this._onDrop}
+          onMouseUp={this._onMouseUp}
         >
           <Text type="BodyBig">Drag and drop a new profile image</Text>
           <Text type="BodyPrimaryLink" onClick={this._filePickerOpen}>
@@ -152,7 +188,13 @@ class EditAvatar extends React.Component<Props, State> {
               onChange={this._pickFile}
               multiple={false}
             />
-            <img ref={this._imageSetRef} onDragStart={e => e.preventDefault()} />
+            <img
+              style={styles.image}
+              ref={this._imageSetRef}
+              onDragStart={e => e.preventDefault()}
+              onMouseDown={this._onMouseDown}
+              onMouseMove={this._onMouseMove}
+            />
             {!this.state.hasPreview && (
               <Icon
                 className="icon"
@@ -175,12 +217,7 @@ class EditAvatar extends React.Component<Props, State> {
           />
           <ButtonBar>
             <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-            <Button
-              type="Primary"
-              onClick={this.props.onSave}
-              label="Save"
-              disabled={!this.state.hasPreview}
-            />
+            <Button type="Primary" onClick={this._onSave} label="Save" disabled={!this.state.hasPreview} />
           </ButtonBar>
         </Box>
       </MaybePopup>
@@ -189,6 +226,7 @@ class EditAvatar extends React.Component<Props, State> {
 }
 
 const HoverBox = glamorous(Box)({
+  ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.lightGrey2,
   borderColor: globalColors.grey,
   borderRadius: 128,
@@ -227,6 +265,12 @@ const styles = styleSheetCreate({
     marginTop: -21,
     position: 'absolute',
     top: '50%',
+  },
+  image: {
+    alignSelf: 'center',
+    maxWidth: '100%',
+    minWidth: '100%',
+    position: 'relative',
   },
   popup: {
     zIndex: EDIT_AVATAR_ZINDEX,
