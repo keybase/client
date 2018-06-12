@@ -39,7 +39,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    return {children: copyChildren(nextProps.children)}
+    return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -131,7 +131,7 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
   )
 }
 
-const maxFlameWidth = 50
+const maxFlameWidth = 20
 const FlameFront = (props: {height: number, stop: boolean}) => {
   const numBoxes = Math.ceil(props.height / 17)
   const children = []
