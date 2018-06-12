@@ -309,7 +309,6 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {
