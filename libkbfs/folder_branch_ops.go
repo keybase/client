@@ -2267,14 +2267,11 @@ func (fbo *folderBranchOps) getConvID(
 
 func (fbo *folderBranchOps) sendEditNotifications(
 	ctx context.Context, rmd ImmutableRootMetadata, body string) error {
-	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		return err
-	}
-	// For now only write out the notifications if we're an admin or
-	// if we're in test mode, just in case we decide to change the
-	// notification format before we launch.
-	if !fbo.config.Mode().IsTestMode() && !libkb.IsKeybaseAdmin(session.UID) {
+	// For now only write out the notifications if we're in test mode,
+	// just in case we decide to change the notification format before
+	// we launch.  TODO: turn this on for admins once we can test it
+	// on staging.
+	if !fbo.config.Mode().IsTestMode() {
 		return nil
 	}
 
