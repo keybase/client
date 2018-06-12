@@ -19,6 +19,9 @@ type UnboxingError interface {
 	Inner() error
 	IsPermanent() bool
 	ExportType() chat1.MessageUnboxedErrorType
+	VersionKind() chat1.VersionKind
+	VersionNumber() int
+	IsCritical() bool
 }
 
 var _ error = (UnboxingError)(nil)
@@ -48,6 +51,35 @@ func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 	}
 }
 
+func (e PermanentUnboxingError) VersionKind() chat1.VersionKind {
+	switch err := e.inner.(type) {
+	case VersionError:
+		return err.VersionKind()
+	default:
+		return ""
+	}
+}
+
+func (e PermanentUnboxingError) VersionNumber() int {
+	switch err := e.inner.(type) {
+	case VersionError:
+		return err.VersionNumber()
+	default:
+		return 0
+	}
+}
+
+func (e PermanentUnboxingError) IsCritical() bool {
+	switch err := e.inner.(type) {
+	case VersionError:
+		return err.IsCritical()
+	default:
+		return false
+	}
+}
+
+//=============================================================================
+
 func NewTransientUnboxingError(inner error) UnboxingError {
 	return &TransientUnboxingError{inner}
 }
@@ -64,6 +96,18 @@ func (e TransientUnboxingError) Inner() error { return e.inner }
 
 func (e TransientUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 	return chat1.MessageUnboxedErrorType_MISC
+}
+
+func (e TransientUnboxingError) VersionKind() chat1.VersionKind {
+	return ""
+}
+
+func (e TransientUnboxingError) VersionNumber() int {
+	return 0
+}
+
+func (e TransientUnboxingError) IsCritical() bool {
+	return false
 }
 
 //=============================================================================
@@ -192,8 +236,6 @@ type VersionError struct {
 	Critical bool
 }
 
-// NOTE: If the error message here changes format,
-// chat1/extras.go#ParseableVersion must also be changed to match.
 func (e VersionError) Error() string {
 	return fmt.Sprintf("Unable to decrypt because current client is out of date. Please update your version of Keybase! Chat version error: [ unhandled: %s version: %d critical: %v ]", e.Kind, e.Version, e.Critical)
 }
@@ -203,6 +245,18 @@ func (e VersionError) ExportType() chat1.MessageUnboxedErrorType {
 		return chat1.MessageUnboxedErrorType_BADVERSION_CRITICAL
 	}
 	return chat1.MessageUnboxedErrorType_BADVERSION
+}
+
+func (e VersionError) VersionKind() chat1.VersionKind {
+	return chat1.VersionKind(e.Kind)
+}
+
+func (e VersionError) VersionNumber() int {
+	return e.Version
+}
+
+func (e VersionError) IsCritical() bool {
+	return e.Critical
 }
 
 func NewMessageBoxedVersionError(version chat1.MessageBoxedVersion) VersionError {
