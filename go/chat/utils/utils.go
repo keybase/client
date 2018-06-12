@@ -505,6 +505,8 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	switch typ {
 	case chat1.MessageType_EDIT:
 		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
+	case chat1.MessageType_REACTION:
+		return []chat1.MessageID{msg.Valid().MessageBody.Reaction().MessageID}, nil
 	case chat1.MessageType_DELETE:
 		return msg.Valid().MessageBody.Delete().MessageIDs, nil
 	case chat1.MessageType_ATTACHMENTUPLOADED:
@@ -1082,6 +1084,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
 			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
+			Reactions:             valid.Reactions,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

@@ -737,6 +737,37 @@
     },
     {
       "type": "record",
+      "name": "Reaction",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "MessageID",
+          "name": "reactionMsgID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReactionMap",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "Reaction"
+            },
+            "keys": "string"
+          },
+          "name": "reactions"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageServerHeader",
       "fields": [
         {

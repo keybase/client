@@ -289,6 +289,15 @@
     gregor1.Time ctime;
   }
 
+  record Reaction {
+    string username;
+    MessageID reactionMsgID;
+  }
+
+  record ReactionMap {
+    map<string, array<Reaction>> reactions;
+  }
+
   record MessageServerHeader {
     MessageID messageID;
     MessageID supersededBy;
