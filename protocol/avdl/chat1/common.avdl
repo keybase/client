@@ -298,6 +298,10 @@
     // server's view of now(), used to calculate ephemeral lifetimes
     @mpackkey("n") @jsonkey("n")
     gregor1.Time now;
+    // clients mark the received time as soon as they pull the message from the
+    // server
+    @mpackkey("rt") @jsonkey("rt")
+    union { null, gregor1.Time } rtime;
   }
 
   record MessagePreviousPointer {
