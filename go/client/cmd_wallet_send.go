@@ -63,6 +63,7 @@ func (c *CmdWalletSend) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.Recipient = ctx.Args()[0]
+	// TODO ensure amount is numeric and does not contain escape characters
 	c.Amount = ctx.Args()[1]
 	if len(ctx.Args()) == 3 {
 		c.LocalCurrency = strings.ToUpper(ctx.Args()[2])

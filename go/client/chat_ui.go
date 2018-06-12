@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/terminalescaper"
 )
 
 type ChatUI struct {
@@ -159,25 +160,26 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 		return strings.Join(ctx, "")
 	}
 
-	highlightHits := func(msg chat1.UIMessage, hits []string) string {
+	highlightEscapeHits := func(msg chat1.UIMessage, hits []string) string {
 		if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
 			msgBody := msg.Valid().MessageBody.Text().Body
-			var hitText string
+			escapedHitText := terminalescaper.Clean(msgBody)
 			for _, hit := range hits {
-				hitText = strings.Replace(msgBody, hit, ColorString(c.G(), "red", hit), -1)
+				escapedHit := terminalescaper.Clean(hit)
+				escapedHitText = strings.Replace(escapedHitText, escapedHit, ColorString(c.G(), "red", escapedHit), -1)
 			}
-			return getMsgPrefix(msg) + hitText
+			return terminalescaper.Clean(getMsgPrefix(msg)) + escapedHitText
 		}
 		return ""
 	}
 
 	// TODO: This should really use chat_cli_rendering.messageView, but we need
 	// to refactor for UIMessage
-	hitText := highlightHits(searchHit.HitMessage, searchHit.Matches)
-	if hitText != "" {
+	hitTextColoredEscaped := highlightEscapeHits(searchHit.HitMessage, searchHit.Matches)
+	if hitTextColoredEscaped != "" {
 		w := c.terminal.OutputWriter()
 		fmt.Fprintf(w, getContext(searchHit.BeforeMessages))
-		fmt.Fprintln(w, hitText)
+		fmt.Fprintln(c.terminal.UnescapedOutputWriter(), hitTextColoredEscaped)
 		fmt.Fprintf(w, getContext(searchHit.AfterMessages))
 		fmt.Fprintln(w, "")
 	}
