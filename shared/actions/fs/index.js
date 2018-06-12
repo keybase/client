@@ -411,71 +411,13 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
   )
 }
 
-const inboxQuery = {
-  ...ChatConstants.makeInboxQuery([]),
-  computeActiveList: false,
-  tlfVisibility: RPCTypes.commonTLFVisibility.any,
-}
-
-const {team, impteamnative, impteamupgrade} = RPCChatTypes.commonConversationMembersType
-
-function loadResets(action: FsGen.LoadResetsPayload) {
-  const onUnverified = function({inbox}: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
-    const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
-    // whatever
-    if (!result || !result.items) return null
-    const tlfs: Array<[Types.Path, Types.ResetMetadata]> = result.items.reduce(
-      (filtered, item: RPCChatTypes.UnverifiedInboxUIItem) => {
-        const visibility =
-          item.visibility === RPCTypes.commonTLFVisibility.private
-            ? item.membersType === team
-              ? 'team'
-              : 'private'
-            : 'public'
-        const name = item.name
-        const path = Types.stringToPath(`/keybase/${visibility}/${name}`)
-        if (
-          item &&
-          item.localMetadata &&
-          item.localMetadata.resetParticipants &&
-          // Ignore KBFS-backed TLFs
-          [team, impteamnative, impteamupgrade].includes(item.membersType)
-        ) {
-          filtered.push([
-            path,
-            {
-              badgeIDKey: '',
-              name,
-              resetParticipants: item.localMetadata.resetParticipants || [],
-              visibility,
-            },
-          ])
-        }
-        return filtered
-      },
-      []
-    )
-    return Saga.put(FsGen.createLoadResetsResult({tlfs: I.Map(tlfs)}))
-  }
-
-  return RPCChatTypes.localGetInboxNonblockLocalRpcSaga(
-    {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      maxUnbox: 0,
-      query: inboxQuery,
-      skipUnverified: false,
-    },
-    {'chat.1.chatUi.chatInboxUnverified': onUnverified}
-  )
-}
-
 const letResetUserBackIn = (action: FsGen.LetResetUserBackInPayload) =>
   Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {
     id: action.payload.id,
     username: action.payload.username,
   })
 
-const letResetUserBackInResult = () => Saga.put(FsGen.createLoadResets())
+const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadResets())
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
@@ -491,7 +433,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
-  yield Saga.safeTakeEveryPure(FsGen.loadResets, loadResets)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

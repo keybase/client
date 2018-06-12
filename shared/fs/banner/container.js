@@ -7,7 +7,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   const _pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
   return {
     path,
-    shouldShowReset: _pathItem.type === 'folder' && !!_pathItem.resetParticipants && _pathItem.resetParticipants.length > 0,
+    shouldShowReset: _pathItem.type === 'folder' && !!_pathItem.tlfMeta && _pathItem.tlfMeta.resetParticipants.length > 0,
   }
 }
 

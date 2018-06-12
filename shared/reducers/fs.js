@@ -45,7 +45,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           .set('badgeCount', original.badgeCount)
           .set('tlfMeta', original.tlfMeta)
           .set('favoriteChildren', original.favoriteChildren)
-          .set('resetParticipants', original.resetParticipants)
       })
       return state.mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
@@ -140,22 +139,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['pathItems', action.payload.path],
         pathItem => (pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem)
       )
-    case FsGen.loadResetsResult:
-      const resetsToMerge = action.payload.tlfs.mapEntries(([path, item]) => {
-        const original = state.pathItems.get(path) || Constants.makeFolder({name: item.name})
-        // This cannot happen, but it's needed to make Flow happy.
-        if (original.type !== 'folder') return [path, original]
-
-        return [
-          path,
-          // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
-          // can change `pathItems`, we need to make sure that neither one
-          // clobbers the others' work.
-          original.set('resetParticipants', item.resetParticipants)
-            .set('teamID', item.badgeIDKey),
-        ]
-      }, [])
-      return state.mergeIn(['pathItems'], resetsToMerge)
     case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
     case FsGen.download:
@@ -173,7 +156,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
-    case FsGen.loadResets:
     case FsGen.letResetUserBackIn:
       return state
     default:

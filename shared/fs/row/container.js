@@ -39,9 +39,9 @@ const mergeProps = (stateProps, dispatchProps) => ({
   type: stateProps.pathItem.type,
   badgeCount: stateProps.pathItem.badgeCount,
   tlfMeta: stateProps.pathItem.tlfMeta,
-  isUserReset: stateProps.pathItem.type === 'folder' && stateProps.pathItem.resetParticipants ? stateProps.pathItem.resetParticipants.includes(stateProps._username) : false,
-  resetParticipants: stateProps.pathItem.type === 'folder'
-    ? stateProps.pathItem.resetParticipants
+  isUserReset: stateProps.pathItem.type === 'folder' && !!stateProps.pathItem.tlfMeta && stateProps.pathItem.tlfMeta.resetParticipants.length > 0 ? stateProps.pathItem.tlfMeta.resetParticipants.includes(stateProps._username) : false,
+  resetParticipants: stateProps.pathItem.type === 'folder' && !!stateProps.pathItem.tlfMeta
+    ? stateProps.pathItem.tlfMeta.resetParticipants
     : [],
   lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
   lastWriter: stateProps.pathItem.lastWriter.username,

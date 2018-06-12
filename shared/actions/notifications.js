@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as Chat2Gen from './chat2-gen'
 import * as FsGen from './fs-gen'
 import * as GitGen from './git-gen'
@@ -9,8 +8,6 @@ import * as Saga from '../util/saga'
 import * as TeamsGen from './teams-gen'
 import * as TrackerGen from './tracker-gen'
 import * as UnlockFoldersGen from './unlock-folders-gen'
-import * as FsTypes from '../constants/types/fs'
-import * as TeamsConstants from '../constants/teams'
 import setUpNotificationActions from '../native/notification-listeners'
 import engine, {Engine} from '../engine'
 import logger from '../logger'
@@ -68,21 +65,6 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
     newTeamAccessRequests,
     teamsWithResetUsers,
   } = action.payload.badgeState
-  const tlfs: Map<FsTypes.Path, FsTypes.ResetMetadata> = (teamsWithResetUsers || []).reduce((filtered, item: $ReadOnly<{id: Buffer, teamname: string, username: string}>) => {
-    const path = FsTypes.stringToPath(`/keybase/team/${item.teamname}`)
-    let team = filtered.get(path)
-    if (!team) {
-      team = {
-        badgeIDKey: TeamsConstants.resetUserBadgeIDToKey(item.id),
-        name: item.teamname,
-        visibility: 'team',
-        resetParticipants: [],
-      }
-      filtered.set(path, team)
-    }
-    team.resetParticipants.push(item.username)
-    return filtered
-  }, new Map())
   return Saga.sequentially([
     Saga.put(Chat2Gen.createBadgesUpdated({conversations: conversations || []})),
     Saga.put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []})),
@@ -93,7 +75,7 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
         teamsWithResetUsers: teamsWithResetUsers || [],
       })
     ),
-    Saga.put(FsGen.createLoadResetsResult({tlfs: I.Map(tlfs)})),
+    Saga.put(FsGen.createFavoritesLoad()),
   ])
 }
 

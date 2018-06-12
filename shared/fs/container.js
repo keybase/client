@@ -67,7 +67,6 @@ const FilesLoadingHoc = compose(
   connect(undefined, (dispatch: Dispatch) => ({
     loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
     loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
-    loadResets: () => dispatch(FsGen.createLoadResets()),
   })),
   mapProps(({routePath, routeProps, loadFolderList, loadFavorites, loadResets}) => ({
     routePath,
