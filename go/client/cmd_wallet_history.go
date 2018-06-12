@@ -70,8 +70,8 @@ func (c *cmdWalletHistory) Run() (err error) {
 		return err
 	}
 	dui := c.G().UI.GetDumbOutputUI()
-	line := func(format string, args ...interface{}) {
-		dui.Printf(format+"\n", args...)
+	lineUnescaped := func(format string, args ...interface{}) {
+		dui.PrintfUnescaped(format+"\n", args...)
 	}
 	// `payments` is sorted most recent first.
 	// Print most recent at the bottom.
@@ -80,12 +80,12 @@ func (c *cmdWalletHistory) Run() (err error) {
 		if p.Payment != nil {
 			printPayment(c.G(), *p.Payment, c.verbose, dui)
 		} else {
-			line(ColorString(c.G(), "red", "error in payment: %v", p.Err))
+			lineUnescaped(ColorString(c.G(), "red", "error in payment: %v", p.Err))
 		}
-		line("")
+		lineUnescaped("")
 	}
 	if len(payments) == 0 {
-		line("No recent activity")
+		lineUnescaped("No recent activity")
 	}
 	return err
 }

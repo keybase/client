@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/wallets'",
-  ],
+  "prelude": ["import * as Types from '../constants/types/wallets'"],
   "actions": {
     "assetsReceived": {
       "_description": "Update our store of assets data",

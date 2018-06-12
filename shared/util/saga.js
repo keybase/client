@@ -2,7 +2,7 @@
 import logger from '../logger'
 import {mapValues, isEqual, map, forEach} from 'lodash-es'
 import {buffers, channel, delay} from 'redux-saga'
-import type {Pattern, ForkEffect, Saga as _Saga, Effect} from 'redux-saga'
+import type {Pattern, ForkEffect, Saga as _Saga, Effect, PutEffect} from 'redux-saga'
 import {
   actionChannel,
   all,
@@ -299,39 +299,17 @@ type Ok<X> = {type: 'ok', payload: X}
 type Err<E> = {type: 'err', payload: E}
 type Result<X, E> = Ok<X> | Err<E>
 
-type Fn0<R> = () => R
-type Fn1<T1, R> = (t1: T1) => R
-type Fn2<T1, T2, R> = (t1: T1, t2: T2) => R
-type Fn3<T1, T2, T3, R> = (t1: T1, t2: T2, t3: T3) => R
-
-type CallAndWrap = (<R, Fn: Fn0<Promise<R>>, WR: Result<R, any>, WFn: Fn0<WR>>(
-  fn: Fn
-  // $FlowIssue gives expected polymorphic type error
-) => $Call<call<WR, WFn>>) &
-  (<R, T1, Fn: Fn1<T1, Promise<R>>, WR: Result<R, any>, WFn: Fn1<T1, WR>>(
-    fn: Fn,
-    t1: T1
-    // $FlowIssue gives expected polymorphic type error
-  ) => $Call<call<T1, WR, WFn>>) &
-  (<R, T1, T2, Fn: Fn2<T1, T2, Promise<R>>, WR: Result<R, any>, WFn: Fn2<T1, T2, WR>>(
-    fn: Fn,
-    t1: T1,
-    t2: T2
-    // $FlowIssue gives expected polymorphic type error
-  ) => $Call<call<T1, T2, WR, WFn>>) &
-  (<R, T1, T2, T3, Fn: Fn3<T1, T2, T3, Promise<R>>, WR: Result<R, any>, WFn: Fn3<T1, T2, T3, WR>>(
-    fn: Fn,
-    t1: T1,
-    t2: T2,
-    t3: T3
-    // $FlowIssue gives expected polymorphic type error
-  ) => $Call<call<T1, T2, T3, WR, WFn>>)
-// TODO this doesn't type as well as it could
-const callAndWrap: CallAndWrap = (fn, ...args) => {
+function callAndWrap<R, A1, A2, A3, A4, A5, Fn: (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => R>(
+  fn: Fn,
+  a1: A1,
+  a2: A2,
+  a3: A3,
+  a4: A4,
+  a5: A5
+) {
   const wrapper = function*() {
     try {
-      // $FlowIssue - ignore this part for now
-      const result = yield call(fn, ...args)
+      const result = yield call(fn, a1, a2, a3, a4, a5)
       return {type: 'ok', payload: result}
     } catch (error) {
       return {type: 'err', payload: error}
@@ -341,9 +319,10 @@ const callAndWrap: CallAndWrap = (fn, ...args) => {
   return call(wrapper)
 }
 
-export type {SagaGenerator, Ok, Err, Result, Effect}
+export type {SagaGenerator, Ok, Err, Result, Effect, PutEffect}
 
 export {
+  actionChannel,
   all,
   buffers,
   call,

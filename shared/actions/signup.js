@@ -61,18 +61,18 @@ function requestAutoInvite() {
       // TODO: It would be better to book-keep having asked for an auto
       // invite code, instead of just acting as if the one we receive
       // here had been typed, using the same store entry as a manual one.
-      RPCTypes.signupGetInvitationCodeRpcPromise({
-        waitingHandler: isWaiting => {
-          dispatch(SignupGen.createWaiting({waiting: isWaiting}))
-        },
-      })
+
+      dispatch(SignupGen.createWaiting({waiting: true}))
+      RPCTypes.signupGetInvitationCodeRpcPromise()
         .then(inviteCode => {
+          dispatch(SignupGen.createWaiting({waiting: false}))
           dispatch(checkInviteCodeThenNextPhase(inviteCode))
           // For navigateAppend to work in nextPhase(), need the right path.
           dispatch(navigateTo([loginTab, 'signup']))
           inviteCode ? resolve() : reject(new Error('No invite code'))
         })
         .catch(err => {
+          dispatch(SignupGen.createWaiting({waiting: false}))
           dispatch(navigateTo([loginTab, 'signup']))
           reject(err)
         })

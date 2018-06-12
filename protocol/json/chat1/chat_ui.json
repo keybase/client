@@ -123,6 +123,10 @@
           "name": "maxMsgID"
         },
         {
+          "type": "MessageID",
+          "name": "readMsgID"
+        },
+        {
           "type": [
             null,
             "UnverifiedInboxUIItemMetadata"
@@ -271,6 +275,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "readMsgID"
         },
         {
           "type": [

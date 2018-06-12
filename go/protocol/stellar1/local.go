@@ -480,14 +480,15 @@ type BalancesLocalArg struct {
 }
 
 type SendCLILocalArg struct {
-	Recipient       string `codec:"recipient" json:"recipient"`
-	Amount          string `codec:"amount" json:"amount"`
-	Asset           Asset  `codec:"asset" json:"asset"`
-	Note            string `codec:"note" json:"note"`
-	DisplayAmount   string `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency string `codec:"displayCurrency" json:"displayCurrency"`
-	ForceRelay      bool   `codec:"forceRelay" json:"forceRelay"`
-	PublicNote      string `codec:"publicNote" json:"publicNote"`
+	Recipient       string    `codec:"recipient" json:"recipient"`
+	Amount          string    `codec:"amount" json:"amount"`
+	Asset           Asset     `codec:"asset" json:"asset"`
+	Note            string    `codec:"note" json:"note"`
+	DisplayAmount   string    `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency string    `codec:"displayCurrency" json:"displayCurrency"`
+	ForceRelay      bool      `codec:"forceRelay" json:"forceRelay"`
+	PublicNote      string    `codec:"publicNote" json:"publicNote"`
+	FromAccountID   AccountID `codec:"fromAccountID" json:"fromAccountID"`
 }
 
 type ClaimCLILocalArg struct {

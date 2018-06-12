@@ -187,9 +187,16 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	quickReturn := false
-	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount,
-		arg.Note, displayBalance, arg.ForceRelay, quickReturn, arg.PublicNote)
+	return stellar.SendPayment(m, s.remoter, stellar.SendPaymentArg{
+		From:           arg.FromAccountID,
+		To:             stellarcommon.RecipientInput(arg.Recipient),
+		Amount:         arg.Amount,
+		DisplayBalance: displayBalance,
+		SecretNote:     arg.Note,
+		ForceRelay:     arg.ForceRelay,
+		QuickReturn:    false,
+		PublicMemo:     arg.PublicNote,
+	})
 }
 
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {

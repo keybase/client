@@ -332,6 +332,10 @@ func (n *nullui) PrintfStderr(f string, args ...interface{}) (int, error) {
 	return fmt.Fprintf(os.Stderr, f, args...)
 }
 
+func (n *nullui) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+	return fmt.Printf(f, args...)
+}
+
 func (n *nullui) GetDumbOutputUI() DumbOutputUI {
 	return n
 }

@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Constants from '../constants/pinentry'"
-  ],
+  "prelude": ["import * as Constants from '../constants/pinentry'"],
   "actions": {
     "deleteEntity": {
       "keyPath": "Array<string>",
@@ -9,17 +7,11 @@
     },
     "mergeEntity": {
       "keyPath": "Array<string>",
-      "entities": [
-        "I.Map<any, any>",
-        "I.List<any>"
-      ]
+      "entities": ["I.Map<any, any>", "I.List<any>"]
     },
     "replaceEntity": {
       "keyPath": "Array<string>",
-      "entities": [
-        "I.Map<any, any>",
-        "I.List<any>"
-      ]
+      "entities": ["I.Map<any, any>", "I.List<any>"]
     },
     "subtractEntity": {
       "keyPath": "Array<string>",
