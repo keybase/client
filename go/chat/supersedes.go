@@ -46,8 +46,6 @@ func (t *basicSupersedesTransform) transformDelete(msg chat1.MessageUnboxed, sup
 	}
 	explodedBy := superMsg.Valid().SenderUsername
 	mvalid.ClientHeader.EphemeralMetadata.ExplodedBy = &explodedBy
-	var emptyBody chat1.MessageBody
-	mvalid.MessageBody = emptyBody
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	return &newMsg
 }
@@ -134,7 +132,9 @@ func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.Mess
 
 	newMsg := &msg
 	for _, superMsg := range superMsgs {
-		if !superMsg.IsValidFull() || newMsg == nil {
+		if !superMsg.IsValidFull() {
+			continue
+		} else if newMsg == nil {
 			return nil
 		}
 
