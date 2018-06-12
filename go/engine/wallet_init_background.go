@@ -105,6 +105,5 @@ func WalletInitBackgroundRound(m libkb.MetaContext) error {
 		return nil
 	}
 
-	_, err := g.GetStellar().CreateWalletGated(context.Background())
-	return err
+	return g.GetStellar().CreateWalletGated(context.Background())
 }

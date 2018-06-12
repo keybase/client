@@ -24,7 +24,7 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
   return (
     <Box style={styleNavBox}>
       <SettingsItem
-        text="Your Account"
+        text="Your account"
         selected={selectedTab === Constants.landingTab}
         badgeNumber={0}
         onClick={() => onTabChange(Constants.landingTab)}
@@ -55,7 +55,7 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
         />
       )}
       <SettingsItem
-        text="Delete Me"
+        text="Delete me"
         selected={selectedTab === Constants.deleteMeTab}
         badgeNumber={0}
         onClick={() => onTabChange(Constants.deleteMeTab)}
@@ -75,7 +75,8 @@ const styleNavBox = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
   borderRight: '1px solid ' + globalColors.black_05,
-  width: 144,
+  paddingTop: globalMargins.small,
+  width: 160,
 }
 const itemStyle = platformStyles({
   common: {
@@ -91,14 +92,12 @@ const itemStyle = platformStyles({
     textTransform: 'uppercase',
   },
 })
-
 const selectedStyle = platformStyles({
   common: itemStyle,
   isElectron: {
     borderLeft: '3px solid ' + globalColors.blue,
   },
 })
-
 const itemTextStyle = {
   color: globalColors.black_60,
 }

@@ -17,7 +17,8 @@ protocol tlfKeys {
     SALTPACK_7,
     CLI_8,
     GUI_9,
-    DEFAULT_KBFS_10
+    DEFAULT_KBFS_10,
+    KBFS_CHAT_11
   }
 
   @typedef("string")

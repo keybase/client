@@ -11,7 +11,8 @@
     "local-visdiff": "yarn run _helper local-visdiff",
     "postinstall": "yarn run _helper postinstall",
     "prettier": "./node_modules/.bin/prettier --write ",
-    "prettier-check": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier --debug-check",
+    "prettier-check":
+      "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier --debug-check",
     "prettier-write-all": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier ",
     "render-screenshots": "yarn run _helper render-screenshots",
     "test": "cross-env-shell BABEL_ENV=yarn jest",
@@ -25,6 +26,7 @@
     "build-prod": "yarn run _helper build-prod",
     "build-actions": "yarn run _node desktop/yarn-helper/action-creator-creator",
     "build-flow-stubs": "flow-typed create-stub",
+    "update-flow-typed": "flow-typed update -s",
     "package": "yarn run _helper package",
     "hot-server": "yarn run _helper hot-server",
     "hot-server-dumb": "cross-env-shell DUMB=true yarn run _helper hot-server",
@@ -37,10 +39,14 @@
     "rn-start": "./react-native/packageAndBuild.sh",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
-    "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
-    "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
-    "rn-jsbuild-ios": "mkdir -p react-native/ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output react-native/ios/dist/main.jsbundle --sourcemap-output react-native/ios/dist/main.jsbundle.sourcemap",
-    "rn-jsbuild-android": "mkdir -p react-native/android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/dist/main.jsbundle --sourcemap-output react-native/android/dist/main.jsbundle.sourcemap",
+    "rn-packager-wipe-cache":
+      "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
+    "rn-test-ios":
+      "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
+    "rn-jsbuild-ios":
+      "mkdir -p react-native/ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output react-native/ios/dist/main.jsbundle --sourcemap-output react-native/ios/dist/main.jsbundle.sourcemap",
+    "rn-jsbuild-android":
+      "mkdir -p react-native/android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/dist/main.jsbundle --sourcemap-output react-native/android/dist/main.jsbundle.sourcemap",
     "storybook": "cross-env-shell BABEL_ENV=yarn start-storybook -s . -p 6006",
     "rn-storybook": "storybook start -p 7007",
     "build-storybook": "build-storybook",
@@ -51,10 +57,7 @@
   "flow-coverage-report": {
     "concurrentFiles": 50,
     "threshold": 10,
-    "includeGlob": [
-      "**/*.js",
-      "**/*.js.flow"
-    ],
+    "includeGlob": ["**/*.js", "**/*.js.flow"],
     "excludeGlob": [
       "node_modules/**",
       "markdown/parser.js",
@@ -66,22 +69,14 @@
     "flowCommandPath": "./node_modules/.bin/flow"
   },
   "jest": {
-    "modulePaths": [
-      "<rootDir>/desktop/node_modules"
-    ],
+    "modulePaths": ["<rootDir>/desktop/node_modules"],
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es).+\\.js"
     ],
-    "setupFiles": [
-      "raf/polyfill"
-    ],
+    "setupFiles": ["raf/polyfill"],
     "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
-    "testPathIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "snapshotSerializers": [
-      "jest-glamor-react"
-    ],
+    "testPathIgnorePatterns": ["/node_modules/"],
+    "snapshotSerializers": ["jest-glamor-react"],
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.js",
@@ -90,13 +85,7 @@
       "react-redux": "<rootDir>/__mocks__/react-redux.js",
       "electron": "<rootDir>/__mocks__/electron.js"
     },
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "jsx",
-      "node",
-      "desktop.js"
-    ],
+    "moduleFileExtensions": ["js", "json", "jsx", "node", "desktop.js"],
     "globals": {
       "__DEV__": true,
       "__STORYBOOK__": true,
@@ -144,9 +133,11 @@
     "react-native-camera": "0.10.0",
     "react-native-contacts": "2.1.2",
     "react-native-fetch-blob": "0.10.8",
-    "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
+    "react-native-image-picker":
+      "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
     "react-native-mime-types": "^2.2.1",
-    "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302",
+    "react-native-push-notification":
+      "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302",
     "react-native-wkwebview-reborn": "^1.18.0",
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "5.0.7",
@@ -187,9 +178,9 @@
     "css-loader": "0.28.11",
     "del": "3.0.0",
     "devtron": "1.4.0",
-    "electron": "1.8.7",
+    "electron": "2.0.2",
     "electron-download": "git://github.com/keybase/electron-download#keybase-fixes-off-410",
-    "electron-packager": "9.1.0",
+    "electron-packager": "12.1.0",
     "eslint": "4.19.1",
     "eslint-config-standard": "12.0.0-alpha.0",
     "eslint-config-standard-jsx": "5.0.0",
@@ -203,13 +194,13 @@
     "eslint-plugin-react": "7.9.1",
     "eslint-plugin-standard": "3.1.0",
     "file-loader": "1.1.11",
-    "flow-bin": "0.73.0",
+    "flow-bin": "0.74.0",
     "flow-typed": "^2.4.0",
-    "fs-extra": "4.0.2",
+    "fs-extra": "6.0.1",
     "jest": "23.1.0",
     "jest-glamor-react": "4.3.0",
     "json5": "1.0.1",
-    "klaw-sync": "3.0.2",
+    "klaw-sync": "4.0.0",
     "minimist": "1.2.0",
     "null-loader": "0.1.1",
     "pegjs": "0.10.0",

@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/stellarnet"
@@ -29,19 +30,24 @@ type Stellar struct {
 
 	autoClaimRunnerLock sync.Mutex
 	autoClaimRunner     *AutoClaimRunner // often nil
+
+	hasWalletCacheLock sync.Mutex
+	hasWalletCache     map[keybase1.UserVersion]bool
 }
 
 var _ libkb.Stellar = (*Stellar)(nil)
 
 func NewStellar(g *libkb.GlobalContext, remoter remote.Remoter) *Stellar {
 	return &Stellar{
-		Contextified: libkb.NewContextified(g),
-		remoter:      remoter,
+		Contextified:   libkb.NewContextified(g),
+		remoter:        remoter,
+		hasWalletCache: make(map[keybase1.UserVersion]bool),
 	}
 }
 
-func (s *Stellar) CreateWalletGated(ctx context.Context) (bool, error) {
-	return CreateWalletGated(ctx, s.G())
+func (s *Stellar) CreateWalletGated(ctx context.Context) (err error) {
+	_, _, err = CreateWalletGated(ctx, s.G())
+	return err
 }
 
 func (s *Stellar) CreateWalletSoft(ctx context.Context) {
@@ -90,4 +96,33 @@ func (s *Stellar) KickAutoClaimRunner(mctx libkb.MetaContext, trigger gregor.Msg
 		s.autoClaimRunner = NewAutoClaimRunner(s.remoter)
 	}
 	s.autoClaimRunner.Kick(mctx, trigger)
+}
+
+func (s *Stellar) InformHasWallet(ctx context.Context, uv keybase1.UserVersion) {
+	if uv.Uid.IsNil() {
+		s.G().Log.CErrorf(ctx, "Stellar.InformHasWallet called with nil UID")
+		return
+	}
+	if uv.EldestSeqno <= 0 {
+		// It is not possible for such a user to have a wallet.
+		s.G().Log.CErrorf(ctx, "Stellar.InformHasWallet called with %v EldestSeqno", uv.EldestSeqno)
+		return
+	}
+	s.hasWalletCacheLock.Lock()
+	defer s.hasWalletCacheLock.Unlock()
+	s.G().Log.CDebugf(ctx, "Stellar.InformHasWallet(%v)", uv)
+	s.hasWalletCache[uv] = true
+}
+
+func (s *Stellar) CachedHasWallet(ctx context.Context, uv keybase1.UserVersion) bool {
+	s.hasWalletCacheLock.Lock()
+	defer s.hasWalletCacheLock.Unlock()
+	has := s.hasWalletCache[uv]
+	s.G().Log.CDebugf(ctx, "Stellar.CachedHasWallet(%v) -> %v", uv, has)
+	return has
+}
+
+// getGlobal gets the libkb.Stellar off of G and asserts it into a stellar.Stellar
+func getGlobal(g *libkb.GlobalContext) *Stellar {
+	return g.GetStellar().(*Stellar)
 }

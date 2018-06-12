@@ -12,6 +12,9 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/keybase/client/go/terminalescaper"
+	"github.com/mattn/go-isatty"
+
 	"golang.org/x/net/context"
 
 	"sync"
@@ -27,6 +30,9 @@ type UI struct {
 	libkb.Contextified
 	Terminal    *Terminal
 	SecretEntry *SecretEntry
+
+	outputWriter          io.Writer
+	unescapedOutputWriter io.Writer
 
 	// ttyMutex protects the TTY variable, which may be accessed from
 	// multiple goroutines
@@ -793,14 +799,15 @@ func (ui SecretUI) getSecret(pinentry keybase1.SecretEntryArg, term *keybase1.Se
 }
 
 func (ui *UI) Configure() error {
-	t, err := NewTerminal(ui.G())
-	if err != nil {
-		// XXX this is only temporary so that SecretEntry will still work
-		// when this is run without a terminal.
-		ui.SecretEntry = NewSecretEntry(ui.G(), nil, "")
-		return err
+	ui.unescapedOutputWriter = logger.OutputWriter()
+	if ui.G().Env.GetDisplayRawUntrustedOutput() || !isatty.IsTerminal(os.Stdout.Fd()) {
+		ui.outputWriter = ui.unescapedOutputWriter
+		ui.Terminal = NewTerminalUnescaped(ui.G())
+	} else {
+		ui.outputWriter = &terminalescaper.Writer{Writer: ui.unescapedOutputWriter}
+		ui.Terminal = NewTerminalEscaped(ui.G())
 	}
-	ui.Terminal = t
+
 	ui.SecretEntry = NewSecretEntry(ui.G(), ui.Terminal, ui.getTTY())
 	return nil
 }
@@ -1040,7 +1047,11 @@ func (ui *UI) OutputDesc(_ libkb.OutputDescriptor, s string) error {
 }
 
 func (ui *UI) OutputWriter() io.Writer {
-	return logger.OutputWriter()
+	return ui.outputWriter
+}
+
+func (ui *UI) UnescapedOutputWriter() io.Writer {
+	return ui.unescapedOutputWriter
 }
 
 func (ui *UI) ErrorWriter() io.Writer {
@@ -1049,6 +1060,10 @@ func (ui *UI) ErrorWriter() io.Writer {
 
 func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
 	return fmt.Fprintf(ui.OutputWriter(), format, a...)
+}
+
+func (ui *UI) PrintfUnescaped(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(ui.UnescapedOutputWriter(), format, a...)
 }
 
 func (ui *UI) Println(a ...interface{}) (int, error) {

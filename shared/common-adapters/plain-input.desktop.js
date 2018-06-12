@@ -170,7 +170,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   render = () => {
     const inputProps = this._getInputProps()
-    const css = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+    const css = `::-webkit-input-placeholder { color: rgba(0,0,0,.4); }
                  ::-webkit-outer-spin-button, ::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}`
     return (
       <React.Fragment>

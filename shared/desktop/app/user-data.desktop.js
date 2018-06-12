@@ -14,7 +14,11 @@ export default class UserData<State> {
       let state = jsonfile.readFileSync(this.configPath())
       this.state = state
     } catch (err) {
-      console.warn('Error loading state:', err)
+      if (err && err.code === 'ENOENT') {
+        console.log('No installer.json file')
+      } else {
+        console.warn('Error loading state:', err)
+      }
     }
   }
 

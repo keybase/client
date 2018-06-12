@@ -28,7 +28,7 @@ const config = (_, {mode}) => {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.js$/],
         plugins: [...(isHot ? ['react-hot-loader/babel'] : [])],
-        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '1.8.4'}}]],
+        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '2.0.2'}}]],
       },
     }
 
