@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, isMobile, platformStyles} from '../../styles'
 import {Box, Meta, Text} from '../../common-adapters'
 import {formatTimeForFS} from '../../util/timestamp'
@@ -9,17 +10,18 @@ type Props = {
   lastWriter: string,
   wrap?: boolean,
   startWithLastModified?: boolean,
-  resetParticipants?: Array<string>,
+  resetParticipants?: Array<Types.ResetMember>,
   isUserReset?: boolean,
 }
 
-const fancyJoin = (arr: Array<string>, delimiter: string, doubleDelimiter: string, finalDelimiter: string): string => {
-  if (arr.length === 1) {
-    return arr[0]
-  } else if (arr.length === 2) {
-    return `${arr[0]}${doubleDelimiter}${arr[1]}`
+const fancyJoin = (arr: Array<Types.ResetMember>, delimiter: string, doubleDelimiter: string, finalDelimiter: string): string => {
+  const names = arr.map(i => i.username)
+  if (names.length === 1) {
+    return names[0]
+  } else if (names.length === 2) {
+    return `${names[0]}${doubleDelimiter}${names[1]}`
   }
-  return `${arr.slice(0, -1).join(delimiter)}${finalDelimiter}${arr[arr.length - 1]}`
+  return `${names.slice(0, -1).join(delimiter)}${finalDelimiter}${names[names.length - 1]}`
 }
 
 const PathItemInfo = (props: Props) => (

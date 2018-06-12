@@ -37,7 +37,7 @@ const mergeProps = (stateProps, {_onReAddToTeam, onViewProfile}) => ({
     stateProps.teamId ? _onReAddToTeam(stateProps.teamId, username) : undefined,
   onViewProfile,
   path: stateProps.path,
-  resetParticipants: stateProps.resetParticipants,
+  resetParticipants: stateProps.resetParticipants.map(i => i.username),
 })
 
 export default compose(
