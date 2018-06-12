@@ -527,10 +527,7 @@
           "type": "int"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "PaymentSummary"
-      }
+      "response": "PaymentsPage"
     },
     "paymentDetails": {
       "request": [

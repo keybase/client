@@ -546,7 +546,7 @@ type PingArg struct {
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	Details(context.Context, DetailsArg) (AccountDetails, error)
-	RecentPayments(context.Context, RecentPaymentsArg) ([]PaymentSummary, error)
+	RecentPayments(context.Context, RecentPaymentsArg) (PaymentsPage, error)
 	PaymentDetails(context.Context, PaymentDetailsArg) (PaymentDetails, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
@@ -784,7 +784,7 @@ func (c RemoteClient) Details(ctx context.Context, __arg DetailsArg) (res Accoun
 	return
 }
 
-func (c RemoteClient) RecentPayments(ctx context.Context, __arg RecentPaymentsArg) (res []PaymentSummary, err error) {
+func (c RemoteClient) RecentPayments(ctx context.Context, __arg RecentPaymentsArg) (res PaymentsPage, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.recentPayments", []interface{}{__arg}, &res)
 	return
 }
