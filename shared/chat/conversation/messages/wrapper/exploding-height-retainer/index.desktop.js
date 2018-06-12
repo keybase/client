@@ -21,7 +21,7 @@ const copyChildren = children =>
 
 const animationDuration = 1.5
 
-const messageHeights = {}
+const retainedHeights = {}
 
 type State = {
   children: ?React.Node,
@@ -31,21 +31,21 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {children: copyChildren(this.props.children), height: 17}
   timeoutID: ?TimeoutID = null
 
-  constructor(props: Props) {
-    super(props)
-    if (messageHeights[props.messageKey]) {
-      this.state = {children: copyChildren(props.children), height: messageHeights[props.messageKey]}
-    }
-  }
-
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
+  }
+
+  componentDidMount() {
+    // remeasure if we are already exploded
+    if (this.props.retainHeight && retainedHeights[this.props.messageKey] && this.props.measure) {
+      this.props.measure()
+    }
   }
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.retainHeight) {
       if (!prevProps.retainHeight && !this.timeoutID) {
-        // destroy local copy of children
+        // destroy local copy of children when animation finishes
         this.timeoutID = setTimeout(() => this.setState({children: null}), animationDuration * 1000)
       }
       return
@@ -54,11 +54,16 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     if (node instanceof window.HTMLElement) {
       const height = node.clientHeight
       if (height && height !== this.state.height) {
+        retainedHeights[this.props.messageKey] = true
         this.setState({height})
       }
-      if (!messageHeights[this.props.messageKey] && this.props.exploding) {
-        messageHeights[this.props.messageKey] = height
-      }
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.timeoutID) {
+      clearTimeout(this.timeoutID)
+      this.timeoutID = null
     }
   }
 
@@ -93,6 +98,7 @@ const AshBox = glamorous.div(props => ({
   '&.full-width': {
     width: '100%',
     overflow: 'visible',
+    transition: `width ${animationDuration}s ease-in-out`,
   },
   backgroundColor: globalColors.white,
   backgroundImage: explodedIllustrationUrl,
@@ -103,7 +109,7 @@ const AshBox = glamorous.div(props => ({
   overflow: 'hidden',
   position: 'absolute',
   top: 0,
-  transition: `width ${animationDuration}s ease-in-out`,
+  transition: `width 0s`,
   width: 0,
 }))
 const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?string, height: number}) => {
@@ -167,6 +173,13 @@ class Flame extends React.Component<{stop: boolean}, {color: string, width: numb
 
   componentDidUpate() {
     if (this.props.stop && this.intervalID) {
+      clearInterval(this.intervalID)
+      this.intervalID = null
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.intervalID) {
       clearInterval(this.intervalID)
       this.intervalID = null
     }
