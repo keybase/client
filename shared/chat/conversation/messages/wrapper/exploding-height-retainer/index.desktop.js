@@ -19,7 +19,7 @@ const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
 const copyChildren = children =>
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
-const animationDuration = 1.5
+const animationDuration = 1
 
 const retainedHeights = {}
 
@@ -38,6 +38,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   componentDidMount() {
     // remeasure if we are already exploded
     if (this.props.retainHeight && retainedHeights[this.props.messageKey] && this.props.measure) {
+      delete retainedHeights[this.props.messageKey]
       this.props.measure()
     }
   }
@@ -76,9 +77,9 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
           // to make sure we don't rewrap text when showing the animation
           this.props.retainHeight && {
             height: this.state.height,
+            overflow: 'hidden',
             paddingRight: 28,
             position: 'relative',
-            overflow: 'hidden',
           },
         ])}
       >
@@ -96,9 +97,9 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 
 const AshBox = glamorous.div(props => ({
   '&.full-width': {
-    width: '100%',
     overflow: 'visible',
     transition: `width ${animationDuration}s ease-in-out`,
+    width: '100%',
   },
   backgroundColor: globalColors.white,
   backgroundImage: explodedIllustrationUrl,
@@ -139,7 +140,7 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
 
 const maxFlameWidth = 20
 const FlameFront = (props: {height: number, stop: boolean}) => {
-  const numBoxes = Math.ceil(props.height / 17)
+  const numBoxes = Math.ceil(props.height / 15)
   const children = []
   for (let i = 0; i < numBoxes; i++) {
     children.push(<Flame key={i} stop={props.stop} />)
@@ -188,14 +189,13 @@ class Flame extends React.Component<{stop: boolean}, {color: string, width: numb
   render() {
     return (
       <Box
-        style={{
-          backgroundColor: this.state.color,
-          width: this.state.width,
-          height: 15,
-          marginTop: 1,
-          marginBottom: 1,
-          opacity: 0.9,
-        }}
+        style={collapseStyles([
+          {
+            backgroundColor: this.state.color,
+            width: this.state.width,
+          },
+          styles.flame,
+        ])}
       />
     )
   }
@@ -214,10 +214,16 @@ const styles = styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
+  flame: {
+    height: 17,
+    marginBottom: 1,
+    marginTop: 1,
+    opacity: 0.9,
+  },
   flameContainer: {
-    width: maxFlameWidth,
     position: 'absolute',
     right: -1 * maxFlameWidth,
+    width: maxFlameWidth,
   },
 })
 
