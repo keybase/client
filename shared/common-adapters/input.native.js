@@ -14,8 +14,6 @@ import {checkTextInfo} from './input.shared'
 type State = {
   focused: boolean,
   height: ?number,
-  // Only changed for controlled components.
-  value?: string,
 }
 
 class Input extends Component<Props, State> {
@@ -39,13 +37,9 @@ class Input extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
-    const text = props.value || ''
-    this.state = ({
+    this.state = {
       focused: false,
       height: null,
-    }: State)
-    if (!props.uncontrolled) {
-      this.state.value = text
     }
 
     // TODO: Remove once we can use HOCTimers.
@@ -68,13 +62,6 @@ class Input extends Component<Props, State> {
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
     this._input && this._input.setNativeProps(nativeProps)
-  }
-
-  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
-    if (!nextProps.uncontrolled && nextProps.hasOwnProperty('value')) {
-      return {value: nextProps.value || ''}
-    }
-    return null
   }
 
   _onContentSizeChange = event => {
@@ -101,11 +88,15 @@ class Input extends Component<Props, State> {
     }
   }
 
+  _getValue = () => {
+    return (this.props.uncontrolled ? this._lastNativeText : this.props.value) || ''
+  }
+
   getValue = (): string => {
     if (this.props.uncontrolled) {
-      return this._lastNativeText || ''
+      return this._getValue()
     } else {
-      return this.state.value || ''
+      throw new Error('getValue only supported on uncontrolled inputs')
     }
   }
 
@@ -113,18 +104,13 @@ class Input extends Component<Props, State> {
     return this._lastNativeSelection || {start: 0, end: 0}
   }
 
-  _onChangeTextDone = () => {
-    const value = this.getValue()
+  _onChangeTextDone = (value: string) => {
     this.props.onChangeText && this.props.onChangeText(value)
   }
 
   _onChangeText = (text: string) => {
     this._lastNativeText = text
-    if (this.props.uncontrolled) {
-      this._onChangeTextDone()
-    } else {
-      this.setState({value: text}, this._onChangeTextDone)
-    }
+    this._onChangeTextDone(text)
   }
 
   focus = () => {
@@ -141,7 +127,7 @@ class Input extends Component<Props, State> {
     }
 
     const textInfo: TextInfo = {
-      text: this.getValue(),
+      text: this._getValue(),
       selection: this.selection(),
     }
     const newTextInfo = fn(textInfo)
@@ -155,7 +141,7 @@ class Input extends Component<Props, State> {
       // It's possible that, by the time this runs, the selection is
       // out of bounds with respect to the current text value. So fix
       // it up if necessary.
-      const text = this.getValue()
+      const text = this._getValue()
       let {start, end} = newTextInfo.selection
       end = Math.max(0, Math.min(end, text.length))
       start = Math.max(0, Math.min(start, end))
@@ -230,7 +216,7 @@ class Input extends Component<Props, State> {
     // updated first, so handlers that rely on an updated selection
     // will get strange results. So trigger a text change notification
     // when the selection changes.
-    this._onChangeTextDone()
+    this._onChangeTextDone(this._getValue())
   }
 
   render = () => {
@@ -276,7 +262,7 @@ class Input extends Component<Props, State> {
       multilineStyle.height = this.state.height
     }
 
-    const value = this.getValue()
+    const value = this._getValue()
 
     const floatingHintText =
       !!value.length &&
