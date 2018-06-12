@@ -195,17 +195,16 @@ const uninstallKBFSConfirmSaga = (action: FsGen.UninstallKBFSConfirmPayload) =>
     },
     resp => (resp ? undefined : Saga.sequentially([
       Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
-      Saga.call(() => {
+      Saga.call(() => new Promise((resolve, reject) => {
           // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
           SafeElectron.getApp().relaunch()
           SafeElectron.getApp().exit(0)
         }
-      )
+      )),
     ]))
   )
 
-function openSecurityPreferences() {
-  return Saga.call(
+const openSecurityPreferences = () => Saga.call(
     () =>
       new Promise((resolve, reject) => {
         SafeElectron.getShell().openExternal(
@@ -222,7 +221,6 @@ function openSecurityPreferences() {
         )
       })
   )
-}
 
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
