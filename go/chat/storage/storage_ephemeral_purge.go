@@ -104,7 +104,6 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	var hasExploding bool
 	for i, msg := range msgs {
 		if !msg.IsValid() {
-			s.Debug(ctx, "skipping invalid msg: %v", msg.GetMessageID())
 			continue
 		}
 		mvalid := msg.Valid()
@@ -120,7 +119,9 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 				if nextPurgeTime == 0 || mvalid.Etime() < nextPurgeTime {
 					nextPurgeTime = mvalid.Etime()
 				}
-				s.Debug(ctx, "skipping unexpired ephemeral msg: %v, etime: %v, now: %v", msg.GetMessageID(), mvalid.Etime().Time(), s.clock.Now())
+				s.Debug(ctx, "skipping unexpired ephemeral msg: %v, etime: %v, serverCtime: %v, serverNow: %v, rtime: %v now: %v, ephemeralMetadata: %v",
+					msg.GetMessageID(), mvalid.Etime().Time(), mvalid.ServerHeader.Ctime.Time(),
+					mvalid.ServerHeader.Now.Time(), mvalid.ClientHeader.Rtime.Time(), s.clock.Now(), mvalid.EphemeralMetadata())
 			} else if mvalid.MessageBody.IsNil() {
 				// do nothing
 			} else {
