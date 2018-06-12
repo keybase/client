@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as PushGen from '../../actions/push-gen'
-import {connect, type TypedState} from '../../util/container'
-import {Box, Button, Text, NativeScrollView, NativeImage} from '../../common-adapters/mobile.native'
+import {connect} from '../../util/container'
+import {Box, Button, Text, NativeScrollView, NativeImage, WaitingButton} from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 type Props = {
@@ -56,13 +56,13 @@ const Push = (props: Props) => (
           This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if
           you provision a new device, this phone will be contacted.
         </Text>
-        <Button
+        <WaitingButton
           type="Primary"
           fullWidth={true}
           style={{marginBottom: 10}}
           onClick={props.onRequestPermissions}
           label="Got it"
-          waiting={props.permissionsRequesting}
+          waitingKey={props.permissionsRequestingWaitingKey}
         />
         <Button
           type="Secondary"
@@ -76,13 +76,10 @@ const Push = (props: Props) => (
   </NativeScrollView>
 )
 
+const mapStateToProps = () => ({})
+
 export default connect(
-  (state: TypedState) => {
-    const {permissionsRequesting} = state.push
-    return {
-      permissionsRequesting,
-    }
-  },
+  mapStateToProps,
   (dispatch: any) => {
     return {
       onRequestPermissions: () => dispatch(PushGen.createPermissionsRequest()),

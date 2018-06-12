@@ -20,9 +20,6 @@
     "deletePersonalRepo": {
       "name": "string"
     },
-    "setLoading": {
-      "loading": "boolean"
-    },
     "setError": {
       "error": "?Error"
     },
