@@ -301,7 +301,7 @@
     // clients mark the received time as soon as they pull the message from the
     // server
     @mpackkey("rt") @jsonkey("rt")
-    gregor1.Time rtime;
+    union { null, gregor1.Time } rtime;
   }
 
   record MessagePreviousPointer {

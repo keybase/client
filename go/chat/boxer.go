@@ -258,8 +258,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		boxed.GetMessageID())()
 
 	// If we don't have an rtime, add one.
-	if boxed.ServerHeader.Rtime == 0 {
-		boxed.ServerHeader.Rtime = gregor1.ToTime(b.clock.Now())
+	if boxed.ServerHeader.Rtime == nil {
+		now := gregor1.ToTime(b.clock.Now())
+		boxed.ServerHeader.Rtime = &now
 	}
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 	if conv.IsPublic() != boxed.ClientHeader.TlfPublic {
@@ -539,6 +540,10 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		return nil, NewPermanentUnboxingError(err)
 	}
 
+	rtime := gregor1.ToTime(b.clock.Now())
+	if boxed.ServerHeader.Rtime != nil {
+		rtime = *boxed.ServerHeader.Rtime
+	}
 	var headerSignature *chat1.SignatureInfo
 	var bodyHash chat1.Hash
 	switch headerVersion {
@@ -560,7 +565,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 			OutboxID:          hp.OutboxID,
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
-			Rtime:             boxed.ServerHeader.Rtime,
+			Rtime:             rtime,
 		}
 	default:
 		return nil,
@@ -777,6 +782,11 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 		return chat1.MessageClientHeaderVerified{}, nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
 
+	rtime := gregor1.ToTime(b.clock.Now())
+	if serverHeader.Rtime != nil {
+		rtime = *serverHeader.Rtime
+	}
+
 	headerVersion, err := headerVersioned.Version()
 	if err != nil {
 		return chat1.MessageClientHeaderVerified{}, nil, NewPermanentUnboxingError(err)
@@ -801,7 +811,7 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			EphemeralMetadata: hp.EphemeralMetadata,
-			Rtime:             serverHeader.Rtime,
+			Rtime:             rtime,
 		}, hp.BodyHash, nil
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,
@@ -1059,8 +1069,9 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, c
 	defer b.Trace(ctx, func() error { return err }, "UnboxMessages(%s)", conv.GetConvID())()
 
 	// First stamp all of the messages as received
+	now := gregor1.ToTime(b.clock.Now())
 	for i, msg := range boxed {
-		msg.ServerHeader.Rtime = gregor1.ToTime(b.clock.Now())
+		msg.ServerHeader.Rtime = &now
 		boxed[i] = msg
 	}
 

@@ -767,7 +767,10 @@
           "jsonkey": "n"
         },
         {
-          "type": "gregor1.Time",
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
           "name": "rtime",
           "mpackkey": "rt",
           "jsonkey": "rt"
