@@ -71,6 +71,7 @@ type JournalServerStatus struct {
 	StoredFiles       int64
 	UnflushedBytes    int64
 	UnflushedPaths    []string
+	EndEstimate       *time.Time
 	DiskLimiterStatus interface{}
 }
 

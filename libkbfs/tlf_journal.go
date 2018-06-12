@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
+	"github.com/vividcortex/ewma"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -119,6 +120,7 @@ type TLFJournalStatus struct {
 	StoredFiles     int64
 	UnflushedBytes  int64
 	UnflushedPaths  []string
+	EndEstimate     *time.Time
 	QuotaUsedBytes  int64
 	QuotaLimitBytes int64
 	LastFlushErr    string `json:",omitempty"`
@@ -292,6 +294,11 @@ type tlfJournal struct {
 	// squash.
 	unsquashedBytes uint64
 	flushingBlocks  map[kbfsblock.ID]bool
+	// An exponential moving average of the perceived block upload
+	// bandwidth of this journal.  Since we don't add values at
+	// regular time intervals, this ends up weighting the average by
+	// number of samples.
+	bytesPerSecEstimate ewma.MovingAverage
 
 	bwDelegate tlfJournalBWDelegate
 }
@@ -440,6 +447,7 @@ func makeTLFJournal(
 		blockJournal:         blockJournal,
 		mdJournal:            mdJournal,
 		flushingBlocks:       make(map[kbfsblock.ID]bool),
+		bytesPerSecEstimate:  ewma.NewMovingAverage(),
 		bwDelegate:           bwDelegate,
 	}
 
@@ -1022,7 +1030,7 @@ func (j *tlfJournal) getNextBlockEntriesToFlush(
 }
 
 func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
-	entries blockEntriesToFlush) error {
+	entries blockEntriesToFlush, timeToFlush time.Duration) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1047,7 +1055,13 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 			storedBytesBefore, storedBytesAfter))
 	}
 
+	if flushedBytes > 0 {
+		j.bytesPerSecEstimate.Add(float64(flushedBytes) / timeToFlush.Seconds())
+	}
 	j.diskLimiter.onBlocksFlush(ctx, flushedBytes, j.chargedTo)
+	j.log.CDebugf(ctx, "Flushed %d bytes in %s; new bandwidth estimate "+
+		"is %f bytes/sec", flushedBytes, timeToFlush,
+		j.bytesPerSecEstimate.Value())
 
 	return nil
 }
@@ -1101,6 +1115,7 @@ func (j *tlfJournal) flushBlockEntries(
 	// usually happen, because flushing is paused while CR is
 	// happening.  flush() has to make sure to get the new MD journal
 	// end, and we need to make sure `maxMDRevToFlush` is still valid.
+	startFlush := j.config.Clock().Now()
 	eg.Go(func() error {
 		defer convertCancel()
 		return flushBlockEntries(groupCtx, j.log, j.deferLog,
@@ -1137,6 +1152,7 @@ func (j *tlfJournal) flushBlockEntries(
 	if err != nil {
 		return 0, kbfsmd.RevisionUninitialized, false, err
 	}
+	endFlush := j.config.Clock().Now()
 
 	err = j.clearFlushingBlockIDs(entries)
 	cleared = true
@@ -1144,7 +1160,7 @@ func (j *tlfJournal) flushBlockEntries(
 		return 0, kbfsmd.RevisionUninitialized, false, err
 	}
 
-	err = j.removeFlushedBlockEntries(ctx, entries)
+	err = j.removeFlushedBlockEntries(ctx, entries, endFlush.Sub(startFlush))
 	if err != nil {
 		return 0, kbfsmd.RevisionUninitialized, false, err
 	}
@@ -1569,6 +1585,19 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 	storedFiles := j.blockJournal.getStoredFiles()
 	unflushedBytes := j.blockJournal.getUnflushedBytes()
 	quotaUsed, quotaLimit := j.diskLimiter.getQuotaInfo(j.chargedTo)
+	var endEstimate *time.Time
+	if unflushedBytes > 0 {
+		// If we have no estimate for this TLF yet, pick 10 seconds
+		// arbitrarily.
+		now := j.config.Clock().Now()
+		t := now.Add(10 * time.Second)
+		bwEstimate := j.bytesPerSecEstimate.Value()
+		if bwEstimate > 0 {
+			t = now.Add(
+				time.Duration(float64(unflushedBytes)/bwEstimate) * time.Second)
+		}
+		endEstimate = &t
+	}
 	return TLFJournalStatus{
 		Dir:             j.dir,
 		BranchID:        j.mdJournal.getBranchID().String(),
@@ -1580,6 +1609,7 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 		QuotaUsedBytes:  quotaUsed,
 		QuotaLimitBytes: quotaLimit,
 		UnflushedBytes:  unflushedBytes,
+		EndEstimate:     endEstimate,
 		LastFlushErr:    lastFlushErr,
 	}, nil
 }
