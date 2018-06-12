@@ -5,7 +5,7 @@ import {Box2} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import {storiesOf, action} from '../../../../stories/storybook'
 import * as PropProviders from '../../../../stories/prop-providers'
-import Thread from './old.desktop'
+import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
@@ -42,7 +42,11 @@ class Rnd {
 // prettier-ignore
 const words = ['At', 'Et', 'Itaque', 'Nam', 'Nemo', 'Quis', 'Sed', 'Temporibus', 'Ut', 'a', 'ab', 'accusamus', 'accusantium', 'ad', 'alias', 'aliquam', 'aliquid', 'amet', 'animi', 'aperiam', 'architecto', 'asperiores', 'aspernatur', 'assumenda', 'atque', 'aut', 'autem', 'beatae', 'blanditiis', 'commodi', 'consectetur', 'consequatur', 'consequatur', 'consequatur', 'consequuntur', 'corporis', 'corrupti', 'culpa', 'cum', 'cumque', 'cupiditate', 'debitis', 'delectus', 'deleniti', 'deserunt', 'dicta', 'dignissimos', 'distinctio', 'dolor', 'dolore', 'dolorem', 'doloremque', 'dolores', 'doloribus', 'dolorum', 'ducimus', 'ea', 'eaque', 'earum', 'eius', 'eligendi', 'enim', 'eos', 'eos', 'error', 'esse', 'est', 'est', 'et', 'eum', 'eveniet', 'ex', 'excepturi', 'exercitationem', 'expedita', 'explicabo', 'facere', 'facilis', 'fuga', 'fugiat', 'fugit', 'harum', 'hic', 'id', 'id', 'illo', 'illum', 'impedit', 'in', 'inventore', 'ipsa', 'ipsam', 'ipsum', 'iste', 'iure', 'iusto', 'labore', 'laboriosam', 'laborum', 'laudantium', 'libero', 'magnam', 'magni', 'maiores', 'maxime', 'minima', 'minus', 'modi', 'molestiae', 'molestias', 'mollitia', 'natus', 'necessitatibus', 'neque', 'nesciunt', 'nihil', 'nisi', 'nobis', 'non-numquam', 'non-provident', 'non-recusandae', 'nostrum', 'nulla', 'obcaecati', 'odio', 'odit', 'officia', 'officiis', 'omnis', 'optio', 'pariatur', 'perferendis', 'perspiciatis', 'placeat', 'porro', 'possimus', 'praesentium', 'quae', 'quaerat', 'quam', 'quas', 'quasi', 'qui', 'quia', 'quibusdam', 'quidem', 'quis', 'quisquam', 'quo', 'quod', 'quos', 'ratione', 'reiciendis', 'rem', 'repellat', 'repellendus', 'reprehenderit', 'repudiandae', 'rerum', 'saepe', 'sapiente', 'sed', 'sequi', 'similique', 'sint', 'sint', 'sit', 'sit', 'soluta', 'sunt', 'sunt', 'suscipit', 'tempora', 'tempore', 'tenetur', 'totam', 'ullam', 'unde', 'ut', 'vel', 'velit', 'velit', 'veniam', 'veritatis', 'vero', 'vitae', 'voluptas', 'voluptate', 'voluptatem', 'voluptatem', 'voluptatem', 'voluptates', 'voluptatibus', 'voluptatum']
 
+const ordinalToMessageCache = {}
 const ordinalToMessage = o => {
+  if (ordinalToMessageCache[o]) {
+    return ordinalToMessageCache[o]
+  }
   const r = new Rnd(1234)
   for (var i = 0; i < o; ++i) {
     r.next()
@@ -53,12 +57,15 @@ const ordinalToMessage = o => {
 
   let extra = ''
   for (var j = 0; j < loops; ++j) {
-    extra += ' ' + words[(j + offset) % words.length]
+    const newline = r.next() % 20
+    extra += newline === 0 ? '\n' : ' ' + words[(j + offset) % words.length]
   }
 
-  return Message.makeMessageText({
+  const message = Message.makeMessageText({
     text: new HiddenString(String(o) + extra),
   })
+  ordinalToMessageCache[o] = message
+  return message
 }
 
 const provider = PropProviders.compose(
@@ -78,13 +85,13 @@ const provider = PropProviders.compose(
       showRetentionNotice: false,
       loadMoreType: 'moreToLoad',
       showTeamOffer: false,
-      measure: null,
+      measure: p.measure,
     }),
-    MessageFactory: ({ordinal, previous}) => ({
+    MessageFactory: ({ordinal, previous, measure}) => ({
       message: ordinalToMessage(ordinal),
       previous: ordinalToMessage(previous),
       isEditing: false,
-      measure: null,
+      measure,
     }),
     MessagePopupText: p => ({
       attachTo: null,
@@ -122,7 +129,7 @@ const provider = PropProviders.compose(
       isFollowing: false,
       isRevoked: false,
       isYou: false,
-      measure: null,
+      measure: p.measure,
       message: p.message,
       messageFailed: false,
       messageKey: p.message.ordinal,
