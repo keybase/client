@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
+	emoji "gopkg.in/kyokomi/emoji.v1"
 )
 
 const publicConvNamePrefix = "(public) "
@@ -63,7 +65,10 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, 8, flexibletable.ExpandableWrappable, flexibletable.ExpandableWrappable,
+		5, // visualIndex
+		8, // vis
+		flexibletable.ExpandableWrappable, // participants
+		flexibletable.ExpandableWrappable, // reset
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
 	}
@@ -173,7 +178,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 					Alignment: flexibletable.Right,
 					Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
 				},
-				flexibletable.Cell{
+				flexibletable.Cell{ // unread
 					Alignment: flexibletable.Center,
 					Content:   flexibletable.SingleCell{Item: ""},
 				},
@@ -181,12 +186,16 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 					Alignment: flexibletable.Left,
 					Content:   flexibletable.SingleCell{Item: "(unverified) " + unverifiedConvName},
 				},
-				flexibletable.Cell{
+				flexibletable.Cell{ // authorAndTime
 					Frame:     [2]string{"[", "]"},
 					Alignment: flexibletable.Right,
 					Content:   flexibletable.SingleCell{Item: "???"},
 				},
-				flexibletable.Cell{
+				flexibletable.Cell{ // ephemeralInfo
+					Alignment: flexibletable.Center,
+					Content:   flexibletable.SingleCell{Item: "???"},
+				},
+				flexibletable.Cell{ // reactionInfo
 					Alignment: flexibletable.Center,
 					Content:   flexibletable.SingleCell{Item: "???"},
 				},
@@ -284,6 +293,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				Content:   flexibletable.SingleCell{Item: mv.EphemeralInfo},
 			},
 			flexibletable.Cell{
+				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: mv.ReactionInfo},
+			},
+			flexibletable.Cell{
 				Alignment: flexibletable.Left,
 				Content:   flexibletable.SingleCell{Item: body},
 			},
@@ -296,8 +309,13 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	}
 
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, 1, flexibletable.ColumnConstraint(w / 5), flexibletable.ColumnConstraint(w / 5),
-		flexibletable.ColumnConstraint(w / 5), flexibletable.Expandable,
+		5, // visualIndex
+		1, // unread
+		flexibletable.ColumnConstraint(w / 5), // convName
+		flexibletable.ColumnConstraint(w / 5), // authorAndTime
+		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
+		flexibletable.ColumnConstraint(w / 5), // reactionInfo
+		flexibletable.Expandable,              // body
 	}); err != nil {
 		return fmt.Errorf("rendering conversation list view error: %v\n", err)
 	}
@@ -378,13 +396,22 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 				Content:   flexibletable.SingleCell{Item: mv.EphemeralInfo},
 			},
 			flexibletable.Cell{
+				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: mv.ReactionInfo},
+			},
+			flexibletable.Cell{
 				Alignment: flexibletable.Left,
 				Content:   flexibletable.SingleCell{Item: mv.Body},
 			},
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, 1, flexibletable.ColumnConstraint(w / 5), flexibletable.ColumnConstraint(w / 5), flexibletable.ExpandableWrappable,
+		5, // visualIndex
+		1, // unread
+		flexibletable.ColumnConstraint(w / 5), // authorAndTime
+		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
+		flexibletable.ColumnConstraint(w / 5), // reactionInfo
+		flexibletable.ExpandableWrappable,     // body
 	}); err != nil {
 		return fmt.Errorf("rendering conversation view error: %v\n", err)
 	}
@@ -432,6 +459,7 @@ type messageView struct {
 	AuthorAndTimeWithDeviceName string
 	Body                        string
 	EphemeralInfo               string
+	ReactionInfo                string
 	FromRevokedDevice           bool
 
 	// Used internally for supersedeers
@@ -560,6 +588,20 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 			mv.EphemeralInfo = fmt.Sprintf("[expires in %s]", remainingEphemeralLifetime)
 		}
 	}
+
+	// sort reactions so the ordering is stable when rendering
+	reactionTexts := []string{}
+	for reactionText := range m.Reactions.Reactions {
+		reactionTexts = append(reactionTexts, reactionText)
+	}
+	sort.Strings(reactionTexts)
+
+	var reactionInfo string
+	for _, reactionText := range reactionTexts {
+		reactions := m.Reactions.Reactions[reactionText]
+		reactionInfo += emoji.Sprintf("%v[%d] ", reactionText, len(reactions))
+	}
+	mv.ReactionInfo = reactionInfo
 
 	return mv, nil
 }
