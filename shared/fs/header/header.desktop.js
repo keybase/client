@@ -42,22 +42,34 @@ const FolderHeader = ({
                 <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />
               </Box>
             )}
-            {breadcrumbItems.map(i => (
-              <React.Fragment key={i.name}>
-                {i.isTlfNameItem &&
-                  isTeamPath && <Avatar size={16} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
-                {i.name.split(',').map((sub, idx) => (
-                  <Text
-                    key={idx}
-                    onClick={i.onOpenBreadcrumb}
-                    type={i.isLastItem ? 'BodyBig' : 'BodySmallSemibold'}
-                    style={i.isLastItem ? stylesLastNameText : styleParentBreadcrumb}
-                  >
-                    {idx ? ',' : ''}
-                    {sub}
-                  </Text>
-                ))}
-                {!i.isLastItem && <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />}
+            {breadcrumbItems.map((item, idxItem) => (
+              <React.Fragment key={item.name}>
+                {item.isTlfNameItem &&
+                  isTeamPath && (
+                    <Avatar size={16} teamname={item.name} isTeam={true} style={styleTeamAvatar} />
+                  )}
+                {!item.isLastItem ? (
+                  <Box style={stylesBreadcrumbNonLastItemBox}>
+                    <Text key={idxItem} onClick={item.onOpenBreadcrumb} type="BodySmallSemibold">
+                      {item.name}
+                    </Text>
+                  </Box>
+                ) : (
+                  <Box style={stylesBreadcrumbLastItemBox}>
+                    {// We are splitting on ',' here, so it won't work for
+                    // long names that don't have comma. If this becomes a
+                    // problem, we might have to do smarter splitting that
+                    // involve other characters, or just break the long name
+                    // apart into 3-character groups.
+                    item.name.split(',').map((sub, idx, {length}) => (
+                      <Text key={idx} type={'BodyBig'} style={stylesLastNameText}>
+                        {sub}
+                        {idx !== length - 1 ? ',' : ''}
+                      </Text>
+                    ))}
+                  </Box>
+                )}
+                {!item.isLastItem && <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />}
               </React.Fragment>
             ))}
           </Box>
@@ -101,7 +113,6 @@ const folderHeaderStyleTree = {
   alignItems: 'flex-start',
   paddingLeft: 16,
   paddingRight: 16,
-  flexWrap: 'wrap',
 }
 
 const styleFolderHeaderEnd = {
@@ -121,9 +132,9 @@ const folderBreadcrumbStyle = {
   flexWrap: 'wrap',
 }
 
-const lastFolderBreadcrumbStyle = {
-  ...folderBreadcrumbStyle,
-  flexShrink: 1,
+const stylesBreadcrumbLastItemBox = {
+  display: 'flex',
+  flexWrap: 'wrap',
 }
 
 const stylesLastNameText = platformStyles({
@@ -140,14 +151,14 @@ const styleFolderHeaderContainer = {
   alignItems: 'flex-start',
 }
 
-const styleParentBreadcrumb = platformStyles({
-  common: {
-    color: globalColors.black_60,
-  },
-  isElectron: {
-    wordBreak: 'break-word',
-  },
-})
+const stylesBreadcrumbNonLastItemBox = {
+  maxWidth: 120,
+  flexShrink: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  color: globalColors.black_60,
+  whiteSpace: 'nowrap',
+}
 
 const iconStyle = {
   marginLeft: globalMargins.xtiny,
@@ -169,6 +180,7 @@ const styleTeamAvatar = {
 
 const styleAddNew = {
   marginRight: globalMargins.small,
+  flexShrink: 0,
 }
 
 export default FolderHeader

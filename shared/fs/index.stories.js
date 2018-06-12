@@ -127,33 +127,19 @@ const rowActionPopupCommonProps = {
   onHidden: action('onHidden'),
 }
 
-const folderHeaderProps = (finalName: string) => ({
-  breadcrumbItems: [
-    {
-      isTlfNameItem: false,
-      isLastItem: false,
-      name: 'keybase',
-      path: Types.stringToPath('/keybase'),
+const folderHeaderProps = (names: Array<string>) => ({
+  breadcrumbItems: names
+    .map((name, idx) => ({
+      isTlfNameItem: idx === 2,
+      isLastItem: idx === names.length - 1,
+      name: name,
+      path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
       onOpenBreadcrumb: action('onOpenBreadcrumb'),
-    },
-    {
-      isTlfNameItem: false,
-      isLastItem: false,
-      name: 'private',
-      path: Types.stringToPath('/keybase/private'),
-      onOpenBreadcrumb: action('onOpenBreadcrumb'),
-    },
-    {
-      isTlfNameItem: false,
-      isLastItem: true,
-      name: finalName,
-      path: Types.stringToPath(`/keybase/private/${finalName}`),
-      onOpenBreadcrumb: action('onOpenBreadcrumb'),
-    },
-  ],
-  dropdownPath: '',
-  isTeamPath: false,
-  path: Types.stringToPath(`/keybase/private/${finalName}`),
+    }))
+    .slice(names.length > 3 ? names.length - 2 : 0),
+  dropdownPath: names.length > 3 ? 'blah' : '',
+  isTeamPath: names[1] === 'team',
+  path: Types.stringToPath('/' + names.join('/')),
   onBack: action('onBack'),
   onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
   openInFileUI: action('openInFileUI'),
@@ -237,16 +223,37 @@ const load = () => {
     ))
     .add('FolderHeader', () => (
       <Box>
-        <FolderHeader {...folderHeaderProps('foo')} />
+        <FolderHeader {...folderHeaderProps(['keybase', 'private', 'foo', 'bar'])} />
+        <FolderHeader {...folderHeaderProps(['keybase', 'private', 'foo'])} />
         <FolderHeader
-          {...folderHeaderProps(
-            'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo'
-          )}
+          {...folderHeaderProps([
+            'keybase',
+            'private',
+            'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
+          ])}
         />
         <FolderHeader
-          {...folderHeaderProps(
-            'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
-          )}
+          {...folderHeaderProps([
+            'keybase',
+            'private',
+            'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
+          ])}
+        />
+        <FolderHeader
+          {...folderHeaderProps([
+            'keybase',
+            'private',
+            'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
+            'haha',
+          ])}
+        />
+        <FolderHeader
+          {...folderHeaderProps([
+            'keybase',
+            'private',
+            'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
+            'haha',
+          ])}
         />
       </Box>
     ))
