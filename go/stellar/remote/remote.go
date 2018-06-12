@@ -396,11 +396,11 @@ func NextAutoClaim(ctx context.Context, g *libkb.GlobalContext) (*stellar1.AutoC
 
 type recentPaymentsResult struct {
 	libkb.AppStatusEmbed
-	Result []stellar1.PaymentSummary `json:"res"`
+	Result stellar1.PaymentsPage `json:"res"`
 }
 
 func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
-	accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
+	accountID stellar1.AccountID, limit int) (stellar1.PaymentsPage, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -411,7 +411,7 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 		NetContext: ctx,
 	}
 	var apiRes recentPaymentsResult
-	err = g.API.GetDecode(apiArg, &apiRes)
+	err := g.API.GetDecode(apiArg, &apiRes)
 	return apiRes.Result, err
 }
 

@@ -446,6 +446,26 @@
     },
     {
       "type": "record",
+      "name": "PaymentsPage",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "PaymentSummary"
+          },
+          "name": "payments"
+        },
+        {
+          "type": [
+            null,
+            "PageCursor"
+          ],
+          "name": "cursor"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AutoClaim",
       "fields": [
         {
@@ -494,6 +514,13 @@
         {
           "name": "accountID",
           "type": "AccountID"
+        },
+        {
+          "name": "cursor",
+          "type": [
+            null,
+            "PageCursor"
+          ]
         },
         {
           "name": "limit",

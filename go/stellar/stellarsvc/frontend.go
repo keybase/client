@@ -259,7 +259,7 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 	return accountID, nil
 }
 
-func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsLocalArg) (payments []stellar1.PaymentOrErrorLocal, err error) {
+func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsLocalArg) (page stellar1.PaymentsPageLocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName:       "GetPaymentsLocal",
 		Err:           &err,
@@ -267,24 +267,25 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	})
 	defer fin()
 	if err != nil {
-		return nil, err
+		return page, err
 	}
 
 	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, 0)
 	if err != nil {
-		return nil, err
+		return page, err
 	}
-	payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments))
-	for i, p := range srvPayments {
-		payments[i].Payment, err = s.transformPaymentSummary(ctx, arg.AccountID, p)
+	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments.Payments))
+	for i, p := range srvPayments.Payments {
+		page.Payments[i].Payment, err = s.transformPaymentSummary(ctx, arg.AccountID, p)
 		if err != nil {
 			s := err.Error()
-			payments[i].Err = &s
-			payments[i].Payment = nil // just to make sure
+			page.Payments[i].Err = &s
+			page.Payments[i].Payment = nil // just to make sure
 		}
 	}
+	page.Cursor = srvPayments.Cursor
 
-	return payments, nil
+	return page, nil
 }
 
 func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {

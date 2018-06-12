@@ -346,6 +346,18 @@ func (o StellarServerDefinitions) DeepCopy() StellarServerDefinitions {
 	}
 }
 
+type PageCursor struct {
+	HorizonCursor string        `codec:"horizonCursor" json:"horizonCursor"`
+	TxID          TransactionID `codec:"txID" json:"txID"`
+}
+
+func (o PageCursor) DeepCopy() PageCursor {
+	return PageCursor{
+		HorizonCursor: o.HorizonCursor,
+		TxID:          o.TxID.DeepCopy(),
+	}
+}
+
 type CommonInterface interface {
 }
 

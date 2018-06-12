@@ -303,6 +303,20 @@
           "name": "currencies"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PageCursor",
+      "fields": [
+        {
+          "type": "string",
+          "name": "horizonCursor"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        }
+      ]
     }
   ],
   "messages": {},

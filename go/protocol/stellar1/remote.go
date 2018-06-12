@@ -442,6 +442,34 @@ func (o AccountDetails) DeepCopy() AccountDetails {
 	}
 }
 
+type PaymentsPage struct {
+	Payments []PaymentSummary `codec:"payments" json:"payments"`
+	Cursor   *PageCursor      `codec:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+func (o PaymentsPage) DeepCopy() PaymentsPage {
+	return PaymentsPage{
+		Payments: (func(x []PaymentSummary) []PaymentSummary {
+			if x == nil {
+				return nil
+			}
+			var ret []PaymentSummary
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Payments),
+		Cursor: (func(x *PageCursor) *PageCursor {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Cursor),
+	}
+}
+
 type AutoClaim struct {
 	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
 }
@@ -465,6 +493,7 @@ type DetailsArg struct {
 type RecentPaymentsArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	Cursor    *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit     int                  `codec:"limit" json:"limit"`
 }
 

@@ -54,7 +54,7 @@ func (r *RemoteNet) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, err
 	return NextAutoClaim(ctx, r.G())
 }
 
-func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
+func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (stellar1.PaymentsPage, error) {
 	return RecentPayments(ctx, r.G(), accountID, limit)
 }
 
