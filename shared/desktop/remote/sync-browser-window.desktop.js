@@ -22,7 +22,6 @@ const defaultWindowOpts = {
   resizable: false,
   show: false, // Start hidden and show when we actually get props
   webPreferences: {
-    affinity: 'keybase',
     nodeIntegration: true,
     nodeIntegrationInWorker: false,
   },
