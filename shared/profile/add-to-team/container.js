@@ -112,4 +112,3 @@ export default compose(
     onSave: props => () => props.onAddToTeams(props.role, Object.keys(props.selectedTeams)),
   })
 )(HeaderOnMobile(Render))
-

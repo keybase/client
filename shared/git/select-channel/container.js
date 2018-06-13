@@ -1,10 +1,9 @@
 // @flow
-import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import {getChannelsWaitingKey, getTeamChannelInfos} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
-import {PopupDialog, HeaderOrPopup} from '../../common-adapters'
+import {HeaderOrPopup} from '../../common-adapters'
 import {
   connect,
   compose,
