@@ -90,6 +90,9 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 	e := chat1.MessageUnboxedError{
 		ErrType:            err.ExportType(),
 		ErrMsg:             err.Error(),
+		VersionKind:        err.VersionKind(),
+		VersionNumber:      err.VersionNumber(),
+		IsCritical:         err.IsCritical(),
 		MessageID:          msg.GetMessageID(),
 		MessageType:        msg.GetMessageType(),
 		Ctime:              msg.ServerHeader.Ctime,
@@ -256,6 +259,12 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo) (m chat1.MessageUnboxed, uberr UnboxingError) {
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
+
+	// If we don't have an rtime, add one.
+	if boxed.ServerHeader.Rtime == nil {
+		now := gregor1.ToTime(b.clock.Now())
+		boxed.ServerHeader.Rtime = &now
+	}
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 	if conv.IsPublic() != boxed.ClientHeader.TlfPublic {
 		return b.makeErrorMessage(ctx, boxed,
@@ -406,6 +415,9 @@ func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
 			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
 		}
 		return res, err
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return nil,
 			NewPermanentUnboxingError(NewMessageBoxedVersionError(boxed.Version))
@@ -534,6 +546,10 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		return nil, NewPermanentUnboxingError(err)
 	}
 
+	rtime := gregor1.ToTime(b.clock.Now())
+	if boxed.ServerHeader.Rtime != nil {
+		rtime = *boxed.ServerHeader.Rtime
+	}
 	var headerSignature *chat1.SignatureInfo
 	var bodyHash chat1.Hash
 	switch headerVersion {
@@ -555,8 +571,11 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 			OutboxID:          hp.OutboxID,
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
-			Rtime:             gregor1.ToTime(b.clock.Now()),
+			Rtime:             rtime,
 		}
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return nil,
 			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
@@ -586,6 +605,9 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		switch bodyVersion {
 		case chat1.BodyPlaintextVersion_V1:
 			body = bodyVersioned.V1().MessageBody
+		// NOTE: When adding new versions here, you must also update
+		// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+		// new max version
 		default:
 			return nil,
 				NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
@@ -678,7 +700,7 @@ func (b *Boxer) unboxV2orV3(ctx context.Context, boxed chat1.MessageBoxed,
 	// Unversion header
 	// Also check that the HeaderSignature field from MessageBoxed V1 is nil
 	// This object has been signed
-	clientHeader, bodyHashSigned, ierr := b.unversionHeaderMBV2(ctx, headerVersioned)
+	clientHeader, bodyHashSigned, ierr := b.unversionHeaderMBV2(ctx, boxed.ServerHeader, headerVersioned)
 	if ierr != nil {
 		return nil, ierr
 	}
@@ -767,7 +789,16 @@ func (b *Boxer) unboxV2orV3(ctx context.Context, boxed chat1.MessageBoxed,
 // Also check that the HeaderSignature field from MessageBoxed V1 is nil.
 // Therefore only for use with MessageBoxed V2.
 // Returns (header, bodyHash, err)
-func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.HeaderPlaintext) (chat1.MessageClientHeaderVerified, []byte, UnboxingError) {
+func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.MessageServerHeader, headerVersioned chat1.HeaderPlaintext) (chat1.MessageClientHeaderVerified, []byte, UnboxingError) {
+	if serverHeader == nil {
+		return chat1.MessageClientHeaderVerified{}, nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
+	}
+
+	rtime := gregor1.ToTime(b.clock.Now())
+	if serverHeader.Rtime != nil {
+		rtime = *serverHeader.Rtime
+	}
+
 	headerVersion, err := headerVersioned.Version()
 	if err != nil {
 		return chat1.MessageClientHeaderVerified{}, nil, NewPermanentUnboxingError(err)
@@ -792,8 +823,11 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			EphemeralMetadata: hp.EphemeralMetadata,
-			Rtime:             gregor1.ToTime(b.clock.Now()),
+			Rtime:             rtime,
 		}, hp.BodyHash, nil
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,
 			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
@@ -809,6 +843,9 @@ func (b *Boxer) unversionBody(ctx context.Context, bodyVersioned chat1.BodyPlain
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V1:
 		return bodyVersioned.V1().MessageBody, nil
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return chat1.MessageBody{},
 			NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
@@ -1048,6 +1085,13 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv types.UnboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
 	defer b.Trace(ctx, func() error { return err }, "UnboxMessages(%s)", conv.GetConvID())()
+
+	// First stamp all of the messages as received
+	now := gregor1.ToTime(b.clock.Now())
+	for i, msg := range boxed {
+		msg.ServerHeader.Rtime = &now
+		boxed[i] = msg
+	}
 
 	boxCh := make(chan chat1.MessageBoxed)
 	eg, ctx := errgroup.WithContext(BackgroundContext(ctx, b.G()))
@@ -1560,6 +1604,9 @@ func (b *Boxer) verifyMessageV1(ctx context.Context, header chat1.HeaderPlaintex
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
 		return b.verifyMessageHeaderV1(ctx, header.V1(), msg, skipBodyVerification)
+	// NOTE: When adding new versions here, you must also update
+	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
+	// new max version
 	default:
 		return verifyMessageRes{},
 			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,

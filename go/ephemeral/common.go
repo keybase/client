@@ -122,30 +122,34 @@ type keyExpiryMap map[keybase1.EkGeneration]keybase1.Time
 // it is still used to encrypt a different key. This only applies to deviceEKs
 // or userEKs since they can have a dependency above them.  A teamEK expires
 // after `KeyLifetimeSecs` without exception, so it doesn't call this.
-func getExpiredGenerations(keyMap keyExpiryMap, nowCTime keybase1.Time) (expired []keybase1.EkGeneration) {
+func getExpiredGenerations(ctx context.Context, g *libkb.GlobalContext,
+	keyMap keyExpiryMap, nowCtime keybase1.Time) (expired []keybase1.EkGeneration) {
 
 	// Sort the generations we have so we can walk through them in order.
+	maxLifetime := keybase1.TimeFromSeconds(KeyLifetimeSecs)
 	var keys []keybase1.EkGeneration
 	for k := range keyMap {
 		keys = append(keys, k)
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 
-	var nextCTime keybase1.Time
+	var nextKeyCtime keybase1.Time
 	var expiryOffset keybase1.Time
 	for i, generation := range keys {
-		currentCTime := keyMap[generation]
+		keyCtime := keyMap[generation]
 		if i < len(keys)-1 {
-			nextCTime = keyMap[keys[i+1]]
+			nextKeyCtime = keyMap[keys[i+1]]
 		} else {
-			nextCTime = nowCTime
+			nextKeyCtime = nowCtime
 		}
-		expiryOffset = nextCTime - currentCTime
-		if expiryOffset > KeyLifetimeSecs { // Offset can be max KeyLifetimeSecs
-			expiryOffset = KeyLifetimeSecs
+		expiryOffset = nextKeyCtime - keyCtime
+		if expiryOffset > maxLifetime { // Offset can be max KeyLifetimeSecs
+			expiryOffset = maxLifetime
 		}
 		// Keys can live for as long as KeyLifetimeSecs + expiryOffset
-		if (nowCTime - currentCTime) >= (keybase1.TimeFromSeconds(KeyLifetimeSecs) + expiryOffset) {
+		if (nowCtime - keyCtime) >= (maxLifetime + expiryOffset) {
+			g.Log.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, nowCtime: %v, keyCtime:%v, nextKeyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
+				generation, nowCtime.Time(), keyCtime.Time(), nextKeyCtime.Time(), time.Duration(expiryOffset)*time.Second, keyMap, i)
 			expired = append(expired, generation)
 		}
 	}

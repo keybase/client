@@ -289,6 +289,15 @@
     gregor1.Time ctime;
   }
 
+  record Reaction {
+    string username;
+    MessageID reactionMsgID;
+  }
+
+  record ReactionMap {
+    map<string, array<Reaction>> reactions;
+  }
+
   record MessageServerHeader {
     MessageID messageID;
     MessageID supersededBy;
@@ -298,6 +307,10 @@
     // server's view of now(), used to calculate ephemeral lifetimes
     @mpackkey("n") @jsonkey("n")
     gregor1.Time now;
+    // clients mark the received time as soon as they pull the message from the
+    // server
+    @mpackkey("rt") @jsonkey("rt")
+    union { null, gregor1.Time } rtime;
   }
 
   record MessagePreviousPointer {

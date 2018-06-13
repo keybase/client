@@ -328,7 +328,7 @@ type teamEKGenCacheEntry struct {
 func (e *EKLib) newCacheEntry(generation keybase1.EkGeneration) *teamEKGenCacheEntry {
 	return &teamEKGenCacheEntry{
 		Generation: generation,
-		Ctime:      keybase1.TimeFromSeconds(time.Now().Unix()),
+		Ctime:      keybase1.ToTime(time.Now()),
 	}
 }
 

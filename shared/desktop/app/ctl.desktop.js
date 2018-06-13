@@ -9,7 +9,7 @@ export function ctlStop(callback: any) {
   var plat = 'darwin'
   var args = ['ctl', 'stop', '--exclude=app']
   if (isWindows) {
-    args = ['ctl', 'stop', '--kill-kbfs']
+    args = ['ctl', 'stop']
     plat = 'win32'
   }
   exec(binPath, args, plat, 'prod', false, callback)

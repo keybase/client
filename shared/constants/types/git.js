@@ -19,6 +19,5 @@ export type _State = {
   error: ?Error,
   idToInfo: I.Map<string, GitInfo>,
   isNew: I.Set<string>,
-  loading: boolean,
 }
 export type State = I.RecordOf<_State>

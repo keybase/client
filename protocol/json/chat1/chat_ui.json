@@ -491,6 +491,10 @@
         {
           "type": "gregor1.Time",
           "name": "etime"
+        },
+        {
+          "type": "ReactionMap",
+          "name": "reactions"
         }
       ]
     },

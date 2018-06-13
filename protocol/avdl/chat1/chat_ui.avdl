@@ -121,6 +121,8 @@ protocol chatUi {
     boolean isEphemeralExpired;
     union { null, string} explodedBy;
     gregor1.Time etime;
+    // reactionText -> [Reaction(username, reactionMsgID)...]
+    ReactionMap reactions;
   }
 
   record UIMessageOutbox {

@@ -405,7 +405,6 @@ func (s *Storage) MergeHelper(ctx context.Context,
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
-
 	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	var allAssets []chat1.Asset
@@ -425,38 +424,97 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			s.Debug(ctx, "updateSupersededBy: msgID: %d supersedes: %v", msgid, supersededIDs)
 		}
 
+		// Helper to get a single msg to supersede
+		getMsg := func(msgID chat1.MessageID) ([]chat1.MessageUnboxed, Error) {
+			rc := NewSimpleResultCollector(1)
+			err := s.engine.ReadMessages(ctx, rc, convID, uid, msgID)
+			if err != nil {
+				// If we don't have the message, just keep going
+				if _, ok := err.(MissError); ok {
+					return nil, nil
+				}
+				return nil, err
+			}
+			return rc.Result(), nil
+		}
+		// helper to update a reaction's target when the reaction itself is deleted
+		updateReactionTarget := func(reactionMsg chat1.MessageUnboxed) (*chat1.MessageUnboxed, Error) {
+			s.Debug(ctx, "updateReactionTarget: reationMsg:%v", reactionMsg)
+			if reactionMsg.Valid().MessageBody.IsNil() {
+				return nil, nil
+			}
+
+			targetMsgID := reactionMsg.Valid().MessageBody.Reaction().MessageID
+			targetMsgs, err := getMsg(targetMsgID)
+			if err != nil || targetMsgs == nil {
+				return nil, err
+			}
+			targetMsg := targetMsgs[0]
+			if targetMsg.IsValid() {
+				mvalid := targetMsg.Valid()
+				reactionIDs := []chat1.MessageID{}
+				for _, msgID := range mvalid.ServerHeader.ReactionIDs {
+					if msgID != reactionMsg.GetMessageID() {
+						reactionIDs = append(reactionIDs, msgID)
+					}
+				}
+				mvalid.ServerHeader.ReactionIDs = reactionIDs
+				newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
+				return &newMsg, nil
+			}
+			return nil, nil
+		}
+
 		// Set all supersedes targets
 		for _, supersededID := range supersededIDs {
 			s.Debug(ctx, "updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, supersededID)
 			// Read superseded msg
-			rc := NewSimpleResultCollector(1)
-			err := s.engine.ReadMessages(ctx, rc, convID, uid, supersededID)
+			superMsgs, err := getMsg(supersededID)
 			if err != nil {
-				// If we don't have the message, just keep going
-				if _, ok := err.(MissError); ok {
-					continue
-				}
 				return err
 			}
-			superMsgs := rc.Result()
 			if len(superMsgs) == 0 {
 				continue
 			}
 
-			// Update supersededBy on the target message if we have it. And if
-			// the superseder is a deletion, delete the body as well.
+			// Update supersededBy and reactionIDs on the target message if we
+			// have it. If the superseder is a deletion, delete the body as
+			// well. If we are deleting a reaction, update the reaction's
+			// target message.
 			superMsg := superMsgs[0]
 			if superMsg.IsValid() {
 				s.Debug(ctx, "updateSupersededBy: writing: id: %d superseded: %d", msgid, supersededID)
 				mvalid := superMsg.Valid()
-				mvalid.ServerHeader.SupersededBy = msgid
+
+				// reactions don't update SupersededBy, instead they rely on ReactionIDs
+				if msg.GetMessageType() == chat1.MessageType_REACTION {
+					mvalid.ServerHeader.ReactionIDs = s.updateReactionIDs(mvalid.ServerHeader.ReactionIDs, msgid)
+				} else {
+					mvalid.ServerHeader.SupersededBy = msgid
+				}
+
+				var newMsg chat1.MessageUnboxed
 				if msg.GetMessageType() == chat1.MessageType_DELETE {
+					// We have to find the message we are reacting to and
+					// update it's ReactionIDs as well.
+					if superMsg.GetMessageType() == chat1.MessageType_REACTION {
+						newTargetMsg, err := updateReactionTarget(superMsg)
+						if err != nil {
+							return err
+						} else if newTargetMsg != nil {
+							superMsgs = append(superMsgs, *newTargetMsg)
+						}
+					}
+
 					msgPurged, assets := s.purgeMessage(mvalid)
 					allAssets = append(allAssets, assets...)
-					superMsgs[0] = msgPurged
+					newMsg = msgPurged
+
 				} else {
-					superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
+					newMsg = chat1.NewMessageUnboxedWithValid(mvalid)
 				}
+
+				superMsgs[0] = newMsg
 				if err = s.engine.WriteMessages(ctx, convID, uid, superMsgs); err != nil {
 					return err
 				}
@@ -469,7 +527,6 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
-
 	return nil
 }
 
@@ -897,7 +954,14 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 			}
 		}
 		sres = rc.Result()
-		res = append(res, &sres[0])
+		msg := &sres[0]
+
+		// If we have a versioning error but our client now understands the new
+		// version, don't return the error message
+		if msg.IsError() && msg.Error().ParseableVersion() {
+			msg = nil
+		}
+		res = append(res, msg)
 	}
 
 	return res, nil
@@ -916,11 +980,26 @@ func (s *Storage) IsTLFIdentifyBroken(ctx context.Context, tlfID chat1.TLFID) bo
 	}
 	return idBroken
 }
+func (s *Storage) updateReactionIDs(reactionIDs []chat1.MessageID, msgid chat1.MessageID) []chat1.MessageID {
+	var hasReaction bool
+	for _, reactionID := range reactionIDs {
+		if reactionID == msgid {
+			hasReaction = true
+			break
+		}
+	}
+	if hasReaction {
+		return reactionIDs
+	}
+	return append(reactionIDs, msgid)
+}
 
 // Clears the body of a message and returns any assets to be deleted.
 func (s *Storage) purgeMessage(mvalid chat1.MessageUnboxedValid) (chat1.MessageUnboxed, []chat1.Asset) {
 	assets := utils.AssetsForMessage(s.G(), mvalid.MessageBody)
 	var emptyBody chat1.MessageBody
 	mvalid.MessageBody = emptyBody
+	var emptyReactions chat1.ReactionMap
+	mvalid.Reactions = emptyReactions
 	return chat1.NewMessageUnboxedWithValid(mvalid), assets
 }

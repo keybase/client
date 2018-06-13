@@ -649,7 +649,7 @@
         }
       ],
       "response": "NextMerkleRootRes",
-      "doc": "FindNextMerkleRootAfterRest finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
+      "doc": "FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
     }
   },
   "namespace": "keybase.1"
