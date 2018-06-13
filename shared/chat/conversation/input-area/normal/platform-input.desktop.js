@@ -3,6 +3,7 @@
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
 import {
+  collapseStyles,
   glamorous,
   globalColors,
   globalMargins,
@@ -300,7 +301,10 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
               <HoverBox
                 onClick={this._toggleShowingMenu}
                 ref={this.props.setAttachmentRef}
-                style={styles.explodingIconContainer}
+                style={collapseStyles([
+                  styles.explodingIconContainer,
+                  this.props.isExplodingNew && {marginRight: globalMargins.tiny},
+                ])}
               >
                 <Icon
                   className="bomb"
@@ -466,7 +470,6 @@ const styles = styleSheetCreate({
     alignItems: 'stretch',
     alignSelf: 'flex-end',
     justifyContent: 'flex-start',
-    marginRight: 8,
     marginTop: 13,
   },
 })
