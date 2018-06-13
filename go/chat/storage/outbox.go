@@ -399,20 +399,10 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 }
 
 func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) chat1.MessageID {
-	typ, err := msg.State()
-	if err != nil {
-		return 0
+	if msg.IsValid() && msg.Valid().ClientHeader.OutboxInfo != nil {
+		return msg.Valid().ClientHeader.OutboxInfo.Prev
 	}
-
-	switch typ {
-	case chat1.MessageUnboxedState_OUTBOX:
-		return msg.Outbox().Msg.ClientHeader.OutboxInfo.Prev
-	default:
-		if msg.IsValid() && msg.Valid().ClientHeader.OutboxInfo != nil {
-			return msg.Valid().ClientHeader.OutboxInfo.Prev
-		}
-		return msg.GetMessageID()
-	}
+	return msg.GetMessageID()
 }
 
 func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, obr chat1.OutboxRecord) error {
