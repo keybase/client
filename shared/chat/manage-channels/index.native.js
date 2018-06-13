@@ -4,7 +4,6 @@ import {
   Avatar,
   Text,
   Box,
-  Button,
   ClickableBox,
   ProgressIndicator,
   ScrollView,
