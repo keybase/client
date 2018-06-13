@@ -40,6 +40,10 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
+  componentDidMount(prevProps: Props) {
+    this._list.scrollTop = this._list.scrollHeight
+  }
+
   componentDidUpdate(prevProps: Props) {
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this.setState({isLockedToBottom: true})
@@ -179,14 +183,11 @@ class Thread extends React.PureComponent<Props, State> {
 
     return (
       <ErrorBoundary>
-        <div
-          style={containerStyle}
-          onClick={this._handleListClick}
-          onCopyCapture={this._onCopyCapture}
-          onScroll={this._onScroll}
-        >
+        <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
-          <div style={listStyle}>{waypoints}</div>
+          <div style={listStyle} ref={this._setListRef}>
+            {waypoints}
+          </div>
         </div>
       </ErrorBoundary>
     )
