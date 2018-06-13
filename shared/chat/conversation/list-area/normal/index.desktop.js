@@ -133,6 +133,12 @@ class Thread extends React.PureComponent<Props, State> {
     this._list = r
   }
 
+  _positionChangeTop = ({currentPosition}) => {
+    if (currentPosition === 'inside') {
+      this.props.loadMoreMessages()
+    }
+  }
+
   render() {
     // const rowCount = this._getItemCount()
     // const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
@@ -142,7 +148,7 @@ class Thread extends React.PureComponent<Props, State> {
     const measure = null
 
     waypoints.push([
-      <Waypoint key="SpecialTopMessage">
+      <Waypoint key="SpecialTopMessage" onPositionChange={this._positionChangeTop}>
         <div>
           <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
         </div>

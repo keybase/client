@@ -9,11 +9,18 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
-const ordinals = []
-for (var i = 0; i < 400; ++i) {
-  ordinals.push(Types.numberToOrdinal(1000 - i))
+const injectMessages = !__STORYSHOT__
+
+let index = 0
+const makeMoreOrdinals = (num = 100) => {
+  const end = index + num
+  const ordinals = []
+  for (; index < end; ++index) {
+    ordinals.push(Types.numberToOrdinal(9000 - index))
+  }
+  return ordinals
 }
-const messageOrdinals = I.List(ordinals)
+const messageOrdinals = I.List(makeMoreOrdinals())
 const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
@@ -21,8 +28,6 @@ const props = {
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
   listScrollDownCounter: 0,
-  loadMoreMessages: action('onLoadMoreMessages'),
-  messageOrdinals,
   onFocusInput: action('onFocusInput'),
   onToggleInfoPanel: action('onToggleInfoPanel'),
 }
@@ -145,6 +150,35 @@ const provider = PropProviders.compose(
   }
 )
 
+class ThreadWrapper extends React.Component<any, any> {
+  constructor(props) {
+    super(props)
+    this.state = {
+      messageOrdinals: messageOrdinals,
+    }
+
+    if (injectMessages) {
+      this.intervalID = setInterval(() => {
+        this.setState(p => ({messageOrdinals: p.messageOrdinals.push(...makeMoreOrdinals(1))}))
+      }, 5000)
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.intervalID)
+  }
+
+  onLoadMoreMessages = __STORYSHOT__
+    ? action('onLoadMoreMessages')
+    : () => {
+        this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals())}))
+      }
+
+  render() {
+    return <Thread {...props} {...this.state} loadMoreMessages={this.onLoadMoreMessages} />
+  }
+}
+
 const load = () => {
   storiesOf('Chat/Conversation/Thread', module)
     .addDecorator(provider)
@@ -153,7 +187,7 @@ const load = () => {
         {story()}
       </Box2>
     ))
-    .add('Normal', () => <Thread {...props} />)
+    .add('Normal', () => <ThreadWrapper />)
     .add('Readme', () => (
       <Text type="Body">If you load Normal on start the fonts wont be loaded so it'll look wrong</Text>
     ))
