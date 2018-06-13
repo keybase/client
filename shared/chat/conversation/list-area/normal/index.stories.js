@@ -10,7 +10,7 @@ import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
 const ordinals = []
-for (var i = 0; i < 1000; ++i) {
+for (var i = 0; i < 400; ++i) {
   ordinals.push(Types.numberToOrdinal(1000 - i))
 }
 const messageOrdinals = I.List(ordinals)

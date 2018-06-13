@@ -80,6 +80,10 @@ class Thread extends React.PureComponent<Props, State> {
   // this._maybeLoadMoreMessages(clientHeight, scrollHeight, scrollTop)
   // }
 
+  // _ordinalToHeight = {}
+  // _onResize = (key, height) => {
+  // this._ordinalToHeight[key] = height
+  // }
   // _onResize = ({width}) => {
   // if (this._cellCache.columnWidth({index: 0}) !== width) {
   // this._cellCache.clearAll()
@@ -151,10 +155,13 @@ class Thread extends React.PureComponent<Props, State> {
         }
 
         if (waitingToInjectIntoWaypoint.length) {
+          const key = String(this.props.messageOrdinals.get(waitingToInjectIntoWaypoint[0]))
           waypoints.push(
-            <Waypoint key={String(this.props.messageOrdinals.get(waitingToInjectIntoWaypoint[0]))}>
-              <div>{waitingToInjectIntoWaypoint.map(i => this._rowRenderer(i))}</div>
-            </Waypoint>
+            <OrdinalWaypoint
+              key={key}
+              id={key}
+              messages={waitingToInjectIntoWaypoint.map(i => this._rowRenderer(i))}
+            />
           )
           waitingToInjectIntoWaypoint = []
         }
@@ -177,6 +184,40 @@ class Thread extends React.PureComponent<Props, State> {
           <div style={listStyle}>{waypoints}</div>
         </div>
       </ErrorBoundary>
+    )
+  }
+}
+
+class OrdinalWaypoint extends React.PureComponent<> {
+  state = {
+    currentPosition: null,
+    height: null,
+  }
+  _handlePositionChange = ({currentPosition}) => {
+    if (currentPosition) {
+      this.setState(
+        prevState => (prevState.currentPosition !== currentPosition ? {currentPosition} : undefined)
+      )
+    }
+  }
+  _onResize = ({bounds}) => {
+    const height = bounds.height
+    if (height) {
+      this.setState(prevState => (prevState.height !== height ? {height} : undefined))
+    }
+  }
+
+  render() {
+    const renderMessages =
+      !this.state.height || !this.state.currentPosition || this.state.currentPosition === 'inside'
+
+    console.log('aaa', id, renderMessages)
+    return (
+      <Waypoint onPositionChange={this._handlePositionChange}>
+        <Measure bounds={true} onResize={this._onResize}>
+          {({measureRef}) => <div ref={measureRef}>{renderMessages ? this.props.messages : null}</div>}
+        </Measure>
+      </Waypoint>
     )
   }
 }
