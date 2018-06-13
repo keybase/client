@@ -137,7 +137,7 @@ install 'Build Tools' and any missing platforms. However, _don't_
 update the Android Gradle Plugin to 3.0.1.
 
 Some instructions talk about the SDK Manager / AVD Manager. This is
-under the Tools > Android menu. You may have to wait for the Gradle to
+under the Tools > Android menu. You may have to wait for Gradle to
 sync before they appear.
 
 To run on the Android simulator:
@@ -145,11 +145,7 @@ To run on the Android simulator:
 ```sh
 # Build the go keybaselib
 yarn run rn-gobuild-android
-# if this fails with something like 'xcrun: error: unable to lookup item 'Path' in SDK 'iphoneos' you might have a partial xcode install. try
-xcode-select --switch /Applications/Xcode.app/Contents/Developer
-```
 
-```sh
 # Start the react native publisher (unlike on iOS, have to do this manually).
 yarn run rn-start
 ```
