@@ -16,6 +16,7 @@ type Props = {
   participantNeedToRekey: boolean,
   showBold: boolean,
   snippet: ?string,
+  snippetDecoration: ?string,
   subColor: string,
   youNeedToRekey: boolean,
   youAreReset: boolean,
@@ -93,9 +94,14 @@ class BottomLine extends PureComponent<Props> {
       }
 
       content = (
-        <Markdown preview={true} style={style}>
-          {this.props.snippet}
-        </Markdown>
+        <Box>
+          <Markdown preview={true} style={style}>
+            {this.props.snippet}
+          </Markdown>
+          <Text type="BodySmall">
+            {this.props.snippetDecoration}
+          </Text>
+        </Box>
       )
     } else {
       return null
