@@ -84,9 +84,8 @@ const middlewares = [
   errorCatching,
   createSagaMiddleware(crashHandler),
   thunkMiddleware,
-  //...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
-  //...(enableActionLogging ? [actionLogger] : []),
-  createLogger(),
+  ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
+  ...(enableActionLogging ? [actionLogger] : []),
 ]
 
 if (__DEV__ && typeof window !== 'undefined') {

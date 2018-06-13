@@ -13,14 +13,12 @@ export type WaitingButtonProps = {
 class UnconnectedWaitingButton extends React.PureComponent<ButtonProps & WaitingButtonProps> {
   _onClick = (event: SyntheticEvent<>) => {
     if (!this.props.waitingKey) {
-      console.warn('calling onSetWaiting')
       this.props.onSetWaiting(true)
     }
     this.props.onClick && this.props.onClick(event)
   }
 
   render() {
-    console.warn('waitingkey', this.props.waitingKey, this.props.storeWaiting, this.props.localWaiting)
     return (
       <Button
         {...this.props}
