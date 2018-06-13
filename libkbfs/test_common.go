@@ -136,7 +136,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers, nil,
 		config.Codec())
 	config.SetKeybaseService(daemon)
-	config.SetChat(NewChatLocal(config))
+	config.SetChat(newChatLocal(config))
 
 	kbpki := NewKBPKIClient(config, config.MakeLogger(""))
 	config.SetKBPKI(kbpki)
@@ -245,10 +245,11 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	c.SetMDOps(NewMDOpsStandard(c))
 	c.SetClock(config.Clock())
 
-	// TODO: construct a new chat specific to the new user, but with a
-	// shared storage layer so the users can send messages to
-	// another's inbox.
-	c.SetChat(config.Chat())
+	if chatLocal, ok := config.Chat().(*chatLocal); ok {
+		c.SetChat(chatLocal.copy(c))
+	} else {
+		c.SetChat(config.Chat())
+	}
 
 	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	loggedInUID, ok := daemon.asserts[string(loggedInUser)]

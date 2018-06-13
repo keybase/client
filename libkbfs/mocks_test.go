@@ -7680,9 +7680,9 @@ func (mr *MockChatMockRecorder) SendTextMessage(ctx, tlfName, tlfType, convID, b
 }
 
 // GetGroupedInbox mocks base method
-func (m *MockChat) GetGroupedInbox(ctx context.Context, chatType chat1.TopicType, maxChats int) ([]tlf.CanonicalName, error) {
+func (m *MockChat) GetGroupedInbox(ctx context.Context, chatType chat1.TopicType, maxChats int) ([]*TlfHandle, error) {
 	ret := m.ctrl.Call(m, "GetGroupedInbox", ctx, chatType, maxChats)
-	ret0, _ := ret[0].([]tlf.CanonicalName)
+	ret0, _ := ret[0].([]*TlfHandle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

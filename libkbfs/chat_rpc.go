@@ -207,7 +207,7 @@ func (c *ChatRPC) SendTextMessage(
 // GetGroupedInbox implements the Chat interface.
 func (c *ChatRPC) GetGroupedInbox(
 	ctx context.Context, chatType chat1.TopicType, maxChats int) (
-	results []tlf.CanonicalName, err error) {
+	results []*TlfHandle, err error) {
 	arg := chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			TopicType: &chatType,
@@ -219,18 +219,31 @@ func (c *ChatRPC) GetGroupedInbox(
 	}
 
 	// Return the first unique `maxChats` chats.  Eventually the
-	// service will support grouping these by TLF name and we won't
+	// service will support grouping these by TLF ID and we won't
 	// have to check for uniques.  For now, we might falsely return
 	// fewer than `maxChats` TLFs.  TODO: make sure these are ordered
 	// with the most recent one at index 0.
-	seen := make(map[tlf.CanonicalName]bool)
+	seen := make(map[string]bool)
 	for i := 0; len(results) < maxChats && i < len(res.Conversations); i++ {
-		name := tlf.CanonicalName(res.Conversations[i].Info.TlfName)
-		if seen[name] {
+		info := res.Conversations[i].Info
+		tlfID := info.Triple.Tlfid.String()
+		if seen[tlfID] {
 			continue
 		}
-		seen[name] = true
-		results = append(results, name)
+		seen[tlfID] = true
+		tlfType := tlf.Private
+		if info.Visibility == keybase1.TLFVisibility_PUBLIC {
+			tlfType = tlf.Public
+		} else if info.MembersType == chat1.ConversationMembersType_TEAM {
+			tlfType = tlf.SingleTeam
+		}
+
+		h, err := GetHandleFromFolderNameAndType(
+			ctx, c.config.KBPKI(), c.config.MDOps(), info.TlfName, tlfType)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, h)
 	}
 	return results, nil
 }
@@ -250,7 +263,16 @@ func (c *ChatRPC) GetChannels(
 		return nil, nil, err
 	}
 
+	expectedVisibility := keybase1.TLFVisibility_PRIVATE
+	if tlfType == tlf.Public {
+		expectedVisibility = keybase1.TLFVisibility_PUBLIC
+	}
 	for _, conv := range res.Convs {
+		if conv.Visibility != expectedVisibility {
+			// Skip any conversation that doesn't match our visibility.
+			continue
+		}
+
 		id, err := chat1.MakeConvID(conv.ConvID)
 		if err != nil {
 			return nil, nil, err

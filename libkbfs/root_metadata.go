@@ -906,18 +906,7 @@ func (md *RootMetadata) IsReader(
 	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
 	uid keybase1.UID) (bool, error) {
 	h := md.GetTlfHandle()
-	if md.TypeForKeying() != tlf.TeamKeying {
-		return h.IsReader(uid), nil
-	}
-
-	// Team membership needs to be checked with the service.  For a
-	// SingleTeam TLF, there is always only a single writer in the
-	// handle.
-	tid, err := h.FirstResolvedWriter().AsTeam()
-	if err != nil {
-		return false, err
-	}
-	return checker.IsTeamReader(ctx, tid, uid)
+	return isReaderFromHandle(ctx, h, checker, uid)
 }
 
 // A ReadOnlyRootMetadata is a thin wrapper around a

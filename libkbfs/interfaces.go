@@ -2224,7 +2224,7 @@ type Chat interface {
 	// messages of the given type, up to `maxChats` of them.
 	GetGroupedInbox(
 		ctx context.Context, chatType chat1.TopicType, maxChats int) (
-		[]tlf.CanonicalName, error)
+		[]*TlfHandle, error)
 
 	// GetChannels returns a list of all the channels for a given
 	// chat. The entries in `convIDs` and `channelNames` have a 1-to-1
