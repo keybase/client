@@ -7,9 +7,10 @@ export const tokenTypeAndroidPlay: Types.TokenType = 'androidplay'
 
 export const androidSenderID = '9603251415'
 
+export const permissionsRequestingWaitingKey = 'push:permissionsRequesting'
+
 export const initialState: Types.State = {
   permissionsPrompt: false,
-  permissionsRequesting: false,
   tokenType: null,
   token: '',
   hasPermissions: true,

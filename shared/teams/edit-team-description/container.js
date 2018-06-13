@@ -2,15 +2,22 @@
 import * as TeamsGen from '../../actions/teams-gen'
 import EditTeamDescription from '.'
 import {connect} from 'react-redux'
-import {compose, withStateHandlers, withHandlers, type Dispatch, type TypedState} from '../../util/container'
-import {getTeamPublicitySettings} from '../../constants/teams'
+import {
+  compose,
+  withHandlers,
+  withProps,
+  withStateHandlers,
+  type Dispatch,
+  type TypedState,
+} from '../../util/container'
+import * as Constants from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   if (!teamname) {
     throw new Error('There was a problem loading the description page, please report this error.')
   }
-  const origDescription = getTeamPublicitySettings(state, teamname).description
+  const origDescription = Constants.getTeamPublicitySettings(state, teamname).description
   return {
     origDescription,
     teamname,
@@ -37,7 +44,10 @@ const ConnectedEditTeamDescription = compose(
   }),
   withHandlers({
     onSetDescription: ({description, _onSetDescription}) => () => _onSetDescription(description),
-  })
+  }),
+  withProps(({teamname}) => ({
+    waitingKey: Constants.teamWaitingKey(teamname),
+  }))
 )(EditTeamDescription)
 
 export default ConnectedEditTeamDescription

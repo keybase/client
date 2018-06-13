@@ -1,16 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox, ScrollView} from '../../common-adapters'
+import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox, ScrollView, WaitingButton} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile, platformStyles} from '../../styles'
 
 type Props = {
   error: ?Error,
   isTeam: boolean,
-  loading: boolean,
   onClose: () => void,
   onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => void,
   onNewTeam: () => void,
   teams?: Array<string>,
+  waitingKey: string,
 }
 
 type State = {
@@ -164,12 +164,12 @@ class NewRepo extends React.Component<Props, State> {
               label="Cancel"
               style={{marginRight: globalMargins.tiny}}
             />
-            <Button
+            <WaitingButton
               type="Primary"
               onClick={this._onSubmit}
               label="Create"
               disabled={!this._canSubmit()}
-              waiting={this.props.loading}
+              waitingKey={this.props.waitingKey}
             />
           </Box>
         </Box>

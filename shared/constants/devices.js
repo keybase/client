@@ -25,7 +25,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
 })
 
 const devicesTabLocation = isMobile ? [Tabs.settingsTab, SettingsConstants.devicesTab] : [Tabs.devicesTab]
-const waitingKey = 'devicesPage'
+const waitingKey = 'devices:devicesPage'
 
 const isWaiting = (state: TypedState) => state.waiting.get(waitingKey, 0) !== 0
 
