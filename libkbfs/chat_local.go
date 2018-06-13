@@ -12,8 +12,9 @@ import (
 	"github.com/keybase/kbfs/tlf"
 )
 
-// ChatLocal is a local implementation for chat.  TODO: fill in the
-// logic to allow for testing.
+// ChatLocal is a local implementation for chat.
+//
+// TODO: fill in the logic to allow for testing.
 type ChatLocal struct {
 	config   Config
 	log      logger.Logger

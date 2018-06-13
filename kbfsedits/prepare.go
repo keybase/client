@@ -6,7 +6,7 @@ package kbfsedits
 
 import "encoding/json"
 
-// Prepare convert the given slice of notifications into a string
+// Prepare converts the given slice of notifications into a string
 // suitable for sending/storing them.
 func Prepare(edits []NotificationMessage) (string, error) {
 	buf, err := json.Marshal(edits)
