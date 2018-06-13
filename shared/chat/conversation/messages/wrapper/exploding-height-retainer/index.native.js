@@ -155,11 +155,7 @@ class EmojiTower extends React.Component<
         </Text>
       )
     }
-    return (
-      <Box style={[globalStyles.flexBoxColumn, {position: 'absolute', right: 0, top: 0, bottom: 0}]}>
-        {children}
-      </Box>
-    )
+    return <Box style={[globalStyles.flexBoxColumn, styles.emojiTower]}>{children}</Box>
   }
 }
 
@@ -197,6 +193,12 @@ const styles = styleSheetCreate({
   ashes: {
     width: 400,
     height: 80,
+  },
+  emojiTower: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
   exploded: {
     backgroundColor: globalColors.white,
