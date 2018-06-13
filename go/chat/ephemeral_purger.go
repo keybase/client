@@ -257,7 +257,7 @@ func (b *BackgroundEphemeralPurger) loop() {
 			b.queueLock.Unlock()
 		case <-b.outboxTicker.C:
 			// Check the outbox for stuck ephemeral messages that need purging
-			storage.NewOutbox(b.G(), b.uid).EphemeralPurge(context.Background())
+			storage.NewOutbox(b.G(), b.uid).OutboxPurge(context.Background())
 		case ch := <-b.stopCh: // caller will reset looping=false
 			b.Debug(bgctx, "loop: shutting down for %s", b.uid)
 			close(ch)

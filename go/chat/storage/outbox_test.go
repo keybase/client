@@ -150,7 +150,7 @@ func TestChatOutbox(t *testing.T) {
 	require.Zero(t, len(tv.Messages))
 }
 
-func TestChatOutboxEphemeralPurge(t *testing.T) {
+func TestChatOutboxPurge(t *testing.T) {
 
 	_, ob, uid, cl := setupOutboxTest(t, "outbox")
 
@@ -160,6 +160,10 @@ func TestChatOutboxEphemeralPurge(t *testing.T) {
 	prevOrdinal := 1
 	ephemeralMetadata := &chat1.MsgEphemeralMetadata{Lifetime: 0}
 	for i := 0; i < 5; i++ {
+		// send some exploding and some non exploding msgs
+		if i%2 == 0 {
+			ephemeralMetadata = nil
+		}
 		obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(), makeMsgPlaintextEphemeral("hi", uid, ephemeralMetadata),
 			nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		require.Equal(t, obr.Ordinal, prevOrdinal)
@@ -174,34 +178,36 @@ func TestChatOutboxEphemeralPurge(t *testing.T) {
 	require.Equal(t, obrs, res, "wrong obids")
 
 	// Nothing is in the error state & expired, so we should not have purged anything
-	err = ob.EphemeralPurge(context.TODO())
+	err = ob.OutboxPurge(context.TODO())
 	require.NoError(t, err)
 
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
 	require.Equal(t, obrs, res, "wrong obids")
 
-	// Mark one as an error, but it is not considered expired
-	errRec := chat1.OutboxStateError{
-		Message: "failed",
-		Typ:     chat1.OutboxErrorType_MISC,
+	// Mark half the records as errors, but they are not considered expired
+	for i := 0; i < len(obrs)/2; i++ {
+		errRec := chat1.OutboxStateError{
+			Message: "failed",
+			Typ:     chat1.OutboxErrorType_MISC,
+		}
+		obrs[i], err = ob.MarkAsError(context.TODO(), obrs[i], errRec)
+		require.NoError(t, err)
 	}
-	obrs[0], err = ob.MarkAsError(context.TODO(), obrs[0], errRec)
-	require.NoError(t, err)
 
-	err = ob.EphemeralPurge(context.TODO())
+	err = ob.OutboxPurge(context.TODO())
 	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
 	require.Equal(t, obrs, res, "wrong obids")
 
 	// move the clock forward and it this should get purged
-	cl.Advance(ephemeralPurgeCutoff)
-	err = ob.EphemeralPurge(context.TODO())
+	cl.Advance(errorPurgeCutoff)
+	err = ob.OutboxPurge(context.TODO())
 	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
-	require.Equal(t, obrs[1:], res, "wrong obids")
+	require.Equal(t, obrs[len(obrs)/2:], res, "wrong obids")
 }
 
 func TestChatOutboxMarkAll(t *testing.T) {
