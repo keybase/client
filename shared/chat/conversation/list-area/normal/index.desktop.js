@@ -26,7 +26,7 @@ type State = {
 }
 
 class Thread extends React.PureComponent<Props, State> {
-  state = {isLockedToBottom: true, width: 0}
+  state = {isLockedToBottom: true}
 
   _keyMapper = (index: number) => {
     const itemCountIncludingSpecial = this._getItemCount()
@@ -179,7 +179,12 @@ class Thread extends React.PureComponent<Props, State> {
 
     return (
       <ErrorBoundary>
-        <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
+        <div
+          style={containerStyle}
+          onClick={this._handleListClick}
+          onCopyCapture={this._onCopyCapture}
+          onScroll={this._onScroll}
+        >
           <style>{realCSS}</style>
           <div style={listStyle}>{waypoints}</div>
         </div>
