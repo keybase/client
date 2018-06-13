@@ -87,6 +87,7 @@ const stylesText = platformStyles({
 
 const stylesProgressBox = {
   marginTop: -2,
+  marginRight: -globalMargins.tiny,
 }
 
 export default Download

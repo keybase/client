@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import ConnectedFilesBanner from '../banner/container'
 import AddNew from './add-new-container'
@@ -42,25 +42,35 @@ const FolderHeader = ({
                 <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />
               </Box>
             )}
-            {breadcrumbItems.map(i => (
-              <Box key={Types.pathToString(i.path)} style={folderBreadcrumbStyle}>
-                {i.isTlfNameItem &&
-                  isTeamPath && <Avatar size={16} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
-                {i.isLastItem ? (
-                  <Text type="BodyBig" style={styleTailBreadcrumb}>
-                    {i.name}
-                  </Text>
+            {breadcrumbItems.map((item, idxItem) => (
+              <React.Fragment key={item.name}>
+                {item.isTlfNameItem &&
+                  isTeamPath && (
+                    <Avatar size={16} teamname={item.name} isTeam={true} style={styleTeamAvatar} />
+                  )}
+                {!item.isLastItem ? (
+                  <Box style={stylesBreadcrumbNonLastItemBox}>
+                    <Text key={idxItem} onClick={item.onOpenBreadcrumb} type="BodySmallSemibold">
+                      {item.name}
+                    </Text>
+                  </Box>
                 ) : (
-                  <Box style={folderBreadcrumbStyle}>
-                    <ClickableBox onClick={i.onOpenBreadcrumb}>
-                      <Text type="BodySmallSemibold" style={styleParentBreadcrumb}>
-                        {i.name}
+                  <Box style={stylesBreadcrumbLastItemBox}>
+                    {// We are splitting on ',' here, so it won't work for
+                    // long names that don't have comma. If this becomes a
+                    // problem, we might have to do smarter splitting that
+                    // involve other characters, or just break the long name
+                    // apart into 3-character groups.
+                    item.name.split(',').map((sub, idx, {length}) => (
+                      <Text key={idx} type={'BodyBig'} style={stylesLastNameText}>
+                        {sub}
+                        {idx !== length - 1 ? ',' : ''}
                       </Text>
-                    </ClickableBox>
-                    <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />
+                    ))}
                   </Box>
                 )}
-              </Box>
+                {!item.isLastItem && <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />}
+              </React.Fragment>
             ))}
           </Box>
           <Box style={styleFolderHeaderEnd}>
@@ -81,22 +91,26 @@ const stylesCommonRow = {
 
 const styleHeaderContainer = {
   ...globalStyles.flexBoxColumn,
+  width: '100%',
 }
 
 const styleFolderHeader = {
-  ...stylesCommonRow,
-  justifyContent: 'center',
   minHeight: 48,
 }
 
 const folderHeaderStyleRoot = {
   ...stylesCommonRow,
   justifyContent: 'center',
+  width: '100%',
+  height: 48,
 }
 
 const folderHeaderStyleTree = {
   ...stylesCommonRow,
-  alignItems: 'center',
+  left: 0,
+  right: 0,
+  flexGrow: 1,
+  alignItems: 'flex-start',
   paddingLeft: 16,
   paddingRight: 16,
 }
@@ -106,6 +120,7 @@ const styleFolderHeaderEnd = {
   alignItems: 'center',
   paddingLeft: 16,
   paddingRight: 16,
+  flexShrink: 0,
 }
 
 const folderBreadcrumbStyle = {
@@ -113,19 +128,37 @@ const folderBreadcrumbStyle = {
   alignItems: 'center',
   paddingLeft: 0,
   paddingRight: 0,
+  flexShrink: 0,
+  flexWrap: 'wrap',
 }
+
+const stylesBreadcrumbLastItemBox = {
+  display: 'flex',
+  flexWrap: 'wrap',
+}
+
+const stylesLastNameText = platformStyles({
+  isElectron: {
+    wordBreak: 'break-word',
+  },
+})
 
 const styleFolderHeaderContainer = {
   ...stylesCommonRow,
-  justifyContent: 'space-between',
-  flex: 1,
+  position: 'relative',
+  marginTop: 15,
+  marginBottom: 15,
+  alignItems: 'flex-start',
 }
 
-const styleParentBreadcrumb = {
+const stylesBreadcrumbNonLastItemBox = {
+  maxWidth: 120,
+  flexShrink: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
   color: globalColors.black_60,
+  whiteSpace: 'nowrap',
 }
-
-const styleTailBreadcrumb = {}
 
 const iconStyle = {
   marginLeft: globalMargins.xtiny,
@@ -147,6 +180,7 @@ const styleTeamAvatar = {
 
 const styleAddNew = {
   marginRight: globalMargins.small,
+  flexShrink: 0,
 }
 
 export default FolderHeader
