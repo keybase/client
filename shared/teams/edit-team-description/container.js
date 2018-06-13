@@ -47,7 +47,7 @@ const ConnectedEditTeamDescription = compose(
   }),
   withProps(({teamname}) => ({
     waitingKey: Constants.teamWaitingKey(teamname),
-  })),
+  }))
 )(EditTeamDescription)
 
 export default ConnectedEditTeamDescription
