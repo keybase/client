@@ -10,7 +10,7 @@ export type WaitingButtonProps = {
   waitingKey: ?string,
 }
 
-class UnconnectedWaitingButton extends React.PureComponent<ButtonProps & WaitingButtonProps> {
+class WaitingButton extends React.PureComponent<ButtonProps & WaitingButtonProps> {
   _onClick = (event: SyntheticEvent<>) => {
     if (!this.props.waitingKey) {
       this.props.onSetWaiting(true)
@@ -36,13 +36,11 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
-
-export const WaitingButton = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+export const ConnectedWaitingButton = compose(
+  connect(mapStateToProps),
   withStateHandlers(({localWaiting: boolean}) => ({localWaiting: false}), {
     onSetWaiting: () => (localWaiting: boolean) => ({localWaiting}),
   })
-)(UnconnectedWaitingButton)
+)(WaitingButton)
 
-export default WaitingButton
+export default ConnectedWaitingButton
