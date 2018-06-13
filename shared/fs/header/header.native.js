@@ -4,7 +4,6 @@ import * as Types from '../../constants/types/fs'
 import {globalStyles, globalMargins} from '../../styles'
 import {BackButton, Box, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
-import ConnectedBanner from '../banner/container'
 
 type Props = {
   path: Types.Path,
@@ -25,7 +24,6 @@ const Header = ({title, path, onBack}: Props) => (
         <AddNew path={path} style={stylesAddNew} />
       </Box>
     </Box>
-    <ConnectedBanner path={path} />
   </Box>
 )
 

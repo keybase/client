@@ -22,9 +22,8 @@ const mapStateToProps = (state: TypedState, {path}) => {
   const itemFavoriteChildren =
     itemDetail && itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
   const _username = state.config.username || undefined
-  const isUserReset = itemDetail.type === 'folder' && itemDetail.resetParticipants
-        ? itemDetail.resetParticipants.includes(_username)
-        : false
+  const resetParticipants = itemDetail.type === 'folder' && !!itemDetail.tlfMeta && itemDetail.tlfMeta.resetParticipants.length > 0 ? itemDetail.tlfMeta.resetParticipants.map(i => i.username) : []
+  const isUserReset = resetParticipants.includes(_username)
   return {
     _itemChildren: itemChildren,
     _itemFavoriteChildren: itemFavoriteChildren,
@@ -32,6 +31,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
     _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
     _username,
     isUserReset,
+    resetParticipants,
     path,
     progress: itemDetail ? itemDetail.progress : 'pending',
   }
@@ -52,6 +52,7 @@ const mergeProps = (stateProps, dispatchProps, {routePath}) => {
     .toArray()
   return {
     isUserReset: stateProps.isUserReset,
+    resetParticipants: stateProps.resetParticipants,
     items,
     path: stateProps.path,
     progress: stateProps.progress,
