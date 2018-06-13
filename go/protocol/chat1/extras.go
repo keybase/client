@@ -16,7 +16,7 @@ import (
 )
 
 // we will show some representation of an exploded message in the UI for a week
-const explosionLifetime = time.Hour * 24 * 7
+const showExplosionLifetime = time.Hour * 24 * 7
 
 type ByUID []gregor1.UID
 type ConvIDShort = []byte
@@ -500,12 +500,17 @@ func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 	return m.MessageBody.IsNil() || m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
 
-func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
+func (m MessageUnboxedValid) HideExplosion(expunge *Expunge, now time.Time) bool {
 	if !m.IsEphemeral() {
 		return false
 	}
+	var upTo MessageID
+	if expunge != nil {
+		upTo = expunge.Upto
+	}
 	etime := m.Etime()
-	return etime.Time().Add(explosionLifetime).Before(now)
+	// Don't show ash lines for messages that have been expunged.
+	return etime.Time().Add(showExplosionLifetime).Before(now) || m.ServerHeader.MessageID < upTo
 }
 
 func (b MessageBody) IsNil() bool {
@@ -613,14 +618,6 @@ func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
 	}
 	etime := m.Etime().Time()
 	return m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
-}
-
-func (m MessageBoxed) HideExplosion(now time.Time) bool {
-	if !m.IsEphemeral() {
-		return false
-	}
-	etime := m.Etime()
-	return etime.Time().Add(explosionLifetime).Before(now)
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
