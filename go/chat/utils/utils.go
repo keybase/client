@@ -759,10 +759,10 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 	return msg.Valid().ServerHeader.Ctime
 }
 
-func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) string {
+func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
 	msg, err := PickLatestMessageUnboxed(conv, VisibleChatMessageTypes())
 	if err != nil {
-		return ""
+		return "", ""
 	}
 	return GetMsgSnippet(msg, conv, currentUsername)
 }
@@ -819,9 +819,9 @@ func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLo
 	return senderPrefix
 }
 
-func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) string {
+func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
 	if !msg.IsValid() {
-		return ""
+		return "", ""
 	}
 
 	mvalid := msg.Valid()
@@ -829,24 +829,24 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 
 	if !msg.IsValidFull() {
 		if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
-			return fmt.Sprintf("💥 %s ----------------------------", senderPrefix)
+			return fmt.Sprintf("%s ----------------------------", senderPrefix), "💥"
 		}
-		return ""
+		return "", ""
 	}
 	var explodingPrefix string
 	if mvalid.IsEphemeral() {
-		explodingPrefix = "💣 "
+		decoration = "💣"
 	}
 
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
-		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Text().Body
+		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
 	case chat1.MessageType_ATTACHMENT:
-		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title
+		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
 	case chat1.MessageType_SYSTEM:
-		return systemMessageSnippet(msg.Valid().MessageBody.System())
+		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
 	}
-	return ""
+	return "", ""
 }
 
 // We don't want to display the contents of an exploding message in notifications
@@ -860,7 +860,8 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	}
 	mvalid := msg.Valid()
 	if !mvalid.IsEphemeral() {
-		return GetMsgSnippet(msg, *conv, currentUsername)
+		snippet, _ := GetMsgSnippet(msg, *conv, currentUsername)
+		return snippet
 	}
 
 	// If the message is already exploded, nothing to see here.
@@ -897,6 +898,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 			ChannelName:       rc.LocalMetadata.TopicName,
 			Headline:          rc.LocalMetadata.Headline,
 			Snippet:           rc.LocalMetadata.Snippet,
+			SnippetDecoration: rc.LocalMetadata.SnippetDecoration,
 			WriterNames:       rc.LocalMetadata.WriterNames,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
 		}
@@ -933,7 +935,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.Name = rawConv.Info.TlfName
-	res.Snippet = GetConvSnippet(rawConv, currentUsername)
+	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = GetTopicName(rawConv)
 	res.Headline = GetHeadline(rawConv)
 	res.Participants = writerNames

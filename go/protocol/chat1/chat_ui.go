@@ -31,15 +31,17 @@ type UnverifiedInboxUIItemMetadata struct {
 	ChannelName       string   `codec:"channelName" json:"channelName"`
 	Headline          string   `codec:"headline" json:"headline"`
 	Snippet           string   `codec:"snippet" json:"snippet"`
+	SnippetDecoration string   `codec:"snippetDecoration" json:"snippetDecoration"`
 	WriterNames       []string `codec:"writerNames" json:"writerNames"`
 	ResetParticipants []string `codec:"resetParticipants" json:"resetParticipants"`
 }
 
 func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata {
 	return UnverifiedInboxUIItemMetadata{
-		ChannelName: o.ChannelName,
-		Headline:    o.Headline,
-		Snippet:     o.Snippet,
+		ChannelName:       o.ChannelName,
+		Headline:          o.Headline,
+		Snippet:           o.Snippet,
+		SnippetDecoration: o.SnippetDecoration,
 		WriterNames: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -178,6 +180,7 @@ type InboxUIItem struct {
 	IsEmpty           bool                          `codec:"isEmpty" json:"isEmpty"`
 	Name              string                        `codec:"name" json:"name"`
 	Snippet           string                        `codec:"snippet" json:"snippet"`
+	SnippetDecoration string                        `codec:"snippetDecoration" json:"snippetDecoration"`
 	Channel           string                        `codec:"channel" json:"channel"`
 	Headline          string                        `codec:"headline" json:"headline"`
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
@@ -203,13 +206,14 @@ type InboxUIItem struct {
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
 	return InboxUIItem{
-		ConvID:     o.ConvID,
-		IsEmpty:    o.IsEmpty,
-		Name:       o.Name,
-		Snippet:    o.Snippet,
-		Channel:    o.Channel,
-		Headline:   o.Headline,
-		Visibility: o.Visibility.DeepCopy(),
+		ConvID:            o.ConvID,
+		IsEmpty:           o.IsEmpty,
+		Name:              o.Name,
+		Snippet:           o.Snippet,
+		SnippetDecoration: o.SnippetDecoration,
+		Channel:           o.Channel,
+		Headline:          o.Headline,
+		Visibility:        o.Visibility.DeepCopy(),
 		Participants: (func(x []string) []string {
 			if x == nil {
 				return nil
