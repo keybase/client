@@ -1,8 +1,8 @@
 // @flow
 import Wallets from '.'
 import * as WalletsGen from '../actions/wallets-gen'
-import {compose, connect, lifecycle, type TypedState, type Dispatch, isMobile} from '../util/container'
-import {HeaderHoc} from '../common-adapters'
+import {compose, connect, lifecycle, type TypedState, type Dispatch} from '../util/container'
+import {HeaderOnMobile} from '../common-adapters'
 
 const mapStateToProps = (state: TypedState) => ({})
 
@@ -24,4 +24,4 @@ export default compose(
       this.props.refresh()
     },
   })
-)(isMobile ? HeaderHoc(Wallets) : Wallets)
+)(HeaderOnMobile(Wallets))

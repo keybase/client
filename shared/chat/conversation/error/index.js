@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import {branch} from 'recompose'
-import {Box, CopyableText, HeaderHoc, Text} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../../styles'
+import {Box, CopyableText, HeaderOnMobile, Text} from '../../../common-adapters'
+import {globalStyles, globalMargins} from '../../../styles'
 
 export type Props = {
   text: string,
@@ -39,4 +38,4 @@ const styleErrorText = {
   flexGrow: 1,
 }
 
-export default branch(() => isMobile, HeaderHoc)(ConversationError)
+export default HeaderOnMobile(ConversationError)
