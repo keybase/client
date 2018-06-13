@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, isMobile, platformStyles} from '../../styles'
 import {Box, Meta, Text} from '../../common-adapters'
 import {formatTimeForFS} from '../../util/timestamp'

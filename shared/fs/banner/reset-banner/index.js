@@ -13,7 +13,13 @@ type Props = {
   onOpenWithoutResetUsers: () => void,
 }
 
-const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutResetUsers}: Props) => {
+const Banner = ({
+  isUserReset,
+  resetParticipants,
+  onReAddToTeam,
+  onViewProfile,
+  onOpenWithoutResetUsers,
+}: Props) => {
   if (!resetParticipants || resetParticipants.length === 0) {
     return <Box />
   }
@@ -28,7 +34,11 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, o
       />
       <Box style={textContainerStyle}>
         <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySemibold" backgroundMode="Terminal" style={{...globalStyles.flexBoxRow, textAlign: 'center'}}>
+          <Text
+            type="BodySemibold"
+            backgroundMode="Terminal"
+            style={{...globalStyles.flexBoxRow, textAlign: 'center'}}
+          >
             <ConnectedUsernames
               type="BodySemiboldLink"
               showAnd={true}
@@ -84,7 +94,12 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, o
         <Text type="BodySemibold" backgroundMode="Terminal">
           Or until you're sure,{' '}
         </Text>
-        <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={onOpenWithoutResetUsers} style={bottomTextStyle}>
+        <Text
+          type="BodySemiboldLink"
+          backgroundMode="Terminal"
+          onClick={onOpenWithoutResetUsers}
+          style={bottomTextStyle}
+        >
           open a folder without any of them.
         </Text>
       </Box>
@@ -109,7 +124,7 @@ const textContainerStyle = {
 
 const listTextContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  maxWidth: 250,
+  maxWidth: isMobile ? 280 : 400,
 }
 
 const textStyle = {
@@ -134,14 +149,6 @@ const bottomTextStyle = {
 const actionRowStyle = {
   ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
   marginBottom: globalMargins.tiny,
-}
-
-const iconContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  justifyContent: 'center',
-  marginBottom: globalMargins.medium,
 }
 
 export default Banner
