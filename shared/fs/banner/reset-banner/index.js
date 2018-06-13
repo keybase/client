@@ -28,7 +28,7 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, o
       />
       <Box style={textContainerStyle}>
         <Box style={globalStyles.flexBoxRow}>
-          <Box style={{marginRight: globalMargins.xtiny}}>
+          <Text type="BodySemibold" backgroundMode="Terminal" style={{...globalStyles.flexBoxRow, textAlign: 'center'}}>
             <ConnectedUsernames
               type="BodySemiboldLink"
               showAnd={true}
@@ -37,28 +37,28 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, o
               clickable={true}
               underline={true}
               usernames={resetParticipants}
-              style={textStyle}
+              backgroundMode="Terminal"
             />
-          </Box>
-          <Text type="BodySemibold" style={textStyle}>
-            lost all of their devices and{' '}
-            {resetParticipants.length === 1 ? 'this account has' : 'these accounts have'} new keys.
+            <Text type="BodySemibold" backgroundMode="Terminal">
+              &nbsp;lost all of their devices and{' '}
+              {resetParticipants.length === 1 ? 'this account has' : 'these accounts have'} new keys.
+            </Text>
           </Text>
         </Box>
-        <Text type="BodySemibold" style={textStyle}>
+        <Text type="BodySemibold" backgroundMode="Terminal">
           If you want to let them into this folder and the matching chat, you should either:
         </Text>
       </Box>
       <Box style={listTextContainerStyle}>
-        <Text type="BodySemibold" style={listTextContentStyle}>
+        <Text type="BodySemibold" backgroundMode="Terminal" style={listTextContentStyle}>
           1. Be satisfied with their new proofs, or
         </Text>
-        <Text type="BodySemibold" style={listTextContentStyle}>
+        <Text type="BodySemibold" backgroundMode="Terminal" style={listTextContentStyle}>
           2. Know them outside Keybase and have gotten a thumbs up from them.
         </Text>
       </Box>
       <Box style={textContainerStyle}>
-        <Text type="BodySemibold" style={textStyle}>
+        <Text type="BodySemibold" backgroundMode="Terminal">
           Don't let them in until one of those is true.
         </Text>
       </Box>
@@ -81,10 +81,10 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, o
         ))}
       </Box>
       <Box>
-        <Text type="BodySemibold" style={bottomTextStyle}>
+        <Text type="BodySemibold" backgroundMode="Terminal">
           Or until you're sure,{' '}
         </Text>
-        <Text type="BodySemiboldLink" onClick={onOpenWithoutResetUsers} style={{...bottomTextStyle, textDecorationLine: 'underline'}}>
+        <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={onOpenWithoutResetUsers} style={bottomTextStyle}>
           open a folder without any of them.
         </Text>
       </Box>
@@ -94,9 +94,8 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, o
 
 const bannerStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.red,
   alignItems: 'center',
-  position: 'relative',
+  backgroundColor: globalColors.red,
   paddingTop: globalMargins.medium,
   paddingBottom: globalMargins.medium,
 }
@@ -110,8 +109,7 @@ const textContainerStyle = {
 
 const listTextContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  paddingLeft: 3 * globalMargins.xlarge,
-  width: '100%',
+  maxWidth: 250,
 }
 
 const textStyle = {
@@ -119,22 +117,22 @@ const textStyle = {
 }
 
 const listTextContentStyle = {
-  ...textStyle,
-  paddingRight: 3 * globalMargins.xlarge,
-  paddingBottom: globalMargins.xsmall,
+  marginTop: globalMargins.tiny,
 }
 
 const firstButtonStyle = {
   marginRight: globalMargins.tiny,
+  marginBottom: isMobile ? globalMargins.tiny : 0,
 }
 
 const bottomTextStyle = {
   ...textStyle,
   marginTop: globalMargins.tiny,
+  textDecorationLine: 'underline',
 }
 
 const actionRowStyle = {
-  ...globalStyles.flexBoxRow,
+  ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
   marginBottom: globalMargins.tiny,
 }
 
