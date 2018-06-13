@@ -19,6 +19,7 @@ type handlerTracker struct {
 	readV1         int
 	sendV1         int
 	editV1         int
+	reactionV1     int
 	deleteV1       int
 	attachV1       int
 	downloadV1     int
@@ -44,6 +45,11 @@ func (h *handlerTracker) SendV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) EditV1(context.Context, Call, io.Writer) error {
 	h.editV1++
+	return nil
+}
+
+func (h *handlerTracker) ReactionV1(context.Context, Call, io.Writer) error {
+	h.reactionV1++
 	return nil
 }
 
@@ -105,6 +111,10 @@ func (c *chatEcho) EditV1(context.Context, editOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) ReactionV1(context.Context, reactionOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 func (c *chatEcho) AttachV1(context.Context, attachOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
@@ -132,6 +142,7 @@ type topTest struct {
 	readV1         int
 	sendV1         int
 	editV1         int
+	reactionV1     int
 	deleteV1       int
 	attachV1       int
 	downloadV1     int
@@ -156,6 +167,7 @@ var topTests = []topTest{
 	{input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`, listV1: 2},
 	{input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1}}`, listV1: 1, readV1: 1},
 	{input: `{"id": 29, "method": "edit", "params":{"version": 1}}`, editV1: 1},
+	{input: `{"id": 29, "method": "reaction", "params":{"version": 1}}`, reactionV1: 1},
 	{input: `{"id": 30, "method": "delete", "params":{"version": 1}}`, deleteV1: 1},
 	{input: `{"method": "attach", "params":{"version": 1}}`, attachV1: 1},
 	{input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`, downloadV1: 1},
@@ -192,6 +204,9 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		}
 		if h.editV1 != test.editV1 {
 			t.Errorf("test %d: input %s => editV1 = %d, expected %d", i, test.input, h.editV1, test.editV1)
+		}
+		if h.reactionV1 != test.reactionV1 {
+			t.Errorf("test %d: input %s => reactionV1 = %d, expected %d", i, test.input, h.reactionV1, test.reactionV1)
 		}
 		if h.deleteV1 != test.deleteV1 {
 			t.Errorf("test %d: input %s => deleteV1 = %d, expected %d", i, test.input, h.deleteV1, test.deleteV1)
@@ -304,10 +319,6 @@ var optTests = []optTest{
 		err:   ErrInvalidOptions{},
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
 		input: `{"id": 29, "method": "edit", "params":{"version": 1, "options": {}}}`,
 		err:   ErrInvalidOptions{},
 	},
@@ -332,6 +343,40 @@ var optTests = []optTest{
 	},
 	{
 		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}}}}`,
+	},
+	{
+		input: `{"id": 29, "method": "reaction", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 29, "method": "reaction", "params":{"version": 1, "options": {}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": ":+1:"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ":+1:"}}}}`,
+	},
+	{
+		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": ":+1:"}}}}`,
+	},
+	{
+		input: `{"id": 30, "method": "delete", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
 	},
 	{
 		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {}}}`,
