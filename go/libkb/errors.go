@@ -1174,12 +1174,16 @@ func (m MerkleClientError) Error() string {
 	return fmt.Sprintf("Error checking merkle tree: %s", m.m)
 }
 
-type MerkleNotFoundError struct {
+func (m MerkleClientError) IsNotFound() bool {
+	return m.t == merkleErrorNotFound
+}
+
+type MerklePathNotFoundError struct {
 	k   string
 	msg string
 }
 
-func (m MerkleNotFoundError) Error() string {
+func (m MerklePathNotFoundError) Error() string {
 	return fmt.Sprintf("For key '%s', Merkle path not found: %s", m.k, m.msg)
 }
 
