@@ -13,6 +13,7 @@ const sharedProps = {
   onChangeDescription: action('onChangeDescription'),
   onClose: action('onClose'),
   onSetDescription: action('onSetDescription'),
+  waitingKey: 'test',
 }
 
 const provider = PropProviders.compose(
