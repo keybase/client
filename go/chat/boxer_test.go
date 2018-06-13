@@ -1569,3 +1569,83 @@ func TestExplodingMessageUnbox(t *testing.T) {
 	require.NotNil(t, unboxed.EphemeralMetadata())
 	require.Equal(t, msg.EphemeralMetadata().Lifetime, unboxed.EphemeralMetadata().Lifetime)
 }
+
+func TestVersionErrorBasic(t *testing.T) {
+	// Test basic functionality for parsing the error message
+	// TODO remove this when we drop parsing
+	maxMessageBoxedVersion := chat1.MaxMessageBoxedVersion
+	err := NewMessageBoxedVersionError(maxMessageBoxedVersion)
+	e := chat1.MessageUnboxedError{
+		ErrType: err.ExportType(),
+		ErrMsg:  err.Error(),
+	}
+	require.True(t, e.ParseableVersion())
+
+	err2 := NewMessageBoxedVersionError(maxMessageBoxedVersion)
+	e2 := chat1.MessageUnboxedError{
+		ErrType:       err2.ExportType(),
+		ErrMsg:        err2.Error(),
+		VersionKind:   err2.VersionKind(),
+		VersionNumber: err2.VersionNumber(),
+		IsCritical:    err2.IsCritical(),
+	}
+	require.True(t, e2.ParseableVersion())
+
+	// not recoverable until we bump the max
+	err = NewMessageBoxedVersionError(maxMessageBoxedVersion + 1)
+	e = chat1.MessageUnboxedError{
+		ErrType: err.ExportType(),
+		ErrMsg:  err.Error(),
+	}
+	require.False(t, e.ParseableVersion())
+
+	chat1.MaxMessageBoxedVersion = maxMessageBoxedVersion + 1
+	defer func() { chat1.MaxMessageBoxedVersion = maxMessageBoxedVersion }()
+	require.True(t, e.ParseableVersion())
+}
+
+func TestVersionError(t *testing.T) {
+	tc, boxer := setupChatTest(t, "box")
+	defer tc.Cleanup()
+
+	// These tests will fail when we update the boxer code to accept new
+	// maximums. This forces
+	// chat1/extras.go#MessageUnboxedError.ParseableVersion to stay up to date
+	// for it's max accepted versions. Vx__ will also have to be updated in the
+	// checks below
+	assertErr := func(err UnboxingError) {
+		require.Error(t, err)
+		typ := err.ExportType()
+		switch typ {
+		case chat1.MessageUnboxedErrorType_BADVERSION, chat1.MessageUnboxedErrorType_BADVERSION_CRITICAL:
+			// pass
+		default:
+			t.Fatal(t, "invalid error type: ", typ)
+		}
+
+		e := chat1.MessageUnboxedError{
+			ErrType: err.ExportType(),
+			ErrMsg:  err.Error(),
+		}
+		require.False(t, e.ParseableVersion())
+	}
+	maxMessageBoxedVersion := chat1.MaxMessageBoxedVersion + 1
+	maxHeaderVersion := chat1.MaxHeaderVersion + 1
+	maxBodyVersion := chat1.MaxBodyVersion + 1
+
+	key := cryptKey(t)
+	t.Logf("unbox")
+	_, err := boxer.unbox(context.Background(), chat1.MessageBoxed{Version: maxMessageBoxedVersion},
+		chat1.ConversationMembersType_TEAM, key, nil)
+	assertErr(err)
+
+	t.Logf("unversionHeaderMBV2")
+	hv2 := chat1.HeaderPlaintextUnsupported{}
+	_, _, err = boxer.unversionHeaderMBV2(context.Background(), chat1.HeaderPlaintext{Version__: maxHeaderVersion, V2__: &hv2})
+	assertErr(err)
+
+	t.Logf("unversionBody")
+	bv2 := chat1.BodyPlaintextUnsupported{}
+	_, err = boxer.unversionBody(context.Background(), chat1.BodyPlaintext{Version__: maxBodyVersion, V2__: &bv2})
+	assertErr(err)
+}

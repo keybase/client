@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -336,6 +337,62 @@ func MessageUnboxedDebugList(ms []MessageUnboxed) string {
 
 func MessageUnboxedDebugLines(ms []MessageUnboxed) string {
 	return strings.Join(MessageUnboxedDebugStrings(ms), "\n")
+}
+
+const (
+	VersionErrorMessageBoxed VersionKind = "messageboxed"
+	VersionErrorHeader       VersionKind = "header"
+	VersionErrorBody         VersionKind = "body"
+)
+
+// NOTE: these values correspond to the maximum accepted values in
+// chat/boxer.go. If these values are changed, they must also be accepted
+// there.
+var MaxMessageBoxedVersion MessageBoxedVersion = MessageBoxedVersion_V3
+var MaxHeaderVersion HeaderPlaintextVersion = HeaderPlaintextVersion_V1
+var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V1
+
+// ParseableVersion checks if this error has a version that is now able to be
+// understood by our client.
+func (m MessageUnboxedError) ParseableVersion() bool {
+	switch m.ErrType {
+	case MessageUnboxedErrorType_BADVERSION, MessageUnboxedErrorType_BADVERSION_CRITICAL:
+		// only applies to these types
+	default:
+		return false
+	}
+
+	kind := m.VersionKind
+	version := m.VersionNumber
+	// This error was stored from an old client, we have parse out the info we
+	// need from the error message.
+	// TODO remove this check once it has be live for a few cycles.
+	if kind == "" && version == 0 {
+		re := regexp.MustCompile(`.* Chat version error: \[ unhandled: (\w+) version: (\d+) .*\]`)
+		matches := re.FindStringSubmatch(m.ErrMsg)
+		if len(matches) != 3 {
+			return false
+		}
+		kind = VersionKind(matches[1])
+		var err error
+		version, err = strconv.Atoi(matches[2])
+		if err != nil {
+			return false
+		}
+	}
+
+	var maxVersion int
+	switch kind {
+	case VersionErrorMessageBoxed:
+		maxVersion = int(MaxMessageBoxedVersion)
+	case VersionErrorHeader:
+		maxVersion = int(MaxHeaderVersion)
+	case VersionErrorBody:
+		maxVersion = int(MaxBodyVersion)
+	default:
+		return false
+	}
+	return maxVersion >= version
 }
 
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {

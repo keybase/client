@@ -6,6 +6,8 @@ protocol local {
   import idl "common.avdl";
   import idl "chat_ui.avdl";
 
+  @typedef("string") record VersionKind {}
+
   record MessageText {
     string body;
   }
@@ -394,6 +396,9 @@ protocol local {
   record MessageUnboxedError {
     MessageUnboxedErrorType errType;
     string errMsg;
+    VersionKind versionKind;
+    int versionNumber;
+    boolean isCritical;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
