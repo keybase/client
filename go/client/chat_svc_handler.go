@@ -1026,16 +1026,23 @@ func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr str
 	var conv chat1.ConversationLocal
 	var rlimits []chat1.RateLimit
 
-	if (channel == ChatChannel{}) && len(convIDStr) == 0 {
+	if channel.IsNil() && len(convIDStr) == 0 {
 		return conv, rlimits, errors.New("missing conversation specificer")
 	}
 
 	var convID chat1.ConversationID
-	if channel == (ChatChannel{}) {
+	if channel.IsNil() {
 		var err error
 		convID, err = chat1.MakeConvID(convIDStr)
 		if err != nil {
 			return conv, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
+		}
+	} else {
+		// If we have a channel name but the current username isn't present, add it.
+		if channel.Name != "" {
+			if !strings.Contains(channel.Name, c.G().Env.GetUsername().String()) {
+				channel.Name = fmt.Sprintf("%s,%s", channel.Name, c.G().Env.GetUsername())
+			}
 		}
 	}
 
