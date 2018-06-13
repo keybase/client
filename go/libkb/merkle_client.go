@@ -1336,13 +1336,13 @@ func (vp *VerificationPath) verifyUser(ctx context.Context, uid keybase1.UID) (u
 	if leaf != nil && err == nil {
 		if leaf, err = leaf.ToArray(); err != nil {
 			msg := fmt.Sprintf("Didn't find a leaf for user in tree: %s", err)
-			err = MerkleNotFoundError{uid.String(), msg}
+			err = MerklePathNotFoundError{uid.String(), msg}
 		}
 	}
 
 	if err == nil {
 		// noop
-	} else if _, ok := err.(MerkleNotFoundError); ok {
+	} else if _, ok := err.(MerklePathNotFoundError); ok {
 		vp.G().VDL.CLogf(ctx, VLog0, fmt.Sprintf("In checking Merkle tree: %s", err))
 	} else {
 		return
@@ -1364,13 +1364,13 @@ func (vp *VerificationPath) verifyTeam(ctx context.Context, teamID keybase1.Team
 	if leaf != nil && err == nil {
 		if leaf, err = leaf.ToArray(); err != nil {
 			msg := fmt.Sprintf("Didn't find a leaf for team in tree: %s", err)
-			err = MerkleNotFoundError{teamID.String(), msg}
+			err = MerklePathNotFoundError{teamID.String(), msg}
 		}
 	}
 
 	if err == nil {
 		// noop
-	} else if _, ok := err.(MerkleNotFoundError); ok {
+	} else if _, ok := err.(MerklePathNotFoundError); ok {
 		vp.G().VDL.CLogf(ctx, VLog0, fmt.Sprintf("In checking Merkle tree: %s", err))
 	} else {
 		return
@@ -1425,7 +1425,7 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 			}
 			curr, err = GetNodeHash(jw.AtKey("tab").AtKey(step.prefix))
 			if err != nil {
-				err = MerkleNotFoundError{uidS, err.Error()}
+				err = MerklePathNotFoundError{uidS, err.Error()}
 				break
 			}
 			juser = nil
@@ -1435,7 +1435,7 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 	}
 
 	if err == nil && juser == nil {
-		err = MerkleNotFoundError{uidS, "tree path didn't end in a leaf"}
+		err = MerklePathNotFoundError{uidS, "tree path didn't end in a leaf"}
 	}
 	return
 }
