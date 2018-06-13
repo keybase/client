@@ -18,7 +18,7 @@ import type {Props} from '.'
 // set this to true to see size overlays
 const debugSizing = __STORYBOOK__
 
-const ordinalsInAWaypoint = 100
+const ordinalsInAWaypoint = 10
 const lockedToBottomSlop = 20
 
 type State = {
@@ -190,14 +190,13 @@ class Thread extends React.PureComponent<Props, State> {
 
 class OrdinalWaypoint extends React.PureComponent<> {
   state = {
-    currentPosition: null,
     height: null,
+    isVisible: true,
   }
   _handlePositionChange = ({currentPosition}) => {
     if (currentPosition) {
-      this.setState(
-        prevState => (prevState.currentPosition !== currentPosition ? {currentPosition} : undefined)
-      )
+      const isVisible = currentPosition === 'inside'
+      this.setState(prevState => (prevState.isVisible !== isVisible ? {isVisible} : undefined))
     }
   }
   _onResize = ({bounds}) => {
@@ -208,14 +207,18 @@ class OrdinalWaypoint extends React.PureComponent<> {
   }
 
   render() {
-    const renderMessages =
-      !this.state.height || !this.state.currentPosition || this.state.currentPosition === 'inside'
-
-    console.log('aaa', id, renderMessages)
+    const renderMessages = !this.state.height || this.state.isVisible
     return (
       <Waypoint onPositionChange={this._handlePositionChange}>
         <Measure bounds={true} onResize={this._onResize}>
-          {({measureRef}) => <div ref={measureRef}>{renderMessages ? this.props.messages : null}</div>}
+          {({measureRef}) => (
+            <div
+              ref={measureRef}
+              style={!renderMessages && this.state.height ? {height: this.state.height} : null}
+            >
+              {renderMessages ? this.props.messages : null}
+            </div>
+          )}
         </Measure>
       </Waypoint>
     )
