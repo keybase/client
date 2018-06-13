@@ -7,7 +7,8 @@ import DeleteRepo from '.'
 
 const provider = PropProviders.compose(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
+  PropProviders.WaitingButton(),
 )
 
 const load = () => {

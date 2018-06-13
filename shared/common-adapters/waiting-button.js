@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Button, {type Props as ButtonProps} from './button'
-import {compose, connect, withStateHandlers, type TypedState} from '../util/container'
+import {compose, connect, setDisplayName, withStateHandlers, type TypedState} from '../util/container'
 
 export type WaitingButtonProps = {
   localWaiting: boolean,
@@ -38,6 +38,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
 
 export const ConnectedWaitingButton = compose(
   connect(mapStateToProps),
+  setDisplayName('WaitingButton'),
   withStateHandlers(({localWaiting: boolean}) => ({localWaiting: false}), {
     onSetWaiting: () => (localWaiting: boolean) => ({localWaiting}),
   })
