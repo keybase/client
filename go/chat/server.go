@@ -1098,18 +1098,11 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	arg.Msg.ClientHeader.Sender = uid
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
-	if arg.Msg.ClientHeader.MessageType == chat1.MessageType_REACTION {
-		// We could either be posting a reaction or removing one that we already posted.
-		supersededMsg, err := h.getMessage(ctx, uid, arg.ConversationID, arg.Msg.ClientHeader.Supersedes, true /* resolveSupersedes */)
-		if err != nil {
-			return res, err
-		}
-		found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(arg.Msg.MessageBody.Reaction().Body, h.G().Env.GetUsername().String())
-		if found {
-			arg.Msg.ClientHeader.Supersedes = reactionMsgID
-			arg.Msg.ClientHeader.MessageType = chat1.MessageType_DELETE
-		}
+	header, err := h.processReactionMessage(ctx, uid, arg.ConversationID, arg.Msg)
+	if err != nil {
+		return res, err
 	}
+	arg.Msg.ClientHeader = header
 
 	metadata, err := h.getSupersederEphemeralMetadata(ctx, uid, arg.ConversationID, arg.Msg)
 	if err != nil {
@@ -1360,18 +1353,11 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		Prev: prevMsgID,
 	}
 
-	if arg.Msg.ClientHeader.MessageType == chat1.MessageType_REACTION {
-		// We could either be posting a reaction or removing one that we already posted.
-		supersededMsg, err := h.getMessage(ctx, uid, arg.ConversationID, arg.Msg.ClientHeader.Supersedes, true /* resolveSupersedes */)
-		if err != nil {
-			return res, err
-		}
-		found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(arg.Msg.MessageBody.Reaction().Body, h.G().Env.GetUsername().String())
-		if found {
-			arg.Msg.ClientHeader.Supersedes = reactionMsgID
-			arg.Msg.ClientHeader.MessageType = chat1.MessageType_DELETE
-		}
+	header, err := h.processReactionMessage(ctx, uid, arg.ConversationID, arg.Msg)
+	if err != nil {
+		return res, err
 	}
+	arg.Msg.ClientHeader = header
 
 	metadata, err := h.getSupersederEphemeralMetadata(ctx, uid, arg.ConversationID, arg.Msg)
 	if err != nil {
@@ -1425,6 +1411,25 @@ func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1
 		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingEphemeralLifetime(h.clock.Now()))
 	}
 	return metadata, nil
+}
+
+// processReactionMessage determines if we are trying to post a duplicate
+// chat1.MessageType_REACTION, which is considered a chat1.MessageType_DELETE
+// and updated appropiately.
+func (h *Server) processReactionMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (clientHeader chat1.MessageClientHeader, err error) {
+	if msg.ClientHeader.MessageType == chat1.MessageType_REACTION {
+		// We could either be posting a reaction or removing one that we already posted.
+		supersededMsg, err := h.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, true /* resolveSupersedes */)
+		if err != nil {
+			return msg.ClientHeader, err
+		}
+		found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(msg.MessageBody.Reaction().Body, h.G().Env.GetUsername().String())
+		if found {
+			msg.ClientHeader.Supersedes = reactionMsgID
+			msg.ClientHeader.MessageType = chat1.MessageType_DELETE
+		}
+	}
+	return msg.ClientHeader, nil
 }
 
 // MakePreview implements chat1.LocalInterface.MakePreview.
