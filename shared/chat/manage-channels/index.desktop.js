@@ -11,6 +11,7 @@ import {
   Checkbox,
   Icon,
   ButtonBar,
+  WaitingButton,
 } from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous, platformStyles} from '../../styles'
 
@@ -145,10 +146,10 @@ const ManageChannels = (props: Props) => {
         <Box style={{flex: 2, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'}}>
           <ButtonBar>
             <Button type="Secondary" label="Cancel" onClick={props.onClose} />
-            <Button
+            <WaitingButton
               type="Primary"
               label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
-              waiting={props.waitingForGet}
+              waitingKey={props.waitingKey}
               disabled={!props.unsavedSubscriptions}
               onClick={props.onSaveSubscriptions}
               style={{marginLeft: globalMargins.tiny}}

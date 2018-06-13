@@ -20,7 +20,8 @@ import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
-  const waitingForGet = anyWaiting(state, getChannelsWaitingKey(teamname))
+  const waitingKey = getChannelsWaitingKey(teamname)
+  const waitingForGet = anyWaiting(waitingKey)
   const channelInfos = getTeamChannelInfos(state, teamname)
   const you = state.config.username
   const yourOperations = getCanPerform(state, teamname)
@@ -51,6 +52,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     channels,
     teamname,
     waitingForGet,
+    waitingKey,
   }
 }
 
