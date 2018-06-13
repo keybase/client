@@ -303,7 +303,9 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                 ref={this.props.setAttachmentRef}
                 style={collapseStyles([
                   styles.explodingIconContainer,
-                  this.props.isExplodingNew && {marginRight: globalMargins.tiny},
+                  !!(this.props.isExplodingNew || this.props.explodingModeSeconds) && {
+                    marginRight: globalMargins.tiny,
+                  },
                 ])}
               >
                 <Icon
