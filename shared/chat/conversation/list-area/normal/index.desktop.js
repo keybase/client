@@ -33,7 +33,7 @@ class Thread extends React.Component<Props, State> {
       } else {
         const ordinalIndex = index - 1
         const ordinal = this.props.messageOrdinals.get(ordinalIndex)
-        return `${this.props.conversationIDKey}:${ordinal ? ordinalToNumber(ordinal) : 'null'}`
+        return `${this.props.conversationIDKey}:${ordinal ? ordinalToNumber(ordinal) : index}`
       }
     },
   })
