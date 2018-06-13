@@ -152,6 +152,14 @@ yarn run rn-start
 
 Then do "Build > Make Project" and then "Run > Run 'app'".
 
+Sometimes Android Studio gets into a bad state, especially if you're
+doing stuff like `yarn modules` in the background. If 'Gradle sync'
+fails, you can retry it from Tools > Android > 'Sync Project with
+Gradle Files'.
+
+If that doesn't work, you can try closing (File > Close Project) and
+reopening the project. Or even closing and reopening the app.
+
 ### Debugging with React Developer Tools and Immutable.js Object Formatter extensions
 
 1) Install the [React Developer
