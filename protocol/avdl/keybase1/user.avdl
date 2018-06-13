@@ -154,7 +154,6 @@ protocol user {
 
   record NextMerkleRootRes {
     union { null, MerkleRootV2 } res;
-
   }
 
   /**
@@ -165,7 +164,7 @@ protocol user {
   NextMerkleRootRes findNextMerkleRootAfterRevoke(UID uid, KID kid, SigChainLocation loc, MerkleRootV2 prev);
 
   /**
-   FindNextMerkleRootAfterRest finds the first Merkle root that contains the UID reset
+   FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset
    at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
    the reset. Usually, we'll just turn up the next Merkle root, but not always.
   */
