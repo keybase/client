@@ -396,7 +396,15 @@ func (fb FolderBranch) String() string {
 type BlockChanges struct {
 	// If this is set, the actual changes are stored in a block (where
 	// the block contains a serialized version of BlockChanges)
-	Info BlockInfo `codec:"p,omitempty"`
+	//
+	// Ideally, we'd omit Info if it's empty. However, old clients
+	// rely on encoded BlockChanges always having an encoded Info,
+	// so that decoding into an existing BlockChanges object
+	// clobbers any existing Info, so we can't omit Info until all
+	// clients have upgraded to a version that explicitly clears
+	// Info on decode, and we've verified that there's nothing
+	// else that relies on Info always being filled.
+	Info BlockInfo `codec:"p"`
 	// An ordered list of operations completed in this update
 	Ops opsList `codec:"o,omitempty"`
 	// Estimate the number of bytes that this set of changes will take to encode

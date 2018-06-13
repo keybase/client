@@ -442,7 +442,7 @@ func encryptMDPrivateData(
 	return nil
 }
 
-func getFileBlockForMD(ctx context.Context, bcache BlockCache, bops BlockOps,
+func getFileBlockForMD(ctx context.Context, bcache BlockCacheSimple, bops BlockOps,
 	ptr BlockPointer, tlfID tlf.ID, rmdWithKeys KeyMetadata) (
 	*FileBlock, error) {
 	// We don't have a convenient way to fetch the block from here via
@@ -465,7 +465,7 @@ func getFileBlockForMD(ctx context.Context, bcache BlockCache, bops BlockOps,
 }
 
 func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
-	bcache BlockCache, bops BlockOps, mode InitMode, tlfID tlf.ID,
+	bcache BlockCacheSimple, bops BlockOps, mode InitMode, tlfID tlf.ID,
 	pmd *PrivateMetadata, rmdWithKeys KeyMetadata, log logger.Logger) error {
 	info := pmd.Changes.Info
 	if info.BlockPointer == zeroPtr {
@@ -510,21 +510,29 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 		return err
 	}
 
-	err = codec.Decode(buf, &pmd.Changes)
+	var unembeddedChanges BlockChanges
+	err = codec.Decode(buf, &unembeddedChanges)
 	if err != nil {
 		return err
 	}
 
+	// We rely on at most one of Info or Ops being non-empty in
+	// crChains.addOps.
+	if unembeddedChanges.Info.IsInitialized() {
+		return errors.New("Unembedded BlockChangesInfo unexpectedly has an initialized Info")
+	}
+
 	// The changes block pointers are implicit ref blocks.
-	pmd.Changes.Ops[0].AddRefBlock(info.BlockPointer)
+	unembeddedChanges.Ops[0].AddRefBlock(info.BlockPointer)
 	iptrs, err := fd.getIndirectFileBlockInfos(ctx)
 	if err != nil {
 		return err
 	}
 	for _, iptr := range iptrs {
-		pmd.Changes.Ops[0].AddRefBlock(iptr.BlockPointer)
+		unembeddedChanges.Ops[0].AddRefBlock(iptr.BlockPointer)
 	}
 
+	pmd.Changes = unembeddedChanges
 	pmd.cachedChanges.Info = info
 	return nil
 }

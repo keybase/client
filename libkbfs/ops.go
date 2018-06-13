@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/pkg/errors"
 )
 
 // op represents a single file-system remote-sync operation
@@ -108,7 +108,7 @@ func (u blockUpdate) checkValid() error {
 
 func (u *blockUpdate) setUnref(ptr BlockPointer) error {
 	if ptr == (BlockPointer{}) {
-		return fmt.Errorf("setUnref called with nil ptr")
+		return errors.Errorf("setUnref called with nil ptr")
 	}
 	u.Unref = ptr
 	return nil
@@ -116,7 +116,7 @@ func (u *blockUpdate) setUnref(ptr BlockPointer) error {
 
 func (u *blockUpdate) setRef(ptr BlockPointer) error {
 	if ptr == (BlockPointer{}) {
-		return fmt.Errorf("setRef called with nil ptr")
+		return errors.Errorf("setRef called with nil ptr")
 	}
 	u.Ref = ptr
 	return nil
@@ -263,7 +263,7 @@ func (oc *OpCommon) checkUpdatesValid() error {
 	for i, update := range oc.Updates {
 		err := update.checkValid()
 		if err != nil {
-			return fmt.Errorf(
+			return errors.Errorf(
 				"update[%d]=%v got error: %v", i, update, err)
 		}
 	}
@@ -370,7 +370,7 @@ func (co *createOp) checkValid() error {
 
 	err := co.Dir.checkValid()
 	if err != nil {
-		return fmt.Errorf("createOp.Dir=%v got error: %v", co.Dir, err)
+		return errors.Errorf("createOp.Dir=%v got error: %v", co.Dir, err)
 	}
 	return co.checkUpdatesValid()
 }
@@ -528,7 +528,7 @@ func (ro *rmOp) allUpdates() []blockUpdate {
 func (ro *rmOp) checkValid() error {
 	err := ro.Dir.checkValid()
 	if err != nil {
-		return fmt.Errorf("rmOp.Dir=%v got error: %v", ro.Dir, err)
+		return errors.Errorf("rmOp.Dir=%v got error: %v", ro.Dir, err)
 	}
 	return ro.checkUpdatesValid()
 }
@@ -657,13 +657,13 @@ func (ro *renameOp) allUpdates() []blockUpdate {
 func (ro *renameOp) checkValid() error {
 	err := ro.OldDir.checkValid()
 	if err != nil {
-		return fmt.Errorf("renameOp.OldDir=%v got error: %v",
+		return errors.Errorf("renameOp.OldDir=%v got error: %v",
 			ro.OldDir, err)
 	}
 	if ro.NewDir != (blockUpdate{}) {
 		err = ro.NewDir.checkValid()
 		if err != nil {
-			return fmt.Errorf("renameOp.NewDir=%v got error: %v",
+			return errors.Errorf("renameOp.NewDir=%v got error: %v",
 				ro.NewDir, err)
 		}
 	}
@@ -694,7 +694,7 @@ func (ro *renameOp) StringWithRefs(indent string) string {
 func (ro *renameOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
-	return nil, fmt.Errorf("Unexpected conflict check on a rename op: %s", ro)
+	return nil, errors.Errorf("Unexpected conflict check on a rename op: %s", ro)
 }
 
 func (ro *renameOp) getDefaultAction(mergedPath path) crAction {
@@ -824,7 +824,7 @@ func (so *syncOp) allUpdates() []blockUpdate {
 func (so *syncOp) checkValid() error {
 	err := so.File.checkValid()
 	if err != nil {
-		return fmt.Errorf("syncOp.File=%v got error: %v", so.File, err)
+		return errors.Errorf("syncOp.File=%v got error: %v", so.File, err)
 	}
 	return so.checkUpdatesValid()
 }
@@ -1097,7 +1097,7 @@ func (sao *setAttrOp) allUpdates() []blockUpdate {
 func (sao *setAttrOp) checkValid() error {
 	err := sao.Dir.checkValid()
 	if err != nil {
-		return fmt.Errorf("setAttrOp.Dir=%v got error: %v", sao.Dir, err)
+		return errors.Errorf("setAttrOp.Dir=%v got error: %v", sao.Dir, err)
 	}
 	return sao.checkUpdatesValid()
 }

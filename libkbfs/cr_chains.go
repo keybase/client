@@ -811,7 +811,7 @@ func (ccs *crChains) addOps(codec kbfscodec.Codec,
 	var oldOps opsList
 	if privateMD.Changes.Info.BlockPointer.IsInitialized() {
 		// In some cases (e.g., journaling) we might not have been
-		// able to re-embed the block changes.  So used the cached
+		// able to re-embed the block changes.  So use the cached
 		// version directly.
 		oldOps = privateMD.cachedChanges.Ops
 	} else {
