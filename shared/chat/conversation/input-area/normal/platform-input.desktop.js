@@ -278,6 +278,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             />
             {flags.explodingMessagesEnabled &&
               this.props.isExploding &&
+              !this.props.isEditing &&
               !this.state.hasText && (
                 <Icon
                   color={globalColors.black_20}
