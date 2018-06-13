@@ -215,7 +215,6 @@ func pollForNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user 
 }
 
 func TestMemberRemove(t *testing.T) {
-	t.Skip()
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
