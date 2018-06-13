@@ -252,7 +252,9 @@ def runNixTest(prefix) {
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/kbfs/kbfsfuse | grep testing'
     }
     tests[prefix+'vet'] = {
-        sh 'go get -u golang.org/x/lint/golint'
+        retry(5) {
+            sh 'go get -u github.com/golang/lint/golint'
+        }
         sh 'make -s lint'
         sh 'go vet $(go list ./... 2>/dev/null | grep -v /vendor/)'
     }
