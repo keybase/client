@@ -79,8 +79,13 @@ const (
 // NOTE: Don't add or modify anything in this struct without
 // considering how old clients will handle them.
 type blockUpdate struct {
-	Unref BlockPointer `codec:"u,omitempty"`
-	Ref   BlockPointer `codec:"r,omitempty"`
+	// TODO: Ideally, we'd omit Unref or Ref if they're
+	// empty. However, we'd first have to verify that there's
+	// nothing that relies on either one of these fields to always
+	// be filled (e.g., see similar comments for the Info field on
+	// BlockChanges.)
+	Unref BlockPointer `codec:"u"`
+	Ref   BlockPointer `codec:"r"`
 }
 
 func makeBlockUpdate(unref, ref BlockPointer) (blockUpdate, error) {
