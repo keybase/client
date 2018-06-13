@@ -92,7 +92,7 @@ public class MainActivity extends ReactActivity {
                 public void run() {
                     mainWindow.setBackgroundDrawableResource(R.color.white);
                 }
-            },
+            },git
         300);
     }
 

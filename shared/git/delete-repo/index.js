@@ -1,15 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Button, Checkbox, ScrollView} from '../../common-adapters'
+import {Avatar, Box, Text, Icon, Input, Button, Checkbox, ScrollView, WaitingButton} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 
 type Props = {
-  loading: boolean,
   error: ?Error,
   teamname?: string,
   name: string,
   onDelete: (notifyTeam: boolean) => void,
   onClose: () => void,
+  waitingKey: string,
 }
 
 type State = {
@@ -111,12 +111,12 @@ class DeleteRepo extends React.Component<Props, State> {
               label="Cancel"
               style={{marginRight: globalMargins.tiny}}
             />
-            <Button
+            <WaitingButton
               type="Danger"
               onClick={this._onSubmit}
               label={isMobile ? 'Delete' : 'Delete this repository'}
               disabled={!this._matchesName()}
-              waiting={this.props.loading}
+              waitingKey={this.props.waitingKey}
             />
           </Box>
         </Box>

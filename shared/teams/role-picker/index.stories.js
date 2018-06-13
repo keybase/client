@@ -28,10 +28,7 @@ const roleConfirmProps = {
   confirm: true,
 }
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.Common()
 
 const load = () => {
   storiesOf('Teams/Roles', module)

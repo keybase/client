@@ -21,6 +21,7 @@ export type Props = {
   unsavedSubscriptions: boolean,
   onSaveSubscriptions: () => void,
   waitingForGet: boolean,
+  waitingKey: string,
   nextChannelState: ChannelMembershipState,
 }
 

@@ -241,7 +241,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				// deleted by a delete-history, retention expunge, or was an
 				// exploding message.
 				mvalid := newMsg.Valid()
-				if !mvalid.IsEphemeral() || mvalid.HideExplosion(time.Now()) {
+				if !mvalid.IsEphemeral() || mvalid.HideExplosion(conv.GetExpunge(), time.Now()) {
 					t.Debug(ctx, "skipping: %d because not valid full", msg.GetMessageID())
 					continue
 				}
