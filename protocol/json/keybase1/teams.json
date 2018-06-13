@@ -2583,6 +2583,32 @@
         }
       ],
       "response": "bytes"
+    },
+    "findNextMerkleRootAfterTeamRemoval": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "team",
+          "type": "TeamID"
+        },
+        {
+          "name": "isPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "teamSigchainSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "prev",
+          "type": "MerkleRootV2"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterTeamRemoval finds the first Merkle root that contains the user being\n   removed from the team at that given seqno in the team's chain. You should pass in a previous\n   Merkle root as a starting point for the binary search."
     }
   },
   "namespace": "keybase.1"

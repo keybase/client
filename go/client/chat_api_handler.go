@@ -22,6 +22,7 @@ const (
 	methodRead         = "read"
 	methodSend         = "send"
 	methodEdit         = "edit"
+	methodReaction     = "reaction"
 	methodDelete       = "delete"
 	methodAttach       = "attach"
 	methodDownload     = "download"
@@ -47,6 +48,7 @@ type ChatAPIHandler interface {
 	ReadV1(context.Context, Call, io.Writer) error
 	SendV1(context.Context, Call, io.Writer) error
 	EditV1(context.Context, Call, io.Writer) error
+	ReactionV1(context.Context, Call, io.Writer) error
 	DeleteV1(context.Context, Call, io.Writer) error
 	AttachV1(context.Context, Call, io.Writer) error
 	DownloadV1(context.Context, Call, io.Writer) error
@@ -199,6 +201,29 @@ func (e editOptionsV1) Check() error {
 
 	if !e.Message.Valid() {
 		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid message")}
+	}
+
+	return nil
+}
+
+type reactionOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string          `json:"conversation_id"`
+	MessageID      chat1.MessageID `json:"message_id"`
+	Message        ChatMessage
+}
+
+func (e reactionOptionsV1) Check() error {
+	if err := checkChannelConv(methodReaction, e.Channel, e.ConversationID); err != nil {
+		return err
+	}
+
+	if e.MessageID == 0 {
+		return ErrInvalidOptions{version: 1, method: methodReaction, err: errors.New("invalid message id")}
+	}
+
+	if !e.Message.Valid() {
+		return ErrInvalidOptions{version: 1, method: methodReaction, err: errors.New("invalid message")}
 	}
 
 	return nil
@@ -390,6 +415,23 @@ func (a *ChatAPI) EditV1(ctx context.Context, c Call, w io.Writer) error {
 	// opts are valid for edit v1
 
 	return a.encodeReply(c, a.svcHandler.EditV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) ReactionV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodReaction, err: errors.New("empty options")}
+	}
+	var opts reactionOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for reaction v1
+
+	return a.encodeReply(c, a.svcHandler.ReactionV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) DeleteV1(ctx context.Context, c Call, w io.Writer) error {

@@ -135,7 +135,7 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 		return res, err
 	}
 
-	comparator := func(leaf *MerkleGenericLeaf, root *MerkleRoot) (bool, error) {
+	comparer := func(leaf *MerkleGenericLeaf, root *MerkleRoot) (bool, error) {
 		slot := leafSlot(leaf, keybase1.SeqType_PUBLIC)
 		if slot == nil {
 			return false, MerkleClientError{fmt.Sprintf("leaf at root %d returned with nil public part", *root.Seqno()), merkleErrorBadLeaf}
@@ -144,7 +144,7 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 		return (slot.Seqno >= arg.Loc.Seqno), nil
 	}
 
-	leaf, root, err := findFirstLeafWithComparer(m, arg.Uid.AsUserOrTeam(), comparator, arg.Prev.Seqno)
+	leaf, root, err := findFirstLeafWithComparer(m, arg.Uid.AsUserOrTeam(), comparer, arg.Prev.Seqno)
 	if err != nil {
 		return res, err
 	}
@@ -169,7 +169,7 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 func FindNextMerkleRootAfterReset(m MetaContext, arg keybase1.FindNextMerkleRootAfterResetArg) (res keybase1.NextMerkleRootRes, err error) {
 	defer m.CTrace(fmt.Sprintf("FindNextMerkleRootAfterReset(%+v)", arg), func() error { return err })()
 
-	comparator := func(leaf *MerkleGenericLeaf, root *MerkleRoot) (bool, error) {
+	comparer := func(leaf *MerkleGenericLeaf, root *MerkleRoot) (bool, error) {
 		user := leaf.userExtras
 		if user == nil {
 			return false, MerkleClientError{fmt.Sprintf("for root %d, expected a user leaf, didn't get one", *root.Seqno()), merkleErrorBadLeaf}
@@ -179,7 +179,36 @@ func FindNextMerkleRootAfterReset(m MetaContext, arg keybase1.FindNextMerkleRoot
 		}
 		return (user.resets.chainTail.Seqno >= arg.ResetSeqno), nil
 	}
-	leaf, root, err := findFirstLeafWithComparer(m, arg.Uid.AsUserOrTeam(), comparator, arg.Prev.Seqno)
+	leaf, root, err := findFirstLeafWithComparer(m, arg.Uid.AsUserOrTeam(), comparer, arg.Prev.Seqno)
+	if err != nil {
+		return res, err
+	}
+	if leaf == nil || root == nil {
+		return res, MerkleClientError{"no suitable leaf found", merkleErrorNoUpdates}
+	}
+	res.Res = &keybase1.MerkleRootV2{
+		HashMeta: root.HashMeta(),
+		Seqno:    *root.Seqno(),
+	}
+	m.CDebugf("res.Res: %+v", *res.Res)
+	return res, nil
+}
+
+func FindNextMerkleRootAfterTeamRemoval(m MetaContext, arg keybase1.FindNextMerkleRootAfterTeamRemovalArg) (res keybase1.NextMerkleRootRes, err error) {
+	defer m.CTrace(fmt.Sprintf("FindNextMerkleRootAfterTeamRemoval(%+v)", arg), func() error { return err })()
+	comparer := func(leaf *MerkleGenericLeaf, root *MerkleRoot) (bool, error) {
+		var trip *MerkleTriple
+		if arg.IsPublic {
+			trip = leaf.Public
+		} else {
+			trip = leaf.Private
+		}
+		if trip == nil {
+			return false, MerkleClientError{fmt.Sprintf("No leaf found for team %v", arg.Team), merkleErrorNotFound}
+		}
+		return (trip.Seqno >= arg.TeamSigchainSeqno), nil
+	}
+	leaf, root, err := findFirstLeafWithComparer(m, arg.Team.AsUserOrTeam(), comparer, arg.Prev.Seqno)
 	if err != nil {
 		return res, err
 	}
