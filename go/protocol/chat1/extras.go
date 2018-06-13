@@ -203,14 +203,17 @@ func (hash Hash) Eq(other Hash) bool {
 
 func (m MessageUnboxed) GetMessageID() MessageID {
 	if state, err := m.State(); err == nil {
-		if state == MessageUnboxedState_VALID {
+		switch state {
+		case MessageUnboxedState_VALID:
 			return m.Valid().ServerHeader.MessageID
-		}
-		if state == MessageUnboxedState_ERROR {
+		case MessageUnboxedState_ERROR:
 			return m.Error().MessageID
-		}
-		if state == MessageUnboxedState_PLACEHOLDER {
+		case MessageUnboxedState_PLACEHOLDER:
 			return m.Placeholder().MessageID
+		case MessageUnboxedState_OUTBOX:
+			return m.Outbox().Msg.ClientHeader.OutboxInfo.Prev
+		default:
+			return 0
 		}
 	}
 	return 0

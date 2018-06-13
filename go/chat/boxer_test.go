@@ -1641,7 +1641,8 @@ func TestVersionError(t *testing.T) {
 
 	t.Logf("unversionHeaderMBV2")
 	hv2 := chat1.HeaderPlaintextUnsupported{}
-	_, _, err = boxer.unversionHeaderMBV2(context.Background(), chat1.HeaderPlaintext{Version__: maxHeaderVersion, V2__: &hv2})
+	hp := chat1.MessageServerHeader{}
+	_, _, err = boxer.unversionHeaderMBV2(context.Background(), &hp, chat1.HeaderPlaintext{Version__: maxHeaderVersion, V2__: &hv2})
 	assertErr(err)
 
 	t.Logf("unversionBody")

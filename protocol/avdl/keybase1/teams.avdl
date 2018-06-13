@@ -842,6 +842,14 @@ protocol teams {
 
   void uploadTeamAvatar(string teamname, string filename, union { null, ImageCropRect } crop, boolean sendChatNotification);
 
-  bytes tryDecryptWithTeamKey(TeamID teamID, bytes encryptedData, BoxNonce nonce, 
+  bytes tryDecryptWithTeamKey(TeamID teamID, bytes encryptedData, BoxNonce nonce,
     BoxPublicKey peersPublicKey, PerTeamKeyGeneration minGeneration);
+
+  /**
+   FindNextMerkleRootAfterTeamRemoval finds the first Merkle root that contains the user being
+   removed from the team at that given seqno in the team's chain. You should pass in a previous
+   Merkle root as a starting point for the binary search.
+  */
+  NextMerkleRootRes findNextMerkleRootAfterTeamRemoval(UID uid, TeamID team, boolean isPublic, Seqno teamSigchainSeqno, MerkleRootV2 prev);
+
 }
