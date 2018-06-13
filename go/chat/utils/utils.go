@@ -833,16 +833,15 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 		}
 		return "", ""
 	}
-	var explodingPrefix string
 	if mvalid.IsEphemeral() {
 		decoration = "💣"
 	}
 
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
-		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
+		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
 	case chat1.MessageType_ATTACHMENT:
-		return explodingPrefix + senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
+		return senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
 	}
