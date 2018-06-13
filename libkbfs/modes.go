@@ -283,18 +283,15 @@ func (mc modeConstrained) RekeyWorkers() int {
 }
 
 func (mc modeConstrained) BackgroundFlushesEnabled() bool {
-	// TODO: turn this on once we allow mobile writes.
-	return false
+	return true
 }
 
 func (mc modeConstrained) ConflictResolutionEnabled() bool {
-	// TODO: turn this on once we allow mobile writes.
-	return false
+	return true
 }
 
 func (mc modeConstrained) QuotaReclamationEnabled() bool {
-	// TODO: turn this on once we allow mobile writes.
-	return false
+	return true
 }
 
 func (mc modeConstrained) KBFSServiceEnabled() bool {
@@ -302,13 +299,11 @@ func (mc modeConstrained) KBFSServiceEnabled() bool {
 }
 
 func (mc modeConstrained) JournalEnabled() bool {
-	// TODO: turn this on once we allow mobile writes.
-	return false
+	return true
 }
 
 func (mc modeConstrained) UnmergedTLFsEnabled() bool {
-	// TODO: turn this on once we allow mobile writes.
-	return false
+	return true
 }
 
 func (mc modeConstrained) ServiceKeepaliveEnabled() bool {
