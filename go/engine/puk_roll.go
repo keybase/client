@@ -155,7 +155,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 	var myUserEKBox *keybase1.UserEkBoxed
 	var newUserEKMetadata *keybase1.UserEkMetadata
 	if ekLib != nil {
-		merkleRoot, err := m.G().GetMerkleClient().FetchRootFromServer(m.Ctx(), libkb.EphemeralKeyMerkleFreshness)
+		merkleRoot, err := m.G().GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 		if err != nil {
 			return err
 		}

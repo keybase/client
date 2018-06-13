@@ -36,10 +36,6 @@ type LoaderContextG struct {
 	libkb.Contextified
 }
 
-func (l *LoaderContextG) NewMetaContext(ctx context.Context) libkb.MetaContext {
-	return libkb.NewMetaContext(ctx, l.G())
-}
-
 var _ LoaderContext = (*LoaderContextG)(nil)
 
 func NewLoaderContextFromG(g *libkb.GlobalContext) LoaderContext {
@@ -141,11 +137,11 @@ func (l *LoaderContextG) perUserEncryptionKey(ctx context.Context, userSeqno key
 	if err != nil {
 		return nil, err
 	}
-	return kr.GetEncryptionKeyBySeqnoOrSync(l.NewMetaContext(ctx), userSeqno)
+	return kr.GetEncryptionKeyBySeqnoOrSync(l.MetaContext(ctx), userSeqno)
 }
 
 func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
-	leaf, err := l.G().GetMerkleClient().LookupTeam(ctx, teamID)
+	leaf, err := l.G().GetMerkleClient().LookupTeam(l.MetaContext(ctx), teamID)
 	if err != nil {
 		return r1, r2, err
 	}
@@ -168,7 +164,7 @@ func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamI
 }
 
 func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
-	leaf, err := l.G().MerkleClient.LookupLeafAtHashMeta(ctx, leafID, hm)
+	leaf, err := l.G().MerkleClient.LookupLeafAtHashMeta(l.MetaContext(ctx), leafID, hm)
 	if err != nil {
 		return nil, err
 	}
