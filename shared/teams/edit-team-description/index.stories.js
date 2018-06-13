@@ -16,11 +16,7 @@ const sharedProps = {
   waitingKey: 'test',
 }
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
-  PropProviders.WaitingButton()
-)
+const provider = PropProviders.Common()
 
 const load = () => {
   storiesOf('Teams/Edit team description', module)

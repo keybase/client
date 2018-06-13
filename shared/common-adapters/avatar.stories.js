@@ -8,10 +8,7 @@ import {storiesOf, action} from '../stories/storybook'
 import * as PropProviders from '../stories/prop-providers'
 
 const sizes = [128, 96, 64, 48, 32, 16]
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.Common()
 
 const load = () => {
   storiesOf('Common', module)

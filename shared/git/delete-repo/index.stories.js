@@ -5,11 +5,7 @@ import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action} from '../../stories/storybook'
 import DeleteRepo from '.'
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
-  PropProviders.WaitingButton(),
-)
+const provider = PropProviders.Common()
 
 const load = () => {
   storiesOf('Git/Delete', module)

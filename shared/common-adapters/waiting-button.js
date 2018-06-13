@@ -10,6 +10,18 @@ export type WaitingButtonProps = {
   waitingKey: ?string,
 }
 
+/* Waiting button is a <Button /> with handling of waiting states.
+ *
+ * There are two forms:
+ *  waitingKey is null: The spinner activates as soon as the button is clicked,
+ *  and stays there until the component's unmounted.  This can be used in
+ *  places where the end of an async action will coincide with the component
+ *  unmounting.
+ *
+ *  waitingKey is non-null: The spinner follows the given key in our generic
+ *  waiting store (store.waiting), which will be set by a saga somewhere.
+ */
+
 class WaitingButton extends React.PureComponent<ButtonProps & WaitingButtonProps> {
   _onClick = (event: SyntheticEvent<>) => {
     if (!this.props.waitingKey) {
