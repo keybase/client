@@ -18,7 +18,7 @@ const load = () => {
   storiesOf('Chat/Conversation/Set explode time', module)
     .add('New', () => <SetExplodingPopup {...common} isNew={true} />)
     .add('Old', () => <SetExplodingPopup {...common} isNew={false} />)
-    .add('Selected', () => <SetExplodingPopup {...common} isNew={false} selected={3600 * 12} />)
+    .add('Selected', () => <SetExplodingPopup {...common} isNew={false} selected={3600 * 6} />)
 }
 
 export default load
