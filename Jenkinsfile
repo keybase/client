@@ -295,11 +295,8 @@ def testGo(prefix) {
             goversion = sh(returnStdout: true, script: "go version").trim()
             // Ideally, we'd do this on Windows, too, but we'd have to figure
             // out how to do it with batch files or PowerShell.
-            sh '''
-                lint=$(make -s lint);
-                echo 2>&1 "$lint";
-                [ -z "$lint" -o "$lint" = "Lint-free!" ]
-            '''
+            sh 'go get -u golang.org/x/lint/golint'
+            sh 'make -s lint'
             sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
             // Make sure we don't accidentally pull in the testing package.
             sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
