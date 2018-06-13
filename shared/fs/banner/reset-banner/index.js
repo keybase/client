@@ -22,10 +22,11 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, o
   }
   return (
     <Box style={bannerStyle}>
-      <Box style={iconContainerStyle}>
-        <Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
-      </Box>
-      <Box style={headerTextContainerStyle}>
+      <Icon
+        type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+        style={{margin: globalMargins.medium, height: globalMargins.xlarge}}
+      />
+      <Box style={textContainerStyle}>
         <Box style={globalStyles.flexBoxRow}>
           <Box style={{marginRight: globalMargins.xtiny}}>
             <ConnectedUsernames
@@ -56,7 +57,7 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, o
           2. Know them outside Keybase and have gotten a thumbs up from them.
         </Text>
       </Box>
-      <Box style={headerTextContainerStyle}>
+      <Box style={textContainerStyle}>
         <Text type="BodySemibold" style={textStyle}>
           Don't let them in until one of those is true.
         </Text>
@@ -100,10 +101,11 @@ const bannerStyle = {
   paddingBottom: globalMargins.medium,
 }
 
-const headerTextContainerStyle = {
+const textContainerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  paddingBottom: globalMargins.xsmall,
+  backgroundColor: globalColors.red,
+  padding: globalMargins.small,
 }
 
 const listTextContainerStyle = {

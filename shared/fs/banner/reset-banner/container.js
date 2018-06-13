@@ -41,25 +41,25 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}) => ({
-  isUserReset:
-    stateProps.resetParticipants.length > 0
-      ? stateProps.resetParticipants.includes(stateProps._username)
-      : false,
-  onReAddToTeam: (username: string) => () =>
-    stateProps._teamId ? _onReAddToTeam(stateProps._teamId, username) : undefined,
-  onOpenWithoutResetUsers: () =>
-    _onOpenWithoutResetUsers(
-      stateProps.path,
-      stateProps.resetParticipants.reduce((acc, i) => {
-        acc[i.username] = true
-        return acc
-      }, {})
-    ),
-  onViewProfile,
-  path: stateProps.path,
-  resetParticipants: stateProps.resetParticipants.map(i => i.username),
-})
+const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}) => {
+  const resetParticipants = stateProps.resetParticipants.map(i => i.username)
+  return {
+    isUserReset: resetParticipants.includes(stateProps._username),
+    onReAddToTeam: (username: string) => () =>
+      stateProps._teamId ? _onReAddToTeam(stateProps._teamId, username) : undefined,
+    onOpenWithoutResetUsers: () =>
+      _onOpenWithoutResetUsers(
+        stateProps.path,
+        resetParticipants.reduce((acc, i) => {
+          acc[i] = true
+          return acc
+        }, {})
+      ),
+    onViewProfile,
+    path: stateProps.path,
+    resetParticipants,
+  }
+}
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),

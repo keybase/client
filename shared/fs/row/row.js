@@ -16,7 +16,7 @@ type RowProps = {
   itemStyles: Types.ItemStyles,
   badgeCount: number,
   tlfMeta?: Types.FavoriteMetadata,
-  resetParticipants: Array<Types.ResetMember>,
+  resetParticipants: Array<string>,
   isUserReset: boolean,
   onOpen: () => void,
   openInFileUI: () => void,

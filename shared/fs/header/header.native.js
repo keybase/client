@@ -4,6 +4,7 @@ import * as Types from '../../constants/types/fs'
 import {globalStyles, globalMargins} from '../../styles'
 import {BackButton, Box, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
+import ConnectedBanner from '../banner/container'
 
 type Props = {
   path: Types.Path,
@@ -13,22 +14,31 @@ type Props = {
 
 const Header = ({title, path, onBack}: Props) => (
   <Box style={stylesFolderHeaderContainer}>
-    <BackButton onClick={onBack} />
-    <Box style={stylesFolderHeaderRoot}>
-      <Text type="BodyBig" style={stylesTitle}>
-        {title}
-      </Text>
+    <Box style={stylesFolderHeaderRow}>
+      <BackButton onClick={onBack} />
+      <Box style={stylesFolderHeaderRoot}>
+        <Text type="BodyBig" style={stylesTitle}>
+          {title}
+        </Text>
+      </Box>
+      <Box style={stylesAddNewBox}>
+        <AddNew path={path} style={stylesAddNew} />
+      </Box>
     </Box>
-    <Box style={stylesAddNewBox}>
-      <AddNew path={path} style={stylesAddNew} />
-    </Box>
+    <ConnectedBanner path={path} />
   </Box>
 )
 
-const stylesFolderHeaderContainer = {
+const stylesFolderHeaderRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   paddingTop: 12,
+  minHeight: 64,
+}
+
+const stylesFolderHeaderContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'flex-start',
   minHeight: 64,
 }
 
