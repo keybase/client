@@ -718,6 +718,11 @@ func (c constIDGetter) GetIDForHandle(_ context.Context, _ *TlfHandle) (
 	return c.id, nil
 }
 
+func (c constIDGetter) GetLatestHandleForTLF(
+	_ context.Context, _ tlf.ID) (tlf.Handle, error) {
+	return tlf.Handle{}, nil
+}
+
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	ImmutableRootMetadata, error) {

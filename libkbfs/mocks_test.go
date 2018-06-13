@@ -4032,6 +4032,19 @@ func (mr *MocktlfIDGetterMockRecorder) GetIDForHandle(ctx, handle interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForHandle", reflect.TypeOf((*MocktlfIDGetter)(nil).GetIDForHandle), ctx, handle)
 }
 
+// GetLatestHandleForTLF mocks base method
+func (m *MocktlfIDGetter) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error) {
+	ret := m.ctrl.Call(m, "GetLatestHandleForTLF", ctx, id)
+	ret0, _ := ret[0].(tlf.Handle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLatestHandleForTLF indicates an expected call of GetLatestHandleForTLF
+func (mr *MocktlfIDGetterMockRecorder) GetLatestHandleForTLF(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestHandleForTLF", reflect.TypeOf((*MocktlfIDGetter)(nil).GetLatestHandleForTLF), ctx, id)
+}
+
 // MockMDOps is a mock of MDOps interface
 type MockMDOps struct {
 	ctrl     *gomock.Controller
@@ -4066,6 +4079,19 @@ func (m *MockMDOps) GetIDForHandle(ctx context.Context, handle *TlfHandle) (tlf.
 // GetIDForHandle indicates an expected call of GetIDForHandle
 func (mr *MockMDOpsMockRecorder) GetIDForHandle(ctx, handle interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForHandle", reflect.TypeOf((*MockMDOps)(nil).GetIDForHandle), ctx, handle)
+}
+
+// GetLatestHandleForTLF mocks base method
+func (m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error) {
+	ret := m.ctrl.Call(m, "GetLatestHandleForTLF", ctx, id)
+	ret0, _ := ret[0].(tlf.Handle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLatestHandleForTLF indicates an expected call of GetLatestHandleForTLF
+func (mr *MockMDOpsMockRecorder) GetLatestHandleForTLF(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestHandleForTLF", reflect.TypeOf((*MockMDOps)(nil).GetLatestHandleForTLF), ctx, id)
 }
 
 // GetForTLF mocks base method
@@ -4169,19 +4195,6 @@ func (m *MockMDOps) ResolveBranch(ctx context.Context, id tlf.ID, bid kbfsmd.Bra
 // ResolveBranch indicates an expected call of ResolveBranch
 func (mr *MockMDOpsMockRecorder) ResolveBranch(ctx, id, bid, blocksToDelete, rmd, verifyingKey interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveBranch", reflect.TypeOf((*MockMDOps)(nil).ResolveBranch), ctx, id, bid, blocksToDelete, rmd, verifyingKey)
-}
-
-// GetLatestHandleForTLF mocks base method
-func (m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error) {
-	ret := m.ctrl.Call(m, "GetLatestHandleForTLF", ctx, id)
-	ret0, _ := ret[0].(tlf.Handle)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetLatestHandleForTLF indicates an expected call of GetLatestHandleForTLF
-func (mr *MockMDOpsMockRecorder) GetLatestHandleForTLF(ctx, id interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestHandleForTLF", reflect.TypeOf((*MockMDOps)(nil).GetLatestHandleForTLF), ctx, id)
 }
 
 // MockKeyOps is a mock of KeyOps interface

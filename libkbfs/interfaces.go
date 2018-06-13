@@ -1203,6 +1203,11 @@ type tlfIDGetter interface {
 	// exist yet, and it may return `tlf.NullID` with a `nil` error if
 	// it doesn't create a missing folder.
 	GetIDForHandle(ctx context.Context, handle *TlfHandle) (tlf.ID, error)
+	// GetLatestHandleForTLF returns the server's idea of the latest
+	// handle for the TLF, which may not yet be reflected in the MD if
+	// the TLF hasn't been rekeyed since it entered into a conflicting
+	// state.
+	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error)
 }
 
 // MDOps gets and puts root metadata to an MDServer.  On a get, it
@@ -1289,11 +1294,6 @@ type MDOps interface {
 	ResolveBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
 		blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
-
-	// GetLatestHandleForTLF returns the server's idea of the latest handle for the TLF,
-	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it
-	// entered into a conflicting state.
-	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error)
 }
 
 // KeyOps fetches server-side key halves from the key server.

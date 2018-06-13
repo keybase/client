@@ -238,6 +238,23 @@ func makeTlfHandleHelper(
 		panic(fmt.Sprintf("Unknown TLF type: %s", t))
 	}
 
+	if !isImplicit && tlfID != tlf.NullID && finalizedInfo == nil &&
+		idGetter != nil {
+		// Implicit team chat migration might have set the ID to an
+		// old folder that has since been reset.  Check with the
+		// server to see if that has happened, and if so, don't use
+		// that ID.  When we migrate existing TLFs to iteams, we can
+		// probably override the sigchain link with a new one
+		// containing the correct TLF ID.
+		latestHandle, err := idGetter.GetLatestHandleForTLF(ctx, tlfID)
+		if err != nil {
+			return nil, err
+		}
+		if latestHandle.IsFinal() {
+			tlfID = tlf.NullID
+		}
+	}
+
 	h := &TlfHandle{
 		tlfType:           t,
 		resolvedWriters:   usedWNames,
