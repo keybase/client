@@ -46,7 +46,11 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.retainHeight) {
-      if (!prevProps.retainHeight && !this.timeoutID) {
+      if (!prevProps.retainHeight) {
+        if (this.timeoutID) {
+          clearTimeout(this.timeoutID)
+          this.timeoutID = null
+        }
         // destroy local copy of children when animation finishes
         this.setState({animating: true}, () => {
           this.timeoutID = setTimeout(
