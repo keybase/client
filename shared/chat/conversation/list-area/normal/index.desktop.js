@@ -1,7 +1,10 @@
 // @flow
-// An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
-import * as Virtualized from 'react-virtualized'
+
+// use waypoints to group sets of messages (100 each) and replace them with a measured div when offscreen
+
 import * as React from 'react'
+import Measure from 'react-measure'
+import Waypoint from 'react-waypoint'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
@@ -15,44 +18,30 @@ import type {Props} from '.'
 // set this to true to see size overlays
 const debugSizing = __STORYBOOK__
 
+const ordinalsInAWaypoint = 100
 const lockedToBottomSlop = 20
 
 type State = {
-  isLockedToBottom: boolean, // MUST be in state else virtualized will re-render itself and will jump down w/o us re-rendering
-  width: number,
+  isLockedToBottom: boolean,
 }
 
-class Thread extends React.Component<Props, State> {
+class Thread extends React.PureComponent<Props, State> {
   state = {isLockedToBottom: true, width: 0}
 
-  _cellCache = new Virtualized.CellMeasurerCache({
-    fixedWidth: true,
-    keyMapper: (index: number) => {
-      const itemCountIncludingSpecial = this._getItemCount()
-      if (index === itemCountIncludingSpecial - 1) {
-        return 'specialBottom'
-      } else if (index === 0) {
-        return 'specialTop'
-      } else {
-        const ordinalIndex = index - 1
-        return this.props.messageOrdinals.get(ordinalIndex)
-      }
-    },
-  })
-
-  _list: any
-
-  _reMeasureAll = () => {
-    this._cellCache.clearAll()
-    this._list && this._list.Grid && this._list.Grid.measureAllCells()
+  _keyMapper = (index: number) => {
+    const itemCountIncludingSpecial = this._getItemCount()
+    if (index === itemCountIncludingSpecial - 1) {
+      return 'specialBottom'
+    } else if (index === 0) {
+      return 'specialTop'
+    } else {
+      const ordinalIndex = index - 1
+      return this.props.messageOrdinals.get(ordinalIndex)
+    }
   }
 
-  componentDidMount() {
-    this._reMeasureAll()
-  }
   componentDidUpdate(prevProps: Props) {
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
-      this._reMeasureAll()
       this.setState({isLockedToBottom: true})
       return
     }
@@ -61,118 +50,63 @@ class Thread extends React.Component<Props, State> {
       this.setState({isLockedToBottom: true})
     }
 
-    // Did we prepend?
-    if (this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first()) {
-      if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
-        // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
-        // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
-        // another cache from row -> style which is out of sync
-        this._cellCache.clearAll()
-        this._reMeasureAll()
-      }
-
-      if (this._list) {
-        // try and maintain scroll position, doens't work great
-        if (prevProps.messageOrdinals.size > 1) {
-          const toFind = prevProps.messageOrdinals.first()
-          if (toFind === this.props.lastLoadMoreOrdinal) {
-            const idx = toFind ? this.props.messageOrdinals.indexOf(toFind) : -1
-            if (idx !== -1) {
-              const scrollToIdx = idx + 1
-              this._list.scrollToRow(scrollToIdx)
-            }
-          }
-        }
-      }
-    }
-
-    if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
-      const idx = this.props.messageOrdinals.indexOf(this.props.editingOrdinal)
-      if (idx !== -1) {
-        this._list && this._list.scrollToRow(idx + 1)
-      }
-    }
+    // TODO
+    // if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
+    // const idx = this.props.messageOrdinals.indexOf(this.props.editingOrdinal)
+    // if (idx !== -1) {
+    // this._list && this._list.scrollToRow(idx + 1)
+    // }
+    // }
   }
   // we MUST debounce else this callbacks happens a bunch and we're switch back and forth as you submit
-  _updateBottomLock = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
-    // meaningless otherwise
-    if (clientHeight) {
-      this.setState(prevState => {
-        const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
-        return isLockedToBottom !== prevState.isLockedToBottom ? {isLockedToBottom} : null
-      })
-    }
-  }, 100)
+  // _updateBottomLock = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
+  // // meaningless otherwise
+  // if (clientHeight) {
+  // this.setState(prevState => {
+  // const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+  // return isLockedToBottom !== prevState.isLockedToBottom ? {isLockedToBottom} : null
+  // })
+  // }
+  // }, 100)
 
-  _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
-    if (clientHeight && scrollHeight && scrollTop <= 20) {
-      this.props.loadMoreMessages(this.props.messageOrdinals.first())
-    }
-  }, 500)
+  // _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
+  // if (clientHeight && scrollHeight && scrollTop <= 20) {
+  // this.props.loadMoreMessages(this.props.messageOrdinals.first())
+  // }
+  // }, 500)
 
-  _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
-    this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
-    this._maybeLoadMoreMessages(clientHeight, scrollHeight, scrollTop)
-  }
+  // _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
+  // this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
+  // this._maybeLoadMoreMessages(clientHeight, scrollHeight, scrollTop)
+  // }
 
-  _onResize = ({width}) => {
-    if (this._cellCache.columnWidth({index: 0}) !== width) {
-      this._cellCache.clearAll()
-    }
-    if (debugSizing) {
-      this.setState({width})
-    }
-  }
+  // _onResize = ({width}) => {
+  // if (this._cellCache.columnWidth({index: 0}) !== width) {
+  // this._cellCache.clearAll()
+  // }
+  // if (debugSizing) {
+  // this.setState({width})
+  // }
+  // }
 
   _getItemCount = () => this.props.messageOrdinals.size + 2
 
-  _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
-    style.height === 'auto' && console.log('aaa', index, isScrolling, isVisible, key)
-    return (
-      <Virtualized.CellMeasurer
-        cache={this._cellCache}
-        columnIndex={0}
-        key={key}
-        parent={parent}
-        rowIndex={index}
-      >
-        {({measure}) => {
-          const itemCountIncludingSpecial = this._getItemCount()
-          let content = <div />
-          if (index === itemCountIncludingSpecial - 1) {
-            content = (
-              <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
-            )
-          } else if (index === 0) {
-            content = <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
-          } else {
-            const ordinalIndex = index - 1
-            const ordinal = this.props.messageOrdinals.get(ordinalIndex)
-            if (ordinal) {
-              const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
-              content = (
-                <Message
-                  ordinal={ordinal}
-                  previous={prevOrdinal}
-                  measure={measure}
-                  conversationIDKey={this.props.conversationIDKey}
-                />
-              )
-            }
-          }
-          return (
-            <div style={style}>
-              {content}
-              {debugSizing && (
-                <div style={debugSizingStyle}>
-                  h: {style.height} t: {style.top}
-                </div>
-              )}
-            </div>
-          )
-        }}
-      </Virtualized.CellMeasurer>
-    )
+  _rowRenderer = ordinalIndex => {
+    const ordinal = this.props.messageOrdinals.get(ordinalIndex)
+    if (ordinal) {
+      const measure = null
+      const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
+      return (
+        <Message
+          key={String(ordinal)}
+          ordinal={ordinal}
+          previous={prevOrdinal}
+          measure={measure}
+          conversationIDKey={this.props.conversationIDKey}
+        />
+      )
+    }
+    return <div />
   }
 
   _onCopyCapture(e) {
@@ -181,56 +115,70 @@ class Thread extends React.Component<Props, State> {
     copyToClipboard(window.getSelection().toString())
   }
 
-  _handleListClick = () => {
-    if (window.getSelection().isCollapsed) {
-      this.props.onFocusInput()
-    }
-  }
+  // _handleListClick = () => {
+  // if (window.getSelection().isCollapsed) {
+  // this.props.onFocusInput()
+  // }
+  // }
 
   _setListRef = (r: any) => {
     this._list = r
   }
 
   render() {
-    const rowCount = this._getItemCount()
-    const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
+    // const rowCount = this._getItemCount()
+    // const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
+    // maybe memoize this
+    let waitingToInjectIntoWaypoint = []
+    const waypoints = []
+    const measure = null
+
+    waypoints.push([
+      <Waypoint key="SpecialTopMessage">
+        <div>
+          <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
+        </div>
+      </Waypoint>,
+    ])
+
+    const numOrdinals = this.props.messageOrdinals.size
+    for (var idx = 0; idx < numOrdinals; ++idx) {
+      const needNextWaypoint = idx % ordinalsInAWaypoint === 0
+      const isLastItem = idx === numOrdinals - 1
+      if (needNextWaypoint || isLastItem) {
+        if (isLastItem) {
+          waitingToInjectIntoWaypoint.push(idx)
+        }
+
+        if (waitingToInjectIntoWaypoint.length) {
+          waypoints.push(
+            <Waypoint key={String(this.props.messageOrdinals.get(waitingToInjectIntoWaypoint[0]))}>
+              <div>{waitingToInjectIntoWaypoint.map(i => this._rowRenderer(i))}</div>
+            </Waypoint>
+          )
+          waitingToInjectIntoWaypoint = []
+        }
+      }
+      waitingToInjectIntoWaypoint.push(idx)
+    }
+
+    waypoints.push([
+      <Waypoint key="SpecialBottomMessage">
+        <div>
+          <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
+        </div>
+      </Waypoint>,
+    ])
 
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
-          {debugSizing && <div style={debugSizingStyle}>w: {this.state.width}</div>}
-          <Virtualized.AutoSizer onResize={this._onResize}>
-            {({height, width}) => (
-              <Virtualized.List
-                conversationIDKey={this.props.conversationIDKey}
-                columnWidth={width}
-                deferredMeasurementCache={this._cellCache}
-                height={height}
-                onScroll={this._onScroll}
-                ref={this._setListRef}
-                rowCount={rowCount}
-                rowHeight={this._cellCache.rowHeight}
-                rowRenderer={this._rowRenderer}
-                scrollToAlignment="start"
-                scrollToIndex={scrollToIndex}
-                style={listStyle}
-                width={width}
-              />
-            )}
-          </Virtualized.AutoSizer>
+          <div style={listStyle}>{waypoints}</div>
         </div>
       </ErrorBoundary>
     )
   }
-}
-
-const debugSizingStyle = {
-  backgroundColor: 'rgba(255,255,0, 1)',
-  fontSize: 14,
-  position: 'absolute',
-  right: 0,
-  top: 0,
 }
 
 // We need to use both visibility and opacity css properties for the
