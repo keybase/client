@@ -5,6 +5,7 @@ import * as React from 'react'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
+import {ordinalToNumber} from '../../../../constants/types/chat2'
 import {ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce} from 'lodash-es'
@@ -26,12 +27,13 @@ class Thread extends React.Component<Props, State> {
     keyMapper: (index: number) => {
       const itemCountIncludingSpecial = this._getItemCount()
       if (index === itemCountIncludingSpecial - 1) {
-        return 'specialBottom'
+        return `${this.props.conversationIDKey}:specialBottom`
       } else if (index === 0) {
-        return 'specialTop'
+        return `${this.props.conversationIDKey}:specialTop`
       } else {
         const ordinalIndex = index - 1
-        return this.props.messageOrdinals.get(ordinalIndex)
+        const ordinal = this.props.messageOrdinals.get(ordinalIndex)
+        return `${this.props.conversationIDKey}:${ordinal ? ordinalToNumber(ordinal) : 'null'}`
       }
     },
   })
@@ -139,6 +141,7 @@ class Thread extends React.Component<Props, State> {
                   ordinal={ordinal}
                   previous={prevOrdinal}
                   measure={measure}
+                  key={`${this.props.conversationIDKey}:${ordinalToNumber(ordinal)}`}
                   conversationIDKey={this.props.conversationIDKey}
                 />
               )
