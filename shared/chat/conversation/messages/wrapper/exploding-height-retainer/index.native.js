@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {throttle} from 'lodash-es'
 import {
   Box,
   ConnectedUsernames,
@@ -17,12 +18,37 @@ const explodedIllustrationURL = require('../../../../../images/icons/pattern-ash
 
 const animationDurationMs = 1500
 
+const copyChildren = children =>
+  React.Children.map(children, child => (child ? React.cloneElement(child) : child))
+
 type State = {
+  children: ?React.Node,
   height: ?number,
   numImages: number,
 }
 class ExplodingHeightRetainer extends React.Component<Props, State> {
-  state = {height: 20, numImages: 1}
+  state = {
+    children: this.props.retainHeight ? null : copyChildren(this.props.children),
+    height: 20,
+    numImages: 1,
+  }
+  timeoutID: ?TimeoutID
+
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.retainHeight && !prevProps.retainHeight && this.props.children) {
+      // we just exploded! get rid of children when we're supposed to.
+      this.timeoutID = setTimeout(() => {
+        this.setState({children: null})
+        this.timeoutID = null
+      }, animationDurationMs)
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.timeoutID) {
+      clearTimeout(this.timeoutID)
+    }
+  }
 
   _onLayout = evt => {
     if (evt.nativeEvent && evt.nativeEvent.layout.height !== this.state.height) {
@@ -43,12 +69,12 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
           !!this.state.height && this.props.retainHeight && {height: this.state.height},
         ])}
       >
+        {this.state.children}
         <AnimatedAshTower
           exploded={this.props.retainHeight}
           explodedBy={this.props.explodedBy}
           numImages={this.state.numImages}
         />
-        {!this.props.retainHeight && this.props.children}
       </Box>
     )
   }
@@ -78,7 +104,61 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
     return (
       <NativeAnimated.View style={[{width}, styles.slider]}>
         <AshTower {...this.props} />
+        <EmojiTower animatedValue={this.state.width} numImages={this.props.numImages} />
       </NativeAnimated.View>
+    )
+  }
+}
+
+class EmojiTower extends React.Component<
+  {numImages: number, animatedValue: NativeAnimated.Value},
+  {running: boolean}
+> {
+  state = {running: false}
+  componentDidMount() {
+    this.props.animatedValue.addListener(this._listener)
+  }
+
+  _listener = (evt: {value: number}) => {
+    console.log('DANNYDEBUG', evt.value)
+    if ([0, 100].includes(evt.value)) {
+      this.setState({running: false})
+      return
+    }
+    if (!this.state.running) {
+      this.setState({running: true}, this._update())
+      return
+    }
+    this._update()
+  }
+
+  _update = throttle(() => this.forceUpdate(), 100)
+
+  render() {
+    if (!this.state.running) {
+      return null
+    }
+    const children = []
+    for (let i = 0; i < this.props.numImages * 4; i++) {
+      const r = Math.random()
+      let emoji
+      if (r < 0.33) {
+        emoji = '💥'
+      } else if (r < 0.66) {
+        emoji = '💣'
+      } else {
+        emoji = '🤯'
+      }
+      children.push(
+        <Text key={i} type="Body">
+          {emoji}
+        </Text>
+      )
+    }
+    return (
+      <Box style={[globalStyles.flexBoxColumn, {position: 'absolute', right: 0, top: 0, bottom: 0}]}>
+        {children}
+      </Box>
     )
   }
 }
@@ -126,6 +206,7 @@ const styles = styleSheetCreate({
     overflow: 'hidden',
   },
   slider: {
+    backgroundColor: globalColors.white,
     height: '100%',
     overflow: 'hidden',
     position: 'absolute',
