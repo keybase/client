@@ -1,14 +1,15 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/push'
 import * as PushGen from '../../actions/push-gen'
 import {connect} from '../../util/container'
 import {Box, Button, Text, NativeScrollView, NativeImage, WaitingButton} from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 type Props = {
-  permissionsRequesting: boolean,
   onRequestPermissions: () => void,
   onNoPermissions: () => void,
+  waitingKey: string,
 }
 
 const Push = (props: Props) => (
@@ -62,7 +63,7 @@ const Push = (props: Props) => (
           style={{marginBottom: 10}}
           onClick={props.onRequestPermissions}
           label="Got it"
-          waitingKey={props.permissionsRequestingWaitingKey}
+          waitingKey={Constants.permissionsRequestingWaitingKey}
         />
         <Button
           type="Secondary"
@@ -82,8 +83,9 @@ export default connect(
   mapStateToProps,
   (dispatch: any) => {
     return {
-      onRequestPermissions: () => dispatch(PushGen.createPermissionsRequest()),
       onNoPermissions: () => dispatch(PushGen.createPermissionsNo()),
+      onRequestPermissions: () => dispatch(PushGen.createPermissionsRequest()),
+      waitingKey: Constants.permissionsRequestingWaitingKey,
     }
   }
 )(Push)

@@ -4,8 +4,6 @@ import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles} from './icon'
 import * as React from 'react'
 import Text from './text'
-import * as WaitingGen from '../actions/waiting-gen'
-import {compose, connect, withStateHandlers} from '../util/container'
 import {
   type StylesCrossPlatform,
   collapseStyles,
@@ -52,47 +50,6 @@ const Progress = ({small, white}) => (
     />
   </Box>
 )
-
-type WaitingButtonProps = {
-  waitingKey?: string,
-}
-
-class UnconnectedWaitingButton extends React.Component<Props & WaitingButtonProps, WaitingButtonState> {
-  _onClick = () => {
-    if (!this.props.waitingKey) {
-      console.warn('calling onSetWaiting')
-      this.props.onSetWaiting(true)
-    }
-    this.props.onClick && this.props.onClick()
-  }
-
-  render() {
-    console.warn('waitingkey', this.props.waitingKey, this.props.isWaiting)
-    return <Button {...this.props} onClick={this._onClick} waiting={this.props.isWaiting} />
-  }
-}
-
-const mapStateToProps = (state: TypedState, ownProps) => {
-  return ({
-    isWaiting: state.waiting.get(ownProps.waitingKey, 0) !== 0,
-  })
-}
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
-  isWaiting: stateProps.isWaiting || ownProps.isWaiting,
-})
-
-export const WaitingButton = compose(
-  withStateHandlers(({isWaiting: boolean}) => ({isWaiting: false}), {
-    onSetWaiting: () => (isWaiting: boolean) => ({isWaiting}),
-  }),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)
-)(UnconnectedWaitingButton)
 
 class Button extends React.Component<Props> {
   render() {

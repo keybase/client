@@ -19,8 +19,8 @@ const load = () => {
           name="docs"
           onClose={action('onClose')}
           onDelete={action('onDelete')}
-          loading={false}
           error={null}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -31,8 +31,8 @@ const load = () => {
           name="media"
           onClose={action('onClose')}
           onDelete={action('onDelete')}
-          loading={false}
           error={null}
+          waitingKey="test"
         />
       </Box>
     ))

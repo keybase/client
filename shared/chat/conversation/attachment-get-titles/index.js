@@ -130,7 +130,7 @@ class GetTitles extends React.Component<Props, State> {
             />
             <ButtonBar style={{flexShrink: 0}}>
               <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-              <WaitingButton type="Primary" onClick={this._onNext} label="Send" />
+              <WaitingButton type="Primary" waitingKey={null} onClick={this._onNext} label="Send" />
             </ButtonBar>
           </Box>
         </ScrollView>

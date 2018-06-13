@@ -20,7 +20,6 @@ export type PushNotification = {
 export type State = {
   token: string,
   tokenType: ?TokenType,
-  permissionsRequesting: boolean,
   permissionsPrompt: boolean,
   hasPermissions: boolean,
 }
