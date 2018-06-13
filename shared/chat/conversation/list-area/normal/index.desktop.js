@@ -1,4 +1,9 @@
 // @flow
+//
+// TODO: keep scroll position when loading more
+//
+//
+//
 
 // use waypoints to group sets of messages (100 each) and replace them with a measured div when offscreen
 
@@ -28,27 +33,31 @@ type State = {
 class Thread extends React.PureComponent<Props, State> {
   state = {isLockedToBottom: true}
 
-  _keyMapper = (index: number) => {
-    const itemCountIncludingSpecial = this._getItemCount()
-    if (index === itemCountIncludingSpecial - 1) {
-      return 'specialBottom'
-    } else if (index === 0) {
-      return 'specialTop'
-    } else {
-      const ordinalIndex = index - 1
-      return this.props.messageOrdinals.get(ordinalIndex)
-    }
-  }
+  // _keyMapper = (index: number) => {
+  // const itemCountIncludingSpecial = this._getItemCount()
+  // if (index === itemCountIncludingSpecial - 1) {
+  // return 'specialBottom'
+  // } else if (index === 0) {
+  // return 'specialTop'
+  // } else {
+  // const ordinalIndex = index - 1
+  // return this.props.messageOrdinals.get(ordinalIndex)
+  // }
+  // }
 
   _scrollToBottom = () => {
-    if (this._list) {
-      this._list.scrollTop = this._list.scrollHeight
+    if (this._bottom) {
+      this._bottom.scrollIntoView({behavior: 'instant', block: 'end'})
     }
   }
 
   componentDidMount(prevProps: Props) {
+    // setInterval(() => {
+    // console.log('aaa', this._list && this._list.scrollHeight)
+    // }, 100)
     if (this.state.isLockedToBottom) {
-      this._scrollToBottom()
+      // this._scrollToBottom()
+      setImmediate(this._scrollToBottom)
     }
   }
 
@@ -97,9 +106,12 @@ class Thread extends React.PureComponent<Props, State> {
   // }
 
   // _ordinalToHeight = {}
-  // _onResize = (key, height) => {
-  // this._ordinalToHeight[key] = height
-  // }
+  _onResize = (...args) => {
+    // console.log('aaa mesure', args)
+    if (this.state.isLockedToBottom) {
+      this._scrollToBottom()
+    }
+  }
   // _onResize = ({width}) => {
   // if (this._cellCache.columnWidth({index: 0}) !== width) {
   // this._cellCache.clearAll()
@@ -111,7 +123,7 @@ class Thread extends React.PureComponent<Props, State> {
 
   _getItemCount = () => this.props.messageOrdinals.size + 2
 
-  _rowRenderer = ordinalIndex => {
+  _rowRenderer = (ordinalIndex, measure) => {
     const ordinal = this.props.messageOrdinals.get(ordinalIndex)
     if (ordinal) {
       const measure = null
@@ -145,10 +157,18 @@ class Thread extends React.PureComponent<Props, State> {
     this._list = r
   }
 
+  _setBottomRef = r => {
+    this._bottom = r
+  }
+
   _positionChangeTop = ({currentPosition}) => {
     if (currentPosition === 'inside') {
       this.props.loadMoreMessages()
     }
+  }
+
+  _positionChangeBottom = ({currentPosition}) => {
+    this.setState({isLockedToBottom: currentPosition === 'inside'})
   }
 
   render() {
@@ -157,15 +177,14 @@ class Thread extends React.PureComponent<Props, State> {
     // maybe memoize this
     let waitingToInjectIntoWaypoint = []
     const waypoints = []
-    const measure = null
 
-    waypoints.push([
-      <Waypoint key="SpecialTopMessage" onPositionChange={this._positionChangeTop}>
-        <div>
-          <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
-        </div>
-      </Waypoint>,
-    ])
+    waypoints.push(
+      <TopWaypoint
+        key="topWaypoint"
+        onPositionChange={this._positionChangeTop}
+        conversationIDKey={this.props.conversationIDKey}
+      />
+    )
 
     const numOrdinals = this.props.messageOrdinals.size
     for (var idx = 0; idx < numOrdinals; ++idx) {
@@ -182,7 +201,8 @@ class Thread extends React.PureComponent<Props, State> {
             <OrdinalWaypoint
               key={key}
               id={key}
-              messages={waitingToInjectIntoWaypoint.map(i => this._rowRenderer(i))}
+              rowRenderer={this._rowRenderer}
+              ordinals={waitingToInjectIntoWaypoint}
             />
           )
           waitingToInjectIntoWaypoint = []
@@ -191,18 +211,20 @@ class Thread extends React.PureComponent<Props, State> {
       waitingToInjectIntoWaypoint.push(idx)
     }
 
-    waypoints.push([
-      <Waypoint key="SpecialBottomMessage">
-        <div>
-          <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
-        </div>
-      </Waypoint>,
-    ])
+    waypoints.push(
+      <BottomWaypoint
+        key="bottomWaypoint"
+        forwardRef={this._setBottomRef}
+        onPositionChange={this._positionChangeBottom}
+        conversationIDKey={this.props.conversationIDKey}
+      />
+    )
 
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
+
           <div style={listStyle} ref={this._setListRef}>
             {waypoints}
           </div>
@@ -210,37 +232,98 @@ class Thread extends React.PureComponent<Props, State> {
       </ErrorBoundary>
     )
   }
+
+  // <Measure scroll={true} onResize={this._onResize}>
+  // {({measureRef}) => (
+  // <div style={listStyle} ref={measureRef}>
+  // {waypoints}
+  // </div>
+  // )}
+  // </Measure>
 }
+
+class TopWaypoint extends React.PureComponent<> {
+  state = {keyCount: 0}
+  _measure = () => {
+    // console.log('aaa measure top')
+    this.setState(p => ({keyCount: p.keyCount + 1}))
+  }
+
+  render() {
+    return (
+      <Waypoint
+        key={`SpecialTopMessage:${this.state.keyCount}`}
+        onPositionChange={this.props.onPositionChange}
+      >
+        <div>
+          <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={this._measure} />
+        </div>
+      </Waypoint>
+    )
+  }
+}
+
+class BottomWaypoint extends React.PureComponent<> {
+  state = {keyCount: 0}
+  _measure = () => {
+    // console.log('aaa measure bottom')
+    this.setState(p => ({keyCount: p.keyCount + 1}))
+  }
+
+  render() {
+    return (
+      <Waypoint
+        key={`SpecialBottomMessage:${this.state.keyCount}`}
+        onPositionChange={this.props.onPositionChange}
+      >
+        <div ref={this.props.forwardRef}>
+          <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={this._measure} />
+        </div>
+      </Waypoint>
+    )
+  }
+}
+
+// TODO not sure keyCount / remeasure is needed in this impl. need to test it
 
 class OrdinalWaypoint extends React.PureComponent<> {
   state = {
     height: null,
     isVisible: true,
+    keyCount: 0,
   }
   _handlePositionChange = ({currentPosition}) => {
     if (currentPosition) {
       const isVisible = currentPosition === 'inside'
+
+      // console.log('aaa vis', this.props.id, isVisible)
       this.setState(prevState => (prevState.isVisible !== isVisible ? {isVisible} : undefined))
     }
   }
   _onResize = ({bounds}) => {
     const height = bounds.height
+    // console.log('aaa heig', this.props.id, height)
     if (height) {
       this.setState(prevState => (prevState.height !== height ? {height} : undefined))
     }
   }
 
+  _measure = () => {
+    // console.log('aaa measure', this.props.id)
+    this.setState(p => ({keyCount: p.keyCount + 1}))
+  }
+
   render() {
     const renderMessages = !this.state.height || this.state.isVisible
     return (
-      <Waypoint onPositionChange={this._handlePositionChange}>
-        <Measure bounds={true} onResize={this._onResize}>
+      <Waypoint key={`${this.props.id}:${this.state.keyCount}`} onPositionChange={this._handlePositionChange}>
+        <Measure bounds={true} onResize={renderMessages ? this._onResize : null}>
           {({measureRef}) => (
             <div
               ref={measureRef}
               style={!renderMessages && this.state.height ? {height: this.state.height} : null}
             >
-              {renderMessages ? this.props.messages : null}
+              {renderMessages ? this.props.ordinals.map(i => this.props.rowRenderer(i, this._measure)) : null}
             </div>
           )}
         </Measure>

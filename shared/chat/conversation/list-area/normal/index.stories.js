@@ -9,7 +9,7 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
-const injectMessages = !__STORYSHOT__
+const injectMessages = true && !__STORYSHOT__
 
 let index = 0
 const makeMoreOrdinals = (num = 100) => {
@@ -150,6 +150,7 @@ const provider = PropProviders.compose(
   }
 )
 
+// TODO test measure changes
 class ThreadWrapper extends React.Component<any, any> {
   constructor(props) {
     super(props)
@@ -159,7 +160,10 @@ class ThreadWrapper extends React.Component<any, any> {
 
     if (injectMessages) {
       this.intervalID = setInterval(() => {
-        this.setState(p => ({messageOrdinals: p.messageOrdinals.push(...makeMoreOrdinals(1))}))
+        console.log('Appending more mock items +++++')
+        this.setState(p => ({
+          messageOrdinals: p.messageOrdinals.push(...makeMoreOrdinals(Math.ceil(Math.random() * 5))),
+        }))
       }, 5000)
     }
   }
@@ -168,9 +172,10 @@ class ThreadWrapper extends React.Component<any, any> {
     clearInterval(this.intervalID)
   }
 
-  onLoadMoreMessages = __STORYSHOT__
+  onLoadMoreMessages = false || __STORYSHOT__
     ? action('onLoadMoreMessages')
     : () => {
+        console.log('++++ Prepending more mock items')
         this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals())}))
       }
 
