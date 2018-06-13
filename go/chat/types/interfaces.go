@@ -43,6 +43,8 @@ type NameInfoSource interface {
 	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+	ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 }
 
 type UnboxConversationInfo interface {

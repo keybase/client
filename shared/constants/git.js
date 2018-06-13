@@ -21,11 +21,10 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   error: null,
   idToInfo: I.Map(),
   isNew: I.Set(),
-  loading: false,
 })
 
 const getIdToGit = (state: TypedState) => state.entities.getIn(['git', 'idToInfo'])
 const getError = (state: TypedState) => state.entities.getIn(['git', 'error'])
-const getLoading = (state: TypedState) => state.entities.getIn(['git', 'loading'])
+const loadingWaitingKey = 'git:loading'
 
-export {getIdToGit, getError, getLoading}
+export {getIdToGit, getError, loadingWaitingKey}

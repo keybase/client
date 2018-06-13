@@ -127,6 +127,7 @@ const RightSide = props => (
         <ExplodingHeightRetainer
           explodedBy={props.explodedBy}
           exploding={props.exploding}
+          measure={props.measure}
           messageKey={props.messageKey}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}

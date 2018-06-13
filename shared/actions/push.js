@@ -1,8 +1,10 @@
 // @flow
 import logger from '../logger'
+import * as Constants from '../constants/push'
 import * as AppGen from './app-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
+import * as WaitingGen from './waiting-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
@@ -34,7 +36,7 @@ function permissionsNoSaga() {
 }
 
 function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(PushGen.createPermissionsRequesting({requesting: true}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
   if (isIOS) {
     const shownPushPrompt = yield Saga.call(getShownPushPrompt)
     if (shownPushPrompt) {
@@ -60,7 +62,7 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
     }
     // TODO(gabriel): Set permissions we have in store, might want it at some point?
   } finally {
-    yield Saga.put(PushGen.createPermissionsRequesting({requesting: false}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
     yield Saga.put(PushGen.createPermissionsPrompt({prompt: false}))
   }
 }

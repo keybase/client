@@ -204,7 +204,7 @@
   <Fragment>
     <CustomAction Id="StopMainApp"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
