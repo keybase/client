@@ -477,6 +477,13 @@
           "name": "toUsername"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "toAssertion"
+        },
+        {
           "type": "string",
           "name": "note"
         },

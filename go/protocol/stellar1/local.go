@@ -370,6 +370,7 @@ type PaymentCLILocal struct {
 	ToStellar       *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
 	FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
 	ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
+	ToAssertion     *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
 	Note            string        `codec:"note" json:"note"`
 	NoteErr         string        `codec:"noteErr" json:"noteErr"`
 }
@@ -418,6 +419,13 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 			tmp := (*x)
 			return &tmp
 		})(o.ToUsername),
+		ToAssertion: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ToAssertion),
 		Note:    o.Note,
 		NoteErr: o.NoteErr,
 	}
