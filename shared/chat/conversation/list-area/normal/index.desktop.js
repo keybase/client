@@ -40,8 +40,16 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
+  _scrollToBottom = () => {
+    if (this._list) {
+      this._list.scrollTop = this._list.scrollHeight
+    }
+  }
+
   componentDidMount(prevProps: Props) {
-    this._list.scrollTop = this._list.scrollHeight
+    if (this.state.isLockedToBottom) {
+      this._scrollToBottom()
+    }
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -52,6 +60,10 @@ class Thread extends React.PureComponent<Props, State> {
 
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
       this.setState({isLockedToBottom: true})
+    }
+
+    if (this.state.isLockedToBottom) {
+      this._scrollToBottom()
     }
 
     // TODO
