@@ -232,8 +232,7 @@ func TestMemberRemove(t *testing.T) {
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
-	// MK -- rats - this is broken. Comment out while we fix.
-	// pollForNextMerkleRootAfterRemoval(t, tc, other, name)
+	pollForNextMerkleRootAfterRemoval(t, tc, other, name)
 
 }
 
