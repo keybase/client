@@ -5,6 +5,7 @@ import {action, storiesOf} from '../../stories/storybook'
 import EditAvatar from '.'
 
 const props = {
+  filename: '',
   onClose: action('onClose'),
   onSave: action('onSave'),
 }

@@ -96,7 +96,7 @@ type _UpdateSigIDPayload = $ReadOnly<{|sigID: ?RPCTypes.SigID|}>
 type _UpdateUsernamePayload = $ReadOnly<{|username: string|}>
 type _UploadAvatarPayload = $ReadOnly<{|
   filename: string,
-  coordinates?: RPCTypes.ImageCropRect,
+  crop?: RPCTypes.ImageCropRect,
 |}>
 type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
 

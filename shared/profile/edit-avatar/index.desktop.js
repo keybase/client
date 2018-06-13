@@ -8,7 +8,10 @@ import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} 
 import type {Props} from '.'
 
 type State = {
-  coords: Object,
+  initialX: number,
+  initialY: number,
+  finalX: number,
+  finalY: number,
   dragging: boolean,
   hasPreview: boolean,
   scale: number,
@@ -22,15 +25,13 @@ class EditAvatar extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      coords: {
-        ox: 0,
-        oy: 0,
-        x: 0,
-        y: 0,
-      },
+      initialX: 0,
+      initialY: 0,
+      finalX: 0,
+      finalY: 0,
       dragging: false,
       hasPreview: false,
-      scale: 0,
+      scale: 1,
     }
   }
 
@@ -100,11 +101,11 @@ class EditAvatar extends React.Component<Props, State> {
   _validDrag = e => Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
 
   _onDragOver = e => {
-    if (this._validDrag(e)) {
-      e.dataTransfer.dropEffect = 'copy'
-    } else {
-      e.dataTransfer.dropEffect = 'none'
-    }
+    // if (this._validDrag(e)) {
+    //   e.dataTransfer.dropEffect = 'copy'
+    // } else {
+    //   e.dataTransfer.dropEffect = 'none'
+    // }
   }
 
   _paintImage = (path: string) => {
@@ -128,21 +129,19 @@ class EditAvatar extends React.Component<Props, State> {
     this.setState({scale: e.target.value})
 
     if (this._image && this._image.style) {
-      this._image.style.maxWidth = `${(1 + parseFloat(this.state.scale)) * 100}%`
+      const percentage = `${(1 + parseFloat(this.state.scale)) * 100}%`
+      this._image.style.maxWidth = percentage
+      this._image.style.minWidth = percentage
     }
   }
 
   _onMouseDown = e => {
-    this.setState({dragging: true})
     this.setState({
-      coords: {
-        ox: e.pageX,
-        oy: e.pageY,
-        x: e.target.offsetTop,
-        y: e.target.offsetLeft,
-        // x: this._image.offsetTop,
-        // y: this._image.offsetLeft,
-      },
+      dragging: true,
+      finalX: e.target.style.left ? parseInt(e.target.style.left, 10) : this.state.finalX,
+      finalY: e.target.style.top ? parseInt(e.target.style.top, 10) : this.state.finalY,
+      initialX: e.pageX,
+      initialY: e.pageY,
     })
   }
 
@@ -153,17 +152,24 @@ class EditAvatar extends React.Component<Props, State> {
   _onMouseMove = e => {
     if (!this.state.dragging) return
 
-    e.target.style.left = `${this.state.coords.x + e.pageX - this.state.coords.ox}px`
-    e.target.style.top = `${this.state.coords.y + e.pageY - this.state.coords.oy}px`
-    // this._image.style.left = `${this.state.coords.x + e.pageX - this.state.coords.ox}px`
-    // this._image.style.top = `${this.state.coords.y + e.pageY - this.state.coords.oy}px`
-
-    return false
+    e.target.style.left = `${this.state.finalX + e.pageX - this.state.initialX}px`
+    e.target.style.top = `${this.state.finalY + e.pageY - this.state.initialY}px`
   }
 
   _onSave = e => {
-    console.log('saving...')
-    this.props.onSave({filename: this._image.src})
+    const scale = 1 + parseFloat(this.state.scale)
+    const x = -this._image.offsetLeft * scale
+    const y = -this._image.offsetTop * scale
+    const avatarSize = 256 * scale
+
+    console.log()
+
+    // this.props.onSave(this._image.src.replace('file://', ''), {
+    //   x0: x,
+    //   y0: y,
+    //   x1: avatarSize + x,
+    //   y1: avatarSize + y,
+    // })
   }
 
   render = () => {
@@ -174,13 +180,12 @@ class EditAvatar extends React.Component<Props, State> {
           onDragOver={this._onDragOver}
           onDragLeave={this._onDragLeave}
           onDrop={this._onDrop}
-          onMouseUp={this._onMouseUp}
         >
           <Text type="BodyBig">Drag and drop a new profile image</Text>
           <Text type="BodyPrimaryLink" onClick={this._filePickerOpen}>
             or browse your computer for one
           </Text>
-          <HoverBox onClick={this._filePickerOpen}>
+          <HoverBox className={this.state.hasPreview ? 'filled' : null} onClick={this._filePickerOpen}>
             <input
               type="file"
               style={styles.hidden}
@@ -192,6 +197,7 @@ class EditAvatar extends React.Component<Props, State> {
               style={styles.image}
               ref={this._imageSetRef}
               onDragStart={e => e.preventDefault()}
+              onMouseUp={this._onMouseUp}
               onMouseDown={this._onMouseDown}
               onMouseMove={this._onMouseMove}
             />
@@ -209,7 +215,7 @@ class EditAvatar extends React.Component<Props, State> {
             type="range"
             value={this.state.scale}
             min={0}
-            max={1}
+            max={2}
             step={0.001}
             ref={this._rangeSetRef}
             onChange={this._setScale}
@@ -226,19 +232,16 @@ class EditAvatar extends React.Component<Props, State> {
 }
 
 const HoverBox = glamorous(Box)({
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.lightGrey2,
-  borderColor: globalColors.grey,
-  borderRadius: 128,
-  borderStyle: 'dashed',
-  borderWidth: 5,
-  cursor: 'pointer',
-  height: 128,
-  marginBottom: globalMargins.small,
-  marginTop: globalMargins.medium,
-  overflow: 'hidden',
-  position: 'relative',
-  width: 128,
+  '&.filled': {
+    backgroundColor: globalColors.white,
+    borderColor: globalColors.lightGrey2,
+    borderStyle: 'solid',
+  },
+  '&.filled:hover': {
+    backgroundColor: globalColors.white,
+    borderColor: globalColors.lightGrey2,
+    cursor: 'grab',
+  },
   ':hover': {
     backgroundColor: globalColors.blue_30,
     borderColor: globalColors.blue_60,
@@ -246,6 +249,22 @@ const HoverBox = glamorous(Box)({
   ':hover .icon': {
     color: globalColors.blue_60,
   },
+  '&.filled img': {
+    opacity: 0.25,
+  },
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.lightGrey2,
+  borderColor: globalColors.grey,
+  borderRadius: 132,
+  borderStyle: 'dashed',
+  borderWidth: 4,
+  cursor: 'pointer',
+  height: 132,
+  marginBottom: globalMargins.small,
+  marginTop: globalMargins.medium,
+  // overflow: 'hidden',
+  position: 'relative',
+  width: 132,
 })
 
 const styles = styleSheetCreate({
@@ -268,8 +287,8 @@ const styles = styleSheetCreate({
   },
   image: {
     alignSelf: 'center',
-    maxWidth: '100%',
-    minWidth: '100%',
+    maxWidth: '200%',
+    minWidth: '200%',
     position: 'relative',
   },
   popup: {

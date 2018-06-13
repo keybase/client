@@ -4,22 +4,16 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
+import type {RouteProps} from '../../route-tree/render-route'
 
-const mapStateToProps = (state: TypedState) => {
-  const username = state.config.username
-  if (!username) {
-    throw new Error('Not logged in')
-  }
-
-  return {
-    keybaseUsername: username,
-  }
-}
+const mapStateToProps = (state: TypedState, {routeProps}: RouteProps<{filename: ?string}, {}>) => ({
+  filename: routeProps.get('filename'),
+})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClose: () => dispatch(navigateUp()),
-  onSave: (filename: string, coordinates?: RPCTypes.ImageCropRect) =>
-    dispatch(ProfileGen.createUploadAvatar({coordinates, filename})),
+  onSave: (filename: string, crop?: RPCTypes.ImageCropRect) =>
+    dispatch(ProfileGen.createUploadAvatar({crop, filename})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditAvatar)

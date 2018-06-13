@@ -17,7 +17,7 @@
     },
     "uploadAvatar": {
       "filename": "string",
-      "coordinates?": "RPCTypes.ImageCropRect"
+      "crop?": "RPCTypes.ImageCropRect"
     },
     "editProfile": {
       "bio": "string",

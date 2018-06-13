@@ -1,9 +1,11 @@
 // @flow
 import {Component} from 'react'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 
 export type Props = {
+  filename: string,
   onClose: () => void,
-  onSave: () => void,
+  onSave: (filename: string, crop?: RPCTypes.ImageCropRect) => void,
 }
 
 export default class Render extends Component<Props> {}

@@ -34,10 +34,10 @@ function _editProfile(action: ProfileGen.EditProfilePayload) {
 }
 
 function _uploadAvatar(action: ProfileGen.UploadAvatarPayload) {
-  const {filename, coordinates} = action.payload
+  const {filename, crop} = action.payload
   return Saga.sequentially([
     Saga.call(RPCTypes.userUploadUserAvatarRpcPromise, {
-      crop: coordinates,
+      crop,
       filename,
     }),
     Saga.put(navigateUp()),
