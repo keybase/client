@@ -136,6 +136,8 @@ You'll get various prompts about installing various tools. You should
 install 'Build Tools' and any missing platforms. However, _don't_
 update the Android Gradle Plugin to 3.0.1.
 
+Also see below for some messages you may encounter with Android Studio.
+
 Some instructions talk about the SDK Manager / AVD Manager. This is
 under the Tools > Android menu. You may have to wait for Gradle to
 sync before they appear.
@@ -150,14 +152,26 @@ yarn run rn-gobuild-android
 yarn run rn-start
 ```
 
+#### Dealing with Android Studio
+
 Then do "Build > Make Project" and then "Run > Run 'app'".
 
 Sometimes Android Studio gets into a bad state, especially if you're
-doing stuff like `yarn modules` in the background. If 'Gradle sync'
-fails, you can retry it from Tools > Android > 'Sync Project with
-Gradle Files'.
+doing stuff like `yarn modules` in the background.
 
-If that doesn't work, you can try closing (File > Close Project) and
+If 'Gradle sync' fails, you can retry it from Tools > Android > 'Sync
+Project with Gradle Files'.
+
+Sometimes, especially after opening Android Studio after a run of
+`yarn modules`, you'll get an "Unsupported Modules Detected" message
+for "react-native-fetch-blob", "react-native-contacts", and
+"react-native-image-picker". This seems to be harmless.
+
+Sometimes you'll also get an "An IDE Error has occured" message. That
+also seems to be harmless, although you may want to resync/reopen the
+project in that case.
+
+If nothing above works, you can try closing (File > Close Project) and
 reopening the project. Or even closing and reopening the app.
 
 ### Debugging with React Developer Tools and Immutable.js Object Formatter extensions
