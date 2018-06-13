@@ -3,7 +3,14 @@ import * as React from 'react'
 import * as Constants from '../../constants/push'
 import * as PushGen from '../../actions/push-gen'
 import {connect} from '../../util/container'
-import {Box, Button, Text, NativeScrollView, NativeImage, WaitingButton} from '../../common-adapters/mobile.native'
+import {
+  Box,
+  Button,
+  Text,
+  NativeScrollView,
+  NativeImage,
+  WaitingButton,
+} from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 type Props = {
@@ -79,13 +86,10 @@ const Push = (props: Props) => (
 
 const mapStateToProps = () => ({})
 
-export default connect(
-  mapStateToProps,
-  (dispatch: any) => {
-    return {
-      onNoPermissions: () => dispatch(PushGen.createPermissionsNo()),
-      onRequestPermissions: () => dispatch(PushGen.createPermissionsRequest()),
-      waitingKey: Constants.permissionsRequestingWaitingKey,
-    }
+export default connect(mapStateToProps, (dispatch: any) => {
+  return {
+    onNoPermissions: () => dispatch(PushGen.createPermissionsNo()),
+    onRequestPermissions: () => dispatch(PushGen.createPermissionsRequest()),
+    waitingKey: Constants.permissionsRequestingWaitingKey,
   }
-)(Push)
+})(Push)

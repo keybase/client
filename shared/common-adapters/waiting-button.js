@@ -21,7 +21,13 @@ class UnconnectedWaitingButton extends React.PureComponent<ButtonProps & Waiting
 
   render() {
     console.warn('waitingkey', this.props.waitingKey, this.props.storeWaiting, this.props.localWaiting)
-    return <Button {...this.props} onClick={this._onClick} waiting={this.props.storeWaiting || this.props.localWaiting} />
+    return (
+      <Button
+        {...this.props}
+        onClick={this._onClick}
+        waiting={this.props.storeWaiting || this.props.localWaiting}
+      />
+    )
   }
 }
 
@@ -32,15 +38,13 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-
-})
+const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 export const WaitingButton = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withStateHandlers(({localWaiting: boolean}) => ({localWaiting: false}), {
     onSetWaiting: () => (localWaiting: boolean) => ({localWaiting}),
-  }),
+  })
 )(UnconnectedWaitingButton)
 
 export default WaitingButton

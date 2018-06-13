@@ -84,6 +84,7 @@ const load = () => {
           onClickChannel={action('onClickChannel')}
           nextChannelState={channelState}
           waitingForGet={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -104,6 +105,7 @@ const load = () => {
           onClickChannel={action('onClickChannel')}
           nextChannelState={channelState}
           waitingForGet={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -124,6 +126,7 @@ const load = () => {
           onClickChannel={action('onClickChannel')}
           nextChannelState={channelState}
           waitingForGet={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -140,6 +143,7 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -156,6 +160,7 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={true}
           waitingForGetInfo={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -172,6 +177,7 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={true}
+          waitingKey="test"
         />
       </Box>
     ))
