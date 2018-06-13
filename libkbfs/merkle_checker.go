@@ -83,14 +83,14 @@ func verifyMerkleNodes(
 			mc.nextNode, len(nodes))
 	}
 
-	leafBytes, ok := foundLeaf.([]byte)
+	leafBytes, ok := foundLeaf.(*[]byte)
 	if !ok {
 		return errors.Errorf(
-			"Found merkle leaf isn't a byte slice: %T", foundLeaf)
+			"Found merkle leaf isn't a byte slice pointer: %T", foundLeaf)
 	}
 
-	if !bytes.Equal(leafBytes, nodes[len(nodes)-1]) {
-		return errors.New("Expected leaf didn't match found leaf")
+	if !bytes.Equal(*leafBytes, nodes[len(nodes)-1]) {
+		return errors.Errorf("Expected leaf didn't match found leaf: expected=%x, found=%x", nodes[len(nodes)-1], *leafBytes)
 	}
 
 	return nil
