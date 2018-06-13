@@ -10,9 +10,10 @@ type Props = {
   resetParticipants: Array<string>,
   onReAddToTeam: (username: string) => () => void,
   onViewProfile: (username: string) => () => void,
+  onOpenWithoutResetUsers: () => void,
 }
 
-const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile}: Props) => {
+const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutResetUsers}: Props) => {
   if (!resetParticipants || resetParticipants.length === 0) {
     return <Box />
   }
@@ -82,8 +83,7 @@ const Banner = ({isUserReset, resetParticipants, onReAddToTeam, onViewProfile}: 
         <Text type="BodySemibold" style={bottomTextStyle}>
           Or until you're sure,{' '}
         </Text>
-        <Text type="BodySemiboldLink" style={{...bottomTextStyle, textDecorationLine: 'underline'}}>
-          {/* TODO: put in a link to opening a folder here. */}
+        <Text type="BodySemiboldLink" onClick={onOpenWithoutResetUsers} style={{...bottomTextStyle, textDecorationLine: 'underline'}}>
           open a folder without any of them.
         </Text>
       </Box>

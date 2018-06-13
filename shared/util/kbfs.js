@@ -19,6 +19,20 @@ export function parseFolderNameToUsers(yourUsername: ?string, folderName: string
   return writersParsed.concat(readersParsed).filter(u => !!u.username)
 }
 
+export function folderNameWithoutUsers(folderName: string, users: {[string]: boolean}) {
+  const [userList] = splitByFirstOccurrenceOf(folderName, ' ')
+  const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList, '#')
+
+  const writerNames = writers.split(',')
+  const readerNames = readers ? readers.split(',') : []
+
+  const filteredWriterNames = writerNames.filter(name => !users[name])
+  const filteredReaderNames = readerNames.filter(name => !users[name])
+
+  const readerSuffix = filteredReaderNames.length ? `#${filteredReaderNames.join(',')}` : ''
+  return `${filteredWriterNames.join(',')}${readerSuffix}`
+}
+
 export function sortUserList(users: UserList): UserList {
   const youAsRwer = users.filter(u => u.you && !u.readOnly)
   const rwers = users.filter(u => !u.you && !u.readOnly)
