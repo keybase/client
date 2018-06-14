@@ -13,6 +13,7 @@ jobs:
     parallelism: 1
     shell: /bin/bash --login
     environment:
+      GOVERSION: 1.10.3
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
       _JAVA_OPTIONS: -Xms512m -Xmx2048m
@@ -32,7 +33,7 @@ jobs:
     - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
       command: /sbin/init
     steps:
-      -run:
+    - run:
         name: Update PATH and Define Environment Variable at Runtime
         command: |
           echo 'export GOPATH=$HOME/go-path' >> $BASH_ENV
@@ -75,8 +76,8 @@ jobs:
     - run: mkdir -p ~/go-path
     - run: ls "$HOME/downloads"
     - run: ls "$ANDROID_HOME"
-    - run: if [[ ! -e "$HOME/downloads/go.19.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz -O $HOME/downloads/go.19.tar.gz ; fi
-    - run: cd $HOME && tar -xzvf downloads/go.19.tar.gz
+    - run: if [[ ! -e "$HOME/downloads/go.$GOVERSION.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz -O $HOME/downloads/go.$GOVERSION.tar.gz ; fi
+    - run: cd $HOME && tar -xzvf downloads/go.$GOVERSION.tar.gz
     - run: sudo mv $HOME/go /usr/local
     - run: if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
     - run: if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
