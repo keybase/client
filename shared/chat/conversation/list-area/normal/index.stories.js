@@ -9,14 +9,16 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
-const injectMessages = true && !__STORYSHOT__
+const injectMessages = false && !__STORYSHOT__
+const enableLoadMore = true || !__STORYSHOT__
+const ordinalAscending = true
 
 let index = 0
 const makeMoreOrdinals = (num = 100) => {
   const end = index + num
   const ordinals = []
   for (; index < end; ++index) {
-    ordinals.push(Types.numberToOrdinal(9000 - index))
+    ordinals.push(Types.numberToOrdinal(ordinalAscending ? index : 9000 - index))
   }
   return ordinals
 }
@@ -170,14 +172,18 @@ class ThreadWrapper extends React.Component<any, any> {
 
   componentWillUnmount() {
     clearInterval(this.intervalID)
+    clearTimeout(this.timeoutID)
   }
 
-  onLoadMoreMessages = false || __STORYSHOT__
-    ? action('onLoadMoreMessages')
-    : () => {
-        console.log('++++ Prepending more mock items')
-        this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals())}))
+  onLoadMoreMessages = enableLoadMore
+    ? () => {
+        console.log('got onLoadMore, using mock delay')
+        this.timeoutID = setTimeout(() => {
+          console.log('++++ Prepending more mock items')
+          this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals())}))
+        }, 2000)
       }
+    : action('onLoadMoreMessages')
 
   render() {
     return <Thread {...props} {...this.state} loadMoreMessages={this.onLoadMoreMessages} />
@@ -194,7 +200,9 @@ const load = () => {
     ))
     .add('Normal', () => <ThreadWrapper />)
     .add('Readme', () => (
-      <Text type="Body">If you load Normal on start the fonts wont be loaded so it'll look wrong</Text>
+      <Text type="Body">
+        If you load Normal directly on start the fonts wont be loaded so it'll measure wrong
+      </Text>
     ))
 }
 

@@ -138,7 +138,7 @@ class Thread extends React.PureComponent<Props, State> {
         />
       )
     }
-    return <div />
+    return <div key={String(ordinalIndex)} />
   }
 
   _onCopyCapture(e) {
