@@ -232,7 +232,7 @@ func TestSetAccountAsDefault(t *testing.T) {
 	require.Equal(t, additionalAccs[0], *u0addr)
 }
 
-func TestLinkNewWalletAccountLocal(t *testing.T) {
+func testCreateOrLinkNewAccount(t *testing.T, create bool) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
@@ -241,14 +241,25 @@ func TestLinkNewWalletAccountLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	// link a new account
-	a1, s1 := randomStellarKeypair()
-	arg := stellar1.LinkNewWalletAccountLocalArg{
-		SecretKey: s1,
-		Name:      "my other account",
+	var linkID stellar1.AccountID
+	accName := "my other account"
+	if create {
+		// create new account
+		arg := stellar1.CreateWalletAccountLocalArg{
+			Name: accName,
+		}
+		linkID, err = tcs[0].Srv.CreateWalletAccountLocal(context.Background(), arg)
+		require.NoError(t, err)
+	} else {
+		a1, s1 := randomStellarKeypair()
+		arg := stellar1.LinkNewWalletAccountLocalArg{
+			SecretKey: s1,
+			Name:      accName,
+		}
+		linkID, err = tcs[0].Srv.LinkNewWalletAccountLocal(context.Background(), arg)
+		require.NoError(t, err)
+		require.Equal(t, a1, linkID)
 	}
-	linkID, err := tcs[0].Srv.LinkNewWalletAccountLocal(context.Background(), arg)
-	require.NoError(t, err)
-	require.Equal(t, a1, linkID)
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 
@@ -260,9 +271,17 @@ func TestLinkNewWalletAccountLocal(t *testing.T) {
 	require.Equal(t, "", accts[0].Name)
 	require.Equal(t, "0 XLM", accts[0].BalanceDescription)
 	require.False(t, accts[1].IsDefault)
-	require.Equal(t, a1, accts[1].AccountID)
-	require.Equal(t, "my other account", accts[1].Name)
+	require.Equal(t, linkID, accts[1].AccountID)
+	require.Equal(t, accName, accts[1].Name)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
+}
+
+func TestLinkNewWalletAccountLocal(t *testing.T) {
+	testCreateOrLinkNewAccount(t, false /* create */)
+}
+
+func TestCreateNewWalletAccountLocal(t *testing.T) {
+	testCreateOrLinkNewAccount(t, true /* create */)
 }
 
 func TestDeleteWallet(t *testing.T) {
