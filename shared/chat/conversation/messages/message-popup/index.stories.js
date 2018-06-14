@@ -5,7 +5,7 @@ import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat
 import {storiesOf, action} from '../../../../stories/storybook'
 import TextPopupMenu from './text/index'
 import AttachmentPopupMenu from './attachment/index'
-import ExplodingPopupMenu from './exploding/index'
+import ExplodingPopupMenu, {type OwnProps as ExplodingOwnProps} from './exploding/container'
 import HiddenString from '../../../../util/hidden-string'
 
 const textMessage = makeMessageText({
@@ -14,13 +14,13 @@ const textMessage = makeMessageText({
   deviceRevokedAt: null,
   text: new HiddenString('blah'),
   timestamp: 1525190235719,
-}).toJS()
+})
 
 const attachmentMessage = makeMessageAttachment({
   author: 'cjb',
   deviceName: 'myDevice',
   timestamp: 1525190235719,
-}).toJS()
+})
 
 const defaultProps = {
   attachTo: null,
@@ -35,7 +35,10 @@ const defaultProps = {
 
 const provider = PropProviders.compose(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
+  {
+    ExplodingPopup: (props: ExplodingOwnProps) => {},
+  }
 )
 
 const load = () => {
@@ -44,7 +47,7 @@ const load = () => {
     .add('Text', () => (
       <TextPopupMenu
         {...defaultProps}
-        {...textMessage}
+        {...textMessage.toJS()}
         onCopy={action('onCopy')}
         onDelete={action('onDelete')}
         onDeleteMessageHistory={action('onDeleteMessageHistory')}
@@ -59,7 +62,7 @@ const load = () => {
     .add('Attachment', () => (
       <AttachmentPopupMenu
         {...defaultProps}
-        {...attachmentMessage}
+        {...attachmentMessage.toJS()}
         onDelete={action('onDelete')}
         onDeleteMessageHistory={action('onDeleteMessageHistory')}
         onDownload={action('onDownload')}

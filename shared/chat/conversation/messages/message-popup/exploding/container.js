@@ -6,12 +6,12 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import {navigateAppend} from '../../../../../actions/route-tree'
-import {connect, isMobile, type TypedState} from '../../../../../util/container'
+import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
 
-type OwnProps = {
+export type OwnProps = {
   attachTo: ?Component<any, any>,
   message: Types.MessageAttachment | Types.MessageText,
   onHidden: () => void,
@@ -135,4 +135,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Exploding)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('ExplodingPopup')
+)(Exploding)
