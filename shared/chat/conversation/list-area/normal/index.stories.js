@@ -9,8 +9,8 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
-const injectMessages = true && !__STORYSHOT__
-const enableLoadMore = true || !__STORYSHOT__
+const injectMessages = false && !__STORYSHOT__
+const enableLoadMore = false && !__STORYSHOT__
 const ordinalAscending = true
 
 let index = 0

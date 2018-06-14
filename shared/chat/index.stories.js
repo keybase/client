@@ -16,19 +16,19 @@ import thread from './conversation/list-area/normal/index.stories'
 
 const load = () => {
   ;[
-    channelMentionHud,
-    createChannel,
-    inboxRow,
-    infoPanel,
-    infoPanelNotifications,
-    inputArea,
-    manageChannels,
-    messagePopup,
-    messages,
-    sendAnimation,
-    setExplodingMessage,
-    userMentionHud,
-    startConversation,
+    // channelMentionHud,
+    // createChannel,
+    // inboxRow,
+    // infoPanel,
+    // infoPanelNotifications,
+    // inputArea,
+    // manageChannels,
+    // messagePopup,
+    // messages,
+    // sendAnimation,
+    // setExplodingMessage,
+    // userMentionHud,
+    // startConversation,
     thread,
   ].forEach(load => load())
 }

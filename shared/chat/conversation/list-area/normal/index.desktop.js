@@ -23,7 +23,7 @@ import type {Props} from '.'
 // set this to true to see size overlays
 const debugSizing = __STORYBOOK__
 
-const ordinalsInAWaypoint = 2
+const ordinalsInAWaypoint = 10
 const lockedToBottomSlop = 20
 
 type State = {
@@ -176,15 +176,15 @@ class Thread extends React.PureComponent<Props, State> {
   // }
   // }
 
-  _positionChangeTop = ({currentPosition}) => {
+  _positionChangeTop = debounce(({currentPosition}) => {
     if (currentPosition === 'inside') {
       this.props.loadMoreMessages()
     }
-  }
+  }, 100)
 
-  _positionChangeBottom = ({currentPosition}) => {
+  _positionChangeBottom = debounce(({currentPosition}) => {
     this.setState({isLockedToBottom: currentPosition === 'inside'})
-  }
+  }, 100)
 
   render() {
     // const rowCount = this._getItemCount()
@@ -235,13 +235,18 @@ class Thread extends React.PureComponent<Props, State> {
       />
     )
 
+    // TODO dynamically change this based on scroll
+    const innerListStyle = {
+      pointerEvents: 'none',
+    }
+
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
 
           <div style={listStyle} ref={this._listRef}>
-            {waypoints}
+            <div style={innerListStyle}>{waypoints}</div>
           </div>
         </div>
       </ErrorBoundary>
@@ -316,33 +321,40 @@ class OrdinalWaypoint extends React.PureComponent<> {
       this.setState(prevState => (prevState.isVisible !== isVisible ? {isVisible} : undefined))
     }
   }
-  _onResize = ({bounds}) => {
+
+  _onResize = debounce(({bounds}) => {
     const height = bounds.height
     // console.log('aaa heig', this.props.id, height)
     if (height) {
       this.setState(prevState => (prevState.height !== height ? {height} : undefined))
     }
-  }
+  }, 100)
 
-  _measure = () => {
+  _measure = debounce(() => {
     // console.log('aaa measure', this.props.id)
     this.setState(p => ({keyCount: p.keyCount + 1}))
-  }
+  }, 100)
 
   render() {
     const renderMessages = !this.state.height || this.state.isVisible
+    let content
+    const messages = this.props.ordinals.map(i => this.props.rowRenderer(i, this._measure))
+    if (renderMessages) {
+      if (this.state.height) {
+        content = <div style={{height: this.state.height}}>{messages}</div>
+      } else {
+        content = (
+          <Measure bounds={true} onResize={renderMessages ? this._onResize : null}>
+            {({measureRef}) => <div ref={measureRef}>{messages}</div>}
+          </Measure>
+        )
+      }
+    } else {
+      content = <div style={{height: this.state.height}} />
+    }
     return (
       <Waypoint key={`${this.props.id}:${this.state.keyCount}`} onPositionChange={this._handlePositionChange}>
-        <Measure bounds={true} onResize={renderMessages ? this._onResize : null}>
-          {({measureRef}) => (
-            <div
-              ref={measureRef}
-              style={!renderMessages && this.state.height ? {height: this.state.height} : null}
-            >
-              {renderMessages ? this.props.ordinals.map(i => this.props.rowRenderer(i, this._measure)) : null}
-            </div>
-          )}
-        </Measure>
+        {content}
       </Waypoint>
     )
   }
@@ -358,6 +370,7 @@ class OrdinalWaypoint extends React.PureComponent<> {
 const realCSS = `
 .message {
   border: 1px solid transparent;
+  contain: content;
 }
 .message .menu-button {
   visibility: hidden;
@@ -384,6 +397,8 @@ const containerStyle = {
 const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
+  overflowY: 'auto',
+  willChange: 'transform',
 }
 
 export default Thread
