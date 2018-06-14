@@ -285,7 +285,7 @@ function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
 }
 
 function platformSpecificIntentEffect(
-  intent: Types.TransferIntent,
+  intent: Types.DownloadIntent,
   localPath: string,
   mimeType: string
 ): ?Saga.Effect {

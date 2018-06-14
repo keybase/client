@@ -39,7 +39,7 @@ function copyToDownloadDir(path: string, mimeType: string) {
 }
 
 function platformSpecificIntentEffect(
-  intent: Types.TransferIntent,
+  intent: Types.DownloadIntent,
   localPath: string,
   mimeType: string
 ): ?Saga.Effect {

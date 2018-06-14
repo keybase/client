@@ -255,8 +255,55 @@ const load = () => {
           isCreate={true}
           {...commonRowProps}
         />
-        <UploadingRow name="foo" itemStyles={fileItemStyles} />
-        <UploadingRow name="foo" itemStyles={folderItemStyles} />
+        <UploadingRow
+          name="foo"
+          itemStyles={folderItemStyles}
+          upload={Constants.makeUpload({
+            writingToJournal: true,
+            journalFlushing: false,
+          })}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          upload={Constants.makeUpload({
+            writingToJournal: true,
+            journalFlushing: false,
+          })}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          upload={Constants.makeUpload({
+            writingToJournal: true,
+            journalFlushing: true,
+          })}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          upload={Constants.makeUpload({
+            writingToJournal: false,
+            journalFlushing: true,
+          })}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          upload={Constants.makeUpload({
+            writingToJournal: false,
+            journalFlushing: false,
+          })}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          upload={Constants.makeUpload({
+            writingToJournal: false,
+            journalFlushing: false,
+            error: 'blah',
+          })}
+        />
         <StillRow
           name="bar"
           type="file"

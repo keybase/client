@@ -31,37 +31,43 @@
       "sortSetting": "Types.SortSetting"
     },
     "download": {
-      "intent": "Types.TransferIntent",
+      "intent": "Types.DownloadIntent",
       "path": "Types.Path",
       "localPath?": "string"
     },
-    "transferStarted": {
-      "type": "Types.TransferType",
+    "downloadStarted": {
       "entryType?": "Types.PathType",
       "key": "string",
       "path": "Types.Path",
       "localPath": "Types.LocalPath",
-      "intent": "Types.TransferIntent",
+      "intent": "Types.DownloadIntent",
       "opID": "RPCTypes.OpID"
     },
-    "transferFinished": {
+    "downloadFinished": {
       "key": "string",
       "error?": "string"
+    },
+    "downloadProgress": {
+      "key": "string",
+      "completePortion": "number",
+      "endEstimate?": "number"
+    },
+    "cancelDownload": {
+      "key": "string"
+    },
+    "dismissDownload": {
+      "key": "string"
     },
     "upload": {
       "parentPath": "Types.Path",
       "localPath": "string"
     },
-    "transferProgress": {
-      "key": "string",
-      "completePortion": "number",
-      "endEstimate?": "number"
+    "uploadStarted": {
+      "path": "Types.Path"
     },
-    "cancelTransfer": {
-      "key": "string"
-    },
-    "dismissTransfer": {
-      "key": "string"
+    "uploadWritingFinished": {
+      "path": "Types.Path",
+      "error?": "string"
     },
     "openInFileUI": {
       "path?": "string"

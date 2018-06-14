@@ -10,7 +10,7 @@ import {memoize} from 'lodash-es'
 
 type Props = {
   name: string,
-  intent: Types.TransferIntent,
+  intent: Types.DownloadIntent,
   itemStyles: Types.ItemStyles,
   completePortion: number,
   progressText: string,
@@ -18,7 +18,7 @@ type Props = {
   onHidden: () => void,
 }
 
-const getTitle = (intent: Types.TransferIntent): string => {
+const getTitle = (intent: Types.DownloadIntent): string => {
   switch (intent) {
     case 'camera-roll':
       return 'Saving to camera roll...'
@@ -39,7 +39,7 @@ const getTitle = (intent: Types.TransferIntent): string => {
   }
 }
 
-const TransferPopup = (props: Props) => {
+const DownloadPopup = (props: Props) => {
   const header = {
     title: 'unused',
     view: (
@@ -84,4 +84,4 @@ const stylesProgressContainer = memoize((errored: boolean) => ({
   paddingTop: globalMargins.small,
 }))
 
-export default TransferPopup
+export default DownloadPopup

@@ -114,35 +114,40 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
 export type LocalPath = string
 
-export type TransferType = 'upload' | 'download'
-export type transferIntentMobile = 'camera-roll' | 'share'
-export type transferIntentWebview = 'web-view-text' | 'web-view'
-export type TransferIntent = 'none' | transferIntentMobile | transferIntentWebview
+export type DownloadIntentMobile = 'camera-roll' | 'share'
+export type DownloadIntentWebview = 'web-view-text' | 'web-view'
+export type DownloadIntent = 'none' | DownloadIntentMobile | DownloadIntentWebview
 
-export type _TransferMeta = {
-  type: TransferType,
+export type _DownloadMeta = {
   entryType: PathType,
-  intent: TransferIntent,
+  intent: DownloadIntent,
   path: Path,
   localPath: LocalPath,
   opID: RPCTypes.OpID,
 }
-export type TransferMeta = I.RecordOf<_TransferMeta>
+export type DownloadMeta = I.RecordOf<_DownloadMeta>
 
-export type _TransferState = {
+export type _DownloadState = {
   completePortion: number,
   endEstimate?: number,
   error?: string,
   isDone: boolean,
   startedAt: number,
 }
-export type TransferState = I.RecordOf<_TransferState>
+export type DownloadState = I.RecordOf<_DownloadState>
 
-export type _Transfer = {
-  meta: TransferMeta,
-  state: TransferState,
+export type _Download = {
+  meta: DownloadMeta,
+  state: DownloadState,
 }
-export type Transfer = I.RecordOf<_Transfer>
+export type Download = I.RecordOf<_Download>
+
+export type _Upload = {
+  writingToJournal: boolean,
+  journalFlushing: boolean,
+  error?: string,
+}
+export type Upload = I.RecordOf<_Upload>
 
 // 'both' is only supported on macOS
 export type OpenDialogType = 'file' | 'directory' | 'both'
@@ -178,7 +183,8 @@ export type _State = {
   edits: I.Map<EditID, Edit>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
-  transfers: I.Map<string, Transfer>,
+  downloads: I.Map<string, Download>,
+  uploads: I.Map<Path, I.Map<string, Upload>>, // parent path -> name -> Upload
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
   localHTTPServerInfo: ?LocalHTTPServer,
@@ -384,8 +390,8 @@ export type EditingRowItem = {
 
 export type UploadingRowItem = {
   rowType: 'uploading',
-  transferID: string,
   name: string,
+  path: Path,
 }
 
 export type PlaceholderRowItem = {

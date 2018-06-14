@@ -9,7 +9,7 @@ import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import RowPopupMenu from './popups/row-action-popup-container'
 import SecurityPrefs from './common/security-prefs-container'
 import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
-import TransferPopup from './popups/transfer-container'
+import DownloadPopup from './popups/download-container'
 
 const _commonChildren = {
   finderAction: {
@@ -20,8 +20,8 @@ const _commonChildren = {
     component: RelativePopupHoc(RowPopupMenu),
     tags: makeLeafTags({layerOnTop: true}),
   },
-  transferPopup: {
-    component: RelativePopupHoc(TransferPopup),
+  downloadPopup: {
+    component: RelativePopupHoc(DownloadPopup),
     tags: makeLeafTags({layerOnTop: true}),
   },
   securityPrefs: {

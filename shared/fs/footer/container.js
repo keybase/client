@@ -6,30 +6,26 @@ import * as FsGen from '../../actions/fs-gen'
 import {formatDurationFromNowTo} from '../../util/timestamp'
 
 const mapStateToProps = (state: TypedState) => ({
-  transfers: state.fs.transfers,
+  downloads: state.fs.downloads,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenInFileUI({path: p})),
-  dismisser: (key: string) => dispatch(FsGen.createDismissTransfer({key})),
-  canceler: (key: string) => dispatch(FsGen.createCancelTransfer({key})),
+  dismisser: (key: string) => dispatch(FsGen.createDismissDownload({key})),
+  canceler: (key: string) => dispatch(FsGen.createCancelDownload({key})),
 })
 
 const mergeProps = (stateProps, {opener, dismisser, canceler}, ownProps) =>
   ({
-    downloads: Array.from(
-      stateProps.transfers.filter(
-        transfer => transfer.meta.type === 'download' && transfer.meta.intent === 'none'
-      )
-    )
+    downloads: Array.from(stateProps.downloads.filter(download => download.meta.intent === 'none'))
       .sort(([_a, a], [_b, b]) => b.state.startedAt - a.state.startedAt) // newer first
-      .map(([key, transfer]) => ({
-        error: transfer.state.error,
-        filename: Types.getLocalPathName(transfer.meta.localPath),
-        completePortion: transfer.state.completePortion,
-        progressText: formatDurationFromNowTo(transfer.state.endEstimate),
-        isDone: transfer.state.isDone,
-        open: transfer.state.isDone ? () => opener(transfer.meta.localPath) : undefined,
+      .map(([key, download]) => ({
+        error: download.state.error,
+        filename: Types.getLocalPathName(download.meta.localPath),
+        completePortion: download.state.completePortion,
+        progressText: formatDurationFromNowTo(download.state.endEstimate),
+        isDone: download.state.isDone,
+        open: download.state.isDone ? () => opener(download.meta.localPath) : undefined,
         dismiss: () => dismisser(key),
         cancel: () => canceler(key),
         key,

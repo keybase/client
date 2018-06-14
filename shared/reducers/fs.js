@@ -96,8 +96,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
-    case FsGen.transferStarted: {
-      const {type, key, path, localPath, intent, opID} = action.payload
+    case FsGen.downloadStarted: {
+      const {key, path, localPath, intent, opID} = action.payload
       const entryType =
         action.payload.entryType ||
         (() => {
@@ -105,17 +105,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           return item ? item.type : 'unknown'
         })()
       return state.setIn(
-        ['transfers', key],
-        Constants.makeTransfer({
-          meta: Constants.makeTransferMeta({
-            type,
+        ['downloads', key],
+        Constants.makeDownload({
+          meta: Constants.makeDownloadMeta({
             entryType,
             intent,
             path,
             localPath,
             opID,
           }),
-          state: Constants.makeTransferState({
+          state: Constants.makeDownloadState({
             completePortion: 0,
             isDone: false,
             startedAt: Date.now(),
@@ -123,20 +122,42 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         })
       )
     }
-    case FsGen.transferProgress: {
+    case FsGen.downloadProgress: {
       const {key, completePortion, endEstimate} = action.payload
-      return state.updateIn(['transfers', key, 'state'], (original: Types.TransferState) =>
+      return state.updateIn(['downloads', key, 'state'], (original: Types.DownloadState) =>
         original.set('completePortion', completePortion).set('endEstimate', endEstimate)
       )
     }
-    case FsGen.transferFinished: {
+    case FsGen.downloadFinished: {
       const {key, error} = action.payload
-      return state.updateIn(['transfers', key, 'state'], (original: Types.TransferState) =>
+      return state.updateIn(['downloads', key, 'state'], (original: Types.DownloadState) =>
         original.set('isDone', true).set('error', error)
       )
     }
-    case FsGen.dismissTransfer: {
-      return state.removeIn(['transfers', action.payload.key])
+    case FsGen.dismissDownload: {
+      return state.removeIn(['downloads', action.payload.key])
+    }
+    case FsGen.uploadStarted: {
+      const name = Types.getPathName(action.payload.path)
+      const parentPath = Types.getPathParent(action.payload.path)
+      return state.updateIn(
+        // $FlowFixMe
+        ['uploads', parentPath, name],
+        (original: Types.Upload) =>
+          original ? original.set('writingToJournal', true) : Constants.makeUpload({writingToJournal: true})
+      )
+    }
+    case FsGen.uploadWritingFinished: {
+      const name = Types.getPathName(action.payload.path)
+      const parentPath = Types.getPathParent(action.payload.path)
+      return state.updateIn(
+        // $FlowFixMe
+        ['uploads', parentPath, name],
+        (original: Types.Upload) =>
+          original
+            ? original.set('writingToJournal', false).set('error', action.payload.error)
+            : Constants.makeUpload({writingToJournal: false, error: action.payload.error})
+      )
     }
     case FsGen.fuseStatusResult:
       return state.merge({fuseStatus: action.payload.status})
@@ -204,7 +225,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       // $FlowFixMe
       return state.setIn(['edits', action.payload.editID, 'status'], 'failed')
     case FsGen.filePreviewLoad:
-    case FsGen.cancelTransfer:
+    case FsGen.cancelDownload:
     case FsGen.download:
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:

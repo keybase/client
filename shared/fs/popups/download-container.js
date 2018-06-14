@@ -4,49 +4,49 @@ import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
-import TransferPopup from './transfer'
+import DownloadPopup from './download'
 import {formatDurationFromNowTo} from '../../util/timestamp'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const path = routeProps.get('path')
   const _pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
   const _username = state.config.username || undefined
-  const _transfers = state.fs.transfers
+  const _downloads = state.fs.downloads
   return {
     path,
     _pathItem,
     _username,
-    _transfers,
+    _downloads,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onHidden: () => dispatch(navigateUp()),
-  _dismissTransfer: (key: string) => dispatch(FsGen.createDismissTransfer({key})),
-  _cancelTransfer: (key: string) => dispatch(FsGen.createCancelTransfer({key})),
+  _dismissDownload: (key: string) => dispatch(FsGen.createDismissDownload({key})),
+  _cancelDownload: (key: string) => dispatch(FsGen.createCancelDownload({key})),
 })
 
-const mergeProps = (stateProps, {_onHidden, _dismissTransfer, _cancelTransfer}) => {
+const mergeProps = (stateProps, {_onHidden, _dismissDownload, _cancelDownload}) => {
   const itemStyles = Constants.getItemStyles(
     Types.getPathElements(stateProps.path),
     stateProps._pathItem.type,
     stateProps._username
   )
-  const transferKV = stateProps._transfers
-    .filter(ts => ts.meta.type === 'download' && ['camera-roll', 'share'].includes(ts.meta.intent))
+  const downloadKV = stateProps._downloads
+    .filter(download => ['camera-roll', 'share'].includes(download.meta.intent))
     .entries()
-    .next().value || ['', Constants.makeTransfer()]
+    .next().value || ['', Constants.makeDownload()]
   const [
     key,
     {
       meta: {intent},
       state: {completePortion, endEstimate, isDone, error},
     },
-  ] = transferKV
+  ] = downloadKV
   const onHidden = () => {
-    isDone || _cancelTransfer(key)
+    isDone || _cancelDownload(key)
     _onHidden()
-    _dismissTransfer(key)
+    _dismissDownload(key)
   }
   isDone && !error && onHidden()
   return {
@@ -62,5 +62,5 @@ const mergeProps = (stateProps, {_onHidden, _dismissTransfer, _cancelTransfer}) 
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('TransferPopup')
-)(TransferPopup)
+  setDisplayName('DownloadPopup')
+)(DownloadPopup)

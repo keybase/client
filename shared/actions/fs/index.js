@@ -120,7 +120,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   yield Saga.put(FsGen.createFolderListLoaded({pathItems, path: rootPath}))
 }
 
-function* monitorTransferProgress(key: string, opID: RPCTypes.OpID) {
+function* monitorDownloadProgress(key: string, opID: RPCTypes.OpID) {
   // This loop doesn't finish on its own, but it's in a Saga.race with
   // `SimpleFSWait`, so it's "canceled" when the other finishes.
   while (true) {
@@ -130,7 +130,7 @@ function* monitorTransferProgress(key: string, opID: RPCTypes.OpID) {
       continue
     }
     yield Saga.put(
-      FsGen.createTransferProgress({
+      FsGen.createDownloadProgress({
         key,
         endEstimate: progress.endEstimate,
         completePortion: progress.bytesWritten / progress.bytesTotal,
@@ -176,8 +176,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
   const key = Constants.makeDownloadKey(path, localPath)
 
   yield Saga.put(
-    FsGen.createTransferStarted({
-      type: 'download',
+    FsGen.createDownloadStarted({
       key,
       path,
       localPath,
@@ -201,13 +200,13 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
 
   try {
     yield Saga.race({
-      monitor: Saga.call(monitorTransferProgress, key, opID),
+      monitor: Saga.call(monitorDownloadProgress, key, opID),
       wait: Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
     })
 
     // No error, so the download has finished successfully. Set the
     // completePortion to 1.
-    yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
+    yield Saga.put(FsGen.createDownloadProgress({key, completePortion: 1}))
 
     const mimeType = yield Saga.call(_loadMimeType, path)
 
@@ -216,11 +215,11 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     intentEffect && (yield intentEffect)
   } catch (error) {
     console.log(`Download for intent[${intent}] error: ${error}`)
-    yield Saga.put(FsGen.createTransferFinished({key, error}))
+    yield Saga.put(FsGen.createDownloadFinished({key, error}))
     return
   }
 
-  yield Saga.put(FsGen.createTransferFinished({key}))
+  yield Saga.put(FsGen.createDownloadFinished({key}))
 }
 
 function* upload(action: FsGen.UploadPayload) {
@@ -228,28 +227,8 @@ function* upload(action: FsGen.UploadPayload) {
   const opID = Constants.makeUUID()
   const name = Types.getLocalPathName(localPath)
   const path = Types.pathConcat(parentPath, name)
-  const key = Constants.makeUploadKey(localPath, path)
 
-  // Call stat to figure out path type.
-  const dirent = yield Saga.call(RPCTypes.SimpleFSSimpleFSStatRpcPromise, {
-    path: {
-      PathType: RPCTypes.simpleFSPathType.local,
-      local: localPath,
-    },
-  })
-  const entryType = Types.direntToPathType(dirent)
-
-  yield Saga.put(
-    FsGen.createTransferStarted({
-      type: 'upload',
-      entryType,
-      key,
-      path,
-      localPath,
-      intent: 'none',
-      opID,
-    })
-  )
+  yield Saga.put(FsGen.createUploadStarted({path}))
 
   // TODO: confirm overwrites?
   // TODO: what about directory merges?
@@ -265,37 +244,27 @@ function* upload(action: FsGen.UploadPayload) {
     },
   })
 
-  try {
-    yield Saga.race({
-      monitor: Saga.call(monitorTransferProgress, key, opID),
-      wait: Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
-    })
+  // TODO: Are we sure this happens after the file shows up in destination?
+  yield Saga.call(folderList, FsGen.createFolderListLoad({path: parentPath}))
 
-    // No error, so the upload has finished successfully. Set the
-    // completePortion to 1.
-    yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
+  try {
+    yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
+    yield Saga.put(FsGen.createUploadWritingFinished({path}))
   } catch (error) {
     console.log(`Upload error: ${error}`)
-    yield Saga.put(FsGen.createTransferFinished({key, error}))
-    return
+    yield Saga.put(FsGen.createUploadWritingFinished({path, error}))
   }
-
-  // Reload folder list before marking the transfer as done so we don't go into
-  // a state where we think upload is finished but the item is not loaded
-  // (which causes UI to skip that row).
-  yield Saga.call(folderList, FsGen.createFolderListLoad({path: parentPath}))
-  yield Saga.put(FsGen.createTransferFinished({key}))
 }
 
-function cancelTransfer({payload: {key}}: FsGen.CancelTransferPayload, state: TypedState) {
-  const transfer = state.fs.transfers.get(key)
-  if (!transfer) {
-    console.log(`unknown transfer: ${key}`)
+function cancelDownload({payload: {key}}: FsGen.CancelDownloadPayload, state: TypedState) {
+  const download = state.fs.downloads.get(key)
+  if (!download) {
+    console.log(`unknown download: ${key}`)
     return
   }
   const {
     meta: {opID},
-  } = transfer
+  } = download
   return Saga.call(RPCTypes.SimpleFSSimpleFSCancelRpcPromise, {opID})
 }
 
@@ -546,7 +515,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     refreshLocalHTTPServerInfo,
     refreshLocalHTTPServerInfoResult
   )
-  yield Saga.safeTakeEveryPure(FsGen.cancelTransfer, cancelTransfer)
+  yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
   yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEvery(FsGen.upload, upload)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)

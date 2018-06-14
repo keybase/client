@@ -27,9 +27,15 @@ class Files extends React.PureComponent<FolderProps> {
       case 'still':
         return <Still key={`still:${item.name}`} path={item.path} routePath={this.props.routePath} />
       case 'uploading':
-        return <Uploading key={`uploading:${item.name}`} transferID={item.transferID} />
+        return <Uploading key={`uploading:${item.name}`} path={item.path} />
       case 'editing':
-        return <Editing key={`editing:${item.name}`} editID={item.editID} routePath={this.props.routePath} />
+        return (
+          <Editing
+            key={`editing:${Types.editIDToString(item.editID)}`}
+            editID={item.editID}
+            routePath={this.props.routePath}
+          />
+        )
       default:
         /*::
       let rowType = item.rowType

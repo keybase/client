@@ -37,7 +37,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
       ? itemDetail.tlfMeta.resetParticipants.map(i => i.username)
       : []
   const isUserReset = resetParticipants.includes(_username)
-  const _transfers = state.fs.transfers
+  const _downloads = state.fs.downloads
   return {
     _itemChildren: itemChildren,
     _itemFavoriteChildren: itemFavoriteChildren,
@@ -47,7 +47,8 @@ const mapStateToProps = (state: TypedState, {path}) => {
     _username,
     isUserReset,
     resetParticipants,
-    _transfers,
+    _downloads,
+    _uploads: state.fs.uploads,
     path,
     progress: itemDetail ? itemDetail.progress : 'pending',
   }
@@ -87,39 +88,24 @@ const getStillRows = (
       lastModifiedTimestamp: item.lastModifiedTimestamp,
     }))
 
-const getUploadingRows = (
-  transfers: I.Map<string, Types.Transfer>,
-  parentPath: Types.Path
-): Array<SortableUploadingRowItem> =>
-  transfers
-    .filter(t => t.meta.type === 'upload' && Types.getPathParent(t.meta.path) === parentPath)
-    .toArray()
-    .map(([transferID, transfer]) => ({
-      rowType: 'uploading',
-      transferID,
-      name: Types.getPathName(transfer.meta.path),
-
-      type: transfer.meta.entryType,
-      isDone: transfer.state.isDone,
-    }))
-
-// Assumption: folder list gets reloaded (and correcponding state updates in
-// store) before a transfer is marked as done. In other words, a done upload
-// must appear in the `children` of its parent PathItem, unless the item has
-// been deleted.
-//
 // TODO: when we have renames, reconsile editing rows in here too.
-const reconcileUploadingAndStillRows = (
-  uploadings: Array<SortableUploadingRowItem>,
-  stills: Array<SortableStillRowItem>
-): Array<SortableRowItem> => {
-  const pendingUploads: Array<SortableUploadingRowItem> = uploadings.filter(uploading => !uploading.isDone)
-  const pendingUploadsNameSet = new Set(pendingUploads.map(uploading => uploading.name))
-  const doneStills: Array<SortableStillRowItem> = stills.filter(
-    still => !pendingUploadsNameSet.has(still.name)
-  )
-  return [...doneStills, ...pendingUploads]
-}
+const amendStillRows = (
+  stills: Array<SortableStillRowItem>,
+  uploads: I.Map<string, Types.Upload>
+): Array<SortableRowItem> =>
+  stills.map(still => {
+    const {name, type, path} = still
+    const upload = uploads.get(name)
+    if (upload && (upload.journalFlushing || upload.writingToJournal)) {
+      return ({
+        rowType: 'uploading',
+        name,
+        path,
+        type,
+      }: SortableUploadingRowItem)
+    }
+    return still
+  })
 
 const placeholderRows = [
   {rowType: 'placeholder', name: '1'},
@@ -137,15 +123,15 @@ const mergeProps = (stateProps, dispatchProps, {routePath}) => {
   }
 
   const editingRows = getEditingRows(stateProps._edits, stateProps.path)
-  const uploadingRows = getUploadingRows(stateProps._transfers, stateProps.path)
   const stillRows = getStillRows(
     stateProps._pathItems,
     stateProps.path,
     stateProps._itemChildren.union(stateProps._itemFavoriteChildren).toArray()
   )
+  const uploads = stateProps._uploads.get(stateProps.path, I.Map())
 
   const items = sortRowItems(
-    editingRows.concat(reconcileUploadingAndStillRows(uploadingRows, stillRows)),
+    editingRows.concat(amendStillRows(stillRows, uploads)),
     stateProps._sortSetting,
     Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
   )

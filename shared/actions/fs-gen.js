@@ -8,11 +8,14 @@ import * as Types from '../constants/types/fs'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer
-export const cancelTransfer = 'fs:cancelTransfer'
+export const cancelDownload = 'fs:cancelDownload'
 export const commitEdit = 'fs:commitEdit'
 export const discardEdit = 'fs:discardEdit'
-export const dismissTransfer = 'fs:dismissTransfer'
+export const dismissDownload = 'fs:dismissDownload'
 export const download = 'fs:download'
+export const downloadFinished = 'fs:downloadFinished'
+export const downloadProgress = 'fs:downloadProgress'
+export const downloadStarted = 'fs:downloadStarted'
 export const editFailed = 'fs:editFailed'
 export const editSuccess = 'fs:editSuccess'
 export const favoriteIgnore = 'fs:favoriteIgnore'
@@ -47,21 +50,37 @@ export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
 export const shareNative = 'fs:shareNative'
 export const sortSetting = 'fs:sortSetting'
-export const transferFinished = 'fs:transferFinished'
-export const transferProgress = 'fs:transferProgress'
-export const transferStarted = 'fs:transferStarted'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
+export const uploadStarted = 'fs:uploadStarted'
+export const uploadWritingFinished = 'fs:uploadWritingFinished'
 
 // Payload Types
-type _CancelTransferPayload = $ReadOnly<{|key: string|}>
+type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DiscardEditPayload = $ReadOnly<{|editID: Types.EditID|}>
-type _DismissTransferPayload = $ReadOnly<{|key: string|}>
+type _DismissDownloadPayload = $ReadOnly<{|key: string|}>
+type _DownloadFinishedPayload = $ReadOnly<{|
+  key: string,
+  error?: string,
+|}>
 type _DownloadPayload = $ReadOnly<{|
-  intent: Types.TransferIntent,
+  intent: Types.DownloadIntent,
   path: Types.Path,
   localPath?: string,
+|}>
+type _DownloadProgressPayload = $ReadOnly<{|
+  key: string,
+  completePortion: number,
+  endEstimate?: number,
+|}>
+type _DownloadStartedPayload = $ReadOnly<{|
+  entryType?: Types.PathType,
+  key: string,
+  path: Types.Path,
+  localPath: Types.LocalPath,
+  intent: Types.DownloadIntent,
+  opID: RPCTypes.OpID,
 |}>
 type _EditFailedPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _EditSuccessPayload = $ReadOnly<{|editID: Types.EditID|}>
@@ -152,36 +171,26 @@ type _SortSettingPayload = $ReadOnly<{|
   path: Types.Path,
   sortSetting: Types.SortSetting,
 |}>
-type _TransferFinishedPayload = $ReadOnly<{|
-  key: string,
-  error?: string,
-|}>
-type _TransferProgressPayload = $ReadOnly<{|
-  key: string,
-  completePortion: number,
-  endEstimate?: number,
-|}>
-type _TransferStartedPayload = $ReadOnly<{|
-  type: Types.TransferType,
-  entryType?: Types.PathType,
-  key: string,
-  path: Types.Path,
-  localPath: Types.LocalPath,
-  intent: Types.TransferIntent,
-  opID: RPCTypes.OpID,
-|}>
 type _UninstallKBFSConfirmPayload = void
 type _UploadPayload = $ReadOnly<{|
   parentPath: Types.Path,
   localPath: string,
 |}>
+type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
+type _UploadWritingFinishedPayload = $ReadOnly<{|
+  path: Types.Path,
+  error?: string,
+|}>
 
 // Action Creators
-export const createCancelTransfer = (payload: _CancelTransferPayload) => ({error: false, payload, type: cancelTransfer})
+export const createCancelDownload = (payload: _CancelDownloadPayload) => ({error: false, payload, type: cancelDownload})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({error: false, payload, type: commitEdit})
 export const createDiscardEdit = (payload: _DiscardEditPayload) => ({error: false, payload, type: discardEdit})
-export const createDismissTransfer = (payload: _DismissTransferPayload) => ({error: false, payload, type: dismissTransfer})
+export const createDismissDownload = (payload: _DismissDownloadPayload) => ({error: false, payload, type: dismissDownload})
 export const createDownload = (payload: _DownloadPayload) => ({error: false, payload, type: download})
+export const createDownloadFinished = (payload: _DownloadFinishedPayload) => ({error: false, payload, type: downloadFinished})
+export const createDownloadProgress = (payload: _DownloadProgressPayload) => ({error: false, payload, type: downloadProgress})
+export const createDownloadStarted = (payload: _DownloadStartedPayload) => ({error: false, payload, type: downloadStarted})
 export const createEditFailed = (payload: _EditFailedPayload) => ({error: false, payload, type: editFailed})
 export const createEditSuccess = (payload: _EditSuccessPayload) => ({error: false, payload, type: editSuccess})
 export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({error: false, payload, type: favoriteIgnore})
@@ -216,18 +225,20 @@ export const createSetFlags = (payload: _SetFlagsPayload) => ({error: false, pay
 export const createSetupFSHandlers = (payload: _SetupFSHandlersPayload) => ({error: false, payload, type: setupFSHandlers})
 export const createShareNative = (payload: _ShareNativePayload) => ({error: false, payload, type: shareNative})
 export const createSortSetting = (payload: _SortSettingPayload) => ({error: false, payload, type: sortSetting})
-export const createTransferFinished = (payload: _TransferFinishedPayload) => ({error: false, payload, type: transferFinished})
-export const createTransferProgress = (payload: _TransferProgressPayload) => ({error: false, payload, type: transferProgress})
-export const createTransferStarted = (payload: _TransferStartedPayload) => ({error: false, payload, type: transferStarted})
 export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({error: false, payload, type: uninstallKBFSConfirm})
 export const createUpload = (payload: _UploadPayload) => ({error: false, payload, type: upload})
+export const createUploadStarted = (payload: _UploadStartedPayload) => ({error: false, payload, type: uploadStarted})
+export const createUploadWritingFinished = (payload: _UploadWritingFinishedPayload) => ({error: false, payload, type: uploadWritingFinished})
 
 // Action Payloads
-export type CancelTransferPayload = $Call<typeof createCancelTransfer, _CancelTransferPayload>
+export type CancelDownloadPayload = $Call<typeof createCancelDownload, _CancelDownloadPayload>
 export type CommitEditPayload = $Call<typeof createCommitEdit, _CommitEditPayload>
 export type DiscardEditPayload = $Call<typeof createDiscardEdit, _DiscardEditPayload>
-export type DismissTransferPayload = $Call<typeof createDismissTransfer, _DismissTransferPayload>
+export type DismissDownloadPayload = $Call<typeof createDismissDownload, _DismissDownloadPayload>
+export type DownloadFinishedPayload = $Call<typeof createDownloadFinished, _DownloadFinishedPayload>
 export type DownloadPayload = $Call<typeof createDownload, _DownloadPayload>
+export type DownloadProgressPayload = $Call<typeof createDownloadProgress, _DownloadProgressPayload>
+export type DownloadStartedPayload = $Call<typeof createDownloadStarted, _DownloadStartedPayload>
 export type EditFailedPayload = $Call<typeof createEditFailed, _EditFailedPayload>
 export type EditSuccessPayload = $Call<typeof createEditSuccess, _EditSuccessPayload>
 export type FavoriteIgnoreErrorPayload = $Call<typeof createFavoriteIgnoreError, _FavoriteIgnoreErrorPayload>
@@ -262,20 +273,22 @@ export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
 export type SetupFSHandlersPayload = $Call<typeof createSetupFSHandlers, _SetupFSHandlersPayload>
 export type ShareNativePayload = $Call<typeof createShareNative, _ShareNativePayload>
 export type SortSettingPayload = $Call<typeof createSortSetting, _SortSettingPayload>
-export type TransferFinishedPayload = $Call<typeof createTransferFinished, _TransferFinishedPayload>
-export type TransferProgressPayload = $Call<typeof createTransferProgress, _TransferProgressPayload>
-export type TransferStartedPayload = $Call<typeof createTransferStarted, _TransferStartedPayload>
 export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfirm, _UninstallKBFSConfirmPayload>
 export type UploadPayload = $Call<typeof createUpload, _UploadPayload>
+export type UploadStartedPayload = $Call<typeof createUploadStarted, _UploadStartedPayload>
+export type UploadWritingFinishedPayload = $Call<typeof createUploadWritingFinished, _UploadWritingFinishedPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | CancelTransferPayload
+  | CancelDownloadPayload
   | CommitEditPayload
   | DiscardEditPayload
-  | DismissTransferPayload
+  | DismissDownloadPayload
+  | DownloadFinishedPayload
   | DownloadPayload
+  | DownloadProgressPayload
+  | DownloadStartedPayload
   | EditFailedPayload
   | EditSuccessPayload
   | FavoriteIgnoreErrorPayload
@@ -310,9 +323,8 @@ export type Actions =
   | SetupFSHandlersPayload
   | ShareNativePayload
   | SortSettingPayload
-  | TransferFinishedPayload
-  | TransferProgressPayload
-  | TransferStartedPayload
   | UninstallKBFSConfirmPayload
   | UploadPayload
+  | UploadStartedPayload
+  | UploadWritingFinishedPayload
   | {type: 'common:resetStore', payload: void}

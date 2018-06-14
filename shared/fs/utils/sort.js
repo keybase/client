@@ -15,7 +15,6 @@ export type SortableEditingRowItem = Types.EditingRowItem & {
 export type SortableUploadingRowItem = Types.UploadingRowItem & {
   rowType: 'uploading',
   type: Types.PathType,
-  isDone: boolean,
 }
 export type SortableRowItem = SortableStillRowItem | SortableEditingRowItem | SortableUploadingRowItem
 

@@ -93,7 +93,7 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
   sort: makeSortSetting(),
 })
 
-export const makeTransferMeta: I.RecordFactory<Types._TransferMeta> = I.Record({
+export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
   type: 'download',
   entryType: 'unknown',
   intent: 'none',
@@ -102,7 +102,7 @@ export const makeTransferMeta: I.RecordFactory<Types._TransferMeta> = I.Record({
   opID: null,
 })
 
-export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
+export const makeDownloadState: I.RecordFactory<Types._DownloadState> = I.Record({
   completePortion: 0,
   endEstimate: undefined,
   error: undefined,
@@ -110,9 +110,15 @@ export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record
   startedAt: 0,
 })
 
-export const makeTransfer: I.RecordFactory<Types._Transfer> = I.Record({
-  meta: makeTransferMeta(),
-  state: makeTransferState(),
+export const makeDownload: I.RecordFactory<Types._Download> = I.Record({
+  meta: makeDownloadMeta(),
+  state: makeDownloadState(),
+})
+
+export const makeUpload: I.RecordFactory<Types._Upload> = I.Record({
+  writingToJournal: false,
+  journalFlushing: false,
+  error: undefined,
 })
 
 export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
@@ -137,7 +143,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   edits: I.Map(),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
-  transfers: I.Map(),
+  downloads: I.Map(),
+  uploads: I.Map(),
   localHTTPServerInfo: null,
 })
 
