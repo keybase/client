@@ -13,7 +13,7 @@ const injectMessages = false && !__STORYSHOT__
 const enableLoadMore = false && !__STORYSHOT__
 const ordinalAscending = true
 
-let index = 0
+let index = 1
 const makeMoreOrdinals = (num = 100) => {
   const end = index + num
   const ordinals = []
