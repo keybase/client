@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
-set -e -u -o pipefail # Fail on error
+IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
+GOPATH0=${GOPATH_ARRAY[0]}
 
-dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-
-cd $dir/android
-
-./gradlew assembleDebug -x bundleDebugJsAndAssets
+cd $GOPATH0/src/github.com/keybase/client/shared/react-native/android
+exec ./gradlew assembleDebug -x bundleDebugJsAndAssets
