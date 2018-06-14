@@ -103,6 +103,7 @@ func runPrereqs(m libkb.MetaContext, e Engine2) error {
 
 func RunEngine2(m libkb.MetaContext, e Engine2) (err error) {
 	defer m.CTrace(fmt.Sprintf("RunEngine(%s)", e.Name()), func() error { return err })()
+	m = m.WithLogTag("ENG")
 
 	if m, err = delegateUIs(m, e); err != nil {
 		return err

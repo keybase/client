@@ -164,6 +164,7 @@ type ConfigReader interface {
 	GetUIDForUsername(n NormalizedUsername) keybase1.UID
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
+	GetAllUserConfigs() (*UserConfig, []UserConfig, error)
 	GetUID() keybase1.UID
 	GetProxyCACerts() ([]string, error)
 	GetSecurityAccessGroupOverride() (bool, bool)
