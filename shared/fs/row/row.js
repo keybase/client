@@ -37,8 +37,8 @@ const HoverBox = isMobile
       },
     })
 
-const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey, resetParticipants}) => {
-  if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount || resetParticipants)) {
+const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
+  if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount)) {
     return <Box />
   }
 
@@ -67,7 +67,7 @@ export const Row = (props: RowProps) => (
       <HoverBox style={stylesRowContainer}>
         <ClickableBox onClick={props.onOpen} style={stylesRowBox}>
           <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
-          <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} resetParticipants={props.resetParticipants} />
+          <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} />
           <Box style={folderBoxStyle}>
             <Text
               type={props.itemStyles.textType}

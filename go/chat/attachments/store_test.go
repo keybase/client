@@ -119,7 +119,7 @@ func getMulti(t *testing.T, s *Store, index int) *s3.MemMulti {
 
 func assertNumParts(t *testing.T, s *Store, index, n int) {
 	m := getMulti(t, s, index)
-	p, err := m.ListParts(nil)
+	p, err := m.ListParts(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

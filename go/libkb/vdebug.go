@@ -50,6 +50,14 @@ func (v *VDebugLog) CLogf(ctx context.Context, lev VDebugLevel, fs string, args 
 	}
 }
 
+func (v *VDebugLog) CLogfWithAddedDepth(ctx context.Context, lev VDebugLevel, d int, fs string, args ...interface{}) {
+	if lev <= v.lev {
+		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
+		fs = prfx + fs
+		v.log.CloneWithAddedDepth(1+d).CDebugf(ctx, fs, args...)
+	}
+}
+
 func (v *VDebugLog) DumpSiteLoadUser() bool {
 	return v.dumpSiteLoadUser
 }

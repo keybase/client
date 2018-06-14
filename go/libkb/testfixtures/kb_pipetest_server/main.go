@@ -60,7 +60,7 @@ func DoListen(name string) {
 func main() {
 	dial := flag.Bool("d", false, "dial")
 	flag.Parse()
-	name := "\\\\.\\pipe\\kbservice\\Users\\Steve\\AppData\\Local\\Keybase\\keybased.sock"
+	name := "\\\\.\\pipe\\kbservice\\test_pipe"
 	if flag.NArg() > 0 {
 		name = flag.Args()[0]
 	}

@@ -3,6 +3,7 @@ import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
+import * as WaitingGen from './waiting-gen'
 import * as WalletsGen from './wallets-gen'
 import type {TypedState} from '../util/container'
 
@@ -44,6 +45,7 @@ const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) =
 
 function* loadEverything(action: WalletsGen.LoadEverythingPayload) {
   if (__DEV__) {
+    yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.loadEverythingWaitingKey}))
     yield Saga.put(WalletsGen.createLoadAccounts())
     yield Saga.take(WalletsGen.accountsReceived)
     const state: TypedState = yield Saga.select()
@@ -52,6 +54,7 @@ function* loadEverything(action: WalletsGen.LoadEverythingPayload) {
       yield Saga.put(WalletsGen.createLoadAssets({accountID}))
       yield Saga.put(WalletsGen.createLoadPayments({accountID}))
     }
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.loadEverythingWaitingKey}))
   }
 }
 

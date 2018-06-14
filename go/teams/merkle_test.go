@@ -6,6 +6,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +23,7 @@ func TestMerkle(t *testing.T) {
 	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 
-	leaf, err := tc.G.MerkleClient.LookupTeam(context.TODO(), team.ID)
+	leaf, err := tc.G.MerkleClient.LookupTeam(libkb.NewMetaContextForTest(tc), team.ID)
 	require.NoError(t, err)
 	require.NotNil(t, leaf)
 	t.Logf("team merkle leaf: %v", spew.Sdump(leaf))

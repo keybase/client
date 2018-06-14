@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
   teams: getSortedTeamnames(state),
   error: Constants.getError(state),
   isTeam: routeProps.get('isTeam'),
-  loading: Constants.getLoading(state),
+  waitingKey: Constants.loadingWaitingKey,
 })
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps}) => ({

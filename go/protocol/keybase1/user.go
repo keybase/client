@@ -435,7 +435,7 @@ type UserInterface interface {
 	// revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
 	// we'll start our search. Usually it's the next one, but not always
 	FindNextMerkleRootAfterRevoke(context.Context, FindNextMerkleRootAfterRevokeArg) (NextMerkleRootRes, error)
-	// FindNextMerkleRootAfterRest finds the first Merkle root that contains the UID reset
+	// FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset
 	// at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
@@ -955,7 +955,7 @@ func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg Fin
 	return
 }
 
-// FindNextMerkleRootAfterRest finds the first Merkle root that contains the UID reset
+// FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset
 // at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 // the reset. Usually, we'll just turn up the next Merkle root, but not always.
 func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg FindNextMerkleRootAfterResetArg) (res NextMerkleRootRes, err error) {

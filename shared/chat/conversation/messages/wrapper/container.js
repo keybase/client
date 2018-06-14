@@ -100,9 +100,9 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     measure,
     message,
     messageFailed: stateProps.messageFailed,
-    // `messageKey` must always be unique and immutable for the message
-    // or else it will wreak havoc on the conversation list view
-    messageKey: `${message.conversationIDKey}:${message.id}`,
+    // `messageKey` should be unique for the message as long
+    // as threads aren't switched
+    messageKey: `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`,
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),

@@ -59,10 +59,7 @@ const channelState = channels.reduce((acc: Types.ChannelMembershipState, c) => {
   return acc
 }, {})
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.Common()
 
 const load = () => {
   storiesOf('Chat/Teams', module)
@@ -84,6 +81,7 @@ const load = () => {
           onClickChannel={action('onClickChannel')}
           nextChannelState={channelState}
           waitingForGet={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -104,6 +102,7 @@ const load = () => {
           onClickChannel={action('onClickChannel')}
           nextChannelState={channelState}
           waitingForGet={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -124,6 +123,7 @@ const load = () => {
           onClickChannel={action('onClickChannel')}
           nextChannelState={channelState}
           waitingForGet={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -140,6 +140,7 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -156,6 +157,7 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={true}
           waitingForGetInfo={false}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -172,6 +174,7 @@ const load = () => {
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={true}
+          waitingKey="test"
         />
       </Box>
     ))

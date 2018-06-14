@@ -2,6 +2,7 @@
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/git'
 import * as GitGen from './git-gen'
+import * as WaitingGen from './waiting-gen'
 import * as Entities from './entities'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -20,7 +21,7 @@ import {logError} from '../util/errors'
 // TODO refactor into pure function & reuse _processGitRepo
 function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> {
   yield Saga.put(GitGen.createSetError({error: null}))
-  yield Saga.put(GitGen.createSetLoading({loading: true}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.loadingWaitingKey}))
 
   try {
     const results: Array<RPCTypes.GitRepoResult> = yield Saga.call(RPCTypes.gitGetAllGitMetadataRpcPromise) ||
@@ -65,25 +66,23 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
 
     yield Saga.put(Entities.replaceEntity(['git'], I.Map({idToInfo: I.Map(idToInfo)})))
   } finally {
-    yield Saga.put(GitGen.createSetLoading({loading: false}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.loadingWaitingKey}))
   }
 }
 
 // reset errors and set loading, make a call and either go back to the root or show an error
 function* _createDeleteHelper(theCall: any): Generator<any, void, any> {
   yield Saga.put.resolve(GitGen.createSetError({error: null}))
-  yield Saga.put.resolve(GitGen.createSetLoading({loading: true}))
+  yield Saga.put.resolve(WaitingGen.createIncrementWaiting({key: Constants.loadingWaitingKey}))
   try {
     yield theCall
     yield Saga.put(navigateTo(isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab], []))
-    yield Saga.put.resolve(GitGen.createSetLoading({loading: false}))
     yield Saga.put(GitGen.createLoadGit())
   } catch (err) {
     yield Saga.put(GitGen.createSetError({error: err}))
-    yield Saga.put.resolve(GitGen.createSetLoading({loading: false}))
   } finally {
     // just in case
-    yield Saga.put.resolve(GitGen.createSetLoading({loading: false}))
+    yield Saga.put.resolve(WaitingGen.createDecrementWaiting({key: Constants.loadingWaitingKey}))
   }
 }
 
@@ -199,9 +198,6 @@ const _processGitRepo = (results: Array<RPCTypes.GitRepoResult>) => {
   return Saga.put(Entities.mergeEntity(['git'], I.Map({idToInfo: I.Map(idToInfo)})))
 }
 
-const _setLoading = (action: GitGen.SetLoadingPayload) =>
-  Saga.put(Entities.replaceEntity(['git'], I.Map([['loading', action.payload.loading]])))
-
 const _setError = (action: GitGen.SetErrorPayload) =>
   Saga.put(Entities.replaceEntity(['git'], I.Map([['error', action.payload.error]])))
 
@@ -265,7 +261,6 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(GitGen.createTeamRepo, _createTeamRepo)
   yield Saga.safeTakeEveryPure(GitGen.deletePersonalRepo, _deletePersonalRepo)
   yield Saga.safeTakeEveryPure(GitGen.deleteTeamRepo, _deleteTeamRepo)
-  yield Saga.safeTakeLatestPure(GitGen.setLoading, _setLoading)
   yield Saga.safeTakeLatestPure(GitGen.setError, _setError)
   yield Saga.safeTakeEveryPure(GitGen.badgeAppForGit, _badgeAppForGit)
   yield Saga.safeTakeEveryPure(GitGen.handleIncomingGregor, _handleIncomingGregor)

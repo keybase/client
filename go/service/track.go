@@ -66,7 +66,7 @@ func (h *TrackHandler) TrackWithToken(ctx context.Context, arg keybase1.TrackWit
 }
 
 func (h *TrackHandler) DismissWithToken(ctx context.Context, arg keybase1.DismissWithTokenArg) error {
-	outcome, err := h.G().TrackCache.Get(arg.TrackToken)
+	outcome, err := h.G().TrackCache().Get(arg.TrackToken)
 	if err != nil {
 		h.G().Log.Error("Failed to get track token", err)
 		return err

@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -115,7 +116,7 @@ func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.D
 	sibkeyKID := device.Base.Kid
 	deviceName = device.DeviceDescription
 
-	subkeyKID := upak.Current.FindEncryptionDeviceKID(sibkeyKID)
+	subkeyKID := upak.Current.FindEncryptionKIDFromSigningKID(sibkeyKID)
 	if subkeyKID.IsNil() {
 		m.CDebugf("BootstrapActiveDevice: no subkey found for device: %s", deviceID)
 		return nil, nil, deviceName, NoKeyError{"no encryption device key found for user"}

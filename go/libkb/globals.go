@@ -66,9 +66,9 @@ type GlobalContext struct {
 
 	cacheMu          *sync.RWMutex    // protects all caches
 	ProofCache       *ProofCache      // where to cache proof results
-	TrackCache       *TrackCache      // cache of IdentifyOutcomes for tracking purposes
-	Identify2Cache   Identify2Cacher  // cache of Identify2 results for fast-pathing identify2 RPCS
-	LinkCache        *LinkCache       // cache of ChainLinks
+	trackCache       *TrackCache      // cache of IdentifyOutcomes for tracking purposes
+	identify2Cache   Identify2Cacher  // cache of Identify2 results for fast-pathing identify2 RPCS
+	linkCache        *LinkCache       // cache of ChainLinks
 	upakLoader       UPAKLoader       // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader       // Play back teams for id/name properties
 	stellar          Stellar          // Stellar related ops
@@ -77,7 +77,7 @@ type GlobalContext struct {
 	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
 	ekLib            EKLib            // Wrapper to call ephemeral key methods
 	itciCacher       LRUer            // Cacher for implicit team conflict info
-	CardCache        *UserCardCache   // cache of keybase1.UserCard objects
+	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
 	pvlSource        PvlSource        // a cache and fetcher for pvl
 	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
@@ -165,7 +165,7 @@ type LogGetter func() logger.Logger
 // Note: all these sync.Mutex fields are pointers so that the Clone funcs work.
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
-	return &GlobalContext{
+	ret := &GlobalContext{
 		Log:                log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
@@ -186,6 +186,7 @@ func NewGlobalContext() *GlobalContext {
 		switchUserMu:       new(sync.Mutex),
 		NetContext:         context.TODO(),
 	}
+	return ret
 }
 
 func (g *GlobalContext) CloneWithNetContextAndNewLogger(netCtx context.Context) *GlobalContext {
@@ -224,6 +225,8 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
+
+	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
 	return g
 }
@@ -396,29 +399,62 @@ func (g *GlobalContext) ConfigureAPI() error {
 	return nil
 }
 
+// shutdownCachesLocked shutdown any non-nil caches that have running goroutines
+// in them. It can be called from either configureMemCachesLocked (via logout or flush),
+// or via Shutdown. In either case, callers must hold g.cacheMu.
+func (g *GlobalContext) shutdownCachesLocked() {
+
+	// shutdown and nil out any existing caches.
+	if g.trackCache != nil {
+		g.trackCache.Shutdown()
+	}
+	if g.identify2Cache != nil {
+		g.identify2Cache.Shutdown()
+	}
+	if g.linkCache != nil {
+		g.linkCache.Shutdown()
+	}
+	if g.cardCache != nil {
+		g.cardCache.Shutdown()
+	}
+}
+
+func (g *GlobalContext) TrackCache() *TrackCache {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	return g.trackCache
+}
+
+func (g *GlobalContext) Identify2Cache() Identify2Cacher {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	return g.identify2Cache
+}
+
+func (g *GlobalContext) CardCache() *UserCardCache {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	return g.cardCache
+}
+
+func (g *GlobalContext) LinkCache() *LinkCache {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	return g.linkCache
+}
+
 func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
-	// shutdown any existing ones
-	if g.TrackCache != nil {
-		g.TrackCache.Shutdown()
-	}
-	if g.Identify2Cache != nil {
-		g.Identify2Cache.Shutdown()
-	}
-	if g.LinkCache != nil {
-		g.LinkCache.Shutdown()
-	}
-	if g.CardCache != nil {
-		g.CardCache.Shutdown()
-	}
+
+	g.shutdownCachesLocked()
 
 	g.Resolver.EnableCaching()
-	g.TrackCache = NewTrackCache()
-	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
+	g.trackCache = NewTrackCache()
+	g.identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created Identify2Cache, max age: %s", g.Env.GetUserCacheMaxAge())
 
-	g.LinkCache = NewLinkCache(g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
+	g.linkCache = NewLinkCache(g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 	g.Log.Debug("Created LinkCache, max size: %d, clean dur: %s", g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
-	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
+	g.cardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created CardCache, max age: %s", g.Env.GetUserCacheMaxAge())
 
 	// If we're just flushing the caches, and already have a Proof cache, then the right idea
@@ -552,7 +588,7 @@ func (g *GlobalContext) Shutdown() error {
 	// Wrap in a Once.Do so that we don't inadvertedly
 	// run this code twice.
 	g.shutdownOnce.Do(func() {
-		g.Log.Debug("Calling shutdown first time through")
+		g.Log.Debug("GlobalContext#Shutdown(%p)\n", g)
 		didShutdown = true
 
 		epick := FirstErrorPicker{}
@@ -579,18 +615,13 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(g.LocalChatDb.Close())
 		}
 
-		if g.TrackCache != nil {
-			g.TrackCache.Shutdown()
-		}
-		if g.Identify2Cache != nil {
-			g.Identify2Cache.Shutdown()
-		}
-		if g.LinkCache != nil {
-			g.LinkCache.Shutdown()
-		}
-		if g.CardCache != nil {
-			g.CardCache.Shutdown()
-		}
+		// Shutdown can still race with Logout, so make sure that we hold onto
+		// the cacheMu before shutting down the caches. See comments in
+		// shutdownCachesLocked
+		g.cacheMu.Lock()
+		g.shutdownCachesLocked()
+		g.cacheMu.Unlock()
+
 		if g.Resolver != nil {
 			g.Resolver.Shutdown()
 		}
@@ -728,6 +759,10 @@ type Contextified struct {
 
 func (c Contextified) G() *GlobalContext {
 	return c.g
+}
+
+func (c Contextified) MetaContext(ctx context.Context) MetaContext {
+	return NewMetaContext(ctx, c.g)
 }
 
 func (c Contextified) GStrict() *GlobalContext {

@@ -542,3 +542,17 @@ func (h *TeamsHandler) TryDecryptWithTeamKey(ctx context.Context, arg keybase1.T
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.TryDecryptWithTeamKey(mctx, arg)
 }
+
+func (h *TeamsHandler) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, arg keybase1.FindNextMerkleRootAfterTeamRemovalArg) (res keybase1.NextMerkleRootRes, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("FindNextMerkleRootAfterTeamRemoval(%+v)", arg), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return libkb.FindNextMerkleRootAfterTeamRemoval(mctx, arg)
+}
+
+func (h *TeamsHandler) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.Context, arg keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res keybase1.NextMerkleRootRes, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("FindNextMerkleRootAfterTeamRemovalBySigningKey(%+v)", arg), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.FindNextMerkleRootAfterRemoval(mctx, arg)
+}
