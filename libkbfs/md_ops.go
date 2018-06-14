@@ -1041,7 +1041,7 @@ func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 		return false, err
 	}
 
-	md.log.CDebugf(ctx, "Checking the latest handle for %d; "+
+	md.log.CDebugf(ctx, "Checking the latest handle for %s; "+
 		"curr handle is %s", h.tlfID, h.GetCanonicalName())
 	latestHandle, err := md.GetLatestHandleForTLF(ctx, h.tlfID)
 	switch errors.Cause(err).(type) {
