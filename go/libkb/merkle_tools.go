@@ -77,7 +77,6 @@ func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparat
 			final = true
 		}
 		m.CDebugf("FFLWC: Expontential forward jump: trying %d", hi)
-		var found bool
 		leaf, root, err = cli.LookupLeafAtSeqno(m, id, hi)
 		if err != nil {
 			return nil, nil, err
