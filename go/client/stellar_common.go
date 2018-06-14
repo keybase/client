@@ -41,6 +41,8 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 	}
 	var to string
 	switch {
+	case p.ToUsername != nil && p.ToAssertion != nil:
+		to = fmt.Sprintf("%s (%q)", *p.ToUsername, *p.ToAssertion)
 	case p.ToUsername != nil:
 		to = *p.ToUsername
 	case p.ToStellar != nil:
