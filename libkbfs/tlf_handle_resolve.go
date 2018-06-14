@@ -238,23 +238,6 @@ func makeTlfHandleHelper(
 		panic(fmt.Sprintf("Unknown TLF type: %s", t))
 	}
 
-	if !isImplicit && tlfID != tlf.NullID && finalizedInfo == nil &&
-		idGetter != nil {
-		// Implicit team chat migration might have set the ID to an
-		// old folder that has since been reset.  Check with the
-		// server to see if that has happened, and if so, don't use
-		// that ID.  When we migrate existing TLFs to iteams, we can
-		// probably override the sigchain link with a new one
-		// containing the correct TLF ID.
-		latestHandle, err := idGetter.GetLatestHandleForTLF(ctx, tlfID)
-		if err != nil {
-			return nil, err
-		}
-		if latestHandle.IsFinal() {
-			tlfID = tlf.NullID
-		}
-	}
-
 	h := &TlfHandle{
 		tlfType:           t,
 		resolvedWriters:   usedWNames,
@@ -764,6 +747,14 @@ func parseTlfHandleLoose(
 		return nil, err
 	}
 
+	var extensions []tlf.HandleExtension
+	if len(extensionSuffix) != 0 {
+		extensions, err = tlf.ParseHandleExtensionSuffix(extensionSuffix)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// First try resolving this full name as an implicit team.  If
 	// that doesn't work, fall through to individual name resolution.
 	var iteamHandle *TlfHandle
@@ -773,7 +764,31 @@ func parseTlfHandleLoose(
 			ctx, t, []resolvableUser{rit}, nil, nil, idGetter)
 		if err == nil && iteamHandle.tlfID != tlf.NullID {
 			// The iteam already has a TLF ID, let's use it.
-			return iteamHandle, nil
+
+			extensionList := tlf.HandleExtensionList(extensions)
+			sort.Sort(extensionList)
+			_, finalizedInfo := extensionList.Splat()
+
+			if finalizedInfo == nil && idGetter != nil {
+				// Implicit team chat migration might have set the ID to an
+				// old folder that has since been reset.  Check with the
+				// server to see if that has happened, and if so, don't use
+				// that ID.  When we migrate existing TLFs to iteams, we can
+				// probably override the sigchain link with a new one
+				// containing the correct TLF ID.
+				latestHandle, err := idGetter.GetLatestHandleForTLF(
+					ctx, iteamHandle.tlfID)
+				if err != nil {
+					return nil, err
+				}
+				if latestHandle.IsFinal() {
+					iteamHandle.tlfID = tlf.NullID
+				}
+			}
+
+			if iteamHandle.tlfID != tlf.NullID {
+				return iteamHandle, nil
+			}
 		}
 		// This is not an implicit team, so continue on to check for a
 		// normal team.  TODO: return non-nil errors immediately if they
@@ -804,14 +819,6 @@ func parseTlfHandleLoose(
 	for i, r := range readerNames {
 		readers[i] = resolvableAssertionWithChangeReport{
 			resolvableAssertion{kbpki, kbpki, r, keybase1.UID("")}, changesCh}
-	}
-
-	var extensions []tlf.HandleExtension
-	if len(extensionSuffix) != 0 {
-		extensions, err = tlf.ParseHandleExtensionSuffix(extensionSuffix)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	h, err := makeTlfHandleHelper(
