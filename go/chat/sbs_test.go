@@ -84,6 +84,7 @@ func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) {
 }
 
 func TestChatSrvSBS(t *testing.T) {
+	t.Skip()
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
 			ctc := makeChatTestContext(t, "TestChatSrvSBS", 2)
