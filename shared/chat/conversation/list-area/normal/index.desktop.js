@@ -23,7 +23,7 @@ import type {Props} from '.'
 // set this to true to see size overlays
 const debugSizing = __STORYBOOK__
 
-const ordinalsInAWaypoint = 10
+const ordinalsInAWaypoint = 2
 const lockedToBottomSlop = 20
 
 type State = {
