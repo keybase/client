@@ -14,13 +14,13 @@ import (
 )
 
 type ServerPrivateKey struct {
-	Kid     string `json:"kid"`
-	KeyType int    `json:"key_type"`
-	Bundle  string `json:"bundle"`
-	Mtime   int    `json:"mtime"`
-	Ctime   int    `json:"ctime"`
-	KeyBits int    `json:"key_bits"`
-	KeyAlgo int    `json:"key_algo"`
+	Kid     string  `json:"kid"`
+	KeyType KeyType `json:"key_type"`
+	Bundle  string  `json:"bundle"`
+	Mtime   int     `json:"mtime"`
+	Ctime   int     `json:"ctime"`
+	KeyBits int     `json:"key_bits"`
+	KeyAlgo int     `json:"key_algo"`
 }
 
 type ServerPrivateKeyMap map[string]ServerPrivateKey
