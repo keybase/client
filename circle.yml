@@ -43,18 +43,15 @@ jobs:
     # Machine Setup
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
-    - checkout
+    - checkout:
+        path: ~/keybase/client
     # Prepare for artifact and test results  collection equivalent to how it was done on 1.0.
     # In many cases you can simplify this from what is generated here.
     # 'See docs on artifact collection here https://circleci.com/docs/2.0/artifacts/'
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
     # This is based on your 1.0 configuration file or project settings
-    - run:
-        working_directory: ~/keybase/client/shared
-        command: nvm install 8 && nvm alias default 8
-    - run:
-        working_directory: ~/keybase/client/shared
-        command: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
+    - run: nvm install 8 && nvm alias default 8
+    - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
     # Dependencies
     #   This would typically go in either a build or a build-and-test job when using workflows
     # Restore the dependency cache
@@ -72,8 +69,7 @@ jobs:
     - run: sudo apt-get update -qq
     - run: sudo apt-get install -y -qq yarn=1.0.2-1
     - run: sudo rm -rf /usr/local/go*
-    - run: mkdir -p ~/downloads
-    - run: mkdir -p ~/go-path
+    - run: mkdir -p ~/downloads ~/go-path
     - run: ls "$HOME/downloads"
     - run: ls "$ANDROID_HOME"
     - run: if [[ ! -e "$HOME/downloads/go.$GOVERSION.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz -O $HOME/downloads/go.$GOVERSION.tar.gz ; fi
@@ -94,8 +90,7 @@ jobs:
     - run: ln -s $HOME/client $GOPATH/src/github.com/keybase/client
     - run: yarn run rn-gobuild-android
     - run: ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
-    - run: mkdir -p react-native/android/app/build/intermediates/assets/releaseUnsigned
-    - run: mkdir -p react-native/android/app/build/intermediates/res/merged/releaseUnsigned
+    - run: mkdir -p react-native/android/app/build/intermediates/{assets,res/merged}/releaseUnsigned
     - run:
         command: react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
         environment:
