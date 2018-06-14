@@ -51,7 +51,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
         ordinal: ownProps.message.ordinal,
       })
     ),
-
   _onEdit: () =>
     dispatch(
       Chat2Gen.createMessageSetEditing({
@@ -117,6 +116,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
           ? {onClick: dispatchProps._onDownload, title: 'Download'}
           : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
       )
+    }
+  } else {
+    if (stateProps._canEdit) {
+      items.push({onClidk: dispatchProps._onEdit, title: 'Edit'})
     }
   }
   return {

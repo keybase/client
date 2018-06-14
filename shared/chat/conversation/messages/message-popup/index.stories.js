@@ -33,11 +33,55 @@ const defaultProps = {
   yourMessage: true,
 }
 
+const explodingSoonText = makeMessageText({
+  author: 'cjb',
+  deviceName: 'device',
+  explodingTime: 2000000100000,
+})
+
+const explodingLaterText = makeMessageText({
+  author: 'cjb',
+  deviceName: 'device',
+  explodingTime: 2000009000000,
+})
+
+const explodingSoonAttachment = makeMessageAttachment({
+  author: 'cjb',
+  deviceName: 'device',
+  explodingTime: 2000000100000,
+})
+
+const commonExplodingProps = {
+  attachTo: null,
+  onHidden: action('onHidden'),
+  position: 'top center',
+  visible: true,
+}
+
 const provider = PropProviders.compose(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
   {
-    ExplodingPopup: (props: ExplodingOwnProps) => {},
+    ExplodingPopup: (props: ExplodingOwnProps) => ({
+      attachTo: null,
+      author: props.message.author,
+      deviceName: props.message.deviceName,
+      deviceRevokedAt: props.message.deviceRevokedAt,
+      deviceType: props.message.deviceType,
+      explodesAt: props.message.explodingTime,
+      items: [
+        {danger: true, onClick: action('onExplodeNow'), title: 'Explode now'},
+        {danger: true, onClick: action('onDeleteHistory'), title: 'Delete this + everything above'},
+        ...(props.message.type === 'attachment'
+          ? [{onClick: action('onDownload'), title: 'Download'}]
+          : [{onClick: action('onEdit'), title: 'Edit'}]),
+      ],
+      onHidden: props.onHidden,
+      position: props.position,
+      timestamp: props.message.timestamp,
+      visible: props.visible,
+      yourMessage: props.message.author === 'cjb',
+    }),
   }
 )
 
@@ -73,30 +117,11 @@ const load = () => {
       />
     ))
     .add('Exploding later', () => (
-      <ExplodingPopupMenu
-        {...defaultProps}
-        {...textMessage}
-        attachTo={null}
-        explodesAt={2000009000000}
-        canEdit={true}
-        canExplodeNow={true}
-        onEdit={action('onEdit')}
-        onExplodeNow={action('onExplodeNow')}
-        position={'top left'}
-      />
+      <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText} />
     ))
-    .add('Exploding soon', () => (
-      <ExplodingPopupMenu
-        {...defaultProps}
-        {...textMessage}
-        attachTo={null}
-        explodesAt={2000000100000}
-        canEdit={true}
-        canExplodeNow={true}
-        onEdit={action('onEdit')}
-        onExplodeNow={action('onExplodeNow')}
-        position={'top left'}
-      />
+    .add('Exploding soon', () => <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonText} />)
+    .add('Exploding attachment', () => (
+      <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonAttachment} />
     ))
 }
 
