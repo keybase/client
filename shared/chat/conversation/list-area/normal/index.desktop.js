@@ -63,6 +63,14 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State, snapshot: Snapshot) {
+    if (this.props === prevProps) {
+      if (this.state.width !== prevState.width) {
+        this._scrollToBottom()
+      }
+      // don't do any of the below if just state changes
+      return
+    }
+
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
@@ -427,16 +435,16 @@ const realCSS = `
   opacity: 1;
 }
 `
-
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  // containment hints so we can scroll faster
-  contain: 'strict',
   flex: 1,
   position: 'relative',
+  // containment hints so we can scroll faster
+  contain: 'strict',
 }
 
 const listStyle = {
+  ...globalStyles.fillAbsolute,
   outline: 'none',
   overflowX: 'hidden',
   overflowY: 'auto',
