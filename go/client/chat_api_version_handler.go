@@ -38,6 +38,8 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.SendV1(ctx, c, w)
 	case methodEdit:
 		return d.handler.EditV1(ctx, c, w)
+	case methodReaction:
+		return d.handler.ReactionV1(ctx, c, w)
 	case methodDelete:
 		return d.handler.DeleteV1(ctx, c, w)
 	case methodAttach:

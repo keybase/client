@@ -287,6 +287,207 @@ func TestExplodeNow(t *testing.T) {
 	require.Equal(t, u.Username, *msg3.Valid().ExplodedBy())
 }
 
+func TestReactions(t *testing.T) {
+	ctx, world, ri, _, sender, _ := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	tc := world.Tcs[u.Username]
+	trip := newConvTriple(ctx, t, tc, u.Username)
+	firstMessagePlaintext := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TLFNAME,
+		},
+		MessageBody: chat1.MessageBody{},
+	}
+	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+		chat1.ConversationMembersType_TEAM, nil)
+	require.NoError(t, err)
+
+	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
+		IdTriple:   trip,
+		TLFMessage: *firstMessageBoxed,
+	})
+	require.NoError(t, err)
+
+	verifyThread := func(msgID, supersededBy chat1.MessageID, body string,
+		reactionIDs []chat1.MessageID, reactionMap chat1.ReactionMap) {
+		thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+			chat1.GetThreadReason_GENERAL,
+			&chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(thread.Messages), "wrong length")
+
+		msg := thread.Messages[0]
+		require.Equal(t, msgID, msg.GetMessageID(), "wrong msgID")
+		require.True(t, msg.IsValid())
+		require.Equal(t, body, msg.Valid().MessageBody.Text().Body, "wrong body")
+		require.Equal(t, supersededBy, msg.Valid().ServerHeader.SupersededBy, "wrong super")
+		require.Equal(t, reactionIDs, msg.Valid().ServerHeader.ReactionIDs, "wrong reactionIDs")
+		require.Equal(t, reactionMap, msg.Valid().Reactions, "wrong reactions")
+	}
+
+	t.Logf("send text")
+	body := "hi"
+	_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: body,
+		}),
+	}, 0, nil)
+	require.NoError(t, err)
+	msgID := msgBoxed.GetMessageID()
+	verifyThread(msgID, 0 /* supersededBy */, body, nil, chat1.ReactionMap{})
+
+	sendEdit := func(editText string) chat1.MessageID {
+		_, editMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_EDIT,
+				Supersedes:  msgID,
+			},
+			MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+				MessageID: msgID,
+				Body:      editText,
+			}),
+		}, 0, nil)
+		require.NoError(t, err)
+		return editMsgBoxed.GetMessageID()
+	}
+
+	sendReaction := func(reactionText string) chat1.MessageID {
+		_, reactionMsgboxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_REACTION,
+				Supersedes:  msgID,
+			},
+			MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+				MessageID: msgID,
+				Body:      reactionText,
+			}),
+		}, 0, nil)
+		require.NoError(t, err)
+		return reactionMsgboxed.GetMessageID()
+	}
+
+	// Verify edits can happen around reactions and don't get clobbered
+	t.Logf("testing an edit")
+	body = "edited"
+	editMsgID := sendEdit(body)
+	verifyThread(msgID, editMsgID, body, nil, chat1.ReactionMap{})
+
+	t.Logf("test +1 reaction")
+	reactionMsgID := sendReaction(":+1:")
+	expectedReactionMap := chat1.ReactionMap{
+		Reactions: map[string][]chat1.Reaction{
+			":+1:": []chat1.Reaction{
+				chat1.Reaction{
+					Username:      u.Username,
+					ReactionMsgID: reactionMsgID,
+				},
+			},
+		},
+	}
+	verifyThread(msgID, editMsgID, body, []chat1.MessageID{reactionMsgID}, expectedReactionMap)
+
+	t.Logf("test -1 reaction")
+	reactionMsgID2 := sendReaction(":-1:")
+	expectedReactionMap.Reactions[":-1:"] = []chat1.Reaction{
+		chat1.Reaction{
+			Username:      u.Username,
+			ReactionMsgID: reactionMsgID2,
+		},
+	}
+	verifyThread(msgID, editMsgID, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
+
+	t.Logf("testing an edit2")
+	body = "edited2"
+	editMsgID2 := sendEdit(body)
+	verifyThread(msgID, editMsgID2, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
+
+	t.Logf("test multiple pulls")
+	// Verify pulling again returns the correct state
+	verifyThread(msgID, editMsgID2, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
+
+	t.Logf("test reaction deletion")
+	delBody := chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+		MessageIDs: []chat1.MessageID{reactionMsgID2},
+	})
+	_, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  reactionMsgID2,
+		},
+		MessageBody: delBody,
+	}, 0, nil)
+	require.NoError(t, err)
+	delete(expectedReactionMap.Reactions, ":-1:")
+	verifyThread(msgID, editMsgID2, body, []chat1.MessageID{reactionMsgID}, expectedReactionMap)
+
+	t.Logf("testing an edit3")
+	body = "edited3"
+	editMsgID3 := sendEdit(body)
+	verifyThread(msgID, editMsgID3, body, []chat1.MessageID{reactionMsgID}, expectedReactionMap)
+
+	t.Logf("test reaction after delete")
+	reactionMsgID3 := sendReaction(":-1:")
+
+	expectedReactionMap.Reactions[":-1:"] = []chat1.Reaction{
+		chat1.Reaction{
+			Username:      u.Username,
+			ReactionMsgID: reactionMsgID3,
+		},
+	}
+	verifyThread(msgID, editMsgID3, body, []chat1.MessageID{reactionMsgID, reactionMsgID3}, expectedReactionMap)
+
+	t.Logf("testing a delete")
+	delBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+		MessageIDs: []chat1.MessageID{msgID, reactionMsgID, reactionMsgID3},
+	})
+	_, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  msgID,
+		},
+		MessageBody: delBody,
+	}, 0, nil)
+	require.NoError(t, err)
+
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		chat1.GetThreadReason_GENERAL,
+		&chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(thread.Messages), "wrong length")
+}
+
 type failingRemote struct {
 	t *testing.T
 }
@@ -524,6 +725,11 @@ func (f failingTlf) EphemeralDecryptionKey(ctx context.Context, tlfName string, 
 	panic("unimplemented")
 }
 
+func (f failingTlf) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
+	panic("unimplemented")
+}
+
 type failingUpak struct {
 	t *testing.T
 }
@@ -563,6 +769,10 @@ func (f failingUpak) Invalidate(ctx context.Context, uid keybase1.UID) {
 func (f failingUpak) LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upk *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error) {
 	require.Fail(f.t, "LoadDeviceKey call")
 	return nil, nil, nil, nil
+}
+func (f failingUpak) LoadUPAKWithDeviceID(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
+	require.Fail(f.t, "LoadUPAKWithDeviceID call")
+	return nil, nil
 }
 func (f failingUpak) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
 	require.Fail(f.t, "LookupUsername call")

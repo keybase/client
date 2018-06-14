@@ -2,9 +2,9 @@
 import React, {Component} from 'react'
 import Text from './text'
 import shallowEqual from 'shallowequal'
-import {collapseStyles, globalStyles, globalColors} from '../styles'
+import {collapseStyles, platformStyles, styleSheetCreate, globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
-import {connect} from 'react-redux'
+import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen.js'
@@ -25,6 +25,16 @@ function usernameText({
   inlineGrammar = false,
   showAnd = false,
 }: Props) {
+  const andStyle = collapseStyles([
+    style,
+    styles.andStyle,
+    {color: commaColor},
+  ])
+  const commaStyle = collapseStyles([
+    style,
+    styles.commaStyle,
+    {color: commaColor},
+  ])
   return users.map((u, i) => {
     let userStyle = {
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
@@ -41,7 +51,15 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username}>
-        {i === users.length - 1 && showAnd && 'and '}
+        {i !== 0 && i === users.length - 1 && showAnd && (
+          <Text
+            type={type}
+            backgroundMode={backgroundMode}
+            style={andStyle}
+          >
+            and
+          </Text>
+        )}
         <Text
           type={type}
           backgroundMode={backgroundMode}
@@ -56,14 +74,7 @@ function usernameText({
             <Text
               type={type}
               backgroundMode={backgroundMode}
-              style={collapseStyles([
-                style,
-                {
-                  color: commaColor,
-                  marginRight: 1,
-                  ...(isMobile ? {} : {textDecoration: 'none'}),
-                },
-              ])}
+              style={commaStyle}
             >
               ,
             </Text>
@@ -74,21 +85,6 @@ function usernameText({
   })
 }
 
-const inlineStyle = isMobile
-  ? {}
-  : {
-      display: 'inline',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      width: '100%',
-    }
-
-const nonInlineStyle = {
-  ...globalStyles.flexBoxRow,
-  flexWrap: 'wrap',
-  ...(isMobile ? null : {textDecoration: 'inherit'}),
-}
 const inlineProps = isMobile ? {lineClamp: 1} : {}
 
 class Usernames extends Component<Props> {
@@ -102,7 +98,7 @@ class Usernames extends Component<Props> {
   }
 
   render() {
-    const containerStyle = this.props.inline ? inlineStyle : nonInlineStyle
+    const containerStyle = this.props.inline ? styles.inlineStyle : styles.nonInlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
 
@@ -153,7 +149,7 @@ class PlaintextUsernames extends Component<PlaintextProps> {
   }
 
   render() {
-    const containerStyle = inlineStyle
+    const containerStyle = styles.inlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
 
     return (
@@ -210,5 +206,35 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const ConnectedUsernames = connect(mapStateToProps, mapDispatchToProps, mergeProps)(Usernames)
+const styles = styleSheetCreate({
+  andStyle: platformStyles({
+    common: {
+      marginLeft: globalMargins.xtiny,
+      marginRight: globalMargins.xtiny,
+    },
+    isElectron: {textDecoration: 'none'},
+  }),
+  commaStyle: platformStyles({
+    common: {marginRight: 1},
+    isElectron: {textDecoration: 'none'},
+  }),
+  inlineStyle: platformStyles({
+    isElectron: {
+      display: 'inline',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      width: '100%',
+    },
+  }),
+  nonInlineStyle: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      flexWrap: 'wrap',
+    },
+    isElectron: {textDecoration: 'inherit'},
+  }),
+})
+
+const ConnectedUsernames = compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Usernames'))(Usernames)
 export {usernameText, Usernames, PlaintextUsernames, ConnectedUsernames}

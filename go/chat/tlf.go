@@ -111,6 +111,11 @@ func (t *KBFSNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName
 	return teamEK, fmt.Errorf("KBFSNameInfoSource doesn't support ephemeral keys")
 }
 
+func (t *KBFSNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
+	return false, nil, nil
+}
+
 func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
 	identBehavior, _, ok := IdentifyMode(ctx)
 	if !ok {

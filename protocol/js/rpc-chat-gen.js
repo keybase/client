@@ -239,6 +239,7 @@ export const remoteMessageBoxedVersion = {
   v1: 1,
   v2: 2,
   v3: 3,
+  v4: 4,
 }
 
 export const remoteSyncAllNotificationType = {
@@ -562,12 +563,13 @@ export type MerkleRoot = $ReadOnly<{seqno: Long, hash: Bytes}>
 export type MessageAttachment = $ReadOnly<{object: Asset, preview?: ?Asset, previews?: ?Array<Asset>, metadata: Bytes, uploaded: Boolean}>
 export type MessageAttachmentUploaded = $ReadOnly<{messageID: MessageID, object: Asset, previews?: ?Array<Asset>, metadata: Bytes}>
 export type MessageBody = {messageType: 1, text: ?MessageText} | {messageType: 2, attachment: ?MessageAttachment} | {messageType: 3, edit: ?MessageEdit} | {messageType: 4, delete: ?MessageDelete} | {messageType: 5, metadata: ?MessageConversationMetadata} | {messageType: 7, headline: ?MessageHeadline} | {messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded} | {messageType: 9, join: ?MessageJoin} | {messageType: 10, leave: ?MessageLeave} | {messageType: 11, system: ?MessageSystem} | {messageType: 12, deletehistory: ?MessageDeleteHistory} | {messageType: 13, reaction: ?MessageReaction}
-export type MessageBoxed = $ReadOnly<{version: MessageBoxedVersion, serverHeader?: ?MessageServerHeader, clientHeader: MessageClientHeader, headerCiphertext: SealedData, bodyCiphertext: EncryptedData, verifyKey: Bytes, keyGeneration: Int}>
+export type MessageBoxed = $ReadOnly<{version: MessageBoxedVersion, serverHeader?: ?MessageServerHeader, clientHeader: MessageClientHeader, headerCiphertext: SealedData, bodyCiphertext: EncryptedData, verifyKey: Bytes, keyGeneration: Int, pairwiseMacs: {[key: string]: Bytes}}>
 export type MessageBoxedVersion =
   | 0 // VNONE_0
   | 1 // V1_1
   | 2 // V2_2
   | 3 // V3_3
+  | 4 // V4_4
 
 export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata, rtime: Gregor1.Time}>
@@ -618,7 +620,7 @@ export type MessageType =
   | 13 // REACTION_13
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
-export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
+export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, versionKind: VersionKind, versionNumber: Int, isCritical: Boolean, senderUsername: String, senderDeviceName: String, senderDeviceType: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
 export type MessageUnboxedErrorType =
   | 0 // MISC_0
   | 1 // BADVERSION_CRITICAL_1
@@ -633,7 +635,7 @@ export type MessageUnboxedState =
   | 3 // OUTBOX_3
   | 4 // PLACEHOLDER_4
 
-export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>}>
+export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>, reactions: ReactionMap}>
 export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration, explodedBy?: ?String}>
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
 export type NewConversationInfo = $ReadOnly<{convID: ConversationID, conv?: ?InboxUIItem}>
@@ -685,6 +687,8 @@ export type PostLocalNonblockRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, ou
 export type PostLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, messageID: MessageID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostRemoteRes = $ReadOnly<{msgHeader: MessageServerHeader, rateLimit?: ?RateLimit}>
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
+export type Reaction = $ReadOnly<{username: String, reactionMsgID: MessageID}>
+export type ReactionMap = $ReadOnly<{reactions: {[key: string]: ?Array<Reaction>}}>
 export type ReadMessageInfo = $ReadOnly<{convID: ConversationID, msgID: MessageID, conv?: ?InboxUIItem}>
 export type ReadMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, msgID: MessageID, inboxVers: InboxVers, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type RemoteDeleteConversationRpcParam = $ReadOnly<{convID: ConversationID}>
@@ -800,7 +804,7 @@ export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, mim
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap}>
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
 export type UnreadFirstNumLimit = $ReadOnly<{NumRead: Int, AtLeast: Int, AtMost: Int}>
@@ -810,6 +814,7 @@ export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, name: String, vis
 export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, headline: String, snippet: String, writerNames?: ?Array<String>, resetParticipants?: ?Array<String>}>
 export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
 export type UpdateConversationMembership = $ReadOnly<{inboxVers: InboxVers, joined?: ?Array<ConversationMember>, removed?: ?Array<ConversationMember>, reset?: ?Array<ConversationMember>, previewed?: ?Array<ConversationID>, unreadUpdate?: ?UnreadUpdate, unreadUpdates?: ?Array<UnreadUpdate>}>
+export type VersionKind = String
 type ChatUiChatConfirmChannelDeleteResult = Boolean
 type LocalDeleteConversationLocalResult = DeleteConversationLocalRes
 type LocalDownloadAttachmentLocalResult = DownloadAttachmentLocalRes

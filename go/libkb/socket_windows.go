@@ -78,7 +78,7 @@ func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
 		if err != nil {
 			return nil, err
 		}
-		if !owner {
+		if !owner.IsOwner {
 			return nil, errors.New("failed to verify pipe ownership")
 		}
 	}

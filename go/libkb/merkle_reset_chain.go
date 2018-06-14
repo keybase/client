@@ -6,7 +6,6 @@ import (
 	fmt "fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	context "golang.org/x/net/context"
 )
 
 type resetLinkAndHash struct {
@@ -31,8 +30,8 @@ func importResetLinkAndHash(s string) (ret *resetLinkAndHash, err error) {
 	return ret, nil
 }
 
-func importResetChainFromServer(ctx context.Context, g *GlobalContext, jw *jsonw.Wrapper) (urc unverifiedResetChain, err error) {
-	defer g.CVTrace(ctx, VLog0, "importResetChainFromServer", func() error { return err })()
+func importResetChainFromServer(m MetaContext, jw *jsonw.Wrapper) (urc unverifiedResetChain, err error) {
+	defer m.CVTrace(VLog0, "importResetChainFromServer", func() error { return err })()
 	if jw == nil || jw.IsNil() {
 		return nil, nil
 	}
@@ -90,14 +89,14 @@ type MerkleResets struct {
 	chain     []keybase1.ResetLink
 }
 
-func (mr *MerkleResets) verifyAndLoad(ctx context.Context, g *GlobalContext, urc unverifiedResetChain) (err error) {
+func (mr *MerkleResets) verifyAndLoad(m MetaContext, urc unverifiedResetChain) (err error) {
 
 	// Don't even bother to do a CVTrace if the user hasn't reset at all
 	if mr == nil {
 		return nil
 	}
 
-	defer g.CVTrace(ctx, VLog0, "MerkleResets#verifyAndLoad", func() error { return err })()
+	defer m.CVTrace(VLog0, "MerkleResets#verifyAndLoad", func() error { return err })()
 
 	mkerr := func(f string, a ...interface{}) error {
 		return MerkleClientError{m: fmt.Sprintf(f, a...), t: merkleErrorBadResetChain}
