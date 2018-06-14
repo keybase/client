@@ -1098,6 +1098,12 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	arg.Msg.ClientHeader.Sender = uid
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
+	header, err := h.processReactionMessage(ctx, uid, arg.ConversationID, arg.Msg)
+	if err != nil {
+		return res, err
+	}
+	arg.Msg.ClientHeader = header
+
 	metadata, err := h.getSupersederEphemeralMetadata(ctx, uid, arg.ConversationID, arg.Msg)
 	if err != nil {
 		return res, err
@@ -1171,7 +1177,7 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	return h.PostLocalNonblock(ctx, parg)
 }
 
-func (h *Server) PostReactionNonblock(ctx context.Context, arg chat1.PostReactionNonblockArg) (chat1.PostLocalNonblockRes, error) {
+func (h *Server) PostReactionNonblock(ctx context.Context, arg chat1.PostReactionNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -1347,6 +1353,12 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		Prev: prevMsgID,
 	}
 
+	header, err := h.processReactionMessage(ctx, uid, arg.ConversationID, arg.Msg)
+	if err != nil {
+		return res, err
+	}
+	arg.Msg.ClientHeader = header
+
 	metadata, err := h.getSupersederEphemeralMetadata(ctx, uid, arg.ConversationID, arg.Msg)
 	if err != nil {
 		return res, err
@@ -1369,6 +1381,18 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}, nil
 }
 
+func (h *Server) getMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
+	messages, err := GetMessages(ctx, h.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes)
+	if err != nil {
+		return mvalid, err
+
+	}
+	if len(messages) != 1 || !messages[0].IsValid() {
+		return mvalid, fmt.Errorf("GetMessages returned multiple messages or an invalid result for msgID: %v", msgID)
+	}
+	return messages[0].Valid(), nil
+}
+
 // If we are superseding an ephemeral message, we have to set the
 // ephemeralMetadata on this superseder message.
 func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
@@ -1378,25 +1402,34 @@ func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1
 		return msg.ClientHeader.EphemeralMetadata, nil
 	}
 
-	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true /* useLocalData */)
+	supersededMsg, err := h.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, false /* resolveSupersedes */)
 	if err != nil {
 		return nil, err
 	}
-
-	messages, err := h.G().ConvSource.GetMessages(ctx, conv, uid,
-		[]chat1.MessageID{msg.ClientHeader.Supersedes}, nil)
-	if err != nil {
-		return nil, err
-	}
-	if len(messages) != 1 || !messages[0].IsValid() {
-		return nil, fmt.Errorf("GetMessages returned multiple messages or an invalid result for msgID: %v", msg.ClientHeader.Supersedes)
-	}
-	supersededMsg := messages[0].Valid()
 	if supersededMsg.IsEphemeral() {
 		metadata = supersededMsg.EphemeralMetadata()
 		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingEphemeralLifetime(h.clock.Now()))
 	}
 	return metadata, nil
+}
+
+// processReactionMessage determines if we are trying to post a duplicate
+// chat1.MessageType_REACTION, which is considered a chat1.MessageType_DELETE
+// and updated appropiately.
+func (h *Server) processReactionMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (clientHeader chat1.MessageClientHeader, err error) {
+	if msg.ClientHeader.MessageType == chat1.MessageType_REACTION {
+		// We could either be posting a reaction or removing one that we already posted.
+		supersededMsg, err := h.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, true /* resolveSupersedes */)
+		if err != nil {
+			return msg.ClientHeader, err
+		}
+		found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(msg.MessageBody.Reaction().Body, h.G().Env.GetUsername().String())
+		if found {
+			msg.ClientHeader.Supersedes = reactionMsgID
+			msg.ClientHeader.MessageType = chat1.MessageType_DELETE
+		}
+	}
+	return msg.ClientHeader, nil
 }
 
 // MakePreview implements chat1.LocalInterface.MakePreview.

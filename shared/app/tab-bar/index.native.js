@@ -4,8 +4,7 @@ import * as React from 'react'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
 import {globalStyles, globalColors, isIPhoneX} from '../../styles'
-
-import type {Props} from './index.render'
+import type {Props} from './index.types'
 
 const _icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',

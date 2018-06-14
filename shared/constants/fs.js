@@ -40,6 +40,7 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   favoriteChildren: I.Set(),
   tlfMeta: undefined,
   resetParticipants: [],
+  teamID: undefined,
   type: 'folder',
 })
 
@@ -80,6 +81,7 @@ export const makeFavoriteItem: I.RecordFactory<Types._FavoriteItem> = I.Record({
   badgeCount: 0,
   favoriteChildren: I.Set(),
   tlfMeta: undefined,
+  teamId: '',
 })
 
 export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
@@ -424,7 +426,17 @@ export const folderToFavoriteItems = (
   // figure out who can solve the rekey
   const folders: Array<Types.FolderRPCWithMeta> = _fillMetadataInFavoritesResult(favoritesResult, myKID)
   const favoriteFolders = folders.map(
-    ({name, folderType, isIgnored, isNew, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
+    ({
+      name,
+      folderType,
+      isIgnored,
+      isNew,
+      needsRekey,
+      waitingForParticipantUnlock,
+      youCanUnlock,
+      team_id,
+      reset_members,
+    }) => {
       const folderTypeString = FolderTypeToString(folderType)
       const folderParent = `/keybase/${folderTypeString}`
       const preferredName = tlfToPreferredOrder(name, username)
@@ -448,6 +460,8 @@ export const folderToFavoriteItems = (
             needsRekey,
             waitingForParticipantUnlock,
             youCanUnlock,
+            teamId: team_id || '',
+            resetParticipants: reset_members || [],
           },
         }),
       ]

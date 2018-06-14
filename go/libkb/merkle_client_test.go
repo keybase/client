@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"encoding/json"
-	"golang.org/x/net/context"
 	"testing"
 )
 
@@ -43,7 +42,7 @@ func TestMerkleSkipVectors(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = ss.verify(context.TODO(), tc.G, skipTestVectorsThisRoot, skipTestVectorsLastRoot)
+		err = ss.verify(NewMetaContextForTest(tc), skipTestVectorsThisRoot, skipTestVectorsLastRoot)
 
 		tc.G.Log.Info("Iteration %d: test %s: %v", i, v.name, err)
 

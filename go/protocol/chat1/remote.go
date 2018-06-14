@@ -51,6 +51,7 @@ const (
 	MessageBoxedVersion_V1    MessageBoxedVersion = 1
 	MessageBoxedVersion_V2    MessageBoxedVersion = 2
 	MessageBoxedVersion_V3    MessageBoxedVersion = 3
+	MessageBoxedVersion_V4    MessageBoxedVersion = 4
 )
 
 func (o MessageBoxedVersion) DeepCopy() MessageBoxedVersion { return o }
@@ -60,6 +61,7 @@ var MessageBoxedVersionMap = map[string]MessageBoxedVersion{
 	"V1":    1,
 	"V2":    2,
 	"V3":    3,
+	"V4":    4,
 }
 
 var MessageBoxedVersionRevMap = map[MessageBoxedVersion]string{
@@ -67,6 +69,7 @@ var MessageBoxedVersionRevMap = map[MessageBoxedVersion]string{
 	1: "V1",
 	2: "V2",
 	3: "V3",
+	4: "V4",
 }
 
 func (e MessageBoxedVersion) String() string {

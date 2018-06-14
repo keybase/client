@@ -30,6 +30,7 @@
       <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="RemoveLegacyBundle" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <!-- StopGUI is legacy and to be removed after enough people are updated -->
       <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
@@ -203,7 +204,7 @@
   <Fragment>
     <CustomAction Id="StopMainApp"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
@@ -262,7 +263,7 @@
     NOTE this is not invoked yet, because we're still stuck with a bundle .exe -->
     <CustomAction Id="RemoveLegacyBundle"
               Directory="LocalAppDataFolder"
-              ExeCommand="[LocalAppDataFolder]\Package Cache\{a7cab659-0cbf-4b72-a658-b386d3d1d785}\Keybase_1.0.45-20180305114930+3a1c65a.386.exe /quiet /uninstall"
+              ExeCommand="[LocalAppDataFolder]\Package Cache\{2db7fc7d-8c3f-43a3-bfd9-dfa625366b99}\Keybase_2.1.0-20180607152232+f31e011ea5.386.exe /quiet /uninstall"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>

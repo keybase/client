@@ -231,7 +231,7 @@ func runWithEphemeral(t *testing.T, mt chat1.ConversationMembersType, f func(eph
 	switch mt {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMUPGRADE, chat1.ConversationMembersType_IMPTEAMNATIVE:
 		f(nil)
-		lifetime := gregor1.DurationSec(60 * 5)
+		lifetime := gregor1.DurationSec(24 * 60 * 60 * 6)
 		f(&lifetime)
 	default:
 		f(nil)
@@ -1978,6 +1978,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				valid := unboxed.Valid()
 				require.False(t, valid.IsEphemeralExpired)
 				require.Nil(t, valid.ExplodedBy)
+				require.False(t, valid.MessageBody.IsNil())
 				if ephemeralLifetime == nil {
 					require.False(t, valid.IsEphemeral)
 					require.EqualValues(t, valid.Etime, 0)
@@ -1994,6 +1995,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.False(t, valid.IsEphemeral)
 				require.EqualValues(t, valid.Etime, 0)
 				require.Nil(t, valid.ExplodedBy)
+				require.False(t, valid.MessageBody.IsNil())
 			}
 
 			var err error
@@ -2126,12 +2128,29 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_EDIT)
 
+			// Repost a reaction and ensure it is deleted
+			t.Logf("repost reaction = delete reaction")
+			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
+			require.NoError(t, err)
+			select {
+			case info := <-listener.newMessage:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+				assertNotEphemeral(ephemeralLifetime, unboxed)
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsg(t, listener, chat1.MessageType_DELETE)
+
 			t.Logf("delete the message")
 			darg := chat1.PostDeleteNonblockArg{
 				ConversationID:   created.Id,
 				TlfName:          created.TlfName,
 				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-				Supersedes:       unboxed.GetMessageID(),
+				Supersedes:       textUnboxed.GetMessageID(),
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
@@ -3291,6 +3310,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
 		}))
+		require.NoError(t, err)
 		consumeAllMsgJoins := func(listener *serverChatListener, sender bool) {
 			msgMap := make(map[chat1.MessageType]bool)
 			rounds := 2

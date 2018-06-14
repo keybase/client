@@ -166,6 +166,83 @@ func TestMemberAddInvalidRole(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 }
 
+// testFindNextMerkleRootAfterRemoval tests teams.FindNextMerkleRootAfterRemoval, which is
+// a thin wrapper around libkb.FindNextMerkleRootAfterTeamRemoval. Test that the plumbing works
+// properly. Pass in the values from the libkb inner function, to confirm that this function
+// returns the same.
+func testFindNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user *kbtest.FakeUser, id keybase1.TeamID, seqno keybase1.Seqno) {
+	m := libkb.NewMetaContextForTest(tc)
+	upak, _, err := tc.G.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(user.GetUID()))
+	require.NoError(t, err)
+	require.NotNil(t, upak)
+	var signingKey keybase1.KID
+	for kid, obj := range upak.Current.DeviceKeys {
+		if obj.Base.IsSibkey {
+			signingKey = kid
+			break
+		}
+	}
+	require.False(t, signingKey.IsNil())
+	res, err := FindNextMerkleRootAfterRemoval(m, keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg{
+		Uid:        user.GetUID(),
+		SigningKey: signingKey,
+		IsPublic:   false,
+		Team:       id,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res.Res)
+	require.Equal(t, res.Res.Seqno, seqno)
+}
+
+// Check that `libkb.FindNextMerkleRootAfterTeamRemoval` works. To do so,
+// find the logpoint on the team where the user was removed, and pass it in.
+// Check for success simply by asserting that the Merkle Root seqno bumps
+// forward after the removal went into the team sigchain.
+func pollForNextMerkleRootAfterRemovalViaLibkb(t *testing.T, tc libkb.TestContext, user *kbtest.FakeUser, teamName string) (tid keybase1.TeamID, seqno keybase1.Seqno) {
+
+	m := libkb.NewMetaContextForTest(tc)
+	team, err := GetForTestByStringName(context.TODO(), tc.G, teamName)
+	require.NoError(t, err)
+	logPoint := team.chain().GetUserLogPoint(user.GetUserVersion())
+	require.NotNil(t, logPoint)
+
+	var delay time.Duration
+
+	// Unfortunately we need to poll here, since we don't know when merkled will mint a new root.
+	// Locally it is fast, but it might be slowish on CI.
+	for i := 0; i < 50; i++ {
+		res, err := libkb.FindNextMerkleRootAfterTeamRemoval(m, keybase1.FindNextMerkleRootAfterTeamRemovalArg{
+			Uid:               user.GetUID(),
+			Team:              team.ID,
+			IsPublic:          team.IsPublic(),
+			TeamSigchainSeqno: logPoint.SigMeta.SigChainLocation.Seqno,
+			Prev:              logPoint.SigMeta.PrevMerkleRootSigned,
+		})
+
+		// Success case!
+		if err == nil {
+			require.NotNil(t, res.Res)
+			require.True(t, res.Res.Seqno > logPoint.SigMeta.PrevMerkleRootSigned.Seqno)
+			return team.ID, res.Res.Seqno
+		}
+
+		if merr, ok := err.(libkb.MerkleClientError); ok && merr.IsNotFound() {
+			t.Logf("Failed to find a root, trying again to wait for merkled")
+		} else {
+			require.NoError(t, err)
+			return tid, seqno
+		}
+
+		if delay < time.Second {
+			delay += 10 * time.Millisecond
+		}
+		t.Logf("sleeping %v", delay)
+		time.Sleep(delay)
+	}
+	t.Fatalf("failed to find a suitable merkle root with team removal")
+	return tid, seqno
+}
+
 func TestMemberRemove(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
@@ -183,6 +260,9 @@ func TestMemberRemove(t *testing.T) {
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
+
+	teamID, seqno := pollForNextMerkleRootAfterRemovalViaLibkb(t, tc, other, name)
+	testFindNextMerkleRootAfterRemoval(t, tc, other, teamID, seqno)
 }
 
 func TestMemberChangeRole(t *testing.T) {

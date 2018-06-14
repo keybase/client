@@ -106,7 +106,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	s.Debug(ctx, "postProcessThread: thread messages after type filter: %d", len(thread.Messages))
 	// If we have exploded any messages while fetching them from cache, remove
 	// them now.
-	thread.Messages = utils.FilterExploded(thread.Messages)
+	thread.Messages = utils.FilterExploded(conv.GetExpunge(), thread.Messages)
 	s.Debug(ctx, "postProcessThread: thread messages after explode filter: %d", len(thread.Messages))
 
 	// Fetch outbox and tack onto the result
@@ -200,8 +200,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, OfflineError{}
 	}
 
-	var rl []*chat1.RateLimit
-
 	// Get conversation metadata
 	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	if err != nil {
@@ -216,7 +214,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		Reason:         reason,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
-	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}

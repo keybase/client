@@ -6,6 +6,7 @@ import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage} from './resolve-root.desktop'
 import type {BadgeType} from '../../constants/types/notifications'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
+import logger from '../../logger'
 
 let iconType: BadgeType = 'regular'
 
@@ -48,7 +49,6 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     // prevents menubar from changing the state.
     showDockIcon: true,
     webPreferences: {
-      affinity: 'keybase',
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
     },
@@ -108,7 +108,7 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
         const cursorPoint = SafeElectron.getScreen().getCursorScreenPoint()
         const screenSize = SafeElectron.getScreen().getDisplayNearestPoint(cursorPoint).workArea
         let menuBounds = mb.window.getBounds()
-        console.log('Showing menu:', cursorPoint, screenSize)
+        logger.info('Showing menu:', cursorPoint, screenSize)
         let iconBounds = mb.tray.getBounds()
         let x = iconBounds.x
         let y = iconBounds.y - iconBounds.height - menuBounds.height
@@ -117,7 +117,7 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
         // available on electron
         if (cursorPoint.x < screenSize.width / 2) {
           if (cursorPoint.y > screenSize.height / 2) {
-            console.log('- start menu on left -')
+            logger.info('- start menu on left -')
             // start menu on left
             x += iconBounds.width
           }
@@ -125,12 +125,12 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
           // start menu on top or bottom
           x -= menuBounds.width
           if (cursorPoint.y < screenSize.height / 2) {
-            console.log('- start menu on top -')
+            logger.info('- start menu on top -')
             // start menu on top
             y = iconBounds.y + iconBounds.height
           } else {
             // start menu on right/bottom
-            console.log('- start menu on bottom -')
+            logger.info('- start menu on bottom -')
           }
         }
         mb.setOption('x', x)
@@ -143,10 +143,10 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
       isDarwin && updateIcon(false)
     })
     mb.on('after-show', () => {
-      console.log('Showing menubar at', mb.window && mb.window.getBounds())
+      logger.info('Showing menubar at', mb.window && mb.window.getBounds())
     })
     mb.tray.on('click', (e, bounds) => {
-      console.log('Clicked tray icon:', bounds)
+      logger.info('Clicked tray icon:', bounds)
     })
   })
 

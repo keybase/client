@@ -2,11 +2,12 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {globalStyles, globalMargins, isMobile} from '../../styles'
+import {globalStyles, globalMargins, isMobile, platformStyles} from '../../styles'
 import {Box, Text} from '../../common-adapters'
 import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
+import {memoize} from 'lodash'
 
 type Props = {
   name: string,
@@ -32,16 +33,22 @@ const Popup = (props: Props) => {
     view: (
       <Box style={stylesHeader}>
         <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
-        <Text type="BodySmallSemibold" style={{color: props.itemStyles.textColor}} lineClamp={1}>
-          {props.name}
-        </Text>
+        <Box style={stylesNameTextBox}>
+          <Text type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
+            {props.name}
+          </Text>
+        </Box>
         {props.type === 'file' && <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>}
         {props.type === 'folder' && (
           <Text type="BodySmall">
             {props.childrenFolders
-              ? `${props.childrenFolders} Folders` + (props.childrenFiles ? ', ' : '')
+              ? `${props.childrenFolders} Folder${props.childrenFolders > 1 ? 's' : ''}${
+                  props.childrenFiles ? ', ' : ''
+                }`
               : undefined}
-            {props.childrenFiles ? `${props.childrenFiles} Files` : undefined}
+            {props.childrenFiles
+              ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}`
+              : undefined}
           </Text>
         )}
         <PathItemInfo
@@ -61,6 +68,25 @@ const Popup = (props: Props) => {
   return (
     <ModalLessPopupMenu header={header} items={items} style={stylesContainer} onHidden={props.onHidden} />
   )
+}
+
+const stylesNameText = memoize(color =>
+  platformStyles({
+    common: {
+      color,
+      textAlign: 'center',
+    },
+    isElectron: {
+      overflowWrap: 'break-word',
+    },
+  })
+)
+
+const stylesNameTextBox = {
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  width: '100%',
+  textAlign: 'center',
 }
 
 const pathItemIconStyle = {

@@ -4,13 +4,13 @@ import {
   Avatar,
   Text,
   Box,
-  Button,
   ClickableBox,
   ProgressIndicator,
   ScrollView,
   Checkbox,
   Icon,
   HeaderHoc,
+  WaitingButton,
 } from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
@@ -112,10 +112,10 @@ const ManageChannels = (props: Props) => (
       }}
     >
       <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-        <Button
+        <WaitingButton
           type="Primary"
           label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
-          waiting={props.waitingForGet}
+          waitingKey={props.waitingKey}
           disabled={!props.unsavedSubscriptions}
           onClick={props.onSaveSubscriptions}
           style={{marginLeft: globalMargins.tiny}}

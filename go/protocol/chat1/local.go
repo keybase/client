@@ -11,6 +11,12 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type VersionKind string
+
+func (o VersionKind) DeepCopy() VersionKind {
+	return o
+}
+
 type MessageText struct {
 	Body string `codec:"body" json:"body"`
 }
@@ -2238,6 +2244,7 @@ type MessageUnboxedValid struct {
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
+	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2310,6 +2317,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		Reactions: o.Reactions.DeepCopy(),
 	}
 }
 
@@ -2351,6 +2359,9 @@ func (e MessageUnboxedErrorType) String() string {
 type MessageUnboxedError struct {
 	ErrType            MessageUnboxedErrorType `codec:"errType" json:"errType"`
 	ErrMsg             string                  `codec:"errMsg" json:"errMsg"`
+	VersionKind        VersionKind             `codec:"versionKind" json:"versionKind"`
+	VersionNumber      int                     `codec:"versionNumber" json:"versionNumber"`
+	IsCritical         bool                    `codec:"isCritical" json:"isCritical"`
 	SenderUsername     string                  `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName   string                  `codec:"senderDeviceName" json:"senderDeviceName"`
 	SenderDeviceType   string                  `codec:"senderDeviceType" json:"senderDeviceType"`
@@ -2366,6 +2377,9 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 	return MessageUnboxedError{
 		ErrType:            o.ErrType.DeepCopy(),
 		ErrMsg:             o.ErrMsg,
+		VersionKind:        o.VersionKind.DeepCopy(),
+		VersionNumber:      o.VersionNumber,
+		IsCritical:         o.IsCritical,
 		SenderUsername:     o.SenderUsername,
 		SenderDeviceName:   o.SenderDeviceName,
 		SenderDeviceType:   o.SenderDeviceType,

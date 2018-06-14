@@ -217,20 +217,25 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
-	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true /* useLocalData */)
+	return GetMessages(ctx, h.G(), uid, convID, msgIDs, resolveSupersedes)
+}
+
+func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
+	conv, err := GetUnverifiedConv(ctx, g, uid, convID, true /* useLocalData */)
 	if err != nil {
 		return nil, err
 	}
 
 	// use ConvSource to get the messages, to try the cache first
-	messages, err := h.G().ConvSource.GetMessages(ctx, conv, uid, msgIDs, nil)
+	messages, err := g.ConvSource.GetMessages(ctx, conv, uid, msgIDs, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	// unless arg says not to, transform the superseded messages
 	if resolveSupersedes {
-		messages, err = h.G().ConvSource.TransformSupersedes(ctx, conv, uid, messages)
+		messages, err = g.ConvSource.TransformSupersedes(ctx, conv, uid, messages)
 		if err != nil {
 			return nil, err
 		}
@@ -856,6 +861,9 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 		ConvIDs: []chat1.ConversationID{convID},
 	}
 	ib, err := g.InboxSource.Read(ctx, uid, nil, true, &query, nil)
+	if err != nil {
+		return fmt.Errorf("inbox read error: %s", err)
+	}
 	if len(ib.Convs) != 1 {
 		return fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
 	}

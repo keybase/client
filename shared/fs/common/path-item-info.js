@@ -13,36 +13,44 @@ type Props = {
   isUserReset?: boolean,
 }
 
-const fancyJoin = (arr: Array<string>, delimiter: string, doubleDelimiter: string, finalDelimiter: string): string => {
-  if (arr.length === 1) {
-    return arr[0]
-  } else if (arr.length === 2) {
-    return `${arr[0]}${doubleDelimiter}${arr[1]}`
+const fancyJoin = (
+  names: Array<string>,
+  delimiter: string,
+  doubleDelimiter: string,
+  finalDelimiter: string
+): string => {
+  if (names.length === 1) {
+    return names[0]
+  } else if (names.length === 2) {
+    return `${names[0]}${doubleDelimiter}${names[1]}`
   }
-  return `${arr.slice(0, -1).join(delimiter)}${finalDelimiter}${arr[arr.length - 1]}`
+  return `${names.slice(0, -1).join(delimiter)}${finalDelimiter}${names[names.length - 1]}`
 }
 
 const PathItemInfo = (props: Props) => (
   <Box style={props.wrap ? timeWriterBoxStyleWithWrap : timeWriterBoxStyle}>
-    {!!props.resetParticipants && props.resetParticipants.length > 0
-      ? (
-        <Box style={resetInfoBoxStyle}>
-          {props.isUserReset
-            ? <Text type="BodyError">
-                Participants have to let you back in.
-              </Text>
-            : <Box style={globalStyles.flexBoxRow}>
-                <Meta title="reset" backgroundColor={globalColors.red} style={resetMetaStyle} />
-                <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
-                  {fancyJoin(props.resetParticipants, ', ', ' and ', ', and ')} ha{props.resetParticipants && props.resetParticipants.length === 1 ? 's' : 've'} reset their account.
-                </Text>
-              </Box>
-          }
-        </Box>
-      )
-      : (<Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
+    {!!props.resetParticipants && props.resetParticipants.length > 0 ? (
+      <Box style={resetInfoBoxStyle}>
+        {props.isUserReset ? (
+          <Text type="BodyError">Participants have to let you back in.</Text>
+        ) : (
+          <Box style={globalStyles.flexBoxRow}>
+            <Meta title="reset" backgroundColor={globalColors.red} style={resetMetaStyle} />
+            <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
+              {fancyJoin(props.resetParticipants, ', ', ' and ', ', and ')} ha{props.resetParticipants &&
+              props.resetParticipants.length === 1
+                ? 's'
+                : 've'}{' '}
+              reset their account{props.resetParticipants && props.resetParticipants.length > 1 && 's'}.
+            </Text>
+          </Box>
+        )}
+      </Box>
+    ) : (
+      <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
         {(props.startWithLastModified ? 'Last modified ' : '') + formatTimeForFS(props.lastModifiedTimestamp)}
-      </Text>)}
+      </Text>
+    )}
     {props.lastWriter ? (
       <Text type="BodySmall" style={writerTextStyle} lineClamp={isMobile ? 1 : undefined}>
         &nbsp;by&nbsp;

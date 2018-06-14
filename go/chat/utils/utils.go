@@ -469,12 +469,12 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 
 // Filter messages that are both exploded that are no longer shown in the GUI
 // (as ash lines)
-func FilterExploded(msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+func FilterExploded(expunge *chat1.Expunge, msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 	now := time.Now()
 	for _, msg := range msgs {
 		if msg.IsValid() {
 			mvalid := msg.Valid()
-			if mvalid.IsEphemeral() && mvalid.HideExplosion(now) {
+			if mvalid.IsEphemeral() && mvalid.HideExplosion(expunge, now) {
 				continue
 			}
 		} else if msg.IsError() {
@@ -505,6 +505,8 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	switch typ {
 	case chat1.MessageType_EDIT:
 		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
+	case chat1.MessageType_REACTION:
+		return []chat1.MessageID{msg.Valid().MessageBody.Reaction().MessageID}, nil
 	case chat1.MessageType_DELETE:
 		return msg.Valid().MessageBody.Delete().MessageIDs, nil
 	case chat1.MessageType_ATTACHMENTUPLOADED:
@@ -1082,6 +1084,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
 			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
+			Reactions:             valid.Reactions,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

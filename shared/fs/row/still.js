@@ -37,8 +37,8 @@ const HoverBox = isMobile
       },
     })
 
-const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey, resetParticipants}) => {
-  if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount || resetParticipants)) {
+const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
+  if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount)) {
     return null
   }
 
@@ -66,11 +66,7 @@ const Still = (props: StillProps) => (
     <HoverBox style={rowStyles.row}>
       <ClickableBox onClick={props.onOpen} style={rowStyles.rowBox}>
         <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-        <RowMeta
-          badgeCount={props.badgeCount}
-          {...props.tlfMeta}
-          resetParticipants={props.resetParticipants}
-        />
+        <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} />
         <Box style={rowStyles.itemBox}>
           <Text
             type={props.itemStyles.textType}

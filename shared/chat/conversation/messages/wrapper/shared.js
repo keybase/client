@@ -127,6 +127,7 @@ const RightSide = props => (
         <ExplodingHeightRetainer
           explodedBy={props.explodedBy}
           exploding={props.exploding}
+          measure={props.measure}
           messageKey={props.messageKey}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
@@ -156,15 +157,16 @@ const RightSide = props => (
           />
         )}
       </Box>
-      {!!props.failureDescription && (
-        <Failure
-          failureDescription={props.failureDescription}
-          isExplodingUnreadable={props.isExplodingUnreadable}
-          onRetry={props.onRetry}
-          onEdit={props.onEdit}
-          onCancel={props.onCancel}
-        />
-      )}
+      {!!props.failureDescription &&
+        !props.exploded && (
+          <Failure
+            failureDescription={props.failureDescription}
+            isExplodingUnreadable={props.isExplodingUnreadable}
+            onRetry={props.onRetry}
+            onEdit={props.onEdit}
+            onCancel={props.onCancel}
+          />
+        )}
       <Box style={styles.sendIndicatorContainer}>
         {props.isYou && (
           <SendIndicator

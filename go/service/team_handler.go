@@ -180,6 +180,9 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 			continue
 		}
 
+		r.G().Log.CDebugf(ctx, "Checking reset badges: got total %d badges for team %q",
+			len(badges), row.Name)
+
 		// load this team and see if any of the badge users are active members
 		details, err := teams.Details(ctx, r.G(), row.Name, false)
 		if err != nil {

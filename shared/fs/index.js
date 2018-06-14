@@ -2,16 +2,20 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
-import {globalStyles} from '../styles'
-import {Box, List, Text} from '../common-adapters'
+import {globalStyles, globalMargins} from '../styles'
+import {Box, Icon, List, ScrollView, Text} from '../common-adapters'
 import FolderHeader from './header/container'
 import SortBar from './sortbar/container'
 import {Still, Editing, Placeholder, rowHeight} from './row'
 import Footer from './footer/container'
+import {isMobile} from '../constants/platform'
+import ConnectedBanner from './banner/container'
 
 type FolderProps = {
   stillItems: Array<Types.Path>,
   editingItems: Array<Types.EditID>,
+  isUserReset: boolean,
+  resetParticipants: Array<string>,
   path: Types.Path,
   routePath: I.List<string>,
   progress: 'pending' | 'loaded',
@@ -76,20 +80,33 @@ class Files extends React.PureComponent<FolderProps> {
 
   render() {
     const rowItems = this._mapPropsToRowItems()
-    const content =
-      rowItems && rowItems.length ? (
-        <List fixedHeight={rowHeight} items={rowItems} renderItem={this._rowRenderer} />
-      ) : (
-        <Box style={stylesEmptyContainer}>
-          <Text type="BodySmall">This is an empty folder.</Text>
+    const content = this.props.isUserReset ? (
+      <Box style={globalStyles.flexBoxColumn}>
+        <Box style={resetContainerStyle}>
+          <Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
+          <Icon type="icon-access-denied-266" />
         </Box>
-      )
+      </Box>
+    ) : rowItems && rowItems.length ? (
+      <List fixedHeight={rowHeight} items={rowItems} renderItem={this._rowRenderer} />
+    ) : (
+      <Box style={stylesEmptyContainer}>
+        <Text type="BodySmall">This is an empty folder.</Text>
+      </Box>
+    )
     return (
       <Box style={styleOuterContainer}>
         <Box style={stylesContainer}>
           <FolderHeader path={this.props.path} routePath={this.props.routePath} />
           <SortBar path={this.props.path} />
-          {content}
+          {isMobile && this.props.resetParticipants.length > 0 ? (
+            <ScrollView>
+              <ConnectedBanner path={this.props.path} />
+              <Box>{content}</Box>
+            </ScrollView>
+          ) : (
+            content
+          )}
           <Footer />
         </Box>
       </Box>
@@ -114,6 +131,14 @@ const stylesEmptyContainer = {
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
+}
+
+const resetContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  flex: 1,
+  justifyContent: 'center',
+  marginTop: 2 * globalMargins.xlarge,
 }
 
 export default Files

@@ -55,7 +55,8 @@ func TestNewUserEK(t *testing.T) {
 	tc, user := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	m := libkb.NewMetaContextForTest(tc)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
@@ -149,7 +150,7 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	}
 
 	// Confirm that we can make a new userEK after rolling the PUK
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 	var existingMetadata []keybase1.UserEkMetadata
@@ -201,7 +202,7 @@ func TestPukRollNewUserEK(t *testing.T) {
 	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
 
 	// Confirm that we can make a new userEK after rolling the PUK
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 	existingMetadata := secondStatement.ExistingUserEkMetadata

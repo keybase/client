@@ -50,7 +50,11 @@ protocol remote {
     // V3: Exactly as V2, except that the message
     // may be exploding, meaning the body is
     // encrypted with a separate ephemeral key.
-    V3_3
+    V3_3,
+
+    // V4: Exactly as V3, except if pairwise MACs are included,
+    // then the sender signing key is a dummy.
+    V4_4
   }
 
   record ThreadViewBoxed {
