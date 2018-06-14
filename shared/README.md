@@ -195,8 +195,9 @@ Then run
 yarn rn-build-android
 ```
 
-Unless you're modifying the Java files, you likely have to only run
-this occasionally.
+Unless you're modifying the Java files or you're modifying Go files
+(and thus re-running `run-gobuild-android`), you likely have to only
+run this occasionally.
 
 Then make sure you either have an emulator running, or you have your
 Android device connected (but not both). To check, run
