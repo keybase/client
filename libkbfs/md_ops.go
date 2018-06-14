@@ -1023,7 +1023,7 @@ func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 // MDOpsStandard.
 func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 	ctx context.Context, h *TlfHandle) (bool, error) {
-	if h.IsFinal() {
+	if h.IsFinal() || h.tlfID == tlf.NullID {
 		return false, nil
 	}
 
@@ -1044,17 +1044,32 @@ func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 	md.log.CDebugf(ctx, "Checking the latest handle for %d; "+
 		"curr handle is %s", h.tlfID, h.GetCanonicalName())
 	latestHandle, err := md.GetLatestHandleForTLF(ctx, h.tlfID)
-	if err != nil {
+	switch errors.Cause(err).(type) {
+	case kbfsmd.ServerErrorUnauthorized:
+		// The server sends this in the case that it doesn't know
+		// about the TLF ID.  If the server didn't have the mapping,
+		// we're likely dealing with an implicit team TLF.  Trust what
+		// is in the sigchain in that case.  (If the error happens
+		// because we really looked up a TLF we are unauthorized for,
+		// earlier calls to the server should have failed before we
+		// even got access to the TLF ID.)
+		md.log.CDebugf(ctx,
+			"Assuming unauthorized error implies implicit team TLF: %+v", err)
+		return true, nil
+	case nil:
+		if latestHandle.IsFinal() {
+			md.log.CDebugf(ctx,
+				"Latest handle is finalized, so ID is incorrect")
+			return false, nil
+		}
+		err = mdcache.PutIDForHandle(h, h.tlfID)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	default:
 		return false, err
 	}
-	if latestHandle.IsFinal() {
-		return false, nil
-	}
-	err = mdcache.PutIDForHandle(h, h.tlfID)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd kbfsmd.RootMetadata) (
