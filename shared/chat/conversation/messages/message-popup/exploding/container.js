@@ -119,7 +119,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     }
   } else {
     if (stateProps._canEdit) {
-      items.push({onClidk: dispatchProps._onEdit, title: 'Edit'})
+      items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
     }
   }
   return {
