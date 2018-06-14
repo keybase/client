@@ -1,6 +1,5 @@
 // @flow
-// use waypoints to group sets of messages (100 each) and replace them with a measured div when offscreen
-// check various height chnages
+// use waypoints to group sets of messages (10 each) and replace them with a measured div when offscreen
 
 import * as React from 'react'
 import Measure from 'react-measure'
