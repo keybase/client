@@ -9,11 +9,20 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
-const ordinals = []
-for (var i = 0; i < 100; ++i) {
-  ordinals.push(Types.numberToOrdinal(1000 - i))
+const injectMessages = false && !__STORYSHOT__
+const enableLoadMore = false && !__STORYSHOT__
+const ordinalAscending = true
+
+let index = 1
+const makeMoreOrdinals = (num = 100) => {
+  const end = index + num
+  const ordinals = []
+  for (; index < end; ++index) {
+    ordinals.push(Types.numberToOrdinal(ordinalAscending ? index : 9000 - index))
+  }
+  return ordinals
 }
-const messageOrdinals = I.List(ordinals)
+const messageOrdinals = I.List(makeMoreOrdinals())
 const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
@@ -21,8 +30,6 @@ const props = {
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
   listScrollDownCounter: 0,
-  loadMoreMessages: action('onLoadMoreMessages'),
-  messageOrdinals,
   onFocusInput: action('onFocusInput'),
   onToggleInfoPanel: action('onToggleInfoPanel'),
 }
@@ -145,6 +152,49 @@ const provider = PropProviders.compose(
   }
 )
 
+type Props = {}
+type State = {|
+  messageOrdinals: I.List<Types.Ordinal>,
+|}
+class ThreadWrapper extends React.Component<Props, State> {
+  intervalID: IntervalID
+  timeoutID: TimeoutID
+  constructor(props) {
+    super(props)
+    this.state = {
+      messageOrdinals: messageOrdinals,
+    }
+
+    if (injectMessages) {
+      this.intervalID = setInterval(() => {
+        console.log('Appending more mock items +++++')
+        this.setState(p => ({
+          messageOrdinals: p.messageOrdinals.push(...makeMoreOrdinals(Math.ceil(Math.random() * 5))),
+        }))
+      }, 5000)
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.intervalID)
+    clearTimeout(this.timeoutID)
+  }
+
+  onLoadMoreMessages = enableLoadMore
+    ? () => {
+        console.log('got onLoadMore, using mock delay')
+        this.timeoutID = setTimeout(() => {
+          console.log('++++ Prepending more mock items')
+          this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals())}))
+        }, 2000)
+      }
+    : action('onLoadMoreMessages')
+
+  render() {
+    return <Thread {...props} {...this.state} loadMoreMessages={this.onLoadMoreMessages} />
+  }
+}
+
 const load = () => {
   storiesOf('Chat/Conversation/Thread', module)
     .addDecorator(provider)
@@ -153,9 +203,11 @@ const load = () => {
         {story()}
       </Box2>
     ))
-    .add('Normal', () => <Thread {...props} />)
+    .add('Normal', () => <ThreadWrapper />)
     .add('Readme', () => (
-      <Text type="Body">If you load Normal on start the fonts wont be loaded so it'll look wrong</Text>
+      <Text type="Body">
+        If you load Normal directly on start the fonts wont be loaded so it'll measure wrong
+      </Text>
     ))
 }
 
