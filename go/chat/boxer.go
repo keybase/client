@@ -655,7 +655,7 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	if err != nil {
 		return nil, err
 	}
-	messageMAC, found := boxed.PairwiseMacs[ourDeviceKeyNacl.GetKID()]
+	messageMAC, found := boxed.ClientHeader.PairwiseMacs[ourDeviceKeyNacl.GetKID()]
 	if !found {
 		// This is an error users will actually see when they've just joined a
 		// team or added a new device.
@@ -750,7 +750,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	//    dummy. Clients with MAC support won't notice this change. At this
 	//    point clients without MAC support will break (so we should pair this
 	//    with a version bump), and we will finally have repudiability.
-	if len(boxed.PairwiseMacs) > 0 {
+	if len(boxed.ClientHeader.PairwiseMacs) > 0 {
 		senderKeyToValidate, err = b.validatePairwiseMAC(ctx, boxed, headerHash)
 		if err != nil {
 			return nil, NewPermanentUnboxingError(err)
@@ -1597,12 +1597,12 @@ func (b *Boxer) boxV2orV3(ctx context.Context, messagePlaintext chat1.MessagePla
 	// signing key or similar. Signing with a real key and also MAC'ing is
 	// redundant, but it will let us test the MAC code in prod in a backwards
 	// compatible way.
-	var pairwiseMACs map[keybase1.KID][]byte // nil by default
 	if len(pairwiseMACRecipients) > 0 {
-		pairwiseMACs, err = b.makeAllPairwiseMACs(ctx, headerSealed, pairwiseMACRecipients)
+		pairwiseMACs, err := b.makeAllPairwiseMACs(ctx, headerSealed, pairwiseMACRecipients)
 		if err != nil {
 			return nil, err
 		}
+		messagePlaintext.ClientHeader.PairwiseMacs = pairwiseMACs
 	}
 
 	// verify
@@ -1616,7 +1616,6 @@ func (b *Boxer) boxV2orV3(ctx context.Context, messagePlaintext chat1.MessagePla
 		BodyCiphertext:   *bodyEncrypted,
 		VerifyKey:        verifyKey,
 		KeyGeneration:    baseEncryptionKey.Generation(),
-		PairwiseMacs:     pairwiseMACs,
 	}
 
 	return boxed, nil

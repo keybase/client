@@ -32,12 +32,6 @@ protocol remote {
 
     // [V1, V2]: Key generation of the encryption key
     int keyGeneration;
-
-    // [V1, V2, V3]: Missing
-    // V4: Optional map of pairwise MACs, for repudiable messages. These cover
-    // both the headerCiphertext and the verifyKey, though in the repudiable
-    // case the verifyKey is usually a public constant.
-    map<keybase1.KID, bytes> pairwiseMacs;
   }
 
   enum MessageBoxedVersion {
