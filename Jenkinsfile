@@ -189,12 +189,13 @@ helpers.rootLinuxNode(env, {
                                     println "Test Windows"
                                     parallel (
                                         test_windows_go: {
-                                            if (hasGoChanges) {
-                                                dir("go/keybase") {
-                                                    bat "go build"
-                                                }
-                                                testGo("test_windows_go_")
+                                            // TODO: if we re-enable tests
+                                            // other than Go tests on Windows,
+                                            // add a `hasGoChanges` check here.
+                                            dir("go/keybase") {
+                                                bat "go build"
                                             }
+                                            testGo("test_windows_go_")
                                         }
                                     )
                                 }}
@@ -304,7 +305,7 @@ def testGo(prefix) {
             sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
         } else {
             shell = { params -> bat params }
-            dirs = getTestDirsWindows()
+            dirs = getTestDirsNix()
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
