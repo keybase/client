@@ -85,3 +85,45 @@ type NotificationMessage struct {
 	FolderID tlf.ID
 	Params   *NotificationParams `json:",omitempty"`
 }
+
+// notificationsByRevision sorts NotificationMessages in reverse by
+// revision number.
+type notificationsByRevision []NotificationMessage
+
+func (nbr notificationsByRevision) Len() int {
+	return len(nbr)
+}
+
+func (nbr notificationsByRevision) Less(i, j int) bool {
+	// Reverse sort, so latest revisions come first.
+	return nbr[i].Revision > nbr[j].Revision
+}
+
+func (nbr notificationsByRevision) Swap(i, j int) {
+	nbr[i], nbr[j] = nbr[j], nbr[i]
+}
+
+// uniquify returns a shallow copy of `nbr` with duplicate
+// notifications (identified by their revision) removed.  It should
+// only be called on a presorted slice, and the returned slice is
+// guaranteed to remain sorted.
+func (nbr notificationsByRevision) uniquify() (ret notificationsByRevision) {
+	toSkip := make(map[int]bool)
+	for i, n := range nbr {
+		if i > 0 && n.Revision == nbr[i-1].Revision {
+			toSkip[i] = true
+		}
+	}
+
+	if len(toSkip) == 0 {
+		return nbr
+	}
+
+	ret = make(notificationsByRevision, 0, len(nbr)-len(toSkip))
+	for i, n := range nbr {
+		if !toSkip[i] {
+			ret = append(ret, n)
+		}
+	}
+	return ret
+}

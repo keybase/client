@@ -308,6 +308,12 @@ def runNixTest(prefix) {
             sh './kbfscrypto.test -test.timeout 30s'
         }
     }
+    tests[prefix+'kbfsedits'] = {
+        dir('kbfsedits') {
+            sh 'go test -race -c'
+            sh './kbfsedits.test -test.timeout 30s'
+        }
+    }
     tests[prefix+'kbfsgit'] = {
         dir('kbfsgit') {
             sh 'go test -race -c'

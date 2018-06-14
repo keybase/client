@@ -73,6 +73,7 @@ build_script:
   - echo github.com/keybase/kbfs/kbfsblock >> testlist.txt
   - echo github.com/keybase/kbfs/kbfscodec >> testlist.txt
   - echo github.com/keybase/kbfs/kbfscrypto >> testlist.txt
+  - echo github.com/keybase/kbfs/kbfsedits >> testlist.txt
   - echo github.com/keybase/kbfs/kbfsgit >> testlist.txt
   - echo github.com/keybase/kbfs/kbfshash >> testlist.txt
   - echo github.com/keybase/kbfs/kbfsmd >> testlist.txt
