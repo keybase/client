@@ -10,6 +10,7 @@ import {
   NativeEasing,
 } from '../../../../../common-adapters/mobile.native'
 import {collapseStyles, globalColors, globalStyles, styleSheetCreate} from '../../../../../styles'
+import {isAndroid} from '../../../../../constants/platform'
 import type {Props} from '.'
 
 // If this image changes, some hard coded dimensions
@@ -158,7 +159,7 @@ class EmojiTower extends React.Component<
       } else if (r < 0.66) {
         emoji = '💣'
       } else {
-        emoji = '🤯'
+        emoji = isAndroid ? '🎇' : '🤯'
       }
       children.push(
         <Text key={i} type="Body">
