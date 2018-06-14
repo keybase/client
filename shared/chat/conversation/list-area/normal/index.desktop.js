@@ -3,10 +3,6 @@
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
 // We use react-measure to cache the heights
-//
-//
-// TODO: scroll to editing
-// check resize window
 
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
@@ -32,12 +28,13 @@ const ordinalsInAWaypoint = 10
 type State = {
   isLockedToBottom: boolean,
   isScrolling: boolean,
+  width: number, // when the width changes lets just redraw it all as our measurements are bad now
 }
 
 type Snapshot = ?number
 
 class Thread extends React.PureComponent<Props, State> {
-  state = {isLockedToBottom: true, isScrolling: false}
+  state = {isLockedToBottom: true, isScrolling: false, width: 0}
   _listRef = React.createRef()
 
   _scrollToBottom = () => {
@@ -89,28 +86,39 @@ class Thread extends React.PureComponent<Props, State> {
       }
     }
 
-    // TODO
-    // if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
-    // const idx = this.props.messageOrdinals.indexOf(this.props.editingOrdinal)
-    // if (idx !== -1) {
-    // this._list && this._list.scrollToRow(idx + 1)
-    // }
-    // }
+    if (list && this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
+      const ordinal = this.props.editingOrdinal
+      const idx = this.props.messageOrdinals.indexOf(ordinal)
+      if (idx !== -1) {
+        const waypoints = list.querySelectorAll('[data-key]')
+        // find an id that should be our parent
+        const toFind = Types.ordinalToNumber(ordinal)
+        const found = Array.from(waypoints)
+          .reverse()
+          .find(w => parseInt(w.dataset.key, 10) < toFind)
+        if (found) {
+          found.scrollIntoView({behavior: 'smooth', block: 'center'})
+        }
+      }
+    }
   }
 
   componentWillUnmount() {
     this._cleanupDebounced()
   }
 
-  _onResize = (...args) => {
+  _onResize = debounce(({bounds}) => {
     if (this.state.isLockedToBottom) {
       this._scrollToBottom()
     }
-  }
+
+    this.setState(p => (p.width === bounds.width ? null : {width: bounds.width}))
+  }, 100)
 
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
     this._onScroll.cancel()
+    this._onResize.cancel()
     this._positionChangeTop.cancel()
     this._positionChangeBottom.cancel()
   }
@@ -220,12 +228,26 @@ class Thread extends React.PureComponent<Props, State> {
 
     return (
       <ErrorBoundary>
-        <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
-          <style>{realCSS}</style>
-          <div style={listStyle} ref={this._listRef} onScroll={this._onScroll}>
-            <div style={this.state.isScrolling ? innerListStyleScrolling : null}>{waypoints}</div>
-          </div>
-        </div>
+        <Measure bounds={true} onResize={this._onResize}>
+          {({measureRef}) => (
+            <div
+              ref={measureRef}
+              style={containerStyle}
+              onClick={this._handleListClick}
+              onCopyCapture={this._onCopyCapture}
+            >
+              <style>{realCSS}</style>
+              <div
+                key={String(this.state.width)}
+                style={listStyle}
+                ref={this._listRef}
+                onScroll={this._onScroll}
+              >
+                <div style={this.state.isScrolling ? innerListStyleScrolling : null}>{waypoints}</div>
+              </div>
+            </div>
+          )}
+        </Measure>
       </ErrorBoundary>
     )
   }
@@ -345,26 +367,35 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }
 
   render() {
+    // Apply data-key to the dom node so we can search for editing messages
     const renderMessages = !this.state.height || this.state.isVisible
     let content
     if (renderMessages) {
       const messages = this.props.indicies.map(i => this.props.rowRenderer(i, this._measure))
       if (this.state.height) {
         // cached height version, overflow hidden so its more clear if we're mismeasuring
-        content = <div style={{height: this.state.height, overflow: 'hidden'}}>{messages}</div>
+        content = (
+          <div data-key={this.props.id} style={{height: this.state.height, overflow: 'hidden'}}>
+            {messages}
+          </div>
+        )
       } else {
         // measure it
         content = (
           <Measure bounds={true} onResize={renderMessages ? this._onResize : null}>
-            {({measureRef}) => <div ref={measureRef}>{messages}</div>}
+            {({measureRef}) => (
+              <div data-key={this.props.id} ref={measureRef}>
+                {messages}
+              </div>
+            )}
           </Measure>
         )
       }
     } else {
-      content = <div style={{height: this.state.height}} />
+      content = <div data-key={this.props.id} style={{height: this.state.height}} />
     }
     return (
-      <Waypoint key={`${this.props.id}`} onPositionChange={this._handlePositionChange}>
+      <Waypoint key={this.props.id} onPositionChange={this._handlePositionChange}>
         {content}
       </Waypoint>
     )
