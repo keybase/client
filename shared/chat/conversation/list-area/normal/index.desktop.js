@@ -50,7 +50,7 @@ class Thread extends React.PureComponent<Props, State> {
     if (list) {
       // we need to let things render and measure
       // setTimeout(() => {
-      console.log('aaaa scrolling bottom in', list.scrollTop, list.scrollHeight)
+      console._log('aaaa scrolling bottom in', list.scrollTop, list.scrollHeight)
       list.scrollTop = list.scrollHeight
       // }, 100)
     }
@@ -111,12 +111,12 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     // Prepending some messages?
     if (snapshot && list && !this.state.isLockedToBottom) {
-      console.log('aaaa ttempt to keep TOP')
+      console._log('aaaa ttempt to keep TOP')
       list.scrollTop = list.scrollHeight - snapshot
     } else {
       // maintain scroll to bottom?
       if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
-        console.log('aaa attempt to keep BOTTOM')
+        console._log('aaa attempt to keep BOTTOM')
         this._scrollToBottom()
       }
     }
@@ -225,7 +225,7 @@ class Thread extends React.PureComponent<Props, State> {
 
   _positionChangeBottom = debounce(({currentPosition}) => {
     const isLockedToBottom = currentPosition === 'inside'
-    console.log('aaa _positionChangeBottom ', isLockedToBottom)
+    console._log('aaa _positionChangeBottom ', isLockedToBottom)
     this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
   }, 100)
 
