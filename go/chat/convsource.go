@@ -216,6 +216,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		Reason:         reason,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
+	// XXX rl is never used
 	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, err

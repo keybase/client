@@ -202,7 +202,7 @@ func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 		headers: headers,
 		payload: b.locationConstraint(),
 	}
-	return b.S3.query(nil, req, nil)
+	return b.S3.query(ctx, req, nil)
 }
 
 // DelBucket removes an existing S3 bucket. All objects in the bucket must
@@ -216,7 +216,7 @@ func (b *Bucket) DelBucket() (err error) {
 		path:   "/",
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(nil, req, nil)
+		err = b.S3.query(context.Background(), req, nil)
 		if !shouldRetry(err) {
 			break
 		}
@@ -301,7 +301,7 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 		return
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(nil, req, nil)
+		resp, err := b.S3.run(context.Background(), req, nil)
 
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
@@ -338,7 +338,7 @@ func (b *Bucket) Head(path string, headers map[string][]string) (*http.Response,
 	}
 
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(nil, req, nil)
+		resp, err := b.S3.run(context.Background(), req, nil)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -373,7 +373,7 @@ func (b *Bucket) PutCopy(path string, perm ACL, options CopyOptions, source stri
 	}
 	result = &CopyObjectResult{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(nil, req, result)
+		err = b.S3.query(context.Background(), req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -517,7 +517,7 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 		params:  url.Values{subresource: {""}},
 	}
 
-	return b.S3.query(nil, req, nil)
+	return b.S3.query(context.Background(), req, nil)
 }
 
 // Del removes an object from the S3 bucket.
@@ -572,7 +572,7 @@ func (b *Bucket) DelMulti(objects Delete) error {
 		payload: buf,
 	}
 
-	return b.S3.query(nil, req, nil)
+	return b.S3.query(context.Background(), req, nil)
 }
 
 // The ListResp type holds the results of a List bucket operation.
@@ -676,7 +676,7 @@ func (b *Bucket) List(prefix, delim, marker string, max int) (result *ListResp, 
 	}
 	result = &ListResp{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(nil, req, result)
+		err = b.S3.query(context.Background(), req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -737,7 +737,7 @@ func (b *Bucket) Versions(prefix, delim, keyMarker string, versionIDMarker strin
 	}
 	result = &VersionsResp{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(nil, req, result)
+		err = b.S3.query(context.Background(), req, result)
 		if !shouldRetry(err) {
 			break
 		}

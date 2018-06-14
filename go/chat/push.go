@@ -610,7 +610,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if err = g.G().ConvSource.Expunge(ctx, nm.ConvID, uid, nm.Expunge); err != nil {
 				g.Debug(ctx, "chat activity: unable to update conv: %s", err.Error())
 			}
-			if conv, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {
+			if _, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
 		default:
@@ -982,6 +982,7 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 				if uiItem != nil {
 					convUIItems = append(convUIItems, *uiItem)
 				}
+				// XXX staleUpdates is never used
 				staleUpdates = append(staleUpdates, chat1.ConversationStaleUpdate{
 					ConvID:     conv.GetConvID(),
 					UpdateType: chat1.StaleUpdateType_CLEAR,
