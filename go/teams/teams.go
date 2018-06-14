@@ -651,7 +651,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 		Public:   t.IsPublic(),
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
@@ -718,7 +718,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		Entropy: entropy,
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
@@ -1037,7 +1037,7 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 		Entropy:  entropy,
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
@@ -1527,7 +1527,7 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 // client wants to create a signature that refers to an adminship,
 // signature's merkle_root has to be more fresh than adminship's.
 func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
-	_, err := t.G().GetMerkleClient().LookupTeam(ctx, t.ID)
+	_, err := t.G().GetMerkleClient().LookupTeam(t.MetaContext(ctx), t.ID)
 	return err
 }
 
@@ -1770,7 +1770,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		},
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
@@ -1808,7 +1808,7 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 		},
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}

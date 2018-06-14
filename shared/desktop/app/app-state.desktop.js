@@ -6,6 +6,7 @@ import path from 'path'
 import {appBundlePath} from './paths.desktop'
 import {isEqual} from 'lodash-es'
 import {windowStyle} from '../../styles'
+import logger from '../../logger'
 
 export type State = {
   x: ?number,
@@ -107,17 +108,17 @@ export default class AppState {
       let stateToSave = this.state
       fs.writeFileSync(configPath, JSON.stringify(stateToSave))
     } catch (err) {
-      console.log(`Error saving file: ${err}`)
+      logger.info(`Error saving file: ${err}`)
     }
 
     if (SafeElectron.getApp().getLoginItemSettings().openAtLogin !== this.state.openAtLogin) {
-      console.log(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
+      logger.info(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
       this.setOSLoginState()
     }
   }
 
   checkOpenAtLogin() {
-    console.log('Setting login item due to user pref')
+    logger.info('Setting login item due to user pref')
 
     this.setOSLoginState()
   }
@@ -128,7 +129,7 @@ export default class AppState {
 
   setOSLoginState() {
     if (__DEV__) {
-      console.log('Skipping auto login state change due to dev env. ')
+      logger.info('Skipping auto login state change due to dev env. ')
       return
     }
     // Comment this out if you want to test auto login stuff
@@ -163,7 +164,7 @@ export default class AppState {
                 ''}", hidden:false, name:"${appName}"}`,
               (err, result) => {
                 if (err) {
-                  console.log(`apple script error making login item: ${err}, ${result}`)
+                  logger.info(`apple script error making login item: ${err}, ${result}`)
                 }
               }
             )
@@ -174,13 +175,13 @@ export default class AppState {
           `tell application "System Events" to delete login item "${appName}"`,
           (err, result) => {
             if (err) {
-              console.log(`apple script error removing login item: ${err}, ${result}`)
+              logger.info(`apple script error removing login item: ${err}, ${result}`)
             }
           }
         )
       }
     } catch (e) {
-      console.log('Error setting apple startup prefs: ', e)
+      logger.info('Error setting apple startup prefs: ', e)
     }
   }
 
@@ -193,7 +194,7 @@ export default class AppState {
       `tell application "System Events" to get the name of every login item`,
       (err, result) => {
         if (err) {
-          console.log(`Error getting every login item: ${err}, ${result}`)
+          logger.info(`Error getting every login item: ${err}, ${result}`)
           return
         }
         var foundApp = false
@@ -203,12 +204,12 @@ export default class AppState {
               foundApp = true
               continue
             }
-            console.log('login items: deleting ', appName)
+            logger.info('login items: deleting ', appName)
             applescript.execString(
               `tell application "System Events" to delete login item "${appName}"`,
               (err, result) => {
                 if (err) {
-                  console.log(`apple script error deleting multi login items: ${err}, ${result}`)
+                  logger.info(`apple script error deleting multi login items: ${err}, ${result}`)
                 }
               }
             )
@@ -304,7 +305,7 @@ export default class AppState {
       y: state.y || 0,
     }
     let displayBounds = SafeElectron.getScreen().getDisplayMatching(rect).bounds
-    console.log('Check bounds:', rect, state.displayBounds, displayBounds)
+    logger.info('Check bounds:', rect, state.displayBounds, displayBounds)
     return (
       isEqual(state.displayBounds, displayBounds) &&
       !(
@@ -321,14 +322,14 @@ export default class AppState {
     try {
       fs.accessSync(configPath, fs.F_OK)
     } catch (e) {
-      console.log('No app state')
+      logger.info('No app state')
       return
     }
     try {
       const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
 
       if (!this._isValidWindowState(stateLoaded)) {
-        console.log('  -- invalid window state')
+        logger.info('  -- invalid window state')
         stateLoaded.x = null
         stateLoaded.y = null
       }

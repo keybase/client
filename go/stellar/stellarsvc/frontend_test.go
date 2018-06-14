@@ -500,17 +500,53 @@ func TestGetPaymentsLocal(t *testing.T) {
 	err = srvRecip.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
-	arg := stellar1.SendCLILocalArg{
-		Recipient:       tcs[1].Fu.Username,
-		Amount:          "1011.123",
-		Asset:           stellar1.Asset{Type: "native"},
-		DisplayAmount:   "321.87",
-		DisplayCurrency: "USD",
-		Note:            "here you go",
-		PublicNote:      "public note",
+	usd := stellar1.OutsideCurrencyCode("USD")
+
+	// Try some payments that should fail locally
+	{
+		_, err := srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+			From:          accountIDRecip, // From the wrong account
+			To:            tcs[1].Fu.Username,
+			ToIsAccountID: false,
+			Amount:        "1011.123",
+			Asset:         stellar1.AssetNative(),
+			WorthAmount:   "321.87",
+			WorthCurrency: &usd,
+			SecretNote:    "here you go",
+			PublicMemo:    "public note",
+		})
+		require.Error(t, err)
+		require.Equal(t, "Sender account not found", err.Error())
+
+		_, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+			From:          accountIDSender,
+			To:            tcs[1].Fu.Username,
+			ToIsAccountID: true, // fail to parse account ID
+			Amount:        "1011.123",
+			Asset:         stellar1.AssetNative(),
+			WorthAmount:   "321.87",
+			WorthCurrency: &usd,
+			SecretNote:    "here you go",
+			PublicMemo:    "public note",
+		})
+		require.Error(t, err)
+		require.Equal(t, "recipient: Stellar account ID must be 56 chars long: was 15", err.Error())
 	}
-	_, err = srvSender.SendCLILocal(context.Background(), arg)
+
+	sendRes, err := srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		From:          accountIDSender,
+		To:            tcs[1].Fu.Username,
+		ToIsAccountID: false,
+		Amount:        "1011.123",
+		Asset:         stellar1.AssetNative(),
+		WorthAmount:   "321.87",
+		WorthCurrency: &usd,
+		SecretNote:    "here you go",
+		PublicMemo:    "public note",
+	})
 	require.NoError(t, err)
+	require.Len(t, sendRes.KbTxID, 32)
+	require.False(t, sendRes.Pending)
 
 	checkPayment := func(p stellar1.PaymentLocal, sender bool) {
 		require.NotEmpty(t, p.Id)
@@ -590,4 +626,20 @@ func TestGetPaymentsLocal(t *testing.T) {
 	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), argDetails)
 	require.NoError(t, err)
 	checkPaymentDetails(details, false)
+
+	// Send again with FromSeqno set.
+	// Does not test whether it has any effect.
+	_, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		From:          accountIDSender,
+		FromSeqno:     "1928401923",
+		To:            tcs[1].Fu.Username,
+		ToIsAccountID: false,
+		Amount:        "1011.123",
+		Asset:         stellar1.AssetNative(),
+		WorthAmount:   "321.87",
+		WorthCurrency: &usd,
+		SecretNote:    "here you go",
+		PublicMemo:    "public note",
+	})
+	require.NoError(t, err)
 }

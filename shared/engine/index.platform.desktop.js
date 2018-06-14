@@ -56,13 +56,13 @@ function checkRPCOwnership(): Promise<void> {
         reject(error)
         return
       }
-      const result = stdout.toString().trim()
-      logger.info(`pipeowner check returns: ${result}`)
-      if (result === 'true') {
+      const result = JSON.parse(stdout.toString())
+      logger.info(`pipeowner check returns: ${stdout.toString()}`)
+      if (result.isOwner) {
         resolve()
         return
       }
-      reject(new Error(`pipeowner check returns: ${result}`))
+      reject(new Error(`pipeowner check returns: ${stdout.toString()}`))
     })
   })
 }

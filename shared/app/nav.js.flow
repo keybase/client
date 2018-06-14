@@ -1,14 +1,4 @@
 // @flow
 import * as React from 'react'
-
-import type {RouteProps} from '../route-tree/render-route'
-import type {Tab} from '../constants/tabs'
-
-export type OwnProps = RouteProps<{}, {}>
-
-export type Props = OwnProps & {
-  switchTab: (tab: Tab) => void,
-  hideNav: boolean,
-}
-
+import type {Props} from './nav.types'
 export default class Nav extends React.Component<Props> {}

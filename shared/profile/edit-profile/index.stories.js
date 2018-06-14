@@ -23,10 +23,7 @@ const props = {
 
 const Wrapper = ({children}) => <Box style={{display: 'flex', height: 580, minWidth: 640}}>{children}</Box>
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.Common()
 
 const load = () => {
   storiesOf('Profile/EditProfile', module)

@@ -219,3 +219,7 @@ func (d *StellarServerDefinitions) GetCurrencyLocal(code OutsideCurrencyCode) (r
 	}
 	return res, ok
 }
+
+func (c OutsideCurrencyCode) String() string {
+	return string(c)
+}

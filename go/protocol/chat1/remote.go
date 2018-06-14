@@ -12,13 +12,14 @@ import (
 )
 
 type MessageBoxed struct {
-	Version          MessageBoxedVersion  `codec:"version" json:"version"`
-	ServerHeader     *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
-	ClientHeader     MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
-	HeaderCiphertext SealedData           `codec:"headerCiphertext" json:"headerCiphertext"`
-	BodyCiphertext   EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
-	VerifyKey        []byte               `codec:"verifyKey" json:"verifyKey"`
-	KeyGeneration    int                  `codec:"keyGeneration" json:"keyGeneration"`
+	Version          MessageBoxedVersion     `codec:"version" json:"version"`
+	ServerHeader     *MessageServerHeader    `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
+	ClientHeader     MessageClientHeader     `codec:"clientHeader" json:"clientHeader"`
+	HeaderCiphertext SealedData              `codec:"headerCiphertext" json:"headerCiphertext"`
+	BodyCiphertext   EncryptedData           `codec:"bodyCiphertext" json:"bodyCiphertext"`
+	VerifyKey        []byte                  `codec:"verifyKey" json:"verifyKey"`
+	KeyGeneration    int                     `codec:"keyGeneration" json:"keyGeneration"`
+	PairwiseMacs     map[keybase1.KID][]byte `codec:"pairwiseMacs" json:"pairwiseMacs"`
 }
 
 func (o MessageBoxed) DeepCopy() MessageBoxed {
@@ -41,6 +42,23 @@ func (o MessageBoxed) DeepCopy() MessageBoxed {
 			return append([]byte{}, x...)
 		})(o.VerifyKey),
 		KeyGeneration: o.KeyGeneration,
+		PairwiseMacs: (func(x map[keybase1.KID][]byte) map[keybase1.KID][]byte {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[keybase1.KID][]byte)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []byte) []byte {
+					if x == nil {
+						return nil
+					}
+					return append([]byte{}, x...)
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PairwiseMacs),
 	}
 }
 
@@ -51,6 +69,7 @@ const (
 	MessageBoxedVersion_V1    MessageBoxedVersion = 1
 	MessageBoxedVersion_V2    MessageBoxedVersion = 2
 	MessageBoxedVersion_V3    MessageBoxedVersion = 3
+	MessageBoxedVersion_V4    MessageBoxedVersion = 4
 )
 
 func (o MessageBoxedVersion) DeepCopy() MessageBoxedVersion { return o }
@@ -60,6 +79,7 @@ var MessageBoxedVersionMap = map[string]MessageBoxedVersion{
 	"V1":    1,
 	"V2":    2,
 	"V3":    3,
+	"V4":    4,
 }
 
 var MessageBoxedVersionRevMap = map[MessageBoxedVersion]string{
@@ -67,6 +87,7 @@ var MessageBoxedVersionRevMap = map[MessageBoxedVersion]string{
 	1: "V1",
 	2: "V2",
 	3: "V3",
+	4: "V4",
 }
 
 func (e MessageBoxedVersion) String() string {

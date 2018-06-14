@@ -3,10 +3,11 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 	"strings"
 	"sync"
+
+	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type ActiveDevice struct {
@@ -269,7 +270,7 @@ func (a *ActiveDevice) SigningKey() (GenericKey, error) {
 	return a.signingKey, nil
 }
 
-// EncryptionKey returns the signing key for the active device.
+// EncryptionKey returns the encryption key for the active device.
 // Safe for use by concurrent goroutines.
 func (a *ActiveDevice) EncryptionKey() (GenericKey, error) {
 	a.RLock()
@@ -280,6 +281,21 @@ func (a *ActiveDevice) EncryptionKey() (GenericKey, error) {
 		}
 	}
 	return a.encryptionKey, nil
+}
+
+// NaclEncryptionKey returns the encryption key for the active device, as a
+// NaclDHKeyPair. If the cast fails (though that should never happen), it
+// returns an error.
+func (a *ActiveDevice) NaclEncryptionKey() (*NaclDHKeyPair, error) {
+	genericKey, err := a.EncryptionKey()
+	if err != nil {
+		return nil, err
+	}
+	naclKey, ok := genericKey.(NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("expected NaclDHKeyPair, got %T", genericKey)
+	}
+	return &naclKey, nil
 }
 
 // KeyByType returns a cached key based on SecretKeyType.

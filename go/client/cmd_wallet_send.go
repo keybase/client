@@ -103,7 +103,7 @@ func (c *CmdWalletSend) Run() error {
 			return fmt.Errorf("Unable to get exchange rate for %q: %s", c.LocalCurrency, err)
 		}
 
-		amount, err = stellar.ConvertLocalToXLM(c.Amount, exchangeRate)
+		amount, err = stellar.ConvertOutsideToXLM(c.Amount, exchangeRate)
 		if err != nil {
 			return err
 		}

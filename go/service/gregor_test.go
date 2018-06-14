@@ -445,6 +445,7 @@ func TestSyncFresh(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 20
@@ -468,6 +469,7 @@ func TestSyncNonFresh(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
@@ -504,6 +506,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
@@ -549,6 +552,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
@@ -598,6 +602,7 @@ func TestSyncDismissal(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	// Consume msg
 	msg := server.newIbm(uid)
@@ -631,6 +636,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
@@ -680,6 +686,7 @@ func TestGregorTeamBadges(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
@@ -726,6 +733,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 
 	// Set up client and server
 	h, _, _ := setupSyncTests(t, tc)
+	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
@@ -775,6 +783,7 @@ func TestSyncDismissalExistingState(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 
@@ -812,6 +821,7 @@ func TestSyncFutureDismissals(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 
@@ -903,6 +913,7 @@ func TestLocalDismissals(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	var refReplayMsgs []gregor.InBandMessage
 	var refConsumeMsgs []gregor.InBandMessage
@@ -957,6 +968,7 @@ func TestOfflineConsume(t *testing.T) {
 	defer tc.Cleanup()
 	tc.G.SetService()
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	fclient := newFlakeyIncomingClient(func() gregor1.IncomingInterface { return server })
 	client := grclient.NewClient(uid, nil, func() gregor.StateMachine {

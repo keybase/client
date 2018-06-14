@@ -112,7 +112,7 @@ func TestWindowsPipeOwner(t *testing.T) {
 			}
 			t.Fatal(err)
 		}
-		if !owner {
+		if !owner.IsOwner {
 			t.Fatal(errors.New("Expected true getting owner of test pipe"))
 		}
 	}
@@ -122,7 +122,7 @@ func TestWindowsPipeOwner(t *testing.T) {
 	if err == nil {
 		t.Fatal(errors.New("Expected error getting owner of nonexistent pipe"))
 	}
-	if owner {
+	if owner.IsOwner {
 		t.Fatal(errors.New("Expected false getting owner of nonexistent pipe"))
 	}
 }

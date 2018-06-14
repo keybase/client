@@ -584,7 +584,7 @@ func (e *Identify2WithUID) maybeCacheResult() {
 
 func (e *Identify2WithUID) insertTrackToken(m libkb.MetaContext, outcome *libkb.IdentifyOutcome) (err error) {
 	defer m.CTrace("Identify2WithUID#insertTrackToken", func() error { return err })()
-	e.trackToken, err = m.G().TrackCache.Insert(outcome)
+	e.trackToken, err = m.G().TrackCache().Insert(outcome)
 	if err != nil {
 		return err
 	}
@@ -1087,7 +1087,7 @@ func (e *Identify2WithUID) getCache() libkb.Identify2Cacher {
 	if e.testArgs != nil && e.testArgs.noCache {
 		return nil
 	}
-	return e.G().Identify2Cache
+	return e.G().Identify2Cache()
 }
 
 func (e *Identify2WithUID) getTrackType() identify2TrackType {
