@@ -1,11 +1,6 @@
 // @flow
-//
-// TODO: keep scroll position when loading more
-//
-//
-//
-
 // use waypoints to group sets of messages (100 each) and replace them with a measured div when offscreen
+// check various height chnages
 
 import * as React from 'react'
 import Measure from 'react-measure'
@@ -15,25 +10,24 @@ import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
-import {debounce} from 'lodash-es'
+import {debounce, throttle} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
 // set this to true to see size overlays
-const debugSizing = __STORYBOOK__
-
+// const debugSizing = __STORYBOOK__
 const ordinalsInAWaypoint = 10
-const lockedToBottomSlop = 20
 
 type State = {
   isLockedToBottom: boolean,
+  isScrolling: boolean,
 }
 
 type Snapshot = ?number
 
 class Thread extends React.PureComponent<Props, State> {
-  state = {isLockedToBottom: true}
+  state = {isLockedToBottom: true, isScrolling: false}
   _listRef = React.createRef()
   _setBottomRef = r => {
     this._bottomRef = r
@@ -52,9 +46,22 @@ class Thread extends React.PureComponent<Props, State> {
   // }
 
   _scrollToBottom = () => {
-    if (this._bottomRef) {
-      this._bottomRef.scrollIntoView({behavior: 'instant', block: 'end'})
+    const list = this._listRef.current
+    if (list) {
+      // we need to let things render and measure
+      // setTimeout(() => {
+      console.log('aaaa scrolling bottom in', list.scrollTop, list.scrollHeight)
+      list.scrollTop = list.scrollHeight
+      // }, 100)
     }
+    // if (this._bottomRef) {
+    // console.log('aaaa scrolling bottom in')
+    // setImmediate(() => {
+    // this._bottomRef.scrollIntoView({behavior: 'instant', block: 'end'})
+    // })
+    // } else {
+    // console.log('aaaa scrolling bottom FAIL')
+    // }
   }
 
   componentDidMount(prevProps: Props) {
@@ -71,31 +78,47 @@ class Thread extends React.PureComponent<Props, State> {
     // prepending?
     if (
       this.props.conversationIDKey === prevProps.conversationIDKey &&
-      this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first()
+      this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() &&
+      prevProps.messageOrdinals.first()
     ) {
+      console.log(
+        'aaa getsnapshot calling',
+        this.props.conversationIDKey,
+        this.props.messageOrdinals.first(),
+        prevProps.messageOrdinals.first(),
+        this.props.messageOrdinals.size,
+        prevProps.messageOrdinals.size
+      )
       return this._listRef.current ? this._listRef.current.scrollHeight : null
     }
     return null
   }
 
   componentDidUpdate(prevProps: Props, prevState: State, snapshot: Snapshot) {
+    console.log('aaaa updated', this._listRef.current && this._listRef.current.scrollHeight)
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
-      this.setState({isLockedToBottom: true})
+      this._cleanupDebounced()
+      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
+      this._scrollToBottom()
       return
     }
 
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
-      this.setState({isLockedToBottom: true})
+      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
     }
 
-    if (this.state.isLockedToBottom) {
-      this._scrollToBottom()
-    }
-
-    // got a prepend
+    // Adjust scrolling
     const list = this._listRef.current
-    if (snapshot && list) {
+    // Prepending some messages?
+    if (snapshot && list && !this.state.isLockedToBottom) {
+      console.log('aaaa ttempt to keep TOP')
       list.scrollTop = list.scrollHeight - snapshot
+    } else {
+      // maintain scroll to bottom?
+      if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
+        console.log('aaa attempt to keep BOTTOM')
+        this._scrollToBottom()
+      }
     }
 
     // TODO
@@ -143,13 +166,31 @@ class Thread extends React.PureComponent<Props, State> {
   // this.setState({width})
   // }
   // }
+  //
+  _cleanupDebounced = () => {
+    this._onAfterScroll.cancel()
+    this._onScroll.cancel()
+    this._positionChangeTop.cancel()
+    this._positionChangeBottom.cancel()
+  }
+  componentWillUnmount() {
+    this._cleanupDebounced()
+  }
+  _onAfterScroll = debounce(() => {
+    console.log('aaa scrollEND')
+    this.setState(p => (p.isScrolling ? {isScrolling: false} : undefined))
+  }, 200)
+  _onScroll = throttle(() => {
+    console.log('aaa scrollStart')
+    this.setState(p => (p.isScrolling ? undefined : {isScrolling: true}))
+    this._onAfterScroll()
+  }, 100)
 
   _getItemCount = () => this.props.messageOrdinals.size + 2
 
   _rowRenderer = (ordinalIndex, measure) => {
     const ordinal = this.props.messageOrdinals.get(ordinalIndex)
     if (ordinal) {
-      const measure = null
       const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
       return (
         <Message
@@ -183,7 +224,9 @@ class Thread extends React.PureComponent<Props, State> {
   }, 100)
 
   _positionChangeBottom = debounce(({currentPosition}) => {
-    this.setState({isLockedToBottom: currentPosition === 'inside'})
+    const isLockedToBottom = currentPosition === 'inside'
+    console.log('aaa _positionChangeBottom ', isLockedToBottom)
+    this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
   }, 100)
 
   render() {
@@ -236,17 +279,14 @@ class Thread extends React.PureComponent<Props, State> {
     )
 
     // TODO dynamically change this based on scroll
-    const innerListStyle = {
-      pointerEvents: 'none',
-    }
 
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
 
-          <div style={listStyle} ref={this._listRef}>
-            <div style={innerListStyle}>{waypoints}</div>
+          <div style={listStyle} ref={this._listRef} onScroll={this._onScroll}>
+            <div style={this.state.isScrolling ? innerListStyleScrolling : null}>{waypoints}</div>
           </div>
         </div>
       </ErrorBoundary>
@@ -287,7 +327,7 @@ class TopWaypoint extends React.PureComponent<> {
 class BottomWaypoint extends React.PureComponent<> {
   state = {keyCount: 0}
   _measure = () => {
-    // console.log('aaa measure bottom')
+    console.log('aaa measure bottom')
     this.setState(p => ({keyCount: p.keyCount + 1}))
   }
 
@@ -307,33 +347,59 @@ class BottomWaypoint extends React.PureComponent<> {
 
 // TODO not sure keyCount / remeasure is needed in this impl. need to test it
 
-class OrdinalWaypoint extends React.PureComponent<> {
+class OrdinalWaypoint extends React.Component<> {
   state = {
     height: null,
     isVisible: true,
-    keyCount: 0,
+    // keyCount: 0,
+    heightForOrdinals: null, // the cached height value was for what ordinals
   }
   _handlePositionChange = ({currentPosition}) => {
     if (currentPosition) {
       const isVisible = currentPosition === 'inside'
 
       // console.log('aaa vis', this.props.id, isVisible)
-      this.setState(prevState => (prevState.isVisible !== isVisible ? {isVisible} : undefined))
+      this.setState(p => (p.isVisible !== isVisible ? {isVisible} : undefined))
     }
+  }
+
+  componentWillUnmount() {
+    this._onResize.cancel()
+    this._measure.cancel()
   }
 
   _onResize = debounce(({bounds}) => {
     const height = bounds.height
     // console.log('aaa heig', this.props.id, height)
     if (height) {
-      this.setState(prevState => (prevState.height !== height ? {height} : undefined))
+      this.setState(p => (p.height !== height ? {height} : undefined))
     }
   }, 100)
 
   _measure = debounce(() => {
-    // console.log('aaa measure', this.props.id)
-    this.setState(p => ({keyCount: p.keyCount + 1}))
+    console.log('aaa measure waypoint', this.props.id)
+    // this.setState(p => ({keyCount: p.keyCount + 1}))
+    this.setState(p => (p.height ? {height: null} : null))
   }, 100)
+
+  static _getOrdinalHeightKey = ordinals => ordinals.join('')
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return (
+      this.state.height !== nextState.height ||
+      this.state.isVisible !== nextState.isVisible ||
+      // this.state.keyCount !== nextState.keyCount ||
+      OrdinalWaypoint._getOrdinalHeightKey(nextProps.ordinals) !== this.state.heightForOrdinals
+    )
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    const heightForOrdinals = OrdinalWaypoint._getOrdinalHeightKey(props.ordinals)
+    if (heightForOrdinals !== state.heightForOrdinals) {
+      return {height: null, heightForOrdinals}
+    }
+    return null
+  }
 
   render() {
     const renderMessages = !this.state.height || this.state.isVisible
@@ -341,7 +407,8 @@ class OrdinalWaypoint extends React.PureComponent<> {
     const messages = this.props.ordinals.map(i => this.props.rowRenderer(i, this._measure))
     if (renderMessages) {
       if (this.state.height) {
-        content = <div style={{height: this.state.height}}>{messages}</div>
+        // turn off hidden after debugging measure
+        content = <div style={{height: this.state.height, overflow: 'hidden'}}>{messages}</div>
       } else {
         content = (
           <Measure bounds={true} onResize={renderMessages ? this._onResize : null}>
@@ -353,7 +420,7 @@ class OrdinalWaypoint extends React.PureComponent<> {
       content = <div style={{height: this.state.height}} />
     }
     return (
-      <Waypoint key={`${this.props.id}:${this.state.keyCount}`} onPositionChange={this._handlePositionChange}>
+      <Waypoint key={`${this.props.id}:${''}`} onPositionChange={this._handlePositionChange}>
         {content}
       </Waypoint>
     )
@@ -399,6 +466,10 @@ const listStyle = {
   overflowX: 'hidden',
   overflowY: 'auto',
   willChange: 'transform',
+}
+
+const innerListStyleScrolling = {
+  pointerEvents: 'none',
 }
 
 export default Thread
