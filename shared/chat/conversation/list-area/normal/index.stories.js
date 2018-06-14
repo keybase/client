@@ -9,7 +9,9 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
+// set this to true to play with messages coming in on a timer
 const injectMessages = false && !__STORYSHOT__
+// set this to true to play with loading more working
 const enableLoadMore = false && !__STORYSHOT__
 const ordinalAscending = true
 
