@@ -4,8 +4,10 @@ import * as Constants from '../../../../../constants/chat2'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import {navigateAppend} from '../../../../../actions/route-tree'
-import {connect, type TypedState} from '../../../../../util/container'
+import {connect, isMobile, type TypedState} from '../../../../../util/container'
+import {isIOS} from '../../../../../constants/platform'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
 
@@ -20,14 +22,14 @@ type OwnProps = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
-  const canDeleteHistory =
+  const _canDeleteHistory =
     meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
-  const canExplodeNow = yourMessage || canDeleteHistory
+  const _canExplodeNow = yourMessage || _canDeleteHistory
   return {
+    _canDeleteHistory,
+    _canEdit: yourMessage,
+    _canExplodeNow,
     author: ownProps.message.author,
-    canDeleteHistory,
-    canEdit: yourMessage,
-    canExplodeNow,
     deviceName: ownProps.message.deviceName,
     deviceRevokedAt: ownProps.message.deviceRevokedAt,
     deviceType: ownProps.message.deviceType,
@@ -38,24 +40,99 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  onDeleteHistory: () => {
+  _onDeleteHistory: () => {
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(navigateAppend([{props: {message: ownProps.message}, selected: 'deleteHistoryWarning'}]))
   },
-  onEdit: () =>
+  _onDownload: () =>
+    dispatch(
+      Chat2Gen.createAttachmentDownload({
+        conversationIDKey: ownProps.message.conversationIDKey,
+        ordinal: ownProps.message.ordinal,
+      })
+    ),
+
+  _onEdit: () =>
     dispatch(
       Chat2Gen.createMessageSetEditing({
         conversationIDKey: ownProps.message.conversationIDKey,
         ordinal: ownProps.message.ordinal,
       })
     ),
-  onExplodeNow: () =>
+  _onExplodeNow: () =>
     dispatch(
       Chat2Gen.createMessageDelete({
         conversationIDKey: ownProps.message.conversationIDKey,
         ordinal: ownProps.message.ordinal,
       })
     ),
+  _onSaveAttachment: () =>
+    dispatch(
+      Chat2Gen.createMessageAttachmentNativeSave({
+        conversationIDKey: ownProps.message.conversationIDKey,
+        ordinal: ownProps.message.ordinal,
+      })
+    ),
+  _onShareAttachment: () =>
+    dispatch(
+      Chat2Gen.createMessageAttachmentNativeShare({
+        conversationIDKey: ownProps.message.conversationIDKey,
+        ordinal: ownProps.message.ordinal,
+      })
+    ),
+  _onShowInFinder: () =>
+    ownProps.message.type === 'attachment' &&
+    ownProps.message.downloadPath &&
+    dispatch(KBFSGen.createOpenInFileUI({path: ownProps.message.downloadPath})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Exploding)
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const items = []
+  if (stateProps._canExplodeNow) {
+    items.push({
+      danger: true,
+      onClick: dispatchProps._onExplodeNow,
+      title: 'Explode now',
+    })
+  }
+  if (stateProps._canDeleteHistory) {
+    items.push({
+      danger: true,
+      onClick: dispatchProps._onDeleteHistory,
+      title: 'Delete this + everything above',
+    })
+  }
+  const m = ownProps.message
+  if (m.type === 'attachment') {
+    if (isMobile) {
+      if (m.attachmentType === 'image') {
+        items.push({onClick: dispatchProps._onSaveAttachment, title: 'Save'})
+      }
+      if (isIOS) {
+        items.push({onClick: dispatchProps._onShareAttachment, title: 'Share'})
+      }
+    } else {
+      items.push(
+        !m.downloadPath
+          ? {onClick: dispatchProps._onDownload, title: 'Download'}
+          : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
+      )
+    }
+  }
+  return {
+    attachTo: ownProps.attachTo,
+    author: stateProps.author,
+    deviceName: stateProps.deviceName,
+    deviceRevokedAt: stateProps.deviceRevokedAt,
+    deviceType: stateProps.deviceType,
+    explodesAt: stateProps.explodesAt,
+    items,
+    onHidden: ownProps.onHidden,
+    position: ownProps.position,
+    timestamp: stateProps.timestamp,
+    visible: ownProps.visible,
+    yourMessage: stateProps.yourMessage,
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Exploding)
