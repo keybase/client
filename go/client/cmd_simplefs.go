@@ -177,6 +177,9 @@ func makeDestPath(
 	destPathString string) (keybase1.Path, error) {
 
 	isSrcDir, srcPathString, err := checkPathIsDir(ctx, cli, src)
+	if err != nil {
+		return keybase1.Path{}, err
+	}
 
 	g.Log.Debug("makeDestPath: srcPathString: %s isSrcDir: %v", pathToString(src), isSrcDir)
 

@@ -299,6 +299,7 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	require.NoError(tc.T, err, "makeDestPath returns %s", pathToString(destPath))
 
 	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), SimpleFSMock{remoteExists: true}, srcPath)
+	require.NoError(tc.T, err)
 	require.Equal(tc.T, "/public/foobar/test1.txt", srcPath.Kbfs())
 	require.False(tc.T, isSrcDir)
 	require.Equal(tc.T, "/public/foobar/test1.txt", srcPathString)
@@ -374,7 +375,7 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 	// Test when dest. does not exist.
 	// Dest name should remain as-is in that case
 	testStatter.localExists = false
-	isDestDir, destPathString, err = checkPathIsDir(context.TODO(), testStatter, destPath)
+	isDestDir, _, err = checkPathIsDir(context.TODO(), testStatter, destPath)
 	require.NoError(tc.T, err, "bad path type")
 	require.True(tc.T, isDestDir)
 
@@ -441,7 +442,8 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	testStatter.localExists = false
 	tempdir = filepath.Join(tempdir, "foobar")
 	destPathInitial = keybase1.NewPathWithLocal(tempdir)
-	isDestDir, destPathString, err = checkPathIsDir(context.TODO(), testStatter, destPathInitial)
+	_, destPathString, err = checkPathIsDir(context.TODO(), testStatter, destPathInitial)
+	require.NoError(tc.T, err)
 	assert.Equal(tc.T, tempdir, destPathString, "should use dest dir as-is")
 
 	destPath, err = makeDestPath(
