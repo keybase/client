@@ -1222,7 +1222,7 @@ func (b *Boxer) latestMerkleRoot(ctx context.Context) (*chat1.MerkleRoot, error)
 	if merkleClient == nil {
 		return nil, fmt.Errorf("no MerkleClient available")
 	}
-	mr, err := merkleClient.FetchRootFromServer(ctx, libkb.ChatBoxerMerkleFreshness)
+	mr, err := merkleClient.FetchRootFromServer(b.G().MetaContext(ctx), libkb.ChatBoxerMerkleFreshness)
 	if err != nil {
 		return nil, err
 	}

@@ -761,6 +761,10 @@ func (c Contextified) G() *GlobalContext {
 	return c.g
 }
 
+func (c Contextified) MetaContext(ctx context.Context) MetaContext {
+	return NewMetaContext(ctx, c.g)
+}
+
 func (c Contextified) GStrict() *GlobalContext {
 	return c.g
 }

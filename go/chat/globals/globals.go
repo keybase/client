@@ -3,6 +3,7 @@ package globals
 import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 type ChatContext struct {
@@ -44,6 +45,10 @@ func NewContextified(gc *Context) Contextified {
 	return Contextified{
 		gc: gc,
 	}
+}
+
+func (c *Context) MetaContext(ctx context.Context) libkb.MetaContext {
+	return libkb.NewMetaContext(ctx, c.ExternalG())
 }
 
 func (c Contextified) G() *Context {
