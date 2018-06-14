@@ -22,6 +22,11 @@ import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
+// hot reload isn't supported with debouncing currently so just ignore hot here
+if (module.hot) {
+  module.hot.decline()
+}
+
 const ordinalsInAWaypoint = 10
 
 type State = {
@@ -145,6 +150,7 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   _handleListClick = () => {
+    console.log('c')
     if (window.getSelection().isCollapsed) {
       this.props.onFocusInput()
     }
