@@ -36,15 +36,14 @@ func Advance(prevBundle stellar1.Bundle) stellar1.Bundle {
 	return nextBundle
 }
 
-// AddAccount adds an account to the bundle.
-// Mutates `bundle`.
-func AddAccount(bundle *stellar1.Bundle, secretKey stellar1.SecretKey, name string, makePrimary bool) (pub stellar1.AccountID, err error) {
+// AddAccount adds an account to the bundle. Mutates `bundle`.
+func AddAccount(bundle *stellar1.Bundle, secretKey stellar1.SecretKey, name string, makePrimary bool) (err error) {
 	if bundle == nil {
-		return pub, fmt.Errorf("nil bundle")
+		return fmt.Errorf("nil bundle")
 	}
 	secretKey, accountID, _, err := libkb.ParseStellarSecretKey(string(secretKey))
 	if err != nil {
-		return pub, err
+		return err
 	}
 	if makePrimary {
 		for i := range bundle.Accounts {
@@ -58,16 +57,17 @@ func AddAccount(bundle *stellar1.Bundle, secretKey stellar1.SecretKey, name stri
 		Signers:   []stellar1.SecretKey{secretKey},
 		Name:      name,
 	})
-	return accountID, bundle.CheckInvariants()
+	return bundle.CheckInvariants()
 }
 
+// CreateNewAccount generates a Stellar key pair and adds it to the
+// bundle. Mutates `bundle`.
 func CreateNewAccount(bundle *stellar1.Bundle, name string, makePrimary bool) (pub stellar1.AccountID, err error) {
 	accountID, masterKey, err := randomStellarKeypair()
 	if err != nil {
 		return pub, err
 	}
-	pub, err = AddAccount(bundle, masterKey, name, makePrimary)
-	if err != nil {
+	if err := AddAccount(bundle, masterKey, name, makePrimary); err != nil {
 		return pub, err
 	}
 	return accountID, nil

@@ -781,6 +781,5 @@ func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.Crea
 	if err != nil {
 		return res, err
 	}
-
 	return stellar.CreateNewAccount(s.mctx(ctx), arg.Name)
 }

@@ -146,7 +146,7 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 		return err
 	}
 	nextBundle := bundle.Advance(prevBundle)
-	_, err = bundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
+	err = bundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
 	if err != nil {
 		return err
 	}
