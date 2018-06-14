@@ -2609,6 +2609,28 @@
       ],
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterTeamRemoval finds the first Merkle root that contains the user being\n   removed from the team at that given seqno in the team's chain. You should pass in a previous\n   Merkle root as a starting point for the binary search."
+    },
+    "findNextMerkleRootAfterTeamRemovalBySigningKey": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "signingKey",
+          "type": "KID"
+        },
+        {
+          "name": "team",
+          "type": "TeamID"
+        },
+        {
+          "name": "isPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user\n   with the given signing key being removed from the given team. If there are several such instances,\n   we will return just the last one."
     }
   },
   "namespace": "keybase.1"
