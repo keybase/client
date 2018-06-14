@@ -11,8 +11,7 @@ import {
   fileUIName,
   platformStyles,
 } from '../../../styles'
-
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 type State = {loaded: boolean}
 class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, State> {

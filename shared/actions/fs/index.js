@@ -302,13 +302,13 @@ const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer
       }
       switch (statusCode) {
         case 200:
-          resolve(extractMimeTypeFromContentType(contentType))
+          resolve(extractMimeTypeFromContentType(contentType || ''))
           return
         case 403:
           reject(Constants.invalidTokenError)
           return
         default:
-          reject(new Error(`unexpected HTTP status code: ${statusCode}`))
+          reject(new Error(`unexpected HTTP status code: ${statusCode || ''}`))
       }
     })
   )
