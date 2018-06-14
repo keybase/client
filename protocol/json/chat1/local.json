@@ -23,6 +23,12 @@
   "types": [
     {
       "type": "record",
+      "name": "VersionKind",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "MessageText",
       "fields": [
         {
@@ -1148,6 +1154,10 @@
             "items": "ChannelNameMention"
           },
           "name": "channelNameMentions"
+        },
+        {
+          "type": "ReactionMap",
+          "name": "reactions"
         }
       ]
     },
@@ -1173,6 +1183,18 @@
         {
           "type": "string",
           "name": "errMsg"
+        },
+        {
+          "type": "VersionKind",
+          "name": "versionKind"
+        },
+        {
+          "type": "int",
+          "name": "versionNumber"
+        },
+        {
+          "type": "boolean",
+          "name": "isCritical"
         },
         {
           "type": "string",

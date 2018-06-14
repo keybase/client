@@ -25,6 +25,15 @@ const Header = (props: HeaderProps) => (
         <Text type="BodySemibold" backgroundMode="Announcements">
           E X P L O D E
         </Text>
+        <Text
+          type="BodySmallInlineLink"
+          backgroundMode="Announcements"
+          className="hover-underline"
+          style={{marginTop: globalMargins.xtiny}}
+          onClickURL="https://keybase.io/blog/keybase-exploding-messages"
+        >
+          Learn more
+        </Text>
       </Box2>
     )}
   </Box2>

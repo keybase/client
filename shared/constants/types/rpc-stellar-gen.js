@@ -78,6 +78,7 @@ export type BalanceDelta =
   | 1 // INCREASE_1
   | 2 // DECREASE_2
 
+export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>
 export type BundleRevision = Uint64
@@ -97,6 +98,7 @@ export type EncryptedRelaySecret = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxN
 export type Hash = Bytes
 export type KeybaseTransactionID = String
 export type LocalBalancesLocalRpcParam = $ReadOnly<{accountID: AccountID}>
+export type LocalBuildPaymentLocalRpcParam = $ReadOnly<{from: AccountID, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String, publicMemo: String}>
 export type LocalChangeDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID, currency: OutsideCurrencyCode}>
 export type LocalChangeWalletAccountNameLocalRpcParam = $ReadOnly<{accountID: AccountID, newName: String}>
 export type LocalClaimCLILocalRpcParam = $ReadOnly<{txID: String, into?: ?AccountID}>
@@ -110,6 +112,7 @@ export type LocalGetDisplayCurrenciesLocalRpcParam = void
 export type LocalGetDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 export type LocalGetPaymentDetailsLocalRpcParam = $ReadOnly<{accountID: AccountID, id: TransactionID}>
 export type LocalGetPaymentsLocalRpcParam = $ReadOnly<{accountID: AccountID, olderThanTransactionID?: ?TransactionID}>
+export type LocalGetSendAssetChoicesLocalRpcParam = $ReadOnly<{from: AccountID, to: String}>
 export type LocalGetWalletAccountPublicKeyLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 export type LocalGetWalletAccountSecretKeyLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 export type LocalGetWalletAccountsLocalRpcParam = void
@@ -119,7 +122,8 @@ export type LocalLinkNewWalletAccountLocalRpcParam = $ReadOnly<{secretKey: Secre
 export type LocalOwnAccountLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 export type LocalPaymentDetailCLILocalRpcParam = $ReadOnly<{txID: String}>
 export type LocalRecentPaymentsCLILocalRpcParam = $ReadOnly<{accountID?: ?AccountID}>
-export type LocalSendCLILocalRpcParam = $ReadOnly<{recipient: String, amount: String, asset: Asset, note: String, displayAmount: String, displayCurrency: String, forceRelay: Boolean, publicNote: String}>
+export type LocalSendCLILocalRpcParam = $ReadOnly<{recipient: String, amount: String, asset: Asset, note: String, displayAmount: String, displayCurrency: String, forceRelay: Boolean, publicNote: String, fromAccountID: AccountID}>
+export type LocalSendPaymentLocalRpcParam = $ReadOnly<{from: AccountID, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, asset: Asset, worthAmount: String, worthCurrency?: ?OutsideCurrencyCode, secretNote: String, publicMemo: String, quickReturn: Boolean}>
 export type LocalSetAcceptedDisclaimerLocalRpcParam = void
 export type LocalSetDisplayCurrencyRpcParam = $ReadOnly<{accountID: AccountID, currency: String}>
 export type LocalSetWalletAccountAsDefaultLocalRpcParam = $ReadOnly<{accountID: AccountID}>
@@ -185,8 +189,10 @@ export type RemoteSubmitPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersio
 export type RemoteSubmitRelayClaimRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, claim: RelayClaimPost}>
 export type RemoteSubmitRelayPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentRelayPost}>
 export type SecretKey = String
-export type SendRelayResultCLILocal = $ReadOnly<{teamID: Keybase1.TeamID}>
-export type SendResultCLILocal = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID, relay?: ?SendRelayResultCLILocal}>
+export type SendAssetChoiceLocal = $ReadOnly<{asset: Asset, enabled: Boolean, left: String, right: String, subtext: String}>
+export type SendBannerLocal = $ReadOnly<{level: String, message: String, proofsChanged: Boolean}>
+export type SendPaymentResLocal = $ReadOnly<{kbTxID: KeybaseTransactionID, pending: Boolean}>
+export type SendResultCLILocal = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID}>
 export type StellarServerDefinitions = $ReadOnly<{revision: Int, currencies: {[key: string]: OutsideCurrencyDefinition}}>
 export type TimeMs = Long
 export type TransactionID = String
@@ -200,6 +206,7 @@ export type TransactionStatus =
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String}>
 export type WalletSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
 type LocalBalancesLocalResult = ?Array<Balance>
+type LocalBuildPaymentLocalResult = BuildPaymentResLocal
 type LocalClaimCLILocalResult = RelayClaimResult
 type LocalExchangeRateLocalResult = OutsideExchangeRate
 type LocalExportSecretKeyLocalResult = SecretKey
@@ -210,6 +217,7 @@ type LocalGetDisplayCurrenciesLocalResult = ?Array<CurrencyLocal>
 type LocalGetDisplayCurrencyLocalResult = CurrencyLocal
 type LocalGetPaymentDetailsLocalResult = PaymentDetailsLocal
 type LocalGetPaymentsLocalResult = ?Array<PaymentOrErrorLocal>
+type LocalGetSendAssetChoicesLocalResult = ?Array<SendAssetChoiceLocal>
 type LocalGetWalletAccountPublicKeyLocalResult = String
 type LocalGetWalletAccountSecretKeyLocalResult = SecretKey
 type LocalGetWalletAccountsLocalResult = ?Array<WalletAccountLocal>
@@ -219,6 +227,7 @@ type LocalOwnAccountLocalResult = Boolean
 type LocalPaymentDetailCLILocalResult = PaymentCLILocal
 type LocalRecentPaymentsCLILocalResult = ?Array<PaymentOrErrorCLILocal>
 type LocalSendCLILocalResult = SendResultCLILocal
+type LocalSendPaymentLocalResult = SendPaymentResLocal
 type LocalWalletDumpLocalResult = Bundle
 type LocalWalletGetAccountsCLILocalResult = ?Array<OwnAccountCLILocal>
 type RemoteAccountSeqnoResult = String
@@ -236,4 +245,4 @@ type RemoteSubmitRelayPaymentResult = PaymentResult
 
 export type IncomingCallMapType = {||}
 
-// Not enabled calls. To enable add to enabled-calls.json: 'stellar.1.local.getPaymentDetailsLocal' 'stellar.1.local.getDisplayCurrenciesLocal' 'stellar.1.local.changeWalletAccountNameLocal' 'stellar.1.local.setWalletAccountAsDefaultLocal' 'stellar.1.local.deleteWalletAccountLocal' 'stellar.1.local.linkNewWalletAccountLocal' 'stellar.1.local.changeDisplayCurrencyLocal' 'stellar.1.local.getDisplayCurrencyLocal' 'stellar.1.local.getWalletSettingsLocal' 'stellar.1.local.setAcceptedDisclaimerLocal' 'stellar.1.local.getWalletAccountPublicKeyLocal' 'stellar.1.local.getWalletAccountSecretKeyLocal' 'stellar.1.local.balancesLocal' 'stellar.1.local.sendCLILocal' 'stellar.1.local.claimCLILocal' 'stellar.1.local.recentPaymentsCLILocal' 'stellar.1.local.paymentDetailCLILocal' 'stellar.1.local.walletInitLocal' 'stellar.1.local.walletDumpLocal' 'stellar.1.local.walletGetAccountsCLILocal' 'stellar.1.local.ownAccountLocal' 'stellar.1.local.importSecretKeyLocal' 'stellar.1.local.exportSecretKeyLocal' 'stellar.1.local.setDisplayCurrency' 'stellar.1.local.exchangeRateLocal' 'stellar.1.local.getAvailableLocalCurrencies' 'stellar.1.local.formatLocalCurrencyString' 'stellar.1.remote.balances' 'stellar.1.remote.details' 'stellar.1.remote.recentPayments' 'stellar.1.remote.paymentDetails' 'stellar.1.remote.accountSeqno' 'stellar.1.remote.submitPayment' 'stellar.1.remote.submitRelayPayment' 'stellar.1.remote.submitRelayClaim' 'stellar.1.remote.acquireAutoClaimLock' 'stellar.1.remote.releaseAutoClaimLock' 'stellar.1.remote.nextAutoClaim' 'stellar.1.remote.isMasterKeyActive' 'stellar.1.remote.ping'
+// Not enabled calls. To enable add to enabled-calls.json: 'stellar.1.local.getPaymentDetailsLocal' 'stellar.1.local.getDisplayCurrenciesLocal' 'stellar.1.local.changeWalletAccountNameLocal' 'stellar.1.local.setWalletAccountAsDefaultLocal' 'stellar.1.local.deleteWalletAccountLocal' 'stellar.1.local.linkNewWalletAccountLocal' 'stellar.1.local.changeDisplayCurrencyLocal' 'stellar.1.local.getDisplayCurrencyLocal' 'stellar.1.local.getWalletSettingsLocal' 'stellar.1.local.setAcceptedDisclaimerLocal' 'stellar.1.local.getWalletAccountPublicKeyLocal' 'stellar.1.local.getWalletAccountSecretKeyLocal' 'stellar.1.local.getSendAssetChoicesLocal' 'stellar.1.local.buildPaymentLocal' 'stellar.1.local.sendPaymentLocal' 'stellar.1.local.balancesLocal' 'stellar.1.local.sendCLILocal' 'stellar.1.local.claimCLILocal' 'stellar.1.local.recentPaymentsCLILocal' 'stellar.1.local.paymentDetailCLILocal' 'stellar.1.local.walletInitLocal' 'stellar.1.local.walletDumpLocal' 'stellar.1.local.walletGetAccountsCLILocal' 'stellar.1.local.ownAccountLocal' 'stellar.1.local.importSecretKeyLocal' 'stellar.1.local.exportSecretKeyLocal' 'stellar.1.local.setDisplayCurrency' 'stellar.1.local.exchangeRateLocal' 'stellar.1.local.getAvailableLocalCurrencies' 'stellar.1.local.formatLocalCurrencyString' 'stellar.1.remote.balances' 'stellar.1.remote.details' 'stellar.1.remote.recentPayments' 'stellar.1.remote.paymentDetails' 'stellar.1.remote.accountSeqno' 'stellar.1.remote.submitPayment' 'stellar.1.remote.submitRelayPayment' 'stellar.1.remote.submitRelayClaim' 'stellar.1.remote.acquireAutoClaimLock' 'stellar.1.remote.releaseAutoClaimLock' 'stellar.1.remote.nextAutoClaim' 'stellar.1.remote.isMasterKeyActive' 'stellar.1.remote.ping'

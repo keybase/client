@@ -811,7 +811,8 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 	return res, err
 }
 
-func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (*APIRes, error) {
+func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (res *APIRes, err error) {
+	defer a.G().CTraceTimed(m.Ctx(), "InternalAPIEngine#doRequest", func() error { return err })()
 	resp, finisher, jw, err := doRequestShared(m, a, arg, req, true)
 	if err != nil {
 		return nil, err

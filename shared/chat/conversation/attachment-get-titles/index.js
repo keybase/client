@@ -10,6 +10,7 @@ import {
   Text,
   ButtonBar,
   ScrollView,
+  WaitingButton,
 } from '../../../common-adapters/index'
 import {globalColors, globalStyles, isMobile, isIPhoneX} from '../../../styles'
 
@@ -129,7 +130,7 @@ class GetTitles extends React.Component<Props, State> {
             />
             <ButtonBar style={{flexShrink: 0}}>
               <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-              <Button type="Primary" onClick={this._onNext} label="Send" />
+              <WaitingButton type="Primary" waitingKey={null} onClick={this._onNext} label="Send" />
             </ButtonBar>
           </Box>
         </ScrollView>

@@ -168,6 +168,18 @@ func ImportKeypairFromKID(k keybase1.KID) (key GenericKey, err error) {
 	return
 }
 
+func ImportDHKeypairFromKID(k keybase1.KID) (*NaclDHKeyPair, error) {
+	genericKey, err := ImportKeypairFromKID(k)
+	if err != nil {
+		return nil, err
+	}
+	naclKey, ok := genericKey.(NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("expected NaclDHKeyPair, got %T", genericKey)
+	}
+	return &naclKey, nil
+}
+
 func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err error) {
 	var body []byte
 	if body, err = importNaclHex(s, byte(KIDNaclEddsa), ed25519.PublicKeySize); err != nil {

@@ -21,7 +21,7 @@ export type Props = {
   measure: null | (() => void),
   message: Types.MessageText | Types.MessageAttachment,
   messageFailed: boolean,
-  messageKey: string, // must always be unique and immutable for the message
+  messageKey: string,
   messagePending: boolean,
   messageSent: boolean,
   onRetry: null | (() => void),

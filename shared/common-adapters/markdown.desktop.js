@@ -80,8 +80,6 @@ const strikeStyle = platformStyles({
 })
 const quoteStyle = {
   borderLeft: `3px solid ${globalColors.lightGrey2}`,
-  marginBottom: globalMargins.xtiny,
-  marginTop: globalMargins.xtiny,
   paddingLeft: globalMargins.small,
 }
 

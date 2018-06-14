@@ -10,16 +10,22 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/minterm"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/terminalescaper"
 )
 
 type Terminal struct {
 	libkb.Contextified
-	once   sync.Once // protects opening the minterm
-	engine *minterm.MinTerm
+	once         sync.Once // protects opening the minterm
+	engine       *minterm.MinTerm
+	escapeWrites bool
 }
 
-func NewTerminal(g *libkb.GlobalContext) (*Terminal, error) {
-	return &Terminal{Contextified: libkb.NewContextified(g)}, nil
+func NewTerminalEscaped(g *libkb.GlobalContext) *Terminal {
+	return &Terminal{Contextified: libkb.NewContextified(g), escapeWrites: true}
+}
+
+func NewTerminalUnescaped(g *libkb.GlobalContext) *Terminal {
+	return &Terminal{Contextified: libkb.NewContextified(g), escapeWrites: false}
 }
 
 func (t *Terminal) open() error {
@@ -54,6 +60,16 @@ func (t *Terminal) PromptPassword(s string) (string, error) {
 }
 
 func (t *Terminal) Write(s string) error {
+	if err := t.open(); err != nil {
+		return err
+	}
+	if t.escapeWrites {
+		return t.engine.Write(terminalescaper.Clean(s))
+	}
+	return t.engine.Write(s)
+}
+
+func (t *Terminal) UnescapedWrite(s string) error {
 	if err := t.open(); err != nil {
 		return err
 	}

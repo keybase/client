@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Button, Input, MaybePopup, Text, ButtonBar} from '../../common-adapters'
+import {Avatar, Box, Button, Input, MaybePopup, Text, ButtonBar, WaitingButton} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 export type Props = {
@@ -10,6 +10,7 @@ export type Props = {
   onClose: () => void,
   origDescription: string,
   teamname: string,
+  waitingKey: string,
 }
 
 const EditTeamDescription = ({
@@ -19,6 +20,7 @@ const EditTeamDescription = ({
   onChangeDescription,
   onClose,
   onSetDescription,
+  waitingKey,
 }: Props) => (
   <MaybePopup onClose={onClose}>
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.large}}>
@@ -35,11 +37,12 @@ const EditTeamDescription = ({
       />
       <ButtonBar>
         <Button label="Cancel" onClick={onClose} type="Secondary" />
-        <Button
+        <WaitingButton
           disabled={description === origDescription}
           label="Save"
           onClick={onSetDescription}
           type="Primary"
+          waitingKey={waitingKey}
         />
       </ButtonBar>
     </Box>

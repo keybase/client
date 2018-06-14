@@ -21,6 +21,7 @@ type UPAKLoader interface {
 	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error)
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upak *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
+	LoadUPAKWithDeviceID(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error)
@@ -589,6 +590,31 @@ func (u *CachedUPAKLoader) LoadDeviceKey(ctx context.Context, uid keybase1.UID, 
 
 	deviceKey, revoked, err = u.extractDeviceKey(upakV1, deviceID)
 	return &upakV1, deviceKey, revoked, err
+}
+
+// If the user exists but the device doesn't, will force a load in case the device is very new.
+func (u *CachedUPAKLoader) LoadUPAKWithDeviceID(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
+	var info CachedUserLoadInfo
+	larg := NewLoadUserByUIDArg(ctx, u.G(), uid)
+	upakV2, _, err := u.loadWithInfo(larg, &info, nil, false)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, device := range upakV2.Current.DeviceKeys {
+		if device.DeviceID.Eq(deviceID) {
+			// Early success, return
+			return upakV2, nil
+		}
+	}
+
+	// Try again with a forced load in case the device is very new.
+	larg = larg.WithForcePoll(true)
+	upakV2, _, err = u.loadWithInfo(larg, nil, nil, false)
+	if err != nil {
+		return nil, err
+	}
+	return upakV2, nil
 }
 
 // LookupUsername uses the UIDMapper to find a username for uid.

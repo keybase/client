@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -15,6 +16,7 @@ import (
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellarcommon"
 )
 
 const WorthCurrencyErrorCode = "ERR"
@@ -647,6 +649,101 @@ func (s *Server) GetWalletAccountSecretKeyLocal(ctx context.Context, arg stellar
 		return res, errors.New("passed empty AccountID")
 	}
 	return stellar.ExportSecretKey(ctx, s.G(), arg.AccountID)
+}
+
+func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetSendAssetChoicesLocalArg) (res []stellar1.SendAssetChoiceLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetSendAssetChoicesLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	// Not implemented. CORE-8087
+	return res, fmt.Errorf("GetSendAssetChoicesLocal not implemented")
+}
+
+func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "BuildPaymentLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	// Not implemented. CORE-7871
+	return res, fmt.Errorf("BuildPaymentLocal not implemented")
+}
+
+func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentLocalArg) (res stellar1.SendPaymentResLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "SendPaymentLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	if len(arg.From) == 0 {
+		return res, fmt.Errorf("missing from account ID parameter")
+	}
+
+	var fromSeqno *uint64
+	if arg.FromSeqno != "" {
+		fsq, err := strconv.ParseUint(arg.FromSeqno, 10, 64)
+		if err != nil {
+			return res, fmt.Errorf("invalid from seqno (%v): %v", arg.FromSeqno, err)
+		}
+		fromSeqno = &fsq
+	}
+
+	to := arg.To
+	if arg.ToIsAccountID {
+		toAccountID, err := libkb.ParseStellarAccountID(arg.To)
+		if err != nil {
+			return res, fmt.Errorf("recipient: %v", err)
+		}
+		to = toAccountID.String()
+	}
+
+	if !arg.Asset.IsNativeXLM() {
+		return res, fmt.Errorf("sending non-XLM assets is not supported")
+	}
+
+	uis := libkb.UIs{
+		IdentifyUI: s.uiSource.IdentifyUI(s.G(), arg.SessionID),
+	}
+	mctx := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
+	sendRes, err := stellar.SendPayment(mctx, s.remoter, stellar.SendPaymentArg{
+		From:      arg.From,
+		FromSeqno: fromSeqno,
+		To:        stellarcommon.RecipientInput(to),
+		Amount:    arg.Amount,
+		DisplayBalance: stellar.DisplayBalance{
+			Amount:   arg.WorthAmount,
+			Currency: arg.WorthCurrency.String(),
+		},
+		SecretNote:  arg.SecretNote,
+		PublicMemo:  arg.PublicMemo,
+		ForceRelay:  false,
+		QuickReturn: arg.QuickReturn,
+	})
+	if err != nil {
+		return res, err
+	}
+	return stellar1.SendPaymentResLocal{
+		KbTxID:  sendRes.KbTxID,
+		Pending: sendRes.Pending,
+	}, nil
+
 }
 
 func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, from, to, requester stellar1.AccountID) (*stellar1.PaymentLocal, error) {

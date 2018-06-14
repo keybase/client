@@ -2,11 +2,6 @@
   "protocol": "local",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
-      "type": "idl",
-      "import_as": "keybase1"
-    },
-    {
       "path": "common.avdl",
       "type": "idl"
     }
@@ -283,6 +278,105 @@
     },
     {
       "type": "record",
+      "name": "SendAssetChoiceLocal",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": "boolean",
+          "name": "enabled"
+        },
+        {
+          "type": "string",
+          "name": "left"
+        },
+        {
+          "type": "string",
+          "name": "right"
+        },
+        {
+          "type": "string",
+          "name": "subtext"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BuildPaymentResLocal",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "readyToSend"
+        },
+        {
+          "type": "string",
+          "name": "toErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "amountErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "secretNoteErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "publicMemoErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "worthDescription"
+        },
+        {
+          "type": "string",
+          "name": "worthInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SendBannerLocal"
+          },
+          "name": "banners"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendBannerLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "level"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "boolean",
+          "name": "proofsChanged"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SendPaymentResLocal",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "kbTxID"
+        },
+        {
+          "type": "boolean",
+          "name": "pending"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -292,23 +386,6 @@
         {
           "type": "TransactionID",
           "name": "txID"
-        },
-        {
-          "type": [
-            null,
-            "SendRelayResultCLILocal"
-          ],
-          "name": "relay"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "SendRelayResultCLILocal",
-      "fields": [
-        {
-          "type": "keybase1.TeamID",
-          "name": "teamID"
         }
       ]
     },
@@ -661,6 +738,133 @@
       ],
       "response": "SecretKey"
     },
+    "getSendAssetChoicesLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "from",
+          "type": "AccountID"
+        },
+        {
+          "name": "to",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "SendAssetChoiceLocal"
+      }
+    },
+    "buildPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "from",
+          "type": "AccountID"
+        },
+        {
+          "name": "fromSeqno",
+          "type": "string"
+        },
+        {
+          "name": "to",
+          "type": "string"
+        },
+        {
+          "name": "toIsAccountID",
+          "type": "boolean"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "secretNote",
+          "type": "string"
+        },
+        {
+          "name": "publicMemo",
+          "type": "string"
+        }
+      ],
+      "response": "BuildPaymentResLocal"
+    },
+    "sendPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "from",
+          "type": "AccountID"
+        },
+        {
+          "name": "fromSeqno",
+          "type": "string"
+        },
+        {
+          "name": "to",
+          "type": "string"
+        },
+        {
+          "name": "toIsAccountID",
+          "type": "boolean"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": "Asset"
+        },
+        {
+          "name": "worthAmount",
+          "type": "string"
+        },
+        {
+          "name": "worthCurrency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "secretNote",
+          "type": "string"
+        },
+        {
+          "name": "publicMemo",
+          "type": "string"
+        },
+        {
+          "name": "quickReturn",
+          "type": "boolean"
+        }
+      ],
+      "response": "SendPaymentResLocal"
+    },
     "balancesLocal": {
       "request": [
         {
@@ -706,6 +910,10 @@
         {
           "name": "publicNote",
           "type": "string"
+        },
+        {
+          "name": "fromAccountID",
+          "type": "AccountID"
         }
       ],
       "response": "SendResultCLILocal"

@@ -10,6 +10,7 @@ import {hideDockIcon} from './dock-icon.desktop'
 import {getRendererHTML} from './dev.desktop'
 import {windowStyle} from '../../styles'
 import {isWindows} from '../../constants/platform'
+import logger from '../../logger'
 
 export default function() {
   // We are not using partitions on webviews, so this essentially disables
@@ -41,6 +42,11 @@ export default function() {
     minHeight: windowStyle.minHeight,
     minWidth: windowStyle.minWidth,
     show: false,
+    webPreferences: {
+      devTools: showDevTools,
+      nodeIntegration: true,
+      nodeIntegrationInWorker: false,
+    },
     width: appState.state.width,
     x: appState.state.x,
     y: appState.state.y,
@@ -59,7 +65,7 @@ export default function() {
   })
 
   if (showDevTools) {
-    webContents.openDevTools('detach')
+    webContents.openDevTools({mode: 'detach'})
   }
 
   appState.manageWindow(mainWindow.window)
@@ -72,9 +78,9 @@ export default function() {
     getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState || isWindows
   const hideWindowOnStart = getenv.string('KEYBASE_START_UI', '') === 'hideWindow'
   const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
-  console.log('Opened at login:', openedAtLogin)
-  console.log('Is restore:', isRestore)
-  console.log('Open hidden:', openHidden)
+  logger.info('Opened at login:', openedAtLogin)
+  logger.info('Is restore:', isRestore)
+  logger.info('Open hidden:', openHidden)
   if (
     isWindows &&
     appState &&
@@ -105,7 +111,7 @@ export default function() {
     (isRestore && appState.state.windowHidden) ||
     (openedAtLogin && !isRestore)
 
-  console.log('Hide main window:', hideMainWindow)
+  logger.info('Hide main window:', hideMainWindow)
   if (!hideMainWindow) {
     // On Windows we can try showing before Windows is ready
     // This will result in a dropped .show request
@@ -123,20 +129,20 @@ export default function() {
   // - or, if we were opened from login (but not restoring)
   const shouldHideDockIcon =
     openHidden || (isRestore && appState.state.dockHidden) || (openedAtLogin && !isRestore)
-  console.log('Hide dock icon:', shouldHideDockIcon)
+  logger.info('Hide dock icon:', shouldHideDockIcon)
   if (shouldHideDockIcon) {
     hideDockIcon()
   }
 
   SafeElectron.getIpcMain().on('showMain', () => {
-    console.log('Show main window (requested)')
+    logger.info('Show main window (requested)')
     mainWindow.show()
     const window = mainWindow.window
     if (window) {
       window.focus()
-      console.log('...showMain: visible=', window.isVisible(), window.getBounds())
+      logger.info('...showMain: visible=', window.isVisible(), window.getBounds())
     } else {
-      console.log('...showMain: no mainWindow!')
+      logger.info('...showMain: no mainWindow!')
     }
   })
 
