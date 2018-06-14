@@ -399,9 +399,9 @@ func (g *GlobalContext) ConfigureAPI() error {
 	return nil
 }
 
-// shutdownCachesLocked shutsown and non-nil caches that have running goroutines
+// shutdownCachesLocked shutdown any non-nil caches that have running goroutines
 // in them. It can be called from either configureMemCachesLocked (via logout or flush),
-// or via shutdown.  In either case, you better hold the g.cacheMu when calling this.
+// or via Shutdown. In either case, callers must hold g.cacheMu.
 func (g *GlobalContext) shutdownCachesLocked() {
 
 	// shutdown and nil out any existing caches.
