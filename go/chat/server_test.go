@@ -3310,6 +3310,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
 		}))
+		require.NoError(t, err)
 		consumeAllMsgJoins := func(listener *serverChatListener, sender bool) {
 			msgMap := make(map[chat1.MessageType]bool)
 			rounds := 2
