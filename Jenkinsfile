@@ -103,74 +103,74 @@ helpers.rootLinuxNode(env, {
         stage("Test") {
             helpers.withKbweb() {
                 parallel (
-                    test_linux_deps: {
-                        if (hasGoChanges) {
-                            // Build the client docker first so we can immediately kick off KBFS
-                            dir('go') {
-                                sh "go install github.com/keybase/client/go/keybase"
-                                sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                clientImage = docker.build("keybaseprivate/kbclient")
-                                sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                                archive("kbclient.tar.gz")
-                                sh "rm kbclient.tar.gz"
-                            }
-                        }
-                        parallel (
-                            test_linux: {
-                                dir("protocol") {
-                                    sh "./diff_test.sh"
-                                }
-                                parallel (
-                                    test_linux_go: { withEnv([
-                                        "PATH=${env.PATH}:${env.GOPATH}/bin",
-                                        "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                                    ]) {
-                                        if (hasGoChanges) {
-                                            testGo("test_linux_go_")
-                                        }
-                                    }},
-                                    test_linux_js: { withEnv([
-                                        "PATH=${env.HOME}/.node/bin:${env.PATH}",
-                                        "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                        "NODE_OPTIONS=--max-old-space-size=4096",
-                                    ]) {
-                                        dir("shared") {
-                                            stage("JS Tests") {
-                                                sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                            }
-                                        }
-                                    }},
-                                )
-                            },
-                            test_kbfs: {
-                                // Only build KBFS on master builds. This means
-                                // that we can have master breaks, but it
-                                // strikes a good balance between velocity and
-                                // test coverage.
-                                if (env.BRANCH_NAME == "master") {
-                                    build([
-                                        job: "/kbfs/master",
-                                        parameters: [
-                                            string(
-                                                name: 'clientProjectName',
-                                                value: env.JOB_NAME,
-                                            ),
-                                            string(
-                                                name: 'kbwebNodePrivateIP',
-                                                value: kbwebNodePrivateIP,
-                                            ),
-                                        ]
-                                    ])
-                                }
-                            },
-                        )
-                    },
+                    //test_linux_deps: {
+                    //    if (hasGoChanges) {
+                    //        // Build the client docker first so we can immediately kick off KBFS
+                    //        dir('go') {
+                    //            sh "go install github.com/keybase/client/go/keybase"
+                    //            sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                    //            clientImage = docker.build("keybaseprivate/kbclient")
+                    //            sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                    //            archive("kbclient.tar.gz")
+                    //            sh "rm kbclient.tar.gz"
+                    //        }
+                    //    }
+                    //    parallel (
+                    //        test_linux: {
+                    //            dir("protocol") {
+                    //                sh "./diff_test.sh"
+                    //            }
+                    //            parallel (
+                    //                test_linux_go: { withEnv([
+                    //                    "PATH=${env.PATH}:${env.GOPATH}/bin",
+                    //                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                    //                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                    //                ]) {
+                    //                    if (hasGoChanges) {
+                    //                        testGo("test_linux_go_")
+                    //                    }
+                    //                }},
+                    //                test_linux_js: { withEnv([
+                    //                    "PATH=${env.HOME}/.node/bin:${env.PATH}",
+                    //                    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                    //                    "NODE_OPTIONS=--max-old-space-size=4096",
+                    //                ]) {
+                    //                    dir("shared") {
+                    //                        stage("JS Tests") {
+                    //                            sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                    //                        }
+                    //                    }
+                    //                }},
+                    //            )
+                    //        },
+                    //        test_kbfs: {
+                    //            // Only build KBFS on master builds. This means
+                    //            // that we can have master breaks, but it
+                    //            // strikes a good balance between velocity and
+                    //            // test coverage.
+                    //            if (env.BRANCH_NAME == "master") {
+                    //                build([
+                    //                    job: "/kbfs/master",
+                    //                    parameters: [
+                    //                        string(
+                    //                            name: 'clientProjectName',
+                    //                            value: env.JOB_NAME,
+                    //                        ),
+                    //                        string(
+                    //                            name: 'kbwebNodePrivateIP',
+                    //                            value: kbwebNodePrivateIP,
+                    //                        ),
+                    //                    ]
+                    //                ])
+                    //            }
+                    //        },
+                    //    )
+                    //},
                     test_windows: {
                         // TODO: If we re-enable tests other than Go tests on
                         // Windows, this check should go away.
-                        if (hasGoChanges) {
-                            helpers.nodeWithCleanup('windows', {}, {}) {
+                        if (true || hasGoChanges) {
+                            helpers.nodeWithCleanup('windows-test', {}, {}) {
                                 def BASEDIR="${pwd()}"
                                 def GOPATH="${BASEDIR}\\go"
                                 withEnv([
@@ -201,53 +201,53 @@ helpers.rootLinuxNode(env, {
                             }
                         }
                     },
-                    test_macos: {
-                        // TODO: Currently we only run macos tests on master builds.
-                        if (env.BRANCH_NAME == "master") {
-                            def mountDir='/Volumes/untitled/client'
-                            helpers.nodeWithCleanup('macstadium', {}, {
-                                    sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
-                                }) {
-                                def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
-                                def GOPATH="${BASEDIR}/go"
-                                dir(mountDir) {
-                                    // Ensure that the mountDir exists
-                                    sh "touch test.txt"
-                                }
-                                withEnv([
-                                    "GOPATH=${GOPATH}",
-                                    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                    "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                                    "TMPDIR=${mountDir}",
-                                ]) {
-                                ws("$GOPATH/src/github.com/keybase/client") {
-                                    println "Checkout OS X"
-                                    retry(3) {
-                                        checkout scm
-                                    }
+                    //test_macos: {
+                    //    // TODO: Currently we only run macos tests on master builds.
+                    //    if (env.BRANCH_NAME == "master") {
+                    //        def mountDir='/Volumes/untitled/client'
+                    //        helpers.nodeWithCleanup('macstadium', {}, {
+                    //                sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
+                    //            }) {
+                    //            def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
+                    //            def GOPATH="${BASEDIR}/go"
+                    //            dir(mountDir) {
+                    //                // Ensure that the mountDir exists
+                    //                sh "touch test.txt"
+                    //            }
+                    //            withEnv([
+                    //                "GOPATH=${GOPATH}",
+                    //                "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                    //                "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
+                    //                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                    //                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                    //                "TMPDIR=${mountDir}",
+                    //            ]) {
+                    //            ws("$GOPATH/src/github.com/keybase/client") {
+                    //                println "Checkout OS X"
+                    //                retry(3) {
+                    //                    checkout scm
+                    //                }
 
-                                    parallel (
-                                        //test_react_native: {
-                                        //    println "Test React Native"
-                                        //    dir("react-native") {
-                                        //        sh "npm i"
-                                        //        lock("iossimulator_${env.NODE_NAME}") {
-                                        //            sh "npm run test-ios"
-                                        //        }
-                                        //    }
-                                        //},
-                                        test_macos_go: {
-                                            if (hasGoChanges) {
-                                                testGo("test_macos_go_")
-                                            }
-                                        }
-                                    )
-                                }}
-                            }
-                        }
-                    },
+                    //                parallel (
+                    //                    //test_react_native: {
+                    //                    //    println "Test React Native"
+                    //                    //    dir("react-native") {
+                    //                    //        sh "npm i"
+                    //                    //        lock("iossimulator_${env.NODE_NAME}") {
+                    //                    //            sh "npm run test-ios"
+                    //                    //        }
+                    //                    //    }
+                    //                    //},
+                    //                    test_macos_go: {
+                    //                        if (hasGoChanges) {
+                    //                            testGo("test_macos_go_")
+                    //                        }
+                    //                    }
+                    //                )
+                    //            }}
+                    //        }
+                    //    }
+                    //},
                 )
             }
         }
