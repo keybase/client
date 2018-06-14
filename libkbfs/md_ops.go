@@ -1041,49 +1041,31 @@ func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 		return false, err
 	}
 
-	_, err = md.config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		md.log.CDebugf(ctx, "Not logged in when validating latest handle "+
-			"for %s; checking with server for ID (currently %s)",
-			h.GetCanonicalName(), h.tlfID)
-		// If we're not logged in, the server won't tell us the latest
-		// handle (even for public folders), so look up the handle
-		// from the server to see if it has the ID.
-		id, _, err = md.getForHandle(ctx, h, kbfsmd.Merged, nil)
-		switch errors.Cause(err).(type) {
-		case kbfsmd.ServerErrorClassicTLFDoesNotExist:
-			err = mdcache.PutIDForHandle(h, h.tlfID)
-			if err != nil {
-				return false, err
-			}
-			// The server thinks this is an implicit team TLF, so we
-			// should trust whatever's in the handle.
-			return true, nil
-		case nil:
-			err = mdcache.PutIDForHandle(h, id)
-			if err != nil {
-				return false, err
-			}
-			return id == h.tlfID, nil
-		default:
+	md.log.CDebugf(ctx, "Validating latest handle for %s; "+
+		"checking with server for ID (currently %s)",
+		h.GetCanonicalName(), h.tlfID)
+	// Look up the handle from the server to see if it has the ID --
+	// from its response we can tell if this is supposed to be an
+	// implicit team TLF or if the server has a new ID for it.
+	id, _, err = md.getForHandle(ctx, h, kbfsmd.Merged, nil)
+	switch errors.Cause(err).(type) {
+	case kbfsmd.ServerErrorClassicTLFDoesNotExist:
+		err = mdcache.PutIDForHandle(h, h.tlfID)
+		if err != nil {
 			return false, err
 		}
-	}
-
-	md.log.CDebugf(ctx, "Checking the latest handle for %s; "+
-		"curr handle is %s", h.tlfID, h.GetCanonicalName())
-	latestHandle, err := md.GetLatestHandleForTLF(ctx, h.tlfID)
-	if err != nil {
+		// The server thinks this is an implicit team TLF, so we
+		// should trust whatever's in the handle.
+		return true, nil
+	case nil:
+		err = mdcache.PutIDForHandle(h, id)
+		if err != nil {
+			return false, err
+		}
+		return id == h.tlfID, nil
+	default:
 		return false, err
 	}
-	if latestHandle.IsFinal() {
-		return false, nil
-	}
-	err = mdcache.PutIDForHandle(h, h.tlfID)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd kbfsmd.RootMetadata) (
