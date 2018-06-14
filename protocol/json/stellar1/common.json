@@ -313,8 +313,12 @@
           "name": "horizonCursor"
         },
         {
-          "type": "TransactionID",
-          "name": "txID"
+          "type": "string",
+          "name": "directCursor"
+        },
+        {
+          "type": "string",
+          "name": "relayCursor"
         }
       ]
     }

@@ -119,6 +119,7 @@ protocol common {
 
   record PageCursor {
     string horizonCursor;
-    TransactionID txID;
+    string directCursor;
+    string relayCursor;
   }
 }
