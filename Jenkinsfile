@@ -176,7 +176,7 @@ helpers.rootLinuxNode(env, {
                                 withEnv([
                                     'GOROOT=C:\\go',
                                     "GOPATH=\"${GOPATH}\"",
-                                    "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
+                                    "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.PATH}",
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                 ]) {
@@ -286,13 +286,10 @@ def testGo(prefix) {
         "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     ]) {
         def shell
-        def slash
         if (isUnix()) {
             shell = { params -> sh params }
-            slash = '/'
         } else {
             shell = { params -> bat params }
-            slash = '\\'
         }
         def dirs = getTestDirsNix()
         def goversion = sh(returnStdout: true, script: "go version").trim()
@@ -329,7 +326,7 @@ def testGo(prefix) {
                     def test = {
                         dir(dirPath) {
                             println "Running tests for $dirPath"
-                            shell ".${slash}test.test -test.timeout 30m"
+                            shell "./test.test -test.timeout 30m"
                         }
                     }
                     if (testName in specialTestFilter) {
