@@ -683,7 +683,6 @@ func TestDisconnectedFailure(t *testing.T) {
 			continue
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "timeout in failing loop")
-			break
 		}
 		break
 	}
@@ -712,7 +711,6 @@ func TestDisconnectedFailure(t *testing.T) {
 			continue
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "timeout in incoming loop")
-			break
 		}
 		break
 	}

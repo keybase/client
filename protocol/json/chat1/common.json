@@ -987,6 +987,16 @@
           "name": "ephemeralMetadata",
           "mpackkey": "em",
           "jsonkey": "em"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "bytes",
+            "keys": "keybase1.KID"
+          },
+          "name": "pairwiseMacs",
+          "mpackkey": "pm",
+          "jsonkey": "pm"
         }
       ]
     },

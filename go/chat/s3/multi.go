@@ -286,7 +286,7 @@ type ReaderAtSeeker interface {
 // new content.
 // PutAll returns all the parts of m (reused or not).
 func (m *Multi) PutAll(r ReaderAtSeeker, partSize int64) ([]Part, error) {
-	old, err := m.ListParts(nil)
+	old, err := m.ListParts(context.Background())
 	if err != nil && !hasCode(err, "NoSuchUpload") {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ NextSection:
 		}
 
 		// Part wasn't found or doesn't match. Send it.
-		part, err := m.putPart(nil, current, section, partSize, md5b64)
+		part, err := m.putPart(context.Background(), current, section, partSize, md5b64)
 		if err != nil {
 			return nil, err
 		}

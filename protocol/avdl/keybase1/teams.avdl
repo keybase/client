@@ -852,4 +852,11 @@ protocol teams {
   */
   NextMerkleRootRes findNextMerkleRootAfterTeamRemoval(UID uid, TeamID team, boolean isPublic, Seqno teamSigchainSeqno, MerkleRootV2 prev);
 
+  /**
+   FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user
+   with the given signing key being removed from the given team. If there are several such instances,
+   we will return just the last one.
+   */
+  NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic);
+
 }
