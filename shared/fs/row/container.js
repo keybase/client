@@ -34,33 +34,39 @@ const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
     dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
-  name: stateProps.pathItem.name,
-  type: stateProps.pathItem.type,
-  badgeCount: stateProps.pathItem.badgeCount,
-  tlfMeta: stateProps.pathItem.tlfMeta,
-  isUserReset: stateProps.pathItem.type === 'folder' && stateProps.pathItem.resetParticipants ? stateProps.pathItem.resetParticipants.includes(stateProps._username) : false,
-  resetParticipants: stateProps.pathItem.type === 'folder'
-    ? stateProps.pathItem.resetParticipants
-    : [],
-  lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
-  lastWriter: stateProps.pathItem.lastWriter.username,
-  shouldShowMenu:
-    !isMobile ||
-    stateProps.pathItem.type !== 'folder' ||
-    Constants.showIgnoreFolder(stateProps.path, stateProps.pathItem, stateProps._username),
-  onOpen: () => dispatchProps._onOpen(stateProps.path),
-  openInFileUI: stateProps.kbfsEnabled
-    ? () => dispatchProps._openInFileUI(stateProps.path)
-    : dispatchProps._openFinderPopup,
-  onAction: (event: SyntheticEvent<>) =>
-    dispatchProps._onAction(stateProps.path, stateProps.pathItem.type, event),
-  itemStyles: Constants.getItemStyles(
-    Types.getPathElements(stateProps.path),
-    stateProps.pathItem.type,
-    stateProps._username
-  ),
-})
+const mergeProps = (stateProps, dispatchProps) => {
+  const resetParticipants =
+    stateProps.pathItem.type === 'folder' &&
+    !!stateProps.pathItem.tlfMeta &&
+    stateProps.pathItem.tlfMeta.resetParticipants.length > 0
+      ? stateProps.pathItem.tlfMeta.resetParticipants.map(i => i.username)
+      : []
+  return {
+    name: stateProps.pathItem.name,
+    type: stateProps.pathItem.type,
+    badgeCount: stateProps.pathItem.badgeCount,
+    tlfMeta: stateProps.pathItem.tlfMeta,
+    isUserReset: resetParticipants.includes(stateProps._username),
+    resetParticipants,
+    lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
+    lastWriter: stateProps.pathItem.lastWriter.username,
+    shouldShowMenu:
+      !isMobile ||
+      stateProps.pathItem.type !== 'folder' ||
+      Constants.showIgnoreFolder(stateProps.path, stateProps.pathItem, stateProps._username),
+    onOpen: () => dispatchProps._onOpen(stateProps.path),
+    openInFileUI: stateProps.kbfsEnabled
+      ? () => dispatchProps._openInFileUI(stateProps.path)
+      : dispatchProps._openFinderPopup,
+    onAction: (event: SyntheticEvent<>) =>
+      dispatchProps._onAction(stateProps.path, stateProps.pathItem.type, event),
+    itemStyles: Constants.getItemStyles(
+      Types.getPathElements(stateProps.path),
+      stateProps.pathItem.type,
+      stateProps._username
+    ),
+  }
+}
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('FileRow'))(
   Row

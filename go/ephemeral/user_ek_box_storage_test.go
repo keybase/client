@@ -13,8 +13,9 @@ import (
 func TestUserEKBoxStorage(t *testing.T) {
 	tc, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
+	m := libkb.NewMetaContextForTest(tc)
 
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 

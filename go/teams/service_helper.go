@@ -1531,3 +1531,45 @@ func ChangeTeamAvatar(mctx libkb.MetaContext, arg keybase1.UploadTeamAvatarArg) 
 	}
 	return nil
 }
+
+func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res keybase1.NextMerkleRootRes, err error) {
+	defer mctx.CTrace(fmt.Sprintf("teams.FindNextMerkleRootAfterRemoval(%+v)", arg), func() error { return err })()
+
+	team, err := Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
+		ID:          arg.Team,
+		Public:      arg.IsPublic,
+		ForceRepoll: false,
+		NeedAdmin:   false,
+	})
+	if err != nil {
+		return res, err
+	}
+	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(mctx).
+		WithUID(arg.Uid).
+		WithPublicKeyOptional().
+		WithForcePoll(false))
+	if err != nil {
+		return res, err
+	}
+
+	vers, _ := upak.FindKID(arg.SigningKey)
+	if vers == nil {
+		return res, libkb.NotFoundError{Msg: fmt.Sprintf("KID %s not found for %s", arg.SigningKey, arg.Uid)}
+	}
+
+	uv := vers.ToUserVersion()
+	logPoint := team.chain().GetLastUserLogPointWithPredicate(uv, func(p keybase1.UserLogPoint) bool {
+		return p.Role == keybase1.TeamRole_NONE || p.Role == keybase1.TeamRole_READER
+	})
+	if logPoint == nil {
+		return res, libkb.NotFoundError{Msg: fmt.Sprintf("no downgraded log point for user found")}
+	}
+
+	return libkb.FindNextMerkleRootAfterTeamRemoval(mctx, keybase1.FindNextMerkleRootAfterTeamRemovalArg{
+		Uid:               arg.Uid,
+		Team:              arg.Team,
+		IsPublic:          arg.IsPublic,
+		TeamSigchainSeqno: logPoint.SigMeta.SigChainLocation.Seqno,
+		Prev:              logPoint.SigMeta.PrevMerkleRootSigned,
+	})
+}

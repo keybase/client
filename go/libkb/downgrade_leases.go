@@ -111,7 +111,7 @@ func RequestDowngradeLeaseByTeam(ctx context.Context, g *GlobalContext, teamID k
 }
 
 func leaseWithMerkleRoot(ctx context.Context, g *GlobalContext, res leaseReply) (lease *Lease, mr *MerkleRoot, err error) {
-	mr, err = g.MerkleClient.FetchRootFromServerBySeqno(ctx, res.Lease.MerkleSeqno)
+	mr, err = g.MerkleClient.FetchRootFromServerBySeqno(NewMetaContext(ctx, g), res.Lease.MerkleSeqno)
 	if err != nil {
 		return nil, nil, err
 	}

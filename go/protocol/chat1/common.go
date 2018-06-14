@@ -1164,6 +1164,7 @@ type MessageClientHeader struct {
 	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
+	PairwiseMacs      map[keybase1.KID][]byte  `codec:"pm" json:"pm"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1239,6 +1240,23 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralMetadata),
+		PairwiseMacs: (func(x map[keybase1.KID][]byte) map[keybase1.KID][]byte {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[keybase1.KID][]byte)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []byte) []byte {
+					if x == nil {
+						return nil
+					}
+					return append([]byte{}, x...)
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PairwiseMacs),
 	}
 }
 

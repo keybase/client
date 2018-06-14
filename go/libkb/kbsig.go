@@ -276,7 +276,7 @@ func (arg ProofMetadata) merkleRootInfo(g *GlobalContext) (ret *jsonw.Wrapper) {
 		return mr.ToSigJSON()
 	}
 	if mc := g.MerkleClient; mc != nil {
-		ret, _ = mc.LastRootToSigJSON()
+		ret, _ = mc.LastRootToSigJSON(NewMetaContextTODO(g))
 	}
 	return ret
 }

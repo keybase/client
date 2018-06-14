@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/keybase/client/go/engine"
@@ -864,10 +863,9 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
 		return "", errors.New("empty amount")
 	}
-	x := new(big.Rat)
-	_, ok := x.SetString(amount)
-	if !ok {
-		return "", fmt.Errorf("unable to parse amount %s", amount)
+	x, err := parseDecimalStrict(amount)
+	if err != nil {
+		return "", fmt.Errorf("unable to parse amount %s: %v", amount, err)
 	}
 	precision := 7
 	if precisionTwo {
