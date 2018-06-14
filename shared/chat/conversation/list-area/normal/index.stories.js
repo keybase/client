@@ -16,7 +16,7 @@ const enableLoadMore = false && !__STORYSHOT__
 const ordinalAscending = true
 
 let index = 1
-const makeMoreOrdinals = (num = 100) => {
+const makeMoreOrdinals = (num = __STORYSHOT__ ? 10 : 100) => {
   const end = index + num
   const ordinals = []
   for (; index < end; ++index) {
