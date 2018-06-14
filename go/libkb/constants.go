@@ -610,6 +610,8 @@ const (
 	DeriveReasonUserEKEncryption    DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
 	DeriveReasonTeamEKEncryption    DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
 	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
+
+	DeriveReasonChatPairwiseMAC DeriveReason = "Derived-Chat-Pairwise-HMAC-SHA256-1"
 )
 
 // Not a DeriveReason because it is not used in the same way.
@@ -695,3 +697,5 @@ const noiseFileLen = 1024 * 1024 * 2
 // go/chatbase/storage/ephemeral.go as well.
 const MaxEphemeralLifetime = time.Hour * 24 * 7
 const MinEphemeralLifetime = time.Second * 30
+
+const MaxTeamMembersForPairwiseMAC = 100

@@ -69,9 +69,14 @@ func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparat
 
 	// First bump the hi pointer up to a merkle root that overshoots (or is equal to)
 	// the request chainSeqno. Don't go any higher than the last known Merkle seqno.
-	for hi = low + 1; hi <= last; hi += inc {
+	var found bool
+	var final bool
+	for hi = low + 1; !found && !final; hi += inc {
+		if hi > last {
+			hi = last
+			final = true
+		}
 		m.CDebugf("FFLWC: Expontential forward jump: trying %d", hi)
-		var found bool
 		leaf, root, err = cli.LookupLeafAtSeqno(m.Ctx(), id, hi)
 		if err != nil {
 			return nil, nil, err
@@ -80,13 +85,15 @@ func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparat
 		if err != nil {
 			return nil, nil, err
 		}
-		if found {
+		if found || final {
+			// Still make sure we `break` so we don't wind up incrementing
+			// hi if we don't have to.
 			break
 		}
 		inc *= 2
 	}
 
-	if hi > last {
+	if !found {
 		return nil, nil, MerkleClientError{fmt.Sprintf("given link can't be found even as high as Merkle Root %d", hi), merkleErrorNotFound}
 	}
 

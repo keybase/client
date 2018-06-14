@@ -278,6 +278,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             />
             {flags.explodingMessagesEnabled &&
               this.props.isExploding &&
+              !this.props.isEditing &&
               !this.state.hasText && (
                 <Icon
                   color={globalColors.black_20}
@@ -311,6 +312,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                 <Icon
                   className="bomb"
                   color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
+                  fontSize={17}
                   onClick={this._toggleShowingMenu}
                   style={styleIcon}
                   type="iconfont-bomb"

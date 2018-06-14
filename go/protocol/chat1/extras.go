@@ -351,7 +351,7 @@ const (
 // NOTE: these values correspond to the maximum accepted values in
 // chat/boxer.go. If these values are changed, they must also be accepted
 // there.
-var MaxMessageBoxedVersion MessageBoxedVersion = MessageBoxedVersion_V3
+var MaxMessageBoxedVersion MessageBoxedVersion = MessageBoxedVersion_V4
 var MaxHeaderVersion HeaderPlaintextVersion = HeaderPlaintextVersion_V1
 var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V1
 

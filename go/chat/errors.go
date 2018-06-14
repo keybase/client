@@ -136,6 +136,30 @@ func (e PublicTeamEphemeralKeyError) Error() string {
 
 //=============================================================================
 
+type NotAuthenticatedForThisDeviceError struct{}
+
+func NewNotAuthenticatedForThisDeviceError() NotAuthenticatedForThisDeviceError {
+	return NotAuthenticatedForThisDeviceError{}
+}
+
+func (e NotAuthenticatedForThisDeviceError) Error() string {
+	return "this message is not authenticated for this device"
+}
+
+//=============================================================================
+
+type InvalidMACError struct{}
+
+func NewInvalidMACError() InvalidMACError {
+	return InvalidMACError{}
+}
+
+func (e InvalidMACError) Error() string {
+	return "invalid MAC"
+}
+
+//=============================================================================
+
 type ConsistencyErrorCode int
 
 const (
