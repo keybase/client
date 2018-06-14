@@ -200,8 +200,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, OfflineError{}
 	}
 
-	var rl []*chat1.RateLimit
-
 	// Get conversation metadata
 	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	if err != nil {
@@ -216,8 +214,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		Reason:         reason,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
-	// XXX rl is never used
-	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
