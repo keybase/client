@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as Devices from './devices'
+import * as TeamsTypes from '../../constants/types/teams'
 import type {IconType} from '../../common-adapters'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
@@ -22,6 +23,11 @@ export type ParticipantUnlock = {
   devices: string,
 }
 
+export type ResetMember = {
+  username: string,
+  uid: string,
+}
+
 export type FavoriteMetadata = {|
   folderType: RPCTypes.FolderType,
   isIgnored: boolean,
@@ -29,6 +35,8 @@ export type FavoriteMetadata = {|
   needsRekey: boolean,
   waitingForParticipantUnlock?: Array<ParticipantUnlock>,
   youCanUnlock?: Array<Device>,
+  resetParticipants: Array<ResetMember>,
+  teamId: RPCTypes.TeamID,
 |}
 
 export type _FavoriteItem = {
@@ -54,7 +62,6 @@ export type _FolderPathItem = {
   type: 'folder',
   children: I.Set<string>,
   favoriteChildren: I.Set<string>,
-  resetParticipants: Array<string>,
 } & PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
@@ -334,6 +341,8 @@ export type FolderRPCWithMeta = {
   needsRekey: boolean,
   waitingForParticipantUnlock?: Array<ParticipantUnlock>,
   youCanUnlock?: Array<Device>,
+  team_id: ?string,
+  reset_members: ?Array<ResetMember>,
 }
 
 export type FavoriteFolder = {
@@ -345,11 +354,14 @@ export type FavoriteFolder = {
     solution_kids: {[string]: Array<string>},
     can_self_help: boolean,
   },
+  team_id: ?string,
+  reset_members: ?Array<ResetMember>,
 }
 
 export type FileViewType = 'text' | 'image' | 'av' | 'pdf' | 'default'
 
 export type ResetMetadata = {
+  badgeIDKey: TeamsTypes.ResetUserBadgeIDKey,
   name: string,
   visibility: Visibility,
   resetParticipants: Array<string>,

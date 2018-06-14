@@ -97,6 +97,17 @@ const provider = createPropProvider({
     onInvalidToken: action('onInvalidToken'),
     loadMimeType: action('loadMimeType'),
   }),
+  ResetBanner: () => ({
+    isUserReset: false,
+    resetParticipants: ['foo'],
+    onReAddToTeam: () => () => undefined,
+    onViewProfile: () => () => undefined,
+  }),
+  Usernames: () => ({
+    type: 'BodySemibold',
+    users: [{username: 'foo'}],
+    style: {color: globalColors.white},
+  }),
   ConnectedAddNew: () => ({
     pathElements: [],
     style: {},
@@ -153,6 +164,8 @@ const load = () => {
         path={Types.stringToPath('/keybase')}
         progress="loaded"
         routePath={I.List([])}
+        isUserReset={false}
+        resetParticipants={[]}
         items={[
           Types.stringToPath('/keybase/private'),
           Types.stringToPath('/keybase/public'),
