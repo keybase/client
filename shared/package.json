@@ -153,7 +153,6 @@
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "5.0.7",
     "react-transition-group": "2.2.1",
-    "react-virtualized": "9.19.1",
     "react-waypoint": "^8.0.1",
     "recompose": "0.27.0",
     "redux": "3.7.2",

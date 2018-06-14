@@ -158,7 +158,6 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   _handleListClick = () => {
-    console.log('c')
     if (window.getSelection().isCollapsed) {
       this.props.onFocusInput()
     }
