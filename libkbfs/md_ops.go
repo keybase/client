@@ -1043,31 +1043,11 @@ func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 
 	_, err = md.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
-		md.log.CDebugf(ctx, "Not logged in when validating latest handle "+
-			"for %s; checking with server for ID (currently %s)",
-			h.GetCanonicalName(), h.tlfID)
 		// If we're not logged in, the server won't tell us the latest
-		// handle (even for public folders), so look up the handle
-		// from the server to see if it has the ID.
-		id, _, err = md.getForHandle(ctx, h, kbfsmd.Merged, nil)
-		switch errors.Cause(err).(type) {
-		case kbfsmd.ServerErrorClassicTLFDoesNotExist:
-			err = mdcache.PutIDForHandle(h, h.tlfID)
-			if err != nil {
-				return false, err
-			}
-			// The server thinks this is an implicit team TLF, so we
-			// should trust whatever's in the handle.
-			return true, nil
-		case nil:
-			err = mdcache.PutIDForHandle(h, id)
-			if err != nil {
-				return false, err
-			}
-			return id == h.tlfID, nil
-		default:
-			return false, err
-		}
+		// handle (even for public folders), so just consider it
+		// invalid to force the caller to request the latest ID (which
+		// does work for public folders).
+		return false, nil
 	}
 
 	md.log.CDebugf(ctx, "Checking the latest handle for %s; "+
