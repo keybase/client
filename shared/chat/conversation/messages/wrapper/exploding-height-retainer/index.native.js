@@ -120,7 +120,6 @@ class EmojiTower extends React.Component<
   }
 
   _listener = (evt: {value: number}) => {
-    console.log('DANNYDEBUG', evt.value)
     if ([0, 100].includes(evt.value)) {
       this.setState({running: false})
       return
@@ -133,6 +132,10 @@ class EmojiTower extends React.Component<
   }
 
   _update = throttle(() => this.forceUpdate(), 100)
+
+  componentWillUnmount() {
+    this._update.cancel()
+  }
 
   render() {
     if (!this.state.running) {
