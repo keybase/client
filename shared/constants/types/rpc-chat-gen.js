@@ -201,6 +201,7 @@ export const localOutboxErrorType = {
   duplicate: 4,
   expired: 5,
   toomanyattempts: 6,
+  alreadyDeleted: 7,
 }
 
 export const localOutboxStateType = {
@@ -670,6 +671,7 @@ export type OutboxErrorType =
   | 4 // DUPLICATE_4
   | 5 // EXPIRED_5
   | 6 // TOOMANYATTEMPTS_6
+  | 7 // ALREADY_DELETED_7
 
 export type OutboxID = Bytes
 export type OutboxInfo = $ReadOnly<{prev: MessageID, composeTime: Gregor1.Time}>
