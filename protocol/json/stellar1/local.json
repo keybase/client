@@ -664,6 +664,19 @@
       ],
       "response": "AccountID"
     },
+    "createWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "AccountID"
+    },
     "changeDisplayCurrencyLocal": {
       "request": [
         {
