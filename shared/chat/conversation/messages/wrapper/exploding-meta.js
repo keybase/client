@@ -185,15 +185,28 @@ const styles = styleSheetCreate({
       left: 0,
     },
   }),
-  container: {
-    ...globalStyles.flexBoxRow,
-    alignSelf: 'flex-end',
-    position: 'relative',
-    width: isMobile ? 50 : 40,
-    height: isMobile ? 22 : 19,
-    marginLeft: isMobile ? 4 : 12,
-    marginRight: isMobile ? 8 : 16,
-  },
+  container: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      alignSelf: 'flex-end',
+      position: 'relative',
+      width: isMobile ? 50 : 40,
+      height: isMobile ? 22 : 19,
+      marginLeft: isMobile ? 4 : 12,
+      marginRight: isMobile ? 8 : 16,
+    },
+    isMobile: {
+      height: 22,
+      marginLeft: 4,
+      marginRight: 8,
+    },
+    isIOS: {
+      width: 50,
+    },
+    isAndroid: {
+      width: 55,
+    },
+  }),
   countdownContainer: {
     borderRadius: 2,
     paddingLeft: 4,
