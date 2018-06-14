@@ -656,7 +656,8 @@
         "TOOLONG_3",
         "DUPLICATE_4",
         "EXPIRED_5",
-        "TOOMANYATTEMPTS_6"
+        "TOOMANYATTEMPTS_6",
+        "ALREADY_DELETED_7"
       ]
     },
     {

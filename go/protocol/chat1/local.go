@@ -1211,6 +1211,7 @@ const (
 	OutboxErrorType_DUPLICATE       OutboxErrorType = 4
 	OutboxErrorType_EXPIRED         OutboxErrorType = 5
 	OutboxErrorType_TOOMANYATTEMPTS OutboxErrorType = 6
+	OutboxErrorType_ALREADY_DELETED OutboxErrorType = 7
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1223,6 +1224,7 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"DUPLICATE":       4,
 	"EXPIRED":         5,
 	"TOOMANYATTEMPTS": 6,
+	"ALREADY_DELETED": 7,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1233,6 +1235,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	4: "DUPLICATE",
 	5: "EXPIRED",
 	6: "TOOMANYATTEMPTS",
+	7: "ALREADY_DELETED",
 }
 
 func (e OutboxErrorType) String() string {
