@@ -160,7 +160,7 @@ const RightSide = props => (
       {!!props.failureDescription && (
         <Failure
           failureDescription={props.failureDescription}
-          isExplodingUnreadable={props.isExplodingUnreadable}
+          isExplodingUnreadable={!props.exploded && props.isExplodingUnreadable}
           onRetry={props.onRetry}
           onEdit={props.onEdit}
           onCancel={props.onCancel}
