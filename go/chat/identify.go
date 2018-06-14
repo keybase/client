@@ -232,7 +232,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	h.Debug(ctx, "HandleUserChanged: using TLF name: %s", tlfName)
 
 	// Take this guy out of the cache, we want this to run fresh
-	if err = h.G().Identify2Cache.Delete(uid); err != nil {
+	if err = h.G().Identify2Cache().Delete(uid); err != nil {
 		// Charge through this error, probably doesn't matter
 		h.Debug(ctx, "HandleUserChanged: unable to delete cache entry: uid: %s: err: %s", uid,
 			err.Error())
