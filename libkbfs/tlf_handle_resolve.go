@@ -776,12 +776,12 @@ func parseTlfHandleLoose(
 				// that ID.  When we migrate existing TLFs to iteams, we can
 				// probably override the sigchain link with a new one
 				// containing the correct TLF ID.
-				latestHandle, err := idGetter.GetLatestHandleForTLF(
-					ctx, iteamHandle.tlfID)
+				valid, err := idGetter.ValidateLatestHandleNotFinal(
+					ctx, iteamHandle)
 				if err != nil {
 					return nil, err
 				}
-				if latestHandle.IsFinal() {
+				if !valid {
 					iteamHandle.tlfID = tlf.NullID
 				}
 			}

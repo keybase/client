@@ -30,18 +30,19 @@ const (
 	StallableBlockGet StallableBlockOp = "Get"
 	StallableBlockPut StallableBlockOp = "Put"
 
-	StallableMDGetForTLF             StallableMDOp = "GetForTLF"
-	StallableMDGetLatestHandleForTLF StallableMDOp = "GetLatestHandleForTLF"
-	StallableMDGetUnmergedForTLF     StallableMDOp = "GetUnmergedForTLF"
-	StallableMDGetRange              StallableMDOp = "GetRange"
-	StallableMDAfterGetRange         StallableMDOp = "AfterGetRange"
-	StallableMDGetUnmergedRange      StallableMDOp = "GetUnmergedRange"
-	StallableMDPut                   StallableMDOp = "Put"
-	StallableMDAfterPut              StallableMDOp = "AfterPut"
-	StallableMDPutUnmerged           StallableMDOp = "PutUnmerged"
-	StallableMDAfterPutUnmerged      StallableMDOp = "AfterPutUnmerged"
-	StallableMDPruneBranch           StallableMDOp = "PruneBranch"
-	StallableMDResolveBranch         StallableMDOp = "ResolveBranch"
+	StallableMDGetForTLF                    StallableMDOp = "GetForTLF"
+	StallableMDGetLatestHandleForTLF        StallableMDOp = "GetLatestHandleForTLF"
+	StallableMDValidateLatestHandleNotFinal StallableMDOp = "ValidateLatestHandleNotFinal"
+	StallableMDGetUnmergedForTLF            StallableMDOp = "GetUnmergedForTLF"
+	StallableMDGetRange                     StallableMDOp = "GetRange"
+	StallableMDAfterGetRange                StallableMDOp = "AfterGetRange"
+	StallableMDGetUnmergedRange             StallableMDOp = "GetUnmergedRange"
+	StallableMDPut                          StallableMDOp = "Put"
+	StallableMDAfterPut                     StallableMDOp = "AfterPut"
+	StallableMDPutUnmerged                  StallableMDOp = "PutUnmerged"
+	StallableMDAfterPutUnmerged             StallableMDOp = "AfterPutUnmerged"
+	StallableMDPruneBranch                  StallableMDOp = "PruneBranch"
+	StallableMDResolveBranch                StallableMDOp = "ResolveBranch"
 )
 
 type stallKeyType uint64
@@ -433,6 +434,18 @@ func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 		return errGetLatestHandleForTLF
 	})
 	return h, err
+}
+
+func (m *stallingMDOps) ValidateLatestHandleNotFinal(
+	ctx context.Context, h *TlfHandle) (b bool, err error) {
+	m.maybeStall(ctx, StallableMDValidateLatestHandleNotFinal)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errValidateLatestHandleNotFinal error
+		b, errValidateLatestHandleNotFinal =
+			m.delegate.ValidateLatestHandleNotFinal(ctx, h)
+		return errValidateLatestHandleNotFinal
+	})
+	return b, err
 }
 
 func (m *stallingMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID,

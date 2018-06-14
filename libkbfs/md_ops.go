@@ -718,9 +718,9 @@ func (c constIDGetter) GetIDForHandle(_ context.Context, _ *TlfHandle) (
 	return c.id, nil
 }
 
-func (c constIDGetter) GetLatestHandleForTLF(
-	_ context.Context, _ tlf.ID) (tlf.Handle, error) {
-	return tlf.Handle{}, nil
+func (c constIDGetter) ValidateLatestHandleNotFinal(
+	_ context.Context, _ *TlfHandle) (bool, error) {
+	return true, nil
 }
 
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
@@ -1017,6 +1017,44 @@ func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 	tlf.Handle, error) {
 	// TODO: Verify this mapping using a Merkle tree.
 	return md.config.MDServer().GetLatestHandleForTLF(ctx, id)
+}
+
+// ValidateLatestHandleNotFinal implements the MDOps interface for
+// MDOpsStandard.
+func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
+	ctx context.Context, h *TlfHandle) (bool, error) {
+	if h.IsFinal() {
+		return false, nil
+	}
+
+	// First check the cache to avoid a costly RTT to the mdserver.
+	// If the handle associated with the TLF has really become
+	// finalized, then the cache entry should have been updated.
+	mdcache := md.config.MDCache()
+	id, err := mdcache.GetIDForHandle(h)
+	switch errors.Cause(err).(type) {
+	case NoSuchTlfIDError:
+		// Do the server-based lookup below.
+	case nil:
+		return id == h.tlfID, nil
+	default:
+		return false, err
+	}
+
+	md.log.CDebugf(ctx, "Checking the latest handle for %d; "+
+		"curr handle is %s", h.tlfID, h.GetCanonicalName())
+	latestHandle, err := md.GetLatestHandleForTLF(ctx, h.tlfID)
+	if err != nil {
+		return false, err
+	}
+	if latestHandle.IsFinal() {
+		return false, nil
+	}
+	err = mdcache.PutIDForHandle(h, h.tlfID)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd kbfsmd.RootMetadata) (
