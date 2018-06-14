@@ -12,18 +12,13 @@ jobs:
     working_directory: ~/keybase/client/shared
     parallelism: 1
     shell: /bin/bash --login
-    # CircleCI 2.0 does not support environment variables that refer to each other the same way as 1.0 did.
-    # If any of these refer to each other, rewrite them so that they don't or see https://circleci.com/docs/2.0/env-vars/#interpolating-environment-variables-to-set-other-environment-variables .
     environment:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
-      GOPATH: $HOME/go-path
-      PATH: $GOROOT/bin:$PATH
       _JAVA_OPTIONS: -Xms512m -Xmx2048m
       GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"
       REACT_NATIVE_MAX_WORKERS: 1
       CXX: g++-4.8
-      ANDROID_NDK_HOME: ${ANDROID_NDK}
     # In CircleCI 1.0 we used a pre-configured image with a large number of languages and other packages.
     # In CircleCI 2.0 you can now specify your own image, or use one of our pre-configured images.
     # The following configuration line tells CircleCI to use the specified docker image as the runtime environment for you job.
@@ -37,6 +32,13 @@ jobs:
     - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
       command: /sbin/init
     steps:
+      -run:
+        name: Update PATH and Define Environment Variable at Runtime
+        command: |
+          echo 'export GOPATH=$HOME/go-path' >> $BASH_ENV
+          echo 'export PATH=$GOROOT/bin:$PATH' >> $BASH_ENV
+          echo 'export ANDROID_NDK_HOME=${ANDROID_NDK}' >> $BASH_ENV
+          source $BASH_ENV
     # Machine Setup
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
