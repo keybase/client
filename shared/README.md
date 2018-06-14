@@ -152,9 +152,9 @@ yarn run rn-gobuild-android
 yarn run rn-start
 ```
 
-#### Dealing with Android Studio
-
 Then do "Build > Make Project" and then "Run > Run 'app'".
+
+#### Dealing with Android Studio
 
 Sometimes Android Studio gets into a bad state, especially if you're
 doing stuff like `yarn modules` in the background.
