@@ -15,6 +15,7 @@ lint:
 		| grep -v "error should be the last type" \
 		| grep -v "_test\.go.*context\.Context should be the first parameter of a function" \
 		| grep -v "use underscores in Go names" \
+		&& exit 1 \
 		|| echo "Lint-free!" \
 	)
 
