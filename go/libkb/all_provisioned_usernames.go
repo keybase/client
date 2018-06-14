@@ -14,10 +14,10 @@ func getUsernameIfProvisioned(m MetaContext, uc UserConfig) (ret NormalizedUsern
 		return uc.GetUsername(), nil
 	case DeviceNotFoundError:
 		m.CDebugf("- user was likely reset (%s)", err)
-		return ret, err
+		return ret, nil
 	case KeyRevokedError:
 		m.CDebugf("- device was revoked (s)", err)
-		return ret, err
+		return ret, nil
 	default:
 		m.CDebugf("- unexpected error; propagating (%s)", err)
 		return ret, err
