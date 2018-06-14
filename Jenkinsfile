@@ -285,12 +285,6 @@ def testGo(prefix) {
     withEnv([
         "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     ]) {
-        def shell
-        if (isUnix()) {
-            shell = { params -> sh params }
-        } else {
-            shell = { params -> bat params }
-        }
         def dirs = getTestDirsNix()
         def goversion = sh(returnStdout: true, script: "go version").trim()
 
@@ -299,10 +293,13 @@ def testGo(prefix) {
             sh 'go get -u github.com/golang/lint/golint'
         }
         sh 'make -s lint'
-        sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
+        if (isUnix()) {
+            // Windows `gofmt` pukes on CRLF, so only run on *nix.
+            sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
+        }
         // Make sure we don't accidentally pull in the testing package.
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
-        shell "go vet ./..."
+        sh "go vet ./..."
 
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
@@ -318,15 +315,15 @@ def testGo(prefix) {
             def dirPath = d.replaceAll('github.com/keybase/client/go/', '')
             println "Building tests for $dirPath"
             dir(dirPath) {
-                shell "go test -i"
-                shell "go test -c -o test.test"
+                sh "go test -i"
+                sh "go test -c -o test.test"
                 // Only run the test if a test binary should have been produced.
                 if (fileExists("test.test")) {
                     def testName = dirPath.replaceAll('/', '_')
                     def test = {
                         dir(dirPath) {
                             println "Running tests for $dirPath"
-                            shell "./test.test -test.timeout 30m"
+                            sh "./test.test -test.timeout 30m"
                         }
                     }
                     if (testName in specialTestFilter) {
