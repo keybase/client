@@ -297,6 +297,12 @@ func (s *ScanKeys) unlockByID(m libkb.MetaContext, id uint64) openpgp.EntityList
 			continue
 		}
 
+		keyState := pubkey.CheckSecretKey()
+		if _, ok := keyState.(libkb.NoSecretKeyError); ok {
+			// no secret key (might be in smartcard)
+			continue
+		}
+
 		// some key in the bundle matched, so unlock everything:
 		parg := libkb.SecretKeyPromptArg{
 			Reason:   unlockReason,
