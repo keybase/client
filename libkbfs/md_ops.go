@@ -1047,11 +1047,7 @@ func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 	// Look up the handle from the server to see if it has the ID --
 	// from its response we can tell if this is supposed to be an
 	// implicit team TLF or if the server has a new ID for it.
-	bh, err := h.ToBareHandle()
-	if err != nil {
-		return false, err
-	}
-	id, _, err = md.config.MDServer().GetForHandle(ctx, bh, kbfsmd.Merged, nil)
+	id, _, err = md.getForHandle(ctx, h, kbfsmd.Merged, nil)
 	switch errors.Cause(err).(type) {
 	case kbfsmd.ServerErrorClassicTLFDoesNotExist:
 		err = mdcache.PutIDForHandle(h, h.tlfID)
