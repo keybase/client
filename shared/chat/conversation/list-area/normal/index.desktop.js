@@ -1,7 +1,15 @@
 // @flow
-// use waypoints to group sets of messages (10 each) and replace them with a measured div when offscreen
+//
+// Infinite scrolling list.
+// We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
+// We use react-measure to cache the heights
+//
+//
+// TODO: scroll to editing
+// check resize window
 
 import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
 import Measure from 'react-measure'
 import Waypoint from 'react-waypoint'
 import Message from '../../messages'
@@ -14,8 +22,6 @@ import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
-// set this to true to see size overlays
-// const debugSizing = __STORYBOOK__
 const ordinalsInAWaypoint = 10
 
 type State = {
@@ -28,73 +34,33 @@ type Snapshot = ?number
 class Thread extends React.PureComponent<Props, State> {
   state = {isLockedToBottom: true, isScrolling: false}
   _listRef = React.createRef()
-  _setBottomRef = r => {
-    this._bottomRef = r
-  } // old style due to react-waypoint
-
-  // _keyMapper = (index: number) => {
-  // const itemCountIncludingSpecial = this._getItemCount()
-  // if (index === itemCountIncludingSpecial - 1) {
-  // return 'specialBottom'
-  // } else if (index === 0) {
-  // return 'specialTop'
-  // } else {
-  // const ordinalIndex = index - 1
-  // return this.props.messageOrdinals.get(ordinalIndex)
-  // }
-  // }
 
   _scrollToBottom = () => {
     const list = this._listRef.current
     if (list) {
-      // we need to let things render and measure
-      // setTimeout(() => {
-      console._log('aaaa scrolling bottom in', list.scrollTop, list.scrollHeight)
       list.scrollTop = list.scrollHeight
-      // }, 100)
     }
-    // if (this._bottomRef) {
-    // console.log('aaaa scrolling bottom in')
-    // setImmediate(() => {
-    // this._bottomRef.scrollIntoView({behavior: 'instant', block: 'end'})
-    // })
-    // } else {
-    // console.log('aaaa scrolling bottom FAIL')
-    // }
   }
 
-  componentDidMount(prevProps: Props) {
-    // setInterval(() => {
-    // console.log('aaa', this._list && this._list.scrollHeight)
-    // }, 100)
+  componentDidMount() {
     if (this.state.isLockedToBottom) {
-      // this._scrollToBottom()
       setImmediate(() => this._scrollToBottom())
     }
   }
 
   getSnapshotBeforeUpdate(prevProps: Props, prevState: State) {
-    // prepending?
+    // prepending, lets keep track of the old scrollHeight
     if (
       this.props.conversationIDKey === prevProps.conversationIDKey &&
       this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() &&
       prevProps.messageOrdinals.first()
     ) {
-      console.log(
-        'aaa getsnapshot calling',
-        this.props.conversationIDKey,
-        this.props.messageOrdinals.first(),
-        prevProps.messageOrdinals.first(),
-        this.props.messageOrdinals.size,
-        prevProps.messageOrdinals.size
-      )
       return this._listRef.current ? this._listRef.current.scrollHeight : null
     }
     return null
   }
 
   componentDidUpdate(prevProps: Props, prevState: State, snapshot: Snapshot) {
-    console.log('aaaa updated', this._listRef.current && this._listRef.current.scrollHeight)
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
@@ -110,12 +76,10 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     // Prepending some messages?
     if (snapshot && list && !this.state.isLockedToBottom) {
-      console._log('aaaa ttempt to keep TOP')
       list.scrollTop = list.scrollHeight - snapshot
     } else {
       // maintain scroll to bottom?
       if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
-        console._log('aaa attempt to keep BOTTOM')
         this._scrollToBottom()
       }
     }
@@ -128,66 +92,36 @@ class Thread extends React.PureComponent<Props, State> {
     // }
     // }
   }
-  // we MUST debounce else this callbacks happens a bunch and we're switch back and forth as you submit
-  // _updateBottomLock = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
-  // // meaningless otherwise
-  // if (clientHeight) {
-  // this.setState(prevState => {
-  // const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
-  // return isLockedToBottom !== prevState.isLockedToBottom ? {isLockedToBottom} : null
-  // })
-  // }
-  // }, 100)
 
-  // _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
-  // if (clientHeight && scrollHeight && scrollTop <= 20) {
-  // this.props.loadMoreMessages(this.props.messageOrdinals.first())
-  // }
-  // }, 500)
+  componentWillUnmount() {
+    this._cleanupDebounced()
+  }
 
-  // _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
-  // this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
-  // this._maybeLoadMoreMessages(clientHeight, scrollHeight, scrollTop)
-  // }
-
-  // _ordinalToHeight = {}
   _onResize = (...args) => {
-    // console.log('aaa mesure', args)
     if (this.state.isLockedToBottom) {
       this._scrollToBottom()
     }
   }
-  // _onResize = ({width}) => {
-  // if (this._cellCache.columnWidth({index: 0}) !== width) {
-  // this._cellCache.clearAll()
-  // }
-  // if (debugSizing) {
-  // this.setState({width})
-  // }
-  // }
-  //
+
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
     this._onScroll.cancel()
     this._positionChangeTop.cancel()
     this._positionChangeBottom.cancel()
   }
-  componentWillUnmount() {
-    this._cleanupDebounced()
-  }
-  _onAfterScroll = debounce(() => {
-    console.log('aaa scrollEND')
-    this.setState(p => (p.isScrolling ? {isScrolling: false} : undefined))
-  }, 200)
+
+  // While scrolling we disable mouse events to speed things up
   _onScroll = throttle(() => {
-    console.log('aaa scrollStart')
     this.setState(p => (p.isScrolling ? undefined : {isScrolling: true}))
     this._onAfterScroll()
   }, 100)
 
-  _getItemCount = () => this.props.messageOrdinals.size + 2
+  // After lets turn them back on
+  _onAfterScroll = debounce(() => {
+    this.setState(p => (p.isScrolling ? {isScrolling: false} : undefined))
+  }, 200)
 
-  _rowRenderer = (ordinalIndex, measure) => {
+  _rowRenderer = (ordinalIndex: number, measure: () => void) => {
     const ordinal = this.props.messageOrdinals.get(ordinalIndex)
     if (ordinal) {
       const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
@@ -210,31 +144,27 @@ class Thread extends React.PureComponent<Props, State> {
     copyToClipboard(window.getSelection().toString())
   }
 
-  // _handleListClick = () => {
-  // if (window.getSelection().isCollapsed) {
-  // this.props.onFocusInput()
-  // }
-  // }
+  _handleListClick = () => {
+    if (window.getSelection().isCollapsed) {
+      this.props.onFocusInput()
+    }
+  }
 
+  // When the top waypoint is visible, lets load more messages
   _positionChangeTop = debounce(({currentPosition}) => {
     if (currentPosition === 'inside') {
       this.props.loadMoreMessages()
     }
   }, 100)
 
+  // When the bottom waypoint is visible, lock to bottom
   _positionChangeBottom = debounce(({currentPosition}) => {
     const isLockedToBottom = currentPosition === 'inside'
-    console._log('aaa _positionChangeBottom ', isLockedToBottom)
     this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
   }, 100)
 
-  render() {
-    // const rowCount = this._getItemCount()
-    // const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
-    // maybe memoize this
-    let waitingToInjectIntoWaypoint = []
+  _makeWaypoints = () => {
     const waypoints = []
-
     waypoints.push(
       <TopWaypoint
         key="topWaypoint"
@@ -244,46 +174,48 @@ class Thread extends React.PureComponent<Props, State> {
     )
 
     const numOrdinals = this.props.messageOrdinals.size
+    let indicies = []
     for (var idx = 0; idx < numOrdinals; ++idx) {
       const needNextWaypoint = idx % ordinalsInAWaypoint === 0
       const isLastItem = idx === numOrdinals - 1
       if (needNextWaypoint || isLastItem) {
         if (isLastItem) {
-          waitingToInjectIntoWaypoint.push(idx)
+          indicies.push(idx)
         }
 
-        if (waitingToInjectIntoWaypoint.length) {
-          const key = String(this.props.messageOrdinals.get(waitingToInjectIntoWaypoint[0]))
+        if (indicies.length) {
+          const ordinal = this.props.messageOrdinals.get(indicies[0] || 0)
+          if (!ordinal) {
+            throw new Error('Should be impossible')
+          }
+          const key = String(Types.ordinalToNumber(ordinal))
           waypoints.push(
-            <OrdinalWaypoint
-              key={key}
-              id={key}
-              rowRenderer={this._rowRenderer}
-              ordinals={waitingToInjectIntoWaypoint}
-            />
+            <OrdinalWaypoint key={key} id={key} rowRenderer={this._rowRenderer} indicies={indicies} />
           )
-          waitingToInjectIntoWaypoint = []
+          indicies = []
         }
       }
-      waitingToInjectIntoWaypoint.push(idx)
+      indicies.push(idx)
     }
 
     waypoints.push(
       <BottomWaypoint
         key="bottomWaypoint"
-        forwardedRef={this._setBottomRef}
         onPositionChange={this._positionChangeBottom}
         conversationIDKey={this.props.conversationIDKey}
       />
     )
 
-    // TODO dynamically change this based on scroll
+    return waypoints
+  }
+
+  render() {
+    const waypoints = this._makeWaypoints()
 
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
-
           <div style={listStyle} ref={this._listRef} onScroll={this._onScroll}>
             <div style={this.state.isScrolling ? innerListStyleScrolling : null}>{waypoints}</div>
           </div>
@@ -291,20 +223,20 @@ class Thread extends React.PureComponent<Props, State> {
       </ErrorBoundary>
     )
   }
-
-  // <Measure scroll={true} onResize={this._onResize}>
-  // {({measureRef}) => (
-  // <div style={listStyle} ref={measureRef}>
-  // {waypoints}
-  // </div>
-  // )}
-  // </Measure>
 }
 
-class TopWaypoint extends React.PureComponent<> {
+// All the waypoints keep a key to re-render if we get a measure callback
+type TopBottomWaypointProps = {
+  conversationIDKey: Types.ConversationIDKey,
+  onPositionChange: () => void,
+}
+type TopBottomWaypointState = {
+  keyCount: number,
+}
+
+class TopWaypoint extends React.PureComponent<TopBottomWaypointProps, TopBottomWaypointState> {
   state = {keyCount: 0}
   _measure = () => {
-    // console.log('aaa measure top')
     this.setState(p => ({keyCount: p.keyCount + 1}))
   }
 
@@ -322,11 +254,9 @@ class TopWaypoint extends React.PureComponent<> {
   }
 }
 
-// Note can't use React.forwardRef due to issues w/ react-waypoint not working with it
-class BottomWaypoint extends React.PureComponent<> {
+class BottomWaypoint extends React.PureComponent<TopBottomWaypointProps, TopBottomWaypointState> {
   state = {keyCount: 0}
   _measure = () => {
-    console.log('aaa measure bottom')
     this.setState(p => ({keyCount: p.keyCount + 1}))
   }
 
@@ -336,7 +266,7 @@ class BottomWaypoint extends React.PureComponent<> {
         key={`SpecialBottomMessage:${this.state.keyCount}`}
         onPositionChange={this.props.onPositionChange}
       >
-        <div ref={this.props.forwardedRef}>
+        <div>
           <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={this._measure} />
         </div>
       </Waypoint>
@@ -344,22 +274,25 @@ class BottomWaypoint extends React.PureComponent<> {
   }
 }
 
-// TODO not sure keyCount / remeasure is needed in this impl. need to test it
+type OrdinalWaypointProps = {
+  id: string,
+  rowRenderer: (ordinalIndex: number, measure: () => void) => React.Node,
+  indicies: Array<number>,
+}
 
-class OrdinalWaypoint extends React.Component<> {
+type OrdinalWaypointState = {
+  // cached height
+  height: ?number,
+  // how we keep track if height needs to be tossed
+  heightForIndicies: ?string,
+  // in view
+  isVisible: boolean,
+}
+class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypointState> {
   state = {
     height: null,
+    heightForIndicies: null,
     isVisible: true,
-    // keyCount: 0,
-    heightForOrdinals: null, // the cached height value was for what ordinals
-  }
-  _handlePositionChange = ({currentPosition}) => {
-    if (currentPosition) {
-      const isVisible = currentPosition === 'inside'
-
-      // console.log('aaa vis', this.props.id, isVisible)
-      this.setState(p => (p.isVisible !== isVisible ? {isVisible} : undefined))
-    }
   }
 
   componentWillUnmount() {
@@ -367,35 +300,40 @@ class OrdinalWaypoint extends React.Component<> {
     this._measure.cancel()
   }
 
+  _handlePositionChange = ({currentPosition}) => {
+    if (currentPosition) {
+      const isVisible = currentPosition === 'inside'
+      this.setState(p => (p.isVisible !== isVisible ? {isVisible} : undefined))
+    }
+  }
+
   _onResize = debounce(({bounds}) => {
     const height = bounds.height
-    // console.log('aaa heig', this.props.id, height)
     if (height) {
       this.setState(p => (p.height !== height ? {height} : undefined))
     }
   }, 100)
 
   _measure = debounce(() => {
-    console.log('aaa measure waypoint', this.props.id)
-    // this.setState(p => ({keyCount: p.keyCount + 1}))
     this.setState(p => (p.height ? {height: null} : null))
   }, 100)
 
-  static _getOrdinalHeightKey = ordinals => ordinals.join('')
+  static _getIndiciesHeightKey = indicies => indicies.join('')
 
   shouldComponentUpdate(nextProps, nextState) {
+    // indicies is an array so we need to compare it explicitly
     return (
       this.state.height !== nextState.height ||
       this.state.isVisible !== nextState.isVisible ||
-      // this.state.keyCount !== nextState.keyCount ||
-      OrdinalWaypoint._getOrdinalHeightKey(nextProps.ordinals) !== this.state.heightForOrdinals
+      OrdinalWaypoint._getIndiciesHeightKey(nextProps.indicies) !== this.state.heightForIndicies
     )
   }
 
   static getDerivedStateFromProps(props, state) {
-    const heightForOrdinals = OrdinalWaypoint._getOrdinalHeightKey(props.ordinals)
-    if (heightForOrdinals !== state.heightForOrdinals) {
-      return {height: null, heightForOrdinals}
+    const heightForIndicies = OrdinalWaypoint._getIndiciesHeightKey(props.indicies)
+    if (heightForIndicies !== state.heightForIndicies) {
+      // if the Indicies changed remeasure
+      return {height: null, heightForIndicies}
     }
     return null
   }
@@ -403,12 +341,13 @@ class OrdinalWaypoint extends React.Component<> {
   render() {
     const renderMessages = !this.state.height || this.state.isVisible
     let content
-    const messages = this.props.ordinals.map(i => this.props.rowRenderer(i, this._measure))
     if (renderMessages) {
+      const messages = this.props.indicies.map(i => this.props.rowRenderer(i, this._measure))
       if (this.state.height) {
-        // turn off hidden after debugging measure
+        // cached height version, overflow hidden so its more clear if we're mismeasuring
         content = <div style={{height: this.state.height, overflow: 'hidden'}}>{messages}</div>
       } else {
+        // measure it
         content = (
           <Measure bounds={true} onResize={renderMessages ? this._onResize : null}>
             {({measureRef}) => <div ref={measureRef}>{messages}</div>}
@@ -419,7 +358,7 @@ class OrdinalWaypoint extends React.Component<> {
       content = <div style={{height: this.state.height}} />
     }
     return (
-      <Waypoint key={`${this.props.id}:${''}`} onPositionChange={this._handlePositionChange}>
+      <Waypoint key={`${this.props.id}`} onPositionChange={this._handlePositionChange}>
         {content}
       </Waypoint>
     )
@@ -455,6 +394,7 @@ const realCSS = `
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
+  // containment hints so we can scroll faster
   contain: 'strict',
   flex: 1,
   position: 'relative',
@@ -464,9 +404,11 @@ const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
   overflowY: 'auto',
+  // get our own layer so we can  scroll faster
   willChange: 'transform',
 }
 
+// mask mouse events while scrol ling
 const innerListStyleScrolling = {
   pointerEvents: 'none',
 }

@@ -152,8 +152,13 @@ const provider = PropProviders.compose(
   }
 )
 
-// TODO test measure changes
-class ThreadWrapper extends React.Component<any, any> {
+type Props = {}
+type State = {|
+  messageOrdinals: I.List<Types.Ordinal>,
+|}
+class ThreadWrapper extends React.Component<Props, State> {
+  intervalID: IntervalID
+  timeoutID: TimeoutID
   constructor(props) {
     super(props)
     this.state = {
