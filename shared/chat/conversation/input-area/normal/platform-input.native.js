@@ -286,6 +286,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
     backgroundColor: globalColors.yellow3,
+    flexShrink: 0,
     height: '100%',
     minWidth: 32,
     padding: globalMargins.xtiny,
