@@ -76,7 +76,7 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 	}
 
 	var outcome *libkb.IdentifyOutcome
-	outcome, err = m.G().TrackCache.Get(e.arg.Token)
+	outcome, err = m.G().TrackCache().Get(e.arg.Token)
 	if err != nil {
 		return err
 	}
