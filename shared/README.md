@@ -238,7 +238,8 @@ yarn rn-push-android
 ```
 
 to push the debug APK to your emulator or device, and it should
-connect to the react-native packager instance on your machine.
+connect to the react-native packager instance on your machine. Happy
+developing!
 
 Occasionally you might get a white screen that doesn't go away, even
 after the bundler has finished bundling. Stopping the app and
