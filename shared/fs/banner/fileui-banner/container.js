@@ -32,8 +32,14 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 }
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
-  ...stateProps,
-  ...dispatchProps,
+  kbfsEnabled: stateProps.kbfsEnabled,
+  showBanner: stateProps.showBanner,
+  inProgress: stateProps.inProgress,
+  showSecurityPrefs: stateProps.showSecurityPrefs,
+  getFuseStatus: dispatchProps.getFuseStatus,
+  onDismiss: dispatchProps.onDismiss,
+  onInstall: dispatchProps.onInstall,
+  onUninstall: dispatchProps.onUninstall,
   openInFileUI: stateProps.kbfsEnabled && path ? () => dispatchProps._openInFileUI(path) : undefined,
   path,
 })

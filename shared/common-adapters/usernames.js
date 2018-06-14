@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import Text from './text'
 import shallowEqual from 'shallowequal'
-import {collapseStyles, globalStyles, globalColors, globalMargins} from '../styles'
+import {collapseStyles, platformStyles, styleSheetCreate, globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
 import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'
@@ -206,31 +206,35 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const styles = {
-  andStyle: {
-    marginLeft: globalMargins.xtiny,
-    marginRight: globalMargins.xtiny,
-    ...(isMobile ? {} : {textDecoration: 'none'}),
-  },
-  commaStyle: {
-    marginRight: 1,
-    ...(isMobile ? {} : {textDecoration: 'none'}),
-  },
-  inlineStyle: isMobile
-    ? {}
-    : {
-        display: 'inline',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        width: '100%',
-      },
-  nonInlineStyle: {
-    ...globalStyles.flexBoxRow,
-    flexWrap: 'wrap',
-    ...(isMobile ? null : {textDecoration: 'inherit'}),
-  },
-}
+const styles = styleSheetCreate({
+  andStyle: platformStyles({
+    common: {
+      marginLeft: globalMargins.xtiny,
+      marginRight: globalMargins.xtiny,
+    },
+    isElectron: {textDecoration: 'none'},
+  }),
+  commaStyle: platformStyles({
+    common: {marginRight: 1},
+    isElectron: {textDecoration: 'none'},
+  }),
+  inlineStyle: platformStyles({
+    isElectron: {
+      display: 'inline',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      width: '100%',
+    },
+  }),
+  nonInlineStyle: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      flexWrap: 'wrap',
+    },
+    isElectron: {textDecoration: 'inherit'},
+  }),
+})
 
 const ConnectedUsernames = compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Usernames'))(Usernames)
 export {usernameText, Usernames, PlaintextUsernames, ConnectedUsernames}
