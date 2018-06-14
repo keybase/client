@@ -37,6 +37,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.retainHeight && !prevProps.retainHeight && this.props.children) {
       // we just exploded! get rid of children when we're supposed to.
+      this._clearTimeout()
       this.timeoutID = setTimeout(() => {
         this.setState({children: null})
         this.timeoutID = null
@@ -45,9 +46,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    if (this.timeoutID) {
-      clearTimeout(this.timeoutID)
-    }
+    this._clearTimeout()
   }
 
   _onLayout = evt => {
@@ -56,6 +55,14 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
         height: evt.nativeEvent.layout.height,
         numImages: Math.ceil(evt.nativeEvent.layout.height / 80),
       })
+    }
+  }
+
+  _clearTimeout = () => {
+    // `if` is for clarity but isn't really necessary, `clearTimeout` fails silently
+    if (this.timeoutID) {
+      clearTimeout(this.timeoutID)
+      this.timeoutID = null
     }
   }
 
@@ -119,6 +126,11 @@ class EmojiTower extends React.Component<
     this.props.animatedValue.addListener(this._listener)
   }
 
+  componentWillUnmount() {
+    this._update.cancel()
+    this.props.animatedValue.removeAllListeners()
+  }
+
   _listener = (evt: {value: number}) => {
     if ([0, 100].includes(evt.value)) {
       this.setState({running: false})
@@ -132,10 +144,6 @@ class EmojiTower extends React.Component<
   }
 
   _update = throttle(() => this.forceUpdate(), 100)
-
-  componentWillUnmount() {
-    this._update.cancel()
-  }
 
   render() {
     if (!this.state.running) {
@@ -158,7 +166,7 @@ class EmojiTower extends React.Component<
         </Text>
       )
     }
-    return <Box style={[globalStyles.flexBoxColumn, styles.emojiTower]}>{children}</Box>
+    return <Box style={styles.emojiTower}>{children}</Box>
   }
 }
 
@@ -198,10 +206,13 @@ const styles = styleSheetCreate({
     height: 80,
   },
   emojiTower: {
+    ...globalStyles.flexBoxColumn,
     position: 'absolute',
     right: 0,
     top: 0,
     bottom: 0,
+    width: 20,
+    overflow: 'hidden',
   },
   exploded: {
     backgroundColor: globalColors.white,
