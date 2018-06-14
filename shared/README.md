@@ -107,7 +107,7 @@ statement.
 
 ### Android
 
-Follow instructions at
+Follow instructions for "Building Projects with Native Code" at
 https://facebook.github.io/react-native/docs/getting-started.html to
 install and configure Android.
 
@@ -211,11 +211,18 @@ It should list exactly one device.
 To run the emulator, do:
 
 ```sh
+# Even though emulator should be in your path, it
+# seems to require you to be in this directory.
 cd $ANDROID_HOME/emulator
+
 emulator -list-avds
 # Nexus_5X_API_27_x86 is an example avd.
 emulator @Nexus_5X_API_27_x86
 ```
+
+assuming you've set the `$ANDROID_HOME` variable and added
+`$ANDROID_HOME/tools` to your `PATH`, per
+https://facebook.github.io/react-native/docs/getting-started.html .
 
 To run on your Android device, make sure USB debugging is enabled; see
 [these
