@@ -790,7 +790,7 @@ func (f failingUpak) LookupUsernameAndDevice(ctx context.Context, uid keybase1.U
 	require.Fail(f.t, "LookupUsernameAndDevice call")
 	return "", "", "", nil
 }
-func (f failingUpak) ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error) {
+func (f failingUpak) ListFollowedUIDs(ctx context.Context, uid keybase1.UID) ([]keybase1.UID, error) {
 	require.Fail(f.t, "ListFollowedUIDs call")
 	return nil, nil
 }
