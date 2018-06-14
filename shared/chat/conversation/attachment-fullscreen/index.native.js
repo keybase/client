@@ -12,8 +12,7 @@ import {
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import MessagePopup from '../messages/message-popup/'
 import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../styles'
-
-import type {Props} from './'
+import type {Props} from './index.types'
 
 const {width: screenWidth, height: screenHeight} = NativeDimensions.get('window')
 

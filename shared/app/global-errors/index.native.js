@@ -14,7 +14,7 @@ import {globalStyles, globalColors, globalMargins, isIPhoneX, platformStyles} fr
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'
 
-import type {Props as _Props} from './index'
+import type {Props as _Props} from './index.types'
 
 type Size = 'Closed' | 'Small' | 'Big'
 type State = {
