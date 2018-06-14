@@ -159,9 +159,9 @@ func TestChatOutboxPurge(t *testing.T) {
 
 	prevOrdinal := 1
 	ephemeralMetadata := &chat1.MsgEphemeralMetadata{Lifetime: 0}
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 9; i++ {
 		// send some exploding and some non exploding msgs
-		if i%2 == 0 {
+		if i > 3 {
 			ephemeralMetadata = nil
 		}
 		obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(), makeMsgPlaintextEphemeral("hi", uid, ephemeralMetadata),
@@ -185,8 +185,9 @@ func TestChatOutboxPurge(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, obrs, res, "wrong obids")
 
-	// Mark half the records as errors, but they are not considered expired
-	for i := 0; i < len(obrs)/2; i++ {
+	// Mark 6/9 records as an error, three of these are ephemeral message, 3
+	// regular messages.
+	for i := 0; i < 6; i++ {
 		errRec := chat1.OutboxStateError{
 			Message: "failed",
 			Typ:     chat1.OutboxErrorType_MISC,
@@ -201,13 +202,23 @@ func TestChatOutboxPurge(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, obrs, res, "wrong obids")
 
-	// move the clock forward and it this should get purged
+	// move the clock forward the ephemeralPurgeCutoff duration and we'll
+	// remove the ephemeral records.
+	cl.Advance(ephemeralPurgeCutoff)
+	err = ob.OutboxPurge(context.TODO())
+	require.NoError(t, err)
+	res, err = ob.PullAllConversations(context.TODO(), true, false)
+	require.NoError(t, err)
+	require.Equal(t, obrs[4:], res, "wrong obids")
+
+	// move the clock forward the errorPurgeCutoff duration and we'll remove
+	// the records that are marked as an error.
 	cl.Advance(errorPurgeCutoff)
 	err = ob.OutboxPurge(context.TODO())
 	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
-	require.Equal(t, obrs[len(obrs)/2:], res, "wrong obids")
+	require.Equal(t, obrs[6:], res, "wrong obids")
 }
 
 func TestChatOutboxMarkAll(t *testing.T) {

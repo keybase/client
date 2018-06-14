@@ -26,7 +26,8 @@ type Outbox struct {
 }
 
 const outboxVersion = 4
-const errorPurgeCutoff = time.Minute * 10
+const ephemeralPurgeCutoff = time.Minute * 10
+const errorPurgeCutoff = time.Hour * 24 * 7 // one week
 
 type diskOutbox struct {
 	Version int                  `codec:"V"`
@@ -502,7 +503,6 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 	}
 
 	var purged, ephemeralPurged, recs []chat1.OutboxRecord
-	now := o.clock.Now()
 	for _, obr := range obox.Records {
 		st, err := obr.State.State()
 		if err != nil {
@@ -510,14 +510,20 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 			purged = append(purged, obr)
 			continue
 		}
-		if st == chat1.OutboxStateType_ERROR && obr.Ctime.Time().Add(errorPurgeCutoff).Before(now) {
-			o.Debug(ctx, "purging message from outbox with error state that was older than %v: %s, isEphemeral", errorPurgeCutoff, obr, obr.Msg.IsEphemeral())
-			if obr.Msg.IsEphemeral() {
+		if st == chat1.OutboxStateType_ERROR {
+			if obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(ephemeralPurgeCutoff).Before(o.clock.Now()) {
+				o.Debug(ctx, "purging ephemeral message from outbox with error state that was older than %v: %s",
+					ephemeralPurgeCutoff, obr)
 				ephemeralPurged = append(ephemeralPurged, obr)
-			} else {
-				purged = append(purged, obr)
+				continue
 			}
-			continue
+
+			if !obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(errorPurgeCutoff).Before(o.clock.Now()) {
+				o.Debug(ctx, "purging message from outbox with error state that was older than %v: %s",
+					errorPurgeCutoff, obr)
+				purged = append(purged, obr)
+				continue
+			}
 		}
 		recs = append(recs, obr)
 	}
