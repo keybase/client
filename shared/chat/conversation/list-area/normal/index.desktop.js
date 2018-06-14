@@ -30,8 +30,14 @@ type State = {
   isLockedToBottom: boolean,
 }
 
+type Snapshot = ?number
+
 class Thread extends React.PureComponent<Props, State> {
   state = {isLockedToBottom: true}
+  _listRef = React.createRef()
+  _setBottomRef = r => {
+    this._bottomRef = r
+  } // old style due to react-waypoint
 
   // _keyMapper = (index: number) => {
   // const itemCountIncludingSpecial = this._getItemCount()
@@ -46,8 +52,8 @@ class Thread extends React.PureComponent<Props, State> {
   // }
 
   _scrollToBottom = () => {
-    if (this._bottom) {
-      this._bottom.scrollIntoView({behavior: 'instant', block: 'end'})
+    if (this._bottomRef) {
+      this._bottomRef.scrollIntoView({behavior: 'instant', block: 'end'})
     }
   }
 
@@ -57,11 +63,22 @@ class Thread extends React.PureComponent<Props, State> {
     // }, 100)
     if (this.state.isLockedToBottom) {
       // this._scrollToBottom()
-      setImmediate(this._scrollToBottom)
+      setImmediate(() => this._scrollToBottom())
     }
   }
 
-  componentDidUpdate(prevProps: Props) {
+  getSnapshotBeforeUpdate(prevProps: Props, prevState: State) {
+    // prepending?
+    if (
+      this.props.conversationIDKey === prevProps.conversationIDKey &&
+      this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first()
+    ) {
+      return this._listRef.current ? this._listRef.current.scrollHeight : null
+    }
+    return null
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: State, snapshot: Snapshot) {
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this.setState({isLockedToBottom: true})
       return
@@ -73,6 +90,12 @@ class Thread extends React.PureComponent<Props, State> {
 
     if (this.state.isLockedToBottom) {
       this._scrollToBottom()
+    }
+
+    // got a prepend
+    const list = this._listRef.current
+    if (snapshot && list) {
+      list.scrollTop = list.scrollHeight - snapshot
     }
 
     // TODO
@@ -153,14 +176,6 @@ class Thread extends React.PureComponent<Props, State> {
   // }
   // }
 
-  _setListRef = (r: any) => {
-    this._list = r
-  }
-
-  _setBottomRef = r => {
-    this._bottom = r
-  }
-
   _positionChangeTop = ({currentPosition}) => {
     if (currentPosition === 'inside') {
       this.props.loadMoreMessages()
@@ -214,7 +229,7 @@ class Thread extends React.PureComponent<Props, State> {
     waypoints.push(
       <BottomWaypoint
         key="bottomWaypoint"
-        forwardRef={this._setBottomRef}
+        forwardedRef={this._setBottomRef}
         onPositionChange={this._positionChangeBottom}
         conversationIDKey={this.props.conversationIDKey}
       />
@@ -225,7 +240,7 @@ class Thread extends React.PureComponent<Props, State> {
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
 
-          <div style={listStyle} ref={this._setListRef}>
+          <div style={listStyle} ref={this._listRef}>
             {waypoints}
           </div>
         </div>
@@ -263,6 +278,7 @@ class TopWaypoint extends React.PureComponent<> {
   }
 }
 
+// Note can't use React.forwardRef due to issues w/ react-waypoint not working with it
 class BottomWaypoint extends React.PureComponent<> {
   state = {keyCount: 0}
   _measure = () => {
@@ -276,7 +292,7 @@ class BottomWaypoint extends React.PureComponent<> {
         key={`SpecialBottomMessage:${this.state.keyCount}`}
         onPositionChange={this.props.onPositionChange}
       >
-        <div ref={this.props.forwardRef}>
+        <div ref={this.props.forwardedRef}>
           <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={this._measure} />
         </div>
       </Waypoint>
