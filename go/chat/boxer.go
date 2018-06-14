@@ -663,7 +663,7 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	}
 
 	// Second, load the device encryption KID for the sender.
-	senderUid, err := keybase1.UIDFromSlice(boxed.ClientHeader.Sender)
+	senderUId, err := keybase1.UIDFromSlice(boxed.ClientHeader.Sender)
 	if err != nil {
 		return nil, err
 	}
@@ -673,7 +673,7 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	}
 	// Use the loading function that hits the server if-and-only-if we don't
 	// have the given deviceID in cache.
-	senderUPAK, err := b.G().GetUPAKLoader().LoadUPAKWithDeviceID(ctx, senderUid, senderDeviceID)
+	senderUPAK, err := b.G().GetUPAKLoader().LoadUPAKWithDeviceID(ctx, senderUId, senderDeviceID)
 	if err != nil {
 		return nil, err
 	}
