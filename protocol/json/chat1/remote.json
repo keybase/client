@@ -47,14 +47,6 @@
         {
           "type": "int",
           "name": "keyGeneration"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "bytes",
-            "keys": "keybase1.KID"
-          },
-          "name": "pairwiseMacs"
         }
       ]
     },

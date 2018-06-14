@@ -127,6 +127,22 @@ func (t TeamSigChainState) GetUserLogPoint(user keybase1.UserVersion) *keybase1.
 	return &tmp
 }
 
+// GetLastUserLogPointWithPredicate gets the last user logpoint in the series for which the given
+// predicate is true.
+func (t TeamSigChainState) GetLastUserLogPointWithPredicate(user keybase1.UserVersion, f func(keybase1.UserLogPoint) bool) *keybase1.UserLogPoint {
+	points := t.inner.UserLog[user]
+	if len(points) == 0 {
+		return nil
+	}
+	for i := len(points) - 1; i >= 0; i-- {
+		if f(points[i]) {
+			tmp := points[i].DeepCopy()
+			return &tmp
+		}
+	}
+	return nil
+}
+
 func (t TeamSigChainState) GetAdminUserLogPoint(user keybase1.UserVersion) *keybase1.UserLogPoint {
 	ret := t.GetUserLogPoint(user)
 	if ret == nil {

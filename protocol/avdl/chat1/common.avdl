@@ -379,6 +379,12 @@
 
     @mpackkey("em") @jsonkey("em")
     union { null, MsgEphemeralMetadata } ephemeralMetadata;
+
+    // [V1, V2]: Missing
+    // [V3, V4]: Optional map of pairwise MACs, used for exploding messages on
+    //           small teams. In V4, if MACs are present, the verifyKey is a dummy.
+    @mpackkey("pm") @jsonkey("pm")
+    map<keybase1.KID, bytes> pairwiseMacs;
   }
 
   record MessageClientHeaderVerified {

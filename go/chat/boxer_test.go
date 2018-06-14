@@ -295,7 +295,7 @@ func TestChatMessageUnboxWithPairwiseMacsCorrupted(t *testing.T) {
 	}
 
 	// CORRUPT THE AUTHENTICATOR!!!
-	for _, mac := range boxed.PairwiseMacs {
+	for _, mac := range boxed.ClientHeader.PairwiseMacs {
 		mac[0] ^= 1
 	}
 

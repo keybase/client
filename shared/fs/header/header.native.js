@@ -13,22 +13,30 @@ type Props = {
 
 const Header = ({title, path, onBack}: Props) => (
   <Box style={stylesFolderHeaderContainer}>
-    <BackButton onClick={onBack} />
-    <Box style={stylesFolderHeaderRoot}>
-      <Text type="BodyBig" style={stylesTitle}>
-        {title}
-      </Text>
-    </Box>
-    <Box style={stylesAddNewBox}>
-      <AddNew path={path} style={stylesAddNew} />
+    <Box style={stylesFolderHeaderRow}>
+      <BackButton onClick={onBack} />
+      <Box style={stylesFolderHeaderRoot}>
+        <Text type="BodyBig" style={stylesTitle}>
+          {title}
+        </Text>
+      </Box>
+      <Box style={stylesAddNewBox}>
+        <AddNew path={path} style={stylesAddNew} />
+      </Box>
     </Box>
   </Box>
 )
 
-const stylesFolderHeaderContainer = {
+const stylesFolderHeaderRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   paddingTop: 12,
+  minHeight: 64,
+}
+
+const stylesFolderHeaderContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'flex-start',
   minHeight: 64,
 }
 

@@ -32,7 +32,7 @@ type merkleSearchComparator func(leaf *MerkleGenericLeaf, root *MerkleRoot) (boo
 func lookupMaxMerkleSeqno(m MetaContext) (ret keybase1.Seqno, err error) {
 	defer m.CTrace("lookupMaxMerkleSeqno", func() error { return err })()
 	cli := m.G().GetMerkleClient()
-	mr, err := cli.FetchRootFromServer(m.Ctx(), time.Minute)
+	mr, err := cli.FetchRootFromServer(m, time.Minute)
 	if err != nil {
 		return ret, err
 	}
@@ -77,7 +77,7 @@ func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparat
 			final = true
 		}
 		m.CDebugf("FFLWC: Expontential forward jump: trying %d", hi)
-		leaf, root, err = cli.LookupLeafAtSeqno(m.Ctx(), id, hi)
+		leaf, root, err = cli.LookupLeafAtSeqno(m, id, hi)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -107,7 +107,7 @@ func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparat
 	// (since hi = low + 1).
 	for hi-low > 1 {
 		mid := (hi + low) / 2
-		tmpLeaf, tmpRoot, err := cli.LookupLeafAtSeqno(m.Ctx(), id, mid)
+		tmpLeaf, tmpRoot, err := cli.LookupLeafAtSeqno(m, id, mid)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -235,7 +235,7 @@ func VerifyMerkleRootAndKBFS(m MetaContext, arg keybase1.VerifyMerkleRootAndKBFS
 	defer m.CTrace(fmt.Sprintf("VerifyMerkleRootAndKBFS(%+v)", arg), func() error { return err })()
 
 	var mr *MerkleRoot
-	mr, err = m.G().GetMerkleClient().LookupRootAtSeqno(m.Ctx(), arg.Root.Seqno)
+	mr, err = m.G().GetMerkleClient().LookupRootAtSeqno(m, arg.Root.Seqno)
 	if err != nil {
 		return nil
 	}

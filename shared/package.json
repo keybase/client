@@ -40,6 +40,8 @@
     "rn-start": "./react-native/packageAndBuild.sh",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
+    "rn-build-android": "./react-native/buildAndroid.sh",
+    "rn-push-android": "./react-native/pushAndroid.sh",
     "rn-packager-wipe-cache":
       "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
     "rn-test-ios":

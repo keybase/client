@@ -12,14 +12,13 @@ import (
 )
 
 type MessageBoxed struct {
-	Version          MessageBoxedVersion     `codec:"version" json:"version"`
-	ServerHeader     *MessageServerHeader    `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
-	ClientHeader     MessageClientHeader     `codec:"clientHeader" json:"clientHeader"`
-	HeaderCiphertext SealedData              `codec:"headerCiphertext" json:"headerCiphertext"`
-	BodyCiphertext   EncryptedData           `codec:"bodyCiphertext" json:"bodyCiphertext"`
-	VerifyKey        []byte                  `codec:"verifyKey" json:"verifyKey"`
-	KeyGeneration    int                     `codec:"keyGeneration" json:"keyGeneration"`
-	PairwiseMacs     map[keybase1.KID][]byte `codec:"pairwiseMacs" json:"pairwiseMacs"`
+	Version          MessageBoxedVersion  `codec:"version" json:"version"`
+	ServerHeader     *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
+	ClientHeader     MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
+	HeaderCiphertext SealedData           `codec:"headerCiphertext" json:"headerCiphertext"`
+	BodyCiphertext   EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
+	VerifyKey        []byte               `codec:"verifyKey" json:"verifyKey"`
+	KeyGeneration    int                  `codec:"keyGeneration" json:"keyGeneration"`
 }
 
 func (o MessageBoxed) DeepCopy() MessageBoxed {
@@ -42,23 +41,6 @@ func (o MessageBoxed) DeepCopy() MessageBoxed {
 			return append([]byte{}, x...)
 		})(o.VerifyKey),
 		KeyGeneration: o.KeyGeneration,
-		PairwiseMacs: (func(x map[keybase1.KID][]byte) map[keybase1.KID][]byte {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[keybase1.KID][]byte)
-			for k, v := range x {
-				kCopy := k.DeepCopy()
-				vCopy := (func(x []byte) []byte {
-					if x == nil {
-						return nil
-					}
-					return append([]byte{}, x...)
-				})(v)
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.PairwiseMacs),
 	}
 }
 

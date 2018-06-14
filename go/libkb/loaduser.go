@@ -525,7 +525,7 @@ func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHint
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
-	f, err = m.G().MerkleClient.LookupUser(m.Ctx(), q, sigHints)
+	f, err = m.G().MerkleClient.LookupUser(m, q, sigHints)
 	if err == nil && f == nil && localExists {
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}

@@ -75,11 +75,11 @@ const resetHandledPush = () => {
 }
 
 function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.SagaGenerator<any, any> {
-  logger.info('Push notification:', notification)
   const payload = notification.payload.notification
   if (!payload) {
     return
   }
+  logger.info(`Push notification of type ${payload.type ? payload.type : 'unknown'} received.`)
 
   switch (payload.type) {
     case 'chat.readmessage':
