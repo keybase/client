@@ -240,6 +240,7 @@ type PaymentSummaryStellar struct {
 	Asset       Asset         `codec:"asset" json:"asset"`
 	OperationID uint64        `codec:"operationID" json:"operationID"`
 	Ctime       TimeMs        `codec:"ctime" json:"ctime"`
+	CursorToken string        `codec:"cursorToken" json:"cursorToken"`
 }
 
 func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
@@ -251,6 +252,7 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 		Asset:       o.Asset.DeepCopy(),
 		OperationID: o.OperationID,
 		Ctime:       o.Ctime.DeepCopy(),
+		CursorToken: o.CursorToken,
 	}
 }
 
@@ -271,6 +273,7 @@ type PaymentSummaryDirect struct {
 	NoteB64         string                `codec:"noteB64" json:"noteB64"`
 	Ctime           TimeMs                `codec:"ctime" json:"ctime"`
 	Rtime           TimeMs                `codec:"rtime" json:"rtime"`
+	CursorToken     string                `codec:"cursorToken" json:"cursorToken"`
 }
 
 func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
@@ -306,9 +309,10 @@ func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
 			tmp := (*x)
 			return &tmp
 		})(o.DisplayCurrency),
-		NoteB64: o.NoteB64,
-		Ctime:   o.Ctime.DeepCopy(),
-		Rtime:   o.Rtime.DeepCopy(),
+		NoteB64:     o.NoteB64,
+		Ctime:       o.Ctime.DeepCopy(),
+		Rtime:       o.Rtime.DeepCopy(),
+		CursorToken: o.CursorToken,
 	}
 }
 
@@ -331,6 +335,7 @@ type PaymentSummaryRelay struct {
 	BoxB64          string                `codec:"boxB64" json:"boxB64"`
 	TeamID          keybase1.TeamID       `codec:"teamID" json:"teamID"`
 	Claim           *ClaimSummary         `codec:"claim,omitempty" json:"claim,omitempty"`
+	CursorToken     string                `codec:"cursorToken" json:"cursorToken"`
 }
 
 func (o PaymentSummaryRelay) DeepCopy() PaymentSummaryRelay {
@@ -377,6 +382,7 @@ func (o PaymentSummaryRelay) DeepCopy() PaymentSummaryRelay {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Claim),
+		CursorToken: o.CursorToken,
 	}
 }
 

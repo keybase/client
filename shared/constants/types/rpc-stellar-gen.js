@@ -161,9 +161,9 @@ export type PaymentStrategy =
   | 2 // RELAY_2
 
 export type PaymentSummary = {typ: 1, stellar: ?PaymentSummaryStellar} | {typ: 2, direct: ?PaymentSummaryDirect} | {typ: 3, relay: ?PaymentSummaryRelay}
-export type PaymentSummaryDirect = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, fromStellar: AccountID, from: Keybase1.UserVersion, fromDeviceID: Keybase1.DeviceID, toStellar: AccountID, to?: ?Keybase1.UserVersion, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, noteB64: String, ctime: TimeMs, rtime: TimeMs}>
-export type PaymentSummaryRelay = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, fromStellar: AccountID, from: Keybase1.UserVersion, fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, amount: String, displayAmount?: ?String, displayCurrency?: ?String, ctime: TimeMs, rtime: TimeMs, boxB64: String, teamID: Keybase1.TeamID, claim?: ?ClaimSummary}>
-export type PaymentSummaryStellar = $ReadOnly<{txID: TransactionID, from: AccountID, to: AccountID, amount: String, asset: Asset, operationID: Uint64, ctime: TimeMs}>
+export type PaymentSummaryDirect = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, fromStellar: AccountID, from: Keybase1.UserVersion, fromDeviceID: Keybase1.DeviceID, toStellar: AccountID, to?: ?Keybase1.UserVersion, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, noteB64: String, ctime: TimeMs, rtime: TimeMs, cursorToken: String}>
+export type PaymentSummaryRelay = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, fromStellar: AccountID, from: Keybase1.UserVersion, fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, amount: String, displayAmount?: ?String, displayCurrency?: ?String, ctime: TimeMs, rtime: TimeMs, boxB64: String, teamID: Keybase1.TeamID, claim?: ?ClaimSummary, cursorToken: String}>
+export type PaymentSummaryStellar = $ReadOnly<{txID: TransactionID, from: AccountID, to: AccountID, amount: String, asset: Asset, operationID: Uint64, ctime: TimeMs, cursorToken: String}>
 export type PaymentSummaryType =
   | 0 // NONE_0
   | 1 // STELLAR_1
