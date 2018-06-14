@@ -742,19 +742,27 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	// even though signEncryptOpen will check a signature in the end, we no
 	// longer care what signing key it's using. That means we're compatible
 	// with two different scenarios, to support gradual rollout:
-	// 1) Pairwise MACs are included, but also the signing key is still the
-	//    same as in regular messages. Clients with MAC support can check MACs,
-	//    but clients without MAC support ignore the MACs and keep working. We
-	//    don't have repudiability yet, but we can gradually roll out support.
-	// 2) Pairwise MACs are included, and the signing key is an all-zeros
-	//    dummy. Clients with MAC support won't notice this change. At this
-	//    point clients without MAC support will break (so we should pair this
-	//    with a version bump), and we will finally have repudiability.
+	// V3) Pairwise MACs are included, but also the signing key is still the
+	//     same as in regular messages. Clients with MAC support can check MACs,
+	//     but clients without MAC support ignore the MACs and keep working. We
+	//     don't have repudiability yet, but we can gradually roll out support.
+	// V4) Pairwise MACs are included, and the signing key is an all-zeros
+	//     dummy. Clients with MAC support won't notice this change. At this
+	//     point clients without MAC support will break (so we should pair this
+	//     with a version bump), and we will finally have repudiability.
 	if len(boxed.ClientHeader.PairwiseMacs) > 0 {
+		if boxed.Version != chat1.MessageBoxedVersion_V3 && !bytes.Equal(boxed.VerifyKey, dummySigningKey().GetKID().ToBytes()) {
+			return nil, NewPermanentUnboxingError(fmt.Errorf("expected dummy signing key (%s), got %s", dummySigningKey().GetKID(), hex.EncodeToString(boxed.VerifyKey)))
+		}
 		senderKeyToValidate, err = b.validatePairwiseMAC(ctx, boxed, headerHash)
 		if err != nil {
 			return nil, NewPermanentUnboxingError(err)
 		}
+	} else if bytes.Equal(boxed.VerifyKey, dummySigningKey().GetKID().ToBytes()) {
+		// Note that this can happen if the server is stripping MACs for some
+		// reason, for example if you're testing against an out-of-date server
+		// version.
+		return nil, NewPermanentUnboxingError(fmt.Errorf("unexpected dummy signing key with no pairwise MACs present"))
 	}
 
 	// If we validated a pairwise MAC above, then senderKeyToValidate will be
@@ -1233,6 +1241,24 @@ func (b *Boxer) latestMerkleRoot(ctx context.Context) (*chat1.MerkleRoot, error)
 	return &merkleRoot, nil
 }
 
+var dummySigningKeyPtr *libkb.NaclSigningKeyPair
+var dummySigningKeyOnce sync.Once
+
+// We use this constant key when we already have pairwiseMACs providing
+// authentication. Creating a keypair requires a curve multiply, so we cache it
+// here, in case someone uses it in a tight loop.
+func dummySigningKey() libkb.NaclSigningKeyPair {
+	dummySigningKeyOnce.Do(func() {
+		var allZeroSecretKey [libkb.NaclSigningKeySecretSize]byte
+		dummyKeypair, err := libkb.MakeNaclSigningKeyPairFromSecret(allZeroSecretKey)
+		if err != nil {
+			panic("errors in key generation should be impossible: " + err.Error())
+		}
+		dummySigningKeyPtr = &dummyKeypair
+	})
+	return *dummySigningKeyPtr
+}
+
 // BoxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
@@ -1290,10 +1316,11 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 			return nil, NewBoxingCryptKeysError(err)
 		}
 		ephemeralSeed = &ek
-		// V3 is "V2 plus support for exploding messages". Thus we'll bump all
-		// exploding messages from V2 to V3. When futures versions are
-		// introduced (V4 etc.), they'll have exploding messages support from
-		// the get-go, and this version distinction will go away.
+		// V3 is "V2 plus support for exploding messages", and V4 is "V3 plus
+		// support for pairwise MACs". Thus we'll bump all exploding messages
+		// from V2 to V3, and all MAC'd messages from V3 to V4. Eventually we
+		// can deprecate the old versions and remove these branches, once
+		// support is widespread.
 		if version == chat1.MessageBoxedVersion_V2 {
 			version = chat1.MessageBoxedVersion_V3
 		}
@@ -1318,12 +1345,19 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 			return nil, err
 		}
 		if shouldPairwiseMAC {
+			if len(recipients) == 0 {
+				return nil, fmt.Errorf("unexpected empty pairwise recipients list")
+			}
 			pairwiseMACRecipients = recipients
-
-			// TODO V4: Replace the signing key with one derived from all
-			// zeros, and bump the message version. Until we do this, the
-			// pairwise MACs are redundant, and we don't have repudiability,
-			// but we do have backwards compatibility.
+			// As noted above, bump the version to V4 when we're MAC'ing.
+			if version == chat1.MessageBoxedVersion_V3 {
+				version = chat1.MessageBoxedVersion_V4
+			}
+			// Replace the signing key with a dummy. Using the real signing key
+			// would sabotage the repudiability that pairwise MACs are
+			// providing. We could avoid signing entirely, but this approach
+			// keeps the difference between the two modes very small.
+			signingKeyPair = dummySigningKey()
 		}
 	}
 
@@ -1356,7 +1390,7 @@ func (b *Boxer) attachMerkleRoot(ctx context.Context, msg *chat1.MessagePlaintex
 		if msg.ClientHeader.MerkleRoot != nil {
 			return NewBoxingError("cannot send v1 message with merkle root", true)
 		}
-	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3:
+	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3, chat1.MessageBoxedVersion_V4:
 		merkleRoot, err := b.latestMerkleRoot(ctx)
 		if err != nil {
 			return NewBoxingError(err.Error(), false)
@@ -1365,7 +1399,8 @@ func (b *Boxer) attachMerkleRoot(ctx context.Context, msg *chat1.MessagePlaintex
 		if msg.ClientHeader.MerkleRoot == nil {
 			return NewBoxingError("cannot send message without merkle root", false)
 		}
-
+	default:
+		return fmt.Errorf("attachMerkleRoot unrecognized version: %s", version)
 	}
 	return nil
 }
@@ -1415,8 +1450,8 @@ func (b *Boxer) box(ctx context.Context, messagePlaintext chat1.MessagePlaintext
 	// V3 is the same as V2, except that it indicates exploding message
 	// support. V4 is the same as V3, except that it signs with the zero key
 	// when pairwise MACs are included.
-	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3:
-		res, err := b.boxV2orV3(ctx, messagePlaintext, encryptionKey, ephemeralSeed, signingKeyPair, version, pairwiseMACRecipients)
+	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3, chat1.MessageBoxedVersion_V4:
+		res, err := b.boxV2orV3orV4(ctx, messagePlaintext, encryptionKey, ephemeralSeed, signingKeyPair, version, pairwiseMACRecipients)
 		if err != nil {
 			b.Debug(ctx, "error boxing message version: %v", version)
 		}
@@ -1525,7 +1560,7 @@ func (b *Boxer) makeAllPairwiseMACs(ctx context.Context, headerSealed chat1.Sign
 
 // V3 is just V2 but with exploding messages support. V4 is just V3, but it
 // signs with the zero key when pairwise MACs are included.
-func (b *Boxer) boxV2orV3(ctx context.Context, messagePlaintext chat1.MessagePlaintext, baseEncryptionKey types.CryptKey,
+func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.MessagePlaintext, baseEncryptionKey types.CryptKey,
 	ephemeralSeed *keybase1.TeamEk, signingKeyPair libkb.NaclSigningKeyPair,
 	version chat1.MessageBoxedVersion, pairwiseMACRecipients []keybase1.KID) (*chat1.MessageBoxed, error) {
 
