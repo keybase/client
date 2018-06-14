@@ -1,99 +1,143 @@
-# -----------------------------------------------------------------------------
-#
-#   REMINDER: If you edit this file, you'll most likely also want to edit
-#   circle.yml in the kbfs repository!
-#
-# -----------------------------------------------------------------------------
-machine:
-  xcode:
-    version: 8.3.3
-  node:
-    version: 8
-  java:
-    version: oraclejdk8
-  environment:
-    GOPATH: $HOME/go-path
-    PATH: $GOROOT/bin:$PATH
-    # Limit memory usage of gradle
-    _JAVA_OPTIONS: "-Xms512m -Xmx2048m"
-    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
-    REACT_NATIVE_MAX_WORKERS: 1
-    # Some node dependencies break without this
-    CXX: g++-4.8
-    ANDROID_NDK_HOME: ${ANDROID_NDK}
-general:
-  build_dir: shared
-dependencies:
-  pre:
-    # - nvm ls-remote
-    - sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
-    - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-    - sudo apt-get update -qq
-    # - sudo apt-cache show yarn
-    - sudo apt-get install -y -qq yarn=1.0.2-1
-    - sudo rm -rf /usr/local/go* # Remove old go installation
-    - mkdir -p ~/downloads
-    - mkdir -p ~/go-path
-    - ls "$HOME/downloads"
-    - ls "$ANDROID_HOME"
-    - if [[ ! -e "$HOME/downloads/go.19.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz -O $HOME/downloads/go.19.tar.gz ; fi
-    - cd $HOME && tar -xzvf downloads/go.19.tar.gz
-    - sudo mv $HOME/go /usr/local
-    - if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
-    - if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
-     # Android Support Repository, revision 35 / Local Maven repository for Support Libraries
-    - if [ ! -d "/usr/local/android-sdk-linux/extras/android/m2repository/com/android/support/design/24.1.0" ]; then echo y | android update sdk --no-ui --all --filter "extra-android-m2repository"; fi
-    # Accept android licenses
-    - mkdir -p /usr/local/android-sdk-linux/licenses
-    - if [[ ! -e "$ANDROID_HOME/ndk-bundle" ]]; then wget -nv http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip -O android-ndk-r11c-linux-x86_64.zip && unzip -o android-ndk-r11c-linux-x86_64.zip -d "$ANDROID_HOME" && mv "$ANDROID_HOME/android-ndk-r11c" "$ANDROID_HOME/ndk-bundle"; fi
-    - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
-    - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/android-sdk-linux/licenses/android-sdk-license
-    # Install Yarn
-  cache_directories:
-    - ~/downloads
-    - ~/.cache/yarn
-    - /tmp/go-android/bin
-    - /tmp/go-android/pkg
-    - /usr/local/android-sdk-linux/tools
-    - /usr/local/android-sdk-linux/ndk-bundle
-    - /usr/local/android-sdk-linux/build-tools/23.0.2
-    - /usr/local/android-sdk-linux/extras/android/m2repository
-  override:
-    # TODO(mm): use the emulator when we figure out a consistent way of getting this working
-    # - emulator -avd circleci-android22 -no-audio -no-window:
-    #    background: true
-    #    parallel: true
-    - rm -rf ~/client/shared/node_modules
-    - yarn install --pure-lockfile --ignore-engines --prefer-offline
-    - yarn global add react-native-cli
-    - mkdir -p $GOPATH/src/github.com/keybase
-    - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
-    - yarn run rn-gobuild-android
-    - ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
-    # Build a debug version of the app
-    # Bundle JS separately because doing it in the gradle build is buggy
-    - mkdir -p react-native/android/app/build/intermediates/assets/releaseUnsigned
-    - mkdir -p react-native/android/app/build/intermediates/res/merged/releaseUnsigned
-    - react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned:
+# This configuration was automatically generated from a CircleCI 1.0 config.
+# It should include any build commands you had along with commands that CircleCI
+# inferred from your project structure. We strongly recommend you read all the
+# comments in this file to understand the structure of CircleCI 2.0, as the idiom
+# for configuration has changed substantially in 2.0 to allow arbitrary jobs rather
+# than the prescribed lifecycle of 1.0. In general, we recommend using this generated
+# configuration as a reference rather than using it in production, though in most
+# cases it should duplicate the execution of your original 1.0 config.
+version: 2
+jobs:
+  build:
+    working_directory: ~/keybase/client/shared
+    parallelism: 1
+    shell: /bin/bash --login
+    # CircleCI 2.0 does not support environment variables that refer to each other the same way as 1.0 did.
+    # If any of these refer to each other, rewrite them so that they don't or see https://circleci.com/docs/2.0/env-vars/#interpolating-environment-variables-to-set-other-environment-variables .
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+      GOPATH: $HOME/go-path
+      PATH: $GOROOT/bin:$PATH
+      _JAVA_OPTIONS: -Xms512m -Xmx2048m
+      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"
+      REACT_NATIVE_MAX_WORKERS: 1
+      CXX: g++-4.8
+      ANDROID_NDK_HOME: ${ANDROID_NDK}
+    # In CircleCI 1.0 we used a pre-configured image with a large number of languages and other packages.
+    # In CircleCI 2.0 you can now specify your own image, or use one of our pre-configured images.
+    # The following configuration line tells CircleCI to use the specified docker image as the runtime environment for you job.
+    # We have selected a pre-built image that mirrors the build environment we use on
+    # the 1.0 platform, but we recommend you choose an image more tailored to the needs
+    # of each job. For more information on choosing an image (or alternatively using a
+    # VM instead of a container) see https://circleci.com/docs/2.0/executor-types/
+    # To see the list of pre-built images that CircleCI provides for most common languages see
+    # https://circleci.com/docs/2.0/circleci-images/
+    docker:
+    - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
+      command: /sbin/init
+    steps:
+    # Machine Setup
+    #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
+    # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
+    - checkout
+    # Prepare for artifact and test results  collection equivalent to how it was done on 1.0.
+    # In many cases you can simplify this from what is generated here.
+    # 'See docs on artifact collection here https://circleci.com/docs/2.0/artifacts/'
+    - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+    # This is based on your 1.0 configuration file or project settings
+    - run:
+        working_directory: ~/keybase/client/shared
+        command: nvm install 8 && nvm alias default 8
+    - run:
+        working_directory: ~/keybase/client/shared
+        command: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
+    # Dependencies
+    #   This would typically go in either a build or a build-and-test job when using workflows
+    # Restore the dependency cache
+    - restore_cache:
+        keys:
+        # This branch if available
+        - v1-dep-{{ .Branch }}-
+        # Default branch if not
+        - v1-dep-master-
+        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+        - v1-dep-
+    # This is based on your 1.0 configuration file or project settings
+    - run: sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
+    - run: echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+    - run: sudo apt-get update -qq
+    - run: sudo apt-get install -y -qq yarn=1.0.2-1
+    - run: sudo rm -rf /usr/local/go*
+    - run: mkdir -p ~/downloads
+    - run: mkdir -p ~/go-path
+    - run: ls "$HOME/downloads"
+    - run: ls "$ANDROID_HOME"
+    - run: if [[ ! -e "$HOME/downloads/go.19.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz -O $HOME/downloads/go.19.tar.gz ; fi
+    - run: cd $HOME && tar -xzvf downloads/go.19.tar.gz
+    - run: sudo mv $HOME/go /usr/local
+    - run: if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
+    - run: if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
+    - run: if [ ! -d "/usr/local/android-sdk-linux/extras/android/m2repository/com/android/support/design/24.1.0" ]; then echo y | android update sdk --no-ui --all --filter "extra-android-m2repository"; fi
+    - run: mkdir -p /usr/local/android-sdk-linux/licenses
+    - run: if [[ ! -e "$ANDROID_HOME/ndk-bundle" ]]; then wget -nv http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip -O android-ndk-r11c-linux-x86_64.zip && unzip -o android-ndk-r11c-linux-x86_64.zip -d "$ANDROID_HOME" && mv "$ANDROID_HOME/android-ndk-r11c" "$ANDROID_HOME/ndk-bundle"; fi
+    - run: echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
+    - run: echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/android-sdk-linux/licenses/android-sdk-license
+    # This is based on your 1.0 configuration file or project settings
+    - run: rm -rf ~/client/shared/node_modules
+    - run: yarn install --pure-lockfile --ignore-engines --prefer-offline
+    - run: yarn global add react-native-cli
+    - run: mkdir -p $GOPATH/src/github.com/keybase
+    - run: ln -s $HOME/client $GOPATH/src/github.com/keybase/client
+    - run: yarn run rn-gobuild-android
+    - run: ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
+    - run: mkdir -p react-native/android/app/build/intermediates/assets/releaseUnsigned
+    - run: mkdir -p react-native/android/app/build/intermediates/res/merged/releaseUnsigned
+    - run:
+        command: react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
         environment:
           PATH: $HOME/.yarn/bin:$PATH
-    # Build app
-    - ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets:
-        pwd:
-          react-native/android
-test:
-  override:
-    - mkdir -p $CIRCLE_TEST_REPORTS/flow-coverage
-    - "true"
-    # TODO(mm) uncomment these device tests (see todo above)
-    # wait for it to have booted
-    # - circle-android wait-for-boot
-    # run tests  against the emulator.
-    # - (cd android && ./gradlew connectedAndroidTest)
-    # copy the build outputs to artifacts
-    # - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
-    # copy the test results to the test results directory.
-    # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
-  post:
-      # Only run coverage if there were changes to the shared folder
-    - if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi
+    - run:
+        command: ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
+        working_directory: react-native/android
+    # Save dependency cache
+    - save_cache:
+        key: v1-dep-{{ .Branch }}-{{ epoch }}
+        paths:
+        # This is a broad list of cache paths to include many possible development environments
+        # You can probably delete some of these entries
+        - vendor/bundle
+        - ~/virtualenvs
+        - ~/.m2
+        - ~/.ivy2
+        - ~/.bundle
+        - ~/.go_workspace
+        - ~/.gradle
+        - ~/.cache/bower
+        # These cache paths were specified in the 1.0 config
+        - ~/downloads
+        - ~/.cache/yarn
+        - /tmp/go-android/bin
+        - /tmp/go-android/pkg
+        - /usr/local/android-sdk-linux/tools
+        - /usr/local/android-sdk-linux/ndk-bundle
+        - /usr/local/android-sdk-linux/build-tools/23.0.2
+        - /usr/local/android-sdk-linux/extras/android/m2repository
+        - ./node_modules
+    # Test
+    #   This would typically be a build job when using workflows, possibly combined with build
+    # This is based on your 1.0 configuration file or project settings
+    - run: mkdir -p $CIRCLE_TEST_REPORTS/flow-coverage
+    - run: 'true'
+    # This is based on your 1.0 configuration file or project settings
+    - run: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi
+    # Teardown
+    #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
+    # Save test results
+    - store_test_results:
+        path: /tmp/circleci-test-results
+    # Save artifacts
+    - store_artifacts:
+        path: /tmp/circleci-artifacts
+    - store_artifacts:
+        path: /tmp/circleci-test-results
