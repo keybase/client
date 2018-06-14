@@ -157,7 +157,7 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	}
 	obox.Records = append(obox.Records, rec)
 
-	// Write outbox
+	// Write out diskbox
 	obox.Version = outboxVersion
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return rec, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
@@ -197,7 +197,7 @@ func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, r
 		}
 	}
 	if remove {
-		// Write outbox
+		// Write out diskbox
 		obox.Records = errors
 		obox.Version = outboxVersion
 		if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
@@ -256,7 +256,7 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 		sort.Sort(ByCtimeOrder(recs))
 	}
 
-	// Write outbox
+	// Write out diskbox
 	obox.Records = recs
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
@@ -325,7 +325,7 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 		sort.Sort(ByCtimeOrder(recs))
 	}
 
-	// Write outbox
+	// Write out diskbox
 	obox.Records = recs
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return res, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
@@ -360,7 +360,7 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
 		recs = append(recs, obr)
 	}
 
-	// Write outbox
+	// Write out diskbox
 	obox.Records = recs
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
@@ -524,7 +524,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 
 	obox.Records = recs
 
-	// Write outbox
+	// Write out diskbox
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
