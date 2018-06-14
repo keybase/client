@@ -53,11 +53,15 @@ func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion cha
 		MessageType: chat1.MessageType_TEXT,
 	}
 	switch mbVersion {
-	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3:
+	case chat1.MessageBoxedVersion_V1:
+		// no-op
+	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3, chat1.MessageBoxedVersion_V4:
 		header.MerkleRoot = &chat1.MerkleRoot{
 			Seqno: 12,
 			Hash:  []byte{123, 117, 0, 99, 99, 79, 223, 37, 180, 168, 111, 107, 210, 227, 128, 35, 47, 158, 221, 210, 151, 242, 182, 199, 50, 29, 236, 93, 106, 149, 133, 221, 156, 216, 167, 79, 91, 28, 9, 196, 107, 173, 61, 248, 123, 97, 101, 34, 7, 15, 30, 80, 246, 162, 198, 12, 20, 19, 130, 151, 45, 2, 130, 170},
 		}
+	default:
+		panic("unrecognized version: " + mbVersion.String())
 	}
 	return textMsgWithHeader(t, text, header)
 }
@@ -215,7 +219,7 @@ func TestChatMessageUnboxWithPairwiseMacs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), chat1.MessageBoxedVersion_V2)
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), chat1.MessageBoxedVersion_V3)
 	outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
 	msg.ClientHeader.OutboxID = &outboxID
 	// Pairwise MACs rely on the sender's DeviceID in the header.
@@ -230,7 +234,7 @@ func TestChatMessageUnboxWithPairwiseMacs(t *testing.T) {
 	require.NoError(t, err)
 	pairwiseMACRecipients := []keybase1.KID{encryptionKeypair.GetKID()}
 
-	boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V2, pairwiseMACRecipients)
+	boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
 	require.NoError(t, err)
 	boxed = remarshalBoxed(t, *boxed)
 
@@ -243,7 +247,7 @@ func TestChatMessageUnboxWithPairwiseMacs(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key, nil)
+	unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_TEAM, key, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -266,7 +270,7 @@ func TestChatMessageUnboxWithPairwiseMacsCorrupted(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), chat1.MessageBoxedVersion_V2)
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), chat1.MessageBoxedVersion_V3)
 	outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
 	msg.ClientHeader.OutboxID = &outboxID
 	// Pairwise MACs rely on the sender's DeviceID in the header.
@@ -281,7 +285,7 @@ func TestChatMessageUnboxWithPairwiseMacsCorrupted(t *testing.T) {
 	require.NoError(t, err)
 	pairwiseMACRecipients := []keybase1.KID{encryptionKeypair.GetKID()}
 
-	boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V2, pairwiseMACRecipients)
+	boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
 	require.NoError(t, err)
 	boxed = remarshalBoxed(t, *boxed)
 
@@ -299,7 +303,7 @@ func TestChatMessageUnboxWithPairwiseMacsCorrupted(t *testing.T) {
 		mac[0] ^= 1
 	}
 
-	_, err = boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key, nil)
+	_, err = boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_TEAM, key, nil)
 	if err == nil {
 		t.Fatal("expected unboxing to fail")
 	}
@@ -325,7 +329,7 @@ func TestChatMessageUnboxWithPairwiseMacsMissing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), chat1.MessageBoxedVersion_V2)
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), chat1.MessageBoxedVersion_V3)
 	outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
 	msg.ClientHeader.OutboxID = &outboxID
 	// Pairwise MACs rely on the sender's DeviceID in the header.
@@ -341,7 +345,7 @@ func TestChatMessageUnboxWithPairwiseMacsMissing(t *testing.T) {
 	require.NoError(t, err)
 	pairwiseMACRecipients := []keybase1.KID{bogusKey.GetKID()}
 
-	boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V2, pairwiseMACRecipients)
+	boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
 	require.NoError(t, err)
 	boxed = remarshalBoxed(t, *boxed)
 
@@ -354,7 +358,7 @@ func TestChatMessageUnboxWithPairwiseMacsMissing(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, err = boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key, nil)
+	_, err = boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_TEAM, key, nil)
 	if err == nil {
 		t.Fatal("expected unboxing to fail")
 	}
@@ -368,6 +372,58 @@ func TestChatMessageUnboxWithPairwiseMacsMissing(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected InvalidMACError, got %T", permErr.Inner())
 	}
+}
+
+func TestChatMessageUnboxWithPairwiseMacsV4DummySigner(t *testing.T) {
+	key := cryptKey(t)
+	text := "hi"
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), chat1.MessageBoxedVersion_V4)
+	outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
+	msg.ClientHeader.OutboxID = &outboxID
+	// Pairwise MACs rely on the sender's DeviceID in the header.
+	deviceID := make([]byte, libkb.DeviceIDLen)
+	err = tc.G.ActiveDevice.DeviceID().ToBytes(deviceID)
+	require.NoError(t, err)
+	msg.ClientHeader.SenderDevice = gregor1.DeviceID(deviceID)
+
+	// V4 messages require this keypair.
+	signKP := dummySigningKey()
+
+	encryptionKeypair, err := tc.G.ActiveDevice.NaclEncryptionKey()
+	require.NoError(t, err)
+	pairwiseMACRecipients := []keybase1.KID{encryptionKeypair.GetKID()}
+
+	boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V4, pairwiseMACRecipients)
+	require.NoError(t, err)
+	boxed = remarshalBoxed(t, *boxed)
+
+	if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
+		t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
+	}
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_TEAM, key, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := unboxed.MessageBody
+	typ, err := body.MessageType()
+	require.NoError(t, err)
+	require.Equal(t, typ, chat1.MessageType_TEXT)
+	require.Equal(t, body.Text().Body, text)
+	require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
+	require.NotNil(t, unboxed.BodyHash)
 }
 
 func TestChatMessageMissingOutboxID(t *testing.T) {
