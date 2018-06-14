@@ -1041,7 +1041,16 @@ func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 		return false, err
 	}
 
-	md.log.CDebugf(ctx, "Checking the latest handle for %d; "+
+	_, err = md.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		// If we're not logged in, the server won't tell us the latest
+		// handle (even for public folders), so just consider it
+		// invalid to force the caller to request the latest ID (which
+		// does work for public folders).
+		return false, nil
+	}
+
+	md.log.CDebugf(ctx, "Checking the latest handle for %s; "+
 		"curr handle is %s", h.tlfID, h.GetCanonicalName())
 	latestHandle, err := md.GetLatestHandleForTLF(ctx, h.tlfID)
 	if err != nil {
