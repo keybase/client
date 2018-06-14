@@ -146,10 +146,10 @@ To run on the Android simulator:
 
 ```sh
 # Build the go keybaselib
-yarn run rn-gobuild-android
+yarn rn-gobuild-android
 
 # Start the react native publisher (unlike on iOS, have to do this manually).
-yarn run rn-start
+yarn rn-start android
 ```
 
 Then do "Build > Make Project" and then "Run > Run 'app'".
@@ -181,13 +181,13 @@ Studio. However, first make sure you _can_ build and run with Android
 Studio first, as it's easier to get that working first.
 
 So make sure you've run `yarn rn-gobuild-android` and you have the
-react-native packager running (`yarn rn-start`).
+react-native packager running (`yarn rn-start android`).
 
 Then run
 
 ```sh
 # Build the apk.
-yarn run rn-build-android
+yarn rn-build-android
 ```
 
 Unless you're modifying the Java files, you likely have to only run
