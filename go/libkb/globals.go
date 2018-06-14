@@ -396,20 +396,33 @@ func (g *GlobalContext) ConfigureAPI() error {
 	return nil
 }
 
-func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
-	// shutdown any existing ones
+// nilOutCachesLocked shutsdown and nils out any non-nil caches that have running goroutines
+// in them. It can be called from either configureMemCachesLocked (via logout or flush),
+// or via shutdown.  In either case, you better hold the g.cacheMu when calling this.
+func (g *GlobalContext) nilOutCachesLocked() {
+
+	// shutdown and nil out any existing caches.
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
+		g.TrackCache = nil
 	}
 	if g.Identify2Cache != nil {
 		g.Identify2Cache.Shutdown()
+		g.Identify2Cache = nil
 	}
 	if g.LinkCache != nil {
 		g.LinkCache.Shutdown()
+		g.LinkCache = nil
 	}
 	if g.CardCache != nil {
 		g.CardCache.Shutdown()
+		g.CardCache = nil
 	}
+}
+
+func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
+
+	g.nilOutCachesLocked()
 
 	g.Resolver.EnableCaching()
 	g.TrackCache = NewTrackCache()
@@ -579,18 +592,13 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(g.LocalChatDb.Close())
 		}
 
-		if g.TrackCache != nil {
-			g.TrackCache.Shutdown()
-		}
-		if g.Identify2Cache != nil {
-			g.Identify2Cache.Shutdown()
-		}
-		if g.LinkCache != nil {
-			g.LinkCache.Shutdown()
-		}
-		if g.CardCache != nil {
-			g.CardCache.Shutdown()
-		}
+		// Shutdown can still race with Logout, so make sure that we hold onto
+		// the cacheMu before shutting down the caches. See comments in
+		// nilOutCachesLocked.
+		g.cacheMu.Lock()
+		g.nilOutCachesLocked()
+		g.cacheMu.Unlock()
+
 		if g.Resolver != nil {
 			g.Resolver.Shutdown()
 		}
