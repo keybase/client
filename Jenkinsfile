@@ -286,30 +286,27 @@ def testGo(prefix) {
         "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     ]) {
         def shell
-        def dirs
         def slash
-        def goversion
         if (isUnix()) {
             shell = { params -> sh params }
-            dirs = getTestDirsNix()
             slash = '/'
-            goversion = sh(returnStdout: true, script: "go version").trim()
-            // Ideally, we'd do this on Windows, too, but we'd have to figure
-            // out how to do it with batch files or PowerShell.
-            retry(5) {
-                sh 'go get -u github.com/golang/lint/golint'
-            }
-            sh 'make -s lint'
-            sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
-            // Make sure we don't accidentally pull in the testing package.
-            sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
         } else {
             shell = { params -> bat params }
-            dirs = getTestDirsNix()
             slash = '\\'
-            goversion = bat(returnStdout: true, script: "@go version").trim()
         }
+        def dirs = getTestDirsNix()
+        def goversion = sh(returnStdout: true, script: "go version").trim()
+
+        println "Running lint and vet"
+        retry(5) {
+            sh 'go get -u github.com/golang/lint/golint'
+        }
+        sh 'make -s lint'
+        sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
+        // Make sure we don't accidentally pull in the testing package.
+        sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
         shell "go vet ./..."
+
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
         def tests = [:]
