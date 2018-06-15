@@ -579,8 +579,9 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "here you go", p.Note)
 		require.Empty(t, p.NoteErr)
 	}
-	senderPayments, err := srvSender.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDSender})
+	senderPaymentsPage, err := srvSender.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDSender})
 	require.NoError(t, err)
+	senderPayments := senderPaymentsPage.Payments
 	require.Len(t, senderPayments, 1)
 	t.Logf("senderPayments: %+v", senderPayments)
 	if senderPayments[0].Err != nil {
@@ -589,8 +590,9 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.NotNil(t, senderPayments[0].Payment)
 	checkPayment(*senderPayments[0].Payment, true)
 
-	recipPayments, err := srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip})
+	recipPaymentsPage, err := srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip})
 	require.NoError(t, err)
+	recipPayments := recipPaymentsPage.Payments
 	require.Len(t, recipPayments, 1)
 	require.NotNil(t, recipPayments[0].Payment)
 	checkPayment(*recipPayments[0].Payment, false)
