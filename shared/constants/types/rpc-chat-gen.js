@@ -191,6 +191,7 @@ export const localMessageUnboxedErrorType = {
   badversion: 2,
   identify: 3,
   ephemeral: 4,
+  pairwiseMissing: 5,
 }
 
 export const localOutboxErrorType = {
@@ -626,6 +627,7 @@ export type MessageUnboxedErrorType =
   | 2 // BADVERSION_2
   | 3 // IDENTIFY_3
   | 4 // EPHEMERAL_4
+  | 5 // PAIRWISE_MISSING_5
 
 export type MessageUnboxedPlaceholder = $ReadOnly<{messageID: MessageID, hidden: Boolean}>
 export type MessageUnboxedState =

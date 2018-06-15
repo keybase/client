@@ -2332,6 +2332,7 @@ const (
 	MessageUnboxedErrorType_BADVERSION          MessageUnboxedErrorType = 2
 	MessageUnboxedErrorType_IDENTIFY            MessageUnboxedErrorType = 3
 	MessageUnboxedErrorType_EPHEMERAL           MessageUnboxedErrorType = 4
+	MessageUnboxedErrorType_PAIRWISE_MISSING    MessageUnboxedErrorType = 5
 )
 
 func (o MessageUnboxedErrorType) DeepCopy() MessageUnboxedErrorType { return o }
@@ -2342,6 +2343,7 @@ var MessageUnboxedErrorTypeMap = map[string]MessageUnboxedErrorType{
 	"BADVERSION":          2,
 	"IDENTIFY":            3,
 	"EPHEMERAL":           4,
+	"PAIRWISE_MISSING":    5,
 }
 
 var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
@@ -2350,6 +2352,7 @@ var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
 	2: "BADVERSION",
 	3: "IDENTIFY",
 	4: "EPHEMERAL",
+	5: "PAIRWISE_MISSING",
 }
 
 func (e MessageUnboxedErrorType) String() string {
