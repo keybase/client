@@ -11,6 +11,7 @@ jobs:
     parallelism: 1
     shell: /bin/bash --login
     environment:
+      GOVERSION: 1.10.3
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
 
@@ -39,20 +40,20 @@ jobs:
           echo 'export ANDROID_NDK=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
           echo 'export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
           source $BASH_ENV
-    - run: env
-    # Machine Setup
-    #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
-    # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
+
     - checkout
+
     # Prepare for artifact and test results  collection equivalent to how it was done on 1.0.
     # In many cases you can simplify this from what is generated here.
     # 'See docs on artifact collection here https://circleci.com/docs/2.0/artifacts/'
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
-    # This is based on your 1.0 configuration file or project settings
+
+    # Install node and java.
+    #
+    # TODO: Upgrade node?
     - run: nvm install 8 && nvm alias default 8
     - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
-    # Dependencies
-    #   This would typically go in either a build or a build-and-test job when using workflows
+
     # Restore the dependency cache
     - restore_cache:
         keys:
@@ -62,29 +63,35 @@ jobs:
         - v1-dep-master-
         # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
         - v1-dep-
-    # This is based on your 1.0 configuration file or project settings
+
+    # - run: nvm ls-remote
     - run: sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
     - run: echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
     - run: sudo apt-get update -qq
+    # - run: sudo apt-cache show yarn
     - run: sudo apt-get install -y -qq yarn=1.0.2-1
     - run: sudo rm -rf /usr/local/go*
     - run: mkdir -p ~/downloads ~/go-path
     - run: ls "$HOME/downloads"
     - run: ls "$ANDROID_HOME"
-    - run:
-        environment:
-          GOVERSION: 1.10.3
-        command: if [[ ! -e "$HOME/downloads/go.$GOVERSION.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz -O $HOME/downloads/go.$GOVERSION.tar.gz ; fi
+
+    - run: if [[ ! -e "$HOME/downloads/go.$GOVERSION.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz -O $HOME/downloads/go.$GOVERSION.tar.gz ; fi
     - run: cd $HOME && tar -xzvf downloads/go.$GOVERSION.tar.gz
     - run: sudo mv $HOME/go /usr/local
+
     - run: if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
     - run: if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
+
+    # Android Support Repository, revision 35 / Local Maven repository for Support Libraries
     - run: if [ ! -d "/usr/local/android-sdk-linux/extras/android/m2repository/com/android/support/design/24.1.0" ]; then echo y | android update sdk --no-ui --all --filter "extra-android-m2repository"; fi
+
+    # Accept android licenses
     - run: mkdir -p /usr/local/android-sdk-linux/licenses
     - run: if [[ ! -e "$ANDROID_HOME/ndk-bundle" ]]; then wget -nv http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip -O android-ndk-r11c-linux-x86_64.zip && unzip -o android-ndk-r11c-linux-x86_64.zip -d "$ANDROID_HOME" && mv "$ANDROID_HOME/android-ndk-r11c" "$ANDROID_HOME/ndk-bundle"; fi
     - run: echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
     - run: echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/android-sdk-linux/licenses/android-sdk-license
-    # This is based on your 1.0 configuration file or project settings
+
+    # Install Yarn
     - run: rm -rf ~/client/shared/node_modules
     - run:
         working_directory: shared
@@ -98,12 +105,17 @@ jobs:
         working_directory: shared
         command:  yarn run rn-gobuild-android
     - run: ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
+
+    # Build a debug version of the app
+    # Bundle JS separately because doing it in the gradle build is buggy
     - run: mkdir -p shared/react-native/android/app/build/intermediates/{assets,res/merged}/releaseUnsigned
     - run:
         working_directory: shared
         environment:
           REACT_NATIVE_MAX_WORKERS: 1
         command: react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
+
+    # Build app
     - run:
         working_directory: shared/react-native/android
         environment:
@@ -112,6 +124,7 @@ jobs:
           _JAVA_OPTIONS: -Xms512m -Xmx2048m
           GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"
         command: ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
+
     # Save dependency cache
     - save_cache:
         key: v1-dep-{{ .Branch }}-{{ epoch }}
@@ -136,15 +149,13 @@ jobs:
         - /usr/local/android-sdk-linux/build-tools/23.0.2
         - /usr/local/android-sdk-linux/extras/android/m2repository
         - ./node_modules
-    # Test
-    #   This would typically be a build job when using workflows, possibly combined with build
-    # This is based on your 1.0 configuration file or project settings
+
+    # Only run coverage if there were changes to the shared folder
     - run: mkdir -p $CIRCLE_TEST_REPORTS/flow-coverage
-    - run: 'true'
-    # This is based on your 1.0 configuration file or project settings
     - run:
         working_directory: shared
         command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi
+
     # Teardown
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # Save test results
