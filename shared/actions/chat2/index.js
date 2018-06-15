@@ -1599,9 +1599,10 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     if (ordinal) {
       yield Saga.put(Chat2Gen.createAttachmentUploaded({conversationIDKey, ordinal}))
     }
-  } catch (e) {}
-  // TODO better error
-  logger.warn('Upload Attachment Failed')
+  } catch (e) {
+    // TODO better error
+    logger.warn(`Upload Attachment Failed: ${e}`)
+  }
 }
 
 // Tell service we're typing
