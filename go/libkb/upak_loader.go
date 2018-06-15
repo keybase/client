@@ -26,7 +26,7 @@ type UPAKLoader interface {
 	LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error)
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
-	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
+	ListFollowedUIDs(ctx context.Context, uid keybase1.UID) ([]keybase1.UID, error)
 	PutUserToCache(ctx context.Context, user *User) error
 	LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
 	CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n NormalizedUsername) error
@@ -771,8 +771,8 @@ func (u *CachedUPAKLoader) LookupUsernameAndDevice(ctx context.Context, uid keyb
 	return u.lookupUsernameAndDeviceWithInfo(ctx, uid, did, nil)
 }
 
-func (u *CachedUPAKLoader) ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error) {
-	arg := NewLoadUserByUIDArg(nil, u.G(), uid)
+func (u *CachedUPAKLoader) ListFollowedUIDs(ctx context.Context, uid keybase1.UID) ([]keybase1.UID, error) {
+	arg := NewLoadUserByUIDArg(ctx, u.G(), uid)
 	upak, _, err := u.Load(arg)
 	if err != nil {
 		return nil, err
