@@ -92,7 +92,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
   isExplodingNew: stateProps.isExplodingNew,
-  onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
+  onAttach: (paths: Array<string>) => {
+    dispatchProps._onAttach(stateProps.conversationIDKey, paths)
+    ownProps.onScrollDown()
+  },
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onSeenExplodingMessages: dispatchProps.onSeenExplodingMessages,

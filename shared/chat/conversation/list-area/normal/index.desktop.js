@@ -39,7 +39,7 @@ class Thread extends React.PureComponent<Props, State> {
   _scrollToBottom = () => {
     const list = this._listRef.current
     if (list) {
-      list.scrollTop = list.scrollHeight
+      list.scrollTop = list.scrollHeight - list.clientHeight
     }
   }
 
@@ -76,6 +76,8 @@ class Thread extends React.PureComponent<Props, State> {
 
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
+      this._scrollToBottom()
+      return
     }
 
     // Adjust scrolling
