@@ -136,7 +136,9 @@ jobs:
     - run: mkdir -p $CIRCLE_TEST_REPORTS/flow-coverage
     - run: 'true'
     # This is based on your 1.0 configuration file or project settings
-    - run: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi
+    - run:
+        working_directory: shared
+        command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi
     # Teardown
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # Save test results
