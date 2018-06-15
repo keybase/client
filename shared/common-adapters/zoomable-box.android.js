@@ -212,7 +212,6 @@ class ZoomableBox extends React.Component<Props, State> {
         onLayout={this._onLayout}
         style={{
           ...this.props.style,
-          position: 'absolute',
           transform: [
             {scale: this.scale()},
             {translateX: this.panX() / this.scale()},

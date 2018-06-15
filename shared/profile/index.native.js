@@ -3,7 +3,6 @@ import {showImagePicker} from 'react-native-image-picker'
 import * as shared from './shared'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/tracker'
-import {isIOS} from '../constants/platform'
 import ErrorComponent from '../common-adapters/error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
@@ -115,8 +114,7 @@ class Profile extends Component<Props, State> {
         console.error(response.error)
         throw new Error(response.error)
       }
-      const filename = isIOS ? response.uri.replace('file://', '') : response.path
-      this.props.onEditAvatar(filename)
+      this.props.onEditAvatar(response)
     })
   }
 

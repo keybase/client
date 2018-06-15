@@ -3,7 +3,8 @@ import {Component} from 'react'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 export type Props = {
-  filename: string,
+  // filename: string,
+  image: Object,
   onClose: () => void,
   onSave: (filename: string, crop?: RPCTypes.ImageCropRect) => void,
 }

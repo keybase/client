@@ -6,8 +6,8 @@ import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 import type {RouteProps} from '../../route-tree/render-route'
 
-const mapStateToProps = (state: TypedState, {routeProps}: RouteProps<{filename: ?string}, {}>) => ({
-  filename: routeProps.get('filename'),
+const mapStateToProps = (state: TypedState, {routeProps}: RouteProps<{image: ?Object}, {}>) => ({
+  image: routeProps.get('image'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

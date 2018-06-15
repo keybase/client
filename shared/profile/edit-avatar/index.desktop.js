@@ -2,18 +2,27 @@
 import * as React from 'react'
 import fs from 'fs'
 import logger from '../../logger'
-import {Box, Button, ButtonBar, Icon, MaybePopup, Text, iconCastPlatformStyles} from '../../common-adapters'
+import {
+  Box,
+  Button,
+  ButtonBar,
+  Icon,
+  MaybePopup,
+  Text,
+  WaitingButton,
+  iconCastPlatformStyles,
+} from '../../common-adapters'
 import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
 import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} from '../../styles'
 import type {Props} from '.'
 
 type State = {
-  initialX: number,
-  initialY: number,
+  dragging: boolean,
   finalX: number,
   finalY: number,
-  dragging: boolean,
   hasPreview: boolean,
+  initialX: number,
+  initialY: number,
   scale: number,
 }
 
@@ -25,12 +34,12 @@ class EditAvatar extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      initialX: 0,
-      initialY: 0,
+      dragging: false,
       finalX: 0,
       finalY: 0,
-      dragging: false,
       hasPreview: false,
+      initialX: 0,
+      initialY: 0,
       scale: 1,
     }
   }
@@ -101,11 +110,11 @@ class EditAvatar extends React.Component<Props, State> {
   _validDrag = e => Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
 
   _onDragOver = e => {
-    // if (this._validDrag(e)) {
-    //   e.dataTransfer.dropEffect = 'copy'
-    // } else {
-    //   e.dataTransfer.dropEffect = 'none'
-    // }
+    if (this._validDrag(e)) {
+      e.dataTransfer.dropEffect = 'copy'
+    } else {
+      e.dataTransfer.dropEffect = 'none'
+    }
   }
 
   _paintImage = (path: string) => {
@@ -157,19 +166,23 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onSave = e => {
-    const scale = 1 + parseFloat(this.state.scale)
-    const x = -this._image.offsetLeft * scale
-    const y = -this._image.offsetTop * scale
-    const avatarSize = 256 * scale
+    if (this._image.src) {
+      const x = -this._image.offsetLeft
+      const y = -this._image.offsetTop
+      const rH = this._image.naturalHeight / this._image.height
+      const rW = this._image.naturalWidth / this._image.width
+      const avatarSize = this._image.parentElement.offsetWidth
+      const x0 = rW * x
+      const y0 = rH * y
+      const crop = {
+        x0: Math.round(x0),
+        y0: Math.round(y0),
+        x1: Math.round(x0 + avatarSize * rW),
+        y1: Math.round(y0 + avatarSize * rH),
+      }
 
-    console.log()
-
-    // this.props.onSave(this._image.src.replace('file://', ''), {
-    //   x0: x,
-    //   y0: y,
-    //   x1: avatarSize + x,
-    //   y1: avatarSize + y,
-    // })
+      this.props.onSave(this._image.src.replace('file://', ''), crop)
+    }
   }
 
   render = () => {
@@ -185,7 +198,10 @@ class EditAvatar extends React.Component<Props, State> {
           <Text type="BodyPrimaryLink" onClick={this._filePickerOpen}>
             or browse your computer for one
           </Text>
-          <HoverBox className={this.state.hasPreview ? 'filled' : null} onClick={this._filePickerOpen}>
+          <HoverBox
+            className={this.state.hasPreview ? 'filled' : null}
+            onClick={this.state.hasPreview ? null : this._filePickerOpen}
+          >
             <input
               type="file"
               style={styles.hidden}
@@ -223,7 +239,13 @@ class EditAvatar extends React.Component<Props, State> {
           />
           <ButtonBar>
             <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-            <Button type="Primary" onClick={this._onSave} label="Save" disabled={!this.state.hasPreview} />
+            <WaitingButton
+              type="Primary"
+              onClick={this._onSave}
+              label="Save"
+              disabled={!this.state.hasPreview}
+              waitingKey={null}
+            />
           </ButtonBar>
         </Box>
       </MaybePopup>
@@ -242,15 +264,15 @@ const HoverBox = glamorous(Box)({
     borderColor: globalColors.lightGrey2,
     cursor: 'grab',
   },
+  '&.filled:active': {
+    cursor: 'grabbing',
+  },
   ':hover': {
     backgroundColor: globalColors.blue_30,
     borderColor: globalColors.blue_60,
   },
   ':hover .icon': {
     color: globalColors.blue_60,
-  },
-  '&.filled img': {
-    opacity: 0.25,
   },
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.lightGrey2,
@@ -262,7 +284,7 @@ const HoverBox = glamorous(Box)({
   height: 132,
   marginBottom: globalMargins.small,
   marginTop: globalMargins.medium,
-  // overflow: 'hidden',
+  overflow: 'hidden',
   position: 'relative',
   width: 132,
 })

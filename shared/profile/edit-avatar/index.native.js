@@ -1,87 +1,72 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, ButtonBar, StandardScreen} from '../../common-adapters'
-import {NativeDimensions, NativeImage, ZoomableBox} from '../../common-adapters/mobile.native'
+import {Box, ButtonBar, StandardScreen, WaitingButton} from '../../common-adapters'
+import {NativeImage, ZoomableBox} from '../../common-adapters/mobile.native'
 import {globalColors, globalStyles, globalMargins, platformStyles} from '../../styles'
 import type {Props} from '.'
 
-const {width: screenWidth, height: screenHeight} = NativeDimensions.get('window')
-
-class AutoMaxSizeImage extends React.Component<any, {width: number, height: number, loaded: boolean}> {
-  state = {height: 0, width: 0, loaded: false}
-  _mounted: boolean = false
-
-  componentWillUnmount() {
-    this._mounted = false
-  }
-  componentDidMount() {
-    this._mounted = true
-    NativeImage.getSize(this.props.source.uri, (width, height) => {
-      if (this._mounted) {
-        this.setState({height, width})
-      }
-    })
-  }
-
-  _setLoaded = () => this.setState({loaded: true})
-
-  render() {
-    return (
-      <ZoomableBox
-        contentContainerStyle={{flex: 1, position: 'relative'}}
-        maxZoom={10}
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          width: 250,
-          height: 250,
-          borderRadius: 250,
-          backgroundColor: globalColors.lightGrey2,
-          marginBottom: globalMargins.tiny,
-        }}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-      >
-        <NativeImage
-          {...this.props}
-          resizeMode="cover"
-          style={{
-            flex: 1,
-            height: Math.min(this.state.height, screenHeight),
-            width: Math.min(this.state.width, screenWidth),
-            alignSelf: 'center',
-            opacity: this.props.opacity,
-          }}
-        />
-      </ZoomableBox>
-    )
-  }
-}
-
 class EditAvatar extends React.Component<Props> {
   _onSave = () => {
-    this.props.onSave(this.props.filename)
+    // this.props.onSave(this.props.filename)
   }
 
   render() {
+    console.log('SPOONER', this.props.image)
+
     return (
-      <StandardScreen style={container} onCancel={this.props.onClose} title="Zoom and pan">
+      <StandardScreen
+        style={container}
+        onCancel={this.props.onClose}
+        title="Zoom and pan"
+        scrollEnabled={false}
+      >
         <Box
           style={{
-            ...globalStyles.flexBoxColumn,
             alignItems: 'center',
             marginBottom: globalMargins.small,
             marginTop: globalMargins.small,
           }}
         >
-          <AutoMaxSizeImage source={{uri: this.props.filename}} />
+          <Box
+            style={{
+              backgroundColor: globalColors.lightGrey2,
+              borderRadius: 250,
+              height: 250,
+              marginBottom: globalMargins.tiny,
+              overflow: 'hidden',
+              position: 'relative',
+              width: 250,
+            }}
+          >
+            <ZoomableBox
+              maxZoom={10}
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              style={{
+                height: 250,
+                width: 250,
+              }}
+            >
+              <NativeImage
+                source={{uri: `data:image/jpeg;base64,${this.props.image.data}`}}
+                resizeMode="contain"
+                style={{
+                  alignSelf: 'center',
+                  flex: 1,
+                  height: this.props.image.height,
+                  width: this.props.image.width,
+                }}
+              />
+            </ZoomableBox>
+          </Box>
           <ButtonBar direction="column">
-            <Button
+            <WaitingButton
               type="Primary"
               fullWidth={true}
               onClick={this._onSave}
               label="Save"
               style={{width: '100%', marginTop: globalMargins.tiny}}
+              waitingKey={null}
             />
           </ButtonBar>
         </Box>

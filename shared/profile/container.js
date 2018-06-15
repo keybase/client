@@ -84,8 +84,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
   onClickShowcaseOffer: () => dispatch(navigateAppend(['showcaseTeamOffer'])),
-  onEditAvatar: (filename?: string) =>
-    dispatch(navigateAppend([{props: {filename}, selected: 'editAvatar'}])),
+  onEditAvatar: (image?: Object) => dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
   onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),
   onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
