@@ -92,7 +92,7 @@ func (e obsoleteTrackingFS) isObsolete() bool {
 func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 	toStrip string, fs http.FileSystem, err error) {
 	fields := strings.Split(requestPath, "/")
-	if len(fields) < 3 {
+	if len(fields) < 2 {
 		return "", nil, errors.New("bad path")
 	}
 
