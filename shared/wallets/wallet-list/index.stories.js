@@ -9,7 +9,6 @@ const common = {
   name: '',
   keybaseUser: '',
   contents: '',
-  onSelect: action('onSelect'),
 }
 
 const mockWallets = [
