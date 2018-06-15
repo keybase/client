@@ -83,7 +83,14 @@ class _AddWallet extends React.PureComponent<AddProps & FloatingMenuParentProps>
         style={{backgroundColor: globalColors.white}}
         ref={this.props.setAttachmentRef}
       >
-        <Box2 style={{height: rowHeight}} direction="horizontal" fullWidth={true} gap="xsmall">
+        <Box2
+          style={{height: rowHeight, paddingTop: globalMargins.small}}
+          direction="horizontal"
+          fullWidth={true}
+          gap="xsmall"
+          gapStart={true}
+          gapEnd={true}
+        >
           <Icon type="iconfont-new" color={globalColors.blue} />
           <Text type="BodyBigLink">Add a wallet</Text>
         </Box2>
