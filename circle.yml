@@ -105,7 +105,7 @@ jobs:
         working_directory: shared/react-native/android
         environment:
           TERM: dumb
-        command: ./gradlew --stacktrace --debug assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
+        command: ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
     # Save dependency cache
     - save_cache:
         key: v1-dep-{{ .Branch }}-{{ epoch }}
