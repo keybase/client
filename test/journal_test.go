@@ -26,8 +26,8 @@ func TestJournalSimple(t *testing.T) {
 			pauseJournal(),
 			mkfile("a/b", "hello"),
 			checkUnflushedPaths([]string{
-				"alice,bob/a",
-				"alice,bob/a/b",
+				"/keybase/private/alice,bob/a",
+				"/keybase/private/alice,bob/a/b",
 			}),
 			// Check the data -- this should read from the journal if
 			// it hasn't flushed yet.
@@ -61,8 +61,8 @@ func TestJournalExclWrite(t *testing.T) {
 			mkfile("a/c", "hello"),
 			mkfileexcl("a/b"),
 			checkUnflushedPaths([]string{
-				"alice,bob/a",
-				"alice,bob/a/c",
+				"/keybase/private/alice,bob/a",
+				"/keybase/private/alice,bob/a/c",
 			}),
 			lsdir("a/", m{"b$": "FILE", "c$": "FILE"}),
 		),
@@ -90,8 +90,8 @@ func TestJournalCrSimple(t *testing.T) {
 			pauseJournal(),
 			mkfile("a/b", "uh oh"),
 			checkUnflushedPaths([]string{
-				"alice,bob/a",
-				"alice,bob/a/b",
+				"/keybase/private/alice,bob/a",
+				"/keybase/private/alice,bob/a/b",
 			}),
 			// Don't flush yet.
 		),
@@ -144,8 +144,8 @@ func TestJournalCrManyFiles(t *testing.T) {
 		as(bob, busyWork...),
 		as(bob,
 			checkUnflushedPaths([]string{
-				"alice,bob",
-				"alice,bob/hi",
+				"/keybase/private/alice,bob",
+				"/keybase/private/alice,bob/hi",
 			}),
 			// Don't flush yet.
 		),
@@ -181,8 +181,8 @@ func TestJournalDoubleCrSimple(t *testing.T) {
 			pauseJournal(),
 			mkfile("a/b", "uh oh"),
 			checkUnflushedPaths([]string{
-				"alice,bob/a",
-				"alice,bob/a/b",
+				"/keybase/private/alice,bob/a",
+				"/keybase/private/alice,bob/a/b",
 			}),
 			// Don't flush yet.
 		),
@@ -209,8 +209,8 @@ func TestJournalDoubleCrSimple(t *testing.T) {
 			pauseJournal(),
 			mkfile("a/c", "uh oh"),
 			checkUnflushedPaths([]string{
-				"alice,bob/a",
-				"alice,bob/a/c",
+				"/keybase/private/alice,bob/a",
+				"/keybase/private/alice,bob/a/c",
 			}),
 			// Don't flush yet.
 		),
@@ -260,8 +260,8 @@ func TestJournalCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
 			pauseJournal(),
 			write("a/b", ntimesString(15, "0123456789")),
 			checkUnflushedPaths([]string{
-				"alice,bob/a",
-				"alice,bob/a/b",
+				"/keybase/private/alice,bob/a",
+				"/keybase/private/alice,bob/a/b",
 			}),
 			resumeJournal(),
 			flushJournal(),
@@ -295,8 +295,8 @@ func testJournalCrResolutionHitsConflict(t *testing.T, options []optionOp) {
 			pauseJournal(),
 			mkfile("a/b", "uh oh"),
 			checkUnflushedPaths([]string{
-				"alice,bob/a",
-				"alice,bob/a/b",
+				"/keybase/private/alice,bob/a",
+				"/keybase/private/alice,bob/a/b",
 			}),
 			// Don't flush yet.
 		),
@@ -376,9 +376,9 @@ func TestJournalQRSimple(t *testing.T) {
 			addTime(2*time.Minute),
 			forceQuotaReclamation(),
 			checkUnflushedPaths([]string{
-				"alice",
-				"alice/c",
-				"alice/d",
+				"/keybase/private/alice",
+				"/keybase/private/alice/c",
+				"/keybase/private/alice/d",
 			}),
 			resumeJournal(),
 			flushJournal(),
@@ -394,14 +394,15 @@ func TestJournalCoalescingBasicCreates(t *testing.T) {
 	var reads []fileOp
 	listing := m{"^a$": "DIR"}
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
-	unflushedPaths := []string{"alice,bob"}
+	unflushedPaths := []string{"/keybase/private/alice,bob"}
 	for i := 0; i < iters; i++ {
 		name := fmt.Sprintf("a%d", i)
 		contents := fmt.Sprintf("hello%d", i)
 		busyWork = append(busyWork, mkfile(name, contents))
 		reads = append(reads, read(name, contents))
 		listing["^"+name+"$"] = "FILE"
-		unflushedPaths = append(unflushedPaths, "alice,bob/"+name)
+		unflushedPaths = append(
+			unflushedPaths, "/keybase/private/alice,bob/"+name)
 	}
 
 	test(t, journal(), batchSize(1),
@@ -442,13 +443,14 @@ func TestJournalCoalescingCreatesPlusCR(t *testing.T) {
 	var reads []fileOp
 	listing := m{"^a$": "DIR", "^b$": "DIR"}
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
-	unflushedPaths := []string{"alice,bob"}
+	unflushedPaths := []string{"/keybase/private/alice,bob"}
 	for i := 0; i < iters; i++ {
 		name := fmt.Sprintf("a%d", i)
 		contents := fmt.Sprintf("hello%d", i)
 		busyWork = append(busyWork, mkfile(name, contents))
 		listing["^"+name+"$"] = "FILE"
-		unflushedPaths = append(unflushedPaths, "alice,bob/"+name)
+		unflushedPaths = append(
+			unflushedPaths, "/keybase/private/alice,bob/"+name)
 	}
 
 	busyWork2 := []fileOp{}
@@ -513,7 +515,7 @@ func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
 	var busyWork2 []fileOp
 	listing := m{}
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
-	unflushedPaths := []string{"alice,bob/a"}
+	unflushedPaths := []string{"/keybase/private/alice,bob/a"}
 	targetMtime := time.Now().Add(1 * time.Minute)
 	for i := 0; i < iters; i++ {
 		name := fmt.Sprintf("%d", i)
@@ -523,7 +525,8 @@ func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
 		busyWork2 = append(busyWork2, rename("a/"+name+".tmp", "a/"+name))
 
 		listing["^"+name+"$"] = "FILE"
-		unflushedPaths = append(unflushedPaths, "alice,bob/a/"+name)
+		unflushedPaths = append(
+			unflushedPaths, "/keybase/private/alice,bob/a/"+name)
 	}
 	busyWork = append(busyWork, setmtime("a", targetMtime))
 
@@ -623,8 +626,8 @@ func TestJournalCoalescingWrites(t *testing.T) {
 		as(bob, busyWork...),
 		as(bob,
 			checkUnflushedPaths([]string{
-				"alice,bob/a",
-				"alice,bob/a/b",
+				"/keybase/private/alice,bob/a",
+				"/keybase/private/alice,bob/a/b",
 			}),
 			resumeJournal(),
 			// This should kick off conflict resolution.
@@ -683,14 +686,14 @@ func TestJournalCoalescingMixedOperations(t *testing.T) {
 		as(bob, busyWork...),
 		as(bob,
 			checkUnflushedPaths([]string{
-				"alice,bob",
-				"alice,bob/a",
-				"alice,bob/a/b",
-				"alice,bob/a/e",
-				"alice,bob/f",
-				"alice,bob/f/g",
-				"alice,bob/h",
-				"alice,bob/hi",
+				"/keybase/private/alice,bob",
+				"/keybase/private/alice,bob/a",
+				"/keybase/private/alice,bob/a/b",
+				"/keybase/private/alice,bob/a/e",
+				"/keybase/private/alice,bob/f",
+				"/keybase/private/alice,bob/f/g",
+				"/keybase/private/alice,bob/h",
+				"/keybase/private/alice,bob/hi",
 			}),
 			resumeJournal(),
 			// This should kick off conflict resolution.
@@ -740,8 +743,8 @@ func TestJournalCoalescingNoChanges(t *testing.T) {
 		as(bob, busyWork...),
 		as(bob,
 			checkUnflushedPaths([]string{
-				"alice,bob",
-				"alice,bob/hi",
+				"/keybase/private/alice,bob",
+				"/keybase/private/alice,bob/hi",
 			}),
 			resumeJournal(),
 			// This should kick off conflict resolution.

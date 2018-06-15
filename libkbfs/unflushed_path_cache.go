@@ -213,7 +213,8 @@ func addUnflushedPaths(ctx context.Context,
 	for _, chain := range chains.byOriginal {
 		if len(chain.ops) > 0 {
 			// Use the same final path from the chain for all ops.
-			finalPath := chain.ops[len(chain.ops)-1].getFinalPath().String()
+			finalPath := chain.ops[len(chain.ops)-1].getFinalPath().
+				CanonicalPathString()
 			for _, op := range chain.ops {
 				revPaths, ok := unflushedPaths[op.getWriterInfo().revision]
 				if !ok {
