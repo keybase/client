@@ -115,6 +115,9 @@ func (n NullConfiguration) GetBool(string, bool) (bool, bool) { return false, fa
 func (n NullConfiguration) GetAllUsernames() (NormalizedUsername, []NormalizedUsername, error) {
 	return NormalizedUsername(""), nil, nil
 }
+func (n NullConfiguration) GetAllUserConfigs() (*UserConfig, []UserConfig, error) {
+	return nil, nil, nil
+}
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
