@@ -39,6 +39,7 @@ jobs:
           # Some node dependencies break without this.
           echo 'export ANDROID_NDK=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
           echo 'export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
+
           source $BASH_ENV
 
     - checkout
