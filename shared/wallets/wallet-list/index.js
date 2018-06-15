@@ -116,20 +116,24 @@ type Props = {
   onLinkExisting: () => void,
 }
 
-const WalletList = (props: Props) => (
-  <Box2 direction="vertical" style={{width: 240}}>
-    {props.wallets.map(w => (
-      <Wallet
-        key={w.name}
-        onSelect={() => props.onSelect(w.name)}
-        isSelected={w.isSelected}
-        name={w.name}
-        keybaseUser={w.keybaseUser}
-        contents={w.contents}
-      />
-    ))}
-    <AddWallet onAddNew={props.onAddNew} onLinkExisting={props.onLinkExisting} />
-  </Box2>
-)
+class WalletList extends React.Component<Props> {
+  render = () => {
+    return (
+      <Box2 direction="vertical" style={{width: 240}}>
+        {this.props.wallets.map(w => (
+          <Wallet
+            key={w.name}
+            onSelect={() => this.props.onSelect(w.name)}
+            isSelected={w.isSelected}
+            name={w.name}
+            keybaseUser={w.keybaseUser}
+            contents={w.contents}
+          />
+        ))}
+        <AddWallet onAddNew={this.props.onAddNew} onLinkExisting={this.props.onLinkExisting} />
+      </Box2>
+    )
+  }
+}
 
 export {WalletList}
