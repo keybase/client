@@ -37,7 +37,7 @@ jobs:
         name: Update PATH and Define Environment Variable at Runtime
         command: |
           echo 'export GOPATH=$HOME/go-path' >> $BASH_ENV
-          echo 'export PATH=$GOROOT/bin:$PATH' >> $BASH_ENV
+          echo 'export PATH=$HOME/.yarn/bin:$GOROOT/bin:$PATH' >> $BASH_ENV
           echo 'export ANDROID_NDK_HOME=${ANDROID_NDK}' >> $BASH_ENV
           source $BASH_ENV
     # Machine Setup
@@ -98,8 +98,6 @@ jobs:
     - run: mkdir -p shared/react-native/android/app/build/intermediates/{assets,res/merged}/releaseUnsigned
     - run:
         working_directory: shared
-        environment:
-          PATH: $HOME/.yarn/bin:$PATH
         command: react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
     - run:
         working_directory: shared/react-native/android
