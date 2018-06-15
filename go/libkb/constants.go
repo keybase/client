@@ -698,5 +698,4 @@ const noiseFileLen = 1024 * 1024 * 2
 const MaxEphemeralLifetime = time.Hour * 24 * 7
 const MinEphemeralLifetime = time.Second * 30
 
-// Temporarily disable this.
-const MaxTeamMembersForPairwiseMAC = 0
+const MaxTeamMembersForPairwiseMAC = 100
