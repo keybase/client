@@ -1,5 +1,6 @@
 // @flow
 import {WalletList} from '.'
+import logger from '../../logger'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
 
 const common = {
@@ -30,10 +31,10 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onAddNew: () => {
-    console.log('TODO: onAddNew')
+    logger.error('TODO: onAddNew')
   },
   onLinkExisting: () => {
-    console.log('TODO: onAddNew')
+    logger.error('TODO: onLinkExisting')
   },
 })
 
