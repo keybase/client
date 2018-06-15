@@ -380,14 +380,19 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     if (renderMessages) {
       const messages = this.props.indicies.map(i => this.props.rowRenderer(i, this._measure))
       if (this.state.height) {
-        // cached height version, overflow hidden so its more clear if we're mismeasuring
+        // we keep Measure so the hierarchy doens't change if items get added (else you get flashing images and things update) but its effectively
+        // turned off
         content = (
-          <div data-key={this.props.id} style={{height: this.state.height, overflow: 'hidden'}}>
-            {messages}
-          </div>
+          <Measure>
+            {({measureRef}) => (
+              <div data-key={this.props.id} style={{height: this.state.height, overflow: 'hidden'}}>
+                {messages}
+              </div>
+            )}
+          </Measure>
         )
       } else {
-        // measure it
+        // really measure it
         content = (
           <Measure bounds={true} onResize={renderMessages ? this._onResize : null}>
             {({measureRef}) => (
