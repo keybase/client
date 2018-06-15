@@ -509,8 +509,14 @@ export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types._L
     return 'about:blank'
   }
   const {address, token} = localHTTPServerInfo || makeLocalHTTPServer() // make flow happy
-  const stripKeybase = Types.pathToString(path).slice(slashKeybaseSlashLength)
-  const encoded = encodeURIComponent(stripKeybase)
+  // We need to do this because otherwise encodeURIComponent would encode "/"s.
+  // If we get a relative redirect (e.g. when requested resource is index.html,
+  // we get redirected to "./"), we'd end up redirect to a wrong resource.
+  const encoded = Types.pathToString(path)
+    .slice(slashKeybaseSlashLength)
+    .split('/')
+    .map(e => encodeURIComponent(e))
+    .join('/')
   return `http://${address}/files/${encoded}?token=${token}`
 }
 
