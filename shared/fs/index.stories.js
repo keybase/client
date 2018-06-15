@@ -6,9 +6,11 @@ import * as Constants from '../constants/fs'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
 import Files from '.'
-import StillRow from './row/still-container'
+import ConnectedStillRow from './row/still-container'
+import StillRow from './row/still'
 import EditingRow from './row/editing'
 import PlaceholderRow from './row/placeholder'
+import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
 import {Box} from '../common-adapters'
 import Download from './footer/download'
@@ -25,13 +27,23 @@ const folderItemStyles = {
   textType: 'BodySemibold',
 }
 
+const fileItemStyles = {
+  iconSpec: {
+    type: 'basic',
+    iconType: 'icon-file-private-32',
+    iconColor: globalColors.darkBlue2,
+  },
+  textColor: globalColors.darkBlue,
+  textType: 'Body',
+}
+
 const rowProviders = {
   Row: ({path, routePath}) => ({
     pathItemType: 'folder',
     path,
     routePath,
   }),
-  StillRow: ({path}: {path: Types.Path}) => ({
+  ConnectedStillRow: ({path}: {path: Types.Path}) => ({
     name: Types.getPathName(path),
     onOpen: () => {},
     openInFileUI: () => {},
@@ -172,6 +184,12 @@ const folderHeaderProps = (names: Array<string>) => ({
   openInFileUI: action('openInFileUI'),
 })
 
+const commonRowProps = {
+  onSubmit: action('onSubmit'),
+  onUpdate: action('onUpdate'),
+  onCancel: action('onCancel'),
+}
+
 const load = () => {
   storiesOf('Files', module)
     .addDecorator(provider)
@@ -200,7 +218,7 @@ const load = () => {
     ))
     .add('Rows', () => (
       <Box>
-        <StillRow
+        <ConnectedStillRow
           path={Types.stringToPath('/keybase/private/a')}
           routeProps={I.Map({path: '/keybase/private/foo'})}
           routePath={I.List([])}
@@ -211,9 +229,7 @@ const load = () => {
           status="editing"
           itemStyles={folderItemStyles}
           isCreate={true}
-          onSubmit={action('onSubmit')}
-          onUpdate={action('onUpdate')}
-          onCancel={action('onCancel')}
+          {...commonRowProps}
         />
         <EditingRow
           name="From Dropbox (rename) (editing)"
@@ -221,9 +237,7 @@ const load = () => {
           status="editing"
           itemStyles={folderItemStyles}
           isCreate={false}
-          onSubmit={action('onSubmit')}
-          onUpdate={action('onUpdate')}
-          onCancel={action('onCancel')}
+          {...commonRowProps}
         />
         <EditingRow
           name="New Folder (saving)"
@@ -231,9 +245,7 @@ const load = () => {
           status="saving"
           itemStyles={folderItemStyles}
           isCreate={true}
-          onSubmit={action('onSubmit')}
-          onUpdate={action('onUpdate')}
-          onCancel={action('onCancel')}
+          {...commonRowProps}
         />
         <EditingRow
           name="New Folder (failed)"
@@ -241,9 +253,24 @@ const load = () => {
           status="failed"
           itemStyles={folderItemStyles}
           isCreate={true}
-          onSubmit={action('onSubmit')}
-          onUpdate={action('onUpdate')}
-          onCancel={action('onCancel')}
+          {...commonRowProps}
+        />
+        <UploadingRow name="foo" itemStyles={fileItemStyles} />
+        <UploadingRow name="foo" itemStyles={folderItemStyles} />
+        <StillRow
+          name="bar"
+          type="file"
+          lastModifiedTimestamp={Date.now()}
+          lastWriter="alice"
+          shouldShowMenu={true}
+          itemStyles={fileItemStyles}
+          badgeCount={0}
+          isDownloading={true}
+          isUserReset={false}
+          resetParticipants={[]}
+          onOpen={action('onOpen')}
+          openInFileUI={action('openInFileUI')}
+          onAction={action('onAction')}
         />
         <PlaceholderRow />
       </Box>
