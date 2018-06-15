@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import {invert} from 'lodash'
+import {type TypedState} from './reducer'
 
 const balanceDeltaToString = invert(RPCTypes.localBalanceDelta)
 const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
@@ -103,6 +104,8 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
 
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 
+const getAccounts = (state: TypedState) => state.wallets.accountMap
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -113,4 +116,5 @@ export {
   makeReserve,
   makeState,
   paymentResultToPayment,
+  getAccounts,
 }

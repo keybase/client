@@ -2,32 +2,9 @@
 import {WalletList} from '.'
 import logger from '../../logger'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
+import {getAccounts} from '../../constants/wallets'
 
-const common = {
-  isSelected: false,
-  name: '',
-  keybaseUser: '',
-  contents: '',
-}
-
-const mockWallets = [
-  {
-    ...common,
-    keybaseUser: 'cecileb',
-    isSelected: true,
-    name: "cecileb's wallet",
-    contents: '280.0871234 XLM + more',
-  },
-  {
-    ...common,
-    name: 'Second wallet',
-    contents: '56.9618203 XLM',
-  },
-]
-
-const mapStateToProps = (state: TypedState) => ({
-  wallets: mockWallets,
-})
+const mapStateToProps = (state: TypedState) => ({accounts: getAccounts(state)})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onAddNew: () => {
@@ -38,10 +15,32 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
-  wallets: stateProps.wallets,
-  onAddNew: dispatchProps.onAddNew,
-  onLinkExisting: dispatchProps.onLinkExisting,
-})
+const mergeProps = (stateProps, dispatchProps) => {
+  // TODO: Better sorting?
+  const accounts = stateProps.accounts.sortBy(a => a.name)
+
+  const wallets = accounts
+    .map(a => {
+      let name = a.name || a.accountID
+      // TODO: Better way to do this?
+      if (name.length > 20) {
+        name = name.substr(0, 20) + '...'
+      }
+
+      return {
+        // TODO: How to get keybaseUser?
+        name,
+        contents: a.balanceDescription,
+      }
+    })
+    .valueSeq()
+    .toJS()
+
+  return {
+    wallets,
+    onAddNew: dispatchProps.onAddNew,
+    onLinkExisting: dispatchProps.onLinkExisting,
+  }
+}
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(WalletList)
