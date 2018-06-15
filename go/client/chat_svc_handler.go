@@ -837,7 +837,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 		if arg.channel.TopicName != "" {
 			topicName = &arg.channel.TopicName
 		}
-		channelName := c.normalizeChannelName(arg.channel.Name)
+		channelName := c.normalizeChannelName(arg.channel)
 		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
 			TlfName:          channelName,
 			TlfVisibility:    visibility,
@@ -1039,7 +1039,7 @@ func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr str
 			return conv, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
 		}
 	} else {
-		channel.Name = c.normalizeChannelName(channel.Name)
+		channel.Name = c.normalizeChannelName(channel)
 	}
 
 	existing, existingRl, err := c.getExistingConvs(ctx, convID, channel)
@@ -1058,9 +1058,11 @@ func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr str
 	return existing[0], rlimits, nil
 }
 
-// If we have a channel name but the current username isn't present, add it.
-func (c *chatServiceHandler) normalizeChannelName(channelName string) string {
-	if channelName != "" && !strings.Contains(channelName, c.G().Env.GetUsername().String()) {
+// If we have a channel name but the current username isn't present and the
+// channel is private, add it.
+func (c *chatServiceHandler) normalizeChannelName(channel ChatChannel) string {
+	channelName := channel.Name
+	if !channel.Public && channelName != "" && !strings.Contains(channelName, c.G().Env.GetUsername().String()) {
 		channelName = fmt.Sprintf("%s,%s", channelName, c.G().Env.GetUsername())
 	}
 	return channelName
