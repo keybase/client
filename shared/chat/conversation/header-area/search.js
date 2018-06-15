@@ -1,6 +1,7 @@
 // @flow
 import UserInput from '../../../search/user-input/container'
 import * as Constants from '../../../constants/chat2'
+import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {
   connect,
@@ -12,17 +13,35 @@ import {
   type Dispatch,
 } from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
-  pendingConversationUsers: Constants.getMeta(state, Constants.pendingConversationIDKey).participants,
-})
+const mapStateToProps = (state: TypedState) => {
+  const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
+  return {
+    pendingConversationUsers: meta.participants,
+    resolvedConversationIDKey: meta.conversationIDKey,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClearSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-  onExitSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+  _onExitSearch: (conversationIDKey: Types.ConversationIDKey) => {
+    if (conversationIDKey !== Constants.pendingConversationIDKey) {
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'}))
+    } else {
+      Chat2Gen.createSetPendingMode({pendingMode: 'none'})
+    }
+  },
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    ...ownProps,
+    onExitSearch: () => dispatchProps._onExitSearch(stateProps.resolvedConversationIDKey),
+  }
+}
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers(
     {focusInputCounter: 0},
     {incrementFocus: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1})}
