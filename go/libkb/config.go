@@ -557,9 +557,8 @@ func (f JSONConfigFile) GetGpgOptions() []string {
 	}
 	return ret
 }
-func (f JSONConfigFile) GetRunMode() (RunMode, error) {
-	var err error
-	var ret RunMode = NoRunMode
+func (f JSONConfigFile) GetRunMode() (ret RunMode, err error) {
+	ret = NoRunMode
 	if s, isSet := f.GetStringAtPath("run_mode"); isSet {
 		ret, err = StringToRunMode(s)
 	}
