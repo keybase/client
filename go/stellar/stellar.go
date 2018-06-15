@@ -995,3 +995,16 @@ func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error)
 	_, res, _, err := libkb.ParseStellarSecretKey(skey.SecureNoLogString())
 	return res, err
 }
+
+func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {
+	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	if err != nil {
+		return ret, err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	ret, err = bundle.CreateNewAccount(&nextBundle, accountName, false /* makePrimary */)
+	if err != nil {
+		return ret, err
+	}
+	return ret, remote.Post(m.Ctx(), m.G(), nextBundle)
+}
