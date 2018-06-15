@@ -1,11 +1,9 @@
-# This configuration was automatically generated from a CircleCI 1.0 config.
-# It should include any build commands you had along with commands that CircleCI
-# inferred from your project structure. We strongly recommend you read all the
-# comments in this file to understand the structure of CircleCI 2.0, as the idiom
-# for configuration has changed substantially in 2.0 to allow arbitrary jobs rather
-# than the prescribed lifecycle of 1.0. In general, we recommend using this generated
-# configuration as a reference rather than using it in production, though in most
-# cases it should duplicate the execution of your original 1.0 config.
+# -----------------------------------------------------------------------------
+#
+#   REMINDER: If you edit this file, you'll most likely also want to edit
+#   circle.yml in the kbfs repository!
+#
+# -----------------------------------------------------------------------------
 version: 2
 jobs:
   build:
@@ -13,31 +11,31 @@ jobs:
     parallelism: 1
     shell: /bin/bash --login
     environment:
-      GOVERSION: 1.10.3
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
-      _JAVA_OPTIONS: -Xms512m -Xmx2048m
-      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"
-      REACT_NATIVE_MAX_WORKERS: 1
+
+      # Some node dependencies break without this.
       CXX: g++-4.8
-    # In CircleCI 1.0 we used a pre-configured image with a large number of languages and other packages.
-    # In CircleCI 2.0 you can now specify your own image, or use one of our pre-configured images.
-    # The following configuration line tells CircleCI to use the specified docker image as the runtime environment for you job.
-    # We have selected a pre-built image that mirrors the build environment we use on
-    # the 1.0 platform, but we recommend you choose an image more tailored to the needs
-    # of each job. For more information on choosing an image (or alternatively using a
-    # VM instead of a container) see https://circleci.com/docs/2.0/executor-types/
-    # To see the list of pre-built images that CircleCI provides for most common languages see
-    # https://circleci.com/docs/2.0/circleci-images/
+
+    # TODO: Consider picking a better docker image.
+    #
+    # For more information on choosing an image (or alternatively
+    # using a VM instead of a container) see
+    # https://circleci.com/docs/2.0/executor-types/ To see the list of
+    # pre-built images that CircleCI provides for most common
+    # languages see https://circleci.com/docs/2.0/circleci-images/
     docker:
     - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
       command: /sbin/init
+
     steps:
     - run:
         name: Update PATH and Define Environment Variable at Runtime
         command: |
           echo 'export GOPATH=$HOME/go-path' >> $BASH_ENV
           echo 'export PATH=$HOME/.yarn/bin:$GOROOT/bin:$PATH' >> $BASH_ENV
+
+          # Some node dependencies break without this.
           echo 'export ANDROID_NDK=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
           echo 'export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
           source $BASH_ENV
@@ -73,7 +71,10 @@ jobs:
     - run: mkdir -p ~/downloads ~/go-path
     - run: ls "$HOME/downloads"
     - run: ls "$ANDROID_HOME"
-    - run: if [[ ! -e "$HOME/downloads/go.$GOVERSION.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz -O $HOME/downloads/go.$GOVERSION.tar.gz ; fi
+    - run:
+        environment:
+          GOVERSION: 1.10.3
+        command: if [[ ! -e "$HOME/downloads/go.$GOVERSION.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz -O $HOME/downloads/go.$GOVERSION.tar.gz ; fi
     - run: cd $HOME && tar -xzvf downloads/go.$GOVERSION.tar.gz
     - run: sudo mv $HOME/go /usr/local
     - run: if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
@@ -100,11 +101,16 @@ jobs:
     - run: mkdir -p shared/react-native/android/app/build/intermediates/{assets,res/merged}/releaseUnsigned
     - run:
         working_directory: shared
+        environment:
+          REACT_NATIVE_MAX_WORKERS: 1
         command: react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
     - run:
         working_directory: shared/react-native/android
         environment:
           TERM: dumb
+          # Limit memory usage of gradle
+          _JAVA_OPTIONS: -Xms512m -Xmx2048m
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"
         command: ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
     # Save dependency cache
     - save_cache:
