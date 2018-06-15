@@ -1,6 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../../actions/fs-gen'
+import flags from '../../util/feature-flags'
 import {compose, setDisplayName, connect, type Dispatch, type TypedState} from '../../util/container'
 import AddNew from './add-new'
 
@@ -16,7 +17,7 @@ const mergeProps = (stateProps, {_newFolderRow}, {path, style}) => {
     pathElements,
     style,
     menuItems:
-      pathElements.length <= 2
+      pathElements.length <= 2 || !flags.fsWritesEnabled
         ? []
         : [
             {
