@@ -4,7 +4,7 @@ import logger from '../../logger'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
 import {getAccounts} from '../../constants/wallets'
 
-const mapStateToProps = (state: TypedState) => ({accounts: getAccounts(state)})
+const mapStateToProps = (state: TypedState) => ({accounts: getAccounts(state), me: state.config.username})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onAddNew: () => {
@@ -26,7 +26,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       }
 
       return {
-        // TODO: How to get keybaseUser?
+        keybaseUser: a.isDefault ? stateProps.me : '',
         name,
         contents: a.balanceDescription,
       }
