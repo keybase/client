@@ -131,8 +131,8 @@ class Thread extends React.PureComponent<Props, State> {
     this.setState(p => (p.isScrolling ? {isScrolling: false} : undefined))
   }, 200)
 
-  _rowRenderer = (ordinalIndex: number, measure: () => void) => {
-    const ordinal = this.props.messageOrdinals.get(ordinalIndex)
+  _rowRenderer = (ordinal: Types.Ordinal, measure: () => void) => {
+    const ordinalIndex = this.props.messageOrdinals.findIndex(ord => ord === ordinal)
     if (ordinal) {
       const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
       return (
@@ -145,7 +145,7 @@ class Thread extends React.PureComponent<Props, State> {
         />
       )
     }
-    return <div key={String(ordinalIndex)} />
+    return <div key={String(ordinal)} />
   }
 
   _onCopyCapture(e) {
@@ -184,29 +184,24 @@ class Thread extends React.PureComponent<Props, State> {
     )
 
     const numOrdinals = this.props.messageOrdinals.size
-    let indicies = []
-    for (var idx = 0; idx < numOrdinals; ++idx) {
+    let ordinals = []
+    this.props.messageOrdinals.forEach((ordinal, idx) => {
       const needNextWaypoint = idx % ordinalsInAWaypoint === 0
       const isLastItem = idx === numOrdinals - 1
       if (needNextWaypoint || isLastItem) {
         if (isLastItem) {
-          indicies.push(idx)
+          ordinals.push(ordinal)
         }
-
-        if (indicies.length) {
-          const ordinal = this.props.messageOrdinals.get(indicies[0] || 0)
-          if (!ordinal) {
-            throw new Error('Should be impossible')
-          }
-          const key = String(Types.ordinalToNumber(ordinal))
+        if (ordinals.length) {
+          const key = String(ordinals[0])
           waypoints.push(
-            <OrdinalWaypoint key={key} id={key} rowRenderer={this._rowRenderer} indicies={indicies} />
+            <OrdinalWaypoint key={key} id={key} rowRenderer={this._rowRenderer} ordinals={ordinals} />
           )
-          indicies = []
+          ordinals = []
         }
       }
-      indicies.push(idx)
-    }
+      ordinals.push(ordinal)
+    })
 
     waypoints.push(
       <BottomWaypoint
@@ -286,15 +281,15 @@ class BottomWaypoint extends React.PureComponent<TopBottomWaypointProps, TopBott
 
 type OrdinalWaypointProps = {
   id: string,
-  rowRenderer: (ordinalIndex: number, measure: () => void) => React.Node,
-  indicies: Array<number>,
+  rowRenderer: (ordinal: Types.Ordinal, measure: () => void) => React.Node,
+  ordinals: Array<Types.Ordinal>,
 }
 
 type OrdinalWaypointState = {
   // cached height
   height: ?number,
   // how we keep track if height needs to be tossed
-  heightForIndicies: ?string,
+  heightForOrdinals: ?string,
   // in view
   isVisible: boolean,
   // width just to keep track if we should toss height
@@ -303,7 +298,7 @@ type OrdinalWaypointState = {
 class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypointState> {
   state = {
     height: null,
-    heightForIndicies: null,
+    heightForOrdinals: null,
     isVisible: true,
     width: null,
   }
@@ -354,23 +349,23 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     this.setState(p => (p.height ? {height: null} : null))
   }, 100)
 
-  static _getIndiciesHeightKey = indicies => indicies.join('')
+  static _getOrdinalsHeightKey = ordinals => ordinals.join('')
 
   shouldComponentUpdate(nextProps, nextState) {
-    // indicies is an array so we need to compare it explicitly
+    // ordinals is an array so we need to compare it explicitly
     return (
       this.state.height !== nextState.height ||
       this.state.isVisible !== nextState.isVisible ||
       // we ignore width changes, its just to bookkeep height
-      OrdinalWaypoint._getIndiciesHeightKey(nextProps.indicies) !== this.state.heightForIndicies
+      OrdinalWaypoint._getOrdinalsHeightKey(nextProps.ordinals) !== this.state.heightForOrdinals
     )
   }
 
   static getDerivedStateFromProps(props, state) {
-    const heightForIndicies = OrdinalWaypoint._getIndiciesHeightKey(props.indicies)
-    if (heightForIndicies !== state.heightForIndicies) {
-      // if the Indicies changed remeasure
-      return {height: null, heightForIndicies}
+    const heightForOrdinals = OrdinalWaypoint._getOrdinalsHeightKey(props.ordinals)
+    if (heightForOrdinals !== state.heightForOrdinals) {
+      // if the ordinals changed remeasure
+      return {height: null, heightForOrdinals}
     }
     return null
   }
@@ -380,7 +375,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     const renderMessages = !this.state.height || this.state.isVisible
     let content
     if (renderMessages) {
-      const messages = this.props.indicies.map(i => this.props.rowRenderer(i, this._measure))
+      const messages = this.props.ordinals.map(i => this.props.rowRenderer(i, this._measure))
       content = (
         <Measure bounds={true} onResize={this._onResize}>
           {({measureRef}) => (
