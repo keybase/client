@@ -4,7 +4,7 @@ import {Box2, ClickableBox, Icon, Text, Avatar, FloatingMenu} from '../../common
 import {globalStyles, globalColors, isMobile} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 
-type Props = {
+type WalletProps = {
   isSelected: boolean,
   name: string,
   keybaseUser: string,
@@ -12,7 +12,7 @@ type Props = {
   onSelect: () => void,
 }
 
-class Wallet extends React.PureComponent<Props> {
+class Wallet extends React.PureComponent<WalletProps> {
   render() {
     const color = this.props.isSelected ? globalColors.blue : globalColors.white
 
@@ -97,4 +97,32 @@ const AddWallet = FloatingMenuParentHOC(_AddWallet)
 
 const rowHeight = isMobile ? 56 : 48
 
-export {Wallet, AddWallet}
+type Props = {
+  wallets: Array<{
+    isSelected: boolean,
+    name: string,
+    keybaseUser: string,
+    contents: string,
+  }>,
+  onSelect: (name: string) => void,
+  onAddNew: () => void,
+  onLinkExisting: () => void,
+}
+
+const WalletList = (props: Props) => (
+  <Box2 direction="vertical" style={{width: 240}}>
+    {props.wallets.map(w => (
+      <Wallet
+        key={w.name}
+        onSelect={() => props.onSelect(w.name)}
+        isSelected={w.isSelected}
+        name={w.name}
+        keybaseUser={w.keybaseUser}
+        contents={w.contents}
+      />
+    ))}
+    <AddWallet onAddNew={props.onAddNew} onLinkExisting={props.onLinkExisting} />
+  </Box2>
+)
+
+export {Wallet, AddWallet, WalletList}

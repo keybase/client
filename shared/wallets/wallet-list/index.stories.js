@@ -1,9 +1,8 @@
 // @flow
 import React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
-import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
-import {Wallet, AddWallet} from '.'
+import {WalletList} from '.'
 
 const common = {
   isSelected: false,
@@ -13,7 +12,7 @@ const common = {
   onSelect: action('onSelect'),
 }
 
-const mocks = [
+const mockWallets = [
   {
     ...common,
     keybaseUser: 'cecileb',
@@ -34,14 +33,12 @@ const load = () => {
   storiesOf('Wallets', module)
     .addDecorator(provider)
     .add('Wallet List', () => (
-      <Box style={{width: 240}}>
-        {mocks.map(m => <Wallet key={m.name} {...m} />)}
-        <AddWallet
-          showingMenu={true}
-          onAddNew={action('onAddNew')}
-          onLinkExisting={action('onAddExisting')}
-        />
-      </Box>
+      <WalletList
+        wallets={mockWallets}
+        onAddNew={action('onAddNew')}
+        onLinkExisting={action('onLinkExisting')}
+        onSelect={action('onSelect')}
+      />
     ))
 }
 
