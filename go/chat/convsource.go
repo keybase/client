@@ -1066,7 +1066,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 }
 
 // ClearFromDelete clears the current cache if there is a delete that we don't know about
-// and returns true to the caller if it schedule a background loader job
+// and returns true to the caller if it schedules a background loader job
 func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, deleteID chat1.MessageID) bool {
 	defer s.Trace(ctx, func() error { return nil }, "ClearFromDelete")()
