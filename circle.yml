@@ -12,8 +12,6 @@ jobs:
     shell: /bin/bash --login
     environment:
       GOVERSION: 1.10.3
-      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
-      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
 
       # Some node dependencies break without this.
       CXX: g++-4.8
@@ -142,18 +140,7 @@ jobs:
     # TODO: Run device tests (see old versions of this file).
 
     # Only run coverage if there were changes to the shared folder
-    - run: mkdir -p $CIRCLE_TEST_REPORTS/flow-coverage
+    - run: mkdir -p /tmp/flow-coverage
     - run:
         working_directory: shared
-        command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o $CIRCLE_TEST_REPORTS/flow-coverage && bash <(curl -s https://codecov.io/bash) -f $CIRCLE_TEST_REPORTS/flow-coverage/flow-coverage.json; fi
-
-    # Teardown
-    #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
-    # Save test results
-    - store_test_results:
-        path: /tmp/circleci-test-results
-    # Save artifacts
-    - store_artifacts:
-        path: /tmp/circleci-artifacts
-    - store_artifacts:
-        path: /tmp/circleci-test-results
+        command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json; fi
