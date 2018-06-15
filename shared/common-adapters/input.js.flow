@@ -48,6 +48,7 @@ export type Props = {
   style?: StylesCrossPlatform,
   type?: 'password' | 'text' | 'passwordVisible',
   value?: ?string,
+  selectTextOnFocus?: boolean,
 
   // Looks like desktop only, but used on mobile for onSubmitEditing (!).
   // TODO: Have a separate onSubmitEditing prop.
@@ -69,7 +70,6 @@ export type Props = {
   // If keyboardType is set, it overrides type.
   keyboardType?: KeyboardType,
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
-  selectTextOnFocus?: boolean,
 }
 
 export type Selection = {start: number, end: number}

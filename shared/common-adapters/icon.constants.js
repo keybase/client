@@ -21,25 +21,35 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-access-denied-266.gif'),
   },
-  'icon-addon-lock-12': {
+  'icon-addon-file-downloading': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-addon-lock-12.png'),
+    require: require('../images/icons/icon-addon-file-downloading.png'),
   },
-  'icon-addon-lock-8': {
+  'icon-addon-file-uploading': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-addon-lock-8.png'),
+    require: require('../images/icons/icon-addon-file-uploading.png'),
   },
-  'icon-addon-lock-active-12': {
+  'icon-addon-lock-16': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-addon-lock-active-12.png'),
+    require: require('../images/icons/icon-addon-lock-16.png'),
   },
-  'icon-addon-lock-active-8': {
+  'icon-addon-lock-22': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-addon-lock-active-8.png'),
+    require: require('../images/icons/icon-addon-lock-22.png'),
+  },
+  'icon-addon-lock-active-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-active-16.png'),
+  },
+  'icon-addon-lock-active-22': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-active-22.png'),
   },
   'icon-bitcoin-logo-48': {
     isFont: false,

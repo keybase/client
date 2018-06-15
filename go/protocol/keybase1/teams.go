@@ -2334,6 +2334,13 @@ type FindNextMerkleRootAfterTeamRemovalArg struct {
 	Prev              MerkleRootV2 `codec:"prev" json:"prev"`
 }
 
+type FindNextMerkleRootAfterTeamRemovalBySigningKeyArg struct {
+	Uid        UID    `codec:"uid" json:"uid"`
+	SigningKey KID    `codec:"signingKey" json:"signingKey"`
+	Team       TeamID `codec:"team" json:"team"`
+	IsPublic   bool   `codec:"isPublic" json:"isPublic"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2384,6 +2391,10 @@ type TeamsInterface interface {
 	// removed from the team at that given seqno in the team's chain. You should pass in a previous
 	// Merkle root as a starting point for the binary search.
 	FindNextMerkleRootAfterTeamRemoval(context.Context, FindNextMerkleRootAfterTeamRemovalArg) (NextMerkleRootRes, error)
+	// FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user
+	// with the given signing key being removed from the given team. If there are several such instances,
+	// we will return just the last one.
+	FindNextMerkleRootAfterTeamRemovalBySigningKey(context.Context, FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (NextMerkleRootRes, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -3078,6 +3089,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"findNextMerkleRootAfterTeamRemovalBySigningKey": {
+				MakeArg: func() interface{} {
+					ret := make([]FindNextMerkleRootAfterTeamRemovalBySigningKeyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FindNextMerkleRootAfterTeamRemovalBySigningKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FindNextMerkleRootAfterTeamRemovalBySigningKeyArg)(nil), args)
+						return
+					}
+					ret, err = i.FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3311,5 +3338,13 @@ func (c TeamsClient) TryDecryptWithTeamKey(ctx context.Context, __arg TryDecrypt
 // Merkle root as a starting point for the binary search.
 func (c TeamsClient) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, __arg FindNextMerkleRootAfterTeamRemovalArg) (res NextMerkleRootRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemoval", []interface{}{__arg}, &res)
+	return
+}
+
+// FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user
+// with the given signing key being removed from the given team. If there are several such instances,
+// we will return just the last one.
+func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.Context, __arg FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res NextMerkleRootRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey", []interface{}{__arg}, &res)
 	return
 }

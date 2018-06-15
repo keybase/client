@@ -268,8 +268,41 @@ func (t *TeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName str
 	return shouldPairwiseMAC(ctx, t.G(), t.loader, tlfName, tlfID, membersType, public)
 }
 
+func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion) (ret []keybase1.KID, err error) {
+
+	getArg := func(i int) *libkb.LoadUserArg {
+		if i >= len(uvs) {
+			return nil
+		}
+		tmp := libkb.NewLoadUserByUIDArg(ctx, g, uvs[i].Uid)
+		return &tmp
+	}
+
+	processResult := func(i int, upak *keybase1.UserPlusKeysV2AllIncarnations) {
+		if upak == nil {
+			return
+		}
+		for _, key := range upak.Current.DeviceKeys {
+			// Include only unrevoked encryption keys.
+			if !key.Base.IsSibkey && key.Base.Revocation == nil {
+				ret = append(ret, key.Base.Kid)
+			}
+		}
+	}
+
+	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, 0)
+	return ret, err
+}
+
+const pairseMACDisabled = true
+
 func shouldPairwiseMAC(ctx context.Context, g *globals.Context, loader *TeamLoader, tlfName string,
 	tlfID chat1.TLFID, membersType chat1.ConversationMembersType, public bool) (should bool, kids []keybase1.KID, err error) {
+
+	if pairseMACDisabled {
+		return false, nil, nil
+	}
+
 	defer g.CTraceTimed(ctx, fmt.Sprintf("shouldPairwiseMAC teamID %s", tlfID.String()), func() error { return err })()
 
 	team, err := loader.loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
@@ -288,19 +321,11 @@ func shouldPairwiseMAC(ctx context.Context, g *globals.Context, loader *TeamLoad
 		return false, nil, nil
 	}
 
-	unrevokedKIDs := []keybase1.KID{}
-	for _, member := range memberUVs {
-		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx, g.GlobalContext, member.Uid))
-		if err != nil {
-			return false, nil, err
-		}
-		for _, key := range upak.Current.DeviceKeys {
-			// Include only unrevoked encryption keys.
-			if !key.Base.IsSibkey && key.Base.Revocation == nil {
-				unrevokedKIDs = append(unrevokedKIDs, key.Base.Kid)
-			}
-		}
+	unrevokedKIDs, err := batchLoadEncryptionKIDs(ctx, g.GlobalContext, memberUVs)
+	if err != nil {
+		return false, nil, err
 	}
+
 	if len(unrevokedKIDs) > 10*libkb.MaxTeamMembersForPairwiseMAC {
 		// If someone on the team has a ton of devices, it could break our "100
 		// members" heuristic and lead to bad performance. We don't want to

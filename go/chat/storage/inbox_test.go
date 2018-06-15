@@ -101,7 +101,7 @@ func TestInboxBasic(t *testing.T) {
 	require.Equal(t, gregor1.Time(numConvs-1), res[0].GetMtime(), "order wrong")
 
 	// Fetch half of the messages (expect miss on first try)
-	vers, res, _, err = inbox.Read(context.TODO(), nil, &chat1.Pagination{
+	_, _, _, err = inbox.Read(context.TODO(), nil, &chat1.Pagination{
 		Num: numConvs / 2,
 	})
 	require.IsType(t, MissError{}, err, "expected miss error")
@@ -516,6 +516,7 @@ func TestInboxNewMessage(t *testing.T) {
 	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
+	require.NoError(t, err)
 	require.Equal(t, delMsg.GetMessageID(), maxMsg.GetMessageID())
 	delete := makeInboxMsg(5, chat1.MessageType_DELETE)
 	require.NoError(t, inbox.NewMessage(context.TODO(), 0, conv.GetConvID(), delete, nil))
@@ -550,14 +551,14 @@ func TestInboxReadMessage(t *testing.T) {
 	}
 
 	require.NoError(t, inbox.Merge(context.TODO(), 1, utils.PluckConvs(convs), nil, nil))
-	_, res, _, err := inbox.Read(context.TODO(), nil, nil)
+	_, _, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 
 	conv := convs[5]
 	msg := makeInboxMsg(2, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid2
 	require.NoError(t, inbox.NewMessage(context.TODO(), 2, conv.GetConvID(), msg, nil))
-	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
+	_, res, _, err := inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(1), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
@@ -716,6 +717,7 @@ func TestInboxSync(t *testing.T) {
 	convs[9].Conv.Expunge = chat1.Expunge{Upto: 3}
 	syncConvs = append(syncConvs, convs[9].Conv)
 	syncRes, err = inbox.Sync(context.TODO(), vers+1, syncConvs)
+	require.NoError(t, err)
 	newVers, newRes, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, vers+1, newVers)
@@ -747,7 +749,7 @@ func TestInboxServerVersion(t *testing.T) {
 	})
 	require.NoError(t, cerr)
 
-	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
+	_, _, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.Error(t, err)
 	require.IsType(t, MissError{}, err)
 

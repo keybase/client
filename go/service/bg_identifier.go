@@ -111,7 +111,7 @@ func (b *BackgroundIdentifier) populateWithFollowees() (err error) {
 }
 
 func (b *BackgroundIdentifier) populateWithFolloweesLocked() error {
-	uids, err := b.G().GetUPAKLoader().ListFollowedUIDs(b.uid)
+	uids, err := b.G().GetUPAKLoader().ListFollowedUIDs(context.TODO(), b.uid)
 	if err != nil {
 		return err
 	}

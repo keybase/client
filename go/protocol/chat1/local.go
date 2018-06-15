@@ -1211,6 +1211,7 @@ const (
 	OutboxErrorType_DUPLICATE       OutboxErrorType = 4
 	OutboxErrorType_EXPIRED         OutboxErrorType = 5
 	OutboxErrorType_TOOMANYATTEMPTS OutboxErrorType = 6
+	OutboxErrorType_ALREADY_DELETED OutboxErrorType = 7
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1223,6 +1224,7 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"DUPLICATE":       4,
 	"EXPIRED":         5,
 	"TOOMANYATTEMPTS": 6,
+	"ALREADY_DELETED": 7,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1233,6 +1235,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	4: "DUPLICATE",
 	5: "EXPIRED",
 	6: "TOOMANYATTEMPTS",
+	7: "ALREADY_DELETED",
 }
 
 func (e OutboxErrorType) String() string {
@@ -2329,6 +2332,7 @@ const (
 	MessageUnboxedErrorType_BADVERSION          MessageUnboxedErrorType = 2
 	MessageUnboxedErrorType_IDENTIFY            MessageUnboxedErrorType = 3
 	MessageUnboxedErrorType_EPHEMERAL           MessageUnboxedErrorType = 4
+	MessageUnboxedErrorType_PAIRWISE_MISSING    MessageUnboxedErrorType = 5
 )
 
 func (o MessageUnboxedErrorType) DeepCopy() MessageUnboxedErrorType { return o }
@@ -2339,6 +2343,7 @@ var MessageUnboxedErrorTypeMap = map[string]MessageUnboxedErrorType{
 	"BADVERSION":          2,
 	"IDENTIFY":            3,
 	"EPHEMERAL":           4,
+	"PAIRWISE_MISSING":    5,
 }
 
 var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
@@ -2347,6 +2352,7 @@ var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
 	2: "BADVERSION",
 	3: "IDENTIFY",
 	4: "EPHEMERAL",
+	5: "PAIRWISE_MISSING",
 }
 
 func (e MessageUnboxedErrorType) String() string {

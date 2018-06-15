@@ -9,10 +9,14 @@ import * as Types from '../constants/types/fs'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer
 export const cancelTransfer = 'fs:cancelTransfer'
+export const commitEdit = 'fs:commitEdit'
+export const discardEdit = 'fs:discardEdit'
 export const dismissTransfer = 'fs:dismissTransfer'
 export const download = 'fs:download'
 export const downloadFinished = 'fs:downloadFinished'
 export const downloadStarted = 'fs:downloadStarted'
+export const editFailed = 'fs:editFailed'
+export const editSuccess = 'fs:editSuccess'
 export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
@@ -28,11 +32,12 @@ export const fuseStatusResult = 'fs:fuseStatusResult'
 export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
-export const loadResets = 'fs:loadResets'
-export const loadResetsResult = 'fs:loadResetsResult'
+export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
+export const newFolderName = 'fs:newFolderName'
+export const newFolderRow = 'fs:newFolderRow'
 export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
@@ -48,6 +53,8 @@ export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 
 // Payload Types
 type _CancelTransferPayload = $ReadOnly<{|key: string|}>
+type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
+type _DiscardEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DismissTransferPayload = $ReadOnly<{|key: string|}>
 type _DownloadFinishedPayload = $ReadOnly<{|
   key: string,
@@ -65,6 +72,8 @@ type _DownloadStartedPayload = $ReadOnly<{|
   intent: Types.TransferIntent,
   opID: RPCTypes.OpID,
 |}>
+type _EditFailedPayload = $ReadOnly<{|editID: Types.EditID|}>
+type _EditSuccessPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _FavoriteIgnoreErrorPayload = $ReadOnly<{|
   path: Types.Path,
   errorText: string,
@@ -97,8 +106,10 @@ type _FuseStatusResultPayload = $ReadOnly<{|
 type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
-type _LoadResetsPayload = void
-type _LoadResetsResultPayload = $ReadOnly<{|tlfs: I.Map<Types.Path, Types.ResetMetadata>|}>
+type _LetResetUserBackInPayload = $ReadOnly<{|
+  id: RPCTypes.TeamID,
+  username: string,
+|}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
@@ -108,6 +119,11 @@ type _MimeTypeLoadedPayload = $ReadOnly<{|
   path: Types.Path,
   mimeType: string,
 |}>
+type _NewFolderNamePayload = $ReadOnly<{|
+  editID: Types.EditID,
+  name: string,
+|}>
+type _NewFolderRowPayload = $ReadOnly<{|parentPath: Types.Path|}>
 type _OpenFinderPopupPayload = $ReadOnly<{|
   targetRect: ?ClientRect,
   routePath: I.List<string>,
@@ -150,10 +166,14 @@ type _UninstallKBFSConfirmPayload = void
 
 // Action Creators
 export const createCancelTransfer = (payload: _CancelTransferPayload) => ({error: false, payload, type: cancelTransfer})
+export const createCommitEdit = (payload: _CommitEditPayload) => ({error: false, payload, type: commitEdit})
+export const createDiscardEdit = (payload: _DiscardEditPayload) => ({error: false, payload, type: discardEdit})
 export const createDismissTransfer = (payload: _DismissTransferPayload) => ({error: false, payload, type: dismissTransfer})
 export const createDownload = (payload: _DownloadPayload) => ({error: false, payload, type: download})
 export const createDownloadFinished = (payload: _DownloadFinishedPayload) => ({error: false, payload, type: downloadFinished})
 export const createDownloadStarted = (payload: _DownloadStartedPayload) => ({error: false, payload, type: downloadStarted})
+export const createEditFailed = (payload: _EditFailedPayload) => ({error: false, payload, type: editFailed})
+export const createEditSuccess = (payload: _EditSuccessPayload) => ({error: false, payload, type: editSuccess})
 export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({error: false, payload, type: favoriteIgnore})
 export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({error: false, payload, type: favoriteIgnoreError})
 export const createFavoritesLoad = (payload: _FavoritesLoadPayload) => ({error: false, payload, type: favoritesLoad})
@@ -169,11 +189,12 @@ export const createFuseStatusResult = (payload: _FuseStatusResultPayload) => ({e
 export const createInstallFuse = (payload: _InstallFusePayload) => ({error: false, payload, type: installFuse})
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
-export const createLoadResets = (payload: _LoadResetsPayload) => ({error: false, payload, type: loadResets})
-export const createLoadResetsResult = (payload: _LoadResetsResultPayload) => ({error: false, payload, type: loadResetsResult})
+export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({error: false, payload, type: letResetUserBackIn})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
 export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: false, payload, type: mimeTypeLoad})
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
+export const createNewFolderName = (payload: _NewFolderNamePayload) => ({error: false, payload, type: newFolderName})
+export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({error: false, payload, type: newFolderRow})
 export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({error: false, payload, type: openFinderPopup})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
@@ -189,10 +210,14 @@ export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload
 
 // Action Payloads
 export type CancelTransferPayload = $Call<typeof createCancelTransfer, _CancelTransferPayload>
+export type CommitEditPayload = $Call<typeof createCommitEdit, _CommitEditPayload>
+export type DiscardEditPayload = $Call<typeof createDiscardEdit, _DiscardEditPayload>
 export type DismissTransferPayload = $Call<typeof createDismissTransfer, _DismissTransferPayload>
 export type DownloadFinishedPayload = $Call<typeof createDownloadFinished, _DownloadFinishedPayload>
 export type DownloadPayload = $Call<typeof createDownload, _DownloadPayload>
 export type DownloadStartedPayload = $Call<typeof createDownloadStarted, _DownloadStartedPayload>
+export type EditFailedPayload = $Call<typeof createEditFailed, _EditFailedPayload>
+export type EditSuccessPayload = $Call<typeof createEditSuccess, _EditSuccessPayload>
 export type FavoriteIgnoreErrorPayload = $Call<typeof createFavoriteIgnoreError, _FavoriteIgnoreErrorPayload>
 export type FavoriteIgnorePayload = $Call<typeof createFavoriteIgnore, _FavoriteIgnorePayload>
 export type FavoritesLoadPayload = $Call<typeof createFavoritesLoad, _FavoritesLoadPayload>
@@ -208,11 +233,12 @@ export type FuseStatusResultPayload = $Call<typeof createFuseStatusResult, _Fuse
 export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePayload>
 export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
-export type LoadResetsPayload = $Call<typeof createLoadResets, _LoadResetsPayload>
-export type LoadResetsResultPayload = $Call<typeof createLoadResetsResult, _LoadResetsResultPayload>
+export type LetResetUserBackInPayload = $Call<typeof createLetResetUserBackIn, _LetResetUserBackInPayload>
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
 export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
 export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
+export type NewFolderNamePayload = $Call<typeof createNewFolderName, _NewFolderNamePayload>
+export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRowPayload>
 export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFinderPopupPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
@@ -230,10 +256,14 @@ export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfir
 // prettier-ignore
 export type Actions =
   | CancelTransferPayload
+  | CommitEditPayload
+  | DiscardEditPayload
   | DismissTransferPayload
   | DownloadFinishedPayload
   | DownloadPayload
   | DownloadStartedPayload
+  | EditFailedPayload
+  | EditSuccessPayload
   | FavoriteIgnoreErrorPayload
   | FavoriteIgnorePayload
   | FavoritesLoadPayload
@@ -249,11 +279,12 @@ export type Actions =
   | InstallFusePayload
   | InstallFuseResultPayload
   | InstallKBFSPayload
-  | LoadResetsPayload
-  | LoadResetsResultPayload
+  | LetResetUserBackInPayload
   | LocalHTTPServerInfoPayload
   | MimeTypeLoadPayload
   | MimeTypeLoadedPayload
+  | NewFolderNamePayload
+  | NewFolderRowPayload
   | OpenFinderPopupPayload
   | OpenInFileUIPayload
   | OpenPathItemPayload

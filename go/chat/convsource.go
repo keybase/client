@@ -200,8 +200,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, OfflineError{}
 	}
 
-	var rl []*chat1.RateLimit
-
 	// Get conversation metadata
 	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	if err != nil {
@@ -216,7 +214,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		Reason:         reason,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
-	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
@@ -1069,7 +1066,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 }
 
 // ClearFromDelete clears the current cache if there is a delete that we don't know about
-// and returns true to the caller if it schedule a background loader job
+// and returns true to the caller if it schedules a background loader job
 func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, deleteID chat1.MessageID) bool {
 	defer s.Trace(ctx, func() error { return nil }, "ClearFromDelete")()

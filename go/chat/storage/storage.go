@@ -758,6 +758,11 @@ func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, 
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 	s.Debug(ctx, "ClearBefore: convID: %s uid: %s msgID: %d", convID, uid, upto)
+
+	// Abort, we don't want to overflow uint (chat1.MessageID)
+	if upto == 0 {
+		return nil
+	}
 	return s.clearUpthrough(ctx, convID, uid, upto-1)
 }
 

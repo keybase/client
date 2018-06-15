@@ -19,6 +19,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         return Constants.shouldUseOldMimeType(original, meta) ? meta.set('mimeType', original.mimeType) : meta
       })
     case FsGen.folderListLoaded: {
+      let toRemove = []
       const toMerge = action.payload.pathItems.map((item, path) => {
         const original = state.pathItems.get(path)
 
@@ -38,6 +39,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // placeholder), which then gets updated when we hear back from RPC.
           return original
         }
+
+        toRemove = toRemove.concat(
+          original.children
+            .filter(child => !item.children.includes(child))
+            .toArray()
+            .map(name => Types.pathConcat(path, name))
+        )
+        console.log({msg: 'Removing entries in state.fs.pathItems', toRemove: toRemove})
+
         // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
         // can change `pathItems`, we need to make sure that neither one
         // clobbers the others' work.
@@ -45,9 +55,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           .set('badgeCount', original.badgeCount)
           .set('tlfMeta', original.tlfMeta)
           .set('favoriteChildren', original.favoriteChildren)
-          .set('resetParticipants', original.resetParticipants)
       })
-      return state.mergeIn(['pathItems'], toMerge)
+      return state
+        .set('pathItems', state.pathItems.filter((item, path) => !toRemove.includes(path)))
+        .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
     }
     case FsGen.folderListLoad:
@@ -140,21 +151,44 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['pathItems', action.payload.path],
         pathItem => (pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem)
       )
-    case FsGen.loadResetsResult:
-      const resetsToMerge = action.payload.tlfs.mapEntries(([path, item]) => {
-        const original = state.pathItems.get(path) || Constants.makeFolder({name: item.name})
-        // This cannot happen, but it's needed to make Flow happy.
-        if (original.type !== 'folder') return [path, original]
+    case FsGen.newFolderRow:
+      const {parentPath} = action.payload
+      const parentPathItem = state.pathItems.get(parentPath, Constants.makeUnknownPathItem())
+      if (parentPathItem.type !== 'folder') {
+        console.warn(`bad parentPath: ${parentPathItem.type}`)
+        return state
+      }
+      let newFolderName = 'New Folder'
+      for (let i = 2; parentPathItem.children.has(newFolderName); ++i) {
+        newFolderName = `New Folder ${i}`
+      }
 
-        return [
-          path,
-          // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
-          // can change `pathItems`, we need to make sure that neither one
-          // clobbers the others' work.
-          original.set('resetParticipants', item.resetParticipants),
+      return state.mergeIn(
+        ['edits'],
+        [
+          [
+            Constants.makeEditID(),
+            Constants.makeNewFolder({
+              name: newFolderName,
+              hint: newFolderName,
+              parentPath,
+            }),
+          ],
         ]
-      }, [])
-      return state.mergeIn(['pathItems'], resetsToMerge)
+      )
+    case FsGen.newFolderName:
+      return state.updateIn(
+        // $FlowFixMe
+        ['edits', action.payload.editID],
+        editItem => editItem && editItem.set('name', action.payload.name)
+      )
+    case FsGen.editSuccess:
+    case FsGen.discardEdit:
+      // $FlowFixMe
+      return state.removeIn(['edits', action.payload.editID])
+    case FsGen.editFailed:
+      // $FlowFixMe
+      return state.setIn(['edits', action.payload.editID, 'status'], 'failed')
     case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
     case FsGen.download:
@@ -171,7 +205,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
-    case FsGen.loadResets:
+    case FsGen.commitEdit:
+    case FsGen.letResetUserBackIn:
       return state
     default:
       /*::
