@@ -191,6 +191,7 @@ export const localMessageUnboxedErrorType = {
   badversion: 2,
   identify: 3,
   ephemeral: 4,
+  pairwiseMissing: 5,
 }
 
 export const localOutboxErrorType = {
@@ -201,6 +202,7 @@ export const localOutboxErrorType = {
   duplicate: 4,
   expired: 5,
   toomanyattempts: 6,
+  alreadyDeleted: 7,
 }
 
 export const localOutboxStateType = {
@@ -625,6 +627,7 @@ export type MessageUnboxedErrorType =
   | 2 // BADVERSION_2
   | 3 // IDENTIFY_3
   | 4 // EPHEMERAL_4
+  | 5 // PAIRWISE_MISSING_5
 
 export type MessageUnboxedPlaceholder = $ReadOnly<{messageID: MessageID, hidden: Boolean}>
 export type MessageUnboxedState =
@@ -670,6 +673,7 @@ export type OutboxErrorType =
   | 4 // DUPLICATE_4
   | 5 // EXPIRED_5
   | 6 // TOOMANYATTEMPTS_6
+  | 7 // ALREADY_DELETED_7
 
 export type OutboxID = Bytes
 export type OutboxInfo = $ReadOnly<{prev: MessageID, composeTime: Gregor1.Time}>

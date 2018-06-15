@@ -728,6 +728,9 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				return res, err
 			}
 		}
+		if p.ToAssertion != "" {
+			res.ToAssertion = &p.ToAssertion
+		}
 		// Override status with claim status
 		if p.Claim != nil {
 			if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
@@ -991,4 +994,17 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error) {
 	_, res, _, err := libkb.ParseStellarSecretKey(skey.SecureNoLogString())
 	return res, err
+}
+
+func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {
+	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	if err != nil {
+		return ret, err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	ret, err = bundle.CreateNewAccount(&nextBundle, accountName, false /* makePrimary */)
+	if err != nil {
+		return ret, err
+	}
+	return ret, remote.Post(m.Ctx(), m.G(), nextBundle)
 }

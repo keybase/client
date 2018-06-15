@@ -12,23 +12,18 @@ import {
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
-import {PopupHeaderText} from '../../../../../common-adapters/popup-menu'
+import {PopupHeaderText, type MenuItem} from '../../../../../common-adapters/popup-menu'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
   attachTo: ?React.Component<any, any>,
   author: string,
-  canDeleteHistory: boolean,
-  canEdit: boolean,
-  canExplodeNow: boolean,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   explodesAt: number,
-  onDeleteHistory: () => void,
-  onEdit: () => void,
-  onExplodeNow: () => void,
+  items: Array<MenuItem | 'Divider' | null>,
   onHidden: () => void,
   position: Position,
   style?: Object,
@@ -139,29 +134,6 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
 }
 
 const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
-  const items = [
-    ...(props.canEdit
-      ? [
-          {
-            onClick: props.onEdit,
-            title: 'Edit',
-          },
-        ]
-      : []),
-    ...(props.canExplodeNow
-      ? [
-          {
-            danger: true,
-            onClick: props.onExplodeNow,
-            title: 'Explode now',
-          },
-        ]
-      : []),
-    ...(props.canDeleteHistory
-      ? [{danger: true, onClick: props.onDeleteHistory, title: 'Delete this + everything above'}]
-      : []),
-  ]
-
   const header = {
     style: {
       paddingBottom: 0,
@@ -176,7 +148,7 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
       attachTo={props.attachTo}
       closeOnSelect={true}
       header={header}
-      items={items}
+      items={props.items}
       onHidden={props.onHidden}
       position={props.position}
       style={collapseStyles([stylePopup, props.style])}

@@ -46,6 +46,8 @@ func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 		return err.ExportType()
 	case EphemeralUnboxingError:
 		return chat1.MessageUnboxedErrorType_EPHEMERAL
+	case NotAuthenticatedForThisDeviceError:
+		return chat1.MessageUnboxedErrorType_PAIRWISE_MISSING
 	default:
 		return chat1.MessageUnboxedErrorType_MISC
 	}

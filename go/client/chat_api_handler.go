@@ -242,7 +242,6 @@ func (d deleteOptionsV1) Check() error {
 
 	if d.MessageID == 0 {
 		return ErrInvalidOptions{version: 1, method: methodDelete, err: errors.New("invalid message id")}
-
 	}
 
 	return nil

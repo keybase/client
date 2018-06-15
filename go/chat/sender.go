@@ -834,15 +834,21 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 }
 
 func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
-	oserr chat1.OutboxStateError) error {
+	oserr chat1.OutboxStateError) (err error) {
 	var marked []chat1.OutboxRecord
-	var err error
 	switch oserr.Typ {
 	case chat1.OutboxErrorType_TOOMANYATTEMPTS:
 		s.Debug(ctx, "failMessage: too many attempts failure, marking whole outbox failed")
 		if marked, err = s.outbox.MarkAllAsError(ctx, oserr); err != nil {
 			s.Debug(ctx, "failMessage: unable to mark all as error on outbox: uid: %s err: %s",
 				s.outbox.GetUID(), err.Error())
+			return err
+		}
+	case chat1.OutboxErrorType_DUPLICATE, chat1.OutboxErrorType_ALREADY_DELETED:
+		// Here we don't send a notification to the frontend, we just want
+		// these to go away
+		if err = s.outbox.RemoveMessage(ctx, obr.OutboxID); err != nil {
+			s.Debug(ctx, "deliverLoop: failed to remove duplicate delete msg: %s", err)
 			return err
 		}
 	default:
@@ -854,10 +860,7 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 		marked = []chat1.OutboxRecord{m}
 	}
 
-	switch oserr.Typ {
-	case chat1.OutboxErrorType_DUPLICATE:
-		// Only send notification to frontend if it is not a duplicate, we just want these to go away
-	default:
+	if len(marked) > 0 {
 		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 			OutboxRecords: marked,
 		})

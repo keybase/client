@@ -22,12 +22,16 @@ const mapStateToProps = (state: TypedState, {path}) => {
   const itemFavoriteChildren =
     itemDetail && itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
   const _username = state.config.username || undefined
-  const resetParticipants = itemDetail.type === 'folder' && !!itemDetail.tlfMeta && itemDetail.tlfMeta.resetParticipants.length > 0 ? itemDetail.tlfMeta.resetParticipants.map(i => i.username) : []
+  const resetParticipants =
+    itemDetail.type === 'folder' && !!itemDetail.tlfMeta && itemDetail.tlfMeta.resetParticipants.length > 0
+      ? itemDetail.tlfMeta.resetParticipants.map(i => i.username)
+      : []
   const isUserReset = resetParticipants.includes(_username)
   return {
     _itemChildren: itemChildren,
     _itemFavoriteChildren: itemFavoriteChildren,
     _pathItems: state.fs.pathItems,
+    _edits: state.fs.edits,
     _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
     _username,
     isUserReset,
@@ -47,13 +51,19 @@ const mergeProps = (stateProps, dispatchProps, {routePath}) => {
   })
   const filteredPathItems = pathItems.filter(item => !(item.tlfMeta && item.tlfMeta.isIgnored)).toList()
   const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
-  const items = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)
+  const stillItems = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)
     .map(({name}) => Types.pathConcat(stateProps.path, name))
     .toArray()
+  const editingItems = stateProps._edits
+    .filter(edit => edit.parentPath === stateProps.path)
+    .keySeq()
+    .toArray()
+    .sort()
   return {
+    stillItems,
+    editingItems,
     isUserReset: stateProps.isUserReset,
     resetParticipants: stateProps.resetParticipants,
-    items,
     path: stateProps.path,
     progress: stateProps.progress,
     routePath,
