@@ -28,13 +28,12 @@ const ordinalsInAWaypoint = 10
 type State = {
   isLockedToBottom: boolean,
   isScrolling: boolean,
-  width: number, // when the width changes lets just redraw it all as our measurements are bad now
 }
 
 type Snapshot = ?number
 
 class Thread extends React.PureComponent<Props, State> {
-  state = {isLockedToBottom: true, isScrolling: false, width: 0}
+  state = {isLockedToBottom: true, isScrolling: false}
   _listRef = React.createRef()
 
   _scrollToBottom = () => {
@@ -64,9 +63,6 @@ class Thread extends React.PureComponent<Props, State> {
 
   componentDidUpdate(prevProps: Props, prevState: State, snapshot: Snapshot) {
     if (this.props === prevProps) {
-      if (this.state.width !== prevState.width) {
-        this._scrollToBottom()
-      }
       // don't do any of the below if just state changes
       return
     }
