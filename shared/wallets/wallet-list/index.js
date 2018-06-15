@@ -32,7 +32,7 @@ class Wallet extends React.PureComponent<WalletProps> {
       <ClickableBox onClick={props.onSelect} style={{backgroundColor: color}}>
         <Box2 style={{height: rowHeight, backgroundColor: color}} direction="horizontal" fullWidth={true}>
           <Box2 direction="horizontal" gap="small">
-            <Icon type={'iconfont-hand-wave'} color={globalColors.darkBlue} fontSize={28} />
+            <Icon type="icon-wallet-64" color={globalColors.darkBlue} style={{height: 32}} />
           </Box2>
           <Box2 direction="vertical">
             <Box2 direction="horizontal" fullWidth={true} gap="xtiny">

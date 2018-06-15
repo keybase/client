@@ -1471,6 +1471,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-user-add-32.png'),
   },
+  'icon-wallet-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-wallet-64.png'),
+  },
   'icon-wallet-add-48': {
     isFont: false,
     extension: 'png',
