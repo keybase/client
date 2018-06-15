@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {connect, type Dispatch} from '../util/container'
-import type {Position, RelativePopupHocType, Props} from './relative-popup-hoc.types'
+import type {RelativePopupHocType, Props} from './relative-popup-hoc.types'
 
 const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
   const C: React.ComponentType<Props<any>> = connect(
