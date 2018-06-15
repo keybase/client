@@ -111,20 +111,27 @@ type Props = {
     keybaseUser: string,
     contents: string,
   }>,
-  onSelect: (name: string) => void,
   onAddNew: () => void,
   onLinkExisting: () => void,
 }
 
-class WalletList extends React.Component<Props> {
+type State = {
+  selectedWalletName: string,
+}
+
+class WalletList extends React.Component<Props, State> {
+  state: State = {
+    selectedWalletName: '',
+  }
+
   render = () => {
     return (
       <Box2 direction="vertical" style={{width: 240}}>
         {this.props.wallets.map(w => (
           <Wallet
             key={w.name}
-            onSelect={() => this.props.onSelect(w.name)}
-            isSelected={w.isSelected}
+            onSelect={() => this.setState({selectedWalletName: w.name})}
+            isSelected={w.name === this.state.selectedWalletName}
             name={w.name}
             keybaseUser={w.keybaseUser}
             contents={w.contents}

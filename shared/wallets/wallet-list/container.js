@@ -39,9 +39,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 
 const mergeProps = (stateProps, dispatchProps) => ({
   wallets: stateProps.wallets,
-  onSelect: (name: string) => {
-    console.log(`TODO: stub out ${name}`)
-  },
   onAddNew: dispatchProps.onAddNew,
   onLinkExisting: dispatchProps.onLinkExisting,
 })

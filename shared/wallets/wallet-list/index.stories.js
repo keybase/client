@@ -37,7 +37,6 @@ const load = () => {
         wallets={mockWallets}
         onAddNew={action('onAddNew')}
         onLinkExisting={action('onLinkExisting')}
-        onSelect={action('onSelect')}
       />
     ))
 }
