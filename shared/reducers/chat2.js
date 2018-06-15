@@ -344,6 +344,15 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             s.setIn(['orangeLineMap', action.payload.conversationIDKey], null)
           }
         }
+
+        // Clear ordinals from the old selected conversation
+        const oldSelected = s.selectedConversation
+        if (oldSelected && Constants.isValidConversationIDKey(oldSelected)) {
+          s.updateIn(['messageOrdinals', oldSelected], ordinals =>
+            ordinals.takeLast(Constants.numMessagesOnInitialLoad)
+          )
+        }
+
         s.set('selectedConversation', action.payload.conversationIDKey)
       })
     case Chat2Gen.setInboxFilter:
