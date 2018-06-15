@@ -101,24 +101,26 @@ class ExplodingMeta extends React.Component<Props, State> {
       case 'countdown':
         children = (
           <Box2 direction="horizontal" gap="xtiny">
-            <Box2
-              direction="horizontal"
-              style={collapseStyles([
-                styles.countdownContainer,
-                {
-                  backgroundColor,
-                },
-              ])}
-            >
-              {this.props.pending ? (
-                <ProgressIndicator style={{width: 17, height: 17}} white={true} />
-              ) : (
-                <Text type="Body" style={{color: globalColors.white, fontSize: 10, fontWeight: 'bold'}}>
+            {this.props.pending ? (
+              <Box2 direction="horizontal" style={styles.progressContainer}>
+                <ProgressIndicator style={{height: 12, width: 12}} />
+              </Box2>
+            ) : (
+              <Box2
+                direction="horizontal"
+                style={collapseStyles([
+                  styles.countdownContainer,
+                  {
+                    backgroundColor,
+                  },
+                ])}
+              >
+                <Text type="Body" style={styles.countdown}>
                   {formatDurationShort(this.props.explodesAt - Date.now())}
                 </Text>
-              )}
-            </Box2>
-            <Icon type="iconfont-bomb" fontSize={isMobile ? 22 : 16} color={globalColors.black_75} />
+              </Box2>
+            )}
+            <Icon type="iconfont-bomb" fontSize={16} color={globalColors.black_75} />
           </Box2>
         )
         break
@@ -207,11 +209,44 @@ const styles = styleSheetCreate({
       width: 55,
     },
   }),
-  countdownContainer: {
-    borderRadius: 2,
-    paddingLeft: 4,
-    paddingRight: 4,
-  },
+  countdown: platformStyles({
+    common: {color: globalColors.white, fontSize: 10, fontWeight: 'bold'},
+    isElectron: {lineHeight: '1.4em'},
+    isMobile: {lineHeight: 14},
+  }),
+  countdownContainer: platformStyles({
+    common: {
+      alignItems: 'center',
+      borderRadius: 2,
+      justifyContent: 'center',
+      paddingLeft: 4,
+      paddingRight: 4,
+    },
+    isElectron: {
+      height: 14,
+      width: 28,
+    },
+    isMobile: {
+      height: 15,
+      width: 32,
+    },
+  }),
+  progressContainer: platformStyles({
+    common: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    isElectron: {
+      width: 28,
+    },
+    isMobile: {
+      height: 15,
+      width: 32,
+    },
+    isAndroid: {
+      height: 17,
+    },
+  }),
 })
 
 export default HOCTimers(ExplodingMeta)
