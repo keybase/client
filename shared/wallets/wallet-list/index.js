@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, ClickableBox, Icon, Text, Avatar, FloatingMenu} from '../../common-adapters'
-import {globalStyles, globalColors, isMobile} from '../../styles'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 
 type WalletProps = {
@@ -31,9 +31,16 @@ class Wallet extends React.PureComponent<WalletProps> {
     return (
       <ClickableBox onClick={props.onSelect} style={{backgroundColor: color}}>
         <Box2 style={{height: rowHeight, backgroundColor: color}} direction="horizontal" fullWidth={true}>
-          <Box2 direction="horizontal" gap="small">
-            <Icon type="icon-wallet-64" color={globalColors.darkBlue} style={{height: 32}} />
-          </Box2>
+          <Icon
+            type="icon-wallet-64"
+            color={globalColors.darkBlue}
+            style={{
+              alignSelf: 'center',
+              height: 32,
+              marginLeft: globalMargins.tiny,
+              marginRight: globalMargins.tiny,
+            }}
+          />
           <Box2 direction="vertical">
             <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
               {this.props.keybaseUser && <Avatar size={16} username={this.props.keybaseUser} />}
