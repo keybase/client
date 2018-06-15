@@ -150,6 +150,8 @@ jobs:
         - /usr/local/android-sdk-linux/extras/android/m2repository
         - ./node_modules
 
+    # TODO: Run device tests (see old versions of this file).
+
     # Only run coverage if there were changes to the shared folder
     - run: mkdir -p $CIRCLE_TEST_REPORTS/flow-coverage
     - run:
