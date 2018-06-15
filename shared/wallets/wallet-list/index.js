@@ -126,7 +126,7 @@ class WalletList extends React.Component<Props, State> {
 
   render = () => {
     return (
-      <Box2 direction="vertical" style={{width: 240}}>
+      <Box2 direction="vertical" style={{height: '100%', width: 240}}>
         {this.props.wallets.map(w => (
           <Wallet
             key={w.name}
