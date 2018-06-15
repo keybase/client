@@ -40,7 +40,7 @@ jobs:
           echo 'export PATH=$HOME/.yarn/bin:$GOROOT/bin:$PATH' >> $BASH_ENV
           echo 'export ANDROID_NDK_HOME=${ANDROID_NDK}' >> $BASH_ENV
           source $BASH_ENV
-    - run: cat $BASH_ENV
+    - run: env
     # Machine Setup
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
