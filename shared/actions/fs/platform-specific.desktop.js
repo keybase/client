@@ -309,9 +309,8 @@ function platformSpecificIntentEffect(
 
 const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
   new Promise((resolve, reject) =>
-    // TODO: Figure out how to make this modal and fix flow.
     SafeElectron.getDialog().showOpenDialog(
-      // $FlowFixMe
+      SafeElectron.getCurrentWindowFromRemote(),
       {
         title: 'Select a file or folder to upload',
         properties: [
@@ -320,7 +319,10 @@ const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
           ...(['directory', 'both'].includes(type) ? ['openDirectory'] : []),
         ],
       },
-      filePaths => resolve(filePaths)
+      filePaths => {
+        console.log({'SONGGAO-filePaths': filePaths})
+        return resolve(filePaths)
+      }
     )
   )
 

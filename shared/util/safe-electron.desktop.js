@@ -80,6 +80,10 @@ export const getRemote = () => {
   return remote
 }
 
+export const getCurrentWindowFromRemote = () => {
+  return getRemote().getCurrentWindow()
+}
+
 // Both
 export const getShell = () => {
   const shell = Electron.shell
