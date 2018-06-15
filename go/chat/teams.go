@@ -272,47 +272,50 @@ func shouldPairwiseMAC(ctx context.Context, g *globals.Context, loader *TeamLoad
 	tlfID chat1.TLFID, membersType chat1.ConversationMembersType, public bool) (should bool, kids []keybase1.KID, err error) {
 	defer g.CTraceTimed(ctx, fmt.Sprintf("shouldPairwiseMAC teamID %s", tlfID.String()), func() error { return err })()
 
-	team, err := loader.loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
-	if err != nil {
-		return false, nil, err
-	}
-	members, err := team.Members()
-	if err != nil {
-		return false, nil, err
-	}
-	memberUVs := members.AllUserVersions()
+	// Hardcoded false until we figure out the new devices / new members story.
+	return false, nil, nil
 
-	// For performance reasons, we don't try to pairwise MAC any messages in
-	// large teams.
-	if len(memberUVs) > libkb.MaxTeamMembersForPairwiseMAC {
-		return false, nil, nil
-	}
+	// team, err := loader.loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
+	// if err != nil {
+	// 	return false, nil, err
+	// }
+	// members, err := team.Members()
+	// if err != nil {
+	// 	return false, nil, err
+	// }
+	// memberUVs := members.AllUserVersions()
 
-	unrevokedKIDs := []keybase1.KID{}
-	for _, member := range memberUVs {
-		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx, g.GlobalContext, member.Uid))
-		if err != nil {
-			return false, nil, err
-		}
-		for _, key := range upak.Current.DeviceKeys {
-			// Include only unrevoked encryption keys.
-			if !key.Base.IsSibkey && key.Base.Revocation == nil {
-				unrevokedKIDs = append(unrevokedKIDs, key.Base.Kid)
-			}
-		}
-	}
-	if len(unrevokedKIDs) > 10*libkb.MaxTeamMembersForPairwiseMAC {
-		// If someone on the team has a ton of devices, it could break our "100
-		// members" heuristic and lead to bad performance. We don't want to
-		// silently fall back to the non-repudiable mode, because that would
-		// create an opening for downgrade attacks, and we'd need to document
-		// this exception everywhere we talk about repudiability. But if this
-		// turns out to be a performance issue in practice, we might want to
-		// add some workaround. (For example, we could choose to omit
-		// recipients with an unreasonable number of devices.)
-		g.Log.CWarningf(ctx, "unreasonable number of devices (%d) in recipients list", len(unrevokedKIDs))
-	}
-	return true, unrevokedKIDs, nil
+	// // For performance reasons, we don't try to pairwise MAC any messages in
+	// // large teams.
+	// if len(memberUVs) > libkb.MaxTeamMembersForPairwiseMAC {
+	// 	return false, nil, nil
+	// }
+
+	// unrevokedKIDs := []keybase1.KID{}
+	// for _, member := range memberUVs {
+	// 	upak, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx, g.GlobalContext, member.Uid))
+	// 	if err != nil {
+	// 		return false, nil, err
+	// 	}
+	// 	for _, key := range upak.Current.DeviceKeys {
+	// 		// Include only unrevoked encryption keys.
+	// 		if !key.Base.IsSibkey && key.Base.Revocation == nil {
+	// 			unrevokedKIDs = append(unrevokedKIDs, key.Base.Kid)
+	// 		}
+	// 	}
+	// }
+	// if len(unrevokedKIDs) > 10*libkb.MaxTeamMembersForPairwiseMAC {
+	// 	// If someone on the team has a ton of devices, it could break our "100
+	// 	// members" heuristic and lead to bad performance. We don't want to
+	// 	// silently fall back to the non-repudiable mode, because that would
+	// 	// create an opening for downgrade attacks, and we'd need to document
+	// 	// this exception everywhere we talk about repudiability. But if this
+	// 	// turns out to be a performance issue in practice, we might want to
+	// 	// add some workaround. (For example, we could choose to omit
+	// 	// recipients with an unreasonable number of devices.)
+	// 	g.Log.CWarningf(ctx, "unreasonable number of devices (%d) in recipients list", len(unrevokedKIDs))
+	// }
+	// return true, unrevokedKIDs, nil
 }
 
 type ImplicitTeamsNameInfoSource struct {
