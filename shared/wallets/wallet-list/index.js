@@ -125,4 +125,4 @@ const WalletList = (props: Props) => (
   </Box2>
 )
 
-export {Wallet, AddWallet, WalletList}
+export {WalletList}
