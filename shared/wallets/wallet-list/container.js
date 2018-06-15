@@ -16,10 +16,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
-  // TODO: Better sorting?
-  const accounts = stateProps.accounts.sortBy(a => a.name)
-
-  const wallets = accounts
+  // Accounts is already ordered, so no need to sort.
+  const wallets = stateProps.accounts
     .map(a => {
       let name = a.name || a.accountID
       // TODO: Better way to do this?
