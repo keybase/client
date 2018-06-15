@@ -26,8 +26,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onExitSearch: (conversationIDKey: Types.ConversationIDKey) => {
     if (conversationIDKey !== Constants.pendingConversationIDKey) {
       dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'}))
-    } else {
-      Chat2Gen.createSetPendingMode({pendingMode: 'none'})
     }
   },
 })
