@@ -9,7 +9,7 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/client/shared
+    working_directory: ~/client
     parallelism: 1
     shell: /bin/bash --login
     environment:
@@ -43,8 +43,7 @@ jobs:
     # Machine Setup
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
-    - checkout:
-        path: ~/client
+    - checkout
     # Prepare for artifact and test results  collection equivalent to how it was done on 1.0.
     # In many cases you can simplify this from what is generated here.
     # 'See docs on artifact collection here https://circleci.com/docs/2.0/artifacts/'
@@ -84,20 +83,27 @@ jobs:
     - run: echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/android-sdk-linux/licenses/android-sdk-license
     # This is based on your 1.0 configuration file or project settings
     - run: rm -rf ~/client/shared/node_modules
-    - run: yarn install --pure-lockfile --ignore-engines --prefer-offline
-    - run: yarn global add react-native-cli
+    - run:
+        working_directory: shared
+        command: yarn install --pure-lockfile --ignore-engines --prefer-offline
+    - run:
+        working_directory: shared
+        command: yarn global add react-native-cli
     - run: mkdir -p $GOPATH/src/github.com/keybase
     - run: ln -s $HOME/client $GOPATH/src/github.com/keybase/client
-    - run: yarn run rn-gobuild-android
-    - run: ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
-    - run: mkdir -p react-native/android/app/build/intermediates/{assets,res/merged}/releaseUnsigned
     - run:
-        command: react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
+        working_directory: shared
+        command:  yarn run rn-gobuild-android
+    - run: ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
+    - run: mkdir -p shared/react-native/android/app/build/intermediates/{assets,res/merged}/releaseUnsigned
+    - run:
+        working_directory: shared
         environment:
           PATH: $HOME/.yarn/bin:$PATH
+        command: react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
     - run:
+        working_directory: shared/react-native/android
         command: ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
-        working_directory: react-native/android
     # Save dependency cache
     - save_cache:
         key: v1-dep-{{ .Branch }}-{{ epoch }}
