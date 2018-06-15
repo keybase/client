@@ -927,6 +927,9 @@ func TestChatMessagePublic(t *testing.T) {
 // This prevents one kind of misattribution within a tlf.
 // Device mismatches are probably tolerated.
 func TestChatMessageSenderMismatch(t *testing.T) {
+
+	var allUIDs []keybase1.UID
+
 	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
 		key := cryptKey(t)
 		text := "hi"
@@ -935,9 +938,11 @@ func TestChatMessageSenderMismatch(t *testing.T) {
 
 		u2, err := kbtest.CreateAndSignupFakeUser("chat", tc.G)
 		require.NoError(t, err)
+		allUIDs = append(allUIDs, u2.GetUID())
 
 		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
 		require.NoError(t, err)
+		allUIDs = append(allUIDs, u.GetUID())
 
 		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 
@@ -959,6 +964,18 @@ func TestChatMessageSenderMismatch(t *testing.T) {
 		_, err = boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key, nil)
 		require.Error(t, err, "should not unbox with sender mismatch")
 	})
+
+	// Just check that batch fetching of device encryption keys work.
+	// Use the 4 users we've collected in this test.
+	var uvs []keybase1.UserVersion
+	for _, uid := range allUIDs {
+		uvs = append(uvs, keybase1.UserVersion{Uid: uid})
+	}
+	tc := libkb.SetupTest(t, "batch", 0)
+	defer tc.Cleanup()
+	keys, err := batchLoadEncryptionKIDs(context.TODO(), tc.G, uvs)
+	require.NoError(t, err, "no error")
+	require.Equal(t, len(keys), len(uvs), "one key per user")
 }
 
 // Test a message that deletes

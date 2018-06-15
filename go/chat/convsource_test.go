@@ -806,6 +806,10 @@ func (f failingUpak) CheckDeviceForUIDAndUsername(ctx context.Context, uid keyba
 	require.Fail(f.t, "CheckDeviceForUIDAndUsername call")
 	return nil
 }
+func (f failingUpak) Batcher(ctx context.Context, getArg func(int) *libkb.LoadUserArg, processResult func(int, *keybase1.UserPlusKeysV2AllIncarnations), window int) (err error) {
+	require.Fail(f.t, "Batcher call")
+	return nil
+}
 
 func TestGetThreadCaching(t *testing.T) {
 	ctx, world, ri, _, sender, _ := setupTest(t, 1)
