@@ -92,7 +92,6 @@ jobs:
     - run: echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/android-sdk-linux/licenses/android-sdk-license
 
     # Install Yarn
-    - run: rm -rf ~/client/shared/node_modules
     - run:
         working_directory: shared
         command: yarn install --pure-lockfile --ignore-engines --prefer-offline
@@ -129,17 +128,7 @@ jobs:
     - save_cache:
         key: v1-dep-{{ .Branch }}-{{ epoch }}
         paths:
-        # This is a broad list of cache paths to include many possible development environments
-        # You can probably delete some of these entries
-        - vendor/bundle
-        - ~/virtualenvs
-        - ~/.m2
-        - ~/.ivy2
-        - ~/.bundle
-        - ~/.go_workspace
         - ~/.gradle
-        - ~/.cache/bower
-        # These cache paths were specified in the 1.0 config
         - ~/downloads
         - ~/.cache/yarn
         - /tmp/go-android/bin
@@ -148,7 +137,6 @@ jobs:
         - /usr/local/android-sdk-linux/ndk-bundle
         - /usr/local/android-sdk-linux/build-tools/23.0.2
         - /usr/local/android-sdk-linux/extras/android/m2repository
-        - ./node_modules
 
     # TODO: Run device tests (see old versions of this file).
 
