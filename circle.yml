@@ -101,6 +101,8 @@ jobs:
         command: react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
     - run:
         working_directory: shared/react-native/android
+        environment:
+          TERM: dumb
         command: ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
     # Save dependency cache
     - save_cache:
