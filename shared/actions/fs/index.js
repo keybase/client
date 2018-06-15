@@ -345,6 +345,58 @@ function* _loadMimeType(path: Types.Path) {
 
 const loadMimeType = (action: FsGen.MimeTypeLoadPayload) => Saga.call(_loadMimeType, action.payload.path)
 
+const commitEdit = (action: FsGen.CommitEditPayload, state: TypedState) => {
+  const {editID} = action.payload
+  const edit = state.fs.edits.get(editID)
+  if (!edit) {
+    return null
+  }
+  const {parentPath, name, type} = edit
+  switch (type) {
+    case 'new-folder':
+      return Saga.call(RPCTypes.SimpleFSSimpleFSOpenRpcPromise, {
+        opID: Constants.makeUUID(),
+        dest: {
+          PathType: RPCTypes.simpleFSPathType.kbfs,
+          kbfs: Constants.fsPathToRpcPathString(Types.pathConcat(parentPath, name)),
+        },
+        flags: RPCTypes.simpleFSOpenFlags.directory,
+      })
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(type);
+      */
+      return null
+  }
+}
+
+const editSuccess = (res, action, state: TypedState) => {
+  const {editID} = action.payload
+  const edit = state.fs.edits.get(editID)
+  if (!edit) {
+    return null
+  }
+  const {parentPath, type} = edit
+  const effects = [Saga.put(FsGen.createEditSuccess({editID}))]
+
+  switch (type) {
+    case 'new-folder':
+      effects.push(Saga.put(FsGen.createFolderListLoad({path: parentPath})))
+      break
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(type);
+      */
+      break
+  }
+
+  return Saga.sequentially(effects)
+}
+
+const editFailed = (res, {payload: {editID}}) => Saga.put(FsGen.createEditFailed({editID}))
+
 function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenerator<any, any> {
   const {path, type, targetRect, routePath} = action.payload
   // We may not have the folder loaded yet, but will need metadata to know
@@ -428,6 +480,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
+  yield Saga.safeTakeEveryPure(FsGen.commitEdit, commitEdit, editSuccess, editFailed)
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

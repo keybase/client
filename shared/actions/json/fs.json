@@ -97,6 +97,26 @@
       "path": "Types.Path",
       "errorText": "string"
     },
+    "newFolderRow": {
+      "parentPath": "Types.Path"
+    },
+    "newFolderName": {
+      "editID": "Types.EditID",
+      "name": "string"
+    },
+    "commitEdit": {
+      "editID": "Types.EditID"
+    },
+    "editSuccess": {
+      "editID": "Types.EditID"
+    },
+    "editFailed": {
+      "editID": "Types.EditID"
+    },
+    "discardEdit": {
+      "editID": "Types.EditID"
+    },
+
     "share": {
       "path": "Types.Path",
       "routePath": "I.List<string>"

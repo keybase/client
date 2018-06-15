@@ -6,28 +6,56 @@ import * as Constants from '../constants/fs'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
 import Files from '.'
+import ConnectedStillRow from './row/still-container'
+import StillRow from './row/still'
+import EditingRow from './row/editing'
+import PlaceholderRow from './row/placeholder'
+import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
-import Download from './footer/download'
 import {Box} from '../common-adapters'
+import Download from './footer/download'
 import RowActionPopup from './popups/row-action-popup'
 import FolderHeader from './header/header.desktop'
 
-const provider = createPropProvider({
-  FileRow: ({path}: {path: Types.Path}) => ({
+const folderItemStyles = {
+  iconSpec: {
+    type: 'basic',
+    iconType: 'icon-folder-private-32',
+    iconColor: globalColors.darkBlue2,
+  },
+  textColor: globalColors.darkBlue,
+  textType: 'BodySemibold',
+}
+
+const fileItemStyles = {
+  iconSpec: {
+    type: 'basic',
+    iconType: 'icon-file-private-32',
+    iconColor: globalColors.darkBlue2,
+  },
+  textColor: globalColors.darkBlue,
+  textType: 'Body',
+}
+
+const rowProviders = {
+  Row: ({path, routePath}) => ({
+    pathItemType: 'folder',
+    path,
+    routePath,
+  }),
+  ConnectedStillRow: ({path}: {path: Types.Path}) => ({
     name: Types.getPathName(path),
     onOpen: () => {},
     openInFileUI: () => {},
     type: 'folder',
-    itemStyles: {
-      iconSpec: {
-        type: 'basic',
-        iconType: 'icon-folder-private-32',
-        iconColor: globalColors.darkBlue2,
-      },
-      textColor: globalColors.darkBlue,
-      textType: 'BodySemibold',
-    },
+    shouldShowMenu: true,
+    itemStyles: folderItemStyles,
+    onAction: action('onAction'),
   }),
+}
+
+const provider = createPropProvider({
+  ...rowProviders,
   Footer: () => ({
     downloads: [],
   }),
@@ -156,6 +184,12 @@ const folderHeaderProps = (names: Array<string>) => ({
   openInFileUI: action('openInFileUI'),
 })
 
+const commonRowProps = {
+  onSubmit: action('onSubmit'),
+  onUpdate: action('onUpdate'),
+  onCancel: action('onCancel'),
+}
+
 const load = () => {
   storiesOf('Files', module)
     .addDecorator(provider)
@@ -166,15 +200,80 @@ const load = () => {
         routePath={I.List([])}
         isUserReset={false}
         resetParticipants={[]}
-        items={[
+        stillItems={[
           Types.stringToPath('/keybase/private'),
           Types.stringToPath('/keybase/public'),
           Types.stringToPath('/keybase/team'),
         ]}
+        editingItems={[]}
       />
     ))
     .add('Preview', () => (
-      <NormalPreview routePath={I.List([])} routeProps={I.Map({path: '/keybase/private/foo/bar.jpg'})} />
+      <NormalPreview
+        routePath={I.List([])}
+        routeProps={I.Map({
+          path: '/keybase/private/foo/bar.jpg',
+        })}
+      />
+    ))
+    .add('Rows', () => (
+      <Box>
+        <ConnectedStillRow
+          path={Types.stringToPath('/keybase/private/a')}
+          routeProps={I.Map({path: '/keybase/private/foo'})}
+          routePath={I.List([])}
+        />
+        <EditingRow
+          name="New Folder (editing)"
+          hint="New Folder (editing)"
+          status="editing"
+          itemStyles={folderItemStyles}
+          isCreate={true}
+          {...commonRowProps}
+        />
+        <EditingRow
+          name="From Dropbox (rename) (editing)"
+          hint="From Dropbox (rename) (editing)"
+          status="editing"
+          itemStyles={folderItemStyles}
+          isCreate={false}
+          {...commonRowProps}
+        />
+        <EditingRow
+          name="New Folder (saving)"
+          hint="New Folder (saving)"
+          status="saving"
+          itemStyles={folderItemStyles}
+          isCreate={true}
+          {...commonRowProps}
+        />
+        <EditingRow
+          name="New Folder (failed)"
+          hint="New Folder (failed)"
+          status="failed"
+          itemStyles={folderItemStyles}
+          isCreate={true}
+          {...commonRowProps}
+        />
+        <UploadingRow name="foo" itemStyles={fileItemStyles} />
+        <UploadingRow name="foo" itemStyles={folderItemStyles} />
+        <StillRow
+          name="bar"
+          type="file"
+          lastModifiedTimestamp={Date.now()}
+          lastWriter="alice"
+          shouldShowMenu={true}
+          itemStyles={fileItemStyles}
+          badgeCount={0}
+          isDownloading={true}
+          isUserReset={false}
+          resetParticipants={[]}
+          onOpen={action('onOpen')}
+          openInFileUI={action('openInFileUI')}
+          onAction={action('onAction')}
+        />
+        <PlaceholderRow />
+      </Box>
     ))
     .add('Footer Cards', () => (
       <Box>

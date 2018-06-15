@@ -198,7 +198,8 @@ protocol local {
     TOOLONG_3,
     DUPLICATE_4,
     EXPIRED_5,
-    TOOMANYATTEMPTS_6
+    TOOMANYATTEMPTS_6,
+    ALREADY_DELETED_7
   }
 
   record OutboxStateError {
@@ -390,7 +391,8 @@ protocol local {
     BADVERSION_CRITICAL_1,
     BADVERSION_2,
     IDENTIFY_3,
-    EPHEMERAL_4
+    EPHEMERAL_4,
+    PAIRWISE_MISSING_5
   }
 
   record MessageUnboxedError {

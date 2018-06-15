@@ -185,7 +185,15 @@ func TestChatSrvSBS(t *testing.T) {
 				require.Equal(t, 3, len(tvres.Thread.Messages))
 
 				for _, msg := range tvres.Thread.Messages {
-					require.True(t, msg.IsValid())
+					// Whether unboxing will succeed in the ephemeral case
+					// depends on whether pairwise MAC'ing was used, which in
+					// turn depends on the size of the team, in a way that we
+					// might tune in the future. Allow that specific failure.
+					if ephemeralLifetime != nil && msg.IsError() {
+						require.Equal(t, chat1.MessageUnboxedErrorType_PAIRWISE_MISSING, msg.Error().ErrType)
+					} else {
+						require.True(t, msg.IsValid())
+					}
 				}
 			}
 

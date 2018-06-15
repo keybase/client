@@ -51,8 +51,8 @@ export type FavoriteItem = I.RecordOf<_FavoriteItem>
 export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
-  lastWriter: RPCTypes.User,
   size: number,
+  lastWriter: RPCTypes.User,
   progress: ProgressType,
   badgeCount: number,
   tlfMeta?: FavoriteMetadata,
@@ -83,6 +83,21 @@ export type _UnknownPathItem = {
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
+
+export opaque type EditID = string
+export type EditType = 'new-folder'
+export type EditStatusType = 'editing' | 'saving' | 'failed'
+
+export type _NewFolder = {
+  type: 'new-folder',
+  parentPath: Path,
+  name: string,
+  hint: string,
+  status: EditStatusType,
+}
+export type NewFolder = I.RecordOf<_NewFolder>
+
+export type Edit = NewFolder
 
 export type SortBy = 'name' | 'time'
 export type SortOrder = 'asc' | 'desc'
@@ -157,6 +172,7 @@ export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
+  edits: I.Map<EditID, Edit>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   transfers: I.Map<string, Transfer>,
@@ -168,6 +184,8 @@ export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
 
+export const stringToEditID = (s: string): EditID => s
+export const editIDToString = (s: EditID): string => s
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
 export const pathToString = (p: Path): string => (!p ? '' : p)
 // export const stringToLocalPath = (s: string): LocalPath => s
