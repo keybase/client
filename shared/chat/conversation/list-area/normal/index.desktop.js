@@ -115,18 +115,9 @@ class Thread extends React.PureComponent<Props, State> {
     this._cleanupDebounced()
   }
 
-  _onResize = debounce(({bounds}) => {
-    if (this.state.isLockedToBottom) {
-      this._scrollToBottom()
-    }
-
-    this.setState(p => (p.width === bounds.width ? null : {width: bounds.width}))
-  }, 100)
-
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
     this._onScroll.cancel()
-    this._onResize.cancel()
     this._positionChangeTop.cancel()
     this._positionChangeBottom.cancel()
   }
@@ -235,26 +226,12 @@ class Thread extends React.PureComponent<Props, State> {
 
     return (
       <ErrorBoundary>
-        <Measure bounds={true} onResize={this._onResize}>
-          {({measureRef}) => (
-            <div
-              ref={measureRef}
-              style={containerStyle}
-              onClick={this._handleListClick}
-              onCopyCapture={this._onCopyCapture}
-            >
-              <style>{realCSS}</style>
-              <div
-                key={String(this.state.width)}
-                style={listStyle}
-                ref={this._listRef}
-                onScroll={this._onScroll}
-              >
-                <div style={this.state.isScrolling ? innerListStyleScrolling : null}>{waypoints}</div>
-              </div>
-            </div>
-          )}
-        </Measure>
+        <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
+          <style>{realCSS}</style>
+          <div style={listStyle} ref={this._listRef} onScroll={this._onScroll}>
+            <div style={this.state.isScrolling ? innerListStyleScrolling : null}>{waypoints}</div>
+          </div>
+        </div>
       </ErrorBoundary>
     )
   }
@@ -322,12 +299,15 @@ type OrdinalWaypointState = {
   heightForIndicies: ?string,
   // in view
   isVisible: boolean,
+  // width just to keep track if we should toss height
+  width: ?number,
 }
 class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypointState> {
   state = {
     height: null,
     heightForIndicies: null,
     isVisible: true,
+    width: null,
   }
 
   componentWillUnmount() {
@@ -344,8 +324,31 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
 
   _onResize = debounce(({bounds}) => {
     const height = bounds.height
-    if (height) {
-      this.setState(p => (p.height !== height ? {height} : undefined))
+    const width = bounds.width
+    if (height && width) {
+      this.setState(p => {
+        let nextHeightState = {}
+        let nextWidthState = {}
+
+        // don't have a width at all or its unchanged
+        if (!p.width || p.width === width) {
+          if (p.height !== height) {
+            nextHeightState = {height}
+          }
+        } else {
+          // toss height if width changes
+          nextHeightState = {height: null}
+        }
+
+        if (p.width !== width) {
+          nextWidthState = {width}
+        }
+
+        return {
+          ...nextHeightState,
+          ...nextWidthState,
+        }
+      })
     }
   }, 100)
 
@@ -360,6 +363,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     return (
       this.state.height !== nextState.height ||
       this.state.isVisible !== nextState.isVisible ||
+      // we ignore width changes, its just to bookkeep height
       OrdinalWaypoint._getIndiciesHeightKey(nextProps.indicies) !== this.state.heightForIndicies
     )
   }
@@ -379,30 +383,19 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     let content
     if (renderMessages) {
       const messages = this.props.indicies.map(i => this.props.rowRenderer(i, this._measure))
-      if (this.state.height) {
-        // we keep Measure so the hierarchy doens't change if items get added (else you get flashing images and things update) but its effectively
-        // turned off
-        content = (
-          <Measure>
-            {({measureRef}) => (
-              <div data-key={this.props.id} style={{height: this.state.height, overflow: 'hidden'}}>
-                {messages}
-              </div>
-            )}
-          </Measure>
-        )
-      } else {
-        // really measure it
-        content = (
-          <Measure bounds={true} onResize={renderMessages ? this._onResize : null}>
-            {({measureRef}) => (
-              <div data-key={this.props.id} ref={measureRef}>
-                {messages}
-              </div>
-            )}
-          </Measure>
-        )
-      }
+      content = (
+        <Measure bounds={true} onResize={this._onResize}>
+          {({measureRef}) => (
+            <div
+              data-key={this.props.id}
+              ref={measureRef}
+              style={this.state.height ? {height: this.state.height, overflow: 'hidden'} : null}
+            >
+              {messages}
+            </div>
+          )}
+        </Measure>
+      )
     } else {
       content = <div data-key={this.props.id} style={{height: this.state.height}} />
     }
@@ -442,10 +435,10 @@ const realCSS = `
 `
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
-  position: 'relative',
   // containment hints so we can scroll faster
   contain: 'strict',
+  flex: 1,
+  position: 'relative',
 }
 
 const listStyle = {
