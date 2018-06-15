@@ -73,10 +73,6 @@ type ChatChannel struct {
 	TopicName   string `json:"topic_name,omitempty"`
 }
 
-func (c ChatChannel) IsNil() bool {
-	return c == ChatChannel{}
-}
-
 // Valid returns true if the ChatChannel has at least a Name.
 func (c ChatChannel) Valid() bool {
 	if len(c.Name) == 0 {
