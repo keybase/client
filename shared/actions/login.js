@@ -610,31 +610,31 @@ function _relogin({payload: {usernameOrEmail, passphrase}}: LoginGen.ReloginPayl
   ])
 }
 
-function _cameraBrokenMode(
-  {payload: {codePageCameraBrokenMode}}: LoginGen.SetCameraBrokenModePayload,
-  state: TypedState
-) {
-  if (state.login.codePageMyDeviceRole == null) {
-    logger.warn("my device role is null, can't setCameraBrokenMode. Bailing")
-    return
-  }
+// function _cameraBrokenMode(
+// {payload: {codePageCameraBrokenMode}}: LoginGen.SetCameraBrokenModePayload,
+// state: TypedState
+// ) {
+// if (state.login.codePageMyDeviceRole == null) {
+// logger.warn("my device role is null, can't setCameraBrokenMode. Bailing")
+// return
+// }
 
-  if (state.login.codePageOtherDeviceRole == null) {
-    logger.warn("other device role is null, can't setCameraBrokenMode. Bailing")
-    return
-  }
+// if (state.login.codePageOtherDeviceRole == null) {
+// logger.warn("other device role is null, can't setCameraBrokenMode. Bailing")
+// return
+// }
 
-  const codePageMode = Constants.defaultModeForDeviceRoles(
-    state.login.codePageMyDeviceRole,
-    state.login.codePageOtherDeviceRole,
-    codePageCameraBrokenMode
-  )
-  if (!codePageMode) {
-    logger.warn("mode is null!, can't setCodePageMode. Bailing")
-    return
-  }
-  return Saga.put(LoginGen.createSetCodePageMode({codePageMode}))
-}
+// const codePageMode = Constants.defaultModeForDeviceRoles(
+// state.login.codePageMyDeviceRole,
+// state.login.codePageOtherDeviceRole,
+// codePageCameraBrokenMode
+// )
+// if (!codePageMode) {
+// logger.warn("mode is null!, can't setCodePageMode. Bailing")
+// return
+// }
+// return Saga.put(LoginGen.createSetCodePageMode({codePageMode}))
+// }
 
 function* _addNewDevice({payload: {role}}: LoginGen.AddNewDevicePayload) {
   const _deviceTypeMap: {[key: string]: any} = {
