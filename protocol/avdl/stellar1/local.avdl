@@ -279,6 +279,7 @@ protocol local {
     union { null, AccountID } toStellar;
     union { null, string } fromUsername;
     union { null, string } toUsername;
+    union { null, string } toAssertion;
     string note;
     string noteErr;
   }

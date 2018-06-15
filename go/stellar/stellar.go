@@ -728,6 +728,9 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				return res, err
 			}
 		}
+		if p.ToAssertion != "" {
+			res.ToAssertion = &p.ToAssertion
+		}
 		// Override status with claim status
 		if p.Claim != nil {
 			if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
