@@ -41,7 +41,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       }
     })
     .valueSeq()
-    .toJS()
+    .toArray()
 
   return {
     wallets,
