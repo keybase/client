@@ -27,14 +27,17 @@ const ordinalsInAWaypoint = 10
 
 type State = {
   isLockedToBottom: boolean,
-  isScrolling: boolean,
 }
 
 type Snapshot = ?number
 
 class Thread extends React.PureComponent<Props, State> {
-  state = {isLockedToBottom: true, isScrolling: false}
+  state = {isLockedToBottom: true}
   _listRef = React.createRef()
+  // so we can turn pointer events on / off
+  _pointerWrapperRef = React.createRef()
+  // Not a state so we don't rerender, just mutate the dom
+  _isScrolling = false
 
   _scrollToBottom = () => {
     const list = this._listRef.current
@@ -122,13 +125,23 @@ class Thread extends React.PureComponent<Props, State> {
 
   // While scrolling we disable mouse events to speed things up
   _onScroll = throttle(() => {
-    this.setState(p => (p.isScrolling ? undefined : {isScrolling: true}))
+    if (!this._isScrolling) {
+      this._isScrolling = true
+      if (this._pointerWrapperRef.current) {
+        this._pointerWrapperRef.current.style.pointerEvents = 'none'
+      }
+    }
     this._onAfterScroll()
   }, 100)
 
   // After lets turn them back on
   _onAfterScroll = debounce(() => {
-    this.setState(p => (p.isScrolling ? {isScrolling: false} : undefined))
+    if (this._isScrolling) {
+      this._isScrolling = false
+      if (this._pointerWrapperRef.current) {
+        this._pointerWrapperRef.current.style.pointerEvents = 'initial'
+      }
+    }
   }, 200)
 
   _rowRenderer = (ordinal: Types.Ordinal, previous: ?Types.Ordinal, measure: () => void) => (
@@ -230,7 +243,7 @@ class Thread extends React.PureComponent<Props, State> {
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
           <div style={listStyle} ref={this._listRef} onScroll={this._onScroll}>
-            <div style={this.state.isScrolling ? innerListStyleScrolling : null}>{waypoints}</div>
+            <div ref={this._pointerWrapperRef}>{waypoints}</div>
           </div>
         </div>
       </ErrorBoundary>
