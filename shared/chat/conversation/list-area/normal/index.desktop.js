@@ -399,7 +399,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }
 
   render() {
-    console.log('aaa render', this.props, this.state)
+    // console.log('aaa render', this.props, this.state)
     // Apply data-key to the dom node so we can search for editing messages
     const renderMessages = !this.state.height || this.state.isVisible
     let content
