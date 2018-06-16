@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState) => ({
   me: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   onSelectAccount: (accountID: AccountID) => {
     dispatch(createSelectAccount({accountID}))
   },
