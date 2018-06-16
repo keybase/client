@@ -4,25 +4,20 @@ import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action} from '../../stories/storybook'
 import {WalletList} from '.'
 
-const common = {
-  isSelected: false,
-  name: '',
-  keybaseUser: '',
-  contents: '',
-}
-
 const mockWallets = [
   {
-    ...common,
+    accountID: 'account1',
     keybaseUser: 'cecileb',
-    isSelected: true,
     name: "cecileb's wallet",
     contents: '280.0871234 XLM + more',
+    onSelect: action('onSelect1'),
   },
   {
-    ...common,
+    accountID: 'account2',
     name: 'Second wallet',
+    keybaseUser: '',
     contents: '56.9618203 XLM',
+    onSelect: action('onSelect2'),
   },
 ]
 
@@ -34,6 +29,8 @@ const load = () => {
     .add('Wallet List', () => (
       <WalletList
         wallets={mockWallets}
+        selectedAccount="account1"
+        onSelectAccount={action('onSelectAccount')}
         onAddNew={action('onAddNew')}
         onLinkExisting={action('onLinkExisting')}
       />

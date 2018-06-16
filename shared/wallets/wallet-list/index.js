@@ -3,6 +3,7 @@ import * as React from 'react'
 import {Box2, ClickableBox, Icon, Text, Avatar, FloatingMenu} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
+import {type AccountID} from '../../constants/types/wallets'
 
 type WalletProps = {
   isSelected: boolean,
@@ -113,41 +114,31 @@ const rowHeight = isMobile ? 56 : 48
 
 type Props = {
   wallets: Array<{
-    isSelected: boolean,
+    accountID: AccountID,
     name: string,
     keybaseUser: string,
     contents: string,
   }>,
+  selectedAccount: ?AccountID,
+  onSelectAccount: (accountID: AccountID) => void,
   onAddNew: () => void,
   onLinkExisting: () => void,
 }
 
-type State = {
-  selectedWalletName: string,
-}
-
-class WalletList extends React.Component<Props, State> {
-  state: State = {
-    selectedWalletName: '',
-  }
-
-  render = () => {
-    return (
-      <Box2 direction="vertical" style={{height: '100%', width: 240}}>
-        {this.props.wallets.map(w => (
-          <Wallet
-            key={w.name}
-            onSelect={() => this.setState({selectedWalletName: w.name})}
-            isSelected={w.name === this.state.selectedWalletName}
-            name={w.name}
-            keybaseUser={w.keybaseUser}
-            contents={w.contents}
-          />
-        ))}
-        <AddWallet onAddNew={this.props.onAddNew} onLinkExisting={this.props.onLinkExisting} />
-      </Box2>
-    )
-  }
-}
+const WalletList = (props: Props) => (
+  <Box2 direction="vertical" style={{height: '100%', width: 240}}>
+    {props.wallets.map(w => (
+      <Wallet
+        key={w.accountID}
+        onSelect={() => props.onSelectAccount(w.accountID)}
+        isSelected={w.accountID === props.selectedAccount}
+        name={w.name}
+        keybaseUser={w.keybaseUser}
+        contents={w.contents}
+      />
+    ))}
+    <AddWallet onAddNew={props.onAddNew} onLinkExisting={props.onLinkExisting} />
+  </Box2>
+)
 
 export {WalletList}

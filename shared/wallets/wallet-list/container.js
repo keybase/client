@@ -2,11 +2,20 @@
 import {WalletList} from '.'
 import logger from '../../logger'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
-import {getAccounts} from '../../constants/wallets'
+import {getAccounts, getSelectedAccount} from '../../constants/wallets'
+import {createSelectAccount} from '../../actions/wallets-gen'
+import {type AccountID} from '../../constants/types/wallets'
 
-const mapStateToProps = (state: TypedState) => ({accounts: getAccounts(state), me: state.config.username})
+const mapStateToProps = (state: TypedState) => ({
+  accounts: getAccounts(state),
+  selectedAccount: getSelectedAccount(state),
+  me: state.config.username,
+})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  onSelectAccount: (accountID: AccountID) => {
+    dispatch(createSelectAccount({accountID}))
+  },
   onAddNew: () => {
     logger.error('TODO: onAddNew')
   },
@@ -36,6 +45,8 @@ const mergeProps = (stateProps, dispatchProps) => {
 
   return {
     wallets,
+    selectedAccount: stateProps.selectedAccount,
+    onSelectAccount: dispatchProps.onSelectAccount,
     onAddNew: dispatchProps.onAddNew,
     onLinkExisting: dispatchProps.onLinkExisting,
   }

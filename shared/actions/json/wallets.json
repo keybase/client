@@ -32,5 +32,9 @@
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
     },
+    "selectAccount": {
+      "_description": "Select an account",
+      "accountID": "string",
+    },
   }
 }

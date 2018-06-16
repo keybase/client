@@ -17,6 +17,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   assetsMap: I.Map(),
   paymentsMap: I.Map(),
   accountMap: I.Map(),
+  selectedAccount: null,
 })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
@@ -106,6 +107,8 @@ const loadEverythingWaitingKey = 'wallets:loadEverything'
 
 const getAccounts = (state: TypedState) => state.wallets.accountMap
 
+const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -117,4 +120,5 @@ export {
   makeState,
   paymentResultToPayment,
   getAccounts,
+  getSelectedAccount,
 }

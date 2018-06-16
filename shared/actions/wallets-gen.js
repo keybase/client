@@ -15,6 +15,7 @@ export const loadAssets = 'wallets:loadAssets'
 export const loadEverything = 'wallets:loadEverything'
 export const loadPayments = 'wallets:loadPayments'
 export const paymentsReceived = 'wallets:paymentsReceived'
+export const selectAccount = 'wallets:selectAccount'
 
 // Payload Types
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
@@ -30,6 +31,7 @@ type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: string,
   payments: Array<Types.Payment>,
 |}>
+type _SelectAccountPayload = $ReadOnly<{|accountID: string|}>
 
 // Action Creators
 /**
@@ -48,6 +50,10 @@ export const createLoadAssets = (payload: _LoadAssetsPayload) => ({error: false,
  * Refresh our list of payments for a given account
  */
 export const createLoadPayments = (payload: _LoadPaymentsPayload) => ({error: false, payload, type: loadPayments})
+/**
+ * Select an account
+ */
+export const createSelectAccount = (payload: _SelectAccountPayload) => ({error: false, payload, type: selectAccount})
 /**
  * Update our store of account data
  */
@@ -69,6 +75,7 @@ export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayloa
 export type LoadEverythingPayload = $Call<typeof createLoadEverything, _LoadEverythingPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
+export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
 
 // All Actions
 // prettier-ignore
@@ -80,4 +87,5 @@ export type Actions =
   | LoadEverythingPayload
   | LoadPaymentsPayload
   | PaymentsReceivedPayload
+  | SelectAccountPayload
   | {type: 'common:resetStore', payload: void}
