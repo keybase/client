@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
 import {Box2, ClickableBox, Icon, Text, Avatar} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../../styles'
+import {
+  globalStyles,
+  globalMargins,
+  globalColors,
+  isMobile,
+  collapseStyles,
+  platformStyles,
+} from '../../../styles'
 
 type Props = {
   isSelected: boolean,
@@ -11,25 +18,44 @@ type Props = {
   onSelect: () => void,
 }
 
+const textStyle = platformStyles({
+  common: {
+    flexBasis: '70%',
+  },
+  isElectron: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+})
+
 class WalletRow extends React.PureComponent<Props> {
   render() {
-    const color = this.props.isSelected ? globalColors.blue : globalColors.white
+    const backgroundColor = this.props.isSelected ? globalColors.blue : globalColors.white
 
-    const titleStyle = {
-      ...globalStyles.fontSemibold,
-      color: this.props.isSelected ? globalColors.white : globalColors.darkBlue,
-      backgroundColor: color,
-      fontSize: 13,
-    }
-    const amountStyle = {
-      color: this.props.isSelected ? globalColors.white : globalColors.black_40,
-      backgroundColor: color,
-      fontSize: 11,
-    }
+    const titleStyle = collapseStyles([
+      textStyle,
+      {
+        ...globalStyles.fontSemibold,
+        color: this.props.isSelected ? globalColors.white : globalColors.darkBlue,
+        backgroundColor,
+        fontSize: 13,
+      },
+    ])
+
+    const amountStyle = collapseStyles([
+      textStyle,
+      {
+        color: this.props.isSelected ? globalColors.white : globalColors.black_40,
+        backgroundColor,
+        fontSize: 11,
+      },
+    ])
+
     const props = this.props
     return (
-      <ClickableBox onClick={props.onSelect} style={{backgroundColor: color}}>
-        <Box2 style={{height: rowHeight, backgroundColor: color}} direction="horizontal" fullWidth={true}>
+      <ClickableBox onClick={props.onSelect} style={{backgroundColor}}>
+        <Box2 style={{height: rowHeight, backgroundColor}} direction="horizontal" fullWidth={true}>
           <Icon
             type="icon-wallet-64"
             color={globalColors.darkBlue}
