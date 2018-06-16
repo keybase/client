@@ -92,10 +92,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
   isExplodingNew: stateProps.isExplodingNew,
-  onAttach: (paths: Array<string>) => {
-    dispatchProps._onAttach(stateProps.conversationIDKey, paths)
-    ownProps.onScrollDown()
-  },
+  onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onSeenExplodingMessages: dispatchProps.onSeenExplodingMessages,
@@ -105,7 +102,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     } else {
       dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
     }
-    ownProps.onScrollDown()
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,

@@ -61,14 +61,12 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             </Box>
           )}
         </Box>
-        {!!this.props.progressLabel && (
-          <Box style={progressContainerStyle}>
-            <Text type={'BodySmall'} style={progressLabelStyle}>
-              {this.props.progressLabel}
-            </Text>
-            {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
-          </Box>
-        )}
+        <Box style={progressContainerStyle}>
+          <Text type={'BodySmall'} style={progressLabelStyle}>
+            {this.props.progressLabel || '\u00A0'}
+          </Text>
+          {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
+        </Box>
         {this.props.onShowInFinder && (
           <Text
             type="BodySmallPrimaryLink"

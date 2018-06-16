@@ -24,6 +24,8 @@ if (module.hot) {
 }
 
 const ordinalsInAWaypoint = 10
+// pixels away from top/bottom to load/be locked
+const listEdgeSlop = 10
 
 type State = {
   isLockedToBottom: boolean,
@@ -38,11 +40,16 @@ class Thread extends React.PureComponent<Props, State> {
   _pointerWrapperRef = React.createRef()
   // Not a state so we don't rerender, just mutate the dom
   _isScrolling = false
+  _programaticScrollToBottomRefCount = 0
+  // last height we saw from resize
+  _scrollHeight = 0
 
   _scrollToBottom = () => {
     const list = this._listRef.current
     if (list) {
+      this._programaticScrollToBottomRefCount++
       list.scrollTop = list.scrollHeight - list.clientHeight
+      console.log('aaa scrolling to bottom', list.scrollHeight, list.scrollTop)
     }
   }
 
@@ -70,6 +77,7 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
 
+    // conversation changed
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
@@ -77,7 +85,18 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
 
+    // someone requested we scroll down
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
+      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
+      this._scrollToBottom()
+      return
+    }
+
+    // we send something last
+    if (
+      this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last() &&
+      this.props.lastMessageIsOurs
+    ) {
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
       this._scrollToBottom()
       return
@@ -118,13 +137,23 @@ class Thread extends React.PureComponent<Props, State> {
 
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
-    this._onScroll.cancel()
+    this._onScrollThrottled.cancel()
+    this._onResize.cancel()
     this._positionChangeTop.cancel()
     this._positionChangeBottom.cancel()
   }
 
+  _onScroll = e => {
+    if (this._programaticScrollToBottomRefCount > 0) {
+      this._programaticScrollToBottomRefCount--
+      console.log('aaa skipping our own scrolldown')
+      return
+    }
+    // console.log('aaa scroll', e.nativeEvent, e.nativeEvent && e.nativeEvent.type)
+    this._onScrollThrottled()
+  }
   // While scrolling we disable mouse events to speed things up
-  _onScroll = throttle(() => {
+  _onScrollThrottled = throttle(() => {
     if (!this._isScrolling) {
       this._isScrolling = true
       if (this._pointerWrapperRef.current) {
@@ -132,6 +161,20 @@ class Thread extends React.PureComponent<Props, State> {
       }
     }
     this._onAfterScroll()
+
+    // are we at the top?
+    const list = this._listRef.current
+    if (list) {
+      if (list.scrollTop < listEdgeSlop) {
+        console.log('aaaa loadmore')
+        this.props.loadMoreMessages()
+      }
+    }
+
+    // not locked to bottom while scrolling
+    const isLockedToBottom = false
+    console.log('aaaa scroll lock force off', isLockedToBottom)
+    this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
   }, 100)
 
   // After lets turn them back on
@@ -141,6 +184,14 @@ class Thread extends React.PureComponent<Props, State> {
       if (this._pointerWrapperRef.current) {
         this._pointerWrapperRef.current.style.pointerEvents = 'initial'
       }
+    }
+
+    const list = this._listRef.current
+    // are we locked on the bottom?
+    if (list) {
+      const isLockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
+      console.log('aaaa scroll lock', isLockedToBottom, list.scrollHeight, list.scrollTop)
+      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
     }
   }, 200)
 
@@ -168,15 +219,17 @@ class Thread extends React.PureComponent<Props, State> {
 
   // When the top waypoint is visible, lets load more messages
   _positionChangeTop = debounce(({currentPosition}) => {
-    if (currentPosition === 'inside') {
-      this.props.loadMoreMessages()
-    }
+    // TODO make it not a waypoint
+    // if (currentPosition === 'inside') {
+    // this.props.loadMoreMessages()
+    // }
   }, 100)
 
   // When the bottom waypoint is visible, lock to bottom
   _positionChangeBottom = debounce(({currentPosition}) => {
-    const isLockedToBottom = currentPosition === 'inside'
-    this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
+    // TODO make it not a waypoint
+    // const isLockedToBottom = currentPosition === 'inside'
+    // this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
   }, 100)
 
   _makeWaypoints = () => {
@@ -235,6 +288,21 @@ class Thread extends React.PureComponent<Props, State> {
     return waypoints
   }
 
+  _onResize = throttle(({scroll}) => {
+    if (this._scrollHeight) {
+      // if the size changes adjust our scrolltop
+      const list = this._listRef.current
+      if (list) {
+        console.log('aaa adjusting scrolltop due to resizeby', scroll.height - this._scrollHeight)
+        this._programaticScrollToBottomRefCount++
+        list.scrollTop = list.scrollTop + scroll.height - this._scrollHeight
+      }
+    }
+    this._scrollHeight = scroll.height
+    // this._scrollTop = scroll.scrollTop
+    console.log('aaa resize', scroll)
+  }, 100)
+
   render() {
     const waypoints = this._makeWaypoints()
 
@@ -243,7 +311,13 @@ class Thread extends React.PureComponent<Props, State> {
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
           <div style={listStyle} ref={this._listRef} onScroll={this._onScroll}>
-            <div ref={this._pointerWrapperRef}>{waypoints}</div>
+            <Measure scroll={true} onResize={this._onResize}>
+              {({measureRef}) => (
+                <div ref={measureRef}>
+                  <div ref={this._pointerWrapperRef}>{waypoints}</div>
+                </div>
+              )}
+            </Measure>
           </div>
         </div>
       </ErrorBoundary>
