@@ -374,15 +374,15 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }, 100)
 
   shouldComponentUpdate(nextProps, nextState) {
-    // ordinals is an array so we need to compare it explicitly
-    const shouldUpdate =
-      this.state.height !== nextState.height ||
-      this.state.isVisible !== nextState.isVisible ||
-      // we ignore width changes, its just to bookkeep height
-      nextProps.ordinals.length !== this.state.numOrdinals
+    // Only redraw when isVisible changes or your numOrdinals change, else we rerender as the measurements happen
+    let shouldUpdate = false
 
-    if (shouldUpdate) {
-      // this.props.id === 507 && console.log('aaa shouldup', this.props, this.state)
+    if (this.state.isVisible !== nextState.isVisible) {
+      shouldUpdate = true
+    }
+
+    if (nextProps.ordinals.length !== this.state.numOrdinals) {
+      shouldUpdate = true
     }
 
     return shouldUpdate
@@ -399,8 +399,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }
 
   render() {
-    // this.props.id === 507 && console.log('aaa render', this.props, this.state)
-    // console.log('aaaa render', this.props, this.state)
+    console.log('aaa render', this.props, this.state)
     // Apply data-key to the dom node so we can search for editing messages
     const renderMessages = !this.state.height || this.state.isVisible
     let content
@@ -412,11 +411,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
       content = (
         <Measure bounds={true} onResize={this._onResize}>
           {({measureRef}) => (
-            <div
-              data-key={this.props.id}
-              ref={measureRef}
-              style={this.state.height ? {height: this.state.height, overflow: 'hidden'} : null}
-            >
+            <div data-key={this.props.id} ref={measureRef}>
               {messages}
             </div>
           )}
