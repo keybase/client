@@ -1,63 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Icon, Text, Avatar, FloatingMenu} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
+import {Box2, ClickableBox, Icon, Text, FloatingMenu} from '../../common-adapters'
+import {globalMargins, globalColors, isMobile} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 import {type AccountID} from '../../constants/types/wallets'
-
-type WalletProps = {
-  isSelected: boolean,
-  name: string,
-  keybaseUser: string,
-  contents: string,
-  onSelect: () => void,
-}
-
-class Wallet extends React.PureComponent<WalletProps> {
-  render() {
-    const color = this.props.isSelected ? globalColors.blue : globalColors.white
-
-    const titleStyle = {
-      ...globalStyles.fontSemibold,
-      color: this.props.isSelected ? globalColors.white : globalColors.darkBlue,
-      backgroundColor: color,
-      fontSize: 13,
-    }
-    const amountStyle = {
-      color: this.props.isSelected ? globalColors.white : globalColors.black_40,
-      backgroundColor: color,
-      fontSize: 11,
-    }
-    const props = this.props
-    return (
-      <ClickableBox onClick={props.onSelect} style={{backgroundColor: color}}>
-        <Box2 style={{height: rowHeight, backgroundColor: color}} direction="horizontal" fullWidth={true}>
-          <Icon
-            type="icon-wallet-64"
-            color={globalColors.darkBlue}
-            style={{
-              alignSelf: 'center',
-              height: 32,
-              marginLeft: globalMargins.tiny,
-              marginRight: globalMargins.tiny,
-            }}
-          />
-          <Box2 direction="vertical">
-            <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-              {this.props.keybaseUser && <Avatar size={16} username={this.props.keybaseUser} />}
-              <Text type="BodySmall" style={titleStyle}>
-                {props.name}
-              </Text>
-            </Box2>
-            <Text type="BodySmall" style={amountStyle}>
-              {props.contents}
-            </Text>
-          </Box2>
-        </Box2>
-      </ClickableBox>
-    )
-  }
-}
+import {WalletRow} from './wallet-row'
 
 type AddProps = {
   onAddNew: () => void,
@@ -128,7 +75,7 @@ type Props = {
 const WalletList = (props: Props) => (
   <Box2 direction="vertical" style={{height: '100%', width: 240}}>
     {props.wallets.map(w => (
-      <Wallet
+      <WalletRow
         key={w.accountID}
         onSelect={() => props.onSelectAccount(w.accountID)}
         isSelected={w.accountID === props.selectedAccount}
