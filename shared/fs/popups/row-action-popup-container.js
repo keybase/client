@@ -157,7 +157,8 @@ const getShareMenuItems = ({path}, {shareNative}) =>
 const mergeProps = (stateProps, dispatchProps) => {
   const {path, pathItem, isShare, _username, childrenFolders, childrenFiles} = stateProps
   const {onHidden, _loadMimeType} = dispatchProps
-  const itemStyles = Constants.getItemStyles(Types.getPathElements(path), pathItem.type, _username)
+  const pathElements = Types.getPathElements(path)
+  const itemStyles = Constants.getItemStyles(pathElements, pathItem.type, _username)
   const menuItems = isShare
     ? getShareMenuItems(stateProps, dispatchProps)
     : getRootMenuItems(stateProps, dispatchProps)
@@ -170,6 +171,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     needLoadMimeType: pathItem.type === 'file' && pathItem.mimeType === '',
     childrenFolders,
     childrenFiles,
+    pathElements,
     itemStyles,
     menuItems,
     onHidden,
