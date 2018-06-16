@@ -1,5 +1,5 @@
 // @flow
-import {WalletList} from '.'
+import {WalletList, type Props} from '.'
 import logger from '../../logger'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
 import {getAccounts, getSelectedAccount} from '../../constants/wallets'
@@ -9,7 +9,7 @@ import {type AccountID} from '../../constants/types/wallets'
 const mapStateToProps = (state: TypedState) => ({
   accounts: getAccounts(state),
   selectedAccount: getSelectedAccount(state),
-  me: state.config.username,
+  me: state.config.username || '',
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -24,7 +24,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps): Props => {
   // Accounts is already ordered, so no need to sort.
   const wallets = stateProps.accounts
     .map(a => {
@@ -35,8 +35,9 @@ const mergeProps = (stateProps, dispatchProps) => {
       }
 
       return {
-        keybaseUser: a.isDefault ? stateProps.me : '',
+        accountID: a.accountID,
         name,
+        keybaseUser: a.isDefault ? stateProps.me : '',
         contents: a.balanceDescription,
       }
     })
