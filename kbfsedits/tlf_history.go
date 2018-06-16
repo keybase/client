@@ -100,13 +100,20 @@ func NewTlfHistory() *TlfHistory {
 // should be added for any particular writer.
 func (th *TlfHistory) AddNotifications(
 	writerName string, messages []string) (err error) {
-	newEdits := make(notificationsByRevision, len(messages))
+	newEdits := make(notificationsByRevision, 0, len(messages))
 
 	// Unmarshal and sort the new messages.
-	for i, msg := range messages {
-		err := json.Unmarshal([]byte(msg), &newEdits[i])
+	for _, msg := range messages {
+		var revList []NotificationMessage
+		err := json.Unmarshal([]byte(msg), &revList)
 		if err != nil {
 			return err
+		}
+
+		for j := len(revList) - 1; j >= 0; j-- {
+			revMsg := revList[j]
+			revMsg.numWithinRevision = j
+			newEdits = append(newEdits, revMsg)
 		}
 	}
 	sort.Sort(newEdits)

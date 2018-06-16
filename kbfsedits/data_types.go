@@ -84,6 +84,9 @@ type NotificationMessage struct {
 	UID      keybase1.UID
 	FolderID tlf.ID
 	Params   *NotificationParams `json:",omitempty"`
+
+	// For internal sorting, not exported.
+	numWithinRevision int
 }
 
 // notificationsByRevision sorts NotificationMessages in reverse by
@@ -96,7 +99,13 @@ func (nbr notificationsByRevision) Len() int {
 
 func (nbr notificationsByRevision) Less(i, j int) bool {
 	// Reverse sort, so latest revisions come first.
-	return nbr[i].Revision > nbr[j].Revision
+	if nbr[i].Revision > nbr[j].Revision {
+		return true
+	} else if nbr[i].Revision < nbr[j].Revision {
+		return false
+	}
+	// If they're equal, check the number within the revision.
+	return nbr[i].numWithinRevision > nbr[j].numWithinRevision
 }
 
 func (nbr notificationsByRevision) Swap(i, j int) {
@@ -110,7 +119,8 @@ func (nbr notificationsByRevision) Swap(i, j int) {
 func (nbr notificationsByRevision) uniquify() (ret notificationsByRevision) {
 	toSkip := make(map[int]bool)
 	for i, n := range nbr {
-		if i > 0 && n.Revision == nbr[i-1].Revision {
+		if i > 0 && n.Revision == nbr[i-1].Revision &&
+			n.numWithinRevision == nbr[i-1].numWithinRevision {
 			toSkip[i] = true
 		}
 	}
