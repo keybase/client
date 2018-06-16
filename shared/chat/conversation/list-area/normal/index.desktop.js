@@ -80,6 +80,7 @@ class Thread extends React.PureComponent<Props, State> {
     // conversation changed
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
+      this._scrollHeight = 0
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
       this._scrollToBottom()
       return
@@ -106,7 +107,9 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     // Prepending some messages?
     if (snapshot && list && !this.state.isLockedToBottom) {
-      list.scrollTop = list.scrollHeight - snapshot
+      // list.scrollTop = list.scrollHeight - snapshot
+      this._scrollHeight = snapshot
+      this._onResize({scroll: {height: list.scrollHeight}})
     } else {
       // maintain scroll to bottom?
       if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
@@ -138,7 +141,7 @@ class Thread extends React.PureComponent<Props, State> {
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
     this._onScrollThrottled.cancel()
-    this._onResize.cancel()
+    // this._onResize.cancel()
     this._positionChangeTop.cancel()
     this._positionChangeBottom.cancel()
   }
@@ -288,7 +291,7 @@ class Thread extends React.PureComponent<Props, State> {
     return waypoints
   }
 
-  _onResize = throttle(({scroll}) => {
+  _onResize = ({scroll}) => {
     if (this._scrollHeight) {
       // if the size changes adjust our scrolltop
       const list = this._listRef.current
@@ -301,7 +304,7 @@ class Thread extends React.PureComponent<Props, State> {
     this._scrollHeight = scroll.height
     // this._scrollTop = scroll.scrollTop
     console.log('aaa resize', scroll)
-  }, 100)
+  }
 
   render() {
     const waypoints = this._makeWaypoints()
