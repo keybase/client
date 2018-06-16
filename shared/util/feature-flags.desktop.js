@@ -16,6 +16,7 @@ const ff: FeatureFlags = {
   admin: false,
   explodingMessagesEnabled: false || __STORYBOOK__,
   fsEnabled: true,
+  fsWritesEnabled: false,
   plansEnabled: false,
   walletsEnabled: false,
 }
@@ -23,6 +24,7 @@ const ff: FeatureFlags = {
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   explodingMessagesEnabled: true,
   walletsEnabled: true,
+  fsWritesEnabled: true,
 }
 
 // load overrides
