@@ -31,6 +31,7 @@ const props = {
   conversationIDKey,
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
+  lastMessageIsOurs: false,
   listScrollDownCounter: 0,
   onFocusInput: action('onFocusInput'),
   onToggleInfoPanel: action('onToggleInfoPanel'),

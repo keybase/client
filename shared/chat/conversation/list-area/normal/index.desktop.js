@@ -49,7 +49,7 @@ class Thread extends React.PureComponent<Props, State> {
     if (list) {
       this._programaticScrollToBottomRefCount++
       list.scrollTop = list.scrollHeight - list.clientHeight
-      console.log('aaa scrolling to bottom', list.scrollHeight, list.scrollTop)
+      // console.log('aaa scrolling to bottom', list.scrollHeight, list.scrollTop)
     }
   }
 
@@ -107,7 +107,7 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     // Prepending some messages?
     if (snapshot && list && !this.state.isLockedToBottom) {
-      // list.scrollTop = list.scrollHeight - snapshot
+      // onresize will be called normally but its pretty slow so you'll see a flash, instead of emulate it happening immediately
       this._scrollHeight = snapshot
       this._onResize({scroll: {height: list.scrollHeight}})
     } else {
@@ -141,15 +141,12 @@ class Thread extends React.PureComponent<Props, State> {
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
     this._onScrollThrottled.cancel()
-    // this._onResize.cancel()
-    this._positionChangeTop.cancel()
-    this._positionChangeBottom.cancel()
   }
 
   _onScroll = e => {
     if (this._programaticScrollToBottomRefCount > 0) {
       this._programaticScrollToBottomRefCount--
-      console.log('aaa skipping our own scrolldown')
+      // console.log('aaa skipping our own scrolldown')
       return
     }
     // console.log('aaa scroll', e.nativeEvent, e.nativeEvent && e.nativeEvent.type)
@@ -169,14 +166,14 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     if (list) {
       if (list.scrollTop < listEdgeSlop) {
-        console.log('aaaa loadmore')
+        // console.log('aaaa loadmore')
         this.props.loadMoreMessages()
       }
     }
 
     // not locked to bottom while scrolling
     const isLockedToBottom = false
-    console.log('aaaa scroll lock force off', isLockedToBottom)
+    // console.log('aaaa scroll lock force off', isLockedToBottom)
     this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
   }, 100)
 
@@ -193,7 +190,7 @@ class Thread extends React.PureComponent<Props, State> {
     // are we locked on the bottom?
     if (list) {
       const isLockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
-      console.log('aaaa scroll lock', isLockedToBottom, list.scrollHeight, list.scrollTop)
+      // console.log('aaaa scroll lock', isLockedToBottom, list.scrollHeight, list.scrollTop)
       this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
     }
   }, 200)
@@ -220,30 +217,9 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
-  // When the top waypoint is visible, lets load more messages
-  _positionChangeTop = debounce(({currentPosition}) => {
-    // TODO make it not a waypoint
-    // if (currentPosition === 'inside') {
-    // this.props.loadMoreMessages()
-    // }
-  }, 100)
-
-  // When the bottom waypoint is visible, lock to bottom
-  _positionChangeBottom = debounce(({currentPosition}) => {
-    // TODO make it not a waypoint
-    // const isLockedToBottom = currentPosition === 'inside'
-    // this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
-  }, 100)
-
-  _makeWaypoints = () => {
-    const waypoints = []
-    waypoints.push(
-      <TopWaypoint
-        key="topWaypoint"
-        onPositionChange={this._positionChangeTop}
-        conversationIDKey={this.props.conversationIDKey}
-      />
-    )
+  _makeItems = () => {
+    const items = []
+    items.push(<TopItem key="topItem" conversationIDKey={this.props.conversationIDKey} />)
 
     const numOrdinals = this.props.messageOrdinals.size
     let ordinals = []
@@ -263,7 +239,7 @@ class Thread extends React.PureComponent<Props, State> {
         if (ordinals.length) {
           const key = String(lastBucket)
           // console.log('aaa renpush', key, JSON.stringify(ordinals))
-          waypoints.push(
+          items.push(
             <OrdinalWaypoint
               key={key}
               id={key}
@@ -280,15 +256,9 @@ class Thread extends React.PureComponent<Props, State> {
       ordinals.push(ordinal)
     })
 
-    waypoints.push(
-      <BottomWaypoint
-        key="bottomWaypoint"
-        onPositionChange={this._positionChangeBottom}
-        conversationIDKey={this.props.conversationIDKey}
-      />
-    )
+    items.push(<BottomItem key="bottomItem" conversationIDKey={this.props.conversationIDKey} />)
 
-    return waypoints
+    return items
   }
 
   _onResize = ({scroll}) => {
@@ -307,7 +277,7 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const waypoints = this._makeWaypoints()
+    const items = this._makeItems()
 
     return (
       <ErrorBoundary>
@@ -317,7 +287,7 @@ class Thread extends React.PureComponent<Props, State> {
             <Measure scroll={true} onResize={this._onResize}>
               {({measureRef}) => (
                 <div ref={measureRef}>
-                  <div ref={this._pointerWrapperRef}>{waypoints}</div>
+                  <div ref={this._pointerWrapperRef}>{items}</div>
                 </div>
               )}
             </Measure>
@@ -329,51 +299,32 @@ class Thread extends React.PureComponent<Props, State> {
 }
 
 // All the waypoints keep a key to re-render if we get a measure callback
-type TopBottomWaypointProps = {
+type TopBottomItemProps = {
   conversationIDKey: Types.ConversationIDKey,
-  onPositionChange: () => void,
 }
-type TopBottomWaypointState = {
+type TopBottomItemState = {
   keyCount: number,
 }
 
-class TopWaypoint extends React.PureComponent<TopBottomWaypointProps, TopBottomWaypointState> {
+class TopItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState> {
   state = {keyCount: 0}
   _measure = () => {
     this.setState(p => ({keyCount: p.keyCount + 1}))
   }
 
   render() {
-    return (
-      <Waypoint
-        key={`SpecialTopMessage:${this.state.keyCount}`}
-        onPositionChange={this.props.onPositionChange}
-      >
-        <div>
-          <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={this._measure} />
-        </div>
-      </Waypoint>
-    )
+    return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={this._measure} />
   }
 }
 
-class BottomWaypoint extends React.PureComponent<TopBottomWaypointProps, TopBottomWaypointState> {
+class BottomItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState> {
   state = {keyCount: 0}
   _measure = () => {
     this.setState(p => ({keyCount: p.keyCount + 1}))
   }
 
   render() {
-    return (
-      <Waypoint
-        key={`SpecialBottomMessage:${this.state.keyCount}`}
-        onPositionChange={this.props.onPositionChange}
-      >
-        <div>
-          <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={this._measure} />
-        </div>
-      </Waypoint>
-    )
+    return <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={this._measure} />
   }
 }
 

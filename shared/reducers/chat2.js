@@ -348,8 +348,9 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         // Clear ordinals from the old selected conversation
         const oldSelected = s.selectedConversation
         if (oldSelected && Constants.isValidConversationIDKey(oldSelected)) {
-          s.updateIn(['messageOrdinals', oldSelected], ordinals =>
-            ordinals.takeLast(Constants.numMessagesOnInitialLoad)
+          s.updateIn(
+            ['messageOrdinals', oldSelected],
+            ordinals => (ordinals ? ordinals.takeLast(Constants.numMessagesOnInitialLoad) : ordinals)
           )
         }
 
@@ -554,9 +555,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             const conversationIDKey = Types.stringToConversationIDKey(cid)
             const messages = convoToMessages[cid]
             messages.forEach(message => {
-              // if (oldMessageMap.get(message.ordinal)) {
-              // return
-              // }
               const m = canSendType(message)
               const old = m ? findExisting(conversationIDKey, m) : null
               const toSet = old ? Constants.upgradeMessage(old, message) : message
