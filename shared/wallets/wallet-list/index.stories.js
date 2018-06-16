@@ -20,6 +20,14 @@ const mockWallets = [
     contents: '56.9618203 XLM',
     onSelect: action('onSelect2'),
   },
+  {
+    accountID: 'G43289XXXXX34OPMG43289XXXXX34OPM',
+    keybaseUser: '',
+    name: 'G43289XXXXX34OPMG43289XXXXX34OPM',
+    contents: '56.9618203 XLM',
+    isSelected: false,
+    onSelect: action('onSelect3'),
+  },
 ]
 
 const provider = PropProviders.Common()
