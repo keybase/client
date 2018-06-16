@@ -107,6 +107,9 @@ const loadEverythingWaitingKey = 'wallets:loadEverything'
 
 const getAccounts = (state: TypedState) => state.wallets.accountMap
 
+const getAccount = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.accountMap.get(accountID, makeAccount())
+
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
 export {
@@ -120,5 +123,6 @@ export {
   makeState,
   paymentResultToPayment,
   getAccounts,
+  getAccount,
   getSelectedAccount,
 }
