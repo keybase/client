@@ -28,12 +28,7 @@ const mergeProps = (stateProps, dispatchProps): Props => {
   // Accounts is already ordered, so no need to sort.
   const wallets = stateProps.accounts
     .map(a => {
-      let name = a.name || a.accountID
-      // TODO: Better way to do this?
-      if (name.length > 20) {
-        name = name.substr(0, 20) + '...'
-      }
-
+      const name = a.name || a.accountID
       return {
         accountID: a.accountID,
         name,
