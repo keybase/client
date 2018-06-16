@@ -131,22 +131,15 @@ class Thread extends React.PureComponent<Props, State> {
     this.setState(p => (p.isScrolling ? {isScrolling: false} : undefined))
   }, 200)
 
-  _rowRenderer = (ordinalIndex: number, measure: () => void) => {
-    const ordinal = this.props.messageOrdinals.get(ordinalIndex)
-    if (ordinal) {
-      const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
-      return (
-        <Message
-          key={String(ordinal)}
-          ordinal={ordinal}
-          previous={prevOrdinal}
-          measure={measure}
-          conversationIDKey={this.props.conversationIDKey}
-        />
-      )
-    }
-    return <div key={String(ordinalIndex)} />
-  }
+  _rowRenderer = (ordinal: Types.Ordinal, previous: ?Types.Ordinal, measure: () => void) => (
+    <Message
+      key={String(ordinal)}
+      ordinal={ordinal}
+      previous={previous}
+      measure={measure}
+      conversationIDKey={this.props.conversationIDKey}
+    />
+  )
 
   _onCopyCapture(e) {
     // Copy text only, not HTML/styling.
@@ -184,29 +177,39 @@ class Thread extends React.PureComponent<Props, State> {
     )
 
     const numOrdinals = this.props.messageOrdinals.size
-    let indicies = []
-    for (var idx = 0; idx < numOrdinals; ++idx) {
-      const needNextWaypoint = idx % ordinalsInAWaypoint === 0
+    let ordinals = []
+    let previous = null
+    let lastBucket = null
+    this.props.messageOrdinals.forEach((ordinal, idx) => {
+      const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
+      if (lastBucket === null) {
+        lastBucket = bucket
+      }
+      const needNextWaypoint = bucket !== lastBucket
       const isLastItem = idx === numOrdinals - 1
       if (needNextWaypoint || isLastItem) {
         if (isLastItem) {
-          indicies.push(idx)
+          ordinals.push(ordinal)
         }
-
-        if (indicies.length) {
-          const ordinal = this.props.messageOrdinals.get(indicies[0] || 0)
-          if (!ordinal) {
-            throw new Error('Should be impossible')
-          }
-          const key = String(Types.ordinalToNumber(ordinal))
+        if (ordinals.length) {
+          const key = String(lastBucket)
+          // console.log('aaa renpush', key, JSON.stringify(ordinals))
           waypoints.push(
-            <OrdinalWaypoint key={key} id={key} rowRenderer={this._rowRenderer} indicies={indicies} />
+            <OrdinalWaypoint
+              key={key}
+              id={key}
+              rowRenderer={this._rowRenderer}
+              ordinals={ordinals}
+              previous={previous}
+            />
           )
-          indicies = []
+          previous = ordinals[ordinals.length - 1]
+          ordinals = []
+          lastBucket = bucket
         }
       }
-      indicies.push(idx)
-    }
+      ordinals.push(ordinal)
+    })
 
     waypoints.push(
       <BottomWaypoint
@@ -286,15 +289,16 @@ class BottomWaypoint extends React.PureComponent<TopBottomWaypointProps, TopBott
 
 type OrdinalWaypointProps = {
   id: string,
-  rowRenderer: (ordinalIndex: number, measure: () => void) => React.Node,
-  indicies: Array<number>,
+  rowRenderer: (ordinal: Types.Ordinal, previous: ?Types.Ordinal, measure: () => void) => React.Node,
+  ordinals: Array<Types.Ordinal>,
+  previous: ?Types.Ordinal,
 }
 
 type OrdinalWaypointState = {
   // cached height
   height: ?number,
   // how we keep track if height needs to be tossed
-  heightForIndicies: ?string,
+  numOrdinals: number,
   // in view
   isVisible: boolean,
   // width just to keep track if we should toss height
@@ -303,8 +307,8 @@ type OrdinalWaypointState = {
 class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypointState> {
   state = {
     height: null,
-    heightForIndicies: null,
     isVisible: true,
+    numOrdinals: 0,
     width: null,
   }
 
@@ -323,6 +327,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   _onResize = debounce(({bounds}) => {
     const height = bounds.height
     const width = bounds.width
+
     if (height && width) {
       this.setState(p => {
         let nextHeightState = {}
@@ -351,36 +356,46 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }, 100)
 
   _measure = debounce(() => {
+    // this.props.id === 507 && console.log('aaa measure', this.props, this.state)
     this.setState(p => (p.height ? {height: null} : null))
   }, 100)
 
-  static _getIndiciesHeightKey = indicies => indicies.join('')
-
   shouldComponentUpdate(nextProps, nextState) {
-    // indicies is an array so we need to compare it explicitly
-    return (
+    // ordinals is an array so we need to compare it explicitly
+    const shouldUpdate =
       this.state.height !== nextState.height ||
       this.state.isVisible !== nextState.isVisible ||
       // we ignore width changes, its just to bookkeep height
-      OrdinalWaypoint._getIndiciesHeightKey(nextProps.indicies) !== this.state.heightForIndicies
-    )
+      nextProps.ordinals.length !== this.state.numOrdinals
+
+    if (shouldUpdate) {
+      // this.props.id === 507 && console.log('aaa shouldup', this.props, this.state)
+    }
+
+    return shouldUpdate
   }
 
   static getDerivedStateFromProps(props, state) {
-    const heightForIndicies = OrdinalWaypoint._getIndiciesHeightKey(props.indicies)
-    if (heightForIndicies !== state.heightForIndicies) {
-      // if the Indicies changed remeasure
-      return {height: null, heightForIndicies}
+    const numOrdinals = props.ordinals.length
+    if (numOrdinals !== state.numOrdinals) {
+      // props.id === 507 && console.log('aaa deri', props, state)
+      // if the ordinals changed remeasure
+      return {height: null, numOrdinals}
     }
     return null
   }
 
   render() {
+    // this.props.id === 507 && console.log('aaa render', this.props, this.state)
+    // console.log('aaaa render', this.props, this.state)
     // Apply data-key to the dom node so we can search for editing messages
     const renderMessages = !this.state.height || this.state.isVisible
     let content
     if (renderMessages) {
-      const messages = this.props.indicies.map(i => this.props.rowRenderer(i, this._measure))
+      const messages = this.props.ordinals.map((o, idx) => {
+        const previous = idx ? this.props.ordinals[idx - 1] : this.props.previous
+        return this.props.rowRenderer(o, previous, this._measure)
+      })
       content = (
         <Measure bounds={true} onResize={this._onResize}>
           {({measureRef}) => (

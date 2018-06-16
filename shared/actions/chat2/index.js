@@ -821,7 +821,8 @@ const loadMoreMessages = (
 
     let shouldClearOthers = false
     if (!isScrollingBack && !calledClear) {
-      shouldClearOthers = true
+      // TEMP this causes a lot of remeasure on desktop that we need to fix
+      shouldClearOthers = isMobile
       calledClear = true
     }
 
