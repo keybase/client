@@ -6,8 +6,8 @@ import {
   globalMargins,
   globalColors,
   isMobile,
-  collapseStyles,
   platformStyles,
+  collapseStyles,
 } from '../../../styles'
 
 type Props = {
@@ -18,10 +18,7 @@ type Props = {
   onSelect: () => void,
 }
 
-const textStyle = platformStyles({
-  common: {
-    flexBasis: '70%',
-  },
+const rightColumnStyle = platformStyles({
   isElectron: {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -34,7 +31,7 @@ class WalletRow extends React.PureComponent<Props> {
     const backgroundColor = this.props.isSelected ? globalColors.blue : globalColors.white
 
     const titleStyle = collapseStyles([
-      textStyle,
+      rightColumnStyle,
       {
         ...globalStyles.fontSemibold,
         color: this.props.isSelected ? globalColors.white : globalColors.darkBlue,
@@ -44,11 +41,14 @@ class WalletRow extends React.PureComponent<Props> {
     ])
 
     const amountStyle = collapseStyles([
-      textStyle,
+      rightColumnStyle,
       {
         color: this.props.isSelected ? globalColors.white : globalColors.black_40,
         backgroundColor,
         fontSize: 11,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
       },
     ])
 
@@ -66,7 +66,7 @@ class WalletRow extends React.PureComponent<Props> {
               marginRight: globalMargins.tiny,
             }}
           />
-          <Box2 direction="vertical">
+          <Box2 direction="vertical" style={rightColumnStyle}>
             <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
               {this.props.keybaseUser && <Avatar size={16} username={this.props.keybaseUser} />}
               <Text type="BodySmall" style={titleStyle}>
