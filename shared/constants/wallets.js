@@ -105,7 +105,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
 
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 
-const getAccounts = (state: TypedState) => state.wallets.accountMap
+const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 const getAccount = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.get(accountID, makeAccount())
@@ -122,7 +122,7 @@ export {
   makeReserve,
   makeState,
   paymentResultToPayment,
-  getAccounts,
+  getAccountIDs,
   getAccount,
   getSelectedAccount,
 }

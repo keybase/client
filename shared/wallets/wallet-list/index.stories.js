@@ -5,32 +5,57 @@ import {storiesOf, action} from '../../stories/storybook'
 import {WalletList} from '.'
 import walletRow from './wallet-row/index.stories'
 
-const mockWallets = [
-  {
-    accountID: 'account1',
-    keybaseUser: 'cecileb',
+const onSelect = action('onSelect')
+
+const mockWallets = {
+  account1: {
+    isSelected: true,
     name: "cecileb's wallet",
+    keybaseUser: 'cecileb',
     contents: '280.0871234 XLM + more',
-    onSelect: action('onSelect1'),
+    onSelect,
   },
-  {
-    accountID: 'account2',
+  account2: {
+    isSelected: false,
     name: 'Second wallet',
     keybaseUser: '',
     contents: '56.9618203 XLM',
-    onSelect: action('onSelect2'),
+    onSelect,
   },
-  {
-    accountID: 'G43289XXXXX34OPMG43289XXXXX34OPM',
-    keybaseUser: '',
-    name: 'G43289XXXXX34OPMG43289XXXXX34OPM',
-    contents: '56.9618203 XLM',
+  G43289XXXXX34OPMG43289XXXXX34OPM: {
     isSelected: false,
-    onSelect: action('onSelect3'),
+    name: 'G43289XXXXX34OPMG43289XXXXX34OPM',
+    keybaseUser: '',
+    contents: '56.9618203 XLM',
+    onSelect,
   },
-]
+}
 
-const provider = PropProviders.Common()
+const accountIDs = Object.keys(mockWallets)
+
+const WalletRowProvider = () => ({
+  WalletRow: ({accountID}) => {
+    const mockWallet = mockWallets[accountID]
+    if (mockWallet) {
+      return mockWallet
+    }
+    return {
+      isSelected: false,
+      name: '',
+      keybaseUser: '',
+      contents: '',
+      onSelect,
+    }
+  },
+})
+
+// TODO: Make the result of compose be itself composable.
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
+  PropProviders.WaitingButton(),
+  WalletRowProvider()
+)
 
 const load = () => {
   walletRow()
@@ -39,7 +64,7 @@ const load = () => {
     .addDecorator(provider)
     .add('Wallet List', () => (
       <WalletList
-        wallets={mockWallets}
+        accountIDs={accountIDs}
         selectedAccount="account1"
         onSelectAccount={action('onSelectAccount')}
         onAddNew={action('onAddNew')}
