@@ -3,6 +3,7 @@ import React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action} from '../../stories/storybook'
 import {WalletList} from '.'
+import walletRow from './wallet-row/index.stories'
 
 const mockWallets = [
   {
@@ -24,6 +25,8 @@ const mockWallets = [
 const provider = PropProviders.Common()
 
 const load = () => {
+  walletRow()
+
   storiesOf('Wallets', module)
     .addDecorator(provider)
     .add('Wallet List', () => (
