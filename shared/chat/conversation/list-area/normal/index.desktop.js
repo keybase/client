@@ -476,9 +476,4 @@ const listStyle = {
   willChange: 'transform',
 }
 
-// mask mouse events while scrol ling
-const innerListStyleScrolling = {
-  pointerEvents: 'none',
-}
-
 export default Thread
