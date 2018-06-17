@@ -398,6 +398,9 @@ protocol local {
   record MessageUnboxedError {
     MessageUnboxedErrorType errType;
     string errMsg;
+    // verbose error info for debugging but not
+    // user display
+    string internalErrMsg;
     VersionKind versionKind;
     int versionNumber;
     boolean isCritical;
