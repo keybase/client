@@ -23,6 +23,11 @@ describe('inbox container tests', () => {
     expect(s1).toBe(s2)
     expect(s2).toBe(s3)
   })
+  it('exact beats exact + more', () => {
+    const s1 = _testing.score('chris', 'cjb', ['chris'])
+    const s2 = _testing.score('chris', 'cjb', ['chris', 'chrisnojima'])
+    expect(s1).toBeGreaterThan(s2)
+  })
   // This isn't strictly true as there's some points per number of participants
   it('exact > prefix > substr > nothing', () => {
     const exact = _testing.score('exact', 'myname', ['exact', 'b', 'c'])
