@@ -47,9 +47,9 @@ class Thread extends React.PureComponent<Props, State> {
   _scrollToBottom = () => {
     const list = this._listRef.current
     if (list) {
+      // ignore callbacks due to this change
       this._programaticScrollToBottomRefCount++
       list.scrollTop = list.scrollHeight - list.clientHeight
-      // console.log('aaa scrolling to bottom', list.scrollHeight, list.scrollTop)
     }
   }
 
@@ -107,7 +107,7 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     // Prepending some messages?
     if (snapshot && list && !this.state.isLockedToBottom) {
-      // onresize will be called normally but its pretty slow so you'll see a flash, instead of emulate it happening immediately
+      // onResize will be called normally but its pretty slow so you'll see a flash, instead of emulate it happening immediately
       this._scrollHeight = snapshot
       this._onResize({scroll: {height: list.scrollHeight}})
     } else {
@@ -146,13 +146,12 @@ class Thread extends React.PureComponent<Props, State> {
   _onScroll = e => {
     if (this._programaticScrollToBottomRefCount > 0) {
       this._programaticScrollToBottomRefCount--
-      // console.log('aaa skipping our own scrolldown')
       return
     }
-    // console.log('aaa scroll', e.nativeEvent, e.nativeEvent && e.nativeEvent.type)
     this._onScrollThrottled()
   }
-  // While scrolling we disable mouse events to speed things up
+
+  // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
   _onScrollThrottled = throttle(() => {
     if (!this._isScrolling) {
       this._isScrolling = true
@@ -166,14 +165,12 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     if (list) {
       if (list.scrollTop < listEdgeSlop) {
-        // console.log('aaaa loadmore')
         this.props.loadMoreMessages()
       }
     }
 
     // not locked to bottom while scrolling
     const isLockedToBottom = false
-    // console.log('aaaa scroll lock force off', isLockedToBottom)
     this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
   }, 100)
 
@@ -190,7 +187,6 @@ class Thread extends React.PureComponent<Props, State> {
     // are we locked on the bottom?
     if (list) {
       const isLockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
-      // console.log('aaaa scroll lock', isLockedToBottom, list.scrollHeight, list.scrollTop)
       this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
     }
   }, 200)
@@ -226,6 +222,7 @@ class Thread extends React.PureComponent<Props, State> {
     let previous = null
     let lastBucket = null
     this.props.messageOrdinals.forEach((ordinal, idx) => {
+      // We wnat to keep the mapping of ordinal to bucket fixed always
       const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
       if (lastBucket === null) {
         lastBucket = bucket
@@ -238,7 +235,6 @@ class Thread extends React.PureComponent<Props, State> {
         }
         if (ordinals.length) {
           const key = String(lastBucket)
-          // console.log('aaa renpush', key, JSON.stringify(ordinals))
           items.push(
             <OrdinalWaypoint
               key={key}
@@ -248,6 +244,7 @@ class Thread extends React.PureComponent<Props, State> {
               previous={previous}
             />
           )
+          // we pass previous so the OrdinalWaypoint can render the top item correctly
           previous = ordinals[ordinals.length - 1]
           ordinals = []
           lastBucket = bucket
@@ -266,14 +263,11 @@ class Thread extends React.PureComponent<Props, State> {
       // if the size changes adjust our scrolltop
       const list = this._listRef.current
       if (list) {
-        console.log('aaa adjusting scrolltop due to resizeby', scroll.height - this._scrollHeight)
         this._programaticScrollToBottomRefCount++
         list.scrollTop = list.scrollTop + scroll.height - this._scrollHeight
       }
     }
     this._scrollHeight = scroll.height
-    // this._scrollTop = scroll.scrollTop
-    console.log('aaa resize', scroll)
   }
 
   render() {
@@ -397,7 +391,6 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }, 100)
 
   _measure = debounce(() => {
-    // this.props.id === 507 && console.log('aaa measure', this.props, this.state)
     this.setState(p => (p.height ? {height: null} : null))
   }, 100)
 
@@ -419,7 +412,6 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   static getDerivedStateFromProps(props, state) {
     const numOrdinals = props.ordinals.length
     if (numOrdinals !== state.numOrdinals) {
-      // props.id === 507 && console.log('aaa deri', props, state)
       // if the ordinals changed remeasure
       return {height: null, numOrdinals}
     }
@@ -427,7 +419,6 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }
 
   render() {
-    // console.log('aaa render', this.props, this.state)
     // Apply data-key to the dom node so we can search for editing messages
     const renderMessages = !this.state.height || this.state.isVisible
     let content
@@ -495,7 +486,7 @@ const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
   overflowY: 'auto',
-  // get our own layer so we can  scroll faster
+  // get our own layer so we can scroll faster
   willChange: 'transform',
 }
 
