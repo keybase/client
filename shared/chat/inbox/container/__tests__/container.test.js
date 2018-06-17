@@ -6,7 +6,7 @@ jest.unmock('immutable')
 
 describe('inbox container tests', () => {
   it('searching for yourself only', () => {
-    expect(_testing.score('myname', 'myname', ['myname'])).toBe(1)
+    expect(_testing.score('myname', 'myname', ['myname'])).toBe(100000)
   })
   it('ignore yourself otherwise', () => {
     const withYou = _testing.score('name', 'myname', ['myname', 'othername'])
