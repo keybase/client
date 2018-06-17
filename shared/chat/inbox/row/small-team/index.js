@@ -20,6 +20,7 @@ type Props = {
   participants: Array<string>,
   showBold: boolean,
   snippet: string,
+  snippetDecoration: string,
   subColor: string,
   teamname: string,
   timestamp: string,
@@ -77,6 +78,7 @@ class SmallTeam extends React.PureComponent<Props> {
               youAreReset={props.youAreReset}
               showBold={props.showBold}
               snippet={props.snippet}
+              snippetDecoration={props.snippetDecoration}
               subColor={props.subColor}
               hasResetUsers={props.hasResetUsers}
               youNeedToRekey={props.youNeedToRekey}
