@@ -11,8 +11,7 @@ import {
 } from '../../util/container'
 import {mapValues, zipObject} from 'lodash-es'
 import * as TeamsGen from '../../actions/teams-gen'
-import {HeaderHoc} from '../../common-adapters'
-import {isMobile} from '../../constants/platform'
+import {HeaderOnMobile} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
 import {navigateAppend} from '../../actions/route-tree'
 import type {TeamRoleType} from '../../constants/types/teams'
@@ -112,4 +111,4 @@ export default compose(
       }),
     onSave: props => () => props.onAddToTeams(props.role, Object.keys(props.selectedTeams)),
   })
-)(isMobile ? HeaderHoc(Render) : Render)
+)(HeaderOnMobile(Render))
