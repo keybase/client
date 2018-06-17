@@ -107,7 +107,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const getRootMenuItems = (stateProps, dispatchProps) => {
   const {path, pathItem, fileUIEnabled, _username} = stateProps
-  const {showInFileUI, saveImage, share, download, _ignoreFolder} = dispatchProps
+  const {showInFileUI, saveImage, download, _ignoreFolder} = dispatchProps
   let menuItems = []
   !isMobile &&
     fileUIEnabled &&
@@ -123,11 +123,17 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
       onClick: () => saveImage(path),
     })
   isMobile &&
+    pathItem.type === 'file' &&
+    // TODO: re-enable this (or refactor) when we have in-app share. This
+    // should probably be split up into separate components anyway.
+    /*
     pathItem.type !== 'folder' &&
     menuItems.push({
       title: 'Share...',
       onClick: () => share(path),
     })
+    */
+    menuItems.push(...getShareMenuItems(stateProps, dispatchProps))
   const shouldDownload = (isAndroid && pathItem.type !== 'folder') || !isMobile
   shouldDownload &&
     menuItems.push({

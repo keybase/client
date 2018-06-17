@@ -12,7 +12,6 @@ type StillProps = {
   type: Types.PathType,
   lastModifiedTimestamp: number,
   lastWriter: string,
-  shouldShowMenu: boolean,
   itemStyles: Types.ItemStyles,
   badgeCount: number,
   isDownloading?: boolean,
@@ -102,14 +101,12 @@ const Still = (props: StillProps) => (
             className="fs-path-item-hover-icon"
           />
         )}
-        {props.shouldShowMenu && (
-          <Icon
-            type="iconfont-ellipsis"
-            style={rowActionIconStyle}
-            onClick={props.onAction}
-            className="fs-path-item-hover-icon"
-          />
-        )}
+        <Icon
+          type="iconfont-ellipsis"
+          style={rowActionIconStyle}
+          onClick={props.onAction}
+          className="fs-path-item-hover-icon"
+        />
       </Box>
     </HoverBox>
     <Divider style={rowStyles.divider} />
@@ -117,7 +114,7 @@ const Still = (props: StillProps) => (
 )
 
 const rowActionIconStyle = {
-  marginLeft: globalMargins.small,
+  padding: globalMargins.small,
 }
 
 const rowActionIconFontSize = 16
