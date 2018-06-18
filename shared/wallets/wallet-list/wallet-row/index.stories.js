@@ -7,6 +7,8 @@ import {WalletRow} from '.'
 
 const provider = PropProviders.Common()
 
+const onSelect = action('onSelect')
+
 const load = () => {
   storiesOf('Wallets/Wallet Row', module)
     .addDecorator(provider)
@@ -22,7 +24,7 @@ const load = () => {
         name="cecileb's wallet"
         contents="280.0871234 XLM + more"
         isSelected={true}
-        onSelect={action('onSelect')}
+        onSelect={onSelect}
       />
     ))
     .add('Secondary', () => (
@@ -32,7 +34,7 @@ const load = () => {
         name="Second wallet"
         contents="56.9618203 XLM"
         isSelected={false}
-        onSelect={action('onSelect')}
+        onSelect={onSelect}
       />
     ))
     .add('Long', () => (
@@ -42,7 +44,7 @@ const load = () => {
         name="G43289XXXXX34OPMG43289XXXXX34OPM"
         contents="56.9618203 XLM"
         isSelected={false}
-        onSelect={action('onSelect')}
+        onSelect={onSelect}
       />
     ))
 }

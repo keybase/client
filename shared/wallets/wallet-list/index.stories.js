@@ -8,54 +8,50 @@ import walletRow from './wallet-row/index.stories'
 const onSelect = action('onSelect')
 
 const mockWallets = {
-  account1: {
-    isSelected: true,
-    name: "cecileb's wallet",
+  G43289XXXXX34OPL: {
     keybaseUser: 'cecileb',
+    name: "cecileb's wallet",
     contents: '280.0871234 XLM + more',
+    isSelected: true,
     onSelect,
   },
-  account2: {
-    isSelected: false,
-    name: 'Second wallet',
+  G43289XXXXX34OPM: {
     keybaseUser: '',
+    name: 'Second wallet',
     contents: '56.9618203 XLM',
+    isSelected: false,
     onSelect,
   },
   G43289XXXXX34OPMG43289XXXXX34OPM: {
-    isSelected: false,
-    name: 'G43289XXXXX34OPMG43289XXXXX34OPM',
     keybaseUser: '',
+    name: 'G43289XXXXX34OPMG43289XXXXX34OPM',
     contents: '56.9618203 XLM',
+    isSelected: false,
     onSelect,
   },
 }
 
-const accountIDs = Object.keys(mockWallets)
-
-const WalletRowProvider = () => ({
+const WalletRowProvider = mockWallets => ({
   WalletRow: ({accountID}) => {
     const mockWallet = mockWallets[accountID]
-    if (mockWallet) {
-      return mockWallet
-    }
-    return {
-      isSelected: false,
-      name: '',
-      keybaseUser: '',
-      contents: '',
-      onSelect,
-    }
+    return (
+      mockWallet || {
+        keybaseUser: '',
+        name: '',
+        contents: '',
+        isSelected: false,
+        onSelect,
+      }
+    )
   },
 })
 
-// TODO: Make the result of compose be itself composable.
 const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
-  PropProviders.WaitingButton(),
-  WalletRowProvider()
+  WalletRowProvider(mockWallets)
 )
+
+const accountIDs = Object.keys(mockWallets)
 
 const load = () => {
   walletRow()
@@ -65,8 +61,6 @@ const load = () => {
     .add('Wallet List', () => (
       <WalletList
         accountIDs={accountIDs}
-        selectedAccount="account1"
-        onSelectAccount={action('onSelectAccount')}
         onAddNew={action('onAddNew')}
         onLinkExisting={action('onLinkExisting')}
       />
