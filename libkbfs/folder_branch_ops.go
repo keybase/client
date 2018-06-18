@@ -186,7 +186,7 @@ type cachedDirOp struct {
 }
 
 type editChannelActivity struct {
-	convID  chat1.ConversationID
+	convID  chat1.ConversationID // set to nil to force a re-init
 	name    string
 	message string
 }
@@ -6777,6 +6777,10 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 	// Also cancel the edits goroutine and forget the old history.
 	fbo.cancelEditsLock.Lock()
 	defer fbo.cancelEditsLock.Unlock()
+	if fbo.cancelEdits != nil {
+		fbo.cancelEdits()
+		fbo.cancelEdits = nil
+	}
 	fbo.editHistory = kbfsedits.NewTlfHistory()
 
 	fbo.head = ImmutableRootMetadata{}
@@ -6849,14 +6853,23 @@ func (fbo *folderBranchOps) KickoffAllOutstandingRekeys() error {
 func (fbo *folderBranchOps) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
-	fbo.log.CDebugf(ctx, "NEW NOTIFICATION CHANNEL %s", channelName)
 	fbo.editActivity.Add(1)
 	fbo.editChannels <- editChannelActivity{convID, channelName, ""}
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.
 func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus error) {
-	fbo.config.KBFSOps().PushConnectionStatusChange(service, newStatus)
+	switch service {
+	case KeybaseServiceName, GregorServiceName:
+	default:
+		return
+	}
+
+	if newStatus == nil {
+		fbo.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
+		fbo.editActivity.Add(1)
+		fbo.editChannels <- editChannelActivity{nil, "", ""}
+	}
 }
 
 func (fbo *folderBranchOps) receiveNewEditChat(
@@ -6865,9 +6878,41 @@ func (fbo *folderBranchOps) receiveNewEditChat(
 	fbo.editChannels <- editChannelActivity{convID, "", message}
 }
 
+func (fbo *folderBranchOps) initEditChatChannels(
+	ctx context.Context, name tlf.CanonicalName) (
+	idToName map[string]string,
+	nameToID map[string]chat1.ConversationID,
+	nameToNextPage map[string][]byte) {
+	convIDs, channelNames, err := fbo.config.Chat().GetChannels(
+		ctx, name, fbo.id().Type(), chat1.TopicType_KBFSFILEEDIT)
+	if err != nil {
+		// TODO: schedule a retry?
+		fbo.log.CWarningf(ctx, "Couldn't monitor kbfs-edits chats: %+v", err)
+		return
+	}
+
+	idToName = make(map[string]string, len(convIDs))
+	nameToID = make(map[string]chat1.ConversationID, len(convIDs))
+	nameToNextPage = make(map[string][]byte, len(convIDs))
+	for i, id := range convIDs {
+		fbo.config.Chat().RegisterForMessages(id, fbo.receiveNewEditChat)
+		name := channelNames[i]
+		idToName[id.String()] = name
+		nameToID[name] = id
+		nextPage := fbo.getEditMessages(ctx, id, name, nil)
+		if nextPage != nil {
+			nameToNextPage[name] = nextPage
+		}
+	}
+	return idToName, nameToID, nameToNextPage
+}
+
 func (fbo *folderBranchOps) getEditMessages(
 	ctx context.Context, id chat1.ConversationID, channelName string,
 	startPage []byte) (nextPage []byte) {
+	// TODO: be smarter about not fetching messages we've already
+	// seen?  `AddNotifications` below will filter out any duplicates,
+	// so it's not strictly needed for correctness.
 	messages, nextPage, err := fbo.config.Chat().ReadChannel(ctx, id, startPage)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't get messages for conv %s: %+v",
@@ -6897,27 +6942,7 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 	md, _ := fbo.getHead(lState)
 	name := md.GetTlfHandle().GetCanonicalName()
 
-	convIDs, channelNames, err := fbo.config.Chat().GetChannels(
-		ctx, name, fbo.id().Type(), chat1.TopicType_KBFSFILEEDIT)
-	if err != nil {
-		// TODO: schedule a retry?
-		fbo.log.CWarningf(ctx, "Couldn't monitor kbfs-edits chats: %+v", err)
-		return
-	}
-
-	idToName := make(map[string]string, len(convIDs))
-	nameToID := make(map[string]chat1.ConversationID, len(convIDs))
-	nameToNextPage := make(map[string][]byte, len(convIDs))
-	for i, id := range convIDs {
-		fbo.config.Chat().RegisterForMessages(id, fbo.receiveNewEditChat)
-		name := channelNames[i]
-		idToName[id.String()] = name
-		nameToID[name] = id
-		nextPage := fbo.getEditMessages(ctx, id, name, nil)
-		if nextPage != nil {
-			nameToNextPage[name] = nextPage
-		}
-	}
+	idToName, nameToID, nameToNextPage := fbo.initEditChatChannels(ctx, name)
 
 	finishActivity := false
 	for {
@@ -6966,6 +6991,12 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 			return
 		case a := <-fbo.editChannels:
 			finishActivity = true
+			if a.convID == nil {
+				fbo.log.CDebugf(ctx, "Re-initializing chat channels")
+				idToName, nameToID, nameToNextPage = fbo.initEditChatChannels(
+					ctx, name)
+				continue
+			}
 			idStr := a.convID.String()
 			name, ok := idToName[idStr]
 			if !ok {
@@ -6978,7 +7009,7 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 			}
 			if a.message != "" {
 				fbo.log.CDebugf(ctx, "New edit message for %s", name)
-				err = fbo.editHistory.AddNotifications(
+				err := fbo.editHistory.AddNotifications(
 					name, []string{a.message})
 				if err != nil {
 					fbo.log.CWarningf(ctx,
