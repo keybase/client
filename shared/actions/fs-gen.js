@@ -33,6 +33,7 @@ export const fuseStatusResult = 'fs:fuseStatusResult'
 export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
+export const journalUpdate = 'fs:journalUpdate'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const mimeTypeLoad = 'fs:mimeTypeLoad'
@@ -116,6 +117,11 @@ type _FuseStatusResultPayload = $ReadOnly<{|
 type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
+type _JournalUpdatePayload = $ReadOnly<{|
+  syncingPaths?: ?Array<string>,
+  totalSyncingBytes: number,
+  endEstimate?: ?number,
+|}>
 type _LetResetUserBackInPayload = $ReadOnly<{|
   id: RPCTypes.TeamID,
   username: string,
@@ -208,6 +214,7 @@ export const createFuseStatusResult = (payload: _FuseStatusResultPayload) => ({e
 export const createInstallFuse = (payload: _InstallFusePayload) => ({error: false, payload, type: installFuse})
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
+export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({error: false, payload, type: journalUpdate})
 export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({error: false, payload, type: letResetUserBackIn})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
 export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: false, payload, type: mimeTypeLoad})
@@ -256,6 +263,7 @@ export type FuseStatusResultPayload = $Call<typeof createFuseStatusResult, _Fuse
 export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePayload>
 export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
+export type JournalUpdatePayload = $Call<typeof createJournalUpdate, _JournalUpdatePayload>
 export type LetResetUserBackInPayload = $Call<typeof createLetResetUserBackIn, _LetResetUserBackInPayload>
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
 export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
@@ -306,6 +314,7 @@ export type Actions =
   | InstallFusePayload
   | InstallFuseResultPayload
   | InstallKBFSPayload
+  | JournalUpdatePayload
   | LetResetUserBackInPayload
   | LocalHTTPServerInfoPayload
   | MimeTypeLoadPayload

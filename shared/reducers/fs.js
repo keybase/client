@@ -159,6 +159,28 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : Constants.makeUpload({writingToJournal: false, error: action.payload.error})
       )
     }
+    case FsGen.journalUpdate: {
+      const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
+      return (syncingPaths || [])
+        .reduce((state, pathStr) => {
+          const path = Types.stringToPath(pathStr)
+          const parentPath = Types.getPathParent(path)
+          const name = Types.getPathName(path)
+          return state.updateIn(
+            // $FlowFixMe
+            ['uploads', parentPath, name],
+            (original: Types.Upload) =>
+              original ? original.set('journalFlushing', true) : Constants.makeUpload({journalFlushing: true})
+          )
+        }, state)
+        .set(
+          'journal',
+          Constants.makeJournal({
+            totalSyncingBytes,
+            endEstimate: endEstimate || undefined,
+          })
+        )
+    }
     case FsGen.fuseStatusResult:
       return state.merge({fuseStatus: action.payload.status})
     case FsGen.setFlags:

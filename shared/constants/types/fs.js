@@ -178,6 +178,12 @@ export type _LocalHTTPServer = {
 }
 export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
+export type _Journal = {
+  totalSyncingBytes: number,
+  endEstimate?: number,
+}
+export type Journal = I.RecordOf<_Journal>
+
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
   edits: I.Map<EditID, Edit>,
@@ -185,6 +191,7 @@ export type _State = {
   loadingPaths: I.Set<Path>,
   downloads: I.Map<string, Download>,
   uploads: I.Map<Path, I.Map<string, Upload>>, // parent path -> name -> Upload
+  journal: Journal,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
   localHTTPServerInfo: ?LocalHTTPServer,

@@ -136,6 +136,11 @@ export const makeLocalHTTPServer: I.RecordFactory<Types._LocalHTTPServer> = I.Re
   token: '',
 })
 
+export const makeJournal: I.RecordFactory<Types._Journal> = I.Record({
+  totalSyncingBytes: 0,
+  endEstimate: undefined,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
@@ -145,6 +150,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   loadingPaths: I.Set(),
   downloads: I.Map(),
   uploads: I.Map(),
+  journal: makeJournal(),
   localHTTPServerInfo: null,
 })
 

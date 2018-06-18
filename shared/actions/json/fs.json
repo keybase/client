@@ -69,6 +69,11 @@
       "path": "Types.Path",
       "error?": "string"
     },
+    "journalUpdate": {
+      "syncingPaths?": "?Array<string>",
+      "totalSyncingBytes": "number",
+      "endEstimate?": "?number"
+    },
     "openInFileUI": {
       "path?": "string"
     },
