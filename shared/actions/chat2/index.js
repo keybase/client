@@ -709,9 +709,6 @@ const loadMoreMessages = (
     | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload,
   state: TypedState
 ) => {
-  const numMessagesOnInitialLoad = isMobile ? 20 : 500
-  const numMessagesOnScrollback = isMobile ? 100 : 500
-
   // Get the conversationIDKey
   let key = null
   let reason: string = ''
@@ -802,9 +799,9 @@ const loadMoreMessages = (
       return
     }
     isScrollingBack = true
-    numberOfMessagesToLoad = numMessagesOnScrollback
+    numberOfMessagesToLoad = Constants.numMessagesOnScrollback
   } else {
-    numberOfMessagesToLoad = numMessagesOnInitialLoad
+    numberOfMessagesToLoad = Constants.numMessagesOnInitialLoad
   }
 
   logger.info(
@@ -824,7 +821,8 @@ const loadMoreMessages = (
 
     let shouldClearOthers = false
     if (!isScrollingBack && !calledClear) {
-      shouldClearOthers = true
+      // TEMP this causes a lot of remeasure on desktop that we need to fix
+      shouldClearOthers = isMobile
       calledClear = true
     }
 
