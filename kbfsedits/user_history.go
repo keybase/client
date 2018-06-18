@@ -13,6 +13,11 @@ import (
 	"github.com/keybase/kbfs/tlf"
 )
 
+const (
+	// The max number of TLFs to return in a user history
+	maxTlfs = 10
+)
+
 type tlfKey struct {
 	tlfName tlf.CanonicalName
 	tlfType tlf.Type
@@ -146,6 +151,21 @@ func (uh *UserHistory) GetTlfHistory(
 	uh.lock.RLock()
 	defer uh.lock.RUnlock()
 	return uh.getTlfHistoryLocked(tlfName, tlfType)
+}
+
+// Get returns the full edit history for the user, converted to
+// keybase1 protocol structs.
+func (uh *UserHistory) Get() (history []keybase1.FSFolderEditHistory) {
+	uh.lock.RLock()
+	defer uh.lock.RUnlock()
+	for _, h := range uh.tlfs.histories {
+		history = append(history, uh.getTlfHistoryLocked(
+			h.key.tlfName, h.key.tlfType))
+		if len(history) == maxTlfs {
+			break
+		}
+	}
+	return history
 }
 
 // Clear erases all saved histories; TLFs must be re-added.
