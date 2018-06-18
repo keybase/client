@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsedits"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	metrics "github.com/rcrowley/go-metrics"
@@ -389,12 +390,10 @@ type KBFSOps interface {
 	// outstanding writes from the local device.
 	GetUpdateHistory(ctx context.Context, folderBranch FolderBranch) (
 		history TLFUpdateHistory, err error)
-	// GetEditHistory returns a clustered list of the most recent file
-	// edits by each of the valid writers of the given folder.  users
-	// looking to get updates to this list can register as an observer
-	// for the folder.
+	// GetEditHistory returns the edit history of the TLF, clustered
+	// by writer.
 	GetEditHistory(ctx context.Context, folderBranch FolderBranch) (
-		edits TlfWriterEdits, err error)
+		tlfHistory keybase1.FSFolderEditHistory, err error)
 
 	// GetNodeMetadata gets metadata associated with a Node.
 	GetNodeMetadata(ctx context.Context, node Node) (NodeMetadata, error)
@@ -1933,6 +1932,8 @@ type Config interface {
 	SetClock(Clock)
 	ConflictRenamer() ConflictRenamer
 	SetConflictRenamer(ConflictRenamer)
+	UserHistory() *kbfsedits.UserHistory
+	SetUserHistory(*kbfsedits.UserHistory)
 	MetadataVersion() kbfsmd.MetadataVer
 	SetMetadataVersion(kbfsmd.MetadataVer)
 	DefaultBlockType() keybase1.BlockType

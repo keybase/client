@@ -10,6 +10,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfsedits"
 	"golang.org/x/net/context"
 )
 
@@ -124,6 +125,7 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetClock(config.mockClock)
 	config.mockRekeyQueue = NewMockRekeyQueue(c)
 	config.SetRekeyQueue(config.mockRekeyQueue)
+	config.SetUserHistory(kbfsedits.NewUserHistory())
 	config.observer = &FakeObserver{}
 	config.ctr = ctr
 	// turn off background flushing by default during tests

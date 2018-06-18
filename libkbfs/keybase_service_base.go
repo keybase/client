@@ -1092,41 +1092,20 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	editHistory, err := k.config.KBFSOps().GetEditHistory(ctx,
+	history, err := k.config.KBFSOps().GetEditHistory(ctx,
 		rootNode.GetFolderBranch())
 	if err != nil {
 		return err
 	}
 
-	// Convert the edits to an RPC response.
-	var resp keybase1.FSEditListArg
-	for writer, edits := range editHistory {
-		for _, edit := range edits {
-			var nType keybase1.FSNotificationType
-			switch edit.Type {
-			case FileCreated:
-				nType = keybase1.FSNotificationType_FILE_CREATED
-			case FileModified:
-				nType = keybase1.FSNotificationType_FILE_MODIFIED
-			default:
-				k.log.CDebugf(ctx, "Bad notification type in edit history: %v",
-					edit.Type)
-				continue
-			}
-			n := keybase1.FSNotification{
-				Filename:         edit.Filepath,
-				StatusCode:       keybase1.FSStatusCode_FINISH,
-				NotificationType: nType,
-				WriterUid:        writer,
-				LocalTime:        keybase1.ToTime(edit.LocalTime),
-			}
-			resp.Edits = append(resp.Edits, n)
-		}
+	// TODO(KBFS-2996) Convert the edits to an RPC response.
+	resp := keybase1.FSEditListArg{
+		RequestID: req.RequestID,
+		Edits:     history,
 	}
-	resp.RequestID = req.RequestID
 
-	k.log.CDebugf(ctx, "Sending edit history response with %d edits",
-		len(resp.Edits))
+	k.log.CDebugf(ctx, "Sending edit history response with %d writer clusters",
+		len(resp.Edits.History))
 	return k.kbfsClient.FSEditList(ctx, resp)
 }
 

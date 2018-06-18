@@ -337,16 +337,14 @@ type folderBranchOps struct {
 
 	rekeyFSM RekeyFSM
 
-	editHistory *TlfEditHistory
-	// TODO: remove the edit history above (and rename the one below)
-	// once we turn on v2 edit history for everyone.
-	editHistoryV2 *kbfsedits.TlfHistory
-	editChannels  chan editChannelActivity
+	editHistory  *kbfsedits.TlfHistory
+	editChannels chan editChannelActivity
 
 	branchChanges      kbfssync.RepeatedWaitGroup
 	mdFlushes          kbfssync.RepeatedWaitGroup
 	forcedFastForwards kbfssync.RepeatedWaitGroup
 	merkleFetches      kbfssync.RepeatedWaitGroup
+	editActivity       kbfssync.RepeatedWaitGroup
 
 	muLastGetHead sync.Mutex
 	// We record a timestamp everytime getHead or getTrustedHead is called, and
@@ -427,7 +425,7 @@ func newFolderBranchOps(ctx context.Context, config Config, fb FolderBranch,
 		updatePauseChan: make(chan (<-chan struct{})),
 		forceSyncChan:   forceSyncChan,
 		syncNeededChan:  make(chan struct{}, 1),
-		editHistoryV2:   kbfsedits.NewTlfHistory(),
+		editHistory:     kbfsedits.NewTlfHistory(),
 		editChannels:    make(chan editChannelActivity, 100),
 	}
 	fbo.prepper = folderUpdatePrepper{
@@ -438,7 +436,6 @@ func newFolderBranchOps(ctx context.Context, config Config, fb FolderBranch,
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
 	fbo.fbm = newFolderBlockManager(config, fb, fbo)
-	fbo.editHistory = NewTlfEditHistory(config, fbo, log)
 	fbo.rekeyFSM = NewRekeyFSM(fbo)
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher()
@@ -487,7 +484,6 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	fbo.merkleFetches.Wait(ctx)
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
-	fbo.editHistory.Shutdown()
 	fbo.rekeyFSM.Shutdown()
 	// Wait for the update goroutine to finish, so that we don't have
 	// any races with logging during test reporting.
@@ -4526,7 +4522,6 @@ func (fbo *folderBranchOps) syncAllLocked(
 			}
 
 			fbo.observers.batchChanges(ctx, nil, affectedNodeIDs)
-			fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{md})
 			return nil
 		})
 }
@@ -4613,7 +4608,6 @@ func (fbo *folderBranchOps) notifyBatchLocked(
 			return err
 		}
 	}
-	fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{md})
 	return nil
 }
 
@@ -5113,9 +5107,6 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			fbo.rekeyFSM.Event(NewRekeyNotNeededEvent())
 		}
 		appliedRevs = append(appliedRevs, rmd)
-	}
-	if len(appliedRevs) > 0 {
-		fbo.editHistory.UpdateHistory(ctx, appliedRevs)
 	}
 	return nil
 }
@@ -5724,7 +5715,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	if err := fbo.fbm.waitForDeletingBlocks(ctx); err != nil {
 		return err
 	}
-	if err := fbo.editHistory.Wait(ctx); err != nil {
+	if err := fbo.editActivity.Wait(ctx); err != nil {
 		return err
 	}
 	if err := fbo.fbm.waitForQuotaReclamations(ctx); err != nil {
@@ -5805,10 +5796,6 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 		fbo.observers.batchChanges(ctx, changes, affectedNodeIDs)
 	}
 
-	// Reset the edit history.  TODO: notify any listeners that we've
-	// done this.
-	fbo.editHistory.Shutdown()
-	fbo.editHistory = NewTlfEditHistory(fbo.config, fbo, fbo.log)
 	return nil
 }
 
@@ -6327,7 +6314,6 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 			return err
 		}
 	}
-	fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{irmd})
 	return nil
 }
 
@@ -6734,24 +6720,13 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 }
 
 // GetEditHistory implements the KBFSOps interface for folderBranchOps
-func (fbo *folderBranchOps) GetEditHistory(ctx context.Context,
-	folderBranch FolderBranch) (edits TlfWriterEdits, err error) {
-	fbo.log.CDebugf(ctx, "GetEditHistory")
-	defer func() {
-		fbo.deferLog.CDebugf(ctx, "GetEditHistory done: %+v", err)
-	}()
-
-	if folderBranch != fbo.folderBranch {
-		return nil, WrongOpsError{fbo.folderBranch, folderBranch}
-	}
-
+func (fbo *folderBranchOps) GetEditHistory(
+	_ context.Context, _ FolderBranch) (
+	tlfHistory keybase1.FSFolderEditHistory, err error) {
 	lState := makeFBOLockState()
-	head, err := fbo.getMDForReadNeedIdentify(ctx, lState)
-	if err != nil {
-		return nil, err
-	}
-
-	return fbo.editHistory.GetComplete(ctx, head)
+	md, _ := fbo.getHead(lState)
+	name := md.GetTlfHandle().GetCanonicalName()
+	return fbo.config.UserHistory().GetTlfHistory(name, fbo.id().Type()), nil
 }
 
 // PushStatusChange forces a new status be fetched by status listeners.
@@ -6865,6 +6840,8 @@ func (fbo *folderBranchOps) KickoffAllOutstandingRekeys() error {
 func (fbo *folderBranchOps) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
+	fbo.log.CDebugf(ctx, "NEW NOTIFICATION CHANNEL %s", channelName)
+	fbo.editActivity.Add(1)
 	fbo.editChannels <- editChannelActivity{convID, channelName, ""}
 }
 
@@ -6875,6 +6852,7 @@ func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus
 
 func (fbo *folderBranchOps) receiveNewEditChat(
 	convID chat1.ConversationID, message string) {
+	fbo.editActivity.Add(1)
 	fbo.editChannels <- editChannelActivity{convID, "", message}
 }
 
@@ -6887,7 +6865,7 @@ func (fbo *folderBranchOps) getEditMessages(
 			id, err)
 		return nil
 	}
-	err = fbo.editHistoryV2.AddNotifications(channelName, messages)
+	err = fbo.editHistory.AddNotifications(channelName, messages)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't add messages for conv %s: %+v",
 			id, err)
@@ -6928,10 +6906,11 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 		}
 	}
 
+	finishActivity := false
 	for {
 		// Recompute the history, and fetch more messages for any
 		// writers who need them.
-		writersWhoNeedMore := fbo.editHistoryV2.Recompute()
+		writersWhoNeedMore := fbo.editHistory.Recompute()
 		gotMore := false
 		for w, needsMore := range writersWhoNeedMore {
 			if !needsMore {
@@ -6959,11 +6938,21 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 			continue
 		}
 
+		// Update the overall user history.  TODO: if the TLF name
+		// changed, we should clean up the old user history.
+		fbo.config.UserHistory().UpdateHistory(
+			name, fbo.id().Type(), fbo.editHistory)
+
+		if finishActivity {
+			fbo.editActivity.Done()
+		}
+
 		select {
 		case <-fbo.shutdownChan:
 			fbo.log.CDebugf(ctx, "Shutting down chat monitoring")
 			return
 		case a := <-fbo.editChannels:
+			finishActivity = true
 			idStr := a.convID.String()
 			name, ok := idToName[idStr]
 			if !ok {
@@ -6976,7 +6965,7 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 			}
 			if a.message != "" {
 				fbo.log.CDebugf(ctx, "New edit message for %s", name)
-				err = fbo.editHistoryV2.AddNotifications(
+				err = fbo.editHistory.AddNotifications(
 					name, []string{a.message})
 				if err != nil {
 					fbo.log.CWarningf(ctx,

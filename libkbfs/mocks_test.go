@@ -13,6 +13,7 @@ import (
 	kbfsblock "github.com/keybase/kbfs/kbfsblock"
 	kbfscodec "github.com/keybase/kbfs/kbfscodec"
 	kbfscrypto "github.com/keybase/kbfs/kbfscrypto"
+	kbfsedits "github.com/keybase/kbfs/kbfsedits"
 	kbfsmd "github.com/keybase/kbfs/kbfsmd"
 	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
@@ -1293,9 +1294,9 @@ func (mr *MockKBFSOpsMockRecorder) GetUpdateHistory(ctx, folderBranch interface{
 }
 
 // GetEditHistory mocks base method
-func (m *MockKBFSOps) GetEditHistory(ctx context.Context, folderBranch FolderBranch) (TlfWriterEdits, error) {
+func (m *MockKBFSOps) GetEditHistory(ctx context.Context, folderBranch FolderBranch) (keybase1.FSFolderEditHistory, error) {
 	ret := m.ctrl.Call(m, "GetEditHistory", ctx, folderBranch)
-	ret0, _ := ret[0].(TlfWriterEdits)
+	ret0, _ := ret[0].(keybase1.FSFolderEditHistory)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -6840,6 +6841,28 @@ func (m *MockConfig) SetConflictRenamer(arg0 ConflictRenamer) {
 // SetConflictRenamer indicates an expected call of SetConflictRenamer
 func (mr *MockConfigMockRecorder) SetConflictRenamer(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetConflictRenamer", reflect.TypeOf((*MockConfig)(nil).SetConflictRenamer), arg0)
+}
+
+// UserHistory mocks base method
+func (m *MockConfig) UserHistory() *kbfsedits.UserHistory {
+	ret := m.ctrl.Call(m, "UserHistory")
+	ret0, _ := ret[0].(*kbfsedits.UserHistory)
+	return ret0
+}
+
+// UserHistory indicates an expected call of UserHistory
+func (mr *MockConfigMockRecorder) UserHistory() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserHistory", reflect.TypeOf((*MockConfig)(nil).UserHistory))
+}
+
+// SetUserHistory mocks base method
+func (m *MockConfig) SetUserHistory(arg0 *kbfsedits.UserHistory) {
+	m.ctrl.Call(m, "SetUserHistory", arg0)
+}
+
+// SetUserHistory indicates an expected call of SetUserHistory
+func (mr *MockConfigMockRecorder) SetUserHistory(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserHistory", reflect.TypeOf((*MockConfig)(nil).SetUserHistory), arg0)
 }
 
 // MetadataVersion mocks base method

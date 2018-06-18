@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsedits"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -95,6 +96,7 @@ type ConfigLocal struct {
 	clock            Clock
 	kbpki            KBPKI
 	renamer          ConflictRenamer
+	userHistory      *kbfsedits.UserHistory
 	registry         metrics.Registry
 	loggerFn         func(prefix string) logger.Logger
 	noBGFlush        bool // logic opposite so the default value is the common setting
@@ -390,6 +392,7 @@ func NewConfigLocal(mode InitMode,
 	config.SetCodec(kbfscodec.NewMsgpack())
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
+	config.SetUserHistory(kbfsedits.NewUserHistory())
 
 	config.maxNameBytes = maxNameBytesDefault
 	config.maxDirBytes = maxDirBytesDefault
@@ -782,6 +785,20 @@ func (c *ConfigLocal) SetConflictRenamer(cr ConflictRenamer) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.renamer = cr
+}
+
+// UserHistory implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) UserHistory() *kbfsedits.UserHistory {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.userHistory
+}
+
+// SetUserHistory implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetUserHistory(uh *kbfsedits.UserHistory) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.userHistory = uh
 }
 
 // MetadataVersion implements the Config interface for ConfigLocal.

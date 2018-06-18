@@ -336,7 +336,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	clock, now := newTestClockAndTimeNow()
+	clock, first := newTestClockAndTimeNow()
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1, userName2)
@@ -359,6 +359,9 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
+	clock.Add(1 * time.Minute)
+	second := clock.Now()
+
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
@@ -376,20 +379,30 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	uid2 := session2.UID
 
 	// We should see 1 create edit for each user.
-	expectedEdits := []keybase1.FSNotification{
-		{
-			Filename:         name + "/a",
-			StatusCode:       keybase1.FSStatusCode_FINISH,
-			NotificationType: keybase1.FSNotificationType_FILE_CREATED,
-			WriterUid:        uid1,
-			LocalTime:        keybase1.ToTime(now),
+	expectedHistory := keybase1.FSFolderEditHistory{
+		Folder: keybase1.Folder{
+			Name:       "u1,u2",
+			FolderType: keybase1.FolderType_PRIVATE,
+			Private:    true,
 		},
-		{
-			Filename:         name + "/b",
-			StatusCode:       keybase1.FSStatusCode_FINISH,
-			NotificationType: keybase1.FSNotificationType_FILE_CREATED,
-			WriterUid:        uid2,
-			LocalTime:        keybase1.ToTime(now),
+		ServerTime: keybase1.ToTime(second),
+		History: []keybase1.FSFolderWriterEditHistory{
+			{
+				WriterName: "u2",
+				Edits: []keybase1.FSFolderWriterEdit{{
+					Filename:         name + "/b",
+					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
+					ServerTime:       keybase1.ToTime(second),
+				}},
+			},
+			{
+				WriterName: "u1",
+				Edits: []keybase1.FSFolderWriterEdit{{
+					Filename:         name + "/a",
+					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
+					ServerTime:       keybase1.ToTime(first),
+				}},
+			},
 		},
 	}
 
@@ -408,14 +421,6 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 		RequestID: reqID,
 	})
 	require.NoError(t, err)
-	edits := client1.editResponse.Edits
-	require.Len(t, edits, 2)
-	// Order doesn't matter between writers, so swap them.
-	if edits[0].WriterUid == uid2 {
-		edits[0], edits[1] = edits[1], edits[0]
-	}
-
-	require.Equal(t, truncateNotificationTimestamps(expectedEdits),
-		truncateNotificationTimestamps(edits),
-		"User1 has unexpected edit history")
+	history := client1.editResponse.Edits
+	require.Equal(t, expectedHistory, history)
 }

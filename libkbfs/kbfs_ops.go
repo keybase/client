@@ -935,11 +935,9 @@ func (fs *KBFSOpsStandard) GetUpdateHistory(ctx context.Context,
 }
 
 // GetEditHistory implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetEditHistory(ctx context.Context,
-	folderBranch FolderBranch) (edits TlfWriterEdits, err error) {
-	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
-	defer timeTrackerDone()
-
+func (fs *KBFSOpsStandard) GetEditHistory(
+	ctx context.Context, folderBranch FolderBranch) (
+	tlfHistory keybase1.FSFolderEditHistory, err error) {
 	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
 	return ops.GetEditHistory(ctx, folderBranch)
 }
@@ -1041,9 +1039,13 @@ func (fs *KBFSOpsStandard) KickoffAllOutstandingRekeys() error {
 func (fs *KBFSOpsStandard) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
-	// TODO(KBFS-2996): find the right TLF using the handle, and let
-	// it know of the new channel.  Also, invalidate the overall edit
-	// activity tracker.
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	fav := handle.ToFavorite()
+	ops, ok := fs.opsByFav[fav]
+	if ok {
+		ops.NewNotificationChannel(ctx, handle, convID, channelName)
+	}
 }
 
 func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,

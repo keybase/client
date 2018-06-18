@@ -97,6 +97,7 @@ func (c *chatLocal) GetConversationID(
 			return conv.convID, nil
 		}
 	}
+
 	// Make a new conversation.
 	var idBytes [8]byte
 	err := kbfscrypto.RandRead(idBytes[:])
@@ -104,12 +105,24 @@ func (c *chatLocal) GetConversationID(
 		return nil, err
 	}
 	id := chat1.ConversationID(idBytes[:])
+	c.log.CDebugf(ctx, "Making new conversation for %s, %s: %s",
+		tlfName, channelName, id)
 	conv := &convLocal{
 		convID:   id,
 		chanName: channelName,
 	}
 	c.data.convs[tlfType][tlfName][id.String()] = conv
 	c.data.convsByID[id.String()] = conv
+
+	h, err := GetHandleFromFolderNameAndType(
+		ctx, c.config.KBPKI(), c.config.MDOps(), string(tlfName), tlfType)
+	if err != nil {
+		return nil, err
+	}
+	for _, cb := range c.data.newChannelCBs {
+		cb(ctx, h, id, channelName)
+	}
+
 	return id, nil
 }
 
