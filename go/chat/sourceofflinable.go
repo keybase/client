@@ -38,7 +38,6 @@ func (s *sourceOfflinable) Connected(ctx context.Context) {
 	defer s.Trace(ctx, func() error { return nil }, "Connected")()
 	s.Lock()
 	defer s.Unlock()
-
 	s.Debug(ctx, "connected: offline to false")
 	s.offline = false
 	s.connected <- true
@@ -48,9 +47,11 @@ func (s *sourceOfflinable) Disconnected(ctx context.Context) {
 	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
 	s.Lock()
 	defer s.Unlock()
-
+	if s.offline {
+		s.Debug(ctx, "already disconnected, ignoring disconnected callback")
+		return
+	}
 	s.Debug(ctx, "disconnected: offline to true")
-
 	s.offline = true
 	s.delayed = false
 	close(s.connected)
