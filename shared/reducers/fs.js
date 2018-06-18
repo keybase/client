@@ -200,8 +200,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
-    case FsGen.share:
-    case FsGen.save:
+    case FsGen.shareNative:
+    case FsGen.saveMedia:
     case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:

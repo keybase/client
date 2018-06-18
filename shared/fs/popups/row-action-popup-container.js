@@ -10,13 +10,12 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../util/container'
-import {navigateAppend, navigateUp} from '../../actions/route-tree'
+import {navigateUp} from '../../actions/route-tree'
 import Popup from './row-action-popup'
 import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const path = routeProps.get('path')
-  const isShare = routeProps.get('isShare')
   const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
   const _username = state.config.username || undefined
   // We need to do this counting here since it's possible between this
@@ -43,7 +42,6 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     _fileName: pathItem.name,
     path,
     pathItem,
-    isShare,
     _username,
     childrenFolders,
     childrenFiles,
@@ -61,85 +59,55 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
   ...(isMobile
     ? {
-        saveImage: (path: Types.Path) => {
-          dispatch(FsGen.createDownload({path, intent: 'camera-roll'}))
-          dispatch(
-            navigateAppend([
-              {
-                props: {path, isShare: true},
-                selected: 'transferPopup',
-              },
-            ])
-          )
-        },
-        share: (path: Types.Path) =>
-          dispatch(
-            navigateAppend([
-              {
-                props: {path, isShare: true},
-                selected: 'pathItemAction',
-              },
-            ])
-          ),
-        shareNative: (path: Types.Path) => {
-          dispatch(FsGen.createDownload({intent: 'share', path}))
-          dispatch(
-            navigateAppend([
-              {
-                props: {path, isShare: true},
-                selected: 'transferPopup',
-              },
-            ])
-          )
-        },
+        _saveMedia: (path: Types.Path) => dispatch(FsGen.createSaveMedia({path})),
+        _shareNative: (path: Types.Path) => dispatch(FsGen.createShareNative({path})),
       }
     : {
-        showInFileUI: (path: Types.Path) =>
+        _showInFileUI: (path: Types.Path) =>
           dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
       }),
 
   ...(!isIOS
     ? {
-        download: (path: Types.Path) => dispatch(FsGen.createDownload({path, intent: 'none'})),
+        _download: (path: Types.Path) => dispatch(FsGen.createDownload({path, intent: 'none'})),
       }
     : {}),
 })
 
 const getRootMenuItems = (stateProps, dispatchProps) => {
   const {path, pathItem, fileUIEnabled, _username} = stateProps
-  const {showInFileUI, saveImage, download, _ignoreFolder} = dispatchProps
+  const {_showInFileUI, _saveMedia, _shareNative, _download, _ignoreFolder} = dispatchProps
   let menuItems = []
+
   !isMobile &&
     fileUIEnabled &&
     menuItems.push({
       title: 'Show in ' + fileUIName,
-      onClick: () => showInFileUI(path),
+      onClick: () => _showInFileUI(path),
     })
+
   isMobile &&
     pathItem.type !== 'folder' &&
     Constants.isMedia(pathItem) &&
     menuItems.push({
       title: 'Save',
-      onClick: () => saveImage(path),
+      onClick: () => _saveMedia(path),
     })
-  isMobile &&
-    pathItem.type === 'file' &&
-    // TODO: re-enable this (or refactor) when we have in-app share. This
-    // should probably be split up into separate components anyway.
-    /*
-    pathItem.type !== 'folder' &&
+
+  const shouldShowShareNative = isMobile && pathItem.type === 'file'
+  shouldShowShareNative &&
     menuItems.push({
-      title: 'Share...',
-      onClick: () => share(path),
+      title: 'Send to other app',
+      onClick: () => _shareNative(path),
     })
-    */
-    menuItems.push(...getShareMenuItems(stateProps, dispatchProps))
+
   const shouldDownload = (isAndroid && pathItem.type !== 'folder') || !isMobile
   shouldDownload &&
     menuItems.push({
       title: 'Download a copy',
-      onClick: () => download(path),
+      onClick: () => _download(path),
     })
+
   Constants.showIgnoreFolder(path, pathItem, _username) &&
     menuItems.push({
       title: 'Ignore this folder',
@@ -150,23 +118,11 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
   return menuItems
 }
 
-const getShareMenuItems = ({path}, {shareNative}) =>
-  isMobile
-    ? [
-        {
-          title: 'Send to other app',
-          onClick: () => shareNative(path),
-        },
-      ]
-    : []
-
 const mergeProps = (stateProps, dispatchProps) => {
-  const {path, pathItem, isShare, _username, childrenFolders, childrenFiles} = stateProps
+  const {path, pathItem, _username, childrenFolders, childrenFiles} = stateProps
   const {onHidden, _loadMimeType} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(path), pathItem.type, _username)
-  const menuItems = isShare
-    ? getShareMenuItems(stateProps, dispatchProps)
-    : getRootMenuItems(stateProps, dispatchProps)
+  const menuItems = getRootMenuItems(stateProps, dispatchProps)
   return {
     type: pathItem.type || 'unknown',
     lastModifiedTimestamp: pathItem.lastModifiedTimestamp,

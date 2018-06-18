@@ -43,10 +43,10 @@ export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
-export const save = 'fs:save'
+export const saveMedia = 'fs:saveMedia'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
-export const share = 'fs:share'
+export const shareNative = 'fs:shareNative'
 export const sortSetting = 'fs:sortSetting'
 export const transferProgress = 'fs:transferProgress'
 export const uninstallKBFS = 'fs:uninstallKBFS'
@@ -136,9 +136,9 @@ type _OpenPathItemPayload = $ReadOnly<{|
 |}>
 type _OpenSecurityPreferencesPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
-type _SavePayload = $ReadOnly<{|
+type _SaveMediaPayload = $ReadOnly<{|
   path: Types.Path,
-  routePath: I.List<string>,
+  routePath?: I.List<string>,
 |}>
 type _SetFlagsPayload = $ReadOnly<{|
   kbfsOpening?: boolean,
@@ -150,9 +150,9 @@ type _SetFlagsPayload = $ReadOnly<{|
   syncing?: boolean,
 |}>
 type _SetupFSHandlersPayload = void
-type _SharePayload = $ReadOnly<{|
+type _ShareNativePayload = $ReadOnly<{|
   path: Types.Path,
-  routePath: I.List<string>,
+  routePath?: I.List<string>,
 |}>
 type _SortSettingPayload = $ReadOnly<{|
   path: Types.Path,
@@ -202,10 +202,10 @@ export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: fa
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({error: false, payload, type: refreshLocalHTTPServerInfo})
-export const createSave = (payload: _SavePayload) => ({error: false, payload, type: save})
+export const createSaveMedia = (payload: _SaveMediaPayload) => ({error: false, payload, type: saveMedia})
 export const createSetFlags = (payload: _SetFlagsPayload) => ({error: false, payload, type: setFlags})
 export const createSetupFSHandlers = (payload: _SetupFSHandlersPayload) => ({error: false, payload, type: setupFSHandlers})
-export const createShare = (payload: _SharePayload) => ({error: false, payload, type: share})
+export const createShareNative = (payload: _ShareNativePayload) => ({error: false, payload, type: shareNative})
 export const createSortSetting = (payload: _SortSettingPayload) => ({error: false, payload, type: sortSetting})
 export const createTransferProgress = (payload: _TransferProgressPayload) => ({error: false, payload, type: transferProgress})
 export const createUninstallKBFS = (payload: _UninstallKBFSPayload) => ({error: false, payload, type: uninstallKBFS})
@@ -247,10 +247,10 @@ export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUI
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
 export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
-export type SavePayload = $Call<typeof createSave, _SavePayload>
+export type SaveMediaPayload = $Call<typeof createSaveMedia, _SaveMediaPayload>
 export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
 export type SetupFSHandlersPayload = $Call<typeof createSetupFSHandlers, _SetupFSHandlersPayload>
-export type SharePayload = $Call<typeof createShare, _SharePayload>
+export type ShareNativePayload = $Call<typeof createShareNative, _ShareNativePayload>
 export type SortSettingPayload = $Call<typeof createSortSetting, _SortSettingPayload>
 export type TransferProgressPayload = $Call<typeof createTransferProgress, _TransferProgressPayload>
 export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfirm, _UninstallKBFSConfirmPayload>
@@ -294,10 +294,10 @@ export type Actions =
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload
   | RefreshLocalHTTPServerInfoPayload
-  | SavePayload
+  | SaveMediaPayload
   | SetFlagsPayload
   | SetupFSHandlersPayload
-  | SharePayload
+  | ShareNativePayload
   | SortSettingPayload
   | TransferProgressPayload
   | UninstallKBFSConfirmPayload
