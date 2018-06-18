@@ -56,7 +56,9 @@ const BarePreview = (props: ConnectedBarePreviewProps) => (
         </Text>
       </ClickableBox>
     </Box>
-    <View path={props.path} routePath={props.routePath} />
+    <Box style={stylesContentContainer}>
+      <View path={props.path} routePath={props.routePath} />
+    </Box>
     <Box style={stylesFooter}>
       <Icon type="iconfont-ellipsis" onClick={props.onAction} color={globalColors.white} />
     </Box>
