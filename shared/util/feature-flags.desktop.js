@@ -14,7 +14,7 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
-  explodingMessagesEnabled: false || __STORYBOOK__,
+  explodingMessagesEnabled: true,
   fsEnabled: true,
   fsWritesEnabled: false,
   plansEnabled: false,
@@ -22,7 +22,6 @@ const ff: FeatureFlags = {
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
-  explodingMessagesEnabled: true,
   walletsEnabled: true,
   fsWritesEnabled: true,
 }
