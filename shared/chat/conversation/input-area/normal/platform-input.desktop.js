@@ -159,7 +159,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             end: pos,
           },
         }
-      })
+      }, true)
       this._inputFocus()
     }
   }

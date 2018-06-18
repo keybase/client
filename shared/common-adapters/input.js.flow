@@ -87,5 +87,7 @@ declare export default class Input extends Component<Props> {
   selection: () => Selection;
   // transformText must be called only on uncontrolled Input
   // components. The transformation may be done asynchronously.
-  transformText: (fn: (TextInfo) => TextInfo) => void;
+  // @param reflectChange: desktop only. If true, `onChangeText`
+  // will be called after the transform
+  transformText: (fn: (TextInfo) => TextInfo, reflectChange?: boolean) => void;
 }

@@ -280,7 +280,7 @@ const styles = styleSheetCreate({
     },
     isElectron: {pointerEvents: 'none'},
     isMobile: {
-      right: -18,
+      right: -14,
     },
   }),
   textContainer: {

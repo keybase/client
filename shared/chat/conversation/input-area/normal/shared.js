@@ -44,6 +44,7 @@ const styles = styleSheetCreate({
     isMobile: {
       marginLeft: -5,
       marginTop: -1,
+      height: 15,
     },
   }),
 })
