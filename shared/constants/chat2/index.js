@@ -164,6 +164,9 @@ export const makeInboxQuery = (
   }
 }
 
+const numMessagesOnInitialLoad = isMobile ? 20 : 100
+const numMessagesOnScrollback = isMobile ? 100 : 100
+
 export {
   getConversationIDKeyMetasToLoad,
   getMeta,
@@ -184,7 +187,7 @@ export {
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
-  makePendingAttachmentMessage,
+  makePendingAttachmentMessages,
   makePendingTextMessage,
   messageExplodeDescriptions,
   pathToAttachmentType,
@@ -195,8 +198,10 @@ export {
 } from './message'
 
 export {
-  pendingConversationIDKey,
-  noConversationIDKey,
-  pendingWaitingConversationIDKey,
   isValidConversationIDKey,
+  noConversationIDKey,
+  numMessagesOnInitialLoad,
+  numMessagesOnScrollback,
+  pendingConversationIDKey,
+  pendingWaitingConversationIDKey,
 }

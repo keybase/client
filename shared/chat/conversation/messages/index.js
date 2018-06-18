@@ -15,7 +15,7 @@ import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
 import Placeholder from './placeholder/container'
 import Wrapper from './wrapper/container'
-import {connect, compose, lifecycle, type TypedState} from '../../../util/container'
+import {setDisplayName, connect, compose, lifecycle, type TypedState} from '../../../util/container'
 
 type Props = {
   message: Types.Message,
@@ -105,6 +105,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   connect(mapStateToProps, () => ({}), mergeProps),
+  setDisplayName('MessageFactory'),
   lifecycle({
     componentDidUpdate(prevProps) {
       if (!this.props.message) {

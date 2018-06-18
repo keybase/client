@@ -432,8 +432,10 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 		res.Push(msg)
 	}
 
-	// Check if we read anything, otherwise move to another block and try again
-	if !res.Done() && b.BlockID > 0 {
+	// Check if we read anything, otherwise move to another block and try
+	// again. We check if lastAdded > 0 to avoid overflowing chat1.MessageID
+	// which is a uint type
+	if !res.Done() && b.BlockID > 0 && lastAdded > 0 {
 		return be.ReadMessages(ctx, res, convID, uid, lastAdded-1)
 	}
 	return nil

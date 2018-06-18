@@ -259,6 +259,32 @@ func (s *DeviceEKStorage) GetAllActive(ctx context.Context, merkleRoot libkb.Mer
 	return activeKeysInOrder, nil
 }
 
+// ListAllForUser lists the internal storage name of deviceEKs of the logged in
+// user. This is used for logsend purposes to debug ek state.
+func (s *DeviceEKStorage) ListAllForUser(ctx context.Context) (all []string, err error) {
+	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#ListAllForUser", func() error { return err })()
+
+	s.Lock()
+	defer s.Unlock()
+
+	return s.listAllForUser(ctx, s.G().Env.GetUsername())
+}
+
+func (s *DeviceEKStorage) listAllForUser(ctx context.Context, username libkb.NormalizedUsername) (all []string, err error) {
+	// key in the sense of a key-value pair, not a crypto key!
+	keys, err := s.storage.AllKeys(ctx)
+	if err != nil {
+		return nil, err
+	}
+	prefix := s.keyPrefixFromUsername(username)
+	for _, key := range keys {
+		if strings.HasPrefix(key, prefix) {
+			all = append(all, key)
+		}
+	}
+	return all, nil
+}
+
 func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error) {
 	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#MaxGeneration", func() error { return err })()
 
@@ -350,17 +376,17 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 func (s *DeviceEKStorage) ForceDeleteAll(ctx context.Context, username libkb.NormalizedUsername) (err error) {
 	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#ForceDeleteAll", func() error { return err })()
 
-	keys, err := s.storage.AllKeys(ctx)
+	s.Lock()
+	defer s.Unlock()
+
+	// only delete if the key is owned by the current user
+	keys, err := s.listAllForUser(ctx, username)
 	if err != nil {
 		return err
 	}
-	prefix := s.keyPrefixFromUsername(username)
 	epick := libkb.FirstErrorPicker{}
 	for _, key := range keys {
-		// only delete if the key is owned by the current user
-		if strings.HasPrefix(key, prefix) {
-			epick.Push(s.storage.Erase(ctx, key))
-		}
+		epick.Push(s.storage.Erase(ctx, key))
 	}
 
 	s.clearCache()

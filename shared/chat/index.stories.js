@@ -12,6 +12,7 @@ import setExplodingMessage from './conversation/messages/set-explode-popup/index
 import userMentionHud from './conversation/input-area/user-mention-hud/index.stories'
 import messages from './conversation/messages/index.stories'
 import startConversation from './conversation/list-area/start-conversation/index.stories'
+import thread from './conversation/list-area/normal/index.stories'
 
 const load = () => {
   ;[
@@ -28,6 +29,7 @@ const load = () => {
     setExplodingMessage,
     userMentionHud,
     startConversation,
+    thread,
   ].forEach(load => load())
 }
 

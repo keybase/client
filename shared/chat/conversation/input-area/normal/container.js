@@ -102,7 +102,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     } else {
       dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
     }
-    ownProps.onScrollDown()
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,

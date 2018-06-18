@@ -61,6 +61,11 @@ class GetTitles extends React.Component<Props, State> {
     }
   }
 
+  _isLast = () => {
+    const numPaths = Object.keys(this.state.pathToInfo).length
+    return this.state.index + 1 === numPaths
+  }
+
   _updateTitle = (title: string) => {
     this.setState(state => {
       const paths = Object.keys(this.state.pathToInfo)
@@ -130,7 +135,11 @@ class GetTitles extends React.Component<Props, State> {
             />
             <ButtonBar style={{flexShrink: 0}}>
               <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-              <WaitingButton type="Primary" waitingKey={null} onClick={this._onNext} label="Send" />
+              {this._isLast() ? (
+                <WaitingButton type="Primary" waitingKey={null} onClick={this._onNext} label="Send" />
+              ) : (
+                <Button type="Primary" onClick={this._onNext} label="Next" />
+              )}
             </ButtonBar>
           </Box>
         </ScrollView>

@@ -9,12 +9,11 @@ import {
   ClickableBox,
   ProgressIndicator,
   ScrollView,
-  HeaderHoc,
+  HeaderOnMobile,
   FloatingMenu,
 } from '../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
-import {branch} from 'recompose'
 
 type Props = {
   expandedSet: I.Set<string>,
@@ -121,4 +120,4 @@ const _gitStyle = {
   width: '100%',
 }
 
-export default branch(() => isMobile, HeaderHoc)(Git)
+export default HeaderOnMobile(Git)

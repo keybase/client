@@ -17,12 +17,20 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onExitSearch: (participants: Array<string>) => dispatch(Chat2Gen.createCreateConversation({participants})),
   onClearSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-  onExitSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    ...ownProps,
+    onExitSearch: () => dispatchProps._onExitSearch(stateProps.pendingConversationUsers.toArray()),
+  }
+}
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers(
     {focusInputCounter: 0},
     {incrementFocus: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1})}

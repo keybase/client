@@ -290,11 +290,11 @@
       "path?": "string",
       "forShare?": "boolean"
     },
-    // We want to upload an attachment
-    "attachmentUpload": {
+    // We want to upload some attachments
+    "attachmentsUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "path": "string",
-      "title": "string"
+      "paths": "Array<string>",
+      "titles": "Array<string>"
     },
     // Update progress on an upload
     "attachmentUploading": {

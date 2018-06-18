@@ -56,6 +56,10 @@
           "name": "snippet"
         },
         {
+          "type": "string",
+          "name": "snippetDecoration"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"
@@ -199,6 +203,10 @@
         {
           "type": "string",
           "name": "snippet"
+        },
+        {
+          "type": "string",
+          "name": "snippetDecoration"
         },
         {
           "type": "string",
