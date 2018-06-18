@@ -340,6 +340,10 @@ type folderBranchOps struct {
 	editHistory  *kbfsedits.TlfHistory
 	editChannels chan editChannelActivity
 
+	cancelEditsLock sync.Mutex
+	// Cancels the goroutine currently waiting on edits
+	cancelEdits context.CancelFunc
+
 	branchChanges      kbfssync.RepeatedWaitGroup
 	mdFlushes          kbfssync.RepeatedWaitGroup
 	forcedFastForwards kbfssync.RepeatedWaitGroup
@@ -6770,6 +6774,11 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 		fbo.config.MDServer().CancelRegistration(ctx, fbo.id())
 	}
 
+	// Also cancel the edits goroutine and forget the old history.
+	fbo.cancelEditsLock.Lock()
+	defer fbo.cancelEditsLock.Unlock()
+	fbo.editHistory = kbfsedits.NewTlfHistory()
+
 	fbo.head = ImmutableRootMetadata{}
 	fbo.headStatus = headUntrusted
 	fbo.latestMergedRevision = kbfsmd.RevisionUninitialized
@@ -6879,6 +6888,10 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
 
+	fbo.cancelEditsLock.Lock()
+	fbo.cancelEdits = cancelFunc
+	fbo.cancelEditsLock.Unlock()
+
 	// Register for all the channels of this chat.
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(lState)
@@ -6979,6 +6992,8 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 					nameToNextPage[name] = nextPage
 				}
 			}
+		case <-ctx.Done():
+			return
 		}
 	}
 }

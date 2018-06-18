@@ -138,3 +138,11 @@ func (uh *UserHistory) GetTlfHistory(
 	defer uh.lock.RUnlock()
 	return uh.getTlfHistoryLocked(tlfName, tlfType)
 }
+
+func (uh *UserHistory) Clear() {
+	uh.lock.Lock()
+	defer uh.lock.Unlock()
+	uh.tlfs = tlfByTime{
+		indices: make(map[tlfKey]int),
+	}
+}

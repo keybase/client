@@ -61,6 +61,7 @@ func serviceLoggedOut(ctx context.Context, config Config) {
 		jServer.shutdownExistingJournals(ctx)
 	}
 	config.ResetCaches()
+	config.UserHistory().Clear()
 	mdServer := config.MDServer()
 	if mdServer != nil {
 		mdServer.RefreshAuthToken(ctx)
