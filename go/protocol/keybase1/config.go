@@ -124,6 +124,7 @@ type ExtendedStatus struct {
 	DefaultUsername        string          `codec:"defaultUsername" json:"defaultUsername"`
 	ProvisionedUsernames   []string        `codec:"provisionedUsernames" json:"provisionedUsernames"`
 	Clients                []ClientDetails `codec:"Clients" json:"Clients"`
+	DeviceEKNames          []string        `codec:"DeviceEKNames" json:"DeviceEKNames"`
 	PlatformInfo           PlatformInfo    `codec:"platformInfo" json:"platformInfo"`
 	DefaultDeviceID        DeviceID        `codec:"defaultDeviceID" json:"defaultDeviceID"`
 }
@@ -185,6 +186,17 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.Clients),
+		DeviceEKNames: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.DeviceEKNames),
 		PlatformInfo:    o.PlatformInfo.DeepCopy(),
 		DefaultDeviceID: o.DefaultDeviceID.DeepCopy(),
 	}

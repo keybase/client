@@ -192,6 +192,11 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	res.PlatformInfo = getPlatformInfo()
 	res.DefaultDeviceID = h.G().Env.GetDeviceID()
 	res.RememberPassphrase = h.G().Env.RememberPassphrase()
+	dekNames, err := h.G().GetDeviceEKStorage().ListAllForUser(ctx)
+	if err != nil {
+		return res, err
+	}
+	res.DeviceEKNames = dekNames
 
 	return res, nil
 }
