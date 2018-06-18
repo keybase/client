@@ -26,64 +26,61 @@ const rightColumnStyle = platformStyles({
   },
 })
 
-class WalletRow extends React.PureComponent<Props> {
-  render() {
-    const backgroundColor = this.props.isSelected ? globalColors.blue : globalColors.white
+const WalletRow = (props: Props) => {
+  const backgroundColor = props.isSelected ? globalColors.blue : globalColors.white
 
-    const titleStyle = collapseStyles([
-      rightColumnStyle,
-      {
-        ...globalStyles.fontSemibold,
-        color: this.props.isSelected ? globalColors.white : globalColors.darkBlue,
-        backgroundColor,
-        fontSize: 13,
-      },
-    ])
+  const titleStyle = collapseStyles([
+    rightColumnStyle,
+    {
+      ...globalStyles.fontSemibold,
+      color: props.isSelected ? globalColors.white : globalColors.darkBlue,
+      backgroundColor,
+      fontSize: 13,
+    },
+  ])
 
-    const amountStyle = collapseStyles([
-      rightColumnStyle,
-      {
-        color: this.props.isSelected ? globalColors.white : globalColors.black_40,
-        backgroundColor,
-        fontSize: 11,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-      },
-    ])
+  const amountStyle = collapseStyles([
+    rightColumnStyle,
+    {
+      color: props.isSelected ? globalColors.white : globalColors.black_40,
+      backgroundColor,
+      fontSize: 11,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  ])
 
-    const props = this.props
-    return (
-      <ClickableBox onClick={props.onSelect} style={{backgroundColor}}>
-        <Box2 style={{height: rowHeight, backgroundColor}} direction="horizontal" fullWidth={true}>
-          <Icon
-            type="icon-wallet-64"
-            color={globalColors.darkBlue}
-            style={{
-              alignSelf: 'center',
-              height: 32,
-              marginLeft: globalMargins.tiny,
-              marginRight: globalMargins.tiny,
-            }}
-          />
-          <Box2 direction="vertical" style={rightColumnStyle}>
-            <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-              {this.props.keybaseUser && <Avatar size={16} username={this.props.keybaseUser} />}
-              <Text type="BodySmall" style={titleStyle}>
-                {props.name}
-              </Text>
-            </Box2>
-            <Text type="BodySmall" style={amountStyle}>
-              {props.contents}
+  const rowHeight = isMobile ? 56 : 48
+
+  return (
+    <ClickableBox onClick={props.onSelect} style={{backgroundColor}}>
+      <Box2 style={{height: rowHeight, backgroundColor}} direction="horizontal" fullWidth={true}>
+        <Icon
+          type="icon-wallet-64"
+          color={globalColors.darkBlue}
+          style={{
+            alignSelf: 'center',
+            height: 32,
+            marginLeft: globalMargins.tiny,
+            marginRight: globalMargins.tiny,
+          }}
+        />
+        <Box2 direction="vertical" style={rightColumnStyle}>
+          <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+            {props.keybaseUser && <Avatar size={16} username={props.keybaseUser} />}
+            <Text type="BodySmall" style={titleStyle}>
+              {props.name}
             </Text>
           </Box2>
+          <Text type="BodySmall" style={amountStyle}>
+            {props.contents}
+          </Text>
         </Box2>
-      </ClickableBox>
-    )
-  }
+      </Box2>
+    </ClickableBox>
+  )
 }
-
-const rowHeight = isMobile ? 56 : 48
 
 export type {Props}
 export {WalletRow}
