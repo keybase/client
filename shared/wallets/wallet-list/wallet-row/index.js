@@ -67,8 +67,10 @@ const WalletRow = (props: Props) => {
           }}
         />
         <Box2 direction="vertical" style={rightColumnStyle}>
-          <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            {props.keybaseUser && <Avatar size={16} username={props.keybaseUser} />}
+          <Box2 direction="horizontal" fullWidth={true}>
+            {props.keybaseUser && (
+              <Avatar size={16} style={{marginRight: globalMargins.xtiny}} username={props.keybaseUser} />
+            )}
             <Text type="BodySmall" style={titleStyle}>
               {props.name}
             </Text>
