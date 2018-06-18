@@ -187,7 +187,7 @@ export {
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
-  makePendingAttachmentMessage,
+  makePendingAttachmentMessages,
   makePendingTextMessage,
   messageExplodeDescriptions,
   pathToAttachmentType,

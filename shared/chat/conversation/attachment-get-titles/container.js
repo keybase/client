@@ -18,15 +18,15 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onSubmit: (conversationIDKey: Types.ConversationIDKey, pathToInfo: PathToInfo) => {
-    Object.keys(pathToInfo).forEach(path => {
-      dispatch(
-        Chat2Gen.createAttachmentUpload({
-          conversationIDKey,
-          path,
-          title: pathToInfo[path].title,
-        })
-      )
-    })
+    const paths = Object.keys(pathToInfo)
+    const titles = paths.map(p => pathToInfo[p].title)
+    dispatch(
+      Chat2Gen.createAttachmentsUpload({
+        conversationIDKey,
+        paths,
+        titles,
+      })
+    )
     dispatch(navigateUp())
   },
   onClose: () => dispatch(navigateUp()),

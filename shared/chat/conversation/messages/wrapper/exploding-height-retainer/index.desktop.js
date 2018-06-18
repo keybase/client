@@ -142,7 +142,7 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
   )
   return (
     <AshBox className={props.exploded ? 'full-width' : undefined}>
-      {explodedTag}
+      {props.exploded && explodedTag}
       <FlameFront height={props.height} stop={props.doneExploding} />
     </AshBox>
   )
