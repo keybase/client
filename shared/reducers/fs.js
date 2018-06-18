@@ -195,7 +195,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.uninstallKBFS:
     case FsGen.fsActivity:
     case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
