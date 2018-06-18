@@ -185,7 +185,7 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
 }
 
 const uninstallKBFSConfirmSaga = (action: FsGen.UninstallKBFSConfirmPayload) =>
-  SafeElectron.getDialog().showMessageBox(
+  new Promise((resolve, reject) => SafeElectron.getDialog().showMessageBox(
     null,
     {
       buttons: ['Remove & Restart', 'Cancel'],
@@ -193,16 +193,19 @@ const uninstallKBFSConfirmSaga = (action: FsGen.UninstallKBFSConfirmPayload) =>
       message: `Remove Keybase from ${fileUIName}`,
       type: 'question',
     },
-    resp => (resp ? undefined : Saga.sequentially([
-      Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
-      Saga.call(() => new Promise((resolve, reject) => {
-          // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-          SafeElectron.getApp().relaunch()
-          SafeElectron.getApp().exit(0)
-        }
-      )),
-    ]))
+    resp => resolve(resp))
   )
+
+const uninstallKBFSConfirmSuccess = resp =>
+  (resp ? undefined : Saga.sequentially([
+    Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
+    Saga.call(() => new Promise((resolve, reject) => {
+        // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+        SafeElectron.getApp().relaunch()
+        SafeElectron.getApp().exit(0)
+      }
+    )),
+  ]))
 
 const openSecurityPreferences = () => Saga.call(
     () =>
@@ -306,7 +309,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga, uninstallKBFSConfirmSuccess)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {
