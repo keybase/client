@@ -239,7 +239,7 @@ class Thread extends React.PureComponent<Props, State> {
           // don't allow buckets to be too big
           const chunks = chunk(ordinals, 10)
           chunks.forEach((toAdd, idx) => {
-            const key = `${lastBucket}:${idx}`
+            const key = `${lastBucket || ''}:${idx}`
             items.push(
               <OrdinalWaypoint
                 key={key}
