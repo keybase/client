@@ -166,7 +166,7 @@ const FlameFront = (props: {height: number, stop: boolean}) => {
   )
 }
 
-const colors = ['yellow', globalColors.grey, globalColors.black]
+const colors = ['yellow', 'red', globalColors.grey, globalColors.black]
 const randWidth = () => Math.round(Math.random() * maxFlameWidth) + flameOffset
 const randColor = () => colors[Math.floor(Math.random() * colors.length)]
 
