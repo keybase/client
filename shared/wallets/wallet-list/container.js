@@ -17,14 +17,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps): Props => {
-  const accountIDs = stateProps.accounts.toArray()
-
-  return {
-    accountIDs,
-    onAddNew: dispatchProps.onAddNew,
-    onLinkExisting: dispatchProps.onLinkExisting,
-  }
-}
+const mergeProps = (stateProps, dispatchProps): Props => ({
+  accountIDs: stateProps.accounts.toArray(),
+  onAddNew: dispatchProps.onAddNew,
+  onLinkExisting: dispatchProps.onLinkExisting,
+})
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(WalletList)
