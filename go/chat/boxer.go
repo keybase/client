@@ -92,6 +92,7 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 	e := chat1.MessageUnboxedError{
 		ErrType:            err.ExportType(),
 		ErrMsg:             err.Error(),
+		InternalErrMsg:     err.InternalError(),
 		VersionKind:        err.VersionKind(),
 		VersionNumber:      err.VersionNumber(),
 		IsCritical:         err.IsCritical(),
@@ -303,7 +304,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 			boxed.EphemeralMetadata().Generation)
 		if ekErr != nil {
 			b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %s", boxed.ServerHeader.MessageID, ekErr.Error())
-			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralUnboxingError())), nil
+			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralUnboxingError(ekErr))), nil
 		}
 		ephemeralSeed = &ek
 	}

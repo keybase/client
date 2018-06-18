@@ -287,7 +287,7 @@ func (m *MessageUnboxed) DebugString() string {
 	}
 	if state == MessageUnboxedState_ERROR {
 		merr := m.Error()
-		return fmt.Sprintf("[%v %v mt:%v (%v)]", state, m.GetMessageID(), merr.ErrType, merr.ErrMsg)
+		return fmt.Sprintf("[%v %v mt:%v (%v) (%v)]", state, m.GetMessageID(), merr.ErrType, merr.ErrMsg, merr.InternalErrMsg)
 	}
 	switch state {
 	case MessageUnboxedState_VALID:

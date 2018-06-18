@@ -1,10 +1,9 @@
 // @flow
-import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import {getChannelsWaitingKey, getTeamChannelInfos} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
-import {PopupDialog, HeaderHoc} from '../../common-adapters'
+import {HeaderOrPopup} from '../../common-adapters'
 import {
   connect,
   compose,
@@ -14,7 +13,6 @@ import {
   type TypedState,
 } from '../../util/container'
 import SelectChannel from '.'
-import {isMobile} from '../../constants/platform'
 
 export type SelectChannelProps = {
   teamname: string,
@@ -63,12 +61,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const PopupWrapped = props => (
-  <PopupDialog onClose={props.onCancel}>
-    <SelectChannel {...props} />
-  </PopupDialog>
-)
-
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
@@ -85,4 +77,4 @@ export default compose(
       onCancel()
     },
   })
-)(isMobile ? HeaderHoc(SelectChannel) : PopupWrapped)
+)(HeaderOrPopup(SelectChannel))

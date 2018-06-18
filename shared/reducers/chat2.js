@@ -81,6 +81,7 @@ const metaMapReducer = (metaMap, action) => {
               participants,
               rekeyers,
               snippet: error.message,
+              snippetDecoration: '',
               trustedState: 'error',
             })
             return metaMap.set(conversationIDKey, newMeta)
@@ -93,6 +94,7 @@ const metaMapReducer = (metaMap, action) => {
                   ? old.withMutations(m => {
                       m.set('trustedState', 'error')
                       m.set('snippet', error.message)
+                      m.set('snippetDecoration', '')
                     })
                   : old
             )

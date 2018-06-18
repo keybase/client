@@ -173,7 +173,7 @@ func TestParseDecimalStrict(t *testing.T) {
 			if neg {
 				s = "-" + s
 			}
-			v, err := parseDecimalStrict(s)
+			v, err := ParseDecimalStrict(s)
 			t.Logf("-> (%v, %v)", v, err)
 			require.Equal(t, unit.ok, err == nil, "parsed without error")
 			if unit.ok {

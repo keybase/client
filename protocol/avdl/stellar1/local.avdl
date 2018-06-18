@@ -148,7 +148,6 @@ protocol local {
     string subtext; // Examples: "", "max doesn't accept HUGZ"
   }
 
-  // Not implemented. CORE-7871
   // Check but do not send a payment.
   // Opt  - Optional field.
   // Opt* - Optional for this RPC but required for res.readyToSend to be set.
@@ -166,6 +165,7 @@ protocol local {
     // Zero or one of `asset` and `currency` should be set.
     // If both are null or `asset` is native XLM then XLM are being sent.
     // If `currency` is set then XLM is being sent after converting `amount`.
+    // Note: Sending non-XLM assets is not yet supported.
     union { null, OutsideCurrencyCode } currency,
     union { null, Asset } asset,
     string secretNote,   // Opt. Encrypted for the sender, and recipient if possible.
