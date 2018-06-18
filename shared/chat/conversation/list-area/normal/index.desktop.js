@@ -287,7 +287,12 @@ class Thread extends React.PureComponent<Props, State> {
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
-          <div style={listStyle} ref={this._listRef} onScroll={this._onScroll}>
+          <div
+            key={this.props.conversationIDKey}
+            style={listStyle}
+            ref={this._listRef}
+            onScroll={this._onScroll}
+          >
             <Measure scroll={true} onResize={this._onResize}>
               {({measureRef}) => (
                 <div ref={measureRef}>
