@@ -134,19 +134,11 @@ function waitForMount(attempt: number) {
   })
 }
 
-const installKBFSSuccess = (result: RPCTypes.InstallResult) => {
-  console.log('success installing KBFS')
-  console.log(result)
-  return Saga.sequentially([
+const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
+  Saga.sequentially([
     Saga.call(waitForMount, 0),
     Saga.put(FsGen.createSetFlags({kbfsInstalling: false, showBanner: true})),
   ])
-}
-
-const installKBFSError = (error) => {
-  console.log('error installing KBFS')
-  console.log(error)
-}
 
 function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
@@ -315,7 +307,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
-  yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess, installKBFSError)
+  yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
