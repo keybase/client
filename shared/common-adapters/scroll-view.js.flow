@@ -9,6 +9,8 @@ export type Props = {|
   // mobile only
   minimumZoomScale?: number,
   maximumZoomScale?: number,
+  onScroll?: Function,
+  scrollEventThrottle?: number,
   scrollsToTop?: boolean,
   indicatorStyle?: string,
   alwaysBounceVertical?: boolean,
