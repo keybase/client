@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, ClickableBox, Icon, List, Text, FloatingMenu} from '../../common-adapters'
-import {globalMargins, globalColors, isMobile} from '../../styles'
+import {globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
@@ -59,6 +59,7 @@ const AddWallet = FloatingMenuParentHOC(_AddWallet)
 
 type Props = {
   accountIDs: Array<AccountID>,
+  style?: StylesCrossPlatform,
   onAddNew: () => void,
   onLinkExisting: () => void,
 }
@@ -85,11 +86,7 @@ class WalletList extends React.Component<Props> {
     const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID}))
     rows.push({type: 'add wallet'})
 
-    return (
-      <Box2 direction="vertical" style={{height: '100%', width: 240}}>
-        <List items={rows} renderItem={this._renderRow} keyProperty="key" />
-      </Box2>
-    )
+    return <List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
   }
 }
 

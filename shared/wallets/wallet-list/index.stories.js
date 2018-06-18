@@ -63,6 +63,7 @@ const load = () => {
         accountIDs={accountIDs}
         onAddNew={action('onAddNew')}
         onLinkExisting={action('onLinkExisting')}
+        style={{height: '100%', width: 240}}
       />
     ))
 }
