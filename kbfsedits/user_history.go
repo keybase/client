@@ -54,11 +54,16 @@ func (tbm tlfByTime) Swap(i, j int) {
 	tbm.indices[tbm.histories[j].key] = j
 }
 
+// UserHistory keeps a sorted list of the top known TLF edit
+// histories, and can convert those histories into keybase1 protocol
+// structs.  TLF histories must be updated by an external caller
+// whenever they change.
 type UserHistory struct {
 	lock sync.RWMutex
 	tlfs tlfByTime
 }
 
+// NewUserHistory constructs a UserHistory instance.
 func NewUserHistory() *UserHistory {
 	return &UserHistory{
 		tlfs: tlfByTime{
@@ -67,6 +72,8 @@ func NewUserHistory() *UserHistory {
 	}
 }
 
+// UpdateHistory should be called whenever the edit history for a
+// given TLF gets new information.
 func (uh *UserHistory) UpdateHistory(
 	tlfName tlf.CanonicalName, tlfType tlf.Type, tlfHistory *TlfHistory) {
 	history := tlfHistory.getHistory()
@@ -124,13 +131,15 @@ func (uh *UserHistory) getTlfHistoryLocked(
 				history.History[i].Edits[j].NotificationType =
 					keybase1.FSNotificationType_FILE_MODIFIED
 			default:
-				panic(fmt.Sprintf("Unknown notification type %d", n.Type))
+				panic(fmt.Sprintf("Unknown notification type %s", n.Type))
 			}
 		}
 	}
 	return history
 }
 
+// GetTlfHistory returns the edit history of a given TLF, converted to
+// keybase1 protocol structs.
 func (uh *UserHistory) GetTlfHistory(
 	tlfName tlf.CanonicalName, tlfType tlf.Type) (
 	history keybase1.FSFolderEditHistory) {
@@ -139,6 +148,7 @@ func (uh *UserHistory) GetTlfHistory(
 	return uh.getTlfHistoryLocked(tlfName, tlfType)
 }
 
+// Clear erases all saved histories; TLFs must be re-added.
 func (uh *UserHistory) Clear() {
 	uh.lock.Lock()
 	defer uh.lock.Unlock()
