@@ -4,12 +4,14 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 	"time"
 
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 )
 
@@ -190,6 +192,77 @@ type SecretKeyArg struct {
 	ExactMatch bool // if set, full equality required
 }
 
+func getDeviceKey(m MetaContext, ckf *ComputedKeyFamily, secretKeyType SecretKeyType, nun NormalizedUsername) (GenericKey, error) {
+	did := m.G().Env.GetDeviceIDForUsername(nun)
+	if did.IsNil() {
+		return nil, errors.New("Could not get device id")
+	}
+
+	switch secretKeyType {
+	case DeviceSigningKeyType:
+		return ckf.GetSibkeyForDevice(did)
+	case DeviceEncryptionKeyType:
+		return ckf.GetEncryptionSubkeyForDevice(did)
+	default:
+		return nil, fmt.Errorf("Invalid type %v", secretKeyType)
+	}
+}
+
+// LockedLocalSecretKey looks in the local keyring to find a key
+// for the given user.  Returns non-nil if one was found, and nil
+// otherwise.
+func LockedLocalSecretKey(m MetaContext, ska SecretKeyArg) (*SKB, error) {
+	var ret *SKB
+	me := ska.Me
+
+	keyring, err := m.Keyring()
+	if err != nil {
+		return nil, err
+	}
+	if keyring == nil {
+		m.CDebugf("| No secret keyring found: %s", err)
+		return nil, NoKeyringsError{}
+	}
+
+	ckf := me.GetComputedKeyFamily()
+	if ckf == nil {
+		m.CWarningf("No ComputedKeyFamily found for %s", me.name)
+		return nil, KeyFamilyError{Msg: "not found for " + me.name}
+	}
+
+	if (ska.KeyType == DeviceSigningKeyType) || (ska.KeyType == DeviceEncryptionKeyType) {
+		key, err := getDeviceKey(m, ckf, ska.KeyType, me.GetNormalizedName())
+		if err != nil {
+			m.CDebugf("| No key for current device: %s", err)
+			return nil, err
+		}
+
+		if key == nil {
+			m.CDebugf("| Key for current device is nil")
+			return nil, NoKeyError{Msg: "Key for current device is nil"}
+		}
+
+		kid := key.GetKID()
+		m.CDebugf("| Found KID for current device: %s", kid)
+		ret = keyring.LookupByKid(kid)
+		if ret != nil {
+			m.CDebugf("| Using device key: %s", kid)
+		}
+	} else {
+		m.CDebugf("| Looking up secret key in local keychain")
+		blocks := keyring.SearchWithComputedKeyFamily(ckf, ska)
+		if len(blocks) > 0 {
+			ret = blocks[0]
+		}
+	}
+
+	if ret != nil {
+		ret.SetUID(me.GetUID())
+	}
+
+	return ret, nil
+}
+
 // GetSecretKeyLocked gets a secret key for the current user by first
 // looking for keys synced from the server, and if that fails, tries
 // those in the local Keyring that are also active for the user.
@@ -204,21 +277,9 @@ func (k *Keyrings) GetSecretKeyLocked(m MetaContext, ska SecretKeyArg) (ret *SKB
 		}
 	}
 
-	if lctx := m.LoginContext(); lctx != nil {
-		ret, err = lctx.LockedLocalSecretKey(ska)
-		if err != nil {
-			return ret, err
-		}
-	} else {
-		aerr := m.G().LoginState().Account(func(a *Account) {
-			ret, err = a.LockedLocalSecretKey(ska)
-		}, "LockedLocalSecretKey")
-		if err != nil {
-			return ret, err
-		}
-		if aerr != nil {
-			return nil, aerr
-		}
+	ret, err = LockedLocalSecretKey(m, ska)
+	if err != nil {
+		return nil, err
 	}
 
 	if ret != nil {
@@ -253,7 +314,6 @@ func (k *Keyrings) GetSecretKeyLocked(m MetaContext, ska SecretKeyArg) (ret *SKB
 		return nil, err
 
 	}
-
 	return ret, nil
 }
 
@@ -271,21 +331,69 @@ func (k *Keyrings) cachedSecretKey(m MetaContext, ska SecretKeyArg) GenericKey {
 	return key
 }
 
-func (k *Keyrings) setCachedSecretKey(m MetaContext, ska SecretKeyArg, key GenericKey) {
-	m.CDebugf("caching secret key for ska: %+v", ska)
-	var setErr error
-	if lctx := m.LoginContext(); lctx != nil {
-		setErr = lctx.SetCachedSecretKey(ska, key, nil)
-	} else {
-		aerr := m.G().LoginState().Account(func(a *Account) {
-			setErr = a.SetCachedSecretKey(ska, key, nil)
-		}, "GetSecretKeyWithPrompt - SetCachedSecretKey")
-		if aerr != nil {
-			m.CDebugf("Account error: %s", aerr)
+func deviceIDFromDevice(m MetaContext, uid keybase1.UID, device *Device) keybase1.DeviceID {
+	if device != nil {
+		return device.ID
+	}
+	return m.G().Env.GetDeviceIDForUID(uid)
+}
+func deviceNameLookup(m MetaContext, device *Device, me *User, key GenericKey) string {
+	if device != nil {
+		if device.Description != nil && *device.Description != "" {
+			m.CDebugf("deviceNameLookup: using device name from device: %q", *device.Description)
+			return *device.Description
 		}
 	}
-	if setErr != nil {
-		m.CDebugf("SetCachedSecretKey error: %s", setErr)
+
+	m.CDebugf("deviceNameLookup: no device name passed in, checking user")
+
+	if me == nil {
+		m.CDebugf("deviceNameLookup: me is nil, skipping device name lookup")
+		return ""
+	}
+	m.CDebugf("deviceNameLookup: looking for device name for device signing key")
+	ckf := me.GetComputedKeyFamily()
+	device, err := ckf.GetDeviceForKey(key)
+	if err != nil {
+		// not fatal
+		m.CDebugf("deviceNameLookup: error getting device for key: %s", err)
+		return ""
+	}
+	if device == nil {
+		m.CDebugf("deviceNameLookup: device for key is nil")
+		return ""
+	}
+	if device.Description == nil {
+		m.CDebugf("deviceNameLookup: device description is nil")
+		return ""
+	}
+
+	m.CDebugf("deviceNameLookup: found device name %q", *device.Description)
+
+	return *device.Description
+}
+
+func setCachedSecretKey(m MetaContext, ska SecretKeyArg, key GenericKey, device *Device) error {
+	if key == nil {
+		return errors.New("cache of nil secret key attempted")
+	}
+
+	uid := ska.Me.GetUID()
+	deviceID := deviceIDFromDevice(m, uid, device)
+	if deviceID.IsNil() {
+		m.CDebugf("SetCachedSecretKey with nil deviceID (%+v)", ska)
+	}
+
+	switch ska.KeyType {
+	case DeviceSigningKeyType:
+		deviceName := deviceNameLookup(m, device, ska.Me, key)
+		m.CDebugf("caching secret device signing key (%q/%d)", deviceName, deviceID)
+		return m.SetSigningKey(uid, deviceID, key, deviceName)
+	case DeviceEncryptionKeyType:
+		m.CDebugf("caching secret device encryption key")
+		return m.SetEncryptionKey(uid, deviceID, key)
+	default:
+		return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
 	}
 }
 
@@ -308,38 +416,7 @@ func (k *Keyrings) GetSecretKeyWithPrompt(m MetaContext, arg SecretKeyPromptArg)
 	key, _, err = k.GetSecretKeyAndSKBWithPrompt(m, arg)
 
 	if key != nil && err == nil {
-		k.setCachedSecretKey(m, arg.Ska, key)
-	}
-
-	return key, err
-}
-
-func (k *Keyrings) GetSecretKeyWithoutPrompt(m MetaContext, ska SecretKeyArg) (key GenericKey, err error) {
-	defer m.CTrace("Keyrings#GetSecretKeyWithoutPrompt()", func() error { return err })()
-
-	key = k.cachedSecretKey(m, ska)
-	if key != nil {
-		m.CDebugf("found cached secret key")
-		return key, err
-	}
-
-	m.CDebugf("no cached secret key, trying via secretStore")
-
-	// not cached, so try to unlock without prompting
-	if ska.Me == nil {
-		err = NewNoUsernameError()
-		return nil, err
-	}
-	secretStore := NewSecretStore(m.G(), ska.Me.GetNormalizedName())
-
-	skb, err := k.GetSecretKeyLocked(m, ska)
-	if err != nil {
-		return nil, err
-	}
-
-	key, err = skb.UnlockNoPrompt(m, secretStore)
-	if key != nil && err == nil {
-		k.setCachedSecretKey(m, ska, key)
+		setCachedSecretKey(m, arg.Ska, key, nil)
 	}
 
 	return key, err
@@ -387,17 +464,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(m MetaContext, me *User, passphras
 		return
 	}
 	skb.SetUID(me.GetUID())
-	var tsec Triplesec
-	var pps *PassphraseStream
-	if lctx := m.LoginContext(); lctx != nil {
-		tsec = lctx.PassphraseStreamCache().Triplesec()
-		pps = lctx.PassphraseStreamCache().PassphraseStream()
-	} else {
-		m.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
-			tsec = sc.Triplesec()
-			pps = sc.PassphraseStream()
-		}, "StreamCache - tsec, pps")
-	}
+	pps, tsec := m.PassphraseStreamAndTriplesec()
 	return skb.UnlockSecretKey(m, passphrase, tsec, pps, secretStorer)
 }
 

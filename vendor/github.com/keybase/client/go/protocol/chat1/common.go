@@ -1009,12 +1009,56 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 	}
 }
 
+type Reaction struct {
+	Username      string    `codec:"username" json:"username"`
+	ReactionMsgID MessageID `codec:"reactionMsgID" json:"reactionMsgID"`
+}
+
+func (o Reaction) DeepCopy() Reaction {
+	return Reaction{
+		Username:      o.Username,
+		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
+	}
+}
+
+type ReactionMap struct {
+	Reactions map[string][]Reaction `codec:"reactions" json:"reactions"`
+}
+
+func (o ReactionMap) DeepCopy() ReactionMap {
+	return ReactionMap{
+		Reactions: (func(x map[string][]Reaction) map[string][]Reaction {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string][]Reaction)
+			for k, v := range x {
+				kCopy := k
+				vCopy := (func(x []Reaction) []Reaction {
+					if x == nil {
+						return nil
+					}
+					var ret []Reaction
+					for _, v := range x {
+						vCopy := v.DeepCopy()
+						ret = append(ret, vCopy)
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Reactions),
+	}
+}
+
 type MessageServerHeader struct {
-	MessageID    MessageID    `codec:"messageID" json:"messageID"`
-	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
-	ReactionIDs  []MessageID  `codec:"r" json:"r"`
-	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
-	Now          gregor1.Time `codec:"n" json:"n"`
+	MessageID    MessageID     `codec:"messageID" json:"messageID"`
+	SupersededBy MessageID     `codec:"supersededBy" json:"supersededBy"`
+	ReactionIDs  []MessageID   `codec:"r" json:"r"`
+	Ctime        gregor1.Time  `codec:"ctime" json:"ctime"`
+	Now          gregor1.Time  `codec:"n" json:"n"`
+	Rtime        *gregor1.Time `codec:"rt,omitempty" json:"rt,omitempty"`
 }
 
 func (o MessageServerHeader) DeepCopy() MessageServerHeader {
@@ -1034,6 +1078,13 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 		})(o.ReactionIDs),
 		Ctime: o.Ctime.DeepCopy(),
 		Now:   o.Now.DeepCopy(),
+		Rtime: (func(x *gregor1.Time) *gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Rtime),
 	}
 }
 
@@ -1113,6 +1164,7 @@ type MessageClientHeader struct {
 	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
+	PairwiseMacs      map[keybase1.KID][]byte  `codec:"pm" json:"pm"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1188,6 +1240,23 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralMetadata),
+		PairwiseMacs: (func(x map[keybase1.KID][]byte) map[keybase1.KID][]byte {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[keybase1.KID][]byte)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []byte) []byte {
+					if x == nil {
+						return nil
+					}
+					return append([]byte{}, x...)
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PairwiseMacs),
 	}
 }
 
@@ -1646,6 +1715,47 @@ type RpInherit struct {
 
 func (o RpInherit) DeepCopy() RpInherit {
 	return RpInherit{}
+}
+
+type GetThreadReason int
+
+const (
+	GetThreadReason_GENERAL            GetThreadReason = 0
+	GetThreadReason_PUSH               GetThreadReason = 1
+	GetThreadReason_FOREGROUND         GetThreadReason = 2
+	GetThreadReason_BACKGROUNDCONVLOAD GetThreadReason = 3
+	GetThreadReason_FIXRETRY           GetThreadReason = 4
+	GetThreadReason_PREPARE            GetThreadReason = 5
+	GetThreadReason_SEARCHER           GetThreadReason = 6
+)
+
+func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
+
+var GetThreadReasonMap = map[string]GetThreadReason{
+	"GENERAL":            0,
+	"PUSH":               1,
+	"FOREGROUND":         2,
+	"BACKGROUNDCONVLOAD": 3,
+	"FIXRETRY":           4,
+	"PREPARE":            5,
+	"SEARCHER":           6,
+}
+
+var GetThreadReasonRevMap = map[GetThreadReason]string{
+	0: "GENERAL",
+	1: "PUSH",
+	2: "FOREGROUND",
+	3: "BACKGROUNDCONVLOAD",
+	4: "FIXRETRY",
+	5: "PREPARE",
+	6: "SEARCHER",
+}
+
+func (e GetThreadReason) String() string {
+	if v, ok := GetThreadReasonRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type CommonInterface interface {

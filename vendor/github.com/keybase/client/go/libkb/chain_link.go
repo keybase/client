@@ -514,10 +514,15 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 		tmp.ignoreIfUnsupported = SigIgnoreIfUnsupported(ignore)
 	}
 
+	// Due to an earlier error, it's possible for the merkle root that we signed over
+	// to be in one of two places, so check both.
 	if i, err := jsonparser.GetInt(payload, "body", "merkle_root", "seqno"); err == nil {
+		tmp.merkleSeqno = keybase1.Seqno(i)
+	} else if i, err := jsonparser.GetInt(payload, "merkle_root", "seqno"); err == nil {
 		tmp.merkleSeqno = keybase1.Seqno(i)
 	}
 
+	// Hash meta was only ever in the correct place (within body)
 	if s, err := jsonparser.GetString(payload, "body", "merkle_root", "hash_meta"); err == nil {
 		tmp.merkleHashMeta, err = keybase1.HashMetaFromString(s)
 		if err != nil {
@@ -821,7 +826,7 @@ func (c *ChainLink) verifyHashV2() error {
 		return SigchainV2MismatchedHashError{}
 	}
 	c.hashVerified = true
-	c.G().LinkCache.Mutate(c.id, func(c *ChainLink) { c.hashVerified = true })
+	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.hashVerified = true })
 	return nil
 }
 
@@ -834,7 +839,7 @@ func (c *ChainLink) verifyHashV1() error {
 		return fmt.Errorf("hash mismatch in verifyHashV1")
 	}
 	c.hashVerified = true
-	c.G().LinkCache.Mutate(c.id, func(c *ChainLink) { c.hashVerified = true })
+	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.hashVerified = true })
 	return nil
 }
 
@@ -932,7 +937,7 @@ func (c *ChainLink) markPayloadVerified(sigid keybase1.SigID) {
 		c.unpacked.sigID = sigid
 	}
 	c.payloadVerified = true
-	c.G().LinkCache.Mutate(c.id, func(c *ChainLink) { c.payloadVerified = true })
+	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.payloadVerified = true })
 }
 
 func (c *ChainLink) verifyPayloadV1() error {
@@ -974,7 +979,7 @@ func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
 	c.sigVerified = true
 	c.dirty = true
 	c.cki = cki
-	c.G().LinkCache.Mutate(c.id, func(c *ChainLink) { c.cki = cki })
+	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.cki = cki })
 	return
 }
 
@@ -1034,7 +1039,7 @@ func ImportLinkFromServer(g *GlobalContext, parent *SigChain, data []byte, selfU
 		return nil, err
 	}
 
-	g.LinkCache.Put(id, ret.Copy())
+	g.LinkCache().Put(id, ret.Copy())
 
 	return ret, nil
 }
@@ -1048,7 +1053,7 @@ func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID) *ChainLink {
 }
 
 func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*ChainLink, error) {
-	link, ok := g.LinkCache.Get(id)
+	link, ok := g.LinkCache().Get(id)
 	if ok {
 		link.Contextified = NewContextified(g)
 		return &link, nil
@@ -1064,7 +1069,7 @@ func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*
 		}
 		ret.storedLocally = true
 
-		g.LinkCache.Put(id, ret.Copy())
+		g.LinkCache().Put(id, ret.Copy())
 	}
 	return ret, err
 }

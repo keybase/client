@@ -23,7 +23,7 @@ type NaclSigInfo struct {
 	Kid      keybase1.BinaryKID `codec:"key"`
 	Payload  []byte             `codec:"payload,omitempty"`
 	Sig      NaclSignature      `codec:"sig"`
-	SigType  int                `codec:"sig_type"`
+	SigType  AlgoType           `codec:"sig_type"`
 	HashType int                `codec:"hash_type"`
 	Detached bool               `codec:"detached"`
 	Version  int                `codec:"version,omitempty"`
@@ -31,11 +31,11 @@ type NaclSigInfo struct {
 }
 
 type NaclEncryptionInfo struct {
-	Ciphertext     []byte `codec:"ciphertext"`
-	EncryptionType int    `codec:"enc_type"`
-	Nonce          []byte `codec:"nonce"`
-	Receiver       []byte `codec:"receiver_key"`
-	Sender         []byte `codec:"sender_key"`
+	Ciphertext     []byte   `codec:"ciphertext"`
+	EncryptionType AlgoType `codec:"enc_type"`
+	Nonce          []byte   `codec:"nonce"`
+	Receiver       []byte   `codec:"receiver_key"`
+	Sender         []byte   `codec:"sender_key"`
 }
 
 const NaclDHKeysize = 32
@@ -166,6 +166,18 @@ func ImportKeypairFromKID(k keybase1.KID) (key GenericKey, err error) {
 		err = BadKeyError{fmt.Sprintf("Bad key prefix: %d", kid[1])}
 	}
 	return
+}
+
+func ImportDHKeypairFromKID(k keybase1.KID) (*NaclDHKeyPair, error) {
+	genericKey, err := ImportKeypairFromKID(k)
+	if err != nil {
+		return nil, err
+	}
+	naclKey, ok := genericKey.(NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("expected NaclDHKeyPair, got %T", genericKey)
+	}
+	return &naclKey, nil
 }
 
 func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err error) {

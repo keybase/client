@@ -63,19 +63,48 @@ func NewPassphraseStreamCache(tsec Triplesec, ps *PassphraseStream) *PassphraseS
 	}
 }
 
-func (s *PassphraseStreamCache) Triplesec() Triplesec {
+func (s *PassphraseStreamCache) TriplesecAndGeneration() (Triplesec, PassphraseGeneration) {
+	var zed PassphraseGeneration
 	if s == nil {
-		return nil
+		return nil, zed
 	}
 	s.Lock()
 	defer s.Unlock()
 
 	// Beware the classic Go `nil` interface bug...
 	if s.tsec == nil {
-		return nil
+		return nil, zed
+	}
+	if s.passphraseStream == nil {
+		return nil, zed
+	}
+	ppgen := s.passphraseStream.Generation()
+	if ppgen.IsNil() {
+		return nil, zed
 	}
 
-	return s.tsec
+	return s.tsec, ppgen
+}
+
+func (s *PassphraseStreamCache) PassphraseStreamAndTriplesec() (pps *PassphraseStream, tsec Triplesec) {
+
+	if s == nil {
+		return nil, nil
+	}
+
+	s.Lock()
+	defer s.Unlock()
+
+	// Beware the classic Go `nil` interface bug...
+	if s.tsec != nil {
+		tsec = s.tsec
+	}
+
+	if s.passphraseStream != nil {
+		pps = s.passphraseStream.Clone()
+	}
+
+	return pps, tsec
 }
 
 // PassphraseStream returns a copy of the currently cached passphrase stream,

@@ -1153,6 +1153,16 @@ const (
 	merkleErrorNoRightBookend
 	merkleErrorHashMeta
 	merkleErrorBadResetChain
+	merkleErrorNotFound
+	merkleErrorBadSeqno
+	merkleErrorBadLeaf
+	merkleErrorNoUpdates
+	merkleErrorBadSigID
+	merkleErrorAncientSeqno
+	merkleErrorKBFSBadTree
+	merkleErrorKBFSMismatch
+	merkleErrorBadRoot
+	merkleErrorOldTree
 )
 
 type MerkleClientError struct {
@@ -1164,12 +1174,16 @@ func (m MerkleClientError) Error() string {
 	return fmt.Sprintf("Error checking merkle tree: %s", m.m)
 }
 
-type MerkleNotFoundError struct {
+func (m MerkleClientError) IsNotFound() bool {
+	return m.t == merkleErrorNotFound
+}
+
+type MerklePathNotFoundError struct {
 	k   string
 	msg string
 }
 
-func (m MerkleNotFoundError) Error() string {
+func (m MerklePathNotFoundError) Error() string {
 	return fmt.Sprintf("For key '%s', Merkle path not found: %s", m.k, m.msg)
 }
 
@@ -1865,6 +1879,10 @@ func (e ChatBadMsgError) Error() string {
 	return e.Msg
 }
 
+func (e ChatBadMsgError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 //=============================================================================
 
 type ChatBroadcastError struct {
@@ -1896,6 +1914,10 @@ func (e ChatAlreadySupersededError) Error() string {
 	return e.Msg
 }
 
+func (e ChatAlreadySupersededError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 //=============================================================================
 
 type ChatAlreadyDeletedError struct {
@@ -1904,6 +1926,10 @@ type ChatAlreadyDeletedError struct {
 
 func (e ChatAlreadyDeletedError) Error() string {
 	return e.Msg
+}
+
+func (e ChatAlreadyDeletedError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_ALREADY_DELETED, true
 }
 
 //=============================================================================
@@ -1926,6 +1952,10 @@ func (e ChatDuplicateMessageError) Error() string {
 	return fmt.Sprintf("duplicate message send: outboxID: %s", e.OutboxID)
 }
 
+func (e ChatDuplicateMessageError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_DUPLICATE, true
+}
+
 //=============================================================================
 
 type ChatClientError struct {
@@ -1934,6 +1964,10 @@ type ChatClientError struct {
 
 func (e ChatClientError) Error() string {
 	return fmt.Sprintf("error from chat server: %s", e.Msg)
+}
+
+func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
 }
 
 //=============================================================================
@@ -2329,3 +2363,8 @@ type NoActiveDeviceError struct{}
 func (e NoActiveDeviceError) Error() string { return "no active device" }
 
 //=============================================================================
+
+type NoTriplesecError struct{}
+
+func (e NoTriplesecError) Error() string { return "No Triplesec was available after prompt" }
+func NewNoTriplesecError() error         { return NoTriplesecError{} }

@@ -18,7 +18,6 @@ type UIDer interface {
 }
 
 type LoadUserArg struct {
-	Contextified
 	uid                      keybase1.UID
 	name                     string // Can also be an assertion like foo@twitter
 	publicKeyOptional        bool
@@ -45,9 +44,7 @@ type LoadUserArg struct {
 	merkleLeaf *MerkleUserLeaf
 	sigHints   *SigHints
 
-	// NetContext is the context to build on top of.  We'll make a new
-	// Debug Tag for this LoadUser Operation.
-	netContext context.Context
+	m MetaContext
 }
 
 func (arg LoadUserArg) String() string {
@@ -56,22 +53,24 @@ func (arg LoadUserArg) String() string {
 		arg.forcePoll, arg.staleOK, arg.abortIfSigchainUnchanged, arg.cachedOnly)
 }
 
+func (arg LoadUserArg) MetaContext() MetaContext {
+	return arg.m
+}
+
 func NewLoadUserArg(g *GlobalContext) LoadUserArg {
-	return LoadUserArg{Contextified: NewContextified(g)}
+	return LoadUserArg{m: NewMetaContextBackground(g)}
 }
 
 func NewLoadUserArgWithMetaContext(m MetaContext) LoadUserArg {
 	return LoadUserArg{
-		Contextified: NewContextified(m.G()),
-		netContext:   m.Ctx(),
-		uider:        m.LoginContext(),
+		m:     m,
+		uider: m.LoginContext(),
 	}
 }
 
 func NewLoadUserArgWithContext(ctx context.Context, g *GlobalContext) LoadUserArg {
 	return LoadUserArg{
-		Contextified: NewContextified(g),
-		netContext:   ctx,
+		m: NewMetaContext(ctx, g),
 	}
 }
 
@@ -101,9 +100,8 @@ func NewLoadUserByNameArg(g *GlobalContext, name string) LoadUserArg {
 }
 
 func NewLoadUserByUIDArg(ctx context.Context, g *GlobalContext, uid keybase1.UID) LoadUserArg {
-	arg := NewLoadUserArg(g)
+	arg := NewLoadUserArgWithMetaContext(NewMetaContext(ctx, g))
 	arg.uid = uid
-	arg.netContext = ctx
 	return arg
 }
 
@@ -125,6 +123,11 @@ func (arg LoadUserArg) WithSelf(self bool) LoadUserArg {
 	return arg
 }
 
+func (arg LoadUserArg) EnsureCtxAndLogTag() LoadUserArg {
+	arg.m = arg.m.EnsureCtx().WithLogTag("LU")
+	return arg
+}
+
 func (arg LoadUserArg) WithCachedOnly() LoadUserArg {
 	arg.cachedOnly = true
 	return arg
@@ -141,7 +144,7 @@ func (arg LoadUserArg) WithName(n string) LoadUserArg {
 }
 
 func (arg LoadUserArg) WithNetContext(ctx context.Context) LoadUserArg {
-	arg.netContext = ctx
+	arg.m = arg.m.WithCtx(ctx)
 	return arg
 }
 
@@ -166,10 +169,7 @@ func (arg LoadUserArg) WithStaleOK(b bool) LoadUserArg {
 }
 
 func (arg LoadUserArg) GetNetContext() context.Context {
-	if arg.netContext != nil {
-		return arg.netContext
-	}
-	if ctx := arg.G().NetContext; ctx != nil {
+	if ctx := arg.m.Ctx(); ctx != nil {
 		return ctx
 	}
 	return context.Background()
@@ -190,13 +190,6 @@ func (arg LoadUserArg) WithForceReload() LoadUserArg {
 	return arg
 }
 
-func (arg *LoadUserArg) WithLogTag() context.Context {
-	ctx := WithLogTag(arg.GetNetContext(), "LU")
-	arg.netContext = ctx
-	arg.SetGlobalContext(arg.G().CloneWithNetContextAndNewLogger(ctx))
-	return ctx
-}
-
 func (arg *LoadUserArg) checkUIDName() error {
 	if arg.uid.Exists() {
 		return nil
@@ -214,8 +207,8 @@ func (arg *LoadUserArg) checkUIDName() error {
 		return nil
 	}
 
-	if arg.uid = myUID(arg.G(), arg.uider); arg.uid.IsNil() {
-		arg.name = arg.G().Env.GetUsername().String()
+	if arg.uid = myUID(arg.m.G(), arg.uider); arg.uid.IsNil() {
+		arg.name = arg.m.G().Env.GetUsername().String()
 		if len(arg.name) == 0 {
 			return SelfNotFoundError{msg: "could not find UID or username for self"}
 		}
@@ -234,7 +227,7 @@ func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 		return rres, fmt.Errorf("resolveUID: no uid or name")
 	}
 
-	if rres = arg.G().Resolver.ResolveWithBody(arg.name).FailOnDeleted(); rres.err != nil {
+	if rres = arg.m.G().Resolver.ResolveWithBody(arg.name).FailOnDeleted(); rres.err != nil {
 		return rres, rres.err
 	}
 
@@ -252,7 +245,7 @@ func (arg *LoadUserArg) checkSelf() {
 		return
 	}
 
-	myuid := myUID(arg.G(), arg.uider)
+	myuid := myUID(arg.m.G(), arg.uider)
 	if myuid.Exists() && arg.uid.Exists() && myuid.Equal(arg.uid) {
 		arg.self = true
 	}
@@ -272,21 +265,23 @@ func LoadMeByMetaContextAndUID(m MetaContext, uid keybase1.UID) (*User, error) {
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
-	ctx := arg.WithLogTag()
-	defer arg.G().CTraceTimed(ctx, fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
+	m := arg.MetaContext()
+
+	m = m.WithLogTag("LU")
+	defer m.CTraceTimed(fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
 
 	var refresh bool
 
-	if arg.G().VDL.DumpSiteLoadUser() {
+	if m.G().VDL.DumpSiteLoadUser() {
 		debug.PrintStack()
 	}
 
 	// Whatever the reply is, pass along our desired global context
 	defer func() {
 		if ret != nil {
-			ret.SetGlobalContext(arg.G())
+			ret.SetGlobalContext(m.G())
 			if refresh {
-				arg.G().NotifyRouter.HandleUserChanged(ret.GetUID())
+				m.G().NotifyRouter.HandleUserChanged(ret.GetUID())
 			}
 		}
 	}()
@@ -296,7 +291,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return nil, err
 	}
 
-	arg.G().Log.CDebugf(ctx, "+ LoadUser(uid=%v, name=%v)", arg.uid, arg.name)
+	m.CDebugf("LoadUser(uid=%v, name=%v)", arg.uid, arg.name)
 
 	// resolve the uid from the name, if necessary
 	rres, err := arg.resolveUID()
@@ -307,7 +302,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// check to see if this is a self load
 	arg.checkSelf()
 
-	arg.G().Log.CDebugf(ctx, "| resolved to %s", arg.uid)
+	m.CDebugf("| resolved to %s", arg.uid)
 
 	// We can get the user object's body from either the resolution result or
 	// if it was plumbed through as a parameter.
@@ -320,14 +315,14 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// They might have already been loaded in.
 	var sigHints *SigHints
 	if sigHints = arg.sigHints; sigHints == nil {
-		sigHints, err = LoadSigHints(ctx, arg.uid, arg.G())
+		sigHints, err = LoadSigHints(m, arg.uid)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// load user from local, remote
-	ret, refresh, err = loadUser(ctx, arg.G(), arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf)
+	ret, refresh, err = loadUser(m, arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +336,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return ret, err
 	}
 
-	if err = ret.LoadSigChains(ctx, &ret.leaf, arg.self); err != nil {
+	if err = ret.LoadSigChains(m, &ret.leaf, arg.self); err != nil {
 		return ret, err
 	}
 
@@ -354,8 +349,8 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	// Proactively cache fetches from remote server to local storage
-	if e2 := ret.Store(ctx); e2 != nil {
-		arg.G().Log.CWarningf(ctx, "Problem storing user %s: %s", ret.GetName(), e2)
+	if e2 := ret.Store(m); e2 != nil {
+		m.CWarningf("Problem storing user %s: %s", ret.GetName(), e2)
 	}
 
 	if ret.HasActiveKey() {
@@ -370,7 +365,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 
 	} else if !arg.publicKeyOptional {
-		arg.G().Log.CDebugf(ctx, "No active key for user: %s", ret.GetUID())
+		m.CDebugf("No active key for user: %s", ret.GetUID())
 
 		var emsg string
 		if arg.self {
@@ -382,15 +377,15 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return ret, err
 }
 
-func loadUser(ctx context.Context, g *GlobalContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf) (*User, bool, error) {
-	local, err := LoadUserFromLocalStorage(ctx, g, uid)
+func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf) (*User, bool, error) {
+	local, err := LoadUserFromLocalStorage(m, uid)
 	var refresh bool
 	if err != nil {
-		g.Log.CWarningf(ctx, "Failed to load %s from storage: %s", uid, err)
+		m.CWarningf("Failed to load %s from storage: %s", uid, err)
 	}
 
 	if leaf == nil {
-		leaf, err = lookupMerkleLeaf(ctx, g, uid, (local != nil), sigHints)
+		leaf, err = lookupMerkleLeaf(m, uid, (local != nil), sigHints)
 		if err != nil {
 			return nil, refresh, err
 		}
@@ -399,7 +394,7 @@ func loadUser(ctx context.Context, g *GlobalContext, uid keybase1.UID, resolveBo
 	var f1, loadRemote bool
 
 	if local == nil {
-		g.Log.CDebugf(ctx, "| No local user stored for %s", uid)
+		m.CDebugf("| No local user stored for %s", uid)
 		loadRemote = true
 	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
 		return nil, refresh, err
@@ -408,12 +403,12 @@ func loadUser(ctx context.Context, g *GlobalContext, uid keybase1.UID, resolveBo
 		refresh = loadRemote
 	}
 
-	g.Log.CDebugf(ctx, "| Freshness: basics=%v; for %s", f1, uid)
+	m.CDebugf("| Freshness: basics=%v; for %s", f1, uid)
 
 	var ret *User
 	if !loadRemote && !force {
 		ret = local
-	} else if ret, err = LoadUserFromServer(ctx, g, uid, resolveBody); err != nil {
+	} else if ret, err = LoadUserFromServer(m, uid, resolveBody); err != nil {
 		return nil, refresh, err
 	}
 
@@ -427,21 +422,21 @@ func loadUser(ctx context.Context, g *GlobalContext, uid keybase1.UID, resolveBo
 	return ret, refresh, nil
 }
 
-func LoadUserFromLocalStorage(ctx context.Context, g *GlobalContext, uid keybase1.UID) (u *User, err error) {
-	g.Log.CDebugf(ctx, "+ LoadUserFromLocalStorage(%s)", uid)
-	jw, err := g.LocalDb.Get(DbKeyUID(DBUser, uid))
+func LoadUserFromLocalStorage(m MetaContext, uid keybase1.UID) (u *User, err error) {
+	m.CDebugf("+ LoadUserFromLocalStorage(%s)", uid)
+	jw, err := m.G().LocalDb.Get(DbKeyUID(DBUser, uid))
 	if err != nil {
 		return nil, err
 	}
 
 	if jw == nil {
-		g.Log.CDebugf(ctx, "- loadUserFromLocalStorage(%s): Not found", uid)
+		m.CDebugf("- loadUserFromLocalStorage(%s): Not found", uid)
 		return nil, nil
 	}
 
-	g.Log.CDebugf(ctx, "| Loaded successfully")
+	m.CDebugf("| Loaded successfully")
 
-	if u, err = NewUserFromLocalStorage(g, jw); err != nil {
+	if u, err = NewUserFromLocalStorage(m.G(), jw); err != nil {
 		return nil, err
 	}
 
@@ -449,8 +444,8 @@ func LoadUserFromLocalStorage(ctx context.Context, g *GlobalContext, uid keybase
 		err = fmt.Errorf("Bad lookup; uid mismatch: %s != %s", uid, u.id)
 	}
 
-	g.Log.CDebugf(ctx, "| Loaded username %s (uid=%s)", u.name, uid)
-	g.Log.CDebugf(ctx, "- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
+	m.CDebugf("| Loaded username %s (uid=%s)", u.name, uid)
+	m.CDebugf("- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
 
 	return
 }
@@ -483,19 +478,19 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 	return
 }
 
-func LoadUserFromServer(ctx context.Context, g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
-	g.Log.CDebugf(ctx, "+ Load User from server: %s", uid)
+func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
+	m.CDebugf("Load User from server: %s", uid)
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.
 	if body == nil {
-		res, err := g.API.Get(APIArg{
+		res, err := m.G().API.Get(APIArg{
 			Endpoint:    "user/lookup",
 			SessionType: APISessionTypeNONE,
 			Args: HTTPArgs{
 				"uid":          UIDArg(uid),
 				"load_deleted": B{true},
 			},
-			NetContext: ctx,
+			MetaContext: m,
 		})
 
 		if err != nil {
@@ -503,13 +498,13 @@ func LoadUserFromServer(ctx context.Context, g *GlobalContext, uid keybase1.UID,
 		}
 		body = res.Body.AtKey("them")
 	} else {
-		g.Log.CDebugf(ctx, "| Skipped load; got user object previously")
+		m.CDebugf("| Skipped load; got user object previously")
 	}
 
-	if u, err = NewUserFromServer(g, body); err != nil {
+	if u, err = NewUserFromServer(m.G(), body); err != nil {
 		return u, err
 	}
-	g.Log.CDebugf(ctx, "- Load user from server: %s -> %s", uid, ErrToOk(err))
+	m.CDebugf("- Load user from server: %s -> %s", uid, ErrToOk(err))
 
 	return u, err
 }
@@ -521,7 +516,7 @@ func myUID(g *GlobalContext, uider UIDer) keybase1.UID {
 	return g.GetMyUID()
 }
 
-func lookupMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, localExists bool, sigHints *SigHints) (f *MerkleUserLeaf, err error) {
+func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHints *SigHints) (f *MerkleUserLeaf, err error) {
 	if uid.IsNil() {
 		err = fmt.Errorf("uid parameter for lookupMerkleLeaf empty")
 		return
@@ -530,7 +525,7 @@ func lookupMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, l
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
-	f, err = g.MerkleClient.LookupUser(ctx, q, sigHints)
+	f, err = m.G().MerkleClient.LookupUser(m, q, sigHints)
 	if err == nil && f == nil && localExists {
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}
@@ -538,14 +533,14 @@ func lookupMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, l
 	return
 }
 
-func lookupSigHintsAndMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, localExists bool) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
-	defer g.CTrace(ctx, "lookupSigHintsAndMerkleLeaf", func() error { return err })()
-	sigHints, err = LoadSigHints(ctx, uid, g)
+func lookupSigHintsAndMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
+	defer m.CTrace("lookupSigHintsAndMerkleLeaf", func() error { return err })()
+	sigHints, err = LoadSigHints(m, uid)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	leaf, err = lookupMerkleLeaf(ctx, g, uid, true, sigHints)
+	leaf, err = lookupMerkleLeaf(m, uid, true, sigHints)
 	if err != nil {
 		return nil, nil, err
 	}

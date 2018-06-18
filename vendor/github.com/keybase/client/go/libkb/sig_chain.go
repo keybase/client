@@ -12,7 +12,6 @@ import (
 
 	"github.com/buger/jsonparser"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type ChainLinks []*ChainLink
@@ -219,25 +218,25 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 	sc.localChainUpdateTime = sc.G().Clock().Now()
 }
 
-func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
 	low := sc.GetLastLoadedSeqno()
 	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.Seqno(-1))
 
 	isSelf := selfUID.Equal(sc.uid)
 
-	sc.G().Log.CDebugf(ctx, "+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
-	defer func() { sc.G().Log.CDebugf(ctx, "- Loaded SigChain -> %s", ErrToOk(err)) }()
+	m.CDebugf("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
+	defer func() { m.CDebugf("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
 	resp, finisher, err := sc.G().API.GetResp(APIArg{
 		Endpoint:    "sig/get",
-		SessionType: APISessionTypeNONE,
+		SessionType: APISessionTypeOPTIONAL,
 		Args: HTTPArgs{
 			"uid":           UIDArg(sc.uid),
 			"low":           I{int(low)},
 			"v2_compressed": B{true},   // TODO: Change the server to honor this flag
 			"self":          B{isSelf}, // TODO: Change the server to honor this flag
 		},
-		NetContext: ctx,
+		MetaContext: m,
 	})
 	if err != nil {
 		return
@@ -250,10 +249,18 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 	if err != nil {
 		return nil, err
 	}
-	return sc.LoadServerBody(ctx, body, low, t, selfUID)
+	return sc.LoadServerBody(m, body, low, t, selfUID)
 }
 
-func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+	if val, err := jsonparser.GetInt(body, "status", "code"); err == nil {
+		if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
+			// Do not bother trying to read the sigchain - user is
+			// deleted.
+			return nil, UserDeletedError{}
+		}
+	}
+
 	foundTail := false
 
 	var links ChainLinks
@@ -265,14 +272,14 @@ func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase
 
 		var link *ChainLink
 		if link, err = ImportLinkFromServer(sc.G(), sc, value, selfUID); err != nil {
-			sc.G().Log.Debug("ImportLinkFromServer error: %s", err)
+			m.CDebugf("ImportLinkFromServer error: %s", err)
 			return
 		}
 		if link.GetSeqno() <= low {
 			return
 		}
 		if selfUID.Equal(link.GetUID()) {
-			sc.G().Log.CDebugf(ctx, "| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
+			m.CDebugf("| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
 			link.isOwnNewLinkFromServer = true
 		}
 		links = append(links, link)
@@ -290,7 +297,7 @@ func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase
 		return nil, err
 	}
 
-	sc.G().Log.CDebugf(ctx, "| Got back %d new entries", numEntries)
+	m.CDebugf("| Got back %d new entries", numEntries)
 
 	if t != nil && !foundTail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
@@ -304,7 +311,7 @@ func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase
 		// If we've stored a `last` and it's less than the one
 		// we just loaded, then nuke it.
 		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
-			sc.G().Log.CDebugf(ctx, "| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
+			m.CDebugf("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
 			sc.localChainTail = nil
 			sc.localCki = nil
 		}
@@ -326,16 +333,16 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 	return ret
 }
 
-func (sc *SigChain) VerifyChain(ctx context.Context) (err error) {
-	sc.G().Log.CDebugf(ctx, "+ SigChain#VerifyChain()")
+func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
+	m.CDebugf("+ SigChain#VerifyChain()")
 	defer func() {
-		sc.G().Log.CDebugf(ctx, "- SigChain#VerifyChain() -> %s", ErrToOk(err))
+		m.CDebugf("- SigChain#VerifyChain() -> %s", ErrToOk(err))
 	}()
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
-		sc.G().VDL.CLogf(ctx, VLog1, "| verify link %d (%s)", i, curr.id)
+		m.G().VDL.CLogf(m.Ctx(), VLog1, "| verify link %d (%s)", i, curr.id)
 		if curr.chainVerified {
-			sc.G().Log.CDebugf(ctx, "| short-circuit at link %d", i)
+			m.CDebugf("| short-circuit at link %d", i)
 			break
 		}
 		if err = curr.VerifyLink(); err != nil {
@@ -418,7 +425,7 @@ func (sc SigChain) GetLastLoadedSeqno() (ret keybase1.Seqno) {
 	return
 }
 
-func (sc *SigChain) Store(ctx context.Context) (err error) {
+func (sc *SigChain) Store(m MetaContext) (err error) {
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		link := sc.chainLinks[i]
 		var didStore bool
@@ -545,12 +552,12 @@ func (sc *SigChain) Dump(w io.Writer) {
 // verifySubchain verifies the given subchain and outputs a yes/no answer
 // on whether or not it's well-formed, and also yields ComputedKeyInfos for
 // all keys found in the process, including those that are now retired.
-func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links ChainLinks) (cached bool, cki *ComputedKeyInfos, err error) {
+func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks) (cached bool, cki *ComputedKeyInfos, err error) {
 	un := sc.username
 
-	sc.G().Log.CDebugf(ctx, "+ verifySubchain")
+	m.CDebugf("+ verifySubchain")
 	defer func() {
-		sc.G().Log.CDebugf(ctx, "- verifySubchain -> %v, %s", cached, ErrToOk(err))
+		m.CDebugf("- verifySubchain -> %v, %s", cached, ErrToOk(err))
 	}()
 
 	if len(links) == 0 {
@@ -561,10 +568,10 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 	last := links[len(links)-1]
 	if cki = last.GetSigCheckCache(); cki != nil {
 		if cki.IsStaleVersion() {
-			sc.G().Log.CDebugf(ctx, "Ignoring cached CKI, since the version is old (%d < %d)", cki.Version, ComputedKeyInfosVersionCurrent)
+			m.CDebugf("Ignoring cached CKI, since the version is old (%d < %d)", cki.Version, ComputedKeyInfosVersionCurrent)
 		} else {
 			cached = true
-			sc.G().Log.CDebugf(ctx, "Skipped verification (cached): %s", last.id)
+			m.CDebugf("Skipped verification (cached): %s", last.id)
 			return cached, cki, err
 		}
 	}
@@ -577,7 +584,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 
 	for linkIndex, link := range links {
 		if isBad, reason := link.IsBad(); isBad {
-			sc.G().Log.CDebugf(ctx, "Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
+			m.CDebugf("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
 			continue
 		}
 
@@ -629,7 +636,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 
 		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
 			if hash := pgpcl.GetPGPFullHash(); hash != "" {
-				sc.G().Log.CDebugf(ctx, "| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
+				m.CDebugf("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
 				ckf.SetActivePGPHash(pgpcl.kid, hash)
 			}
 		}
@@ -637,7 +644,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 		if isModifyingKeys || isFinalLink || hasRevocations {
 			err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {
-				sc.G().Log.CDebugf(ctx, "| Failure in VerifySigWithKeyFamily: %s", err)
+				m.CDebugf("| Failure in VerifySigWithKeyFamily: %s", err)
 				return cached, cki, err
 			}
 		}
@@ -645,7 +652,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 		if isDelegating {
 			err = ckf.Delegate(tcl)
 			if err != nil {
-				sc.G().Log.CDebugf(ctx, "| Failure in Delegate: %s", err)
+				m.CDebugf("| Failure in Delegate: %s", err)
 				return cached, cki, err
 			}
 		}
@@ -667,7 +674,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 		}
 
 		if err = tcl.VerifyReverseSig(ckf); err != nil {
-			sc.G().Log.CDebugf(ctx, "| Failure in VerifyReverseSig: %s", err)
+			m.CDebugf("| Failure in VerifyReverseSig: %s", err)
 			return cached, cki, err
 		}
 
@@ -680,7 +687,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 		}
 
 		if err != nil {
-			sc.G().Log.CDebugf(ctx, "| bailing out on error: %s", err)
+			m.CDebugf("| bailing out on error: %s", err)
 			return cached, cki, err
 		}
 	}
@@ -689,15 +696,15 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 	return cached, cki, err
 }
 
-func (sc *SigChain) verifySigsAndComputeKeysCurrent(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, linksConsumed int, err error) {
+func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, linksConsumed int, err error) {
 
 	cached = false
-	sc.G().Log.CDebugf(ctx, "+ verifySigsAndComputeKeysCurrent for user %s (eldest = %s)", sc.uid, eldest)
+	m.CDebugf("+ verifySigsAndComputeKeysCurrent for user %s (eldest = %s)", sc.uid, eldest)
 	defer func() {
-		sc.G().Log.CDebugf(ctx, "- verifySigsAndComputeKeysCurrent for user %s -> %s", sc.uid, ErrToOk(err))
+		m.CDebugf("- verifySigsAndComputeKeysCurrent for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
 
-	if err = sc.VerifyChain(ctx); err != nil {
+	if err = sc.VerifyChain(m); err != nil {
 		return cached, 0, err
 	}
 
@@ -722,7 +729,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(ctx context.Context, eldest 
 	sc.currentSubchainStart = 0
 
 	if ckf.kf == nil || eldest.IsNil() {
-		sc.G().Log.CDebugf(ctx, "| VerifyWithKey short-circuit, since no Key available")
+		m.CDebugf("| VerifyWithKey short-circuit, since no Key available")
 		sc.localCki = NewComputedKeyInfos(sc.G())
 		ckf.cki = sc.localCki
 		return cached, 0, err
@@ -739,7 +746,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(ctx context.Context, eldest 
 	}
 
 	if len(links) == 0 {
-		sc.G().Log.CDebugf(ctx, "| Empty chain after we limited to eldest %s", eldest)
+		m.CDebugf("| Empty chain after we limited to eldest %s", eldest)
 		eldestKey, _ := ckf.FindKeyWithKIDUnsafe(eldest)
 		sc.localCki = NewComputedKeyInfos(sc.G())
 		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
@@ -747,7 +754,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(ctx context.Context, eldest 
 		return cached, 0, err
 	}
 
-	if cached, ckf.cki, err = sc.verifySubchain(ctx, *ckf.kf, links); err != nil {
+	if cached, ckf.cki, err = sc.verifySubchain(m, *ckf.kf, links); err != nil {
 		return cached, len(links), err
 	}
 
@@ -772,9 +779,9 @@ func (c ChainLinks) omittingNRightmostLinks(n int) ChainLinks {
 
 // VerifySigsAndComputeKeys iterates over all potentially all incarnations of the user, trying to compute
 // multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false otherwise.
-func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily) (bool, error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily) (bool, error) {
 	// First consume the currently active sigchain.
-	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(ctx, eldest, ckf)
+	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(m, eldest, ckf)
 	if err != nil || ckf.kf == nil {
 		return cached, err
 	}
@@ -785,11 +792,11 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 	historicalLinks := sc.chainLinks.omittingNRightmostLinks(numLinksConsumed)
 
 	if len(historicalLinks) > 0 {
-		sc.G().Log.CDebugf(ctx, "After consuming %d links, there are %d historical links left",
+		m.CDebugf("After consuming %d links, there are %d historical links left",
 			numLinksConsumed, len(historicalLinks))
 		// ignore error here, since it shouldn't kill the overall load if historical subchains don't run
 		// correctly.
-		cached, _ = sc.verifySigsAndComputeKeysHistorical(ctx, historicalLinks, *ckf.kf)
+		cached, _ = sc.verifySigsAndComputeKeysHistorical(m, historicalLinks, *ckf.kf)
 		if !cached {
 			allCached = false
 		}
@@ -798,37 +805,37 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 	return allCached, nil
 }
 
-func (sc *SigChain) verifySigsAndComputeKeysHistorical(ctx context.Context, allLinks ChainLinks, kf KeyFamily) (allCached bool, err error) {
+func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks ChainLinks, kf KeyFamily) (allCached bool, err error) {
 
-	defer sc.G().CTrace(ctx, "verifySigsAndComputeKeysHistorical", func() error { return err })()
+	defer m.CTrace("verifySigsAndComputeKeysHistorical", func() error { return err })()
 	var cached bool
 
 	var prevSubchains []ChainLinks
 
 	for {
 		if len(allLinks) == 0 {
-			sc.G().Log.CDebugf(ctx, "Ending iteration through previous subchains; no further links")
+			m.CDebugf("Ending iteration through previous subchains; no further links")
 			break
 		}
 
 		i := len(allLinks) - 1
 		eldest := allLinks[i].ToEldestKID()
 		if eldest.IsNil() {
-			sc.G().Log.CDebugf(ctx, "Ending iteration through previous subchains; saw a nil eldest (@%d)", i)
+			m.CDebugf("Ending iteration through previous subchains; saw a nil eldest (@%d)", i)
 			break
 		}
-		sc.G().Log.CDebugf(ctx, "Examining subchain that ends at %d with eldest %s", i, eldest)
+		m.CDebugf("Examining subchain that ends at %d with eldest %s", i, eldest)
 
 		var links ChainLinks
 		links, err = cropToRightmostSubchain(allLinks, eldest)
 		if err != nil {
-			sc.G().Log.CInfof(ctx, "Error backtracking all links from %d: %s", i, err)
+			m.CInfof("Error backtracking all links from %d: %s", i, err)
 			break
 		}
 
-		cached, _, err = sc.verifySubchain(ctx, kf, links)
+		cached, _, err = sc.verifySubchain(m, kf, links)
 		if err != nil {
-			sc.G().Log.CInfof(ctx, "Error verifying subchain from %d: %s", i, err)
+			m.CInfof("Error verifying subchain from %d: %s", i, err)
 			break
 		}
 		if !cached {
@@ -838,7 +845,7 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(ctx context.Context, allL
 		allLinks = allLinks.omittingNRightmostLinks(len(links))
 	}
 	reverseListOfChainLinks(prevSubchains)
-	sc.G().Log.CDebugf(ctx, "Loaded %d additional historical subchains", len(prevSubchains))
+	m.CDebugf("Loaded %d additional historical subchains", len(prevSubchains))
 	sc.prevSubchains = prevSubchains
 	return allCached, nil
 }
@@ -891,6 +898,7 @@ var PublicChain = &ChainType{
 //========================================================================
 
 type SigChainLoader struct {
+	MetaContextified
 	user                 *User
 	self                 bool
 	leaf                 *MerkleUserLeaf
@@ -904,10 +912,6 @@ type SigChainLoader struct {
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
 	preload *SigChain
-
-	ctx context.Context
-
-	Contextified
 }
 
 //========================================================================
@@ -943,17 +947,17 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 	uid := l.user.GetUID()
 
-	l.G().Log.CDebugf(l.ctx, "+ SigChainLoader.LoadFromStorage(%s)", uid)
-	defer func() { l.G().Log.CDebugf(l.ctx, "- SigChainLoader.LoadFromStorage(%s) -> %s", uid, ErrToOk(err)) }()
+	l.M().CDebugf("+ SigChainLoader.LoadFromStorage(%s)", uid)
+	defer func() { l.M().CDebugf("- SigChainLoader.LoadFromStorage(%s) -> %s", uid, ErrToOk(err)) }()
 
 	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil || mt.LinkID == nil {
-		l.G().Log.CDebugf(l.ctx, "| Failed to load last link ID")
+		l.M().CDebugf("| Failed to load last link ID")
 		if err == nil {
-			l.G().Log.CDebugf(l.ctx, "| no error loading last link ID from storage")
+			l.M().CDebugf("| no error loading last link ID from storage")
 		} else if mt == nil {
-			l.G().Log.CDebugf(l.ctx, "| mt (MerkleTriple) nil result from load last link ID from storage")
+			l.M().CDebugf("| mt (MerkleTriple) nil result from load last link ID from storage")
 		} else if mt.LinkID == nil {
-			l.G().Log.CDebugf(l.ctx, "| mt (MerkleTriple) from storage has a nil link ID")
+			l.M().CDebugf("| mt (MerkleTriple) from storage has a nil link ID")
 		}
 		return
 	}
@@ -963,7 +967,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		return err
 	}
 	if currentLink == nil {
-		l.G().Log.CDebugf(l.ctx, "tried to load previous link ID %s, but link not found", mt.LinkID.String())
+		l.M().CDebugf("tried to load previous link ID %s, but link not found", mt.LinkID.String())
 		return nil
 	}
 	links := ChainLinks{currentLink}
@@ -984,7 +988,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			return err
 		}
 		if prevLink == nil {
-			l.G().Log.CDebugf(l.ctx, "tried to load previous link ID %s, but link not found", currentLink.GetPrev())
+			l.M().CDebugf("tried to load previous link ID %s, but link not found", currentLink.GetPrev())
 			return nil
 		}
 
@@ -996,7 +1000,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	}
 
 	reverse(links)
-	l.G().Log.CDebugf(l.ctx, "| Loaded %d links", len(links))
+	l.M().CDebugf("| Loaded %d links", len(links))
 
 	l.links = links
 	return
@@ -1010,7 +1014,7 @@ func (l *SigChainLoader) MakeSigChain() error {
 		username:             l.user.GetNormalizedName(),
 		chainLinks:           l.links,
 		currentSubchainStart: l.currentSubchainStart,
-		Contextified:         l.Contextified,
+		Contextified:         NewContextified(l.G()),
 	}
 	for _, link := range l.links {
 		link.SetParent(sc)
@@ -1122,18 +1126,18 @@ func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
-	l.dirtyTail, err = l.chain.LoadFromServer(l.ctx, srv, l.selfUID())
+	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID())
 	return
 }
 
 //========================================================================
 
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
-	l.G().Log.CDebugf(l.ctx, "VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
+	l.M().CDebugf("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
 	if l.ckf.kf == nil {
 		return nil
 	}
-	_, err = l.chain.VerifySigsAndComputeKeys(l.ctx, l.leaf.eldest, &l.ckf)
+	_, err = l.chain.VerifySigsAndComputeKeys(l.M(), l.leaf.eldest, &l.ckf)
 	if err != nil {
 		return err
 	}
@@ -1151,7 +1155,7 @@ func (l *SigChainLoader) StoreTail() (err error) {
 		return nil
 	}
 	err = l.G().LocalDb.PutObj(l.dbKey(), nil, l.dirtyTail)
-	l.G().Log.CDebugf(l.ctx, "| Storing dirtyTail @ %d (%v)", l.dirtyTail.Seqno, l.dirtyTail)
+	l.M().CDebugf("| Storing dirtyTail @ %d (%v)", l.dirtyTail.Seqno, l.dirtyTail)
 	if err == nil {
 		l.dirtyTail = nil
 	}
@@ -1163,7 +1167,7 @@ func (l *SigChainLoader) StoreTail() (err error) {
 func (l *SigChainLoader) Store() (err error) {
 	err = l.StoreTail()
 	if err == nil {
-		err = l.chain.Store(l.ctx)
+		err = l.chain.Store(l.M())
 	}
 	return
 }
@@ -1186,13 +1190,13 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 	uid := l.user.GetUID()
 
-	l.G().Log.CDebugf(l.ctx, "+ SigChainLoader#Load(%s)", uid)
+	l.M().CDebugf("+ SigChainLoader#Load(%s)", uid)
 	defer func() {
-		l.G().Log.CDebugf(l.ctx, "- SigChainLoader#Load(%s) -> (%v, %s)", uid, (ret != nil), ErrToOk(err))
+		l.M().CDebugf("- SigChainLoader#Load(%s) -> (%v, %s)", uid, (ret != nil), ErrToOk(err))
 	}()
 
 	stage := func(s string) {
-		l.G().Log.CDebugf(l.ctx, "| SigChainLoader#Load(%s) %s", uid, s)
+		l.M().CDebugf("| SigChainLoader#Load(%s) %s", uid, s)
 	}
 
 	stage("GetFingerprint")
@@ -1216,7 +1220,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	ret = l.chain
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.ctx); err != nil {
+	if err = l.chain.VerifyChain(l.M()); err != nil {
 		return nil, err
 	}
 	stage("CheckFreshness")
@@ -1231,16 +1235,16 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	} else if l.chain.GetComputedKeyInfosWithVersionBust() == nil {
 		// The chain tip doesn't have a cached cki, probably because new
 		// signatures have shown up since the last time we loaded it.
-		l.G().Log.CDebugf(l.ctx, "| Need to reverify chain since we don't have ComputedKeyInfos")
+		l.M().CDebugf("| Need to reverify chain since we don't have ComputedKeyInfos")
 	} else if !l.merkleTreeEldestMatchesLastLinkEldest() {
 		// CheckFreshness above might've decided our chain tip hasn't moved,
 		// but we might still need to proceed with the rest of the load if the
 		// eldest KID has changed.
-		l.G().Log.CDebugf(l.ctx, "| Merkle leaf doesn't match the chain tip.")
+		l.M().CDebugf("| Merkle leaf doesn't match the chain tip.")
 	} else {
 		// The chain tip has a cached cki, AND the current eldest kid matches
 		// it. Use what's cached and short circuit.
-		l.G().Log.CDebugf(l.ctx, "| Sigchain was fully cached. Short-circuiting verification.")
+		l.M().CDebugf("| Sigchain was fully cached. Short-circuiting verification.")
 		ret.wasFullyCached = true
 		stage("VerifySig (in fully cached)")
 
@@ -1256,13 +1260,13 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.ctx); err != nil {
+	if err = l.chain.VerifyChain(l.M()); err != nil {
 		return nil, err
 	}
 
 	stage("StoreChain")
-	if err = l.chain.Store(l.ctx); err != nil {
-		l.G().Log.CDebugf(l.ctx, "| continuing past error storing chain links: %s", err)
+	if err = l.chain.Store(l.M()); err != nil {
+		l.M().CDebugf("| continuing past error storing chain links: %s", err)
 	}
 	stage("VerifySig")
 	if err = l.VerifySigsAndComputeKeys(); err != nil {
@@ -1270,7 +1274,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	stage("Store")
 	if err = l.Store(); err != nil {
-		l.G().Log.CDebugf(l.ctx, "| continuing past error storing chain: %s", err)
+		l.M().CDebugf("| continuing past error storing chain: %s", err)
 	}
 
 	return ret, nil

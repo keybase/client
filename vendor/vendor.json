@@ -208,10 +208,10 @@
 			"revisionTime": "2018-05-19T05:29:12Z"
 		},
 		{
-			"checksumSHA1": "gIv8FqRzB+kGXCpmM8L8Mwzviw0=",
+			"checksumSHA1": "1vT7hZEV6xvaw5KAfsQ8qyYnEEI=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "94012483abbcf11dd835c21e3fcfda3ede2ad754",
-			"revisionTime": "2018-05-19T05:29:12Z"
+			"revision": "e3ae6727cb1d8f469ca95ecc9a257b8b26828ef7",
+			"revisionTime": "2018-06-18T18:02:21Z"
 		},
 		{
 			"checksumSHA1": "Q0vrZ3PxpDaQedkTnygNaJveX4w=",
@@ -238,10 +238,10 @@
 			"revisionTime": "2018-05-19T05:29:12Z"
 		},
 		{
-			"checksumSHA1": "hIzRyJuRLkOGRmxRxFFxlJZIDc4=",
+			"checksumSHA1": "TZspAq8tnZ4xKsmFErqvcNP+g0Y=",
 			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "7f5e202465f1c9cb6b12a237da4c0d6b480352e0",
-			"revisionTime": "2018-06-08T22:09:00Z"
+			"revision": "e3ae6727cb1d8f469ca95ecc9a257b8b26828ef7",
+			"revisionTime": "2018-06-18T18:02:21Z"
 		},
 		{
 			"checksumSHA1": "BreJRQUSA+Wma2Xr/mFDrsggICA=",
@@ -250,10 +250,10 @@
 			"revisionTime": "2018-05-19T05:29:12Z"
 		},
 		{
-			"checksumSHA1": "sXqRsWw6wUXUFV5HUG0ZJ3iUV9E=",
+			"checksumSHA1": "gW2uuHgucW9veNhnkWzkc7t9CiQ=",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "d625fcbbfba90cacd4c1fb079b488a2aaaffda83",
-			"revisionTime": "2018-06-08T18:43:23Z"
+			"revision": "e3ae6727cb1d8f469ca95ecc9a257b8b26828ef7",
+			"revisionTime": "2018-06-18T18:02:21Z"
 		},
 		{
 			"checksumSHA1": "X5Xf9+Z7OkhIQiaPB+ILw4xzkag=",
@@ -268,10 +268,10 @@
 			"revisionTime": "2018-05-19T05:29:12Z"
 		},
 		{
-			"checksumSHA1": "9iJYakt+mCWC1lZ08Wj6VzXymNo=",
+			"checksumSHA1": "Fl8DKw0zCTt2QVLfAvm0+2/zIkk=",
 			"path": "github.com/keybase/client/go/pvlsource",
-			"revision": "94012483abbcf11dd835c21e3fcfda3ede2ad754",
-			"revisionTime": "2018-05-19T05:29:12Z"
+			"revision": "e3ae6727cb1d8f469ca95ecc9a257b8b26828ef7",
+			"revisionTime": "2018-06-18T18:02:21Z"
 		},
 		{
 			"checksumSHA1": "hSB9cMsIgWPBGxq1VUhFwHuUBq4=",

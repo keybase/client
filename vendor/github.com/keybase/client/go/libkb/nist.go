@@ -250,6 +250,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 		Lifetime:  durationToSeconds(nistLifetime),
 		KID:       key.GetBinaryKID(),
 	}
+	n.G().Log.CDebugf(ctx, "NIST: uid=%s; kid=%s; deviceID=%s", uid, key.GetKID().String(), deviceID)
 	payload.DeviceID, err = hex.DecodeString(string(deviceID))
 	if err != nil {
 		return err

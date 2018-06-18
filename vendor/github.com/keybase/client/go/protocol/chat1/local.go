@@ -11,6 +11,12 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type VersionKind string
+
+func (o VersionKind) DeepCopy() VersionKind {
+	return o
+}
+
 type MessageText struct {
 	Body string `codec:"body" json:"body"`
 }
@@ -1205,6 +1211,7 @@ const (
 	OutboxErrorType_DUPLICATE       OutboxErrorType = 4
 	OutboxErrorType_EXPIRED         OutboxErrorType = 5
 	OutboxErrorType_TOOMANYATTEMPTS OutboxErrorType = 6
+	OutboxErrorType_ALREADY_DELETED OutboxErrorType = 7
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1217,6 +1224,7 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"DUPLICATE":       4,
 	"EXPIRED":         5,
 	"TOOMANYATTEMPTS": 6,
+	"ALREADY_DELETED": 7,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1227,6 +1235,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	4: "DUPLICATE",
 	5: "EXPIRED",
 	6: "TOOMANYATTEMPTS",
+	7: "ALREADY_DELETED",
 }
 
 func (e OutboxErrorType) String() string {
@@ -2238,6 +2247,7 @@ type MessageUnboxedValid struct {
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
+	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2310,6 +2320,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		Reactions: o.Reactions.DeepCopy(),
 	}
 }
 
@@ -2321,6 +2332,7 @@ const (
 	MessageUnboxedErrorType_BADVERSION          MessageUnboxedErrorType = 2
 	MessageUnboxedErrorType_IDENTIFY            MessageUnboxedErrorType = 3
 	MessageUnboxedErrorType_EPHEMERAL           MessageUnboxedErrorType = 4
+	MessageUnboxedErrorType_PAIRWISE_MISSING    MessageUnboxedErrorType = 5
 )
 
 func (o MessageUnboxedErrorType) DeepCopy() MessageUnboxedErrorType { return o }
@@ -2331,6 +2343,7 @@ var MessageUnboxedErrorTypeMap = map[string]MessageUnboxedErrorType{
 	"BADVERSION":          2,
 	"IDENTIFY":            3,
 	"EPHEMERAL":           4,
+	"PAIRWISE_MISSING":    5,
 }
 
 var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
@@ -2339,6 +2352,7 @@ var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
 	2: "BADVERSION",
 	3: "IDENTIFY",
 	4: "EPHEMERAL",
+	5: "PAIRWISE_MISSING",
 }
 
 func (e MessageUnboxedErrorType) String() string {
@@ -2351,6 +2365,10 @@ func (e MessageUnboxedErrorType) String() string {
 type MessageUnboxedError struct {
 	ErrType            MessageUnboxedErrorType `codec:"errType" json:"errType"`
 	ErrMsg             string                  `codec:"errMsg" json:"errMsg"`
+	InternalErrMsg     string                  `codec:"internalErrMsg" json:"internalErrMsg"`
+	VersionKind        VersionKind             `codec:"versionKind" json:"versionKind"`
+	VersionNumber      int                     `codec:"versionNumber" json:"versionNumber"`
+	IsCritical         bool                    `codec:"isCritical" json:"isCritical"`
 	SenderUsername     string                  `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName   string                  `codec:"senderDeviceName" json:"senderDeviceName"`
 	SenderDeviceType   string                  `codec:"senderDeviceType" json:"senderDeviceType"`
@@ -2366,6 +2384,10 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 	return MessageUnboxedError{
 		ErrType:            o.ErrType.DeepCopy(),
 		ErrMsg:             o.ErrMsg,
+		InternalErrMsg:     o.InternalErrMsg,
+		VersionKind:        o.VersionKind.DeepCopy(),
+		VersionNumber:      o.VersionNumber,
+		IsCritical:         o.IsCritical,
 		SenderUsername:     o.SenderUsername,
 		SenderDeviceName:   o.SenderDeviceName,
 		SenderDeviceType:   o.SenderDeviceType,
@@ -3024,35 +3046,6 @@ var GetThreadNonblockCbModeRevMap = map[GetThreadNonblockCbMode]string{
 
 func (e GetThreadNonblockCbMode) String() string {
 	if v, ok := GetThreadNonblockCbModeRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
-type GetThreadNonblockReason int
-
-const (
-	GetThreadNonblockReason_GENERAL    GetThreadNonblockReason = 0
-	GetThreadNonblockReason_PUSH       GetThreadNonblockReason = 1
-	GetThreadNonblockReason_FOREGROUND GetThreadNonblockReason = 2
-)
-
-func (o GetThreadNonblockReason) DeepCopy() GetThreadNonblockReason { return o }
-
-var GetThreadNonblockReasonMap = map[string]GetThreadNonblockReason{
-	"GENERAL":    0,
-	"PUSH":       1,
-	"FOREGROUND": 2,
-}
-
-var GetThreadNonblockReasonRevMap = map[GetThreadNonblockReason]string{
-	0: "GENERAL",
-	1: "PUSH",
-	2: "FOREGROUND",
-}
-
-func (e GetThreadNonblockReason) String() string {
-	if v, ok := GetThreadNonblockReasonRevMap[e]; ok {
 		return v
 	}
 	return ""
@@ -3990,6 +3983,7 @@ func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
 
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Reason           GetThreadReason              `codec:"reason" json:"reason"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -4006,7 +4000,7 @@ type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	CbMode           GetThreadNonblockCbMode      `codec:"cbMode" json:"cbMode"`
-	Reason           GetThreadNonblockReason      `codec:"reason" json:"reason"`
+	Reason           GetThreadReason              `codec:"reason" json:"reason"`
 	Pgmode           GetThreadNonblockPgMode      `codec:"pgmode" json:"pgmode"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`

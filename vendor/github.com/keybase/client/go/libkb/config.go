@@ -367,6 +367,27 @@ func (f JSONConfigFile) GetUserConfigForUID(u keybase1.UID) (*UserConfig, error)
 	return nil, nil
 }
 
+func (f JSONConfigFile) GetAllUserConfigs() (current *UserConfig, all []UserConfig, err error) {
+
+	currentUsername, allUsernames, err := f.GetAllUsernames()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if !currentUsername.IsNil() {
+		current, _ = f.GetUserConfigForUsername(currentUsername)
+	}
+
+	for _, u := range allUsernames {
+		tmp, err := f.GetUserConfigForUsername(u)
+		if err == nil && tmp != nil {
+			all = append(all, *tmp)
+		}
+	}
+
+	return current, all, nil
+}
+
 func (f JSONConfigFile) GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error) {
 	current = f.getCurrentUser()
 	uw := f.jw.AtKey("users")
@@ -536,9 +557,8 @@ func (f JSONConfigFile) GetGpgOptions() []string {
 	}
 	return ret
 }
-func (f JSONConfigFile) GetRunMode() (RunMode, error) {
-	var err error
-	var ret RunMode = NoRunMode
+func (f JSONConfigFile) GetRunMode() (ret RunMode, err error) {
+	ret = NoRunMode
 	if s, isSet := f.GetStringAtPath("run_mode"); isSet {
 		ret, err = StringToRunMode(s)
 	}
@@ -593,6 +613,9 @@ func (f JSONConfigFile) GetProxy() string {
 }
 func (f JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
+}
+func (f JSONConfigFile) GetDisplayRawUntrustedOutput() (bool, bool) {
+	return f.GetTopLevelBool("display_raw_untrusted_output")
 }
 func (f JSONConfigFile) GetVDebugSetting() string {
 	return f.GetTopLevelString("vdebug")

@@ -166,11 +166,11 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 	return GeneratePGPKeyBundle(tc.G, arg, tc.G.UI.GetLogUI())
 }
 
-// ResetLoginStateForTest simulates a shutdown and restart (for client
+// SimulatServiceRestart simulates a shutdown and restart (for client
 // state). Used by tests that need to clear out cached login state
 // without logging out.
-func (tc *TestContext) ResetLoginState() {
-	tc.G.createLoginState()
+func (tc *TestContext) SimulateServiceRestart() {
+	tc.G.simulateServiceRestart()
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {
@@ -332,6 +332,10 @@ func (n *nullui) PrintfStderr(f string, args ...interface{}) (int, error) {
 	return fmt.Fprintf(os.Stderr, f, args...)
 }
 
+func (n *nullui) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+	return fmt.Printf(f, args...)
+}
+
 func (n *nullui) GetDumbOutputUI() DumbOutputUI {
 	return n
 }
@@ -462,12 +466,6 @@ func (f *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.Ms
 	return nil
 }
 
-// ResetLoginState is only used for testing...
-// Bypasses locks.
-func (g *GlobalContext) ResetLoginState() {
-	g.createLoginStateLocked()
-}
-
 type TestUIDMapper struct {
 	ul UPAKLoader
 }
@@ -507,7 +505,7 @@ func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
 }
 
 func NewMetaContextForTest(tc TestContext) MetaContext {
-	return NewMetaContext(context.TODO(), tc.G)
+	return NewMetaContext(context.TODO(), tc.G).WithLogTag("TST")
 }
 
 func NewMetaContextForTestWithLogUI(tc TestContext) MetaContext {

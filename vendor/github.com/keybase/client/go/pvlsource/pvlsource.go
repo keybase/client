@@ -231,7 +231,7 @@ func (s *PvlSourceImpl) refreshRoot(ctx context.Context) error {
 		uid = libkb.TAliceUID
 	}
 	q.Add("uid", libkb.UIDArg(uid))
-	_, err := s.G().MerkleClient.LookupUser(ctx, q, nil)
+	_, err := s.G().MerkleClient.LookupUser(libkb.NewMetaContext(ctx, s.G()), q, nil)
 	return err
 }
 

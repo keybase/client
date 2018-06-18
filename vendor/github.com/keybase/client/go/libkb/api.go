@@ -475,31 +475,18 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 	return u
 }
 
-func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string, err error) {
+func (a *InternalAPIEngine) sessionArgs(m MetaContext, arg APIArg) (tok, csrf string, err error) {
 	if arg.SessionR != nil {
+		m.CDebugf("using args from SessionR")
 		tok, csrf = arg.SessionR.APIArgs()
 		return tok, csrf, nil
 	}
 
-	a.G().LoginState().Account(func(a *Account) {
-		// since a session is required, try to load one:
-		var in bool
-		in, err = a.LoggedInLoad()
-		if err != nil {
-			return
-		}
-		if !in {
-			err = LoginRequiredError{}
-			return
-		}
-		tok, csrf = a.LocalSession().APIArgs()
-	}, "sessionArgs")
-
-	if err != nil {
-		return "", "", err
+	if tok, csrf := m.ProvisionalSessionArgs(); len(tok) > 0 && len(csrf) > 0 {
+		m.CDebugf("using provisional session args")
+		return tok, csrf, nil
 	}
-
-	return tok, csrf, nil
+	return "", "", LoginRequiredError{"no sessionArgs available since no login path worked"}
 }
 
 func (a *InternalAPIEngine) isExternal() bool { return false }
@@ -606,7 +593,7 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 
 	} else if arg.SessionType != APISessionTypeNONE {
 		m.CDebugf("fixHeaders: falling back to legacy session management")
-		tok, csrf, err := a.sessionArgs(arg)
+		tok, csrf, err := a.sessionArgs(m, arg)
 		if err != nil {
 			if arg.SessionType == APISessionTypeREQUIRED {
 				m.CWarningf("fixHeaders: session required, but error getting sessionArgs: %s", err)
@@ -672,44 +659,11 @@ func (a *InternalAPIEngine) checkAppStatus(arg APIArg, ast *AppStatus) error {
 		}
 	}
 
-	// check if there was a bad session error:
-	if err := a.checkSessionExpired(arg, ast); err != nil {
-		return err
+	if ast.Code == SCBadSession {
+		return BadSessionError{"server rejected session; is your device revoked?"}
 	}
 
 	return NewAppStatusError(ast)
-}
-
-func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) error {
-	if ast.Code != SCBadSession {
-		return nil
-	}
-
-	// if SCBadSession comes back, but no session was provided, then the session isn't invalid,
-	// the requesting code is broken.
-	if arg.SessionType == APISessionTypeNONE {
-		a.G().Log.CDebugf(arg.NetContext, "api request to %q was made with session type NONE, but api server responded with bad session", arg.Endpoint)
-		return fmt.Errorf("api endpoint %q requires session, APIArg for this request had session type NONE", arg.Endpoint)
-	}
-
-	var loggedIn bool
-	if arg.SessionR != nil {
-		loggedIn = arg.SessionR.IsLoggedIn()
-	} else {
-		loggedIn = a.G().LoginState().LoggedIn()
-	}
-	if !loggedIn {
-		return nil
-	}
-	a.G().Log.CDebugf(arg.NetContext, "local session -> is logged in, remote -> not logged in.  invalidating local session:")
-	if arg.SessionR != nil {
-		arg.SessionR.Invalidate()
-	} else {
-		a.G().LoginState().LocalSession(func(s *Session) { s.Invalidate() }, "api - checkSessionExpired")
-	}
-
-	// use ReloginRequiredError to signal that the session needs to be refreshed
-	return ReloginRequiredError{}
 }
 
 func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
@@ -744,29 +698,7 @@ func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) 
 // JSON into the value pointed to by v.
 func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	m := arg.GetMetaContext(a.G())
-	reqErr := a.getDecode(m, arg, v)
-	if reqErr == nil {
-		return nil
-	}
-
-	if err := a.refreshSession(m, arg, reqErr); err != nil {
-		return err
-	}
-
-	m.CDebugf("| API GetDecode %s session refreshed, trying again", arg.Endpoint)
-
-	reqErr = a.getDecode(m, arg, v)
-	if reqErr == nil {
-		m.CDebugf("| API GetDecode %s success after refresh", arg.Endpoint)
-		return nil
-	}
-	if _, relogin := reqErr.(ReloginRequiredError); relogin {
-		m.CDebugf("| API GetDecode %s retry after refresh still asking for new session, bailing out", arg.Endpoint)
-		return LoginRequiredError{Context: "your session has expired"}
-	}
-
-	m.CDebugf("| API GetDecode %s error after refresh: %s", arg.Endpoint, reqErr)
-	return reqErr
+	return a.getDecode(m, arg, v)
 }
 
 func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
@@ -836,28 +768,7 @@ func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response,
 
 func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 	m := arg.GetMetaContext(a.G())
-	reqErr := a.postDecode(m, arg, v)
-	if reqErr == nil {
-		return nil
-	}
-
-	if err := a.refreshSession(m, arg, reqErr); err != nil {
-		return err
-	}
-
-	m.CDebugf("| API PostDecode %s session refreshed, trying again", arg.Endpoint)
-	reqErr = a.postDecode(m, arg, v)
-	if reqErr == nil {
-		m.CDebugf("| API PostDecode %s success after refresh", arg.Endpoint)
-		return nil
-	}
-	if _, relogin := reqErr.(ReloginRequiredError); relogin {
-		m.CDebugf("| API PostDecode %s retry after refresh still asking for new session, bailing out", arg.Endpoint)
-		return LoginRequiredError{Context: "your session has expired"}
-	}
-
-	m.CDebugf("| API PostDecode %s error after refresh: %s", arg.Endpoint, reqErr)
-	return reqErr
+	return a.postDecode(m, arg, v)
 }
 
 func (a *InternalAPIEngine) postDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
@@ -896,68 +807,12 @@ func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
 
 func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
 	m := arg.GetMetaContext(a.G())
-	res, reqErr := a.doRequest(m, arg, req)
-	if reqErr == nil {
-		return res, nil
-	}
-
-	if err := a.refreshSession(m, arg, reqErr); err != nil {
-		return res, err
-	}
-
-	m.CDebugf("| API call %s session refreshed, trying again", arg.Endpoint)
-
-	if req.GetBody != nil {
-		// post request body consumed, need to get it back
-		var err error
-		req.Body, err = req.GetBody()
-		if err != nil {
-			return res, err
-		}
-	}
-
 	res, err := a.doRequest(m, arg, req)
-	if err == nil {
-		m.CDebugf("| API call %s success after refresh", arg.Endpoint)
-		return res, nil
-	}
-
-	if _, relogin := err.(ReloginRequiredError); relogin {
-		m.CDebugf("| API call %s retry after refresh still asking for new session, bailing out", arg.Endpoint)
-		return res, LoginRequiredError{Context: "your session has expired"}
-	}
-
-	m.CDebugf("| API call %s error after refresh: %s", arg.Endpoint, err)
-
 	return res, err
 }
 
-func (a *InternalAPIEngine) refreshSession(m MetaContext, arg APIArg, reqErr error) error {
-	_, relogin := reqErr.(ReloginRequiredError)
-	if !relogin {
-		return reqErr
-	}
-
-	m.CDebugf("| API call %s session expired, trying to refresh", arg.Endpoint)
-
-	if arg.SessionR != nil {
-		// can't re-login with a SessionR
-		return LoginRequiredError{Context: "your session has expired"}
-	}
-
-	username := m.G().Env.GetUsername()
-	if err := m.G().LoginState().LoginWithStoredSecret(m, username.String(), nil); err != nil {
-		m.CDebugf("| API call %s session refresh error: %s", arg.Endpoint, err)
-		return LoginRequiredError{Context: "your session has expired"}
-
-	}
-
-	m.CDebugf("| API call %s session refreshed", arg.Endpoint)
-	return nil
-
-}
-
-func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (*APIRes, error) {
+func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (res *APIRes, err error) {
+	defer a.G().CTraceTimed(m.Ctx(), "InternalAPIEngine#doRequest", func() error { return err })()
 	resp, finisher, jw, err := doRequestShared(m, a, arg, req, true)
 	if err != nil {
 		return nil, err

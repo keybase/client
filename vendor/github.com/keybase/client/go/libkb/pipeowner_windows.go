@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/sys/windows"
 )
 
@@ -33,7 +34,7 @@ func waitNamedPipe(name string, timeout uint32) (err error) {
 		return e1
 	}
 
-	r1, _, e2 := procWaitNamedPipeW.Call(2, uintptr(unsafe.Pointer(rawName)), uintptr(timeout), 0)
+	r1, _, e2 := procWaitNamedPipeW.Call(uintptr(unsafe.Pointer(rawName)), uintptr(timeout))
 	if r1 == 0 {
 		return e2
 	}
@@ -68,13 +69,30 @@ func GetFileUserSid(name string) (*windows.SID, error) {
 	return userSID, nil
 }
 
-func IsPipeowner(name string) (bool, error) {
+type AccountInfo struct {
+	Account string `json:"account"`
+	Domain  string `json:"domain"`
+	Type    uint32 `json:"type"`
+	Err     error  `json:"error"`
+}
+
+type PipeOwnerInfo struct {
+	IsOwner     bool        `json:"isOwner"`
+	PipeAccount AccountInfo `json:"pipe"`
+	UserAccount AccountInfo `json:"user"`
+}
+
+func IsPipeowner(log logger.Logger, name string) (owner PipeOwnerInfo, err error) {
+	log.Debug("+ IsPipeowner(%s)", name)
+	defer func() {
+		log.Debug("- IsPiperowner -> (%v, %v)", owner, err)
+	}()
 	userSid, err := currentProcessUserSid()
 	if err != nil {
-		return false, err
+		return owner, err
 	}
 
-	fileSid, err := GetFileUserSid(name)
+	pipeSid, err := GetFileUserSid(name)
 	if err == PipeBusyError {
 		// If at least one instance of the pipe has been created, this function
 		// will wait timeout milliseconds for it to become available.
@@ -83,12 +101,22 @@ func IsPipeowner(name string) (bool, error) {
 		// If this returns with no error, there is a pipe available.
 		err2 := waitNamedPipe(name, 1000)
 		if err2 != nil {
-			return false, err // return original busy error
+			return owner, err // return original busy error
 		}
-		fileSid, err = GetFileUserSid(name)
+		pipeSid, err = GetFileUserSid(name)
 	}
 	if err != nil {
-		return false, err
+		return owner, err
 	}
-	return windows.EqualSid(fileSid, userSid), nil
+	owner.IsOwner = windows.EqualSid(pipeSid, userSid)
+	owner.PipeAccount.Account, owner.PipeAccount.Domain, owner.PipeAccount.Type, owner.PipeAccount.Err = pipeSid.LookupAccount("")
+	owner.UserAccount.Account, owner.UserAccount.Domain, owner.UserAccount.Type, owner.UserAccount.Err = userSid.LookupAccount("")
+	if !owner.IsOwner {
+		// If the pipe is served by an admin, let local security policies control access
+		if owner.PipeAccount.Account == "Administrators" && owner.PipeAccount.Domain == "BUILTIN" && owner.PipeAccount.Type == syscall.SidTypeAlias {
+			owner.IsOwner = true
+		}
+	}
+	log.Debug("%v", owner)
+	return owner, nil
 }

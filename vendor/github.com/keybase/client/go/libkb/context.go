@@ -60,6 +60,14 @@ func (m MetaContext) CTrace(msg string, f func() error) func() {
 	return CTrace(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
+func (m MetaContext) CVTrace(lev VDebugLevel, msg string, f func() error) func() {
+	return m.g.CVTrace(m.ctx, lev, msg, f)
+}
+
+func (m MetaContext) VLogf(lev VDebugLevel, msg string, args ...interface{}) {
+	m.g.VDL.CLogfWithAddedDepth(m.ctx, lev, 1, msg, args...)
+}
+
 func (m MetaContext) CTraceTimed(msg string, f func() error) func() {
 	return CTraceTimed(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f, m.G().Clock())
 }
@@ -203,23 +211,22 @@ func (m MetaContext) WithNewProvisionalLoginContext() MetaContext {
 	return m.WithLoginContext(newProvisionalLoginContext(m))
 }
 
+func (m MetaContext) WithNewProvisionalLoginContextForUser(u *User) MetaContext {
+	return m.WithNewProvisionalLoginContextForUIDAndUsername(u.GetUID(), u.GetNormalizedName())
+}
+
+func (m MetaContext) WithNewProvisionalLoginContextForUIDAndUsername(uid keybase1.UID, un NormalizedUsername) MetaContext {
+	plc := newProvisionalLoginContextWithUIDAndUsername(m, uid, un)
+	m.ActiveDevice().CopyCacheToLoginContextIfForUID(m, plc, uid)
+	return m.WithLoginContext(plc)
+}
+
 func (m MetaContext) CommitProvisionalLogin() MetaContext {
 	m.CDebugf("MetaContext#CommitProvisionalLogin")
 	lctx := m.loginContext
 	m.loginContext = nil
 	if lctx != nil {
-		ppsc := lctx.PassphraseStreamCache()
-		// For now, simply propagate the PassphraseStreamCache and Session
-		// back into login state. Eventually we're going to move it
-		// into G or ActiveDevice.
-		m.G().LoginState().Account(func(a *Account) {
-			a.streamCache = ppsc
-			a.localSession = lctx.LocalSession()
-		}, "CommitProvisionalLogin")
-
-		// Going forward, also hold onto the passphrase stream cache
-		// in the active device.
-		if ppsc != nil {
+		if ppsc := lctx.PassphraseStreamCache(); ppsc != nil {
 			m.ActiveDevice().CachePassphraseStream(ppsc)
 		}
 	}
@@ -280,6 +287,10 @@ type MetaContextified struct {
 
 func (m MetaContextified) M() MetaContext {
 	return m.m
+}
+
+func (m MetaContextified) G() *GlobalContext {
+	return m.m.g
 }
 
 func NewMetaContextified(m MetaContext) MetaContextified {
@@ -465,6 +476,20 @@ func (m MetaContext) SetActiveDevice(uid keybase1.UID, deviceID keybase1.DeviceI
 	return nil
 }
 
+func (m MetaContext) SetSigningKey(uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	return g.ActiveDevice.setSigningKey(g, nil, uid, deviceID, sigKey, deviceName)
+}
+
+func (m MetaContext) SetEncryptionKey(uid keybase1.UID, deviceID keybase1.DeviceID, encKey GenericKey) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	return g.ActiveDevice.setEncryptionKey(nil, uid, deviceID, encKey)
+}
+
 // LogoutAndDeprovisionIfRevoked loads the user and checks if the current
 // device keys have been revoked. If so, it calls Logout and then runs the
 // ClearSecretsOnDeprovision
@@ -473,11 +498,7 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 
 	defer m.CTrace("GlobalContext#LogoutAndDeprovisionIfRevoked", func() error { return err })()
 
-	in, err := m.G().LoginState().LoggedInLoad()
-	if err != nil {
-		return err
-	}
-	if !in {
+	if !m.ActiveDevice().Valid() {
 		m.CDebugf("LogoutAndDeprovisionIfRevoked: skipping check (not logged in)")
 		return nil
 	}
@@ -523,6 +544,32 @@ func (m MetaContext) PassphraseStream() *PassphraseStream {
 	return m.ActiveDevice().PassphraseStream()
 }
 
+func (m MetaContext) PassphraseStreamAndTriplesec() (*PassphraseStream, Triplesec) {
+	var ppsc *PassphraseStreamCache
+	if m.LoginContext() != nil {
+		ppsc = m.LoginContext().PassphraseStreamCache()
+	} else {
+		ppsc = m.ActiveDevice().PassphraseStreamCache()
+	}
+	if ppsc == nil {
+		return nil, nil
+	}
+	return ppsc.PassphraseStreamAndTriplesec()
+}
+
+func (m MetaContext) TriplesecAndGeneration() (ret Triplesec, ppgen PassphraseGeneration) {
+	var pps *PassphraseStream
+	pps, ret = m.PassphraseStreamAndTriplesec()
+	if pps == nil {
+		return nil, ppgen
+	}
+	ppgen = pps.Generation()
+	if ppgen.IsNil() {
+		return nil, ppgen
+	}
+	return ret, ppgen
+}
+
 func (m MetaContext) CurrentUsername() NormalizedUsername {
 	if m.LoginContext() != nil {
 		return m.LoginContext().GetUsername()
@@ -553,4 +600,40 @@ func (m MetaContext) HasAnySession() (ret bool) {
 	}
 
 	return false
+}
+
+func (m MetaContext) SyncSecrets() (ss *SecretSyncer, err error) {
+	defer m.CTrace("MetaContext#SyncSecrets", func() error { return err })()
+	if m.LoginContext() != nil {
+		err = m.LoginContext().RunSecretSyncer(m, keybase1.UID(""))
+		if err != nil {
+			return nil, err
+		}
+		return m.LoginContext().SecretSyncer(), nil
+	}
+	return m.ActiveDevice().SyncSecrets(m)
+}
+
+func (m MetaContext) SyncSecretsForUID(u keybase1.UID) (ss *SecretSyncer, err error) {
+	defer m.CTrace("MetaContext#SyncSecrets", func() error { return err })()
+	return m.ActiveDevice().SyncSecretsForUID(m, u)
+}
+
+func (m MetaContext) ProvisionalSessionArgs() (token string, csrf string) {
+	if m.LoginContext() == nil {
+		return "", ""
+	}
+	sess := m.LoginContext().LocalSession()
+	if sess == nil || !sess.IsValid() {
+		return "", ""
+	}
+	return sess.token, sess.csrf
+}
+
+func (m MetaContext) Keyring() (ret *SKBKeyringFile, err error) {
+	defer m.CTrace("MetaContext#Keyring", func() error { return err })()
+	if m.LoginContext() != nil {
+		return m.LoginContext().Keyring(m)
+	}
+	return m.ActiveDevice().Keyring(m)
 }
