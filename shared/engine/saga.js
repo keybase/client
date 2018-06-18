@@ -3,7 +3,7 @@
 import {getEngine} from '../engine'
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
-import {sequentially} from '../util/saga'
+import {sequentially, delay} from '../util/saga'
 import type {Action} from '../constants/types/flux'
 import type {CommonResponseHandler, RPCError} from './types'
 import type {TypedState} from '../constants/reducer'
@@ -38,6 +38,8 @@ function* call(
     yield RSE.put(waitingActionCreator(true))
   }
 
+  const buffer = RS.buffers.expanding(10)
+
   // Event channel lets you use emitter to 'put' things onto a channel in a callback compatible form
   const eventChannel: RS.Channel = yield RS.eventChannel(emitter => {
     // convert call map
@@ -63,9 +65,9 @@ function* call(
     }, {})
 
     // Make the actual call
-    let intervalID
+    let outstandingIntervalID
     if (printOutstandingRPCs) {
-      intervalID = setInterval(() => {
+      outstandingIntervalID = setInterval(() => {
         console.log('Engine/Saga with a still-alive eventChannel for method:', method)
       }, 2000)
     }
@@ -78,23 +80,29 @@ function* call(
       },
       (error?: RPCError, params: any) => {
         if (printOutstandingRPCs) {
-          clearInterval(intervalID)
+          clearInterval(outstandingIntervalID)
         }
-        // Send results
+
+        const toEmit: EmittedFinished = {error, method: null, params}
+        // Send results deferred
         setTimeout(() => {
-          const toEmit: EmittedFinished = {error, method: null, params}
           emitter(toEmit)
         }, 5)
 
-        // Send special value to close out channel a little later in case we get racy incoming calls
-        setTimeout(() => {
-          emitter(RS.END)
-        }, 100)
+        // Send end when our buffers are clear
+        const endIntervalID = setInterval(() => {
+          if (buffer.isEmpty()) {
+            emitter(RS.END)
+            clearInterval(endIntervalID)
+          } else if (printOutstandingRPCs) {
+            console.log('Engine/Saga waiting on buffer clear for method:', method)
+          }
+        }, 500)
       }
     )
 
     return () => {}
-  }, RS.buffers.expanding(10)) // allow the buffer to grow always
+  }, buffer) // allow the buffer to grow always
 
   let finalParams: any
   let finalError: ?RPCError
