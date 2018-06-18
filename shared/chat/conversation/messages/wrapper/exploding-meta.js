@@ -210,9 +210,7 @@ const styles = styleSheetCreate({
     },
   }),
   countdown: platformStyles({
-    common: {color: globalColors.white, fontSize: 10, fontWeight: 'bold'},
-    isElectron: {lineHeight: '1.4em'},
-    isMobile: {lineHeight: 14},
+    common: {color: globalColors.white, fontSize: 10, lineHeight: 14, fontWeight: 'bold'},
   }),
   countdownContainer: platformStyles({
     common: {
