@@ -1299,18 +1299,17 @@ func (k *SimpleFS) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 // SimpleFSSyncStatus - Get sync status.
 func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
 	ctx = k.makeContext(ctx)
-	jServer, err := libkbfs.GetJournalServer(k.config)
+	status, _, err := k.config.KBFSOps().Status(ctx)
 	if err != nil {
-		k.log.CDebugf(ctx, "No journal server, sending empty response")
+		k.log.CDebugf(ctx, "calling KBFSOps Status error; sending empty response")
 		return keybase1.FSSyncStatus{}, nil
 	}
-	status, _ := jServer.Status(ctx)
 	k.log.CDebugf(ctx, "Sending sync status response with %d syncing bytes",
-		status.UnflushedBytes)
+		status.JournalServer.UnflushedBytes)
 	return keybase1.FSSyncStatus{
-		TotalSyncingBytes: status.UnflushedBytes,
-		SyncingPaths:      status.UnflushedPaths,
-		EndEstimate:       keybase1.ToTimePtr(status.EndEstimate),
+		TotalSyncingBytes: status.JournalServer.UnflushedBytes,
+		SyncingPaths:      status.JournalServer.UnflushedPaths,
+		EndEstimate:       keybase1.ToTimePtr(status.JournalServer.EndEstimate),
 	}, nil
 }
 
