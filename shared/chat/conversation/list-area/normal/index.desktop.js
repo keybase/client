@@ -110,11 +110,12 @@ class Thread extends React.PureComponent<Props, State> {
       // onResize will be called normally but its pretty slow so you'll see a flash, instead of emulate it happening immediately
       this._scrollHeight = snapshot
       this._onResize({scroll: {height: list.scrollHeight}})
-    } else {
+    } else if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
       // maintain scroll to bottom?
-      if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
-        this._scrollToBottom()
-      }
+      this._scrollToBottom()
+    } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
+      // someone else sent something? then ignore next resize resize
+      this._scrollHeight = null
     }
 
     if (list && this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
