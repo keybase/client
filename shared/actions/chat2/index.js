@@ -1644,7 +1644,7 @@ function* attachmentUploadCall({
     }
   } catch (e) {
     // TODO better error
-    logger.warn(`Upload Attachment Failed: ${e}`)
+    logger.warn(`Upload Attachment Failed: ${e.message}`)
   }
 }
 
