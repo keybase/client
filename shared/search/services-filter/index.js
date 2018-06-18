@@ -79,7 +79,7 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
         <Box
           style={{
             ...serviceTooltipStyle,
-            opacity: hovering ? 1 : 0,
+            display: hovering ? 'flex' : 'none',
           }}
         >
           <Text type="BodySmall" style={{color: globalColors.white}}>
