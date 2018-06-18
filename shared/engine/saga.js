@@ -3,7 +3,7 @@
 import {getEngine} from '../engine'
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
-import {sequentially, delay} from '../util/saga'
+import {sequentially} from '../util/saga'
 import type {Action} from '../constants/types/flux'
 import type {CommonResponseHandler, RPCError} from './types'
 import type {TypedState} from '../constants/reducer'
