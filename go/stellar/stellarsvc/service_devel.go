@@ -20,7 +20,7 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err
 	}
 
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName: "WalletDumpLocal",
+		RpcName: "WalletDumpLocal",
 		Err:     &err,
 	})
 	defer fin()

@@ -14,7 +14,7 @@ import (
 
 func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:        "WalletDumpLocal",
+		RpcName:        "WalletDumpLocal",
 		Err:            &err,
 		AllowLoggedOut: true,
 	})
