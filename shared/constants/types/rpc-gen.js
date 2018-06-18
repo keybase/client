@@ -1053,6 +1053,9 @@ export type FSErrorType =
   | 13 // DISK_LIMIT_REACHED_13
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
+export type FSFolderEditHistory = $ReadOnly<{folder: Folder, serverTime: Time, history?: ?Array<FSFolderWriterEditHistory>}>
+export type FSFolderWriterEdit = $ReadOnly<{filename: String, notificationType: FSNotificationType, serverTime: Time}>
+export type FSFolderWriterEditHistory = $ReadOnly<{writerName: String, edits?: ?Array<FSFolderWriterEdit>}>
 export type FSNotification = $ReadOnly<{filename: String, status: String, statusCode: FSStatusCode, notificationType: FSNotificationType, errorType: FSErrorType, params: {[key: string]: String}, writerUid: UID, localTime: Time, folderType: FolderType}>
 export type FSNotificationType =
   | 0 // ENCRYPTING_0
@@ -1290,7 +1293,7 @@ export type KBFSRootHash = Bytes
 export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
 export type KID = String
 export type KbfsCreateTLFRpcParam = $ReadOnly<{teamID: TeamID, tlfID: TLFID}>
-export type KbfsFSEditListRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>
+export type KbfsFSEditListRpcParam = $ReadOnly<{edits: FSFolderEditHistory, requestID: Int}>
 export type KbfsFSEventRpcParam = $ReadOnly<{event: FSNotification}>
 export type KbfsFSSyncEventRpcParam = $ReadOnly<{event: FSPathSyncStatus}>
 export type KbfsFSSyncStatusRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int}>
@@ -1418,7 +1421,7 @@ export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState}>
 export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels}>
 export type NotifyEphemeralNewTeamEkRpcParam = $ReadOnly<{id: TeamID, generation: EkGeneration}>
 export type NotifyFSFSActivityRpcParam = $ReadOnly<{notification: FSNotification}>
-export type NotifyFSFSEditListResponseRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>
+export type NotifyFSFSEditListResponseRpcParam = $ReadOnly<{edits: FSFolderEditHistory, requestID: Int}>
 export type NotifyFSFSSyncActivityRpcParam = $ReadOnly<{status: FSPathSyncStatus}>
 export type NotifyFSFSSyncStatusResponseRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int}>
 export type NotifyFSRequestFSEditListRequestRpcParam = $ReadOnly<{req: FSEditListRequest}>
@@ -2521,7 +2524,7 @@ export type IncomingCallMapType = {|
   'keybase.1.NotifyFavorites.favoritesChanged'?: (params: $ReadOnly<{uid: UID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyFS.FSActivity'?: (params: $ReadOnly<{notification: FSNotification}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyFS.FSSyncActivity'?: (params: $ReadOnly<{status: FSPathSyncStatus}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
-  'keybase.1.NotifyFS.FSEditListResponse'?: (params: $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
+  'keybase.1.NotifyFS.FSEditListResponse'?: (params: $ReadOnly<{edits: FSFolderEditHistory, requestID: Int}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $ReadOnly<{status: FSSyncStatus, requestID: Int}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $ReadOnly<{uid: UID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $ReadOnly<{uid: UID, encKID: KID, sigKID: KID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,

@@ -51,11 +51,28 @@ protocol kbfsCommon {
     UID writerUid;
     Time localTime;
     FolderType folderType;
-}
+  }
 
   record FSEditListRequest {
     Folder folder;
     int requestID;
+  }
+
+  record FSFolderWriterEdit {
+    string filename;
+    FSNotificationType notificationType;
+    Time serverTime;
+  }
+
+  record FSFolderWriterEditHistory {
+    string writerName;
+    array<FSFolderWriterEdit> edits;
+  }
+
+  record FSFolderEditHistory {
+    Folder folder;
+    Time serverTime;
+    array<FSFolderWriterEditHistory> history;
   }
 
   record FSSyncStatusRequest {
