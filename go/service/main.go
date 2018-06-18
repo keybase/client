@@ -329,6 +329,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	ctx := context.Background()
 	d.tryLogin(ctx)
+	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
 	d.createChatModules()
@@ -566,6 +567,31 @@ func (d *Service) writeServiceInfo() error {
 	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath(), d.G().Log)
 }
 
+func (d *Service) chatOutboxPurgeCheck() {
+	ticker := libkb.NewBgTicker(5 * time.Minute)
+	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("chatPurge")
+	d.G().PushShutdownHook(func() error {
+		m.CDebugf("stopping chatOutboxPurgeCheck loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		for {
+			<-ticker.C
+			m.CDebugf("| checking outbox purge")
+			uid := d.G().Env.GetUID()
+			if uid.IsNil() {
+				continue
+			}
+			gregorUID := gregor1.UID(uid.ToBytes())
+			g := globals.NewContext(d.G(), d.ChatG())
+			if err := storage.NewOutbox(g, gregorUID).OutboxPurge(context.Background()); err != nil {
+				m.CDebugf("OutboxPurge error: %s", err)
+			}
+		}
+	}()
+}
+
 func (d *Service) hourlyChecks() {
 	ticker := libkb.NewBgTicker(1 * time.Hour)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("HRLY")
@@ -586,7 +612,9 @@ func (d *Service) hourlyChecks() {
 			m.CDebugf("+ hourly check loop")
 			ekLib := m.G().GetEKLib()
 			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
-			ekLib.KeygenIfNeeded(m.Ctx())
+			if err := ekLib.KeygenIfNeeded(m.Ctx()); err != nil {
+				m.CDebugf("KeygenIfNeeded error: %s", err)
+			}
 
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
