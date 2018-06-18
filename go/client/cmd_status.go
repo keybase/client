@@ -209,7 +209,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
 	status.Clients = extStatus.Clients
 	status.PlatformInfo = extStatus.PlatformInfo
-	status.DeviceEKNames = extStatus.DeviceEKNames
+	status.DeviceEKNames = extStatus.DeviceEkNames
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {

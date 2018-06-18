@@ -225,7 +225,7 @@
             "type": "array",
             "items": "string"
           },
-          "name": "DeviceEKNames"
+          "name": "deviceEkNames"
         },
         {
           "type": "PlatformInfo",

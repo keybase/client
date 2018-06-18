@@ -196,7 +196,7 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	if err != nil {
 		return res, err
 	}
-	res.DeviceEKNames = dekNames
+	res.DeviceEkNames = dekNames
 
 	return res, nil
 }
