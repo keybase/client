@@ -139,8 +139,8 @@ const styleBadgeContainerRekey = {
 
 const styleDownloadContainer = {
   ...styleBadgeContainer,
-  top: 22,
-  left: 20,
+  top: isMobile ? 2 : 22,
+  left: isMobile ? -28 : 20,
 }
 
 const badgeStyleCount = {
