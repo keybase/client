@@ -18,12 +18,14 @@ import type {Props} from '.'
 
 type State = {
   dragging: boolean,
+  dropping: boolean,
   finalX: number,
   finalY: number,
   hasPreview: boolean,
   initialX: number,
   initialY: number,
   scale: number,
+  submitting: boolean,
 }
 
 class EditAvatar extends React.Component<Props, State> {
@@ -35,12 +37,14 @@ class EditAvatar extends React.Component<Props, State> {
     super(props)
     this.state = {
       dragging: false,
+      dropping: false,
       finalX: 0,
       finalY: 0,
       hasPreview: false,
       initialX: 0,
       initialY: 0,
       scale: 1,
+      submitting: false,
     }
   }
 
@@ -77,9 +81,12 @@ class EditAvatar extends React.Component<Props, State> {
     this._filePickerSetValue('')
   }
 
-  _onDragLeave = e => {}
+  _onDragLeave = e => {
+    this.setState({dropping: false})
+  }
 
   _onDrop = e => {
+    this.setState({dropping: false})
     if (!this._validDrag(e)) {
       return
     }
@@ -110,6 +117,7 @@ class EditAvatar extends React.Component<Props, State> {
   _validDrag = e => Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
 
   _onDragOver = e => {
+    this.setState({dropping: true})
     if (this._validDrag(e)) {
       e.dataTransfer.dropEffect = 'copy'
     } else {
@@ -159,7 +167,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onMouseMove = e => {
-    if (!this.state.dragging) return
+    if (!this.state.dragging || this.state.submitting) return
 
     e.target.style.left = `${this.state.finalX + e.pageX - this.state.initialX}px`
     e.target.style.top = `${this.state.finalY + e.pageY - this.state.initialY}px`
@@ -167,6 +175,9 @@ class EditAvatar extends React.Component<Props, State> {
 
   _onSave = e => {
     if (this._image.src) {
+      this._range.disabled = true
+      this.setState({submitting: true})
+
       const x = -this._image.offsetLeft
       const y = -this._image.offsetTop
       const rH = this._image.naturalHeight / this._image.height
@@ -185,29 +196,34 @@ class EditAvatar extends React.Component<Props, State> {
     }
   }
 
+  _hoverBoxClassName = () => {
+    if (this.state.hasPreview) return 'filled'
+    if (this.state.dropping) return 'dropping'
+  }
+
   render = () => {
     return (
       <MaybePopup onClose={this.props.onClose} styleCover={styles.popup}>
         <Box
-          style={styles.container}
-          onDragOver={this._onDragOver}
           onDragLeave={this._onDragLeave}
+          onDragOver={this._onDragOver}
           onDrop={this._onDrop}
+          style={styles.container}
         >
           <Text type="BodyBig">Drag and drop a new profile image</Text>
           <Text type="BodyPrimaryLink" onClick={this._filePickerOpen}>
             or browse your computer for one
           </Text>
           <HoverBox
-            className={this.state.hasPreview ? 'filled' : null}
+            className={this._hoverBoxClassName}
             onClick={this.state.hasPreview ? null : this._filePickerOpen}
           >
             <input
-              type="file"
-              style={styles.hidden}
-              ref={this._filePickerSetRef}
-              onChange={this._pickFile}
               multiple={false}
+              onChange={this._pickFile}
+              ref={this._filePickerSetRef}
+              style={styles.hidden}
+              type="file"
             />
             <img
               style={styles.image}
@@ -220,30 +236,36 @@ class EditAvatar extends React.Component<Props, State> {
             {!this.state.hasPreview && (
               <Icon
                 className="icon"
-                type="iconfont-camera"
+                color={globalColors.grey}
                 fontSize={48}
                 style={iconCastPlatformStyles(styles.icon)}
+                type="iconfont-camera"
               />
             )}
           </HoverBox>
           <input
+            disabled={!this.state.hasPreview}
+            min={0}
+            max={2}
+            onChange={this._setScale}
+            ref={this._rangeSetRef}
+            step={0.001}
             style={styles.slider}
             type="range"
             value={this.state.scale}
-            min={0}
-            max={2}
-            step={0.001}
-            ref={this._rangeSetRef}
-            onChange={this._setScale}
-            disabled={!this.state.hasPreview}
           />
           <ButtonBar>
-            <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
+            <Button
+              disabled={this.state.submitting}
+              label="Cancel"
+              onClick={this.props.onClose}
+              type="Secondary"
+            />
             <WaitingButton
-              type="Primary"
-              onClick={this._onSave}
-              label="Save"
               disabled={!this.state.hasPreview}
+              label="Save"
+              onClick={this._onSave}
+              type="Primary"
               waitingKey={null}
             />
           </ButtonBar>
@@ -259,20 +281,19 @@ const HoverBox = glamorous(Box)({
     borderColor: globalColors.lightGrey2,
     borderStyle: 'solid',
   },
+  '&.filled:active': {
+    cursor: 'grabbing',
+  },
   '&.filled:hover': {
     backgroundColor: globalColors.white,
     borderColor: globalColors.lightGrey2,
     cursor: 'grab',
   },
-  '&.filled:active': {
-    cursor: 'grabbing',
+  ':hover, &.dropping': {
+    borderColor: globalColors.black_40,
   },
-  ':hover': {
-    backgroundColor: globalColors.blue_30,
-    borderColor: globalColors.blue_60,
-  },
-  ':hover .icon': {
-    color: globalColors.blue_60,
+  ':hover .icon, &.dropping .icon': {
+    color: globalColors.black_40,
   },
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.lightGrey2,
