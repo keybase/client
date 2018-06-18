@@ -66,7 +66,7 @@ protocol config {
     array<string> provisionedUsernames;
     @lint("ignore")
     array<ClientDetails> Clients;
-    array<string> DeviceEKNames;
+    array<string> deviceEkNames;
     PlatformInfo platformInfo;
     DeviceID defaultDeviceID;               /* this contains the device ID for defaultUsername
                                                in the config file. */
