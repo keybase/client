@@ -108,7 +108,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 const AshBox = glamorous.div(props => ({
   '&.full-width': {
     overflow: 'visible',
-    transition: `width ${animationDuration}s ease-in-out`,
+    transition: `width ${animationDuration}s linear`,
     width: '100%',
   },
   backgroundColor: globalColors.white,
