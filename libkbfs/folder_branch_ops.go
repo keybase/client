@@ -185,6 +185,12 @@ type cachedDirOp struct {
 	nodes []Node
 }
 
+type editChannelActivity struct {
+	convID  chat1.ConversationID
+	name    string
+	message string
+}
+
 // folderBranchOps implements the KBFSOps interface for a specific
 // branch of a specific folder.  It is go-routine safe for operations
 // within the folder.
@@ -332,6 +338,10 @@ type folderBranchOps struct {
 	rekeyFSM RekeyFSM
 
 	editHistory *TlfEditHistory
+	// TODO: remove the edit history above (and rename the one below)
+	// once we turn on v2 edit history for everyone.
+	editHistoryV2 *kbfsedits.TlfHistory
+	editChannels  chan editChannelActivity
 
 	branchChanges      kbfssync.RepeatedWaitGroup
 	mdFlushes          kbfssync.RepeatedWaitGroup
@@ -417,6 +427,8 @@ func newFolderBranchOps(ctx context.Context, config Config, fb FolderBranch,
 		updatePauseChan: make(chan (<-chan struct{})),
 		forceSyncChan:   forceSyncChan,
 		syncNeededChan:  make(chan struct{}, 1),
+		editHistoryV2:   kbfsedits.NewTlfHistory(),
+		editChannels:    make(chan editChannelActivity, 100),
 	}
 	fbo.prepper = folderUpdatePrepper{
 		config:       config,
@@ -810,6 +822,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 			fbo.config.Mode().TLFUpdatesEnabled() {
 			fbo.updateDoneChan = make(chan struct{})
 			go fbo.registerAndWaitForUpdates()
+			go fbo.monitorEditsChat()
 		}
 		// If journaling is enabled, we should make sure to enable it
 		// for this TLF.  That's because we may have received the TLF
@@ -6852,12 +6865,131 @@ func (fbo *folderBranchOps) KickoffAllOutstandingRekeys() error {
 func (fbo *folderBranchOps) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
-	// TODO(KBFS-2996): invalidate the local edit notification
-	// tracker, and register for notifications of new messages on the
-	// channel.
+	fbo.editChannels <- editChannelActivity{convID, channelName, ""}
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.
 func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus error) {
 	fbo.config.KBFSOps().PushConnectionStatusChange(service, newStatus)
+}
+
+func (fbo *folderBranchOps) receiveNewEditChat(
+	convID chat1.ConversationID, message string) {
+	fbo.editChannels <- editChannelActivity{convID, "", message}
+}
+
+func (fbo *folderBranchOps) getEditMessages(
+	ctx context.Context, id chat1.ConversationID, channelName string,
+	startPage []byte) (nextPage []byte) {
+	messages, nextPage, err := fbo.config.Chat().ReadChannel(ctx, id, startPage)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't get messages for conv %s: %+v",
+			id, err)
+		return nil
+	}
+	err = fbo.editHistoryV2.AddNotifications(channelName, messages)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't add messages for conv %s: %+v",
+			id, err)
+		return nil
+	}
+	return nextPage
+}
+
+func (fbo *folderBranchOps) monitorEditsChat() {
+	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	defer cancelFunc()
+	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
+
+	// Register for all the channels of this chat.
+	lState := makeFBOLockState()
+	md, _ := fbo.getHead(lState)
+	name := md.GetTlfHandle().GetCanonicalName()
+
+	convIDs, channelNames, err := fbo.config.Chat().GetChannels(
+		ctx, name, fbo.id().Type(), chat1.TopicType_KBFSFILEEDIT)
+	if err != nil {
+		// TODO: schedule a retry?
+		fbo.log.CWarningf(ctx, "Couldn't monitor kbfs-edits chats: %+v", err)
+		return
+	}
+
+	idToName := make(map[string]string, len(convIDs))
+	nameToID := make(map[string]chat1.ConversationID, len(convIDs))
+	nameToNextPage := make(map[string][]byte, len(convIDs))
+	for i, id := range convIDs {
+		fbo.config.Chat().RegisterForMessages(id, fbo.receiveNewEditChat)
+		name := channelNames[i]
+		idToName[id.String()] = name
+		nameToID[name] = id
+		nextPage := fbo.getEditMessages(ctx, id, name, nil)
+		if nextPage != nil {
+			nameToNextPage[name] = nextPage
+		}
+	}
+
+	for {
+		// Recompute the history, and fetch more messages for any
+		// writers who need them.
+		writersWhoNeedMore := fbo.editHistoryV2.Recompute()
+		gotMore := false
+		for w, needsMore := range writersWhoNeedMore {
+			if !needsMore {
+				continue
+			}
+			if startPage, ok := nameToNextPage[w]; ok && startPage != nil {
+				id, ok := nameToID[w]
+				if !ok {
+					fbo.log.CDebugf(ctx, "No channel found for %s", w)
+					continue
+				}
+				fbo.log.CDebugf(
+					ctx, "Going to fetch more messages for writer %s", w)
+				gotMore = true
+				nextPage := fbo.getEditMessages(ctx, id, w, startPage)
+				if nextPage == nil {
+					delete(nameToNextPage, w)
+				} else {
+					nameToNextPage[w] = nextPage
+				}
+			}
+		}
+		if gotMore {
+			// Retry the recompute, now with more messages.
+			continue
+		}
+
+		select {
+		case <-fbo.shutdownChan:
+			fbo.log.CDebugf(ctx, "Shutting down chat monitoring")
+			return
+		case a := <-fbo.editChannels:
+			idStr := a.convID.String()
+			name, ok := idToName[idStr]
+			if !ok {
+				// This is a new channel that we need to monitor.
+				fbo.config.Chat().RegisterForMessages(
+					a.convID, fbo.receiveNewEditChat)
+				idToName[idStr] = a.name
+				nameToID[a.name] = a.convID
+				name = a.name
+			}
+			if a.message != "" {
+				fbo.log.CDebugf(ctx, "New edit message for %s", name)
+				err = fbo.editHistoryV2.AddNotifications(
+					name, []string{a.message})
+				if err != nil {
+					fbo.log.CWarningf(ctx,
+						"Couldn't add messages for conv %s: %+v", a.convID, err)
+					continue
+				}
+			} else {
+				fbo.log.CDebugf(ctx, "New edit channel for %s", name)
+				nextPage := fbo.getEditMessages(ctx, a.convID, name, nil)
+				if nextPage != nil {
+					nameToNextPage[name] = nextPage
+				}
+			}
+		}
+	}
 }

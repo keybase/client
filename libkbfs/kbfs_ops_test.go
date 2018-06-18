@@ -83,6 +83,10 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 		gomock.Any(), gomock.Any()).AnyTimes().Return(c, nil)
 	config.mockMdserv.EXPECT().OffsetFromServerTime().
 		Return(time.Duration(0), true).AnyTimes()
+	// No chat monitoring.
+	config.mockChat.EXPECT().GetChannels(gomock.Any(),
+		gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
+		Return(nil, nil, nil)
 
 	// Don't test implicit teams.
 	config.mockKbpki.EXPECT().ResolveImplicitTeam(
