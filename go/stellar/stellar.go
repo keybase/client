@@ -607,7 +607,7 @@ func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res st
 
 func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.RecentPaymentsCLILocal", func() error { return err })()
-	page, err := remoter.RecentPayments(ctx, accountID, 0)
+	page, err := remoter.RecentPayments(ctx, accountID, nil, 0)
 	if err != nil {
 		return nil, err
 	}

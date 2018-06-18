@@ -400,7 +400,7 @@ type recentPaymentsResult struct {
 }
 
 func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
-	accountID stellar1.AccountID, limit int) (stellar1.PaymentsPage, error) {
+	accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (stellar1.PaymentsPage, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -410,6 +410,13 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 		},
 		NetContext: ctx,
 	}
+
+	if cursor != nil {
+		apiArg.Args["horizon_cursor"] = libkb.S{Val: cursor.HorizonCursor}
+		apiArg.Args["direct_cursor"] = libkb.S{Val: cursor.DirectCursor}
+		apiArg.Args["relay_cursor"] = libkb.S{Val: cursor.RelayCursor}
+	}
+
 	var apiRes recentPaymentsResult
 	err := g.API.GetDecode(apiArg, &apiRes)
 	return apiRes.Result, err

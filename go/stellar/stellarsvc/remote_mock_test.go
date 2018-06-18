@@ -309,8 +309,8 @@ func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoCla
 	return nil, fmt.Errorf("RemoteClientMock does not implement NextAutoClaim")
 }
 
-func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (stellar1.PaymentsPage, error) {
-	return r.Backend.RecentPayments(ctx, r.Tc, accountID, limit)
+func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (stellar1.PaymentsPage, error) {
+	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit)
 }
 
 func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
@@ -603,10 +603,13 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	}, nil
 }
 
-func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int) (res stellar1.PaymentsPage, err error) {
+func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (res stellar1.PaymentsPage, err error) {
 	defer tc.G.CTraceTimed(ctx, "BackendMock.RecentPayments", func() error { return err })()
 	r.Lock()
 	defer r.Unlock()
+	if cursor != nil {
+		return res, errors.New("cursor not mocked")
+	}
 	res.Payments = r.txLog.Filter(ctx, tc, accountID, limit)
 	return res, nil
 }
