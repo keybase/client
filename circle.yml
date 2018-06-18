@@ -43,9 +43,7 @@ jobs:
     - checkout
 
     # Install node and java.
-    #
-    # TODO: Upgrade node?
-    - run: nvm install 8 && nvm alias default 8
+    - run: nvm install 10 && nvm alias default 10
     - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
 
     # Restore the dependency cache
