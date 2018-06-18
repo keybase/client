@@ -151,7 +151,7 @@ const installKBFSError = (error) => {
 function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
-    return Saga.put(FsGen.createInstallKBFS)
+    return Saga.put(FsGen.createInstallKBFS())
   }
 }
 
