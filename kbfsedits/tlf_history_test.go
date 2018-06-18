@@ -44,6 +44,7 @@ func (nn *nextNotification) make(
 	filename string, nt NotificationOpType, uid keybase1.UID,
 	params *NotificationParams) NotificationMessage {
 	n := NotificationMessage{
+		Version:           NotificationV2,
 		Revision:          nn.nextRevision,
 		Filename:          filename,
 		Type:              nt,

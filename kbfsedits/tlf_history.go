@@ -107,11 +107,17 @@ func (th *TlfHistory) AddNotifications(
 		var revList []NotificationMessage
 		err := json.Unmarshal([]byte(msg), &revList)
 		if err != nil {
-			return err
+			// The messages might be from a new version we don't
+			// understand, so swallow the error.
+			continue
 		}
 
 		for j := len(revList) - 1; j >= 0; j-- {
 			revMsg := revList[j]
+			if revMsg.Version != NotificationV2 {
+				// Ignore messages that are too new for us to understand.
+				continue
+			}
 			revMsg.numWithinRevision = j
 			newEdits = append(newEdits, revMsg)
 		}
