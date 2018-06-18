@@ -13,7 +13,7 @@ import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
-import {debounce, throttle} from 'lodash-es'
+import {debounce, throttle, chunk} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
@@ -223,7 +223,7 @@ class Thread extends React.PureComponent<Props, State> {
     let previous = null
     let lastBucket = null
     this.props.messageOrdinals.forEach((ordinal, idx) => {
-      // We wnat to keep the mapping of ordinal to bucket fixed always
+      // We want to keep the mapping of ordinal to bucket fixed always
       const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
       if (lastBucket === null) {
         lastBucket = bucket
@@ -235,18 +235,22 @@ class Thread extends React.PureComponent<Props, State> {
           ordinals.push(ordinal)
         }
         if (ordinals.length) {
-          const key = String(lastBucket)
-          items.push(
-            <OrdinalWaypoint
-              key={key}
-              id={key}
-              rowRenderer={this._rowRenderer}
-              ordinals={ordinals}
-              previous={previous}
-            />
-          )
+          // don't allow buckets to be too big
+          const chunks = chunk(ordinals, 10)
+          chunks.forEach((toAdd, idx) => {
+            const key = `${lastBucket}:${idx}`
+            items.push(
+              <OrdinalWaypoint
+                key={key}
+                id={key}
+                rowRenderer={this._rowRenderer}
+                ordinals={toAdd}
+                previous={previous}
+              />
+            )
+            previous = toAdd[toAdd.length - 1]
+          })
           // we pass previous so the OrdinalWaypoint can render the top item correctly
-          previous = ordinals[ordinals.length - 1]
           ordinals = []
           lastBucket = bucket
         }
