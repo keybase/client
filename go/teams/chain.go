@@ -1902,6 +1902,23 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 
 // Whether the roleUpdates would demote any current owner to a lesser role.
 func (t *TeamSigChainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion) bool {
+
+	// It is OK to readmit an owner if the owner reset and is coming in at a lower permission
+	// level. So check that case here.
+	readmittingResetUser := func(uv keybase1.UserVersion) bool {
+		for toRole, uvs := range roleUpdates {
+			if toRole == keybase1.TeamRole_NONE {
+				continue
+			}
+			for _, newUV := range uvs {
+				if newUV.Uid.Equal(uv.Uid) && newUV.EldestSeqno > uv.EldestSeqno {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
 	for toRole, uvs := range roleUpdates {
 		if toRole == keybase1.TeamRole_OWNER {
 			continue
@@ -1910,6 +1927,9 @@ func (t *TeamSigChainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, ro
 			fromRole, err := prev.GetUserRole(uv)
 			if err != nil {
 				continue // ignore error, user not in team
+			}
+			if toRole == keybase1.TeamRole_NONE && fromRole == keybase1.TeamRole_OWNER && readmittingResetUser(uv) {
+				continue
 			}
 			if fromRole == keybase1.TeamRole_OWNER {
 				// This is an intent to demote an owner.
