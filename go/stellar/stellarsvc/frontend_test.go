@@ -840,7 +840,7 @@ func requireBannerSet(t testing.TB, bres stellar1.BuildPaymentResLocal, expected
 	sort.Slice(expected, func(i, j int) bool {
 		return expected[i].Message < expected[j].Message
 	})
-	for i, _ := range expected {
+	for i := range expected {
 		require.Equal(t, expected[i], got[i])
 	}
 }
