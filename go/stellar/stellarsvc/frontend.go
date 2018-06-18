@@ -718,23 +718,31 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 		return res, fmt.Errorf("sending non-XLM assets is not supported")
 	}
 
+	var displayBalance stellar.DisplayBalance
+	if arg.WorthAmount != "" {
+		if arg.WorthCurrency == nil {
+			return res, fmt.Errorf("missing worth currency")
+		}
+		displayBalance = stellar.DisplayBalance{
+			Amount:   arg.WorthAmount,
+			Currency: arg.WorthCurrency.String(),
+		}
+	}
+
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), arg.SessionID),
 	}
 	mctx := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 	sendRes, err := stellar.SendPayment(mctx, s.remoter, stellar.SendPaymentArg{
-		From:      arg.From,
-		FromSeqno: fromSeqno,
-		To:        stellarcommon.RecipientInput(to),
-		Amount:    arg.Amount,
-		DisplayBalance: stellar.DisplayBalance{
-			Amount:   arg.WorthAmount,
-			Currency: arg.WorthCurrency.String(),
-		},
-		SecretNote:  arg.SecretNote,
-		PublicMemo:  arg.PublicMemo,
-		ForceRelay:  false,
-		QuickReturn: arg.QuickReturn,
+		From:           arg.From,
+		FromSeqno:      fromSeqno,
+		To:             stellarcommon.RecipientInput(to),
+		Amount:         arg.Amount,
+		DisplayBalance: displayBalance,
+		SecretNote:     arg.SecretNote,
+		PublicMemo:     arg.PublicMemo,
+		ForceRelay:     false,
+		QuickReturn:    arg.QuickReturn,
 	})
 	if err != nil {
 		return res, err
