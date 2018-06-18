@@ -100,6 +100,7 @@ type fstatus struct {
 	Clients              []keybase1.ClientDetails
 	PlatformInfo         keybase1.PlatformInfo
 	OSVersion            string
+	DeviceEKNames        []string
 }
 
 func (c *CmdStatus) Run() error {
@@ -208,6 +209,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
 	status.Clients = extStatus.Clients
 	status.PlatformInfo = extStatus.PlatformInfo
+	status.DeviceEKNames = extStatus.DeviceEKNames
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {
@@ -301,6 +303,8 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("Config path:   %s\n", status.ConfigPath)
 	dui.Printf("Default user:  %s\n", status.DefaultUsername)
 	dui.Printf("Other users:   %s\n", strings.Join(status.ProvisionedUsernames, ", "))
+	dui.Printf("Known DeviceEKs:\n")
+	dui.Printf("    %s \n", strings.Join(status.DeviceEKNames, "\n    "))
 
 	c.outputClients(dui, status.Clients)
 	return nil

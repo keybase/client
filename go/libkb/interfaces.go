@@ -643,6 +643,8 @@ type DeviceEKStorage interface {
 	ClearCache()
 	// Dangerous! Only for deprovisioning.
 	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
+	// For keybase log send
+	ListAllForUser(ctx context.Context) ([]string, error)
 }
 
 type UserEKBoxStorage interface {
