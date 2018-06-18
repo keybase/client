@@ -198,12 +198,12 @@ const uninstallKBFSConfirm = (action: FsGen.UninstallKBFSConfirmPayload) =>
 const uninstallKBFSConfirmSuccess = resp =>
   (resp ? undefined : Saga.sequentially([
     Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
-    Saga.call(() => new Promise((resolve, reject) => {
+    Saga.call(() => {
         // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
         SafeElectron.getApp().relaunch()
         SafeElectron.getApp().exit(0)
       }
-    )),
+    ),
   ]))
 
 const openSecurityPreferences = () => Saga.call(
