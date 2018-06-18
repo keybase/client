@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Icon, Text, FloatingMenu} from '../../common-adapters'
+import {Box2, ClickableBox, Icon, List, Text, FloatingMenu} from '../../common-adapters'
 import {globalMargins, globalColors, isMobile} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 import {type AccountID} from '../../constants/types/wallets'
@@ -63,12 +63,35 @@ type Props = {
   onLinkExisting: () => void,
 }
 
-const WalletList = (props: Props) => (
-  <Box2 direction="vertical" style={{height: '100%', width: 240}}>
-    {props.accountIDs.map(accountID => <WalletRow key={accountID} accountID={accountID} />)}
-    <AddWallet onAddNew={props.onAddNew} onLinkExisting={props.onLinkExisting} />
-  </Box2>
-)
+type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
+
+class WalletList extends React.Component<Props> {
+  _renderRow = (i: number, row: Row): React.Node => {
+    switch (row.type) {
+      case 'wallet':
+        return <WalletRow key={row.accountID} accountID={row.accountID} />
+      case 'add wallet':
+        return <AddWallet onAddNew={this.props.onAddNew} onLinkExisting={this.props.onLinkExisting} />
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+      */
+        throw new Error(`Impossible case encountered: ${row.type}`)
+    }
+  }
+
+  render = () => {
+    const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID}))
+    rows.push({type: 'add wallet'})
+
+    return (
+      <Box2 direction="vertical" style={{height: '100%', width: 240}}>
+        <List items={rows} renderItem={this._renderRow} keyProperty="key" />
+      </Box2>
+    )
+  }
+}
 
 export type {Props}
 export {WalletList}
