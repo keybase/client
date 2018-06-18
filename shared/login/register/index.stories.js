@@ -1,5 +1,6 @@
 // @flow
 import codePage from './code-page/index.stories.js'
+import codePage2 from './code-page2/index.stories.js'
 import error from './error/index.stories.js'
 import gpgSign from './gpg-sign/index.stories.js'
 import paperKey from './paper-key/index.stories.js'
@@ -12,6 +13,7 @@ import setPublicName from './set-public-name/index.stories.js'
 const load = () => {
   ;[
     codePage,
+    codePage2,
     error,
     gpgSign,
     paperKey,
