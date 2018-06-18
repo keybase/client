@@ -33,7 +33,6 @@ const MentionCatcher = ({onClick}) => (
 
 type State = {
   emojiPickerOpen: boolean,
-  hasText: boolean,
 }
 
 class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
@@ -44,7 +43,6 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     super(props)
     this.state = {
       emojiPickerOpen: false,
-      hasText: false,
     }
   }
 
@@ -95,12 +93,10 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     const text = this._getText()
     if (text) {
       this.props.onSubmit(text)
-      this.setState({hasText: false})
     }
   }
 
   _onChangeText = (text: string) => {
-    this.setState({hasText: !!text})
     this.props.onChangeText(text)
   }
 
@@ -279,7 +275,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             {flags.explodingMessagesEnabled &&
               this.props.isExploding &&
               !this.props.isEditing &&
-              !this.state.hasText && (
+              !this._getText() && (
                 <Icon
                   color={globalColors.black_20}
                   fontSize={34}
