@@ -11,5 +11,5 @@ export function ImageRender({onLoad, style, src}: ImageRenderProps) {
 
 export function imgMaxWidth() {
   const {width: maxWidth} = NativeDimensions.get('window')
-  return Math.min(320, maxWidth - 50)
+  return Math.min(320, maxWidth - 60)
 }

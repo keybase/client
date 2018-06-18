@@ -6,6 +6,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, ClickableBox, Text, Icon} from '../../common-adapters'
+import {ZoomableBox} from '../../common-adapters/mobile.native'
 import {navigateUp} from '../../actions/route-tree'
 import {connect, type Dispatch, type TypedState} from '../../util/container'
 import {type BarePreviewProps} from './bare-preview'
@@ -56,9 +57,14 @@ const BarePreview = (props: ConnectedBarePreviewProps) => (
         </Text>
       </ClickableBox>
     </Box>
-    <Box style={stylesContentContainer}>
+    <ZoomableBox
+      contentContainerStyle={stylesContentContainer}
+      maxZoom={10}
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
+    >
       <View path={props.path} routePath={props.routePath} />
-    </Box>
+    </ZoomableBox>
     <Box style={stylesFooter}>
       <Icon type="iconfont-ellipsis" onClick={props.onAction} color={globalColors.white} />
     </Box>

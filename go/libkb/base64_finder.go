@@ -79,9 +79,9 @@ func (s *Base64Finder) findOne(i int) (string, int) {
 			}
 		} else if state == 1 {
 			break
-		} else {
-			// wait until next time
 		}
+
+		// wait until next time
 	}
 	if i == l {
 		i = -1

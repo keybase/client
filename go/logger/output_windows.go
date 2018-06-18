@@ -239,7 +239,7 @@ func (cw *ColorWriter) parseColorControl(p []byte) []byte {
 		setConsoleTextAttribute(cw.fd, code)
 	}
 	if controlIndex+1 <= len(p) {
-		controlIndex += 1
+		controlIndex++
 	}
 
 	return p[controlIndex:]

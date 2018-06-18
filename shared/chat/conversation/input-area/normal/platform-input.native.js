@@ -196,7 +196,8 @@ const Action = ({
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
       {flags.explodingMessagesEnabled &&
-        isExploding && (
+        isExploding &&
+        !isEditing && (
           <ExplodingIcon
             explodingModeSeconds={explodingModeSeconds}
             isExploding={isExploding}
@@ -285,8 +286,9 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
     backgroundColor: globalColors.yellow3,
+    flexShrink: 0,
     height: '100%',
-    maxWidth: 32,
+    minWidth: 32,
     padding: globalMargins.xtiny,
   },
   input: {

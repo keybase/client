@@ -609,36 +609,58 @@ export const makePendingTextMessage = (
   })
 }
 
-export const makePendingAttachmentMessage = (
+export const makePendingAttachmentMessages = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  attachmentType: Types.AttachmentType,
-  title: string,
-  previewURL: string,
-  outboxID: Types.OutboxID,
+  attachmentTypes: Types.AttachmentType[],
+  titles: string[],
+  previewURLs: string[],
+  outboxIDs: Types.OutboxID[],
   explodeTime?: number
 ) => {
+  if (attachmentTypes.length - titles.length + previewURLs.length - outboxIDs.length !== 0) {
+    // some are not the same size. no good.
+    throw new Error(
+      `makePendingAttachments: got arrays of differing lengths: (${attachmentTypes.length}, ${
+        titles.length
+      }, ${previewURLs.length}, ${outboxIDs.length})`
+    )
+  }
   const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  const ordinal = nextFractionalOrdinal(lastOrdinal)
+  // arbitrarily reduce on attachmentTypes to get the same length
+  const ordinals = attachmentTypes.reduce((ords, _) => {
+    if (ords.length === 0) {
+      ords.push(nextFractionalOrdinal(lastOrdinal))
+      return ords
+    }
+    ords.push(nextFractionalOrdinal(ords[ords.length - 1]))
+    return ords
+  }, [])
 
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
-  return makeMessageAttachment({
-    ...explodeInfo,
-    attachmentType,
-    author: state.config.username || '',
-    conversationIDKey,
-    deviceName: '',
-    previewURL,
-    deviceType: isMobile ? 'mobile' : 'desktop',
-    id: Types.numberToMessageID(0),
-    ordinal,
-    outboxID,
-    submitState: 'pending',
-    timestamp: Date.now(),
-    title,
-  })
+  const res = []
+  for (let i = 0; i < attachmentTypes.length; i++) {
+    res.push(
+      makeMessageAttachment({
+        ...explodeInfo,
+        attachmentType: attachmentTypes[i],
+        author: state.config.username || '',
+        conversationIDKey,
+        deviceName: '',
+        previewURL: previewURLs[i],
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        id: Types.numberToMessageID(0),
+        ordinal: ordinals[i],
+        outboxID: outboxIDs[i],
+        submitState: 'pending',
+        timestamp: Date.now(),
+        title: titles[i],
+      })
+    )
+  }
+  return res
 }
 
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {

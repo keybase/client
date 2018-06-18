@@ -477,6 +477,13 @@
           "name": "toUsername"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "toAssertion"
+        },
+        {
           "type": "string",
           "name": "note"
         },
@@ -656,6 +663,19 @@
         {
           "name": "secretKey",
           "type": "SecretKey"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "AccountID"
+    },
+    "createWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         },
         {
           "name": "name",

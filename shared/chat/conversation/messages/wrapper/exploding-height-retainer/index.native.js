@@ -35,6 +35,10 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
   timeoutID: ?TimeoutID
 
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
+  }
+
   componentDidUpdate(prevProps: Props) {
     if (this.props.retainHeight && !prevProps.retainHeight && this.props.children) {
       // we just exploded! get rid of children when we're supposed to.

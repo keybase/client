@@ -48,6 +48,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
     showBold: styles.showBold,
     snippet: stateProps._meta.snippet,
+    snippetDecoration: stateProps._meta.snippetDecoration,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
     timestamp: Constants.timestampToString(stateProps._meta),
