@@ -346,6 +346,20 @@ func (o StellarServerDefinitions) DeepCopy() StellarServerDefinitions {
 	}
 }
 
+type PageCursor struct {
+	HorizonCursor string `codec:"horizonCursor" json:"horizonCursor"`
+	DirectCursor  string `codec:"directCursor" json:"directCursor"`
+	RelayCursor   string `codec:"relayCursor" json:"relayCursor"`
+}
+
+func (o PageCursor) DeepCopy() PageCursor {
+	return PageCursor{
+		HorizonCursor: o.HorizonCursor,
+		DirectCursor:  o.DirectCursor,
+		RelayCursor:   o.RelayCursor,
+	}
+}
+
 type CommonInterface interface {
 }
 
