@@ -11,53 +11,51 @@ type AddProps = {
   onLinkExisting: () => void,
 }
 
-class _AddWallet extends React.PureComponent<AddProps & FloatingMenuParentProps> {
-  _menuItems = [
+const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
+  const rowHeight = isMobile ? 56 : 48
+
+  const menuItems = [
     {
-      onClick: () => this.props.onAddNew(),
+      onClick: () => props.onAddNew(),
       title: 'Create a new wallet',
     },
     {
       disabled: isMobile,
-      onClick: () => this.props.onLinkExisting(),
+      onClick: () => props.onLinkExisting(),
       title: 'Link an existing Stellar wallet',
     },
   ]
 
-  render() {
-    return (
-      <ClickableBox
-        onClick={this.props.toggleShowingMenu}
-        style={{backgroundColor: globalColors.white}}
-        ref={this.props.setAttachmentRef}
+  return (
+    <ClickableBox
+      onClick={props.toggleShowingMenu}
+      style={{backgroundColor: globalColors.white}}
+      ref={props.setAttachmentRef}
+    >
+      <Box2
+        style={{height: rowHeight, paddingTop: globalMargins.small}}
+        direction="horizontal"
+        fullWidth={true}
+        gap="xsmall"
+        gapStart={true}
+        gapEnd={true}
       >
-        <Box2
-          style={{height: rowHeight, paddingTop: globalMargins.small}}
-          direction="horizontal"
-          fullWidth={true}
-          gap="xsmall"
-          gapStart={true}
-          gapEnd={true}
-        >
-          <Icon type="iconfont-new" color={globalColors.blue} />
-          <Text type="BodyBigLink">Add a wallet</Text>
-        </Box2>
-        <FloatingMenu
-          attachTo={this.props.attachmentRef}
-          closeOnSelect={true}
-          items={this._menuItems}
-          onHidden={this.props.toggleShowingMenu}
-          visible={this.props.showingMenu}
-          position="bottom center"
-        />
-      </ClickableBox>
-    )
-  }
+        <Icon type="iconfont-new" color={globalColors.blue} />
+        <Text type="BodyBigLink">Add a wallet</Text>
+      </Box2>
+      <FloatingMenu
+        attachTo={props.attachmentRef}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={props.toggleShowingMenu}
+        visible={props.showingMenu}
+        position="bottom center"
+      />
+    </ClickableBox>
+  )
 }
 
 const AddWallet = FloatingMenuParentHOC(_AddWallet)
-
-const rowHeight = isMobile ? 56 : 48
 
 type Props = {
   accountIDs: Array<AccountID>,
