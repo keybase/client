@@ -2365,6 +2365,7 @@ func (e MessageUnboxedErrorType) String() string {
 type MessageUnboxedError struct {
 	ErrType            MessageUnboxedErrorType `codec:"errType" json:"errType"`
 	ErrMsg             string                  `codec:"errMsg" json:"errMsg"`
+	InternalErrMsg     string                  `codec:"internalErrMsg" json:"internalErrMsg"`
 	VersionKind        VersionKind             `codec:"versionKind" json:"versionKind"`
 	VersionNumber      int                     `codec:"versionNumber" json:"versionNumber"`
 	IsCritical         bool                    `codec:"isCritical" json:"isCritical"`
@@ -2383,6 +2384,7 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 	return MessageUnboxedError{
 		ErrType:            o.ErrType.DeepCopy(),
 		ErrMsg:             o.ErrMsg,
+		InternalErrMsg:     o.InternalErrMsg,
 		VersionKind:        o.VersionKind.DeepCopy(),
 		VersionNumber:      o.VersionNumber,
 		IsCritical:         o.IsCritical,
