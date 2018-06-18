@@ -14,7 +14,13 @@ var ErrChatServerTimeout = errors.New("timeout calling chat server")
 var ErrDuplicateConnection = errors.New("error calling chat server")
 var ErrKeyServerTimeout = errors.New("timeout calling into key server")
 
+type InternalError interface {
+	// verbose error info for debugging but not user display
+	InternalError() string
+}
+
 type UnboxingError interface {
+	InternalError
 	Error() string
 	Inner() error
 	IsPermanent() bool
@@ -80,6 +86,15 @@ func (e PermanentUnboxingError) IsCritical() bool {
 	}
 }
 
+func (e PermanentUnboxingError) InternalError() string {
+	switch err := e.Inner().(type) {
+	case InternalError:
+		return err.InternalError()
+	default:
+		return err.Error()
+	}
+}
+
 //=============================================================================
 
 func NewTransientUnboxingError(inner error) UnboxingError {
@@ -112,16 +127,29 @@ func (e TransientUnboxingError) IsCritical() bool {
 	return false
 }
 
+func (e TransientUnboxingError) InternalError() string {
+	switch err := e.Inner().(type) {
+	case InternalError:
+		return err.InternalError()
+	default:
+		return err.Error()
+	}
+}
+
 //=============================================================================
 
-type EphemeralUnboxingError struct{}
+type EphemeralUnboxingError struct{ inner error }
 
-func NewEphemeralUnboxingError() EphemeralUnboxingError {
-	return EphemeralUnboxingError{}
+func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {
+	return EphemeralUnboxingError{inner}
 }
 
 func (e EphemeralUnboxingError) Error() string {
 	return "Unable to decrypt exploding message. Missing keys"
+}
+
+func (e EphemeralUnboxingError) InternalError() string {
+	return e.inner.Error()
 }
 
 //=============================================================================
