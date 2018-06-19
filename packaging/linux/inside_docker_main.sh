@@ -40,7 +40,7 @@ true > /GPG/code_signing_key  # truncate it, just in case
 # Use very long lifetimes for the key in memory, so that we don't forget it in
 # the middle of a nightly loop.
 eval "$(gpg-agent --daemon --max-cache-ttl 315360000 --default-cache-ttl 315360000)"
-gpg --sign --use-agent --default-key "$code_signing_fingerprint" \
+gpg --sign --use-agent --local-user "$code_signing_fingerprint" \
   --output /dev/null /dev/null
 
 # Clone all the repos we'll use in the build. The --reference flag makes this
