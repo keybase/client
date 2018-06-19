@@ -9,7 +9,7 @@ const StyleOnlyBox = (props: any) => <Box children={props.children} />
 const RelativeFloatingBox = ModalPositionRelative(StyleOnlyBox)
 
 type State = {
-  targetRect: ?React.Component<any, any>,
+  targetRect: ?ClientRect,
 }
 
 class FloatingBox extends React.Component<Props, State> {
