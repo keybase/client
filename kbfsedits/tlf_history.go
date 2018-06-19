@@ -311,12 +311,12 @@ func (th *TlfHistory) recomputeLocked() (
 		}
 	}
 	sort.Sort(history)
-	// Garbage-collect any writers that don't appear in the history.
-	for i := maxWritersPerHistory; i < len(history); i++ {
-		delete(th.byWriter, history[i].writerName)
-		delete(writersWhoNeedMore, history[i].writerName)
-	}
 	if len(history) > maxWritersPerHistory {
+		// Garbage-collect any writers that don't appear in the history.
+		for i := maxWritersPerHistory; i < len(history); i++ {
+			delete(th.byWriter, history[i].writerName)
+			delete(writersWhoNeedMore, history[i].writerName)
+		}
 		history = history[:maxWritersPerHistory]
 	}
 	th.computed = true
@@ -328,7 +328,10 @@ func (th *TlfHistory) getHistoryIfCached() (
 	cached bool, history writersByRevision) {
 	th.lock.RLock()
 	defer th.lock.RUnlock()
-	return th.computed, th.cachedHistory
+	if th.computed {
+		return true, th.cachedHistory
+	}
+	return false, nil
 }
 
 func (th *TlfHistory) getHistory() writersByRevision {
