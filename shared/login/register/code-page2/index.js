@@ -3,6 +3,7 @@ import * as React from 'react'
 import {Box2, Text, Icon, Input, Button} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
 import QRImage from './qr-image'
+// import QRScan from './qr-scan'
 
 type Mode = 'viewQR' | 'scanQR' | 'enterText' | 'viewText'
 
@@ -36,9 +37,8 @@ const ViewQR = ({url, instructions}) => (
   </PanelContainer>
 )
 
-const ScanQR = () => {
-  return <Text type="Body">ScanQR</Text>
-}
+// <QRScan onScan={onScan} />
+const ScanQR = ({onScan, instructions}) => <PanelContainer instructions={instructions}>{null}</PanelContainer>
 const ViewText = ({instructions, code}) => (
   <PanelContainer instructions={instructions}>
     <Text type="Terminal" style={styles.textCode}>
@@ -78,7 +78,9 @@ class CodePage2 extends React.Component<Props, State> {
   _getContent = () => {
     switch (this.state.mode) {
       case 'scanQR':
-        return <ScanQR />
+        return (
+          <ScanQR onScan={this.props.onSubmitTextCode} instructions={this.props.viewQrCodeInstructions} />
+        )
       case 'viewQR':
         return <ViewQR url={this.props.viewQrCode} instructions={this.props.viewQrCodeInstructions} />
       case 'enterText':
