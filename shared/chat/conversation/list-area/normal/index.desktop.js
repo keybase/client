@@ -366,6 +366,14 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   componentWillUnmount() {
     this._onResize.cancel()
     this._measure.cancel()
+    this._cancelAnim()
+  }
+
+  _cancelAnim = () => {
+    if (this._animID) {
+      cancelAnimationFrame(this._animID)
+      this._animID = 0
+    }
   }
 
   _handlePositionChange = ({currentPosition}) => {
@@ -373,7 +381,15 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     console.log('aaaa', noj1 && noj1.getBoundingClientRect())
     if (currentPosition) {
       const isVisible = currentPosition === 'inside'
-      this.setState(p => (p.isVisible !== isVisible ? {isVisible} : undefined))
+      this._cancelAnim()
+      if (isVisible) {
+        this.setState(p => (p.isVisible !== isVisible ? {isVisible} : undefined))
+      } else {
+        this._animID = requestAnimationFrame(() => {
+          this._animID = 0
+          this.setState(p => (p.isVisible ? {isVisible: false} : undefined))
+        })
+      }
     }
   }
 
