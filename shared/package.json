@@ -11,10 +11,8 @@
     "local-visdiff": "yarn run _helper local-visdiff",
     "postinstall": "yarn run _helper postinstall",
     "prettier": "./node_modules/.bin/prettier --write ",
-    "prettier-check":
-      "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier --debug-check",
-    "prettier-write-all":
-      "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier ",
+    "prettier-check": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier --debug-check",
+    "prettier-write-all": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier ",
     "render-screenshots": "yarn run _helper render-screenshots",
     "test": "cross-env-shell BABEL_ENV=yarn jest",
     "apply-new-fonts": "yarn run _helper apply-new-fonts",
@@ -42,14 +40,10 @@
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-build-android": "./react-native/buildAndroid.sh",
     "rn-push-android": "./react-native/pushAndroid.sh",
-    "rn-packager-wipe-cache":
-      "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
-    "rn-test-ios":
-      "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
-    "rn-jsbuild-ios":
-      "mkdir -p react-native/ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output react-native/ios/dist/main.jsbundle --sourcemap-output react-native/ios/dist/main.jsbundle.sourcemap",
-    "rn-jsbuild-android":
-      "mkdir -p react-native/android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/dist/main.jsbundle --sourcemap-output react-native/android/dist/main.jsbundle.sourcemap",
+    "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
+    "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
+    "rn-jsbuild-ios": "mkdir -p react-native/ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output react-native/ios/dist/main.jsbundle --sourcemap-output react-native/ios/dist/main.jsbundle.sourcemap",
+    "rn-jsbuild-android": "mkdir -p react-native/android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/dist/main.jsbundle --sourcemap-output react-native/android/dist/main.jsbundle.sourcemap",
     "storybook": "cross-env-shell BABEL_ENV=yarn start-storybook -s . -p 6006",
     "rn-storybook": "storybook start -p 7007",
     "build-storybook": "build-storybook",
@@ -125,6 +119,7 @@
     "emoji-datasource": "4.0.4",
     "emoji-datasource-apple": "4.0.4",
     "emoji-mart": "2.6.1",
+    "exif-js": "^2.3.0",
     "flow-coverage-report": "^0.5.0",
     "framed-msgpack-rpc": "1.1.13",
     "getenv": "0.7.0",
@@ -132,8 +127,7 @@
     "glamorous": "4.13.1",
     "glamorous-native": "1.4.0",
     "iced-runtime": "1.0.3",
-    "immutable":
-      "git://github.com/keybase/immutable-sorted#2a5895d4a5b36e632f833aec2cc84d2ad319bf71",
+    "immutable": "git://github.com/keybase/immutable-sorted#2a5895d4a5b36e632f833aec2cc84d2ad319bf71",
     "jsonfile": "^4.0.0",
     "lodash-es": "4.17.10",
     "menubar": "5.2.3",
@@ -157,14 +151,13 @@
     "react-native-fetch-blob": "0.10.8",
     "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
     "react-native-mime-types": "^2.2.1",
-    "react-native-push-notification":
-      "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302",
+    "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302",
     "react-native-wkwebview-reborn": "^1.20.0",
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "5.0.7",
     "react-transition-group": "2.3.1",
-    "react-waypoint": "^8.0.1",
     "react-virtualized": "9.19.1",
+    "react-waypoint": "^8.0.1",
     "recompose": "0.27.1",
     "redux": "4.0.0",
     "redux-batched-subscribe": "0.1.6",
