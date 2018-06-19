@@ -182,7 +182,7 @@ const RightSide = props => (
       <ExplodingMeta
         exploded={props.exploded}
         explodesAt={props.explodesAt}
-        pending={props.messagePending}
+        pending={props.messagePending || props.messageFailed}
         onClick={props.exploded ? null : props.toggleShowingMenu}
       />
     )}
