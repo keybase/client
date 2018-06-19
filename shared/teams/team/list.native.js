@@ -10,10 +10,9 @@ type State = {
 class List extends React.Component<Props, State> {
   _renderSectionHeader = ({section}) => (section.key === 'body' ? this.props.renderRow(section.header) : null)
   _renderRow = data => this.props.renderRow(data.item)
-  state: State = {sections: []}
 
-  static getDerivedStateFromProps(nextProps: Props) {
-    const rows = nextProps.rows || []
+  render() {
+    const rows = this.props.rows || []
     const sections = [
       {
         data: rows.slice(0, 1),
@@ -25,17 +24,13 @@ class List extends React.Component<Props, State> {
         key: 'body',
       },
     ]
-    return {sections}
-  }
-
-  render() {
     return (
       <NativeSectionList
         alwaysBounceVertical={false}
         renderItem={this._renderRow}
         renderSectionHeader={this._renderSectionHeader}
         stickySectionHeadersEnabled={true}
-        sections={this.state.sections}
+        sections={sections}
         style={listStyle}
         contentContainerStyle={contentContainerStyle}
       />
