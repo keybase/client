@@ -817,12 +817,12 @@ const loadMoreMessages = (
     }
 
     const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
+
     const actions = []
 
     let shouldClearOthers = false
     if (!isScrollingBack && !calledClear) {
-      // TEMP this causes a lot of remeasure on desktop that we need to fix
-      shouldClearOthers = isMobile
+      shouldClearOthers = true
       calledClear = true
     }
 
