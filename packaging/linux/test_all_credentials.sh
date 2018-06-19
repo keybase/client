@@ -27,7 +27,6 @@ github_url="https://api.github.com/?access_token=$github_token"
 curl --fail --silent --show-error "$github_url" > /dev/null
 
 echo 'Checking the GPG code signing key...'
-fingerprint="$(cat "$here/code_signing_fingerprint")"
-gpg --sign --use-agent --default-key="$fingerprint" <<< "junk" > /dev/null
+gpg --sign --use-agent --local-user="Keybase.io Code Signing" <<< "junk" > /dev/null
 
 echo "SUCCESS!"
