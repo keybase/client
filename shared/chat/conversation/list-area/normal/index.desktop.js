@@ -362,6 +362,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     numOrdinals: 0,
     width: null,
   }
+  _animID: number
 
   componentWillUnmount() {
     this._onResize.cancel()
@@ -371,21 +372,19 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
 
   _cancelAnim = () => {
     if (this._animID) {
-      cancelAnimationFrame(this._animID)
+      window.cancelAnimationFrame(this._animID)
       this._animID = 0
     }
   }
 
   _handlePositionChange = ({currentPosition}) => {
-    const noj1 = ReactDOM.findDOMNode(this._nojima)
-    console.log('aaaa', noj1 && noj1.getBoundingClientRect())
     if (currentPosition) {
       const isVisible = currentPosition === 'inside'
       this._cancelAnim()
       if (isVisible) {
         this.setState(p => (p.isVisible !== isVisible ? {isVisible} : undefined))
       } else {
-        this._animID = requestAnimationFrame(() => {
+        this._animID = window.requestAnimationFrame(() => {
           this._animID = 0
           this.setState(p => (p.isVisible ? {isVisible: false} : undefined))
         })
@@ -428,10 +427,6 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     this.setState(p => (p.height ? {height: null} : null))
   }, 100)
 
-  nojima = r => {
-    this._nojima = r
-  }
-
   shouldComponentUpdate(nextProps, nextState) {
     // Only redraw when isVisible changes or your numOrdinals change, else we rerender as the measurements happen
     let shouldUpdate = false
@@ -447,7 +442,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     return shouldUpdate
   }
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: OrdinalWaypointProps) {
     if (this.props.ordinals.length !== prevProps.ordinals.length) {
       this.setState(p => (p.height ? {height: null} : null))
     }
@@ -477,7 +472,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
       content = <div data-key={this.props.id} style={{height: this.state.height}} />
     }
     return (
-      <Waypoint ref={this.nojima} key={this.props.id} onPositionChange={this._handlePositionChange}>
+      <Waypoint key={this.props.id} onPositionChange={this._handlePositionChange}>
         {content}
       </Waypoint>
     )
