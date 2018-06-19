@@ -783,7 +783,7 @@ func (p *pullLocalResultCollector) String() string {
 	return fmt.Sprintf("[ %s: t: %d ]", p.Name(), p.num)
 }
 
-func (p *pullLocalResultCollector) haveRealResults() bool {
+func (p *pullLocalResultCollector) hasRealResults() bool {
 	for _, m := range p.Result() {
 		st, err := m.State()
 		if err != nil {
@@ -802,7 +802,7 @@ func (p *pullLocalResultCollector) haveRealResults() bool {
 
 func (p *pullLocalResultCollector) Error(err storage.Error) storage.Error {
 	// Swallow this error, we know we can miss if we get anything at all
-	if _, ok := err.(storage.MissError); ok && p.haveRealResults() {
+	if _, ok := err.(storage.MissError); ok && p.hasRealResults() {
 		return nil
 	}
 	return err
