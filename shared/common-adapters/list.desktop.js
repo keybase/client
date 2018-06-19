@@ -8,6 +8,11 @@ import type {Props} from './list'
 class List extends PureComponent<Props<any>, void> {
   _list: ?ReactList
   _itemRender = index => {
+    // ReactList has an issue where it caches the list length into its own state so can ask
+    // for indicies outside of the items...
+    if (index >= this.props.items.length) {
+      return null
+    }
     const item = this.props.items[index]
     return this.props.renderItem(index, item)
   }
