@@ -28,16 +28,16 @@ type convLocal struct {
 
 type convLocalByIDMap map[string]*convLocal
 
-type convLocalByTypeMap map[tlf.Type]convLocalByIDMap
+type convLocalByNameMap map[tlf.CanonicalName]convLocalByIDMap
 
-type convLocalByNameMap map[tlf.CanonicalName]convLocalByTypeMap
+type convLocalByTypeMap map[tlf.Type]convLocalByNameMap
 
 type newConvCB func(context.Context, *TlfHandle, chat1.ConversationID, string)
 
 type chatLocalSharedData struct {
-	lock          sync.Mutex
+	lock          sync.RWMutex
 	newChannelCBs []newConvCB
-	convs         convLocalByNameMap
+	convs         convLocalByTypeMap
 	convsByID     convLocalByIDMap
 }
 
@@ -63,7 +63,7 @@ func newChatLocalWithData(config Config, data *chatLocalSharedData) *chatLocal {
 // newChatLocal constructs a new local chat implementation.
 func newChatLocal(config Config) *chatLocal {
 	return newChatLocalWithData(config, &chatLocalSharedData{
-		convs:         make(convLocalByNameMap),
+		convs:         make(convLocalByTypeMap),
 		convsByID:     make(convLocalByIDMap),
 		newChannelCBs: []newConvCB{config.KBFSOps().NewNotificationChannel},
 	})
@@ -82,14 +82,14 @@ func (c *chatLocal) GetConversationID(
 
 	c.data.lock.Lock()
 	defer c.data.lock.Unlock()
-	byID, ok := c.data.convs[tlfName][tlfType]
+	byID, ok := c.data.convs[tlfType][tlfName]
 	if !ok {
-		if _, ok := c.data.convs[tlfName]; !ok {
-			c.data.convs[tlfName] = make(convLocalByTypeMap)
+		if _, ok := c.data.convs[tlfType]; !ok {
+			c.data.convs[tlfType] = make(convLocalByNameMap)
 		}
-		if _, ok := c.data.convs[tlfName][tlfType]; !ok {
+		if _, ok := c.data.convs[tlfType][tlfName]; !ok {
 			byID = make(convLocalByIDMap)
-			c.data.convs[tlfName][tlfType] = byID
+			c.data.convs[tlfType][tlfName] = byID
 		}
 	}
 	for _, conv := range byID {
@@ -108,7 +108,7 @@ func (c *chatLocal) GetConversationID(
 		convID:   id,
 		chanName: channelName,
 	}
-	c.data.convs[tlfName][tlfType][id.String()] = conv
+	c.data.convs[tlfType][tlfName][id.String()] = conv
 	c.data.convsByID[id.String()] = conv
 	return id, nil
 }
@@ -119,7 +119,7 @@ func (c *chatLocal) SendTextMessage(
 	convID chat1.ConversationID, body string) error {
 	c.data.lock.Lock()
 	defer c.data.lock.Unlock()
-	conv, ok := c.data.convs[tlfName][tlfType][convID.String()]
+	conv, ok := c.data.convs[tlfType][tlfName][convID.String()]
 	if !ok {
 		return errors.Errorf("Conversation %s doesn't exist", convID.String())
 	}
@@ -136,6 +136,21 @@ type chatHandleAndTime struct {
 	mtime time.Time
 }
 
+type chatHandleAndTimeByMtime []chatHandleAndTime
+
+func (chatbm chatHandleAndTimeByMtime) Len() int {
+	return len(chatbm)
+}
+
+func (chatbm chatHandleAndTimeByMtime) Less(i, j int) bool {
+	// Reverse sort so newest conversation is at index 0.
+	return chatbm[i].mtime.After(chatbm[j].mtime)
+}
+
+func (chatbm chatHandleAndTimeByMtime) Swap(i, j int) {
+	chatbm[i], chatbm[j] = chatbm[j], chatbm[i]
+}
+
 // GetGroupedInbox implements the Chat interface.
 func (c *chatLocal) GetGroupedInbox(
 	ctx context.Context, chatType chat1.TopicType, maxChats int) (
@@ -149,12 +164,12 @@ func (c *chatLocal) GetGroupedInbox(
 		return nil, err
 	}
 
-	var handlesAndTimes []chatHandleAndTime
+	var handlesAndTimes chatHandleAndTimeByMtime
 
 	c.data.lock.Lock()
 	defer c.data.lock.Unlock()
-	for name, byType := range c.data.convs {
-		for t, byID := range byType {
+	for t, byName := range c.data.convs {
+		for name, byID := range byName {
 			if t == tlf.Public && string(name) != string(session.Name) {
 				// Skip public TLFs that aren't our own.
 				continue
@@ -186,11 +201,8 @@ func (c *chatLocal) GetGroupedInbox(
 		}
 	}
 
-	sort.Slice(handlesAndTimes, func(i, j int) bool {
-		// Reverse sort so newest conversation is at index 0.
-		return handlesAndTimes[i].mtime.After(handlesAndTimes[j].mtime)
-	})
-	for i := 0; i < maxChats && i < len(handlesAndTimes); i++ {
+	sort.Sort(handlesAndTimes)
+	for i := 0; i < len(handlesAndTimes) && i < maxChats; i++ {
 		results = append(results, handlesAndTimes[i].h)
 	}
 	return results, nil
@@ -205,9 +217,9 @@ func (c *chatLocal) GetChannels(
 		panic(fmt.Sprintf("Bad topic type: %d", chatType))
 	}
 
-	c.data.lock.Lock()
-	defer c.data.lock.Unlock()
-	byID := c.data.convs[tlfName][tlfType]
+	c.data.lock.RLock()
+	defer c.data.lock.RUnlock()
+	byID := c.data.convs[tlfType][tlfName]
 	for _, conv := range byID {
 		convIDs = append(convIDs, conv.convID)
 		channelNames = append(channelNames, conv.chanName)
@@ -219,8 +231,8 @@ func (c *chatLocal) GetChannels(
 func (c *chatLocal) ReadChannel(
 	ctx context.Context, convID chat1.ConversationID, startPage []byte) (
 	messages []string, nextPage []byte, err error) {
-	c.data.lock.Lock()
-	defer c.data.lock.Unlock()
+	c.data.lock.RLock()
+	defer c.data.lock.RUnlock()
 	conv, ok := c.data.convsByID[convID.String()]
 	if !ok {
 		return nil, nil, errors.Errorf(
