@@ -142,12 +142,15 @@ export type _Download = {
 }
 export type Download = I.RecordOf<_Download>
 
-export type _Upload = {
-  writingToJournal: boolean,
-  journalFlushing: boolean,
-  error?: string,
+export type _Uploads = {
+  writingToJournal: I.Set<Path>,
+  errors: I.Map<Path, string>,
+
+  totalSyncingBytes: number,
+  endEstimate?: number,
+  syncingPaths: I.Set<Path>,
 }
-export type Upload = I.RecordOf<_Upload>
+export type Uploads = I.RecordOf<_Uploads>
 
 // 'both' is only supported on macOS
 export type OpenDialogType = 'file' | 'directory' | 'both'
@@ -178,20 +181,13 @@ export type _LocalHTTPServer = {
 }
 export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
-export type _Journal = {
-  totalSyncingBytes: number,
-  endEstimate?: number,
-}
-export type Journal = I.RecordOf<_Journal>
-
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
   edits: I.Map<EditID, Edit>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   downloads: I.Map<string, Download>,
-  uploads: I.Map<Path, I.Map<string, Upload>>, // parent path -> name -> Upload
-  journal: Journal,
+  uploads: Uploads,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
   localHTTPServerInfo: ?LocalHTTPServer,

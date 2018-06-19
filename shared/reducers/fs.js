@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
@@ -137,49 +138,23 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissDownload: {
       return state.removeIn(['downloads', action.payload.key])
     }
-    case FsGen.uploadStarted: {
-      const name = Types.getPathName(action.payload.path)
-      const parentPath = Types.getPathParent(action.payload.path)
-      return state.updateIn(
-        // $FlowFixMe
-        ['uploads', parentPath, name],
-        (original: Types.Upload) =>
-          original ? original.set('writingToJournal', true) : Constants.makeUpload({writingToJournal: true})
+    case FsGen.uploadStarted:
+      return state.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
+        writingToJournal.add(action.payload.path)
       )
-    }
     case FsGen.uploadWritingFinished: {
-      const name = Types.getPathName(action.payload.path)
-      const parentPath = Types.getPathParent(action.payload.path)
-      return state.updateIn(
-        // $FlowFixMe
-        ['uploads', parentPath, name],
-        (original: Types.Upload) =>
-          original
-            ? original.set('writingToJournal', false).set('error', action.payload.error)
-            : Constants.makeUpload({writingToJournal: false, error: action.payload.error})
+      const {path, error} = action.payload
+      const withError = error ? state.setIn(['uploads', 'errors', path], error) : state
+      return withError.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
+        writingToJournal.remove(action.payload.path)
       )
     }
     case FsGen.journalUpdate: {
       const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
-      return (syncingPaths || [])
-        .reduce((state, pathStr) => {
-          const path = Types.stringToPath(pathStr)
-          const parentPath = Types.getPathParent(path)
-          const name = Types.getPathName(path)
-          return state.updateIn(
-            // $FlowFixMe
-            ['uploads', parentPath, name],
-            (original: Types.Upload) =>
-              original ? original.set('journalFlushing', true) : Constants.makeUpload({journalFlushing: true})
-          )
-        }, state)
-        .set(
-          'journal',
-          Constants.makeJournal({
-            totalSyncingBytes,
-            endEstimate: endEstimate || undefined,
-          })
-        )
+      return state
+        .setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
+        .setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
+        .setIn(['uploads', 'endEstimate'], endEstimate || undefined)
     }
     case FsGen.fuseStatusResult:
       return state.merge({fuseStatus: action.payload.status})
@@ -234,8 +209,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ]
       )
     case FsGen.newFolderName:
+      // $FlowFixMe
       return state.updateIn(
-        // $FlowFixMe
         ['edits', action.payload.editID],
         editItem => editItem && editItem.set('name', action.payload.name)
       )

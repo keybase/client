@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
@@ -22,13 +21,16 @@ const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
 
 const mergeProps = ({_pathItem, _uploads, _username}, dispatchProps, {path}: OwnProps) => {
   const name = Types.getPathName(path)
-  const parentPath = Types.getPathParent(path)
-  const upload = _uploads.get(parentPath, I.Map()).get(name, Constants.makeUpload())
+  const error = _uploads.errors.has(path)
+  const writingToJournal = _uploads.writingToJournal.has(path)
+  const syncing = _uploads.syncingPaths.has(path)
 
   return {
     name,
     itemStyles: Constants.getItemStyles(Types.getPathElements(path), _pathItem.type, _username),
-    upload,
+    error,
+    writingToJournal,
+    syncing,
   }
 }
 

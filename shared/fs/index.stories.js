@@ -258,51 +258,44 @@ const load = () => {
         <UploadingRow
           name="foo"
           itemStyles={folderItemStyles}
-          upload={Constants.makeUpload({
-            writingToJournal: true,
-            journalFlushing: false,
-          })}
+          writingToJournal={true}
+          syncing={false}
+          error={false}
         />
         <UploadingRow
           name="foo"
           itemStyles={fileItemStyles}
-          upload={Constants.makeUpload({
-            writingToJournal: true,
-            journalFlushing: false,
-          })}
+          writingToJournal={true}
+          syncing={false}
+          error={false}
         />
         <UploadingRow
           name="foo"
           itemStyles={fileItemStyles}
-          upload={Constants.makeUpload({
-            writingToJournal: true,
-            journalFlushing: true,
-          })}
+          writingToJournal={true}
+          syncing={true}
+          error={false}
         />
         <UploadingRow
           name="foo"
           itemStyles={fileItemStyles}
-          upload={Constants.makeUpload({
-            writingToJournal: false,
-            journalFlushing: true,
-          })}
+          writingToJournal={false}
+          syncing={true}
+          error={false}
         />
         <UploadingRow
           name="foo"
           itemStyles={fileItemStyles}
-          upload={Constants.makeUpload({
-            writingToJournal: false,
-            journalFlushing: false,
-          })}
+          writingToJournal={false}
+          syncing={false}
+          error={false}
         />
         <UploadingRow
           name="foo"
           itemStyles={fileItemStyles}
-          upload={Constants.makeUpload({
-            writingToJournal: false,
-            journalFlushing: false,
-            error: 'blah',
-          })}
+          writingToJournal={false}
+          syncing={false}
+          error={true}
         />
         <StillRow
           name="bar"

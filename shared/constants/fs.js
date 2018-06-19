@@ -115,12 +115,6 @@ export const makeDownload: I.RecordFactory<Types._Download> = I.Record({
   state: makeDownloadState(),
 })
 
-export const makeUpload: I.RecordFactory<Types._Upload> = I.Record({
-  writingToJournal: false,
-  journalFlushing: false,
-  error: undefined,
-})
-
 export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   kbfsOpening: false,
   kbfsInstalling: false,
@@ -136,9 +130,13 @@ export const makeLocalHTTPServer: I.RecordFactory<Types._LocalHTTPServer> = I.Re
   token: '',
 })
 
-export const makeJournal: I.RecordFactory<Types._Journal> = I.Record({
+export const makeUploads: I.RecordFactory<Types._Uploads> = I.Record({
+  writingToJournal: I.Set(),
+  errors: I.Map(),
+
   totalSyncingBytes: 0,
   endEstimate: undefined,
+  syncingPaths: I.Set(),
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -149,8 +147,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   downloads: I.Map(),
-  uploads: I.Map(),
-  journal: makeJournal(),
+  uploads: makeUploads(),
   localHTTPServerInfo: null,
 })
 

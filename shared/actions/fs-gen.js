@@ -118,7 +118,7 @@ type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
 type _JournalUpdatePayload = $ReadOnly<{|
-  syncingPaths?: ?Array<string>,
+  syncingPaths: Array<Types.Path>,
   totalSyncingBytes: number,
   endEstimate?: ?number,
 |}>

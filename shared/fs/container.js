@@ -91,12 +91,11 @@ const getStillRows = (
 // TODO: when we have renames, reconsile editing rows in here too.
 const amendStillRows = (
   stills: Array<SortableStillRowItem>,
-  uploads: I.Map<string, Types.Upload>
+  uploads: Types.Uploads
 ): Array<SortableRowItem> =>
   stills.map(still => {
     const {name, type, path} = still
-    const upload = uploads.get(name)
-    if (upload && (upload.journalFlushing || upload.writingToJournal)) {
+    if (uploads.writingToJournal.has(path) || uploads.syncingPaths.has(path)) {
       return ({
         rowType: 'uploading',
         name,
@@ -128,10 +127,9 @@ const mergeProps = (stateProps, dispatchProps, {routePath}) => {
     stateProps.path,
     stateProps._itemChildren.union(stateProps._itemFavoriteChildren).toArray()
   )
-  const uploads = stateProps._uploads.get(stateProps.path, I.Map())
 
   const items = sortRowItems(
-    editingRows.concat(amendStillRows(stillRows, uploads)),
+    editingRows.concat(amendStillRows(stillRows, stateProps._uploads)),
     stateProps._sortSetting,
     Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
   )

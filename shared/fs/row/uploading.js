@@ -9,43 +9,45 @@ import PathItemIcon from '../common/path-item-icon'
 type UploadingProps = {
   name: string,
   itemStyles: Types.ItemStyles,
-  upload: Types.Upload,
+  error: boolean,
+  writingToJournal: boolean,
+  syncing: boolean,
 }
 
-const getStatusText = (upload: Types.Upload): string => {
-  if (upload.error) {
+const getStatusText = ({error, writingToJournal, syncing}: UploadingProps): string => {
+  if (error) {
     return 'Upload error'
   }
-  if (upload.writingToJournal && upload.journalFlushing) {
+  if (writingToJournal && syncing) {
     return 'Encrypting & Uploading'
   }
-  if (upload.writingToJournal) {
+  if (writingToJournal) {
     return 'Encrypting'
   }
-  if (upload.journalFlushing) {
+  if (syncing) {
     return 'Uploading'
   }
   return 'Done'
 }
 
-const Uploading = ({name, itemStyles, upload}: UploadingProps) => (
+const Uploading = (props: UploadingProps) => (
   <Box>
     <Box style={rowStyles.row}>
-      <PathItemIcon spec={itemStyles.iconSpec} style={rowStyles.pathItemIcon_30} />
+      <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon_30} />
       <Box style={stylesIconBadge}>
         <Icon type="icon-addon-file-uploading" />
       </Box>
       <Box key="main" style={rowStyles.itemBox}>
         <Text
-          type={itemStyles.textType}
-          style={rowStyles.rowText_30(itemStyles.textColor)}
+          type={props.itemStyles.textType}
+          style={rowStyles.rowText_30(props.itemStyles.textColor)}
           lineClamp={isMobile ? 1 : undefined}
         >
-          {name}
+          {props.name}
         </Text>
         <Meta
-          title={getStatusText(upload)}
-          backgroundColor={upload.error ? globalColors.red : globalColors.blue}
+          title={getStatusText(props)}
+          backgroundColor={props.error ? globalColors.red : globalColors.blue}
         />
       </Box>
     </Box>
