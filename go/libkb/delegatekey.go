@@ -172,7 +172,7 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 	// For a sibkey signature, we first sign the blob with the
 	// sibkey, and then embed that signature for the delegating key
 	if d.DelegationType == DelegationTypeSibkey {
-		if jw, err = KeyProof(*d); err != nil {
+		if jw, err = KeyProof(m, *d); err != nil {
 			m.CDebugf("| Failure in intermediate KeyProof()")
 			return err
 		}
@@ -187,7 +187,7 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 		panic("should have a local DB")
 	}
 
-	if jw, err = KeyProof(*d); err != nil {
+	if jw, err = KeyProof(m, *d); err != nil {
 		m.CDebugf("| Failure in KeyProof()")
 		return
 	}

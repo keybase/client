@@ -169,7 +169,7 @@ func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey lib
 	}
 
 	// Generate a signature with our unlocked sibling key from device.
-	proof, err := c.me.UpdatePassphraseProof(sigKey, pwh, ppGen+1, pdpka5kid)
+	proof, err := c.me.UpdatePassphraseProof(m, sigKey, pwh, ppGen+1, pdpka5kid)
 	if err != nil {
 		return err
 	}
