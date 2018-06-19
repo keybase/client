@@ -4,7 +4,6 @@
 // We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
 // We use react-measure to cache the heights
 
-import * as ReactDOM from 'react-dom'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import Measure from 'react-measure'
