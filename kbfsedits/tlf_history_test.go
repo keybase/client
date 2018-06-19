@@ -259,3 +259,39 @@ func TestTlfHistoryNeedsMoreThenComplete(t *testing.T) {
 	}
 	checkTlfHistory(t, th, expected)
 }
+
+func TestTlfHistoryTrimming(t *testing.T) {
+	aliceName := "alice"
+	aliceUID := keybase1.MakeTestUID(1)
+	tlfID, err := tlf.MakeRandomID(tlf.Private)
+	require.NoError(t, err)
+
+	var allExpected notificationsByRevision
+
+	var aliceMessages []string
+	nn := nextNotification{1, 0, tlfID, nil}
+	for i := 0; i < maxEditsPerWriter+2; i++ {
+		event := nn.make(strconv.Itoa(i), NotificationCreate, aliceUID, nil)
+		allExpected = append(allExpected, event)
+		aliceMessages = append(aliceMessages, nn.encode(t))
+	}
+	sort.Sort(allExpected)
+	t.Logf("%#v\n", allExpected)
+
+	// Input the max+1.
+	expected := writersByRevision{
+		{aliceName, allExpected[1 : maxEditsPerWriter+1]},
+	}
+	th := NewTlfHistory()
+	err = th.AddNotifications(aliceName, aliceMessages[:maxEditsPerWriter+1])
+	require.NoError(t, err)
+	checkTlfHistory(t, th, expected)
+
+	// Then input the last one, and make sure the correct item was trimmed.
+	err = th.AddNotifications(aliceName, aliceMessages[maxEditsPerWriter+1:])
+	require.NoError(t, err)
+	expected = writersByRevision{
+		{aliceName, allExpected[:maxEditsPerWriter]},
+	}
+	checkTlfHistory(t, th, expected)
+}

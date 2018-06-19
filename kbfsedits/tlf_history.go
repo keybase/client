@@ -289,7 +289,7 @@ func (th *TlfHistory) recomputeLocked() (
 			// for the cached history.
 			numProcessed := r.numProcessed[nextWriter]
 			th.byWriter[nextWriter].notifications =
-				th.byWriter[nextWriter].notifications[numProcessed:]
+				th.byWriter[nextWriter].notifications[:numProcessed]
 		} else {
 			writersHeap[0].notifications = writersHeap[0].notifications[1:]
 		}
