@@ -783,9 +783,27 @@ func (p *pullLocalResultCollector) String() string {
 	return fmt.Sprintf("[ %s: t: %d ]", p.Name(), p.num)
 }
 
+func (p *pullLocalResultCollector) realHits() (total int) {
+	for _, m := range p.Result() {
+		st, err := m.State()
+		if err != nil {
+			// count these
+			total++
+			continue
+		}
+		switch st {
+		case chat1.MessageUnboxedState_PLACEHOLDER:
+			// don't count!
+		default:
+			total++
+		}
+	}
+	return total
+}
+
 func (p *pullLocalResultCollector) Error(err storage.Error) storage.Error {
 	// Swallow this error, we know we can miss if we get anything at all
-	if _, ok := err.(storage.MissError); ok && len(p.Result()) > 0 {
+	if _, ok := err.(storage.MissError); ok && p.realHits() > 0 {
 		return nil
 	}
 	return err
