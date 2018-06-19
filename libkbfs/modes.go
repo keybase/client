@@ -104,6 +104,10 @@ func (md modeDefault) TLFEditHistoryEnabled() bool {
 	return true
 }
 
+func (md modeDefault) SendEditNotificationsEnabled() bool {
+	return true
+}
+
 func (md modeDefault) ClientType() keybase1.ClientType {
 	return keybase1.ClientType_KBFS
 }
@@ -206,6 +210,11 @@ func (mm modeMinimal) TLFEditHistoryEnabled() bool {
 	return false
 }
 
+func (mm modeMinimal) SendEditNotificationsEnabled() bool {
+	// Writes aren't allowed, so we shouldn't need to send any.
+	return false
+}
+
 func (mm modeMinimal) ClientType() keybase1.ClientType {
 	return keybase1.ClientType_KBFS
 }
@@ -249,6 +258,12 @@ func (mso modeSingleOp) UnmergedTLFsEnabled() bool {
 }
 
 func (mso modeSingleOp) TLFEditHistoryEnabled() bool {
+	return false
+}
+
+func (mso modeSingleOp) SendEditNotificationsEnabled() bool {
+	// We don't want git, or other single op writes, showing up in the
+	// notification history.
 	return false
 }
 
@@ -315,6 +330,11 @@ func (mc modeConstrained) ServiceKeepaliveEnabled() bool {
 }
 
 func (mc modeConstrained) TLFEditHistoryEnabled() bool {
+	return false
+}
+
+func (mc modeConstrained) SendEditNotificationsEnabled() bool {
+	// TODO: turn this on once we allow mobile writes.
 	return false
 }
 

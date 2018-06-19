@@ -1857,6 +1857,9 @@ type InitMode interface {
 	// TLFEditHistoryEnabled indicates whether we should be running
 	// the background TLF edit history process.
 	TLFEditHistoryEnabled() bool
+	// SendEditNotificationsEnabled indicates whether we should send
+	// edit notifications on FS writes.
+	SendEditNotificationsEnabled() bool
 	// ClientType indicates the type we should advertise to the
 	// Keybase service.
 	ClientType() keybase1.ClientType

@@ -6077,6 +6077,18 @@ func (mr *MockInitModeMockRecorder) TLFEditHistoryEnabled() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TLFEditHistoryEnabled", reflect.TypeOf((*MockInitMode)(nil).TLFEditHistoryEnabled))
 }
 
+// SendEditNotificationsEnabled mocks base method
+func (m *MockInitMode) SendEditNotificationsEnabled() bool {
+	ret := m.ctrl.Call(m, "SendEditNotificationsEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// SendEditNotificationsEnabled indicates an expected call of SendEditNotificationsEnabled
+func (mr *MockInitModeMockRecorder) SendEditNotificationsEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEditNotificationsEnabled", reflect.TypeOf((*MockInitMode)(nil).SendEditNotificationsEnabled))
+}
+
 // ClientType mocks base method
 func (m *MockInitMode) ClientType() keybase1.ClientType {
 	ret := m.ctrl.Call(m, "ClientType")

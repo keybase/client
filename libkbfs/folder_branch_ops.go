@@ -818,12 +818,16 @@ func (fbo *folderBranchOps) setHeadLocked(
 		// Start registering for updates right away, using this MD
 		// as a starting point. For now only the master branch can
 		// get updates
-		if fbo.branch() == MasterBranch &&
-			fbo.config.Mode().TLFUpdatesEnabled() {
-			fbo.updateDoneChan = make(chan struct{})
-			go fbo.registerAndWaitForUpdates()
-			go fbo.monitorEditsChat()
+		if fbo.branch() == MasterBranch {
+			if fbo.config.Mode().TLFUpdatesEnabled() {
+				fbo.updateDoneChan = make(chan struct{})
+				go fbo.registerAndWaitForUpdates()
+			}
+			if fbo.config.Mode().TLFEditHistoryEnabled() {
+				go fbo.monitorEditsChat()
+			}
 		}
+
 		// If journaling is enabled, we should make sure to enable it
 		// for this TLF.  That's because we may have received the TLF
 		// ID from the service, rather than via a GetIDForHandle call,
@@ -2349,6 +2353,10 @@ func (fbo *folderBranchOps) makeEditNotifications(
 
 func (fbo *folderBranchOps) handleEditNotifications(
 	ctx context.Context, rmd ImmutableRootMetadata) error {
+	if !fbo.config.Mode().SendEditNotificationsEnabled() {
+		return nil
+	}
+
 	edits, err := fbo.makeEditNotifications(ctx, rmd)
 	if err != nil {
 		return err
