@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsedits"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -140,6 +141,17 @@ func (fs *KBFSOpsStandard) Shutdown(ctx context.Context) error {
 func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 	service string, newStatus error) {
 	fs.currentStatus.PushConnectionStatusChange(service, newStatus)
+
+	switch service {
+	case KeybaseServiceName, GregorServiceName:
+	default:
+		return
+	}
+
+	if newStatus == nil {
+		fs.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
+		go fs.initTlfsForEditHistories()
+	}
 }
 
 // PushStatusChange forces a new status be fetched by status listeners.
@@ -1042,8 +1054,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	fav := handle.ToFavorite()
-	ops, ok := fs.opsByFav[fav]
-	if ok {
+	if ops, ok := fs.opsByFav[fav]; ok {
 		ops.NewNotificationChannel(ctx, handle, convID, channelName)
 	}
 }
@@ -1098,6 +1109,56 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 	ops := fs.getOps(context.Background(),
 		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
 	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine
+}
+
+func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
+	if !fs.config.Mode().TLFEditHistoryEnabled() {
+		return
+	}
+
+	ctx := CtxWithRandomIDReplayable(
+		context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
+	fs.log.CDebugf(ctx, "Querying the kbfs-edits inbox for new TLFs")
+	handles, err := fs.config.Chat().GetGroupedInbox(
+		ctx, chat1.TopicType_KBFSFILEEDIT, kbfsedits.MaxClusters)
+	if err != nil {
+		fs.log.CWarningf(ctx, "Can't get inbox: %+v", err)
+		return
+	}
+
+	// Construct folderBranchOps instances for each TLF in the inbox
+	// that doesn't have one yet.  Also make sure there's one for the
+	// logged-in user's public folder.
+	for _, h := range handles {
+		fs.log.CDebugf(ctx, "Initializing TLF %s for the edit history",
+			h.GetCanonicalPath())
+		_, _, err := fs.GetRootNode(ctx, h, MasterBranch)
+		if err != nil {
+			fs.log.CWarningf(ctx, "Couldn't get root node for %s: %+v",
+				h.GetCanonicalName(), err)
+		}
+	}
+
+	session, err := fs.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		// No current session.
+		return
+	}
+
+	pubHandle, err := GetHandleFromFolderNameAndType(
+		ctx, fs.config.KBPKI(), fs.config.MDOps(), string(session.Name),
+		tlf.Public)
+	if err != nil {
+		fs.log.CWarningf(ctx, "Couldn't get handle for public folder: %+v", err)
+		return
+	}
+	fs.log.CDebugf(ctx, "Initializing TLF %s for the edit history",
+		pubHandle.GetCanonicalPath())
+	_, _, err = fs.GetRootNode(ctx, pubHandle, MasterBranch)
+	if err != nil {
+		fs.log.CWarningf(ctx, "Couldn't get root node for public folder: %+v",
+			err)
+	}
 }
 
 // kbfsOpsFavoriteObserver deals with a handle change for a particular

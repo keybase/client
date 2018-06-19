@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	// The max number of TLF writer clusters to return in a user history.
-	maxClusters = 10
+	// MaxClusters is the max number of TLF writer clusters to return
+	// in a user history.
+	MaxClusters = 10
 )
 
 type tlfKey struct {
@@ -146,10 +147,10 @@ func (uh *UserHistory) Get() (history []keybase1.FSFolderEditHistory) {
 	// We need to sort these by clusters, not by the full TLF time.
 	sort.Sort(clusters)
 	// TODO: consolidate neighboring clusters that share the same folder?
-	if len(clusters) > maxClusters {
+	if len(clusters) > MaxClusters {
 		// TODO: add the user's public folder to the list even if it
 		// doesn't make the cut.
-		return clusters[:maxClusters]
+		return clusters[:MaxClusters]
 	}
 	return clusters
 }

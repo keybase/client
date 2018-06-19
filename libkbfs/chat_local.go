@@ -138,6 +138,9 @@ func (c *chatLocal) SendTextMessage(
 	}
 	conv.messages = append(conv.messages, body)
 	conv.mtime = c.config.Clock().Now()
+	// TODO: if there are some users who can read this folder but who
+	// haven't yet subscribed to the conversation, we should send them
+	// a new channel notification.
 	for _, cb := range conv.cbs {
 		cb(convID, body)
 	}

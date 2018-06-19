@@ -231,6 +231,9 @@ func (c *ChatRPC) GetGroupedInbox(
 			continue
 		}
 		seen[tlfID] = true
+
+		// TODO: ignore TLFs that aren't in your favorites list.
+
 		tlfType := tlf.Private
 		if info.Visibility == keybase1.TLFVisibility_PUBLIC {
 			tlfType = tlf.Public
@@ -343,8 +346,32 @@ func (c *ChatRPC) RegisterForMessages(
 
 // We only register for the kbfs-edits type of notification in
 // keybase_daemon_rpc, so all the other methods below besides
-// `NewChatKBFSFileEditActivity` should never be called.
+// `NewChatActivity` should never be called.
 var _ chat1.NotifyChatInterface = (*ChatRPC)(nil)
+
+func (c *ChatRPC) newNotificationChannel(
+	ctx context.Context, convID chat1.ConversationID,
+	conv *chat1.InboxUIItem) error {
+	if conv == nil {
+		c.log.CDebugf(ctx,
+			"No conv for new notification channel %s; ignoring", convID)
+		return nil
+	}
+	tlfType := tlf.Private
+	if conv.Visibility == keybase1.TLFVisibility_PUBLIC {
+		tlfType = tlf.Public
+	} else if conv.MembersType == chat1.ConversationMembersType_TEAM {
+		tlfType = tlf.SingleTeam
+	}
+	tlfHandle, err := GetHandleFromFolderNameAndType(
+		ctx, c.config.KBPKI(), c.config.MDOps(), conv.Name, tlfType)
+	if err != nil {
+		return err
+	}
+	c.config.KBFSOps().NewNotificationChannel(
+		ctx, tlfHandle, convID, conv.Channel)
+	return nil
+}
 
 // NewChatActivity implements the chat1.NotifyChatInterface for
 // ChatRPC.
@@ -359,19 +386,10 @@ func (c *ChatRPC) NewChatActivity(
 		// If we learn about a new conversation for a given TLF,
 		// attempt to route it to the TLF.
 		info := arg.Activity.NewConversation()
-		tlfType := tlf.Private
-		if info.Conv.Visibility == keybase1.TLFVisibility_PUBLIC {
-			tlfType = tlf.Public
-		} else if info.Conv.MembersType == chat1.ConversationMembersType_TEAM {
-			tlfType = tlf.SingleTeam
-		}
-		tlfHandle, err := GetHandleFromFolderNameAndType(
-			ctx, c.config.KBPKI(), c.config.MDOps(), info.Conv.Name, tlfType)
+		err := c.newNotificationChannel(ctx, info.ConvID, info.Conv)
 		if err != nil {
 			return err
 		}
-		c.config.KBFSOps().NewNotificationChannel(
-			ctx, tlfHandle, info.ConvID, info.Conv.Channel)
 	case chat1.ChatActivityType_INCOMING_MESSAGE:
 		// If we learn about a new message for a given conversation ID,
 		// let any registered callbacks for that conversation ID know.
@@ -398,8 +416,17 @@ func (c *ChatRPC) NewChatActivity(
 		cbs := c.convCBs[msg.ConvID.String()]
 		c.convLock.RUnlock()
 
-		for _, cb := range cbs {
-			cb(msg.ConvID, body)
+		if len(cbs) == 0 {
+			// No one is listening for this channel yet, so consider
+			// it a new channel.
+			err := c.newNotificationChannel(ctx, msg.ConvID, msg.Conv)
+			if err != nil {
+				return err
+			}
+		} else {
+			for _, cb := range cbs {
+				cb(msg.ConvID, body)
+			}
 		}
 	}
 	return nil
