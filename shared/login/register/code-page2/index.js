@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text, Icon, Input, Button} from '../../../common-adapters'
+import {Box2, Text, Icon, Input, WaitingButton} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
 import QRImage from './qr-image'
-// import QRScan from './qr-scan'
+import QRScan from './qr-scan'
 
 type Mode = 'viewQR' | 'scanQR' | 'enterText' | 'viewText'
 
@@ -11,6 +11,7 @@ type Props = {
   defaultMode: Mode,
   enterQrCodeInstructions: string,
   enterTextCodeInstructions: string,
+  isValidLookingCode: string => boolean,
   viewQrCode: string,
   viewQrCodeInstructions: string,
   viewTextCode: string,
@@ -37,9 +38,13 @@ const ViewQR = ({url, instructions}) => (
   </PanelContainer>
 )
 
-// <QRScan onScan={onScan} />
-const ScanQR = ({onScan, instructions}) => <PanelContainer instructions={instructions}>{null}</PanelContainer>
-const ViewText = ({instructions, code}) => (
+const ScanQR = ({onScan, instructions}) => (
+  <PanelContainer instructions={instructions}>
+    <QRScan onScan={onScan} />
+  </PanelContainer>
+)
+
+const ViewText = ({code, instructions}) => (
   <PanelContainer instructions={instructions}>
     <Text type="Terminal" style={styles.textCode}>
       {code}
@@ -47,8 +52,36 @@ const ViewText = ({instructions, code}) => (
   </PanelContainer>
 )
 
-const EnterText = () => {
-  return <Text type="Body">entertext</Text>
+class EnterText extends React.Component<
+  {
+    isValidLookingCode: string => boolean,
+    onSubmit: string => void,
+    instructions: string,
+  },
+  {value: string, canSubmit: boolean}
+> {
+  state = {canSubmit: false, value: ''}
+  _onSubmit = () => this.props.onSubmit(this.state.value)
+  _updateValue = value => this.setState({canSubmit: this.props.isValidLookingCode(value), value})
+  // TODO waitingkey
+  render() {
+    return (
+      <PanelContainer instructions={this.props.instructions}>
+        <Input
+          uncontrolled={true}
+          onEnterKeyDown={this._onSubmit}
+          onChangeText={this._updateValue}
+          hintText="Text code from your other device"
+        />
+        <WaitingButton
+          type="Primary"
+          label="Continue"
+          onClick={this._onSubmit}
+          disabled={!this.state.canSubmit}
+        />
+      </PanelContainer>
+    )
+  }
 }
 
 class CodePage2 extends React.Component<Props, State> {
@@ -84,7 +117,12 @@ class CodePage2 extends React.Component<Props, State> {
       case 'viewQR':
         return <ViewQR url={this.props.viewQrCode} instructions={this.props.viewQrCodeInstructions} />
       case 'enterText':
-        return <EnterText />
+        return (
+          <EnterText
+            isValidLookingCode={this.props.isValidLookingCode}
+            instructions={this.props.enterTextCodeInstructions}
+          />
+        )
       case 'viewText':
         return <ViewText code={this.props.viewTextCode} instructions={this.props.viewTextCodeInstructions} />
       default:
