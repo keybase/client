@@ -96,6 +96,13 @@ const getComparerBySortBy = (sortBy: Types.SortBy): PathItemComparer => {
   }
 }
 
+const editingRowItemTieBreaker = (a: SortableRowItem, b: SortableRowItem): number => {
+  if (a.rowType !== 'editing' || b.rowType !== 'editing') {
+    return 0
+  }
+  return Types.editIDToString(a.editID).localeCompare(Types.editIDToString(b.editID))
+}
+
 const getComparer = ({sortBy, sortOrder}: Types.SortSetting, meUsername?: string) => (
   a: SortableRowItem,
   b: SortableRowItem
@@ -106,8 +113,14 @@ const getComparer = ({sortBy, sortOrder}: Types.SortSetting, meUsername?: string
   }
 
   const multiplier = sortOrder === 'desc' ? -1 : 1
+
   const sortByCompare = getComparerBySortBy(sortBy)(a, b)
-  return sortByCompare * multiplier
+  if (sortByCompare !== 0) {
+    return sortByCompare * multiplier
+  }
+
+  const tieBroken = editingRowItemTieBreaker(a, b)
+  return tieBroken * multiplier
 }
 
 export const sortRowItems = (
