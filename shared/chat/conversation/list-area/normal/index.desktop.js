@@ -424,13 +424,10 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     return shouldUpdate
   }
 
-  static getDerivedStateFromProps(props, state) {
-    const numOrdinals = props.ordinals.length
-    if (numOrdinals !== state.numOrdinals) {
-      // if the ordinals changed remeasure
-      return {height: null, numOrdinals}
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.ordinals.length !== prevProps.ordinals.length) {
+      this.setState(p => (p.height ? {height: null} : null))
     }
-    return null
   }
 
   render() {
