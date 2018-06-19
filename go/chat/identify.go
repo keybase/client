@@ -368,6 +368,9 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 		if _, ok := err.(libkb.ResolutionError); ok {
 			return keybase1.TLFIdentifyFailure{}, nil
 		}
+		if _, ok := err.(libkb.UserDeletedError); ok {
+			return keybase1.TLFIdentifyFailure{}, nil
+		}
 
 		// Special treatment is needed for GUI strict mode, since we need to
 		// simultaneously plumb identify breaks up to the UI, and make sure the
