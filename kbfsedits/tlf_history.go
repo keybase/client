@@ -22,7 +22,7 @@ type writerNotifications struct {
 	notifications notificationsByRevision
 }
 
-// writersByRevision sort sets of per-writer notifications in reverse
+// writersByRevision sorts sets of per-writer notifications in reverse
 // order by the revision of the latest notification for each writer.
 type writersByRevision []*writerNotifications
 
@@ -122,8 +122,6 @@ func (th *TlfHistory) AddNotifications(
 			newEdits = append(newEdits, revMsg)
 		}
 	}
-	sort.Sort(newEdits)
-	newEdits = newEdits.uniquify()
 
 	th.lock.Lock()
 	defer th.lock.Unlock()
@@ -160,8 +158,8 @@ type recomputer struct {
 	numProcessed  map[string]int             // writer name -> num
 }
 
-func newRecomputer() recomputer {
-	return recomputer{
+func newRecomputer() *recomputer {
+	return &recomputer{
 		byWriter:      make(map[string]*writerNotifications),
 		modifiedFiles: make(map[string]map[string]bool),
 		fileEvents:    make(map[string]fileEvent),
@@ -169,7 +167,7 @@ func newRecomputer() recomputer {
 	}
 }
 
-// processNotification add the notification to the recomputer's
+// processNotification adds the notification to the recomputer's
 // history if it is a create/modify for a file that hasn't yet been
 // deleted.  If the file is renamed in a future revision, the added
 // notification has the new name of the file.  processNotification
@@ -178,7 +176,7 @@ func newRecomputer() recomputer {
 //
 // It returns true if it has added enough notifications for the given
 // writer, and the caller should not send any more for that writer.
-func (r recomputer) processNotification(
+func (r *recomputer) processNotification(
 	writer string, notification NotificationMessage) (doTrim bool) {
 	filename := notification.Filename
 	r.numProcessed[writer]++
