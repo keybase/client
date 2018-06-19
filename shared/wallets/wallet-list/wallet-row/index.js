@@ -50,12 +50,6 @@ const styles = styleSheetCreate({
     backgroundColor: backgroundColorSelected,
   },
 
-  icon: {
-    alignSelf: 'center',
-    height: 32,
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
-  },
   rightColumn: rightColumnStyle,
 
   title: {
