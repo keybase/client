@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
+	"github.com/keybase/stellarnet"
 	stellaramount "github.com/stellar/go/amount"
 )
 
@@ -147,7 +148,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 			var displayAmount string
 			if rateErr == nil {
-				displayAmount, rateErr = stellar.ConvertXLMToOutside(d.Amount, rate)
+				displayAmount, rateErr = stellarnet.ConvertXLMToOutside(d.Amount, rate.Rate)
 			}
 			if rateErr != nil {
 				s.G().Log.CDebugf(ctx, "error converting XLM to display currency: %s", rateErr)
@@ -809,7 +810,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			if err != nil {
 				log("error getting available balance: %v", err)
 			} else {
-				cmp, err := stellar.CompareAmounts(availableToSendXLM, amountX.amountOfAsset)
+				cmp, err := stellarnet.CompareStellarAmounts(availableToSendXLM, amountX.amountOfAsset)
 				switch {
 				case err != nil:
 					log("error comparing amounts", err)
@@ -820,7 +821,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 					if arg.Currency != nil && amountX.rate != nil {
 						// If the user entered an amount in outside currency and an exchange
 						// rate is available, attempt to show them available balance in that currency.
-						availableToSendOutside, err := stellar.ConvertXLMToOutside(availableToSendXLM, *amountX.rate)
+						availableToSendOutside, err := stellarnet.ConvertXLMToOutside(availableToSendXLM, amountX.rate.Rate)
 						if err != nil {
 							log("error converting available-to-send", err)
 						} else {
@@ -895,7 +896,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 		if arg.Amount == "" {
 			// No amount given. Still convert for 0.
 		} else {
-			amount, err := stellar.ParseDecimalStrict(arg.Amount)
+			amount, err := stellarnet.ParseDecimalStrict(arg.Amount)
 			if err != nil || amount.Sign() < 0 {
 				// Invalid or negative amount.
 				res.amountErrMsg = "Invalid amount."
@@ -913,7 +914,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			return res
 		}
 		res.rate = &xrate
-		xlmAmount, err := stellar.ConvertOutsideToXLM(convertAmountOutside, xrate)
+		xlmAmount, err := stellarnet.ConvertOutsideToXLM(convertAmountOutside, xrate.Rate)
 		if err != nil {
 			log("error converting: %v", err)
 			res.amountErrMsg = fmt.Sprintf("Could not convert to XLM")
@@ -970,7 +971,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			return res
 		}
 		res.rate = &xrate
-		outsideAmount, err := stellar.ConvertXLMToOutside(useAmount, xrate)
+		outsideAmount, err := stellarnet.ConvertXLMToOutside(useAmount, xrate.Rate)
 		if err != nil {
 			log("error converting: %v", err)
 			return res
@@ -1000,7 +1001,7 @@ func (s *Server) buildPaymentWorthInfo(ctx context.Context, rate stellar1.Outsid
 	if err != nil {
 		return "", err
 	}
-	amountXLM, err := stellar.ConvertOutsideToXLM("1", rate)
+	amountXLM, err := stellarnet.ConvertOutsideToXLM("1", rate.Rate)
 	if err != nil {
 		return "", err
 	}

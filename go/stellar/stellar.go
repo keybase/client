@@ -867,7 +867,7 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
 		return "", errors.New("empty amount")
 	}
-	x, err := ParseDecimalStrict(amount)
+	x, err := stellarnet.ParseDecimalStrict(amount)
 	if err != nil {
 		return "", fmt.Errorf("unable to parse amount %s: %v", amount, err)
 	}
