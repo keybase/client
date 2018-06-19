@@ -28,7 +28,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+  onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'inbox'})),
   onClick: () =>
     dispatch(
       Chat2Gen.createSelectConversation({

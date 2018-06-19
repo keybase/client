@@ -817,12 +817,12 @@ const loadMoreMessages = (
     }
 
     const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
+
     const actions = []
 
     let shouldClearOthers = false
     if (!isScrollingBack && !calledClear) {
-      // TEMP this causes a lot of remeasure on desktop that we need to fix
-      shouldClearOthers = isMobile
+      shouldClearOthers = true
       calledClear = true
     }
 
@@ -1314,8 +1314,11 @@ const changeSelectedConversation = (
           ),
           Saga.put(navigateToThreadRoute),
         ])
-      } else if (isMobile) {
+      } else if (action.payload.noneDestination === 'inbox') {
         return Saga.put(Chat2Gen.createNavigateToInbox())
+      } else if (action.payload.noneDestination === 'thread') {
+        // don't allow check of isValidConversationIDKey
+        return Saga.put(navigateToThreadRoute)
       }
       break
     }
@@ -1932,7 +1935,7 @@ const changePendingMode = (
     case Chat2Gen.previewConversation:
       // We decided to make a team instead of start a convo, so no resolution will take place
       if (action.payload.reason === 'convertAdHoc') {
-        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'inbox'}))
       }
       // We're selecting a team so we never want to show the row, we'll instead make the rpc call to add it to the inbox
       if (action.payload.teamname || action.payload.channelname) {
@@ -1999,7 +2002,7 @@ const createConversationSelectIt = (results: Array<any>) => {
   }
   return Saga.sequentially([
     Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'})),
-    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'thread'})),
   ])
 }
 

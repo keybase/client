@@ -195,6 +195,10 @@
         {
           "type": "TimeMs",
           "name": "ctime"
+        },
+        {
+          "type": "string",
+          "name": "cursorToken"
         }
       ]
     },
@@ -274,6 +278,10 @@
         {
           "type": "TimeMs",
           "name": "rtime"
+        },
+        {
+          "type": "string",
+          "name": "cursorToken"
         }
       ]
     },
@@ -364,6 +372,10 @@
             "ClaimSummary"
           ],
           "name": "claim"
+        },
+        {
+          "type": "string",
+          "name": "cursorToken"
         }
       ]
     },
@@ -446,6 +458,26 @@
     },
     {
       "type": "record",
+      "name": "PaymentsPage",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "PaymentSummary"
+          },
+          "name": "payments"
+        },
+        {
+          "type": [
+            null,
+            "PageCursor"
+          ],
+          "name": "cursor"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AutoClaim",
       "fields": [
         {
@@ -496,14 +528,18 @@
           "type": "AccountID"
         },
         {
+          "name": "cursor",
+          "type": [
+            null,
+            "PageCursor"
+          ]
+        },
+        {
           "name": "limit",
           "type": "int"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "PaymentSummary"
-      }
+      "response": "PaymentsPage"
     },
     "paymentDetails": {
       "request": [

@@ -175,6 +175,34 @@ func (o PaymentOrErrorLocal) DeepCopy() PaymentOrErrorLocal {
 	}
 }
 
+type PaymentsPageLocal struct {
+	Payments []PaymentOrErrorLocal `codec:"payments" json:"payments"`
+	Cursor   *PageCursor           `codec:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+func (o PaymentsPageLocal) DeepCopy() PaymentsPageLocal {
+	return PaymentsPageLocal{
+		Payments: (func(x []PaymentOrErrorLocal) []PaymentOrErrorLocal {
+			if x == nil {
+				return nil
+			}
+			var ret []PaymentOrErrorLocal
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Payments),
+		Cursor: (func(x *PageCursor) *PageCursor {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Cursor),
+	}
+}
+
 type PaymentDetailsLocal struct {
 	Id                TransactionID `codec:"id" json:"id"`
 	Time              TimeMs        `codec:"time" json:"time"`
@@ -475,9 +503,9 @@ type GetAccountAssetsLocalArg struct {
 }
 
 type GetPaymentsLocalArg struct {
-	SessionID              int            `codec:"sessionID" json:"sessionID"`
-	AccountID              AccountID      `codec:"accountID" json:"accountID"`
-	OlderThanTransactionID *TransactionID `codec:"olderThanTransactionID,omitempty" json:"olderThanTransactionID,omitempty"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID   `codec:"accountID" json:"accountID"`
+	Cursor    *PageCursor `codec:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
 type GetPaymentDetailsLocalArg struct {
@@ -652,7 +680,7 @@ type FormatLocalCurrencyStringArg struct {
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetAccountAssetsLocal(context.Context, GetAccountAssetsLocalArg) ([]AccountAssetLocal, error)
-	GetPaymentsLocal(context.Context, GetPaymentsLocalArg) ([]PaymentOrErrorLocal, error)
+	GetPaymentsLocal(context.Context, GetPaymentsLocalArg) (PaymentsPageLocal, error)
 	GetPaymentDetailsLocal(context.Context, GetPaymentDetailsLocalArg) (PaymentDetailsLocal, error)
 	GetDisplayCurrenciesLocal(context.Context, int) ([]CurrencyLocal, error)
 	ChangeWalletAccountNameLocal(context.Context, ChangeWalletAccountNameLocalArg) error
@@ -1233,7 +1261,7 @@ func (c LocalClient) GetAccountAssetsLocal(ctx context.Context, __arg GetAccount
 	return
 }
 
-func (c LocalClient) GetPaymentsLocal(ctx context.Context, __arg GetPaymentsLocalArg) (res []PaymentOrErrorLocal, err error) {
+func (c LocalClient) GetPaymentsLocal(ctx context.Context, __arg GetPaymentsLocalArg) (res PaymentsPageLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentsLocal", []interface{}{__arg}, &res)
 	return
 }

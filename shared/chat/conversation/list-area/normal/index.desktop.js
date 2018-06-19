@@ -15,6 +15,7 @@ import {ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce, throttle, chunk} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
+import shallowEqual from 'shallowequal'
 
 import type {Props} from '.'
 
@@ -154,27 +155,33 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
-  _onScrollThrottled = throttle(() => {
-    if (!this._isScrolling) {
-      this._isScrolling = true
-      if (this._pointerWrapperRef.current) {
-        this._pointerWrapperRef.current.style.pointerEvents = 'none'
+  _onScrollThrottled = throttle(
+    () => {
+      if (!this._isScrolling) {
+        this._isScrolling = true
+        if (this._pointerWrapperRef.current) {
+          this._pointerWrapperRef.current.style.pointerEvents = 'none'
+        }
       }
-    }
-    this._onAfterScroll()
+      this._onAfterScroll()
 
-    // are we at the top?
-    const list = this._listRef.current
-    if (list) {
-      if (list.scrollTop < listEdgeSlop) {
-        this.props.loadMoreMessages()
+      // are we at the top?
+      const list = this._listRef.current
+      if (list) {
+        if (list.scrollTop < listEdgeSlop) {
+          this.props.loadMoreMessages()
+        }
       }
-    }
 
-    // not locked to bottom while scrolling
-    const isLockedToBottom = false
-    this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
-  }, 100)
+      // not locked to bottom while scrolling
+      const isLockedToBottom = false
+      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
+    },
+    100,
+    // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
+    // on scrollTop being zero and not trying to load more
+    {leading: true, trailing: true}
+  )
 
   // After lets turn them back on
   _onAfterScroll = debounce(() => {
@@ -287,7 +294,12 @@ class Thread extends React.PureComponent<Props, State> {
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
-          <div style={listStyle} ref={this._listRef} onScroll={this._onScroll}>
+          <div
+            key={this.props.conversationIDKey}
+            style={listStyle}
+            ref={this._listRef}
+            onScroll={this._onScroll}
+          >
             <Measure scroll={true} onResize={this._onResize}>
               {({measureRef}) => (
                 <div ref={measureRef}>
@@ -342,8 +354,8 @@ type OrdinalWaypointProps = {
 type OrdinalWaypointState = {
   // cached height
   height: ?number,
-  // how we keep track if height needs to be tossed
-  numOrdinals: number,
+  // to bust the height cache
+  heightForOrdinals: Array<Types.Ordinal>,
   // in view
   isVisible: boolean,
   // width just to keep track if we should toss height
@@ -352,26 +364,45 @@ type OrdinalWaypointState = {
 class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypointState> {
   state = {
     height: null,
+    heightForOrdinals: [],
     isVisible: true,
-    numOrdinals: 0,
     width: null,
   }
+  _animID: number
 
   componentWillUnmount() {
     this._onResize.cancel()
     this._measure.cancel()
+    this._cancelAnim()
   }
 
+  _cancelAnim = () => {
+    if (this._animID) {
+      window.cancelAnimationFrame(this._animID)
+      this._animID = 0
+    }
+  }
+
+  // We ran into an issue where this was being called tremendously fast with inside/below. To stop that behavior
+  // we defer settings things invisible for a little bit, which seems enough to fix it
   _handlePositionChange = ({currentPosition}) => {
     if (currentPosition) {
       const isVisible = currentPosition === 'inside'
-      this.setState(p => (p.isVisible !== isVisible ? {isVisible} : undefined))
+      this._cancelAnim()
+      if (isVisible) {
+        this.setState(p => (!p.isVisible ? {isVisible: true} : undefined))
+      } else {
+        this._animID = window.requestAnimationFrame(() => {
+          this._animID = 0
+          this.setState(p => (p.isVisible ? {isVisible: false} : undefined))
+        })
+      }
     }
   }
 
   _onResize = debounce(({bounds}) => {
-    const height = bounds.height
-    const width = bounds.width
+    const height = Math.ceil(bounds.height)
+    const width = Math.ceil(bounds.width)
 
     if (height && width) {
       this.setState(p => {
@@ -405,14 +436,13 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }, 100)
 
   shouldComponentUpdate(nextProps, nextState) {
-    // Only redraw when isVisible changes or your numOrdinals change, else we rerender as the measurements happen
     let shouldUpdate = false
 
     if (this.state.isVisible !== nextState.isVisible) {
       shouldUpdate = true
     }
 
-    if (nextProps.ordinals.length !== this.state.numOrdinals) {
+    if (!shallowEqual(this.props.ordinals, nextProps.ordinals)) {
       shouldUpdate = true
     }
 
@@ -420,10 +450,9 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }
 
   static getDerivedStateFromProps(props, state) {
-    const numOrdinals = props.ordinals.length
-    if (numOrdinals !== state.numOrdinals) {
+    if (!shallowEqual(props.ordinals, state.heightForOrdinals)) {
       // if the ordinals changed remeasure
-      return {height: null, numOrdinals}
+      return {height: null, heightForOrdinals: props.ordinals}
     }
     return null
   }

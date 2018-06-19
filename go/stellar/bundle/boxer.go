@@ -71,7 +71,8 @@ func Encrypt(bundle stellar1.BundleSecretVersioned, pukGen keybase1.PerUserKeyGe
 	}
 
 	// Derive key
-	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKStellarBundle)
+	// TODO: We're passing the wrong context in here. We need to migrate to libkb.DeriveReasonPUKStellarBundle. (CORE-8135)
+	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKPrev)
 	if err != nil {
 		return res, resB64, err
 	}
@@ -171,7 +172,8 @@ func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
 func Decrypt(encBundle stellar1.EncryptedBundle,
 	puk libkb.PerUserKeySeed) (res stellar1.BundleSecretVersioned, err error) {
 	// Derive key
-	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKStellarBundle)
+	// TODO: We're passing the wrong context in here. We need to migrate to libkb.DeriveReasonPUKStellarBundle. (CORE-8135)
+	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKPrev)
 	if err != nil {
 		return res, err
 	}

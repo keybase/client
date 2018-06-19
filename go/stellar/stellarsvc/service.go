@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
+	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/amount"
 )
 
@@ -441,7 +442,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 		return err
 	}
 
-	xlmAmount, err := stellar.ConvertOutsideToXLM(arg.DisplayAmount, exchangeRate)
+	xlmAmount, err := stellarnet.ConvertOutsideToXLM(arg.DisplayAmount, exchangeRate.Rate)
 	if err != nil {
 		return err
 	}

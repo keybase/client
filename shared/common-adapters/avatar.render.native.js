@@ -17,7 +17,6 @@ type ImageProps = {
 
 type State = {
   loaded: boolean,
-  url: ?string,
 }
 
 const sizeToTeamBorderRadius = {
@@ -36,7 +35,6 @@ class Background extends React.PureComponent<{loaded: boolean, loadingColor: any
   render() {
     return (
       <Box
-        loaded={this.props.loaded}
         loadingColor={this.props.loadingColor}
         borderRadius={this.props.borderRadius}
         style={[
@@ -86,10 +84,7 @@ class Border extends React.PureComponent<{borderColor: any, borderRadius: number
 }
 
 class AvatarRender extends React.PureComponent<Props, State> {
-  state: State = {
-    loaded: false,
-    url: null,
-  }
+  state: State = {loaded: false}
 
   _mounted: boolean = false
 
@@ -99,11 +94,10 @@ class AvatarRender extends React.PureComponent<Props, State> {
     }
   }
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (nextProps.url !== prevState.url) {
-      return {loaded: false, url: nextProps.url}
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.url !== prevProps.url) {
+      this.setState({loaded: false})
     }
-    return null
   }
 
   componentDidMount() {

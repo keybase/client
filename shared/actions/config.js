@@ -294,6 +294,11 @@ function* handleAvatarQueue() {
     if (teamnames.length) {
       yield Saga.call(avatarCallAndHandle, teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
     }
+
+    // more to load?
+    if (avatarsToLoad.users.size || avatarsToLoad.teams.size) {
+      yield Saga.put(avatarChannel, 'queue')
+    }
   }
 }
 

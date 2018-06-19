@@ -16,15 +16,11 @@ import (
 )
 
 var PerUserKeyUpgradeBackgroundSettings = BackgroundTaskSettings{
-	// Wait after starting the app
-	Start: 30 * time.Second,
-	// When waking up on mobile lots of timers will go off at once. We wait an additional
-	// delay so as not to add to that herd and slow down the mobile experience when opening the app.
-	WakeUp: 10 * time.Second,
-	// Wait between checks
-	Interval: 1 * time.Hour,
-	// Time limit on each round
-	Limit: 5 * time.Minute,
+	Start:        30 * time.Second, // Wait after starting the app
+	StartStagger: 10 * time.Second, // Wait an additional random amount.
+	WakeUp:       10 * time.Second, // Additional delay after waking from sleep.
+	Interval:     1 * time.Hour,    // Wait between checks
+	Limit:        5 * time.Minute,  // Time limit on each round
 }
 
 // PerUserKeyUpgradeBackground is an engine.

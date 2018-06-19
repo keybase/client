@@ -5,6 +5,7 @@ import {
   Box2,
   FloatingMenu,
   Icon,
+  ProgressIndicator,
   Text,
   HOCTimers,
   type PropsWithTimer,
@@ -23,6 +24,7 @@ type Props = {
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   explodesAt: number,
+  hideTimer: boolean,
   items: Array<MenuItem | 'Divider' | null>,
   onHidden: () => void,
   position: Position,
@@ -65,7 +67,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   }
 
   render() {
-    const {author, deviceName, deviceRevokedAt, timestamp, yourMessage} = this.props
+    const {author, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
     const bombVerticalOffset = isMobile ? 0 : -20
     return (
@@ -119,14 +121,21 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           fullWidth={true}
           gapEnd={true}
           gapStart={true}
-          style={{
-            backgroundColor: this.state.secondsLeft < oneMinuteInS ? globalColors.red : globalColors.black_75,
-            marginTop: globalMargins.tiny,
-          }}
+          style={collapseStyles([
+            styleTimerBox,
+            {
+              backgroundColor:
+                this.state.secondsLeft < oneMinuteInS ? globalColors.red : globalColors.black_75,
+            },
+          ])}
         >
-          <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
-            {msToDHMS(this.props.explodesAt - Date.now())}
-          </Text>
+          {hideTimer ? (
+            <ProgressIndicator white={true} style={{width: 17, height: 17}} />
+          ) : (
+            <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
+              {msToDHMS(this.props.explodesAt - Date.now())}
+            </Text>
+          )}
         </Box2>
       </Box2>
     )
@@ -178,5 +187,16 @@ const styleRevokedAt = {
   marginTop: globalMargins.small,
   width: '100%',
 }
+
+const styleTimerBox = platformStyles({
+  common: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: globalMargins.tiny,
+  },
+  isMobile: {
+    height: 46,
+  },
+})
 
 export default HOCTimers(ExplodingPopupMenu)

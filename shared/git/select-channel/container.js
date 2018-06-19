@@ -21,7 +21,8 @@ export type SelectChannelProps = {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const {teamname, selected} = routeProps.get('teamname')
+  const teamname = routeProps.get('teamname')
+  const selected = routeProps.get('selected')
   const _channelInfos = getTeamChannelInfos(state, teamname)
   return {
     _channelInfos,
@@ -32,7 +33,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
-  const {teamname, repoID} = routeProps.get('teamname')
+  const teamname = routeProps.get('teamname')
+  const repoID = routeProps.get('repoID')
   return {
     _onSubmit: (channelName: string) =>
       dispatch(
