@@ -4,6 +4,7 @@
 // We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
 // We use react-measure to cache the heights
 
+import * as ReactDOM from 'react-dom'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import Measure from 'react-measure'
@@ -368,6 +369,8 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }
 
   _handlePositionChange = ({currentPosition}) => {
+    const noj1 = ReactDOM.findDOMNode(this._nojima)
+    console.log('aaaa', noj1 && noj1.getBoundingClientRect())
     if (currentPosition) {
       const isVisible = currentPosition === 'inside'
       this.setState(p => (p.isVisible !== isVisible ? {isVisible} : undefined))
@@ -409,6 +412,10 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     this.setState(p => (p.height ? {height: null} : null))
   }, 100)
 
+  nojima = r => {
+    this._nojima = r
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     // Only redraw when isVisible changes or your numOrdinals change, else we rerender as the measurements happen
     let shouldUpdate = false
@@ -435,6 +442,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     const renderMessages = !this.state.height || this.state.isVisible
     let content
     if (renderMessages) {
+      console.log('aaa message content', this.state.height, this.state.isVisible)
       const messages = this.props.ordinals.map((o, idx) => {
         const previous = idx ? this.props.ordinals[idx - 1] : this.props.previous
         return this.props.rowRenderer(o, previous, this._measure)
@@ -449,10 +457,11 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
         </Measure>
       )
     } else {
+      console.log('aaa empty content', this.state.height, this.state.isVisible)
       content = <div data-key={this.props.id} style={{height: this.state.height}} />
     }
     return (
-      <Waypoint key={this.props.id} onPositionChange={this._handlePositionChange}>
+      <Waypoint ref={this.nojima} key={this.props.id} onPositionChange={this._handlePositionChange}>
         {content}
       </Waypoint>
     )
