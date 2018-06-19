@@ -491,7 +491,8 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 // OutboxPurge is called periodically to ensure messages don't hang out too
 // long in the outbox (since they are not encrypted with ephemeral keys until
 // they leave it). Currently we purge anything that is in the error state and
-// has been in the outbox for > purgeErrorCutoff minutes.
+// has been in the outbox for > errorPurgeCutoff minutes for regular messages
+// or ephemeralPurgeCutoff minutes for ephemeral messages.
 func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
@@ -506,7 +507,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 	for _, obr := range obox.Records {
 		st, err := obr.State.State()
 		if err != nil {
-			o.Debug(ctx, "purging ephemeral message from outbox with error getting state: %s", err)
+			o.Debug(ctx, "purging message from outbox with error getting state: %s", err)
 			purged = append(purged, obr)
 			continue
 		}
@@ -546,8 +547,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 	}
 	if len(purged) > 0 {
 		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
-			OutboxRecords:    purged,
-			IsEphemeralPurge: true,
+			OutboxRecords: purged,
 		})
 		o.G().NotifyRouter.HandleNewChatActivity(context.Background(),
 			keybase1.UID(o.GetUID().String()), &act)

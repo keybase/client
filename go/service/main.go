@@ -569,7 +569,7 @@ func (d *Service) writeServiceInfo() error {
 
 func (d *Service) chatOutboxPurgeCheck() {
 	ticker := libkb.NewBgTicker(5 * time.Minute)
-	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("chatPurge")
+	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("OBOXPRGE")
 	d.G().PushShutdownHook(func() error {
 		m.CDebugf("stopping chatOutboxPurgeCheck loop")
 		ticker.Stop()
