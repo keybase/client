@@ -157,6 +157,9 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 // PushStatusChange forces a new status be fetched by status listeners.
 func (fs *KBFSOpsStandard) PushStatusChange() {
 	fs.currentStatus.PushStatusChange()
+
+	fs.log.CDebugf(nil, "Asking for an edit re-init after status change")
+	go fs.initTlfsForEditHistories()
 }
 
 // ClearPrivateFolderMD implements the KBFSOps interface for
