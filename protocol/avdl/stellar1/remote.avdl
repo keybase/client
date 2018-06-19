@@ -166,4 +166,16 @@ protocol remote {
   boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);
 
   string ping();
+
+  // stellar.payment_status gregor message body
+  record PaymentStatusMsg {
+    KeybaseTransactionID keybaseID;
+    TransactionID stellarID;
+    boolean pending;
+    boolean relay; // Is it a relay payment?
+    // After relay payment was submitted, was there already a
+    // claimant user?
+    boolean autoClaimed;
+    union { null, string } errMsg;
+  }
 }

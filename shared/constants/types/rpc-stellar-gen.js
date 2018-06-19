@@ -155,6 +155,7 @@ export type PaymentStatus =
   | 4 // ERROR_4
   | 5 // UNKNOWN_5
 
+export type PaymentStatusMsg = $ReadOnly<{keybaseID: KeybaseTransactionID, stellarID: TransactionID, pending: Boolean, relay: Boolean, autoClaimed: Boolean, errMsg?: ?String}>
 export type PaymentStrategy =
   | 0 // NONE_0
   | 1 // DIRECT_1

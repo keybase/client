@@ -485,6 +485,39 @@
           "name": "kbTxID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentStatusMsg",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "keybaseID"
+        },
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "boolean",
+          "name": "pending"
+        },
+        {
+          "type": "boolean",
+          "name": "relay"
+        },
+        {
+          "type": "boolean",
+          "name": "autoClaimed"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "errMsg"
+        }
+      ]
     }
   ],
   "messages": {

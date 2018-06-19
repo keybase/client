@@ -486,6 +486,32 @@ func (o AutoClaim) DeepCopy() AutoClaim {
 	}
 }
 
+type PaymentStatusMsg struct {
+	KeybaseID   KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
+	StellarID   TransactionID        `codec:"stellarID" json:"stellarID"`
+	Pending     bool                 `codec:"pending" json:"pending"`
+	Relay       bool                 `codec:"relay" json:"relay"`
+	AutoClaimed bool                 `codec:"autoClaimed" json:"autoClaimed"`
+	ErrMsg      *string              `codec:"errMsg,omitempty" json:"errMsg,omitempty"`
+}
+
+func (o PaymentStatusMsg) DeepCopy() PaymentStatusMsg {
+	return PaymentStatusMsg{
+		KeybaseID:   o.KeybaseID.DeepCopy(),
+		StellarID:   o.StellarID.DeepCopy(),
+		Pending:     o.Pending,
+		Relay:       o.Relay,
+		AutoClaimed: o.AutoClaimed,
+		ErrMsg: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ErrMsg),
+	}
+}
+
 type BalancesArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
