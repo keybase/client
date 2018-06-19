@@ -183,6 +183,11 @@ func (r *recomputer) processNotification(
 
 	// If the file is renamed in a future revision, rename it in the
 	// notification.
+	//
+	// TODO(KBFS-3073): maybe we should check all the parent
+	// directories for renames as well, so we can give a full, updated
+	// path for older edits.  That would also help avoid showing edits
+	// for files that were later deleted, but in a renamed directory.
 	eventFilename := filename
 	event, hasEvent := r.fileEvents[filename]
 	if hasEvent && event.newName != "" {
