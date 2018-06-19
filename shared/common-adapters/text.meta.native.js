@@ -28,6 +28,7 @@ function fontSizeToSizeStyle(fontSize: number): ?Object {
     '18': 23,
     '16': 21,
     '14': 19,
+    '12': 17,
   }[String(fontSize)]
 
   return {
@@ -249,6 +250,23 @@ const metaData: {[key: TextType]: MetaType} = {
     colorForBackgroundMode: {Normal: globalColors.purple2},
     fontSize: 14,
     styleOverride: globalStyles.fontRegular,
+  },
+  // Body Tiny
+  BodyTiny: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white_40,
+    },
+    fontSize: 12,
+    styleOverride: globalStyles.fontRegular,
+  },
+  BodyTinySemibold: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white_40,
+    },
+    fontSize: 12,
+    styleOverride: globalStyles.fontSemibold,
   },
   // Terminal
   Terminal: {
