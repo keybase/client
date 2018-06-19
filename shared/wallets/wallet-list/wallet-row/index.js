@@ -105,11 +105,11 @@ const WalletRow = (props: Props) => {
         <Box2 direction="vertical" style={styles.rightColumn}>
           <Box2 direction="horizontal" fullWidth={true}>
             {props.keybaseUser && <Avatar size={16} style={styles.avatar} username={props.keybaseUser} />}
-            <Text type="BodySmall" style={props.isSelected ? styles.titleStyleSelected : styles.titleStyle}>
+            <Text type="BodySmall" style={props.isSelected ? styles.titleSelected : styles.title}>
               {props.name}
             </Text>
           </Box2>
-          <Text type="BodySmall" style={props.isSelected ? styles.amountStyleSelected : styles.amountStyle}>
+          <Text type="BodySmall" style={props.isSelected ? styles.amountSelected : styles.amount}>
             {props.contents}
           </Text>
         </Box2>
