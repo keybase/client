@@ -375,8 +375,8 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }
 
   _onResize = debounce(({bounds}) => {
-    const height = bounds.height
-    const width = bounds.width
+    const height = Math.ceil(bounds.height)
+    const width = Math.ceil(bounds.width)
 
     if (height && width) {
       this.setState(p => {
