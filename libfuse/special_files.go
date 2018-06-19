@@ -64,6 +64,9 @@ func handleNonTLFSpecialFile(
 		return &DebugServerFile{fs: fs, enable: true}
 	case libfs.DisableDebugServerFileName:
 		return &DebugServerFile{fs: fs, enable: false}
+
+	case libfs.EditHistoryName:
+		return NewUserEditHistoryFile(&Folder{fs: fs}, entryValid)
 	}
 
 	return nil

@@ -351,6 +351,9 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 			enable: false,
 		})
 
+	case libfs.EditHistoryName == ps[0]:
+		return oc.returnFileNoCleanup(NewUserEditHistoryFile(&Folder{fs: f}))
+
 	case ".kbfs_unmount" == ps[0]:
 		os.Exit(0)
 	case ".kbfs_number_of_handles" == ps[0]:
