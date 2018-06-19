@@ -383,7 +383,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
       const isVisible = currentPosition === 'inside'
       this._cancelAnim()
       if (isVisible) {
-        this.setState(p => (p.isVisible !== isVisible ? {isVisible} : undefined))
+        this.setState(p => (!p.isVisible ? {isVisible: true} : undefined))
       } else {
         this._animID = window.requestAnimationFrame(() => {
           this._animID = 0
@@ -454,7 +454,6 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     const renderMessages = !this.state.height || this.state.isVisible
     let content
     if (renderMessages) {
-      console.log('aaa message content', this.state.height, this.state.isVisible)
       const messages = this.props.ordinals.map((o, idx) => {
         const previous = idx ? this.props.ordinals[idx - 1] : this.props.previous
         return this.props.rowRenderer(o, previous, this._measure)
@@ -469,7 +468,6 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
         </Measure>
       )
     } else {
-      console.log('aaa empty content', this.state.height, this.state.isVisible)
       content = <div data-key={this.props.id} style={{height: this.state.height}} />
     }
     return (
