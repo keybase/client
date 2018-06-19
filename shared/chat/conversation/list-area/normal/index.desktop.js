@@ -177,6 +177,8 @@ class Thread extends React.PureComponent<Props, State> {
       this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
     },
     100,
+    // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
+    // on scrollTop being zero and not trying to load more
     {leading: true, trailing: true}
   )
 
