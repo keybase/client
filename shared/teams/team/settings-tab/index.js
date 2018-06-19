@@ -180,14 +180,18 @@ const IgnoreAccessRequests = (props: SettingProps) =>
 export class Settings extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = {
+    this.state = this._getNewStateObject(props)
+  }
+
+  _getNewStateObject = (p: Props) => {
+    return {
       // This isn't strictly necessary but flow doesn't understand getDerivedStateFromProps will run
-      newIgnoreAccessRequests: this.props.ignoreAccessRequests,
-      newPublicityAnyMember: this.props.publicityAnyMember,
-      newPublicityMember: this.props.publicityMember,
-      newPublicityTeam: this.props.publicityTeam,
-      newOpenTeam: this.props.openTeam,
-      newOpenTeamRole: this.props.openTeamRole,
+      newIgnoreAccessRequests: p.ignoreAccessRequests,
+      newOpenTeam: p.openTeam,
+      newOpenTeamRole: p.openTeamRole,
+      newPublicityAnyMember: p.publicityAnyMember,
+      newPublicityMember: p.publicityMember,
+      newPublicityTeam: p.publicityTeam,
       newRetentionPolicy: retentionPolicies.policyRetain, // placeholder
       publicitySettingsChanged: false,
       retentionPolicyChanged: false,
@@ -195,20 +199,19 @@ export class Settings extends React.Component<Props, State> {
     }
   }
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    // We just got new settings for this team, reset any user selections
-    // to reflect the actual settings.
-    return {
-      newIgnoreAccessRequests: nextProps.ignoreAccessRequests,
-      newOpenTeam: nextProps.openTeam,
-      newOpenTeamRole: nextProps.openTeamRole,
-      newPublicityAnyMember: nextProps.publicityAnyMember,
-      newPublicityMember: nextProps.publicityMember,
-      newPublicityTeam: nextProps.publicityTeam,
-    }
-  }
-
   componentDidUpdate(prevProps: Props, prevState: State) {
+    if (
+      this.props.ignoreAccessRequests !== prevProps.ignoreAccessRequests ||
+      this.props.openTeam !== prevProps.openTeam ||
+      this.props.openTeamRole !== prevProps.openTeamRole ||
+      this.props.publicityAnyMember !== prevProps.publicityAnyMember ||
+      this.props.publicityMember !== prevProps.publicityMember ||
+      this.props.publicityTeam !== prevProps.publicityTeam
+    ) {
+      this.setState(this._getNewStateObject(this.props))
+      return
+    }
+
     this.setState((prevState: State, props: Props) => {
       const publicitySettingsChanged = !(
         prevState.newIgnoreAccessRequests === this.props.ignoreAccessRequests &&
