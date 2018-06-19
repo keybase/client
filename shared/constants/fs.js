@@ -358,6 +358,8 @@ const _fillMetadataInFavoritesResult = (
         isIgnored,
         isNew,
         needsRekey: false,
+        waitingForParticipantUnlock: [],
+        youCanUnlock: [],
       }
     }
 
@@ -443,7 +445,8 @@ export const folderToFavoriteItems = (
       const folderPathString = `${folderParent}/${preferredName}`
       const folderPath = Types.stringToPath(folderPathString)
       favoriteChildren[folderParent].add(preferredName)
-      if (isNew) {
+      if (isNew || waitingForParticipantUnlock.length > 0 || youCanUnlock.length > 0 || (!!reset_members && reset_members.length > 0)) {
+        // TODO: figure out how to make reset folder badges dismissable.
         badges[folderParent] += 1
       }
       return [

@@ -357,8 +357,8 @@ export type FolderRPCWithMeta = {
   isIgnored: boolean,
   isNew: boolean,
   needsRekey: boolean,
-  waitingForParticipantUnlock?: Array<ParticipantUnlock>,
-  youCanUnlock?: Array<Device>,
+  waitingForParticipantUnlock: Array<ParticipantUnlock>,
+  youCanUnlock: Array<Device>,
   team_id: ?string,
   reset_members: ?Array<ResetMember>,
 }
