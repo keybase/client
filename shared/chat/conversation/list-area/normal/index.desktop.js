@@ -15,6 +15,7 @@ import {ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce, throttle, chunk} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
+import shallowEqual from 'shallowequal'
 
 import type {Props} from '.'
 
@@ -353,8 +354,8 @@ type OrdinalWaypointProps = {
 type OrdinalWaypointState = {
   // cached height
   height: ?number,
-  // how we keep track if height needs to be tossed
-  numOrdinals: number,
+  // to bust the height cache
+  heightForOrdinals: Array<Types.Ordinal>,
   // in view
   isVisible: boolean,
   // width just to keep track if we should toss height
@@ -363,8 +364,8 @@ type OrdinalWaypointState = {
 class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypointState> {
   state = {
     height: null,
+    heightForOrdinals: [],
     isVisible: true,
-    numOrdinals: 0,
     width: null,
   }
   _animID: number
@@ -435,14 +436,13 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }, 100)
 
   shouldComponentUpdate(nextProps, nextState) {
-    // Only redraw when isVisible changes or your numOrdinals change, else we rerender as the measurements happen
     let shouldUpdate = false
 
     if (this.state.isVisible !== nextState.isVisible) {
       shouldUpdate = true
     }
 
-    if (nextProps.ordinals.length !== this.state.numOrdinals) {
+    if (!shallowEqual(this.props.ordinals, nextProps.ordinals)) {
       shouldUpdate = true
     }
 
@@ -450,10 +450,9 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }
 
   static getDerivedStateFromProps(props, state) {
-    const numOrdinals = props.ordinals.length
-    if (numOrdinals !== state.numOrdinals) {
+    if (!shallowEqual(props.ordinals, state.heightForOrdinals)) {
       // if the ordinals changed remeasure
-      return {height: null, numOrdinals}
+      return {height: null, heightForOrdinals: props.ordinals}
     }
     return null
   }
