@@ -861,6 +861,9 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 		ConvIDs: []chat1.ConversationID{convID},
 	}
 	ib, err := g.InboxSource.Read(ctx, uid, nil, true, &query, nil)
+	if err != nil {
+		return fmt.Errorf("inbox read error: %s", err)
+	}
 	if len(ib.Convs) != 1 {
 		return fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
 	}

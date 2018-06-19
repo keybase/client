@@ -5,10 +5,7 @@ import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action} from '../../stories/storybook'
 import DeleteRepo from '.'
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.Common()
 
 const load = () => {
   storiesOf('Git/Delete', module)
@@ -19,8 +16,8 @@ const load = () => {
           name="docs"
           onClose={action('onClose')}
           onDelete={action('onDelete')}
-          loading={false}
           error={null}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -31,8 +28,8 @@ const load = () => {
           name="media"
           onClose={action('onClose')}
           onDelete={action('onDelete')}
-          loading={false}
           error={null}
+          waitingKey="test"
         />
       </Box>
     ))

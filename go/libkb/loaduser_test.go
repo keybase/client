@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 func TestLoadUserPlusKeys(t *testing.T) {
@@ -41,7 +42,7 @@ func TestLoadUserPlusKeysNoKeys(t *testing.T) {
 	defer tc.Cleanup()
 
 	// t_ellen has no keys.  There should be no error loading her.
-	u, err := LoadUserPlusKeys(nil, tc.G, "561247eb1cc3b0f5dc9d9bf299da5e19", "")
+	u, err := LoadUserPlusKeys(context.Background(), tc.G, "561247eb1cc3b0f5dc9d9bf299da5e19", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +55,7 @@ func TestRevokedKeys(t *testing.T) {
 	tc := SetupTest(t, "revoked keys", 1)
 	defer tc.Cleanup()
 
-	u, err := LoadUserPlusKeys(nil, tc.G, "ff261e3b26543a24ba6c0693820ead19", "")
+	u, err := LoadUserPlusKeys(context.Background(), tc.G, "ff261e3b26543a24ba6c0693820ead19", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +106,7 @@ func BenchmarkLoadUserPlusKeys(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := LoadUserPlusKeys(nil, tc.G, uid, "")
+		_, err := LoadUserPlusKeys(context.Background(), tc.G, uid, "")
 		if err != nil {
 			b.Fatal(err)
 		}

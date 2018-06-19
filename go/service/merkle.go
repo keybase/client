@@ -24,7 +24,7 @@ func newMerkleHandler(xp rpc.Transporter, g *libkb.GlobalContext) *MerkleHandler
 }
 
 func (h *MerkleHandler) GetCurrentMerkleRoot(ctx context.Context, freshnessMsec int) (ret keybase1.MerkleRootAndTime, err error) {
-	obj, err := h.G().MerkleClient.FetchRootFromServer(ctx, time.Duration(freshnessMsec)*time.Millisecond)
+	obj, err := h.G().MerkleClient.FetchRootFromServer(h.MetaContext(ctx), time.Duration(freshnessMsec)*time.Millisecond)
 	if err != nil {
 		return ret, err
 	}

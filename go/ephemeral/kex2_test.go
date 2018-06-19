@@ -148,7 +148,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		deviceEKY.Metadata.DeviceCtime = 0
 
 		// Make sure the server knows about our device_ek
-		merkleRootPtr, err := tcY.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+		merkleRootPtr, err := tcY.G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(tcY), libkb.EphemeralKeyMerkleFreshness)
 		require.NoError(t, err)
 
 		fetchedDevices, err := allActiveDeviceEKMetadata(context.Background(), tcY.G, *merkleRootPtr)

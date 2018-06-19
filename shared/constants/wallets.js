@@ -101,9 +101,12 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   })
 }
 
+const loadEverythingWaitingKey = 'wallets:loadEverything'
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
   makePayment,

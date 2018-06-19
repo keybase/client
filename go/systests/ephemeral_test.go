@@ -281,7 +281,7 @@ func TestRotateSkipTeamEKRoll(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, needed)
 
-	merkleRoot, err := annG.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	merkleRoot, err := annG.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*ann.tc), libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	metadata, err := ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), annG, teamID, *merkleRoot)
 	require.NoError(t, err)
@@ -338,7 +338,7 @@ func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 
 	// Now provision a new userEK. This makes sure that we don't get confused
 	// by the revoked device's deviceEKs.
-	merkleRoot, err := annG.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	merkleRoot, err := annG.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*ann.tc), libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	_, err = ephemeral.ForcePublishNewUserEKForTesting(context.Background(), annG, *merkleRoot)
 	require.NoError(t, err)

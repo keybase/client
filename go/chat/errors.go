@@ -14,11 +14,20 @@ var ErrChatServerTimeout = errors.New("timeout calling chat server")
 var ErrDuplicateConnection = errors.New("error calling chat server")
 var ErrKeyServerTimeout = errors.New("timeout calling into key server")
 
+type InternalError interface {
+	// verbose error info for debugging but not user display
+	InternalError() string
+}
+
 type UnboxingError interface {
+	InternalError
 	Error() string
 	Inner() error
 	IsPermanent() bool
 	ExportType() chat1.MessageUnboxedErrorType
+	VersionKind() chat1.VersionKind
+	VersionNumber() int
+	IsCritical() bool
 }
 
 var _ error = (UnboxingError)(nil)
@@ -43,10 +52,50 @@ func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 		return err.ExportType()
 	case EphemeralUnboxingError:
 		return chat1.MessageUnboxedErrorType_EPHEMERAL
+	case NotAuthenticatedForThisDeviceError:
+		return chat1.MessageUnboxedErrorType_PAIRWISE_MISSING
 	default:
 		return chat1.MessageUnboxedErrorType_MISC
 	}
 }
+
+func (e PermanentUnboxingError) VersionKind() chat1.VersionKind {
+	switch err := e.inner.(type) {
+	case VersionError:
+		return err.VersionKind()
+	default:
+		return ""
+	}
+}
+
+func (e PermanentUnboxingError) VersionNumber() int {
+	switch err := e.inner.(type) {
+	case VersionError:
+		return err.VersionNumber()
+	default:
+		return 0
+	}
+}
+
+func (e PermanentUnboxingError) IsCritical() bool {
+	switch err := e.inner.(type) {
+	case VersionError:
+		return err.IsCritical()
+	default:
+		return false
+	}
+}
+
+func (e PermanentUnboxingError) InternalError() string {
+	switch err := e.Inner().(type) {
+	case InternalError:
+		return err.InternalError()
+	default:
+		return err.Error()
+	}
+}
+
+//=============================================================================
 
 func NewTransientUnboxingError(inner error) UnboxingError {
 	return &TransientUnboxingError{inner}
@@ -66,16 +115,41 @@ func (e TransientUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 	return chat1.MessageUnboxedErrorType_MISC
 }
 
+func (e TransientUnboxingError) VersionKind() chat1.VersionKind {
+	return ""
+}
+
+func (e TransientUnboxingError) VersionNumber() int {
+	return 0
+}
+
+func (e TransientUnboxingError) IsCritical() bool {
+	return false
+}
+
+func (e TransientUnboxingError) InternalError() string {
+	switch err := e.Inner().(type) {
+	case InternalError:
+		return err.InternalError()
+	default:
+		return err.Error()
+	}
+}
+
 //=============================================================================
 
-type EphemeralUnboxingError struct{}
+type EphemeralUnboxingError struct{ inner error }
 
-func NewEphemeralUnboxingError() EphemeralUnboxingError {
-	return EphemeralUnboxingError{}
+func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {
+	return EphemeralUnboxingError{inner}
 }
 
 func (e EphemeralUnboxingError) Error() string {
 	return "Unable to decrypt exploding message. Missing keys"
+}
+
+func (e EphemeralUnboxingError) InternalError() string {
+	return e.inner.Error()
 }
 
 //=============================================================================
@@ -88,6 +162,30 @@ func NewPublicTeamEphemeralKeyError() PublicTeamEphemeralKeyError {
 
 func (e PublicTeamEphemeralKeyError) Error() string {
 	return "Cannot use ephemeral messages for a public team."
+}
+
+//=============================================================================
+
+type NotAuthenticatedForThisDeviceError struct{}
+
+func NewNotAuthenticatedForThisDeviceError() NotAuthenticatedForThisDeviceError {
+	return NotAuthenticatedForThisDeviceError{}
+}
+
+func (e NotAuthenticatedForThisDeviceError) Error() string {
+	return "this message is not authenticated for this device"
+}
+
+//=============================================================================
+
+type InvalidMACError struct{}
+
+func NewInvalidMACError() InvalidMACError {
+	return InvalidMACError{}
+}
+
+func (e InvalidMACError) Error() string {
+	return "invalid MAC"
 }
 
 //=============================================================================
@@ -203,9 +301,21 @@ func (e VersionError) ExportType() chat1.MessageUnboxedErrorType {
 	return chat1.MessageUnboxedErrorType_BADVERSION
 }
 
+func (e VersionError) VersionKind() chat1.VersionKind {
+	return chat1.VersionKind(e.Kind)
+}
+
+func (e VersionError) VersionNumber() int {
+	return e.Version
+}
+
+func (e VersionError) IsCritical() bool {
+	return e.Critical
+}
+
 func NewMessageBoxedVersionError(version chat1.MessageBoxedVersion) VersionError {
 	return VersionError{
-		Kind:     "messageboxed",
+		Kind:     string(chat1.VersionErrorMessageBoxed),
 		Version:  int(version),
 		Critical: true,
 	}
@@ -214,7 +324,7 @@ func NewMessageBoxedVersionError(version chat1.MessageBoxedVersion) VersionError
 func NewHeaderVersionError(version chat1.HeaderPlaintextVersion,
 	defaultHeader chat1.HeaderPlaintextUnsupported) VersionError {
 	return VersionError{
-		Kind:     "header",
+		Kind:     string(chat1.VersionErrorHeader),
 		Version:  int(version),
 		Critical: defaultHeader.Mi.Crit,
 	}
@@ -222,7 +332,7 @@ func NewHeaderVersionError(version chat1.HeaderPlaintextVersion,
 
 func NewBodyVersionError(version chat1.BodyPlaintextVersion, defaultBody chat1.BodyPlaintextUnsupported) VersionError {
 	return VersionError{
-		Kind:     "body",
+		Kind:     string(chat1.VersionErrorBody),
 		Version:  int(version),
 		Critical: defaultBody.Mi.Crit,
 	}

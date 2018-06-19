@@ -178,7 +178,7 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	res.TsecCached = psc.ValidTsec()
 	res.SecretPromptSkip = m.ActiveDevice().SecretPromptCancelTimer().WasRecentlyCanceled(m)
 
-	current, all, err := h.G().GetAllUserNames()
+	current, all, err := libkb.GetAllProvisionedUsernames(m)
 	if err != nil {
 		h.G().Log.Debug("| died in GetAllUseranmes()")
 		return res, err
@@ -192,6 +192,11 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	res.PlatformInfo = getPlatformInfo()
 	res.DefaultDeviceID = h.G().Env.GetDeviceID()
 	res.RememberPassphrase = h.G().Env.RememberPassphrase()
+	dekNames, err := h.G().GetDeviceEKStorage().ListAllForUser(ctx)
+	if err != nil {
+		return res, err
+	}
+	res.DeviceEkNames = dekNames
 
 	return res, nil
 }

@@ -33,7 +33,7 @@ func (c *card) GetAppStatus() *libkb.AppStatus {
 func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
 	defer m.CTrace("getUserCard", func() error { return err })()
 
-	cached, err := m.G().CardCache.Get(uid, useSession)
+	cached, err := m.G().CardCache().Get(uid, useSession)
 	if err != nil {
 		m.CDebugf("CardCache.Get error: %s", err)
 	} else if cached != nil {
@@ -74,7 +74,7 @@ func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *k
 		TeamShowcase:  card.TeamShowcase,
 	}
 
-	if err := m.G().CardCache.Set(ret, useSession); err != nil {
+	if err := m.G().CardCache().Set(ret, useSession); err != nil {
 		m.CDebugf("CardCache.Set error: %s", err)
 	}
 

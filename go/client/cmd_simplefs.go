@@ -177,6 +177,8 @@ func makeDestPath(
 	destPathString string) (keybase1.Path, error) {
 
 	isSrcDir, srcPathString, err := checkPathIsDir(ctx, cli, src)
+	// TODO: this error should really be checked, but when I added
+	// code to check it, tests broke and it wasn't clear how to fix.
 
 	g.Log.Debug("makeDestPath: srcPathString: %s isSrcDir: %v", pathToString(src), isSrcDir)
 

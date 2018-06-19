@@ -399,32 +399,16 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 }
 
 func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) chat1.MessageID {
-	typ, err := msg.State()
-	if err != nil {
-		return 0
+	if msg.IsValid() && msg.Valid().ClientHeader.OutboxInfo != nil {
+		return msg.Valid().ClientHeader.OutboxInfo.Prev
 	}
-
-	switch typ {
-	case chat1.MessageUnboxedState_OUTBOX:
-		return msg.Outbox().Msg.ClientHeader.OutboxInfo.Prev
-	default:
-		return msg.GetMessageID()
-	}
+	return msg.GetMessageID()
 }
 
 func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, obr chat1.OutboxRecord) error {
 	prev := obr.Msg.ClientHeader.OutboxInfo.Prev
 	inserted := false
 	var res []chat1.MessageUnboxed
-
-	// Check to see if outbox item is so old that it has no place in this thread view (but has
-	// a valid prev value)
-	if prev > 0 && len(thread.Messages) > 0 &&
-		prev < o.getMsgOrdinal(thread.Messages[len(thread.Messages)-1]) {
-		oldestMsg := thread.Messages[len(thread.Messages)-1]
-		o.Debug(ctx, "outbox item is too old to be included in this thread view: obid: %s prev: %d oldestMsg: %d", obr.OutboxID, prev, oldestMsg.GetMessageID())
-		return nil
-	}
 
 	for index, msg := range thread.Messages {
 		ord := o.getMsgOrdinal(msg)
@@ -437,10 +421,18 @@ func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, ob
 		res = append(res, msg)
 	}
 
-	// If we didn't insert this guy, then put it at the front just so the user can see it
 	if !inserted {
-		o.Debug(ctx, "failed to insert instream, placing at front: obid: %s prev: %d", obr.OutboxID,
-			prev)
+		// Check to see if outbox item is so old that it has no place in this thread view (but has
+		// a valid prev value)
+		if prev > 0 && len(thread.Messages) > 0 &&
+			prev < o.getMsgOrdinal(thread.Messages[len(thread.Messages)-1]) {
+			oldestMsg := thread.Messages[len(thread.Messages)-1]
+			o.Debug(ctx, "outbox item is too old to be included in this thread view: obid: %s prev: %d oldestMsg: %d", obr.OutboxID, prev, oldestMsg.GetMessageID())
+			return nil
+		}
+
+		// If we didn't insert this guy, then put it at the front just so the user can see it
+		o.Debug(ctx, "failed to insert instream, placing at front: obid: %s prev: %d", obr.OutboxID, prev)
 		res = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
 			res...)
 	}
@@ -477,11 +469,25 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 			return err
 		}
 	}
+	// Update prev values for outbox messages to point at correct place (in case it has changed since
+	// some messages got sent)
+	for index := len(thread.Messages) - 2; index >= 0; index-- {
+		msg := thread.Messages[index]
+		typ, err := msg.State()
+		if err != nil {
+			continue
+		}
+		if typ == chat1.MessageUnboxedState_OUTBOX {
+			obr := msg.Outbox()
+			obr.Msg.ClientHeader.OutboxInfo.Prev = thread.Messages[index+1].GetMessageID()
+			thread.Messages[index] = chat1.NewMessageUnboxedWithOutbox(obr)
+		}
+	}
 
 	return nil
 }
 
-// This is called periodically to ensure exploding messages don't hang out too
+// EphemeralPurge is called periodically to ensure exploding messages don't hang out too
 // long in the outbox (since they are not encrypted with ephemeral keys until
 // they leave it). Currently we purge anything that is in the error state and
 // has been in the outbox for > ephemeralPurgeCutoff minutes.

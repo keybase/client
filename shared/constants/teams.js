@@ -137,26 +137,17 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
 
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
 const policyRetain = makeRetentionPolicy({type: 'retain'})
-const policyDay = makeRetentionPolicy({type: 'expire', days: 1})
-const policyWeek = makeRetentionPolicy({type: 'expire', days: 7})
 const policyMonth = makeRetentionPolicy({type: 'expire', days: 30})
 const policyThreeMonths = makeRetentionPolicy({type: 'expire', days: 90})
+const policySixMonths = makeRetentionPolicy({type: 'expire', days: 180})
 const policyYear = makeRetentionPolicy({type: 'expire', days: 365})
-const baseRetentionPolicies = [
-  policyDay,
-  policyWeek,
-  policyMonth,
-  policyThreeMonths,
-  policyYear,
-  policyRetain,
-]
+const baseRetentionPolicies = [policyMonth, policyThreeMonths, policySixMonths, policyYear, policyRetain]
 const retentionPolicies = {
   policyInherit,
   policyRetain,
-  policyDay,
-  policyWeek,
   policyMonth,
   policyThreeMonths,
+  policySixMonths,
   policyYear,
 }
 

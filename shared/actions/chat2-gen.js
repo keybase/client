@@ -14,9 +14,9 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
-export const attachmentUpload = 'chat2:attachmentUpload'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
+export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const clearLoading = 'chat2:clearLoading'
@@ -98,11 +98,6 @@ type _AttachmentLoadingPayload = $ReadOnly<{|
   ratio: number,
   isPreview: boolean,
 |}>
-type _AttachmentUploadPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  path: string,
-  title: string,
-|}>
 type _AttachmentUploadedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -111,6 +106,11 @@ type _AttachmentUploadingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
   ratio: number,
+|}>
+type _AttachmentsUploadPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  paths: Array<string>,
+  titles: Array<string>,
 |}>
 type _BadgesUpdatedPayload = $ReadOnly<{|conversations: Array<RPCTypes.BadgeConversationInfo>|}>
 type _BlockConversationPayload = $ReadOnly<{|
@@ -266,7 +266,7 @@ type _ResetLetThemInPayload = $ReadOnly<{|
 |}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
+  reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
 |}>
 type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -299,7 +299,10 @@ type _SetPendingConversationUsersPayload = $ReadOnly<{|
   users: Array<string>,
   fromSearch: boolean,
 |}>
-type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode|}>
+type _SetPendingModePayload = $ReadOnly<{|
+  pendingMode: Types.PendingMode,
+  noneDestination?: 'inbox' | 'thread',
+|}>
 type _SetupChatHandlersPayload = void
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
@@ -364,9 +367,9 @@ export const createSetPendingConversationExistingConversationIDKey = (payload: _
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({error: false, payload, type: attachmentDownloaded})
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({error: false, payload, type: attachmentLoading})
-export const createAttachmentUpload = (payload: _AttachmentUploadPayload) => ({error: false, payload, type: attachmentUpload})
 export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload) => ({error: false, payload, type: attachmentUploaded})
 export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) => ({error: false, payload, type: attachmentUploading})
+export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => ({error: false, payload, type: attachmentsUpload})
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: false, payload, type: badgesUpdated})
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({error: false, payload, type: blockConversation})
 export const createClearLoading = (payload: _ClearLoadingPayload) => ({error: false, payload, type: clearLoading})
@@ -423,9 +426,9 @@ export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: fa
 export type AttachmentDownloadPayload = $Call<typeof createAttachmentDownload, _AttachmentDownloadPayload>
 export type AttachmentDownloadedPayload = $Call<typeof createAttachmentDownloaded, _AttachmentDownloadedPayload>
 export type AttachmentLoadingPayload = $Call<typeof createAttachmentLoading, _AttachmentLoadingPayload>
-export type AttachmentUploadPayload = $Call<typeof createAttachmentUpload, _AttachmentUploadPayload>
 export type AttachmentUploadedPayload = $Call<typeof createAttachmentUploaded, _AttachmentUploadedPayload>
 export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading, _AttachmentUploadingPayload>
+export type AttachmentsUploadPayload = $Call<typeof createAttachmentsUpload, _AttachmentsUploadPayload>
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
 export type BlockConversationPayload = $Call<typeof createBlockConversation, _BlockConversationPayload>
 export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoadingPayload>
@@ -495,9 +498,9 @@ export type Actions =
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentLoadingPayload
-  | AttachmentUploadPayload
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
+  | AttachmentsUploadPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ClearLoadingPayload

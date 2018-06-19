@@ -1,14 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button} from '../common-adapters'
+import {Box2, WaitingButton} from '../common-adapters'
 
 type Props = {
   refresh: () => void,
+  waitingKey: string,
 }
 
-const Wallets = ({hello, refresh}: Props) => (
+const Wallets = ({refresh, waitingKey}: Props) => (
   <Box2 direction="vertical" fullHeight={true} gap="xlarge" gapStart={true} gapEnd={true}>
-    <Button type="Primary" label="Refresh wallets" onClick={refresh} />
+    <WaitingButton type="Primary" label="Refresh wallets" onClick={refresh} waitingKey={waitingKey} />
   </Box2>
 )
 

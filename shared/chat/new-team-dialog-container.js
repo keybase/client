@@ -1,5 +1,6 @@
 // @flow
 import * as TeamsGen from '../actions/teams-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import NewTeamDialog from '../teams/new-team'
 import {upperFirst} from 'lodash-es'
 import {connect, lifecycle, type TypedState, compose, withStateHandlers} from '../util/container'
@@ -21,11 +22,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
       })
     )
   },
+  onCancel: () => dispatch(Chat2Gen.createNavigateToInbox()),
+  onJoinSubteamChange: () => {},
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
-  onBack: () => dispatch(navigateUp()),
-  onJoinSubteamChange: () => {},
 })
 
 export default compose(

@@ -7,7 +7,7 @@ import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
 import {Text, Box, Icon} from '../../../common-adapters'
-import {connect, type TypedState} from '../../../util/container'
+import {compose, setDisplayName, connect, type TypedState} from '../../../util/container'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 type Props = {
@@ -104,4 +104,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   measure: ownProps.measure,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TopMessage)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('TopMessage')
+)(TopMessage)

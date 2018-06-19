@@ -474,7 +474,9 @@ func testRelay(t *testing.T, yank bool) {
 		Asset:     stellar1.Asset{Type: "native"},
 	})
 	require.NoError(t, err)
-	require.NotNil(t, sendRes.Relay)
+
+	details, err := tcs[0].Backend.PaymentDetails(context.Background(), tcs[0], sendRes.KbTxID.String())
+	require.NoError(t, err)
 
 	claimant := 0
 	if !yank {
@@ -494,7 +496,7 @@ func testRelay(t *testing.T, yank bool) {
 
 		// The implicit team has an invite for the claimant. Now the sender signs them into the team.
 		t.Logf("Sender keys recipient into implicit team")
-		teamID := sendRes.Relay.TeamID
+		teamID := details.Summary.Relay().TeamID
 		team, err := teams.Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamID})
 		require.NoError(t, err)
 		invite, _, found := team.FindActiveKeybaseInvite(tcs[claimant].Fu.GetUID())
@@ -519,8 +521,9 @@ func testRelay(t *testing.T, yank bool) {
 	require.Equal(t, "Claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
 
-	fhistory, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
+	fhistory := fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
@@ -559,8 +562,9 @@ func testRelay(t *testing.T, yank bool) {
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "Completed", history[0].Payment.Status)
 
-	fhistory, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistoryPage, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
+	fhistory = fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
@@ -574,8 +578,9 @@ func testRelay(t *testing.T, yank bool) {
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "Completed", history[0].Payment.Status)
 
-	fhistory, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
+	fhistoryPage, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
+	fhistory = fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)

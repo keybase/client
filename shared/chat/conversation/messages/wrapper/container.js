@@ -4,7 +4,7 @@ import * as ProfileGen from '../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as Types from '../../../../constants/types/chat2'
 import Wrapper from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {setDisplayName, compose, connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {isMobile} from '../../../../constants/platform'
 
@@ -100,9 +100,9 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     measure,
     message,
     messageFailed: stateProps.messageFailed,
-    // `messageKey` must always be unique and immutable for the message
-    // or else it will wreak havoc on the conversation list view
-    messageKey: `${message.conversationIDKey}:${message.id}`,
+    // `messageKey` should be unique for the message as long
+    // as threads aren't switched
+    messageKey: `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`,
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
@@ -118,4 +118,6 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Wrapper'))(
+  Wrapper
+)

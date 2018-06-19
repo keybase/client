@@ -609,36 +609,58 @@ export const makePendingTextMessage = (
   })
 }
 
-export const makePendingAttachmentMessage = (
+export const makePendingAttachmentMessages = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  attachmentType: Types.AttachmentType,
-  title: string,
-  previewURL: string,
-  outboxID: Types.OutboxID,
+  attachmentTypes: Types.AttachmentType[],
+  titles: string[],
+  previewURLs: string[],
+  outboxIDs: Types.OutboxID[],
   explodeTime?: number
 ) => {
+  if (attachmentTypes.length - titles.length + previewURLs.length - outboxIDs.length !== 0) {
+    // some are not the same size. no good.
+    throw new Error(
+      `makePendingAttachments: got arrays of differing lengths: (${attachmentTypes.length}, ${
+        titles.length
+      }, ${previewURLs.length}, ${outboxIDs.length})`
+    )
+  }
   const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  const ordinal = nextFractionalOrdinal(lastOrdinal)
+  // arbitrarily reduce on attachmentTypes to get the same length
+  const ordinals = attachmentTypes.reduce((ords, _) => {
+    if (ords.length === 0) {
+      ords.push(nextFractionalOrdinal(lastOrdinal))
+      return ords
+    }
+    ords.push(nextFractionalOrdinal(ords[ords.length - 1]))
+    return ords
+  }, [])
 
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
-  return makeMessageAttachment({
-    ...explodeInfo,
-    attachmentType,
-    author: state.config.username || '',
-    conversationIDKey,
-    deviceName: '',
-    previewURL,
-    deviceType: isMobile ? 'mobile' : 'desktop',
-    id: Types.numberToMessageID(0),
-    ordinal,
-    outboxID,
-    submitState: 'pending',
-    timestamp: Date.now(),
-    title,
-  })
+  const res = []
+  for (let i = 0; i < attachmentTypes.length; i++) {
+    res.push(
+      makeMessageAttachment({
+        ...explodeInfo,
+        attachmentType: attachmentTypes[i],
+        author: state.config.username || '',
+        conversationIDKey,
+        deviceName: '',
+        previewURL: previewURLs[i],
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        id: Types.numberToMessageID(0),
+        ordinal: ordinals[i],
+        outboxID: outboxIDs[i],
+        submitState: 'pending',
+        timestamp: Date.now(),
+        title: titles[i],
+      })
+    )
+  }
+  return res
 }
 
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
@@ -701,15 +723,11 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 }
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
-  {text: 'Never', seconds: 0},
+  {text: 'Never (turn off)', seconds: 0},
   {text: '30 seconds', seconds: 30},
-  {text: '1 minute', seconds: 60},
-  {text: '3 minutes', seconds: 180},
-  {text: '10 minutes', seconds: 600},
-  {text: '30 minutes', seconds: 600 * 3},
-  {text: '1 hour', seconds: 3600},
-  {text: '3 hours', seconds: 3600 * 3},
-  {text: '12 hours', seconds: 3600 * 12},
+  {text: '5 minutes', seconds: 300},
+  {text: '60 minutes', seconds: 3600},
+  {text: '6 hours', seconds: 3600 * 6},
   {text: '24 hours', seconds: 86400},
   {text: '3 days', seconds: 86400 * 3},
   {text: '7 days', seconds: 86400 * 7},

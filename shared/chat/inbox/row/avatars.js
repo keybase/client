@@ -39,11 +39,11 @@ const MutedIcon = ({isMuted, isSelected, isLocked}) => {
   } else if (isLocked) {
     const type = isSelected
       ? isMobile
-        ? 'icon-addon-lock-active-12'
-        : 'icon-addon-lock-active-8'
+        ? 'icon-addon-lock-active-22'
+        : 'icon-addon-lock-active-16'
       : isMobile
-        ? 'icon-addon-lock-12'
-        : 'icon-addon-lock-8'
+        ? 'icon-addon-lock-22'
+        : 'icon-addon-lock-16'
     icon = <Icon type={type} style={avatarLockIconStyle} />
   }
   return icon
@@ -142,7 +142,7 @@ const avatarMutedIconStyle = {
 }
 
 const avatarLockIconStyle = {
-  bottom: 5,
+  bottom: 3,
   position: 'absolute',
   right: 0,
 }

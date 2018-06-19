@@ -170,15 +170,17 @@ helpers.rootLinuxNode(env, {
                         // TODO: If we re-enable tests other than Go tests on
                         // Windows, this check should go away.
                         if (hasGoChanges) {
-                            helpers.nodeWithCleanup('windows', {}, {}) {
+                            helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                                 def BASEDIR="${pwd()}"
                                 def GOPATH="${BASEDIR}\\go"
                                 withEnv([
                                     'GOROOT=C:\\go',
                                     "GOPATH=\"${GOPATH}\"",
-                                    "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
+                                    "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.PATH}",
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                    "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                                    "TEMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
                                 ]) {
                                 ws("$GOPATH/src/github.com/keybase/client") {
                                     println "Checkout Windows"
@@ -189,12 +191,13 @@ helpers.rootLinuxNode(env, {
                                     println "Test Windows"
                                     parallel (
                                         test_windows_go: {
-                                            if (hasGoChanges) {
-                                                dir("go/keybase") {
-                                                    bat "go build"
-                                                }
-                                                testGo("test_windows_go_")
+                                            // TODO: if we re-enable tests
+                                            // other than Go tests on Windows,
+                                            // add a `hasGoChanges` check here.
+                                            dir("go/keybase") {
+                                                bat "go build"
                                             }
+                                            testGo("test_windows_go_")
                                         }
                                     )
                                 }}
@@ -284,32 +287,22 @@ def testGo(prefix) {
     withEnv([
         "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     ]) {
-        def shell
-        def dirs
-        def slash
-        def goversion
-        if (isUnix()) {
-            shell = { params -> sh params }
-            dirs = getTestDirsNix()
-            slash = '/'
-            goversion = sh(returnStdout: true, script: "go version").trim()
-            // Ideally, we'd do this on Windows, too, but we'd have to figure
-            // out how to do it with batch files or PowerShell.
-            sh '''
-                lint=$(make -s lint);
-                echo 2>&1 "$lint";
-                [ -z "$lint" -o "$lint" = "Lint-free!" ]
-            '''
-            sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
-            // Make sure we don't accidentally pull in the testing package.
-            sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
-        } else {
-            shell = { params -> bat params }
-            dirs = getTestDirsWindows()
-            slash = '\\'
-            goversion = bat(returnStdout: true, script: "@go version").trim()
+        def dirs = getTestDirsNix()
+        def goversion = sh(returnStdout: true, script: "go version").trim()
+
+        println "Running lint and vet"
+        retry(5) {
+            sh 'go get -u github.com/golang/lint/golint'
         }
-        shell "go vet ./..."
+        sh 'make -s lint'
+        if (isUnix()) {
+            // Windows `gofmt` pukes on CRLF, so only run on *nix.
+            sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
+        }
+        // Make sure we don't accidentally pull in the testing package.
+        sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
+        sh "go vet ./..."
+
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
         def tests = [:]
@@ -324,15 +317,15 @@ def testGo(prefix) {
             def dirPath = d.replaceAll('github.com/keybase/client/go/', '')
             println "Building tests for $dirPath"
             dir(dirPath) {
-                shell "go test -i"
-                shell "go test -c -o test.test"
+                sh "go test -i"
+                sh "go test -c -o test.test"
                 // Only run the test if a test binary should have been produced.
                 if (fileExists("test.test")) {
                     def testName = dirPath.replaceAll('/', '_')
                     def test = {
                         dir(dirPath) {
                             println "Running tests for $dirPath"
-                            shell ".${slash}test.test -test.timeout 30m"
+                            sh "./test.test -test.timeout 30m"
                         }
                     }
                     if (testName in specialTestFilter) {

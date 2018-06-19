@@ -40,6 +40,8 @@
     "rn-start": "./react-native/packageAndBuild.sh",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
+    "rn-build-android": "./react-native/buildAndroid.sh",
+    "rn-push-android": "./react-native/pushAndroid.sh",
     "rn-packager-wipe-cache":
       "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
     "rn-test-ios":
@@ -58,7 +60,10 @@
   "flow-coverage-report": {
     "concurrentFiles": 50,
     "threshold": 10,
-    "includeGlob": ["**/*.js", "**/*.js.flow"],
+    "includeGlob": [
+      "**/*.js",
+      "**/*.js.flow"
+    ],
     "excludeGlob": [
       "node_modules/**",
       "markdown/parser.js",
@@ -70,14 +75,22 @@
     "flowCommandPath": "./node_modules/.bin/flow"
   },
   "jest": {
-    "modulePaths": ["<rootDir>/desktop/node_modules"],
+    "modulePaths": [
+      "<rootDir>/desktop/node_modules"
+    ],
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es).+\\.js"
     ],
-    "setupFiles": ["raf/polyfill"],
+    "setupFiles": [
+      "raf/polyfill"
+    ],
     "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
-    "testPathIgnorePatterns": ["/node_modules/"],
-    "snapshotSerializers": ["jest-glamor-react"],
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "snapshotSerializers": [
+      "jest-glamor-react"
+    ],
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.js",
@@ -86,7 +99,13 @@
       "react-redux": "<rootDir>/__mocks__/react-redux.js",
       "electron": "<rootDir>/__mocks__/electron.js"
     },
-    "moduleFileExtensions": ["js", "json", "jsx", "node", "desktop.js"],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "jsx",
+      "node",
+      "desktop.js"
+    ],
     "globals": {
       "__DEV__": true,
       "__STORYBOOK__": true,
@@ -131,12 +150,12 @@
     "react-dom": "16.4.0",
     "react-gateway": "3.0.0",
     "react-list": "0.8.9",
+    "react-measure": "^2.0.0",
     "react-native": "git://github.com/keybase/react-native#keybase-fixes-off-543",
     "react-native-camera": "0.10.0",
     "react-native-contacts": "2.2.0",
     "react-native-fetch-blob": "0.10.8",
-    "react-native-image-picker":
-      "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
+    "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
     "react-native-mime-types": "^2.2.1",
     "react-native-push-notification":
       "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302",
@@ -144,6 +163,7 @@
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "5.0.7",
     "react-transition-group": "2.3.1",
+    "react-waypoint": "^8.0.1",
     "react-virtualized": "9.19.1",
     "recompose": "0.27.1",
     "redux": "4.0.0",
