@@ -7,6 +7,8 @@ export type Props = {|
   style?: Object,
 
   // mobile only
+  bounces?: boolean,
+  centerContent?: boolean,
   minimumZoomScale?: number,
   maximumZoomScale?: number,
   onScroll?: Function,
@@ -15,6 +17,8 @@ export type Props = {|
   indicatorStyle?: string,
   alwaysBounceVertical?: boolean,
   alwaysBounceHorizontal?: boolean,
+  showsVerticalScrollIndicator?: boolean,
+  showsHorizontalScrollIndicator?: boolean,
   horizontal?: boolean,
   refreshControl?: React.Element<any>,
 |}

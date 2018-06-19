@@ -28,6 +28,9 @@ type State = {
   submitting: boolean,
 }
 
+const AVATAR_SIZE = 132
+const AVATAR_BORDER_WIDTH = 4
+
 class EditAvatar extends React.Component<Props, State> {
   _file: ?HTMLInputElement
   _range: ?HTMLInputElement
@@ -175,14 +178,13 @@ class EditAvatar extends React.Component<Props, State> {
 
   _onSave = e => {
     if (this._image.src) {
-      this._range.disabled = true
       this.setState({submitting: true})
 
       const x = -this._image.offsetLeft
       const y = -this._image.offsetTop
       const rH = this._image.naturalHeight / this._image.height
       const rW = this._image.naturalWidth / this._image.width
-      const avatarSize = this._image.parentElement.offsetWidth
+      const avatarSize = AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2
       const x0 = rW * x
       const y0 = rH * y
       const crop = {
@@ -298,16 +300,16 @@ const HoverBox = glamorous(Box)({
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.lightGrey2,
   borderColor: globalColors.grey,
-  borderRadius: 132,
+  borderRadius: AVATAR_SIZE,
   borderStyle: 'dashed',
-  borderWidth: 4,
+  borderWidth: AVATAR_BORDER_WIDTH,
   cursor: 'pointer',
-  height: 132,
+  height: AVATAR_SIZE,
   marginBottom: globalMargins.small,
   marginTop: globalMargins.medium,
   overflow: 'hidden',
   position: 'relative',
-  width: 132,
+  width: AVATAR_SIZE,
 })
 
 const styles = styleSheetCreate({
