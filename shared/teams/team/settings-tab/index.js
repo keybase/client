@@ -185,7 +185,6 @@ export class Settings extends React.Component<Props, State> {
 
   _getNewStateObject = (p: Props) => {
     return {
-      // This isn't strictly necessary but flow doesn't understand getDerivedStateFromProps will run
       newIgnoreAccessRequests: p.ignoreAccessRequests,
       newOpenTeam: p.openTeam,
       newOpenTeamRole: p.openTeamRole,

@@ -150,8 +150,6 @@ class SaveIndicator extends React.Component<Props, State> {
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
     if (this.props.saving !== this.state.saving) {
-      // Just set saving and lastSave here -- run the state machine from
-      // componentDidUpdate.
       const debugLog = this.props.debugLog
       const newPartialState = {
         saving: this.props.saving,
@@ -159,9 +157,7 @@ class SaveIndicator extends React.Component<Props, State> {
       }
       if (debugLog) {
         debugLog(
-          `getDerivedStateFromProps: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(
-            prevState
-          )}`
+          `componentDidUpdate: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(prevState)}`
         )
       }
       this.setState(newPartialState)
