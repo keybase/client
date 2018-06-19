@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, ClickableBox, Icon, List, Text, FloatingMenu} from '../../common-adapters'
-import {globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
+import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
@@ -11,9 +11,14 @@ type AddProps = {
   onLinkExisting: () => void,
 }
 
-const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
-  const rowHeight = isMobile ? 56 : 48
+const rowHeight = isMobile ? 56 : 48
 
+const styles = styleSheetCreate({
+  addContainer: {backgroundColor: globalColors.white},
+  addContainerBox: {height: rowHeight, paddingTop: globalMargins.small},
+})
+
+const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
   const menuItems = [
     {
       onClick: () => props.onAddNew(),
@@ -27,13 +32,9 @@ const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
   ]
 
   return (
-    <ClickableBox
-      onClick={props.toggleShowingMenu}
-      style={{backgroundColor: globalColors.white}}
-      ref={props.setAttachmentRef}
-    >
+    <ClickableBox onClick={props.toggleShowingMenu} style={styles.addContainer} ref={props.setAttachmentRef}>
       <Box2
-        style={{height: rowHeight, paddingTop: globalMargins.small}}
+        style={styles.addContainerBox}
         direction="horizontal"
         fullWidth={true}
         gap="xsmall"
