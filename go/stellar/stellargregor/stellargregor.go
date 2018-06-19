@@ -62,6 +62,7 @@ func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterfac
 }
 
 func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+	defer h.G().GregorDismisser.DismissItem(mctx.Ctx(), cli, item.Metadata().MsgID())
 	mctx.CDebugf("%v: %v received", h.Name(), category)
 	var msg stellar1.PaymentStatusMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
@@ -69,8 +70,6 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 		return err
 	}
 	mctx.CDebugf("%s unmarshaled: %+v", category, msg)
-
-	h.G().GregorDismisser.DismissItem(mctx.Ctx(), cli, item.Metadata().MsgID())
 
 	return nil
 }
