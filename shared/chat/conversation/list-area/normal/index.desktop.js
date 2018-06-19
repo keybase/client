@@ -154,27 +154,31 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
-  _onScrollThrottled = throttle(() => {
-    if (!this._isScrolling) {
-      this._isScrolling = true
-      if (this._pointerWrapperRef.current) {
-        this._pointerWrapperRef.current.style.pointerEvents = 'none'
+  _onScrollThrottled = throttle(
+    () => {
+      if (!this._isScrolling) {
+        this._isScrolling = true
+        if (this._pointerWrapperRef.current) {
+          this._pointerWrapperRef.current.style.pointerEvents = 'none'
+        }
       }
-    }
-    this._onAfterScroll()
+      this._onAfterScroll()
 
-    // are we at the top?
-    const list = this._listRef.current
-    if (list) {
-      if (list.scrollTop < listEdgeSlop) {
-        this.props.loadMoreMessages()
+      // are we at the top?
+      const list = this._listRef.current
+      if (list) {
+        if (list.scrollTop < listEdgeSlop) {
+          this.props.loadMoreMessages()
+        }
       }
-    }
 
-    // not locked to bottom while scrolling
-    const isLockedToBottom = false
-    this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
-  }, 100)
+      // not locked to bottom while scrolling
+      const isLockedToBottom = false
+      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
+    },
+    100,
+    {leading: true, trailing: true}
+  )
 
   // After lets turn them back on
   _onAfterScroll = debounce(() => {
