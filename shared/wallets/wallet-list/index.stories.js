@@ -4,6 +4,7 @@ import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action} from '../../stories/storybook'
 import {WalletList} from '.'
 import walletRow from './wallet-row/index.stories'
+import {stringToAccountID} from '../../constants/types/wallets'
 
 const onSelect = action('onSelect')
 
@@ -51,7 +52,7 @@ const provider = PropProviders.compose(
   WalletRowProvider(mockWallets)
 )
 
-const accountIDs = Object.keys(mockWallets)
+const accountIDs = Object.keys(mockWallets).map(s => stringToAccountID(s))
 
 const load = () => {
   walletRow()

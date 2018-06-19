@@ -21,7 +21,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
 })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
-  accountID: '',
+  accountID: Types.noAccountID,
   balanceDescription: '',
   isDefault: false,
   name: '',
@@ -29,7 +29,7 @@ const makeAccount: I.RecordFactory<Types._Account> = I.Record({
 
 const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
-    accountID: w.accountID,
+    accountID: Types.stringToAccountID(w.accountID),
     balanceDescription: w.balanceDescription,
     isDefault: w.isDefault,
     name: w.name,

@@ -3,7 +3,7 @@
   "actions": {
     "assetsReceived": {
       "_description": "Update our store of assets data",
-      "accountID": "string",
+      "accountID": "Types.AccountID",
       "assets": "Array<Types.Assets>",
     },
     "loadEverything": {
@@ -11,18 +11,18 @@
     },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
-      "accountID": "string",
+      "accountID": "Types.AccountID",
     },
     "loadPayments": {
       "_description": "Refresh our list of payments for a given account",
-      "accountID": "string",
+      "accountID": "Types.AccountID",
     },
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
-      "accountID": "string",
+      "accountID": "Types.AccountID",
       "payments": "Array<Types.Payment>",
     },
     "accountsReceived": {
@@ -34,7 +34,7 @@
     },
     "selectAccount": {
       "_description": "Select an account",
-      "accountID": "string",
+      "accountID": "Types.AccountID",
     },
   }
 }

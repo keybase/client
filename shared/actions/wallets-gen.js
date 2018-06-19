@@ -20,18 +20,18 @@ export const selectAccount = 'wallets:selectAccount'
 // Payload Types
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
 type _AssetsReceivedPayload = $ReadOnly<{|
-  accountID: string,
+  accountID: Types.AccountID,
   assets: Array<Types.Assets>,
 |}>
 type _LoadAccountsPayload = void
-type _LoadAssetsPayload = $ReadOnly<{|accountID: string|}>
+type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadEverythingPayload = void
-type _LoadPaymentsPayload = $ReadOnly<{|accountID: string|}>
+type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _PaymentsReceivedPayload = $ReadOnly<{|
-  accountID: string,
+  accountID: Types.AccountID,
   payments: Array<Types.Payment>,
 |}>
-type _SelectAccountPayload = $ReadOnly<{|accountID: string|}>
+type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 
 // Action Creators
 /**
