@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	// The max number of TLFs to return in a user history
-	maxTlfs = 10
+	// The max number of TLF writer clusters to return in a user history.
+	maxClusters = 10
 )
 
 type tlfKey struct {
@@ -153,19 +153,49 @@ func (uh *UserHistory) GetTlfHistory(
 	return uh.getTlfHistoryLocked(tlfName, tlfType)
 }
 
+type historyClusters []keybase1.FSFolderEditHistory
+
+func (hc historyClusters) Len() int {
+	return len(hc)
+}
+
+func (hc historyClusters) Less(i, j int) bool {
+	return hc[i].ServerTime > hc[j].ServerTime
+}
+
+func (hc historyClusters) Swap(i, j int) {
+	hc[i], hc[j] = hc[j], hc[i]
+}
+
 // Get returns the full edit history for the user, converted to
 // keybase1 protocol structs.
 func (uh *UserHistory) Get() (history []keybase1.FSFolderEditHistory) {
 	uh.lock.RLock()
 	defer uh.lock.RUnlock()
+
+	var clusters historyClusters
 	for _, h := range uh.tlfs.histories {
-		history = append(history, uh.getTlfHistoryLocked(
-			h.key.tlfName, h.key.tlfType))
-		if len(history) == maxTlfs {
-			break
+		history := uh.getTlfHistoryLocked(h.key.tlfName, h.key.tlfType)
+
+		// Break it up into individual clusters
+		for _, wh := range history.History {
+			if len(wh.Edits) > 0 {
+				clusters = append(clusters, keybase1.FSFolderEditHistory{
+					Folder:     history.Folder,
+					ServerTime: wh.Edits[0].ServerTime,
+					History:    []keybase1.FSFolderWriterEditHistory{wh},
+				})
+			}
 		}
 	}
-	return history
+
+	// We need to sort these by clusters, not by the full TLF time.
+	sort.Sort(clusters)
+	// TODO: consolidate neighboring clusters that share the same folder?
+	if len(clusters) > maxClusters {
+		return clusters[:maxClusters]
+	}
+	return clusters
 }
 
 // Clear erases all saved histories; TLFs must be re-added.
