@@ -8,7 +8,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/stellarnet"
 	"golang.org/x/net/context"
 )
 
@@ -97,7 +97,7 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 			localAmountStr := ""
 			if balance.Asset.IsNativeXLM() {
 				if acc.ExchangeRate != nil {
-					localAmount, err := stellar.ConvertXLMToOutside(balance.Amount, *acc.ExchangeRate)
+					localAmount, err := stellarnet.ConvertXLMToOutside(balance.Amount, acc.ExchangeRate.Rate)
 					if err == nil {
 						localAmountStr = fmt.Sprintf(" (%s ~%s)", string(acc.ExchangeRate.Currency), localAmount)
 					} else {
