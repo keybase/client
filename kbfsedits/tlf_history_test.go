@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -42,7 +43,7 @@ type nextNotification struct {
 
 func (nn *nextNotification) make(
 	filename string, nt NotificationOpType, uid keybase1.UID,
-	params *NotificationParams) NotificationMessage {
+	params *NotificationParams, now time.Time) NotificationMessage {
 	n := NotificationMessage{
 		Version:           NotificationV2,
 		Revision:          nn.nextRevision,
@@ -52,6 +53,7 @@ func (nn *nextNotification) make(
 		UID:               uid,
 		Params:            params,
 		FileType:          EntryTypeFile,
+		Time:              now,
 		numWithinRevision: nn.numWithin,
 	}
 	nn.numWithin++
@@ -75,9 +77,9 @@ func TestTlfHistorySimple(t *testing.T) {
 	require.NoError(t, err)
 
 	nn := nextNotification{1, 0, tlfID, nil}
-	aliceWrite := nn.make("a", NotificationCreate, aliceUID, nil)
+	aliceWrite := nn.make("a", NotificationCreate, aliceUID, nil, time.Time{})
 	aliceMessage := nn.encode(t)
-	bobWrite := nn.make("b", NotificationCreate, bobUID, nil)
+	bobWrite := nn.make("b", NotificationCreate, bobUID, nil, time.Time{})
 	bobMessage := nn.encode(t)
 
 	expected := writersByRevision{
@@ -117,18 +119,18 @@ func TestTlfHistoryMultipleWrites(t *testing.T) {
 	nn := nextNotification{1, 0, tlfID, nil}
 
 	// Alice creates and writes to "a".
-	_ = nn.make("a", NotificationCreate, aliceUID, nil)
-	aliceModA := nn.make("a", NotificationModify, aliceUID, nil)
+	_ = nn.make("a", NotificationCreate, aliceUID, nil, time.Time{})
+	aliceModA := nn.make("a", NotificationModify, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
 	// Bob creates "b", writes to existing file "c", and writes to "a".
-	bobCreateB := nn.make("b", NotificationCreate, bobUID, nil)
-	bobModC := nn.make("c", NotificationModify, bobUID, nil)
-	bobModA := nn.make("a", NotificationModify, bobUID, nil)
+	bobCreateB := nn.make("b", NotificationCreate, bobUID, nil, time.Time{})
+	bobModC := nn.make("c", NotificationModify, bobUID, nil, time.Time{})
+	bobModA := nn.make("a", NotificationModify, bobUID, nil, time.Time{})
 	bobMessages = append(bobMessages, nn.encode(t))
 
 	// Alice writes to "c".
-	aliceModC := nn.make("c", NotificationModify, aliceUID, nil)
+	aliceModC := nn.make("c", NotificationModify, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
 	expected := writersByRevision{
@@ -167,48 +169,48 @@ func TestTlfHistoryRenamesAndDeletes(t *testing.T) {
 	nn := nextNotification{1, 0, tlfID, nil}
 
 	// Alice creates modifies "c" (later overwritten).
-	_ = nn.make("c", NotificationCreate, aliceUID, nil)
+	_ = nn.make("c", NotificationCreate, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
 	// Bob modifies "c" (later overwritten).
-	_ = nn.make("c", NotificationModify, bobUID, nil)
+	_ = nn.make("c", NotificationModify, bobUID, nil, time.Time{})
 	bobMessages = append(bobMessages, nn.encode(t))
 
 	// Alice creates "b".
-	aliceCreateB := nn.make("b", NotificationCreate, aliceUID, nil)
+	aliceCreateB := nn.make("b", NotificationCreate, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
 	// Bob moves "b" to "c".
 	_ = nn.make("c", NotificationRename, bobUID, &NotificationParams{
 		OldFilename: "b",
-	})
+	}, time.Time{})
 	bobMessages = append(bobMessages, nn.encode(t))
 	aliceCreateB.Filename = "c"
 
 	// Alice creates "a".
-	_ = nn.make("a", NotificationCreate, aliceUID, nil)
+	_ = nn.make("a", NotificationCreate, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
 	// Bob modifies "a".
-	_ = nn.make("a", NotificationModify, aliceUID, nil)
+	_ = nn.make("a", NotificationModify, aliceUID, nil, time.Time{})
 	bobMessages = append(bobMessages, nn.encode(t))
 
 	// Alice moves "a" to "b".
 	_ = nn.make("b", NotificationRename, aliceUID, &NotificationParams{
 		OldFilename: "a",
-	})
+	}, time.Time{})
 	bobMessages = append(bobMessages, nn.encode(t))
 
 	// Bob creates "a".
-	_ = nn.make("a", NotificationCreate, bobUID, nil)
+	_ = nn.make("a", NotificationCreate, bobUID, nil, time.Time{})
 	bobMessages = append(bobMessages, nn.encode(t))
 
 	// Alice deletes "b".
-	_ = nn.make("b", NotificationDelete, aliceUID, nil)
+	_ = nn.make("b", NotificationDelete, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
 	// Bob modifies "a".
-	bobModA := nn.make("a", NotificationModify, bobUID, nil)
+	bobModA := nn.make("a", NotificationModify, bobUID, nil, time.Time{})
 	bobMessages = append(bobMessages, nn.encode(t))
 
 	expected := writersByRevision{
@@ -236,7 +238,8 @@ func TestTlfHistoryNeedsMoreThenComplete(t *testing.T) {
 	var aliceMessages []string
 	nn := nextNotification{1, 0, tlfID, nil}
 	for i := 0; i < maxEditsPerWriter; i++ {
-		event := nn.make(strconv.Itoa(i), NotificationCreate, aliceUID, nil)
+		event := nn.make(
+			strconv.Itoa(i), NotificationCreate, aliceUID, nil, time.Time{})
 		allExpected = append(allExpected, event)
 		aliceMessages = append(aliceMessages, nn.encode(t))
 	}
@@ -271,7 +274,8 @@ func TestTlfHistoryTrimming(t *testing.T) {
 	var aliceMessages []string
 	nn := nextNotification{1, 0, tlfID, nil}
 	for i := 0; i < maxEditsPerWriter+2; i++ {
-		event := nn.make(strconv.Itoa(i), NotificationCreate, aliceUID, nil)
+		event := nn.make(strconv.Itoa(i), NotificationCreate, aliceUID, nil,
+			time.Time{})
 		allExpected = append(allExpected, event)
 		aliceMessages = append(aliceMessages, nn.encode(t))
 	}

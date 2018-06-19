@@ -193,6 +193,8 @@ func (uh *UserHistory) Get() (history []keybase1.FSFolderEditHistory) {
 	sort.Sort(clusters)
 	// TODO: consolidate neighboring clusters that share the same folder?
 	if len(clusters) > maxClusters {
+		// TODO: add the user's public folder to the list even if it
+		// doesn't make the cut.
 		return clusters[:maxClusters]
 	}
 	return clusters
