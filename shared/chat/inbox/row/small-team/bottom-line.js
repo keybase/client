@@ -176,7 +176,7 @@ const styles = styleSheetCreate({
       backgroundColor: globalColors.fastBlank,
       color: globalColors.black_40,
       flex: 1,
-      fontSize: 13,
+      fontSize: 14,
       paddingRight: 30,
     },
   }),

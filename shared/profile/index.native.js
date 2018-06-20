@@ -372,7 +372,7 @@ class Profile extends Component<Props, State> {
         {item.map(
           user =>
             user.dummy ? (
-              <Text key={user.dummy} type="BodySmall" style={{color: globalColors.black_40, padding: 40}}>
+              <Text key={user.dummy} type="BodySmall" style={{padding: 40}}>
                 {user.dummy}
               </Text>
             ) : (

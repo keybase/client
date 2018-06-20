@@ -124,7 +124,7 @@ class PopupMenu extends Component<Props> {
 
 const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
   <Text
-    type="BodySemibold"
+    type="BodySmallSemibold"
     style={{
       textAlign: 'center',
       paddingLeft: globalMargins.small,

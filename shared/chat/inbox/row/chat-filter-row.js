@@ -116,7 +116,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
               marginLeft: globalMargins.tiny,
             }}
             color={globalColors.black_20}
-            fontSize={isMobile ? 14 : 16}
+            fontSize={16}
           />
           <Text type="Body" style={{color: globalColors.black_40, marginLeft: globalMargins.tiny}}>
             Jump to chat
