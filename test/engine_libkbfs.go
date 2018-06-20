@@ -738,6 +738,15 @@ func (k *LibKBFS) UnflushedPaths(u User, tlfName string, t tlf.Type) (
 	return status.Journal.UnflushedPaths, nil
 }
 
+// UserEditHistory implements the Engine interface.
+func (k *LibKBFS) UserEditHistory(u User) (
+	[]keybase1.FSFolderEditHistory, error) {
+	config := u.(*libkbfs.ConfigLocal)
+
+	history := config.UserHistory().Get()
+	return history, nil
+}
+
 // DirtyPaths implements the Engine interface.
 func (k *LibKBFS) DirtyPaths(u User, tlfName string, t tlf.Type) (
 	[]string, error) {

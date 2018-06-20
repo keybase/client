@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -942,6 +943,43 @@ func checkUnflushedPaths(expectedPaths []string) fileOp {
 		}
 		return nil
 	}, IsInit, fmt.Sprintf("checkUnflushedPaths(%s)", expectedPaths)}
+}
+
+type expectedEdit struct {
+	tlfName string
+	tlfType keybase1.FolderType
+	writer  string
+	files   []string
+}
+
+func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
+	return fileOp{func(c *ctx) error {
+		history, err := c.engine.UserEditHistory(c.user)
+		if err != nil {
+			return err
+		}
+
+		// Convert the history to expected edits.
+		hEdits := make([]expectedEdit, len(history))
+		for i, h := range history {
+			if len(h.History) != 1 {
+				return fmt.Errorf(
+					"Unexpected history of size %d: %#v", len(h.History), h)
+			}
+			hEdits[i].tlfName = h.Folder.Name
+			hEdits[i].tlfType = h.Folder.FolderType
+			hEdits[i].writer = h.History[0].WriterName
+			for _, we := range h.History[0].Edits {
+				hEdits[i].files = append(hEdits[i].files, we.Filename)
+			}
+		}
+
+		if !reflect.DeepEqual(expectedEdits, hEdits) {
+			return fmt.Errorf("Expected edit history %v, got %v",
+				expectedEdits, hEdits)
+		}
+		return nil
+	}, Defaults, "checkUserEditHistory()"}
 }
 
 func checkDirtyPaths(expectedPaths []string) fileOp {

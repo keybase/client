@@ -146,6 +146,9 @@ type Engine interface {
 	// paths haven't yet been flushed from the journal.
 	UnflushedPaths(u User, tlfName string, t tlf.Type) (
 		paths []string, err error)
+	// UserEditHistory called by the test harness to get the edit
+	// history for the given user.
+	UserEditHistory(u User) (history []keybase1.FSFolderEditHistory, err error)
 	// DirtyPaths called by the test harness to find out which
 	// paths haven't yet been flushed out of memory.
 	DirtyPaths(u User, tlfName string, t tlf.Type) (paths []string, err error)

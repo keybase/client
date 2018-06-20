@@ -405,6 +405,24 @@ func (*fsEngine) UnflushedPaths(user User, tlfName string, t tlf.Type) (
 	return bufStatus.Journal.UnflushedPaths, nil
 }
 
+// UserEditHistory implements the Engine interface.
+func (*fsEngine) UserEditHistory(user User) (
+	history []keybase1.FSFolderEditHistory, err error) {
+	u := user.(*fsUser)
+	buf, err := ioutil.ReadFile(
+		filepath.Join(u.mntDir, libfs.EditHistoryName))
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(buf, &history)
+	if err != nil {
+		return nil, err
+	}
+
+	return history, nil
+}
+
 // DirtyPaths implements the Engine interface.
 func (*fsEngine) DirtyPaths(user User, tlfName string, t tlf.Type) (
 	[]string, error) {
