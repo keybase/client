@@ -21,11 +21,11 @@ func newCmdWalletFixup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name: "fixup",
+		Name:  "fixup",
+		Usage: "Fix up for CORE-8135",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "fixup", c)
 		},
-		Description: "Fix up for CORE-8135",
 	}
 }
 
