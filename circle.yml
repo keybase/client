@@ -28,6 +28,10 @@ jobs:
       command: /sbin/init
 
     steps:
+    ##
+    ## Install prereqs.
+    ##
+
     - run:
         name: Update PATH and Define Environment Variable at Runtime
         command: |
@@ -39,8 +43,6 @@ jobs:
           echo 'export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
 
           source $BASH_ENV
-
-    - checkout
 
     # Install node and java.
     - run: nvm install 10 && nvm alias default 10
@@ -90,6 +92,12 @@ jobs:
     - run:
         working_directory: shared
         command: yarn global add react-native-cli
+
+    ##
+    ## Build.
+    ##
+
+    - checkout
 
     - run: mkdir -p $GOPATH/src/github.com/keybase
     - run: ln -s $HOME/client $GOPATH/src/github.com/keybase/client
