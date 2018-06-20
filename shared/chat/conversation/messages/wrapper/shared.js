@@ -61,7 +61,7 @@ const MenuButton = ({onClick, setRef}) => (
 )
 
 const EditedMark = () => (
-  <Text type="BodySmall" style={styles.edited}>
+  <Text type="BodyTiny" style={styles.edited}>
     EDITED
   </Text>
 )

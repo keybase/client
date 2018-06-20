@@ -174,7 +174,6 @@ class EmojiTower extends React.Component<
     return <Box style={styles.emojiTower}>{children}</Box>
   }
 }
-
 const AshTower = (props: {explodedBy: ?string, numImages: number}) => {
   const children = []
   for (let i = 0; i < props.numImages; i++) {
@@ -185,11 +184,11 @@ const AshTower = (props: {explodedBy: ?string, numImages: number}) => {
       {children}
       <Box style={styles.tagBox}>
         {!props.explodedBy ? (
-          <Text type="BodySmall" style={styles.exploded}>
+          <Text type="BodyTiny" style={styles.exploded}>
             EXPLODED
           </Text>
         ) : (
-          <Text lineClamp={1} type="BodySmall" style={styles.exploded}>
+          <Text lineClamp={1} type="BodyTiny" style={styles.exploded}>
             EXPLODED BY{' '}
             <ConnectedUsernames
               type="BodySmallSemibold"
@@ -206,7 +205,6 @@ const AshTower = (props: {explodedBy: ?string, numImages: number}) => {
     </React.Fragment>
   )
 }
-
 const styles = styleSheetCreate({
   ashes: {
     width: 400,
@@ -246,5 +244,4 @@ const styles = styleSheetCreate({
     minWidth: 200,
   },
 })
-
 export default ExplodingHeightRetainer
