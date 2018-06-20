@@ -76,7 +76,8 @@ func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res
 }
 
 func (h *SignupHandler) InviteRequest(ctx context.Context, arg keybase1.InviteRequestArg) (err error) {
-	return libkb.PostInviteRequest(ctx, h.G(), libkb.InviteRequestArg{
+	m := libkb.NewMetaContext(ctx, h.G())
+	return libkb.PostInviteRequest(m, libkb.InviteRequestArg{
 		Email:    arg.Email,
 		Fullname: arg.Fullname,
 		Notes:    arg.Notes,
@@ -84,9 +85,9 @@ func (h *SignupHandler) InviteRequest(ctx context.Context, arg keybase1.InviteRe
 }
 
 func (h *SignupHandler) CheckInvitationCode(ctx context.Context, arg keybase1.CheckInvitationCodeArg) (err error) {
-	return libkb.CheckInvitationCode(ctx, h.G(), arg.InvitationCode)
+	return libkb.CheckInvitationCode(libkb.NewMetaContext(ctx, h.G()), arg.InvitationCode)
 }
 
 func (h *SignupHandler) GetInvitationCode(c context.Context, sessionID int) (code string, err error) {
-	return libkb.GetInvitationCode(c, h.G())
+	return libkb.GetInvitationCode(libkb.NewMetaContext(c, h.G()))
 }

@@ -221,7 +221,7 @@ func (p *Prove) postProofToServer(m libkb.MetaContext) (err error) {
 	if libkb.SigVersion(*p.arg.SigVersion) == libkb.KeybaseSignatureV2 {
 		arg.SigInner = p.sigInner
 	}
-	p.postRes, err = libkb.PostProof(m.Ctx(), m.G(), arg)
+	p.postRes, err = libkb.PostProof(m, arg)
 	return
 }
 
@@ -287,7 +287,7 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 		if !retry || err != nil {
 			break
 		}
-		found, status, _, err = libkb.CheckPosted(m.Ctx(), m.G(), p.postRes.ID)
+		found, status, _, err = libkb.CheckPosted(m, p.postRes.ID)
 		if found || err != nil {
 			break
 		}
