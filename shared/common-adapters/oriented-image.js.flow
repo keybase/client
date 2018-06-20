@@ -1,0 +1,11 @@
+// @flow
+import * as React from 'react'
+import {type StylesDesktop} from '../styles'
+
+export type Props = {
+  src: string,
+  style?: StylesDesktop,
+  onLoad: () => void,
+}
+
+export default class OrientedImage extends React.Component<Props> {}
