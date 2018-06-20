@@ -50,13 +50,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   if (stateProps._meta.teamType !== 'adhoc') {
     type = 'none'
   } else {
-    const broken = stateProps._meta.participants.filter(p =>
-      stateProps._users.infoMap.getIn([p, 'broken'], false)
+    const broken = stateProps._meta.participants.filter(
+      p => stateProps._users.infoMap.getIn([p, 'broken'], false) && stateProps._following.has(p)
     )
-    const following = broken.filter(username => stateProps._following.has(username))
-    if (!following.isEmpty()) {
+    if (!broken.isEmpty()) {
       type = 'broken'
-      users = following.toArray()
+      users = broken.toArray()
     } else {
       const toInvite = stateProps._meta.participants.filter(p => p.includes('@'))
       if (!toInvite.isEmpty()) {
