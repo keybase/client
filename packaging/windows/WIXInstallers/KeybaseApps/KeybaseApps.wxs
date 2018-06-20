@@ -10,6 +10,7 @@
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="EXECUTABLETARGET" Value="bin"/>
     <Property Id="MsiLogging" Value="oicewarmup"/>
+    <Property Id="nologout" Value="0"/>
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
@@ -26,7 +27,7 @@
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
-      <Custom Action="LogoutUser" Before="StopMainApp"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
+      <Custom Action="LogoutUser" Before="StopMainApp"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED or nologout <> "0")]]></Custom>
       <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
