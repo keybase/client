@@ -502,8 +502,7 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 	t.Logf("Calling TeamGet")
 
 	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name:        team.name,
-		ForceRepoll: true,
+		Name: team.name,
 	})
 	require.NoError(t, err)
 
