@@ -9,7 +9,6 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	"golang.org/x/net/context"
 )
 
 type PostProofRes struct {
@@ -29,7 +28,7 @@ type PostProofArg struct {
 	SigningKey     GenericKey
 }
 
-func PostProof(ctx context.Context, g *GlobalContext, arg PostProofArg) (*PostProofRes, error) {
+func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 	hargs := HTTPArgs{
 		"sig_id_base":     S{arg.ID.ToString(false)},
 		"sig_id_short":    S{arg.ID.ToShortID()},
@@ -44,11 +43,11 @@ func PostProof(ctx context.Context, g *GlobalContext, arg PostProofArg) (*PostPr
 	}
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
 
-	res, err := g.API.Post(APIArg{
+	res, err := m.G().API.Post(APIArg{
 		Endpoint:    "sig/post",
 		SessionType: APISessionTypeREQUIRED,
 		Args:        hargs,
-		NetContext:  ctx,
+		MetaContext: m,
 	})
 
 	if err != nil {
@@ -81,17 +80,17 @@ type PostAuthProofRes struct {
 	PPGen     int    `json:"passphrase_generation"`
 }
 
-func PostAuthProof(ctx context.Context, g *GlobalContext, arg PostAuthProofArg) (*PostAuthProofRes, error) {
+func PostAuthProof(m MetaContext, arg PostAuthProofArg) (*PostAuthProofRes, error) {
 	hargs := HTTPArgs{
 		"uid":         UIDArg(arg.uid),
 		"sig":         S{arg.sig},
 		"signing_kid": S{arg.key.GetKID().String()},
 	}
-	res, err := g.API.Post(APIArg{
+	res, err := m.G().API.Post(APIArg{
 		Endpoint:    "sig/post_auth",
 		SessionType: APISessionTypeNONE,
 		Args:        hargs,
-		NetContext:  ctx,
+		MetaContext: m,
 	})
 	if err != nil {
 		return nil, err
@@ -110,40 +109,40 @@ type InviteRequestArg struct {
 	Notes    string
 }
 
-func PostInviteRequest(ctx context.Context, g *GlobalContext, arg InviteRequestArg) (err error) {
-	_, err = g.API.Post(APIArg{
+func PostInviteRequest(m MetaContext, arg InviteRequestArg) (err error) {
+	_, err = m.G().API.Post(APIArg{
 		Endpoint: "invitation_request",
 		Args: HTTPArgs{
 			"email":     S{arg.Email},
 			"full_name": S{arg.Fullname},
 			"notes":     S{arg.Notes},
 		},
-		NetContext: ctx,
+		MetaContext: m,
 	})
 	return err
 }
 
-func DeletePrimary(ctx context.Context, g *GlobalContext) (err error) {
-	_, err = g.API.Post(APIArg{
+func DeletePrimary(m MetaContext) (err error) {
+	_, err = m.G().API.Post(APIArg{
 		Endpoint:    "key/revoke",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"revoke_primary":  I{1},
 			"revocation_type": I{RevSimpleDelete},
 		},
-		NetContext: ctx,
+		MetaContext: m,
 	})
 	return
 }
 
-func CheckPosted(ctx context.Context, g *GlobalContext, proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := g.API.Post(APIArg{
+func CheckPosted(m MetaContext, proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	res, e2 := m.G().API.Post(APIArg{
 		Endpoint:    "sig/posted",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"proof_id": S{proofID},
 		},
-		NetContext: ctx,
+		MetaContext: m,
 	})
 	if e2 != nil {
 		err = e2
@@ -161,14 +160,14 @@ func CheckPosted(ctx context.Context, g *GlobalContext, proofID string) (found b
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func CheckPostedViaSigID(ctx context.Context, g *GlobalContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := g.API.Post(APIArg{
+func CheckPostedViaSigID(m MetaContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	res, e2 := m.G().API.Post(APIArg{
 		Endpoint:    "sig/posted",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"sig_id": S{sigID.ToString(true)},
 		},
-		NetContext: ctx,
+		MetaContext: m,
 	})
 	if e2 != nil {
 		err = e2
@@ -221,26 +220,26 @@ func PostDeviceLKS(m MetaContext, sr SessionReader, deviceID keybase1.DeviceID, 
 	return err
 }
 
-func CheckInvitationCode(ctx context.Context, g *GlobalContext, code string) error {
+func CheckInvitationCode(m MetaContext, code string) error {
 	arg := APIArg{
 		Endpoint:    "invitation/check",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"invitation_id": S{Val: code},
 		},
-		NetContext: ctx,
+		MetaContext: m,
 	}
-	_, err := g.API.Get(arg)
+	_, err := m.G().API.Get(arg)
 	return err
 }
 
-func GetInvitationCode(net context.Context, g *GlobalContext) (string, error) {
+func GetInvitationCode(m MetaContext) (string, error) {
 	arg := APIArg{
 		Endpoint:    "invitation_bypass_request",
 		SessionType: APISessionTypeNONE,
-		NetContext:  net,
+		MetaContext: m,
 	}
-	res, err := g.API.Get(arg)
+	res, err := m.G().API.Get(arg)
 	var invitationID string
 	if err == nil {
 		invitationID, err = res.Body.AtKey("invitation_id").GetString()
