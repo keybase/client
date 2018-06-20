@@ -68,7 +68,7 @@ func fixupBootstrapError(err error) error {
 }
 
 func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (err error) {
-	defer m.CTrace("bootstrapActiveDeviceReturnRawError", func() error { return err })()
+	defer m.CTrace("bootstrapActiveDeviceReturnRaw", func() error { return err })()
 
 	ad := m.ActiveDevice()
 	if ad.IsValidFor(uid, deviceID) {
