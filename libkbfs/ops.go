@@ -521,7 +521,8 @@ func (co *createOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, co.Type)
-	n.Filename = co.getFinalPath().ChildPathNoPtr(co.NewName).String()
+	n.Filename = co.getFinalPath().ChildPathNoPtr(co.NewName).
+		CanonicalPathString()
 	n.Type = kbfsedits.NotificationCreate
 	return &n
 }
@@ -636,7 +637,8 @@ func (ro *rmOp) ToEditNotification(
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(
 		rev, revTime, device, uid, tlfID, ro.RemovedType)
-	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.OldName).String()
+	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.OldName).
+		CanonicalPathString()
 	n.Type = kbfsedits.NotificationDelete
 	return &n
 }
@@ -779,10 +781,12 @@ func (ro *renameOp) ToEditNotification(
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(
 		rev, revTime, device, uid, tlfID, ro.RenamedType)
-	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.NewName).String()
+	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.NewName).
+		CanonicalPathString()
 	n.Type = kbfsedits.NotificationRename
 	n.Params = &kbfsedits.NotificationParams{
-		OldFilename: ro.oldFinalPath.ChildPathNoPtr(ro.OldName).String(),
+		OldFilename: ro.oldFinalPath.ChildPathNoPtr(ro.OldName).
+			CanonicalPathString(),
 	}
 	return &n
 }
@@ -979,7 +983,7 @@ func (so *syncOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, File)
-	n.Filename = so.getFinalPath().String()
+	n.Filename = so.getFinalPath().CanonicalPathString()
 	n.Type = kbfsedits.NotificationModify
 	var mods []kbfsedits.ModifyRange
 	for _, w := range so.Writes {
