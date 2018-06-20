@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Icon, Text, Avatar} from '../../../common-adapters'
+import {Box2, ClickableBox, Text, Avatar} from '../../../common-adapters'
+import Icon, {castPlatformStyles} from '../../../common-adapters/icon'
 import {
   globalStyles,
   globalMargins,
@@ -50,6 +51,13 @@ const styles = styleSheetCreate({
     backgroundColor: backgroundColorSelected,
   },
 
+  icon: {
+    alignSelf: 'center',
+    height: 32,
+    marginLeft: globalMargins.tiny,
+    marginRight: globalMargins.tiny,
+  },
+
   rightColumn: rightColumnStyle,
 
   title: {
@@ -92,16 +100,7 @@ const WalletRow = (props: Props) => {
         direction="horizontal"
         fullWidth={true}
       >
-        <Icon
-          type="icon-wallet-64"
-          color={globalColors.darkBlue}
-          style={{
-            alignSelf: 'center',
-            height: 32,
-            marginLeft: globalMargins.tiny,
-            marginRight: globalMargins.tiny,
-          }}
-        />
+        <Icon type="icon-wallet-64" color={globalColors.darkBlue} style={castPlatformStyles(styles.icon)} />
         <Box2 direction="vertical" style={styles.rightColumn}>
           <Box2 direction="horizontal" fullWidth={true}>
             {props.keybaseUser && <Avatar size={16} style={styles.avatar} username={props.keybaseUser} />}
