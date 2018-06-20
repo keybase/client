@@ -38,7 +38,7 @@ const props = (currentDeviceAlreadyProvisioned, currentDeviceType, otherDeviceNa
     viewQrCode: qrGenerate(textCode),
     viewQrCodeInstructions: `View qr code instructions of some length that might explain what the user should be doing`,
     viewTextCode: textCode,
-    viewTextCodeInstructions: `View text code instructions`,
+    viewTextCodeInstructions: options.viewTextCodeInstructions,
   }
 }
 

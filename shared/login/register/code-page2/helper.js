@@ -58,6 +58,37 @@ const howToGetTextCodeOnNewDevice = p => (
   </Box2>
 )
 
+const howToEnterTextCodeOnExistingDevice = p => (
+  <Box2 direction="vertical">
+    <Text type="Body">
+      • Launch Keybase on <Text type="BodySemiboldItalic">{p.otherDeviceName}</Text>
+    </Text>
+    <Text type="Body">
+      • Go to {p.otherDeviceType === 'phone' ? 'Settings > ' : ''}Devices > Add new... and choose{' '}
+      <Text type="BodySemiboldItalic">New {p.currentDeviceType}</Text>
+    </Text>
+    <Text type="Body">
+      • Select the <Text type="BodySemiboldItalic">Enter a text code</Text> tab and type this code in:
+    </Text>
+  </Box2>
+)
+
+const howToEnterTextCodeOnNewDevice = p => (
+  <Box2 direction="vertical">
+    <Text type="Body">
+      • Launch Keybase on your new {p.otherDeviceType} and log in as{' '}
+      <Text type="BodySemiboldItalic">{p.username}</Text>
+    </Text>
+    <Text type="Body">
+      • Select a name for your new {p.otherDeviceType} and choose{' '}
+      <Text type="BodySemiboldItalic">{p.currentDeviceName}</Text> to provision with
+    </Text>
+    <Text type="Body">
+      • Select the <Text type="BodySemiboldItalic">Enter a text code</Text> tab and type this code in:
+    </Text>
+  </Box2>
+)
+
 export const getOptions = (p: CommonParam): Options => {
   // Matching pairs of experiences
 
@@ -73,6 +104,7 @@ export const getOptions = (p: CommonParam): Options => {
       enterTextCodeInputHint: enterTextCodeInputHintForNewDevice(p),
       enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
+      viewTextCodeInstructions: howToEnterTextCodeOnExistingDevice(p),
     }
   }
   // Existing phone's perspective
@@ -82,6 +114,7 @@ export const getOptions = (p: CommonParam): Options => {
       enterTextCodeInputHint: enterTextCodeInputHintForExistingDevice(p),
       enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
+      viewTextCodeInstructions: howToEnterTextCodeOnNewDevice(p),
     }
   }
 
@@ -97,6 +130,7 @@ export const getOptions = (p: CommonParam): Options => {
       enterTextCodeInputHint: enterTextCodeInputHintForNewDevice(p),
       enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
+      viewTextCodeInstructions: howToEnterTextCodeOnExistingDevice(p),
     }
   }
   // Existing desktop's perspective
@@ -110,6 +144,7 @@ export const getOptions = (p: CommonParam): Options => {
       enterTextCodeInputHint: enterTextCodeInputHintForExistingDevice(p),
       enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
+      viewTextCodeInstructions: howToEnterTextCodeOnNewDevice(p),
     }
   }
 
@@ -125,6 +160,7 @@ export const getOptions = (p: CommonParam): Options => {
       enterTextCodeInputHint: enterTextCodeInputHintForNewDevice(p),
       enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
       validTabs: ['viewText', 'enterText'],
+      viewTextCodeInstructions: howToEnterTextCodeOnExistingDevice(p),
     }
   }
   // Existing desktop's perspective
@@ -138,6 +174,7 @@ export const getOptions = (p: CommonParam): Options => {
       enterTextCodeInputHint: enterTextCodeInputHintForExistingDevice(p),
       enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
       validTabs: ['viewText', 'enterText'],
+      viewTextCodeInstructions: howToEnterTextCodeOnNewDevice(p),
     }
   }
 
@@ -153,6 +190,7 @@ export const getOptions = (p: CommonParam): Options => {
       enterTextCodeInputHint: enterTextCodeInputHintForNewDevice(p),
       enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
+      viewTextCodeInstructions: howToEnterTextCodeOnExistingDevice(p),
     }
   }
   // Existing phone's perspective
@@ -166,6 +204,7 @@ export const getOptions = (p: CommonParam): Options => {
       enterTextCodeInputHint: enterTextCodeInputHintForExistingDevice(p),
       enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
+      viewTextCodeInstructions: howToEnterTextCodeOnNewDevice(p),
     }
   }
 
