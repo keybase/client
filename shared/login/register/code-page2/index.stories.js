@@ -72,9 +72,16 @@ const load = () => {
       provisioned ? ' adding ' : ' added by '
     } ${provisioned ? 'a New' : 'An Existing'} ${otherType}`
 
-    storiesOf(`Register/CodePage2`, module)
-      .addDecorator(PropProviders.Common())
-      .add(storyName, () => <CodePage2 {...props(provisioned, current, otherName, otherType)} />)
+    let s = storiesOf(`Register/CodePage2`, module).addDecorator(PropProviders.Common())
+    const p = props(provisioned, current, otherName, otherType)
+    // We want to snapshot all variants, but also want to ensure the default tab logic works
+    const tabs = [null, ...p.validTabs]
+    tabs.forEach(
+      tab =>
+        (s = s.add(`${storyName}:${tab || 'defaultTab'}`, () => (
+          <CodePage2 {...p} defaultTab={tab || p.defaultTab} />
+        )))
+    )
   })
 }
 
