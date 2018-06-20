@@ -80,15 +80,13 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           style={{marginBottom: globalMargins.tiny, position: 'absolute', top: bombVerticalOffset}}
           type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
         />
-        <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black}}>
+        <Box2 direction="vertical" gap="tiny" gapStart={true} gapEnd={true}>
+          <Text type="BodySmall" style={{color: globalColors.black_75}}>
             EXPLODING MESSAGE
           </Text>
         </Box2>
         <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black_40}}>
-            by
-          </Text>
+          <Text type="BodySmall">by</Text>
           <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
             <Avatar username={author} size={16} />
             <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
@@ -97,14 +95,10 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           </Box2>
         </Box2>
         <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black_40}}>
-            using device&nbsp;{deviceName}
-          </Text>
+          <Text type="BodySmall">using device {deviceName}</Text>
         </Box2>
         <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black_40}}>
-            {formatTimeForPopup(timestamp)}
-          </Text>
+          <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
         </Box2>
         {deviceRevokedAt && (
           <PopupHeaderText
