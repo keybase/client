@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import {Text, Box2} from '../../../common-adapters'
-import {styleSheetCreate} from '../../../styles'
 
 // Various pieces of text we show when provisioning.  This happens when you're on the new device or when you're on the existing device.
 // If you're adding a new device we don't know the name of the other device (otherDevice)
@@ -95,24 +94,10 @@ const defaultTab = p => {
   const getTabOrOpposite = tabToShowToNew =>
     p.currentDeviceAlreadyProvisioned ? oppositeTabMap[tabToShowToNew] : tabToShowToNew
 
-  // --- New Phone + Existing Phone ---
-  if (p.currentDeviceType === 'phone' && p.otherDeviceType === 'phone') {
+  if (p.currentDeviceType === 'phone') {
     return getTabOrOpposite('viewQR')
-  }
-
-  // --- New Phone + Existing Desktop ---
-  if (p.currentDeviceType === 'phone' && p.otherDeviceType === 'desktop') {
-    return getTabOrOpposite('viewQR')
-  }
-
-  // --- New Desktop + Existing Desktop ---
-  if (p.currentDeviceType === 'desktop' && p.otherDeviceType === 'desktop') {
-    return getTabOrOpposite('viewText')
-  }
-
-  // --- New Desktop + Existing Phone ---
-  if (p.currentDeviceType === 'desktop' && p.otherDeviceType === 'phone') {
-    return getTabOrOpposite('scanQR')
+  } else if (p.currentDeviceType === 'desktop') {
+    return p.otherDeviceType === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('scanQR')
   }
 
   throw new Error('Impossible defaultTab')
@@ -125,8 +110,6 @@ const validTabs = p => {
     return ['viewQR', 'scanQR', 'viewText', 'enterText']
   }
 }
-
-const viewTextCodeInstructions = p => 'hi'
 
 const enterTextCodeInputHintForNewDevice = p => `Text code from device: '${p.otherDeviceName || 'unknown'}'`
 const enterTextCodeInputHintForExistingDevice = p => `Text code from your new ${p.otherDeviceType}`
@@ -141,126 +124,8 @@ export const getOptions = (p: CommonParam): Options => {
       ? howToGetTextCodeOnNewDevice(p)
       : howToGetTextCodeOnExistingDevice(p),
     validTabs: validTabs(p),
-    viewTextCodeInstructions: viewTextCodeInstructions(p),
+    viewTextCodeInstructions: p.currentDeviceAlreadyProvisioned
+      ? howToEnterTextCodeOnExistingDevice(p)
+      : howToEnterTextCodeOnNewDevice(p),
   }
-
-  // Matching pairs of experiences
-
-  // --- New Phone + Existing Phone ---
-  // New phone's perspective
-  if (
-    !p.currentDeviceAlreadyProvisioned &&
-    p.currentDeviceType === 'phone' &&
-    p.otherDeviceType === 'phone'
-  ) {
-    return {
-      defaultTab: 'scanQR',
-      enterTextCodeInputHint,
-      enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
-      validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
-      viewTextCodeInstructions: howToEnterTextCodeOnExistingDevice(p),
-    }
-  }
-  // Existing phone's perspective
-  if (p.currentDeviceAlreadyProvisioned && p.currentDeviceType === 'phone' && p.otherDeviceType === 'phone') {
-    return {
-      defaultTab: 'viewQR',
-      enterTextCodeInputHint,
-      enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
-      validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
-      viewTextCodeInstructions: howToEnterTextCodeOnNewDevice(p),
-    }
-  }
-
-  // --- New Phone + Existing Desktop ---
-  // New phone's perspective
-  if (
-    !p.currentDeviceAlreadyProvisioned &&
-    p.currentDeviceType === 'phone' &&
-    p.otherDeviceType === 'desktop'
-  ) {
-    return {
-      defaultTab: 'scanQR',
-      enterTextCodeInputHint,
-      enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
-      validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
-      viewTextCodeInstructions: howToEnterTextCodeOnExistingDevice(p),
-    }
-  }
-  // Existing desktop's perspective
-  if (
-    p.currentDeviceAlreadyProvisioned &&
-    p.currentDeviceType === 'desktop' &&
-    p.otherDeviceType === 'phone'
-  ) {
-    return {
-      defaultTab: 'viewQR',
-      enterTextCodeInputHint,
-      enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
-      validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
-      viewTextCodeInstructions: howToEnterTextCodeOnNewDevice(p),
-    }
-  }
-
-  // --- New Desktop + Existing Desktop ---
-  // New desktop's perspective
-  if (
-    !p.currentDeviceAlreadyProvisioned &&
-    p.currentDeviceType === 'desktop' &&
-    p.otherDeviceType === 'desktop'
-  ) {
-    return {
-      defaultTab: 'enterText',
-      enterTextCodeInputHint,
-      enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
-      validTabs: ['viewText', 'enterText'],
-      viewTextCodeInstructions: howToEnterTextCodeOnExistingDevice(p),
-    }
-  }
-  // Existing desktop's perspective
-  if (
-    p.currentDeviceAlreadyProvisioned &&
-    p.currentDeviceType === 'desktop' &&
-    p.otherDeviceType === 'desktop'
-  ) {
-    return {
-      defaultTab: 'viewText',
-      enterTextCodeInputHint,
-      enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
-      validTabs: ['viewText', 'enterText'],
-      viewTextCodeInstructions: howToEnterTextCodeOnNewDevice(p),
-    }
-  }
-
-  // --- New Desktop + Existing Phone ---
-  // New desktop's perspective
-  if (
-    !p.currentDeviceAlreadyProvisioned &&
-    p.currentDeviceType === 'desktop' &&
-    p.otherDeviceType === 'phone'
-  ) {
-    return {
-      defaultTab: 'viewQR',
-      enterTextCodeInputHint,
-      enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
-      validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
-      viewTextCodeInstructions: howToEnterTextCodeOnExistingDevice(p),
-    }
-  }
-  // Existing phone's perspective
-  if (
-    p.currentDeviceAlreadyProvisioned &&
-    p.currentDeviceType === 'phone' &&
-    p.otherDeviceType === 'desktop'
-  ) {
-    return {
-      defaultTab: 'scanQR',
-      enterTextCodeInputHint,
-      enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
-      validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
-      viewTextCodeInstructions: howToEnterTextCodeOnNewDevice(p),
-    }
-  }
-
-  throw new Error('Impossible getOptions')
 }
