@@ -20,6 +20,6 @@ export const shareNative = ({payload: {path, routePath}}: FsGen.ShareNativePaylo
 
 export const saveMedia = ({payload: {path, routePath}}: FsGen.SaveMediaPayload) =>
   Saga.sequentially([
-    Saga.put(FsGen.createDownload({path, intent: 'camera-roll'})),
+    Saga.put(FsGen.createDownload({intent: 'camera-roll', path})),
     getTransferPopupAction(path, routePath),
   ])
