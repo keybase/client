@@ -3,6 +3,7 @@ package chat
 import (
 	"container/heap"
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -189,19 +190,19 @@ func (b *BackgroundEphemeralPurger) cleanupTimers() {
 	}
 }
 
-func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) {
-	b.Debug(ctx, "Queue purgeInfo: %v, queue: %v", purgeInfo, len(b.pq.queue))
-
+func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
 
 	if b.pq == nil {
-		panic("Must call Start before adding to the Queue")
+		return fmt.Errorf("Must call Start() before adding to the Queue")
 	}
+
+	b.Debug(ctx, "Queue purgeInfo: %v, queue: %v", purgeInfo, len(b.pq.queue))
 
 	// We only keep active items in the queue.
 	if !purgeInfo.IsActive {
-		return
+		return nil
 	}
 
 	// If we are starting the queue or get an earlier expiration time, reset or start the timer
@@ -210,6 +211,7 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 		b.resetTimer(purgeInfo)
 	}
 	b.updateQueue(purgeInfo)
+	return nil
 }
 
 // Read all purgeInfo from disk and startup our queue.
