@@ -2277,6 +2277,8 @@ func (fbo *folderBranchOps) getConvID(
 		if err != nil {
 			return nil, err
 		}
+		fbo.log.CDebugf(ctx, "Conversation ID is %s for this writer (%s)",
+			id, channelName)
 		fbo.convID = id
 	}
 	return fbo.convID, nil
@@ -2535,11 +2537,17 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	// Send edit notifications and archive the old, unref'd blocks if
 	// journaling is off.
 	if !TLFJournalEnabled(fbo.config, fbo.id()) {
-		err := fbo.handleEditNotifications(ctx, irmd)
-		if err != nil {
-			fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
-				"revision %d: %+v", irmd.Revision(), err)
-		}
+		fbo.editActivity.Add(1)
+		go func() {
+			defer fbo.editActivity.Done()
+			ctx, cancelFunc := fbo.newCtxWithFBOID()
+			defer cancelFunc()
+			err := fbo.handleEditNotifications(ctx, irmd)
+			if err != nil {
+				fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
+					"revision %d: %+v", irmd.Revision(), err)
+			}
+		}()
 		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
 	}
 
@@ -6304,11 +6312,17 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	// Send edit notifications and archive the old, unref'd blocks if
 	// journaling is off.
 	if !TLFJournalEnabled(fbo.config, fbo.id()) {
-		err := fbo.handleEditNotifications(ctx, irmd)
-		if err != nil {
-			fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
-				"revision %d: %+v", irmd.Revision(), err)
-		}
+		fbo.editActivity.Add(1)
+		go func() {
+			defer fbo.editActivity.Done()
+			ctx, cancelFunc := fbo.newCtxWithFBOID()
+			defer cancelFunc()
+			err := fbo.handleEditNotifications(ctx, irmd)
+			if err != nil {
+				fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
+					"revision %d: %+v", irmd.Revision(), err)
+			}
+		}()
 		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
 	}
 
@@ -6790,6 +6804,9 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 		fbo.cancelEdits = nil
 	}
 	fbo.editHistory = kbfsedits.NewTlfHistory()
+	fbo.convLock.Lock()
+	defer fbo.convLock.Unlock()
+	fbo.convID = nil
 
 	fbo.head = ImmutableRootMetadata{}
 	fbo.headStatus = headUntrusted
@@ -6861,6 +6878,7 @@ func (fbo *folderBranchOps) KickoffAllOutstandingRekeys() error {
 func (fbo *folderBranchOps) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
+	fbo.log.CDebugf(ctx, "New notification channel: %s %s", convID, channelName)
 	fbo.editActivity.Add(1)
 	fbo.editChannels <- editChannelActivity{convID, channelName, ""}
 }

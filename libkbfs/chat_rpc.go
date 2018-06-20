@@ -181,6 +181,7 @@ func (c *ChatRPC) GetConversationID(
 	arg := chat1.NewConversationLocalArg{
 		TlfName:          string(tlfName),
 		TopicType:        chatType,
+		TopicName:        &channelName,
 		TlfVisibility:    vis,
 		MembersType:      membersTypeFromTlfType(tlfType),
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
@@ -289,7 +290,7 @@ func (c *ChatRPC) GetChannels(
 			return nil, nil, err
 		}
 		convIDs = append(convIDs, id)
-		channelNames = append(channelNames, conv.Name)
+		channelNames = append(channelNames, conv.Channel)
 	}
 
 	return convIDs, channelNames, nil
@@ -325,15 +326,16 @@ func (c *ChatRPC) ReadChannel(
 				return nil, nil, err
 			}
 			if msgType != chat1.MessageType_TEXT {
-				return nil, nil, errors.Errorf(
-					"Unexpected msg type: %d", msgType)
+				c.log.CDebugf(ctx, "Ignoring unexpected msg type: %d", msgType)
+				continue
 			}
 			messages = append(messages, msgBody.Text().Body)
 		case chat1.MessageUnboxedState_ERROR:
 			// TODO: Are there any errors we need to tolerate?
 			return nil, nil, errors.New(msg.Error().ErrMsg)
 		default:
-			return nil, nil, errors.Errorf("Unexpected msg state: %d", state)
+			c.log.CDebugf(ctx, "Ignoring unexpected msg state: %d", state)
+			continue
 		}
 
 	}

@@ -1064,11 +1064,31 @@ func (fs *KBFSOpsStandard) KickoffAllOutstandingRekeys() error {
 func (fs *KBFSOpsStandard) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
+	fs.log.CDebugf(ctx, "New notification channel for %s",
+		handle.GetCanonicalPath())
+
+	// If the FBO already exists, notify it.  If the FBO doesn't exist
+	// yet, we need to create it, so that it shows up in the edit
+	// history.
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	fav := handle.ToFavorite()
 	if ops, ok := fs.opsByFav[fav]; ok {
 		ops.NewNotificationChannel(ctx, handle, convID, channelName)
+	} else {
+		fs.editActivity.Add(1)
+		go func() {
+			defer fs.editActivity.Done()
+			fs.log.CDebugf(ctx, "Initializing TLF %s for the edit history",
+				handle.GetCanonicalPath())
+			ctx := CtxWithRandomIDReplayable(
+				context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
+			_, _, err := fs.GetRootNode(ctx, handle, MasterBranch)
+			if err != nil {
+				fs.log.CWarningf(ctx, "Couldn't get root node for %s: %+v",
+					handle.GetCanonicalName(), err)
+			}
+		}()
 	}
 }
 
