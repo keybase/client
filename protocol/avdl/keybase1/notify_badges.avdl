@@ -8,6 +8,7 @@ protocol NotifyBadges {
   record TeamMemberOutReset {
     string teamname;
     string username;
+    UID uid;
     gregor1.MsgID id;
   }
 

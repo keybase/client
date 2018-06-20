@@ -489,7 +489,7 @@ func TestMemberAddNoKeys(t *testing.T) {
 
 	// this is a keybase user, so they should show up in the member list
 	// even though they are technically only "invited"
-	details, err := Details(context.TODO(), tc.G, name, true)
+	details, err := Details(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -544,7 +544,7 @@ func TestMemberAddEmail(t *testing.T) {
 		t.Fatal("List --all does not list invite.")
 	}
 
-	details, err := Details(context.TODO(), tc.G, name, true)
+	details, err := Details(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}

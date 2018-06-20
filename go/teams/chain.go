@@ -280,7 +280,7 @@ func (t TeamSigChainState) GetLatestUVWithUID(uid keybase1.UID) (res keybase1.Us
 	}
 
 	if !found {
-		return keybase1.UserVersion{}, errors.New("did not find user with given uid")
+		return res, errors.New("did not find user with given uid")
 	}
 	return res.DeepCopy(), nil
 }
