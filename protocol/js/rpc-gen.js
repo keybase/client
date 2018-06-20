@@ -1044,7 +1044,7 @@ export type FSStatusCode =
   | 1 // FINISH_1
   | 2 // ERROR_2
 
-export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, totalSyncingOps: Int64, pathStatuses?: ?Array<FSPathSyncStatus>}>
+export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, syncingPaths?: ?Array<String>, endEstimate?: ?Time}>
 export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
 export type FavoriteFavoriteAddRpcParam = $ReadOnly<{folder: Folder}>
 export type FavoriteFavoriteIgnoreRpcParam = $ReadOnly<{folder: Folder}>
