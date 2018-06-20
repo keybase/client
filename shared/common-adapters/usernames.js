@@ -57,7 +57,7 @@ function usernameText({
             backgroundMode={backgroundMode}
             style={andStyle}
           >
-            and
+            {'and '}
           </Text>
         )}
         <Text

@@ -65,7 +65,12 @@ protocol local {
     union { null, string } err;
   }
 
-  array<PaymentOrErrorLocal> getPaymentsLocal(int sessionID, AccountID accountID, union { null, TransactionID } olderThanTransactionID);
+  record PaymentsPageLocal {
+    array<PaymentOrErrorLocal> payments;
+    union { null, PageCursor } cursor;
+  }
+
+  PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
   
   record PaymentDetailsLocal {
     TransactionID id;               // For relay payments, the funding tx.

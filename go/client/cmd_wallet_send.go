@@ -9,8 +9,9 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/stellarnet"
+	stellaramount "github.com/stellar/go/amount"
 	"golang.org/x/net/context"
 )
 
@@ -103,7 +104,7 @@ func (c *CmdWalletSend) Run() error {
 			return fmt.Errorf("Unable to get exchange rate for %q: %s", c.LocalCurrency, err)
 		}
 
-		amount, err = stellar.ConvertOutsideToXLM(c.Amount, exchangeRate)
+		amount, err = stellarnet.ConvertOutsideToXLM(c.Amount, exchangeRate.Rate)
 		if err != nil {
 			return err
 		}
@@ -112,6 +113,11 @@ func (c *CmdWalletSend) Run() error {
 		amountDesc = fmt.Sprintf("%s XLM (~%s %s)", amount, c.Amount, c.LocalCurrency)
 		displayAmount = c.Amount
 		displayCurrency = c.LocalCurrency
+	}
+
+	_, err = stellaramount.ParseInt64(amount)
+	if err != nil {
+		return fmt.Errorf("invalid amount of XLM: %q", amount)
 	}
 
 	if err := ui.PromptForConfirmation(fmt.Sprintf("Send %s to %s?", ColorString(c.G(), "green", amountDesc), ColorString(c.G(), "yellow", c.Recipient))); err != nil {

@@ -607,11 +607,11 @@ func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res st
 
 func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.RecentPaymentsCLILocal", func() error { return err })()
-	payments, err := remoter.RecentPayments(ctx, accountID, 0)
+	page, err := remoter.RecentPayments(ctx, accountID, nil, 0)
 	if err != nil {
 		return nil, err
 	}
-	for _, p := range payments {
+	for _, p := range page.Payments {
 		lp, err := localizePayment(ctx, g, p)
 		if err == nil {
 			res = append(res, stellar1.PaymentOrErrorCLILocal{
@@ -867,7 +867,7 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
 		return "", errors.New("empty amount")
 	}
-	x, err := ParseDecimalStrict(amount)
+	x, err := stellarnet.ParseDecimalStrict(amount)
 	if err != nil {
 		return "", fmt.Errorf("unable to parse amount %s: %v", amount, err)
 	}

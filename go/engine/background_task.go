@@ -11,6 +11,7 @@ package engine
 
 import (
 	"fmt"
+	insecurerand "math/rand"
 	"sync"
 	"time"
 
@@ -23,15 +24,13 @@ import (
 type TaskFunc func(m libkb.MetaContext) error
 
 type BackgroundTaskSettings struct {
-	// Wait after starting the app
-	Start time.Duration
+	Start        time.Duration // Wait after starting the app
+	StartStagger time.Duration // Wait an additional random amount.
 	// When waking up on mobile lots of timers will go off at once. We wait an additional
 	// delay so as not to add to that herd and slow down the mobile experience when opening the app.
-	WakeUp time.Duration
-	// Wait between runs
-	Interval time.Duration
-	// Time limit on each round
-	Limit time.Duration
+	WakeUp   time.Duration
+	Interval time.Duration // Wait between runs
+	Limit    time.Duration // Time limit on each round
 }
 
 // BackgroundTask is an engine.
@@ -136,6 +135,9 @@ func (e *BackgroundTask) loop(m libkb.MetaContext) error {
 	// To avoid the race where the testing goroutine calls advance before
 	// this routine decides when to wake up. That led to this routine never waking.
 	wakeAt := m.G().Clock().Now().Add(e.args.Settings.Start)
+	if e.args.Settings.StartStagger > 0 {
+		wakeAt = wakeAt.Add(time.Duration(insecurerand.Int63n(int64(e.args.Settings.StartStagger))))
+	}
 	e.meta("loop-start")
 	if err := libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt); err != nil {
 		return err

@@ -57,7 +57,7 @@ export const formatTimeForFS = (time: number): string =>
 
 export const formatDurationFromNowTo = (timeInFuture?: number): string => {
   if (!timeInFuture) {
-    return '? s'
+    return ''
   }
   const d = moment.duration(-moment().diff(timeInFuture))
   if (d.hours()) {

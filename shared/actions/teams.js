@@ -581,9 +581,6 @@ const _getTeamOperations = function*(
 
 const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
-  const state: TypedState = yield Saga.select()
-  const yourOperations = Constants.getCanPerform(state, teamname)
-
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   // Get publicity settings for this team.
   const publicity: RPCTypes.TeamAndMemberShowcase = yield Saga.call(
@@ -594,12 +591,12 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
   )
 
   let tarsDisabled = false
-  // Find out whether team access requests are enabled. Throws if you aren't admin.
-  if (yourOperations.changeTarsDisabled) {
+  // can throw if you're not an admin
+  try {
     tarsDisabled = yield Saga.call(RPCTypes.teamsGetTarsDisabledRpcPromise, {
       name: teamname,
     })
-  }
+  } catch (_) {}
 
   const publicityMap = {
     anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,

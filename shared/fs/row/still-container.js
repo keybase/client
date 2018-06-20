@@ -3,7 +3,6 @@ import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
-import {isMobile} from '../../constants/platform'
 import Still from './still'
 import * as StateMappers from '../utils/state-mappers'
 
@@ -55,10 +54,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     resetParticipants,
     lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
     lastWriter: stateProps.pathItem.lastWriter.username,
-    shouldShowMenu:
-      !isMobile ||
-      stateProps.pathItem.type !== 'folder' ||
-      Constants.showIgnoreFolder(stateProps.path, stateProps.pathItem, stateProps._username),
     onOpen: () => dispatchProps._onOpen(stateProps.path),
     openInFileUI: stateProps.kbfsEnabled
       ? () => dispatchProps._openInFileUI(stateProps.path)

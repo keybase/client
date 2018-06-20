@@ -23,7 +23,10 @@ const mapStateToProps = (state: TypedState, {path}) => {
     itemDetail && itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
   const _username = state.config.username || undefined
   const resetParticipants =
-    itemDetail.type === 'folder' && !!itemDetail.tlfMeta && itemDetail.tlfMeta.resetParticipants.length > 0
+    itemDetail &&
+    itemDetail.type === 'folder' &&
+    !!itemDetail.tlfMeta &&
+    itemDetail.tlfMeta.resetParticipants.length > 0
       ? itemDetail.tlfMeta.resetParticipants.map(i => i.username)
       : []
   const isUserReset = resetParticipants.includes(_username)
