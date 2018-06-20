@@ -18,11 +18,14 @@ type SecretStorer interface {
 	StoreSecret(secret LKSecFullSecret) error
 }
 
+// SecretStore stores/retreives the keyring-resident secrets for a given user.
 type SecretStore interface {
 	SecretRetriever
 	SecretStorer
 }
 
+// SecretStoreall stores/retreives the keyring-resider secrets for **all** users
+// on this system.
 type SecretStoreAll interface {
 	RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error)
 	StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error
@@ -37,12 +40,16 @@ type SecretStoreContext interface {
 	GetLog() logger.Logger
 }
 
+// SecretStoreImp is a specialization of a SecretStoreAll for just one username.
+// You specify that username at the time on construction and then it doesn't change.
 type SecretStoreImp struct {
 	username NormalizedUsername
 	store    *SecretStoreLocked
 	secret   LKSecFullSecret
 	sync.Mutex
 }
+
+var _ SecretStore = (*SecretStoreImp)(nil)
 
 func (s *SecretStoreImp) RetrieveSecret() (LKSecFullSecret, error) {
 	s.Lock()
@@ -130,67 +137,112 @@ func ClearStoredSecret(g *GlobalContext, username NormalizedUsername) error {
 	return ss.ClearSecret(username)
 }
 
-// SecretStoreLocked protects a SecretStoreAll with a mutex.
+// SecretStoreLocked protects a SecretStoreAll with a mutex. It wraps two different
+// SecretStoreAlls: one in memory and one in disk. In all cases, we always have a memory
+// backing. If the OS and options provide one, we can additionally have a disk-backed
+// secret store. It's a write-through cache, so on RetrieveSecret, the memory store
+// will be checked first, and then the disk store.
 type SecretStoreLocked struct {
-	SecretStoreAll
+	Contextified
 	sync.Mutex
+	mem  SecretStoreAll
+	disk SecretStoreAll
 }
 
 func NewSecretStoreLocked(g *GlobalContext) *SecretStoreLocked {
-	var ss SecretStoreAll
+	var disk SecretStoreAll
+
+	mem := NewSecretStoreMem()
 
 	if g.Env.RememberPassphrase() {
 		// use os-specific secret store
 		g.Log.Debug("NewSecretStoreLocked: using os-specific SecretStore")
-		ss = NewSecretStoreAll(g)
+		disk = NewSecretStoreAll(g)
 	} else {
 		// config or command line flag said to use in-memory secret store
 		g.Log.Debug("NewSecretStoreLocked: using memory-only SecretStore")
-		ss = NewSecretStoreMem()
-	}
-
-	if ss == nil {
-		// right now, some stuff depends on g.SecretStoreAll being nil or not
-		return nil
 	}
 
 	return &SecretStoreLocked{
-		SecretStoreAll: ss,
+		Contextified: NewContextified(g),
+		mem:          mem,
+		disk:         disk,
 	}
 }
 
+func (s *SecretStoreLocked) isNil() bool {
+	return s.mem == nil && s.disk == nil
+}
+
 func (s *SecretStoreLocked) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
-	if s == nil || s.SecretStoreAll == nil {
+	if s == nil || s.isNil() {
 		return LKSecFullSecret{}, nil
 	}
 	s.Lock()
 	defer s.Unlock()
-	return s.SecretStoreAll.RetrieveSecret(username)
+
+	res, err := s.mem.RetrieveSecret(username)
+	if !res.IsNil() && err == nil {
+		return res, nil
+	}
+	if err != nil {
+		s.G().Log.Debug("SecretStoreLocked#RetrieveSecret: memory fetch error: %s", err.Error())
+	}
+	if s.disk == nil {
+		return res, err
+	}
+
+	res, err = s.disk.RetrieveSecret(username)
+	if err != nil {
+		return res, err
+	}
+	tmp := s.mem.StoreSecret(username, res)
+	if tmp != nil {
+		s.G().Log.Debug("SecretStoreLocked#RetrieveSecret: failed to store secret in memory: %s", err.Error())
+	}
+	return res, err
 }
 
 func (s *SecretStoreLocked) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
-	if s == nil || s.SecretStoreAll == nil {
+	if s == nil || s.isNil() {
 		return nil
 	}
 	s.Lock()
 	defer s.Unlock()
-	return s.SecretStoreAll.StoreSecret(username, secret)
+	err := s.mem.StoreSecret(username, secret)
+	if err != nil {
+		s.G().Log.Debug("SecretStoreLocked#StoreSecret: failed to store secret in memory: %s", err.Error())
+	}
+	if s.disk == nil {
+		return err
+	}
+	return s.disk.StoreSecret(username, secret)
 }
 
 func (s *SecretStoreLocked) ClearSecret(username NormalizedUsername) error {
-	if s == nil || s.SecretStoreAll == nil {
+	if s == nil || s.isNil() {
 		return nil
 	}
 	s.Lock()
 	defer s.Unlock()
-	return s.SecretStoreAll.ClearSecret(username)
+	err := s.mem.ClearSecret(username)
+	if err != nil {
+		s.G().Log.Debug("SecretStoreLocked#ClearSecret: failed to clear memory: %s", err.Error())
+	}
+	if s.disk == nil {
+		return err
+	}
+	return s.disk.ClearSecret(username)
 }
 
 func (s *SecretStoreLocked) GetUsersWithStoredSecrets() ([]string, error) {
-	if s == nil || s.SecretStoreAll == nil {
+	if s == nil || s.isNil() {
 		return nil, nil
 	}
 	s.Lock()
 	defer s.Unlock()
-	return s.SecretStoreAll.GetUsersWithStoredSecrets()
+	if s.disk == nil {
+		return s.mem.GetUsersWithStoredSecrets()
+	}
+	return s.disk.GetUsersWithStoredSecrets()
 }

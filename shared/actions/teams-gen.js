@@ -99,7 +99,7 @@ type _AddUserToTeamsPayload = $ReadOnly<{|
 type _BadgeAppForTeamsPayload = $ReadOnly<{|
   newTeamNames: Array<string>,
   newTeamAccessRequests: Array<string>,
-  teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string}>>,
+  teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>,
 |}>
 type _CheckRequestedAccessPayload = $ReadOnly<{|teamname: string|}>
 type _ClearTeamRequestsPayload = $ReadOnly<{|teamname: string|}>

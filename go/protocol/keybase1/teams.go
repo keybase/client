@@ -2100,9 +2100,8 @@ type TeamCreateWithSettingsArg struct {
 }
 
 type TeamGetArg struct {
-	SessionID   int    `codec:"sessionID" json:"sessionID"`
-	Name        string `codec:"name" json:"name"`
-	ForceRepoll bool   `codec:"forceRepoll" json:"forceRepoll"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
 }
 
 type TeamImplicitAdminsArg struct {

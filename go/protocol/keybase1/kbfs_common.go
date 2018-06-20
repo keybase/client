@@ -235,26 +235,32 @@ func (o FSPathSyncStatus) DeepCopy() FSPathSyncStatus {
 }
 
 type FSSyncStatus struct {
-	TotalSyncingBytes int64              `codec:"totalSyncingBytes" json:"totalSyncingBytes"`
-	TotalSyncingOps   int64              `codec:"totalSyncingOps" json:"totalSyncingOps"`
-	PathStatuses      []FSPathSyncStatus `codec:"pathStatuses" json:"pathStatuses"`
+	TotalSyncingBytes int64    `codec:"totalSyncingBytes" json:"totalSyncingBytes"`
+	SyncingPaths      []string `codec:"syncingPaths" json:"syncingPaths"`
+	EndEstimate       *Time    `codec:"endEstimate,omitempty" json:"endEstimate,omitempty"`
 }
 
 func (o FSSyncStatus) DeepCopy() FSSyncStatus {
 	return FSSyncStatus{
 		TotalSyncingBytes: o.TotalSyncingBytes,
-		TotalSyncingOps:   o.TotalSyncingOps,
-		PathStatuses: (func(x []FSPathSyncStatus) []FSPathSyncStatus {
+		SyncingPaths: (func(x []string) []string {
 			if x == nil {
 				return nil
 			}
-			var ret []FSPathSyncStatus
+			var ret []string
 			for _, v := range x {
-				vCopy := v.DeepCopy()
+				vCopy := v
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.PathStatuses),
+		})(o.SyncingPaths),
+		EndEstimate: (func(x *Time) *Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EndEstimate),
 	}
 }
 
