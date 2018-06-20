@@ -205,11 +205,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 const styles = styleSheetCreate({
   andStyle: platformStyles({
-    common: {
+    isMobile: {
       marginLeft: globalMargins.xtiny,
       marginRight: globalMargins.xtiny,
     },
-    isElectron: {textDecoration: 'none'},
+    isElectron: {
+      textDecoration: 'none',
+      fontWeight: 'normal',
+    },
   }),
   commaStyle: platformStyles({
     common: {marginRight: 1},
