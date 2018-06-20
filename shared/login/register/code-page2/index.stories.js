@@ -9,24 +9,32 @@ import * as Helper from './helper'
 const textCode = 'scrub disagree sheriff holiday cabin habit mushroom member four'
 
 const props = (currentDeviceAlreadyProvisioned, currentDeviceType, otherDeviceName, otherDeviceType) => {
-  const params = {
+  const currentDeviceName = currentDeviceAlreadyProvisioned
+    ? currentDeviceType === 'phone'
+      ? 'oldPhone6'
+      : 'oldMacMini'
+    : ''
+
+  const options = Helper.getOptions({
     currentDeviceAlreadyProvisioned,
+    currentDeviceName,
     currentDeviceType,
     otherDeviceName,
     otherDeviceType,
-  }
+    username: currentDeviceAlreadyProvisioned ? 'cnojima123' : '',
+  })
 
   return {
     currentDeviceAlreadyProvisioned,
     currentDeviceType,
-    defaultMode: Helper.getDefaultMode(params),
+    defaultTab: options.defaultTab,
     enterQrCodeInstructions: ``,
-    enterTextCodeInputHint: Helper.getEnterTextCodeInputHint(params),
-    enterTextCodeInstructions: Helper.getEnterTextCodeInstructions(params),
+    enterTextCodeInputHint: options.enterTextCodeInputHint,
+    enterTextCodeInstructions: options.enterTextCodeInstructions,
     isValidLookingCode: value => value.split(' ').length === 12,
     onSubmitTextCode: action('onSubmitTextCode'),
     otherDeviceType,
-    validModes: Helper.getValidModes(params),
+    validTabs: options.validTabs,
     viewQrCode: qrGenerate(textCode),
     viewQrCodeInstructions: `View qr code instructions of some length that might explain what the user should be doing`,
     viewTextCode: textCode,
@@ -50,13 +58,13 @@ const load = () => {
     let otherName
     switch (otherType) {
       case 'desktop':
-        otherName = 'MacbookPro13'
+        otherName = 'newMacbookPro13'
         break
       case 'phone':
-        otherName = 'iPhoneX'
+        otherName = 'newiPhoneX'
         break
       case null:
-        otherName = null
+        otherName = ''
         break
     }
 

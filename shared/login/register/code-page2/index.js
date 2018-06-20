@@ -10,11 +10,11 @@ type Props = {
   currentDeviceAlreadyProvisioned: boolean,
   currentDeviceType: DeviceType,
   otherDeviceType: DeviceType,
-  defaultMode: Tab,
-  validModes: Array<Tab>,
+  defaultTab: Tab,
+  validTabs: Array<Tab>,
   enterQrCodeInstructions: string,
   enterTextCodeInputHint: string,
-  enterTextCodeInstructions: string,
+  enterTextCodeInstructions: React.Node,
   isValidLookingCode: string => boolean,
   onSubmitTextCode: (textCode: string) => void,
   viewQrCode: string,
@@ -24,14 +24,12 @@ type Props = {
 }
 
 type State = {
-  mode: Tab,
+  tab: Tab,
 }
 
 const PanelContainer = ({instructions, children}) => (
   <Box2 direction="vertical" style={styles.panelContainer} gap="medium" gapStart={true}>
-    <Text type="Body" style={styles.panelInstructions}>
-      {instructions}
-    </Text>
+    {instructions}
     {children}
   </Box2>
 )
@@ -60,7 +58,7 @@ class EnterText extends React.Component<
   {
     isValidLookingCode: string => boolean,
     onSubmit: string => void,
-    instructions: string,
+    instructions: React.Node,
     inputHint: string,
   },
   {value: string, canSubmit: boolean}
@@ -93,14 +91,14 @@ class CodePage2 extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      mode: this.props.defaultMode,
+      tab: this.props.defaultTab,
     }
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.defaultMode !== prevProps.defaultMode) {
+    if (this.props.defaultTab !== prevProps.defaultTab) {
       this.setState({
-        mode: this.props.defaultMode,
+        tab: this.props.defaultTab,
       })
     }
   }
@@ -113,7 +111,7 @@ class CodePage2 extends React.Component<Props, State> {
   }
 
   _getContent = () => {
-    switch (this.state.mode) {
+    switch (this.state.tab) {
       case 'scanQR':
         return (
           <ScanQR onScan={this.props.onSubmitTextCode} instructions={this.props.viewQrCodeInstructions} />
@@ -140,14 +138,14 @@ class CodePage2 extends React.Component<Props, State> {
     return (
       <Box2 direction="vertical">
         <Box2 direction="horizontal" gap="small">
-          {this.props.validModes.map(mode => (
+          {this.props.validTabs.map(tab => (
             <Text
-              key={mode}
-              type={mode === this.state.mode ? 'BodySecondaryLink' : 'BodyPrimaryLink'}
+              key={tab}
+              type={tab === this.state.tab ? 'BodySecondaryLink' : 'BodyPrimaryLink'}
               style={styles.tab}
-              onClick={() => this.setState({mode})}
+              onClick={() => this.setState({tab})}
             >
-              {this._tabsMap[mode]}
+              {this._tabsMap[tab]}
             </Text>
           ))}
         </Box2>
@@ -160,10 +158,6 @@ class CodePage2 extends React.Component<Props, State> {
 const styles = styleSheetCreate({
   panelContainer: {
     alignItems: 'center',
-  },
-  panelInstructions: {
-    maxWidth: 300,
-    textAlign: 'center',
   },
   tabs: {
     padding: globalMargins.small,
