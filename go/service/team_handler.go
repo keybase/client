@@ -172,14 +172,14 @@ func (r *teamHandler) findAndDismissResetBadges(ctx context.Context, cli gregor1
 		var dismiss bool
 		teamUV, notFoundErr := team.UserVersionByUID(ctx, badge.Uid)
 		if notFoundErr == nil {
-			loadUserArg := libkb.NewLoadUserByUIDArg(ctx, r.G(), badge.Uid).WithPublicKeyOptional()
-			u, err := libkb.LoadUser(loadUserArg)
+			arg := libkb.NewLoadUserArg(r.G()).WithUID(badge.Uid).WithNetContext(ctx).WithForcePoll(true).WithPublicKeyOptional()
+			upak, _, err := r.G().GetUPAKLoader().LoadV2(arg)
 			if err != nil {
-				r.G().Log.CDebugf(ctx, "Failed to load uid: %s during badge dismissal: %s", badge.Uid, err)
+				r.G().Log.CDebugf(ctx, "Failed to load UPAK for: %s during badge dismissal: %s",
+					badge.Uid, err)
 				continue
 			}
-			eldestSeqno := u.GetCurrentEldestSeqno()
-			if eldestSeqno == teamUV.EldestSeqno {
+			if upak.Current.EldestSeqno == teamUV.EldestSeqno {
 				// We have the latest version of the user in the team.
 				dismiss = true
 			}
