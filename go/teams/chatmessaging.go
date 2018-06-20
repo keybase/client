@@ -17,7 +17,7 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 		}
 	}()
 
-	teamDetails, err := Details(ctx, g, team, true)
+	teamDetails, err := Details(ctx, g, team)
 	if err != nil {
 		g.Log.CDebugf(ctx, "failed to get team details for welcome message: %s", err)
 		return false

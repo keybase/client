@@ -51,14 +51,11 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 	return ret, nil
 }
 
-func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepoll bool) (res keybase1.TeamDetails, err error) {
-	// TODO: forceRepoll is unused since 87b4ec1d699b633a957156108276df154f2fbc2a
-	// introduced UIDMapper for member info loading. Right now, the forceRepoll
-	// argument is ignored, and:
-	// - `GetMaybeAdminByStringName` always repolls and requires
-	//   roundtrip even if team is cached.
-	// - `members` always uses local UIDMapper cache.
-
+// Details returns TeamDetails for team name. Keybase-type invites are
+// returned as members. It always repolls to ensure latest version of
+// a team, but member infos (username, full name, if they reset or not)
+// are subject to UIDMapper caching.
+func Details(ctx context.Context, g *libkb.GlobalContext, name string) (res keybase1.TeamDetails, err error) {
 	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
 	defer tracer.Finish()
 
