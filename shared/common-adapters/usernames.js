@@ -2,7 +2,14 @@
 import React, {Component} from 'react'
 import Text from './text'
 import shallowEqual from 'shallowequal'
-import {collapseStyles, platformStyles, styleSheetCreate, globalStyles, globalColors, globalMargins} from '../styles'
+import {
+  collapseStyles,
+  platformStyles,
+  styleSheetCreate,
+  globalStyles,
+  globalColors,
+  globalMargins,
+} from '../styles'
 import {isMobile} from '../constants/platform'
 import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'
@@ -20,21 +27,14 @@ function usernameText({
   backgroundMode,
   colorFollowing,
   colorBroken = true,
+  colorYou,
   onUsernameClicked,
   underline = false,
   inlineGrammar = false,
   showAnd = false,
 }: Props) {
-  const andStyle = collapseStyles([
-    style,
-    styles.andStyle,
-    {color: commaColor},
-  ])
-  const commaStyle = collapseStyles([
-    style,
-    styles.commaStyle,
-    {color: commaColor},
-  ])
+  const andStyle = collapseStyles([style, styles.andStyle, {color: commaColor}])
+  const commaStyle = collapseStyles([style, styles.commaStyle, {color: commaColor}])
   return users.map((u, i) => {
     let userStyle = {
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
@@ -42,6 +42,9 @@ function usernameText({
       ...(colorBroken && u.broken && !u.you ? {color: redColor || globalColors.red} : null),
       ...(inline && !isMobile ? {display: 'inline'} : null),
       ...(u.you ? globalStyles.italic : null),
+      ...(colorYou && u.you
+        ? {color: typeof colorYou === 'string' ? colorYou : globalColors.black_75}
+        : null),
     }
     userStyle = collapseStyles([style, userStyle])
 
@@ -51,15 +54,13 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username}>
-        {i !== 0 && i === users.length - 1 && showAnd && (
-          <Text
-            type={type}
-            backgroundMode={backgroundMode}
-            style={andStyle}
-          >
-            {'and '}
-          </Text>
-        )}
+        {i !== 0 &&
+          i === users.length - 1 &&
+          showAnd && (
+            <Text type={type} backgroundMode={backgroundMode} style={andStyle}>
+              {'and '}
+            </Text>
+          )}
         <Text
           type={type}
           backgroundMode={backgroundMode}
@@ -71,11 +72,7 @@ function usernameText({
         </Text>
         {i !== users.length - 1 &&
         (!inlineGrammar || users.length > 2) && ( // Injecting the commas here so we never wrap and have newlines starting with a ,
-            <Text
-              type={type}
-              backgroundMode={backgroundMode}
-              style={commaStyle}
-            >
+            <Text type={type} backgroundMode={backgroundMode} style={commaStyle}>
               ,
             </Text>
           )}
@@ -236,5 +233,8 @@ const styles = styleSheetCreate({
   }),
 })
 
-const ConnectedUsernames = compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Usernames'))(Usernames)
+const ConnectedUsernames = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('Usernames')
+)(Usernames)
 export {usernameText, Usernames, PlaintextUsernames, ConnectedUsernames}

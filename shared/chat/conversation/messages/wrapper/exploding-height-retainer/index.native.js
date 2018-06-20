@@ -197,6 +197,8 @@ const AshTower = (props: {explodedBy: ?string, numImages: number}) => {
               usernames={[props.explodedBy]}
               inline={true}
               colorFollowing={true}
+              colorYou={true}
+              underline={true}
             />
           </Text>
         )}
