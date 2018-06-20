@@ -73,6 +73,10 @@ type ChatChannel struct {
 	TopicName   string `json:"topic_name,omitempty"`
 }
 
+func (c ChatChannel) IsNil() bool {
+	return c == ChatChannel{}
+}
+
 // Valid returns true if the ChatChannel has at least a Name.
 func (c ChatChannel) Valid() bool {
 	if len(c.Name) == 0 {
@@ -242,7 +246,6 @@ func (d deleteOptionsV1) Check() error {
 
 	if d.MessageID == 0 {
 		return ErrInvalidOptions{version: 1, method: methodDelete, err: errors.New("invalid message id")}
-
 	}
 
 	return nil

@@ -729,6 +729,14 @@ func ToTime(t time.Time) Time {
 	return Time(t.UnixNano() / 1000000)
 }
 
+func ToTimePtr(t *time.Time) *Time {
+	if t == nil {
+		return nil
+	}
+	ret := ToTime(*t)
+	return &ret
+}
+
 func TimeFromSeconds(seconds int64) Time {
 	return Time(seconds * 1000)
 }

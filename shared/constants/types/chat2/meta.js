@@ -27,6 +27,7 @@ export type _ConversationMeta = {
   resetParticipants: I.Set<string>,
   retentionPolicy: RetentionPolicy,
   snippet: string,
+  snippetDecoration: string,
   supersededBy: Common.ConversationIDKey,
   supersedes: Common.ConversationIDKey,
   teamType: TeamType,

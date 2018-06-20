@@ -23,6 +23,7 @@ const simpleCommon = {
   rekeyInfo: null,
   showBold: false,
   snippet: 'snippet',
+  snippetDecoration: '',
   subColor: globalColors.black_40,
   teamname: '',
   timestamp: '1:23 pm',

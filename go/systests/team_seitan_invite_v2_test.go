@@ -215,8 +215,7 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion teams.SeitanVersi
 	t.Logf("Created Seitan token")
 
 	details, err := own.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{
-		Name:        teamName.String(),
-		ForceRepoll: true,
+		Name: teamName.String(),
 	})
 	require.NoError(t, err)
 

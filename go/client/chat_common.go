@@ -28,7 +28,7 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 
 	cli, teamError := GetTeamsClient(g)
 	if teamError == nil {
-		_, teamError = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name, ForceRepoll: false})
+		_, teamError = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name})
 		if teamError == nil {
 			ret := keybase1.UserOrTeamResult_TEAM
 			return &ret, nil

@@ -30,6 +30,7 @@ func TestPerUserKeyUpgradeBackgroundShutdownFirst(t *testing.T) {
 		testingMetaCh: metaCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
+	eng.task.args.Settings.StartStagger = 0 // Disable stagger for deterministic testing
 	uis := libkb.UIs{
 		LogUI: tc.G.UI.GetLogUI(),
 	}
@@ -111,6 +112,7 @@ func TestPerUserKeyUpgradeBackgroundShutdownMiddle(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
+	eng.task.args.Settings.StartStagger = 0 // Disable stagger for deterministic testing
 	m := NewMetaContextForTestWithLogUI(tc)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -177,6 +179,7 @@ func TestPerUserKeyUpgradeBackgroundUnnecessary(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
+	eng.task.args.Settings.StartStagger = 0 // Disable stagger for deterministic testing
 	m := NewMetaContextForTestWithLogUI(tc)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -228,6 +231,7 @@ func TestPerUserKeyUpgradeBackgroundWork(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
+	eng.task.args.Settings.StartStagger = 0 // Disable stagger for deterministic testing
 	m := NewMetaContextForTestWithLogUI(tc)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -292,6 +296,7 @@ func TestPerUserKeyUpgradeBackgroundYield(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
+	eng.task.args.Settings.StartStagger = 0 // Disable stagger for deterministic testing
 	m := NewMetaContextForTestWithLogUI(tc)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -359,6 +364,7 @@ func TestPerUserKeyUpgradeBackgroundLoginLate(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
+	eng.task.args.Settings.StartStagger = 0 // Disable stagger for deterministic testing
 	m := NewMetaContextForTestWithLogUI(tc)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)

@@ -1929,7 +1929,7 @@ func (e ChatAlreadyDeletedError) Error() string {
 }
 
 func (e ChatAlreadyDeletedError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
-	return chat1.OutboxErrorType_MISC, true
+	return chat1.OutboxErrorType_ALREADY_DELETED, true
 }
 
 //=============================================================================

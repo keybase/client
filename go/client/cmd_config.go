@@ -160,6 +160,9 @@ func (v *CmdConfigGet) runDirect(dui libkb.DumbOutputUI) error {
 		default:
 			var b []byte
 			b, err = json.Marshal(val)
+			if err != nil {
+				return err
+			}
 			dui.Printf("%s\n", string(b))
 		}
 	}

@@ -98,7 +98,7 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 	sigVersion := libkb.SigVersion(*e.arg.SigVersion)
-	claim, err := me.CryptocurrencySig(sigKey, e.arg.Address, typ, sigIDToRevoke, merkleRoot, sigVersion)
+	claim, err := me.CryptocurrencySig(m, sigKey, e.arg.Address, typ, sigIDToRevoke, merkleRoot, sigVersion)
 	if err != nil {
 		return err
 	}

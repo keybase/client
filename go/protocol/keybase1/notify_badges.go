@@ -23,6 +23,7 @@ func (o ChatConversationID) DeepCopy() ChatConversationID {
 type TeamMemberOutReset struct {
 	Teamname string        `codec:"teamname" json:"teamname"`
 	Username string        `codec:"username" json:"username"`
+	Uid      UID           `codec:"uid" json:"uid"`
 	Id       gregor1.MsgID `codec:"id" json:"id"`
 }
 
@@ -30,6 +31,7 @@ func (o TeamMemberOutReset) DeepCopy() TeamMemberOutReset {
 	return TeamMemberOutReset{
 		Teamname: o.Teamname,
 		Username: o.Username,
+		Uid:      o.Uid.DeepCopy(),
 		Id:       o.Id.DeepCopy(),
 	}
 }

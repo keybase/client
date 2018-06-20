@@ -47,9 +47,12 @@ const PathItemInfo = (props: Props) => (
         )}
       </Box>
     ) : (
-      <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
-        {(props.startWithLastModified ? 'Last modified ' : '') + formatTimeForFS(props.lastModifiedTimestamp)}
-      </Text>
+      !!props.lastModifiedTimestamp && (
+        <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
+          {(props.startWithLastModified ? 'Last modified ' : '') +
+            formatTimeForFS(props.lastModifiedTimestamp)}
+        </Text>
+      )
     )}
     {props.lastWriter ? (
       <Text type="BodySmall" style={writerTextStyle} lineClamp={isMobile ? 1 : undefined}>

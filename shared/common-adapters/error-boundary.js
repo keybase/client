@@ -106,17 +106,15 @@ type Props = {
 
 type State = {
   info: ?AllErrorInfo,
-  children: ?React.Node,
 }
 
 class ErrorBoundary extends React.PureComponent<Props, State> {
-  state = {info: null, children: null}
+  state = {info: null}
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (nextProps.children !== prevState.children) {
-      return {info: null, children: nextProps.children}
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.children !== prevProps.children) {
+      this.setState(p => (p.info ? {info: null} : null))
     }
-    return null
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {

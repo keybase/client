@@ -783,9 +783,26 @@ func (p *pullLocalResultCollector) String() string {
 	return fmt.Sprintf("[ %s: t: %d ]", p.Name(), p.num)
 }
 
+func (p *pullLocalResultCollector) hasRealResults() bool {
+	for _, m := range p.Result() {
+		st, err := m.State()
+		if err != nil {
+			// count these
+			return true
+		}
+		switch st {
+		case chat1.MessageUnboxedState_PLACEHOLDER:
+			// don't count!
+		default:
+			return true
+		}
+	}
+	return false
+}
+
 func (p *pullLocalResultCollector) Error(err storage.Error) storage.Error {
 	// Swallow this error, we know we can miss if we get anything at all
-	if _, ok := err.(storage.MissError); ok && len(p.Result()) > 0 {
+	if _, ok := err.(storage.MissError); ok && p.hasRealResults() {
 		return nil
 	}
 	return err
@@ -1066,7 +1083,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 }
 
 // ClearFromDelete clears the current cache if there is a delete that we don't know about
-// and returns true to the caller if it schedule a background loader job
+// and returns true to the caller if it schedules a background loader job
 func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, deleteID chat1.MessageID) bool {
 	defer s.Trace(ctx, func() error { return nil }, "ClearFromDelete")()

@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
-  onBack: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

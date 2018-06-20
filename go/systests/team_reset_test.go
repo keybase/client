@@ -247,6 +247,34 @@ func TestTeamResetAdd(t *testing.T) {
 	divDebug(ctx, "Bob reading chat '2'")
 }
 
+// Ann creates a team, and adds Bob as an admin. Then Alice resets, and Bob readmits
+// Ann as an admin (since he can't make her an owner). It should work.
+func TestTeamOwnerResetAdminReadmit(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	team := ann.createTeam([]*smuUser{})
+	divDebug(ctx, "team created (%s)", team.name)
+	ann.addAdmin(team, bob)
+
+	ann.reset()
+	divDebug(ctx, "Reset ann (%s)", ann.username)
+
+	ann.loginAfterReset(2)
+	divDebug(ctx, "Ann logged in after reset")
+	bob.addAdmin(team, ann)
+	_, err := ann.teamGet(team)
+	require.NoError(t, err)
+	divDebug(ctx, "Ann read the team")
+}
+
 // add bob (a user who has reset his account and has no PUK) to a team
 // that he was never a member of
 func TestTeamResetAddNoPUK(t *testing.T) {
@@ -474,8 +502,7 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 	t.Logf("Calling TeamGet")
 
 	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name:        team.name,
-		ForceRepoll: true,
+		Name: team.name,
 	})
 	require.NoError(t, err)
 
@@ -709,7 +736,6 @@ func testTeamResetBadgesAndDismiss(t *testing.T, readd bool) {
 
 	// users[1] logs in after reset
 	tt.users[1].loginAfterReset()
-	clearServerUIDMapCache(tt.users[1].tc.G, t, []keybase1.UID{tt.users[1].uid})
 
 	// Either re-adding or removing user from the team should clear
 	// the reset badge.

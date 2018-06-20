@@ -108,7 +108,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 const AshBox = glamorous.div(props => ({
   '&.full-width': {
     overflow: 'visible',
-    transition: `width ${animationDuration}s ease-in-out`,
+    transition: `width ${animationDuration}s linear`,
     width: '100%',
   },
   backgroundColor: globalColors.white,
@@ -142,7 +142,7 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
   )
   return (
     <AshBox className={props.exploded ? 'full-width' : undefined}>
-      {explodedTag}
+      {props.exploded && explodedTag}
       <FlameFront height={props.height} stop={props.doneExploding} />
     </AshBox>
   )
@@ -166,7 +166,7 @@ const FlameFront = (props: {height: number, stop: boolean}) => {
   )
 }
 
-const colors = ['red', 'yellow', 'orange', globalColors.black]
+const colors = ['yellow', 'red', globalColors.grey, globalColors.black]
 const randWidth = () => Math.round(Math.random() * maxFlameWidth) + flameOffset
 const randColor = () => colors[Math.floor(Math.random() * colors.length)]
 

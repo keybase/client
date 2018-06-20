@@ -12,11 +12,10 @@ type Props = {
   path?: Types.Path,
   onDismiss?: () => void,
   onInstall: () => void,
-  onUninstall: () => void,
   openInFileUI?: () => void,
 }
 
-const Banner = ({kbfsEnabled, showBanner, onInstall, onUninstall, onDismiss, openInFileUI}: Props) => {
+const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI}: Props) => {
   if (kbfsEnabled && !showBanner) {
     return null
   }

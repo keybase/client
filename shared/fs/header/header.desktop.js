@@ -43,7 +43,7 @@ const FolderHeader = ({
               </Box>
             )}
             {breadcrumbItems.map((item, idxItem) => (
-              <React.Fragment key={item.name}>
+              <React.Fragment key={Types.pathToString(item.path)}>
                 {item.isTlfNameItem &&
                   isTeamPath && (
                     <Avatar size={16} teamname={item.name} isTeam={true} style={styleTeamAvatar} />

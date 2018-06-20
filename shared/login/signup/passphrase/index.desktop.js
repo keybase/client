@@ -23,6 +23,7 @@ class PassphraseRender extends Component<Props> {
             }}
             hintText="Create a passphrase"
             errorText={passphraseError}
+            uncontrolled={true}
           />
           <Input
             type="password"
@@ -33,6 +34,7 @@ class PassphraseRender extends Component<Props> {
               confirmInput = input
             }}
             onChangeText={pass2 => this.props.pass2Update(pass2)}
+            uncontrolled={true}
           />
           <Button
             type="Primary"

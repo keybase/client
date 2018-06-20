@@ -120,7 +120,7 @@ function waitForMount(attempt: number) {
   return new Promise((resolve, reject) => {
     // Read the KBFS path waiting for files to exist, which means it's mounted
     // TODO: should handle current mount directory
-    fs.readdir(Config.defaultKBFSPath, (err, files) => {
+    fs.readdir(`${Config.defaultKBFSPath}${Config.defaultPrivatePrefix}`, (err, files) => {
       if (!err && files.length > 0) {
         resolve(true)
       } else if (attempt > 15) {
@@ -134,7 +134,6 @@ function waitForMount(attempt: number) {
   })
 }
 
-const installKBFS = () => Saga.call(RPCTypes.installInstallKBFSRpcPromise)
 const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
   Saga.sequentially([
     Saga.call(waitForMount, 0),
@@ -144,13 +143,13 @@ const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
 function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
-    return Saga.call(installKBFS)
+    return Saga.put(FsGen.createInstallKBFS())
   }
 }
 
 function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
-  const prevStatus = state.favorite.fuseStatus
+  const prevStatus = state.fs.fuseStatus
 
   let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
   if (isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed) {
@@ -181,10 +180,11 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createInstallFuseResult({kextPermissionError}))
   yield Saga.put(FsGen.createFuseStatus())
   yield Saga.put(FsGen.createSetFlags({fuseInstalling: false}))
+  // TODO: do something like uninstallConfirmSaga here
 }
 
-function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
-  SafeElectron.getDialog().showMessageBox(
+const uninstallKBFSConfirm = (action: FsGen.UninstallKBFSConfirmPayload) =>
+  new Promise((resolve, reject) => SafeElectron.getDialog().showMessageBox(
     null,
     {
       buttons: ['Remove & Restart', 'Cancel'],
@@ -192,22 +192,21 @@ function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
       message: `Remove Keybase from ${fileUIName}`,
       type: 'question',
     },
-    resp => (resp ? undefined : action.payload.onSuccess())
+    resp => resolve(resp))
   )
-}
 
-function uninstallKBFS() {
-  return Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
-}
+const uninstallKBFSConfirmSuccess = resp =>
+  (resp ? undefined : Saga.sequentially([
+    Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
+    Saga.call(() => {
+        // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+        SafeElectron.getApp().relaunch()
+        SafeElectron.getApp().exit(0)
+      }
+    ),
+  ]))
 
-function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
-  // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-  SafeElectron.getApp().relaunch()
-  SafeElectron.getApp().exit(0)
-}
-
-function openSecurityPreferences() {
-  return Saga.call(
+const openSecurityPreferences = () => Saga.call(
     () =>
       new Promise((resolve, reject) => {
         SafeElectron.getShell().openExternal(
@@ -224,7 +223,6 @@ function openSecurityPreferences() {
         )
       })
   )
-}
 
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
@@ -309,9 +307,8 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
-  yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
+  yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {

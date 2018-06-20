@@ -41,11 +41,15 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 	}
 	var to string
 	switch {
+	case p.ToUsername != nil && p.ToAssertion != nil && (*p.ToUsername != *p.ToAssertion):
+		to = fmt.Sprintf("%s (%q)", *p.ToUsername, *p.ToAssertion)
 	case p.ToUsername != nil:
 		to = *p.ToUsername
 	case p.ToStellar != nil:
 		to = p.ToStellar.LossyAbbreviation()
 		showedAbbreviation = true
+	case p.ToAssertion != nil:
+		to = fmt.Sprintf("%q", *p.ToAssertion)
 	default:
 		// This should never happen
 		lineUnescaped("%v", ColorString(g, "red", "missing recipient info"))

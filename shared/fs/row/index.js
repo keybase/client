@@ -1,5 +1,9 @@
 // @flow
-import {Placeholder} from './row'
-import Row from './container'
+import Placeholder from './placeholder'
+import Still from './still-container'
+import Editing from './editing-container'
+import rowStyles from './styles'
 
-export {Row, Placeholder}
+const rowHeight = rowStyles.height
+
+export {Still, Editing, Placeholder, rowHeight}

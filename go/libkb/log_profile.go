@@ -81,10 +81,10 @@ func (l *LogProfileContext) parseMatch(matches []string) (filename, fnName strin
 
 func (l *LogProfileContext) LogProfile(path string) ([]string, error) {
 	f, err := os.Open(path)
-	defer f.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	re := regexp.MustCompile(`keybase (\w*\.go)\:\d+.*- (.*) -> .* \[time=(\d+\.\w+)\]`)
 	// filename -> functionName -> [durations...]

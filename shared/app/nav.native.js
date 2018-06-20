@@ -165,7 +165,6 @@ const tabIsCached = {
 class MainNavStack extends Component<any, any> {
   _listener: EmitterListener
   state = {
-    stackCache: I.Map(),
     verticalOffset: 0,
   }
 
@@ -185,25 +184,17 @@ class MainNavStack extends Component<any, any> {
     this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
   }
 
-  static getDerivedStateFromProps(nextProps, prevState) {
-    const {routeSelected, routeStack} = nextProps
-    if (tabIsCached.hasOwnProperty(routeSelected)) {
-      return {
-        stackCache: prevState.stackCache.set(routeSelected, routeStack),
-      }
-    }
-    return null
-  }
-
   _switchTab = tab => {
     this.props.switchTab(tab)
   }
 
+  // We keep some stacks around so their navigation isn't blown away
+  _stackCache = I.Map()
+
   render() {
     const props = this.props
-    const {stackCache} = this.state
 
-    const stacks = stackCache
+    const stacks = this._stackCache
       .set(props.routeSelected, props.routeStack)
       .toArray()
       .map(([key, stack]) => (
@@ -216,6 +207,11 @@ class MainNavStack extends Component<any, any> {
           onNavigateBack={props.navigateUp}
         />
       ))
+
+    // update the stack if we're keeping track of it
+    if (tabIsCached[props.routeSelected]) {
+      this._stackCache = this._stackCache.set(props.routeSelected, props.routeStack)
+    }
 
     const content = (
       <Box style={styles.content}>

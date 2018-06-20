@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
@@ -34,10 +33,7 @@ func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			Usage: "Title of attachment (defaults to filename)",
 		},
 	}
-	// TODO remove this check for release.
-	if ephemeral.NewEKLib(g).ShouldRun(context.TODO()) {
-		flags = append(flags, mustGetChatFlags("exploding-lifetime")...)
-	}
+	flags = append(flags, mustGetChatFlags("exploding-lifetime")...)
 	return cli.Command{
 		Name:         "upload",
 		Usage:        "Upload an attachment to a conversation",
