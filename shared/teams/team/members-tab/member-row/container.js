@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps) => {
   const info = map.get(username, blankInfo)
 
   return {
-    active: info.active,
+    active: !(info.isReset || info.isDeleted),
     following: amIFollowing(state, username),
     fullName: state.config.username === username ? 'You' : info.fullName,
     roleType: info.type,

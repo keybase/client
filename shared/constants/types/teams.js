@@ -50,8 +50,9 @@ export type _ChannelInfo = {
 export type ChannelInfo = I.RecordOf<_ChannelInfo>
 
 export type _MemberInfo = {
-  active: boolean,
   fullName: string,
+  isDeleted: boolean,
+  isReset: boolean,
   type: TeamRoleType,
   username: string,
 }

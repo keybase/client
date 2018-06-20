@@ -22,18 +22,30 @@ const getOrderedMemberArray = (
     .valueSeq()
     .toArray()
     .sort((a, b) => {
-      // List inactive users first if admin
+      // If admin list deleted users, then reset, then rest
       if (yourOperations.manageMembers) {
-        if (!a.active) {
-          if (!b.active) {
+        if (a.isDeleted) {
+          if (b.isDeleted) {
             // both are inactive, compare usernames
             return a.username.localeCompare(b.username)
           }
-          // b is active, should go later
+          // b is reset or active, should go later
           return -1
-        } else if (!b.active) {
-          // b is inactive, should come first
+        } else if (b.isDeleted) {
+          // b is deleted, should come first
           return 1
+        }
+
+        if (a.isReset) {
+          if (b.isDeleted) {
+            // deleted should come first
+            return 1
+          } else if (b.isReset) {
+            // both reset, compare usernames
+            return a.username.localeCompare(b.username)
+          }
+          // b is active, a goes first
+          return -1
         }
       }
       if (yourOperations.listFirst && you) {
