@@ -36,9 +36,9 @@ const load = () => {
           {...props}
           notification={{
             message: (
-              <Text type="BodySemibold" style={{color: globalColors.white}}>
+              <Text type="BodySmallSemibold" style={{color: globalColors.white}}>
                 You won a unicorn!{' '}
-                <Text type="BodySemibold" style={{color: globalColors.white}}>
+                <Text type="BodySmallSemibold" style={{color: globalColors.white}}>
                   Make sure to feed it
                 </Text>{' '}
                 :-)

@@ -52,7 +52,7 @@ export default class HeaderRender extends PureComponent<Props, State> {
       <div style={styleOuter}>
         <div style={{...styleHeader, backgroundColor: headerBackgroundColor, ...this.props.headerStyle}}>
           <Text
-            type="BodySemibold"
+            type="BodySmallSemibold"
             lineClamp={2}
             style={{
               ...styleText,

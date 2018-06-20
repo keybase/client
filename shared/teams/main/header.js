@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Box, Icon, ProgressIndicator, Text, type IconType} from '../../common-adapters'
+import {ClickableBox, Box2, Icon, ProgressIndicator, Text, type IconType} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 export type HeaderButtonProps = {
@@ -33,7 +33,9 @@ export type Props = {
 }
 
 const Header = (props: Props) => (
-  <Box
+  <Box2
+    gap="small"
+    direction="horizontal"
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
@@ -50,7 +52,7 @@ const Header = (props: Props) => (
       !props.loaded && <ProgressIndicator style={{position: 'absolute', width: 20, top: 12, left: 12}} />}
     <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
     <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />
-  </Box>
+  </Box2>
 )
 
 export default Header
