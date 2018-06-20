@@ -311,8 +311,7 @@ func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.Team
 
 func (u *userPlusDevice) teamGetDetails(teamName string) keybase1.TeamDetails {
 	res, err := u.teamsClient.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name:        teamName,
-		ForceRepoll: true,
+		Name: teamName,
 	})
 	require.NoError(u.tc.T, err)
 	return res

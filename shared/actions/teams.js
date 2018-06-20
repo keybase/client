@@ -399,7 +399,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
   try {
     const unsafeDetails: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
-      forceRepoll: false,
       name: teamname,
     })
 

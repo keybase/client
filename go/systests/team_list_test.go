@@ -76,8 +76,7 @@ func TestTeamList(t *testing.T) {
 	// Examine results from TeamGet
 
 	details, err := teamCli.TeamGet(context.TODO(), keybase1.TeamGetArg{
-		Name:        team.name,
-		ForceRepoll: true,
+		Name: team.name,
 	})
 	require.NoError(t, err)
 
@@ -168,8 +167,7 @@ func TestTeamListOpenTeamFilter(t *testing.T) {
 	tom.reset()
 
 	details, err := ann.teamsClient.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name:        team,
-		ForceRepoll: true,
+		Name: team,
 	})
 	require.NoError(t, err)
 
@@ -254,8 +252,7 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 
 	teamCli := ann.teamsClient
 	details, err := teamCli.TeamGet(context.TODO(), keybase1.TeamGetArg{
-		Name:        team,
-		ForceRepoll: true,
+		Name: team,
 	})
 	require.NoError(t, err)
 
