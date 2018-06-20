@@ -54,16 +54,14 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username} style={styles.usersContainerStyle}>
-        {i !== 0 && (<Text type={type}>&nbsp;</Text>)}
-        {i !== 0 && i === users.length - 1 && showAnd && (
-          <Text
-            type={type}
-            backgroundMode={backgroundMode}
-            style={andStyle}
-          >
-            {'and '}
-          </Text>
-        )}
+        {i !== 0 && <Text type={type}>&nbsp;</Text>}
+        {i !== 0 &&
+          i === users.length - 1 &&
+          showAnd && (
+            <Text type={type} backgroundMode={backgroundMode} style={andStyle}>
+              {'and '}
+            </Text>
+          )}
         <Text
           type={type}
           backgroundMode={backgroundMode}
