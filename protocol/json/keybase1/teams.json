@@ -215,6 +215,10 @@
           "type": "boolean",
           "name": "needsPUK",
           "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "isDeleted"
         }
       ]
     },

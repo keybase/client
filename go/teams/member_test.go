@@ -506,6 +506,53 @@ func TestMemberAddNoKeys(t *testing.T) {
 	}
 }
 
+func TestMemberDetailsResetAndDeletedUser(t *testing.T) {
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	tc.G.UIDMapper.SetTestingNoCachingMode(true)
+	_, err := AddMember(context.TODO(), tc.G, name, otherA.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	_, err = AddMember(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	details, err := Details(context.TODO(), tc.G, name, true)
+	require.NoError(t, err)
+
+	require.Len(t, details.Members.Admins, 2)
+	for _, admin := range details.Members.Admins {
+		require.True(t, admin.Active)
+		require.False(t, admin.IsDeleted)
+	}
+
+	// Logout owner
+	kbtest.Logout(tc)
+
+	otherA.Login(tc.G)
+	kbtest.ResetAccount(tc, otherA)
+
+	otherB.Login(tc.G)
+	kbtest.DeleteAccount(tc, otherB)
+
+	owner.Login(tc.G)
+
+	details, err = Details(context.TODO(), tc.G, name, true)
+	require.NoError(t, err)
+
+	require.Len(t, details.Members.Admins, 2)
+	for _, admin := range details.Members.Admins {
+		switch admin.Username {
+		case otherA.Username: // only reset
+			require.False(t, admin.IsDeleted)
+			require.False(t, admin.Active)
+		case otherB.Username: // deleted
+			require.True(t, admin.IsDeleted)
+			require.False(t, admin.Active)
+		}
+	}
+}
+
 func TestMemberAddEmail(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()

@@ -91,6 +91,7 @@ protocol teams {
     boolean active;
     @lint("ignore")
     boolean needsPUK;
+    boolean isDeleted;
   }
 
   record TeamMembersDetails {

@@ -115,7 +115,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 	for i, uv := range uvs {
 		uids[i] = uv.Uid
 	}
-	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids, 10*time.Minute, 0, true)
+	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids, 10*time.Minute, 0, forceRepoll)
 	if err != nil {
 		return nil, err
 	}
@@ -125,18 +125,25 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 	for i, uv := range uvs {
 		pkg := packages[i]
 		active := true
+		isDeleted := false
 		var fullName keybase1.FullName
 		if pkg.FullName != nil {
 			if pkg.FullName.EldestSeqno != uv.EldestSeqno {
 				active = false
+				// Check if this user was deleted or just reset
+				_, err := loadUserVersionByUsername(ctx, g, pkg.NormalizedUsername.String())
+				if err != nil && err == errUserDeleted {
+					isDeleted = true
+				}
 			}
 			fullName = pkg.FullName.FullName
 		}
 		ret[i] = keybase1.TeamMemberDetails{
-			Uv:       uvs[i],
-			Username: pkg.NormalizedUsername.String(),
-			FullName: fullName,
-			Active:   active,
+			Uv:        uvs[i],
+			Username:  pkg.NormalizedUsername.String(),
+			FullName:  fullName,
+			Active:    active,
+			IsDeleted: isDeleted,
 		}
 	}
 	return ret, nil
