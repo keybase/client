@@ -17,24 +17,25 @@ import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} 
 import type {Props} from '.'
 
 type State = {
-  centerX: number,
-  centerY: number,
+  // centerX: number,
+  // centerY: number,
   dragging: boolean,
   dropping: boolean,
-  finalX: number,
-  finalY: number,
+  dragStopX: number,
+  dragStopY: number,
   hasPreview: boolean,
   dragLeft: string,
-  imageScale: string,
   imageSource: string,
   dragTop: string,
   dragStartX: number,
   dragStartY: number,
-  offsetLeft: ?number,
-  offsetTop: ?number,
+  // offsetLeft: ?number,
+  // offsetTop: ?number,
   originalImageHeight: number,
   originalImageWidth: number,
   scale: number,
+  scaledImageHeight: number,
+  scaledImageWidth: number,
   submitting: boolean,
 }
 
@@ -47,24 +48,25 @@ class EditAvatar extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      centerX: 0,
-      centerY: 0,
+      // centerX: 0,
+      // centerY: 0,
       dragging: false,
       dropping: false,
-      finalX: 0,
-      finalY: 0,
+      dragStopX: 0,
+      dragStopY: 0,
       hasPreview: false,
       dragLeft: '0px',
-      imageScale: '100%',
       imageSource: '',
       dragTop: '0px',
       dragStartX: 0,
       dragStartY: 0,
       originalImageHeight: 0,
       originalImageWidth: 0,
-      offsetLeft: null,
-      offsetTop: null,
-      scale: 0,
+      // offsetLeft: null,
+      // offsetTop: null,
+      scale: 1,
+      scaledImageHeight: 0,
+      scaledImageWidth: 0,
       submitting: false,
     }
   }
@@ -151,47 +153,64 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onImageLoad = (e: SyntheticEvent<HTMLImageElement>) => {
+    console.log('loaded', e.currentTarget.naturalWidth, e.currentTarget.offsetLeft)
+
     this.setState({
       hasPreview: true,
+      // offsetLeft: e.currentTarget.offsetLeft,
+      // offsetTop: e.currentTarget.offsetTop,
+      dragLeft: `${e.currentTarget.naturalWidth / -2 + AVATAR_SIZE / 2}px`,
+      dragTop: `${e.currentTarget.naturalHeight / -2 + AVATAR_SIZE / 2}px`,
       originalImageHeight: e.currentTarget.naturalHeight,
       originalImageWidth: e.currentTarget.naturalWidth,
-      offsetLeft: e.currentTarget.offsetLeft * -2,
-      offsetTop: e.currentTarget.offsetTop * -2,
+      scaledImageHeight: e.currentTarget.naturalHeight,
+      scaledImageWidth: e.currentTarget.naturalWidth,
     })
   }
 
   _onRangeChange = e => {
+    const scale = e.currentTarget.value
+    const scaledImageHeight = Math.round(this.state.originalImageHeight * scale)
+    const scaledImageWidth = Math.round(this.state.originalImageWidth * scale)
+    const dragLeft = parseInt(this.state.dragLeft, 10)
+    const dragTop = parseInt(this.state.dragTop, 10)
+    const mLeft = dragLeft < 0 ? -1 : 1
+    const mTop = dragTop < 0 ? -1 : 1
+
     this.setState({
-      imageScale: `${parseFloat(e.currentTarget.value) * 100}%`,
-      scale: e.currentTarget.value,
+      dragLeft: `${mLeft * Math.round(scaledImageWidth / 2 - AVATAR_SIZE / 2)}px`,
+      dragTop: `${mTop * Math.round(scaledImageHeight / 2 - AVATAR_SIZE / 2)}px`,
+      scale,
+      scaledImageHeight,
+      scaledImageWidth,
     })
+
+    console.log('scaled', this.state.scaledImageHeight, this.state.scaledImageWidth)
   }
 
   _onMouseDown = e => {
-    console.log('down', e.pageX, e.pageY, e.currentTarget)
+    console.log('down', e.currentTarget.naturalWidth, e.currentTarget.offsetLeft)
 
     this.setState({
-      dragging: true,
-      finalX: e.currentTarget.style.left ? parseInt(e.currentTarget.style.left, 10) : this.state.finalX,
-      finalY: e.currentTarget.style.top ? parseInt(e.currentTarget.style.top, 10) : this.state.finalY,
       dragStartX: e.pageX,
       dragStartY: e.pageY,
-      centerX: this.state.originalImageWidth / 2 + e.currentTarget.offsetLeft - AVATAR_SIZE / 2,
-      centerY: this.state.originalImageHeight / 2 + e.currentTarget.offsetTop - AVATAR_SIZE / 2,
-      offsetLeft: e.currentTarget.offsetLeft,
-      offsetTop: e.currentTarget.offsetTop,
+      dragging: true,
+      dragStopX: e.currentTarget.style.left ? parseInt(e.currentTarget.style.left, 10) : this.state.dragStopX,
+      dragStopY: e.currentTarget.style.top ? parseInt(e.currentTarget.style.top, 10) : this.state.dragStopY,
+      // offsetLeft: e.currentTarget.offsetLeft,
+      // offsetTop: e.currentTarget.offsetTop,
     })
   }
 
   _onMouseUp = e => {
+    console.log('up', e.currentTarget.naturalWidth, e.currentTarget.offsetLeft)
+
     this.setState({
       dragging: false,
-      finalX: e.currentTarget.style.left ? parseInt(e.currentTarget.style.left, 10) : this.state.finalX,
-      finalY: e.currentTarget.style.top ? parseInt(e.currentTarget.style.top, 10) : this.state.finalY,
-      centerX: this.state.originalImageWidth / 2 + e.currentTarget.offsetLeft - AVATAR_SIZE / 2,
-      centerY: this.state.originalImageHeight / 2 + e.currentTarget.offsetTop - AVATAR_SIZE / 2,
-      offsetLeft: e.currentTarget.offsetLeft,
-      offsetTop: e.currentTarget.offsetTop,
+      dragStopX: e.currentTarget.style.left ? parseInt(e.currentTarget.style.left, 10) : this.state.dragStopX,
+      dragStopY: e.currentTarget.style.top ? parseInt(e.currentTarget.style.top, 10) : this.state.dragStopY,
+      // offsetLeft: e.currentTarget.offsetLeft,
+      // offsetTop: e.currentTarget.offsetTop,
     })
   }
 
@@ -199,29 +218,33 @@ class EditAvatar extends React.Component<Props, State> {
     if (!this.state.dragging || this.state.submitting) return
 
     this.setState({
-      dragLeft: `${this.state.finalX + e.pageX - this.state.dragStartX}px`,
-      dragTop: `${this.state.finalY + e.pageY - this.state.dragStartY}px`,
-      centerX: this.state.originalImageWidth / 2 + e.currentTarget.offsetLeft - AVATAR_SIZE / 2,
-      centerY: this.state.originalImageHeight / 2 + e.currentTarget.offsetTop - AVATAR_SIZE / 2,
-      offsetLeft: e.currentTarget.offsetLeft,
-      offsetTop: e.currentTarget.offsetTop,
+      dragLeft: `${this.state.dragStopX + e.pageX - this.state.dragStartX}px`,
+      dragTop: `${this.state.dragStopY + e.pageY - this.state.dragStartY}px`,
+      // offsetLeft: e.currentTarget.offsetLeft,
+      // offsetTop: e.currentTarget.offsetTop,
     })
   }
 
   _onSave = e => {
     this.setState({submitting: true})
 
-    const x = this.state.offsetLeft * -1
-    const y = this.state.offsetTop * -1
-    const crop = {
-      x0: x,
-      y0: y,
-      x1: x + AVATAR_SIZE,
-      y1: y + AVATAR_SIZE,
-    }
-    console.log(crop)
+    // if (this.state.offsetLeft && this.state.offsetTop) {
+    //   const x = this.state.offsetLeft * -1
+    //   const y = this.state.offsetTop * -1
+    //   const rH = this.state.originalImageHeight / this.state.scaledImageHeight
+    //   const rW = this.state.originalImageWidth / this.state.scaledImageWidth
+    //   const crop = {
+    //     x0: Math.round(x * rW),
+    //     y0: Math.round(y * rH),
+    //     x1: Math.round((x + AVATAR_SIZE) * rW),
+    //     y1: Math.round((y + AVATAR_SIZE) * rH),
+    //   }
+    //   console.log(crop)
+    //   this.props.onSave(this.state.imageSource, crop)
+    //   return
+    // }
 
-    // this.props.onSave(this.state.imageSource, crop)
+    // this.props.onSave(this.state.imageSource)
   }
 
   _hoverBoxClassName = () => {
@@ -242,14 +265,14 @@ class EditAvatar extends React.Component<Props, State> {
           <Text type="BodyPrimaryLink" onClick={this._filePickerOpen}>
             or browse your computer for one
           </Text>
-          <Text type="BodyBig">
-            x: {this.state.centerX} y: {this.state.centerY}
-          </Text>
+          <Text type="BodyBig">w: {this.state.scaledImageWidth}</Text>
+          <Text type="BodyBig">h: {this.state.scaledImageHeight}</Text>
           <HoverBox
             className={this._hoverBoxClassName}
             onClick={this.state.hasPreview ? null : this._filePickerOpen}
           >
             <input
+              accept="image/*"
               multiple={false}
               onChange={this._pickFile}
               ref={this._filePickerSetRef}
@@ -259,14 +282,11 @@ class EditAvatar extends React.Component<Props, State> {
             <img
               src={this.state.imageSource}
               style={{
-                alignSelf: 'center',
-                height: this.state.originalImageHeight,
+                height: this.state.scaledImageHeight,
                 left: this.state.dragLeft,
-                // maxHeight: this.state.imageScale,
-                // maxWidth: this.state.imageScale,
-                position: 'relative',
+                position: 'absolute',
                 top: this.state.dragTop,
-                width: this.state.originalImageWidth,
+                width: this.state.scaledImageWidth,
               }}
               onDragStart={e => e.preventDefault()}
               onLoad={this._onImageLoad}
@@ -286,10 +306,10 @@ class EditAvatar extends React.Component<Props, State> {
           </HoverBox>
           <input
             disabled={!this.state.hasPreview || this.state.submitting}
-            min={-5}
+            min={1}
             max={5}
             onChange={this._onRangeChange}
-            step={0.001}
+            step="any"
             style={styles.slider}
             type="range"
             value={this.state.scale}
@@ -301,12 +321,12 @@ class EditAvatar extends React.Component<Props, State> {
               onClick={this.props.onClose}
               type="Secondary"
             />
-            <Button
+            <WaitingButton
               disabled={!this.state.hasPreview}
               label="Save"
               onClick={this._onSave}
               type="Primary"
-              // waitingKey={null}
+              waitingKey={null}
             />
           </ButtonBar>
         </Box>
@@ -318,7 +338,7 @@ class EditAvatar extends React.Component<Props, State> {
 const HoverBox = glamorous(Box)({
   '&.filled': {
     backgroundColor: globalColors.white,
-    borderColor: globalColors.red, // lightGrey2,
+    borderColor: globalColors.lightGrey2,
     borderStyle: 'solid',
   },
   '&.filled:active': {
@@ -326,7 +346,7 @@ const HoverBox = glamorous(Box)({
   },
   '&.filled:hover': {
     backgroundColor: globalColors.white,
-    borderColor: globalColors.red, // lightGrey2,
+    borderColor: globalColors.lightGrey2,
     cursor: 'grab',
   },
   ':hover, &.dropping': {
@@ -335,15 +355,14 @@ const HoverBox = glamorous(Box)({
   ':hover .icon, &.dropping .icon': {
     color: globalColors.black_40,
   },
-  ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.lightGrey2,
-  borderColor: globalColors.red, // grey,
+  borderColor: globalColors.grey,
   // borderRadius: AVATAR_SIZE,
   borderStyle: 'dashed',
   borderWidth: AVATAR_BORDER_WIDTH,
   cursor: 'pointer',
+  flex: 0,
   height: AVATAR_SIZE,
-  justifyContent: 'center',
   marginBottom: globalMargins.small,
   marginTop: globalMargins.medium,
   overflow: 'hidden',
