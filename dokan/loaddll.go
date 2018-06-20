@@ -13,10 +13,7 @@ import "C"
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"fmt"
-	"io"
-	"os"
 	"path/filepath"
 	"runtime"
 	"unsafe"
@@ -104,32 +101,6 @@ func doLoadDokanAndGetSymbols(epc *errorPrinter, path string) error {
 	return nil
 }
 
-func debugFileInfo(epc *errorPrinter, path string) {
-	f, err := os.Open(path)
-	epc.Printf("debugFileInfo: open(%q) -> %v, %v\n", path, f, err)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	h := sha256.New()
-	n, err := io.Copy(h, f)
-	epc.Printf("debugFileInfo: read bytes -> %v, %v\n", n, err)
-	if err != nil {
-		return
-	}
-	epc.Printf("debugFileInfo: sha256 %X\n", h.Sum(nil))
-}
-
-func logDokanDLLInfo(epc *errorPrinter) {
-	cwd := ``
-	if d, err := os.Getwd(); err == nil {
-		cwd = d + `\`
-	}
-	for _, d := range []string{syswow64, system32, cwd} {
-		debugFileInfo(epc, d+shortPath)
-	}
-}
-
 // loadDokanDLL tries to load the dokan DLL from
 // the given path. Empty path is allowed and will
 // result in the location being guessed.
@@ -137,7 +108,6 @@ func loadDokanDLL(path string) error {
 	var epc errorPrinter
 	err := doLoadDokanAndGetSymbols(&epc, path)
 	if err != nil {
-		logDokanDLLInfo(&epc)
 		return fmt.Errorf("Error: %v\nContext:\n%s", err, epc.buf.Bytes())
 	}
 	return nil
