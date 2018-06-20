@@ -9,15 +9,6 @@ class BetterScrollView extends ScrollView {
     keybaseDismissMode: 'on-drag',
     keyboardShouldPersistTaps: 'handled',
   }
-
-  onScroll = (e: {
-    nativeEvent: {contentSize: {height: number, width: number}, contentOffset: {x: number, y: number}},
-  }) => ({
-    height: e.nativeEvent.contentSize.height,
-    offsetX: e.nativeEvent.contentOffset.x,
-    offsetY: e.nativeEvent.contentOffset.y,
-    width: e.nativeEvent.contentSize.width,
-  })
 }
 
 export default BetterScrollView

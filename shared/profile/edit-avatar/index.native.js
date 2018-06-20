@@ -9,65 +9,64 @@ import type {Props} from '.'
 const AVATAR_SIZE = 250
 
 class EditAvatar extends React.Component<Props> {
-  _h: ?number
-  _w: ?number
-  _x: ?number
-  _y: ?number
+  _h: number = 0
+  _w: number = 0
+  _x: number = 0
+  _y: number = 0
 
-  _onSave = () => {
-    console.log(this._h, this._w, this._x, this._y)
-    // const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
-    // const crop = isIOS ? this._getIOSCrop() : this._getAndroidCrop()
-    // console.log(crop, this.props.image)
-    // this.props.onSave(filename, crop)
+  _onSave = (e: Object) => {
+    const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
+    if (this._h && this._w && this._x && this._y) {
+      const crop = isIOS ? this._getIOSCrop() : this._getAndroidCrop()
+      this.props.onSave(filename, crop)
+      return
+    }
+    this.props.onSave(filename)
   }
 
-  // _getAndroidCrop = () => {
-  //   const x = -this._zoom.state.pan.x
-  //   const y = -this._zoom.state.pan.y
-  //   const scale = this._zoom.state.scale - 1
-  //   const rH = this.props.image.height * scale
-  //   const rW = this.props.image.width * scale
-  //   const x0 = rW * x
-  //   const y0 = rH * y
-  //   return {
-  //     x0: Math.round(x0),
-  //     y0: Math.round(y0),
-  //     x1: Math.round((x + AVATAR_SIZE) * rW),
-  //     y1: Math.round((y + AVATAR_SIZE) * rH),
-  //   }
-  // }
+  _getAndroidCrop = () => {
+    //   const x = -this._zoom.state.pan.x
+    //   const y = -this._zoom.state.pan.y
+    //   const scale = this._zoom.state.scale - 1
+    //   const rH = this.props.image.height * scale
+    //   const rW = this.props.image.width * scale
+    //   const x0 = rW * x
+    //   const y0 = rH * y
+    return {
+      x0: 0, // Math.round(x0),
+      y0: 0, // Math.round(y0),
+      x1: 0, // Math.round((x + AVATAR_SIZE) * rW),
+      y1: 0, // Math.round((y + AVATAR_SIZE) * rH),
+    }
+  }
 
-  // _getIOSCrop = () => {
-  //   const x = this._zoom.state.offsetX
-  //   const y = this._zoom.state.offsetY
-  //   const rH = this.props.image.height / this._zoom.state.height
-  //   const rW = this.props.image.width / this._zoom.state.width
-  //   const x0 = rW * x
-  //   const y0 = rH * y
-  //   return {
-  //     x0: Math.round(x0),
-  //     y0: Math.round(y0),
-  //     x1: Math.round((x + AVATAR_SIZE) * rW),
-  //     y1: Math.round((y + AVATAR_SIZE) * rH),
-  //   }
-  // }
+  _getIOSCrop = () => {
+    const x = this._x
+    const y = this._y
+    const rH = this.props.image.height / this._h
+    const rW = this.props.image.width / this._w
+    const x0 = rW * x
+    const y0 = rH * y
+    return {
+      x0: Math.round(x0),
+      y0: Math.round(y0),
+      x1: Math.round((x + AVATAR_SIZE) * rW),
+      y1: Math.round((y + AVATAR_SIZE) * rH),
+    }
+  }
 
-  _onZoom = ({
-    height,
-    offsetX,
-    offsetY,
-    width,
-  }: {
-    height: number,
-    offsetX: number,
-    offsetY: number,
-    width: number,
-  }) => {
-    this._h = height
-    this._w = width
-    this._x = offsetX
-    this._y = offsetY
+  _onLayout = (e: Object) => {
+    // this._h = e.nativeEvent.layout.height
+    // this._w = e.nativeEvent.layout.width
+    // this._x = e.nativeEvent.layout.x
+    // this._y = e.nativeEvent.layout.y
+  }
+
+  _onZoom = (e: Object) => {
+    this._h = e.nativeEvent.contentSize.height
+    this._w = e.nativeEvent.contentSize.width
+    this._x = e.nativeEvent.contentOffset.x
+    this._y = e.nativeEvent.contentOffset.y
   }
 
   render() {
@@ -91,17 +90,21 @@ class EditAvatar extends React.Component<Props> {
                 height: this.props.image.height,
                 width: this.props.image.width,
               }}
+              maxZoom={10}
+              onLayout={this._onLayout}
               onZoom={this._onZoom}
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
               style={isIOS ? styles.zoomContainer : null}
             >
               <NativeImage
-                resizeMode="cover"
+                resizeMode="contain"
                 source={{uri: `data:image/jpeg;base64,${this.props.image.data}`}}
                 style={{
-                  height: this.props.image.height,
-                  width: this.props.image.width,
+                  height: Math.max(AVATAR_SIZE, this.props.image.height),
+                  width: Math.max(AVATAR_SIZE, this.props.image.width),
+                  // height: this.props.image.height,
+                  // width: this.props.image.width,
                 }}
               />
             </ZoomableBox>
@@ -139,6 +142,7 @@ const styles = styleSheetCreate({
     backgroundColor: globalColors.lightGrey2,
     borderRadius: AVATAR_SIZE,
     height: AVATAR_SIZE,
+    flexShrink: 1,
     marginBottom: globalMargins.tiny,
     overflow: 'hidden',
     position: 'relative',

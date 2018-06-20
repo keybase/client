@@ -12,6 +12,7 @@ export const ZoomableBox = (props: Props) => (
     indicatorStyle="white"
     maximumZoomScale={props.maxZoom || 3}
     minimumZoomScale={props.minZoom || 1}
+    onLayout={props.onLayout}
     onScroll={props.onZoom}
     scrollEventThrottle={16}
     scrollsToTop={false}

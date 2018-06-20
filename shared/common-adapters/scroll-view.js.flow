@@ -11,6 +11,7 @@ export type Props = {|
   centerContent?: boolean,
   minimumZoomScale?: number,
   maximumZoomScale?: number,
+  onLayout?: Function,
   onScroll?: Function,
   scrollEventThrottle?: number,
   scrollsToTop?: boolean,

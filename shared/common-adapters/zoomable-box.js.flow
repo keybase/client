@@ -4,6 +4,7 @@ import * as React from 'react'
 export type Props = {
   maxZoom?: number,
   minZoom?: number,
+  onLayout?: Function,
   onZoom?: Function,
   style?: any,
   bounces?: boolean,
