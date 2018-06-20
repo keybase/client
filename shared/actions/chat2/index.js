@@ -1298,6 +1298,7 @@ const changeSelectedConversation = (
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
+    | Chat2Gen.BlockConversationPayload
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
@@ -1351,6 +1352,7 @@ const _maybeAutoselectNewestConversation = (
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
+    | Chat2Gen.BlockConversationPayload
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
@@ -1374,8 +1376,11 @@ const _maybeAutoselectNewestConversation = (
     if (Constants.isValidConversationIDKey(selected)) {
       return
     }
-  } else if (action.type === Chat2Gen.leaveConversation && action.payload.conversationIDKey === selected) {
-    // force select a new one
+  } else if (
+    (action.type === Chat2Gen.leaveConversation || action.type === Chat2Gen.blockConversation) &&
+    action.payload.conversationIDKey === selected
+  ) {
+    // Intentional fall-through -- force select a new one
   } else if (selected !== Constants.noConversationIDKey) {
     return
   }
@@ -2123,6 +2128,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingMode,
       Chat2Gen.messageSend,
       Chat2Gen.attachmentsUpload,
+      Chat2Gen.blockConversation,
       TeamsGen.leaveTeam,
     ],
     changeSelectedConversation
