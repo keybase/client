@@ -10,8 +10,11 @@ import {
   platformStyles,
   desktopStyles,
   collapseStyles,
+  isMobile,
   type StylesCrossPlatformWithSomeDisallowed,
 } from '../styles'
+import {createShowUserProfile} from '../actions/profile-gen'
+import {createGetProfile} from '../actions/tracker-gen.js'
 import * as ConfigGen from '../actions/config-gen'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
@@ -23,6 +26,7 @@ type DisallowedStyles = {
 export type OwnProps = {|
   borderColor?: string,
   children?: React.Node,
+  clickToProfile?: 'tracker' | 'profile', // If set, go to profile on mobile and tracker/profile on desktop
   isTeam?: boolean,
   loadingColor?: string,
   onClick?: () => void,
@@ -139,13 +143,25 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _askForTeamUserData: (teamname: string) =>
     dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
   _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),
+  _goToProfile: (username: string, desktopDest: 'profile' | 'tracker') =>
+    isMobile || desktopDest === 'profile'
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const isTeam = ownProps.isTeam || !!ownProps.teamname
+
+  let onClick = ownProps.onClick
+  if (!onClick && ownProps.clickToProfile && ownProps.username) {
+    const u = ownProps.username
+    const desktopDest = ownProps.clickToProfile
+    onClick = () => dispatchProps._goToProfile(u, desktopDest)
+  }
+
   const style = collapseStyles([
     ownProps.style,
-    ownProps.onClick && platformStyles({isElectron: desktopStyles.clickable}),
+    onClick && platformStyles({isElectron: desktopStyles.clickable}),
   ])
 
   let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap, ownProps.size) : null
@@ -171,7 +187,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     isTeam,
     loadingColor: ownProps.loadingColor,
     name,
-    onClick: ownProps.onClick,
+    onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
     skipBackground: ownProps.skipBackground,

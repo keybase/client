@@ -89,7 +89,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
         <Box2 direction="horizontal">
           <Text type="BodySmall">by</Text>
           <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
-            <Avatar username={author} size={16} />
+            <Avatar username={author} size={16} clickToProfile="tracker" />
             <ConnectedUsernames
               clickable={true}
               colorFollowing={true}
