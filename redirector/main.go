@@ -261,7 +261,7 @@ func (r *root) Lookup(
 		"kbfs.error.txt", "kbfs.nologin.txt", ".kbfs_enable_auto_journals",
 		".kbfs_disable_auto_journals", ".kbfs_enable_block_prefetching",
 		".kbfs_disable_block_prefetching", ".kbfs_enable_debug_server",
-		".kbfs_disable_debug_server":
+		".kbfs_disable_debug_server", ".kbfs_edit_history":
 		return symlink{filepath.Join(mountpoint, req.Name)}, nil
 	}
 	return nil, fuse.ENOENT
