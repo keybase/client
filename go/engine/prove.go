@@ -186,7 +186,7 @@ func (p *Prove) generateProof(m libkb.MetaContext) (err error) {
 
 	sigVersion := libkb.SigVersion(*p.arg.SigVersion)
 
-	if p.proof, err = p.me.ServiceProof(p.signingKey, p.st, p.remoteNameNormalized, sigVersion); err != nil {
+	if p.proof, err = p.me.ServiceProof(m, p.signingKey, p.st, p.remoteNameNormalized, sigVersion); err != nil {
 		return
 	}
 

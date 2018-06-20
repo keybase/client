@@ -74,7 +74,7 @@ func (c *EmailChange) Run(m libkb.MetaContext) (err error) {
 		return libkb.NoSecretKeyError{}
 	}
 	var proof *jsonw.Wrapper
-	proof, err = me.UpdateEmailProof(signingKey, c.arg.NewEmail)
+	proof, err = me.UpdateEmailProof(m, signingKey, c.arg.NewEmail)
 	if err != nil {
 		return err
 	}
