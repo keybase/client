@@ -25,39 +25,40 @@ type Options = {
   enterTextCodeInstructions: React.Node,
 }
 
-// export const getEnterTextCodeInstructions = (p: CommonParam) => {
-// return 'TODO'
-// if (p.currentDeviceAlreadyProvisioned && p.currentDeviceType === 'phone' && p.otherDeviceType === 'phone') {
-// return 'viewQR'
-// }
+const enterTextCodeInputHintForNewDevice = p => `Text code from device: '${p.otherDeviceName || 'unknown'}'`
+const enterTextCodeInputHintForExistingDevice = p => `Text code from your new ${p.otherDeviceType}`
+const howToGetTextCodeOnExistingDevice = p => (
+  <Box2 direction="vertical">
+    <Text type="Body">
+      • Launch Keybase on <Text type="BodySemiboldItalic">{p.otherDeviceName}</Text>
+    </Text>
+    <Text type="Body">
+      • Go to {p.otherDeviceType === 'phone' ? 'Settings > ' : ''}Devices > Add new... and choose{' '}
+      <Text type="BodySemiboldItalic">New {p.currentDeviceType}</Text>
+    </Text>
+    <Text type="Body">
+      • Select the <Text type="BodySemiboldItalic">See a text code</Text> tab and enter that code below
+    </Text>
+  </Box2>
+)
 
-// if (p.otherDeviceName && p.otherDeviceType) {
-// switch (p.otherDeviceType) {
-// case 'phone':
-// return `Launch Keybase on ${
-// p.otherDeviceName
-// } and go to Settings > Devices > Add new... and choose New ${p.currentDeviceType}`
-// case 'desktop':
-// return 'TODO'
-// default:
-// [>::
-// declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (deviceType: empty) => any
-// ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(otherDeviceType);
-// */
-// throw new Error('Impossible enterTextCodeInstructions')
-// }
-// } else {
-// return 'TODO'
-// }
-// }
+const howToGetTextCodeOnNewDevice = p => (
+  <Box2 direction="vertical">
+    <Text type="Body">
+      • Launch Keybase on your new {p.otherDeviceType} and log in as{' '}
+      <Text type="BodySemiboldItalic">{p.username}</Text>
+    </Text>
+    <Text type="Body">
+      • Select a name for your new {p.otherDeviceType} and choose{' '}
+      <Text type="BodySemiboldItalic">{p.currentDeviceName}</Text> to provision with
+    </Text>
+    <Text type="Body">
+      • Select the <Text type="BodySemiboldItalic">See a text code</Text> tab and enter that code below
+    </Text>
+  </Box2>
+)
 
 export const getOptions = (p: CommonParam): Options => {
-  const enterTextCodeInputHintForNamedDevice = p.otherDeviceName
-    ? `Text code from device: '${p.otherDeviceName}'`
-    : ''
-  const enterTextCodeInputHintForPhone = 'Text code from your new phone'
-  const enterTextCodeInputHintForDesktop = 'Text code from your new desktop'
-
   // Matching pairs of experiences
 
   // --- New Phone + Existing Phone ---
@@ -69,21 +70,8 @@ export const getOptions = (p: CommonParam): Options => {
   ) {
     return {
       defaultTab: 'scanQR',
-      enterTextCodeInputHint: enterTextCodeInputHintForNamedDevice,
-      enterTextCodeInstructions: (
-        <Box2 direction="vertical">
-          <Text type="Body">
-            • Launch Keybase on <Text type="BodySemiboldItalic">{p.otherDeviceName}</Text>
-          </Text>
-          <Text type="Body">
-            • Go to Settings > Devices > Add new... and choose{' '}
-            <Text type="BodySemiboldItalic">New {p.currentDeviceType}</Text>
-          </Text>
-          <Text type="Body">
-            • Select the <Text type="BodySemiboldItalic">See a text code</Text> tab and enter that code below
-          </Text>
-        </Box2>
-      ),
+      enterTextCodeInputHint: enterTextCodeInputHintForNewDevice(p),
+      enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
     }
   }
@@ -91,23 +79,8 @@ export const getOptions = (p: CommonParam): Options => {
   if (p.currentDeviceAlreadyProvisioned && p.currentDeviceType === 'phone' && p.otherDeviceType === 'phone') {
     return {
       defaultTab: 'viewQR',
-      enterTextCodeInputHint: enterTextCodeInputHintForPhone,
-      enterTextCodeInstructions: (
-        <Box2 direction="vertical">
-          <Text type="Body">
-            • Launch Keybase on your new phone and log in as{' '}
-            <Text type="BodySemiboldItalic">{p.username}</Text>
-          </Text>
-          <Text type="Body">
-            • Select a name for your new phone and choose{' '}
-            <Text type="BodySemiboldItalic">{p.currentDeviceName}</Text> to provision with
-          </Text>
-          <Text type="Body">
-            • Select the <Text type="BodySemiboldItalic">See a text code</Text> tab and enter that code below
-          </Text>
-        </Box2>
-      ),
-
+      enterTextCodeInputHint: enterTextCodeInputHintForExistingDevice(p),
+      enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
     }
   }
@@ -121,7 +94,8 @@ export const getOptions = (p: CommonParam): Options => {
   ) {
     return {
       defaultTab: 'scanQR',
-      enterTextCodeInputHint: enterTextCodeInputHintForNamedDevice,
+      enterTextCodeInputHint: enterTextCodeInputHintForNewDevice(p),
+      enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
     }
   }
@@ -133,7 +107,8 @@ export const getOptions = (p: CommonParam): Options => {
   ) {
     return {
       defaultTab: 'viewQR',
-      enterTextCodeInputHint: enterTextCodeInputHintForPhone,
+      enterTextCodeInputHint: enterTextCodeInputHintForExistingDevice(p),
+      enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
     }
   }
@@ -147,8 +122,8 @@ export const getOptions = (p: CommonParam): Options => {
   ) {
     return {
       defaultTab: 'enterText',
-      enterTextCodeInputHint: enterTextCodeInputHintForNamedDevice,
-      // enterTextCodeInstructions: '',
+      enterTextCodeInputHint: enterTextCodeInputHintForNewDevice(p),
+      enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
       validTabs: ['viewText', 'enterText'],
     }
   }
@@ -160,8 +135,8 @@ export const getOptions = (p: CommonParam): Options => {
   ) {
     return {
       defaultTab: 'viewText',
-      enterTextCodeInputHint: enterTextCodeInputHintForDesktop,
-      // enterTextCodeInstructions: '',
+      enterTextCodeInputHint: enterTextCodeInputHintForExistingDevice(p),
+      enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
       validTabs: ['viewText', 'enterText'],
     }
   }
@@ -175,7 +150,8 @@ export const getOptions = (p: CommonParam): Options => {
   ) {
     return {
       defaultTab: 'viewQR',
-      enterTextCodeInputHint: enterTextCodeInputHintForNamedDevice,
+      enterTextCodeInputHint: enterTextCodeInputHintForNewDevice(p),
+      enterTextCodeInstructions: howToGetTextCodeOnExistingDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
     }
   }
@@ -187,7 +163,8 @@ export const getOptions = (p: CommonParam): Options => {
   ) {
     return {
       defaultTab: 'scanQR',
-      enterTextCodeInputHint: enterTextCodeInputHintForDesktop,
+      enterTextCodeInputHint: enterTextCodeInputHintForExistingDevice(p),
+      enterTextCodeInstructions: howToGetTextCodeOnNewDevice(p),
       validTabs: ['viewQR', 'scanQR', 'viewText', 'enterText'],
     }
   }
