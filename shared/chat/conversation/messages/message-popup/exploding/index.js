@@ -3,11 +3,12 @@ import * as React from 'react'
 import {
   Avatar,
   Box2,
+  ConnectedUsernames,
   FloatingMenu,
+  HOCTimers,
   Icon,
   ProgressIndicator,
   Text,
-  HOCTimers,
   type PropsWithTimer,
 } from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
@@ -89,9 +90,14 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           <Text type="BodySmall">by</Text>
           <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
             <Avatar username={author} size={16} />
-            <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-              {author}
-            </Text>
+            <ConnectedUsernames
+              clickable={true}
+              colorFollowing={true}
+              colorYou={true}
+              usernames={[author]}
+              underline={true}
+              type="BodySmallSemibold"
+            />
           </Box2>
         </Box2>
         <Box2 direction="horizontal">

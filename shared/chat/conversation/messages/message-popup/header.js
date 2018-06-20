@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Box2, Icon, Text, type IconType} from '../../../../common-adapters'
+import {Avatar, Box, Box2, ConnectedUsernames, Icon, Text, type IconType} from '../../../../common-adapters'
 import {PopupHeaderText} from '../../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
@@ -71,9 +71,14 @@ const MessagePopupHeader = (props: {
         </Text>
         <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
           <Avatar username={author} size={16} />
-          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-            {author}
-          </Text>
+          <ConnectedUsernames
+            clickable={true}
+            colorFollowing={true}
+            colorYou={true}
+            usernames={[author]}
+            underline={true}
+            type="BodySmallSemibold"
+          />
         </Box2>
       </Box2>
       <Box

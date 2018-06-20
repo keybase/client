@@ -133,6 +133,8 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
         usernames={[props.explodedBy]}
         inline={true}
         colorFollowing={true}
+        colorYou={true}
+        underline={true}
       />
     </Text>
   ) : (
