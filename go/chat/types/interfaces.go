@@ -255,5 +255,5 @@ type RateLimitedResult interface {
 type EphemeralPurger interface {
 	Resumable
 
-	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo)
+	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error
 }
