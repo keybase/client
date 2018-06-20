@@ -54,6 +54,7 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username}>
+        {i !== 0 && <Text type={type}>&nbsp;</Text>}
         {i !== 0 &&
           i === users.length - 1 &&
           showAnd && (
@@ -76,7 +77,6 @@ function usernameText({
               ,
             </Text>
           )}
-        {inlineGrammar && ' '}
       </Text>
     )
   })
@@ -205,17 +205,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 const styles = styleSheetCreate({
   andStyle: platformStyles({
-    isMobile: {
-      marginLeft: globalMargins.xtiny,
-      marginRight: globalMargins.xtiny,
-    },
     isElectron: {
       textDecoration: 'none',
       fontWeight: 'normal',
     },
   }),
   commaStyle: platformStyles({
-    common: {marginRight: 1},
     isElectron: {textDecoration: 'none'},
   }),
   inlineStyle: platformStyles({

@@ -13,5 +13,5 @@ const mapStateToProps = (state: TypedState, {path}) => {
 
 export default compose(
   connect(mapStateToProps),
-  setDisplayName('FilesBanner')
+  setDisplayName('Banner')
 )(Banner)

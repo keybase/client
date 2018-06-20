@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
 import Files from '.'
@@ -43,15 +44,27 @@ const rowProviders = {
     path,
     routePath,
   }),
-  ConnectedStillRow: ({path}: {path: Types.Path}) => ({
-    name: Types.getPathName(path),
-    onOpen: () => {},
-    openInFileUI: () => {},
-    type: 'folder',
-    shouldShowMenu: true,
-    itemStyles: folderItemStyles,
-    onAction: action('onAction'),
-  }),
+  ConnectedStillRow: ({path}: {path: Types.Path}) => {
+    const pathStr = Types.pathToString(path)
+    const hasAbc = pathStr.includes('abc')
+    const hasDef = pathStr.includes('def')
+    const hasGhi = pathStr.includes('ghi')
+    return {
+      name: Types.getPathName(path),
+      onOpen: () => {},
+      openInFileUI: () => {},
+      type: 'folder',
+      shouldShowMenu: true,
+      itemStyles: folderItemStyles,
+      onAction: action('onAction'),
+      resetParticipants: [
+        ...(hasAbc ? ['abc'] : []),
+        ...(hasDef ? ['def'] : []),
+        ...(hasGhi ? ['ghi'] : []),
+      ],
+      isUserReset: false,
+    }
+  },
 }
 
 const provider = createPropProvider({
@@ -127,14 +140,17 @@ const provider = createPropProvider({
   }),
   ResetBanner: () => ({
     isUserReset: false,
-    resetParticipants: ['foo'],
+    resetParticipants: ['reset', 'reset2'],
     onReAddToTeam: () => () => undefined,
     onViewProfile: () => () => undefined,
   }),
-  Usernames: () => ({
-    type: 'BodySemibold',
-    users: [{username: 'foo'}],
-    style: {color: globalColors.white},
+  Banner: ({path}: {path: Types.Path}) => ({
+    path,
+    shouldShowReset: Types.pathToString(path).includes('reset'),
+  }),
+  Usernames: (props: ConnectedUsernamesProps) => ({
+    ...props,
+    users: props.usernames.map(u => ({username: u})),
   }),
   ConnectedAddNew: () => ({
     pathElements: [],
@@ -199,7 +215,7 @@ const load = () => {
         progress="loaded"
         routePath={I.List([])}
         isUserReset={false}
-        resetParticipants={[]}
+        resetParticipants={['foo']}
         stillItems={[
           Types.stringToPath('/keybase/private'),
           Types.stringToPath('/keybase/public'),
@@ -368,6 +384,35 @@ const load = () => {
           ])}
         />
       </Box>
+    ))
+    .add('ResetRows', () => (
+      <Files
+        path={Types.stringToPath('/keybase')}
+        progress="loaded"
+        routePath={I.List([])}
+        isUserReset={false}
+        resetParticipants={[]}
+        stillItems={[
+          Types.stringToPath('/keybase/private/me'),
+          Types.stringToPath('/keybase/private/me,abc'),
+          Types.stringToPath('/keybase/private/me,abc,def'),
+          Types.stringToPath('/keybase/private/me,abc,def,ghi'),
+          Types.stringToPath('/keybase/private/me,def'),
+          Types.stringToPath('/keybase/private/me,def,ghi'),
+          Types.stringToPath('/keybase/private/me,ghi'),
+          Types.stringToPath('/keybase/private/me,abc,ghi'),
+        ]}
+        editingItems={[]}
+      />
+    ))
+    .add('ResetBanner', () => (
+      <FolderHeader
+        {...folderHeaderProps([
+            'keybase',
+            'private',
+            'me,reset',
+          ])}
+      />
     ))
 }
 
