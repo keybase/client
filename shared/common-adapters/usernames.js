@@ -8,7 +8,6 @@ import {
   styleSheetCreate,
   globalStyles,
   globalColors,
-  globalMargins,
 } from '../styles'
 import {isMobile} from '../constants/platform'
 import {compose, connect, setDisplayName} from '../util/container'
