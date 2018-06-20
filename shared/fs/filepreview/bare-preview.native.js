@@ -50,7 +50,7 @@ type ConnectedBarePreviewProps = {
 const BarePreview = (props: ConnectedBarePreviewProps) => (
   <Box style={stylesContainer}>
     <Box style={stylesHeader}>
-      <ClickableBox onClick={props.onBack}>
+      <ClickableBox onClick={props.onBack} style={stylesCloseBox}>
         <Text type="Body" style={stylesText}>
           Close
         </Text>
@@ -78,12 +78,18 @@ const stylesContainer = platformStyles({
 
 const stylesText = {
   color: globalColors.white,
+  lineHeight: 48,
+}
+
+const stylesCloseBox = {
+  paddingLeft: globalMargins.tiny,
+  height: 48,
+  width: 64,
 }
 
 const stylesHeader = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  height: 32,
   paddingLeft: globalMargins.tiny,
 }
 
