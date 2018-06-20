@@ -737,7 +737,6 @@ func testTeamResetBadgesAndDismiss(t *testing.T, readd bool) {
 
 	// users[1] logs in after reset
 	tt.users[1].loginAfterReset()
-	clearServerUIDMapCache(tt.users[1].tc.G, t, []keybase1.UID{tt.users[1].uid})
 
 	// Either re-adding or removing user from the team should clear
 	// the reset badge.
