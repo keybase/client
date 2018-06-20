@@ -15,6 +15,7 @@ import {
 } from '../styles'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen.js'
+import {action} from '../stories/storybook'
 import * as ConfigGen from '../actions/config-gen'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
@@ -249,9 +250,15 @@ const Avatar = compose(
 
 const mockOwnToViewProps = (ownProps: OwnProps, following: boolean, followsYou: boolean) => {
   const isTeam = ownProps.isTeam || !!ownProps.teamname
+
+  let onClick = ownProps.onClick
+  if (!onClick && ownProps.clickToProfile && ownProps.username) {
+    onClick = action('onClickToProfile')
+  }
+
   const style = collapseStyles([
     ownProps.style,
-    ownProps.onClick && platformStyles({isElectron: desktopStyles.clickable}),
+    onClick && platformStyles({isElectron: desktopStyles.clickable}),
   ])
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
 
@@ -263,7 +270,7 @@ const mockOwnToViewProps = (ownProps: OwnProps, following: boolean, followsYou: 
     followIconType: _followIconType(ownProps.size, followsYou, following),
     isTeam,
     loadingColor: ownProps.loadingColor,
-    onClick: ownProps.onClick,
+    onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
     style,
