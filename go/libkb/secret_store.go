@@ -18,11 +18,14 @@ type SecretStorer interface {
 	StoreSecret(secret LKSecFullSecret) error
 }
 
+// SecretStore stores/retreives the keyring-resident secrets for a given user.
 type SecretStore interface {
 	SecretRetriever
 	SecretStorer
 }
 
+// SecretStoreall stores/retreives the keyring-resider secrets for **all** users
+// on this system.
 type SecretStoreAll interface {
 	RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error)
 	StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error
@@ -37,12 +40,16 @@ type SecretStoreContext interface {
 	GetLog() logger.Logger
 }
 
+// SecretStoreImp is a specialization of a SecretStoreAll for just one username.
+// You specify that username at the time on construction and then it doesn't change.
 type SecretStoreImp struct {
 	username NormalizedUsername
 	store    *SecretStoreLocked
 	secret   LKSecFullSecret
 	sync.Mutex
 }
+
+var _ SecretStore = (*SecretStoreImp)(nil)
 
 func (s *SecretStoreImp) RetrieveSecret() (LKSecFullSecret, error) {
 	s.Lock()
