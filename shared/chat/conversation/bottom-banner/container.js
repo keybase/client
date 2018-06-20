@@ -27,9 +27,11 @@ class BannerContainer extends React.PureComponent<Props> {
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const _following = state.config.following
   const _meta = Constants.getMeta(state, conversationIDKey)
   const _users = state.users
   return {
+    _following,
     _meta,
     _users,
   }
@@ -51,9 +53,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     const broken = stateProps._meta.participants.filter(p =>
       stateProps._users.infoMap.getIn([p, 'broken'], false)
     )
-    if (!broken.isEmpty()) {
+    const following = broken.filter(username => stateProps._following.has(username))
+    if (!following.isEmpty()) {
       type = 'broken'
-      users = broken.toArray()
+      users = following.toArray()
     } else {
       const toInvite = stateProps._meta.participants.filter(p => p.includes('@'))
       if (!toInvite.isEmpty()) {
