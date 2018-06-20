@@ -4,23 +4,27 @@ import {Box2, Text, Icon, Input, WaitingButton} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
-
-type Mode = 'viewQR' | 'scanQR' | 'enterText' | 'viewText'
+import type {Tab, DeviceType} from './helper'
 
 type Props = {
-  defaultMode: Mode,
+  currentDeviceAlreadyProvisioned: boolean,
+  currentDeviceType: DeviceType,
+  otherDeviceType: DeviceType,
+  defaultMode: Tab,
+  validModes: Array<Tab>,
   enterQrCodeInstructions: string,
+  enterTextCodeInputHint: string,
   enterTextCodeInstructions: string,
   isValidLookingCode: string => boolean,
+  onSubmitTextCode: (textCode: string) => void,
   viewQrCode: string,
   viewQrCodeInstructions: string,
   viewTextCode: string,
   viewTextCodeInstructions: string,
-  onSubmitTextCode: (textCode: string) => void,
 }
 
 type State = {
-  mode: Mode,
+  mode: Tab,
 }
 
 const PanelContainer = ({instructions, children}) => (
@@ -57,13 +61,13 @@ class EnterText extends React.Component<
     isValidLookingCode: string => boolean,
     onSubmit: string => void,
     instructions: string,
+    inputHint: string,
   },
   {value: string, canSubmit: boolean}
 > {
   state = {canSubmit: false, value: ''}
   _onSubmit = () => this.props.onSubmit(this.state.value)
   _updateValue = value => this.setState({canSubmit: this.props.isValidLookingCode(value), value})
-  // TODO waitingkey
   render() {
     return (
       <PanelContainer instructions={this.props.instructions}>
@@ -71,13 +75,14 @@ class EnterText extends React.Component<
           uncontrolled={true}
           onEnterKeyDown={this._onSubmit}
           onChangeText={this._updateValue}
-          hintText="Text code from your other device"
+          hintText={this.props.inputHint}
         />
         <WaitingButton
           type="Primary"
           label="Continue"
           onClick={this._onSubmit}
           disabled={!this.state.canSubmit}
+          waitingKey="TODO"
         />
       </PanelContainer>
     )
@@ -101,10 +106,9 @@ class CodePage2 extends React.Component<Props, State> {
   }
 
   _tabsMap = {
+    enterText: 'Enter a text code',
     scanQR: 'Scan a QR Code',
     viewQR: 'See a QR Code',
-    // eslint-disable-next-line sort-keys
-    enterText: 'Enter a text code',
     viewText: 'See a text code',
   }
 
@@ -121,6 +125,8 @@ class CodePage2 extends React.Component<Props, State> {
           <EnterText
             isValidLookingCode={this.props.isValidLookingCode}
             instructions={this.props.enterTextCodeInstructions}
+            inputHint={this.props.enterTextCodeInputHint}
+            onSubmit={this.props.onSubmitTextCode}
           />
         )
       case 'viewText':
@@ -134,7 +140,7 @@ class CodePage2 extends React.Component<Props, State> {
     return (
       <Box2 direction="vertical">
         <Box2 direction="horizontal" gap="small">
-          {Object.keys(this._tabsMap).map(mode => (
+          {this.props.validModes.map(mode => (
             <Text
               key={mode}
               type={mode === this.state.mode ? 'BodySecondaryLink' : 'BodyPrimaryLink'}
