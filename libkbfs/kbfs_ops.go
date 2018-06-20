@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsedits"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -38,6 +39,8 @@ type KBFSOpsStandard struct {
 	reIdentifyControlChan chan chan<- struct{}
 
 	favs *Favorites
+
+	editActivity kbfssync.RepeatedWaitGroup
 
 	currentStatus            kbfsCurrentStatus
 	quotaUsage               *EventuallyConsistentQuotaUsage
@@ -117,6 +120,11 @@ func (fs *KBFSOpsStandard) Shutdown(ctx context.Context) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
+	err := fs.editActivity.Wait(ctx)
+	if err != nil {
+		return err
+	}
+
 	close(fs.reIdentifyControlChan)
 	var errors []error
 	if err := fs.favs.Shutdown(); err != nil {
@@ -150,6 +158,7 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 
 	if newStatus == nil {
 		fs.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
+		fs.editActivity.Add(1)
 		go fs.initTlfsForEditHistories()
 	}
 }
@@ -159,6 +168,7 @@ func (fs *KBFSOpsStandard) PushStatusChange() {
 	fs.currentStatus.PushStatusChange()
 
 	fs.log.CDebugf(nil, "Asking for an edit re-init after status change")
+	fs.editActivity.Add(1)
 	go fs.initTlfsForEditHistories()
 }
 
@@ -1115,6 +1125,7 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 }
 
 func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
+	defer fs.editActivity.Done()
 	if !fs.config.Mode().TLFEditHistoryEnabled() {
 		return
 	}
