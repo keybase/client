@@ -20,8 +20,9 @@ type CommonParam = {
 type Options = {
   defaultTab: Tab,
   validTabs: Array<Tab>,
-  enterTextCodeInputHint: string,
+  enterTextCodeInputHint: React.Node,
   enterTextCodeInstructions: React.Node,
+  enterQrCodeInstructions: React.Node,
 }
 
 const howToGetTextCodeOnExistingDevice = p => (
@@ -84,6 +85,23 @@ const howToEnterTextCodeOnNewDevice = p => (
   </Box2>
 )
 
+const howToViewQRCodeOnNewDevice = p => (
+  <Box2 direction="vertical">
+    <Text type="Body">
+      • Launch Keybase on your new {p.otherDeviceType} and log in as{' '}
+      <Text type="BodySemiboldItalic">{p.username}</Text>
+    </Text>
+    <Text type="Body">
+      • Select a name for your new {p.otherDeviceType} and choose{' '}
+      <Text type="BodySemiboldItalic">{p.currentDeviceName}</Text> to provision with
+    </Text>
+    <Text type="Body">
+      • Select the <Text type="BodySemiboldItalic">See a QR Code</Text> tab and type this code in:
+    </Text>
+  </Box2>
+)
+const howToViewQRCodeOnExistingDevice = p => null
+
 const defaultTab = p => {
   const oppositeTabMap = {
     enterText: 'viewText',
@@ -117,6 +135,9 @@ const enterTextCodeInputHintForExistingDevice = p => `Text code from your new ${
 export const getOptions = (p: CommonParam): Options => {
   return {
     defaultTab: defaultTab(p),
+    enterQrCodeInstructions: p.currentDeviceAlreadyProvisioned
+      ? howToViewQRCodeOnNewDevice(p)
+      : howToViewQRCodeOnExistingDevice(p),
     enterTextCodeInputHint: p.currentDeviceAlreadyProvisioned
       ? enterTextCodeInputHintForNewDevice(p)
       : enterTextCodeInputHintForExistingDevice(p),
@@ -125,7 +146,7 @@ export const getOptions = (p: CommonParam): Options => {
       : howToGetTextCodeOnExistingDevice(p),
     validTabs: validTabs(p),
     viewTextCodeInstructions: p.currentDeviceAlreadyProvisioned
-      ? howToEnterTextCodeOnExistingDevice(p)
-      : howToEnterTextCodeOnNewDevice(p),
+      ? howToEnterTextCodeOnNewDevice(p)
+      : howToEnterTextCodeOnExistingDevice(p),
   }
 }

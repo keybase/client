@@ -28,7 +28,7 @@ const props = (currentDeviceAlreadyProvisioned, currentDeviceType, otherDeviceNa
     currentDeviceAlreadyProvisioned,
     currentDeviceType,
     defaultTab: options.defaultTab,
-    enterQrCodeInstructions: ``,
+    enterQrCodeInstructions: options.enterQrCodeInstructions,
     enterTextCodeInputHint: options.enterTextCodeInputHint,
     enterTextCodeInstructions: options.enterTextCodeInstructions,
     isValidLookingCode: value => value.split(' ').length === 12,
