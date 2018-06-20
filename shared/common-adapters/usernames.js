@@ -53,15 +53,17 @@ function usernameText({
     // on native. (See DESKTOP-3963.)
     const _onUsernameClicked = onUsernameClicked
     return (
-      <Text type={type} key={u.username}>
-        {i !== 0 && <Text type={type}>&nbsp;</Text>}
-        {i !== 0 &&
-          i === users.length - 1 &&
-          showAnd && (
-            <Text type={type} backgroundMode={backgroundMode} style={andStyle}>
-              {'and '}
-            </Text>
-          )}
+      <Text type={type} key={u.username} style={styles.usersContainerStyle}>
+        {i !== 0 && (<Text type={type}>&nbsp;</Text>)}
+        {i !== 0 && i === users.length - 1 && showAnd && (
+          <Text
+            type={type}
+            backgroundMode={backgroundMode}
+            style={andStyle}
+          >
+            {'and '}
+          </Text>
+        )}
         <Text
           type={type}
           backgroundMode={backgroundMode}
@@ -207,7 +209,7 @@ const styles = styleSheetCreate({
   andStyle: platformStyles({
     isElectron: {
       textDecoration: 'none',
-      fontWeight: 'normal',
+      fontWeight: 'inherit',
     },
   }),
   commaStyle: platformStyles({
@@ -220,6 +222,7 @@ const styles = styleSheetCreate({
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       width: '100%',
+      fontWeight: 'inherit',
     },
   }),
   nonInlineStyle: platformStyles({
@@ -227,7 +230,13 @@ const styles = styleSheetCreate({
       ...globalStyles.flexBoxRow,
       flexWrap: 'wrap',
     },
-    isElectron: {textDecoration: 'inherit'},
+    isElectron: {
+      textDecoration: 'inherit',
+      fontWeight: 'inherit',
+    },
+  }),
+  usersContainerStyle: platformStyles({
+    isElectron: {fontWeight: 'inherit'},
   }),
 })
 

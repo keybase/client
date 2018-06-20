@@ -140,7 +140,7 @@ const provider = createPropProvider({
   }),
   ResetBanner: () => ({
     isUserReset: false,
-    resetParticipants: ['reset', 'reset2'],
+    resetParticipants: ['reset1', 'reset2', 'reset3'],
     onReAddToTeam: () => () => undefined,
     onViewProfile: () => () => undefined,
   }),
