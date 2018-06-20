@@ -54,7 +54,9 @@ func (c *ChatRPC) HandlerName() string {
 // OnConnect implements the ConnectionHandler interface.
 func (c *ChatRPC) OnConnect(ctx context.Context, conn *rpc.Connection,
 	_ rpc.GenericClient, server *rpc.Server) error {
-	c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, nil)
+	if c.config.KBFSOps() != nil {
+		c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, nil)
+	}
 
 	err := server.Register(chat1.NotifyChatProtocol(c))
 	switch err.(type) {
@@ -70,14 +72,18 @@ func (c *ChatRPC) OnConnect(ctx context.Context, conn *rpc.Connection,
 func (c *ChatRPC) OnConnectError(err error, wait time.Duration) {
 	c.log.Warning("Chat: connection error: %q; retrying in %s",
 		err, wait)
-	c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, err)
+	if c.config.KBFSOps() != nil {
+		c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, err)
+	}
 }
 
 // OnDoCommandError implements the ConnectionHandler interface.
 func (c *ChatRPC) OnDoCommandError(err error, wait time.Duration) {
 	c.log.Warning("Chat: docommand error: %q; retrying in %s",
 		err, wait)
-	c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, err)
+	if c.config.KBFSOps() != nil {
+		c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, err)
+	}
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
@@ -85,8 +91,10 @@ func (c *ChatRPC) OnDisconnected(_ context.Context,
 	status rpc.DisconnectStatus) {
 	if status == rpc.StartingNonFirstConnection {
 		c.log.Warning("Chat is disconnected")
-		c.config.KBFSOps().PushConnectionStatusChange(
-			KeybaseServiceName, errDisconnected{})
+		if c.config.KBFSOps() != nil {
+			c.config.KBFSOps().PushConnectionStatusChange(
+				KeybaseServiceName, errDisconnected{})
+		}
 	}
 }
 
@@ -368,8 +376,10 @@ func (c *ChatRPC) newNotificationChannel(
 	if err != nil {
 		return err
 	}
-	c.config.KBFSOps().NewNotificationChannel(
-		ctx, tlfHandle, convID, conv.Channel)
+	if c.config.KBFSOps() != nil {
+		c.config.KBFSOps().NewNotificationChannel(
+			ctx, tlfHandle, convID, conv.Channel)
+	}
 	return nil
 }
 
