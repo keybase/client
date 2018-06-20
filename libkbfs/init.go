@@ -622,12 +622,6 @@ func doInit(
 	config.SetTLFValidDuration(params.TLFValidDuration)
 	config.SetBGFlushPeriod(params.BGFlushPeriod)
 
-	kbfsOps := NewKBFSOpsStandard(config)
-	config.SetKBFSOps(kbfsOps)
-	config.SetNotifier(kbfsOps)
-	config.SetKeyManager(NewKeyManagerStandard(config))
-	config.SetMDOps(NewMDOpsStandard(config))
-
 	kbfsLog := config.MakeLogger("")
 
 	// Initialize Keybase service connection
@@ -639,14 +633,28 @@ func doInit(
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
+
+	// Initialize Chat client (for file edit notifications).
+	chat, err := keybaseServiceCn.NewChat(config, params, kbCtx, kbfsLog)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating chat: %s", err)
+	}
+	config.SetChat(chat)
+
+	// Initialize KBPKI client (needed for KBFSOps and MD Server).
+	k := NewKBPKIClient(config, kbfsLog)
+	config.SetKBPKI(k)
+
+	kbfsOps := NewKBFSOpsStandard(config)
+	config.SetKBFSOps(kbfsOps)
+	config.SetNotifier(kbfsOps)
+	config.SetKeyManager(NewKeyManagerStandard(config))
+	config.SetMDOps(NewMDOpsStandard(config))
+
 	if registry := config.MetricsRegistry(); registry != nil {
 		service = NewKeybaseServiceMeasured(service, registry)
 	}
 	config.SetKeybaseService(service)
-
-	// Initialize KBPKI client (needed for MD Server).
-	k := NewKBPKIClient(config, kbfsLog)
-	config.SetKBPKI(k)
 
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
@@ -656,13 +664,6 @@ func doInit(
 		return nil, fmt.Errorf("problem creating crypto: %s", err)
 	}
 	config.SetCrypto(crypto)
-
-	// Initialize Chat client (for file edit notifications).
-	chat, err := keybaseServiceCn.NewChat(config, params, kbCtx, kbfsLog)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating chat: %s", err)
-	}
-	config.SetChat(chat)
 
 	// Initialize MDServer connection.
 	mdServer, err := makeMDServer(
