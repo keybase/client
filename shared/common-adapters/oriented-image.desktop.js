@@ -15,13 +15,21 @@ const makeStyleTransform = (orientation: number): StylesDesktop =>
 
 // Orientations:
 // 1: rotate 0 deg left
+// 2: flip horizontally
 // 3: rotate 180 deg left
+// 4: flip vertivally
+// 5: flip vertivally and rotate 270 degrees left
 // 6: rotate 270 deg left
+// 7: flip vertically and rotate 90 degrees left
 // 8: rotate 90 deg left
 const exifOrientaionMap = {
   '1': {transform: 'rotate(0deg)'},
+  '2': {transform: 'scale(-1, 1)'},
   '3': {transform: 'rotate(180deg)'},
+  '4': {transform: 'scale(1, -1)'},
+  '5': {transform: 'scale(1, -1) rotate(270deg)'},
   '6': {transform: 'rotate(270deg)'},
+  '7': {transform: 'scale(1, -1) rotate(90deg)'},
   '8': {transform: 'rotate(90deg)'},
 }
 
@@ -33,7 +41,7 @@ class OrientedImage extends React.Component<Props, State> {
     styleTransform: null,
   }
   _handleOnLoad = () => {
-    if (!this.state.styleTransform) {
+    if (this.state.styleTransform !== null) {
       this.props.onLoad()
     }
   }
@@ -50,13 +58,13 @@ class OrientedImage extends React.Component<Props, State> {
   }
 
   render() {
-    return this.state.styleTransform ? (
+    return (
       <Image
         src={this.props.src}
         style={collapseStyles([this.props.style, this.state.styleTransform])}
-        onLoad={this._handleOnLoad}
+        onLoad={this.props.onLoad}
       />
-    ) : null
+    )
   }
 }
 
