@@ -175,7 +175,7 @@ func (r *teamHandler) findAndDismissResetBadges(ctx context.Context, cli gregor1
 			loadUserArg := libkb.NewLoadUserByUIDArg(ctx, r.G(), badge.Uid).WithPublicKeyOptional()
 			u, err := libkb.LoadUser(loadUserArg)
 			if err != nil {
-				r.G().Log.CDebugf(ctx, "Failed to uid: %s during badge dismissing: %s", badge.Uid, err)
+				r.G().Log.CDebugf(ctx, "Failed to load uid: %s during badge dismissal: %s", badge.Uid, err)
 				continue
 			}
 			eldestSeqno := u.GetCurrentEldestSeqno()
