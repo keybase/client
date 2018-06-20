@@ -29,22 +29,22 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
 }
 
-func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
+func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersDetails, error) {
 	var ret keybase1.TeamMembersDetails
 	var err error
-	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners, forceRepoll)
+	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners)
 	if err != nil {
 		return ret, err
 	}
-	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins, forceRepoll)
+	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins)
 	if err != nil {
 		return ret, err
 	}
-	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers, forceRepoll)
+	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers)
 	if err != nil {
 		return ret, err
 	}
-	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers, forceRepoll)
+	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers)
 	if err != nil {
 		return ret, err
 	}
@@ -52,6 +52,13 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 }
 
 func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepoll bool) (res keybase1.TeamDetails, err error) {
+	// TODO: forceRepoll is unused since 87b4ec1d699b633a957156108276df154f2fbc2a
+	// introduced UIDMapper for member info loading. Right now, the forceRepoll
+	// argument is ignored, and:
+	// - `GetMaybeAdminByStringName` always repolls and requires
+	//   roundtrip even if team is cached.
+	// - `members` always uses local UIDMapper cache.
+
 	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
 	defer tracer.Finish()
 
@@ -65,7 +72,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	}
 	res.KeyGeneration = t.Generation()
 	tracer.Stage("members")
-	res.Members, err = members(ctx, g, t, forceRepoll)
+	res.Members, err = members(ctx, g, t)
 	if err != nil {
 		return res, err
 	}
@@ -95,18 +102,18 @@ func ImplicitAdmins(ctx context.Context, g *libkb.GlobalContext, teamID keybase1
 		return nil, err
 	}
 
-	return userVersionsToDetails(ctx, g, uvs, true /* forceRepoll */)
+	return userVersionsToDetails(ctx, g, uvs)
 }
 
-func members(ctx context.Context, g *libkb.GlobalContext, t *Team, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
+func members(ctx context.Context, g *libkb.GlobalContext, t *Team) (keybase1.TeamMembersDetails, error) {
 	members, err := t.Members()
 	if err != nil {
 		return keybase1.TeamMembersDetails{}, err
 	}
-	return membersUIDsToUsernames(ctx, g, members, forceRepoll)
+	return membersUIDsToUsernames(ctx, g, members)
 }
 
-func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion, forceRepoll bool) (ret []keybase1.TeamMemberDetails, err error) {
+func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion) (ret []keybase1.TeamMemberDetails, err error) {
 	uids := make([]keybase1.UID, len(uvs), len(uvs))
 	for i, uv := range uvs {
 		uids[i] = uv.Uid
