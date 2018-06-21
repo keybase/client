@@ -16,7 +16,6 @@ export const gotStat = (method: string, incoming: boolean) => {
 
   const i = _stats[inKey][method]
   i.count++
-  i.lastCall = Date.now()
 }
 
 export const getStats = () => _stats
