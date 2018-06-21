@@ -2086,9 +2086,9 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
     return
   }
   // neither are set, inject both
-  yield Saga.all([
-    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-      cat: Constants.seenExplodingGregorKey,
+  yield Saga.sequentially([
+    Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+      category: Constants.seenExplodingGregorKey,
       body: 'true',
       dtime: {time: 0, offset: 0},
     }),
