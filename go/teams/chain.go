@@ -42,23 +42,10 @@ func (t TeamSigChainState) CheapCopy() TeamSigChainState {
 
 	inner := t.inner.DeepCopy()
 
-	if userLog != nil {
-		inner.UserLog = make(map[keybase1.UserVersion][]keybase1.UserLogPoint)
-		for k, v := range userLog {
-			var vCopy []keybase1.UserLogPoint
-			if v != nil {
-				vCopy = append(vCopy, v...)
-				inner.UserLog[k] = vCopy
-			}
-		}
-	}
+	inner.UserLog = userLog
 	inner.LinkIDs = linkIDs
-	if perTeamKeys != nil {
-		inner.PerTeamKeys = make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKey)
-		for k, v := range perTeamKeys {
-			inner.PerTeamKeys[k] = v
-		}
-	}
+	inner.PerTeamKeys = perTeamKeys
+
 	return TeamSigChainState{inner: inner}
 }
 
@@ -665,6 +652,15 @@ func (t *TeamSigChainPlayer) AppendChainLink(ctx context.Context, link *chainLin
 	// Accept the new state
 	t.storedState = &newState
 	return nil
+}
+
+func (t *TeamSigChainPlayer) CloneState() {
+	t.Lock()
+	defer t.Unlock()
+	if t.storedState != nil {
+		tmp := t.storedState.DeepCopy()
+		t.storedState = &tmp
+	}
 }
 
 // Add a chain link to the end.
