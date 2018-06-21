@@ -192,6 +192,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "TeamMemberStatus",
+      "symbols": [
+        "ACTIVE_0",
+        "RESET_1",
+        "DELETED_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamMemberDetails",
       "fields": [
@@ -209,16 +218,12 @@
         },
         {
           "type": "boolean",
-          "name": "isReset"
-        },
-        {
-          "type": "boolean",
-          "name": "isDeleted"
-        },
-        {
-          "type": "boolean",
           "name": "needsPUK",
           "lint": "ignore"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -562,8 +567,8 @@
           "name": "teamName"
         },
         {
-          "type": "boolean",
-          "name": "userActive"
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -1480,10 +1485,6 @@
         },
         {
           "type": "boolean",
-          "name": "active"
-        },
-        {
-          "type": "boolean",
           "name": "allowProfilePromote",
           "jsonkey": "allow_profile_promote"
         },
@@ -1491,6 +1492,10 @@
           "type": "boolean",
           "name": "isMemberShowcased",
           "jsonkey": "is_member_showcased"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },

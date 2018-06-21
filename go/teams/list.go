@@ -227,7 +227,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 			Username:            queryUsername.String(),
 			FullName:            queryFullName,
 			MemberCount:         0,
-			Active:              true,
+			Status:              keybase1.TeamMemberStatus_ACTIVE,
 			AllowProfilePromote: memberInfo.AllowProfilePromote,
 			IsMemberShowcased:   memberInfo.IsMemberShowcased,
 		}
@@ -331,7 +331,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 			Implicit:       memberInfo.Implicit, // This part is still server trust
 			// Assume member is active, later this field might be
 			// mutated to false after consulting UIDMapper.
-			Active: true,
+			Status: keybase1.TeamMemberStatus_ACTIVE,
 		}
 
 		res.Teams = append(res.Teams, *anMemberInfo)
@@ -374,7 +374,10 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 				// implicit admins. Only flag members that have actual
 				// role in the team here.
 				if member.Role != keybase1.TeamRole_NONE && pkg.FullName.EldestSeqno != member.EldestSeqno {
-					member.Active = false
+					member.Status = keybase1.TeamMemberStatus_RESET
+				}
+				if pkg.FullName.Status == keybase1.StatusCode_SCDeleted {
+					member.Status = keybase1.TeamMemberStatus_DELETED
 				}
 			}
 		}
@@ -480,7 +483,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 			return nil, err
 		}
 		var uv keybase1.UserVersion
-		var active = true
+		status := keybase1.TeamMemberStatus_ACTIVE
 		if category == keybase1.TeamInviteCategory_KEYBASE {
 			// "keybase" invites (i.e. pukless users) have user version for name
 			var err error
@@ -493,7 +496,10 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 				return nil, err
 			}
 			if uv.EldestSeqno != up.EldestSeqno {
-				active = false
+				status = keybase1.TeamMemberStatus_RESET
+			}
+			if up.Status == keybase1.StatusCode_SCDeleted {
+				status = keybase1.TeamMemberStatus_DELETED
 			}
 			name = keybase1.TeamInviteName(up.Username)
 		} else if category == keybase1.TeamInviteCategory_SEITAN {
@@ -515,7 +521,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 			Inviter:         invite.Inviter,
 			InviterUsername: username.String(),
 			TeamName:        teamName,
-			UserActive:      active,
+			Status:          status,
 		}
 	}
 	return annotatedInvites, nil
@@ -524,7 +530,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 func addKeybaseInviteToRes(ctx context.Context, memb keybase1.TeamMemberDetails,
 	membs []keybase1.TeamMemberDetails) []keybase1.TeamMemberDetails {
 	for idx, existing := range membs {
-		if memb.Uv.Uid.Equal(existing.Uv.Uid) && existing.IsReset {
+		if memb.Uv.Uid.Equal(existing.Uv.Uid) && !existing.Status.IsActive() {
 			membs[idx] = memb
 			return membs
 		}
@@ -585,21 +591,19 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 				return nil, err
 			}
 			pkg := namePkgs[uv.Uid]
-			isReset := false
-			isDeleted := false
+			status := keybase1.TeamMemberStatus_ACTIVE
 			var fullName keybase1.FullName
 			if pkg.FullName != nil {
 				if pkg.FullName.EldestSeqno != uv.EldestSeqno {
-					isReset = true
+					status = keybase1.TeamMemberStatus_RESET
 				}
 				if pkg.FullName.Status == keybase1.StatusCode_SCDeleted {
-					isReset = false
-					isDeleted = true
+					status = keybase1.TeamMemberStatus_DELETED
 				}
 				fullName = pkg.FullName.FullName
 			}
 
-			if isReset || isDeleted {
+			if !status.IsActive() {
 				// Skip inactive puk-less members for now. Causes
 				// duplicate usernames in team list which we don't
 				// want.
@@ -607,12 +611,11 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 			}
 
 			details := keybase1.TeamMemberDetails{
-				Uv:        uv,
-				Username:  pkg.NormalizedUsername.String(),
-				IsReset:   isReset,
-				IsDeleted: isDeleted,
-				NeedsPUK:  true,
-				FullName:  fullName,
+				Uv:       uv,
+				Username: pkg.NormalizedUsername.String(),
+				NeedsPUK: true,
+				FullName: fullName,
+				Status:   status,
 			}
 
 			switch invite.Role {
@@ -679,7 +682,7 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 				Role:           invite.Role,
 				IsImplicitTeam: team.IsImplicit(),
 				Implicit:       nil,
-				Active:         true,
+				Status:         keybase1.TeamMemberStatus_ACTIVE,
 			})
 		} else if category == keybase1.TeamInviteCategory_SEITAN {
 			// no-op - do not parse seitans. We shouldn't even
