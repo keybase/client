@@ -4,7 +4,7 @@ import * as FsGen from '../../actions/fs-gen'
 import flags from '../../util/feature-flags'
 import {compose, setDisplayName, connect, type Dispatch, type TypedState} from '../../util/container'
 import AddNew from './add-new'
-import {isDarwin, isMobile} from '../../constants/platform'
+import {isDarwin, isMobile, isIOS} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState) => ({})
 
@@ -42,7 +42,7 @@ const mobileUploadItems = (path: Types.Path, _upload) => [
   {
     onClick: () => _upload(path, 'file'),
     icon: 'iconfont-upload',
-    title: 'Upload an image',
+    title: `Upload an image${isIOS ? ' or video' : ''}`, // 'mixed' mode is not supported on Android. See actions/fs/common.native.js
   },
 ]
 

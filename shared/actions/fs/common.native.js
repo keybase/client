@@ -29,7 +29,7 @@ export const saveMedia = ({payload: {path, routePath}}: FsGen.SaveMediaPayload) 
 export const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
   new Promise((resolve, reject) =>
     showImagePicker(
-      {mediaType: 'photo'}, // TODO: support other types
+      {mediaType: isIOS ? 'mixed' : 'photo'}, // 'mixed' is not supported on Android. TODO: find something better.
       response =>
         !response.didCancel &&
         (response.error
