@@ -1,4 +1,5 @@
 // @flow
+// Component to help debug rpc issues. Shows counts of incoming/outgoing rpcs. Turned on by default for kb employees
 import * as React from 'react'
 import {ClickableBox, Box2, Text} from '../common-adapters'
 import {connect, type TypedState} from '../util/container'
