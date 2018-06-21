@@ -10,13 +10,17 @@ type Props = {
   username: string,
 }
 type State = {
+  // mark* means to make it bold for a single render cause it changed
   markIn: boolean,
   markOut: boolean,
+  // counts
   smallInCount: number,
   smallOutCount: number,
+  // clicking hides it
   visible: boolean,
 }
 
+// we should be seeing this all the time
 let whitelist = [
   'adamjspooner',
   'akalin',
@@ -184,6 +188,7 @@ const styles = styleSheetCreate({
   },
 })
 
+// We only use username and pull stats on a timer. Don't want the stats gathering to affect redux at all
 const mapStateToProps = (state: TypedState) => ({
   username: state.config.username,
 })
