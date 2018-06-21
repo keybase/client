@@ -57,8 +57,9 @@ const rowProviders = {
 
 const provider = createPropProvider({
   ...rowProviders,
-  Footer: () => ({
-    downloads: [],
+  ConnectedFooter: () => ({
+    downloadKeys: [],
+    showUploads: false,
   }),
   FolderHeader: () => ({
     breadcrumbItems: [
