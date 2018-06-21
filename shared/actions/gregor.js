@@ -186,7 +186,8 @@ function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
     const when = parseInt(body, 10)
     if (!isNaN(when)) {
       isNew = Date.now() - when < ChatConstants.newExplodingGregorOffset
-    } else if (body === 'true') {
+    }
+    if (body === 'true') {
       isNew = !!items.filter(i => i.item.category === ChatConstants.newExplodingGregorKey)
     }
   }
