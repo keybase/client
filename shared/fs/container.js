@@ -1,16 +1,7 @@
 // @flow
 import * as I from 'immutable'
-import {
-  compose,
-  connect,
-  lifecycle,
-  mapProps,
-  setDisplayName,
-  type Dispatch,
-  type TypedState,
-} from '../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../util/container'
 import Files from '.'
-import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import {
@@ -21,6 +12,7 @@ import {
   type SortableRowItem,
 } from './utils/sort'
 import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
+import FilesLoadingHoc from './files-loading-hoc'
 
 const mapStateToProps = (state: TypedState, {path}) => {
   const itemDetail = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
@@ -92,15 +84,20 @@ const amendStillRows = (
 ): Array<SortableRowItem> =>
   stills.map(still => {
     const {name, type, path} = still
-    if (uploads.writingToJournal.has(path) || uploads.syncingPaths.has(path)) {
-      return ({
-        rowType: 'uploading',
-        name,
-        path,
-        type,
-      }: SortableUploadingRowItem)
+    if (type === 'folder') {
+      // Don't show an upload row for folders.
+      return still
     }
-    return still
+    if (!uploads.writingToJournal.has(path) && !uploads.syncingPaths.has(path)) {
+      // The entry is absent from uploads. So just show a still row.
+      return still
+    }
+    return ({
+      rowType: 'uploading',
+      name,
+      path,
+      type,
+    }: SortableUploadingRowItem)
   })
 
 const placeholderRows = [
@@ -137,35 +134,9 @@ const mergeProps = (stateProps, dispatchProps, {routePath}) => ({
   routePath,
 })
 
-const ConnectedFiles = compose(connect(mapStateToProps, undefined, mergeProps), setDisplayName('Files'))(
-  Files
-)
-
-const FilesLoadingHoc = compose(
-  connect(undefined, (dispatch: Dispatch) => ({
-    loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
-    loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
-  })),
-  mapProps(({routePath, routeProps, loadFolderList, loadFavorites}) => ({
-    routePath,
-    path: routeProps.get('path', Constants.defaultPath),
-    loadFolderList,
-    loadFavorites,
-  })),
-  lifecycle({
-    componentDidMount() {
-      this.props.loadFolderList(this.props.path)
-      this.props.loadFavorites()
-    },
-    componentDidUpdate(prevProps) {
-      // This gets called on route changes too, e.g. when user clicks the
-      // action menu. So only load folder list when path changes.
-      const pathLevel = Types.getPathLevel(this.props.path)
-      this.props.path !== prevProps.path && this.props.loadFolderList(this.props.path)
-      pathLevel === 2 && this.props.loadFavorites()
-    },
-  }),
-  setDisplayName('FilesLoadingHoc')
-)(ConnectedFiles)
-
-export default SecurityPrefsPromptingHoc(FilesLoadingHoc)
+export default compose(
+  SecurityPrefsPromptingHoc,
+  FilesLoadingHoc,
+  connect(mapStateToProps, undefined, mergeProps),
+  setDisplayName('Files')
+)(Files)
