@@ -13,6 +13,8 @@ type State = {
   visible: boolean,
   smallInCount: number,
   smallOutCount: number,
+  markIn: boolean,
+  markOut: boolean,
 }
 
 let whitelist = [
@@ -41,6 +43,8 @@ let whitelist = [
 class RpcStats extends React.Component<Props, State> {
   state = {
     expanded: false,
+    markIn: false,
+    markOut: false,
     smallInCount: 0,
     smallOutCount: 0,
     visible: false,
@@ -74,8 +78,16 @@ class RpcStats extends React.Component<Props, State> {
           const smallInCount = this._iterateStats(['in'], s => s.count)
           const smallOutCount = this._iterateStats(['out'], s => s.count)
 
-          if (p.smallInCount !== smallInCount || p.smallOutCount !== smallOutCount) {
-            return {smallInCount, smallOutCount}
+          const inDiff = p.smallInCount !== smallInCount
+          const outDiff = p.smallOutCount !== smallOutCount
+          const markDiff = p.markIn || p.markOut
+          if (inDiff || outDiff || markDiff) {
+            return {
+              markIn: inDiff,
+              markOut: outDiff,
+              smallInCount,
+              smallOutCount,
+            }
           }
         })
       }, 2000)
@@ -106,15 +118,23 @@ class RpcStats extends React.Component<Props, State> {
 
     return (
       <Box2 direction="horizontal" style={styles.container}>
-        <Text type="BodySmall" style={styles.text} title="Incoming calls">
+        <Text
+          type={this.state.markIn ? 'BodySmallExtrabold' : 'BodySmall'}
+          style={styles.text}
+          title="Incoming calls"
+        >
           <Text type="BodySmall" style={styles.emoji}>
             ⤵️{' '}
           </Text>
           {this.state.smallInCount}
         </Text>
-        <Text type="BodySmall" style={styles.text} title="Outgoing calls">
+        <Text
+          type={this.state.markOut ? 'BodySmallExtrabold' : 'BodySmall'}
+          style={styles.text}
+          title="Outgoing calls"
+        >
           <Text type="BodySmall" style={styles.emoji}>
-            ↗️
+            ↗️{' '}
           </Text>
           {this.state.smallOutCount}
         </Text>
