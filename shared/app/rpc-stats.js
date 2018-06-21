@@ -41,6 +41,8 @@ let whitelist = [
 class RpcStats extends React.Component<Props, State> {
   state = {
     expanded: false,
+    smallInCount: 0,
+    smallOutCount: 0,
     visible: false,
   }
 

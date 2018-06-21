@@ -9,56 +9,27 @@ import * as Stats from './stats'
 const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
 
-// Wrapped to ensure its called once
-// $FlowIssue using star to help with this inference insanity
-function _makeOnceOnly(f: *): * {
+// We basically always log/ensure once all the calls back and forth
+// $FlowIssue using start to help with this inference insanity
+function _wrap(f: *, info: Object, enforceOnlyOnce: boolean): * {
   let once = false
   return (...args) => {
-    if (once) {
+    if (!enforceOnlyOnce || once) {
       rpcLog({args, reason: 'ignoring multiple result calls', type: 'engineInternal'})
     } else {
-      once = true
+      once = enforceOnlyOnce && true
+
+      if (printRPC) {
+        rpcLog({...info, args})
+      }
+
+      if (printRPCStats && args.length) {
+        Stats.gotStat(info.method, info.incoming)
+      }
+
       f(...args)
     }
   }
-}
-
-// Wrapped to add logging
-function _makeLogged(
-  // $FlowIssue using star to help with this inference insanity
-  f: *,
-  info: Object
-  // $FlowIssue using start to help with this inference insanity
-): * {
-  if (!printRPC) {
-    return f
-  }
-  return (...args) => {
-    rpcLog({...info, args})
-    f(...args)
-  }
-}
-
-// $FlowIssue using star to help with this inference insanity
-function _makeStatted(f: *, info: Object): * {
-  if (!printRPCStats) {
-    return f
-  }
-  return (...args) => {
-    if (args.length) {
-      Stats.gotStat(info.method, info.incoming)
-    }
-    f(...args)
-  }
-}
-
-// We basically always log/ensure once all the calls back and forth
-// $FlowIssue using start to help with this inference insanity
-function _wrap(f: *, logInfo: Object): * {
-  const rpcLogged = _makeLogged(f, logInfo)
-  const rpcStatted = _makeStatted(rpcLogged, logInfo)
-  const onceOnly = _makeOnceOnly(rpcStatted)
-  return onceOnly
 }
 
 // Logging for rpcs
@@ -116,7 +87,7 @@ class TransportShared extends RobustTransport {
         incomingRPCCallback(payload)
       }
 
-      this.set_generic_handler(_makeLogged(handler, {direction: 'incoming', type: 'serverToEngine'}))
+      this.set_generic_handler(_wrap(handler, {direction: 'incoming', type: 'serverToEngine'}, false))
     }
   }
 
@@ -147,7 +118,8 @@ class TransportShared extends RobustTransport {
             method: payload.method,
             payload,
             type: 'engineToServer',
-          }
+          },
+          true
         )
       })
     }
@@ -185,7 +157,8 @@ class TransportShared extends RobustTransport {
               incoming: true,
               method: arg.method,
               type: 'serverToEngine',
-            }
+            },
+            true
           )
         )
       },
@@ -193,7 +166,8 @@ class TransportShared extends RobustTransport {
         incoming: false,
         method: arg.method,
         type: 'engineToServer',
-      }
+      },
+      true
     )
 
     wrappedInvoke(wrappedArgs)
