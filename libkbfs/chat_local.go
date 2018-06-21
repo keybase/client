@@ -41,12 +41,21 @@ type chatLocalSharedData struct {
 	convsByID     convLocalByIDMap
 }
 
+type selfConvInfo struct {
+	convID  chat1.ConversationID
+	tlfName tlf.CanonicalName
+	tlfType tlf.Type
+}
+
 // chatLocal is a local implementation for chat.
 type chatLocal struct {
 	config   Config
 	log      logger.Logger
 	deferLog logger.Logger
 	data     *chatLocalSharedData
+
+	lock          sync.Mutex
+	selfConvInfos []selfConvInfo
 }
 
 func newChatLocalWithData(config Config, data *chatLocalSharedData) *chatLocal {
@@ -138,12 +147,24 @@ func (c *chatLocal) SendTextMessage(
 	}
 	conv.messages = append(conv.messages, body)
 	conv.mtime = c.config.Clock().Now()
+
+	c.lock.Lock()
+	// For testing purposes just keep a running tab of all
+	// self-written conversations.  Reconsider if we run into memory
+	// or performance issues.  TODO: if we ever run an edit history
+	// test with multiple devices from the same user, we'll need to
+	// save this data in the shared info.
+	c.selfConvInfos = append(
+		c.selfConvInfos, selfConvInfo{convID, tlfName, tlfType})
+	c.lock.Unlock()
+
 	// TODO: if there are some users who can read this folder but who
 	// haven't yet subscribed to the conversation, we should send them
 	// a new channel notification.
 	for _, cb := range conv.cbs {
 		cb(convID, body)
 	}
+
 	return nil
 }
 
@@ -182,6 +203,7 @@ func (c *chatLocal) GetGroupedInbox(
 
 	var handlesAndTimes chatHandleAndTimeByMtime
 
+	seen := make(map[string]bool)
 	c.data.lock.Lock()
 	defer c.data.lock.Unlock()
 	for t, byName := range c.data.convs {
@@ -214,6 +236,7 @@ func (c *chatLocal) GetGroupedInbox(
 				}
 			}
 			handlesAndTimes = append(handlesAndTimes, hAndT)
+			seen[h.GetCanonicalPath()] = true
 		}
 	}
 
@@ -221,6 +244,33 @@ func (c *chatLocal) GetGroupedInbox(
 	for i := 0; i < len(handlesAndTimes) && i < maxChats; i++ {
 		results = append(results, handlesAndTimes[i].h)
 	}
+
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	var selfHandles []*TlfHandle
+	max := numSelfTlfs
+	for i := len(c.selfConvInfos) - 1; i >= 0 && len(selfHandles) < max; i-- {
+		info := c.selfConvInfos[i]
+		h, err := GetHandleFromFolderNameAndType(
+			ctx, c.config.KBPKI(), c.config.MDOps(),
+			string(info.tlfName), info.tlfType)
+		if err != nil {
+			return nil, err
+		}
+
+		p := h.GetCanonicalPath()
+		if seen[p] {
+			continue
+		}
+		seen[p] = true
+		selfHandles = append(selfHandles, h)
+	}
+
+	numOver := len(results) + len(selfHandles) - maxChats
+	if numOver < 0 {
+		numOver = 0
+	}
+	results = append(results[:len(results)-numOver], selfHandles...)
 	return results, nil
 }
 
