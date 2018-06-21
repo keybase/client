@@ -2076,6 +2076,16 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 	}
 }
 
+type ProfileTeamLoadRes struct {
+	LoadTimeNsec int64 `codec:"loadTimeNsec" json:"loadTimeNsec"`
+}
+
+func (o ProfileTeamLoadRes) DeepCopy() ProfileTeamLoadRes {
+	return ProfileTeamLoadRes{
+		LoadTimeNsec: o.LoadTimeNsec,
+	}
+}
+
 type TeamDebugRes struct {
 	Chain TeamSigChainState `codec:"chain" json:"chain"`
 }
@@ -2340,6 +2350,10 @@ type FindNextMerkleRootAfterTeamRemovalBySigningKeyArg struct {
 	IsPublic   bool   `codec:"isPublic" json:"isPublic"`
 }
 
+type ProfileTeamLoadArg struct {
+	Arg LoadTeamArg `codec:"arg" json:"arg"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2394,6 +2408,9 @@ type TeamsInterface interface {
 	// with the given signing key being removed from the given team. If there are several such instances,
 	// we will return just the last one.
 	FindNextMerkleRootAfterTeamRemovalBySigningKey(context.Context, FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (NextMerkleRootRes, error)
+	// ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
+	// the team load machinery.
+	ProfileTeamLoad(context.Context, LoadTeamArg) (ProfileTeamLoadRes, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -3104,6 +3121,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"profileTeamLoad": {
+				MakeArg: func() interface{} {
+					ret := make([]ProfileTeamLoadArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ProfileTeamLoadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ProfileTeamLoadArg)(nil), args)
+						return
+					}
+					ret, err = i.ProfileTeamLoad(ctx, (*typedArgs)[0].Arg)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3345,5 +3378,13 @@ func (c TeamsClient) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, __a
 // we will return just the last one.
 func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.Context, __arg FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res NextMerkleRootRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey", []interface{}{__arg}, &res)
+	return
+}
+
+// ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
+// the team load machinery.
+func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res ProfileTeamLoadRes, err error) {
+	__arg := ProfileTeamLoadArg{Arg: arg}
+	err = c.Cli.Call(ctx, "keybase.1.teams.profileTeamLoad", []interface{}{__arg}, &res)
 	return
 }

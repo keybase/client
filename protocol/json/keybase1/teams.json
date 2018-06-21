@@ -1877,6 +1877,16 @@
     },
     {
       "type": "record",
+      "name": "ProfileTeamLoadRes",
+      "fields": [
+        {
+          "type": "long",
+          "name": "loadTimeNsec"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamDebugRes",
       "fields": [
         {
@@ -2627,6 +2637,16 @@
       ],
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user\n   with the given signing key being removed from the given team. If there are several such instances,\n   we will return just the last one."
+    },
+    "profileTeamLoad": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "LoadTeamArg"
+        }
+      ],
+      "response": "ProfileTeamLoadRes",
+      "doc": "ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling\n   the team load machinery."
     }
   },
   "namespace": "keybase.1"

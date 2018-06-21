@@ -429,7 +429,7 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 			ReaderKeyMasks:  make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
 		}
 	} else {
-		newState2 := state.DeepCopy()
+		newState2 := *state
 		newState2.Chain = newChainState.inner
 		newState = &newState2
 	}

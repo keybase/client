@@ -1577,3 +1577,11 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 		Prev:              logPoint.SigMeta.PrevMerkleRootSigned,
 	})
 }
+
+func ProfileTeamLoad(mctx libkb.MetaContext, arg keybase1.LoadTeamArg) (res keybase1.ProfileTeamLoadRes, err error) {
+	pre := mctx.G().Clock().Now()
+	_, err = Load(mctx.Ctx(), mctx.G(), arg)
+	post := mctx.G().Clock().Now()
+	res.LoadTimeNsec = post.Sub(pre).Nanoseconds()
+	return res, err
+}

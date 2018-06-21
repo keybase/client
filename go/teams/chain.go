@@ -30,6 +30,38 @@ func (t TeamSigChainState) DeepCopy() TeamSigChainState {
 	}
 }
 
+func (t TeamSigChainState) CheapCopy() TeamSigChainState {
+
+	userLog := t.inner.UserLog
+	linkIDs := t.inner.LinkIDs
+	perTeamKeys := t.inner.PerTeamKeys
+
+	t.inner.UserLog = nil
+	t.inner.LinkIDs = nil
+	t.inner.PerTeamKeys = nil
+
+	inner := t.inner.DeepCopy()
+
+	if userLog != nil {
+		inner.UserLog = make(map[keybase1.UserVersion][]keybase1.UserLogPoint)
+		for k, v := range userLog {
+			var vCopy []keybase1.UserLogPoint
+			if v != nil {
+				vCopy = append(vCopy, v...)
+				inner.UserLog[k] = vCopy
+			}
+		}
+	}
+	inner.LinkIDs = linkIDs
+	if perTeamKeys != nil {
+		inner.PerTeamKeys = make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKey)
+		for k, v := range perTeamKeys {
+			inner.PerTeamKeys[k] = v
+		}
+	}
+	return TeamSigChainState{inner: inner}
+}
+
 func (t TeamSigChainState) GetID() keybase1.TeamID {
 	return t.inner.Id
 }
@@ -1113,7 +1145,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			}
 		}
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
@@ -1169,7 +1201,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 		res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
 		res.newState.inner.PerTeamKeyCTime = keybase1.UnixTime(payload.Ctime)
 
@@ -1196,7 +1228,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		// The last owner of a team should not leave.
 		// But that's really up to them and the server. We're just reading what has happened.
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 		res.newState.inform(signer.signer, keybase1.TeamRole_NONE, payload.SignatureMetadata())
 
 		return res, nil
@@ -1227,7 +1259,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 
 		// informSubteam will take care of asserting that these links are inflated
 		// in order for each subteam.
@@ -1355,7 +1387,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 
 		// informSubteam will take care of asserting that these links are inflated
 		// in order for each subteam.
@@ -1408,7 +1440,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("rename cannot change team nesting depth: %v -> %v", prevState.inner.NameDepth, newName)
 		}
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 
 		res.newState.inner.NameLog = append(res.newState.inner.NameLog, keybase1.TeamNameLogPoint{
 			LastPart: newName.LastPart(),
@@ -1443,7 +1475,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 
 		err = res.newState.informSubteamDelete(subteamID, link.Seqno())
 		if err != nil {
@@ -1536,7 +1568,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			}
 		}
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 		t.updateInvites(&res.newState, additions, cancelations)
 		return res, nil
 	case libkb.LinkTypeSettings:
@@ -1556,7 +1588,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 		err = t.parseTeamSettings(team.Settings, &res.newState)
 		return res, err
 	case libkb.LinkTypeDeleteRoot:
@@ -1578,14 +1610,14 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.DeepCopy()
+		res.newState = prevState.CheapCopy()
 		err = t.parseKBFSTLFUpgrade(team.KBFS, &res.newState)
 		return res, err
 	case "":
 		return res, errors.New("empty body type")
 	default:
 		if link.outerLink.IgnoreIfUnsupported {
-			res.newState = prevState.DeepCopy()
+			res.newState = prevState.CheapCopy()
 			return res, nil
 		}
 
