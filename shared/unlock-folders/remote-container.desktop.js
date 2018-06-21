@@ -5,7 +5,7 @@ import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  close: () => dispatch(UnlockFoldersGen.createClosePopup()),
+  onClose: () => dispatch(UnlockFoldersGen.createClosePopup()),
   onBackFromPaperKey: () => dispatch(UnlockFoldersGen.createOnBackFromPaperKey()),
   onContinueFromPaperKey: (paperKey: string) => dispatch(UnlockFoldersGen.createCheckPaperKey({paperKey})),
   onFinish: () => dispatch(UnlockFoldersGen.createFinish()),
