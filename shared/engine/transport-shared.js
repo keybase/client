@@ -24,7 +24,11 @@ function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(
       once = true
 
       if (printRPC) {
-        rpcLog({...info, ...a1})
+        rpcLog({
+          ...info,
+          method: info.method || a1.method,
+          type: info.type || a1.type,
+        })
       }
 
       if (printRPCStats) {

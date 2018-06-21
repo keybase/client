@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {ClickableBox, Box2, Text} from '../common-adapters'
 import {connect, type TypedState} from '../util/container'
-import {styleSheetCreate} from '../styles'
+import {styleSheetCreate, platformStyles} from '../styles'
 import * as Stats from '../engine/stats'
 
 type Props = {
@@ -25,6 +25,7 @@ let whitelist = [
   'chris',
   'chrisnojima',
   'cjb',
+  'jacobyoung',
   'jinyang',
   'joshblum',
   'jzila',
@@ -150,13 +151,23 @@ class RpcStats extends React.Component<Props, State> {
 }
 
 const styles = styleSheetCreate({
-  clickableBox: {
-    bottom: 80,
-    height: 20,
-    left: 0,
-    position: 'absolute',
-    width: 80,
-  },
+  clickableBox: platformStyles({
+    common: {
+      position: 'absolute',
+    },
+    isElectron: {
+      bottom: 80,
+      height: 20,
+      left: 0,
+      width: 80,
+    },
+    isMobile: {
+      height: 20,
+      left: 0,
+      top: 10,
+      width: 100,
+    },
+  }),
   container: {
     alignItems: 'center',
     backgroundColor: 'black',
