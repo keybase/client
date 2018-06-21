@@ -313,6 +313,10 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 			return NewPrecheckStructuralError("link missing inner", nil)
 		}
 
+		// As an optimization, AppendChainLink can mutate the state within the player.
+		// When called from the loader, it isn't a problem, but here it is. So Clone
+		// the inner state before we mutate it.
+		player.CloneState()
 		err = player.AppendChainLink(ctx, link2, &signer)
 		if err != nil {
 			return NewPrecheckAppendError(err)
