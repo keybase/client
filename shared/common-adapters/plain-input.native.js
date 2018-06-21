@@ -128,6 +128,7 @@ class PlainInput extends Component<InternalProps, State> {
       onFocus: this._onFocus,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.placeholder,
+      placeholderTextColor: this.props.placeholderColor || 'rgba(0,0,0,.4)',
       ref: this._setInputRef,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
