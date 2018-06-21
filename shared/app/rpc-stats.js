@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text} from '../common-adapters'
+import {ClickableBox, Box2, Text} from '../common-adapters'
 import {connect, type TypedState} from '../util/container'
 import {styleSheetCreate} from '../styles'
 import * as Stats from '../engine/stats'
@@ -9,12 +9,11 @@ type Props = {
   username: string,
 }
 type State = {
-  expanded: boolean,
-  visible: boolean,
-  smallInCount: number,
-  smallOutCount: number,
   markIn: boolean,
   markOut: boolean,
+  smallInCount: number,
+  smallOutCount: number,
+  visible: boolean,
 }
 
 let whitelist = [
@@ -42,7 +41,6 @@ let whitelist = [
 
 class RpcStats extends React.Component<Props, State> {
   state = {
-    expanded: false,
     markIn: false,
     markOut: false,
     smallInCount: 0,
@@ -98,8 +96,8 @@ class RpcStats extends React.Component<Props, State> {
     this._maybeStart()
   }
 
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.username !== prevProps.username) {
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.username !== prevProps.username || this.state.visible !== prevState.visible) {
       this._maybeStart()
     }
   }
@@ -113,47 +111,57 @@ class RpcStats extends React.Component<Props, State> {
     return total
   }
 
+  _onClick = () => {
+    this.setState(p => ({
+      visible: !p.visible,
+    }))
+  }
+
   render() {
     if (!this.state.visible) return null
 
     return (
-      <Box2 direction="horizontal" style={styles.container}>
-        <Text
-          type={this.state.markIn ? 'BodySmallExtrabold' : 'BodySmall'}
-          style={styles.text}
-          title="Incoming calls"
-        >
-          <Text type="BodySmall" style={styles.emoji}>
-            ⤵️{' '}
+      <ClickableBox onClick={this._onClick} style={styles.clickableBox}>
+        <Box2 direction="horizontal" style={styles.container} fullWidth={true} fullHeight={true}>
+          <Text
+            type={this.state.markIn ? 'BodySmallExtrabold' : 'BodySmall'}
+            style={styles.text}
+            title="Incoming calls"
+          >
+            <Text type="BodySmall" style={styles.emoji}>
+              ⤵️{' '}
+            </Text>
+            {this.state.smallInCount}
           </Text>
-          {this.state.smallInCount}
-        </Text>
-        <Text
-          type={this.state.markOut ? 'BodySmallExtrabold' : 'BodySmall'}
-          style={styles.text}
-          title="Outgoing calls"
-        >
-          <Text type="BodySmall" style={styles.emoji}>
-            ↗️{' '}
+          <Text
+            type={this.state.markOut ? 'BodySmallExtrabold' : 'BodySmall'}
+            style={styles.text}
+            title="Outgoing calls"
+          >
+            <Text type="BodySmall" style={styles.emoji}>
+              ↗️{' '}
+            </Text>
+            {this.state.smallOutCount}
           </Text>
-          {this.state.smallOutCount}
-        </Text>
-      </Box2>
+        </Box2>
+      </ClickableBox>
     )
   }
 }
 
 const styles = styleSheetCreate({
+  clickableBox: {
+    bottom: 80,
+    height: 20,
+    left: 0,
+    position: 'absolute',
+    width: 80,
+  },
   container: {
     alignItems: 'center',
     backgroundColor: 'black',
-    bottom: 80,
-    height: 20,
     justifyContent: 'space-between',
-    left: 0,
     padding: 2,
-    position: 'absolute',
-    width: 80,
   },
   emoji: {
     color: 'white',
