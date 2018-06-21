@@ -14,8 +14,23 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/kbfsedits"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
+)
+
+const (
+	// The name of the channel in the logged-in user's private
+	// self-conversation (of type kbfs-edits) that stores a history of
+	// which TLFs the user has written to.
+	selfWriteChannel = "#self"
+
+	// The topic type of the self-write channel.
+	selfWriteType = chat1.TopicType_KBFSFILEEDIT
+
+	// numSelfTlfs is the number of self-written TLFs to include in
+	// the results of GetGroupedInbox.
+	numSelfTlfs = 3
 )
 
 // ChatRPC is an RPC based implementation for chat.
@@ -25,8 +40,10 @@ type ChatRPC struct {
 	deferLog logger.Logger
 	client   chat1.LocalInterface
 
-	convLock sync.RWMutex
-	convCBs  map[string][]ChatChannelNewMessageCB
+	convLock          sync.RWMutex
+	convCBs           map[string][]ChatChannelNewMessageCB
+	selfConvID        chat1.ConversationID
+	lastWrittenConvID chat1.ConversationID
 }
 
 var _ rpc.ConnectionHandler = (*ChatRPC)(nil)
@@ -198,6 +215,53 @@ func (c *ChatRPC) GetConversationID(
 	return res.Conv.Info.Id, nil
 }
 
+func (c *ChatRPC) getSelfConvInfoIfCached() (
+	selfConvID, lastWrittenConvID chat1.ConversationID) {
+	c.convLock.RLock()
+	defer c.convLock.RUnlock()
+	return c.selfConvID, c.lastWrittenConvID
+}
+
+func (c *ChatRPC) getSelfConvInfo(ctx context.Context) (
+	selfConvID, lastWrittenConvID chat1.ConversationID, err error) {
+	selfConvID, lastWrittenConvID = c.getSelfConvInfoIfCached()
+	if selfConvID != nil {
+		return selfConvID, lastWrittenConvID, err
+	}
+
+	// Otherwise we need to look it up.
+	session, err := c.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	selfConvID, err = c.GetConversationID(
+		ctx, tlf.CanonicalName(session.Name), tlf.Private, selfWriteChannel,
+		selfWriteType)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	messages, _, err := c.ReadChannel(ctx, selfConvID, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(messages) > 0 {
+		selfMessage, err := kbfsedits.ReadSelfWrite(messages[0])
+		if err != nil {
+			return nil, nil, err
+		}
+		lastWrittenConvID = selfMessage.ConvID
+	}
+
+	c.convLock.Lock()
+	defer c.convLock.Unlock()
+	c.selfConvID = selfConvID
+	c.lastWrittenConvID = lastWrittenConvID
+	return selfConvID, lastWrittenConvID, nil
+}
+
 // SendTextMessage implements the Chat interface.
 func (c *ChatRPC) SendTextMessage(
 	ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
@@ -210,13 +274,122 @@ func (c *ChatRPC) SendTextMessage(
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
 	_, err := c.client.PostTextNonblock(ctx, arg)
+	if err != nil {
+		return err
+	}
+
+	selfConvID, lastWrittenConvID, err := c.getSelfConvInfo(ctx)
+	if err != nil {
+		return err
+	}
+	if lastWrittenConvID.Eq(convID) {
+		// Can skip writing this, since the latest one is the same
+		// conversation.  Note that this is slightly racy since
+		// another write can happen in the meantime, but this list
+		// doesn't need to be exact, so best effort is ok.
+		return nil
+	}
+
+	c.log.CDebugf(ctx, "Writing self-write message to %s", selfConvID)
+
+	session, err := c.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return err
+	}
+
+	serverTime := c.config.Clock().Now()
+	if offset, ok := c.config.MDServer().OffsetFromServerTime(); ok {
+		serverTime = serverTime.Add(-offset)
+	}
+
+	selfWriteBody, err := kbfsedits.PrepareSelfWrite(kbfsedits.SelfWriteMessage{
+		Version: kbfsedits.NotificationV2,
+		Folder: keybase1.Folder{
+			Name:       string(tlfName),
+			FolderType: tlfType.FolderType(),
+			Private:    tlfType != tlf.Public,
+		},
+		ConvID:     convID,
+		ServerTime: serverTime,
+	})
+	if err != nil {
+		return err
+	}
+
+	arg = chat1.PostTextNonblockArg{
+		ConversationID:   convID,
+		TlfName:          string(session.Name),
+		TlfPublic:        false,
+		Body:             selfWriteBody,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
+	}
+	_, err = c.client.PostTextNonblock(ctx, arg)
+	if err != nil {
+		return err
+	}
+
+	c.convLock.Lock()
+	defer c.convLock.Unlock()
+	c.lastWrittenConvID = convID
+
 	return err
+}
+
+func (c *ChatRPC) getLastSelfWrittenHandles(
+	ctx context.Context, chatType chat1.TopicType, seen map[string]bool) (
+	results []*TlfHandle, err error) {
+	selfConvID, _, err := c.getSelfConvInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var startPage []byte
+	// Search backward until we find numSelfTlfs unique handles.
+	for len(results) < numSelfTlfs {
+		messages, nextPage, err := c.ReadChannel(ctx, selfConvID, startPage)
+		if err != nil {
+			return nil, err
+		}
+		for i := 0; i < len(messages) && len(results) < numSelfTlfs; i++ {
+			selfMessage, err := kbfsedits.ReadSelfWrite(messages[i])
+			if err != nil {
+				return nil, err
+			}
+
+			tlfName := selfMessage.Folder.Name
+			tlfType := tlf.TypeFromFolderType(selfMessage.Folder.FolderType)
+			h, err := GetHandleFromFolderNameAndType(
+				ctx, c.config.KBPKI(), c.config.MDOps(), tlfName, tlfType)
+			if err != nil {
+				return nil, err
+			}
+
+			p := h.GetCanonicalPath()
+			if seen[p] {
+				continue
+			}
+			seen[p] = true
+			results = append(results, h)
+		}
+
+		if nextPage == nil {
+			break
+		}
+		startPage = nextPage
+	}
+	return results, nil
 }
 
 // GetGroupedInbox implements the Chat interface.
 func (c *ChatRPC) GetGroupedInbox(
 	ctx context.Context, chatType chat1.TopicType, maxChats int) (
 	results []*TlfHandle, err error) {
+	// First get the latest TLFs written by this user.
+	seen := make(map[string]bool)
+	results, err = c.getLastSelfWrittenHandles(ctx, chatType, seen)
+	if err != nil {
+		return nil, err
+	}
+
 	arg := chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			TopicType: &chatType,
@@ -232,14 +405,11 @@ func (c *ChatRPC) GetGroupedInbox(
 	// have to check for uniques.  For now, we might falsely return
 	// fewer than `maxChats` TLFs.  TODO: make sure these are ordered
 	// with the most recent one at index 0.
-	seen := make(map[string]bool)
-	for i := 0; len(results) < maxChats && i < len(res.Conversations); i++ {
+	for i := 0; i < len(res.Conversations) && len(results) < maxChats; i++ {
 		info := res.Conversations[i].Info
-		tlfID := info.Triple.Tlfid.String()
-		if seen[tlfID] {
+		if info.TopicName == selfWriteChannel {
 			continue
 		}
-		seen[tlfID] = true
 
 		// TODO: ignore TLFs that aren't in your favorites list.
 
@@ -255,6 +425,12 @@ func (c *ChatRPC) GetGroupedInbox(
 		if err != nil {
 			return nil, err
 		}
+
+		p := h.GetCanonicalPath()
+		if seen[p] {
+			continue
+		}
+		seen[p] = true
 		results = append(results, h)
 	}
 	return results, nil
@@ -282,6 +458,10 @@ func (c *ChatRPC) GetChannels(
 	for _, conv := range res.Convs {
 		if conv.Visibility != expectedVisibility {
 			// Skip any conversation that doesn't match our visibility.
+			continue
+		}
+
+		if conv.Channel == selfWriteChannel {
 			continue
 		}
 
@@ -385,6 +565,19 @@ func (c *ChatRPC) newNotificationChannel(
 	return nil
 }
 
+func (c *ChatRPC) setLastWrittenConvID(ctx context.Context, body string) error {
+	c.convLock.Lock()
+	defer c.convLock.Unlock()
+
+	msg, err := kbfsedits.ReadSelfWrite(body)
+	if err != nil {
+		return err
+	}
+	c.log.CDebugf(ctx, "Last self-written conversation is %s", msg.ConvID)
+	c.lastWrittenConvID = msg.ConvID
+	return nil
+}
+
 // NewChatActivity implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) NewChatActivity(
@@ -428,6 +621,13 @@ func (c *ChatRPC) NewChatActivity(
 		cbs := c.convCBs[msg.ConvID.String()]
 		c.convLock.RUnlock()
 
+		// If this is on the self-write channel, cache it and we're
+		// done.
+		selfConvID, _ := c.getSelfConvInfoIfCached()
+		if selfConvID.Eq(msg.ConvID) {
+			return c.setLastWrittenConvID(ctx, body)
+		}
+
 		if len(cbs) == 0 {
 			// No one is listening for this channel yet, so consider
 			// it a new channel.
@@ -440,6 +640,7 @@ func (c *ChatRPC) NewChatActivity(
 				cb(msg.ConvID, body)
 			}
 		}
+
 	}
 	return nil
 }
