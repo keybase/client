@@ -1,0 +1,32 @@
+{
+  "protocol": "gregor",
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    },
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "PaymentStatusMsg",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "kbTxID"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "stellar.1"
+}
