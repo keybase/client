@@ -10,8 +10,9 @@ type Props = {
 }
 type State = {
   expanded: boolean,
-  renderCount: number,
   visible: boolean,
+  smallInCount: number,
+  smallOutCount: number,
 }
 
 let whitelist = [
@@ -40,7 +41,6 @@ let whitelist = [
 class RpcStats extends React.Component<Props, State> {
   state = {
     expanded: false,
-    renderCount: 0,
     visible: false,
   }
 
@@ -67,13 +67,16 @@ class RpcStats extends React.Component<Props, State> {
 
     this.setState(p => (p.visible !== visible ? {visible} : undefined))
     if (visible) {
-      this._intervalID = setInterval(
-        () =>
-          this.setState(p => ({
-            renderCount: p.renderCount + 1,
-          })),
-        2000
-      )
+      this._intervalID = setInterval(() => {
+        this.setState(p => {
+          const smallInCount = this._iterateStats(['in'], s => s.count)
+          const smallOutCount = this._iterateStats(['out'], s => s.count)
+
+          if (p.smallInCount !== smallInCount && p.smallOutCount !== smallOutCount) {
+            return {smallInCount, smallOutCount}
+          }
+        })
+      }, 2000)
     }
   }
 
@@ -100,15 +103,18 @@ class RpcStats extends React.Component<Props, State> {
     if (!this.state.visible) return null
 
     return (
-      <Box2 direction="vertical" style={styles.container}>
+      <Box2 direction="horizontal" style={styles.container}>
         <Text type="BodySmall" style={styles.text} title="Incoming calls">
-          ⤵️ {this._iterateStats(['in'], s => s.count)}
+          <Text type="BodySmall" style={styles.emoji}>
+            ⤵️{' '}
+          </Text>
+          {this.state.smallInCount}
         </Text>
         <Text type="BodySmall" style={styles.text} title="Outgoing calls">
-          ↗️ {this._iterateStats(['out'], s => s.count)}
-        </Text>
-        <Text type="BodySmall" style={styles.text} title="Payload size">
-          🏋️ {this._iterateStats(['out', 'in'], s => s.payloadSize)}
+          <Text type="BodySmall" style={styles.emoji}>
+            ↗️
+          </Text>
+          {this.state.smallOutCount}
         </Text>
       </Box2>
     )
@@ -117,13 +123,19 @@ class RpcStats extends React.Component<Props, State> {
 
 const styles = styleSheetCreate({
   container: {
+    alignItems: 'center',
     backgroundColor: 'black',
     bottom: 80,
-    height: 100,
+    height: 20,
+    justifyContent: 'space-between',
     left: 0,
-    position: 'absolute',
     padding: 2,
+    position: 'absolute',
     width: 80,
+  },
+  emoji: {
+    color: 'white',
+    marginRight: 4,
   },
   text: {
     color: 'white',

@@ -142,7 +142,12 @@ class TransportShared extends RobustTransport {
           (...args) => {
             oldResponse[call](...args)
           },
-          {method: payload.method, payload, type: 'engineToServer', incoming: false}
+          {
+            incoming: false,
+            method: payload.method,
+            payload,
+            type: 'engineToServer',
+          }
         )
       })
     }
@@ -176,11 +181,19 @@ class TransportShared extends RobustTransport {
             (err, data) => {
               cb(err, data)
             },
-            {method: arg.method, type: 'serverToEngine', incoming: true}
+            {
+              incoming: true,
+              method: arg.method,
+              type: 'serverToEngine',
+            }
           )
         )
       },
-      {method: arg.method, type: 'engineToServer', incoming: false}
+      {
+        incoming: false,
+        method: arg.method,
+        type: 'engineToServer',
+      }
     )
 
     wrappedInvoke(wrappedArgs)
