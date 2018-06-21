@@ -7,19 +7,13 @@ import {requestIdleCallback} from '../util/idle-callback'
 
 import type {rpcLogType} from './index.platform'
 
-const {
-  transport: {RobustTransport},
-  client: {Client: RpcClient},
-} = rpc
-const KEYBASE_RPC_DELAY_RESULT: number = process.env.KEYBASE_RPC_DELAY_RESULT
-  ? parseInt(process.env.KEYBASE_RPC_DELAY_RESULT)
-  : 0
-const KEYBASE_RPC_DELAY: number = process.env.KEYBASE_RPC_DELAY ? parseInt(process.env.KEYBASE_RPC_DELAY) : 0
+const RobustTransport = rpc.transport.RobustTransport
+const RpcClient = rpc.client.Client
 
 // Wrapped to ensure its called once
-function _makeOnceOnly<F: Function>(f: F): F {
+// $FlowIssue using start to help with this inference insanity
+function _makeOnceOnly(f: *): * {
   let once = false
-  // $FlowIssue
   return (...args) => {
     if (once) {
       rpcLog('engineInternal', 'ignoring multiple result calls', {args})
@@ -31,15 +25,16 @@ function _makeOnceOnly<F: Function>(f: F): F {
 }
 
 // Wrapped to add logging
-function _makeLogged<F: Function>(
-  f: F,
+function _makeLogged(
+  // $FlowIssue using start to help with this inference insanity
+  f: *,
   type: rpcLogType,
   logTitle: string,
   extraInfo?: ?Object,
-  titleFromArgs?: ?Function
-): F {
+  titleFromArgs?: ?(...Array<any>) => string
+  // $FlowIssue using start to help with this inference insanity
+): * {
   if (printRPC) {
-    // $FlowIssue
     return (...args) => {
       rpcLog(type, titleFromArgs ? titleFromArgs(...args) : logTitle, {...extraInfo, args})
       f(...args)
@@ -49,32 +44,11 @@ function _makeLogged<F: Function>(
   }
 }
 
-// Wrapped to make time delayed functions to test timing issues
-function _makeDelayed<F: Function>(f: F, amount: number): F {
-  if (__DEV__ && amount > 0) {
-    // $FlowIssue
-    return (...args) => {
-      localLog('%c[RPC Delay call]', 'color: red')
-      setTimeout(() => {
-        f(...args)
-      }, amount)
-    }
-  } else {
-    return f
-  }
-}
-
-// We basically always delay/log/ensure once all the calls back and forth
-function _wrap<F: Function>(
-  f: F,
-  logType: rpcLogType,
-  amount: number,
-  logTitle: string,
-  logInfo?: Object
-): F {
-  const logged: F = _makeLogged(f, logType, logTitle, logInfo)
-  const delayed: F = _makeDelayed(logged, amount)
-  const onceOnly: F = _makeOnceOnly(delayed)
+// We basically always log/ensure once all the calls back and forth
+// $FlowIssue using start to help with this inference insanity
+function _wrap(f: *, logType: rpcLogType, logTitle: string, logInfo?: Object): * {
+  const logged = _makeLogged(f, logType, logTitle, logInfo)
+  const onceOnly = _makeOnceOnly(logged)
   return onceOnly
 }
 
@@ -104,11 +78,17 @@ function rpcLog(type: rpcLogType, title: string, info?: Object): void {
 }
 
 class TransportShared extends RobustTransport {
-  // $FlowIssue
-  constructor(opts, connectCallback, disconnectCallback, incomingRPCCallback, writeCallback) {
-    const hooks = {
+  constructor(
+    opts: Object,
+    connectCallback: () => void,
+    disconnectCallback: () => void,
+    incomingRPCCallback: (a: any) => void,
+    writeCallback: any
+  ) {
+    super(opts)
+
+    this.hooks = {
       connected: () => {
-        // $FlowIssue complains that this might be null
         this.needsConnect = false
         connectCallback && connectCallback()
       },
@@ -116,8 +96,6 @@ class TransportShared extends RobustTransport {
         disconnectCallback && disconnectCallback()
       },
     }
-
-    super({hooks, ...opts})
 
     if (writeCallback) {
       this.writeCallback = writeCallback
@@ -130,15 +108,12 @@ class TransportShared extends RobustTransport {
       }
 
       this.set_generic_handler(
-        _makeDelayed(
-          _makeLogged(handler, 'serverToEngine', 'incoming', null, args => `incoming: ${args.method}`),
-          KEYBASE_RPC_DELAY_RESULT
-        )
+        _makeLogged(handler, 'serverToEngine', 'incoming', null, args => `incoming: ${args.method}`)
       )
     }
   }
 
-  // add delay / logging / multiple call checking
+  // add logging / multiple call checking
   _injectInstrumentedResponse(payload: any) {
     if (!payload || !payload.response) {
       return
@@ -161,7 +136,6 @@ class TransportShared extends RobustTransport {
             oldResponse[call](...args)
           },
           'engineToServer',
-          KEYBASE_RPC_DELAY,
           call,
           {payload}
         )
@@ -198,13 +172,11 @@ class TransportShared extends RobustTransport {
               cb(err, data)
             },
             'serverToEngine',
-            KEYBASE_RPC_DELAY_RESULT,
             `received ${arg.method}`
           )
         )
       },
       'engineToServer',
-      KEYBASE_RPC_DELAY,
       `sent ${arg.method}`
     )
 
