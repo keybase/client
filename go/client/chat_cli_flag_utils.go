@@ -52,7 +52,7 @@ var chatFlags = map[string]cli.Flag{
 	"number": cli.IntFlag{
 		Name:  "number,n",
 		Usage: `Limit number of items`,
-		Value: 5,
+		Value: 15,
 	},
 	"unread-first": cli.IntFlag{
 		Name:  "unread-first",
