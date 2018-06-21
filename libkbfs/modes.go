@@ -291,7 +291,11 @@ func (mc modeConstrained) ConflictResolutionEnabled() bool {
 }
 
 func (mc modeConstrained) QuotaReclamationEnabled() bool {
-	return true
+	// Disable QR for mobile for now, until we add a new mode mothod to
+	// indicate that this device should only self-QR. Also need to verify that
+	// the QR timer doesn't cause app wakeups.
+	// See https://github.com/keybase/kbfs/pull/1616#discussion_r195269845
+	return false
 }
 
 func (mc modeConstrained) KBFSServiceEnabled() bool {
