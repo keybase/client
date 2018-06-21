@@ -1541,3 +1541,17 @@ func RegisterOps(codec kbfscodec.Codec) {
 	codec.RegisterIfaceSliceType(reflect.TypeOf(opsList{}), opsListCode,
 		opPointerizer)
 }
+
+type pathSortedOps []op
+
+func (pso pathSortedOps) Len() int {
+	return len(pso)
+}
+
+func (pso pathSortedOps) Less(i, j int) bool {
+	return len(pso[i].getFinalPath().path) < len(pso[j].getFinalPath().path)
+}
+
+func (pso pathSortedOps) Swap(i, j int) {
+	pso[i], pso[j] = pso[j], pso[i]
+}

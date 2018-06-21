@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -2317,7 +2318,8 @@ func (fbo *folderBranchOps) makeEditNotifications(
 	// If this MD is coming from the journal or from the conflict
 	// resolver, the final paths will not be set on the ops.  Use
 	// crChains to set them.
-	ops := rmd.data.Changes.Ops
+	ops := pathSortedOps(rmd.data.Changes.Ops)
+
 	isResolution := false
 	if len(ops) > 0 {
 		_, isResolution = ops[0].(*resolutionOp)
@@ -2333,10 +2335,14 @@ func (fbo *folderBranchOps) makeEditNotifications(
 		if err != nil {
 			return nil, err
 		}
-		ops = make([]op, 0, len(ops))
+
+		ops = pathSortedOps(make([]op, 0, len(ops)))
 		for _, chain := range chains.byMostRecent {
 			ops = append(ops, chain.ops...)
 		}
+		// Make sure the ops are in increasing order by path length,
+		// so e.g. file creates come before file modifies.
+		sort.Sort(ops)
 	}
 
 	rev := rmd.Revision()
