@@ -303,6 +303,24 @@
           "name": "currencies"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PageCursor",
+      "fields": [
+        {
+          "type": "string",
+          "name": "horizonCursor"
+        },
+        {
+          "type": "string",
+          "name": "directCursor"
+        },
+        {
+          "type": "string",
+          "name": "relayCursor"
+        }
+      ]
     }
   ],
   "messages": {},

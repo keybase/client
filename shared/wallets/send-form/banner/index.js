@@ -15,7 +15,7 @@ const Banner = (props: Props) => (
     fullWidth={true}
     style={collapseStyles([styles.container, {backgroundColor: backgroundModeToColor[props.background]}])}
   >
-    <Text type="BodySemibold" style={styles.text} backgroundMode={props.background}>
+    <Text type="BodySmallSemibold" style={styles.text} backgroundMode={props.background}>
       {props.text}
     </Text>
   </Box2>

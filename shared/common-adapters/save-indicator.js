@@ -121,25 +121,6 @@ class SaveIndicator extends React.Component<Props, State> {
     this.state = {saving: false, lastSave: new Date(0), saveState: 'steady', lastJustSaved: new Date(0)}
   }
 
-  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
-    if (nextProps.saving === prevState.saving) {
-      return null
-    }
-
-    // Just set saving and lastSave here -- run the state machine from
-    // componentDidUpdate.
-    const debugLog = nextProps.debugLog
-    const newPartialState = {saving: nextProps.saving, ...(nextProps.saving ? {lastSave: new Date()} : {})}
-    if (debugLog) {
-      debugLog(
-        `getDerivedStateFromProps: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(
-          prevState
-        )}`
-      )
-    }
-    return newPartialState
-  }
-
   _runStateMachine = () => {
     if (this._timeoutID) {
       this.props.clearTimeout(this._timeoutID)
@@ -167,7 +148,21 @@ class SaveIndicator extends React.Component<Props, State> {
     this.setState(newPartialState)
   }
 
-  componentDidUpdate = () => {
+  componentDidUpdate = (prevProps: Props, prevState: State) => {
+    if (this.props.saving !== this.state.saving) {
+      const debugLog = this.props.debugLog
+      const newPartialState = {
+        saving: this.props.saving,
+        ...(this.props.saving ? {lastSave: new Date()} : {}),
+      }
+      if (debugLog) {
+        debugLog(
+          `componentDidUpdate: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(prevState)}`
+        )
+      }
+      this.setState(newPartialState)
+    }
+
     this._runStateMachine()
   }
 

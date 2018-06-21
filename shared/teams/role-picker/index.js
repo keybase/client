@@ -6,8 +6,7 @@ import {
   ClickableBox,
   Button,
   ButtonBar,
-  HeaderHoc,
-  PopupDialog,
+  HeaderOrPopup,
   Text,
   Icon,
   ScrollView,
@@ -245,10 +244,5 @@ export const RoleConfirm = ({
 export const RolePicker = (props: RolePickerProps) => (
   <ScrollView>{props.confirm ? <RoleConfirm {...props} /> : <RoleOptions {...props} />}</ScrollView>
 )
-const PopupWrapped = (props: RolePickerProps) => (
-  <PopupDialog onClose={props.onCancel}>
-    <RolePicker {...props} />
-  </PopupDialog>
-)
 
-export default (isMobile ? HeaderHoc(RolePicker) : PopupWrapped)
+export default HeaderOrPopup(RolePicker)

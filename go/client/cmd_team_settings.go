@@ -310,7 +310,7 @@ func (c *CmdTeamSettings) setDisableAccessRequests(ctx context.Context, cli keyb
 }
 
 func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1.TeamsClient) error {
-	details, err := cli.TeamGet(ctx, keybase1.TeamGetArg{Name: c.Team.String(), ForceRepoll: true})
+	details, err := cli.TeamGet(ctx, keybase1.TeamGetArg{Name: c.Team.String()})
 	if err != nil {
 		return err
 	}

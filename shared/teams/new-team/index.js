@@ -4,9 +4,8 @@ import {
   Box,
   Button,
   Checkbox,
-  HeaderHoc,
+  HeaderOrPopup,
   Input,
-  PopupDialog,
   Text,
   ScrollView,
 } from '../../common-adapters/index'
@@ -19,7 +18,7 @@ type Props = {
   isSubteam: boolean,
   joinSubteam: boolean,
   name: string,
-  onBack: () => void,
+  onCancel: () => void,
   onJoinSubteamChange: () => void,
   onNameChange: (n: string) => void,
   onSetTeamCreationError: (err: string) => void,
@@ -149,12 +148,6 @@ class Contents extends React.Component<Props> {
   }
 }
 
-const PopupWrapped = (props: Props) => (
-  <PopupDialog onClose={props.onBack}>
-    <Contents {...props} />
-  </PopupDialog>
-)
-
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.flexBoxCenter,
@@ -179,4 +172,4 @@ const stylePadding = isMobile
       marginTop: 90,
     }
 
-export default (isMobile ? HeaderHoc(Contents) : PopupWrapped)
+export default HeaderOrPopup(Contents)

@@ -58,6 +58,7 @@ protocol remote {
     Asset asset;
     uint64 operationID;
     TimeMs ctime; // time on the network
+    string cursorToken;
   }
 
   record PaymentSummaryDirect {
@@ -77,6 +78,7 @@ protocol remote {
     string noteB64; // b64-encoded EncryptedNote or empty string.
     TimeMs ctime; // ctime in keybase db
     TimeMs rtime; // time of last status update
+    string cursorToken;
   }
 
   record PaymentSummaryRelay {
@@ -102,6 +104,7 @@ protocol remote {
     keybase1.TeamID teamID; // Impteam ID
     // Summary of the most relevant claim. Either the successful one or latest pending.
     union { null, ClaimSummary } claim;
+    string cursorToken;
   }
 
   record ClaimSummary {
@@ -130,7 +133,11 @@ protocol remote {
   }
   AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
 
-  array<PaymentSummary> recentPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
+  record PaymentsPage {
+    array<PaymentSummary> payments;
+    union { null, PageCursor } cursor;
+  }
+  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit);
 
   // txID can be either a keybase or stellar transaction ID.
   PaymentDetails paymentDetails(keybase1.UserVersion caller, string txID);

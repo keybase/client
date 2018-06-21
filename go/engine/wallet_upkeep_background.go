@@ -13,15 +13,11 @@ import (
 )
 
 var WalletUpkeepBackgroundSettings = BackgroundTaskSettings{
-	// Wait after starting the app
-	Start: 40 * time.Second,
-	// When waking up on mobile lots of timers will go off at once. We wait an additional
-	// delay so as not to add to that herd and slow down the mobile experience when opening the app.
-	WakeUp: 20 * time.Second,
-	// Wait between checks
-	Interval: 24 * time.Hour,
-	// Time limit on each round
-	Limit: 10 * time.Minute,
+	Start:        40 * time.Second, // Wait after starting the app.
+	StartStagger: 20 * time.Second, // Wait an additional random amount.
+	WakeUp:       20 * time.Second, // Additional delay after waking from sleep.
+	Interval:     24 * time.Hour,   // Wait between checks
+	Limit:        10 * time.Minute, // Time limit on each round
 }
 
 // WalletUpkeepBackground is an engine.

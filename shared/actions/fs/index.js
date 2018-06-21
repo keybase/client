@@ -8,6 +8,7 @@ import * as Saga from '../../util/saga'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
+import flags from '../../util/feature-flags'
 import {platformSpecificSaga, platformSpecificIntentEffect} from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
@@ -410,7 +411,6 @@ function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenera
           props: {
             path,
             position: 'bottom right',
-            isShare: false,
             targetRect,
           },
           selected: 'pathItemAction',
@@ -480,7 +480,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
-  yield Saga.safeTakeEveryPure(FsGen.commitEdit, commitEdit, editSuccess, editFailed)
+  if (flags.fsWritesEnabled) {
+    yield Saga.safeTakeEveryPure(FsGen.commitEdit, commitEdit, editSuccess, editFailed)
+  }
 
   if (!isMobile) {
     // TODO: enable these when we need it on mobile.

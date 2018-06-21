@@ -6,7 +6,7 @@ jest.unmock('immutable')
 
 describe('inbox container tests', () => {
   it('searching for yourself only', () => {
-    expect(_testing.score('myname', 'myname', ['myname'])).toBe(1)
+    expect(_testing.score('myname', 'myname', ['myname'])).toBe(100000)
   })
   it('ignore yourself otherwise', () => {
     const withYou = _testing.score('name', 'myname', ['myname', 'othername'])
@@ -22,6 +22,11 @@ describe('inbox container tests', () => {
     const s3 = _testing.score('exact', 'myname', ['a', 'b', 'exact'])
     expect(s1).toBe(s2)
     expect(s2).toBe(s3)
+  })
+  it('exact beats exact + more', () => {
+    const s1 = _testing.score('chris', 'cjb', ['chris'])
+    const s2 = _testing.score('chris', 'cjb', ['chris', 'chrisnojima'])
+    expect(s1).toBeGreaterThan(s2)
   })
   // This isn't strictly true as there's some points per number of participants
   it('exact > prefix > substr > nothing', () => {

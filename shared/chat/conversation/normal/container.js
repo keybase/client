@@ -30,7 +30,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(RouteTree.navigateAppend([{props: {conversationIDKey}, selected: 'infoPanel'}]))
     }
   },
-  onCancelSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+  onCancelSearch: () =>
+    dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'inbox'})),
   onShowTracker: (username: string) =>
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username})),
 })

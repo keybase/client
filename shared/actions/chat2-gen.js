@@ -266,7 +266,7 @@ type _ResetLetThemInPayload = $ReadOnly<{|
 |}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
+  reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
 |}>
 type _SendTypingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -299,7 +299,10 @@ type _SetPendingConversationUsersPayload = $ReadOnly<{|
   users: Array<string>,
   fromSearch: boolean,
 |}>
-type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode|}>
+type _SetPendingModePayload = $ReadOnly<{|
+  pendingMode: Types.PendingMode,
+  noneDestination?: 'inbox' | 'thread',
+|}>
 type _SetupChatHandlersPayload = void
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>

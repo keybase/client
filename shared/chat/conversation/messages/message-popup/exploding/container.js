@@ -34,6 +34,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     deviceRevokedAt: ownProps.message.deviceRevokedAt,
     deviceType: ownProps.message.deviceType,
     explodesAt: ownProps.message.explodingTime,
+    hideTimer: ownProps.message.submitState === 'pending' || ownProps.message.submitState === 'failed',
     timestamp: ownProps.message.timestamp,
     yourMessage,
   }
@@ -129,6 +130,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     deviceRevokedAt: stateProps.deviceRevokedAt,
     deviceType: stateProps.deviceType,
     explodesAt: stateProps.explodesAt,
+    hideTimer: stateProps.hideTimer,
     items,
     onHidden: ownProps.onHidden,
     position: ownProps.position,

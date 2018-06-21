@@ -159,7 +159,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             end: pos,
           },
         }
-      })
+      }, true)
       this._inputFocus()
     }
   }
@@ -294,6 +294,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
                 <SetExplodingMessagePopup
                   attachTo={this.props.attachmentRef}
                   conversationIDKey={this.props.conversationIDKey}
+                  onAfterSelect={this._inputFocus}
                   onHidden={this.props.toggleShowingMenu}
                   visible={this.props.showingMenu}
                 />

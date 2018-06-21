@@ -31,6 +31,10 @@
           "name": "username"
         },
         {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
           "type": "gregor1.MsgID",
           "name": "id"
         }

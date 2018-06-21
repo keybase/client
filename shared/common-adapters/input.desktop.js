@@ -129,7 +129,7 @@ class Input extends React.PureComponent<Props, State> {
     n && n.blur()
   }
 
-  _transformText = (fn: TextInfo => TextInfo) => {
+  _transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
@@ -145,16 +145,20 @@ class Input extends React.PureComponent<Props, State> {
       n.selectionStart = newTextInfo.selection.start
       n.selectionEnd = newTextInfo.selection.end
 
+      if (reflectChange) {
+        this._onChangeText(newTextInfo.text)
+      }
+
       this._autoResize()
     }
   }
 
-  transformText = (fn: TextInfo => TextInfo) => {
+  transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
     if (!this.props.uncontrolled) {
       throw new Error('transformText can only be called on uncontrolled components')
     }
 
-    this._transformText(fn)
+    this._transformText(fn, reflectChange)
   }
 
   _onCompositionStart = () => {
@@ -182,7 +186,6 @@ class Input extends React.PureComponent<Props, State> {
               selection: newSelection,
             }
           })
-          this._onChangeText(this._getValue())
         }
       } else {
         this.props.onEnterKeyDown(e)

@@ -235,7 +235,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	// Seqno when the per-user-key will be signed in.
 	var newPukSeqno keybase1.Seqno
 	if addingNewPUK {
-		sig1, err := libkb.PerUserKeyProofReverseSigned(me, *newPukSeed, newPukGeneration, sigKey)
+		sig1, err := libkb.PerUserKeyProofReverseSigned(m, me, *newPukSeed, newPukGeneration, sigKey)
 		if err != nil {
 			return err
 		}
@@ -354,7 +354,7 @@ func (e *RevokeEngine) getDeviceSecretKeys(m libkb.MetaContext, me *libkb.User) 
 func (e *RevokeEngine) makeRevokeSig(m libkb.MetaContext, me *libkb.User, sigKey libkb.GenericKey,
 	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID, merkleRoot *libkb.MerkleRoot) (libkb.JSONPayload, error) {
 
-	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID, merkleRoot)
+	proof, err := me.RevokeKeysProof(m, sigKey, kidsToRevoke, deviceID, merkleRoot)
 	if err != nil {
 		return nil, err
 	}

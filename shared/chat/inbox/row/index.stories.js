@@ -61,7 +61,7 @@ const mocks = [
     hasBadge: false,
     participants: ['jzila'],
     showBold: false,
-    snippet: 'I don\t know that I would want.',
+    snippet: "I don't know that I would want.",
     timestamp: '5:12 pm',
   },
   {
@@ -72,7 +72,7 @@ const mocks = [
     hasUnread: false,
     participants: ['jzila'],
     showBold: false,
-    snippet: 'I don\t know that I would want.',
+    snippet: "I don't know that I would want.",
     timestamp: '5:12 pm',
   },
   {

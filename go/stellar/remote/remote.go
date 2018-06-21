@@ -32,11 +32,13 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (shouldCreate, ha
 func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bundle) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PostWithChainlink", func() error { return err })()
 
+	m := libkb.NewMetaContext(ctx, g)
+
 	uid := g.ActiveDevice.UID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
-	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: load self")
+	m.CDebugf("Stellar.PostWithChainLink: load self")
 	loadMeArg := libkb.NewLoadUserArg(g).
 		WithNetContext(ctx).
 		WithUID(uid).
@@ -74,15 +76,15 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 	if !stellarAccount.IsPrimary {
 		return errors.New("initial stellar account is not primary")
 	}
-	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", clearBundle.Revision, stellarAccount.AccountID, pukGen)
+	m.CDebugf("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", clearBundle.Revision, stellarAccount.AccountID, pukGen)
 	boxed, err := bundle.Box(clearBundle, pukGen, pukSeed)
 	if err != nil {
 		return err
 	}
 
-	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: make sigs")
+	m.CDebugf("Stellar.PostWithChainLink: make sigs")
 
-	sig, err := libkb.StellarProofReverseSigned(me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
+	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
 	if err != nil {
 		return err
 	}
@@ -95,11 +97,12 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 
 	addWalletServerArg(payload, boxed.EncB64, boxed.VisB64, int(boxed.FormatVersion))
 
-	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: post")
-	_, err = g.API.PostJSON(libkb.APIArg{
+	m.CDebugf("Stellar.PostWithChainLink: post")
+	_, err = m.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
+		MetaContext: m,
 	})
 	if err != nil {
 		return err
@@ -396,11 +399,11 @@ func NextAutoClaim(ctx context.Context, g *libkb.GlobalContext) (*stellar1.AutoC
 
 type recentPaymentsResult struct {
 	libkb.AppStatusEmbed
-	Result []stellar1.PaymentSummary `json:"res"`
+	Result stellar1.PaymentsPage `json:"res"`
 }
 
 func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
-	accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
+	accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (stellar1.PaymentsPage, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -410,8 +413,15 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 		},
 		NetContext: ctx,
 	}
+
+	if cursor != nil {
+		apiArg.Args["horizon_cursor"] = libkb.S{Val: cursor.HorizonCursor}
+		apiArg.Args["direct_cursor"] = libkb.S{Val: cursor.DirectCursor}
+		apiArg.Args["relay_cursor"] = libkb.S{Val: cursor.RelayCursor}
+	}
+
 	var apiRes recentPaymentsResult
-	err = g.API.GetDecode(apiArg, &apiRes)
+	err := g.API.GetDecode(apiArg, &apiRes)
 	return apiRes.Result, err
 }
 

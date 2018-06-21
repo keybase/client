@@ -22,7 +22,7 @@ const Offline = ({reachable}: Props) => {
   return (
     <Box style={containerOverlayStyle}>
       <Box style={overlayRowStyle}>
-        <Text type="BodySemibold" style={textStyle}>
+        <Text type="BodySmallSemibold" style={textStyle}>
           {message}
         </Text>
       </Box>

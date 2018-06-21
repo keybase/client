@@ -723,7 +723,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 }
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
-  {text: 'Never', seconds: 0},
+  {text: 'Never (turn off)', seconds: 0},
   {text: '30 seconds', seconds: 30},
   {text: '5 minutes', seconds: 300},
   {text: '60 minutes', seconds: 3600},

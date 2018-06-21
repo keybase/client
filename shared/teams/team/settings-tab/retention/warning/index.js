@@ -6,7 +6,7 @@ import {
   Button,
   ButtonBar,
   Checkbox,
-  HeaderHoc,
+  HeaderOnMobile,
   Icon,
   PopupDialog,
   ScrollView,
@@ -161,4 +161,4 @@ const confirmLabelStyle = platformStyles({
   },
 })
 
-export default (isMobile ? HeaderHoc(RetentionWarning) : RetentionWarning)
+export default HeaderOnMobile(RetentionWarning)
