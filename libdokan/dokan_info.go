@@ -58,9 +58,9 @@ func logDokanFilesInfo(epc *errorPrinter) {
 		debugFileInfo(epc, d+shortPath)
 	}
 	for _, d := range []string{syswow64, system32} {
-		debugFileInfo(epc, d+`DOKAN.SYS`)
-		debugFileInfo(epc, d+`DOKAN1.SYS`)
-		debugFileInfo(epc, d+`DOKAN2.SYS`)
+		debugFileInfo(epc, d+`DRIVERS\DOKAN.SYS`)
+		debugFileInfo(epc, d+`DRIVERS\DOKAN1.SYS`)
+		debugFileInfo(epc, d+`DRIVERS\DOKAN2.SYS`)
 	}
 }
 
