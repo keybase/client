@@ -14,6 +14,7 @@ import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
 import {Box} from '../common-adapters'
 import Download from './footer/download'
+import Upload from './footer/upload'
 import RowActionPopup from './popups/row-action-popup'
 import FolderHeader from './header/header.desktop'
 
@@ -409,6 +410,7 @@ const load = () => {
         />
       </Box>
     ))
+    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" />)
 }
 
 export default load

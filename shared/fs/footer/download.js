@@ -16,33 +16,32 @@ export type DownloadProps = {
   cancel: () => void,
 }
 
-const Download = (props: DownloadProps) =>
-  console.log(props) || (
-    <Box style={stylesDownload(!!props.error)}>
-      <Box style={stylesIconBox}>
-        <Icon
-          type={props.isDone ? 'iconfont-success' : 'iconfont-download'}
-          color={globalColors.black_20}
-          fontSize={16}
-        />
-      </Box>
-      <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
-        <Box style={stylesNameAndProgress}>
-          <Text type="BodySmallSemibold" style={stylesText}>
-            {props.filename}
-          </Text>
-          {!props.isDone && (
-            <Box style={stylesProgressBox}>
-              <Progress completePortion={props.completePortion} text={props.progressText} width={40} />
-            </Box>
-          )}
-        </Box>
-      </ClickableBox>
-      <ClickableBox style={stylesIconBox} onClick={props.isDone ? props.dismiss : props.cancel}>
-        <Icon type="iconfont-remove" color={globalColors.white} fontSize={16} />
-      </ClickableBox>
+const Download = (props: DownloadProps) => (
+  <Box style={stylesDownload(!!props.error)}>
+    <Box style={stylesIconBox}>
+      <Icon
+        type={props.isDone ? 'iconfont-success' : 'iconfont-download'}
+        color={globalColors.black_20}
+        fontSize={16}
+      />
     </Box>
-  )
+    <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
+      <Box style={stylesNameAndProgress}>
+        <Text type="BodySmallSemibold" style={stylesText}>
+          {props.filename}
+        </Text>
+        {!props.isDone && (
+          <Box style={stylesProgressBox}>
+            <Progress completePortion={props.completePortion} text={props.progressText} width={40} />
+          </Box>
+        )}
+      </Box>
+    </ClickableBox>
+    <ClickableBox style={stylesIconBox} onClick={props.isDone ? props.dismiss : props.cancel}>
+      <Icon type="iconfont-remove" color={globalColors.white} fontSize={16} />
+    </ClickableBox>
+  </Box>
+)
 
 const stylesDownload = memoize((errored: boolean) => ({
   ...globalStyles.flexBoxRow,

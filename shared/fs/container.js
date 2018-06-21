@@ -23,21 +23,18 @@ import {
 import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const itemDetail = state.fs.pathItems.get(path)
-  const itemChildren =
-    itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.Set()) : I.Set()
+  const itemDetail = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
+  const itemChildren = itemDetail.type === 'folder' ? itemDetail.get('children', I.Set()) : I.Set()
   const itemFavoriteChildren =
-    itemDetail && itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
+    itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
   const _username = state.config.username || undefined
   const resetParticipants =
-    itemDetail &&
-    itemDetail.type === 'folder' &&
-    !!itemDetail.tlfMeta &&
-    itemDetail.tlfMeta.resetParticipants.length > 0
+    itemDetail.type === 'folder' && !!itemDetail.tlfMeta && itemDetail.tlfMeta.resetParticipants.length > 0
       ? itemDetail.tlfMeta.resetParticipants.map(i => i.username)
       : []
   const isUserReset = resetParticipants.includes(_username)
   const _downloads = state.fs.downloads
+  console.log({msg: 'songgao', path, itemDetail, resetParticipants})
   return {
     _itemChildren: itemChildren,
     _itemFavoriteChildren: itemFavoriteChildren,
@@ -50,7 +47,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
     _downloads,
     _uploads: state.fs.uploads,
     path,
-    progress: itemDetail ? itemDetail.progress : 'pending',
+    progress: itemDetail.progress,
   }
 }
 
@@ -112,13 +109,9 @@ const placeholderRows = [
   {rowType: 'placeholder', name: '3'},
 ]
 
-const mergeProps = (stateProps, dispatchProps, {routePath}) => {
+const getItemsFromStateProps = stateProps => {
   if (stateProps.progress === 'pending') {
-    return {
-      routePath,
-      items: placeholderRows,
-      path: stateProps.path,
-    }
+    return placeholderRows
   }
 
   const editingRows = getEditingRows(stateProps._edits, stateProps.path)
@@ -128,21 +121,21 @@ const mergeProps = (stateProps, dispatchProps, {routePath}) => {
     stateProps._itemChildren.union(stateProps._itemFavoriteChildren).toArray()
   )
 
-  const items = sortRowItems(
+  return sortRowItems(
     editingRows.concat(amendStillRows(stillRows, stateProps._uploads)),
     stateProps._sortSetting,
     Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
   )
-
-  return {
-    isUserReset: stateProps.isUserReset,
-    resetParticipants: stateProps.resetParticipants,
-    items,
-    path: stateProps.path,
-    progress: stateProps.progress,
-    routePath,
-  }
 }
+
+const mergeProps = (stateProps, dispatchProps, {routePath}) => ({
+  isUserReset: stateProps.isUserReset,
+  items: getItemsFromStateProps(stateProps),
+  path: stateProps.path,
+  progress: stateProps.progress,
+  resetParticipants: stateProps.resetParticipants,
+  routePath,
+})
 
 const ConnectedFiles = compose(connect(mapStateToProps, undefined, mergeProps), setDisplayName('Files'))(
   Files
