@@ -69,13 +69,15 @@ class Session {
   _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid: ?number) {
     return (waiting: boolean) => {
       rpcLog({
-        type: 'engineInternal',
-        reason: 'waiting state change',
-        id: this.getId(),
-        waiting,
+        extra: {
+          id: this.getId(),
+          seqid,
+          this: this,
+          waiting,
+        },
         method,
-        this: this,
-        seqid,
+        reason: 'waiting state change',
+        type: 'engineInternal',
       })
       // Call the outer handler with all the params it needs
       this._waitingHandler && this._waitingHandler(waiting, method, this._id)
@@ -132,7 +134,13 @@ class Session {
       sessionID: this.getId(),
     }
 
-    rpcLog({type: 'engineInternal', reason: 'session start call', id: this.getId(), method, this: this})
+    rpcLog({
+      extra: {id: this.getId(), this: this},
+      method,
+      reason: 'session start call',
+      type: 'engineInternal',
+    })
+
     const outgoingRequest = new OutgoingRequest(
       method,
       wrappedParam,
@@ -149,12 +157,14 @@ class Session {
   incomingCall(method: MethodKey, param: Object, response: ?Object): boolean {
     measureStart(`engine:${method}:${this.getId()}`)
     rpcLog({
-      type: 'engineInternal',
-      reason: 'session incoming call',
-      id: this.getId(),
+      extra: {
+        id: this.getId(),
+        response,
+        this: this,
+      },
       method,
-      this: this,
-      response,
+      reason: 'session incoming call',
+      type: 'engineInternal',
     })
     const handler = this._incomingCallMap[method]
 

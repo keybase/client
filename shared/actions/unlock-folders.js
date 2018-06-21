@@ -58,8 +58,9 @@ function _registerRekeyListener() {
   // else we get this also as part of delegateRekeyUI
   engine().setIncomingActionCreators('keybase.1.rekeyUI.delegateRekeyUI', (_, response, dispatch) => {
     // Dangling, never gets closed
-    const session = engine().createSession(
-      {
+    const session = engine().createSession({
+      dangling: true,
+      incomingCallMap: {
         'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
           dispatch(
             UnlockFoldersGen.createNewRekeyPopup({
@@ -71,10 +72,8 @@ function _registerRekeyListener() {
         },
         'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
       },
-      null,
-      null,
-      true
-    )
+      startMethod: 'keybase.1.rekeyUI.delegateRekeyUI',
+    })
     response && response.result(session.id)
   })
 }

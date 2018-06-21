@@ -10,65 +10,65 @@ const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
 
 // We basically always log/ensure once all the calls back and forth
-function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(
-  f: F,
-  info: Object,
-  enforceOnlyOnce: boolean
-): F {
+function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {
+  handler: F,
+  type: string,
+  method?: string,
+  extra?: Object,
+  // we only want to enfoce a single callback on some wrapped things
+  enforceOnlyOnce: boolean,
+  // if we don't have access to the method now it should be extracted from the a1 param
+  methodInCallback: boolean,
+}): F {
+  const {handler, extra, method, type, enforceOnlyOnce, methodInCallback} = options
   let once = false
   // $ForceType
   const wrapped: F = (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5): void => {
+    const m = methodInCallback ? a1.method : method || 'unknown'
+
     if (enforceOnlyOnce && once) {
-      rpcLog({...a1, reason: 'ignoring multiple result calls', type: 'engineInternal'})
+      rpcLog({method: m, reason: 'ignoring multiple result calls', type: 'engineInternal'})
     } else {
       once = true
 
       if (printRPC) {
         rpcLog({
-          ...info,
-          method: info.method || a1.method,
-          type: info.type || a1.type,
+          extra,
+          method: methodInCallback ? a1.method : method || 'unknown',
+          type: type,
         })
       }
 
       if (printRPCStats) {
-        const type = info.type || a1.type
-        const method = info.method || a1.method
+        const m = methodInCallback ? a1.method : method || 'unknown'
 
         if (type !== 'engineInternal') {
-          Stats.gotStat(method, type === 'serverToEngine')
+          Stats.gotStat(m, type === 'serverToEngine')
         }
       }
 
-      f(a1, a2, a3, a4, a5)
+      handler(a1, a2, a3, a4, a5)
     }
   }
   return wrapped
 }
 
 // Logging for rpcs
-function rpcLog(info: Object): void {
+function rpcLog(info: {method: string, reason?: string, extra?: Object, type: string}): void {
   if (!printRPC) {
     return
   }
 
   const prefix = {
-    engineInternal: '[engine]',
-    engineToServer: '[engine] ↗️',
-    serverToEngine: '[engine] ⤵️',
+    engineInternal: '🏎 ℹ️',
+    engineToServer: '🏎 ↗️',
+    serverToEngine: '🏎 ⤵️',
   }[info.type]
-  const style = {
-    engineInternal: 'color: purple',
-    engineToServer: 'color: blue',
-    serverToEngine: 'color: green',
-  }[info.type]
-
-  if (!prefix) {
-  }
 
   requestIdleCallback(
     () => {
-      localLog(`%c${prefix}`, style, info.reason || info.method, info)
+      const params = [info.reason, info.method, info.extra].filter(Boolean)
+      localLog(prefix, ...params)
     },
     {timeout: 1e3}
   )
@@ -104,7 +104,14 @@ class TransportShared extends RobustTransport {
         incomingRPCCallback(payload)
       }
 
-      this.set_generic_handler(_wrap(handler, {type: 'serverToEngine'}, false))
+      this.set_generic_handler(
+        _wrap({
+          enforceOnlyOnce: false,
+          handler,
+          methodInCallback: true,
+          type: 'serverToEngine',
+        })
+      )
     }
   }
 
@@ -126,17 +133,16 @@ class TransportShared extends RobustTransport {
       })
 
       calls.forEach(call => {
-        payload.response[call] = _wrap(
-          (...args) => {
+        payload.response[call] = _wrap({
+          enforceOnlyOnce: true,
+          extra: payload,
+          handler: (...args) => {
             oldResponse[call](...args)
           },
-          {
-            method: payload.method,
-            payload,
-            type: 'engineToServer',
-          },
-          true
-        )
+          method: payload.method,
+          methodInCallback: false,
+          type: 'engineToServer',
+        })
       })
     }
   }
@@ -161,28 +167,26 @@ class TransportShared extends RobustTransport {
       args: [arg.args || {}],
     }
 
-    const wrappedInvoke = _wrap(
-      args => {
+    const wrappedInvoke = _wrap({
+      enforceOnlyOnce: true,
+      handler: args => {
         super.invoke(
           args,
-          _wrap(
-            (err, data) => {
+          _wrap({
+            enforceOnlyOnce: true,
+            handler: (err, data) => {
               cb(err, data)
             },
-            {
-              method: arg.method,
-              type: 'serverToEngine',
-            },
-            true
-          )
+            method: arg.method,
+            methodInCallback: false,
+            type: 'serverToEngine',
+          })
         )
       },
-      {
-        method: arg.method,
-        type: 'engineToServer',
-      },
-      true
-    )
+      method: arg.method,
+      methodInCallback: false,
+      type: 'engineToServer',
+    })
 
     wrappedInvoke(wrappedArgs)
   }

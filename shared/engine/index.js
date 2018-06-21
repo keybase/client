@@ -193,7 +193,9 @@ class Engine {
     if (cancelledSessionID) {
       const s = this._sessionsMap[cancelledSessionID]
       rpcLog({
-        cancelledSessionID,
+        extra: {
+          cancelledSessionID,
+        },
         method: s._startMethod || 'unknown',
         reason: 'received cancel for session',
         type: 'engineInternal',
@@ -201,7 +203,9 @@ class Engine {
       s.cancel()
     } else {
       rpcLog({
-        cancelledSessionID,
+        extra: {
+          cancelledSessionID,
+        },
         method: 'unknown',
         reason: "received cancel but couldn't find session",
         type: 'engineInternal',
@@ -311,7 +315,7 @@ class Engine {
     }
 
     // Make a new session and start the request
-    const session = this.createSession(incomingCallMap, waitingHandler)
+    const session = this.createSession({incomingCallMap, startMethod: method, waitingHandler})
     // Don't make outgoing calls immediately since components can do this when they mount
     setImmediate(() => {
       session.start(method, param, callback)
@@ -320,17 +324,21 @@ class Engine {
   }
 
   // Make a new session. If the session hangs around forever set dangling to true
-  createSession(
-    incomingCallMap: ?IncomingCallMapType,
-    waitingHandler: ?WaitingHandlerType,
-    cancelHandler: ?CancelHandlerType,
-    dangling?: boolean = false
-  ): Session {
+  createSession(p: {
+    incomingCallMap?: IncomingCallMapType,
+    waitingHandler?: WaitingHandlerType,
+    cancelHandler?: CancelHandlerType,
+    dangling?: boolean,
+    startMethod?: string,
+  }): Session {
+    const {incomingCallMap, waitingHandler, cancelHandler, dangling = false, startMethod = 'unknown'} = p
     const sessionID = this._generateSessionID()
     rpcLog({
-      method: 'unknown',
+      extra: {
+        sessionID,
+      },
+      method: startMethod,
       reason: 'session start',
-      sessionID,
       type: 'engineInternal',
     })
 
@@ -368,9 +376,11 @@ class Engine {
   // Cleanup a session that ended
   _sessionEnded(session: Session) {
     rpcLog({
+      extra: {
+        sessionID: session.getId(),
+      },
       method: session._startMethod || 'unknown',
       reason: 'session end',
-      sessionID: session.getId(),
       type: 'engineInternal',
     })
     delete this._sessionsMap[String(session.getId())]
@@ -500,12 +510,12 @@ class FakeEngine {
     method: MethodKey,
     actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?Action
   ) {}
-  createSession(
-    incomingCallMap: ?IncomingCallMapType,
-    waitingHandler: ?WaitingHandlerType,
-    cancelHandler: ?CancelHandlerType,
-    dangling?: boolean = false
-  ) {
+  createSession(p: {
+    incomingCallMap?: IncomingCallMapType,
+    waitingHandler?: WaitingHandlerType,
+    cancelHandler?: CancelHandlerType,
+    dangling?: boolean,
+  }) {
     return new Session(0, {}, null, () => {}, () => {})
   }
   _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {
