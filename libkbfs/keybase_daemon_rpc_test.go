@@ -355,8 +355,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	require.NoError(t, err)
 
 	kbfsOps2 := config2.KBFSOps()
-	err = kbfsOps2.SyncFromServer(ctx,
-		rootNode2.GetFolderBranch(), nil)
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	clock.Add(1 * time.Minute)
@@ -367,8 +366,9 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
-	err = kbfsOps1.SyncFromServer(ctx,
-		rootNode1.GetFolderBranch(), nil)
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	session1, err := config1.KBPKI().GetCurrentSession(context.Background())
@@ -381,7 +381,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	// We should see 1 create edit for each user.
 	expectedHistory := keybase1.FSFolderEditHistory{
 		Folder: keybase1.Folder{
-			Name:       "u1,u2",
+			Name:       name,
 			FolderType: keybase1.FolderType_PRIVATE,
 			Private:    true,
 		},
@@ -390,7 +390,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 			{
 				WriterName: "u2",
 				Edits: []keybase1.FSFolderWriterEdit{{
-					Filename:         name + "/b",
+					Filename:         "/keybase/private/u1,u2/b",
 					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
 					ServerTime:       keybase1.ToTime(second),
 				}},
@@ -398,7 +398,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 			{
 				WriterName: "u1",
 				Edits: []keybase1.FSFolderWriterEdit{{
-					Filename:         name + "/a",
+					Filename:         "/keybase/private/u1,u2/a",
 					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
 					ServerTime:       keybase1.ToTime(first),
 				}},

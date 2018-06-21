@@ -1064,6 +1064,10 @@ func (fs *KBFSOpsStandard) KickoffAllOutstandingRekeys() error {
 func (fs *KBFSOpsStandard) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
+	if !fs.config.Mode().TLFEditHistoryEnabled() {
+		return
+	}
+
 	fs.log.CDebugf(ctx, "New notification channel for %s",
 		handle.GetCanonicalPath())
 

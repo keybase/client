@@ -2314,11 +2314,15 @@ func (fbo *folderBranchOps) makeEditNotifications(
 		return nil, nil
 	}
 
-	// If journaling is enabled, this MD is coming from the journal,
-	// and the final paths will not be set on the ops.  Use crChains
-	// to set them.
+	// If this MD is coming from the journal or from the conflict
+	// resolver, the final paths will not be set on the ops.  Use
+	// crChains to set them.
 	ops := rmd.data.Changes.Ops
-	if TLFJournalEnabled(fbo.config, fbo.id()) {
+	isResolution := false
+	if len(ops) > 0 {
+		_, isResolution = ops[0].(*resolutionOp)
+	}
+	if isResolution || TLFJournalEnabled(fbo.config, fbo.id()) {
 		chains, err := newCRChainsForIRMDs(
 			ctx, fbo.config.Codec(), []ImmutableRootMetadata{rmd},
 			&fbo.blocks, true)

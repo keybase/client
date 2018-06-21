@@ -1165,6 +1165,10 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %+v", err)
 	}
+	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch(), nil)
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %+v", err)
+	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
