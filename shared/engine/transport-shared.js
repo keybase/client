@@ -2,7 +2,7 @@
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import rpc from 'framed-msgpack-rpc'
 import {localLog} from '../util/forward-logs'
-import {printRPC, printRPCStats} from '../local-debug'
+import {printRPC} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
 import * as Stats from './stats'
 
@@ -39,12 +39,9 @@ function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {
         })
       }
 
-      if (printRPCStats) {
-        const m = methodInCallback ? a1.method : method || 'unknown'
-
-        if (type !== 'engineInternal') {
-          Stats.gotStat(m, type === 'serverToEngine')
-        }
+      // always capture stats
+      if (type !== 'engineInternal') {
+        Stats.gotStat(m, type === 'serverToEngine')
       }
 
       handler(a1, a2, a3, a4, a5)

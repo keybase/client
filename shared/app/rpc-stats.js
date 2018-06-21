@@ -4,6 +4,7 @@ import * as React from 'react'
 import {ClickableBox, Box2, Text} from '../common-adapters'
 import {connect, type TypedState} from '../util/container'
 import {styleSheetCreate, platformStyles} from '../styles'
+import {printRPCStats} from '../local-debug'
 import * as Stats from '../engine/stats'
 
 type Props = {
@@ -69,7 +70,7 @@ class RpcStats extends React.Component<Props, State> {
 
     // only check whitelist once
     if (this.props.username) {
-      if (whitelist.indexOf(this.props.username) !== -1) {
+      if (printRPCStats || whitelist.indexOf(this.props.username) !== -1) {
         visible = true
       }
       whitelist = []
