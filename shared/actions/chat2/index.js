@@ -2086,7 +2086,8 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
     const contents = seenExplodingMessages.item.body.toString()
     if (isNaN(parseInt(contents, 10))) {
       logger.info('handleSeeingExplodingMessages: bad seenExploding item body, updating category')
-    } else if (contents === 'true') {
+    }
+    if (contents === 'true') {
       // user was on the old way. check if `newExploding` is there
       // set `body` to 3 days back if not
       if (!gregorState.items.find(i => i.item.category === Constants.newExplodingGregorKey)) {
