@@ -20,13 +20,13 @@ const Header = (props: HeaderProps) => (
           style={platformStyles({isElectron: {display: 'block', lineHeight: '28px', maxHeight: 28}})}
         />
         <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
-          Set a timeout on your messages and watch them E&nbsp;X&nbsp;P&nbsp;L&nbsp;O&nbsp;D&nbsp;E&nbsp;!
+          Set a timeout on your messages and watch them
+          E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
         </Text>
         <Text
           type="BodySmallSemiboldInlineLink"
           backgroundMode="Announcements"
-          className="hover-underline"
-          style={{marginTop: globalMargins.xtiny}}
+          className="underline"
           onClickURL="https://keybase.io/blog/keybase-exploding-messages"
         >
           Learn more

@@ -9,20 +9,19 @@ const Announcement = () => (
     <Icon
       type="iconfont-boom"
       color={globalColors.white}
-      fontSize={48}
+      fontSize={64}
       style={{marginTop: -10, marginBottom: -10}}
     />
-    <Text type="BodySemibold" backgroundMode="Announcements" style={styles.headline}>
+    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={styles.headline}>
       Set a timeout on your messages and watch them
     </Text>
-    <Text type="BodySemibold" backgroundMode="Announcements" style={styles.headline}>
-      E X P L O D E
+    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={styles.headline}>
+      E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
     </Text>
     <Text
-      type="BodySmallInlineLink"
+      type="BodySmallSemiboldPrimaryLink"
       backgroundMode="Announcements"
-      className="hover-underline"
-      style={{marginTop: globalMargins.xtiny}}
+      className="underline"
       onClickURL="https://keybase.io/blog/keybase-exploding-messages"
     >
       Learn more
@@ -47,7 +46,6 @@ const styles = styleSheetCreate({
 
 const Prompt = () => (
   <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
-    <Icon type="iconfont-bomb" fontSize={20} />
     <Text type="BodySmallSemibold">Explode messages after:</Text>
   </Box2>
 )
