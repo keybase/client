@@ -11,6 +11,7 @@ type State = {
   styleTransform: string,
 }
 
+let _cacheStyleTransforms: {[src: string]: string} = {}
 // Orientations:
 // 1: rotate 0 deg left
 // 2: flip horizontally
@@ -46,10 +47,9 @@ class OrientedImage extends React.Component<Props, State> {
   }
 
   state = {
-    styleTransform: '',
+    styleTransform: _cacheStyleTransforms[this.props.src] || '',
   }
 
-  _cacheStyleTransforms = {}
   _hasComponentMounted = false
 
   _handleData = img => {
@@ -66,9 +66,9 @@ class OrientedImage extends React.Component<Props, State> {
       return
     }
 
-    if (this._cacheStyleTransforms[src]) {
+    if (_cacheStyleTransforms[src]) {
       return this.setState({
-        styleTransform: this._cacheStyleTransforms[src],
+        styleTransform: _cacheStyleTransforms[src],
       })
     }
 
@@ -88,7 +88,6 @@ class OrientedImage extends React.Component<Props, State> {
 
   componentWillUnmount() {
     this._hasComponentMounted = false
-    this._cacheStyleTransforms = {}
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
@@ -97,7 +96,7 @@ class OrientedImage extends React.Component<Props, State> {
       prevProps &&
       prevProps.src !== this.props.src &&
       this.state.styleTransform !== prevState.styleTransform &&
-      this.state.styleTransform !== this._cacheStyleTransforms[this.props.src]
+      this.state.styleTransform !== _cacheStyleTransforms[this.props.src]
     ) {
       this._setTranformForExifOrientation(this.props.src)
     }
