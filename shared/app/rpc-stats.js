@@ -74,7 +74,7 @@ class RpcStats extends React.Component<Props, State> {
           const smallInCount = this._iterateStats(['in'], s => s.count)
           const smallOutCount = this._iterateStats(['out'], s => s.count)
 
-          if (p.smallInCount !== smallInCount && p.smallOutCount !== smallOutCount) {
+          if (p.smallInCount !== smallInCount || p.smallOutCount !== smallOutCount) {
             return {smallInCount, smallOutCount}
           }
         })

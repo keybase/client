@@ -10,26 +10,36 @@ const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
 
 // We basically always log/ensure once all the calls back and forth
-// $FlowIssue using start to help with this inference insanity
-function _wrap(f: *, info: Object, enforceOnlyOnce: boolean): * {
+function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(
+  f: F,
+  info: Object,
+  enforceOnlyOnce: boolean
+): F {
   let once = false
-  return (...args) => {
-    if (!enforceOnlyOnce || once) {
-      rpcLog({args, reason: 'ignoring multiple result calls', type: 'engineInternal'})
+  // $ForceType
+  const wrapped: F = (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5): void => {
+    if (enforceOnlyOnce && once) {
+      rpcLog({...a1, reason: 'ignoring multiple result calls', type: 'engineInternal'})
     } else {
-      once = enforceOnlyOnce && true
+      once = true
 
       if (printRPC) {
-        rpcLog({...info, args})
+        rpcLog({...info, ...a1})
       }
 
-      if (printRPCStats && args.length) {
-        Stats.gotStat(info.method, info.incoming)
+      if (printRPCStats) {
+        const type = info.type || a1.type
+        const method = info.method || a1.method
+
+        if (type !== 'engineInternal') {
+          Stats.gotStat(method, type === 'serverToEngine')
+        }
       }
 
-      f(...args)
+      f(a1, a2, a3, a4, a5)
     }
   }
+  return wrapped
 }
 
 // Logging for rpcs
@@ -40,8 +50,8 @@ function rpcLog(info: Object): void {
 
   const prefix = {
     engineInternal: '[engine]',
-    engineToServer: '[engine] ->',
-    serverToEngine: '[engine] <-',
+    engineToServer: '[engine] ↗️',
+    serverToEngine: '[engine] ⤵️',
   }[info.type]
   const style = {
     engineInternal: 'color: purple',
@@ -49,9 +59,12 @@ function rpcLog(info: Object): void {
     serverToEngine: 'color: green',
   }[info.type]
 
+  if (!prefix) {
+  }
+
   requestIdleCallback(
     () => {
-      localLog(`%c${prefix}`, style, info)
+      localLog(`%c${prefix}`, style, info.reason || info.method, info)
     },
     {timeout: 1e3}
   )
@@ -87,7 +100,7 @@ class TransportShared extends RobustTransport {
         incomingRPCCallback(payload)
       }
 
-      this.set_generic_handler(_wrap(handler, {direction: 'incoming', type: 'serverToEngine'}, false))
+      this.set_generic_handler(_wrap(handler, {type: 'serverToEngine'}, false))
     }
   }
 
@@ -114,7 +127,6 @@ class TransportShared extends RobustTransport {
             oldResponse[call](...args)
           },
           {
-            incoming: false,
             method: payload.method,
             payload,
             type: 'engineToServer',
@@ -154,7 +166,6 @@ class TransportShared extends RobustTransport {
               cb(err, data)
             },
             {
-              incoming: true,
               method: arg.method,
               type: 'serverToEngine',
             },
@@ -163,7 +174,6 @@ class TransportShared extends RobustTransport {
         )
       },
       {
-        incoming: false,
         method: arg.method,
         type: 'engineToServer',
       },
