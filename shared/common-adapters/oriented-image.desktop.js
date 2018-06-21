@@ -3,7 +3,7 @@ import * as React from 'React'
 import EXIF from 'exif-js'
 import {noop, inRange} from 'lodash-es'
 import {Image} from '../common-adapters'
-import {type Props} from './oriented-image'
+import {type Props} from './oriented-image.types'
 import {collapseStyles, type StylesDesktop} from '../styles'
 
 type State = {
