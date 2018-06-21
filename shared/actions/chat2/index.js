@@ -2089,9 +2089,9 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
       return
     }
   }
-  yield Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-    cat: Constants.seenExplodingGregorKey,
+  yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
     body: Date.now().toString(),
+    category: Constants.seenExplodingGregorKey,
     dtime: {time: 0, offset: 0},
   })
 }
