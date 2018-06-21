@@ -8,7 +8,6 @@ version: 2
 jobs:
   build:
     working_directory: ~/client
-    parallelism: 1
     shell: /bin/bash --login
     environment:
       GOVERSION: 1.10.3
@@ -141,9 +140,25 @@ jobs:
         - /usr/local/android-sdk-linux/extras/android/m2repository
 
     # TODO: Run device tests (see old versions of this file).
+  test:
+    working_directory: ~/client/shared
+    shell: /bin/bash --login
+
+    docker:
+    - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
+      command: /sbin/init
+
+    steps:
 
     # Only run coverage if there were changes to the shared folder
     - run: mkdir -p /tmp/flow-coverage
     - run:
         working_directory: shared
         command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json; fi
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - test
+    
