@@ -191,10 +191,21 @@ class Engine {
       this._sessionsMap[key].hasSeqID(seqid)
     )
     if (cancelledSessionID) {
-      rpcLog('engineInternal', 'received cancel for session', {cancelledSessionID})
-      this._sessionsMap[cancelledSessionID].cancel()
+      const s = this._sessionsMap[cancelledSessionID]
+      rpcLog({
+        cancelledSessionID,
+        method: s._startMethod || 'unknown',
+        reason: 'received cancel for session',
+        type: 'engineInternal',
+      })
+      s.cancel()
     } else {
-      rpcLog('engineInternal', "received cancel but couldn't find session", {cancelledSessionID})
+      rpcLog({
+        cancelledSessionID,
+        method: 'unknown',
+        reason: "received cancel but couldn't find session",
+        type: 'engineInternal',
+      })
     }
   }
 
@@ -245,7 +256,7 @@ class Engine {
       } else if (this._incomingActionCreators[method]) {
         // General incoming
         const creator = this._incomingActionCreators[method]
-        rpcLog('engineInternal', 'handling incoming')
+        rpcLog({reason: 'handling incoming', type: 'engineInternal', method})
         const rawActions = creator(param, response, this._dispatch, this._getState)
         const actions = (rawActions || []).reduce((arr, a) => {
           if (a) {
@@ -316,7 +327,12 @@ class Engine {
     dangling?: boolean = false
   ): Session {
     const sessionID = this._generateSessionID()
-    rpcLog('engineInternal', 'session start', {sessionID})
+    rpcLog({
+      method: 'unknown',
+      reason: 'session start',
+      sessionID,
+      type: 'engineInternal',
+    })
 
     const session = new Session(
       sessionID,
@@ -351,7 +367,12 @@ class Engine {
 
   // Cleanup a session that ended
   _sessionEnded(session: Session) {
-    rpcLog('engineInternal', 'session end', {sessionID: session.getId()})
+    rpcLog({
+      method: session._startMethod || 'unknown',
+      reason: 'session end',
+      sessionID: session.getId(),
+      type: 'engineInternal',
+    })
     delete this._sessionsMap[String(session.getId())]
     this._deadSessionsMap[String(session.getId())] = true
   }
@@ -392,10 +413,18 @@ class Engine {
     ) => ?Array<Action>
   ) {
     if (this._incomingActionCreators[method]) {
-      rpcLog('engineInternal', "duplicate incoming action creator!!! this isn't allowed", {method})
+      rpcLog({
+        method,
+        reason: "duplicate incoming action creator!!! this isn't allowed",
+        type: 'engineInternal',
+      })
       return
     }
-    rpcLog('engineInternal', 'registering incoming action creator:', {method})
+    rpcLog({
+      method,
+      reason: 'registering incoming action creator:',
+      type: 'engineInternal',
+    })
     this._incomingActionCreators[method] = actionCreator
   }
 

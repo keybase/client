@@ -2,21 +2,20 @@
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import rpc from 'framed-msgpack-rpc'
 import {localLog} from '../util/forward-logs'
-import {printRPC} from '../local-debug'
+import {printRPC, printRPCStats} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
-
-import type {rpcLogType} from './index.platform'
+import * as Stats from './stats'
 
 const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
 
 // Wrapped to ensure its called once
-// $FlowIssue using start to help with this inference insanity
+// $FlowIssue using star to help with this inference insanity
 function _makeOnceOnly(f: *): * {
   let once = false
   return (...args) => {
     if (once) {
-      rpcLog('engineInternal', 'ignoring multiple result calls', {args})
+      rpcLog({args, reason: 'ignoring multiple result calls', type: 'engineInternal'})
     } else {
       once = true
       f(...args)
@@ -26,34 +25,44 @@ function _makeOnceOnly(f: *): * {
 
 // Wrapped to add logging
 function _makeLogged(
-  // $FlowIssue using start to help with this inference insanity
+  // $FlowIssue using star to help with this inference insanity
   f: *,
-  type: rpcLogType,
-  logTitle: string,
-  extraInfo?: ?Object,
-  titleFromArgs?: ?(...Array<any>) => string
+  info: Object
   // $FlowIssue using start to help with this inference insanity
 ): * {
-  if (printRPC) {
-    return (...args) => {
-      rpcLog(type, titleFromArgs ? titleFromArgs(...args) : logTitle, {...extraInfo, args})
-      f(...args)
-    }
-  } else {
+  if (!printRPC) {
     return f
+  }
+  return (...args) => {
+    rpcLog({...info, args})
+    f(...args)
+  }
+}
+
+// $FlowIssue using star to help with this inference insanity
+function _makeStatted(f: *, info: Object): * {
+  if (!printRPCStats) {
+    return f
+  }
+  return (...args) => {
+    if (args.length) {
+      Stats.gotStat(info.method, info.incoming)
+    }
+    f(...args)
   }
 }
 
 // We basically always log/ensure once all the calls back and forth
 // $FlowIssue using start to help with this inference insanity
-function _wrap(f: *, logType: rpcLogType, logTitle: string, logInfo?: Object): * {
-  const logged = _makeLogged(f, logType, logTitle, logInfo)
-  const onceOnly = _makeOnceOnly(logged)
+function _wrap(f: *, logInfo: Object): * {
+  const rpcLogged = _makeLogged(f, logInfo)
+  const rpcStatted = _makeStatted(rpcLogged, logInfo)
+  const onceOnly = _makeOnceOnly(rpcStatted)
   return onceOnly
 }
 
 // Logging for rpcs
-function rpcLog(type: rpcLogType, title: string, info?: Object): void {
+function rpcLog(info: Object): void {
   if (!printRPC) {
     return
   }
@@ -62,16 +71,16 @@ function rpcLog(type: rpcLogType, title: string, info?: Object): void {
     engineInternal: '[engine]',
     engineToServer: '[engine] ->',
     serverToEngine: '[engine] <-',
-  }[type]
+  }[info.type]
   const style = {
     engineInternal: 'color: purple',
     engineToServer: 'color: blue',
     serverToEngine: 'color: green',
-  }[type]
+  }[info.type]
 
   requestIdleCallback(
     () => {
-      localLog(`%c${prefix}`, style, title, info)
+      localLog(`%c${prefix}`, style, info)
     },
     {timeout: 1e3}
   )
@@ -107,9 +116,7 @@ class TransportShared extends RobustTransport {
         incomingRPCCallback(payload)
       }
 
-      this.set_generic_handler(
-        _makeLogged(handler, 'serverToEngine', 'incoming', null, args => `incoming: ${args.method}`)
-      )
+      this.set_generic_handler(_makeLogged(handler, {direction: 'incoming', type: 'serverToEngine'}))
     }
   }
 
@@ -135,9 +142,7 @@ class TransportShared extends RobustTransport {
           (...args) => {
             oldResponse[call](...args)
           },
-          'engineToServer',
-          call,
-          {payload}
+          {method: payload.method, payload, type: 'engineToServer', incoming: false}
         )
       })
     }
@@ -171,13 +176,11 @@ class TransportShared extends RobustTransport {
             (err, data) => {
               cb(err, data)
             },
-            'serverToEngine',
-            `received ${arg.method}`
+            {method: arg.method, type: 'serverToEngine', incoming: true}
           )
         )
       },
-      'engineToServer',
-      `sent ${arg.method}`
+      {method: arg.method, type: 'engineToServer', incoming: false}
     )
 
     wrappedInvoke(wrappedArgs)
