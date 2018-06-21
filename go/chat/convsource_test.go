@@ -1209,11 +1209,16 @@ func TestClearFromDelete(t *testing.T) {
 	}
 
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
+	select {
+	case <-listener.bgConvLoads:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no conv loader")
+	}
+
 	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
 		u.Username, "hi"))
 	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
 		u.Username, "hi2"))
-
 	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
@@ -1228,12 +1233,6 @@ func TestClearFromDelete(t *testing.T) {
 	}, 0, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(4), delMsg.GetMessageID())
-
-	select {
-	case <-listener.bgConvLoads:
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no conv loader")
-	}
 
 	require.NoError(t, hcs.storage.MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
 	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2}, nil)
