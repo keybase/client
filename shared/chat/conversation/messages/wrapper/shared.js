@@ -61,7 +61,7 @@ const MenuButton = ({onClick, setRef}) => (
 )
 
 const EditedMark = () => (
-  <Text type="BodySmall" style={styles.edited}>
+  <Text type="BodyTiny" style={styles.edited}>
     EDITED
   </Text>
 )
@@ -182,7 +182,7 @@ const RightSide = props => (
       <ExplodingMeta
         exploded={props.exploded}
         explodesAt={props.explodesAt}
-        pending={props.messagePending}
+        pending={props.messagePending || props.messageFailed}
         onClick={props.exploded ? null : props.toggleShowingMenu}
       />
     )}
@@ -280,7 +280,7 @@ const styles = styleSheetCreate({
     },
     isElectron: {pointerEvents: 'none'},
     isMobile: {
-      right: -18,
+      right: -14,
     },
   }),
   textContainer: {

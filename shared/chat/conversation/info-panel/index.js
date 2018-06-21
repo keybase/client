@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-import {Box, Divider, HeaderHoc, List} from '../../../common-adapters'
+import {Box, Divider, HeaderOnMobile, List} from '../../../common-adapters'
 import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc.types'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
@@ -624,7 +624,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   }
 }
 
-const InfoPanel = isMobile ? HeaderHoc(_InfoPanel) : _InfoPanel
+const InfoPanel = HeaderOnMobile(_InfoPanel)
 
 export type {InfoPanelProps}
 export {InfoPanel}

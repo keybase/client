@@ -326,8 +326,7 @@ func (t *teamAPIHandler) listTeamMemberships(ctx context.Context, c Call, w io.W
 	}
 
 	arg := keybase1.TeamGetArg{
-		Name:        opts.Team,
-		ForceRepoll: opts.ForcePoll,
+		Name: opts.Team,
 	}
 	details, err := t.cli.TeamGet(ctx, arg)
 	if err != nil {

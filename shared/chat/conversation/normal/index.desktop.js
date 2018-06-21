@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import fs from 'fs'
 import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
@@ -12,10 +11,9 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import type {Props} from './index.types'
 
-type State = {
+type State = {|
   showDropOverlay: boolean,
-  conversationIDKey: ?Types.ConversationIDKey,
-}
+|}
 
 const DropOverlay = ({onDragLeave, onDrop}) => (
   <Box style={dropOverlayStyle} onDragLeave={onDragLeave} onDrop={onDrop}>
@@ -40,11 +38,7 @@ const Offline = () => (
 
 class Conversation extends React.PureComponent<Props, State> {
   _mounted = false
-  state = {
-    conversationIDKey: null,
-    infoPanelOpen: false,
-    showDropOverlay: false,
-  }
+  state = {showDropOverlay: false}
 
   componentWillUnmount() {
     this._mounted = false
@@ -52,13 +46,6 @@ class Conversation extends React.PureComponent<Props, State> {
 
   componentDidMount() {
     this._mounted = true
-  }
-
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (nextProps.conversationIDKey !== prevState.conversationIDKey) {
-      return {conversationIDKey: nextProps.conversationIDKey, infoPanelOpen: false}
-    }
-    return null
   }
 
   _onDrop = e => {

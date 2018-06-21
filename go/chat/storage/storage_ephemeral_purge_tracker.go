@@ -126,7 +126,9 @@ func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
 	if err = t.dbSet(ctx, uid, allPurgeInfo); err == nil {
 		// Let our background monitor know about the new info.
 		if purger := t.G().EphemeralPurger; purger != nil {
-			purger.Queue(ctx, *purgeInfo)
+			if qerr := purger.Queue(ctx, *purgeInfo); qerr != nil {
+				return NewInternalError(ctx, t.DebugLabeler, "purger.Queue error: %s", qerr.Error())
+			}
 		}
 	}
 	return err
@@ -167,7 +169,9 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	if err = t.dbSet(ctx, uid, allPurgeInfo); err == nil {
 		// Let our background monitor know about the new info.
 		if purger := t.G().EphemeralPurger; purger != nil {
-			purger.Queue(ctx, *purgeInfo)
+			if qerr := purger.Queue(ctx, *purgeInfo); qerr != nil {
+				return NewInternalError(ctx, t.DebugLabeler, "purger.Queue error: %s", qerr.Error())
+			}
 		}
 	}
 	return err
@@ -192,7 +196,9 @@ func (t *ephemeralTracker) inactivatePurgeInfo(ctx context.Context,
 	if err = t.dbSet(ctx, uid, allPurgeInfo); err == nil {
 		// Let our background monitor know about the new info.
 		if purger := t.G().EphemeralPurger; purger != nil {
-			purger.Queue(ctx, purgeInfo)
+			if qerr := purger.Queue(ctx, purgeInfo); qerr != nil {
+				return NewInternalError(ctx, t.DebugLabeler, "purger.Queue error: %s", qerr.Error())
+			}
 		}
 	}
 	return err

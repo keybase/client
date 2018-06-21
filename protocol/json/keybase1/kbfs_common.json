@@ -155,15 +155,18 @@
           "name": "totalSyncingBytes"
         },
         {
-          "type": "int64",
-          "name": "totalSyncingOps"
-        },
-        {
           "type": {
             "type": "array",
-            "items": "FSPathSyncStatus"
+            "items": "string"
           },
-          "name": "pathStatuses"
+          "name": "syncingPaths"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "endEstimate"
         }
       ]
     }

@@ -9,6 +9,8 @@ import SetExplodeTime from '.'
 type OwnProps = {
   attachTo: ?React.Component<any, any>,
   conversationIDKey: Types.ConversationIDKey,
+  /* Called after action selecting new explode time is dispatched */
+  onAfterSelect?: (s: number) => void,
   onHidden: () => void,
   visible: boolean,
 }
@@ -20,8 +22,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  onSelect: seconds =>
-    dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey: ownProps.conversationIDKey, seconds})),
+  onSelect: seconds => {
+    dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey: ownProps.conversationIDKey, seconds}))
+    ownProps.onAfterSelect && ownProps.onAfterSelect(seconds)
+  },
 })
 
 const SetExplodePopup = connect(mapStateToProps, mapDispatchToProps)(SetExplodeTime)

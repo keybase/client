@@ -235,8 +235,6 @@ const styles = styleSheetCreate({
   quoteBlock: {
     borderLeftColor: globalColors.lightGrey2,
     borderLeftWidth: 3,
-    marginBottom: globalMargins.xtiny,
-    marginTop: globalMargins.xtiny,
     paddingLeft: 8,
   },
   strike: {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'},

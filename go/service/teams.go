@@ -123,7 +123,7 @@ func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (re
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGet(%s)", arg.Name), func() error { return err })()
 
-	res, err = teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
+	res, err = teams.Details(ctx, h.G().ExternalG(), arg.Name)
 	if err != nil {
 		return res, err
 	}

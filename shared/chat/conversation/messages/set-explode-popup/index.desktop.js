@@ -69,7 +69,8 @@ type ItemProps = {
 const Item = (props: ItemProps) => {
   let content
   const words = props.desc.text.split(' ')
-  if (words.length === 1) {
+  if (props.desc.seconds === 0) {
+    // never item
     content = props.desc.text
   } else {
     content = (

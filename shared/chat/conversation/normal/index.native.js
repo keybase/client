@@ -20,7 +20,7 @@ const Offline = () => (
       width: '100%',
     }}
   >
-    <Text style={{color: globalColors.black_40, textAlign: 'center'}} type="BodySemibold">
+    <Text style={{textAlign: 'center'}} type="BodySmallSemibold">
       Couldn't load all chat messages due to network connectivity. Retrying...
     </Text>
   </Box>

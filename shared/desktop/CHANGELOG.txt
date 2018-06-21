@@ -1,13 +1,3 @@
-Chat:
-    • Re-ordered message menu options
-    • New message actions: Quote and Reply privately
-    • Better loading of previously loaded threads
-    • Better scrollback of threads
-    • Improved typing performance
-KBFS:
-    • File browsing in app (beta)
-People:
-    • Better navigation badging behavior
-Teams:
-    • Better errors while adding people to teams / entering team names
-    • Reduce number of team refreshes
+• Exploding messages! Starting today, you can put a short fuse on your Keybase chat messages.
+• Improved chat scrolling
+• Performance improvements

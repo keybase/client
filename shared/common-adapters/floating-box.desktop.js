@@ -13,20 +13,35 @@ type State = {
 }
 
 class FloatingBox extends React.Component<Props, State> {
-  state = {targetRect: null}
+  state: State
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (!nextProps.attachTo) {
-      return {targetRect: null}
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      targetRect: this._getTargetRect(props),
     }
-    const node = findDOMNode(nextProps.attachTo)
-    return node instanceof window.HTMLElement
-      ? {targetRect: node.getBoundingClientRect()}
-      : {targetRect: null}
+  }
+
+  _getTargetRect = (p: Props) => {
+    let targetRect = null
+    if (this.props.attachTo) {
+      const node = findDOMNode(this.props.attachTo)
+      if (node instanceof window.HTMLElement) {
+        targetRect = node.getBoundingClientRect()
+      }
+    }
+    return targetRect
   }
 
   _onHidden = () => {
     this.props.onHidden && this.props.onHidden()
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.attachTo !== prevProps.attachTo) {
+      const targetRect = this._getTargetRect(this.props)
+      this.setState(p => (p.targetRect !== targetRect ? {targetRect} : null))
+    }
   }
 
   render() {

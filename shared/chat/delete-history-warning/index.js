@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Button, HeaderHoc, Icon, Text} from '../../common-adapters'
+import {Box, Button, HeaderOnMobile, Icon, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 type Props = {
@@ -52,4 +52,4 @@ const stylePadding = isMobile
       marginTop: 40,
     }
 
-export default (isMobile ? HeaderHoc(DeleteHistoryWarning) : DeleteHistoryWarning)
+export default HeaderOnMobile(DeleteHistoryWarning)

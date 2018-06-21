@@ -1056,12 +1056,6 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 					strings.ToLower(rawMsg.GetMessageType().String())))
 			}
 		}
-		// Disable reading exploding messages until fully we release support
-		if valid.IsEphemeral() && !valid.IsEphemeralExpired(time.Now()) {
-			if ekLib := g.GetEKLib(); ekLib != nil && !ekLib.ShouldRun(ctx) {
-				return miscErr(fmt.Errorf("Unable to decrypt because current client is out of date. Please update your version of Keybase to view this exploding 💣 message"))
-			}
-		}
 		var strOutboxID *string
 		if valid.ClientHeader.OutboxID != nil {
 			so := valid.ClientHeader.OutboxID.String()

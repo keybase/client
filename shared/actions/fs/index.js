@@ -411,7 +411,6 @@ function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenera
           props: {
             path,
             position: 'bottom right',
-            isShare: false,
             targetRect,
           },
           selected: 'pathItemAction',

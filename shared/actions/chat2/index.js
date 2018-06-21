@@ -709,9 +709,6 @@ const loadMoreMessages = (
     | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload,
   state: TypedState
 ) => {
-  const numMessagesOnInitialLoad = isMobile ? 20 : 500
-  const numMessagesOnScrollback = isMobile ? 100 : 500
-
   // Get the conversationIDKey
   let key = null
   let reason: string = ''
@@ -802,9 +799,9 @@ const loadMoreMessages = (
       return
     }
     isScrollingBack = true
-    numberOfMessagesToLoad = numMessagesOnScrollback
+    numberOfMessagesToLoad = Constants.numMessagesOnScrollback
   } else {
-    numberOfMessagesToLoad = numMessagesOnInitialLoad
+    numberOfMessagesToLoad = Constants.numMessagesOnInitialLoad
   }
 
   logger.info(
@@ -820,6 +817,7 @@ const loadMoreMessages = (
     }
 
     const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
+
     const actions = []
 
     let shouldClearOthers = false
@@ -1300,6 +1298,7 @@ const changeSelectedConversation = (
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
+    | Chat2Gen.BlockConversationPayload
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
@@ -1316,8 +1315,11 @@ const changeSelectedConversation = (
           ),
           Saga.put(navigateToThreadRoute),
         ])
-      } else if (isMobile) {
+      } else if (action.payload.noneDestination === 'inbox') {
         return Saga.put(Chat2Gen.createNavigateToInbox())
+      } else if (action.payload.noneDestination === 'thread') {
+        // don't allow check of isValidConversationIDKey
+        return Saga.put(navigateToThreadRoute)
       }
       break
     }
@@ -1350,6 +1352,7 @@ const _maybeAutoselectNewestConversation = (
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
+    | Chat2Gen.BlockConversationPayload
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
@@ -1373,8 +1376,11 @@ const _maybeAutoselectNewestConversation = (
     if (Constants.isValidConversationIDKey(selected)) {
       return
     }
-  } else if (action.type === Chat2Gen.leaveConversation && action.payload.conversationIDKey === selected) {
-    // force select a new one
+  } else if (
+    (action.type === Chat2Gen.leaveConversation || action.type === Chat2Gen.blockConversation) &&
+    action.payload.conversationIDKey === selected
+  ) {
+    // Intentional fall-through -- force select a new one
   } else if (selected !== Constants.noConversationIDKey) {
     return
   }
@@ -1644,7 +1650,7 @@ function* attachmentUploadCall({
     }
   } catch (e) {
     // TODO better error
-    logger.warn(`Upload Attachment Failed: ${e}`)
+    logger.warn(`Upload Attachment Failed: ${e.message}`)
   }
 }
 
@@ -1934,7 +1940,7 @@ const changePendingMode = (
     case Chat2Gen.previewConversation:
       // We decided to make a team instead of start a convo, so no resolution will take place
       if (action.payload.reason === 'convertAdHoc') {
-        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'inbox'}))
       }
       // We're selecting a team so we never want to show the row, we'll instead make the rpc call to add it to the inbox
       if (action.payload.teamname || action.payload.channelname) {
@@ -2001,7 +2007,7 @@ const createConversationSelectIt = (results: Array<any>) => {
   }
   return Saga.sequentially([
     Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'})),
-    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'thread'})),
   ])
 }
 
@@ -2122,6 +2128,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingMode,
       Chat2Gen.messageSend,
       Chat2Gen.attachmentsUpload,
+      Chat2Gen.blockConversation,
       TeamsGen.leaveTeam,
     ],
     changeSelectedConversation

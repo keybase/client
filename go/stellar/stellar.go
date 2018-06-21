@@ -607,11 +607,11 @@ func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res st
 
 func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.RecentPaymentsCLILocal", func() error { return err })()
-	payments, err := remoter.RecentPayments(ctx, accountID, 0)
+	page, err := remoter.RecentPayments(ctx, accountID, nil, 0)
 	if err != nil {
 		return nil, err
 	}
-	for _, p := range payments {
+	for _, p := range page.Payments {
 		lp, err := localizePayment(ctx, g, p)
 		if err == nil {
 			res = append(res, stellar1.PaymentOrErrorCLILocal{
@@ -850,6 +850,7 @@ func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string,
 	return desc, nil
 }
 
+// Example: "157.5000000 XLM"
 func FormatAmountXLM(amount string) (string, error) {
 	return FormatAmountWithSuffix(amount, false, "XLM")
 }
@@ -866,7 +867,7 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
 		return "", errors.New("empty amount")
 	}
-	x, err := parseDecimalStrict(amount)
+	x, err := stellarnet.ParseDecimalStrict(amount)
 	if err != nil {
 		return "", fmt.Errorf("unable to parse amount %s: %v", amount, err)
 	}
@@ -989,6 +990,22 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
 	return remote.Post(m.Ctx(), m.G(), nextBundle)
+}
+
+func GetCurrencySetting(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
+	codeStr, err := remote.GetAccountDisplayCurrency(mctx.Ctx(), mctx.G(), accountID)
+	if err != nil {
+		return res, err
+	}
+	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
+	if err != nil {
+		return res, err
+	}
+	currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(codeStr))
+	if !ok {
+		return res, fmt.Errorf("Got unrecognized currency code %q", codeStr)
+	}
+	return currency, nil
 }
 
 func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error) {

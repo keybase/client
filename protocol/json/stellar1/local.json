@@ -172,6 +172,26 @@
     },
     {
       "type": "record",
+      "name": "PaymentsPageLocal",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "PaymentOrErrorLocal"
+          },
+          "name": "payments"
+        },
+        {
+          "type": [
+            null,
+            "PageCursor"
+          ],
+          "name": "cursor"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PaymentDetailsLocal",
       "fields": [
         {
@@ -566,17 +586,14 @@
           "type": "AccountID"
         },
         {
-          "name": "olderThanTransactionID",
+          "name": "cursor",
           "type": [
             null,
-            "TransactionID"
+            "PageCursor"
           ]
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "PaymentOrErrorLocal"
-      }
+      "response": "PaymentsPageLocal"
     },
     "getPaymentDetailsLocal": {
       "request": [

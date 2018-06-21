@@ -238,7 +238,7 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 
 	ann.waitForTeamChangedGregor(teamID, keybase1.Seqno(4))
 
-	details, err := ann.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: teamName.String(), ForceRepoll: true})
+	details, err := ann.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: teamName.String()})
 	require.NoError(t, err)
 
 	// Bob should have become an admin, because the second invitations

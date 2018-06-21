@@ -1,10 +1,9 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {branch, compose, connect, lifecycle, type TypedState} from '../../util/container'
+import {compose, connect, lifecycle, type TypedState} from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
-import {HeaderHoc} from '../../common-adapters'
-import {isMobile} from '../../constants/platform'
+import {HeaderOnMobile} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState) => {
@@ -48,5 +47,4 @@ export default compose(
       this.props.loadTeams()
     },
   }),
-  branch(() => isMobile, HeaderHoc)
-)(Render)
+)(HeaderOnMobile(Render))

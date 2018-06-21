@@ -195,13 +195,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.uninstallKBFS:
     case FsGen.fsActivity:
     case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
-    case FsGen.share:
-    case FsGen.save:
+    case FsGen.shareNative:
+    case FsGen.saveMedia:
     case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:

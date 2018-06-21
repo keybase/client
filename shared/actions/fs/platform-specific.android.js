@@ -5,7 +5,7 @@ import * as FsGen from '../fs-gen'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
-import {share, save} from './common.native'
+import {shareNative, saveMedia} from './common.native'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 
 function copyToDownloadDir(path: string, mimeType: string) {
@@ -63,8 +63,8 @@ function platformSpecificIntentEffect(
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(FsGen.share, share)
-  yield Saga.safeTakeEvery(FsGen.save, save)
+  yield Saga.safeTakeEveryPure(FsGen.shareNative, shareNative)
+  yield Saga.safeTakeEvery(FsGen.saveMedia, saveMedia)
 }
 
 export {platformSpecificIntentEffect, platformSpecificSaga}

@@ -33,7 +33,8 @@ func noteSymmetricKey(ctx context.Context, g *libkb.GlobalContext, other *keybas
 	if err != nil {
 		return res, err
 	}
-	symmetricKey, err := puk1Seed.DeriveSymmetricKey(libkb.DeriveReasonPUKStellarNoteSelf)
+	// TODO: We're passing the wrong context in here. We need to migrate to libkb.DeriveReasonPUKStellarNoteSelf. (CORE-8135)
+	symmetricKey, err := puk1Seed.DeriveSymmetricKey(libkb.DeriveReasonPUKPrev)
 	if err != nil {
 		return res, err
 	}
@@ -95,7 +96,8 @@ func noteSymmetricKeyForDecryption(ctx context.Context, g *libkb.GlobalContext, 
 		return res, err
 	}
 	if them == nil {
-		return pukSeed.DeriveSymmetricKey(libkb.DeriveReasonPUKStellarNoteSelf)
+		// TODO: We're passing the wrong context in here. We need to migrate to libkb.DeriveReasonPUKStellarNoteSelf. (CORE-8135)
+		return pukSeed.DeriveSymmetricKey(libkb.DeriveReasonPUKPrev)
 	}
 	u2, err := loadUvUpk(ctx, g, them.User)
 	if err != nil {

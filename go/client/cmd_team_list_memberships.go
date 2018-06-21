@@ -22,7 +22,6 @@ type CmdTeamListMemberships struct {
 	libkb.Contextified
 	team                 string
 	json                 bool
-	forcePoll            bool
 	userAssertion        string
 	includeImplicitTeams bool
 	showAll              bool
@@ -40,10 +39,6 @@ func (c *CmdTeamListMemberships) SetJSON(b bool) {
 	c.json = b
 }
 
-func (c *CmdTeamListMemberships) SetForcePoll(b bool) {
-	c.forcePoll = b
-}
-
 func NewCmdTeamListMembershipsRunner(g *libkb.GlobalContext) *CmdTeamListMemberships {
 	return &CmdTeamListMemberships{Contextified: libkb.NewContextified(g)}
 }
@@ -53,10 +48,6 @@ func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 		cli.BoolFlag{
 			Name:  "j, json",
 			Usage: "Output memberships as JSON",
-		},
-		cli.BoolFlag{
-			Name:  "force-poll",
-			Usage: "Force a poll of the server for all identities",
 		},
 		cli.StringFlag{
 			Name:  "u, user",
@@ -120,7 +111,6 @@ func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.json = ctx.Bool("json")
-	c.forcePoll = ctx.Bool("force-poll")
 	c.verbose = ctx.Bool("verbose")
 
 	return nil
@@ -140,7 +130,7 @@ func (c *CmdTeamListMemberships) Run() error {
 }
 
 func (c *CmdTeamListMemberships) runGet(cli keybase1.TeamsClient) error {
-	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.team, ForceRepoll: c.forcePoll})
+	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.team})
 	if err != nil {
 		return err
 	}
