@@ -279,9 +279,9 @@ type TeamMemberDetails struct {
 	Uv        UserVersion `codec:"uv" json:"uv"`
 	Username  string      `codec:"username" json:"username"`
 	FullName  FullName    `codec:"fullName" json:"fullName"`
-	Active    bool        `codec:"active" json:"active"`
-	NeedsPUK  bool        `codec:"needsPUK" json:"needsPUK"`
+	IsReset   bool        `codec:"isReset" json:"isReset"`
 	IsDeleted bool        `codec:"isDeleted" json:"isDeleted"`
+	NeedsPUK  bool        `codec:"needsPUK" json:"needsPUK"`
 }
 
 func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
@@ -289,9 +289,9 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 		Uv:        o.Uv.DeepCopy(),
 		Username:  o.Username,
 		FullName:  o.FullName.DeepCopy(),
-		Active:    o.Active,
-		NeedsPUK:  o.NeedsPUK,
+		IsReset:   o.IsReset,
 		IsDeleted: o.IsDeleted,
+		NeedsPUK:  o.NeedsPUK,
 	}
 }
 

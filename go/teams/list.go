@@ -524,7 +524,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 func addKeybaseInviteToRes(ctx context.Context, memb keybase1.TeamMemberDetails,
 	membs []keybase1.TeamMemberDetails) []keybase1.TeamMemberDetails {
 	for idx, existing := range membs {
-		if memb.Uv.Uid.Equal(existing.Uv.Uid) && !existing.Active {
+		if memb.Uv.Uid.Equal(existing.Uv.Uid) && existing.IsReset {
 			membs[idx] = memb
 			return membs
 		}
@@ -584,17 +584,22 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 			if err != nil {
 				return nil, err
 			}
-			var active = true
-			var fullName keybase1.FullName
 			pkg := namePkgs[uv.Uid]
+			isReset := false
+			isDeleted := false
+			var fullName keybase1.FullName
 			if pkg.FullName != nil {
 				if pkg.FullName.EldestSeqno != uv.EldestSeqno {
-					active = false
+					isReset = true
+				}
+				if pkg.FullName.Status == keybase1.StatusCode_SCDeleted {
+					isReset = false
+					isDeleted = true
 				}
 				fullName = pkg.FullName.FullName
 			}
 
-			if !active {
+			if isReset || isDeleted {
 				// Skip inactive puk-less members for now. Causes
 				// duplicate usernames in team list which we don't
 				// want.
@@ -602,11 +607,12 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 			}
 
 			details := keybase1.TeamMemberDetails{
-				Uv:       uv,
-				Username: pkg.NormalizedUsername.String(),
-				Active:   active,
-				NeedsPUK: true,
-				FullName: fullName,
+				Uv:        uv,
+				Username:  pkg.NormalizedUsername.String(),
+				IsReset:   isReset,
+				IsDeleted: isDeleted,
+				NeedsPUK:  true,
+				FullName:  fullName,
 			}
 
 			switch invite.Role {

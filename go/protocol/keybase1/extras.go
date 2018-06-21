@@ -1880,23 +1880,23 @@ func (t TeamMember) IsReset() bool {
 func (t TeamMembersDetails) ActiveUsernames() map[string]bool {
 	m := make(map[string]bool)
 	for _, u := range t.Owners {
-		m[u.Username] = m[u.Username] || u.Active
+		m[u.Username] = m[u.Username] || !(u.IsReset || u.IsDeleted)
 	}
 	for _, u := range t.Admins {
-		m[u.Username] = m[u.Username] || u.Active
+		m[u.Username] = m[u.Username] || !(u.IsReset || u.IsDeleted)
 	}
 	for _, u := range t.Writers {
-		m[u.Username] = m[u.Username] || u.Active
+		m[u.Username] = m[u.Username] || !(u.IsReset || u.IsDeleted)
 	}
 	for _, u := range t.Readers {
-		m[u.Username] = m[u.Username] || u.Active
+		m[u.Username] = m[u.Username] || !(u.IsReset || u.IsDeleted)
 	}
 	return m
 }
 
 func FilterInactiveMembers(arg []TeamMemberDetails) (ret []TeamMemberDetails) {
 	for _, v := range arg {
-		if v.Active {
+		if !v.IsReset {
 			ret = append(ret, v)
 		}
 	}

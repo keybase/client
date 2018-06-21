@@ -124,17 +124,16 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 
 	for i, uv := range uvs {
 		pkg := packages[i]
-		active := true
+		isReset := false
 		isDeleted := false
 		var fullName keybase1.FullName
 		if pkg.FullName != nil {
 			if pkg.FullName.EldestSeqno != uv.EldestSeqno {
-				active = false
-				// Check if this user was deleted or just reset
-				_, err := loadUserVersionByUsername(ctx, g, pkg.NormalizedUsername.String())
-				if err != nil && err == errUserDeleted {
-					isDeleted = true
-				}
+				isReset = true
+			}
+			if pkg.FullName.Status == keybase1.StatusCode_SCDeleted {
+				isReset = false
+				isDeleted = true
 			}
 			fullName = pkg.FullName.FullName
 		}
@@ -142,7 +141,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 			Uv:        uvs[i],
 			Username:  pkg.NormalizedUsername.String(),
 			FullName:  fullName,
-			Active:    active,
+			IsReset:   isReset,
 			IsDeleted: isDeleted,
 		}
 	}

@@ -517,12 +517,12 @@ func TestMemberDetailsResetAndDeletedUser(t *testing.T) {
 	_, err = AddMember(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
 
-	details, err := Details(context.TODO(), tc.G, name, true)
+	details, err := Details(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 
 	require.Len(t, details.Members.Admins, 2)
 	for _, admin := range details.Members.Admins {
-		require.True(t, admin.Active)
+		require.False(t, admin.IsReset)
 		require.False(t, admin.IsDeleted)
 	}
 
@@ -537,7 +537,7 @@ func TestMemberDetailsResetAndDeletedUser(t *testing.T) {
 
 	owner.Login(tc.G)
 
-	details, err = Details(context.TODO(), tc.G, name, true)
+	details, err = Details(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 
 	require.Len(t, details.Members.Admins, 2)
@@ -545,10 +545,10 @@ func TestMemberDetailsResetAndDeletedUser(t *testing.T) {
 		switch admin.Username {
 		case otherA.Username: // only reset
 			require.False(t, admin.IsDeleted)
-			require.False(t, admin.Active)
+			require.True(t, admin.IsReset)
 		case otherB.Username: // deleted
 			require.True(t, admin.IsDeleted)
-			require.False(t, admin.Active)
+			require.False(t, admin.IsReset)
 		}
 	}
 }
@@ -706,10 +706,12 @@ func TestMemberAddAsImplicitAdmin(t *testing.T) {
 	})
 	require.Equal(t, owner.GetUserVersion(), ias[0].Uv)
 	require.Equal(t, owner.Username, ias[0].Username)
-	require.True(t, ias[0].Active)
+	require.False(t, ias[0].IsReset)
+	require.False(t, ias[0].IsDeleted)
 	require.Equal(t, otherA.GetUserVersion(), ias[1].Uv)
 	require.Equal(t, otherA.Username, ias[1].Username)
-	require.True(t, ias[1].Active)
+	require.False(t, ias[1].IsReset)
+	require.False(t, ias[1].IsDeleted)
 }
 
 func TestLeave(t *testing.T) {

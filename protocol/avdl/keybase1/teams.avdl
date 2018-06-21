@@ -88,10 +88,10 @@ protocol teams {
     UserVersion uv;
     string username;
     FullName fullName;
-    boolean active;
+    boolean isReset;
+    boolean isDeleted;
     @lint("ignore")
     boolean needsPUK;
-    boolean isDeleted;
   }
 
   record TeamMembersDetails {

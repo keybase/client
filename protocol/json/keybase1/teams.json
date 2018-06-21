@@ -209,16 +209,16 @@
         },
         {
           "type": "boolean",
-          "name": "active"
+          "name": "isReset"
+        },
+        {
+          "type": "boolean",
+          "name": "isDeleted"
         },
         {
           "type": "boolean",
           "name": "needsPUK",
           "lint": "ignore"
-        },
-        {
-          "type": "boolean",
-          "name": "isDeleted"
         }
       ]
     },
