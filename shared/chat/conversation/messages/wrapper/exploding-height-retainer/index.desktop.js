@@ -125,7 +125,7 @@ const AshBox = glamorous.div(props => ({
 }))
 const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?string, height: number}) => {
   const explodedTag = props.explodedBy ? (
-    <Text type="BodySmall" style={styles.exploded}>
+    <Text type="BodyTiny" style={styles.exploded}>
       EXPLODED BY{' '}
       <ConnectedUsernames
         type="BodySmallSemibold"
@@ -133,10 +133,12 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
         usernames={[props.explodedBy]}
         inline={true}
         colorFollowing={true}
+        colorYou={true}
+        underline={true}
       />
     </Text>
   ) : (
-    <Text type="BodySmall" style={styles.exploded}>
+    <Text type="BodyTiny" style={styles.exploded}>
       EXPLODED
     </Text>
   )

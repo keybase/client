@@ -29,7 +29,7 @@ const Intro = (props: Props) => (
   <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
     {!!props.bannerMessage && (
       <Box2 direction="vertical" fullWidth={true} style={styles.banner}>
-        <Text type="BodySemibold" style={styles.bannerMessage}>
+        <Text type="BodySmallSemibold" style={styles.bannerMessage}>
           {props.bannerMessage}
         </Text>
       </Box2>

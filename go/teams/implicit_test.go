@@ -50,8 +50,8 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 		createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
 			public)
-		tlfid0 := createdTeam.KBFSTLFID()
 		require.NoError(t, err)
+		tlfid0 := createdTeam.KBFSTLFID()
 		require.Equal(t, public, impTeamName.IsPublic)
 		require.True(t, tlfid0.IsNil())
 
@@ -97,6 +97,20 @@ func TestLookupImplicitTeams(t *testing.T) {
 	require.Error(t, err)
 	_, _, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", true)
 	require.Error(t, err)
+
+	// Create the same team right on top of each other
+	displayName = strings.Join(usernames, ",") + ",josecanseco@twitter"
+	ch := make(chan error, 2)
+	go func() {
+		_, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, false)
+		ch <- err
+	}()
+	go func() {
+		_, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, false)
+		ch <- err
+	}()
+	require.NoError(t, <-ch)
+	require.NoError(t, <-ch)
 }
 
 // Test an implicit team where one user does not yet have a PUK.

@@ -8,10 +8,25 @@ export type _Reserve = {
 }
 export type Reserve = I.RecordOf<_Reserve>
 
-export type AccountID = string
+export opaque type AccountID: string = string
+export const stringToAccountID = __DEV__
+  ? (s: string): AccountID => {
+      if (!s) {
+        throw new Error('Invalid empty converationidkey. Did you mean Constants.noConversationIDKey?')
+      }
+      return s
+    }
+  : (s: string): AccountID => s
+
+export const accountIDToString = (accountID: AccountID): string => accountID
+
+// No account
+export const noAccountID = stringToAccountID('NOACCOUNTID')
+
+export const isValidAccountID = (accountID: AccountID) => accountID && accountID !== noAccountID
 
 export type _Account = {
-  accountID: string,
+  accountID: AccountID,
   balanceDescription: string,
   isDefault: boolean,
   name: string,
@@ -54,6 +69,7 @@ export type Payment = I.RecordOf<_Payment>
 
 export type _State = {
   accountMap: I.Map<AccountID, Account>,
+  selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
 }
