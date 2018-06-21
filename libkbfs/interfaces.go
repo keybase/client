@@ -2249,4 +2249,8 @@ type Chat interface {
 	// RegisterForMessages registers a callback that will be called
 	// for each new messages that reaches convID.
 	RegisterForMessages(convID chat1.ConversationID, cb ChatChannelNewMessageCB)
+
+	// ClearCache is called to force this instance to forget
+	// everything it might have cached, e.g. when a user logs out.
+	ClearCache()
 }

@@ -534,6 +534,14 @@ func (c *ChatRPC) RegisterForMessages(
 	c.convCBs[str] = append(c.convCBs[str], cb)
 }
 
+// ClearCache implements the Chat interface.
+func (c *ChatRPC) ClearCache() {
+	c.convLock.Lock()
+	defer c.convLock.Unlock()
+	c.selfConvID = nil
+	c.lastWrittenConvID = nil
+}
+
 // We only register for the kbfs-edits type of notification in
 // keybase_daemon_rpc, so all the other methods below besides
 // `NewChatActivity` should never be called.

@@ -7764,3 +7764,13 @@ func (m *MockChat) RegisterForMessages(convID chat1.ConversationID, cb ChatChann
 func (mr *MockChatMockRecorder) RegisterForMessages(convID, cb interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterForMessages", reflect.TypeOf((*MockChat)(nil).RegisterForMessages), convID, cb)
 }
+
+// ClearCache mocks base method
+func (m *MockChat) ClearCache() {
+	m.ctrl.Call(m, "ClearCache")
+}
+
+// ClearCache indicates an expected call of ClearCache
+func (mr *MockChatMockRecorder) ClearCache() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearCache", reflect.TypeOf((*MockChat)(nil).ClearCache))
+}

@@ -328,3 +328,10 @@ func (c *chatLocal) copy(config Config) *chatLocal {
 		c.data.newChannelCBs, config.KBFSOps().NewNotificationChannel)
 	return copy
 }
+
+// ClearCache implements the Chat interface.
+func (c *chatLocal) ClearCache() {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.selfConvInfos = nil
+}
