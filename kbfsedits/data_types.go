@@ -7,6 +7,7 @@ package kbfsedits
 import (
 	"time"
 
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -136,4 +137,13 @@ func (nbr notificationsByRevision) uniquify() (ret notificationsByRevision) {
 		}
 	}
 	return ret
+}
+
+// SelfWriteMessage is written into a special, private channel when
+// the user writes to some TLF.
+type SelfWriteMessage struct {
+	Version    NotificationVersion
+	Folder     keybase1.Folder
+	ConvID     chat1.ConversationID
+	ServerTime time.Time
 }

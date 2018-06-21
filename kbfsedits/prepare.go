@@ -15,3 +15,13 @@ func Prepare(edits []NotificationMessage) (string, error) {
 	}
 	return string(buf), nil
 }
+
+// PrepareSelfWrite converts the given message into a string suitable
+// for sending/storing it.
+func PrepareSelfWrite(msg SelfWriteMessage) (string, error) {
+	buf, err := json.Marshal(msg)
+	if err != nil {
+		return "", err
+	}
+	return string(buf), nil
+}
