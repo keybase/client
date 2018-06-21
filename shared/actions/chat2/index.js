@@ -1316,7 +1316,10 @@ const changeSelectedConversation = (
           Saga.put(navigateToThreadRoute),
         ])
       } else if (action.payload.noneDestination === 'inbox') {
-        return Saga.put(Chat2Gen.createNavigateToInbox())
+        return Saga.sequentially([
+          Saga.put(Chat2Gen.createNavigateToInbox()),
+          !isMobile ? _maybeAutoselectNewestConversation(action, state) : undefined,
+        ])
       } else if (action.payload.noneDestination === 'thread') {
         // don't allow check of isValidConversationIDKey
         return Saga.put(navigateToThreadRoute)
