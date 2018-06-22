@@ -80,9 +80,10 @@ class OrientedImage extends React.Component<Props, State> {
     // image that the keybase service is serving
     // img = this refers to the image ArrayBuffer fetched from the local server.
     const handleData = this._handleData
-    const _hasComponentMounted = this._hasComponentMounted
+    const _hasComponentMounted = () => this._hasComponentMounted
+
     EXIF.getData({src}, function() {
-      if (!_hasComponentMounted) return
+      if (!_hasComponentMounted()) return
       handleData(this)
     })
   }
