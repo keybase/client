@@ -1,16 +1,11 @@
 // @flow
-import React, {Component} from 'react'
-import Render from '.'
+import Error from '.'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
-import {restartSignup} from '../../../actions/signup'
-
-class SignupError extends Component<any> {
-  render() {
-    return <Render errorText={this.props.errorText} restartSignup={this.props.restartSignup} />
-  }
-}
+import * as SignupGen from '../../../actions/signup-gen'
 
 const mapStateToProps = (state: TypedState) => ({errorText: state.signup.signupError})
-const mapDispatchToProps = (dispatch: Dispatch) => ({restartSignup: () => dispatch(restartSignup())})
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  restartSignup: () => dispatch(SignupGen.createRestartSignup()),
+})
 
-export default connect(mapStateToProps, mapDispatchToProps)(SignupError)
+export default connect(mapStateToProps, mapDispatchToProps)(Error)

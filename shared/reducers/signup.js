@@ -31,7 +31,7 @@ export default function(state: Types.State = Constants.initialState, action: Sig
         }
       }
 
-    case SignupGen.checkUsernameEmail:
+    case SignupGen.checkUsernameEmailDone:
       const {username, email} = action.payload
       if (action.error) {
         const {emailError, usernameError} = action.payload
@@ -46,10 +46,10 @@ export default function(state: Types.State = Constants.initialState, action: Sig
         return {
           ...state,
           email,
-          emailError: null,
+          emailError: '',
           phase: 'passphraseSignup',
           username,
-          usernameError: null,
+          usernameError: '',
         }
       }
 
@@ -149,6 +149,9 @@ export default function(state: Types.State = Constants.initialState, action: Sig
         passphraseError: null,
         phase: 'inviteCode',
       }
+    // Saga only
+    case SignupGen.checkUsernameEmail:
+      return state
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any

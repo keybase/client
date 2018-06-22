@@ -11,6 +11,7 @@ export const resetStore = 'common:resetStore' // not a part of signup but is han
 export const checkInviteCode = 'signup:checkInviteCode'
 export const checkPassphrase = 'signup:checkPassphrase'
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
+export const checkUsernameEmailDone = 'signup:checkUsernameEmailDone'
 export const clearDeviceNameError = 'signup:clearDeviceNameError'
 export const requestInvite = 'signup:requestInvite'
 export const resetSignup = 'signup:resetSignup'
@@ -27,15 +28,19 @@ type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
 type _CheckInviteCodePayloadError = $ReadOnly<{|errorText: string|}>
 type _CheckPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _CheckPassphrasePayloadError = $ReadOnly<{|passphraseError: HiddenString|}>
-type _CheckUsernameEmailPayload = $ReadOnly<{|
+type _CheckUsernameEmailDonePayload = $ReadOnly<{|
   username: string,
   email: string,
 |}>
-type _CheckUsernameEmailPayloadError = $ReadOnly<{|
-  emailError: ?Error,
-  usernameError: ?Error,
-  email: ?string,
-  username: ?string,
+type _CheckUsernameEmailDonePayloadError = $ReadOnly<{|
+  emailError: string,
+  usernameError: string,
+  email: string,
+  username: string,
+|}>
+type _CheckUsernameEmailPayload = $ReadOnly<{|
+  username: string,
+  email: string,
 |}>
 type _ClearDeviceNameErrorPayload = void
 type _RequestInvitePayload = $ReadOnly<{|
@@ -43,10 +48,10 @@ type _RequestInvitePayload = $ReadOnly<{|
   name: string,
 |}>
 type _RequestInvitePayloadError = $ReadOnly<{|
-  emailError: ?Error,
-  nameError: ?Error,
-  email: ?string,
-  name: ?string,
+  emailError: string,
+  nameError: string,
+  email: string,
+  name: string,
 |}>
 type _ResetSignupPayload = void
 type _RestartSignupPayload = void
@@ -59,12 +64,19 @@ type _SubmitDeviceNamePayloadError = $ReadOnly<{|deviceNameError: string|}>
 type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
+/**
+ * We heard back from the server
+ */
+export const createCheckUsernameEmailDone = (payload: _CheckUsernameEmailDonePayload) => ({error: false, payload, type: checkUsernameEmailDone})
+export const createCheckUsernameEmailDoneError = (payload: _CheckUsernameEmailDonePayloadError) => ({error: true, payload, type: checkUsernameEmailDone})
+/**
+ * We want to valid a user/email
+ */
+export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload) => ({error: false, payload, type: checkUsernameEmail})
 export const createCheckInviteCode = (payload: _CheckInviteCodePayload) => ({error: false, payload, type: checkInviteCode})
 export const createCheckInviteCodeError = (payload: _CheckInviteCodePayloadError) => ({error: true, payload, type: checkInviteCode})
 export const createCheckPassphrase = (payload: _CheckPassphrasePayload) => ({error: false, payload, type: checkPassphrase})
 export const createCheckPassphraseError = (payload: _CheckPassphrasePayloadError) => ({error: true, payload, type: checkPassphrase})
-export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload) => ({error: false, payload, type: checkUsernameEmail})
-export const createCheckUsernameEmailError = (payload: _CheckUsernameEmailPayloadError) => ({error: true, payload, type: checkUsernameEmail})
 export const createClearDeviceNameError = (payload: _ClearDeviceNameErrorPayload) => ({error: false, payload, type: clearDeviceNameError})
 export const createRequestInvite = (payload: _RequestInvitePayload) => ({error: false, payload, type: requestInvite})
 export const createRequestInviteError = (payload: _RequestInvitePayloadError) => ({error: true, payload, type: requestInvite})
@@ -83,8 +95,9 @@ export type CheckInviteCodePayload = $Call<typeof createCheckInviteCode, _CheckI
 export type CheckInviteCodePayloadError = $Call<typeof createCheckInviteCodeError, _CheckInviteCodePayloadError>
 export type CheckPassphrasePayload = $Call<typeof createCheckPassphrase, _CheckPassphrasePayload>
 export type CheckPassphrasePayloadError = $Call<typeof createCheckPassphraseError, _CheckPassphrasePayloadError>
+export type CheckUsernameEmailDonePayload = $Call<typeof createCheckUsernameEmailDone, _CheckUsernameEmailDonePayload>
+export type CheckUsernameEmailDonePayloadError = $Call<typeof createCheckUsernameEmailDoneError, _CheckUsernameEmailDonePayloadError>
 export type CheckUsernameEmailPayload = $Call<typeof createCheckUsernameEmail, _CheckUsernameEmailPayload>
-export type CheckUsernameEmailPayloadError = $Call<typeof createCheckUsernameEmailError, _CheckUsernameEmailPayloadError>
 export type ClearDeviceNameErrorPayload = $Call<typeof createClearDeviceNameError, _ClearDeviceNameErrorPayload>
 export type RequestInvitePayload = $Call<typeof createRequestInvite, _RequestInvitePayload>
 export type RequestInvitePayloadError = $Call<typeof createRequestInviteError, _RequestInvitePayloadError>
@@ -105,8 +118,9 @@ export type Actions =
   | CheckInviteCodePayloadError
   | CheckPassphrasePayload
   | CheckPassphrasePayloadError
+  | CheckUsernameEmailDonePayload
+  | CheckUsernameEmailDonePayloadError
   | CheckUsernameEmailPayload
-  | CheckUsernameEmailPayloadError
   | ClearDeviceNameErrorPayload
   | RequestInvitePayload
   | RequestInvitePayloadError

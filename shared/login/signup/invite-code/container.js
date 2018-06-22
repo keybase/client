@@ -1,7 +1,8 @@
 // @flow
+import * as SignupGen from '../../../actions/signup-gen'
 import InviteCode from '.'
 import {connect, type TypedState} from '../../../util/container'
-import {restartSignup, startRequestInvite, checkInviteCodeThenNextPhase} from '../../../actions/signup'
+import {startRequestInvite, checkInviteCodeThenNextPhase} from '../../../actions/signup'
 
 const mapStateToProps = (state: TypedState) => ({
   inviteCode: state.signup.inviteCode,
@@ -10,7 +11,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(restartSignup()),
+  onBack: () => dispatch(SignupGen.createRestartSignup()),
   onInviteCodeSubmit: (inviteCode: string) => dispatch(checkInviteCodeThenNextPhase(inviteCode)),
   onRequestInvite: () => dispatch(startRequestInvite()),
 })

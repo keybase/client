@@ -2,6 +2,7 @@
 import logger from '../logger'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
+import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
 import {trim} from 'lodash-es'
@@ -9,6 +10,9 @@ import {isMobile} from '../constants/platform'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {loginTab} from '../constants/tabs'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
+import type {RPCError} from '../engine/types'
+
+// TODO sagaize this
 
 function nextPhase() {
   return (dispatch, getState) => {
@@ -88,14 +92,7 @@ function requestInvite(email: string, name: string) {
       const emailError = isValidEmail(email)
       const nameError = isValidName(name)
       if (emailError || nameError || !email || !name) {
-        dispatch(
-          SignupGen.createRequestInviteError({
-            email,
-            emailError,
-            name,
-            nameError,
-          })
-        )
+        dispatch(SignupGen.createRequestInviteError({email, emailError, name, nameError}))
         resolve()
         return
       }
@@ -110,12 +107,7 @@ function requestInvite(email: string, name: string) {
       })
         .then(() => {
           if (email && name) {
-            dispatch(
-              SignupGen.createRequestInvite({
-                email,
-                name,
-              })
-            )
+            dispatch(SignupGen.createRequestInvite({email, name}))
             dispatch(nextPhase())
             resolve()
           } else {
@@ -128,7 +120,7 @@ function requestInvite(email: string, name: string) {
               email,
               emailError: err,
               name,
-              nameError: null,
+              nameError: '',
             })
           )
           reject(err)
@@ -138,60 +130,69 @@ function requestInvite(email: string, name: string) {
   }
 }
 
-function checkUsernameEmail(username: ?string, email: ?string) {
-  return (dispatch: Dispatch) => {
-    const p = new Promise((resolve, reject) => {
-      const emailError = isValidEmail(email)
-      const usernameError = isValidUsername(username)
+const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload) => {
+  const {email, username} = action.payload
+  const emailError = isValidEmail(email)
+  if (emailError) {
+    const toThrow = {email: 'Invalid email'}
+    throw toThrow
+  }
+  const usernameError = isValidUsername(username)
+  if (usernameError) {
+    const toThrow = {username: 'Invalid username'}
+    throw toThrow
+  }
 
-      if (emailError || usernameError || !username || !email) {
-        dispatch(
-          SignupGen.createCheckUsernameEmailError({
-            email,
-            emailError,
-            username,
-            usernameError,
-          })
-        )
-        resolve()
-        return
-      }
+  return Saga.call(RPCTypes.signupCheckUsernameAvailableRpcPromise, {
+    username,
+    waitingHandler: isWaiting => SignupGen.createWaiting({waiting: isWaiting}),
+  })
+}
 
-      RPCTypes.signupCheckUsernameAvailableRpcPromise({
+const checkUsernameEmailSuccess = (result: any, action: SignupGen.CheckUsernameEmailPayload) => {
+  const {email, username} = action.payload
+  return Saga.sequentially([
+    Saga.put(SignupGen.createCheckUsernameEmailDone({email, username})),
+    Saga.put(nextPhase()),
+  ])
+}
+
+const checkUsernameEmailError = (
+  err: {email: string, username: string} | RPCError,
+  action: SignupGen.CheckUsernameEmailPayload
+) => {
+  const {email, username} = action.payload
+  if (err.email) {
+    const e: {email: string} = (err: any)
+    return Saga.put(
+      SignupGen.createCheckUsernameEmailDoneError({
+        email,
+        emailError: e.email,
         username,
-        waitingHandler: isWaiting => {
-          dispatch(SignupGen.createWaiting({waiting: isWaiting}))
-        },
+        usernameError: '',
       })
-        .then(() => {
-          // We need this check to make flow happy. This should never be null
-          if (username && email) {
-            dispatch(
-              SignupGen.createCheckUsernameEmail({
-                email,
-                username,
-              })
-            )
-            dispatch(nextPhase())
-            resolve()
-          } else {
-            reject(new Error('no user or email'))
-          }
-        })
-        .catch(err => {
-          logger.warn("username isn't available:", err)
-          dispatch(
-            SignupGen.createCheckUsernameEmailError({
-              email,
-              emailError,
-              username,
-              usernameError: err,
-            })
-          )
-          resolve()
-        })
-    })
-    return p
+    )
+    // $FlowIssue really hates this type
+  } else if (err.username) {
+    const e: {username: string} = (err: any)
+    return Saga.put(
+      SignupGen.createCheckUsernameEmailDoneError({
+        email,
+        emailError: '',
+        username: username,
+        usernameError: err.username,
+      })
+    )
+  } else {
+    const e: RPCError = (err: any)
+    return Saga.put(
+      SignupGen.createCheckUsernameEmailDoneError({
+        email,
+        emailError: '',
+        username,
+        usernameError: `Sorry, there was a problem: ${e.desc}`,
+      })
+    )
   }
 }
 
@@ -342,25 +343,25 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
   }
 }
 
-function restartSignup() {
-  return (dispatch: Dispatch) => {
-    const p = new Promise((resolve, reject) => {
-      dispatch(SignupGen.createRestartSignup())
-      dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
-      resolve()
-    })
-    return p
-  }
+const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
+
+const signupSaga = function*(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(SignupGen.restartSignup, resetNav)
+  yield Saga.safeTakeEveryPure(
+    SignupGen.checkUsernameEmail,
+    checkUsernameEmail,
+    checkUsernameEmailSuccess,
+    checkUsernameEmailError
+  )
 }
 
 export {
   checkInviteCodeThenNextPhase,
   checkPassphrase,
-  checkUsernameEmail,
   requestAutoInvite,
   requestInvite,
-  restartSignup,
   sawPaperKey,
   startRequestInvite,
   submitDeviceName,
 }
+export default signupSaga

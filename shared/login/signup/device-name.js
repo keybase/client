@@ -36,15 +36,16 @@ class DeviceName extends Component<any, {deviceName: ?string}> {
   }
 }
 
+// TODO waitingbutton w/ key
 const mapStateToProps = (state: TypedState) => ({
-  deviceNameError: state.signup.deviceNameError,
   deviceName: state.signup.deviceName,
+  deviceNameError: state.signup.deviceNameError,
   waiting: state.signup.waiting,
 })
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   clearDeviceNameError: () => dispatch(SignupGen.createClearDeviceNameError()),
+  restartSignup: () => dispatch(SignupGen.createRestartSignup()),
   submitDeviceName: (name: string) => dispatch(Creators.submitDeviceName(name)),
-  restartSignup: () => dispatch(Creators.restartSignup()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(DeviceName)

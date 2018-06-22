@@ -1,5 +1,6 @@
 // @flow
-import {requestInvite, restartSignup} from '../../../actions/signup'
+import * as SignupGen from '../../../actions/signup-gen'
+import {requestInvite} from '../../../actions/signup'
 import React, {Component} from 'react'
 import {connect, type TypedState} from '../../../util/container'
 import Render from '.'
@@ -56,6 +57,6 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   requestInvite: (email, name) => dispatch(requestInvite(email, name)),
-  restartSignup: () => dispatch(restartSignup()),
+  restartSignup: () => dispatch(SignupGen.createRestartSignup()),
 })
 export default connect(mapStateToProps, mapDispatchToProps)(RequestInvite)

@@ -16,7 +16,7 @@ class ErrorRender extends Component<Props> {
           {this.props.errorText.stringValue()}
         </Text>
         <ButtonBar>
-          <Button type="Secondary" label="Try Again" onClick={() => this.props.restartSignup()} />
+          <Button type="Secondary" label="Try Again" onClick={this.props.restartSignup} />
         </ButtonBar>
         <Box style={{flex: 1}} />
       </Container>

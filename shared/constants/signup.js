@@ -5,8 +5,8 @@ import {isMobile} from '../constants/platform'
 const initialState: State = {
   deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
   deviceNameError: null,
-  email: null,
-  emailError: null,
+  email: '',
+  emailError: '',
   inviteCode: null,
   inviteCodeError: null,
   nameError: null,
@@ -15,8 +15,8 @@ const initialState: State = {
   passphraseError: null,
   phase: 'inviteCode',
   signupError: null,
-  username: null,
-  usernameError: null,
+  username: '',
+  usernameError: '',
   waiting: false,
 }
 

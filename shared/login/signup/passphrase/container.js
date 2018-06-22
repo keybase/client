@@ -1,4 +1,5 @@
 // @flow
+import * as SignupGen from '../../../actions/signup-gen'
 import * as Creators from '../../../actions/signup'
 import React, {Component} from 'react'
 import Render, {type Props} from '.'
@@ -43,6 +44,6 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   checkPassphrase: (pass1: string, pass2: string) => dispatch(Creators.checkPassphrase(pass1, pass2)),
-  restartSignup: () => dispatch(Creators.restartSignup()),
+  restartSignup: () => dispatch(SignupGen.createRestartSignup()),
 })
 export default connect(mapStateToProps, mapDispatchToProps)(PassphraseForm)

@@ -1,16 +1,17 @@
 // @flow
 import HiddenString from '../../util/hidden-string'
 
+// TODO immutable
 export type AutoInviteRequestState = 'NotRequested' | 'Requested' | 'Done'
 
 export type State = {
   deviceName: ?string,
   deviceNameError: ?string,
-  email: ?string,
-  emailError: ?Error,
+  email: string,
+  emailError: string,
   inviteCode: ?string,
   inviteCodeError: ?string,
-  nameError: ?Error,
+  nameError: string,
   paperkey: ?HiddenString,
   passphrase: ?HiddenString,
   passphraseError: ?HiddenString,
@@ -25,7 +26,7 @@ export type State = {
     | 'requestInvite'
     | 'requestInviteSuccess',
   signupError: ?HiddenString,
-  username: ?string,
-  usernameError: ?Error,
+  username: string,
+  usernameError: string,
   waiting: boolean,
 }
