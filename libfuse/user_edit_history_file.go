@@ -18,8 +18,8 @@ func NewUserEditHistoryFile(
 	folder *Folder, entryValid *time.Duration) *SpecialReadFile {
 	*entryValid = 0
 	return &SpecialReadFile{
-		read: func(_ context.Context) ([]byte, time.Time, error) {
-			return libfs.GetEncodedUserEditHistory(folder.fs.config)
+		read: func(ctx context.Context) ([]byte, time.Time, error) {
+			return libfs.GetEncodedUserEditHistory(ctx, folder.fs.config)
 		},
 	}
 }

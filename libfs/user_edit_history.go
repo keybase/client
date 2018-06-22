@@ -5,6 +5,7 @@
 package libfs
 
 import (
+	"context"
 	"time"
 
 	"github.com/keybase/kbfs/libkbfs"
@@ -12,9 +13,15 @@ import (
 
 // GetEncodedUserEditHistory returns serialized JSON containing the
 // file edit history for the user.
-func GetEncodedUserEditHistory(config libkbfs.Config) (
+func GetEncodedUserEditHistory(ctx context.Context, config libkbfs.Config) (
 	data []byte, t time.Time, err error) {
-	edits := config.UserHistory().Get()
+	session, err := libkbfs.GetCurrentSessionIfPossible(
+		ctx, config.KBPKI(), true)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+
+	edits := config.UserHistory().Get(string(session.Name))
 	data, err = PrettyJSON(edits)
 	return data, time.Time{}, err
 }

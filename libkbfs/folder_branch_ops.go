@@ -6773,6 +6773,22 @@ func (fbo *folderBranchOps) PushStatusChange() {
 // ClearPrivateFolderMD implements the KBFSOps interface for
 // folderBranchOps.
 func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
+	func() {
+		// Cancel the edits goroutine and forget the old history, evem
+		// for public folders, since some of the state in the history
+		// is dependent on your login state.
+		fbo.cancelEditsLock.Lock()
+		defer fbo.cancelEditsLock.Unlock()
+		if fbo.cancelEdits != nil {
+			fbo.cancelEdits()
+			fbo.cancelEdits = nil
+		}
+		fbo.editHistory = kbfsedits.NewTlfHistory()
+		fbo.convLock.Lock()
+		defer fbo.convLock.Unlock()
+		fbo.convID = nil
+	}()
+
 	if fbo.folderBranch.Tlf.Type() == tlf.Public {
 		return
 	}
@@ -6805,18 +6821,6 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 		}
 		fbo.config.MDServer().CancelRegistration(ctx, fbo.id())
 	}
-
-	// Also cancel the edits goroutine and forget the old history.
-	fbo.cancelEditsLock.Lock()
-	defer fbo.cancelEditsLock.Unlock()
-	if fbo.cancelEdits != nil {
-		fbo.cancelEdits()
-		fbo.cancelEdits = nil
-	}
-	fbo.editHistory = kbfsedits.NewTlfHistory()
-	fbo.convLock.Lock()
-	defer fbo.convLock.Unlock()
-	fbo.convID = nil
 
 	fbo.head = ImmutableRootMetadata{}
 	fbo.headStatus = headUntrusted
@@ -6943,6 +6947,15 @@ func (fbo *folderBranchOps) initEditChatChannels(
 	return idToName, nameToID, nameToNextPage
 }
 
+func (fbo *folderBranchOps) channelMatchesLoggedIn(
+	ctx context.Context, channelName string) bool {
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return false
+	}
+	return string(session.Name) == channelName
+}
+
 func (fbo *folderBranchOps) getEditMessages(
 	ctx context.Context, id chat1.ConversationID, channelName string,
 	startPage []byte) (nextPage []byte) {
@@ -6955,7 +6968,8 @@ func (fbo *folderBranchOps) getEditMessages(
 			id, err)
 		return nil
 	}
-	err = fbo.editHistory.AddNotifications(channelName, messages)
+	err = fbo.editHistory.AddNotifications(
+		channelName, messages, fbo.channelMatchesLoggedIn(ctx, channelName))
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't add messages for conv %s: %+v",
 			id, err)
@@ -7036,7 +7050,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 	if a.message != "" {
 		fbo.log.CDebugf(ctx, "New edit message for %s", name)
 		err := fbo.editHistory.AddNotifications(
-			name, []string{a.message})
+			name, []string{a.message}, fbo.channelMatchesLoggedIn(ctx, name))
 		if err != nil {
 			fbo.log.CWarningf(ctx,
 				"Couldn't add messages for conv %s: %+v", a.convID, err)

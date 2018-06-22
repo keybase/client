@@ -15,8 +15,8 @@ import (
 // representation of the file edit history for the logged-in user.
 func NewUserEditHistoryFile(folder *Folder) *SpecialReadFile {
 	return &SpecialReadFile{
-		read: func(_ context.Context) ([]byte, time.Time, error) {
-			return libfs.GetEncodedUserEditHistory(folder.fs.config)
+		read: func(ctx context.Context) ([]byte, time.Time, error) {
+			return libfs.GetEncodedUserEditHistory(ctx, folder.fs.config)
 		},
 		fs: folder.fs,
 	}

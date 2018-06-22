@@ -24,6 +24,7 @@ func checkTlfHistory(t *testing.T, th *TlfHistory, expected writersByRevision) {
 
 	for i, e := range expected {
 		require.Equal(t, e.writerName, history[i].writerName)
+		require.Equal(t, e.isLoggedIn, history[i].isLoggedIn)
 		require.Len(t, history[i].notifications, len(e.notifications))
 		for j, n := range e.notifications {
 			require.Equal(t, n, history[i].notifications[j])
@@ -83,28 +84,28 @@ func TestTlfHistorySimple(t *testing.T) {
 	bobMessage := nn.encode(t)
 
 	expected := writersByRevision{
-		{bobName, []NotificationMessage{bobWrite}},
-		{aliceName, []NotificationMessage{aliceWrite}},
+		{bobName, []NotificationMessage{bobWrite}, false},
+		{aliceName, []NotificationMessage{aliceWrite}, true},
 	}
 
 	// Alice, then Bob.
 	th := NewTlfHistory()
-	err = th.AddNotifications(aliceName, []string{string(aliceMessage)})
+	err = th.AddNotifications(aliceName, []string{string(aliceMessage)}, true)
 	require.NoError(t, err)
-	err = th.AddNotifications(bobName, []string{string(bobMessage)})
+	err = th.AddNotifications(bobName, []string{string(bobMessage)}, false)
 	require.NoError(t, err)
 	checkTlfHistory(t, th, expected)
 
 	// Bob, then Alice.
 	th = NewTlfHistory()
-	err = th.AddNotifications(bobName, []string{string(bobMessage)})
+	err = th.AddNotifications(bobName, []string{string(bobMessage)}, false)
 	require.NoError(t, err)
-	err = th.AddNotifications(aliceName, []string{string(aliceMessage)})
+	err = th.AddNotifications(aliceName, []string{string(aliceMessage)}, true)
 	require.NoError(t, err)
 	checkTlfHistory(t, th, expected)
 
 	// Add a duplicate notification.
-	err = th.AddNotifications(bobName, []string{string(bobMessage)})
+	err = th.AddNotifications(bobName, []string{string(bobMessage)}, false)
 	require.NoError(t, err)
 	checkTlfHistory(t, th, expected)
 }
@@ -134,25 +135,25 @@ func TestTlfHistoryMultipleWrites(t *testing.T) {
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
 	expected := writersByRevision{
-		{aliceName, []NotificationMessage{aliceModC, aliceModA}},
-		{bobName, []NotificationMessage{bobModA, bobModC, bobCreateB}},
+		{aliceName, []NotificationMessage{aliceModC, aliceModA}, true},
+		{bobName, []NotificationMessage{bobModA, bobModC, bobCreateB}, false},
 	}
 
 	// Alice, then Bob.
 	th := NewTlfHistory()
-	err = th.AddNotifications(aliceName, aliceMessages)
+	err = th.AddNotifications(aliceName, aliceMessages, true)
 	require.NoError(t, err)
-	err = th.AddNotifications(bobName, bobMessages)
+	err = th.AddNotifications(bobName, bobMessages, false)
 	require.NoError(t, err)
 	checkTlfHistory(t, th, expected)
 
 	// Add each message one at a time, alternating users.
 	th = NewTlfHistory()
 	for i := 0; i < len(aliceMessages); i++ {
-		err = th.AddNotifications(aliceName, []string{aliceMessages[i]})
+		err = th.AddNotifications(aliceName, []string{aliceMessages[i]}, true)
 		require.NoError(t, err)
 		if i < len(bobMessages) {
-			err = th.AddNotifications(bobName, []string{bobMessages[i]})
+			err = th.AddNotifications(bobName, []string{bobMessages[i]}, false)
 			require.NoError(t, err)
 		}
 	}
@@ -214,15 +215,15 @@ func TestTlfHistoryRenamesAndDeletes(t *testing.T) {
 	bobMessages = append(bobMessages, nn.encode(t))
 
 	expected := writersByRevision{
-		{bobName, []NotificationMessage{bobModA}},
-		{aliceName, []NotificationMessage{aliceCreateB}},
+		{bobName, []NotificationMessage{bobModA}, false},
+		{aliceName, []NotificationMessage{aliceCreateB}, true},
 	}
 
 	// Alice, then Bob.
 	th := NewTlfHistory()
-	err = th.AddNotifications(aliceName, aliceMessages)
+	err = th.AddNotifications(aliceName, aliceMessages, true)
 	require.NoError(t, err)
-	err = th.AddNotifications(bobName, bobMessages)
+	err = th.AddNotifications(bobName, bobMessages, false)
 	require.NoError(t, err)
 	checkTlfHistory(t, th, expected)
 }
@@ -247,18 +248,20 @@ func TestTlfHistoryNeedsMoreThenComplete(t *testing.T) {
 
 	// Input most recent half of messages first.
 	expected := writersByRevision{
-		{aliceName, allExpected[:maxEditsPerWriter/2]},
+		{aliceName, allExpected[:maxEditsPerWriter/2], true},
 	}
 	th := NewTlfHistory()
-	err = th.AddNotifications(aliceName, aliceMessages[maxEditsPerWriter/2:])
+	err = th.AddNotifications(
+		aliceName, aliceMessages[maxEditsPerWriter/2:], true)
 	require.NoError(t, err)
 	checkTlfHistory(t, th, expected)
 
 	// Then input the rest, and we'll have a complete set.
-	err = th.AddNotifications(aliceName, aliceMessages[:maxEditsPerWriter/2])
+	err = th.AddNotifications(
+		aliceName, aliceMessages[:maxEditsPerWriter/2], true)
 	require.NoError(t, err)
 	expected = writersByRevision{
-		{aliceName, allExpected},
+		{aliceName, allExpected, true},
 	}
 	checkTlfHistory(t, th, expected)
 }
@@ -280,22 +283,23 @@ func TestTlfHistoryTrimming(t *testing.T) {
 		aliceMessages = append(aliceMessages, nn.encode(t))
 	}
 	sort.Sort(allExpected)
-	t.Logf("%#v\n", allExpected)
 
 	// Input the max+1.
 	expected := writersByRevision{
-		{aliceName, allExpected[1 : maxEditsPerWriter+1]},
+		{aliceName, allExpected[1 : maxEditsPerWriter+1], true},
 	}
 	th := NewTlfHistory()
-	err = th.AddNotifications(aliceName, aliceMessages[:maxEditsPerWriter+1])
+	err = th.AddNotifications(
+		aliceName, aliceMessages[:maxEditsPerWriter+1], true)
 	require.NoError(t, err)
 	checkTlfHistory(t, th, expected)
 
 	// Then input the last one, and make sure the correct item was trimmed.
-	err = th.AddNotifications(aliceName, aliceMessages[maxEditsPerWriter+1:])
+	err = th.AddNotifications(
+		aliceName, aliceMessages[maxEditsPerWriter+1:], true)
 	require.NoError(t, err)
 	expected = writersByRevision{
-		{aliceName, allExpected[:maxEditsPerWriter]},
+		{aliceName, allExpected[:maxEditsPerWriter], true},
 	}
 	checkTlfHistory(t, th, expected)
 }

@@ -743,7 +743,15 @@ func (k *LibKBFS) UserEditHistory(u User) (
 	[]keybase1.FSFolderEditHistory, error) {
 	config := u.(*libkbfs.ConfigLocal)
 
-	history := config.UserHistory().Get()
+	ctx, cancel := k.newContext(u)
+	defer cancel()
+	session, err := libkbfs.GetCurrentSessionIfPossible(
+		ctx, config.KBPKI(), true)
+	if err != nil {
+		return nil, err
+	}
+
+	history := config.UserHistory().Get(string(session.Name))
 	return history, nil
 }
 

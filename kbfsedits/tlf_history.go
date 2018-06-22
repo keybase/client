@@ -20,6 +20,7 @@ const (
 type writerNotifications struct {
 	writerName    string
 	notifications notificationsByRevision
+	isLoggedIn    bool
 }
 
 // writersByRevision sorts sets of per-writer notifications in reverse
@@ -99,7 +100,7 @@ func NewTlfHistory() *TlfHistory {
 // the caller should call `Recompute` to find out if more messages
 // should be added for any particular writer.
 func (th *TlfHistory) AddNotifications(
-	writerName string, messages []string) (err error) {
+	writerName string, messages []string, isLoggedIn bool) (err error) {
 	newEdits := make(notificationsByRevision, 0, len(messages))
 
 	// Unmarshal and sort the new messages.
@@ -127,8 +128,9 @@ func (th *TlfHistory) AddNotifications(
 	defer th.lock.Unlock()
 	wn, existed := th.byWriter[writerName]
 	if !existed {
-		wn = &writerNotifications{writerName, nil}
+		wn = &writerNotifications{writerName, nil, isLoggedIn}
 	}
+	wn.isLoggedIn = isLoggedIn
 	oldLen := len(wn.notifications)
 	newEdits = append(newEdits, wn.notifications...)
 	sort.Sort(newEdits)
@@ -215,7 +217,7 @@ func (r *recomputer) processNotification(
 
 		wn, ok := r.byWriter[writer]
 		if !ok {
-			wn = &writerNotifications{writer, nil}
+			wn = &writerNotifications{writer, nil, false /* fill in later */}
 			r.byWriter[writer] = wn
 		}
 		wn.notifications = append(wn.notifications, notification)
@@ -299,9 +301,10 @@ func (th *TlfHistory) recomputeLocked() (
 	}
 
 	history = make(writersByRevision, 0, len(r.byWriter))
-	for writerName := range th.byWriter {
+	for writerName, oldWn := range th.byWriter {
 		wn := r.byWriter[writerName]
 		if wn != nil && len(wn.notifications) > 0 {
+			wn.isLoggedIn = oldWn.isLoggedIn
 			history = append(history, wn)
 		}
 		if wn == nil || len(wn.notifications) < maxEditsPerWriter {
@@ -311,11 +314,24 @@ func (th *TlfHistory) recomputeLocked() (
 	sort.Sort(history)
 	if len(history) > maxWritersPerHistory {
 		// Garbage-collect any writers that don't appear in the history.
+		loggedInIndex := -1
 		for i := maxWritersPerHistory; i < len(history); i++ {
+			if history[i].isLoggedIn {
+				// Don't purge the logged-in user.
+				loggedInIndex = i
+				continue
+			}
 			delete(th.byWriter, history[i].writerName)
 			delete(writersWhoNeedMore, history[i].writerName)
 		}
-		history = history[:maxWritersPerHistory]
+		if loggedInIndex > 0 {
+			// Keep the logged-in user as the last entry.
+			loggedIn := history[loggedInIndex]
+			history = history[:maxWritersPerHistory]
+			history[maxWritersPerHistory-1] = loggedIn
+		} else {
+			history = history[:maxWritersPerHistory]
+		}
 	}
 	th.computed = true
 	th.cachedHistory = history

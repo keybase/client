@@ -7,6 +7,7 @@ package kbfsedits
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -17,6 +18,10 @@ const (
 	// MaxClusters is the max number of TLF writer clusters to return
 	// in a user history.
 	MaxClusters = 10
+
+	// The minimum number of self-clusters that should appear in the
+	// history for the logged-in user.
+	minNumSelfClusters = 3
 )
 
 type tlfKey struct {
@@ -124,13 +129,29 @@ func (hc historyClusters) Swap(i, j int) {
 
 // Get returns the full edit history for the user, converted to
 // keybase1 protocol structs.
-func (uh *UserHistory) Get() (history []keybase1.FSFolderEditHistory) {
+func (uh *UserHistory) Get(loggedInUser string) (
+	history []keybase1.FSFolderEditHistory) {
 	uh.lock.RLock()
 	defer uh.lock.RUnlock()
 
 	var clusters historyClusters
 	for key := range uh.histories {
 		history := uh.getTlfHistoryLocked(key.tlfName, key.tlfType)
+
+		// Only include public TLFs if they match the logged-in user.
+		if history.Folder.FolderType == keybase1.FolderType_PUBLIC {
+			names := strings.Split(history.Folder.Name, ",")
+			match := false
+			for _, name := range names {
+				if name == loggedInUser {
+					match = true
+					break
+				}
+			}
+			if !match {
+				continue
+			}
+		}
 
 		// Break it up into individual clusters
 		for _, wh := range history.History {
@@ -146,10 +167,30 @@ func (uh *UserHistory) Get() (history []keybase1.FSFolderEditHistory) {
 
 	// We need to sort these by clusters, not by the full TLF time.
 	sort.Sort(clusters)
+
 	// TODO: consolidate neighboring clusters that share the same folder?
 	if len(clusters) > MaxClusters {
-		// TODO: add the user's public folder to the list even if it
-		// doesn't make the cut.
+		// Find the top self-clusters.
+		loggedInIndices := make([]int, 0, minNumSelfClusters)
+		for i, c := range clusters {
+			if c.History[0].WriterName == loggedInUser {
+				loggedInIndices = append(loggedInIndices, i)
+			}
+			if len(loggedInIndices) == minNumSelfClusters {
+				break
+			}
+		}
+
+		// Move each self-cluster into its rightful spot at the end of
+		// the slice, unless it's already at a lower index.
+		for i, loggedInIndex := range loggedInIndices {
+			newLoggedInIndex := MaxClusters - (len(loggedInIndices) - i)
+			if loggedInIndex < newLoggedInIndex {
+				continue
+			}
+			clusters[newLoggedInIndex] = clusters[loggedInIndex]
+		}
+
 		return clusters[:MaxClusters]
 	}
 	return clusters
