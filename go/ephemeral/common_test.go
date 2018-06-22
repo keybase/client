@@ -33,29 +33,33 @@ func TestDeleteExpiredKeys(t *testing.T) {
 	tc := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc.Cleanup()
 
-	now := keybase1.TimeFromSeconds(time.Now().Unix())
+	now := time.Now()
 
 	// Test empty
 	expired := getExpiredGenerations(context.Background(), tc.G, make(keyExpiryMap), now)
-	expected := []keybase1.EkGeneration(nil)
+	var expected []keybase1.EkGeneration
+	expected = nil
 	require.Equal(t, expected, expired)
 
 	// Test with a single key that is not expired
 	keyMap := keyExpiryMap{
-		0: now,
+		0: keybase1.ToTime(now),
 	}
 	expired = getExpiredGenerations(context.Background(), tc.G, keyMap, now)
-	expected = []keybase1.EkGeneration(nil)
+	expected = nil
 	require.Equal(t, expected, expired)
 
 	// Test with a single key that is stale but not expired
 	keyMap = keyExpiryMap{
-		0: now - keybase1.TimeFromSeconds(KeyLifetimeSecs),
+		0: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs)),
 	}
+	expired = getExpiredGenerations(context.Background(), tc.G, keyMap, now)
+	expected = nil
+	require.Equal(t, expected, expired)
 
 	// Test with a single key that is expired
 	keyMap = keyExpiryMap{
-		0: now - keybase1.TimeFromSeconds(KeyLifetimeSecs*2),
+		0: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs).Add(-libkb.MaxEphemeralContentLifetime)),
 	}
 	expired = getExpiredGenerations(context.Background(), tc.G, keyMap, now)
 	expected = []keybase1.EkGeneration{0}
@@ -63,25 +67,25 @@ func TestDeleteExpiredKeys(t *testing.T) {
 
 	// Test with a 6 day gap, but no expiry
 	keyMap = keyExpiryMap{
-		0: now - keybase1.TimeFromSeconds(60*60*24*6),
-		1: now,
+		0: keybase1.ToTime(now.Add(-time.Hour * 24 * 6)),
+		1: keybase1.ToTime(now),
 	}
 	expired = getExpiredGenerations(context.Background(), tc.G, keyMap, now)
-	expected = []keybase1.EkGeneration(nil)
+	expected = nil
 	require.Equal(t, expected, expired)
 
 	// Test multiple gaps, only the last key is valid though.
 	keyMap = make(keyExpiryMap)
 	numKeys := 5
 	for i := 0; i < numKeys; i++ {
-		keyMap[keybase1.EkGeneration((numKeys - i - 1))] = now - keybase1.TimeFromSeconds(int64(KeyLifetimeSecs*i))
+		keyMap[keybase1.EkGeneration((numKeys - i - 1))] = keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * time.Duration(i)))
 	}
 	expired = getExpiredGenerations(context.Background(), tc.G, keyMap, now)
 	expected = []keybase1.EkGeneration{0, 1, 2}
 	require.Equal(t, expected, expired)
 
 	// Test case from bug
-	now = keybase1.Time(1528818944000)
+	now = keybase1.Time(1528818944000).Time()
 	keyMap = keyExpiryMap{
 		46: 1528207927000,
 		47: 1528294344000,

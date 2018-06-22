@@ -103,7 +103,7 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	// different JSON.
 	existingActiveMetadata := []keybase1.UserEkMetadata{}
 	for _, metadata := range existingMaybeStaleMetadata {
-		if ctimeIsStale(metadata.Ctime, merkleRoot) {
+		if ctimeIsStale(metadata.Ctime.Time(), merkleRoot) {
 			g.Log.CDebugf(ctx, "skipping stale UserEkMetadata for KID: %s", metadata.Kid)
 			continue
 		}
@@ -383,7 +383,7 @@ func filterStaleUserEKStatements(ctx context.Context, g *libkb.GlobalContext, st
 			continue
 		}
 		metadata := statement.CurrentUserEkMetadata
-		if ctimeIsStale(metadata.Ctime, merkleRoot) {
+		if ctimeIsStale(metadata.Ctime.Time(), merkleRoot) {
 			g.Log.CDebugf(ctx, "found stale userStatement for KID: %s", metadata.Kid)
 			continue
 		}

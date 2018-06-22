@@ -379,7 +379,7 @@ func filterStaleTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, sta
 	allMetadata := append([]keybase1.TeamEkMetadata{}, statement.ExistingTeamEkMetadata...)
 	allMetadata = append(allMetadata, statement.CurrentTeamEkMetadata)
 	for _, metadata := range allMetadata {
-		if !ctimeIsStale(metadata.Ctime, merkleRoot) {
+		if !ctimeIsStale(metadata.Ctime.Time(), merkleRoot) {
 			active = append(active, metadata)
 		}
 	}

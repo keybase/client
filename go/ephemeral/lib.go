@@ -219,8 +219,8 @@ func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRo
 	}
 
 	// Ok we can access the ek, check lifetime.
-	e.G().Log.CDebugf(ctx, "nextDeviceEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime))
-	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), nil
+	e.G().Log.CDebugf(ctx, "nextDeviceEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime.Time()))
+	return keygenNeeded(ek.Metadata.Ctime.Time(), merkleRoot), nil
 }
 
 func (e *EKLib) NewUserEKNeeded(ctx context.Context) (needed bool, err error) {
@@ -262,8 +262,8 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 		}
 	}
 	// Ok we can access the ek, check lifetime.
-	e.G().Log.CDebugf(ctx, "nextUserEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime))
-	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), nil
+	e.G().Log.CDebugf(ctx, "nextUserEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime.Time()))
+	return keygenNeeded(ek.Metadata.Ctime.Time(), merkleRoot), nil
 }
 
 func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (needed bool, err error) {
@@ -309,11 +309,11 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 		}
 	}
 	// Ok we can access the ek, check lifetime.
-	e.G().Log.CDebugf(ctx, "nextTeamEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime))
+	e.G().Log.CDebugf(ctx, "nextTeamEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime.Time()))
 	if backgroundKeygenPossible(ek.Metadata.Ctime.Time(), merkleRoot) {
 		return false, true, latestGeneration, nil
 	}
-	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), false, latestGeneration, nil
+	return keygenNeeded(ek.Metadata.Ctime.Time(), merkleRoot), latestGeneration, nil
 }
 
 type teamEKGenCacheEntry struct {

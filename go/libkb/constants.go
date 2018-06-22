@@ -696,7 +696,14 @@ const noiseFileLen = 1024 * 1024 * 2
 
 // NOTE if you change these values you should change them in
 // go/chatbase/storage/ephemeral.go as well.
-const MaxEphemeralLifetime = time.Hour * 24 * 7
-const MinEphemeralLifetime = time.Second * 30
+const MaxEphemeralContentLifetime = time.Hour * 24 * 7
+const MinEphemeralContentLifetime = time.Second * 30
+
+// NOTE: If you change this value you should change it in lib/constants.iced
+// and go/ekreaperd/reaper.go as well.
+// Keys last at most one week
+const MaxEphemeralKeyStalenessSecs = time.Hour * 24 * 30 // one month
+// Everyday we want to generate a new key if possible
+const EphemeralKeyGenIntervalSecs = time.Hour * 24 // one day
 
 const MaxTeamMembersForPairwiseMAC = 100

@@ -16,7 +16,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	tc, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	now := keybase1.ToTime(time.Now())
+	now := time.Now()
 	testKeys := []keybase1.DeviceEk{
 		{
 			Seed: keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic0"))),
@@ -24,8 +24,8 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation:  0,
 				HashMeta:    keybase1.HashMeta("fakeHashMeta0"),
 				Kid:         "",
-				Ctime:       now - keybase1.TimeFromSeconds(KeyLifetimeSecs*3),
-				DeviceCtime: now - keybase1.TimeFromSeconds(KeyLifetimeSecs*3),
+				Ctime:       keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
+				DeviceCtime: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
 			},
 		},
 		{
@@ -34,8 +34,8 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation:  1,
 				HashMeta:    keybase1.HashMeta("fakeHashMeta1"),
 				Kid:         "",
-				Ctime:       now - keybase1.TimeFromSeconds(KeyLifetimeSecs*3),
-				DeviceCtime: now - keybase1.TimeFromSeconds(KeyLifetimeSecs*3),
+				Ctime:       keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
+				DeviceCtime: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
 			},
 		},
 		{
@@ -44,8 +44,8 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation:  2,
 				HashMeta:    keybase1.HashMeta("fakeHashMeta2"),
 				Kid:         "",
-				Ctime:       now,
-				DeviceCtime: now,
+				Ctime:       keybase1.ToTime(now),
+				DeviceCtime: keybase1.ToTime(now),
 			},
 		},
 		{
@@ -54,8 +54,8 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation:  3,
 				HashMeta:    keybase1.HashMeta("fakeHashMeta3"),
 				Kid:         "",
-				Ctime:       now,
-				DeviceCtime: now,
+				Ctime:       keybase1.ToTime(now),
+				DeviceCtime: keybase1.ToTime(now),
 			},
 		},
 	}
@@ -171,7 +171,7 @@ func TestDeleteExpiredOffline(t *testing.T) {
 	tc, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	now := keybase1.ToTime(time.Now())
+	now := time.Now()
 	expiredTestKeys := []keybase1.DeviceEk{
 		{
 			Seed: keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic0"))),
@@ -179,7 +179,7 @@ func TestDeleteExpiredOffline(t *testing.T) {
 				Generation: 0,
 				HashMeta:   keybase1.HashMeta("fakeHashMeta0"),
 				Kid:        "",
-				Ctime:      now - keybase1.TimeFromSeconds(KeyLifetimeSecs*3),
+				Ctime:      keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
 				// Although we are 'offline' and can't get a merkleRoot, we
 				// correctly delete this key since we fall back to the Ctime
 				DeviceCtime: -1,
@@ -191,8 +191,8 @@ func TestDeleteExpiredOffline(t *testing.T) {
 				Generation:  1,
 				HashMeta:    keybase1.HashMeta("fakeHashMeta1"),
 				Kid:         "",
-				Ctime:       now - keybase1.TimeFromSeconds(KeyLifetimeSecs*3),
-				DeviceCtime: now - keybase1.TimeFromSeconds(KeyLifetimeSecs*3),
+				Ctime:       keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
+				DeviceCtime: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
 			},
 		},
 		{
@@ -201,8 +201,8 @@ func TestDeleteExpiredOffline(t *testing.T) {
 				Generation:  2,
 				HashMeta:    keybase1.HashMeta("fakeHashMeta2"),
 				Kid:         "",
-				Ctime:       now,
-				DeviceCtime: now,
+				Ctime:       keybase1.ToTime(now),
+				DeviceCtime: keybase1.ToTime(now),
 			},
 		},
 	}

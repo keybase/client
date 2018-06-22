@@ -10,13 +10,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// NOTE: If you change this value you should change it in web/ephemeral.iced
-// and go/ekreaperd/reaper.go as well.
-// Keys last at most one week
-const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
-// Everyday we want to generate a new key if possible
-const KeyGenLifetimeSecs = 60 * 60 * 24 // one day
-
 type EKType string
 
 const (
@@ -61,8 +54,8 @@ func (e EKMissingBoxErr) Error() string {
 	return fmt.Sprintf("Missing box for %s@generation:%v", e.boxType, e.boxGeneration)
 }
 
-func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
-	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyLifetimeSecs
+func ctimeIsStale(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
+	return keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime) >= libkb.MaxEphemeralKeyStalenessSecs
 }
 
 // If a teamEK is almost expired we allow it to be created in the background so
@@ -71,18 +64,19 @@ func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool 
 // teamEK's lifetime (and supporting device/user EKs) is less than the maximum
 // lifetime of ephemeral content. This can result in content loss once the keys
 // are deleted.
-func backgroundKeygenPossible(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
-	diff := keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime)
-	keygenInterval := time.Second * time.Duration(KeyGenLifetimeSecs)
-	return diff >= (keygenInterval-time.Hour) && diff < keygenInterval
+func backgroundKeygenPossible(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) (isbool {
+	keyAge := keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime)
+	isOneHourFromExpiration = diff >= (libkb.EphemeralKeyGenInterval-time.Hour)
+	isExpired = diff >= libkb.EphemeralKeyGenInterval
+	return  isOneHourFromExpiration && !isExpired
 }
 
-func keygenNeeded(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
-	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyGenLifetimeSecs
+func keygenNeeded(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
+	return keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime) >= libkb.EphemeralKeyGenIntervalSecs
 }
 
-func nextKeygenTime(ctime keybase1.Time) time.Time {
-	return keybase1.TimeFromSeconds(ctime.UnixSeconds() + KeyGenLifetimeSecs).Time()
+func nextKeygenTime(ctime time.Time) time.Time {
+	return ctime.Add(libkb.EphemeralKeyGenIntervalSecs)
 }
 
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
@@ -126,42 +120,42 @@ func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1
 // Map generations to their creation time
 type keyExpiryMap map[keybase1.EkGeneration]keybase1.Time
 
-// Keys expire after `KeyLifetimeSecs` unless there has been a gap in their
-// generation. If there has been a gap of more than a day (the normal
-// generation time), a key can be re-used for up to `KeyLifetimeSecs` until it
-// is considered expired. to determine expiration, we look at all of the
-// current keys and account for any gaps since we don't want to expire a key if
-// it is still used to encrypt a different key. This only applies to deviceEKs
-// or userEKs since they can have a dependency above them.  A teamEK expires
-// after `KeyLifetimeSecs` without exception, so it doesn't call this.
+// Keys normally expire after `libkb.MaxEphemeralContentLifetime` unless there has
+// been a gap in their generation. If there has been a gap of more than a day
+// (the normal generation time), a key can be re-used for up to
+// `libkb.MaxEphemeralKeyStalenessSecs` until it is considered expired. To determine
+// expiration, we look at all of the current keys and account for any gaps since
+// we don't want to expire a key if it is still used to encrypt a different key
+// or ephemeral content. This only applies to deviceEKs or userEKs since they
+// can have a dependency above them.  A teamEK expires after
+// `libkb.MaxEphemeralContentLifetime` without exception.
 func getExpiredGenerations(ctx context.Context, g *libkb.GlobalContext,
-	keyMap keyExpiryMap, nowCtime keybase1.Time) (expired []keybase1.EkGeneration) {
+	keyMap keyExpiryMap, now time.Time) (expired []keybase1.EkGeneration) {
 
-	// Sort the generations we have so we can walk through them in order.
-	maxLifetime := keybase1.TimeFromSeconds(KeyLifetimeSecs)
 	var keys []keybase1.EkGeneration
 	for k := range keyMap {
 		keys = append(keys, k)
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 
-	var nextKeyCtime keybase1.Time
-	var expiryOffset keybase1.Time
+	// Sort the generations we have so we can walk through them in order.
+	var nextKeyCtime time.Time
+	var expiryOffset time.Duration
 	for i, generation := range keys {
-		keyCtime := keyMap[generation]
+		keyCtime := keyMap[generation].Time()
 		if i < len(keys)-1 {
-			nextKeyCtime = keyMap[keys[i+1]]
+			nextKeyCtime = keyMap[keys[i+1]].Time()
 		} else {
-			nextKeyCtime = nowCtime
+			nextKeyCtime = now
 		}
-		expiryOffset = nextKeyCtime - keyCtime
-		if expiryOffset > maxLifetime { // Offset can be max KeyLifetimeSecs
-			expiryOffset = maxLifetime
+		expiryOffset = nextKeyCtime.Sub(keyCtime)
+		if expiryOffset > libkb.MaxEphemeralKeyStalenessSecs { // Offset can be max libkb.MaxEphemeralKeyStalenessSecs
+			expiryOffset = libkb.MaxEphemeralKeyStalenessSecs
 		}
-		// Keys can live for as long as KeyLifetimeSecs + expiryOffset
-		if (nowCtime - keyCtime) >= (maxLifetime + expiryOffset) {
-			g.Log.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, nowCtime: %v, keyCtime:%v, nextKeyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
-				generation, nowCtime.Time(), keyCtime.Time(), nextKeyCtime.Time(), time.Duration(expiryOffset)*time.Second, keyMap, i)
+		// Keys can live for as long as libkb.MaxEphemeralKeyStalenessSecs + expiryOffset
+		if now.Sub(keyCtime) >= (libkb.MaxEphemeralContentLifetime + expiryOffset) {
+			g.Log.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, nextKeyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
+				generation, now, keyCtime, nextKeyCtime, expiryOffset, keyMap, i)
 			expired = append(expired, generation)
 		}
 	}
