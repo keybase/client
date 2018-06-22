@@ -1316,10 +1316,7 @@ const changeSelectedConversation = (
           Saga.put(navigateToThreadRoute),
         ])
       } else if (action.payload.noneDestination === 'inbox') {
-        return Saga.sequentially([
-          Saga.put(Chat2Gen.createNavigateToInbox()),
-          !isMobile ? _maybeAutoselectNewestConversation(action, state) : undefined,
-        ])
+        return Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true}))
       } else if (action.payload.noneDestination === 'thread') {
         // don't allow check of isValidConversationIDKey
         return Saga.put(navigateToThreadRoute)
@@ -1356,6 +1353,7 @@ const _maybeAutoselectNewestConversation = (
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
+    | Chat2Gen.NavigateToInboxPayload
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
@@ -1781,11 +1779,18 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
 }
 
 // Helpers to nav you to the right place
-const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload) => {
+const navigateToInbox = (
+  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload,
+  state: TypedState
+) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
+  const actions = [Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))]
+  if (action.payload.findNewConversation && !isMobile) {
+    actions.push(_maybeAutoselectNewestConversation(action, state))
+  }
+  return Saga.sequentially(actions)
 }
 
 // Unchecked version of Chat2Gen.createNavigateToThread() --
@@ -1903,7 +1908,7 @@ const updateNotificationSettings = (action: Chat2Gen.UpdateNotificationSettingsP
 
 const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
   Saga.sequentially([
-    Saga.put(Chat2Gen.createNavigateToInbox()),
+    Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
     Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
       conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
