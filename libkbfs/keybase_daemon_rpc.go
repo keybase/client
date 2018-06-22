@@ -267,6 +267,18 @@ func (*KeybaseDaemonRPC) HandlerName() string {
 	return "KeybaseDaemonRPC"
 }
 
+func (k *KeybaseDaemonRPC) registerProtocolLocked(p rpc.Protocol) error {
+	k.log.Debug("registering protocol %q", p.Name)
+	err := k.server.Register(p)
+	switch err.(type) {
+	case nil, rpc.AlreadyRegisteredError:
+		return nil
+	default:
+		k.log.Warning("register protocol %q error", p.Name)
+		return err
+	}
+}
+
 // AddProtocols adds protocols that are registered on server connect
 func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 	if protocols == nil {
@@ -285,11 +297,7 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 	// If we are already connected, register these protocols.
 	if k.server != nil {
 		for _, p := range protocols {
-			k.log.Debug("adding protocol %q", p.Name)
-			err := k.server.Register(p)
-			if err != nil {
-				k.log.Warning("add protocol %q error", p.Name)
-			}
+			k.registerProtocolLocked(p)
 		}
 	}
 }
@@ -302,12 +310,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	defer k.lock.Unlock()
 
 	for _, p := range k.protocols {
-		k.log.Debug("adding protocol %q", p.Name)
-		err := server.Register(p)
-		switch err.(type) {
-		case nil, rpc.AlreadyRegisteredError:
-		default:
-			k.log.Warning("add protocol %q error", p.Name)
+		if err = k.registerProtocolLocked(p); err != nil {
 			return err
 		}
 	}
