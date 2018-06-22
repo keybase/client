@@ -17,16 +17,16 @@ const _cacheStyleTransforms: {[src: string]: string} = {}
 // 2: flip horizontally
 // 3: rotate 180 deg left
 // 4: flip vertically
-// 5: flip vertically and rotate 90 degrees left
+// 5: flip vertically and rotate 270 degrees left
 // 6: rotate 90 deg left
-// 7: flip vertically and rotate 270 degrees left
+// 7: flip vertically and rotate 90 degrees left
 // 8: rotate 270 deg left
 const exifOrientaionMap = {
   '1': 'rotate(0deg)',
   '2': 'scale(-1, 1)',
   '3': 'rotate(180deg)',
   '4': 'scale(1, -1)',
-  '5': 'scale(1, -1) rotate(90deg)',
+  '5': 'scale(1, -1) rotate(270deg)',
   '6': 'rotate(90deg)',
   '7': 'scale(1, -1) rotate(90deg)',
   '8': 'rotate(270deg)',
