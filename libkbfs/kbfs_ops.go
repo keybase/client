@@ -1199,27 +1199,6 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 				h.GetCanonicalName(), err)
 		}
 	}
-
-	session, err := fs.config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		// No current session.
-		return
-	}
-
-	pubHandle, err := GetHandleFromFolderNameAndType(
-		ctx, fs.config.KBPKI(), fs.config.MDOps(), string(session.Name),
-		tlf.Public)
-	if err != nil {
-		fs.log.CWarningf(ctx, "Couldn't get handle for public folder: %+v", err)
-		return
-	}
-	fs.log.CDebugf(ctx, "Initializing TLF %s for the edit history",
-		pubHandle.GetCanonicalPath())
-	_, _, err = fs.GetRootNode(ctx, pubHandle, MasterBranch)
-	if err != nil {
-		fs.log.CWarningf(ctx, "Couldn't get root node for public folder: %+v",
-			err)
-	}
 }
 
 // kbfsOpsFavoriteObserver deals with a handle change for a particular
