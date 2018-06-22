@@ -1,55 +1,17 @@
 // @flow
-import * as Creators from '../../../actions/signup'
-import React, {Component} from 'react'
-import {connect, type TypedState} from '../../../util/container'
-import Render, {type Props} from '.'
-
-type State = {
-  username: string,
-  email: string,
-}
-
-// Todo: type properly, recompose.withState
-class UsernameEmailForm extends Component<any, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      username: this.props.username || '',
-      email: this.props.email || '',
-    }
-  }
-
-  render() {
-    return (
-      <Render
-        usernameChange={username => this.setState({username})}
-        username={this.state.username}
-        emailChange={email => this.setState({email})}
-        email={this.state.email}
-        onSubmit={() => this.props.checkUsernameEmail(this.state.username, this.state.email)}
-        usernameErrorText={this.props.usernameErrorText}
-        emailErrorText={this.props.emailErrorText}
-        onBack={this.props.restartSignup}
-        waiting={this.props.waiting}
-      />
-    )
-  }
-}
+import * as SignupGen from '../../../actions/signup-gen'
+import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import UsernameEmail from '.'
 
 const mapStateToProps = (state: TypedState) => ({
-  usernameErrorText: state.signup.usernameError && state.signup.usernameError.message,
   emailErrorText: state.signup.emailError && state.signup.emailError.message,
-  username: state.signup.username,
-  email: state.signup.email,
-  waiting: state.signup.waiting,
+  usernameErrorText: state.signup.usernameError && state.signup.usernameError.message,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  checkUsernameEmail: (user: ?string, email: ?string) => dispatch(Creators.checkUsernameEmail(user, email)),
-  restartSignup: () => dispatch(Creators.restartSignup()),
+  onBack: () => dispatch(SignupGen.createRestartSignup()),
+  onSubmit: (username: string, email: string) =>
+    dispatch(SignupGen.createCheckUsernameEmail({email, username})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(UsernameEmailForm)
+export default connect(mapStateToProps, mapDispatchToProps)(UsernameEmail)

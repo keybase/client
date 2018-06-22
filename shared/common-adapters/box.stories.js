@@ -32,6 +32,10 @@ const load = () => {
     .add('Box2', () => (
       <React.Fragment>
         <Holder label="Vertical" boxProps={{direction: 'vertical'}} />
+        <Holder
+          label="Vertical centered children"
+          boxProps={{centerChildren: true, direction: 'vertical', fullHeight: true, fullWidth: true}}
+        />
         <Holder label="Vertical small gap" boxProps={{direction: 'vertical', gap: 'small'}} />
         <Holder
           label="Vertical small gap start"
@@ -58,6 +62,10 @@ const load = () => {
           label="Vertical small gap full height/width"
         />
         <Holder label="Horizontal" boxProps={{direction: 'horizontal'}} />
+        <Holder
+          label="Horizontal centered children"
+          boxProps={{centerChildren: true, direction: 'horizontal', fullHeight: true, fullWidth: true}}
+        />
         <Holder label="Horizontal small gap" boxProps={{direction: 'horizontal', gap: 'small'}} />
         <Holder
           label="Horizontal small gap start"
