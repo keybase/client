@@ -5,6 +5,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -139,6 +140,113 @@ func TestEditHistoryMultiTlf(t *testing.T) {
 		),
 		as(alice,
 			checkUserEditHistory(expectedEdits3),
+		),
+	)
+}
+
+func TestEditHistorySelfClusters(t *testing.T) {
+	// Bob writes one file to private.
+	expectedEdits1 := []expectedEdit{
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"bob",
+			[]string{"/keybase/private/alice,bob/a"},
+		},
+	}
+	// Alice writes to ten team TLFs, but bob should still see his own
+	// write from above.
+	expectedEdits2Alice := make([]expectedEdit, 0, 10)
+	expectedEdits2Bob := make([]expectedEdit, 0, 10)
+	for i := 9; i >= 0; i-- {
+		team := fmt.Sprintf("ab%d", i)
+		e := expectedEdit{
+			team,
+			keybase1.FolderType_TEAM,
+			"alice",
+			[]string{fmt.Sprintf("/keybase/team/%s/a", team)},
+		}
+		expectedEdits2Alice = append(expectedEdits2Alice, e)
+		expectedEdits2Bob = append(expectedEdits2Bob, e)
+	}
+	expectedEdits2Bob[9] = expectedEdits1[0]
+
+	test(t,
+		users("alice", "bob"),
+		team("ab0", "alice,bob", ""),
+		team("ab1", "alice,bob", ""),
+		team("ab2", "alice,bob", ""),
+		team("ab3", "alice,bob", ""),
+		team("ab4", "alice,bob", ""),
+		team("ab5", "alice,bob", ""),
+		team("ab6", "alice,bob", ""),
+		team("ab7", "alice,bob", ""),
+		team("ab8", "alice,bob", ""),
+		team("ab9", "alice,bob", ""),
+		as(bob,
+			mkfile("a", "hello"),
+		),
+		as(bob,
+			checkUserEditHistory(expectedEdits1),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits1),
+		),
+		inSingleTeamTlf("ab0"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		inSingleTeamTlf("ab1"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		inSingleTeamTlf("ab2"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		inSingleTeamTlf("ab3"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		inSingleTeamTlf("ab4"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		inSingleTeamTlf("ab5"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		inSingleTeamTlf("ab6"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		inSingleTeamTlf("ab7"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		inSingleTeamTlf("ab8"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		inSingleTeamTlf("ab9"),
+		as(alice,
+			addTime(1*time.Minute),
+			mkfile("a", "hello"),
+		),
+		as(bob,
+			checkUserEditHistory(expectedEdits2Bob),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits2Alice),
 		),
 	)
 }
