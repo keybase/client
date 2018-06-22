@@ -70,28 +70,10 @@ func newChatConversationResolver(g *libkb.GlobalContext) (c *chatConversationRes
 // necessary. The new TLF name is stored to req.ctx.canonicalizedTlfName.
 // len(tlfName) must > 0
 func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Context, tlfName string, req chatConversationResolvingRequest) error {
-
+	// Add our name out front
 	switch req.MembersType {
-	case chat1.ConversationMembersType_KBFS:
-		query := keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
-		var cname keybase1.CanonicalTLFNameAndIDWithBreaks
-		var err error
-		if req.Visibility == keybase1.TLFVisibility_PUBLIC {
-			cname, err = r.TlfClient.PublicCanonicalTLFNameAndID(ctx, query)
-		} else {
-			cname, err = r.TlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, query)
-		}
-		if err != nil {
-			// When a recipient's proofs are failing, this is the error a CLI user
-			// will see. It needs to be human readable.
-			return fmt.Errorf("failed to open chat conversation: %v", err)
-		}
-		req.ctx.canonicalizedTlfName = string(cname.CanonicalName)
-	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		// Add our name out front
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
+		chat1.ConversationMembersType_KBFS:
 		if req.Visibility != keybase1.TLFVisibility_PUBLIC {
 			username := r.G.Env.GetUsername()
 			if len(username) == 0 {
@@ -99,22 +81,8 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 			}
 			tlfName = username.String() + "," + tlfName
 		}
-		impRes, err := r.TeamsClient.LookupOrCreateImplicitTeam(ctx, keybase1.LookupOrCreateImplicitTeamArg{
-			Name:   tlfName,
-			Public: req.Visibility == keybase1.TLFVisibility_PUBLIC,
-		})
-		var canonName string
-		if err != nil {
-			r.G.Log.Debug("failed to lookup or create implicit team, not canonicalizing: %s", err)
-			canonName = tlfName
-		} else {
-			canonName = impRes.DisplayName.String()
-		}
-		req.ctx.canonicalizedTlfName = canonName
-	case chat1.ConversationMembersType_TEAM:
-		req.ctx.canonicalizedTlfName = tlfName
 	}
-
+	req.ctx.canonicalizedTlfName = tlfName
 	return nil
 }
 
