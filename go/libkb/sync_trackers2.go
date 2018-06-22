@@ -60,7 +60,7 @@ func (t *Tracker2Syncer) getLoadedVersion() int {
 	return ret
 }
 
-func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, sr SessionReader) (err error) {
+func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, sr SessionReader, forceReload bool) (err error) {
 
 	defer m.CTrace(fmt.Sprintf("syncFromServer(%s)", uid), func() error { return err })()
 
@@ -71,7 +71,7 @@ func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, sr Sess
 		"caller_uid": UIDArg(t.callerUID),
 	}
 	lv := t.getLoadedVersion()
-	if lv >= 0 {
+	if lv >= 0 && !forceReload {
 		hargs.Add("version", I{lv})
 	}
 	var res *APIRes
@@ -90,7 +90,7 @@ func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, sr Sess
 		return
 	}
 	tmp.Time = keybase1.ToTime(time.Now())
-	if lv < 0 || tmp.Version > lv {
+	if lv < 0 || tmp.Version > lv || forceReload {
 		m.CDebugf("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
 			len(tmp.Users))
 		t.res = &tmp
