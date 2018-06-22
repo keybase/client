@@ -285,6 +285,7 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 	// If we are already connected, register these protocols.
 	if k.server != nil {
 		for _, p := range protocols {
+			k.log.Debug("adding protocol %q", p.Name)
 			err := k.server.Register(p)
 			if err != nil {
 				k.log.Warning("add protocol %q error", p.Name)
@@ -297,24 +298,21 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	conn *rpc.Connection, rawClient rpc.GenericClient,
 	server *rpc.Server) (err error) {
-	err = func() error {
-		k.lock.RLock()
-		defer k.lock.RUnlock()
+	k.lock.Lock()
+	defer k.lock.Unlock()
 
-		for _, p := range k.protocols {
-			err := server.Register(p)
-			switch err.(type) {
-			case nil, rpc.AlreadyRegisteredError:
-			default:
-				return err
-			}
+	for _, p := range k.protocols {
+		k.log.Debug("adding protocol %q", p.Name)
+		err := server.Register(p)
+		switch err.(type) {
+		case nil, rpc.AlreadyRegisteredError:
+		default:
+			k.log.Warning("add protocol %q error", p.Name)
+			return err
 		}
-
-		return nil
-	}()
-	if err != nil {
-		return err
 	}
+
+	return nil
 
 	// Using conn.GetClient() here would cause problematic
 	// recursion.
@@ -347,8 +345,6 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	}
 
 	// Set k.server only if err == nil.
-	k.lock.Lock()
-	defer k.lock.Unlock()
 	k.server = server
 
 	return nil
