@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, Avatar, Input, WaitingButton, HeaderHoc} from '../../../common-adapters'
+import {styleSheetCreate} from '../../../styles'
 
 type Props = {
   emailErrorText: string,
@@ -21,7 +22,14 @@ class UsernameAndEmail extends React.Component<Props, State> {
   }
   render() {
     return (
-      <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true} gap="small">
+      <Box2
+        direction="vertical"
+        fullWidth={true}
+        fullHeight={true}
+        centerChildren={true}
+        gap="small"
+        style={styles.container}
+      >
         <Avatar username={this.state.username} size={128} />
         <Input
           autoFocus={true}
@@ -47,5 +55,12 @@ class UsernameAndEmail extends React.Component<Props, State> {
     )
   }
 }
+
+const styles = styleSheetCreate({
+  container: {
+    // using a headerhoc but don't push our content down
+    marginTop: -48,
+  },
+})
 
 export default HeaderHoc(UsernameAndEmail)
