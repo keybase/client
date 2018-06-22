@@ -11,7 +11,7 @@ type State = {
   styleTransform: string,
 }
 
-let _cacheStyleTransforms: {[src: string]: string} = {}
+const _cacheStyleTransforms: {[src: string]: string} = {}
 // Orientations:
 // 1: rotate 0 deg left
 // 2: flip horizontally
@@ -32,10 +32,13 @@ const exifOrientaionMap = {
   '8': 'rotate(270deg)',
 }
 
-const makeStyleTransform = (orientation: number): string => {
+const makeStyleTransform = (orientation: ?number): string => {
+  // In the event that we get a missing orienation from EXIF library
+  if (!orientation) return ''
+
   const transform = exifOrientaionMap[orientation]
   if (!transform) {
-    logger.warn('Invalid orientation value for desktop image attachment')
+    logger.warn(`Invalid orientation value for desktop image attachment: orientation=${orientation}`)
     return ''
   }
   return transform
@@ -53,30 +56,33 @@ class OrientedImage extends React.Component<Props, State> {
   _hasComponentMounted = false
 
   _handleData = img => {
-    const orientation: number = EXIF.getTag(img, 'Orientation')
-    // EXIF.getTag can return undefined for Orientation if the field is not found
-    if (isNumber(orientation)) {
-      const newTransform: string = makeStyleTransform(orientation)
-      this.setState(p => (p.styleTransform === newTransform ? undefined : {styleTransform: newTransform}))
-    }
+    const orientation: ?number = EXIF.getTag(img, 'Orientation')
+    // Orientation is undefined if tag does not exist in exif data
+    if (!isNumber(orientation)) return
+
+    const newTransform: string = makeStyleTransform(orientation)
+    this.setState(p => {
+      if (p.styleTransform === newTransform) return undefined
+
+      _cacheStyleTransforms[this.props.src] = newTransform
+      return {styleTransform: newTransform}
+    })
   }
 
   _setTranformForExifOrientation(src) {
-    if (!this._hasComponentMounted) {
-      return
-    }
+    if (!this._hasComponentMounted) return
 
     if (_cacheStyleTransforms[src]) {
-      return this.setState({
-        styleTransform: _cacheStyleTransforms[src],
-      })
+      return this.setState({styleTransform: _cacheStyleTransforms[src]})
     }
 
     // EXIF will make an HTTP request locally to 127.0.0.1:* to fetch the
     // image that the keybase service is serving
     // img = this refers to the image ArrayBuffer fetched from the local server.
     const handleData = this._handleData
+    const _hasComponentMounted = this._hasComponentMounted
     EXIF.getData({src}, function() {
+      if (!_hasComponentMounted) return
       handleData(this)
     })
   }
@@ -92,12 +98,7 @@ class OrientedImage extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     // New src requires changing EXIF transform
-    if (
-      prevProps &&
-      prevProps.src !== this.props.src &&
-      this.state.styleTransform !== prevState.styleTransform &&
-      this.state.styleTransform !== _cacheStyleTransforms[this.props.src]
-    ) {
+    if (prevProps && prevProps.src !== this.props.src) {
       this._setTranformForExifOrientation(this.props.src)
     }
   }
