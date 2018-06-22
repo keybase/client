@@ -690,6 +690,13 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	convMap := make(map[string][]chat1.MemberInfo)
 	addStatus := func(status chat1.ConversationMemberStatus, l []chat1.ConversationMember) {
 		for _, cm := range l {
+			switch cm.TopicType {
+			case chat1.TopicType_CHAT:
+				// keep going!
+			default:
+				// skip any non-chat here
+				continue
+			}
 			if _, ok := convMap[cm.ConvID.String()]; !ok {
 				convMap[cm.ConvID.String()] = []chat1.MemberInfo{}
 			}
