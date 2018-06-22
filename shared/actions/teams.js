@@ -226,7 +226,14 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
       role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
     })
     if (res.malformed && res.malformed.length > 0) {
-      throw new Error(`Unable to parse email addresses: ${res.malformed.join('; ')}`)
+      const malformed = res.malformed
+      logger.warn(`teamInviteByEmail: Unable to parse ${malformed.length} email addresses`)
+      yield Saga.put(
+        TeamsGen.createSetEmailInviteError({
+          malformed,
+          message: `Unable to parse ${malformed.length} addresses.`,
+        })
+      )
     }
   } finally {
     // TODO handle error
