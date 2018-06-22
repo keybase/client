@@ -24,7 +24,7 @@ func Clean(s string) string {
 // according to the mapping function.
 // If mapping returns -1, the character is substituted with the two character string `^[`.
 // If mapping returns any other negative value, the character is dropped from the string with no replacement.
-// This function is similar to strings.Map, except for how -1 is handled.
+// This function is copied from strings.Map, and is identical except for how -1 is handled (differences are marked).
 func replace(mapping func(rune) rune, s string) string {
 	// In the worst case, the string can grow when mapped, making
 	// things unpleasant. But it's so rare we barge in assuming it's
@@ -51,7 +51,8 @@ func replace(mapping func(rune) rune, s string) string {
 			} else {
 				nbytes += utf8.EncodeRune(b[nbytes:], r)
 			}
-		} else if r == -1 { // Substitute -1 with `^[`
+		} else if r == -1 { // This else branch is NOT part of strings.Map
+			// Substitute -1 with `^[`
 			b[nbytes] = byte('^')
 			b[nbytes+1] = byte('[')
 			nbytes += 2
@@ -94,7 +95,7 @@ func replace(mapping func(rune) rune, s string) string {
 				b = nb
 			}
 			nbytes += utf8.EncodeRune(b[nbytes:], r)
-		} else if r == -1 {
+		} else if r == -1 { // This else branch is NOT part of strings.Map, but mirrors the preceding if branch
 			if nbytes+2 >= len(b) {
 				// Grow the buffer.
 				nb := make([]byte, 2*len(b))
