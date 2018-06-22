@@ -3,7 +3,7 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 
-import {NativeModules} from 'react-native'
+import {NativeModules, YellowBox} from 'react-native'
 import * as DevGen from './actions/dev-gen'
 import {noop} from 'lodash-es'
 // import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
@@ -12,6 +12,12 @@ const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes
 // console.disableYellowBox = true
+
+// Ignore some yellowboxes on 3rd party libs we can't control
+YellowBox.ignoreWarnings([
+  "Module RNFetchBlob requires main queue setup since it overrides `constantsToExport` but doesn't implement `requiresMainQueueSetup`. In a future release React Native will default to initializing all native modules on a background thread unless explicitly opted-out of.",
+  "Module RCTCameraManager requires main queue setup since it overrides `constantsToExport` but doesn't implement `requiresMainQueueSetup`. In a future release React Native will default to initializing all native modules on a background thread unless explicitly opted-out of.",
+])
 
 // store the vanilla console helpers
 window.console._log = window.console.log
