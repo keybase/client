@@ -18,15 +18,15 @@ import (
 )
 
 type UnboxError struct {
-	msg string
+	inner error
 }
 
-func NewUnboxError(msg string) *UnboxError {
-	return &UnboxError{msg: msg}
+func NewUnboxError(inner error) *UnboxError {
+	return &UnboxError{inner: inner}
 }
 
 func (e UnboxError) Error() string {
-	return fmt.Sprintf("Unable to unbox item: %v", e.msg)
+	return fmt.Sprintf("ErasableKVStore UnboxError: %v", e.inner.Error())
 }
 
 type boxedData struct {
@@ -101,10 +101,10 @@ func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes
 	// Decode encrypted box
 	var boxed boxedData
 	if err := libkb.MPackDecode(data, &boxed); err != nil {
-		return NewUnboxError(err.Error())
+		return NewUnboxError(err)
 	}
 	if boxed.V > cryptoVersion {
-		return NewUnboxError(fmt.Sprintf("unexpected crypto version: %d current: %d", boxed.V, cryptoVersion))
+		return NewUnboxError(fmt.Errorf("unexpected crypto version: %d current: %d", boxed.V, cryptoVersion))
 	}
 	enckey, err := s.getEncryptionKey(ctx, noiseBytes)
 	if err != nil {
@@ -115,12 +115,12 @@ func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes
 		// If this fails, let's see if our noise file was corrupted somehow.
 		originalNoise := boxed.H
 		currentNoise := s.noiseHash(noiseBytes[:])
-		return NewUnboxError(fmt.Sprintf("secretbox.Open failure. Stored noise hash: %x, current noise hash: %x, equal: %v", originalNoise, currentNoise, bytes.Equal(originalNoise, currentNoise)))
+		return NewUnboxError(fmt.Errorf("secretbox.Open failure. Stored noise hash: %x, current noise hash: %x, equal: %v", originalNoise, currentNoise, bytes.Equal(originalNoise, currentNoise)))
 	}
 
 	err = libkb.MPackDecode(pt, val)
 	if err != nil {
-		return NewUnboxError(err.Error())
+		return NewUnboxError(err)
 	}
 	return nil
 }
@@ -242,14 +242,14 @@ func (s *FileErasableKVStore) get(ctx context.Context, key string, val interface
 	noiseKey := s.noiseKey(key)
 	noise, err := s.read(ctx, noiseKey)
 	if err != nil {
-		return NewUnboxError(err.Error())
+		return NewUnboxError(err)
 	}
 	var noiseBytes libkb.NoiseBytes
 	copy(noiseBytes[:], noise)
 
 	data, err := s.read(ctx, key)
 	if err != nil {
-		return NewUnboxError(err.Error())
+		return NewUnboxError(err)
 	}
 
 	return s.unbox(ctx, data, noiseBytes, val)
