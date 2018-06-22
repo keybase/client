@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -14,25 +15,26 @@ import (
 )
 
 func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (*keybase1.UserOrTeamResult, error) {
-	resolver, err := newChatConversationResolver(g)
+	var req chatConversationResolvingRequest
+	req.ctx = new(chatConversationResolvingRequestContext)
+	var tlfError, teamError error
+
+	cli, err := GetTeamsClient(g)
 	if err != nil {
 		return nil, err
 	}
-	var req chatConversationResolvingRequest
-	req.ctx = new(chatConversationResolvingRequestContext)
-	var tlfError error
-	if tlfError = resolver.completeAndCanonicalizeTLFName(ctx, name, req); tlfError == nil {
+	if _, tlfError = cli.LookupOrCreateImplicitTeam(ctx, keybase1.LookupOrCreateImplicitTeamArg{
+		Name:   g.GetEnv().GetUsername().String() + "," + name,
+		Public: false,
+	}); tlfError == nil {
 		ret := keybase1.UserOrTeamResult_USER
 		return &ret, nil
 	}
+	tlfError = errors.New("unable to find one or more users")
 
-	cli, teamError := GetTeamsClient(g)
-	if teamError == nil {
-		_, teamError = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name})
-		if teamError == nil {
-			ret := keybase1.UserOrTeamResult_TEAM
-			return &ret, nil
-		}
+	if _, teamError = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name}); teamError == nil {
+		ret := keybase1.UserOrTeamResult_TEAM
+		return &ret, nil
 	}
 
 	msg := `Unable to find conversation.

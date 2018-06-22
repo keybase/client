@@ -3,6 +3,7 @@ package home
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -347,7 +348,10 @@ func (h *Home) Create(ctx context.Context, cli gregor1.IncomingInterface, catego
 	case "home.update":
 		return true, h.handleUpdate(ctx, ibm)
 	default:
-		return false, fmt.Errorf("unknown home handler category: %q", category)
+		if strings.HasPrefix(category, "home.") {
+			return false, fmt.Errorf("unknown home handler category: %q", category)
+		}
+		return false, nil
 	}
 }
 func (h *Home) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {

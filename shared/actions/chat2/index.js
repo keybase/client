@@ -2081,29 +2081,34 @@ const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePay
 
 function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMessagesPayload) {
   const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
-  const seenExplodingMessages = !!gregorState.items.filter(
+  const seenExplodingMessages = gregorState.items.find(
     i => i.item.category === Constants.seenExplodingGregorKey
-  ).length
+  )
+  let body = Date.now().toString()
   if (seenExplodingMessages) {
-    // do nothing
-    return
+    const contents = seenExplodingMessages.item.body.toString()
+    if (isNaN(parseInt(contents, 10))) {
+      logger.info('handleSeeingExplodingMessages: bad seenExploding item body, updating category')
+    }
+    if (contents === 'true') {
+      // user was on the old way. check if `newExploding` is there
+      // set `body` to 3 days back if not
+      if (!gregorState.items.find(i => i.item.category === Constants.newExplodingGregorKey)) {
+        logger.info(
+          'handleSeeingExplodingMessages: found that exploding is not new in old push state. Updating category with old timestamp.'
+        )
+        body = (Date.now() - Constants.newExplodingGregorOffset).toString()
+      }
+    } else {
+      // do nothing
+      return
+    }
   }
-  // neither are set, inject both
-  yield Saga.all([
-    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-      cat: Constants.seenExplodingGregorKey,
-      body: 'true',
-      dtime: {time: 0, offset: 0},
-    }),
-    // note that we don't get a push state when this item expires,
-    // it doesn't really affect things here - we can wait for the
-    // next push state to stop displaying 'new' mode
-    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-      cat: Constants.newExplodingGregorKey,
-      body: 'true',
-      dtime: {time: 0, offset: Constants.newExplodingGregorOffset},
-    }),
-  ])
+  yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+    body,
+    category: Constants.seenExplodingGregorKey,
+    dtime: {time: 0, offset: 0},
+  })
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
