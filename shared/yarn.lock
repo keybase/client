@@ -11088,9 +11088,9 @@ react-native-wkwebview-reborn@^1.20.0:
   dependencies:
     fbjs "^0.8.3"
 
-react-native@0.56.0-rc.2:
-  version "0.56.0-rc.2"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.56.0-rc.2.tgz#68397f5a17b7c847273231aae3e3b67a045e8ad5"
+"react-native@git://github.com/keybase/react-native#keybase-fixes-off-560rc3":
+  version "0.56.0-rc.3"
+  resolved "git://github.com/keybase/react-native#c53f54218a4427ce97cf5ad0a40dfb267b00d1b5"
   dependencies:
     absolute-path "^0.0.0"
     art "^0.10.0"
