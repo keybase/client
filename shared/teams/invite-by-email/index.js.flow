@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {ype Set} from 'immutable'
 import {type TeamRoleType} from '../../constants/types/teams'
 import {isMobile} from '../../constants/platform'
 
@@ -35,10 +36,13 @@ export type ContactRowProps = {
 }
 
 export type Props = {
+  errorMessage: string,
   invitees: string,
+  malformedEmails: Set<string>,
   name: string,
+  onClearInviteError: () => void,
   onClose: () => void,
-  onInvite: () => void,
+  onInvite: (invitees: string) => void,
   onInviteesChange: (invitees: string) => void,
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
   onRoleChange: (role: TeamRoleType) => void,

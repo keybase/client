@@ -231,7 +231,7 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
       yield Saga.put(
         TeamsGen.createSetEmailInviteError({
           malformed,
-          message: `Unable to parse ${malformed.length} addresses.`,
+          message: `There was an error parsing ${malformed.length} addresses.`,
         })
       )
     }

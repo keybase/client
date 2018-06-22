@@ -1,26 +1,26 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
+import * as Constants from '../../constants/teams'
 import InviteByEmailDesktop from '.'
 import {navigateAppend} from '../../actions/route-tree'
-import {
-  connect,
-  compose,
-  withHandlers,
-  withPropsOnChange,
-  withStateHandlers,
-  type TypedState,
-} from '../../util/container'
+import {connect, compose, withHandlers, withStateHandlers, type TypedState} from '../../util/container'
 import {type OwnProps} from './container'
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
-  name: routeProps.get('teamname'),
-})
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
+  const inviteError = Constants.getEmailInviteError(state)
+  return {
+    errorMessage: inviteError.message,
+    malformedEmails: inviteError.malformed,
+    name: routeProps.get('teamname'),
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+  onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => dispatch(navigateUp()),
   onInvite: ({invitees, role}) => {
     dispatch(TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees}))
-    dispatch(navigateUp())
+    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(TeamsGen.createGetTeams())
   },
 
@@ -43,16 +43,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
-    withStateHandlers(
-      {invitees: undefined, role: 'writer'},
-      {onInviteesChange: () => invitees => ({invitees}), onRoleChange: () => role => ({role})}
-    ),
-    withPropsOnChange(['onExitSearch'], props => ({
-      onCancel: () => props.onClose(),
-      title: 'Invite by email',
-    })),
     withHandlers({
-      onInvite: ({invitees, onInvite, role}) => () => invitees && role && onInvite({invitees, role}),
+      onInvite: ({onInvite, role}) => invitees => invitees && role && onInvite({invitees, role}),
     })
   )
 )(InviteByEmailDesktop)
