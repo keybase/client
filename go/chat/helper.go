@@ -637,7 +637,11 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 		inbox, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
 		if err != nil {
-			return res, err
+			// don't error out if the TLF name is just unknown, treat it as a complete miss
+			if _, ok := err.(UnknownTLFNameError); !ok {
+				return res, err
+			}
+			inbox.Convs = nil
 		}
 
 		// If we have inbox hits, return those
@@ -920,9 +924,9 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 	return nil
 }
 
-func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
-	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
-	ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
+func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri)
 	return helper.create(ctx)
 }
@@ -1019,7 +1023,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if n.membersType != chat1.ConversationMembersType_IMPTEAMNATIVE {
 			return res, err
 		}
-		if _, ok := err.(teams.TeamDoesNotExistError); !ok {
+		if _, ok := err.(UnknownTLFNameError); !ok {
 			return res, err
 		}
 

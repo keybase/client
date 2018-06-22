@@ -417,6 +417,10 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, p
 
 	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public)
 	if err != nil {
+		// return the common type for a unknown TLF name
+		if _, ok := err.(teams.TeamDoesNotExistError); ok {
+			return res, NewUnknownTLFNameError(name)
+		}
 		return res, err
 	}
 	if !team.ID.IsRootTeam() {
