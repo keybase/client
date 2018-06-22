@@ -11,6 +11,8 @@ type State = {
   styleTransform: string,
 }
 
+const NO_TRANSFORM = 'notransform'
+
 const _cacheStyleTransforms: {[src: string]: string} = {}
 // Orientations:
 // 1: rotate 0 deg left
@@ -55,10 +57,14 @@ class OrientedImage extends React.Component<Props, State> {
 
   _hasComponentMounted = false
 
-  _handleData = img => {
+  _handleData = src => img => {
     const orientation: ?number = EXIF.getTag(img, 'Orientation')
-    // Orientation is undefined if tag does not exist in exif data
-    if (!isNumber(orientation)) return
+    // If there is no Orientation data set for the image, then mark it as null
+    // in the cache to avoid subsequent calls to EXIF
+    if (!isNumber(orientation)) {
+      console.log('cache marking src as null')
+      _cacheStyleTransforms[src] = NO_TRANSFORM
+    }
 
     const newTransform: string = makeStyleTransform(orientation)
     this.setState(p => {
@@ -72,6 +78,12 @@ class OrientedImage extends React.Component<Props, State> {
   _setTranformForExifOrientation(src) {
     if (!this._hasComponentMounted) return
 
+    // This image either cannot be transofrmed or does not have an EXIF orientation flag
+    if (_cacheStyleTransforms[src] === NO_TRANSFORM) {
+      console.log('cache marked as null')
+      return
+    }
+
     if (_cacheStyleTransforms[src]) {
       return this.setState({styleTransform: _cacheStyleTransforms[src]})
     }
@@ -79,13 +91,18 @@ class OrientedImage extends React.Component<Props, State> {
     // EXIF will make an HTTP request locally to 127.0.0.1:* to fetch the
     // image that the keybase service is serving
     // img = this refers to the image ArrayBuffer fetched from the local server.
-    const handleData = this._handleData
+    const handleData = this._handleData(src)
     const _hasComponentMounted = () => this._hasComponentMounted
 
-    EXIF.getData({src}, function() {
-      if (!_hasComponentMounted()) return
-      handleData(this)
-    })
+    try {
+      EXIF.getData({src}, function() {
+        if (!_hasComponentMounted()) return
+        handleData(this)
+      })
+    } catch (_) {
+      // Mark src as null in the cache to avoid making subsequent calls.
+      _cacheStyleTransforms[src] = NO_TRANSFORM
+    }
   }
 
   componentDidMount() {
