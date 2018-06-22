@@ -205,8 +205,7 @@ helpers.rootLinuxNode(env, {
                         }
                     },
                     test_macos: {
-                        // TODO: Currently we only run macos tests on master builds.
-                        if (env.BRANCH_NAME == "master") {
+                        if (true) {
                             def mountDir='/Volumes/untitled/client'
                             helpers.nodeWithCleanup('macstadium_temp', {}, {
                                     sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
