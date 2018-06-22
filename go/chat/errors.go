@@ -407,7 +407,7 @@ func NewUnknownTLFNameError(name string) UnknownTLFNameError {
 }
 
 func (e UnknownTLFNameError) Error() string {
-	return fmt.Sprintf("unknown TLF name: %s", e.tlfName)
+	return fmt.Sprintf("unknown conversation name: %s", e.tlfName)
 }
 
 //=============================================================================
