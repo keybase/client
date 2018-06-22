@@ -294,7 +294,11 @@ def testGo(prefix) {
         retry(5) {
             sh 'go get -u github.com/golang/lint/golint'
         }
-        sh 'make -s lint'
+        retry(5) {
+            timeout(activity: true, time: 30, unit: 'SECONDS') {
+                sh 'make -s lint'
+            }
+        }
         if (isUnix()) {
             // Windows `gofmt` pukes on CRLF, so only run on *nix.
             sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
