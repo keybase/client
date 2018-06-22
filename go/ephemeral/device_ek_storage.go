@@ -154,11 +154,17 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 	if err != nil {
 		return deviceEK, err
 	}
-	err = s.storage.Get(ctx, key, &deviceEK)
-	if err != nil {
+
+	if err = s.storage.Get(ctx, key, &deviceEK); err != nil {
+		switch err.(type) {
+		case erasablekv.UnboxError:
+			s.G().Log.CDebugf(ctx, "DeviceEKStorage#get: corrupted generation: %s -> %s: %v", key, generation, err)
+			if ierr := s.storage.Erase(ctx, key); ierr != nil {
+				s.G().Log.CDebugf(ctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
+			}
+		}
 		return deviceEK, err
 	}
-
 	return deviceEK, nil
 }
 
@@ -203,7 +209,13 @@ func (s *DeviceEKStorage) getCache(ctx context.Context) (cache DeviceEKMap, err 
 			}
 			deviceEK, err := s.get(ctx, generation)
 			if err != nil {
-				return nil, err
+				switch err.(type) {
+				case *erasablekv.UnboxError:
+					s.G().Log.Debug(err.Error())
+					continue
+				default:
+					return nil, err
+				}
 			}
 			s.cache[generation] = deviceEK
 		}

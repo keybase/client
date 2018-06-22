@@ -8,6 +8,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -179,7 +180,13 @@ func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRo
 	s := e.G().GetDeviceEKStorage()
 	maxGeneration, err := s.MaxGeneration(ctx)
 	if err != nil {
-		return needed, err
+		switch err.(type) {
+		case *erasablekv.UnboxError:
+			e.G().Log.Debug(err.Error())
+			return true, nil
+		default:
+			return false, err
+		}
 	}
 	if maxGeneration < 0 {
 		return true, nil
@@ -187,7 +194,13 @@ func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRo
 
 	ek, err := s.Get(ctx, maxGeneration)
 	if err != nil {
-		return needed, err
+		switch err.(type) {
+		case *erasablekv.UnboxError:
+			e.G().Log.Debug(err.Error())
+			return true, nil
+		default:
+			return false, err
+		}
 	}
 
 	// Ok we can access the ek, check lifetime.
@@ -400,6 +413,7 @@ func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generatio
 	if err != nil {
 		switch err.(type) {
 		case *EKUnboxErr, *EKMissingBoxErr:
+			e.G().Log.Debug(err.Error())
 			if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
 				e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
 			}

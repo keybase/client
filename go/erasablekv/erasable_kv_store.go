@@ -1,6 +1,8 @@
 package erasablekv
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -15,10 +17,23 @@ import (
 	"golang.org/x/net/context"
 )
 
+type UnboxError struct {
+	msg string
+}
+
+func NewUnboxError(msg string) *UnboxError {
+	return &UnboxError{msg: msg}
+}
+
+func (e UnboxError) Error() string {
+	return fmt.Sprintf("Unable to unbox item: %v", e.msg)
+}
+
 type boxedData struct {
 	V int
 	N [libkb.NaclDHNonceSize]byte
 	E []byte
+	H []byte // sha256 has of noise used for encryption
 }
 
 // ***
@@ -86,11 +101,10 @@ func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes
 	// Decode encrypted box
 	var boxed boxedData
 	if err := libkb.MPackDecode(data, &boxed); err != nil {
-		return err
+		return NewUnboxError(err.Error())
 	}
 	if boxed.V > cryptoVersion {
-		return fmt.Errorf("unexpected crypto version: %d current: %d", boxed.V,
-			cryptoVersion)
+		return NewUnboxError(fmt.Sprintf("unexpected crypto version: %d current: %d", boxed.V, cryptoVersion))
 	}
 	enckey, err := s.getEncryptionKey(ctx, noiseBytes)
 	if err != nil {
@@ -98,10 +112,17 @@ func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes
 	}
 	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
 	if !ok {
-		return fmt.Errorf("failed to unbox item")
+		// If this fails, let's see if our noise file was corrupted somehow.
+		originalNoise := boxed.H
+		currentNoise := s.noiseHash(noiseBytes[:])
+		return NewUnboxError(fmt.Sprintf("secretbox.Open failure. Stored noise hash: %x, current noise hash: %x, equal: %v", originalNoise, currentNoise, bytes.Equal(originalNoise, currentNoise)))
 	}
 
-	return libkb.MPackDecode(pt, val)
+	err = libkb.MPackDecode(pt, val)
+	if err != nil {
+		return NewUnboxError(err.Error())
+	}
+	return nil
 }
 
 func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseBytes libkb.NoiseBytes) (data []byte, err error) {
@@ -127,6 +148,7 @@ func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseByt
 		V: cryptoVersion,
 		E: sealed,
 		N: fnonce,
+		H: s.noiseHash(noiseBytes[:]),
 	}
 
 	// Encode encrypted box
@@ -220,14 +242,14 @@ func (s *FileErasableKVStore) get(ctx context.Context, key string, val interface
 	noiseKey := s.noiseKey(key)
 	noise, err := s.read(ctx, noiseKey)
 	if err != nil {
-		return err
+		return NewUnboxError(err.Error())
 	}
 	var noiseBytes libkb.NoiseBytes
 	copy(noiseBytes[:], noise)
 
 	data, err := s.read(ctx, key)
 	if err != nil {
-		return err
+		return NewUnboxError(err.Error())
 	}
 
 	return s.unbox(ctx, data, noiseBytes, val)
@@ -237,6 +259,12 @@ func (s *FileErasableKVStore) read(ctx context.Context, key string) (data []byte
 	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#read", func() error { return err })()
 	filepath := s.filepath(key)
 	return ioutil.ReadFile(filepath)
+}
+
+func (s *FileErasableKVStore) noiseHash(noiseBytes []byte) []byte {
+	h := sha256.New()
+	h.Write(noiseBytes[:])
+	return h.Sum(nil)
 }
 
 func (s *FileErasableKVStore) Erase(ctx context.Context, key string) (err error) {
