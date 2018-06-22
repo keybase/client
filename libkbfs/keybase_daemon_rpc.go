@@ -315,8 +315,6 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		}
 	}
 
-	return nil
-
 	// Using conn.GetClient() here would cause problematic
 	// recursion.
 	c := keybase1.NotifyCtlClient{Cli: rawClient}
