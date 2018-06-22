@@ -4,7 +4,7 @@ import EXIF from 'exif-js'
 import {noop, isNumber} from 'lodash-es'
 import logger from '../logger'
 import {Image} from '../common-adapters'
-import {type Props} from './oriented-image.types'
+import type {Props} from './oriented-image.types'
 import {collapseStyles} from '../styles'
 
 type State = {
@@ -62,7 +62,6 @@ class OrientedImage extends React.Component<Props, State> {
     // If there is no Orientation data set for the image, then mark it as null
     // in the cache to avoid subsequent calls to EXIF
     if (!isNumber(orientation)) {
-      console.log('cache marking src as null')
       _cacheStyleTransforms[src] = NO_TRANSFORM
     }
 
@@ -80,7 +79,6 @@ class OrientedImage extends React.Component<Props, State> {
 
     // This image either cannot be transofrmed or does not have an EXIF orientation flag
     if (_cacheStyleTransforms[src] === NO_TRANSFORM) {
-      console.log('cache marked as null')
       return
     }
 
