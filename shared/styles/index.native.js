@@ -2,7 +2,7 @@
 import {StatusBar, StyleSheet} from 'react-native'
 import {isAndroid, isIOS} from '../constants/platform'
 import globalColors from './colors'
-import {type CollapsibleStyle} from './index.types'
+import type {CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
 
 const font = isIOS
