@@ -182,7 +182,7 @@ func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRo
 	if err != nil {
 		switch err.(type) {
 		case *erasablekv.UnboxError:
-			e.G().Log.Debug(err.Error())
+			e.G().Log.Debug("newDeviceEKNeeded: DeviceEKStorage.MaxGeneration failed %v", err)
 			return true, nil
 		default:
 			return false, err
@@ -196,7 +196,7 @@ func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRo
 	if err != nil {
 		switch err.(type) {
 		case *erasablekv.UnboxError:
-			e.G().Log.Debug(err.Error())
+			e.G().Log.Debug("newDeviceEKNeeded: DeviceEKStorage.Get failed %v", err)
 			return true, nil
 		default:
 			return false, err

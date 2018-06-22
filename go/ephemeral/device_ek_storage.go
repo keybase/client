@@ -211,7 +211,7 @@ func (s *DeviceEKStorage) getCache(ctx context.Context) (cache DeviceEKMap, err 
 			if err != nil {
 				switch err.(type) {
 				case *erasablekv.UnboxError:
-					s.G().Log.Debug(err.Error())
+					s.G().Log.Debug("DeviceEKStorage#getCache failed to get item from storage: %v", err)
 					continue
 				default:
 					return nil, err
