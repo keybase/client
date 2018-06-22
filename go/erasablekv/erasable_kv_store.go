@@ -21,8 +21,8 @@ type UnboxError struct {
 	inner error
 }
 
-func NewUnboxError(inner error) *UnboxError {
-	return &UnboxError{inner: inner}
+func NewUnboxError(inner error) UnboxError {
+	return UnboxError{inner: inner}
 }
 
 func (e UnboxError) Error() string {

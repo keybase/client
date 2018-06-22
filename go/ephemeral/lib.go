@@ -181,7 +181,7 @@ func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRo
 	maxGeneration, err := s.MaxGeneration(ctx)
 	if err != nil {
 		switch err.(type) {
-		case *erasablekv.UnboxError:
+		case erasablekv.UnboxError:
 			e.G().Log.Debug("newDeviceEKNeeded: DeviceEKStorage.MaxGeneration failed %v", err)
 			return true, nil
 		default:
@@ -195,7 +195,7 @@ func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRo
 	ek, err := s.Get(ctx, maxGeneration)
 	if err != nil {
 		switch err.(type) {
-		case *erasablekv.UnboxError:
+		case erasablekv.UnboxError:
 			e.G().Log.Debug("newDeviceEKNeeded: DeviceEKStorage.Get failed %v", err)
 			return true, nil
 		default:
@@ -239,7 +239,7 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 	ek, err := s.Get(ctx, statement.CurrentUserEkMetadata.Generation)
 	if err != nil {
 		switch err.(type) {
-		case *EKUnboxErr, *EKMissingBoxErr:
+		case EKUnboxErr, EKMissingBoxErr:
 			e.G().Log.Debug(err.Error())
 			return true, nil
 		default:
@@ -286,7 +286,7 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 	ek, err := s.Get(ctx, teamID, statement.CurrentTeamEkMetadata.Generation)
 	if err != nil {
 		switch err.(type) {
-		case *EKUnboxErr, *EKMissingBoxErr:
+		case EKUnboxErr, EKMissingBoxErr:
 			e.G().Log.Debug(err.Error())
 			return true, latestGeneration, nil
 		default:
@@ -412,7 +412,7 @@ func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generatio
 	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation)
 	if err != nil {
 		switch err.(type) {
-		case *EKUnboxErr, *EKMissingBoxErr:
+		case EKUnboxErr, EKMissingBoxErr:
 			e.G().Log.Debug(err.Error())
 			if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
 				e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)

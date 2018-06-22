@@ -54,7 +54,7 @@ func TestErasableKVStore(t *testing.T) {
 	var corrupt string
 	err = s.Get(context.Background(), key, corrupt)
 	require.Error(t, err)
-	uerr, ok := err.(*UnboxError)
+	uerr, ok := err.(UnboxError)
 	require.True(t, ok)
 	require.Equal(t, fmt.Sprintf("ErasableKVStore UnboxError: secretbox.Open failure. Stored noise hash: %x, current noise hash: %x, equal: %v", s.noiseHash(noise), s.noiseHash(corruptedNoise), false), uerr.Error())
 	require.NotEqual(t, expected, corrupt)
