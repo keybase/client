@@ -654,13 +654,14 @@ func (t *TeamSigChainPlayer) AppendChainLink(ctx context.Context, link *chainLin
 	return nil
 }
 
-func (t *TeamSigChainPlayer) CloneState() {
+func (t *TeamSigChainPlayer) DeepCopyState() *TeamSigChainPlayer {
 	t.Lock()
 	defer t.Unlock()
 	if t.storedState != nil {
 		tmp := t.storedState.DeepCopy()
 		t.storedState = &tmp
 	}
+	return t
 }
 
 // Add a chain link to the end.
