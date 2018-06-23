@@ -8,25 +8,19 @@ import PassphraseSignup from './passphrase/container'
 import DeviceName from './device-name/container'
 import SignupError from './error/container'
 
-const signupChildren = {
-  deviceName: {children: key => makeRouteDefNode(signupChildren[key]), component: DeviceName},
-  inviteCode: {children: key => makeRouteDefNode(signupChildren[key]), component: InviteCode},
-  passphraseSignup: {children: key => makeRouteDefNode(signupChildren[key]), component: PassphraseSignup},
-  requestInvite: {children: key => makeRouteDefNode(signupChildren[key]), component: RequestInvite},
-  requestInviteSuccess: {
-    children: key => makeRouteDefNode(signupChildren[key]),
-    component: RequestInviteSuccess,
-  },
-  signupError: {children: key => makeRouteDefNode(signupChildren[key]), component: SignupError},
-  usernameAndEmail: {children: key => makeRouteDefNode(signupChildren[key]), component: UsernameEmailForm},
+const children = {
+  deviceName: {children: key => makeRouteDefNode(children[key]), component: DeviceName},
+  inviteCode: {children: key => makeRouteDefNode(children[key]), component: InviteCode},
+  passphraseSignup: {children: key => makeRouteDefNode(children[key]), component: PassphraseSignup},
+  requestInvite: {children: key => makeRouteDefNode(children[key]), component: RequestInvite},
+  requestInviteSuccess: {children: key => makeRouteDefNode(children[key]), component: RequestInviteSuccess},
+  signupError: {children: key => makeRouteDefNode(children[key]), component: SignupError},
+  usernameAndEmail: {children: key => makeRouteDefNode(children[key]), component: UsernameEmailForm},
 }
 
-// Nothing at the root
-const NullComponent = () => null
-
 const signupRoutes = makeRouteDefNode({
-  children: signupChildren,
-  component: NullComponent,
+  children,
+  component: children.requestInvite.component,
 })
 
 export default signupRoutes
