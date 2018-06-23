@@ -17,11 +17,9 @@ export const requestInvite = 'signup:requestInvite'
 export const resetSignup = 'signup:resetSignup'
 export const restartSignup = 'signup:restartSignup'
 export const setDeviceNameError = 'signup:setDeviceNameError'
-export const showPaperKey = 'signup:showPaperKey'
 export const signupError = 'signup:signupError'
 export const startRequestInvite = 'signup:startRequestInvite'
 export const submitDeviceName = 'signup:submitDeviceName'
-export const waiting = 'signup:waiting'
 
 // Payload Types
 type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
@@ -56,12 +54,10 @@ type _RequestInvitePayloadError = $ReadOnly<{|
 type _ResetSignupPayload = void
 type _RestartSignupPayload = void
 type _SetDeviceNameErrorPayload = $ReadOnly<{|deviceNameError: string|}>
-type _ShowPaperKeyPayload = $ReadOnly<{|paperkey: HiddenString|}>
 type _SignupErrorPayload = $ReadOnly<{|signupError: HiddenString|}>
 type _StartRequestInvitePayload = void
 type _SubmitDeviceNamePayload = $ReadOnly<{|deviceName: string|}>
 type _SubmitDeviceNamePayloadError = $ReadOnly<{|deviceNameError: string|}>
-type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
 /**
@@ -83,12 +79,10 @@ export const createRequestInviteError = (payload: _RequestInvitePayloadError) =>
 export const createResetSignup = (payload: _ResetSignupPayload) => ({error: false, payload, type: resetSignup})
 export const createRestartSignup = (payload: _RestartSignupPayload) => ({error: false, payload, type: restartSignup})
 export const createSetDeviceNameError = (payload: _SetDeviceNameErrorPayload) => ({error: false, payload, type: setDeviceNameError})
-export const createShowPaperKey = (payload: _ShowPaperKeyPayload) => ({error: false, payload, type: showPaperKey})
 export const createSignupError = (payload: _SignupErrorPayload) => ({error: false, payload, type: signupError})
 export const createStartRequestInvite = (payload: _StartRequestInvitePayload) => ({error: false, payload, type: startRequestInvite})
 export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
 export const createSubmitDeviceNameError = (payload: _SubmitDeviceNamePayloadError) => ({error: true, payload, type: submitDeviceName})
-export const createWaiting = (payload: _WaitingPayload) => ({error: false, payload, type: waiting})
 
 // Action Payloads
 export type CheckInviteCodePayload = $Call<typeof createCheckInviteCode, _CheckInviteCodePayload>
@@ -104,12 +98,10 @@ export type RequestInvitePayloadError = $Call<typeof createRequestInviteError, _
 export type ResetSignupPayload = $Call<typeof createResetSignup, _ResetSignupPayload>
 export type RestartSignupPayload = $Call<typeof createRestartSignup, _RestartSignupPayload>
 export type SetDeviceNameErrorPayload = $Call<typeof createSetDeviceNameError, _SetDeviceNameErrorPayload>
-export type ShowPaperKeyPayload = $Call<typeof createShowPaperKey, _ShowPaperKeyPayload>
 export type SignupErrorPayload = $Call<typeof createSignupError, _SignupErrorPayload>
 export type StartRequestInvitePayload = $Call<typeof createStartRequestInvite, _StartRequestInvitePayload>
 export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
 export type SubmitDeviceNamePayloadError = $Call<typeof createSubmitDeviceNameError, _SubmitDeviceNamePayloadError>
-export type WaitingPayload = $Call<typeof createWaiting, _WaitingPayload>
 
 // All Actions
 // prettier-ignore
@@ -127,10 +119,8 @@ export type Actions =
   | ResetSignupPayload
   | RestartSignupPayload
   | SetDeviceNameErrorPayload
-  | ShowPaperKeyPayload
   | SignupErrorPayload
   | StartRequestInvitePayload
   | SubmitDeviceNamePayload
   | SubmitDeviceNamePayloadError
-  | WaitingPayload
   | {type: 'common:resetStore', payload: void}

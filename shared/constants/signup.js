@@ -1,23 +1,22 @@
 // @flow
-import type {State} from './types/signup'
+import * as I from 'immutable'
+import * as Types from './types/signup'
 import {isMobile} from '../constants/platform'
 
-const initialState: State = {
+export const makeState: I.RecordFactory<Types._State> = I.Record({
   deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
   deviceNameError: '',
   email: '',
   emailError: '',
-  inviteCode: null,
-  inviteCodeError: null,
+  inviteCode: '',
+  inviteCodeError: '',
   nameError: '',
   paperkey: null,
   passphrase: null,
   passphraseError: null,
-  phase: 'inviteCode',
   signupError: null,
   username: '',
   usernameError: '',
-  waiting: false,
-}
+})
 
-export {initialState}
+export const waitingKey = 'signup:waiting'

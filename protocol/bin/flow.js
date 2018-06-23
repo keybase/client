@@ -267,7 +267,7 @@ function rpcPromiseGen(methodName, name, response, requestType, responseType) {
     return ''
   }
   const resultType = responseType !== 'null' ? `${capitalize(name)}Result` : 'void'
-  return `export const ${name}RpcPromise = (request: ${requestType}): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing(${methodName}, request, (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
+  return `export const ${name}RpcPromise = (request: ${requestType}, loading?: (loading: boolean) => Action): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing(${methodName}, request, (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
     resultType === 'void' ? '' : 'result'
   })))`
 }

@@ -5,8 +5,7 @@ import RequestInvite from './request-invite/container'
 import RequestInviteSuccess from './request-invite-success/container'
 import UsernameEmailForm from './username-email-form/container'
 import PassphraseSignup from './passphrase/container'
-import DeviceName from './device-name'
-import Success from './success/container'
+import DeviceName from './device-name/container'
 import SignupError from './error/container'
 
 const signupChildren = {
@@ -19,7 +18,6 @@ const signupChildren = {
     component: RequestInviteSuccess,
   },
   signupError: {children: key => makeRouteDefNode(signupChildren[key]), component: SignupError},
-  success: {children: key => makeRouteDefNode(signupChildren[key]), component: Success},
   usernameAndEmail: {children: key => makeRouteDefNode(signupChildren[key]), component: UsernameEmailForm},
 }
 

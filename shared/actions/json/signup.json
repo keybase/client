@@ -3,20 +3,16 @@
   "actions": {
     "checkInviteCode": {
       "inviteCode": "string",
-      "canError": {
-        "errorText": "string"
-      }
+      "canError": {"errorText": "string"}
     },
     "checkPassphrase": {
       "passphrase": "HiddenString",
-      "canError": {
-        "passphraseError": "HiddenString"
-      }
+      "canError": {"passphraseError": "HiddenString"}
     },
     "checkUsernameEmail": {
       "_description": "We want to valid a user/email",
       "username": "string",
-      "email": "string",
+      "email": "string"
     },
     "checkUsernameEmailDone": {
       "_description": "We heard back from the server",
@@ -42,24 +38,12 @@
     },
     "resetSignup": {},
     "restartSignup": {},
-    "setDeviceNameError": {
-      "deviceNameError": "string"
-    },
-    "showPaperKey": {
-      "paperkey": "HiddenString"
-    },
-    "signupError": {
-      "signupError": "HiddenString"
-    },
-    "waiting": {
-      "waiting": "boolean"
-    },
+    "setDeviceNameError": {"deviceNameError": "string"},
+    "signupError": {"signupError": "HiddenString"},
     "startRequestInvite": {},
     "submitDeviceName": {
       "deviceName": "string",
-      "canError": {
-        "deviceNameError": "string"
-      }
+      "canError": {"deviceNameError": "string"}
     }
   }
 }

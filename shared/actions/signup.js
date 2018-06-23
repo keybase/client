@@ -1,7 +1,9 @@
 // @flow
 import logger from '../logger'
+import * as Constants from '../constants/signup'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
+import * as WaitingGen from './waiting-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
@@ -22,13 +24,10 @@ function startRequestInvite() {
 function checkInviteCodeThenNextPhase(inviteCode: string) {
   return (dispatch: Dispatch) => {
     dispatch(SignupGen.createCheckInviteCode({inviteCode}))
-
-    RPCTypes.signupCheckInvitationCodeRpcPromise({
-      invitationCode: inviteCode,
-      waitingHandler: isWaiting => {
-        dispatch(SignupGen.createWaiting({waiting: isWaiting}))
-      },
-    })
+    dispatch(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
+    RPCTypes.signupCheckInvitationCodeRpcPromise({invitationCode: inviteCode}, increment =>
+      WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
+    )
       .then(() => {
         dispatch(SignupGen.createCheckInviteCode({inviteCode}))
         dispatch(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
@@ -44,14 +43,13 @@ function requestAutoInvite() {
   return (dispatch: Dispatch) => {
     dispatch(LoginGen.createSetRevokedSelf({revoked: ''}))
     dispatch(LoginGen.createSetDeletedSelf({deletedUsername: ''}))
-    dispatch(SignupGen.createWaiting({waiting: true}))
-    RPCTypes.signupGetInvitationCodeRpcPromise()
+    RPCTypes.signupGetInvitationCodeRpcPromise(undefined, increment =>
+      WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
+    )
       .then(inviteCode => {
-        dispatch(SignupGen.createWaiting({waiting: false}))
         dispatch(checkInviteCodeThenNextPhase(inviteCode))
       })
       .catch(_ => {
-        dispatch(SignupGen.createWaiting({waiting: false}))
         dispatch(navigateTo([loginTab, 'signup', 'inviteCode']))
       })
   }
@@ -67,14 +65,14 @@ function requestInvite(email: string, name: string) {
       return
     }
 
-    RPCTypes.signupInviteRequestRpcPromise({
-      email: email,
-      fullname: name,
-      notes: 'Requested through GUI app',
-      waitingHandler: isWaiting => {
-        dispatch(SignupGen.createWaiting({waiting: isWaiting}))
+    RPCTypes.signupInviteRequestRpcPromise(
+      {
+        email: email,
+        fullname: name,
+        notes: 'Requested through GUI app',
       },
-    })
+      increment => WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
+    )
       .then(() => {
         if (email && name) {
           dispatch(SignupGen.createRequestInvite({email, name}))
@@ -107,10 +105,13 @@ const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload) => {
     throw toThrow
   }
 
-  return Saga.call(RPCTypes.signupCheckUsernameAvailableRpcPromise, {
-    username,
-    waitingHandler: isWaiting => SignupGen.createWaiting({waiting: isWaiting}),
-  })
+  return Saga.call(
+    RPCTypes.signupCheckUsernameAvailableRpcPromise,
+    {
+      username,
+    },
+    increment => WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
+  )
 }
 
 const checkUsernameEmailSuccess = (result: any, action: SignupGen.CheckUsernameEmailPayload) => {
@@ -202,12 +203,9 @@ function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaper
         })
       )
     } else {
-      RPCTypes.deviceCheckDeviceNameFormatRpcPromise({
-        name: deviceName,
-        waitingHandler: isWaiting => {
-          dispatch(SignupGen.createWaiting({waiting: isWaiting}))
-        },
-      })
+      RPCTypes.deviceCheckDeviceNameFormatRpcPromise({name: deviceName}, increment =>
+        WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
+      )
         .then(() => {
           if (deviceName) {
             dispatch(SignupGen.createSubmitDeviceName({deviceName}))
@@ -232,53 +230,41 @@ function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaper
   }
 }
 
-let paperKeyResponse = null
-function sawPaperKey() {
-  return () => {
-    if (paperKeyResponse) {
-      paperKeyResponse.result()
-      paperKeyResponse = null
-    }
-  }
-}
-
 function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
   return (dispatch, getState) => {
     const {email, username, inviteCode, passphrase, deviceName} = getState().signup
-    paperKeyResponse = null
     const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
 
     if (email && username && inviteCode && passphrase && deviceName) {
-      RPCTypes.signupSignupRpcPromise({
-        incomingCallMap: {
-          'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
-            // Do not add a gpg key for now
-            response.result(false)
+      // TODO engine saga
+      RPCTypes.signupSignupRpcPromise(
+        {
+          incomingCallMap: {
+            'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
+              // Do not add a gpg key for now
+              response.result(false)
+            },
+            'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
+              // We dont show the paperkey anymore
+              response.result()
+              dispatch(navigateAppend(['success'], [loginTab, 'signup']))
+            },
           },
-          'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
-            paperKeyResponse = response
-            dispatch(SignupGen.createShowPaperKey({paperkey: new HiddenString(phrase)}))
-            onDisplayPaperKey && onDisplayPaperKey()
-            dispatch(navigateAppend(['success'], [loginTab, 'signup']))
-          },
+          deviceName,
+          deviceType,
+          email,
+          genPGPBatch: false,
+          genPaper: false,
+          inviteCode,
+          passphrase: passphrase.stringValue(),
+          skipMail,
+          storeSecret: true,
+          username,
         },
-        deviceName,
-        deviceType,
-        email,
-        genPGPBatch: false,
-        genPaper: false,
-        inviteCode,
-        passphrase: passphrase.stringValue(),
-        skipMail,
-        storeSecret: true,
-        username,
-        waitingHandler: isWaiting => {
-          dispatch(SignupGen.createWaiting({waiting: isWaiting}))
-        },
-      })
+        increment => WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
+      )
         .then(({passphraseOk, postOk, writeOk}) => {
           logger.info('Successful signup', passphraseOk, postOk, writeOk)
-          dispatch(SignupGen.createWaiting({waiting: true}))
         })
         .catch(err => {
           logger.warn('error in signup:', err)
@@ -308,7 +294,6 @@ export {
   checkPassphrase,
   requestAutoInvite,
   requestInvite,
-  sawPaperKey,
   startRequestInvite,
   submitDeviceName,
 }

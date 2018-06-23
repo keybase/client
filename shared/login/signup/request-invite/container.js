@@ -1,5 +1,6 @@
 // @flow
 import * as SignupGen from '../../../actions/signup-gen'
+import * as Constants from '../../../constants/signup'
 import {requestInvite} from '../../../actions/signup'
 import React, {Component} from 'react'
 import {connect, type TypedState} from '../../../util/container'
@@ -52,7 +53,7 @@ class RequestInvite extends Component<ContainerProps, State> {
 const mapStateToProps = (state: TypedState) => ({
   emailErrorText: state.signup.emailError,
   nameErrorText: state.signup.nameError,
-  waiting: state.signup.waiting,
+  waiting: !!state.waiting.get(Constants.waitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
