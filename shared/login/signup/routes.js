@@ -9,6 +9,7 @@ import DeviceName from './device-name'
 import Success from './success/container'
 import SignupError from './error/container'
 
+// TODO dont make this all nested
 const signupError = makeRouteDefNode({
   component: SignupError,
   children: {},

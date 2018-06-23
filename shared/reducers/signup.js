@@ -104,7 +104,7 @@ export default function(state: Types.State = Constants.initialState, action: Sig
     case SignupGen.clearDeviceNameError:
       return {
         ...state,
-        deviceNameError: null,
+        deviceNameError: '',
       }
     case SignupGen.submitDeviceName:
       if (action.error) {
@@ -118,7 +118,7 @@ export default function(state: Types.State = Constants.initialState, action: Sig
         return {
           ...state,
           deviceName,
-          deviceNameError: null,
+          deviceNameError: '',
           phase: 'signupLoading',
         }
       }

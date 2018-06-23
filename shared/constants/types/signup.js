@@ -6,7 +6,7 @@ export type AutoInviteRequestState = 'NotRequested' | 'Requested' | 'Done'
 
 export type State = {
   deviceName: ?string,
-  deviceNameError: ?string,
+  deviceNameError: string,
   email: string,
   emailError: string,
   inviteCode: ?string,

@@ -4,12 +4,12 @@ import {isMobile} from '../constants/platform'
 
 const initialState: State = {
   deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
-  deviceNameError: null,
+  deviceNameError: '',
   email: '',
   emailError: '',
   inviteCode: null,
   inviteCodeError: null,
-  nameError: null,
+  nameError: '',
   paperkey: null,
   passphrase: null,
   passphraseError: null,
