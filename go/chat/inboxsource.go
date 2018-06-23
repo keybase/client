@@ -274,18 +274,8 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	rquery = &chat1.GetInboxQuery{}
 	if lquery.Name != nil && len(lquery.Name.Name) > 0 {
 		var err error
-
-		// Normalize TLF name
-		tlfName := lquery.Name.Name
-		switch lquery.Name.MembersType {
-		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
-			chat1.ConversationMembersType_KBFS:
-			username := b.G().Env.GetUsername().String()
-			if lquery.Visibility() != keybase1.TLFVisibility_PUBLIC && !strings.Contains(tlfName, username) {
-				tlfName += "," + username
-			}
-		}
-
+		tlfName := utils.AddUserToTLFName(b.G(), lquery.Name.Name, lquery.Visibility(),
+			lquery.Name.MembersType)
 		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, lquery.Name.MembersType,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
