@@ -274,7 +274,19 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	rquery = &chat1.GetInboxQuery{}
 	if lquery.Name != nil && len(lquery.Name.Name) > 0 {
 		var err error
-		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
+
+		// Normalize TLF name
+		tlfName := lquery.Name.Name
+		switch lquery.Name.MembersType {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
+			chat1.ConversationMembersType_KBFS:
+			username := b.G().Env.GetUsername().String()
+			if lquery.Visibility() != keybase1.TLFVisibility_PUBLIC && !strings.Contains(tlfName, username) {
+				tlfName += "," + username
+			}
+		}
+
+		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, lquery.Name.MembersType,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			b.Debug(ctx, "GetInboxQueryLocalToRemote: failed: %s", err)
@@ -282,8 +294,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		}
 		rquery.TlfID = &info.ID
 		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
-		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v",
-			lquery.Name.Name, info.ID)
+		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v", tlfName, info.ID)
 	}
 
 	rquery.After = lquery.After
