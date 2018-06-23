@@ -305,7 +305,7 @@ def testGo(prefix) {
         }
         // Make sure we don't accidentally pull in the testing package.
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
-        sh "go vet ./..."
+        sh "go vet -source ./..."
 
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
