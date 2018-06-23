@@ -9,50 +9,26 @@ import DeviceName from './device-name'
 import Success from './success/container'
 import SignupError from './error/container'
 
-// TODO dont make this all nested
-const signupError = makeRouteDefNode({
-  component: SignupError,
-  children: {},
-})
-
-const routeTree = makeRouteDefNode({
-  component: InviteCode,
-  children: {
-    signupError,
-    requestInvite: {
-      component: RequestInvite,
-      children: {
-        signupError,
-        requestInviteSuccess: {
-          component: RequestInviteSuccess,
-        },
-      },
-    },
-    usernameAndEmail: {
-      component: UsernameEmailForm,
-      children: {
-        signupError,
-        passphraseSignup: {
-          component: PassphraseSignup,
-          children: {
-            signupError,
-            deviceName: {
-              component: DeviceName,
-              children: {
-                signupError,
-                success: {
-                  component: Success,
-                  children: {
-                    signupError,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+const signupChildren = {
+  deviceName: {children: key => makeRouteDefNode(signupChildren[key]), component: DeviceName},
+  inviteCode: {children: key => makeRouteDefNode(signupChildren[key]), component: InviteCode},
+  passphraseSignup: {children: key => makeRouteDefNode(signupChildren[key]), component: PassphraseSignup},
+  requestInvite: {children: key => makeRouteDefNode(signupChildren[key]), component: RequestInvite},
+  requestInviteSuccess: {
+    children: key => makeRouteDefNode(signupChildren[key]),
+    component: RequestInviteSuccess,
   },
+  signupError: {children: key => makeRouteDefNode(signupChildren[key]), component: SignupError},
+  success: {children: key => makeRouteDefNode(signupChildren[key]), component: Success},
+  usernameAndEmail: {children: key => makeRouteDefNode(signupChildren[key]), component: UsernameEmailForm},
+}
+
+// Nothing at the root
+const NullComponent = () => null
+
+const signupRoutes = makeRouteDefNode({
+  children: signupChildren,
+  component: NullComponent,
 })
 
-export default routeTree
+export default signupRoutes

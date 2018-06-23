@@ -12,17 +12,10 @@ import {loginTab} from '../constants/tabs'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
 import type {RPCError} from '../engine/types'
 
-function nextPhase() {
-  return (dispatch, getState) => {
-    const phase: string = getState().signup.phase
-    dispatch(navigateAppend([phase], [loginTab, 'signup']))
-  }
-}
-
 function startRequestInvite() {
   return (dispatch: Dispatch) => {
     dispatch(SignupGen.createStartRequestInvite())
-    dispatch(nextPhase())
+    dispatch(navigateAppend(['requestInvite'], [loginTab, 'signup']))
   }
 }
 
@@ -38,7 +31,7 @@ function checkInviteCodeThenNextPhase(inviteCode: string) {
     })
       .then(() => {
         dispatch(SignupGen.createCheckInviteCode({inviteCode}))
-        dispatch(nextPhase())
+        dispatch(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
       })
       .catch(err => {
         logger.warn('error in inviteCode:', err)
@@ -59,7 +52,7 @@ function requestAutoInvite() {
       })
       .catch(_ => {
         dispatch(SignupGen.createWaiting({waiting: false}))
-        dispatch(navigateTo([loginTab, 'signup']))
+        dispatch(navigateTo([loginTab, 'signup', 'inviteCode']))
       })
   }
 }
@@ -85,7 +78,7 @@ function requestInvite(email: string, name: string) {
       .then(() => {
         if (email && name) {
           dispatch(SignupGen.createRequestInvite({email, name}))
-          dispatch(nextPhase())
+          dispatch(navigateAppend(['requestInvite'], [loginTab, 'signup']))
         }
       })
       .catch(err => {
@@ -124,7 +117,7 @@ const checkUsernameEmailSuccess = (result: any, action: SignupGen.CheckUsernameE
   const {email, username} = action.payload
   return Saga.sequentially([
     Saga.put(SignupGen.createCheckUsernameEmailDone({email, username})),
-    Saga.put(nextPhase()),
+    Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup'])),
   ])
 }
 
@@ -189,7 +182,7 @@ function checkPassphrase(passphrase1: string, passphrase2: string) {
           passphrase: new HiddenString(passphrase1),
         })
       )
-      dispatch(nextPhase())
+      dispatch(navigateAppend(['deviceName'], [loginTab, 'signup']))
     }
   }
 }
@@ -266,7 +259,7 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
             paperKeyResponse = response
             dispatch(SignupGen.createShowPaperKey({paperkey: new HiddenString(phrase)}))
             onDisplayPaperKey && onDisplayPaperKey()
-            dispatch(nextPhase())
+            dispatch(navigateAppend(['success'], [loginTab, 'signup']))
           },
         },
         deviceName,
@@ -290,7 +283,7 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
         .catch(err => {
           logger.warn('error in signup:', err)
           dispatch(SignupGen.createSignupError({signupError: new HiddenString(err.desc)}))
-          dispatch(nextPhase())
+          dispatch(navigateAppend(['signupError'], [loginTab, 'signup']))
         })
     } else {
       logger.warn('Entered signup action with a null required field')
