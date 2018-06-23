@@ -1338,7 +1338,7 @@ func AddUserToTLFName(g *globals.Context, tlfName string, vis keybase1.TLFVisibi
 	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
 		chat1.ConversationMembersType_KBFS:
 		username := g.Env.GetUsername().String()
-		if vis != keybase1.TLFVisibility_PUBLIC && !strings.Contains(tlfName, username) {
+		if vis != keybase1.TLFVisibility_PUBLIC {
 			if len(tlfName) == 0 {
 				tlfName = username
 			} else {
