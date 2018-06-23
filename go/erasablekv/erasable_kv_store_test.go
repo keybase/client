@@ -44,14 +44,19 @@ func TestErasableKVStore(t *testing.T) {
 	require.NoError(t, err)
 
 	// flip one bit
-	noise[0] ^= 0x01
+	corruptedNoise := make([]byte, len(noise))
+	copy(corruptedNoise, noise)
+	corruptedNoise[0] ^= 0x01
 
-	err = ioutil.WriteFile(noiseFilePath, noise, libkb.PermFile)
+	err = ioutil.WriteFile(noiseFilePath, corruptedNoise, libkb.PermFile)
 	require.NoError(t, err)
 
 	var corrupt string
 	err = s.Get(context.Background(), key, corrupt)
 	require.Error(t, err)
+	uerr, ok := err.(UnboxError)
+	require.True(t, ok)
+	require.Equal(t, fmt.Sprintf("ErasableKVStore UnboxError: secretbox.Open failure. Stored noise hash: %x, current noise hash: %x, equal: %v", s.noiseHash(noise), s.noiseHash(corruptedNoise), false), uerr.Error())
 	require.NotEqual(t, expected, corrupt)
 
 	err = s.Erase(context.Background(), key)

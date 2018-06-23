@@ -4034,7 +4034,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 0, len(res.Conversations), "conv found")
-		consumeIdentify(ctx, listener0) // impteam
 
 		// create a new conversation
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,

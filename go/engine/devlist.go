@@ -47,7 +47,7 @@ func (d *DevList) Run(m libkb.MetaContext) (err error) {
 	var devs libkb.DeviceKeyMap
 	var ss *libkb.SecretSyncer
 
-	ss, err = m.ActiveDevice().SyncSecrets(m)
+	ss, err = m.ActiveDevice().SyncSecretsForce(m)
 	if err != nil {
 		return err
 	}

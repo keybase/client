@@ -277,6 +277,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
+			b.Debug(ctx, "GetInboxQueryLocalToRemote: failed: %s", err)
 			return nil, info, err
 		}
 		rquery.TlfID = &info.ID

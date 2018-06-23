@@ -183,7 +183,7 @@ func (e *DeviceHistory) getLastUsedTimes(m libkb.MetaContext) (ret map[keybase1.
 	defer m.CTrace("DeviceHistory#getLastUsedTimes", func() error { return err })()
 	var devs libkb.DeviceKeyMap
 	var ss *libkb.SecretSyncer
-	ss, err = m.ActiveDevice().SyncSecrets(m)
+	ss, err = m.ActiveDevice().SyncSecretsForce(m)
 	if err != nil {
 		return nil, err
 	}
