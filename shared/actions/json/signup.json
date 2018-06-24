@@ -2,7 +2,8 @@
   "prelude": ["import HiddenString from '../util/hidden-string'"],
   "actions": {
     "requestAutoInvite": {},
-    "checkInviteCode": {
+    "checkInviteCode": { "inviteCode": "string" },
+    "checkInviteCodeDone": {
       "inviteCode": "string",
       "canError": {"errorText": "string"}
     },

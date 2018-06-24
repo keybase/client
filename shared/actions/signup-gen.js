@@ -9,6 +9,7 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer
 export const checkInviteCode = 'signup:checkInviteCode'
+export const checkInviteCodeDone = 'signup:checkInviteCodeDone'
 export const checkPassphrase = 'signup:checkPassphrase'
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export const checkUsernameEmailDone = 'signup:checkUsernameEmailDone'
@@ -24,8 +25,9 @@ export const startRequestInvite = 'signup:startRequestInvite'
 export const submitDeviceName = 'signup:submitDeviceName'
 
 // Payload Types
+type _CheckInviteCodeDonePayload = $ReadOnly<{|inviteCode: string|}>
+type _CheckInviteCodeDonePayloadError = $ReadOnly<{|errorText: string|}>
 type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
-type _CheckInviteCodePayloadError = $ReadOnly<{|errorText: string|}>
 type _CheckPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _CheckPassphrasePayloadError = $ReadOnly<{|passphraseError: HiddenString|}>
 type _CheckUsernameEmailDonePayload = $ReadOnly<{|
@@ -77,7 +79,8 @@ export const createCheckUsernameEmailDoneError = (payload: _CheckUsernameEmailDo
  */
 export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload) => ({error: false, payload, type: checkUsernameEmail})
 export const createCheckInviteCode = (payload: _CheckInviteCodePayload) => ({error: false, payload, type: checkInviteCode})
-export const createCheckInviteCodeError = (payload: _CheckInviteCodePayloadError) => ({error: true, payload, type: checkInviteCode})
+export const createCheckInviteCodeDone = (payload: _CheckInviteCodeDonePayload) => ({error: false, payload, type: checkInviteCodeDone})
+export const createCheckInviteCodeDoneError = (payload: _CheckInviteCodeDonePayloadError) => ({error: true, payload, type: checkInviteCodeDone})
 export const createCheckPassphrase = (payload: _CheckPassphrasePayload) => ({error: false, payload, type: checkPassphrase})
 export const createCheckPassphraseError = (payload: _CheckPassphrasePayloadError) => ({error: true, payload, type: checkPassphrase})
 export const createClearDeviceNameError = (payload: _ClearDeviceNameErrorPayload) => ({error: false, payload, type: clearDeviceNameError})
@@ -94,8 +97,9 @@ export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({e
 export const createSubmitDeviceNameError = (payload: _SubmitDeviceNamePayloadError) => ({error: true, payload, type: submitDeviceName})
 
 // Action Payloads
+export type CheckInviteCodeDonePayload = $Call<typeof createCheckInviteCodeDone, _CheckInviteCodeDonePayload>
+export type CheckInviteCodeDonePayloadError = $Call<typeof createCheckInviteCodeDoneError, _CheckInviteCodeDonePayloadError>
 export type CheckInviteCodePayload = $Call<typeof createCheckInviteCode, _CheckInviteCodePayload>
-export type CheckInviteCodePayloadError = $Call<typeof createCheckInviteCodeError, _CheckInviteCodePayloadError>
 export type CheckPassphrasePayload = $Call<typeof createCheckPassphrase, _CheckPassphrasePayload>
 export type CheckPassphrasePayloadError = $Call<typeof createCheckPassphraseError, _CheckPassphrasePayloadError>
 export type CheckUsernameEmailDonePayload = $Call<typeof createCheckUsernameEmailDone, _CheckUsernameEmailDonePayload>
@@ -117,8 +121,9 @@ export type SubmitDeviceNamePayloadError = $Call<typeof createSubmitDeviceNameEr
 // All Actions
 // prettier-ignore
 export type Actions =
+  | CheckInviteCodeDonePayload
+  | CheckInviteCodeDonePayloadError
   | CheckInviteCodePayload
-  | CheckInviteCodePayloadError
   | CheckPassphrasePayload
   | CheckPassphrasePayloadError
   | CheckUsernameEmailDonePayload

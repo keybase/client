@@ -10,7 +10,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.resetStore: // fallthrough
     case SignupGen.resetSignup:
       return initialState
-    case SignupGen.checkInviteCode:
+    case SignupGen.checkInviteCodeDone:
       return state.withMutations(s => {
         s.set('inviteCode', action.error ? '' : action.payload.inviteCode)
         s.set('inviteCodeError', action.error ? action.payload.errorText : '')
@@ -55,6 +55,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.startRequestInvite:
     case SignupGen.requestInvite:
     case SignupGen.requestAutoInvite:
+    case SignupGen.checkInviteCode:
       return state
     default:
       /*::

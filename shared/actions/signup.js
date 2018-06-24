@@ -20,24 +20,20 @@ function startRequestInvite() {
   }
 }
 
-function checkInviteCodeThenNextPhase(inviteCode: string) {
-  return (dispatch: Dispatch) => {
-    dispatch(SignupGen.createCheckInviteCode({inviteCode}))
-    RPCTypes.signupCheckInvitationCodeRpcPromise({invitationCode: inviteCode}, Constants.waitingKey)
-      .then(() => {
-        dispatch(SignupGen.createCheckInviteCode({inviteCode}))
-        dispatch(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
-      })
-      .catch(err => {
-        logger.warn('error in inviteCode:', err)
-        dispatch(SignupGen.createCheckInviteCodeError({errorText: "Sorry, that's not a valid invite code."}))
-      })
-  }
-}
+const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
+  Saga.call(
+    RPCTypes.signupCheckInvitationCodeRpcPromise,
+    {invitationCode: action.payload.inviteCode},
+    Constants.waitingKey
+  )
+const checkInviteCodeSuccess = () => Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
+const checkInviteCodeError = () =>
+  Saga.put(SignupGen.createCheckInviteCodeDoneError({errorText: "Sorry, that's not a valid invite code."}))
 
 const requestAutoInvite = () =>
   Saga.call(RPCTypes.signupGetInvitationCodeRpcPromise, undefined, Constants.waitingKey)
-const requestAutoInviteSuccess = (inviteCode: string) => Saga.put(checkInviteCodeThenNextPhase(inviteCode))
+const requestAutoInviteSuccess = (inviteCode: string) =>
+  Saga.put(SignupGen.createCheckInviteCode({inviteCode}))
 const requestAutoInviteError = () => Saga.put(navigateTo([loginTab, 'signup', 'inviteCode']))
 
 const requestInvite = (action: SignupGen.RequestInvitePayload) => {
@@ -293,10 +289,17 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     SignupGen.requestAutoInvite,
     requestAutoInvite,
-    requestAutoInviteSuccess,
+    // requestAutoInviteSuccess, // TEMP to test auto code
+    requestAutoInviteError,
     requestAutoInviteError
+  )
+  yield Saga.safeTakeEveryPure(
+    SignupGen.checkInviteCode,
+    checkInviteCode,
+    checkInviteCodeSuccess,
+    checkInviteCodeError
   )
 }
 
-export {checkInviteCodeThenNextPhase, checkPassphrase, startRequestInvite, submitDeviceName}
+export {checkPassphrase, startRequestInvite, submitDeviceName}
 export default signupSaga
