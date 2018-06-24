@@ -29,10 +29,10 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         nameError: action.error ? action.payload.nameError : '',
         username: action.payload.name,
       })
-    case SignupGen.checkPassphrase:
+    case SignupGen.checkPassphraseDone:
       return state.merge({
         passphrase: action.error ? null : action.payload.passphrase,
-        passphraseError: action.error ? action.payload.passphraseError : null,
+        passphraseError: action.error ? action.payload.error : null,
       })
     case SignupGen.setDeviceNameError:
       return state.set('deviceNameError', action.payload.deviceNameError)
@@ -55,6 +55,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.requestInvite:
     case SignupGen.requestAutoInvite:
     case SignupGen.checkInviteCode:
+    case SignupGen.checkPassphrase:
       return state
     default:
       /*::

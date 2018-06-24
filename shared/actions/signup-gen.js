@@ -11,6 +11,7 @@ export const resetStore = 'common:resetStore' // not a part of signup but is han
 export const checkInviteCode = 'signup:checkInviteCode'
 export const checkInviteCodeDone = 'signup:checkInviteCodeDone'
 export const checkPassphrase = 'signup:checkPassphrase'
+export const checkPassphraseDone = 'signup:checkPassphraseDone'
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export const checkUsernameEmailDone = 'signup:checkUsernameEmailDone'
 export const clearDeviceNameError = 'signup:clearDeviceNameError'
@@ -27,8 +28,12 @@ export const submitDeviceName = 'signup:submitDeviceName'
 type _CheckInviteCodeDonePayload = $ReadOnly<{|inviteCode: string|}>
 type _CheckInviteCodeDonePayloadError = $ReadOnly<{|errorText: string|}>
 type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
-type _CheckPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
-type _CheckPassphrasePayloadError = $ReadOnly<{|passphraseError: HiddenString|}>
+type _CheckPassphraseDonePayload = $ReadOnly<{|passphrase: HiddenString|}>
+type _CheckPassphraseDonePayloadError = $ReadOnly<{|error: HiddenString|}>
+type _CheckPassphrasePayload = $ReadOnly<{|
+  pass1: HiddenString,
+  pass2: HiddenString,
+|}>
 type _CheckUsernameEmailDonePayload = $ReadOnly<{|
   username: string,
   email: string,
@@ -80,7 +85,8 @@ export const createCheckInviteCode = (payload: _CheckInviteCodePayload) => ({err
 export const createCheckInviteCodeDone = (payload: _CheckInviteCodeDonePayload) => ({error: false, payload, type: checkInviteCodeDone})
 export const createCheckInviteCodeDoneError = (payload: _CheckInviteCodeDonePayloadError) => ({error: true, payload, type: checkInviteCodeDone})
 export const createCheckPassphrase = (payload: _CheckPassphrasePayload) => ({error: false, payload, type: checkPassphrase})
-export const createCheckPassphraseError = (payload: _CheckPassphrasePayloadError) => ({error: true, payload, type: checkPassphrase})
+export const createCheckPassphraseDone = (payload: _CheckPassphraseDonePayload) => ({error: false, payload, type: checkPassphraseDone})
+export const createCheckPassphraseDoneError = (payload: _CheckPassphraseDonePayloadError) => ({error: true, payload, type: checkPassphraseDone})
 export const createClearDeviceNameError = (payload: _ClearDeviceNameErrorPayload) => ({error: false, payload, type: clearDeviceNameError})
 export const createRequestAutoInvite = (payload: _RequestAutoInvitePayload) => ({error: false, payload, type: requestAutoInvite})
 export const createRequestInvite = (payload: _RequestInvitePayload) => ({error: false, payload, type: requestInvite})
@@ -97,8 +103,9 @@ export const createSubmitDeviceNameError = (payload: _SubmitDeviceNamePayloadErr
 export type CheckInviteCodeDonePayload = $Call<typeof createCheckInviteCodeDone, _CheckInviteCodeDonePayload>
 export type CheckInviteCodeDonePayloadError = $Call<typeof createCheckInviteCodeDoneError, _CheckInviteCodeDonePayloadError>
 export type CheckInviteCodePayload = $Call<typeof createCheckInviteCode, _CheckInviteCodePayload>
+export type CheckPassphraseDonePayload = $Call<typeof createCheckPassphraseDone, _CheckPassphraseDonePayload>
+export type CheckPassphraseDonePayloadError = $Call<typeof createCheckPassphraseDoneError, _CheckPassphraseDonePayloadError>
 export type CheckPassphrasePayload = $Call<typeof createCheckPassphrase, _CheckPassphrasePayload>
-export type CheckPassphrasePayloadError = $Call<typeof createCheckPassphraseError, _CheckPassphrasePayloadError>
 export type CheckUsernameEmailDonePayload = $Call<typeof createCheckUsernameEmailDone, _CheckUsernameEmailDonePayload>
 export type CheckUsernameEmailDonePayloadError = $Call<typeof createCheckUsernameEmailDoneError, _CheckUsernameEmailDonePayloadError>
 export type CheckUsernameEmailPayload = $Call<typeof createCheckUsernameEmail, _CheckUsernameEmailPayload>
@@ -120,8 +127,9 @@ export type Actions =
   | CheckInviteCodeDonePayload
   | CheckInviteCodeDonePayloadError
   | CheckInviteCodePayload
+  | CheckPassphraseDonePayload
+  | CheckPassphraseDonePayloadError
   | CheckPassphrasePayload
-  | CheckPassphrasePayloadError
   | CheckUsernameEmailDonePayload
   | CheckUsernameEmailDonePayloadError
   | CheckUsernameEmailPayload

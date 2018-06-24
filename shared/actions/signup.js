@@ -148,32 +148,30 @@ const checkUsernameEmailError = (
   }
 }
 
-function checkPassphrase(passphrase1: string, passphrase2: string) {
-  return (dispatch: Dispatch) => {
-    let passphraseError = null
-    if (!passphrase1 || !passphrase2) {
-      passphraseError = new HiddenString('Fields cannot be blank')
-    } else if (passphrase1 !== passphrase2) {
-      passphraseError = new HiddenString('Passphrases must match')
-    } else if (passphrase1.length < 6) {
-      passphraseError = new HiddenString('Passphrase must be at least 6 characters long')
-    }
-
-    if (passphraseError) {
-      dispatch(
-        SignupGen.createCheckPassphraseError({
-          passphraseError,
-        })
-      )
-    } else {
-      dispatch(
-        SignupGen.createCheckPassphrase({
-          passphrase: new HiddenString(passphrase1),
-        })
-      )
-      dispatch(navigateAppend(['deviceName'], [loginTab, 'signup']))
-    }
+const checkPassphrase = (action: SignupGen.CheckPassphrasePayload) => {
+  const {pass1, pass2} = action.payload
+  const p1 = pass1.stringValue()
+  const p2 = pass2.stringValue()
+  if (!p1 || !p2) {
+    return Saga.put(
+      SignupGen.createCheckPassphraseDoneError({error: new HiddenString('Fields cannot be blank')})
+    )
+  } else if (p1 !== p2) {
+    return Saga.put(
+      SignupGen.createCheckPassphraseDoneError({error: new HiddenString('Passphrases must match')})
+    )
+  } else if (p1.length < 6) {
+    return Saga.put(
+      SignupGen.createCheckPassphraseDoneError({
+        error: new HiddenString('Passphrase must be at least 6 characters long'),
+      })
+    )
   }
+
+  return Saga.sequentially([
+    Saga.put(SignupGen.createCheckPassphraseDone({passphrase: new HiddenString(p1)})),
+    Saga.put(navigateAppend(['deviceName'], [loginTab, 'signup'])),
+  ])
 }
 
 function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void) {
@@ -291,7 +289,8 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
     checkInviteCodeSuccess,
     checkInviteCodeError
   )
+  yield Saga.safeTakeEveryPure(SignupGen.checkPassphrase, checkPassphrase)
 }
 
-export {checkPassphrase, submitDeviceName}
+export {submitDeviceName}
 export default signupSaga

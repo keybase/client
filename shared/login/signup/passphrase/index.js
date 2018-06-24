@@ -5,21 +5,20 @@ import {Box2, Avatar, Input, WaitingButton, HeaderHocHeader} from '../../../comm
 import {styleSheetCreate} from '../../../styles'
 
 type Props = {
-  emailErrorText: string,
+  passphraseError: string,
   onBack: () => void,
-  onSubmit: (username: string, email: string) => void,
-  usernameErrorText: string,
+  onSubmit: (pass1: string, pass1: string) => void,
 }
 type State = {
-  username: string,
-  email: string,
+  pass1: string,
+  pass2: string,
 }
 
 class UsernameAndEmail extends React.Component<Props, State> {
-  state = {email: '', username: ''}
+  state = {pass1: '', pass2: ''}
 
   _onSubmit = () => {
-    this.props.onSubmit(this.state.username, this.state.email)
+    this.props.onSubmit(this.state.pass1, this.state.pass2)
   }
   render() {
     return (
@@ -29,23 +28,24 @@ class UsernameAndEmail extends React.Component<Props, State> {
           <Avatar username="" size={128} />
           <Input
             autoFocus={true}
-            hintText="Create a username"
-            value={this.state.username}
-            errorText={this.props.usernameErrorText}
-            onChangeText={username => this.setState({username})}
+            hintText="Create a passphrase"
+            value={this.state.pass1}
+            type="password"
+            errorText={this.props.passphraseError}
+            onChangeText={pass1 => this.setState({pass1})}
           />
           <Input
-            hintText="Email address"
-            value={this.state.email}
-            errorText={this.props.emailErrorText}
+            hintText="Confirm passphrase"
+            value={this.state.pass2}
+            type="password"
             onEnterKeyDown={this._onSubmit}
-            onChangeText={email => this.setState({email})}
+            onChangeText={pass2 => this.setState({pass2})}
           />
           <WaitingButton
             waitingKey={Constants.waitingKey}
             type="Primary"
             label="Continue"
-            disabled={!this.state.email || !this.state.username}
+            disabled={!this.state.pass1 || !this.state.pass2}
             onClick={this._onSubmit}
           />
         </Box2>

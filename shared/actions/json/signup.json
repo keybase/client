@@ -8,8 +8,14 @@
       "canError": {"errorText": "string"}
     },
     "checkPassphrase": {
+      "pass1": "HiddenString",
+      "pass2": "HiddenString",
+    },
+    "checkPassphraseDone": {
       "passphrase": "HiddenString",
-      "canError": {"passphraseError": "HiddenString"}
+      "canError":{
+        "error":"HiddenString"
+      }
     },
     "checkUsernameEmail": {
       "_description": "We want to valid a user/email",
