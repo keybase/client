@@ -1,17 +1,14 @@
 // @flow
 import React, {Component} from 'react'
 // import Container from '../../forms/container'
-import {Box, Checkbox, Button, Text, Icon} from '../../common-adapters'
-import {globalColors, globalStyles, globalMargins} from '../../styles'
+import {Box, Checkbox, Button, Text, Icon, Box2, HeaderHocHeader} from '../../common-adapters'
+import {globalColors, globalStyles, globalMargins, styleSheetCreate} from '../../styles'
 import {getStyle} from '../../common-adapters/text'
 import type {Props} from '.'
 
 type State = {
   checked: boolean,
 }
-
-// TODO
-const Container = () => null
 
 class SuccessRender extends Component<Props, State> {
   state = {
@@ -20,38 +17,41 @@ class SuccessRender extends Component<Props, State> {
 
   render() {
     return (
-      <Container style={{alignItems: 'center', paddingBottom: globalMargins.small}}>
-        <Text type="Header" style={textCenter}>
-          {this.props.title || "Congratulations, you've just joined Keybase!"}
-        </Text>
-        <Text type="Body" style={{...textCenter, marginTop: globalMargins.medium}}>
-          Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
-          This is the only time you'll see this so be sure to write it down.
-        </Text>
-
-        <Box style={paperKeyContainerStyle}>
-          <Text type="Header" selectable={true} style={paperkeyStyle}>
-            {this.props.paperkey.stringValue()}
+      <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <HeaderHocHeader onBack={this.props.onBack} headerStyle={styles.header} />
+        <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true} gap="small">
+          <Text type="Header" style={textCenter}>
+            {this.props.title || "Congratulations, you've just joined Keybase!"}
           </Text>
-          <Box style={paperCornerStyle}>
-            <Icon type="icon-paper-key-corner" />
+          <Text type="Body" style={{...textCenter, marginTop: globalMargins.medium}}>
+            Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
+            This is the only time you'll see this so be sure to write it down.
+          </Text>
+
+          <Box style={paperKeyContainerStyle}>
+            <Text type="Header" selectable={true} style={paperkeyStyle}>
+              {this.props.paperkey.stringValue()}
+            </Text>
+            <Box style={paperCornerStyle}>
+              <Icon type="icon-paper-key-corner" />
+            </Box>
           </Box>
-        </Box>
 
-        <Checkbox
-          label="Yes, I wrote this down."
-          checked={this.state.checked}
-          onCheck={checked => this.setState({checked})}
-        />
+          <Checkbox
+            label="Yes, I wrote this down."
+            checked={this.state.checked}
+            onCheck={checked => this.setState({checked})}
+          />
 
-        <Button
-          disabled={!this.state.checked}
-          onClick={this.props.onFinish}
-          label="Done"
-          type="Primary"
-          style={{marginTop: globalMargins.small}}
-        />
-      </Container>
+          <Button
+            disabled={!this.state.checked}
+            onClick={this.props.onFinish}
+            label="Done"
+            type="Primary"
+            style={{marginTop: globalMargins.small}}
+          />
+        </Box2>
+      </Box2>
     )
   }
 }
@@ -87,5 +87,9 @@ const paperCornerStyle = {
   right: -4,
   top: -4,
 }
+
+const styles = styleSheetCreate({
+  header: {position: 'absolute'},
+})
 
 export default SuccessRender
