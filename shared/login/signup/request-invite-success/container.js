@@ -3,7 +3,7 @@ import * as SignupGen from '../../../actions/signup-gen'
 import RequestInviteSuccess from '.'
 import {connect} from '../../../util/container'
 
-const mapStateToProps = state => ({})
+const mapStateToProps = () => ({})
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(SignupGen.createRestartSignup()),
 })
