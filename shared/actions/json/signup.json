@@ -1,58 +1,65 @@
 {
   "prelude": ["import HiddenString from '../util/hidden-string'"],
   "actions": {
-    "checkInviteCode": {
+    "requestAutoInvite": {},
+    "checkInviteCode": { "inviteCode": "string" },
+    "checkInviteCodeDone": {
       "inviteCode": "string",
-      "canError": {
-        "errorText": "string"
-      }
+      "canError": {"errorText": "string"}
     },
     "checkPassphrase": {
+      "pass1": "HiddenString",
+      "pass2": "HiddenString",
+    },
+    "checkPassphraseDone": {
       "passphrase": "HiddenString",
-      "canError": {
-        "passphraseError": "HiddenString"
+      "canError":{
+        "passphrase": "HiddenString",
+        "error":"HiddenString"
       }
     },
     "checkUsernameEmail": {
+      "_description": "We want to valid a user/email",
+      "username": "string",
+      "email": "string"
+    },
+    "checkUsernameEmailDone": {
+      "_description": "We heard back from the server",
       "username": "string",
       "email": "string",
       "canError": {
-        "emailError": "?Error",
-        "usernameError": "?Error",
-        "email": "?string",
-        "username": "?string"
+        "emailError": "string",
+        "usernameError": "string",
+        "email": "string",
+        "username": "string"
       }
     },
-    "clearDeviceNameError": {},
     "requestInvite": {
       "email": "string",
       "name": "string",
+    },
+    "requestInviteDone": {
+      "email": "string",
+      "name": "string",
       "canError": {
-        "emailError": "?Error",
-        "nameError": "?Error",
-        "email": "?string",
-        "name": "?string"
+        "emailError": "string",
+        "nameError": "string",
+        "email": "string",
+        "name": "string"
       }
     },
+    "signup": {},
     "resetSignup": {},
     "restartSignup": {},
-    "setDeviceNameError": {
-      "deviceNameError": "string"
+    "signupError": {"signupError": "HiddenString"},
+    "submitDevicename": {
+      "devicename": "string",
     },
-    "showPaperKey": {
-      "paperkey": "HiddenString"
-    },
-    "signupError": {
-      "signupError": "HiddenString"
-    },
-    "waiting": {
-      "waiting": "boolean"
-    },
-    "startRequestInvite": {},
-    "submitDeviceName": {
-      "deviceName": "string",
+    "submitDevicenameDone": {
+      "devicename": "string",
       "canError": {
-        "deviceNameError": "string"
+        "devicename": "string",
+        "error": "string"
       }
     }
   }
