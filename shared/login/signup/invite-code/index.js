@@ -8,7 +8,7 @@ type Props = {
   onBack: () => void,
   onSubmit: (code: string) => void,
   onRequestInvite: () => void,
-  inviteCodeErrorText: ?string,
+  error: string,
 }
 type State = {
   inviteCode: string,
@@ -30,7 +30,7 @@ class UsernameAndEmail extends React.Component<Props, State> {
           <Input
             autoFocus={true}
             value={this.state.inviteCode}
-            errorText={this.props.inviteCodeErrorText}
+            errorText={this.props.error}
             onEnterKeyDown={this._onSubmit}
             onChangeText={inviteCode => this.setState({inviteCode})}
           />

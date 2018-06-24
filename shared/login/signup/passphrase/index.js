@@ -5,7 +5,7 @@ import {Box2, Avatar, Input, WaitingButton, HeaderHocHeader} from '../../../comm
 import {styleSheetCreate} from '../../../styles'
 
 type Props = {
-  passphraseError: string,
+  error: string,
   onBack: () => void,
   onSubmit: (pass1: string, pass1: string) => void,
 }
@@ -31,7 +31,7 @@ class UsernameAndEmail extends React.Component<Props, State> {
             hintText="Create a passphrase"
             value={this.state.pass1}
             type="password"
-            errorText={this.props.passphraseError}
+            errorText={this.props.error}
             onChangeText={pass1 => this.setState({pass1})}
           />
           <Input

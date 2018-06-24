@@ -5,7 +5,7 @@ import HiddenString from '../../../util/hidden-string'
 import Passphrase from '.'
 
 const mapStateToProps = (state: TypedState) => ({
-  passphraseError: state.signup.passphraseError ? state.signup.passphraseError.stringValue() : '',
+  error: state.signup.passphraseError ? state.signup.passphraseError.stringValue() : '',
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

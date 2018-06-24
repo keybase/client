@@ -5,8 +5,8 @@ import {connect, type TypedState} from '../../../util/container'
 import {navigateAppend} from '../../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState) => ({
+  error: state.signup.inviteCodeError,
   inviteCode: state.signup.inviteCode,
-  inviteCodeErrorText: state.signup.inviteCodeError,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
