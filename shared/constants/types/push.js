@@ -9,6 +9,7 @@ export type PushNotification = {
   convID?: string,
   m?: string,
   p?: Array<string>,
+  s?: string, // soundName
   t?: number,
   d?: number,
   x?: number,

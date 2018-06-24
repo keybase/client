@@ -951,7 +951,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
 		uid:          uid,
-		tlfName:      tlfName,
+		tlfName:      utils.AddUserToTLFName(g, tlfName, vis, membersType),
 		topicName:    topicName,
 		topicType:    topicType,
 		membersType:  membersType,

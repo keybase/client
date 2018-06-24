@@ -228,11 +228,12 @@ const BOOL isDebug = NO;
       int messageID = [notification[@"d"] intValue];
       int badgeCount = [notification[@"b"] intValue];
       int unixTime = [notification[@"x"] intValue];
+      NSString* soundName = notification[@"s"];
       NSString* pushID = [notification[@"p"] objectAtIndex:0];
       NSString* body = notification[@"m"];
       PushNotifier* pusher = [[PushNotifier alloc] init];
       NSError* err = nil;
-      KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, pusher, &err);
+      KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, soundName, pusher, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }

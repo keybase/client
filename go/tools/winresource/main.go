@@ -64,7 +64,7 @@ func kbWriteSyso(vi *goversioninfo.VersionInfo, filename string, arch string, ic
 	}
 
 	// ID 16 is for Version Information
-	coff.AddResource(16, 1, goversioninfo.SizedReader{&vi.Buffer})
+	coff.AddResource(16, 1, goversioninfo.SizedReader{Buffer: &vi.Buffer})
 
 	// NOTE: if/when we start using a manifest, it goes here
 

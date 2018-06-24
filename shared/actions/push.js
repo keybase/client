@@ -114,7 +114,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           }
         }
         if (unboxRes) {
-          yield Saga.call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d)
+          yield Saga.call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d, payload.s)
         }
       } catch (err) {
         logger.error('failed to unbox silent notification', err)

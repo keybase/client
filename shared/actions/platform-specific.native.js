@@ -135,7 +135,13 @@ function clearAllNotifications() {
   PushNotifications.cancelAllLocalNotifications()
 }
 
-function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {
+function displayNewMessageNotification(
+  text: string,
+  convID: ?string,
+  badgeCount: ?number,
+  myMsgID: ?number,
+  soundName: ?string
+) {
   // Dismiss any non-plaintext notifications for the same message ID
   if (isIOS) {
     PushNotificationIOS.getDeliveredNotifications(param => {
@@ -147,7 +153,7 @@ function displayNewMessageNotification(text: string, convID: ?string, badgeCount
 
   PushNotifications.localNotification({
     message: text,
-    soundName: 'keybasemessage.wav',
+    soundName,
     userInfo: {
       convID: convID,
       type: 'chat.newmessage',

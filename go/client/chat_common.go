@@ -14,8 +14,6 @@ import (
 )
 
 func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (res keybase1.UserOrTeamResult, err error) {
-	var req chatConversationResolvingRequest
-	req.ctx = new(chatConversationResolvingRequestContext)
 	cli, err := GetTeamsClient(g)
 	if err != nil {
 		return res, err
