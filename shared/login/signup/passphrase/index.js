@@ -34,7 +34,7 @@ class UsernameAndEmail extends React.Component<Props, State> {
             hintText="Create a passphrase"
             value={this.state.pass1}
             type="password"
-            errorText={this.props.error}
+            errorText={this.props.passphrase === this.state.pass1 ? this.props.error : ''}
             onChangeText={pass1 => this.setState({pass1})}
           />
           <Input
