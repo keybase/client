@@ -9,9 +9,7 @@ const devicename =
   (isDarwin && 'My Mac Device') ||
   (isWindows && 'My Windows Device') ||
   (isLinux && 'My Linux Device') ||
-  isMobile
-    ? 'Mobile Device'
-    : 'Home Computer'
+  (isMobile ? 'Mobile Device' : 'Home Computer')
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   devicename,

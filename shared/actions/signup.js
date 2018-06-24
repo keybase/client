@@ -239,6 +239,8 @@ const signup = (action: SignupGen.SignupPayload, state: TypedState) => {
 const signupSuccess = (result: RPCTypes.SignupRes) => {
   if (result) {
     logger.info('Successful signup', result.passphraseOk, result.postOk, result.writeOk)
+    // done clear out any signup data
+    return Saga.put(SignupGen.createResetSignup())
   } else {
     return Saga.sequentially([
       Saga.put(SignupGen.createSignupError({signupError: new HiddenString('Cant signup, try again?')})),
