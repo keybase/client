@@ -1,6 +1,5 @@
 // @flow
 import * as LoginGen from '../../../actions/login-gen'
-import * as SignupGen from '../../../actions/signup-gen'
 import React, {Component} from 'react'
 import SetPublicName, {type State} from '.'
 import {connect, type TypedState} from '../../../util/container'
@@ -84,14 +83,14 @@ type OwnProps = RouteProps<
 >
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
-  deviceNameError: state.signup.deviceNameError,
+  deviceNameError: state.signup.devicenameError,
   existingDevices: routeProps.get('existingDevices'),
   existingDevicesTrimmed: trimDeviceNames(routeProps.get('existingDevices')),
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  clearDeviceNameError: () => dispatch(SignupGen.createClearDeviceNameError()),
+  clearDeviceNameError: () => {},
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (deviceName: string) => {
     // map 'smart apostrophes' to ASCII (typewriter apostrophe)

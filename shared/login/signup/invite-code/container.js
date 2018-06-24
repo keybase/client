@@ -1,18 +1,21 @@
 // @flow
+import * as SignupGen from '../../../actions/signup-gen'
 import InviteCode from '.'
 import {connect, type TypedState} from '../../../util/container'
-import {restartSignup, startRequestInvite, checkInviteCodeThenNextPhase} from '../../../actions/signup'
+import {navigateAppend} from '../../../actions/route-tree'
+import type {RouteProps} from '../../../route-tree/render-route'
+
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
+  error: state.signup.inviteCodeError,
   inviteCode: state.signup.inviteCode,
-  inviteCodeErrorText: state.signup.inviteCodeError,
-  waiting: state.signup.waiting,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(restartSignup()),
-  onInviteCodeSubmit: (inviteCode: string) => dispatch(checkInviteCodeThenNextPhase(inviteCode)),
-  onRequestInvite: () => dispatch(startRequestInvite()),
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({
+  onBack: () => dispatch(navigateUp()),
+  onRequestInvite: () => dispatch(navigateAppend(['requestInvite'])),
+  onSubmit: (inviteCode: string) => dispatch(SignupGen.createCheckInviteCode({inviteCode})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(InviteCode)

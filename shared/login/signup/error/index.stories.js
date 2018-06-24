@@ -2,12 +2,12 @@
 import * as React from 'react'
 import Error from '.'
 import {action, storiesOf} from '../../../stories/storybook'
-import HiddenString from '../../../util/hidden-string'
+import * as PropProviders from '../../../stories/prop-providers'
 
 const load = () => {
-  storiesOf('Signup', module).add('Error', () => (
-    <Error errorText={new HiddenString('This is an error')} restartSignup={action('restartSignup')} />
-  ))
+  storiesOf('Signup', module)
+    .addDecorator(PropProviders.Common())
+    .add('Error', () => <Error error="This is an error" onBack={action('onBack')} />)
 }
 
 export default load
