@@ -36,13 +36,13 @@ class UsernameAndEmail extends React.Component<Props, State> {
             autoFocus={true}
             hintText="Create a username"
             value={this.state.username}
-            errorText={this.props.usernameError}
+            errorText={this.props.username === this.state.username ? this.props.usernameError : ''}
             onChangeText={username => this.setState({username})}
           />
           <Input
             hintText="Email address"
             value={this.state.email}
-            errorText={this.props.emailError}
+            errorText={this.props.email === this.state.email ? this.props.emailError : ''}
             onEnterKeyDown={this._onSubmit}
             onChangeText={email => this.setState({email})}
           />
