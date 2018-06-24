@@ -82,7 +82,8 @@
   enum GlobalAppNotificationSetting {
     NEWMESSAGES_0,
     PLAINTEXTMOBILE_1,
-    PLAINTEXTDESKTOP_2
+    PLAINTEXTDESKTOP_2,
+    DEFAULTSOUNDMOBILE_3
   }
   record GlobalAppNotificationSettings {
     map<GlobalAppNotificationSetting, bool> settings;

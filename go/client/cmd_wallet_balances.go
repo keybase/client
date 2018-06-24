@@ -99,7 +99,7 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 				if acc.ExchangeRate != nil {
 					localAmount, err := stellarnet.ConvertXLMToOutside(balance.Amount, acc.ExchangeRate.Rate)
 					if err == nil {
-						localAmountStr = fmt.Sprintf(" (%s ~%s)", string(acc.ExchangeRate.Currency), localAmount)
+						localAmountStr = fmt.Sprintf(" (%s %s)", string(acc.ExchangeRate.Currency), localAmount)
 					} else {
 						c.G().Log.Warning("Unable to convert to local currency: %s", err)
 					}

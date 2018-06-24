@@ -2086,19 +2086,15 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
     const contents = seenExplodingMessages.item.body.toString()
     if (isNaN(parseInt(contents, 10))) {
       logger.info('handleSeeingExplodingMessages: bad seenExploding item body, updating category')
-    }
-    if (contents === 'true') {
-      // user was on the old way. check if `newExploding` is there
-      // set `body` to 3 days back if not
-      if (!gregorState.items.find(i => i.item.category === Constants.newExplodingGregorKey)) {
-        logger.info(
-          'handleSeeingExplodingMessages: found that exploding is not new in old push state. Updating category with old timestamp.'
-        )
-        body = (Date.now() - Constants.newExplodingGregorOffset).toString()
-      }
     } else {
       // do nothing
       return
+    }
+  } else {
+    // haven't been here before. figure out the new body by seeing if newExploding is there
+    if (!gregorState.items.find(i => i.item.category === Constants.newExplodingGregorKey)) {
+      // not new!
+      body = (Date.now() - Constants.newExplodingGregorOffset).toString()
     }
   }
   yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
