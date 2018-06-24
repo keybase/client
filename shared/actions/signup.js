@@ -35,19 +35,10 @@ function checkInviteCodeThenNextPhase(inviteCode: string) {
   }
 }
 
-function requestAutoInvite() {
-  return (dispatch: Dispatch) => {
-    dispatch(LoginGen.createSetRevokedSelf({revoked: ''}))
-    dispatch(LoginGen.createSetDeletedSelf({deletedUsername: ''}))
-    RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
-      .then(inviteCode => {
-        dispatch(checkInviteCodeThenNextPhase(inviteCode))
-      })
-      .catch(_ => {
-        dispatch(navigateTo([loginTab, 'signup', 'inviteCode']))
-      })
-  }
-}
+const requestAutoInvite = () =>
+  Saga.call(RPCTypes.signupGetInvitationCodeRpcPromise, undefined, Constants.waitingKey)
+const requestAutoInviteSuccess = (inviteCode: string) => Saga.put(checkInviteCodeThenNextPhase(inviteCode))
+const requestAutoInviteError = () => Saga.put(navigateTo([loginTab, 'signup', 'inviteCode']))
 
 const requestInvite = (action: SignupGen.RequestInvitePayload) => {
   const {email, name} = action.payload
@@ -299,13 +290,13 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
     requestInviteSuccess,
     requestInviteError
   )
+  yield Saga.safeTakeEveryPure(
+    SignupGen.requestAutoInvite,
+    requestAutoInvite,
+    requestAutoInviteSuccess,
+    requestAutoInviteError
+  )
 }
 
-export {
-  checkInviteCodeThenNextPhase,
-  checkPassphrase,
-  requestAutoInvite,
-  startRequestInvite,
-  submitDeviceName,
-}
+export {checkInviteCodeThenNextPhase, checkPassphrase, startRequestInvite, submitDeviceName}
 export default signupSaga

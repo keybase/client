@@ -54,6 +54,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.checkUsernameEmail:
     case SignupGen.startRequestInvite:
     case SignupGen.requestInvite:
+    case SignupGen.requestAutoInvite:
       return state
     default:
       /*::
