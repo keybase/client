@@ -19,7 +19,7 @@ class RequestInvite extends React.Component<Props, State> {
   state = {email: '', name: ''}
 
   _onSubmit = () => {
-    this.props.onSubmit(this.state.name, this.state.email)
+    this.props.onSubmit(this.state.email, this.state.name)
   }
   render() {
     return (

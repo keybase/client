@@ -65,7 +65,7 @@ const requestInviteSuccess = (
   const {email, name} = action.payload
   return Saga.sequentially([
     Saga.put(SignupGen.createRequestInviteDone({email, name})),
-    Saga.put(navigateAppend(['requestInvite'], [loginTab, 'signup'])),
+    Saga.put(navigateAppend(['requestInviteSuccess'], [loginTab, 'signup'])),
   ])
 }
 
