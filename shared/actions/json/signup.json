@@ -33,7 +33,6 @@
         "username": "string"
       }
     },
-    "clearDeviceNameError": {},
     "requestInvite": {
       "email": "string",
       "name": "string",
@@ -48,13 +47,19 @@
         "name": "string"
       }
     },
+    "signup": {},
     "resetSignup": {},
     "restartSignup": {},
-    "setDeviceNameError": {"deviceNameError": "string"},
     "signupError": {"signupError": "HiddenString"},
-    "submitDeviceName": {
-      "deviceName": "string",
-      "canError": {"deviceNameError": "string"}
+    "submitDevicename": {
+      "devicename": "string",
+    },
+    "submitDevicenameDone": {
+      "devicename": "string",
+      "canError": {
+        "devicename": "string",
+        "error": "string"
+      }
     }
   }
 }

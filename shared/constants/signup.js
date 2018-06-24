@@ -1,11 +1,21 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/signup'
-import {isMobile} from '../constants/platform'
+import {isAndroid, isIOS, isDarwin, isWindows, isLinux, isMobile} from '../constants/platform'
+
+const devicename =
+  (isAndroid && 'My Android Device') ||
+  (isIOS && 'My iOS Device') ||
+  (isDarwin && 'My Mac Device') ||
+  (isWindows && 'My Windows Device') ||
+  (isLinux && 'My Linux Device') ||
+  isMobile
+    ? 'Mobile Device'
+    : 'Home Computer'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
-  deviceNameError: '',
+  devicename,
+  devicenameError: '',
   email: '',
   emailError: '',
   inviteCode: '',

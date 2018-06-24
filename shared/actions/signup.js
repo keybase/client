@@ -174,92 +174,79 @@ const checkPassphrase = (action: SignupGen.CheckPassphrasePayload) => {
   ])
 }
 
-function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void) {
-  return (dispatch: Dispatch) => {
-    // TODO do some checking on the device name - ideally this is done on the service side
-    let deviceNameError = null
-    if (trim(deviceName).length === 0) {
-      deviceNameError = 'Device name must not be empty.'
-    }
-
-    if (deviceNameError) {
-      dispatch(
-        SignupGen.createSubmitDeviceNameError({
-          deviceNameError: deviceNameError || '',
-        })
-      )
-    } else {
-      RPCTypes.deviceCheckDeviceNameFormatRpcPromise({name: deviceName}, Constants.waitingKey)
-        .then(() => {
-          if (deviceName) {
-            dispatch(SignupGen.createSubmitDeviceName({deviceName}))
-
-            const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
-            if (signupPromise) {
-              signupPromise.then(resolve, reject)
-            } else {
-              throw new Error('did not get promise from signup')
-            }
-          }
-        })
-        .catch(err => {
-          logger.warn('device name is invalid: ', err)
-          dispatch(
-            SignupGen.createSubmitDeviceNameError({
-              deviceNameError: `Device name is invalid: ${err.desc}.`,
-            })
-          )
-        })
-    }
+const submitDevicename = (action: SignupGen.SubmitDevicenamePayload) => {
+  const {devicename} = action.payload
+  if (trim(devicename).length === 0) {
+    return Saga.put(
+      SignupGen.createSubmitDevicenameDoneError({
+        devicename,
+        error: 'Device name must not be empty.',
+      })
+    )
   }
+  return Saga.call(RPCTypes.deviceCheckDeviceNameFormatRpcPromise, {name: devicename}, Constants.waitingKey)
 }
 
-function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
-  return (dispatch, getState) => {
-    const {email, username, inviteCode, passphrase, deviceName} = getState().signup
-    const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
-
-    if (email && username && inviteCode && passphrase && deviceName) {
-      // TODO engine saga
-      RPCTypes.signupSignupRpcPromise(
-        {
-          incomingCallMap: {
-            'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
-              // Do not add a gpg key for now
-              response.result(false)
-            },
-            'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
-              // We dont show the paperkey anymore
-              response.result()
-              dispatch(navigateAppend(['success'], [loginTab, 'signup']))
-            },
-          },
-          deviceName,
-          deviceType,
-          email,
-          genPGPBatch: false,
-          genPaper: false,
-          inviteCode,
-          passphrase: passphrase.stringValue(),
-          skipMail,
-          storeSecret: true,
-          username,
-        },
-        Constants.waitingKey
-      )
-        .then(({passphraseOk, postOk, writeOk}) => {
-          logger.info('Successful signup', passphraseOk, postOk, writeOk)
-        })
-        .catch(err => {
-          logger.warn('error in signup:', err)
-          dispatch(SignupGen.createSignupError({signupError: new HiddenString(err.desc)}))
-          dispatch(navigateAppend(['signupError'], [loginTab, 'signup']))
-        })
-    } else {
-      logger.warn('Entered signup action with a null required field')
-    }
-  }
+const submitDevicenameSuccess = () => Saga.put(SignupGen.createSignup())
+const submitDevicenameError = (err: RPCError, action: SignupGen.SubmitDevicenamePayload) => {
+  logger.warn('device name is invalid: ', err)
+  return Saga.put(
+    SignupGen.createSubmitDevicenameDoneError({
+      devicename: action.payload.devicename,
+      error: `Device name is invalid: ${err.desc}.`,
+    })
+  )
 }
+
+const signup = (action: SignupGen.SignupPayload, state: TypedState) {
+  const {email, username, inviteCode, passphrase, devicename} = state.signup
+
+  console.log('aaa', email, username, inviteCode, passphrase.stringValue(), devicename)
+  return
+
+
+      // RPCTypes.signupSignupRpcSaga (
+        // {
+          // incomingCallMap: {
+            // 'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
+              // // Do not add a gpg key for now
+              // response.result(false)
+            // },
+            // 'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
+              // // We dont show the paperkey anymore
+              // response.result()
+              // dispatch(navigateAppend(['success'], [loginTab, 'signup']))
+            // },
+          // },
+          // deviceName: devicename,
+          // deviceType: isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop,
+          // email,
+          // genPGPBatch: false,
+          // genPaper: false,
+          // inviteCode,
+          // passphrase: passphrase.stringValue(),
+          // skipMail: false,
+          // storeSecret: true,
+          // username,
+        // },
+        // Constants.waitingKey
+      // )
+        // .then(({passphraseOk, postOk, writeOk}) => {
+          // logger.info('Successful signup', passphraseOk, postOk, writeOk)
+        // })
+        // .catch(err => {
+          // logger.warn('error in signup:', err)
+          // dispatch(SignupGen.createSignupError({signupError: new HiddenString(err.desc)}))
+          // dispatch(navigateAppend(['signupError'], [loginTab, 'signup']))
+        // })
+    // } else {
+      // logger.warn('Entered signup action with a null required field')
+    // }
+  // }
+}
+
+const signupSuccess = () => {}
+const signupError = () => {}
 
 const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
 
@@ -290,7 +277,14 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
     checkInviteCodeError
   )
   yield Saga.safeTakeEveryPure(SignupGen.checkPassphrase, checkPassphrase)
+  yield Saga.safeTakeEveryPure(
+    SignupGen.submitDevicename,
+    submitDevicename,
+    submitDevicenameSuccess,
+    submitDevicenameError
+  )
+  yield Saga.safeTakeEveryPure( SignupGen.signup, signup, signupSuccess, signupError
+  )
 }
 
-export {submitDeviceName}
 export default signupSaga

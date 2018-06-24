@@ -310,19 +310,9 @@ const displayAndPromptSecretSaga = onBackSaga =>
 
 const promptNewDeviceNameSaga = onBackSaga =>
   function*({existingDevices, errorMessage}) {
-    yield Saga.put(SignupGen.createSetDeviceNameError({deviceNameError: errorMessage}))
+    yield Saga.put(SignupGen.createSubmitDevicenameDoneError({devicename: '', error: errorMessage}))
     yield Saga.put(
-      navigateAppend(
-        [
-          {
-            props: {
-              existingDevices,
-            },
-            selected: 'setPublicName',
-          },
-        ],
-        [loginTab, 'login']
-      )
+      navigateAppend([{props: {existingDevices}, selected: 'setPublicName'}], [loginTab, 'login'])
     )
 
     const {onBack, navUp, onSubmit} = (yield Saga.race({
@@ -348,12 +338,7 @@ const chooseDeviceSaga = onBackSaga =>
   function*({devices, canSelectNoDevice}: {devices: Array<RPCTypes.Device>, canSelectNoDevice: boolean}) {
     yield Saga.put(
       navigateAppend(
-        [
-          {
-            props: {canSelectNoDevice, devices},
-            selected: 'selectOtherDevice',
-          },
-        ],
+        [{props: {canSelectNoDevice, devices}, selected: 'selectOtherDevice'}],
         [loginTab, 'login']
       )
     )
@@ -713,6 +698,7 @@ function* _logout() {
 
 const clearError = () => Saga.put(LoginGen.createLoginError({error: ''}))
 
+// TODO more pure functions
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(LoginGen.startLogin, _startLogin)
   yield Saga.safeTakeEveryPure(LoginGen.setCameraBrokenMode, _cameraBrokenMode)

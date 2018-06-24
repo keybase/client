@@ -34,14 +34,10 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         passphrase: action.error ? null : action.payload.passphrase,
         passphraseError: action.error ? action.payload.error : null,
       })
-    case SignupGen.setDeviceNameError:
-      return state.set('deviceNameError', action.payload.deviceNameError)
-    case SignupGen.clearDeviceNameError:
-      return state.set('deviceNameError', '')
-    case SignupGen.submitDeviceName:
+    case SignupGen.submitDevicenameDone:
       return state.merge({
-        deviceName: action.error ? '' : action.payload.deviceName,
-        deviceNameError: action.error ? action.payload.deviceNameError : '',
+        devicename: action.error ? '' : action.payload.devicename,
+        devicenameError: action.error ? action.payload.error : '',
       })
     case SignupGen.signupError:
       return state.set('signupError', action.payload.signupError)
@@ -55,6 +51,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.requestInvite:
     case SignupGen.requestAutoInvite:
     case SignupGen.checkInviteCode:
+    case SignupGen.submitDevicename:
     case SignupGen.checkPassphrase:
       return state
     default:
