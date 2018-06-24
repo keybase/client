@@ -305,7 +305,7 @@ def testGo(prefix) {
             try {
                 sh "test -z ${fmtFails}"
             } catch (ex) {
-                sh "gofmt ${fmtFails}"
+                sh "gofmt -d ${fmtFails}"
                 throw ex
             }
         }
