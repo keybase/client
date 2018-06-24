@@ -29,6 +29,10 @@
     "requestInvite": {
       "email": "string",
       "name": "string",
+    },
+    "requestInviteDone": {
+      "email": "string",
+      "name": "string",
       "canError": {
         "emailError": "string",
         "nameError": "string",

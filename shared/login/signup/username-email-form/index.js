@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../../constants/signup'
 import {Box2, Avatar, Input, WaitingButton, HeaderHocHeader} from '../../../common-adapters'
 import {styleSheetCreate} from '../../../styles'
 
@@ -41,7 +42,7 @@ class UsernameAndEmail extends React.Component<Props, State> {
             onChangeText={email => this.setState({email})}
           />
           <WaitingButton
-            waitingKey="signup:userEmail"
+            waitingKey={Constants.waitingKey}
             type="Primary"
             label="Continue"
             onClick={this._onSubmit}

@@ -3,7 +3,6 @@ import logger from '../logger'
 import * as Constants from '../constants/signup'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
-import * as WaitingGen from './waiting-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
@@ -24,7 +23,6 @@ function startRequestInvite() {
 function checkInviteCodeThenNextPhase(inviteCode: string) {
   return (dispatch: Dispatch) => {
     dispatch(SignupGen.createCheckInviteCode({inviteCode}))
-    dispatch(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
     RPCTypes.signupCheckInvitationCodeRpcPromise({invitationCode: inviteCode}, Constants.waitingKey)
       .then(() => {
         dispatch(SignupGen.createCheckInviteCode({inviteCode}))
@@ -51,56 +49,80 @@ function requestAutoInvite() {
   }
 }
 
-function requestInvite(email: string, name: string) {
-  return (dispatch: Dispatch) => {
-    // Returns an error string if not valid
-    const emailError = isValidEmail(email)
-    const nameError = isValidName(name)
-    if (emailError || nameError || !email || !name) {
-      dispatch(SignupGen.createRequestInviteError({email, emailError, name, nameError}))
-      return
-    }
-
-    RPCTypes.signupInviteRequestRpcPromise(
-      {email: email, fullname: name, notes: 'Requested through GUI app'},
-      Constants.waitingKey
-    )
-      .then(() => {
-        if (email && name) {
-          dispatch(SignupGen.createRequestInvite({email, name}))
-          dispatch(navigateAppend(['requestInvite'], [loginTab, 'signup']))
-        }
-      })
-      .catch(err => {
-        dispatch(
-          SignupGen.createRequestInviteError({
-            email,
-            emailError: err,
-            name,
-            nameError: '',
-          })
-        )
-      })
+const requestInvite = (action: SignupGen.RequestInvitePayload) => {
+  const {email, name} = action.payload
+  const emailError = isValidEmail(email)
+  const nameError = isValidName(name)
+  if (emailError) {
+    return Saga.put(SignupGen.createRequestInviteDoneError({email, emailError, name, nameError: ''}))
   }
+  if (nameError) {
+    return Saga.put(SignupGen.createRequestInviteDoneError({email, emailError: '', name, nameError}))
+  }
+
+  return Saga.call(
+    RPCTypes.signupInviteRequestRpcPromise,
+    {email: email, fullname: name, notes: 'Requested through GUI app'},
+    Constants.waitingKey
+  )
+}
+
+const requestInviteSuccess = (
+  result: SignupGen.RequestInviteDonePayload | void,
+  action: SignupGen.RequestInvitePayload
+) => {
+  // rpc returns undefined, dispatches above on error return the type
+  if (result) {
+    return
+  }
+  const {email, name} = action.payload
+  return Saga.sequentially([
+    Saga.put(SignupGen.createRequestInviteDone({email, name})),
+    Saga.put(navigateAppend(['requestInvite'], [loginTab, 'signup'])),
+  ])
+}
+
+const requestInviteError = (err, action: SignupGen.RequestInvitePayload) => {
+  const {email, name} = action.payload
+  return Saga.put(SignupGen.createRequestInviteDoneError({email, emailError: err, name, nameError: ''}))
 }
 
 const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload) => {
   const {email, username} = action.payload
   const emailError = isValidEmail(email)
   if (emailError) {
-    const toThrow = {email: 'Invalid email'}
-    throw toThrow
+    return Saga.put(
+      SignupGen.createCheckUsernameEmailDoneError({
+        email,
+        emailError,
+        username,
+        usernameError: '',
+      })
+    )
   }
   const usernameError = isValidUsername(username)
   if (usernameError) {
-    const toThrow = {username: 'Invalid username'}
-    throw toThrow
+    return Saga.put(
+      SignupGen.createCheckUsernameEmailDoneError({
+        email,
+        emailError: '',
+        username,
+        usernameError,
+      })
+    )
   }
 
   return Saga.call(RPCTypes.signupCheckUsernameAvailableRpcPromise, {username}, Constants.waitingKey)
 }
 
-const checkUsernameEmailSuccess = (result: any, action: SignupGen.CheckUsernameEmailPayload) => {
+const checkUsernameEmailSuccess = (
+  result: SignupGen.CheckUsernameEmailDonePayloadError | void,
+  action: SignupGen.CheckUsernameEmailPayload
+) => {
+  // rpc returns undefined, dispatches above on error return the type
+  if (result) {
+    return
+  }
   const {email, username} = action.payload
   return Saga.sequentially([
     Saga.put(SignupGen.createCheckUsernameEmailDone({email, username})),
@@ -271,13 +293,18 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
     checkUsernameEmailSuccess,
     checkUsernameEmailError
   )
+  yield Saga.safeTakeEveryPure(
+    SignupGen.requestInvite,
+    requestInvite,
+    requestInviteSuccess,
+    requestInviteError
+  )
 }
 
 export {
   checkInviteCodeThenNextPhase,
   checkPassphrase,
   requestAutoInvite,
-  requestInvite,
   startRequestInvite,
   submitDeviceName,
 }

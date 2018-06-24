@@ -22,7 +22,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         username: action.payload.username,
         usernameError: action.error ? action.payload.usernameError : '',
       })
-    case SignupGen.requestInvite:
+    case SignupGen.requestInviteDone:
       return state.merge({
         email: action.payload.email,
         emailError: action.error ? action.payload.emailError : '',
@@ -53,6 +53,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     // Saga only
     case SignupGen.checkUsernameEmail:
     case SignupGen.startRequestInvite:
+    case SignupGen.requestInvite:
       return state
     default:
       /*::

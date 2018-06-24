@@ -14,6 +14,7 @@ export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export const checkUsernameEmailDone = 'signup:checkUsernameEmailDone'
 export const clearDeviceNameError = 'signup:clearDeviceNameError'
 export const requestInvite = 'signup:requestInvite'
+export const requestInviteDone = 'signup:requestInviteDone'
 export const resetSignup = 'signup:resetSignup'
 export const restartSignup = 'signup:restartSignup'
 export const setDeviceNameError = 'signup:setDeviceNameError'
@@ -41,13 +42,17 @@ type _CheckUsernameEmailPayload = $ReadOnly<{|
   email: string,
 |}>
 type _ClearDeviceNameErrorPayload = void
-type _RequestInvitePayload = $ReadOnly<{|
+type _RequestInviteDonePayload = $ReadOnly<{|
   email: string,
   name: string,
 |}>
-type _RequestInvitePayloadError = $ReadOnly<{|
+type _RequestInviteDonePayloadError = $ReadOnly<{|
   emailError: string,
   nameError: string,
+  email: string,
+  name: string,
+|}>
+type _RequestInvitePayload = $ReadOnly<{|
   email: string,
   name: string,
 |}>
@@ -75,7 +80,8 @@ export const createCheckPassphrase = (payload: _CheckPassphrasePayload) => ({err
 export const createCheckPassphraseError = (payload: _CheckPassphrasePayloadError) => ({error: true, payload, type: checkPassphrase})
 export const createClearDeviceNameError = (payload: _ClearDeviceNameErrorPayload) => ({error: false, payload, type: clearDeviceNameError})
 export const createRequestInvite = (payload: _RequestInvitePayload) => ({error: false, payload, type: requestInvite})
-export const createRequestInviteError = (payload: _RequestInvitePayloadError) => ({error: true, payload, type: requestInvite})
+export const createRequestInviteDone = (payload: _RequestInviteDonePayload) => ({error: false, payload, type: requestInviteDone})
+export const createRequestInviteDoneError = (payload: _RequestInviteDonePayloadError) => ({error: true, payload, type: requestInviteDone})
 export const createResetSignup = (payload: _ResetSignupPayload) => ({error: false, payload, type: resetSignup})
 export const createRestartSignup = (payload: _RestartSignupPayload) => ({error: false, payload, type: restartSignup})
 export const createSetDeviceNameError = (payload: _SetDeviceNameErrorPayload) => ({error: false, payload, type: setDeviceNameError})
@@ -93,8 +99,9 @@ export type CheckUsernameEmailDonePayload = $Call<typeof createCheckUsernameEmai
 export type CheckUsernameEmailDonePayloadError = $Call<typeof createCheckUsernameEmailDoneError, _CheckUsernameEmailDonePayloadError>
 export type CheckUsernameEmailPayload = $Call<typeof createCheckUsernameEmail, _CheckUsernameEmailPayload>
 export type ClearDeviceNameErrorPayload = $Call<typeof createClearDeviceNameError, _ClearDeviceNameErrorPayload>
+export type RequestInviteDonePayload = $Call<typeof createRequestInviteDone, _RequestInviteDonePayload>
+export type RequestInviteDonePayloadError = $Call<typeof createRequestInviteDoneError, _RequestInviteDonePayloadError>
 export type RequestInvitePayload = $Call<typeof createRequestInvite, _RequestInvitePayload>
-export type RequestInvitePayloadError = $Call<typeof createRequestInviteError, _RequestInvitePayloadError>
 export type ResetSignupPayload = $Call<typeof createResetSignup, _ResetSignupPayload>
 export type RestartSignupPayload = $Call<typeof createRestartSignup, _RestartSignupPayload>
 export type SetDeviceNameErrorPayload = $Call<typeof createSetDeviceNameError, _SetDeviceNameErrorPayload>
@@ -114,8 +121,9 @@ export type Actions =
   | CheckUsernameEmailDonePayloadError
   | CheckUsernameEmailPayload
   | ClearDeviceNameErrorPayload
+  | RequestInviteDonePayload
+  | RequestInviteDonePayloadError
   | RequestInvitePayload
-  | RequestInvitePayloadError
   | ResetSignupPayload
   | RestartSignupPayload
   | SetDeviceNameErrorPayload
