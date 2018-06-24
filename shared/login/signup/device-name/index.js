@@ -34,6 +34,7 @@ class Devicename extends React.Component<Props, State> {
           <Input
             autoFocus={true}
             errorText={error}
+            value={this.state.devicename}
             hintText="Device name"
             onEnterKeyDown={this._onSubmit}
             onChangeText={devicename => this.setState({devicename})}

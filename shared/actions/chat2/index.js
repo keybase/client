@@ -56,16 +56,16 @@ const inboxRefresh = (
     return Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
   }
 
-  return RPCChatTypes.localGetInboxNonblockLocalRpcSaga(
-    {
+  return RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
+    incomingCallMap: {'chat.1.chatUi.chatInboxUnverified': onUnverified},
+    params: {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       maxUnbox: 0,
       query: Constants.makeInboxQuery([]),
       skipUnverified: false,
     },
-    {'chat.1.chatUi.chatInboxUnverified': onUnverified},
-    'inboxRefresh'
-  )
+    waitingKey: 'inboxRefresh',
+  })
 }
 
 // When we get info on a team we need to unbox immediately so we can get the channel names
@@ -219,19 +219,19 @@ const unboxRows = (
     }
   }
 
-  const getRows = RPCChatTypes.localGetInboxNonblockLocalRpcSaga(
-    {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      query: Constants.makeInboxQuery(conversationIDKeys),
-      skipUnverified: true,
-    },
-    {
+  const getRows = RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
+    incomingCallMap: {
       'chat.1.chatUi.chatInboxConversation': onUnboxed,
       'chat.1.chatUi.chatInboxFailed': onFailed,
       'chat.1.chatUi.chatInboxUnverified': () => {},
     },
-    `unboxing:${conversationIDKeys[0]}`
-  )
+    params: {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      query: Constants.makeInboxQuery(conversationIDKeys),
+      skipUnverified: true,
+    },
+    waitingKey: `unboxing:${conversationIDKeys[0]}`,
+  })
 
   return Saga.sequentially([Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})), getRows])
 }
@@ -859,8 +859,12 @@ const loadMoreMessages = (
     return actions
   }
 
-  const makeCall = RPCChatTypes.localGetThreadNonblockRpcSaga(
-    {
+  const makeCall = RPCChatTypes.localGetThreadNonblockRpcSaga({
+    incomingCallMap: {
+      'chat.1.chatUi.chatThreadCached': p => onGotThread(p, 'cached'),
+      'chat.1.chatUi.chatThreadFull': p => onGotThread(p, 'full'),
+    },
+    params: {
       cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
       conversationID,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -878,12 +882,8 @@ const loadMoreMessages = (
       },
       reason: reasonToRPCReason(reason),
     },
-    {
-      'chat.1.chatUi.chatThreadCached': p => onGotThread(p, 'cached'),
-      'chat.1.chatUi.chatThreadFull': p => onGotThread(p, 'full'),
-    },
-    loadingKey
-  )
+    waitingKey: loadingKey,
+  })
   return Saga.all([
     Saga.identity(conversationIDKey),
     makeCall,
@@ -1476,20 +1476,20 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
       }
     }
 
-    yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga(
-      {
+    yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga({
+      incomingCallMap: {
+        'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
+        'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
+        'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
+      },
+      params: {
         conversationID: Types.keyToConversationID(conversationIDKey),
         filename: fileName,
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
         messageID: message.id,
         preview: false,
       },
-      {
-        'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
-        'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
-        'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
-      }
-    )
+    })
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: fileName}))
   } catch (e) {}
 }
@@ -1614,19 +1614,8 @@ function* attachmentUploadCall({
   const state = yield Saga.select()
   try {
     let lastRatioSent = -1 // force the first update to show no matter what
-    yield RPCChatTypes.localPostFileAttachmentLocalRpcSaga(
-      {
-        ...ephemeralData,
-        attachment: {filename: path},
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        metadata: Buffer.from([]),
-        outboxID,
-        title,
-        tlfName,
-        visibility: RPCTypes.commonTLFVisibility.private,
-      },
-      {
+    yield RPCChatTypes.localPostFileAttachmentLocalRpcSaga({
+      incomingCallMap: {
         'chat.1.chatUi.chatAttachmentPreviewUploadDone': () => {},
         'chat.1.chatUi.chatAttachmentPreviewUploadStart': metadata =>
           Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0})),
@@ -1642,8 +1631,19 @@ function* attachmentUploadCall({
         },
         'chat.1.chatUi.chatAttachmentUploadStart': metadata =>
           Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0})),
-      }
-    )
+      },
+      params: {
+        ...ephemeralData,
+        attachment: {filename: path},
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+        metadata: Buffer.from([]),
+        outboxID,
+        title,
+        tlfName,
+        visibility: RPCTypes.commonTLFVisibility.private,
+      },
+    })
 
     if (ordinal) {
       yield Saga.put(Chat2Gen.createAttachmentUploaded({conversationIDKey, ordinal}))

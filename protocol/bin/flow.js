@@ -252,7 +252,7 @@ function engineSagaGen(methodName, name, response, requestType, responseType) {
   if (!enabledCall(methodName, 'engineSaga')) {
     return ''
   }
-  return `export const ${name}RpcSaga = (params: ${requestType}, incomingCallMap: IncomingCallMapType, waitingKey?: string) => Saga.call(engineSaga, {method: ${methodName}, params, incomingCallMap, waitingKey})`
+  return `export const ${name}RpcSaga = (p: {params: ${requestType}, incomingCallMap: IncomingCallMapType, waitingKey?: string}) => Saga.call(engineSaga, {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})`
 }
 
 function rpcChannelMapGen(methodName, name, response, requestType, responseType) {

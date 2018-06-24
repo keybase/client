@@ -202,50 +202,53 @@ const submitDevicenameError = (err: RPCError, action: SignupGen.SubmitDevicename
 const signup = (action: SignupGen.SignupPayload, state: TypedState) => {
   const {email, username, inviteCode, passphrase, devicename} = state.signup
 
-  console.log('aaa', email, username, inviteCode, passphrase && passphrase.stringValue(), devicename)
+  if (!email || !username || !inviteCode || !passphrase || !passphrase.stringValue() || !devicename) {
+    throw new Error('Missing data for signup')
+  }
 
-  // RPCTypes.signupSignupRpcSaga (
-  // {
-  // incomingCallMap: {
-  // 'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
-  // // Do not add a gpg key for now
-  // response.result(false)
-  // },
-  // 'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
-  // // We dont show the paperkey anymore
-  // response.result()
-  // dispatch(navigateAppend(['success'], [loginTab, 'signup']))
-  // },
-  // },
-  // deviceName: devicename,
-  // deviceType: isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop,
-  // email,
-  // genPGPBatch: false,
-  // genPaper: false,
-  // inviteCode,
-  // passphrase: passphrase.stringValue(),
-  // skipMail: false,
-  // storeSecret: true,
-  // username,
-  // },
-  // Constants.waitingKey
-  // )
-  // .then(({passphraseOk, postOk, writeOk}) => {
-  // logger.info('Successful signup', passphraseOk, postOk, writeOk)
-  // })
-  // .catch(err => {
-  // logger.warn('error in signup:', err)
-  // dispatch(SignupGen.createSignupError({signupError: new HiddenString(err.desc)}))
-  // dispatch(navigateAppend(['signupError'], [loginTab, 'signup']))
-  // })
-  // } else {
-  // logger.warn('Entered signup action with a null required field')
-  // }
-  // }
+  return RPCTypes.signupSignupRpcSaga({
+    incomingCallMap: {
+      // Do not add a gpg key for now
+      'keybase.1.gpgUi.wantToAddGPGKey': (params, response, state) => {
+        response.result(false)
+      },
+      // We dont show the paperkey anymore
+      'keybase.1.loginUi.displayPrimaryPaperKey': () =>
+        Saga.put(navigateAppend(['success'], [loginTab, 'signup'])),
+    },
+    params: {
+      deviceName: devicename,
+      deviceType: isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop,
+      email,
+      genPGPBatch: false,
+      genPaper: false,
+      inviteCode,
+      passphrase: passphrase.stringValue(),
+      skipMail: false,
+      storeSecret: true,
+      username,
+    },
+    waitingKey: Constants.waitingKey,
+  })
 }
 
-const signupSuccess = () => {}
-const signupError = () => {}
+const signupSuccess = (result: RPCTypes.SignupRes) => {
+  if (result) {
+    logger.info('Successful signup', result.passphraseOk, result.postOk, result.writeOk)
+  } else {
+    return Saga.sequentially([
+      Saga.put(SignupGen.createSignupError({signupError: new HiddenString('Cant signup, try again?')})),
+      Saga.put(navigateAppend(['signupError'], [loginTab, 'signup'])),
+    ])
+  }
+}
+const signupError = (err: RPCError) => {
+  logger.warn('error in signup:', err)
+  return Saga.sequentially([
+    Saga.put(SignupGen.createSignupError({signupError: new HiddenString(err.desc)})),
+    Saga.put(navigateAppend(['signupError'], [loginTab, 'signup'])),
+  ])
+}
 
 const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
 
