@@ -55,6 +55,7 @@ export type PathItemMetadata = {
   lastWriter: RPCTypes.User,
   progress: ProgressType,
   badgeCount: number,
+  writable: boolean,
   tlfMeta?: FavoriteMetadata,
 }
 
