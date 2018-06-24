@@ -4,8 +4,8 @@ import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import UsernameEmail from '.'
 
 const mapStateToProps = (state: TypedState) => ({
-  emailErrorText: state.signup.emailError,
-  usernameErrorText: state.signup.usernameError,
+  emailError: state.signup.emailError,
+  usernameError: state.signup.usernameError,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

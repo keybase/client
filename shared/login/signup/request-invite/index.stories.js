@@ -5,9 +5,9 @@ import {action, storiesOf} from '../../../stories/storybook'
 
 const props = {
   email: '',
-  emailErrorText: undefined,
+  emailError: undefined,
   name: '',
-  nameErrorText: undefined,
+  nameError: undefined,
   onBack: action('onBack'),
   onSubmit: action('onSubmit'),
 }
@@ -15,10 +15,8 @@ const props = {
 const load = () => {
   storiesOf('Signup/Request Invite', module)
     .add('Start', () => <RequestInvite {...props} />)
-    .add('Name Error', () => <RequestInvite {...props} nameErrorText={'Name bad, smash!'} />)
-    .add('Email Error', () => (
-      <RequestInvite {...props} emailErrorText={'Email bad, booo'} />
-    ))
+    .add('Name Error', () => <RequestInvite {...props} nameError="Name bad, smash!" />)
+    .add('Email Error', () => <RequestInvite {...props} emailError="Email bad, booo" />)
 }
 
 export default load

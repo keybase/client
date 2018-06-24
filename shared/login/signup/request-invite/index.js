@@ -5,10 +5,10 @@ import {Text, Icon, Box2, Input, WaitingButton, HeaderHocHeader} from '../../../
 import {styleSheetCreate} from '../../../styles'
 
 type Props = {
-  emailErrorText: string,
+  emailError: string,
   onBack: () => void,
   onSubmit: (name: string, email: string) => void,
-  nameErrorText: string,
+  nameError: string,
 }
 type State = {
   name: string,
@@ -31,7 +31,7 @@ class RequestInvite extends React.Component<Props, State> {
           <Input
             hintText="Your email address"
             value={this.state.email}
-            errorText={this.props.emailErrorText}
+            errorText={this.props.emailError}
             onEnterKeyDown={this._onSubmit}
             onChangeText={email => this.setState({email})}
             autoFocus={true}
@@ -39,7 +39,7 @@ class RequestInvite extends React.Component<Props, State> {
           <Input
             hintText="Your name"
             value={this.state.name}
-            errorText={this.props.nameErrorText}
+            errorText={this.props.nameError}
             onChangeText={name => this.setState({name})}
           />
           <WaitingButton

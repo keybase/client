@@ -6,11 +6,11 @@ import {Box2} from '../../../common-adapters'
 import * as PropProviders from '../../../stories/prop-providers'
 
 const props = {
-  emailErrorText: '',
+  emailError: '',
   onBack: action('onBack'),
   onSubmit: action('onSubmit'),
   submitUserEmail: action('submitUserEmail'),
-  usernameErrorText: '',
+  usernameError: '',
   waiting: false,
 }
 
@@ -23,8 +23,8 @@ const load = () => {
       </Box2>
     ))
     .add('Start', () => <UsernameEmailForm {...props} />)
-    .add('Name Error', () => <UsernameEmailForm {...props} usernameErrorText={'Name bad, smash!'} />)
-    .add('Email Error', () => <UsernameEmailForm {...props} emailErrorText={'Email bad, booo'} />)
+    .add('Name Error', () => <UsernameEmailForm {...props} usernameError={'Name bad, smash!'} />)
+    .add('Email Error', () => <UsernameEmailForm {...props} emailError={'Email bad, booo'} />)
 }
 
 export default load

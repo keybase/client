@@ -4,8 +4,8 @@ import {connect, type TypedState} from '../../../util/container'
 import RequestInvite from '.'
 
 const mapStateToProps = (state: TypedState) => ({
-  emailErrorText: state.signup.emailError,
-  usernameErrorText: state.signup.nameError,
+  emailError: state.signup.emailError,
+  usernameError: state.signup.nameError,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

@@ -5,10 +5,10 @@ import {Box2, Avatar, Input, WaitingButton, HeaderHocHeader} from '../../../comm
 import {styleSheetCreate} from '../../../styles'
 
 type Props = {
-  emailErrorText: string,
+  emailError: string,
   onBack: () => void,
   onSubmit: (username: string, email: string) => void,
-  usernameErrorText: string,
+  usernameError: string,
 }
 type State = {
   username: string,
@@ -31,13 +31,13 @@ class UsernameAndEmail extends React.Component<Props, State> {
             autoFocus={true}
             hintText="Create a username"
             value={this.state.username}
-            errorText={this.props.usernameErrorText}
+            errorText={this.props.usernameError}
             onChangeText={username => this.setState({username})}
           />
           <Input
             hintText="Email address"
             value={this.state.email}
-            errorText={this.props.emailErrorText}
+            errorText={this.props.emailError}
             onEnterKeyDown={this._onSubmit}
             onChangeText={email => this.setState({email})}
           />
