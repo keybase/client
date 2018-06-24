@@ -2,9 +2,12 @@
 import * as React from 'react'
 import RequestInviteSuccess from '.'
 import {action, storiesOf} from '../../../stories/storybook'
+import * as PropProviders from '../../../stories/prop-providers'
 
 const load = () => {
-  storiesOf('Signup', module).add('Request Invite Success', () => (
+  storiesOf('Signup', module)
+      .addDecorator(PropProviders.Common())
+    .add('Request Invite Success', () => (
     <RequestInviteSuccess onBack={action('onBack')} />
   ))
 }

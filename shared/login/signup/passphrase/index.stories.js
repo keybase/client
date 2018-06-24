@@ -11,11 +11,9 @@ const props = {
   passphrase: '',
 }
 
-const provider = PropProviders.Common()
-
 const load = () => {
   storiesOf('Signup/Passphrase', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.Common())
     .add('Start', () => <Passphrase {...props} />)
     .add('Error', () => <Passphrase {...props} error="This is an error" />)
 }

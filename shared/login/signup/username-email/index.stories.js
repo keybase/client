@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
+import * as PropProviders from '../../../stories/prop-providers'
 import UsernameEmail from '.'
 import {action, storiesOf} from '../../../stories/storybook'
 import {Box2} from '../../../common-adapters'
-import * as PropProviders from '../../../stories/prop-providers'
 
 const props = {
   email: '',

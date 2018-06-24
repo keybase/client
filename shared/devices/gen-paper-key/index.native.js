@@ -1,6 +1,5 @@
 // @flow
 import React, {Component} from 'react'
-// import Container from '../../forms/container'
 import {Box, Checkbox, Button, Text, Icon, Box2, HeaderHocHeader} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins, styleSheetCreate} from '../../styles'
 import {getStyle} from '../../common-adapters/text'
