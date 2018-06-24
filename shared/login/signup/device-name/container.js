@@ -1,18 +1,18 @@
 // @flow
 import * as SignupGen from '../../../actions/signup-gen'
+import DeviceName from '.'
 import {connect, type TypedState} from '../../../util/container'
-import RequestInvite from '.'
 import type {RouteProps} from '../../../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
-  emailError: state.signup.emailError,
-  usernameError: state.signup.nameError,
+  devicename: state.signup.devicename,
+  error: state.signup.devicenameError,
 })
-
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({
   onBack: () => dispatch(navigateUp()),
-  onSubmit: (email: string, name: string) => dispatch(SignupGen.createRequestInvite({email, name})),
+  onSubmit: (devicename: string) => dispatch(SignupGen.createSubmitDevicename({devicename})),
 })
-export default connect(mapStateToProps, mapDispatchToProps)(RequestInvite)
+
+export default connect(mapStateToProps, mapDispatchToProps)(DeviceName)

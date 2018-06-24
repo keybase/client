@@ -1,9 +1,17 @@
 // @flow
-import Container from '../../forms/container'
 import React, {Component} from 'react'
-import {Box, Text, Button, Checkbox, Icon, ProgressIndicator} from '../../../common-adapters'
-import {globalStyles, globalColors} from '../../../styles'
-import {getStyle} from '../../../common-adapters/text'
+import {
+  Box2,
+  Box,
+  Text,
+  Button,
+  Checkbox,
+  Icon,
+  ProgressIndicator,
+  HeaderHocHeader,
+} from '../../common-adapters'
+import {globalStyles, globalColors, styleSheetCreate} from '../../styles'
+import {getStyle} from '../../common-adapters/text'
 import type {Props} from '.'
 
 type State = {
@@ -34,34 +42,39 @@ class SuccessRender extends Component<Props, State> {
     )
 
     return (
-      <Container onBack={this.props.onBack} style={stylesContainer}>
-        <Text type="Header" style={stylesHeader}>
-          {this.props.title || "Congratulations, you've just joined Keybase!"}
-        </Text>
-        <Text type="Body" style={stylesBody}>
-          Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
-          This is the only time you'll see this so be sure to write it down.
-        </Text>
-        {contents}
-        {this.props.onFinish && (
-          <Checkbox
-            style={stylesCheck}
-            label="Yes, I wrote this down."
-            checked={this.state.inWallet}
-            onCheck={inWallet => this.setState({inWallet})}
-          />
-        )}
-        {this.props.onFinish && (
-          <Button type="Primary" label="Done" onClick={this.props.onFinish} disabled={!this.state.inWallet} />
-        )}
-      </Container>
+      <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <HeaderHocHeader onBack={this.props.onBack} headerStyle={styles.header} />
+        <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true} gap="small">
+          <Text type="Header" style={stylesHeader}>
+            {this.props.title || "Congratulations, you've just joined Keybase!"}
+          </Text>
+          <Text type="Body" style={stylesBody}>
+            Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
+            This is the only time you'll see this so be sure to write it down.
+          </Text>
+          {contents}
+          {this.props.onFinish && (
+            <Checkbox
+              style={stylesCheck}
+              label="Yes, I wrote this down."
+              checked={this.state.inWallet}
+              onCheck={inWallet => this.setState({inWallet})}
+            />
+          )}
+          {this.props.onFinish && (
+            <Button
+              type="Primary"
+              label="Done"
+              onClick={this.props.onFinish}
+              disabled={!this.state.inWallet}
+            />
+          )}
+        </Box2>
+      </Box2>
     )
   }
 }
 
-const stylesContainer = {
-  alignItems: 'center',
-}
 const stylesHeader = {
   marginBottom: 5,
   marginTop: 60,
@@ -103,5 +116,9 @@ const stylesPaperkey = {
   display: 'inline-block',
   textAlign: 'center',
 }
+
+const styles = styleSheetCreate({
+  header: {position: 'absolute'},
+})
 
 export default SuccessRender
