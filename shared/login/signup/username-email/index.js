@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../../constants/signup'
-import {Box2, Avatar, Input, WaitingButton, HeaderHocHeader} from '../../../common-adapters'
-import {styleSheetCreate} from '../../../styles'
+import {Avatar, Input, WaitingButton} from '../../../common-adapters'
+import {isMobile} from '../../../styles'
+import Wrapper from '../wrapper'
 
 type Props = {|
   email: string,
@@ -28,39 +29,32 @@ class UsernameAndEmail extends React.Component<Props, State> {
   }
   render() {
     return (
-      <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <HeaderHocHeader onBack={this.props.onBack} headerStyle={styles.header} />
-        <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true} gap="small">
-          <Avatar username="" size={128} />
-          <Input
-            autoFocus={true}
-            hintText="Create a username"
-            value={this.state.username}
-            errorText={this.props.username === this.state.username ? this.props.usernameError : ''}
-            onChangeText={username => this.setState({username})}
-          />
-          <Input
-            hintText="Email address"
-            value={this.state.email}
-            errorText={this.props.email === this.state.email ? this.props.emailError : ''}
-            onEnterKeyDown={this._onSubmit}
-            onChangeText={email => this.setState({email})}
-          />
-          <WaitingButton
-            waitingKey={Constants.waitingKey}
-            type="Primary"
-            label="Continue"
-            disabled={!this.state.email || !this.state.username}
-            onClick={this._onSubmit}
-          />
-        </Box2>
-      </Box2>
+      <Wrapper onBack={this.props.onBack}>
+        <Avatar username="" size={isMobile ? 96 : 128} />
+        <Input
+          autoFocus={true}
+          hintText="Create a username"
+          value={this.state.username}
+          errorText={this.props.username === this.state.username ? this.props.usernameError : ''}
+          onChangeText={username => this.setState({username})}
+        />
+        <Input
+          hintText="Email address"
+          value={this.state.email}
+          errorText={this.props.email === this.state.email ? this.props.emailError : ''}
+          onEnterKeyDown={this._onSubmit}
+          onChangeText={email => this.setState({email})}
+        />
+        <WaitingButton
+          waitingKey={Constants.waitingKey}
+          type="Primary"
+          label="Continue"
+          disabled={!this.state.email || !this.state.username}
+          onClick={this._onSubmit}
+        />
+      </Wrapper>
     )
   }
 }
-
-const styles = styleSheetCreate({
-  header: {position: 'absolute'},
-})
 
 export default UsernameAndEmail

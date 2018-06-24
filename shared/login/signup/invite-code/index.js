@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../../constants/signup'
-import {Icon, Text, Box2, Input, WaitingButton, HeaderHocHeader} from '../../../common-adapters'
-import {styleSheetCreate} from '../../../styles'
+import {Icon, Text, Input, WaitingButton} from '../../../common-adapters'
+import Wrapper from '../wrapper'
 
 type Props = {|
   onBack: () => void,
@@ -22,37 +22,30 @@ class UsernameAndEmail extends React.Component<Props, State> {
   }
   render() {
     return (
-      <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <HeaderHocHeader onBack={this.props.onBack} headerStyle={styles.header} />
-        <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true} gap="small">
-          <Text type="Header">Type in your invite code:</Text>
-          <Icon type="icon-invite-code-48" />
-          <Input
-            autoFocus={true}
-            value={this.state.inviteCode}
-            errorText={this.props.error}
-            onEnterKeyDown={this._onSubmit}
-            onChangeText={inviteCode => this.setState({inviteCode})}
-          />
-          <WaitingButton
-            waitingKey={Constants.waitingKey}
-            type="Primary"
-            label="Continue"
-            disabled={!this.state.inviteCode}
-            onClick={this._onSubmit}
-          />
-          <Text type="BodySmall">Not invited?</Text>
-          <Text type="BodySmallSecondaryLink" onClick={this.props.onRequestInvite}>
-            Request an invite
-          </Text>
-        </Box2>
-      </Box2>
+      <Wrapper onBack={this.props.onBack}>
+        <Text type="Header">Type in your invite code:</Text>
+        <Icon type="icon-invite-code-48" />
+        <Input
+          autoFocus={true}
+          value={this.state.inviteCode}
+          errorText={this.props.error}
+          onEnterKeyDown={this._onSubmit}
+          onChangeText={inviteCode => this.setState({inviteCode})}
+        />
+        <WaitingButton
+          waitingKey={Constants.waitingKey}
+          type="Primary"
+          label="Continue"
+          disabled={!this.state.inviteCode}
+          onClick={this._onSubmit}
+        />
+        <Text type="BodySmall">Not invited?</Text>
+        <Text type="BodySmallSecondaryLink" onClick={this.props.onRequestInvite}>
+          Request an invite
+        </Text>
+      </Wrapper>
     )
   }
 }
-
-const styles = styleSheetCreate({
-  header: {position: 'absolute'},
-})
 
 export default UsernameAndEmail

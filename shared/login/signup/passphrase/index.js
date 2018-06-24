@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../../constants/signup'
-import {Box2, Avatar, Input, WaitingButton, HeaderHocHeader} from '../../../common-adapters'
-import {styleSheetCreate} from '../../../styles'
+import {Avatar, Input, WaitingButton} from '../../../common-adapters'
+import {isMobile} from '../../../styles'
+import Wrapper from '../wrapper'
 
 type Props = {|
   passphrase: string,
@@ -25,40 +26,33 @@ class UsernameAndEmail extends React.Component<Props, State> {
   }
   render() {
     return (
-      <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <HeaderHocHeader onBack={this.props.onBack} headerStyle={styles.header} />
-        <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true} gap="small">
-          <Avatar username="" size={128} />
-          <Input
-            autoFocus={true}
-            hintText="Create a passphrase"
-            value={this.state.pass1}
-            type="password"
-            errorText={this.props.passphrase === this.state.pass1 ? this.props.error : ''}
-            onChangeText={pass1 => this.setState({pass1})}
-          />
-          <Input
-            hintText="Confirm passphrase"
-            value={this.state.pass2}
-            type="password"
-            onEnterKeyDown={this._onSubmit}
-            onChangeText={pass2 => this.setState({pass2})}
-          />
-          <WaitingButton
-            waitingKey={Constants.waitingKey}
-            type="Primary"
-            label="Continue"
-            disabled={!this.state.pass1 || !this.state.pass2}
-            onClick={this._onSubmit}
-          />
-        </Box2>
-      </Box2>
+      <Wrapper onBack={this.props.onBack}>
+        <Avatar username="" size={isMobile ? 96 : 128} />
+        <Input
+          autoFocus={true}
+          hintText="Create a passphrase"
+          value={this.state.pass1}
+          type="password"
+          errorText={this.props.passphrase === this.state.pass1 ? this.props.error : ''}
+          onChangeText={pass1 => this.setState({pass1})}
+        />
+        <Input
+          hintText="Confirm passphrase"
+          value={this.state.pass2}
+          type="password"
+          onEnterKeyDown={this._onSubmit}
+          onChangeText={pass2 => this.setState({pass2})}
+        />
+        <WaitingButton
+          waitingKey={Constants.waitingKey}
+          type="Primary"
+          label="Continue"
+          disabled={!this.state.pass1 || !this.state.pass2}
+          onClick={this._onSubmit}
+        />
+      </Wrapper>
     )
   }
 }
-
-const styles = styleSheetCreate({
-  header: {position: 'absolute'},
-})
 
 export default UsernameAndEmail
