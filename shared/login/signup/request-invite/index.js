@@ -46,6 +46,7 @@ class RequestInvite extends React.Component<Props, State> {
             waitingKey={Constants.waitingKey}
             type="Primary"
             label="Request"
+            disabled={!this.state.email || !this.state.name}
             onClick={this._onSubmit}
           />
         </Box2>

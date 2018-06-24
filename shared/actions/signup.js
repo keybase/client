@@ -13,13 +13,6 @@ import {loginTab} from '../constants/tabs'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
 import type {RPCError} from '../engine/types'
 
-function startRequestInvite() {
-  return (dispatch: Dispatch) => {
-    dispatch(SignupGen.createStartRequestInvite())
-    dispatch(navigateAppend(['requestInvite'], [loginTab, 'signup']))
-  }
-}
-
 const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
   Saga.call(
     RPCTypes.signupCheckInvitationCodeRpcPromise,
@@ -300,5 +293,5 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   )
 }
 
-export {checkPassphrase, startRequestInvite, submitDeviceName}
+export {checkPassphrase, submitDeviceName}
 export default signupSaga

@@ -46,7 +46,6 @@
     "restartSignup": {},
     "setDeviceNameError": {"deviceNameError": "string"},
     "signupError": {"signupError": "HiddenString"},
-    "startRequestInvite": {},
     "submitDeviceName": {
       "deviceName": "string",
       "canError": {"deviceNameError": "string"}

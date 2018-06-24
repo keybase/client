@@ -21,7 +21,6 @@ export const resetSignup = 'signup:resetSignup'
 export const restartSignup = 'signup:restartSignup'
 export const setDeviceNameError = 'signup:setDeviceNameError'
 export const signupError = 'signup:signupError'
-export const startRequestInvite = 'signup:startRequestInvite'
 export const submitDeviceName = 'signup:submitDeviceName'
 
 // Payload Types
@@ -64,7 +63,6 @@ type _ResetSignupPayload = void
 type _RestartSignupPayload = void
 type _SetDeviceNameErrorPayload = $ReadOnly<{|deviceNameError: string|}>
 type _SignupErrorPayload = $ReadOnly<{|signupError: HiddenString|}>
-type _StartRequestInvitePayload = void
 type _SubmitDeviceNamePayload = $ReadOnly<{|deviceName: string|}>
 type _SubmitDeviceNamePayloadError = $ReadOnly<{|deviceNameError: string|}>
 
@@ -92,7 +90,6 @@ export const createResetSignup = (payload: _ResetSignupPayload) => ({error: fals
 export const createRestartSignup = (payload: _RestartSignupPayload) => ({error: false, payload, type: restartSignup})
 export const createSetDeviceNameError = (payload: _SetDeviceNameErrorPayload) => ({error: false, payload, type: setDeviceNameError})
 export const createSignupError = (payload: _SignupErrorPayload) => ({error: false, payload, type: signupError})
-export const createStartRequestInvite = (payload: _StartRequestInvitePayload) => ({error: false, payload, type: startRequestInvite})
 export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
 export const createSubmitDeviceNameError = (payload: _SubmitDeviceNamePayloadError) => ({error: true, payload, type: submitDeviceName})
 
@@ -114,7 +111,6 @@ export type ResetSignupPayload = $Call<typeof createResetSignup, _ResetSignupPay
 export type RestartSignupPayload = $Call<typeof createRestartSignup, _RestartSignupPayload>
 export type SetDeviceNameErrorPayload = $Call<typeof createSetDeviceNameError, _SetDeviceNameErrorPayload>
 export type SignupErrorPayload = $Call<typeof createSignupError, _SignupErrorPayload>
-export type StartRequestInvitePayload = $Call<typeof createStartRequestInvite, _StartRequestInvitePayload>
 export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
 export type SubmitDeviceNamePayloadError = $Call<typeof createSubmitDeviceNameError, _SubmitDeviceNamePayloadError>
 
@@ -138,7 +134,6 @@ export type Actions =
   | RestartSignupPayload
   | SetDeviceNameErrorPayload
   | SignupErrorPayload
-  | StartRequestInvitePayload
   | SubmitDeviceNamePayload
   | SubmitDeviceNamePayloadError
   | {type: 'common:resetStore', payload: void}

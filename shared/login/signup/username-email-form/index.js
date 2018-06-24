@@ -45,6 +45,7 @@ class UsernameAndEmail extends React.Component<Props, State> {
             waitingKey={Constants.waitingKey}
             type="Primary"
             label="Continue"
+            disabled={!this.state.email || !this.state.username}
             onClick={this._onSubmit}
           />
         </Box2>
