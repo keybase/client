@@ -206,7 +206,7 @@ helpers.rootLinuxNode(env, {
                     },
                     test_macos: {
                         // TODO: Currently we only run macos tests on master builds.
-                        if (env.BRANCH_NAME == "master") {
+                        if (true || env.BRANCH_NAME == "master") {
                             def mountDir='/Volumes/untitled/client'
                             helpers.nodeWithCleanup('macstadium', {}, {
                                     sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
@@ -301,7 +301,13 @@ def testGo(prefix) {
         }
         if (isUnix()) {
             // Windows `gofmt` pukes on CRLF, so only run on *nix.
-            sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
+            def fmtFails = sh(returnStdout: true, script: 'gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.//)').trim()
+            try {
+                sh "test -z ${fmtFails}"
+            } catch (ex) {
+                sh "gofmt ${fmtFails}"
+                throw ex
+            }
         }
         // Make sure we don't accidentally pull in the testing package.
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
