@@ -289,8 +289,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     SignupGen.requestAutoInvite,
     requestAutoInvite,
-    // requestAutoInviteSuccess, // TEMP to test auto code
-    requestAutoInviteError,
+    requestAutoInviteSuccess,
     requestAutoInviteError
   )
   yield Saga.safeTakeEveryPure(
