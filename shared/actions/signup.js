@@ -25,9 +25,7 @@ function checkInviteCodeThenNextPhase(inviteCode: string) {
   return (dispatch: Dispatch) => {
     dispatch(SignupGen.createCheckInviteCode({inviteCode}))
     dispatch(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
-    RPCTypes.signupCheckInvitationCodeRpcPromise({invitationCode: inviteCode}, increment =>
-      WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
-    )
+    RPCTypes.signupCheckInvitationCodeRpcPromise({invitationCode: inviteCode}, Constants.waitingKey)
       .then(() => {
         dispatch(SignupGen.createCheckInviteCode({inviteCode}))
         dispatch(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
@@ -43,9 +41,7 @@ function requestAutoInvite() {
   return (dispatch: Dispatch) => {
     dispatch(LoginGen.createSetRevokedSelf({revoked: ''}))
     dispatch(LoginGen.createSetDeletedSelf({deletedUsername: ''}))
-    RPCTypes.signupGetInvitationCodeRpcPromise(undefined, increment =>
-      WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
-    )
+    RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
       .then(inviteCode => {
         dispatch(checkInviteCodeThenNextPhase(inviteCode))
       })
@@ -66,12 +62,8 @@ function requestInvite(email: string, name: string) {
     }
 
     RPCTypes.signupInviteRequestRpcPromise(
-      {
-        email: email,
-        fullname: name,
-        notes: 'Requested through GUI app',
-      },
-      increment => WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
+      {email: email, fullname: name, notes: 'Requested through GUI app'},
+      Constants.waitingKey
     )
       .then(() => {
         if (email && name) {
@@ -105,13 +97,7 @@ const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload) => {
     throw toThrow
   }
 
-  return Saga.call(
-    RPCTypes.signupCheckUsernameAvailableRpcPromise,
-    {
-      username,
-    },
-    increment => WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
-  )
+  return Saga.call(RPCTypes.signupCheckUsernameAvailableRpcPromise, {username}, Constants.waitingKey)
 }
 
 const checkUsernameEmailSuccess = (result: any, action: SignupGen.CheckUsernameEmailPayload) => {
@@ -203,9 +189,7 @@ function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaper
         })
       )
     } else {
-      RPCTypes.deviceCheckDeviceNameFormatRpcPromise({name: deviceName}, increment =>
-        WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
-      )
+      RPCTypes.deviceCheckDeviceNameFormatRpcPromise({name: deviceName}, Constants.waitingKey)
         .then(() => {
           if (deviceName) {
             dispatch(SignupGen.createSubmitDeviceName({deviceName}))
@@ -261,7 +245,7 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
           storeSecret: true,
           username,
         },
-        increment => WaitingGen.createChangeWaiting({increment, key: Constants.waitingKey})
+        Constants.waitingKey
       )
         .then(({passphraseOk, postOk, writeOk}) => {
           logger.info('Successful signup', passphraseOk, postOk, writeOk)

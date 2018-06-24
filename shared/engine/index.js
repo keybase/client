@@ -12,6 +12,7 @@ import {localLog} from '../util/forward-logs'
 import {log} from '../native/log/logui'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
+import {createChangeWaiting} from '../actions/waiting-gen'
 
 import type {ChannelMap} from '../constants/types/saga'
 import type {Action} from '../constants/types/flux'
@@ -99,13 +100,18 @@ class Engine {
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
   _hasConnected: boolean = false
   // So we can dispatch actions
-  _dispatch: Dispatch
+  static _dispatch: Dispatch
   // Temporary helper for incoming call maps
-  _getState: () => TypedState
+  static _getState: () => TypedState
+  static dispatchWaitingAction = (key: string, waiting: boolean) => {
+    Engine._dispatch(createChangeWaiting({key, increment: waiting}))
+  }
 
   constructor(dispatch: Dispatch, getState: () => TypedState) {
-    this._dispatch = dispatch
-    this._getState = getState
+    // setup some static vars
+    Engine._dispatch = dispatch
+    Engine._getState = getState
+    Session._dispatchWaitingAction = Engine.dispatchWaitingAction
     this._setupClient()
     this._setupCoreHandlers()
     this._setupIgnoredHandlers()
@@ -246,14 +252,14 @@ class Engine {
         // General incoming
         const creator = this._incomingActionCreators[method]
         rpcLog('engineInternal', 'handling incoming')
-        const rawActions = creator(param, response, this._dispatch, this._getState)
+        const rawActions = creator(param, response, Engine._dispatch, Engine._getState)
         const actions = (rawActions || []).reduce((arr, a) => {
           if (a) {
             arr.push(a)
           }
           return arr
         }, [])
-        actions.forEach(a => this._dispatch(a))
+        actions.forEach(a => Engine._dispatch(a))
       } else {
         // Unhandled
         this._handleUnhandled(sessionID, method, seqid, param, response)
@@ -278,51 +284,45 @@ class Engine {
       Saga.closeChannelMap(channelMap)
     }
 
-    params.incomingCallMap = incomingCallMap
-
-    const sid = this._rpcOutgoing(method, params, callback)
+    const sid = this._rpcOutgoing({method, params, incomingCallMap, callback})
     return new EngineChannel(channelMap, sid, configKeys)
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
-  _rpcOutgoing(
+  _rpcOutgoing(p: {
     method: string,
-    params: ?{
-      incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
-      waitingHandler?: WaitingHandlerType,
-    },
-    callback: (...args: Array<any>) => void
-  ) {
-    let {incomingCallMap, waitingHandler, ...param} = params || {}
-    // Ensure a non-null param
-    if (!param) {
-      param = {}
-    }
-
+    params: ?Object,
+    callback: (...args: Array<any>) => void,
+    incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
+    waitingKey?: string,
+  }) {
+    const {method, params = {}, callback, incomingCallMap, waitingKey} = p
     // Make a new session and start the request
-    const session = this.createSession(incomingCallMap, waitingHandler)
+    const session = this.createSession({incomingCallMap, waitingKey})
     // Don't make outgoing calls immediately since components can do this when they mount
     setImmediate(() => {
-      session.start(method, param, callback)
+      session.start(method, params, callback)
     })
     return session.getId()
   }
 
   // Make a new session. If the session hangs around forever set dangling to true
-  createSession(
-    incomingCallMap: ?IncomingCallMapType,
-    waitingHandler: ?WaitingHandlerType,
-    cancelHandler: ?CancelHandlerType,
-    dangling?: boolean = false
-  ): Session {
+  createSession(p: {
+    incomingCallMap?: IncomingCallMapType,
+    cancelHandler?: CancelHandlerType,
+    dangling?: boolean,
+    waitingKey?: string,
+  }): Session {
+    const {incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
     const sessionID = this._generateSessionID()
     rpcLog('engineInternal', 'session start', {sessionID})
 
-    const session = new Session(
-      sessionID,
+    const session = new Session({
+      cancelHandler,
+      dangling,
+      endHandler: (session: Session) => this._sessionEnded(session),
       incomingCallMap,
-      waitingHandler,
-      (method, param, cb) => {
+      invoke: (method, param, cb) => {
         const callback = method => (...args) => {
           // If first argument is set, convert it to an Error type
           if (args.length > 0 && !!args[0]) {
@@ -332,10 +332,9 @@ class Engine {
         }
         this._rpcClient.invoke(method, param, callback(method))
       },
-      (session: Session) => this._sessionEnded(session),
-      cancelHandler,
-      dangling
-    )
+      sessionID,
+      waitingKey,
+    })
 
     this._sessionsMap[String(sessionID)] = session
     return session
@@ -477,7 +476,12 @@ class FakeEngine {
     cancelHandler: ?CancelHandlerType,
     dangling?: boolean = false
   ) {
-    return new Session(0, {}, null, () => {}, () => {})
+    return new Session({
+      endHandler: () => {},
+      incomingCallMap: null,
+      invoke: () => {},
+      sessionID: 0,
+    })
   }
   _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {
     return new EngineChannel({}, 0, [])

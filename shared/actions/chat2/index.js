@@ -64,7 +64,7 @@ const inboxRefresh = (
       skipUnverified: false,
     },
     {'chat.1.chatUi.chatInboxUnverified': onUnverified},
-    loading => Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
+    'inboxRefresh'
   )
 }
 
@@ -230,7 +230,7 @@ const unboxRows = (
       'chat.1.chatUi.chatInboxFailed': onFailed,
       'chat.1.chatUi.chatInboxUnverified': () => {},
     },
-    loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
+    `unboxing:${conversationIDKeys[0]}`
   )
 
   return Saga.sequentially([Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})), getRows])
@@ -882,7 +882,7 @@ const loadMoreMessages = (
       'chat.1.chatUi.chatThreadCached': p => onGotThread(p, 'cached'),
       'chat.1.chatUi.chatThreadFull': p => onGotThread(p, 'full'),
     },
-    (loading: boolean) => Chat2Gen.createSetLoading({key: loadingKey, loading})
+    loadingKey
   )
   return Saga.all([
     Saga.identity(conversationIDKey),

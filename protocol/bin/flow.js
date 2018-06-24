@@ -252,7 +252,7 @@ function engineSagaGen(methodName, name, response, requestType, responseType) {
   if (!enabledCall(methodName, 'engineSaga')) {
     return ''
   }
-  return `export const ${name}RpcSaga = (params: ${requestType}, incomingCallMap: IncomingCallMapType, loading?: (loading: boolean) => Action) => Saga.call(engineSaga, ${methodName}, params, incomingCallMap, loading)`
+  return `export const ${name}RpcSaga = (params: ${requestType}, incomingCallMap: IncomingCallMapType, waitingKey?: string) => Saga.call(engineSaga, {method: ${methodName}, params, incomingCallMap, waitingKey})`
 }
 
 function rpcChannelMapGen(methodName, name, response, requestType, responseType) {
@@ -267,9 +267,9 @@ function rpcPromiseGen(methodName, name, response, requestType, responseType) {
     return ''
   }
   const resultType = responseType !== 'null' ? `${capitalize(name)}Result` : 'void'
-  return `export const ${name}RpcPromise = (request: ${requestType}, loading?: (loading: boolean) => Action): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing(${methodName}, request, (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
+  return `export const ${name}RpcPromise = (params: ${requestType}, waitingKey?: string): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
     resultType === 'void' ? '' : 'result'
-  })))`
+  })}))`
 }
 
 // Type parsing

@@ -618,11 +618,10 @@ function _setupTrackerHandlers() {
         }
       }
 
-      const session: Session = engine().createSession(
-        _serverCallMap(dispatch, getState, onStart, onFinish),
-        null,
-        cancelHandler
-      )
+      const session: Session = engine().createSession({
+        cancelHandler,
+        incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
+      })
 
       response && response.result(session.getId())
     }
