@@ -12,6 +12,7 @@ import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validat
 import {loginTab} from '../constants/tabs'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
 import type {RPCError} from '../engine/types'
+import type {TypedState} from '../constants/reducer'
 
 const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
   Saga.call(
@@ -198,50 +199,48 @@ const submitDevicenameError = (err: RPCError, action: SignupGen.SubmitDevicename
   )
 }
 
-const signup = (action: SignupGen.SignupPayload, state: TypedState) {
+const signup = (action: SignupGen.SignupPayload, state: TypedState) => {
   const {email, username, inviteCode, passphrase, devicename} = state.signup
 
-  console.log('aaa', email, username, inviteCode, passphrase.stringValue(), devicename)
-  return
+  console.log('aaa', email, username, inviteCode, passphrase && passphrase.stringValue(), devicename)
 
-
-      // RPCTypes.signupSignupRpcSaga (
-        // {
-          // incomingCallMap: {
-            // 'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
-              // // Do not add a gpg key for now
-              // response.result(false)
-            // },
-            // 'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
-              // // We dont show the paperkey anymore
-              // response.result()
-              // dispatch(navigateAppend(['success'], [loginTab, 'signup']))
-            // },
-          // },
-          // deviceName: devicename,
-          // deviceType: isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop,
-          // email,
-          // genPGPBatch: false,
-          // genPaper: false,
-          // inviteCode,
-          // passphrase: passphrase.stringValue(),
-          // skipMail: false,
-          // storeSecret: true,
-          // username,
-        // },
-        // Constants.waitingKey
-      // )
-        // .then(({passphraseOk, postOk, writeOk}) => {
-          // logger.info('Successful signup', passphraseOk, postOk, writeOk)
-        // })
-        // .catch(err => {
-          // logger.warn('error in signup:', err)
-          // dispatch(SignupGen.createSignupError({signupError: new HiddenString(err.desc)}))
-          // dispatch(navigateAppend(['signupError'], [loginTab, 'signup']))
-        // })
-    // } else {
-      // logger.warn('Entered signup action with a null required field')
-    // }
+  // RPCTypes.signupSignupRpcSaga (
+  // {
+  // incomingCallMap: {
+  // 'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
+  // // Do not add a gpg key for now
+  // response.result(false)
+  // },
+  // 'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
+  // // We dont show the paperkey anymore
+  // response.result()
+  // dispatch(navigateAppend(['success'], [loginTab, 'signup']))
+  // },
+  // },
+  // deviceName: devicename,
+  // deviceType: isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop,
+  // email,
+  // genPGPBatch: false,
+  // genPaper: false,
+  // inviteCode,
+  // passphrase: passphrase.stringValue(),
+  // skipMail: false,
+  // storeSecret: true,
+  // username,
+  // },
+  // Constants.waitingKey
+  // )
+  // .then(({passphraseOk, postOk, writeOk}) => {
+  // logger.info('Successful signup', passphraseOk, postOk, writeOk)
+  // })
+  // .catch(err => {
+  // logger.warn('error in signup:', err)
+  // dispatch(SignupGen.createSignupError({signupError: new HiddenString(err.desc)}))
+  // dispatch(navigateAppend(['signupError'], [loginTab, 'signup']))
+  // })
+  // } else {
+  // logger.warn('Entered signup action with a null required field')
+  // }
   // }
 }
 
@@ -283,8 +282,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
     submitDevicenameSuccess,
     submitDevicenameError
   )
-  yield Saga.safeTakeEveryPure( SignupGen.signup, signup, signupSuccess, signupError
-  )
+  yield Saga.safeTakeEveryPure(SignupGen.signup, signup, signupSuccess, signupError)
 }
 
 export default signupSaga

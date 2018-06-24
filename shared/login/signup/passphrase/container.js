@@ -8,8 +8,8 @@ const mapStateToProps = (state: TypedState) => ({
   error: state.signup.passphraseError ? state.signup.passphraseError.stringValue() : '',
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(SignupGen.createRestartSignup()),
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  onBack: () => dispatch(navigateUp()),
   onSubmit: (pass1: string, pass2: string) => {
     dispatch(
       SignupGen.createCheckPassphrase({pass1: new HiddenString(pass1), pass2: new HiddenString(pass2)})

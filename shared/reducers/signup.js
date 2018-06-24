@@ -53,6 +53,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.checkInviteCode:
     case SignupGen.submitDevicename:
     case SignupGen.checkPassphrase:
+    case SignupGen.signup:
       return state
     default:
       /*::

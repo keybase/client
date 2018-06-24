@@ -8,8 +8,8 @@ const mapStateToProps = (state: TypedState) => ({
   usernameError: state.signup.nameError,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(SignupGen.createRestartSignup()),
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  onBack: () => dispatch(navigateUp()),
   onSubmit: (email: string, name: string) => dispatch(SignupGen.createRequestInvite({email, name})),
 })
 export default connect(mapStateToProps, mapDispatchToProps)(RequestInvite)

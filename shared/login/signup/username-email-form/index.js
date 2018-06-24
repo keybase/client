@@ -5,9 +5,11 @@ import {Box2, Avatar, Input, WaitingButton, HeaderHocHeader} from '../../../comm
 import {styleSheetCreate} from '../../../styles'
 
 type Props = {
+  email: string,
   emailError: string,
   onBack: () => void,
   onSubmit: (username: string, email: string) => void,
+  username: string,
   usernameError: string,
 }
 type State = {
@@ -16,7 +18,10 @@ type State = {
 }
 
 class UsernameAndEmail extends React.Component<Props, State> {
-  state = {email: '', username: ''}
+  constructor(props: Props) {
+    super(props)
+    this.state = {email: this.props.email, username: this.props.username}
+  }
 
   _onSubmit = () => {
     this.props.onSubmit(this.state.username, this.state.email)
