@@ -4,9 +4,7 @@ import RequestInvite from '.'
 import {action, storiesOf} from '../../../stories/storybook'
 
 const props = {
-  email: '',
   emailError: undefined,
-  name: '',
   nameError: undefined,
   onBack: action('onBack'),
   onSubmit: action('onSubmit'),

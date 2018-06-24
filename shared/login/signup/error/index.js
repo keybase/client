@@ -4,10 +4,10 @@ import * as Constants from '../../../constants/signup'
 import {Text, Box2, WaitingButton, HeaderHocHeader} from '../../../common-adapters'
 import {styleSheetCreate} from '../../../styles'
 
-type Props = {
+type Props = {|
   error: string,
   onBack: () => void,
-}
+|}
 
 class UsernameAndEmail extends React.Component<Props> {
   render() {

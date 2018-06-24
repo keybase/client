@@ -4,15 +4,15 @@ import * as Constants from '../../../constants/signup'
 import {Icon, Text, Box2, Input, WaitingButton, HeaderHocHeader} from '../../../common-adapters'
 import {styleSheetCreate} from '../../../styles'
 
-type Props = {
+type Props = {|
   onBack: () => void,
   onSubmit: (code: string) => void,
   onRequestInvite: () => void,
   error: string,
-}
-type State = {
+|}
+type State = {|
   inviteCode: string,
-}
+|}
 
 class UsernameAndEmail extends React.Component<Props, State> {
   state = {inviteCode: ''}

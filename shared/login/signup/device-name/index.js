@@ -4,19 +4,21 @@ import * as Constants from '../../../constants/signup'
 import {Box2, Text, Icon, Input, WaitingButton, HeaderHocHeader} from '../../../common-adapters'
 import {styleSheetCreate} from '../../../styles'
 
-type Props = {
+type Props = {|
   error: string,
   onBack: () => void,
   onSubmit: (devicename: string) => void,
-  // only used to show the error from the devicename call
   devicename: string,
-}
-type State = {
+|}
+type State = {|
   devicename: string,
-}
+|}
 
 class Devicename extends React.Component<Props, State> {
-  state = {devicename: ''}
+  constructor(props: Props) {
+    super(props)
+    this.state = {devicename: this.props.devicename}
+  }
   _onSubmit = () => {
     this.props.onSubmit(this.state.devicename)
   }

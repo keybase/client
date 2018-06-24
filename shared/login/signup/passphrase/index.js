@@ -4,19 +4,22 @@ import * as Constants from '../../../constants/signup'
 import {Box2, Avatar, Input, WaitingButton, HeaderHocHeader} from '../../../common-adapters'
 import {styleSheetCreate} from '../../../styles'
 
-type Props = {
+type Props = {|
+  passphrase: string,
   error: string,
   onBack: () => void,
   onSubmit: (pass1: string, pass1: string) => void,
-}
-type State = {
+|}
+type State = {|
   pass1: string,
   pass2: string,
-}
+|}
 
 class UsernameAndEmail extends React.Component<Props, State> {
-  state = {pass1: '', pass2: ''}
-
+  constructor(props: Props) {
+    super(props)
+    this.state = {pass1: this.props.passphrase, pass2: this.props.passphrase}
+  }
   _onSubmit = () => {
     this.props.onSubmit(this.state.pass1, this.state.pass2)
   }

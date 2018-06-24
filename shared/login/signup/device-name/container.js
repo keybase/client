@@ -4,7 +4,7 @@ import DeviceName from '.'
 import {connect, type TypedState} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  deviceName: state.signup.devicename,
+  devicename: state.signup.devicename,
   error: state.signup.devicenameError,
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({

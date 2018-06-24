@@ -4,16 +4,16 @@ import * as Constants from '../../../constants/signup'
 import {Text, Icon, Box2, Input, WaitingButton, HeaderHocHeader} from '../../../common-adapters'
 import {styleSheetCreate} from '../../../styles'
 
-type Props = {
+type Props = {|
   emailError: string,
   onBack: () => void,
   onSubmit: (name: string, email: string) => void,
   nameError: string,
-}
-type State = {
+|}
+type State = {|
   name: string,
   email: string,
-}
+|}
 
 class RequestInvite extends React.Component<Props, State> {
   state = {email: '', name: ''}

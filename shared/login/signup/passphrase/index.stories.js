@@ -5,11 +5,10 @@ import Passphrase from '.'
 import {action, storiesOf} from '../../../stories/storybook'
 
 const props = {
+  error: '',
   onBack: action('onBack'),
   onSubmit: action('onSubmit'),
-  pass1: '',
-  pass2: '',
-  error: '',
+  passphrase: '',
 }
 
 const provider = PropProviders.Common()

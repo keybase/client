@@ -3,9 +3,9 @@ import * as React from 'react'
 import {Text, Box2, Icon, HeaderHocHeader} from '../../../common-adapters'
 import {styleSheetCreate} from '../../../styles'
 
-type Props = {
+type Props = {|
   onBack: () => void,
-}
+|}
 
 class UsernameAndEmail extends React.Component<Props> {
   render() {

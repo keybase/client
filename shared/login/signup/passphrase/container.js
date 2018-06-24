@@ -6,6 +6,7 @@ import Passphrase from '.'
 
 const mapStateToProps = (state: TypedState) => ({
   error: state.signup.passphraseError ? state.signup.passphraseError.stringValue() : '',
+  passphrase: state.signup.passphrase ? state.signup.passphrase.stringValue() : '',
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({

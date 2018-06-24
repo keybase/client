@@ -3,7 +3,7 @@ import {makeRouteDefNode} from '../../route-tree'
 import InviteCode from './invite-code/container'
 import RequestInvite from './request-invite/container'
 import RequestInviteSuccess from './request-invite-success/container'
-import UsernameEmailForm from './username-email-form/container'
+import UsernameEmail from './username-email/container'
 import PassphraseSignup from './passphrase/container'
 import DeviceName from './device-name/container'
 import SignupError from './error/container'
@@ -15,7 +15,7 @@ const children = {
   requestInvite: {children: key => makeRouteDefNode(children[key]), component: RequestInvite},
   requestInviteSuccess: {children: key => makeRouteDefNode(children[key]), component: RequestInviteSuccess},
   signupError: {children: key => makeRouteDefNode(children[key]), component: SignupError},
-  usernameAndEmail: {children: key => makeRouteDefNode(children[key]), component: UsernameEmailForm},
+  usernameAndEmail: {children: key => makeRouteDefNode(children[key]), component: UsernameEmail},
 }
 
 const signupRoutes = makeRouteDefNode({
