@@ -20,7 +20,11 @@ const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
     {invitationCode: action.payload.inviteCode},
     Constants.waitingKey
   )
-const checkInviteCodeSuccess = () => Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
+const checkInviteCodeSuccess = (_, action: SignupGen.CheckInviteCodePayload) =>
+  Saga.sequentially([
+    Saga.put(SignupGen.createCheckInviteCodeDone({inviteCode: action.payload.inviteCode})),
+    Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail'])),
+  ])
 const checkInviteCodeError = () =>
   Saga.put(SignupGen.createCheckInviteCodeDoneError({errorText: "Sorry, that's not a valid invite code."}))
 
