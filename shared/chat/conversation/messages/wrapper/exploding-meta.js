@@ -90,8 +90,10 @@ class ExplodingMeta extends React.Component<Props, State> {
 
   _secondLoop = () => {
     const difference = this.props.explodesAt - Date.now()
-    if ((difference <= 0 || this.props.exploded) && this.state.mode === 'countdown') {
-      this.setState({mode: 'boom'})
+    if (difference <= 0 || this.props.exploded) {
+      if (this.state.mode === 'countdown') {
+        this.setState({mode: 'boom'})
+      }
       removeTicker(this.tickerID)
       return
     }
