@@ -680,17 +680,14 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		// Try locally first
 		rc := storage.NewHoleyResultCollector(maxHolesForPull,
 			s.storage.ResultCollectorFromQuery(ctx, query, pagination))
-		var fetchRes storage.FetchResult
-		fetchRes, err = s.storage.Fetch(ctx, conv, uid, rc, query, pagination)
+		thread, err = s.fetchMaybeNotify(ctx, conv.GetConvID(), uid, rc, conv.ReaderInfo.MaxMsgid,
+			query, pagination)
 		if err == nil {
-			thread = fetchRes.Thread
 			// Since we are using the "holey" collector, we need to resolve any placeholder
 			// messages that may have been fetched.
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d msgs: %d", unboxConv.GetConvID(), uid,
 				rc.Holes(), len(thread.Messages))
 			err = s.resolveHoles(ctx, uid, &thread, conv, reason)
-			// Notify about any messages we blew up during this fetch
-			s.notifyEphemeralPurge(ctx, uid, convID, fetchRes.Exploded)
 		}
 		if err == nil {
 			// Do online only things
@@ -871,16 +868,13 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	if pagination != nil {
 		num = pagination.Num
 	}
-	var fetchRes storage.FetchResult
 	rc := storage.NewHoleyResultCollector(maxPlaceholders, newPullLocalResultCollector(num))
-	fetchRes, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, rc, iboxMaxMsgID, query, pagination)
+	tv, err = s.fetchMaybeNotify(ctx, convID, uid, rc, iboxMaxMsgID, query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err
 	}
-	s.notifyEphemeralPurge(ctx, uid, convID, fetchRes.Exploded)
-
-	return fetchRes.Thread, nil
+	return tv, nil
 }
 
 func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
@@ -1108,6 +1102,19 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	s.expungeNotify(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
 	return nil
+}
+
+func (s *HybridConversationSource) fetchMaybeNotify(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, rc storage.ResultCollector, maxMsgID chat1.MessageID, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
+
+	fetchRes, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, rc, maxMsgID,
+		query, pagination)
+	if err != nil {
+		return tv, err
+	}
+	s.notifyEphemeralPurge(ctx, uid, convID, fetchRes.Exploded)
+	return fetchRes.Thread, nil
 }
 
 // ClearFromDelete clears the current cache if there is a delete that we don't know about
