@@ -2,6 +2,11 @@ package ephemeral
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"net/url"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -9,6 +14,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
+
+func getNoiseFilePath(tc libkb.TestContext, key string) string {
+	noiseName := fmt.Sprintf("%s.ns", url.QueryEscape(key))
+	return filepath.Join(tc.G.Env.GetDataDir(), "eraseablekvstore", "device-eks", noiseName)
+}
 
 func TestKeygenIfNeeded(t *testing.T) {
 	tc, _ := ephemeralKeyTestSetup(t)
@@ -60,7 +70,9 @@ func TestKeygenIfNeeded(t *testing.T) {
 	}
 
 	// If we retry keygen, we don't regenerate keys
+	t.Logf("Initial keygen")
 	keygen(expectedDeviceEKGen, expectedUserEKGen)
+	t.Logf("Keygen again does not create new keys")
 	keygen(expectedDeviceEKGen, expectedUserEKGen)
 
 	rawDeviceEKStorage := NewDeviceEKStorage(tc.G)
@@ -73,13 +85,19 @@ func TestKeygenIfNeeded(t *testing.T) {
 	userEKBoxStorage.ClearCache()
 	keygen(expectedDeviceEKGen, expectedUserEKGen)
 
-	// Now let's kill our deviceEK as well, so we should regenerate a new
-	// userEK since we can't access the old one
-	err = rawDeviceEKStorage.Delete(context.Background(), expectedDeviceEKGen)
+	// Now let's kill our deviceEK as well by deleting the noise file, we
+	// should regenerate a new userEK since we can't access the old one
+	key, err := rawDeviceEKStorage.key(context.Background(), expectedDeviceEKGen)
 	require.NoError(t, err)
+	noiseFilePath := getNoiseFilePath(tc, key)
+	err = os.Remove(noiseFilePath)
+	require.NoError(t, err)
+
 	deviceEKStorage.ClearCache()
 	expectedDeviceEKGen++
 	expectedUserEKGen++
+	t.Logf("Keygen with corrupted deviceEK works")
+	keygen(expectedDeviceEKGen, expectedUserEKGen)
 
 	// Test ForceDeleteAll
 	err = deviceEKStorage.ForceDeleteAll(context.Background(), tc.G.Env.GetUsername())
@@ -201,9 +219,21 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
 
-	// Now let's kill our deviceEK, so we can no longer access the latest teamEK
-	// and will generate a new one and verify it is the new valid max.
-	err = rawDeviceEKStorage.Delete(context.Background(), expectedDeviceEKGen)
+	// Now let's kill our deviceEK but corrupting a single bit in the
+	// noiseFile, so we can no longer access the latest teamEK and will
+	// generate a new one and verify it is the new valid max.
+	key, err := rawDeviceEKStorage.key(context.Background(), expectedDeviceEKGen)
+	require.NoError(t, err)
+	noiseFilePath := getNoiseFilePath(tc, key)
+	noise, err := ioutil.ReadFile(noiseFilePath)
+	require.NoError(t, err)
+
+	// flip one bit
+	corruptedNoise := make([]byte, len(noise))
+	copy(corruptedNoise, noise)
+	corruptedNoise[0] ^= 0x01
+
+	err = ioutil.WriteFile(noiseFilePath, corruptedNoise, libkb.PermFile)
 	require.NoError(t, err)
 	tc.G.GetDeviceEKStorage().ClearCache()
 
