@@ -49,9 +49,10 @@ export type _ChannelInfo = {
 }
 export type ChannelInfo = I.RecordOf<_ChannelInfo>
 
+export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type _MemberInfo = {
-  active: boolean,
   fullName: string,
+  status: MemberStatus,
   type: TeamRoleType,
   username: string,
 }
