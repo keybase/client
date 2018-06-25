@@ -341,12 +341,21 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 
 		var invites []SCTeamInvite
 		for _, email := range emailList {
-			addr, err := mail.ParseAddress(email)
-			if err != nil {
-				g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, err)
+			addr, parseErr := mail.ParseAddress(email)
+			if parseErr != nil {
+				g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, parseErr)
 				res.Malformed = append(res.Malformed, email)
 				continue
 			}
+
+			// api server side of this only accepts x.yy domain name:
+			parts := strings.Split(addr.Address, ".")
+			if len(parts[len(parts)-1]) < 2 {
+				g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q: %s", teamname, email, parseErr)
+				res.Malformed = append(res.Malformed, email)
+				continue
+			}
+
 			name := keybase1.TeamInviteName(addr.Address)
 			existing, err := t.HasActiveInvite(name, "email")
 			if err != nil {
