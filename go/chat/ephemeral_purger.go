@@ -280,7 +280,7 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 		nextPurgeTime := purgeInfo.NextPurgeTime.Time()
 		if nextPurgeTime.Before(now) || nextPurgeTime.Equal(now) {
 			job := types.NewConvLoaderJob(purgeInfo.ConvID, &chat1.Pagination{},
-				types.ConvLoaderPriorityHigh, newConvLoaderEphemeralPurgeHook(b.G(), b.storage, b.uid, &purgeInfo))
+				types.ConvLoaderPriorityHigh, newConvLoaderEphemeralPurgeHook(b.G(), b.uid, &purgeInfo))
 			if err := b.G().ConvLoader.Queue(ctx, job); err != nil {
 				b.Debug(ctx, "convLoader Queue error %s", err)
 			}
@@ -316,9 +316,9 @@ func (b *BackgroundEphemeralPurger) resetTimer(purgeInfo chat1.EphemeralPurgeInf
 	b.purgeTimer.Reset(duration)
 }
 
-func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *storage.Storage, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+func newConvLoaderEphemeralPurgeHook(g *globals.Context, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 	return func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
-		if _, _, err := chatStorage.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo); err != nil {
+		if _, _, err := g.ConvSource.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo); err != nil {
 			g.GetLog().CDebugf(ctx, "ephemeralPurge: %s", err)
 		}
 	}
