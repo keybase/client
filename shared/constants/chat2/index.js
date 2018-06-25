@@ -124,7 +124,7 @@ export const creatingLoadingKey = 'creatingConvo'
 // When we see that exploding messages are in the app, we set
 // seenExplodingGregorKey. Once newExplodingGregorOffset time
 // passes, we stop showing the 'NEW' tag.
-export const seenExplodingGregorKey = 'seenExplodingMessages'
+export const seenExplodingGregorKey = 'chat.seenExplodingMessages'
 export const newExplodingGregorOffset = 1000 * 3600 * 24 * 3 // 3 days in ms
 export const getIsExplodingNew = (state: TypedState) => state.chat2.get('isExplodingNew')
 export const explodingModeGregorKeyPrefix = 'exploding:'
