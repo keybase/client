@@ -10,6 +10,30 @@ runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
 
+# How much shall be started, valid choices are
+#   "service": just the keybase service
+#   "kbfs": the service and the user's kbfs
+#   "gui": service, kbfs, gui
+# Note that the redirector startup is controlled independently.
+startup_level=""
+
+fetch_startup_level() {
+  startup_level_key="startup_level"
+
+  startup_level="gui"
+  if [ -r "$rootConfigFile" ] ; then
+    if keybase config get -d "$startup_level_key" &> /dev/null ; then
+      startup_level="$(keybase config get -d "$startup_level_key" 2> /dev/null)"
+    fi
+  fi
+
+  # "keybase config get" extracts the value with quotes, strip them
+  regex='^"(.*)"$'
+  if [[ $startup_level =~ $regex ]]; then
+    startup_level="${BASH_REMATCH[1]}"
+  fi
+}
+
 set_empty_mountdir_to_default() {
     # Set the mount point to a default value if a) nothing is set yet,
     # or b) both are set to the old default.
@@ -199,11 +223,23 @@ start_systemd() {
 
   run_redirector
 
-  # The keybase.gui.service unit has keybase.service and kbfs.service as
-  # dependencies, so we don't have to list them here. But including them lets
-  # us report an error if they fail to start. Also prefer `restart` to `start`
-  # so that we don't race against the service shutting down.
-  systemctl --user restart keybase.service kbfs.service keybase.gui.service
+  fetch_startup_level
+  case "$startup_level" in
+  service)
+    systemctl --user restart keybase.service
+    ;;
+  kbfs)
+    systemctl --user restart keybase.service kbfs.service
+    ;;
+  *)
+    # The keybase.gui.service unit has keybase.service and kbfs.service as
+    # dependencies, so we don't have to list them here. But including them lets
+    # us report an error if they fail to start. Also prefer `restart` to `start`
+    # so that we don't race against the service shutting down.
+    systemctl --user restart keybase.service kbfs.service keybase.gui.service
+    ;;
+  esac
+
   write_startup_token "systemd"
 }
 
@@ -213,15 +249,24 @@ start_background() {
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
   mkdir -p "$logdir"
 
+  run_redirector
+
   echo Launching keybase service...
   # We set the --auto-forked flag here so that updated clients that try to
   # restart this service will know to re-fork it themselves. That's all it does.
   keybase -d --log-file="$logdir/keybase.service.log" service --auto-forked &>> "$logdir/keybase.start.log" &
-  echo Mounting the file system...
-  run_redirector
-  kbfsfuse -debug -log-to-file "$mountdir" &>> "$logdir/keybase.start.log" &
-  echo Launching Keybase GUI...
-  /opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
+
+  fetch_startup_level
+  if [ "$startup_level" != "service" ]; then
+    echo Mounting the file system...
+    kbfsfuse -debug -log-to-file "$mountdir" &>> "$logdir/keybase.start.log" &
+
+    if [ "$startup_level" != "kbfs" ]; then
+      echo Launching Keybase GUI...
+      /opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
+    fi
+  fi
+
   write_startup_token "background"
 }
 
