@@ -641,21 +641,15 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 
 func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 	conv chat1.ConversationLocal) {
-	if conv.Info.Triple.TopicType != chat1.TopicType_CHAT {
-		return
-	}
 	kuid := keybase1.UID(uid.String())
 	g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, conv.GetConvID(),
-		g.presentUIItem(ctx, &conv, uid))
+		conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid))
 }
 
 func (g *PushHandler) notifyLeftChannel(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, topicType chat1.TopicType) {
-	if topicType != chat1.TopicType_CHAT {
-		return
-	}
 	kuid := keybase1.UID(uid.String())
-	g.G().NotifyRouter.HandleChatLeftConversation(ctx, kuid, convID)
+	g.G().NotifyRouter.HandleChatLeftConversation(ctx, kuid, convID, topicType)
 }
 
 func (g *PushHandler) notifyReset(ctx context.Context, uid gregor1.UID,
@@ -664,7 +658,7 @@ func (g *PushHandler) notifyReset(ctx context.Context, uid gregor1.UID,
 		return
 	}
 	kuid := keybase1.UID(uid.String())
-	g.G().NotifyRouter.HandleChatResetConversation(ctx, kuid, convID)
+	g.G().NotifyRouter.HandleChatResetConversation(ctx, kuid, convID, topicType)
 }
 
 func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
@@ -924,10 +918,8 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 			return
 		}
 		// Send notify for the conv
-		if conv.GetTopicType() == chat1.TopicType_CHAT {
-			g.G().NotifyRouter.HandleChatSetConvRetention(ctx, keybase1.UID(uid.String()),
-				conv.GetConvID(), g.presentUIItem(ctx, conv, uid))
-		}
+		g.G().NotifyRouter.HandleChatSetConvRetention(ctx, keybase1.UID(uid.String()),
+			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
 	}(bctx)
 
 	return nil
@@ -973,17 +965,17 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 			return
 		}
 		// Send notify for each conversation ID
-		var convUIItems []chat1.InboxUIItem
+		convUIItems := make(map[chat1.TopicType][]chat1.InboxUIItem)
 		for _, conv := range convs {
-			if conv.GetTopicType() == chat1.TopicType_CHAT {
-				uiItem := g.presentUIItem(ctx, &conv, uid)
-				if uiItem != nil {
-					convUIItems = append(convUIItems, *uiItem)
-				}
+			uiItem := g.presentUIItem(ctx, &conv, uid)
+			if uiItem != nil {
+				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
 			}
 		}
-		g.G().NotifyRouter.HandleChatSetTeamRetention(ctx, keybase1.UID(uid.String()), update.TeamID,
-			convUIItems)
+		for topicType, items := range convUIItems {
+			g.G().NotifyRouter.HandleChatSetTeamRetention(ctx, keybase1.UID(uid.String()), update.TeamID,
+				topicType, items)
+		}
 	}(bctx)
 
 	return nil

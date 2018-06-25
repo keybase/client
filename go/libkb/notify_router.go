@@ -744,7 +744,7 @@ func (n *NotifyRouter) HandleChatInboxSyncStarted(ctx context.Context, uid keyba
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatInboxSyncStarted notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, chat1.TopicType_NONE) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -769,7 +769,7 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatTypingUpdate notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, chat1.TopicType_NONE) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -788,14 +788,14 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 }
 
 func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, conv *chat1.InboxUIItem) {
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
 	if n == nil {
 		return
 	}
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatJoinedConversation notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -818,14 +818,14 @@ func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid key
 }
 
 func (n *NotifyRouter) HandleChatLeftConversation(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID) {
+	convID chat1.ConversationID, topicType chat1.TopicType) {
 	if n == nil {
 		return
 	}
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatLeftConversation notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -847,14 +847,14 @@ func (n *NotifyRouter) HandleChatLeftConversation(ctx context.Context, uid keyba
 }
 
 func (n *NotifyRouter) HandleChatResetConversation(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID) {
+	convID chat1.ConversationID, topicType chat1.TopicType) {
 	if n == nil {
 		return
 	}
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatResetConversation notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -905,42 +905,45 @@ func (n *NotifyRouter) HandleChatKBFSToImpteamUpgrade(ctx context.Context, uid k
 }
 
 func (n *NotifyRouter) HandleChatSetConvRetention(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID, conv *chat1.InboxUIItem) {
-	n.notifyChatCommon(ctx, "ChatSetConvRetention", func(ctx context.Context, cli *chat1.NotifyChatClient) {
-		cli.ChatSetConvRetention(ctx, chat1.ChatSetConvRetentionArg{
-			Uid:    uid,
-			ConvID: convID,
-			Conv:   conv,
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	n.notifyChatCommon(ctx, "ChatSetConvRetention", topicType,
+		func(ctx context.Context, cli *chat1.NotifyChatClient) {
+			cli.ChatSetConvRetention(ctx, chat1.ChatSetConvRetentionArg{
+				Uid:    uid,
+				ConvID: convID,
+				Conv:   conv,
+			})
+		}, func(ctx context.Context, listener NotifyListener) {
+			listener.ChatSetConvRetention(uid, convID)
 		})
-	}, func(ctx context.Context, listener NotifyListener) {
-		listener.ChatSetConvRetention(uid, convID)
-	})
 }
 
 func (n *NotifyRouter) HandleChatSetTeamRetention(ctx context.Context, uid keybase1.UID,
-	teamID keybase1.TeamID, convs []chat1.InboxUIItem) {
-	n.notifyChatCommon(ctx, "ChatSetTeamRetention", func(ctx context.Context, cli *chat1.NotifyChatClient) {
-		cli.ChatSetTeamRetention(ctx, chat1.ChatSetTeamRetentionArg{
-			Uid:    uid,
-			TeamID: teamID,
-			Convs:  convs,
+	teamID keybase1.TeamID, topicType chat1.TopicType, convs []chat1.InboxUIItem) {
+	n.notifyChatCommon(ctx, "ChatSetTeamRetention", topicType,
+		func(ctx context.Context, cli *chat1.NotifyChatClient) {
+			cli.ChatSetTeamRetention(ctx, chat1.ChatSetTeamRetentionArg{
+				Uid:    uid,
+				TeamID: teamID,
+				Convs:  convs,
+			})
+		}, func(ctx context.Context, listener NotifyListener) {
+			listener.ChatSetTeamRetention(uid, teamID)
 		})
-	}, func(ctx context.Context, listener NotifyListener) {
-		listener.ChatSetTeamRetention(uid, teamID)
-	})
 }
 
 type notifyChatFn1 func(context.Context, *chat1.NotifyChatClient)
 type notifyChatFn2 func(context.Context, NotifyListener)
 
-func (n *NotifyRouter) notifyChatCommon(ctx context.Context, debugLabel string, fn1 notifyChatFn1, fn2 notifyChatFn2) {
+func (n *NotifyRouter) notifyChatCommon(ctx context.Context, debugLabel string, topicType chat1.TopicType,
+	fn1 notifyChatFn1, fn2 notifyChatFn2) {
 	if n == nil {
 		return
 	}
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending %v notification", debugLabel)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
 			go func() {
 				cli := &chat1.NotifyChatClient{
