@@ -245,11 +245,12 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			} else {
 				conv = nil
 			}
-
-			if conv == nil || conv.GetTopicType() == chat1.TopicType_CHAT {
-				g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
-					convID, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
+			topicType := chat1.TopicType_NONE
+			if conv != nil {
+				topicType = conv.GetTopicType()
 			}
+			g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
+				convID, topicType, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
 		}
 	}(bctx)
 

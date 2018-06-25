@@ -540,9 +540,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 	if n == nil {
 		return
 	}
-
 	var wg sync.WaitGroup
-
 	n.G().Log.CDebugf(ctx, "+ Sending NewChatActivity notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
@@ -577,7 +575,7 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatIdentifyUpdate notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, chat1.TopicType_CHAT) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -595,14 +593,16 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 	n.G().Log.CDebugf(ctx, "- Sent ChatIdentifyUpdate notification")
 }
 
-func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.InboxUIItem) {
+func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, finalizeInfo chat1.ConversationFinalizeInfo,
+	conv *chat1.InboxUIItem) {
 	if n == nil {
 		return
 	}
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatTLFFinalize notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -688,7 +688,7 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatThreadsStale notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, chat1.TopicType_NONE) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
