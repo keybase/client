@@ -95,7 +95,7 @@ helpers.rootLinuxNode(env, {
             }
         }
 
-        def hasGoChanges = true // helpers.hasChanges('go', env)
+        def hasGoChanges = true
         def hasJSChanges = helpers.hasChanges('shared', env)
         println "Has go changes: " + hasGoChanges
         println "Has JS changes: " + hasJSChanges
