@@ -518,7 +518,8 @@ func AddTeamKeyForTest(config Config, tid keybase1.TeamID) error {
 	}
 
 	ti, err := kbd.LoadTeamPlusKeys(
-		context.Background(), tid, kbfsmd.UnspecifiedKeyGen, keybase1.UserVersion{},
+		context.Background(), tid, tlf.Unknown, kbfsmd.UnspecifiedKeyGen,
+		keybase1.UserVersion{}, kbfscrypto.VerifyingKey{},
 		keybase1.TeamRole_NONE)
 	if err != nil {
 		return err

@@ -214,7 +214,8 @@ func (k *KBPKIClient) GetTeamTLFCryptKeys(
 	ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen) (
 	map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error) {
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
-		ctx, tid, desiredKeyGen, keybase1.UserVersion{}, keybase1.TeamRole_NONE)
+		ctx, tid, tlf.Unknown, desiredKeyGen, keybase1.UserVersion{},
+		kbfscrypto.VerifyingKey{}, keybase1.TeamRole_NONE)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -279,7 +280,8 @@ func (k *KBPKIClient) IsTeamWriter(
 		EldestSeqno: userInfo.EldestSeqno,
 	}
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
-		ctx, tid, kbfsmd.UnspecifiedKeyGen, desiredUser, keybase1.TeamRole_WRITER)
+		ctx, tid, tlf.Unknown, kbfsmd.UnspecifiedKeyGen, desiredUser,
+		kbfscrypto.VerifyingKey{}, keybase1.TeamRole_WRITER)
 	if err != nil {
 		if tid.IsPublic() {
 			if _, notFound := err.(libkb.NotFoundError); notFound {
@@ -294,12 +296,38 @@ func (k *KBPKIClient) IsTeamWriter(
 	return teamInfo.Writers[uid], nil
 }
 
+// NoLongerTeamWriter implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) NoLongerTeamWriter(
+	ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type,
+	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
+	keybase1.MerkleRootV2, error) {
+	if uid.IsNil() || verifyingKey.IsNil() {
+		// A sessionless user can never be a writer.
+		return keybase1.MerkleRootV2{}, nil
+	}
+
+	// We don't need the eldest seqno when we look up an older writer,
+	// the service takes care of that for us.
+	desiredUser := keybase1.UserVersion{
+		Uid: uid,
+	}
+
+	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
+		ctx, tid, tlfType, kbfsmd.UnspecifiedKeyGen, desiredUser,
+		verifyingKey, keybase1.TeamRole_WRITER)
+	if err != nil {
+		return keybase1.MerkleRootV2{}, err
+	}
+	return teamInfo.LastWriters[verifyingKey], nil
+}
+
 // IsTeamReader implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) IsTeamReader(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
 	desiredUser := keybase1.UserVersion{Uid: uid}
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
-		ctx, tid, kbfsmd.UnspecifiedKeyGen, desiredUser, keybase1.TeamRole_READER)
+		ctx, tid, tlf.Unknown, kbfsmd.UnspecifiedKeyGen, desiredUser,
+		kbfscrypto.VerifyingKey{}, keybase1.TeamRole_READER)
 	if err != nil {
 		return false, err
 	}
@@ -311,8 +339,8 @@ func (k *KBPKIClient) ListResolvedTeamMembers(
 	ctx context.Context, tid keybase1.TeamID) (
 	writers, readers []keybase1.UID, err error) {
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
-		ctx, tid, kbfsmd.UnspecifiedKeyGen, keybase1.UserVersion{},
-		keybase1.TeamRole_NONE)
+		ctx, tid, tlf.Unknown, kbfsmd.UnspecifiedKeyGen, keybase1.UserVersion{},
+		kbfscrypto.VerifyingKey{}, keybase1.TeamRole_NONE)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -334,8 +362,8 @@ func (k *KBPKIClient) GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (
 	}
 
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
-		ctx, tid, kbfsmd.UnspecifiedKeyGen, keybase1.UserVersion{},
-		keybase1.TeamRole_NONE)
+		ctx, tid, tlf.Unknown, kbfsmd.UnspecifiedKeyGen, keybase1.UserVersion{},
+		kbfscrypto.VerifyingKey{}, keybase1.TeamRole_NONE)
 	if err != nil {
 		return keybase1.TeamID(""), err
 	}

@@ -522,7 +522,8 @@ type KeybaseService interface {
 	// isn't a member of the team yet according to local caches; it
 	// may be set to "" if no server check is required.
 	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID,
-		desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion,
+		tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
+		desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
 		desiredRole keybase1.TeamRole) (TeamInfo, error)
 
 	// CurrentSession returns a SessionInfo struct with all the
@@ -647,6 +648,15 @@ type teamMembershipChecker interface {
 	// kbfsmd.TeamMembershipChecker.IsTeamWriter.
 	IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
 		verifyingKey kbfscrypto.VerifyingKey) (bool, error)
+	// NoLongerTeamWriter returns the global Merkle root of the
+	// most-recent time the given user (with the given device key,
+	// which implies an eldest seqno) transitioned from being a writer
+	// to not being a writer on the given team.  If the user was never
+	// a writer of the team, it returns an error.
+	NoLongerTeamWriter(
+		ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type,
+		uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
+		keybase1.MerkleRootV2, error)
 	// IsTeamReader is a copy of
 	// kbfsmd.TeamMembershipChecker.IsTeamWriter.
 	IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (

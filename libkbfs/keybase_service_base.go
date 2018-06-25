@@ -683,6 +683,37 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 	return userInfo, nil
 }
 
+func (k *KeybaseServiceBase) getLastWriterInfo(
+	ctx context.Context, teamInfo TeamInfo, tlfType tlf.Type, user keybase1.UID,
+	verifyingKey kbfscrypto.VerifyingKey) (TeamInfo, error) {
+	if _, ok := teamInfo.LastWriters[verifyingKey]; ok {
+		// Already cached, nothing to do.
+		return teamInfo, nil
+	}
+
+	res, err := k.teamsClient.FindNextMerkleRootAfterTeamRemovalBySigningKey(
+		ctx, keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg{
+			Uid:        user,
+			SigningKey: verifyingKey.KID(),
+			Team:       teamInfo.TID,
+			IsPublic:   tlfType == tlf.Public,
+		})
+	if err != nil {
+		return TeamInfo{}, err
+	}
+
+	// Copy any old data to avoid races.
+	newLastWriters := make(
+		map[kbfscrypto.VerifyingKey]keybase1.MerkleRootV2,
+		len(teamInfo.LastWriters)+1)
+	for k, v := range teamInfo.LastWriters {
+		newLastWriters[k] = v
+	}
+	newLastWriters[verifyingKey] = *res.Res
+	teamInfo.LastWriters = newLastWriters
+	return teamInfo, nil
+}
+
 var allowedLoadTeamRoles = map[keybase1.TeamRole]bool{
 	keybase1.TeamRole_NONE:   true,
 	keybase1.TeamRole_WRITER: true,
@@ -692,8 +723,9 @@ var allowedLoadTeamRoles = map[keybase1.TeamRole]bool{
 // LoadTeamPlusKeys implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
-	ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen,
-	desiredUser keybase1.UserVersion, desiredRole keybase1.TeamRole) (
+	ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type,
+	desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion,
+	desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole) (
 	TeamInfo, error) {
 	if !allowedLoadTeamRoles[desiredRole] {
 		panic(fmt.Sprintf("Disallowed team role: %v", desiredRole))
@@ -715,12 +747,26 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 			// If the user is in the writer map, that satisfies none, reader
 			// or writer desires.
 			satisfiesDesires = cachedTeamInfo.Writers[desiredUser.Uid]
-			// If not, and the desire role is a reader, we need to
-			// check the reader map explicitly.
-			if !satisfiesDesires &&
-				(desiredRole == keybase1.TeamRole_NONE ||
-					desiredRole == keybase1.TeamRole_READER) {
-				satisfiesDesires = cachedTeamInfo.Readers[desiredUser.Uid]
+			if !satisfiesDesires {
+				if desiredRole == keybase1.TeamRole_NONE ||
+					desiredRole == keybase1.TeamRole_READER {
+					// If the user isn't a writer, but the desired
+					// role is a reader, we need to check the reader
+					// map explicitly.
+					satisfiesDesires = cachedTeamInfo.Readers[desiredUser.Uid]
+				} else if !desiredKey.IsNil() {
+					// If the desired role was at least a writer, but
+					// the user isn't currently a writer, see if they
+					// ever were.
+					var err error
+					cachedTeamInfo, err = k.getLastWriterInfo(
+						ctx, cachedTeamInfo, tlfType, desiredUser.Uid,
+						desiredKey)
+					if err != nil {
+						return TeamInfo{}, err
+					}
+					k.setCachedTeamInfo(tid, cachedTeamInfo)
+				}
 			}
 		}
 
@@ -739,7 +785,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 			keybase1.PerTeamKeyGeneration(desiredKeyGen)
 	}
 
-	if desiredUser.Uid.Exists() {
+	if desiredUser.Uid.Exists() && desiredKey.IsNil() {
 		arg.Refreshers.WantMembers = append(
 			arg.Refreshers.WantMembers, desiredUser)
 		arg.Refreshers.WantMembersRole = desiredRole
@@ -787,7 +833,18 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 		info.RootID = rootID
 	}
 
+	// Fill in `LastWriters`, only if needed.
+	if desiredUser.Uid.Exists() && desiredRole == keybase1.TeamRole_WRITER &&
+		!info.Writers[desiredUser.Uid] && !desiredKey.IsNil() {
+		info, err = k.getLastWriterInfo(
+			ctx, info, tlfType, desiredUser.Uid, desiredKey)
+		if err != nil {
+			return TeamInfo{}, err
+		}
+	}
+
 	k.setCachedTeamInfo(tid, info)
+
 	return info, nil
 }
 

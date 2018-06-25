@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	metrics "github.com/rcrowley/go-metrics"
@@ -131,11 +132,13 @@ func (k KeybaseServiceMeasured) LoadUserPlusKeys(ctx context.Context,
 
 // LoadTeamPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
-	tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion,
+	tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
+	desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
 	desiredRole keybase1.TeamRole) (teamInfo TeamInfo, err error) {
 	k.loadTeamPlusKeysTimer.Time(func() {
 		teamInfo, err = k.delegate.LoadTeamPlusKeys(
-			ctx, tid, desiredKeyGen, desiredUser, desiredRole)
+			ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey,
+			desiredRole)
 	})
 	return teamInfo, err
 }

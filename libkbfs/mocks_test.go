@@ -1661,16 +1661,16 @@ func (mr *MockKeybaseServiceMockRecorder) LoadUserPlusKeys(ctx, uid, pollForKID 
 }
 
 // LoadTeamPlusKeys mocks base method
-func (m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion, desiredRole keybase1.TeamRole) (TeamInfo, error) {
-	ret := m.ctrl.Call(m, "LoadTeamPlusKeys", ctx, tid, desiredKeyGen, desiredUser, desiredRole)
+func (m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole) (TeamInfo, error) {
+	ret := m.ctrl.Call(m, "LoadTeamPlusKeys", ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole)
 	ret0, _ := ret[0].(TeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LoadTeamPlusKeys indicates an expected call of LoadTeamPlusKeys
-func (mr *MockKeybaseServiceMockRecorder) LoadTeamPlusKeys(ctx, tid, desiredKeyGen, desiredUser, desiredRole interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTeamPlusKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadTeamPlusKeys), ctx, tid, desiredKeyGen, desiredUser, desiredRole)
+func (mr *MockKeybaseServiceMockRecorder) LoadTeamPlusKeys(ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTeamPlusKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadTeamPlusKeys), ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole)
 }
 
 // CurrentSession mocks base method
@@ -2076,6 +2076,19 @@ func (mr *MockteamMembershipCheckerMockRecorder) IsTeamWriter(ctx, tid, uid, ver
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamWriter", reflect.TypeOf((*MockteamMembershipChecker)(nil).IsTeamWriter), ctx, tid, uid, verifyingKey)
 }
 
+// NoLongerTeamWriter mocks base method
+func (m *MockteamMembershipChecker) NoLongerTeamWriter(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (keybase1.MerkleRootV2, error) {
+	ret := m.ctrl.Call(m, "NoLongerTeamWriter", ctx, tid, tlfType, uid, verifyingKey)
+	ret0, _ := ret[0].(keybase1.MerkleRootV2)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NoLongerTeamWriter indicates an expected call of NoLongerTeamWriter
+func (mr *MockteamMembershipCheckerMockRecorder) NoLongerTeamWriter(ctx, tid, tlfType, uid, verifyingKey interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NoLongerTeamWriter", reflect.TypeOf((*MockteamMembershipChecker)(nil).NoLongerTeamWriter), ctx, tid, tlfType, uid, verifyingKey)
+}
+
 // IsTeamReader mocks base method
 func (m *MockteamMembershipChecker) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
 	ret := m.ctrl.Call(m, "IsTeamReader", ctx, tid, uid)
@@ -2341,6 +2354,19 @@ func (m *MockKBPKI) IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid k
 // IsTeamWriter indicates an expected call of IsTeamWriter
 func (mr *MockKBPKIMockRecorder) IsTeamWriter(ctx, tid, uid, verifyingKey interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamWriter", reflect.TypeOf((*MockKBPKI)(nil).IsTeamWriter), ctx, tid, uid, verifyingKey)
+}
+
+// NoLongerTeamWriter mocks base method
+func (m *MockKBPKI) NoLongerTeamWriter(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (keybase1.MerkleRootV2, error) {
+	ret := m.ctrl.Call(m, "NoLongerTeamWriter", ctx, tid, tlfType, uid, verifyingKey)
+	ret0, _ := ret[0].(keybase1.MerkleRootV2)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NoLongerTeamWriter indicates an expected call of NoLongerTeamWriter
+func (mr *MockKBPKIMockRecorder) NoLongerTeamWriter(ctx, tid, tlfType, uid, verifyingKey interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NoLongerTeamWriter", reflect.TypeOf((*MockKBPKI)(nil).NoLongerTeamWriter), ctx, tid, tlfType, uid, verifyingKey)
 }
 
 // IsTeamReader mocks base method

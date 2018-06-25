@@ -72,8 +72,9 @@ type TeamInfo struct {
 	Writers map[keybase1.UID]bool
 	Readers map[keybase1.UID]bool
 
-	// TODO: Should we add a historic membership log to easily check
-	// whether a user was a member given some Merkle seqno?
+	// Last writers map a KID to the last time the writer associated
+	// with that KID trasitioned from writer to non-writer.
+	LastWriters map[kbfscrypto.VerifyingKey]keybase1.MerkleRootV2
 }
 
 // ImplicitTeamInfo contains information needed after
