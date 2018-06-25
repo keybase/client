@@ -17,7 +17,6 @@ import {
   styleSheetCreate,
   collapseStyles,
 } from '../../../../../styles'
-import {castPlatformStyles} from '../../../../../common-adapters/icon'
 import {ImageRender} from './image-render'
 import {isMobile} from '../../../../../util/container'
 
@@ -83,7 +82,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             <Box style={styles.downloadedIconWrapper}>
               <Icon
                 type="iconfont-download"
-                style={castPlatformStyles(styles.downloadIcon)}
+                style={iconCastPlatformStyles(styles.downloadIcon)}
                 color={this.props.arrowColor}
               />
             </Box>
