@@ -616,7 +616,7 @@ func (m MetaContext) SyncSecrets() (ss *SecretSyncer, err error) {
 
 func (m MetaContext) SyncSecretsForUID(u keybase1.UID) (ss *SecretSyncer, err error) {
 	defer m.CTrace("MetaContext#SyncSecrets", func() error { return err })()
-	return m.ActiveDevice().SyncSecretsForUID(m, u)
+	return m.ActiveDevice().SyncSecretsForUID(m, u, false /* force */)
 }
 
 func (m MetaContext) ProvisionalSessionArgs() (token string, csrf string) {

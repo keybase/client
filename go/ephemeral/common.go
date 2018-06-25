@@ -32,8 +32,8 @@ type EKUnboxErr struct {
 	missingGeneration keybase1.EkGeneration
 }
 
-func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingType EKType, missingGeneration keybase1.EkGeneration) *EKUnboxErr {
-	return &EKUnboxErr{
+func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingType EKType, missingGeneration keybase1.EkGeneration) EKUnboxErr {
+	return EKUnboxErr{
 		missingType:       missingType,
 		boxType:           boxType,
 		missingGeneration: missingGeneration,
@@ -41,7 +41,7 @@ func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingT
 	}
 }
 
-func (e *EKUnboxErr) Error() string {
+func (e EKUnboxErr) Error() string {
 	return fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", e.boxType, e.boxGeneration, e.missingType, e.missingGeneration)
 }
 
@@ -50,14 +50,14 @@ type EKMissingBoxErr struct {
 	boxGeneration keybase1.EkGeneration
 }
 
-func newEKMissingBoxErr(boxType EKType, boxGeneration keybase1.EkGeneration) *EKMissingBoxErr {
-	return &EKMissingBoxErr{
+func newEKMissingBoxErr(boxType EKType, boxGeneration keybase1.EkGeneration) EKMissingBoxErr {
+	return EKMissingBoxErr{
 		boxType:       boxType,
 		boxGeneration: boxGeneration,
 	}
 }
 
-func (e *EKMissingBoxErr) Error() string {
+func (e EKMissingBoxErr) Error() string {
 	return fmt.Sprintf("Missing box for %s@generation:%v", e.boxType, e.boxGeneration)
 }
 

@@ -27,9 +27,11 @@ class BannerContainer extends React.PureComponent<Props> {
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const _following = state.config.following
   const _meta = Constants.getMeta(state, conversationIDKey)
   const _users = state.users
   return {
+    _following,
     _meta,
     _users,
   }
@@ -48,8 +50,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   if (stateProps._meta.teamType !== 'adhoc') {
     type = 'none'
   } else {
-    const broken = stateProps._meta.participants.filter(p =>
-      stateProps._users.infoMap.getIn([p, 'broken'], false)
+    const broken = stateProps._meta.participants.filter(
+      p => stateProps._users.infoMap.getIn([p, 'broken'], false) && stateProps._following.has(p)
     )
     if (!broken.isEmpty()) {
       type = 'broken'

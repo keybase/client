@@ -164,7 +164,20 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	return team, team.Name(), impTeamName, conflicts, nil
 }
 
-// Lookup or create an implicit team by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
+func isDupImplicitTeamError(ctx context.Context, err error) bool {
+	if err != nil {
+		if aerr, ok := err.(libkb.AppStatusError); ok {
+			code := keybase1.StatusCode(aerr.Code)
+			switch code {
+			case keybase1.StatusCode_SCTeamImplicitDuplicate:
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// LookupOrCreateImplicitTeam by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
 // Resolves social assertions.
 func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
 	defer g.CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%v)", displayName),
@@ -187,6 +200,11 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 			var teamID keybase1.TeamID
 			teamID, teamName, err = CreateImplicitTeam(ctx, g, impTeamName)
 			if err != nil {
+				if isDupImplicitTeamError(ctx, err) {
+					g.Log.CDebugf(ctx, "LookupOrCreateImplicitTeam: duplicate team, trying to lookup again: err: %s", err)
+					res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName,
+						lookupName)
+				}
 				return res, teamName, impTeamName, err
 			}
 			res, err = Load(ctx, g, keybase1.LoadTeamArg{

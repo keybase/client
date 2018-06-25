@@ -1357,9 +1357,9 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 }
 
 func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
-	userJoined []chat1.Conversation, userRemoved []chat1.ConversationID,
+	userJoined []chat1.Conversation, userRemoved []chat1.ConversationMember,
 	othersJoined []chat1.ConversationMember, othersRemoved []chat1.ConversationMember,
-	userReset []chat1.ConversationID, othersReset []chat1.ConversationMember) (err Error) {
+	userReset []chat1.ConversationMember, othersReset []chat1.ConversationMember) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
@@ -1391,12 +1391,12 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	removedMap := make(map[string]bool)
 	for _, r := range userRemoved {
 		i.Debug(ctx, "MembershipUpdate: removing user from: %s", r)
-		removedMap[r.String()] = true
+		removedMap[r.ConvID.String()] = true
 	}
 	resetMap := make(map[string]bool)
 	for _, r := range userReset {
 		i.Debug(ctx, "MembershipUpdate: user reset in: %s", r)
-		resetMap[r.String()] = true
+		resetMap[r.ConvID.String()] = true
 	}
 	ibox.Conversations = nil
 	for _, conv := range convs {
