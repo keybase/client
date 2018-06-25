@@ -7,6 +7,7 @@ import {Box, Text} from '../../common-adapters'
 import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
+import StaticBreadcrumb from '../common/static-breadcrumb'
 import {memoize} from 'lodash'
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
   childrenFolders: number,
   childrenFiles: number,
   itemStyles: Types.ItemStyles,
+  pathElements: Array<string>,
   menuItems: Array<{
     title: string,
     onClick: () => void,
@@ -33,6 +35,7 @@ const Popup = (props: Props) => {
     view: (
       <Box style={stylesHeader}>
         <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
+        <StaticBreadcrumb pathElements={props.pathElements} />
         <Box style={stylesNameTextBox}>
           <Text type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
             {props.name}

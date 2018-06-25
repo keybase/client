@@ -48,7 +48,13 @@ function showMainWindow() {
   showDockIcon()
 }
 
-function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {
+function displayNewMessageNotification(
+  text: string,
+  convID: ?string,
+  badgeCount: ?number,
+  myMsgID: ?number,
+  soundName: ?string
+) {
   throw new Error('Display new message notification not available on this platform')
 }
 

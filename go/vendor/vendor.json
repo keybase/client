@@ -1010,9 +1010,10 @@
 			"revisionTime": "2015-04-10T14:41:13+08:00"
 		},
 		{
+			"checksumSHA1": "L5s/EGLVeV7pz2afcVDbnRx7b8c=",
 			"path": "stathat.com/c/ramcache",
-			"revision": "d229745ea466bc903d6cdf310aa57bfffb45653b",
-			"revisionTime": "2015-09-01T15:03:09-05:00"
+			"revision": "cf1a4fb3fbdac11685f748ffead9acd8612fba7b",
+			"revisionTime": "2018-06-22T15:25:10Z"
 		}
 	],
 	"rootPath": "github.com/keybase/client/go"

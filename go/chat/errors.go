@@ -396,6 +396,22 @@ func (e ImpteamUpgradeBadteamError) Error() string {
 
 //=============================================================================
 
+type UnknownTLFNameError struct {
+	tlfName string
+}
+
+func NewUnknownTLFNameError(name string) UnknownTLFNameError {
+	return UnknownTLFNameError{
+		tlfName: name,
+	}
+}
+
+func (e UnknownTLFNameError) Error() string {
+	return fmt.Sprintf("unknown conversation name: %s", e.tlfName)
+}
+
+//=============================================================================
+
 type OfflineErrorKind int
 
 const (

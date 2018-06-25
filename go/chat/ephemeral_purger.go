@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 )
 
@@ -281,7 +280,7 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 		nextPurgeTime := purgeInfo.NextPurgeTime.Time()
 		if nextPurgeTime.Before(now) || nextPurgeTime.Equal(now) {
 			job := types.NewConvLoaderJob(purgeInfo.ConvID, &chat1.Pagination{},
-				types.ConvLoaderPriorityHigh, newConvLoaderEphemeralPurgeHook(b.G(), b.storage, b.uid, &purgeInfo))
+				types.ConvLoaderPriorityHigh, newConvLoaderEphemeralPurgeHook(b.G(), b.uid, &purgeInfo))
 			if err := b.G().ConvLoader.Queue(ctx, job); err != nil {
 				b.Debug(ctx, "convLoader Queue error %s", err)
 			}
@@ -317,33 +316,10 @@ func (b *BackgroundEphemeralPurger) resetTimer(purgeInfo chat1.EphemeralPurgeInf
 	b.purgeTimer.Reset(duration)
 }
 
-func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *storage.Storage, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+func newConvLoaderEphemeralPurgeHook(g *globals.Context, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 	return func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
-		_, explodedMsgs, err := chatStorage.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo)
-		if err != nil {
+		if _, _, err := g.ConvSource.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo); err != nil {
 			g.GetLog().CDebugf(ctx, "ephemeralPurge: %s", err)
-		} else {
-			if len(explodedMsgs) > 0 {
-				ib, err := g.InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-					ConvIDs: []chat1.ConversationID{job.ConvID},
-				}, nil)
-				if err != nil || len(ib.Convs) != 1 {
-					g.GetLog().CDebugf(ctx, "FindConversationsByID: convs: %v err: %v", ib.Convs, err)
-					return
-				}
-				inboxUIItem := utils.PresentConversationLocal(ib.Convs[0], g.Env.GetUsername().String())
-
-				purgedMsgs := []chat1.UIMessage{}
-				for _, msg := range explodedMsgs {
-					purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, g, msg, uid, job.ConvID))
-				}
-				act := chat1.NewChatActivityWithEphemeralPurge(chat1.EphemeralPurgeNotifInfo{
-					ConvID: job.ConvID,
-					Msgs:   purgedMsgs,
-					Conv:   &inboxUIItem,
-				})
-				g.NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
-			}
 		}
 	}
 }

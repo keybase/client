@@ -37,6 +37,7 @@ const direntToMetadata = (d: RPCTypes.Dirent) => ({
   lastModifiedTimestamp: d.time,
   lastWriter: d.lastWriterUnverified,
   size: d.size,
+  writable: d.writable,
 })
 
 const makeEntry = (d: RPCTypes.Dirent) => {
@@ -100,7 +101,9 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
   const state = yield Saga.select()
-  const {lastModifiedTimestamp, lastWriter, size}: Types.PathItemMetadata = state.fs.pathItems.get(rootPath)
+  const {lastModifiedTimestamp, lastWriter, size, writable}: Types.PathItemMetadata = state.fs.pathItems.get(
+    rootPath
+  )
 
   const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map(
     entries.map(direntToPathAndPathItem).concat([
@@ -111,6 +114,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
           lastWriter,
           size,
           name: Types.getPathName(rootPath),
+          writable,
           children: I.Set(entries.map(d => d.name)),
           progress: 'loaded',
         }),
