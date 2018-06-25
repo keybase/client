@@ -160,6 +160,16 @@ jobs:
     # Install node and java.
     - run: nvm install 10 && nvm alias default 10
 
+    # Restore the dependency cache
+    - restore_cache:
+        keys:
+        # This branch if available
+        - v1-dep-{{ .Branch }}-
+        # Default branch if not
+        - v1-dep-master-
+        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+        - v1-dep-
+
     # Install yarn
     - run: sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
     - run: echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
@@ -180,6 +190,12 @@ jobs:
         name: Flow coverage
         working_directory: shared
         command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json; fi
+    
+    # Save dependency cache
+    - save_cache:
+        key: v1-dep-{{ .Branch }}-{{ epoch }}-test
+        paths:
+        - ~/.cache/yarn
 workflows:
   version: 2
   build_and_test:
