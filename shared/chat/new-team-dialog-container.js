@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
       })
     )
   },
-  onCancel: () => dispatch(Chat2Gen.createNavigateToInbox()),
+  onCancel: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
   onJoinSubteamChange: () => {},
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
