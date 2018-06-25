@@ -56,11 +56,6 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
 
   _setMalformedEmails = (malformedEmails: Set<string>) => {
     this.setState({malformedEmails, invitees: malformedEmails.join('\n')})
-    // this._input &&
-    //   this._input.transformText(() => ({
-    //     text: malformedEmails.join('\n'),
-    //     selection: {end: 0, start: 0},
-    //   }))
   }
 
   _setRole = (role: TeamRoleType) => this.setState({role})
