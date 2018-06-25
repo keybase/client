@@ -466,10 +466,10 @@ func TestNodeCacheGCReal(t *testing.T) {
 	runtime.GC()
 	<-finalizerChan
 
-	require.Len(t, ncs.nodes, 1)
+	require.Len(t, ncs.nodes, 2)
 
 	// Make sure childNode2 isn't GCed until after this point.
-	func(interface{}) {}(childNode2)
+	runtime.KeepAlive(childNode2)
 }
 
 type wrappedTestNode struct {
