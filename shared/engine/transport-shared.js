@@ -10,37 +10,33 @@ const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
 
 // We basically always log/ensure once all the calls back and forth
-function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {
+function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {|
   handler: F,
   type: string,
-  method?: string,
-  extra?: Object,
+  method?: string | ((...Array<any>) => string),
+  reason?: string,
+  extra?: Object | ((...Array<any>) => Object),
   // we only want to enfoce a single callback on some wrapped things
   enforceOnlyOnce: boolean,
-  // if we don't have access to the method now it should be extracted from the a1 param
-  methodInCallback: boolean,
-}): F {
-  const {handler, extra, method, type, enforceOnlyOnce, methodInCallback} = options
+|}): F {
+  const {handler, extra, method, type, enforceOnlyOnce, reason} = options
   let once = false
   // $ForceType
   const wrapped: F = (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5): void => {
-    const m = methodInCallback ? a1.method : method || 'unknown'
+    const m = typeof method === 'string' ? method : method && method(a1, a2, a3, a4, a5)
+    const e = typeof extra === 'object' ? extra : extra && extra(a1, a2, a3, a4, a5)
 
     if (enforceOnlyOnce && once) {
-      rpcLog({method: m, reason: 'ignoring multiple result calls', type: 'engineInternal'})
+      rpcLog({method: m || 'unknown', reason: 'ignoring multiple result calls', type: 'engineInternal'})
     } else {
       once = true
 
       if (printRPC) {
-        rpcLog({
-          extra,
-          method: methodInCallback ? a1.method : method || 'unknown',
-          type: type,
-        })
+        rpcLog({extra: e || {}, method: m || 'unknown', reason, type})
       }
 
       // always capture stats
-      if (type !== 'engineInternal') {
+      if (m && type !== 'engineInternal') {
         Stats.gotStat(m, type === 'serverToEngine')
       }
 
@@ -104,8 +100,10 @@ class TransportShared extends RobustTransport {
       this.set_generic_handler(
         _wrap({
           enforceOnlyOnce: false,
+          extra: p => p.param[0],
           handler,
-          methodInCallback: true,
+          method: p => p.method,
+          reason: '📞',
           type: 'serverToEngine',
         })
       )
@@ -137,7 +135,7 @@ class TransportShared extends RobustTransport {
             oldResponse[call](...args)
           },
           method: payload.method,
-          methodInCallback: false,
+          reason: '☎️',
           type: 'engineToServer',
         })
       })
@@ -166,22 +164,24 @@ class TransportShared extends RobustTransport {
 
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
+      extra: arg.args,
       handler: args => {
         super.invoke(
           args,
           _wrap({
             enforceOnlyOnce: true,
+            extra: (_, p) => p,
             handler: (err, data) => {
               cb(err, data)
             },
             method: arg.method,
-            methodInCallback: false,
+            reason: '📲',
             type: 'serverToEngine',
           })
         )
       },
       method: arg.method,
-      methodInCallback: false,
+      reason: '📱',
       type: 'engineToServer',
     })
 

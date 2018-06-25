@@ -338,7 +338,7 @@ class Engine {
         sessionID,
       },
       method: startMethod,
-      reason: 'session start',
+      reason: '💃',
       type: 'engineInternal',
     })
 
@@ -380,7 +380,7 @@ class Engine {
         sessionID: session.getId(),
       },
       method: session._startMethod || 'unknown',
-      reason: 'session end',
+      reason: '🕺',
       type: 'engineInternal',
     })
     delete this._sessionsMap[String(session.getId())]
@@ -432,7 +432,7 @@ class Engine {
     }
     rpcLog({
       method,
-      reason: 'registering incoming action creator:',
+      reason: 'registering incoming:',
       type: 'engineInternal',
     })
     this._incomingActionCreators[method] = actionCreator
