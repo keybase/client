@@ -95,7 +95,7 @@ helpers.rootLinuxNode(env, {
             }
         }
 
-        def hasGoChanges = helpers.hasChanges('go', env)
+        def hasGoChanges = true
         def hasJSChanges = helpers.hasChanges('shared', env)
         println "Has go changes: " + hasGoChanges
         println "Has JS changes: " + hasJSChanges
@@ -205,10 +205,9 @@ helpers.rootLinuxNode(env, {
                         }
                     },
                     test_macos: {
-                        // TODO: Currently we only run macos tests on master builds.
-                        if (env.BRANCH_NAME == "master") {
+                        if (true) {
                             def mountDir='/Volumes/untitled/client'
-                            helpers.nodeWithCleanup('macstadium', {}, {
+                            helpers.nodeWithCleanup('macstadium_temp', {}, {
                                     sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
                                 }) {
                                 def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
