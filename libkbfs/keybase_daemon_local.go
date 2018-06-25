@@ -628,6 +628,7 @@ func (k *KeybaseDaemonLocal) addDeviceForTesting(uid keybase1.UID,
 	if err != nil {
 		return 0, fmt.Errorf("No such user %s: %v", uid, err)
 	}
+	user = user.deepCopy()
 
 	index := len(user.VerifyingKeys)
 	newCryptPublicKey, newVerifyingKey := makeKeys(user.Name, index)
@@ -647,6 +648,7 @@ func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
 	if err != nil {
 		return fmt.Errorf("No such user %s: %v", uid, err)
 	}
+	user = user.deepCopy()
 
 	if index >= len(user.VerifyingKeys) ||
 		(k.currentUID == uid && index == user.CurrentCryptPublicKeyIndex) {

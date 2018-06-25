@@ -242,6 +242,44 @@ func (lu *LocalUser) GetPublicKeys() []keybase1.PublicKey {
 	return append(sibkeys, subkeys...)
 }
 
+func (lu LocalUser) deepCopy() LocalUser {
+	luCopy := lu
+
+	luCopy.VerifyingKeys = make(
+		[]kbfscrypto.VerifyingKey, len(lu.VerifyingKeys))
+	copy(luCopy.VerifyingKeys, lu.VerifyingKeys)
+
+	luCopy.CryptPublicKeys = make(
+		[]kbfscrypto.CryptPublicKey, len(lu.CryptPublicKeys))
+	copy(luCopy.CryptPublicKeys, lu.CryptPublicKeys)
+
+	luCopy.KIDNames = make(map[keybase1.KID]string, len(lu.KIDNames))
+	for k, v := range lu.KIDNames {
+		luCopy.KIDNames[k] = v
+	}
+
+	luCopy.RevokedVerifyingKeys = make(
+		map[kbfscrypto.VerifyingKey]revokedKeyInfo,
+		len(lu.RevokedVerifyingKeys))
+	for k, v := range lu.RevokedVerifyingKeys {
+		luCopy.RevokedVerifyingKeys[k] = v
+	}
+
+	luCopy.RevokedCryptPublicKeys = make(
+		map[kbfscrypto.CryptPublicKey]revokedKeyInfo,
+		len(lu.RevokedCryptPublicKeys))
+	for k, v := range lu.RevokedCryptPublicKeys {
+		luCopy.RevokedCryptPublicKeys[k] = v
+	}
+
+	luCopy.Asserts = make([]string, len(lu.Asserts))
+	copy(luCopy.Asserts, lu.Asserts)
+	luCopy.UnverifiedKeys = make([]keybase1.PublicKey, len(lu.UnverifiedKeys))
+	copy(luCopy.UnverifiedKeys, lu.UnverifiedKeys)
+
+	return luCopy
+}
+
 // Helper functions to get a various keys for a local user suitable
 // for use with CryptoLocal. Each function will return the same key
 // will always be returned for a given user.
