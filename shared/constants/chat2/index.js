@@ -123,7 +123,7 @@ export const creatingLoadingKey = 'creatingConvo'
 
 // unused for new stuff, kept for checks
 export const newExplodingGregorKey = 'explodingMessagesAreNew'
-export const oldSeenExplodingGregorKey = 'hasSeenExplodingMessages'
+export const legacySeenExplodingGregorKey = 'hasSeenExplodingMessages'
 
 // When we see that exploding messages are in the app, we set
 // seenExplodingGregorKey. Once newExplodingGregorOffset time
