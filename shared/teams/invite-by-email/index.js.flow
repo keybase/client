@@ -46,10 +46,12 @@ export type DesktopProps = {
 }
 
 export type MobileProps = {
+  errorMessage: string,
   invitee: string,
   invited: Array<{contactID: string, address?: string}>,
   loadingInvites: any, // TODO typing
   name: string,
+  onClearError: () => void,
   onClose: () => void,
   onInviteEmail: (invitee: string) => void,
   onInvitePhone: (invitee: string) => void,

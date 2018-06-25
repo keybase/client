@@ -4,6 +4,7 @@ import * as React from 'react'
 import {
   Avatar,
   Box,
+  Box2,
   Button,
   ButtonBar,
   ClickableBox,
@@ -125,6 +126,10 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
     return (s && s.replace(/^[^a-z0-9@.]/i, '').toLowerCase()) || ''
   }
 
+  componentWillUnmount() {
+    this.props.onClearError()
+  }
+
   render() {
     // Filter before adding props to avoid a long map fcn
     const filteredContactRows = this.props.contactRowProps.filter(contact => {
@@ -143,6 +148,22 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
     if (this.props.hasPermission) {
       contents = (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, paddingBottom: globalMargins.xtiny}}>
+          {this.props.errorMessage && (
+            <Box2
+              direction="horizontal"
+              style={{
+                alignItems: 'center',
+                backgroundColor: globalColors.red,
+                justifyContent: 'center',
+                padding: globalMargins.tiny,
+              }}
+              fullWidth={true}
+            >
+              <Text type="BodySemibold" backgroundMode="HighRisk" style={{textAlign: 'center'}}>
+                {this.props.errorMessage}
+              </Text>
+            </Box2>
+          )}
           <Box
             style={{
               ...globalStyles.flexBoxRow,

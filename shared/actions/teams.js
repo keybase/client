@@ -231,9 +231,10 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
       yield Saga.put(
         TeamsGen.createSetEmailInviteError({
           malformed,
-          message: `There was an error parsing ${malformed.length} address${
-            malformed.length > 1 ? 'es' : ''
-          }.`,
+          // mobile can only invite one at a time, show bad email in error message
+          message: isMobile
+            ? `Error parsing email: ${malformed[0]}`
+            : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`,
         })
       )
     }
