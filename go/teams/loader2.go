@@ -155,6 +155,8 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked,
 	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	defer tbs.Record("TeamLoader.verifyLink")()
 
 	if link.isStubbed() {
 		return nil, nil
@@ -399,6 +401,8 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 func (l *TeamLoader) applyNewLink(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked,
 	signer *signerX, me keybase1.UserVersion) (*keybase1.TeamData, error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	defer tbs.Record("TeamLoader.applyNewLink")()
 
 	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
 

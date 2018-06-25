@@ -3,9 +3,10 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"golang.org/x/net/context"
 	"sort"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -566,6 +567,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		prev = link.LinkID()
 	}
 	tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2")
+	tbs.Log(ctx, "TeamLoader.verifyLink")
+	tbs.Log(ctx, "TeamLoader.applyNewLink")
 
 	if ret == nil {
 		return nil, fmt.Errorf("team loader fault: got nil from load2")
