@@ -578,7 +578,6 @@ func (d *Service) chatOutboxPurgeCheck() {
 	go func() {
 		for {
 			<-ticker.C
-			m.CDebugf("| checking outbox purge")
 			uid := d.G().Env.GetUID()
 			if uid.IsNil() {
 				continue
