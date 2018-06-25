@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../../constants/signup'
-import {Text, WaitingButton} from '../../../common-adapters'
-import Wrapper from '../wrapper'
+import {Text} from '../../../common-adapters'
+import {Wrapper, ContinueButton} from '../common'
 
 type Props = {|
   error: string,
@@ -11,14 +10,11 @@ type Props = {|
 
 const Error = (props: Props) => (
   <Wrapper onBack={props.onBack}>
-    <Text type="Header">Ah Shoot! Something went wrong, wanna try again?</Text>
+    <Text type="Header" style={{maxWidth: 460, textAlign: 'center', width: '80%'}}>
+      Ah Shoot! Something went wrong, wanna try again?
+    </Text>
     <Text type="BodyError">{props.error}</Text>
-    <WaitingButton
-      waitingKey={Constants.waitingKey}
-      type="Primary"
-      label="Try again"
-      onClick={props.onBack}
-    />
+    <ContinueButton label="Try again" onClick={props.onBack} />
   </Wrapper>
 )
 

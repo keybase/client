@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../../constants/signup'
-import {Text, Icon, Input, WaitingButton} from '../../../common-adapters'
-import Wrapper from '../wrapper'
+import {Text, Icon} from '../../../common-adapters'
+import {Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {|
   error: string,
@@ -27,7 +26,7 @@ class Devicename extends React.Component<Props, State> {
 
     return (
       <Wrapper onBack={this.props.onBack}>
-        <Text type="Header">A public name for this device:</Text>
+        <Text type="Header">Set a public name...</Text>
         <Icon type="icon-computer-64" />
         <Input
           autoFocus={true}
@@ -37,13 +36,7 @@ class Devicename extends React.Component<Props, State> {
           onEnterKeyDown={this._onSubmit}
           onChangeText={devicename => this.setState({devicename})}
         />
-        <WaitingButton
-          waitingKey={Constants.waitingKey}
-          type="Primary"
-          label="Continue"
-          disabled={!this.state.devicename}
-          onClick={this._onSubmit}
-        />
+        <ContinueButton disabled={!this.state.devicename} onClick={this._onSubmit} />
       </Wrapper>
     )
   }
