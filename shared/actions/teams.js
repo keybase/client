@@ -14,6 +14,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
+import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import engine from '../engine'
 import {usernameSelector} from '../constants/selectors'
@@ -1021,6 +1022,18 @@ function _setupTeamHandlers() {
         return [navigateTo([], [teamsTab]), ...getLoadCalls()]
       }
       return getLoadCalls()
+    }
+  )
+  engine().setIncomingActionCreators(
+    'keybase.1.NotifyTeam.avatarUpdated',
+    (args: RPCTypes.NotifyTeamAvatarUpdatedRpcParam, _, __, getState) => {
+      const actions = []
+      if (getState().teams.teamnames.includes(args.name)) {
+        actions.push(ConfigGen.createLoadTeamAvatars({teamnames: [args.name]}))
+      } else {
+        actions.push(ConfigGen.createLoadAvatars({usernames: [args.name]}))
+      }
+      return actions
     }
   )
 }
