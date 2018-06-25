@@ -283,6 +283,11 @@ func (s *RemoteConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	return false
 }
 
+func (s *RemoteConversationSource) EphemeralPurge(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error) {
+	return nil, nil, nil
+}
+
 var errConvLockTabDeadlock = errors.New("timeout reading thread")
 
 type conversationLock struct {
@@ -1049,6 +1054,7 @@ func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor
 
 // notifyEphemeralPurge notifies the GUI after messages are exploded.
 func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, explodedMsgs []chat1.MessageUnboxed) {
+	s.Debug(ctx, "notifyEphemeralPurge: exploded: %d", len(explodedMsgs))
 	if len(explodedMsgs) > 0 {
 		var inboxItem *chat1.InboxUIItem
 		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
@@ -1145,6 +1151,15 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 			}
 		}))
 	return true
+}
+
+func (s *HybridConversationSource) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err error) {
+	defer s.Trace(ctx, func() error { return err }, "EphemeralPurge")()
+	if newPurgeInfo, explodedMsgs, err = s.storage.EphemeralPurge(ctx, convID, uid, purgeInfo); err != nil {
+		return newPurgeInfo, explodedMsgs, err
+	}
+	s.notifyEphemeralPurge(ctx, uid, convID, explodedMsgs)
+	return newPurgeInfo, explodedMsgs, nil
 }
 
 func NewConversationSource(g *globals.Context, typ string, boxer *Boxer, storage *storage.Storage,
