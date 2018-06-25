@@ -2085,12 +2085,6 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
       // do nothing
       return
     }
-  } else {
-    // haven't been here before. figure out the new body by seeing if newExploding is there
-    if (!gregorState.items.find(i => i.item.category === Constants.newExplodingGregorKey)) {
-      // not new!
-      body = (Date.now() - Constants.newExplodingGregorOffset).toString()
-    }
   }
   yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
     body,
