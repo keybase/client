@@ -48,9 +48,9 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.retainHeight) {
       if (!prevProps.retainHeight) {
-        SharedTimer.removeObserver(this.props.messageKey, this.timerID)
         // destroy local copy of children when animation finishes
         this.setState({animating: true}, () => {
+          SharedTimer.removeObserver(this.props.messageKey, this.timerID)
           this.timerID = SharedTimer.addObserver(() => this.setState({animating: false, children: null}), {
             key: this.props.messageKey,
             ms: animationDuration,

@@ -112,6 +112,7 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
         toValue: 100,
       }).start()
       // insert 'EXPLODED' in sync with 'boom!' disappearing
+      SharedTimer.removeObserver(this.props.messageKey, this.timerID)
       this.timerID = SharedTimer.addObserver(() => this.setState({showExploded: true}), {
         key: this.props.messageKey,
         ms: animationDuration,

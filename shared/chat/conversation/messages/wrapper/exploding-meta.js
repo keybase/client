@@ -59,6 +59,7 @@ class ExplodingMeta extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (this.props.exploded && !prevProps.exploded) {
       this.setState({mode: 'boom'})
+      SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
       this.sharedTimerID = SharedTimer.addObserver(() => this.setState({mode: 'hidden'}), {
         key: this.props.messageKey,
         ms: animationDuration,
