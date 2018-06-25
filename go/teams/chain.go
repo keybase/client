@@ -3,7 +3,6 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"sync"
 
 	"golang.org/x/net/context"
 
@@ -28,6 +27,11 @@ func (t TeamSigChainState) DeepCopy() TeamSigChainState {
 	return TeamSigChainState{
 		inner: t.inner.DeepCopy(),
 	}
+}
+
+func (t TeamSigChainState) DeepCopyToPtr() *TeamSigChainState {
+	t2 := t.DeepCopy()
+	return &t2
 }
 
 func (t TeamSigChainState) GetID() keybase1.TeamID {
@@ -571,84 +575,84 @@ func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.
 	return keybase1.TeamInvite{}, keybase1.UserVersion{}, false
 }
 
-// Threadsafe handle to a local model of a team sigchain.
-type TeamSigChainPlayer struct {
-	libkb.Contextified
-	sync.Mutex
+// --------------------------------------------------
 
-	// information about the reading user
-	reader keybase1.UserVersion
-
-	storedState *TeamSigChainState
-}
-
-// Load a team chain from the perspective of uid.
-func NewTeamSigChainPlayer(g *libkb.GlobalContext, reader keybase1.UserVersion) *TeamSigChainPlayer {
-	return &TeamSigChainPlayer{
+// Process a chain link.
+// It must have already been partially verified by TeamLoader.
+// `reader` is the user who is processing the chain.
+// `state` is moved into this function. There must exist no live references into it from now on.
+// If `state` is nil this is the first link of the chain.
+// `signer` may be nil iff link is stubbed.
+func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state *TeamSigChainState,
+	link *chainLinkUnpacked, signer *signerX) (res TeamSigChainState, err error) {
+	t := &TeamSigChainPlayer{
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
-		storedState:  nil,
 	}
-}
-
-func NewTeamSigChainPlayerWithState(g *libkb.GlobalContext, reader keybase1.UserVersion, state TeamSigChainState) *TeamSigChainPlayer {
-	res := NewTeamSigChainPlayer(g, reader)
-	res.storedState = &state
-	return res
-}
-
-// Get the latest state.
-// The caller may _not_ modify the returned state.
-func (t *TeamSigChainPlayer) GetState() (res TeamSigChainState, err error) {
-	t.Lock()
-	defer t.Unlock()
-
-	if t.storedState != nil {
-		return *t.storedState, nil
+	var latestSeqno keybase1.Seqno
+	if state != nil {
+		latestSeqno = state.GetLatestSeqno()
 	}
-	return res, fmt.Errorf("no links loaded")
-}
-
-// Add a chain link to the end. It can be stubbed.
-// It must have already been partially verified by TeamLoader.
-// `signer` may be nil iff link is stubbed.
-// If this returns an error, the TeamSigChainPlayer was not modified.
-func (t *TeamSigChainPlayer) AppendChainLink(ctx context.Context, link *chainLinkUnpacked, signer *signerX) error {
-	t.Lock()
-	defer t.Unlock()
-
-	var prevState *TeamSigChainState
-	if t.storedState != nil {
-		prevState = t.storedState
-	}
-
-	newState, err := t.appendChainLinkHelper(ctx, prevState, link, signer)
+	res, err = t.appendChainLinkHelper(ctx, state, link, signer)
 	if err != nil {
-		if prevState == nil {
-			return NewAppendLinkError(link, keybase1.Seqno(0), err)
-		}
-		return NewAppendLinkError(link, prevState.GetLatestSeqno(), err)
+		return TeamSigChainState{}, NewAppendLinkError(link, latestSeqno, err)
 	}
-
-	// Accept the new state
-	t.storedState = &newState
-	return nil
+	return res, err
 }
 
-func (t *TeamSigChainPlayer) DeepCopyState() *TeamSigChainPlayer {
-	t.Lock()
-	defer t.Unlock()
-	if t.storedState != nil {
-		tmp := t.storedState.DeepCopy()
-		t.storedState = &tmp
+// Add the full inner link for a link that has already been added in stubbed form.
+// `state` is moved into this function. There must exist no live references into it from now on.
+func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state TeamSigChainState,
+	link *chainLinkUnpacked, signer signerX) (res TeamSigChainState, err error) {
+	if link.isStubbed() {
+		return TeamSigChainState{}, NewStubbedError(link)
 	}
-	return t
+	if link.Seqno() > state.GetLatestSeqno() {
+		return TeamSigChainState{}, NewInflateErrorWithNote(link,
+			fmt.Sprintf("seqno off the chain %v > %v", link.Seqno(), state.GetLatestSeqno()))
+	}
+
+	// Check the that the link id matches our stubbed record.
+	seenLinkID, err := state.GetLibkbLinkIDBySeqno(link.Seqno())
+	if err != nil {
+		return TeamSigChainState{}, err
+	}
+	if !seenLinkID.Eq(link.LinkID()) {
+		return TeamSigChainState{}, NewInflateErrorWithNote(link,
+			fmt.Sprintf("link id mismatch: %v != %v", link.LinkID().String(), seenLinkID.String()))
+	}
+
+	// Check that the link has not already been inflated.
+	if _, ok := state.inner.StubbedLinks[link.Seqno()]; !ok {
+		return TeamSigChainState{}, NewInflateErrorWithNote(link, "already inflated")
+	}
+
+	t := &TeamSigChainPlayer{
+		Contextified: libkb.NewContextified(g),
+		reader:       reader,
+	}
+	iRes, err := t.addInnerLink(&state, link, signer, true)
+	if err != nil {
+		return TeamSigChainState{}, err
+	}
+
+	delete(iRes.newState.inner.StubbedLinks, link.Seqno())
+
+	return iRes.newState, nil
+
+}
+
+// Helper struct for playing sigchains.
+// xxx TODO demote into lowercase helper
+type TeamSigChainPlayer struct {
+	libkb.Contextified
+	reader keybase1.UserVersion // the user processing the chain
 }
 
 // Add a chain link to the end.
+// `prevState` is moved into this function. There must exist no live references into it from now on.
 // `signer` may be nil iff link is stubbed.
-// Does not modify self or any arguments.
-// The `prevState` argument is nil if this is the first chain link. `prevState` must not be modified in this function.
+// If `prevState` is nil this is the first chain link.
 func (t *TeamSigChainPlayer) appendChainLinkHelper(
 	ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked, signer *signerX) (
 	res TeamSigChainState, err error) {
@@ -687,10 +691,6 @@ func (t *TeamSigChainPlayer) appendChainLinkHelper(
 	return *newState, nil
 }
 
-type checkInnerLinkResult struct {
-	newState TeamSigChainState
-}
-
 func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked) (err error) {
 	if prevState == nil {
 		if link.Seqno() != 1 {
@@ -719,9 +719,12 @@ func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *Team
 	return nil
 }
 
+type checkInnerLinkResult struct {
+	newState TeamSigChainState
+}
+
 // Check and add the inner link.
-// `isInflate` is false if this is a new link and true if it is a link
-// which has already been added as stubbed.
+// `isInflate` is false if this is a new link and true if it is a link which has already been added as stubbed.
 // Does not modify `prevState` but returns a new state.
 func (t *TeamSigChainPlayer) addInnerLink(
 	prevState *TeamSigChainState, link *chainLinkUnpacked, signer signerX,
@@ -877,7 +880,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 	moveState := func() {
 		// Move prevState to res.newState.
-		// Re-use the object without deep copying. There must be no other live references to prevState.
+		// Re-use the object without deep copying. There must be no other live references into prevState.
 		res.newState = *prevState
 		prevState = nil
 	}
@@ -1138,7 +1141,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
 		if team.PerTeamKey != nil {
-			lastKey, err := prevState.GetLatestPerTeamKey()
+			lastKey, err := res.newState.GetLatestPerTeamKey()
 			if err != nil {
 				return res, fmt.Errorf("getting previous per-team-key: %s", err)
 			}
@@ -1608,21 +1611,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	}
 }
 
-// Add the full inner link for a link that has already been added in stubbed form.
-func (t *TeamSigChainPlayer) InflateLink(link *chainLinkUnpacked, signer signerX) error {
-	t.Lock()
-	defer t.Unlock()
-
-	state, err := t.inflateLinkHelper(t.storedState, link, signer)
-	if err != nil {
-		return err
-	}
-
-	// Accept the new state
-	t.storedState = state
-	return nil
-}
-
 func (t *TeamSigChainPlayer) checkSeqnoToAdd(prevState *TeamSigChainState, linkSeqno keybase1.Seqno, isInflate bool) error {
 	if linkSeqno < 1 {
 		return fmt.Errorf("link seqno (%v) cannot be less than 1", linkSeqno)
@@ -1649,46 +1637,6 @@ func (t *TeamSigChainPlayer) checkSeqnoToAdd(prevState *TeamSigChainState, linkS
 		}
 	}
 	return nil
-}
-
-func (t *TeamSigChainPlayer) inflateLinkHelper(
-	prevState *TeamSigChainState, link *chainLinkUnpacked, signer signerX) (
-	*TeamSigChainState, error) {
-
-	if prevState == nil {
-		return nil, NewInflateErrorWithNote(link, "cannot inflate link on empty chain")
-	}
-	if link.isStubbed() {
-		return nil, NewStubbedError(link)
-	}
-	if link.Seqno() > prevState.GetLatestSeqno() {
-		return nil, NewInflateErrorWithNote(link,
-			fmt.Sprintf("seqno off the chain %v > %v", link.Seqno(), prevState.GetLatestSeqno()))
-	}
-
-	// Check the that the link id matches our stubbed.
-	seenLinkID, err := prevState.GetLibkbLinkIDBySeqno(link.Seqno())
-	if err != nil {
-		return nil, err
-	}
-	if !seenLinkID.Eq(link.LinkID()) {
-		return nil, NewInflateErrorWithNote(link,
-			fmt.Sprintf("link id mismatch: %v != %v", link.LinkID().String(), seenLinkID.String()))
-	}
-
-	// Check that the link has not already been inflated.
-	if _, ok := prevState.inner.StubbedLinks[link.Seqno()]; !ok {
-		return nil, NewInflateErrorWithNote(link, "already inflated")
-	}
-
-	iRes, err := t.addInnerLink(prevState, link, signer, true)
-	if err != nil {
-		return nil, err
-	}
-
-	delete(iRes.newState.inner.StubbedLinks, link.Seqno())
-
-	return &iRes.newState, nil
 }
 
 type sanityCheckInvitesOptions struct {
