@@ -2,7 +2,7 @@
 import logger from '../../logger'
 import * as TeamsGen from '../../actions/teams-gen'
 import {Set, Map} from 'immutable'
-import InviteByEmailMobile, {type ContactDisplayProps} from '.'
+import {InviteByEmailMobile, type ContactDisplayProps} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
 import {
@@ -229,7 +229,6 @@ export default compose(
 
       return {contactRowProps}
     }),
-    // $FlowIssue doesn't like withProps
     HeaderHoc
   )
 )(InviteByEmailMobile)

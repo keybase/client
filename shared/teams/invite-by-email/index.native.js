@@ -116,7 +116,7 @@ type State = {
 }
 
 // Container handles all the props, this just handles filtering
-class InviteByEmail extends React.Component<MobileProps, State> {
+class InviteByEmailMobile extends React.Component<MobileProps, State> {
   state = {
     filter: '',
   }
@@ -207,4 +207,4 @@ class InviteByEmail extends React.Component<MobileProps, State> {
   }
 }
 
-export default InviteByEmail
+export {InviteByEmailMobile}

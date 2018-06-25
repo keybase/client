@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ype Set} from 'immutable'
+import {type Set} from 'immutable'
 import {type TeamRoleType} from '../../constants/types/teams'
 import {isMobile} from '../../constants/platform'
 
@@ -35,18 +35,14 @@ export type ContactRowProps = {
   selected?: boolean,
 }
 
-export type Props = {
+export type DesktopProps = {
   errorMessage: string,
-  invitees: string,
   malformedEmails: Set<string>,
   name: string,
   onClearInviteError: () => void,
   onClose: () => void,
-  onInvite: (invitees: string) => void,
-  onInviteesChange: (invitees: string) => void,
+  onInvite: (invitees: string, role: TeamRoleType) => void,
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
-  onRoleChange: (role: TeamRoleType) => void,
-  role: TeamRoleType,
 }
 
 export type MobileProps = {
@@ -68,7 +64,5 @@ export type MobileProps = {
   hasPermission: boolean,
 }
 
-declare export class InviteByEmailDesktop extends React.Component<Props> {}
+declare export class InviteByEmailDesktop extends React.Component<DesktopProps> {}
 declare export class InviteByEmailMobile extends React.Component<MobileProps> {}
-
-export default (isMobile ? InviteByEmailMobile : InviteByEmailDesktop)

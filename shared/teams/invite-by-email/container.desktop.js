@@ -1,9 +1,10 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
-import InviteByEmailDesktop from '.'
+import * as Types from '../../constants/types/teams'
+import {InviteByEmailDesktop} from '.'
 import {navigateAppend} from '../../actions/route-tree'
-import {connect, compose, withHandlers, withStateHandlers, type TypedState} from '../../util/container'
+import {connect, type TypedState} from '../../util/container'
 import {type OwnProps} from './container'
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
@@ -18,13 +19,12 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => dispatch(navigateUp()),
-  onInvite: ({invitees, role}) => {
+  onInvite: (invitees: string, role: Types.TeamRoleType) => {
     dispatch(TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees}))
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(TeamsGen.createGetTeams())
   },
-
-  onOpenRolePicker: (role: string, onComplete: string => void) => {
+  onOpenRolePicker: (role: Types.TeamRoleType, onComplete: Types.TeamRoleType => void) => {
     dispatch(
       navigateAppend([
         {
@@ -40,11 +40,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  compose(
-    withHandlers({
-      onInvite: ({onInvite, role}) => invitees => invitees && role && onInvite({invitees, role}),
-    })
-  )
-)(InviteByEmailDesktop)
+export default connect(mapStateToProps, mapDispatchToProps)(InviteByEmailDesktop)
