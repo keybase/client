@@ -55,7 +55,7 @@ func (e EKMissingBoxErr) Error() string {
 }
 
 func ctimeIsStale(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
-	return keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime) >= libkb.MaxEphemeralKeyStalenessSecs
+	return keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime) >= libkb.MaxEphemeralKeyStaleness
 }
 
 // If a teamEK is almost expired we allow it to be created in the background so
@@ -72,11 +72,11 @@ func backgroundKeygenPossible(ctime time.Time, currentMerkleRoot libkb.MerkleRoo
 }
 
 func keygenNeeded(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
-	return keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime) >= libkb.EphemeralKeyGenIntervalSecs
+	return keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime) >= libkb.EphemeralKeyGenInterval
 }
 
 func nextKeygenTime(ctime time.Time) time.Time {
-	return ctime.Add(libkb.EphemeralKeyGenIntervalSecs)
+	return ctime.Add(libkb.EphemeralKeyGenInterval)
 }
 
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
@@ -120,14 +120,14 @@ func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1
 // Map generations to their creation time
 type keyExpiryMap map[keybase1.EkGeneration]keybase1.Time
 
-// Keys normally expire after `libkb.MaxEphemeralContentLifetime` unless there has
-// been a gap in their generation. If there has been a gap of more than a day
-// (the normal generation time), a key can be re-used for up to
-// `libkb.MaxEphemeralKeyStalenessSecs` until it is considered expired. To determine
-// expiration, we look at all of the current keys and account for any gaps since
-// we don't want to expire a key if it is still used to encrypt a different key
-// or ephemeral content. This only applies to deviceEKs or userEKs since they
-// can have a dependency above them.  A teamEK expires after
+// Keys normally expire after `libkb.MaxEphemeralContentLifetime` unless there
+// has been a gap in their generation. If there has been a gap of more than a
+// day (the normal generation time), a key can be re-used for up to
+// `libkb.MaxEphemeralKeyStaleness` until it is considered expired. To
+// determine expiration, we look at all of the current keys and account for any
+// gaps since we don't want to expire a key if it is still used to encrypt a
+// different key or ephemeral content. This only applies to deviceEKs or
+// userEKs since they can have a dependency above them.  A teamEK expires after
 // `libkb.MaxEphemeralContentLifetime` without exception.
 func getExpiredGenerations(ctx context.Context, g *libkb.GlobalContext,
 	keyMap keyExpiryMap, now time.Time) (expired []keybase1.EkGeneration) {
@@ -150,10 +150,10 @@ func getExpiredGenerations(ctx context.Context, g *libkb.GlobalContext,
 			nextKeyCtime = now
 		}
 		expiryOffset = nextKeyCtime.Sub(keyCtime)
-		if expiryOffset > libkb.MaxEphemeralKeyStalenessSecs { // Offset can be max libkb.MaxEphemeralKeyStalenessSecs
-			expiryOffset = libkb.MaxEphemeralKeyStalenessSecs
+		if expiryOffset > libkb.MaxEphemeralKeyStaleness { // Offset can be max libkb.MaxEphemeralKeyStaleness
+			expiryOffset = libkb.MaxEphemeralKeyStaleness
 		}
-		// Keys can live for as long as libkb.MaxEphemeralKeyStalenessSecs + expiryOffset
+		// Keys can live for as long as libkb.MaxEphemeralKeyStaleness + expiryOffset
 		if now.Sub(keyCtime) >= (libkb.MaxEphemeralContentLifetime + expiryOffset) {
 			g.Log.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, nextKeyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
 				generation, now, keyCtime, nextKeyCtime, expiryOffset, keyMap, i)

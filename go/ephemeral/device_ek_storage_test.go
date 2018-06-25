@@ -24,8 +24,8 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation:  0,
 				HashMeta:    keybase1.HashMeta("fakeHashMeta0"),
 				Kid:         "",
-				Ctime:       keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
-				DeviceCtime: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
+				Ctime:       keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness * 3)),
+				DeviceCtime: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness * 3)),
 			},
 		},
 		{
@@ -34,8 +34,8 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation:  1,
 				HashMeta:    keybase1.HashMeta("fakeHashMeta1"),
 				Kid:         "",
-				Ctime:       keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
-				DeviceCtime: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
+				Ctime:       keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness * 3)),
+				DeviceCtime: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness * 3)),
 			},
 		},
 		{
@@ -179,7 +179,7 @@ func TestDeleteExpiredOffline(t *testing.T) {
 				Generation: 0,
 				HashMeta:   keybase1.HashMeta("fakeHashMeta0"),
 				Kid:        "",
-				Ctime:      keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
+				Ctime:      keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness * 3)),
 				// Although we are 'offline' and can't get a merkleRoot, we
 				// correctly delete this key since we fall back to the Ctime
 				DeviceCtime: -1,
@@ -191,8 +191,8 @@ func TestDeleteExpiredOffline(t *testing.T) {
 				Generation:  1,
 				HashMeta:    keybase1.HashMeta("fakeHashMeta1"),
 				Kid:         "",
-				Ctime:       keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
-				DeviceCtime: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * 3)),
+				Ctime:       keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness * 3)),
+				DeviceCtime: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness * 3)),
 			},
 		},
 		{

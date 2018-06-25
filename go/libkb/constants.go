@@ -702,8 +702,8 @@ const MinEphemeralContentLifetime = time.Second * 30
 // NOTE: If you change this value you should change it in lib/constants.iced
 // and go/ekreaperd/reaper.go as well.
 // Keys last at most one week
-const MaxEphemeralKeyStalenessSecs = time.Hour * 24 * 30 // one month
+const MaxEphemeralKeyStaleness = time.Hour * 24 * 30 // one month
 // Everyday we want to generate a new key if possible
-const EphemeralKeyGenIntervalSecs = time.Hour * 24 // one day
+const EphemeralKeyGenInterval = time.Hour * 24 // one day
 
 const MaxTeamMembersForPairwiseMAC = 100

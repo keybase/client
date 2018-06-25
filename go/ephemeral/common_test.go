@@ -51,7 +51,7 @@ func TestDeleteExpiredKeys(t *testing.T) {
 
 	// Test with a single key that is stale but not expired
 	keyMap = keyExpiryMap{
-		0: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs)),
+		0: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness)),
 	}
 	expired = getExpiredGenerations(context.Background(), tc.G, keyMap, now)
 	expected = nil
@@ -59,7 +59,7 @@ func TestDeleteExpiredKeys(t *testing.T) {
 
 	// Test with a single key that is expired
 	keyMap = keyExpiryMap{
-		0: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs).Add(-libkb.MaxEphemeralContentLifetime)),
+		0: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness).Add(-libkb.MaxEphemeralContentLifetime)),
 	}
 	expired = getExpiredGenerations(context.Background(), tc.G, keyMap, now)
 	expected = []keybase1.EkGeneration{0}
@@ -78,7 +78,7 @@ func TestDeleteExpiredKeys(t *testing.T) {
 	keyMap = make(keyExpiryMap)
 	numKeys := 5
 	for i := 0; i < numKeys; i++ {
-		keyMap[keybase1.EkGeneration((numKeys - i - 1))] = keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStalenessSecs * time.Duration(i)))
+		keyMap[keybase1.EkGeneration((numKeys - i - 1))] = keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness * time.Duration(i)))
 	}
 	expired = getExpiredGenerations(context.Background(), tc.G, keyMap, now)
 	expected = []keybase1.EkGeneration{0, 1, 2}
