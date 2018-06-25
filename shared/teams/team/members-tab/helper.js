@@ -24,23 +24,23 @@ const getOrderedMemberArray = (
     .sort((a, b) => {
       // If admin list deleted users, then reset, then rest
       if (yourOperations.manageMembers) {
-        if (a.isDeleted) {
-          if (b.isDeleted) {
+        if (a.status === 'deleted') {
+          if (b.status === 'deleted') {
             // both are inactive, compare usernames
             return a.username.localeCompare(b.username)
           }
           // b is reset or active, should go later
           return -1
-        } else if (b.isDeleted) {
+        } else if (b.status === 'deleted') {
           // b is deleted, should come first
           return 1
         }
 
-        if (a.isReset) {
-          if (b.isDeleted) {
+        if (a.status === 'reset') {
+          if (b.status === 'deleted') {
             // deleted should come first
             return 1
-          } else if (b.isReset) {
+          } else if (b.status === 'reset') {
             // both reset, compare usernames
             return a.username.localeCompare(b.username)
           }

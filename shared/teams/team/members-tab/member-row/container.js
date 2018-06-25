@@ -22,10 +22,10 @@ const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps) => {
   const info = map.get(username, blankInfo)
 
   return {
-    deleted: info.isDeleted,
+    deleted: info.status === 'deleted',
     following: amIFollowing(state, username),
     fullName: state.config.username === username ? 'You' : info.fullName,
-    reset: info.isReset,
+    reset: info.status === 'reset',
     roleType: info.type,
     username: info.username,
     waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamname, username)),

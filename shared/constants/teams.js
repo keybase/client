@@ -4,6 +4,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {invert} from 'lodash-es'
 import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
 
@@ -11,6 +12,8 @@ import type {Service} from './types/search'
 import {type TypedState} from './reducer'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
+
+export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
 
 // Waiting keys
 // Add granularity as necessary
@@ -31,8 +34,7 @@ export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
 
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
   fullName: '',
-  isDeleted: false,
-  isReset: false,
+  status: 'active',
   type: 'reader',
   username: '',
 })
@@ -174,7 +176,7 @@ const userIsActiveInTeamHelper = (
   }
 
   const member = members.get(username)
-  return member && !(member.isDeleted || member.isReset)
+  return member && member.status === 'active'
 }
 
 const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError

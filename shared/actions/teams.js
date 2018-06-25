@@ -458,8 +458,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
           username,
           Constants.makeMemberInfo({
             fullName,
-            isDeleted: status === RPCTypes.teamsTeamMemberStatus.deleted,
-            isReset: status === RPCTypes.teamsTeamMemberStatus.reset,
+            status: Constants.rpcMemberStatusToStatus[status],
             type,
             username,
           }),
