@@ -39,7 +39,7 @@ export default (props: Props) => (
 
 const suggestionContainerStyle = {
   flexShrink: 0,
-  width: 115,
+  width: 112,
   height: 106,
 }
 
