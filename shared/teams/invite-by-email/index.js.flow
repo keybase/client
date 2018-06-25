@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import {type Set} from 'immutable'
+import * as I from 'immutable'
 import {type TeamRoleType} from '../../constants/types/teams'
-import {isMobile} from '../../constants/platform'
 
 // Note: 'on Android the entire display name is passed in the givenName field. middleName and familyName will be empty strings.'
 export type ContactProps = {
@@ -37,7 +36,7 @@ export type ContactRowProps = {
 
 export type DesktopProps = {
   errorMessage: string,
-  malformedEmails: Set<string>,
+  malformedEmails: I.Set<string>,
   name: string,
   onClearInviteError: () => void,
   onClose: () => void,

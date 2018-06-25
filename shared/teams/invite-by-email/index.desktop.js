@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Set} from 'immutable'
+import * as I from 'immutable'
 import {
   Box,
   Box2,
@@ -36,11 +36,11 @@ const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(ite
 
 type State = {
   invitees: string,
-  malformedEmails: Set<string>,
+  malformedEmails: I.Set<string>,
   role: TeamRoleType,
 }
 class InviteByEmailDesktop extends React.Component<Props, State> {
-  state = {invitees: '', malformedEmails: Set(), role: 'reader'}
+  state = {invitees: '', malformedEmails: I.Set(), role: 'reader'}
   _input: ?Input
 
   componentDidUpdate(prevProps: Props, prevState: State) {
@@ -54,7 +54,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     this.props.onClearInviteError()
   }
 
-  _setMalformedEmails = (malformedEmails: Set<string>) => {
+  _setMalformedEmails = (malformedEmails: I.Set<string>) => {
     this.setState({malformedEmails, invitees: malformedEmails.join('\n')})
   }
 
@@ -89,7 +89,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
               </Text>
               <ClickableBox
                 onClick={() => props.onOpenRolePicker(this.state.role, this._setRole)}
-                underlayColor="rgba(0, 0, 0, 0)"
+                underlayColor={globalColors.transparent}
               >
                 <Dropdown
                   items={_makeDropdownItems()}
