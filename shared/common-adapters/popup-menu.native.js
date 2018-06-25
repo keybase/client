@@ -98,33 +98,41 @@ class PopupMenu extends Component<Props> {
     ]
 
     return (
-      <TouchableWithoutFeedback style={styleOverlayContainer} onPress={this.props.onHidden}>
-        <Box style={styleOverlay}>
-          <Box style={{...styleMenu, ...this.props.style}}>
-            <Box style={styleMenuGroup}>
-              {menuItemsWithHeader.map((mi, idx) => (
-                <MenuRow
-                  key={mi.title}
-                  {...mi}
-                  index={idx}
-                  numItems={menuItemsWithHeader.length}
-                  onHidden={this.props.onHidden}
-                />
-              ))}
-            </Box>
-            <Box style={{...styleMenuGroup, borderColor: globalColors.black_05, borderTopWidth: 1}}>
-              <MenuRow title="Cancel" index={0} numItems={1} onHidden={this.props.onHidden} />
-            </Box>
+      <Box style={styleOverlay}>
+        <TouchableWithoutFeedback onPress={this.props.onHidden}>
+          <Box style={styleFlexOne} />
+        </TouchableWithoutFeedback>
+        <Box style={{...styleMenu, ...this.props.style}}>
+          <Box style={styleMenuGroup}>
+            {menuItemsWithHeader.map((mi, idx) => (
+              <MenuRow
+                key={mi.title}
+                {...mi}
+                index={idx}
+                numItems={menuItemsWithHeader.length}
+                onHidden={this.props.onHidden}
+              />
+            ))}
+          </Box>
+          <Box style={{...styleMenuGroup, borderColor: globalColors.black_05, borderTopWidth: 1}}>
+            <MenuRow
+              title="Cancel"
+              index={0}
+              numItems={1}
+              onClick={this.props.onHidden}
+              // pass in nothing to onHidden so it doesn't trigger it twice
+              onHidden={() => {}}
+            />
           </Box>
         </Box>
-      </TouchableWithoutFeedback>
+      </Box>
     )
   }
 }
 
 const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
   <Text
-    type="BodySemibold"
+    type="BodySmallSemibold"
     style={{
       textAlign: 'center',
       paddingLeft: globalMargins.small,
@@ -154,6 +162,10 @@ const styleOverlay = {
   justifyContent: 'flex-end',
   alignItems: 'stretch',
   backgroundColor: globalColors.black_40,
+}
+
+const styleFlexOne = {
+  flex: 1,
 }
 
 const styleMenu = {

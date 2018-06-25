@@ -280,7 +280,7 @@ func (e *Kex2Provisionee) handleDidCounterSign(m libkb.MetaContext, sig []byte, 
 	}
 
 	// make a keyproof for the dh key, signed w/ e.eddsa
-	dhSig, dhSigID, err := e.dhKeyProof(e.dh, decSig.eldestKID, decSig.seqno, decSig.linkID)
+	dhSig, dhSigID, err := e.dhKeyProof(m, e.dh, decSig.eldestKID, decSig.seqno, decSig.linkID)
 	if err != nil {
 		return err
 	}
@@ -534,7 +534,7 @@ func makeKeyArgs(sigID keybase1.SigID, sig []byte, delType libkb.DelegationType,
 	return &args, nil
 }
 
-func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID, seqno int, linkID libkb.LinkID) (sig string, sigID keybase1.SigID, err error) {
+func (e *Kex2Provisionee) dhKeyProof(m libkb.MetaContext, dh libkb.GenericKey, eldestKID keybase1.KID, seqno int, linkID libkb.LinkID) (sig string, sigID keybase1.SigID, err error) {
 	delg := libkb.Delegator{
 		ExistingKey:    e.eddsa,
 		NewKey:         dh,
@@ -548,7 +548,7 @@ func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	jw, err := libkb.KeyProof(delg)
+	jw, err := libkb.KeyProof(m, delg)
 	if err != nil {
 		return "", "", err
 	}

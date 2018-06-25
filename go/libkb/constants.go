@@ -19,16 +19,16 @@ const (
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
 )
 
-type RunMode string
-
 var TorProxy = "localhost:9050"
+
+type RunMode string
 
 const (
 	DevelRunMode      RunMode = "devel"
-	StagingRunMode            = "staging"
-	ProductionRunMode         = "prod"
-	RunModeError              = "error"
-	NoRunMode                 = ""
+	StagingRunMode    RunMode = "staging"
+	ProductionRunMode RunMode = "prod"
+	RunModeError      RunMode = "error"
+	NoRunMode         RunMode = ""
 )
 
 var RunModes = []RunMode{DevelRunMode, StagingRunMode, ProductionRunMode}
@@ -358,12 +358,12 @@ type KeyType int
 
 const (
 	KeyTypeNone                  KeyType = 0
-	KeyTypeOpenPGPPublic                 = 1
-	KeyTypeP3skbPrivate                  = 2
-	KeyTypeKbNaclEddsa                   = 3
-	KeyTypeKbNaclDH                      = 4
-	KeyTypeKbNaclEddsaServerHalf         = 5
-	KeyTypeKbNaclDHServerHalf            = 6
+	KeyTypeOpenPGPPublic         KeyType = 1
+	KeyTypeP3skbPrivate          KeyType = 2
+	KeyTypeKbNaclEddsa           KeyType = 3
+	KeyTypeKbNaclDH              KeyType = 4
+	KeyTypeKbNaclEddsaServerHalf KeyType = 5
+	KeyTypeKbNaclDHServerHalf    KeyType = 6
 )
 
 const (
@@ -633,8 +633,8 @@ type AppType string
 
 const (
 	MobileAppType  AppType = "mobile"
-	DesktopAppType         = "desktop"
-	NoAppType              = ""
+	DesktopAppType AppType = "desktop"
+	NoAppType      AppType = ""
 )
 
 func StringToAppType(s string) AppType {

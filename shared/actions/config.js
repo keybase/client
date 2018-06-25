@@ -25,6 +25,7 @@ import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
+import shallowEqual from 'shallowequal'
 
 const maxAvatarsPerLoad = 50
 // TODO convert to sagas
@@ -251,11 +252,19 @@ function* avatarCallAndHandle(names: Array<string>, method: Function) {
       names,
     })
 
-    const nameToUrlMap = Object.keys(resp.picmap).reduce((nameToUrlMap, v) => {
-      nameToUrlMap[v] = avatarSizes.reduce((map, s) => {
-        map[s] = resp.picmap[v][`square_${s}`] || null
+    const state: TypedState = yield Saga.select()
+    const old = state.config.avatars
+    const nameToUrlMap = Object.keys(resp.picmap).reduce((nameToUrlMap, name) => {
+      const vals = avatarSizes.reduce((map, s) => {
+        map[s] = resp.picmap[name][`square_${s}`] || null
         return map
       }, {})
+
+      // only send if it changed
+      if (!old[name] || !shallowEqual(old[name], vals)) {
+        nameToUrlMap[name] = vals
+      }
+
       return nameToUrlMap
     }, {})
 
@@ -284,6 +293,11 @@ function* handleAvatarQueue() {
     avatarsToLoad.teams = avatarsToLoad.teams.skip(maxAvatarsPerLoad)
     if (teamnames.length) {
       yield Saga.call(avatarCallAndHandle, teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
+    }
+
+    // more to load?
+    if (avatarsToLoad.users.size || avatarsToLoad.teams.size) {
+      yield Saga.put(avatarChannel, 'queue')
     }
   }
 }

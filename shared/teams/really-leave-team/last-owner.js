@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Button, HeaderHoc, MaybePopup, ButtonBar} from '../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../styles'
+import {Avatar, Box, Text, Icon, Button, HeaderOnMobile, MaybePopup, ButtonBar} from '../../common-adapters'
+import {globalStyles, globalMargins} from '../../styles'
 
 type Props = {
   onBack: () => void,
@@ -57,6 +57,5 @@ const _ReallyLeaveTeam = (props: Props) => (
     </Box>
   </MaybePopup>
 )
-const ReallyLeaveTeam = isMobile ? HeaderHoc(_ReallyLeaveTeam) : _ReallyLeaveTeam
 
-export default ReallyLeaveTeam
+export default HeaderOnMobile(_ReallyLeaveTeam)

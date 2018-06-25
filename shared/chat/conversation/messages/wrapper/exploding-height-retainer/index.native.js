@@ -35,6 +35,10 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
   timeoutID: ?TimeoutID
 
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
+  }
+
   componentDidUpdate(prevProps: Props) {
     if (this.props.retainHeight && !prevProps.retainHeight && this.props.children) {
       // we just exploded! get rid of children when we're supposed to.
@@ -170,7 +174,6 @@ class EmojiTower extends React.Component<
     return <Box style={styles.emojiTower}>{children}</Box>
   }
 }
-
 const AshTower = (props: {explodedBy: ?string, numImages: number}) => {
   const children = []
   for (let i = 0; i < props.numImages; i++) {
@@ -181,11 +184,11 @@ const AshTower = (props: {explodedBy: ?string, numImages: number}) => {
       {children}
       <Box style={styles.tagBox}>
         {!props.explodedBy ? (
-          <Text type="BodySmall" style={styles.exploded}>
+          <Text type="BodyTiny" style={styles.exploded}>
             EXPLODED
           </Text>
         ) : (
-          <Text lineClamp={1} type="BodySmall" style={styles.exploded}>
+          <Text lineClamp={1} type="BodyTiny" style={styles.exploded}>
             EXPLODED BY{' '}
             <ConnectedUsernames
               type="BodySmallSemibold"
@@ -193,6 +196,8 @@ const AshTower = (props: {explodedBy: ?string, numImages: number}) => {
               usernames={[props.explodedBy]}
               inline={true}
               colorFollowing={true}
+              colorYou={true}
+              underline={true}
             />
           </Text>
         )}
@@ -200,7 +205,6 @@ const AshTower = (props: {explodedBy: ?string, numImages: number}) => {
     </React.Fragment>
   )
 }
-
 const styles = styleSheetCreate({
   ashes: {
     width: 400,
@@ -240,5 +244,4 @@ const styles = styleSheetCreate({
     minWidth: 200,
   },
 })
-
 export default ExplodingHeightRetainer

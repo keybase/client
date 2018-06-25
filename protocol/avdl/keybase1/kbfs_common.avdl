@@ -77,12 +77,8 @@ protocol kbfsCommon {
   }
 
   record FSSyncStatus {
-    // How many total encrypted, padded bytes are still syncing, across
-    // all TLFs?
     int64 totalSyncingBytes;
-    // How many outstanding operations are there across all TLFs?
-    int64 totalSyncingOps;
-    // Individual status for each path without standing operations.
-    array<FSPathSyncStatus> pathStatuses;
+    array<string> syncingPaths;
+    union { null, Time} endEstimate;
   }
 }

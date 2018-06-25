@@ -39,17 +39,20 @@ type State = {
 }
 
 class Dropdown extends React.Component<Props, State> {
-  state: State = {modalVisible: false, value: null}
+  state: State
   showingPick: boolean
 
   constructor(props: Props) {
     super(props)
 
+    this.state = {modalVisible: false, value: props.value || pickItemValue}
     this.showingPick = !this.props.value
   }
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    return {value: nextProps.value || pickItemValue}
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.value !== prevProps.value) {
+      this.setState({value: this.props.value || pickItemValue})
+    }
   }
 
   _selected() {

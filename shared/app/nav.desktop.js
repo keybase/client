@@ -9,6 +9,7 @@ import {Box, ErrorBoundary} from '../common-adapters'
 import {chatTab, loginTab, type Tab} from '../constants/tabs'
 import {connect, type TypedState, type Dispatch} from '../util/container'
 import {globalStyles} from '../styles'
+import RpcStats from './rpc-stats'
 
 type Props = {
   layerScreens: I.Stack<RouteTree.RenderRouteResult>,
@@ -37,6 +38,7 @@ class Nav extends React.Component<Props> {
           {![chatTab, loginTab].includes(routeSelected) && <Offline />}
           <GlobalError />
         </Box>
+        <RpcStats />
       </ErrorBoundary>
     )
   }

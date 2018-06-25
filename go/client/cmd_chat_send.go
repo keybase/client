@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
-	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -59,12 +58,8 @@ func (c *CmdChatSend) SetMessage(m string) {
 
 func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := append(getConversationResolverFlags(),
-		mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
+		mustGetChatFlags("set-headline", "clear-headline", "nonblock", "exploding-lifetime")...,
 	)
-	// TODO remove this check for release.
-	if ephemeral.NewEKLib(g).ShouldRun(context.TODO()) {
-		flags = append(flags, mustGetChatFlags("exploding-lifetime")...)
-	}
 	return cli.Command{
 		Name:         "send",
 		Usage:        "Send a message to a conversation",

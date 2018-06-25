@@ -21,6 +21,16 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-access-denied-266.gif'),
   },
+  'icon-addon-file-downloading': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-file-downloading.png'),
+  },
+  'icon-addon-file-uploading': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-file-uploading.png'),
+  },
   'icon-addon-lock-16': {
     isFont: false,
     extension: 'png',
@@ -1460,6 +1470,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-user-add-32.png'),
+  },
+  'icon-wallet-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-wallet-64.png'),
   },
   'icon-wallet-add-48': {
     isFont: false,

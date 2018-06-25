@@ -790,7 +790,7 @@ func (f failingUpak) LookupUsernameAndDevice(ctx context.Context, uid keybase1.U
 	require.Fail(f.t, "LookupUsernameAndDevice call")
 	return "", "", "", nil
 }
-func (f failingUpak) ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error) {
+func (f failingUpak) ListFollowedUIDs(ctx context.Context, uid keybase1.UID) ([]keybase1.UID, error) {
 	require.Fail(f.t, "ListFollowedUIDs call")
 	return nil, nil
 }
@@ -804,6 +804,10 @@ func (f failingUpak) LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid ke
 }
 func (f failingUpak) CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n libkb.NormalizedUsername) error {
 	require.Fail(f.t, "CheckDeviceForUIDAndUsername call")
+	return nil
+}
+func (f failingUpak) Batcher(ctx context.Context, getArg func(int) *libkb.LoadUserArg, processResult func(int, *keybase1.UserPlusKeysV2AllIncarnations), window int) (err error) {
+	require.Fail(f.t, "Batcher call")
 	return nil
 }
 
@@ -1205,11 +1209,16 @@ func TestClearFromDelete(t *testing.T) {
 	}
 
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
+	select {
+	case <-listener.bgConvLoads:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no conv loader")
+	}
+
 	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
 		u.Username, "hi"))
 	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
 		u.Username, "hi2"))
-
 	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
@@ -1224,12 +1233,6 @@ func TestClearFromDelete(t *testing.T) {
 	}, 0, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(4), delMsg.GetMessageID())
-
-	select {
-	case <-listener.bgConvLoads:
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no conv loader")
-	}
 
 	require.NoError(t, hcs.storage.MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
 	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2}, nil)

@@ -170,7 +170,16 @@ func NewTlfMock(world *ChatMockWorld) *TlfMock {
 func CanonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	// very much simplified canonicalization.
 	// TODO: implement rest when we need it
-	names := strings.Split(tlfName, ",")
+	var names []string
+	nameMap := make(map[string]bool)
+	rawNames := strings.Split(tlfName, ",")
+	for _, rn := range rawNames {
+		if nameMap[rn] {
+			continue
+		}
+		names = append(names, rn)
+		nameMap[rn] = true
+	}
 	sort.Strings(names)
 	return keybase1.CanonicalTlfName(strings.Join(names, ","))
 }

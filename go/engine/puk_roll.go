@@ -134,7 +134,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 	}
 
 	m.CDebugf("PerUserKeyRoll make sigs")
-	sig, err := libkb.PerUserKeyProofReverseSigned(me, pukSeed, gen, sigKey)
+	sig, err := libkb.PerUserKeyProofReverseSigned(m, me, pukSeed, gen, sigKey)
 	if err != nil {
 		return err
 	}

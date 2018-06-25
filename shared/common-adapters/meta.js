@@ -78,10 +78,10 @@ const styles = styleSheetCreate({
       lineHeight: '13px',
     },
     isMobile: {
-      fontSize: 13,
+      fontSize: 12,
       fontWeight: '700',
-      height: 15,
-      lineHeight: 15,
+      height: 14,
+      lineHeight: 14,
     },
   }),
 })

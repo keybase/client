@@ -106,7 +106,7 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.trackStatement, err = e.arg.Me.TrackingProofFor(signingKeyPub, libkb.SigVersion(*e.arg.Options.SigVersion), e.them, outcome)
+	e.trackStatement, err = e.arg.Me.TrackingProofFor(m, signingKeyPub, libkb.SigVersion(*e.arg.Options.SigVersion), e.them, outcome)
 	if err != nil {
 		m.CDebugf("tracking proof err: %s", err)
 		return err

@@ -379,3 +379,17 @@ func TestSignupLogout(t *testing.T) {
 	}
 
 }
+
+// Try to elicit a race between Logout and Shutdown.
+func TestLogoutMulti(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	user1 := tt.addUser("one")
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	user1.tc.G.Logout()
+}

@@ -65,7 +65,12 @@ protocol local {
     union { null, string } err;
   }
 
-  array<PaymentOrErrorLocal> getPaymentsLocal(int sessionID, AccountID accountID, union { null, TransactionID } olderThanTransactionID);
+  record PaymentsPageLocal {
+    array<PaymentOrErrorLocal> payments;
+    union { null, PageCursor } cursor;
+  }
+
+  PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
   
   record PaymentDetailsLocal {
     TransactionID id;               // For relay payments, the funding tx.
@@ -114,6 +119,7 @@ protocol local {
   void deleteWalletAccountLocal(int sessionID, AccountID accountID, string userAcknowledged);
 
   AccountID linkNewWalletAccountLocal(int sessionID, SecretKey secretKey, string name);
+  AccountID createWalletAccountLocal(int sessionID, string name);
 
   // OutsideCurrencyCode examples: "USD", "EUR". Has to be one of
   // supported currencies, returned from getDisplayCurrenciesLocal.
@@ -147,7 +153,6 @@ protocol local {
     string subtext; // Examples: "", "max doesn't accept HUGZ"
   }
 
-  // Not implemented. CORE-7871
   // Check but do not send a payment.
   // Opt  - Optional field.
   // Opt* - Optional for this RPC but required for res.readyToSend to be set.
@@ -165,6 +170,7 @@ protocol local {
     // Zero or one of `asset` and `currency` should be set.
     // If both are null or `asset` is native XLM then XLM are being sent.
     // If `currency` is set then XLM is being sent after converting `amount`.
+    // Note: Sending non-XLM assets is not yet supported.
     union { null, OutsideCurrencyCode } currency,
     union { null, Asset } asset,
     string secretNote,   // Opt. Encrypted for the sender, and recipient if possible.
@@ -279,6 +285,7 @@ protocol local {
     union { null, AccountID } toStellar;
     union { null, string } fromUsername;
     union { null, string } toUsername;
+    union { null, string } toAssertion;
     string note;
     string noteErr;
   }
@@ -316,4 +323,8 @@ protocol local {
 
   map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
+
+  // CORE-8135 phase 2: remove this RPC
+  // Returns whether the bundle was _already_ fixed.
+  boolean fixupBundleCLILocal();
 }

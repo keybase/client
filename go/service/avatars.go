@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/gregor"
@@ -58,7 +59,10 @@ func (r *avatarGregorHandler) Create(ctx context.Context, cli gregor1.IncomingIn
 	case "avatar.clear_cache_for_name":
 		return true, r.clearName(ctx, cli, item)
 	default:
-		return false, fmt.Errorf("unknown avatarGregorHandler category: %q", category)
+		if strings.HasPrefix(category, "avatar.") {
+			return false, fmt.Errorf("unknown avatarGregorHandler category: %q", category)
+		}
+		return false, nil
 	}
 }
 

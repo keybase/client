@@ -837,8 +837,9 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 		if arg.channel.TopicName != "" {
 			topicName = &arg.channel.TopicName
 		}
+		channelName := arg.channel.Name
 		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
-			TlfName:          arg.channel.Name,
+			TlfName:          channelName,
 			TlfVisibility:    visibility,
 			TopicName:        topicName,
 			TopicType:        tt,
@@ -1026,19 +1027,18 @@ func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr str
 	var conv chat1.ConversationLocal
 	var rlimits []chat1.RateLimit
 
-	if (channel == ChatChannel{}) && len(convIDStr) == 0 {
+	if channel.IsNil() && len(convIDStr) == 0 {
 		return conv, rlimits, errors.New("missing conversation specificer")
 	}
 
 	var convID chat1.ConversationID
-	if channel == (ChatChannel{}) {
+	if channel.IsNil() {
 		var err error
 		convID, err = chat1.MakeConvID(convIDStr)
 		if err != nil {
 			return conv, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
 		}
 	}
-
 	existing, existingRl, err := c.getExistingConvs(ctx, convID, channel)
 	if err != nil {
 		return conv, rlimits, err

@@ -328,6 +328,12 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 
 type MergeResult struct {
 	Expunged *chat1.Expunge
+	Exploded []chat1.MessageUnboxed
+}
+
+type FetchResult struct {
+	Thread   chat1.ThreadView
+	Exploded []chat1.MessageUnboxed
 }
 
 // Merge requires msgs to be sorted by descending message ID
@@ -389,9 +395,11 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 	res.Expunged = expunged
 
-	if err = s.explodeExpiredMessages(ctx, convID, uid, msgs); err != nil {
+	explodedMsgs, err := s.explodeExpiredMessages(ctx, convID, uid, msgs)
+	if err != nil {
 		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
+	res.Exploded = explodedMsgs
 
 	// Update max msg ID if needed
 	if len(msgs) > 0 {
@@ -758,6 +766,11 @@ func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, 
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 	s.Debug(ctx, "ClearBefore: convID: %s uid: %s msgID: %d", convID, uid, upto)
+
+	// Abort, we don't want to overflow uint (chat1.MessageID)
+	if upto == 0 {
+		return nil
+	}
 	return s.clearUpthrough(ctx, convID, uid, upto-1)
 }
 
@@ -792,23 +805,21 @@ func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.Get
 
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+	pagination *chat1.Pagination) (res FetchResult, err Error) {
 
-	var err Error
 	if err = isAbortedRequest(ctx); err != nil {
-		return chat1.ThreadView{}, err
+		return res, err
 	}
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
-		return chat1.ThreadView{},
-			MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+		return res, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	// Init storage engine first
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
-		return chat1.ThreadView{}, s.MaybeNuke(ctx, false, err, convID, uid)
+		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 
 	// Calculate seek parameters
@@ -825,14 +836,14 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 		} else if len(pagination.Next) > 0 {
 			if derr := decode(pagination.Next, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, s.MaybeNuke(ctx, false, err, convID, uid)
+				return res, s.MaybeNuke(ctx, false, err, convID, uid)
 			}
 			maxID = pid - 1
 			s.Debug(ctx, "Fetch: next pagination: pid: %d", pid)
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, s.MaybeNuke(ctx, false, err, convID, uid)
+				return res, s.MaybeNuke(ctx, false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
 			s.Debug(ctx, "Fetch: prev pagination: pid: %d", pid)
@@ -848,15 +859,17 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 
 	// Run seek looking for all the messages
 	if err = s.engine.ReadMessages(ctx, rc, convID, uid, maxID); err != nil {
-		return chat1.ThreadView{}, err
+		return res, err
 	}
 	msgs := rc.Result()
 
 	// Clear out any ephemeral messages that have exploded before we hand these
 	// messages out.
-	if err := s.explodeExpiredMessages(ctx, convID, uid, msgs); err != nil {
-		return chat1.ThreadView{}, err
+	explodedMsgs, err := s.explodeExpiredMessages(ctx, convID, uid, msgs)
+	if err != nil {
+		return res, err
 	}
+	res.Exploded = explodedMsgs
 
 	// Get the stored latest point upto which has been deleted.
 	// `maxDeletedUpto` can be behind the times, so the pager is patched later in ConvSource.
@@ -868,29 +881,28 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 		maxDeletedUpto = delh.MaxDeleteHistoryUpto
 	case MissError:
 	default:
-		return chat1.ThreadView{}, err
+		return res, err
 	}
 	s.Debug(ctx, "Fetch: using max deleted upto: %v for pager", maxDeletedUpto)
 
 	// Form paged result
-	var tres chat1.ThreadView
 	var pmsgs []pager.Message
 	for _, m := range msgs {
 		pmsgs = append(pmsgs, m)
 	}
-	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num, maxDeletedUpto); ierr != nil {
-		return chat1.ThreadView{},
+	if res.Thread.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num, maxDeletedUpto); ierr != nil {
+		return res,
 			NewInternalError(ctx, s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
-	tres.Messages = msgs
+	res.Thread.Messages = msgs
 
 	s.Debug(ctx, "Fetch: cache hit: num: %d", len(msgs))
-	return tres, nil
+	return res, nil
 }
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, iboxMaxMsgID chat1.MessageID,
-	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
+	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
 	locks.Storage.Lock()
@@ -899,7 +911,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
-		return chat1.ThreadView{}, err
+		return res, err
 	}
 	if iboxMaxMsgID > maxMsgID {
 		s.Debug(ctx, "FetchUpToLocalMaxMsgID: overriding locally stored max msgid with ibox: %d",
@@ -912,7 +924,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
+	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
 	locks.Storage.Lock()

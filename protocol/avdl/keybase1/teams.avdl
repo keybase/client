@@ -683,8 +683,9 @@ protocol teams {
 
   TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean joinSubteam, TeamSettings settings);
 
-  // A user can hope for success if and only if they are a member of the team or an admin of any of its ancestors.
-  TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
+  // A user can hope for success if and only if they are a member of
+  // the team or an admin of any of its ancestors.
+  TeamDetails teamGet(int sessionID, string name);
 
   // List all the admins of ancestor teams.
   // Includes admins of the specified team only if they are also admins of ancestor teams.

@@ -651,22 +651,28 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 
 func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 	conv chat1.ConversationLocal) {
-
+	if conv.Info.Triple.TopicType != chat1.TopicType_CHAT {
+		return
+	}
 	kuid := keybase1.UID(uid.String())
 	g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, conv.GetConvID(),
 		g.presentUIItem(ctx, &conv, uid))
 }
 
 func (g *PushHandler) notifyLeftChannel(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) {
-
+	convID chat1.ConversationID, topicType chat1.TopicType) {
+	if topicType != chat1.TopicType_CHAT {
+		return
+	}
 	kuid := keybase1.UID(uid.String())
 	g.G().NotifyRouter.HandleChatLeftConversation(ctx, kuid, convID)
 }
 
 func (g *PushHandler) notifyReset(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) {
-
+	convID chat1.ConversationID, topicType chat1.TopicType) {
+	if topicType != chat1.TopicType_CHAT {
+		return
+	}
 	kuid := keybase1.UID(uid.String())
 	g.G().NotifyRouter.HandleChatResetConversation(ctx, kuid, convID)
 }
@@ -690,6 +696,9 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	convMap := make(map[string][]chat1.MemberInfo)
 	addStatus := func(status chat1.ConversationMemberStatus, l []chat1.ConversationMember) {
 		for _, cm := range l {
+			if cm.TopicType != chat1.TopicType_CHAT {
+				continue
+			}
 			if _, ok := convMap[cm.ConvID.String()]; !ok {
 				convMap[cm.ConvID.String()] = []chat1.MemberInfo{}
 			}
@@ -841,10 +850,10 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 			g.notifyJoinChannel(ctx, uid, c)
 		}
 		for _, c := range updateRes.UserRemovedConvs {
-			g.notifyLeftChannel(ctx, uid, c)
+			g.notifyLeftChannel(ctx, uid, c.ConvID, c.TopicType)
 		}
 		for _, c := range updateRes.UserResetConvs {
-			g.notifyReset(ctx, uid, c)
+			g.notifyReset(ctx, uid, c.ConvID, c.TopicType)
 		}
 		g.notifyMembersUpdate(ctx, uid, updateRes)
 

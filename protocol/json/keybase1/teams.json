@@ -1934,10 +1934,6 @@
         {
           "name": "name",
           "type": "string"
-        },
-        {
-          "name": "forceRepoll",
-          "type": "boolean"
         }
       ],
       "response": "TeamDetails"

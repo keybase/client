@@ -37,6 +37,7 @@ func TestPerUserKeyUpkeepBackgroundUnnecessary(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
+	eng.task.args.Settings.StartStagger = 0 // Disable stagger for deterministic testing
 	m := NewMetaContextForTestWithLogUI(tc)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -114,6 +115,7 @@ func TestPerUserKeyUpkeepBackgroundWork(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpkeepBackground(tc.G, arg)
+	eng.task.args.Settings.StartStagger = 0 // Disable stagger for deterministic testing
 	m := NewMetaContextForTestWithLogUI(tc)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)

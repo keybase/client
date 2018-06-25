@@ -14,7 +14,13 @@ var ErrChatServerTimeout = errors.New("timeout calling chat server")
 var ErrDuplicateConnection = errors.New("error calling chat server")
 var ErrKeyServerTimeout = errors.New("timeout calling into key server")
 
+type InternalError interface {
+	// verbose error info for debugging but not user display
+	InternalError() string
+}
+
 type UnboxingError interface {
+	InternalError
 	Error() string
 	Inner() error
 	IsPermanent() bool
@@ -46,6 +52,8 @@ func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 		return err.ExportType()
 	case EphemeralUnboxingError:
 		return chat1.MessageUnboxedErrorType_EPHEMERAL
+	case NotAuthenticatedForThisDeviceError:
+		return chat1.MessageUnboxedErrorType_PAIRWISE_MISSING
 	default:
 		return chat1.MessageUnboxedErrorType_MISC
 	}
@@ -75,6 +83,15 @@ func (e PermanentUnboxingError) IsCritical() bool {
 		return err.IsCritical()
 	default:
 		return false
+	}
+}
+
+func (e PermanentUnboxingError) InternalError() string {
+	switch err := e.Inner().(type) {
+	case InternalError:
+		return err.InternalError()
+	default:
+		return err.Error()
 	}
 }
 
@@ -110,16 +127,29 @@ func (e TransientUnboxingError) IsCritical() bool {
 	return false
 }
 
+func (e TransientUnboxingError) InternalError() string {
+	switch err := e.Inner().(type) {
+	case InternalError:
+		return err.InternalError()
+	default:
+		return err.Error()
+	}
+}
+
 //=============================================================================
 
-type EphemeralUnboxingError struct{}
+type EphemeralUnboxingError struct{ inner error }
 
-func NewEphemeralUnboxingError() EphemeralUnboxingError {
-	return EphemeralUnboxingError{}
+func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {
+	return EphemeralUnboxingError{inner}
 }
 
 func (e EphemeralUnboxingError) Error() string {
 	return "Unable to decrypt exploding message. Missing keys"
+}
+
+func (e EphemeralUnboxingError) InternalError() string {
+	return e.inner.Error()
 }
 
 //=============================================================================
@@ -362,6 +392,22 @@ type ImpteamUpgradeBadteamError struct {
 
 func (e ImpteamUpgradeBadteamError) Error() string {
 	return fmt.Sprintf("bad iteam found in upgraded conv: %s", e.Msg)
+}
+
+//=============================================================================
+
+type UnknownTLFNameError struct {
+	tlfName string
+}
+
+func NewUnknownTLFNameError(name string) UnknownTLFNameError {
+	return UnknownTLFNameError{
+		tlfName: name,
+	}
+}
+
+func (e UnknownTLFNameError) Error() string {
+	return fmt.Sprintf("unknown conversation name: %s", e.tlfName)
 }
 
 //=============================================================================

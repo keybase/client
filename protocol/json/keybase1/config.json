@@ -221,6 +221,13 @@
           "lint": "ignore"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "deviceEkNames"
+        },
+        {
           "type": "PlatformInfo",
           "name": "platformInfo"
         },

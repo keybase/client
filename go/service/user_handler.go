@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -33,7 +34,10 @@ func (r *userHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	case "user.identity_change":
 		return true, r.identityChange(m)
 	default:
-		return false, fmt.Errorf("unknown userHandler category: %q", category)
+		if strings.HasPrefix(category, "user.") {
+			return false, fmt.Errorf("unknown userHandler category: %q", category)
+		}
+		return false, nil
 	}
 }
 

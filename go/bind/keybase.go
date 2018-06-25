@@ -339,7 +339,7 @@ func BackgroundSync() {
 }
 
 func HandleBackgroundNotification(strConvID string, intMembersType int, intMessageID int,
-	pushID string, badgeCount int, unixTime int, body string, pusher PushNotifier) (err error) {
+	pushID string, badgeCount int, unixTime int, body string, soundName string, pusher PushNotifier) (err error) {
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
@@ -373,7 +373,7 @@ func HandleBackgroundNotification(strConvID string, intMembersType int, intMessa
 
 	// Send up the local notification with our message
 	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
-	pusher.LocalNotification(id, msg, badgeCount, "keybasemessage.wav", strConvID, "chat.newmessage")
+	pusher.LocalNotification(id, msg, badgeCount, soundName, strConvID, "chat.newmessage")
 	// Hit the remote server to let it know we succeeded in showing something useful
 	kbCtx.ChatHelper.AckMobileNotificationSuccess(ctx, []string{pushID})
 	return nil

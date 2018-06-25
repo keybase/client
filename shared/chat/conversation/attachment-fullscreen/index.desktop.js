@@ -1,6 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text, PopupDialog, ProgressBar, ProgressIndicator} from '../../../common-adapters'
+import {
+  Box,
+  Icon,
+  Text,
+  OrientedImage,
+  PopupDialog,
+  ProgressBar,
+  ProgressIndicator,
+} from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import MessagePopup from '../messages/message-popup/'
 import {
@@ -51,10 +59,10 @@ class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, State
               ])}
               onClick={this.props.onToggleZoom}
             >
-              <img
-                onLoad={this._setLoaded}
+              <OrientedImage
                 src={this.props.path}
                 style={this.props.isZoomed ? styleImageZoom : styleImageFit}
+                onLoad={this._setLoaded}
               />
             </Box>
           )}
