@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -42,6 +43,7 @@ func (c *cmdTeamProfileLoad) Run() error {
 		return err
 	}
 	c.G().UI.GetTerminalUI().Printf("%+v\n", res)
+	c.G().UI.GetTerminalUI().Printf("%v\n", time.Duration(res.LoadTimeNsec)*time.Nanosecond)
 	return nil
 }
 
