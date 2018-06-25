@@ -1,6 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, ClickableBox, Icon, ProgressBar} from '../../../../../common-adapters'
+import {
+  Box,
+  Text,
+  ClickableBox,
+  Icon,
+  ProgressBar,
+  iconCastPlatformStyles,
+} from '../../../../../common-adapters'
 import {
   globalStyles,
   globalMargins,
@@ -69,7 +76,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               ])}
             />
           )}
-          {this.props.showPlayButton && <Icon type="icon-play-64" style={styles.playButton} />}
+          {this.props.showPlayButton && (
+            <Icon type="icon-play-64" style={iconCastPlatformStyles(styles.playButton)} />
+          )}
           {!!this.props.arrowColor && (
             <Box style={styles.downloadedIconWrapper}>
               <Icon
