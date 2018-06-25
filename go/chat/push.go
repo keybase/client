@@ -635,17 +635,7 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 	if err != nil {
 		return err
 	}
-	switch topicType {
-	case chat1.TopicType_CHAT:
-		g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
-	case chat1.TopicType_DEV:
-		// ignore these
-		return nil
-	case chat1.TopicType_KBFSFILEEDIT:
-		g.G().NotifyRouter.HandleChatKBFSFileEditActivity(ctx, kbUID, activity)
-	default:
-		g.Debug(ctx, "notifyNewChatActivity: unknown topic type: %v", topicType)
-	}
+	g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, topicType, activity)
 	return nil
 }
 

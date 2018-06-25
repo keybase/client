@@ -519,7 +519,24 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 	n.G().Log.Debug("- Sent favorites changed notification")
 }
 
-func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.UID, activity *chat1.ChatActivity) {
+func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType chat1.TopicType) bool {
+	switch topicType {
+	case chat1.TopicType_CHAT:
+		return n.getNotificationChannels(id).Chat
+	case chat1.TopicType_DEV:
+		return n.getNotificationChannels(id).Chatdev
+	case chat1.TopicType_KBFSFILEEDIT:
+		return n.getNotificationChannels(id).Chatkbfsedits
+	case chat1.TopicType_NONE:
+		return n.getNotificationChannels(id).Chat ||
+			n.getNotificationChannels(id).Chatdev ||
+			n.getNotificationChannels(id).Chatkbfsedits
+	}
+	return false
+}
+
+func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.UID,
+	topicType chat1.TopicType, activity *chat1.ChatActivity) {
 	if n == nil {
 		return
 	}
@@ -530,8 +547,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Chat` notification type
-		if n.getNotificationChannels(id).Chat {
-
+		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
 			// In the background do...
 			go func() {
@@ -552,35 +568,6 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 		n.listener.NewChatActivity(uid, *activity)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent NewChatActivity notification")
-}
-
-func (n *NotifyRouter) HandleChatKBFSFileEditActivity(ctx context.Context, uid keybase1.UID,
-	activity *chat1.ChatActivity) {
-	if n == nil {
-		return
-	}
-	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending ChatKBFSFileEditActivity notification")
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chatkbfsedits {
-			wg.Add(1)
-			go func() {
-				(chat1.NotifyChatClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).NewChatKBFSFileEditActivity(context.Background(), chat1.NewChatKBFSFileEditActivityArg{
-					Uid:      uid,
-					Activity: *activity,
-				})
-				wg.Done()
-			}()
-		}
-		return true
-	})
-	wg.Wait()
-	if n.listener != nil {
-		n.listener.NewChatKBFSFileEditActivity(uid, *activity)
-	}
-	n.G().Log.CDebugf(ctx, "- Sent ChatKBFSFileEditActivity notification")
 }
 
 func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
