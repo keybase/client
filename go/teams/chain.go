@@ -30,25 +30,6 @@ func (t TeamSigChainState) DeepCopy() TeamSigChainState {
 	}
 }
 
-func (t TeamSigChainState) CheapCopy() TeamSigChainState {
-
-	userLog := t.inner.UserLog
-	linkIDs := t.inner.LinkIDs
-	perTeamKeys := t.inner.PerTeamKeys
-
-	t.inner.UserLog = nil
-	t.inner.LinkIDs = nil
-	t.inner.PerTeamKeys = nil
-
-	inner := t.inner.DeepCopy()
-
-	inner.UserLog = userLog
-	inner.LinkIDs = linkIDs
-	inner.PerTeamKeys = perTeamKeys
-
-	return TeamSigChainState{inner: inner}
-}
-
 func (t TeamSigChainState) GetID() keybase1.TeamID {
 	return t.inner.Id
 }
@@ -894,6 +875,13 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return nil
 	}
 
+	moveState := func() {
+		// Move prevState to res.newState.
+		// Re-use the object without deep copying. There must be no other live references to prevState.
+		res.newState = *prevState
+		prevState = nil
+	}
+
 	switch libkb.LinkType(payload.Body.Type) {
 	case libkb.LinkTypeTeamRoot:
 		err = enforce(LinkRules{
@@ -1142,10 +1130,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			}
 		}
 
-		res.newState = prevState.CheapCopy()
-
+		moveState()
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
-
 		t.completeInvites(&res.newState, team.CompletedInvites)
 		t.obsoleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
 
@@ -1198,7 +1184,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.CheapCopy()
+		moveState()
 		res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
 		res.newState.inner.PerTeamKeyCTime = keybase1.UnixTime(payload.Ctime)
 
@@ -1225,7 +1211,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		// The last owner of a team should not leave.
 		// But that's really up to them and the server. We're just reading what has happened.
 
-		res.newState = prevState.CheapCopy()
+		moveState()
 		res.newState.inform(signer.signer, keybase1.TeamRole_NONE, payload.SignatureMetadata())
 
 		return res, nil
@@ -1256,7 +1242,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.CheapCopy()
+		moveState()
 
 		// informSubteam will take care of asserting that these links are inflated
 		// in order for each subteam.
@@ -1384,7 +1370,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.CheapCopy()
+		moveState()
 
 		// informSubteam will take care of asserting that these links are inflated
 		// in order for each subteam.
@@ -1437,7 +1423,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("rename cannot change team nesting depth: %v -> %v", prevState.inner.NameDepth, newName)
 		}
 
-		res.newState = prevState.CheapCopy()
+		moveState()
 
 		res.newState.inner.NameLog = append(res.newState.inner.NameLog, keybase1.TeamNameLogPoint{
 			LastPart: newName.LastPart(),
@@ -1472,7 +1458,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.CheapCopy()
+		moveState()
 
 		err = res.newState.informSubteamDelete(subteamID, link.Seqno())
 		if err != nil {
@@ -1565,7 +1551,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			}
 		}
 
-		res.newState = prevState.CheapCopy()
+		moveState()
 		t.updateInvites(&res.newState, additions, cancelations)
 		return res, nil
 	case libkb.LinkTypeSettings:
@@ -1585,7 +1571,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.CheapCopy()
+		moveState()
 		err = t.parseTeamSettings(team.Settings, &res.newState)
 		return res, err
 	case libkb.LinkTypeDeleteRoot:
@@ -1607,14 +1593,14 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		res.newState = prevState.CheapCopy()
+		moveState()
 		err = t.parseKBFSTLFUpgrade(team.KBFS, &res.newState)
 		return res, err
 	case "":
 		return res, errors.New("empty body type")
 	default:
 		if link.outerLink.IgnoreIfUnsupported {
-			res.newState = prevState.CheapCopy()
+			moveState()
 			return res, nil
 		}
 
