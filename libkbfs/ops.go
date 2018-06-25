@@ -1542,6 +1542,8 @@ func RegisterOps(codec kbfscodec.Codec) {
 		opPointerizer)
 }
 
+// pathSortedOps sorts the ops in increasing order by path length, so
+// e.g. file creates come before file modifies.
 type pathSortedOps []op
 
 func (pso pathSortedOps) Len() int {
