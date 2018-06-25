@@ -974,8 +974,6 @@ func (fd *fileData) shiftBlocksToFillHole(
 			// it as dirty.
 			rightLeafIPtr :=
 				immedParent.pblock.IPtrs[len(immedParent.pblock.IPtrs)-1]
-			fd.log.CDebugf(ctx, "Forcing %v to be dirty",
-				rightLeafIPtr.BlockPointer)
 			leafBlock, _, err := fd.getter(
 				ctx, fd.kmd, rightLeafIPtr.BlockPointer, fd.file, blockWrite)
 			if err != nil {
