@@ -41,6 +41,8 @@ type KBFSOpsStandard struct {
 	favs *Favorites
 
 	editActivity kbfssync.RepeatedWaitGroup
+	editLock     sync.Mutex
+	editShutdown bool
 
 	currentStatus            kbfsCurrentStatus
 	quotaUsage               *EventuallyConsistentQuotaUsage
@@ -119,6 +121,10 @@ func (fs *KBFSOpsStandard) Shutdown(ctx context.Context) error {
 	defer fs.longOperationDebugDumper.Shutdown() // shut it down last
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
+
+	fs.editLock.Lock()
+	fs.editShutdown = true
+	fs.editLock.Unlock()
 
 	err := fs.editActivity.Wait(ctx)
 	if err != nil {
@@ -1149,6 +1155,15 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 }
 
 func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
+	shutdown := func() bool {
+		fs.editLock.Lock()
+		defer fs.editLock.Unlock()
+		return fs.editShutdown
+	}()
+	if shutdown {
+		return
+	}
+
 	defer fs.editActivity.Done()
 	if !fs.config.Mode().TLFEditHistoryEnabled() {
 		return
