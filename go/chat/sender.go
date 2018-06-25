@@ -646,7 +646,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			Conv: s.presentUIItem(convLocal),
 		})
 		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(boxed.ClientHeader.Sender.String()),
-			conv.Metadata.IdTriple.TopicType, &activity)
+			conv.GetTopicType(), &activity)
 	}
 	return []byte{}, boxed, nil
 }

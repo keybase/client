@@ -1043,7 +1043,7 @@ func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor
 			s.Debug(ctx, "expungeNotify: failed to get conversations: %s", err)
 		} else {
 			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
-			topicType = conv.Info.Triple.TopicType
+			topicType = conv.GetTopicType()
 		}
 		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
 			ConvID:  convID,
@@ -1065,7 +1065,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			s.Debug(ctx, "notifyEphemeralPurge: failed to get conversations: %s", err)
 		} else {
 			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
-			topicType = conv.Info.Triple.TopicType
+			topicType = conv.GetTopicType()
 		}
 		purgedMsgs := []chat1.UIMessage{}
 		for _, msg := range explodedMsgs {
