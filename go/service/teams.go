@@ -556,3 +556,11 @@ func (h *TeamsHandler) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx contex
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.FindNextMerkleRootAfterRemoval(mctx, arg)
 }
+
+func (h *TeamsHandler) ProfileTeamLoad(ctx context.Context, arg keybase1.LoadTeamArg) (res keybase1.ProfileTeamLoadRes, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ProfileTeamLoad(%+v)", arg), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.ProfileTeamLoad(mctx, arg)
+
+}
