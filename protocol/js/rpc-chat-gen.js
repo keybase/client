@@ -385,7 +385,7 @@ export type ConversationIDTriple = $ReadOnly<{tlfid: TLFID, topicType: TopicType
 export type ConversationInfoLocal = $ReadOnly<{id: ConversationID, triple: ConversationIDTriple, tlfName: String, topicName: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, participants?: ?Array<ConversationLocalParticipant>, finalizeInfo?: ?ConversationFinalizeInfo, resetNames?: ?Array<String>}>
 export type ConversationLocal = $ReadOnly<{error?: ?ConversationErrorLocal, info: ConversationInfoLocal, readerInfo: ConversationReaderInfo, creatorInfo?: ?ConversationCreatorInfoLocal, notifications?: ?ConversationNotificationInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, maxMessages?: ?Array<MessageUnboxed>, isEmpty: Boolean, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
 export type ConversationLocalParticipant = $ReadOnly<{username: String, fullname?: ?String}>
-export type ConversationMember = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID}>
+export type ConversationMember = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID, topicType: TopicType}>
 export type ConversationMemberStatus =
   | 0 // ACTIVE_0
   | 1 // REMOVED_1
