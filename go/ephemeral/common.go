@@ -132,6 +132,7 @@ type keyExpiryMap map[keybase1.EkGeneration]keybase1.Time
 func getExpiredGenerations(ctx context.Context, g *libkb.GlobalContext,
 	keyMap keyExpiryMap, now time.Time) (expired []keybase1.EkGeneration) {
 
+	// Sort the generations we have so we can walk through them in order.
 	var keys []keybase1.EkGeneration
 	for k := range keyMap {
 		keys = append(keys, k)
