@@ -16,7 +16,7 @@ import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {capitalize} from 'lodash-es'
 import {teamRoleTypes} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
-import type {Props} from '.'
+import type {DesktopProps as Props} from '.'
 
 const _makeDropdownItem = (item: string) => (
   <Box
@@ -37,9 +37,10 @@ const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(ite
 type State = {
   invitees: string,
   malformedEmails: Set<string>,
+  role: TeamRoleType,
 }
-class InviteByEmail extends React.Component<Props, State> {
-  state = {invitees: '', malformedEmails: Set()}
+class InviteByEmailDesktop extends React.Component<Props, State> {
+  state = {invitees: '', malformedEmails: Set(), role: 'reader'}
   _input: ?Input
 
   componentDidUpdate(prevProps: Props, prevState: State) {
@@ -61,6 +62,10 @@ class InviteByEmail extends React.Component<Props, State> {
     //     selection: {end: 0, start: 0},
     //   }))
   }
+
+  _setRole = (role: TeamRoleType) => this.setState({role})
+
+  _onInvite = () => this.props.onInvite(this.state.invitees, this.state.role)
 
   render() {
     const props = this.props
@@ -88,20 +93,16 @@ class InviteByEmail extends React.Component<Props, State> {
                 Add these team members to {props.name} as:
               </Text>
               <ClickableBox
-                onClick={() =>
-                  props.onOpenRolePicker(props.role, (selectedRole: TeamRoleType) =>
-                    props.onRoleChange(selectedRole)
-                  )
-                }
+                onClick={() => props.onOpenRolePicker(this.state.role, this._setRole)}
                 underlayColor="rgba(0, 0, 0, 0)"
               >
                 <Dropdown
                   items={_makeDropdownItems()}
-                  selected={_makeDropdownItem(props.role)}
+                  selected={_makeDropdownItem(this.state.role)}
                   onChanged={(node: React.Node) => {
                     // $FlowIssue doesn't understand key will be string
                     const selectedRole: TeamRoleType = (node && node.key) || null
-                    props.onRoleChange(selectedRole)
+                    this._setRole(selectedRole)
                   }}
                 />
               </ClickableBox>
@@ -139,7 +140,7 @@ class InviteByEmail extends React.Component<Props, State> {
             </Box2>
 
             <ButtonBar>
-              <Button label="Invite" onClick={() => props.onInvite(this.state.invitees)} type="Primary" />
+              <Button label="Invite" onClick={this._onInvite} type="Primary" />
             </ButtonBar>
           </Box>
         </Box>
@@ -174,4 +175,4 @@ const _styleContainer = {
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
 }
 
-export default InviteByEmail
+export {InviteByEmailDesktop}
