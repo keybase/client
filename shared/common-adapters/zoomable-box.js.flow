@@ -5,7 +5,7 @@ export type Props = {
   maxZoom?: number,
   minZoom?: number,
   onLayout?: Function,
-  onZoom?: Function,
+  onZoom?: ?Function,
   style?: any,
   bounces?: boolean,
   children?: React.Node,

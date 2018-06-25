@@ -49,17 +49,10 @@ class EditAvatar extends React.Component<Props> {
     const y0 = rH * y
     return {
       x0: Math.round(x0),
-      y0: Math.round(y0),
       x1: Math.round((x + AVATAR_SIZE) * rW),
+      y0: Math.round(y0),
       y1: Math.round((y + AVATAR_SIZE) * rH),
     }
-  }
-
-  _onLayout = (e: Object) => {
-    // this._h = e.nativeEvent.layout.height
-    // this._w = e.nativeEvent.layout.width
-    // this._x = e.nativeEvent.layout.x
-    // this._y = e.nativeEvent.layout.y
   }
 
   _onZoom = (e: Object) => {
@@ -91,8 +84,7 @@ class EditAvatar extends React.Component<Props> {
                 width: this.props.image.width,
               }}
               maxZoom={10}
-              onLayout={this._onLayout}
-              onZoom={this._onZoom}
+              onZoom={isIOS ? this._onZoom : null}
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
               style={isIOS ? styles.zoomContainer : null}
@@ -101,10 +93,8 @@ class EditAvatar extends React.Component<Props> {
                 resizeMode="contain"
                 source={{uri: `data:image/jpeg;base64,${this.props.image.data}`}}
                 style={{
-                  height: Math.max(AVATAR_SIZE, this.props.image.height),
-                  width: Math.max(AVATAR_SIZE, this.props.image.width),
-                  // height: this.props.image.height,
-                  // width: this.props.image.width,
+                  height: this.props.image.height,
+                  width: this.props.image.width,
                 }}
               />
             </ZoomableBox>
@@ -141,8 +131,8 @@ const styles = styleSheetCreate({
     alignSelf: 'center',
     backgroundColor: globalColors.lightGrey2,
     borderRadius: AVATAR_SIZE,
-    height: AVATAR_SIZE,
     flexShrink: 1,
+    height: AVATAR_SIZE,
     marginBottom: globalMargins.tiny,
     overflow: 'hidden',
     position: 'relative',
