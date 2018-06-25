@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import fs from 'fs'
-import logger from '../../logger'
+import {clamp} from 'lodash-es'
 import {
   Box,
   Button,
@@ -17,20 +17,16 @@ import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} 
 import type {Props} from '.'
 
 type State = {
-  // centerX: number,
-  // centerY: number,
-  dragging: boolean,
-  dropping: boolean,
-  dragStopX: number,
-  dragStopY: number,
-  hasPreview: boolean,
-  dragLeft: string,
-  imageSource: string,
-  dragTop: string,
   dragStartX: number,
   dragStartY: number,
-  // offsetLeft: ?number,
-  // offsetTop: ?number,
+  dragStopX: number,
+  dragStopY: number,
+  dragging: boolean,
+  dropping: boolean,
+  hasPreview: boolean,
+  imageSource: string,
+  offsetLeft: number,
+  offsetTop: number,
   originalImageHeight: number,
   originalImageWidth: number,
   scale: number,
@@ -39,8 +35,8 @@ type State = {
   submitting: boolean,
 }
 
-const AVATAR_SIZE = 250
-const AVATAR_BORDER_WIDTH = 0
+const AVATAR_SIZE = 175
+const AVATAR_BORDER_WIDTH = 5
 
 class EditAvatar extends React.Component<Props, State> {
   _file: ?HTMLInputElement
@@ -48,22 +44,18 @@ class EditAvatar extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      // centerX: 0,
-      // centerY: 0,
-      dragging: false,
-      dropping: false,
-      dragStopX: 0,
-      dragStopY: 0,
-      hasPreview: false,
-      dragLeft: '0px',
-      imageSource: '',
-      dragTop: '0px',
       dragStartX: 0,
       dragStartY: 0,
+      dragStopX: 0,
+      dragStopY: 0,
+      dragging: false,
+      dropping: false,
+      hasPreview: false,
+      imageSource: '',
+      offsetLeft: 0,
+      offsetTop: 0,
       originalImageHeight: 0,
       originalImageWidth: 0,
-      // offsetLeft: null,
-      // offsetTop: null,
       scale: 1,
       scaledImageHeight: 0,
       scaledImageWidth: 0,
@@ -109,6 +101,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onDrop = e => {
+    e.persist()
     this.setState({dropping: false})
     if (!this._validDrag(e)) {
       return
@@ -130,7 +123,6 @@ class EditAvatar extends React.Component<Props, State> {
           }
         } catch (e) {
           // TODO: Show a red error banner on failure: https://zpl.io/2jlkMLm
-          logger.warn(`Error stating dropped avatar: ${e.code}`)
         }
       }
       this._paintImage(paths.pop())
@@ -153,14 +145,10 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onImageLoad = (e: SyntheticEvent<HTMLImageElement>) => {
-    console.log('loaded', e.currentTarget.naturalWidth, e.currentTarget.offsetLeft)
-
     this.setState({
       hasPreview: true,
-      // offsetLeft: e.currentTarget.offsetLeft,
-      // offsetTop: e.currentTarget.offsetTop,
-      dragLeft: `${e.currentTarget.naturalWidth / -2 + AVATAR_SIZE / 2}px`,
-      dragTop: `${e.currentTarget.naturalHeight / -2 + AVATAR_SIZE / 2}px`,
+      offsetLeft: Math.round(e.currentTarget.naturalWidth / -2 + AVATAR_SIZE / 2 - AVATAR_BORDER_WIDTH),
+      offsetTop: Math.round(e.currentTarget.naturalHeight / -2 + AVATAR_SIZE / 2 - AVATAR_BORDER_WIDTH),
       originalImageHeight: e.currentTarget.naturalHeight,
       originalImageWidth: e.currentTarget.naturalWidth,
       scaledImageHeight: e.currentTarget.naturalHeight,
@@ -172,79 +160,64 @@ class EditAvatar extends React.Component<Props, State> {
     const scale = e.currentTarget.value
     const scaledImageHeight = Math.round(this.state.originalImageHeight * scale)
     const scaledImageWidth = Math.round(this.state.originalImageWidth * scale)
-    const dragLeft = parseInt(this.state.dragLeft, 10)
-    const dragTop = parseInt(this.state.dragTop, 10)
-    const mLeft = dragLeft < 0 ? -1 : 1
-    const mTop = dragTop < 0 ? -1 : 1
 
     this.setState({
-      dragLeft: `${mLeft * Math.round(scaledImageWidth / 2 - AVATAR_SIZE / 2)}px`,
-      dragTop: `${mTop * Math.round(scaledImageHeight / 2 - AVATAR_SIZE / 2)}px`,
       scale,
       scaledImageHeight,
       scaledImageWidth,
     })
-
-    console.log('scaled', this.state.scaledImageHeight, this.state.scaledImageWidth)
   }
 
-  _onMouseDown = e => {
-    console.log('down', e.currentTarget.naturalWidth, e.currentTarget.offsetLeft)
-
+  _onMouseDown = (e: SyntheticMouseEvent<HTMLImageElement>) => {
     this.setState({
       dragStartX: e.pageX,
       dragStartY: e.pageY,
+      dragStopX: e.currentTarget.style.left ? parseInt(e.currentTarget.style.left, 10) : this.state.dragStopX,
+      dragStopY: e.currentTarget.style.top ? parseInt(e.currentTarget.style.top, 10) : this.state.dragStopY,
       dragging: true,
-      dragStopX: e.currentTarget.style.left ? parseInt(e.currentTarget.style.left, 10) : this.state.dragStopX,
-      dragStopY: e.currentTarget.style.top ? parseInt(e.currentTarget.style.top, 10) : this.state.dragStopY,
-      // offsetLeft: e.currentTarget.offsetLeft,
-      // offsetTop: e.currentTarget.offsetTop,
+      offsetLeft: e.currentTarget.offsetLeft,
+      offsetTop: e.currentTarget.offsetTop,
     })
   }
 
-  _onMouseUp = e => {
-    console.log('up', e.currentTarget.naturalWidth, e.currentTarget.offsetLeft)
-
+  _onMouseUp = (e: SyntheticMouseEvent<HTMLImageElement>) => {
     this.setState({
-      dragging: false,
       dragStopX: e.currentTarget.style.left ? parseInt(e.currentTarget.style.left, 10) : this.state.dragStopX,
       dragStopY: e.currentTarget.style.top ? parseInt(e.currentTarget.style.top, 10) : this.state.dragStopY,
-      // offsetLeft: e.currentTarget.offsetLeft,
-      // offsetTop: e.currentTarget.offsetTop,
+      dragging: false,
+      offsetLeft: e.currentTarget.offsetLeft,
+      offsetTop: e.currentTarget.offsetTop,
     })
   }
 
-  _onMouseMove = e => {
+  _onMouseMove = (e: SyntheticMouseEvent<HTMLImageElement>) => {
     if (!this.state.dragging || this.state.submitting) return
 
+    const dragLeft = this.state.dragStopX + e.pageX - this.state.dragStartX
+    const dragTop = this.state.dragStopY + e.pageY - this.state.dragStartY
+    const dragLeftLimit = AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2 - this.state.scaledImageWidth
+    const dragTopLimit = AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2 - this.state.scaledImageHeight
+
     this.setState({
-      dragLeft: `${this.state.dragStopX + e.pageX - this.state.dragStartX}px`,
-      dragTop: `${this.state.dragStopY + e.pageY - this.state.dragStartY}px`,
-      // offsetLeft: e.currentTarget.offsetLeft,
-      // offsetTop: e.currentTarget.offsetTop,
+      offsetLeft: clamp(dragLeft, dragLeftLimit, 0),
+      offsetTop: clamp(dragTop, dragTopLimit, 0),
     })
   }
 
   _onSave = e => {
     this.setState({submitting: true})
 
-    // if (this.state.offsetLeft && this.state.offsetTop) {
-    //   const x = this.state.offsetLeft * -1
-    //   const y = this.state.offsetTop * -1
-    //   const rH = this.state.originalImageHeight / this.state.scaledImageHeight
-    //   const rW = this.state.originalImageWidth / this.state.scaledImageWidth
-    //   const crop = {
-    //     x0: Math.round(x * rW),
-    //     y0: Math.round(y * rH),
-    //     x1: Math.round((x + AVATAR_SIZE) * rW),
-    //     y1: Math.round((y + AVATAR_SIZE) * rH),
-    //   }
-    //   console.log(crop)
-    //   this.props.onSave(this.state.imageSource, crop)
-    //   return
-    // }
-
-    // this.props.onSave(this.state.imageSource)
+    const x = this.state.offsetLeft * -1
+    const y = this.state.offsetTop * -1
+    const rH = this.state.originalImageHeight / this.state.scaledImageHeight
+    const rW = this.state.originalImageWidth / this.state.scaledImageWidth
+    const crop = {
+      x0: Math.round(x * rW),
+      x1: Math.round((x + AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2) * rW),
+      y0: Math.round(y * rH),
+      y1: Math.round((y + AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2) * rH),
+    }
+    this.props.onSave(this.state.imageSource, crop)
   }
 
   _hoverBoxClassName = () => {
@@ -265,8 +238,6 @@ class EditAvatar extends React.Component<Props, State> {
           <Text type="BodyPrimaryLink" onClick={this._filePickerOpen}>
             or browse your computer for one
           </Text>
-          <Text type="BodyBig">w: {this.state.scaledImageWidth}</Text>
-          <Text type="BodyBig">h: {this.state.scaledImageHeight}</Text>
           <HoverBox
             className={this._hoverBoxClassName}
             onClick={this.state.hasPreview ? null : this._filePickerOpen}
@@ -283,9 +254,9 @@ class EditAvatar extends React.Component<Props, State> {
               src={this.state.imageSource}
               style={{
                 height: this.state.scaledImageHeight,
-                left: this.state.dragLeft,
+                left: `${this.state.offsetLeft}px`,
                 position: 'absolute',
-                top: this.state.dragTop,
+                top: `${this.state.offsetTop}px`,
                 width: this.state.scaledImageWidth,
               }}
               onDragStart={e => e.preventDefault()}
@@ -357,7 +328,7 @@ const HoverBox = glamorous(Box)({
   },
   backgroundColor: globalColors.lightGrey2,
   borderColor: globalColors.grey,
-  // borderRadius: AVATAR_SIZE,
+  borderRadius: AVATAR_SIZE,
   borderStyle: 'dashed',
   borderWidth: AVATAR_BORDER_WIDTH,
   cursor: 'pointer',
