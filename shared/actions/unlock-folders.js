@@ -72,7 +72,6 @@ function _registerRekeyListener() {
         },
         'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
       },
-      startMethod: 'keybase.1.rekeyUI.delegateRekeyUI',
     })
     response && response.result(session.id)
   })

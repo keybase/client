@@ -193,21 +193,17 @@ class Engine {
     if (cancelledSessionID) {
       const s = this._sessionsMap[cancelledSessionID]
       rpcLog({
-        extra: {
-          cancelledSessionID,
-        },
+        extra: {cancelledSessionID},
         method: s._startMethod || 'unknown',
-        reason: 'received cancel for session',
+        reason: '[cancel]',
         type: 'engineInternal',
       })
       s.cancel()
     } else {
       rpcLog({
-        extra: {
-          cancelledSessionID,
-        },
+        extra: {cancelledSessionID},
         method: 'unknown',
-        reason: "received cancel but couldn't find session",
+        reason: '[cancel?]',
         type: 'engineInternal',
       })
     }
@@ -260,7 +256,7 @@ class Engine {
       } else if (this._incomingActionCreators[method]) {
         // General incoming
         const creator = this._incomingActionCreators[method]
-        rpcLog({reason: 'handling incoming', type: 'engineInternal', method})
+        rpcLog({reason: '[incoming]', type: 'engineInternal', method})
         const rawActions = creator(param, response, this._dispatch, this._getState)
         const actions = (rawActions || []).reduce((arr, a) => {
           if (a) {
@@ -329,19 +325,9 @@ class Engine {
     waitingHandler?: WaitingHandlerType,
     cancelHandler?: CancelHandlerType,
     dangling?: boolean,
-    startMethod?: string,
   }): Session {
-    const {incomingCallMap, waitingHandler, cancelHandler, dangling = false, startMethod = 'unknown'} = p
+    const {incomingCallMap, waitingHandler, cancelHandler, dangling = false} = p
     const sessionID = this._generateSessionID()
-    rpcLog({
-      extra: {
-        sessionID,
-      },
-      method: startMethod,
-      reason: '💃',
-      type: 'engineInternal',
-    })
-
     const session = new Session(
       sessionID,
       incomingCallMap,
@@ -380,7 +366,7 @@ class Engine {
         sessionID: session.getId(),
       },
       method: session._startMethod || 'unknown',
-      reason: '🕺',
+      reason: '[-session]',
       type: 'engineInternal',
     })
     delete this._sessionsMap[String(session.getId())]
@@ -432,7 +418,7 @@ class Engine {
     }
     rpcLog({
       method,
-      reason: 'registering incoming:',
+      reason: '[register]',
       type: 'engineInternal',
     })
     this._incomingActionCreators[method] = actionCreator

@@ -38,6 +38,7 @@ let whitelist = [
   'max',
   'mikem',
   'mlsteele',
+  'nathunsmitty',
   'oconnor663',
   'patrick',
   'songgao',
@@ -64,19 +65,19 @@ class RpcStats extends React.Component<Props, State> {
     }
   }
 
-  _maybeStart = () => {
+  _maybeStart = (userChanged: boolean) => {
     this._cleanup()
     let visible = this.state.visible
 
     // only check whitelist once
-    if (this.props.username) {
+    if (userChanged && this.props.username) {
       if (printRPCStats || whitelist.indexOf(this.props.username) !== -1) {
         visible = true
+        this.setState(p => (p.visible !== visible ? {visible} : undefined))
       }
       whitelist = []
     }
 
-    this.setState(p => (p.visible !== visible ? {visible} : undefined))
     if (visible) {
       this._intervalID = setInterval(() => {
         this.setState(p => {
@@ -100,12 +101,12 @@ class RpcStats extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    this._maybeStart()
+    this._maybeStart(true)
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (this.props.username !== prevProps.username || this.state.visible !== prevState.visible) {
-      this._maybeStart()
+      this._maybeStart(this.props.username !== prevProps.username)
     }
   }
 
@@ -127,6 +128,8 @@ class RpcStats extends React.Component<Props, State> {
   render() {
     if (!this.state.visible) return null
 
+    const showIcon = this.state.smallInCount < 100 && this.state.smallOutCount < 100
+
     return (
       <ClickableBox onClick={this._onClick} style={styles.clickableBox}>
         <Box2 direction="horizontal" style={styles.container} fullWidth={true} fullHeight={true}>
@@ -135,9 +138,11 @@ class RpcStats extends React.Component<Props, State> {
             style={styles.text}
             title="Incoming calls"
           >
-            <Text type="BodySmall" style={styles.emoji}>
-              ⤵️{' '}
-            </Text>
+            {showIcon && (
+              <Text type="BodySmall" style={styles.emoji}>
+                ⤵️{' '}
+              </Text>
+            )}
             {this.state.smallInCount}
           </Text>
           <Text
@@ -145,9 +150,11 @@ class RpcStats extends React.Component<Props, State> {
             style={styles.text}
             title="Outgoing calls"
           >
-            <Text type="BodySmall" style={styles.emoji}>
-              ↗️{' '}
-            </Text>
+            {showIcon && (
+              <Text type="BodySmall" style={styles.emoji}>
+                ↗️{' '}
+              </Text>
+            )}
             {this.state.smallOutCount}
           </Text>
         </Box2>

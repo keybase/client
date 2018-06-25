@@ -24,7 +24,7 @@ declare function createClient(
   disconnectCallback: connectDisconnectCB
 ): createClientType
 declare function resetClient(client: createClientType): void
-declare function rpcLog({type: string, method: string}): void
+declare function rpcLog({method: string, reason?: string, extra?: Object, type: string}): void
 declare export function checkRPCOwnership(): Promise<void>
 
 export {createClient, resetClient, rpcLog, checkRPCOwnership}

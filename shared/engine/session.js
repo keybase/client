@@ -76,7 +76,7 @@ class Session {
           waiting,
         },
         method,
-        reason: waiting ? '🕰' : '⏰',
+        reason: `[${waiting ? '+' : '-'}waiting]`,
         type: 'engineInternal',
       })
       // Call the outer handler with all the params it needs
@@ -137,7 +137,7 @@ class Session {
     rpcLog({
       extra: {id: this.getId(), this: this},
       method,
-      reason: '💃',
+      reason: '[+session]',
       type: 'engineInternal',
     })
 
@@ -163,7 +163,7 @@ class Session {
         this: this,
       },
       method,
-      reason: '📲',
+      reason: '[-calling:session]',
       type: 'engineInternal',
     })
     const handler = this._incomingCallMap[method]

@@ -103,7 +103,7 @@ class TransportShared extends RobustTransport {
           extra: p => p.param[0],
           handler,
           method: p => p.method,
-          reason: '📞',
+          reason: '[incoming]',
           type: 'serverToEngine',
         })
       )
@@ -135,7 +135,7 @@ class TransportShared extends RobustTransport {
             oldResponse[call](...args)
           },
           method: payload.method,
-          reason: '☎️',
+          reason: '[-calling:session]',
           type: 'engineToServer',
         })
       })
@@ -175,13 +175,13 @@ class TransportShared extends RobustTransport {
               cb(err, data)
             },
             method: arg.method,
-            reason: '📲',
+            reason: '[-calling]',
             type: 'serverToEngine',
           })
         )
       },
       method: arg.method,
-      reason: '📱',
+      reason: '[+calling]',
       type: 'engineToServer',
     })
 
