@@ -130,8 +130,8 @@ function logDir(): string {
   switch (process.platform) {
     case 'darwin':
       return `${getenv('HOME', '')}/Library/Logs`
-  case 'linux':
-    return findCacheRoot()
+    case 'linux':
+      return findCacheRoot()
     case 'win32':
       return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}`
   }
