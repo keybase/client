@@ -455,6 +455,8 @@ func TestNodeCacheGCReal(t *testing.T) {
 	ncs, _, childNode1, childNode2, _, _ :=
 		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
 
+	runtime.GC()
+
 	if len(ncs.nodes) != 3 {
 		t.Errorf("Expected %d nodes, got %d", 3, len(ncs.nodes))
 	}
