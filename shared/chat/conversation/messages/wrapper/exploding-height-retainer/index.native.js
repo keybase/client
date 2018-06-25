@@ -11,6 +11,7 @@ import {
 } from '../../../../../common-adapters/mobile.native'
 import {collapseStyles, globalColors, globalStyles, styleSheetCreate} from '../../../../../styles'
 import {isAndroid} from '../../../../../constants/platform'
+import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 import type {Props} from '.'
 
 // If this image changes, some hard coded dimensions
@@ -85,6 +86,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
         <AnimatedAshTower
           exploded={this.props.retainHeight}
           explodedBy={this.props.explodedBy}
+          messageKey={this.props.messageKey}
           numImages={this.state.numImages}
         />
       </Box>
@@ -92,10 +94,14 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
 }
 
-type AshTowerProps = {exploded: boolean, explodedBy: ?string, numImages: number}
-type AshTowerState = {width: NativeAnimated.Value}
+type AshTowerProps = {exploded: boolean, explodedBy: ?string, messageKey: string, numImages: number}
+type AshTowerState = {showExploded: boolean, width: NativeAnimated.Value}
 class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
-  state = {width: this.props.exploded ? new NativeAnimated.Value(100) : new NativeAnimated.Value(0)}
+  state = {
+    showExploded: this.props.exploded,
+    width: this.props.exploded ? new NativeAnimated.Value(100) : new NativeAnimated.Value(0),
+  }
+  timerID: SharedTimerID
 
   componentDidUpdate(prevProps: AshTowerProps) {
     if (!prevProps.exploded && this.props.exploded) {
@@ -105,7 +111,16 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
         easing: NativeEasing.inOut(NativeEasing.ease),
         toValue: 100,
       }).start()
+      // insert 'EXPLODED' in sync with 'boom!' disappearing
+      this.timerID = SharedTimer.addObserver(() => this.setState({showExploded: true}), {
+        key: this.props.messageKey,
+        ms: animationDuration,
+      })
     }
+  }
+
+  componentWillUnmount() {
+    SharedTimer.removeObserver(this.props.messageKey, this.timerID)
   }
 
   render() {
@@ -115,7 +130,7 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
     })
     return (
       <NativeAnimated.View style={[{width}, styles.slider]}>
-        <AshTower {...this.props} />
+        <AshTower {...this.props} showExploded={this.state.showExploded} />
         <EmojiTower animatedValue={this.state.width} numImages={this.props.numImages} />
       </NativeAnimated.View>
     )
@@ -174,34 +189,36 @@ class EmojiTower extends React.Component<
     return <Box style={styles.emojiTower}>{children}</Box>
   }
 }
-const AshTower = (props: {explodedBy: ?string, numImages: number}) => {
+const AshTower = (props: {explodedBy: ?string, numImages: number, showExploded: boolean}) => {
   const children = []
   for (let i = 0; i < props.numImages; i++) {
     children.push(<NativeImage key={i} source={explodedIllustrationURL} style={styles.ashes} />)
   }
+  let exploded = null
+  if (props.showExploded) {
+    exploded = !props.explodedBy ? (
+      <Text type="BodyTiny" style={styles.exploded}>
+        EXPLODED
+      </Text>
+    ) : (
+      <Text lineClamp={1} type="BodyTiny" style={styles.exploded}>
+        EXPLODED BY{' '}
+        <ConnectedUsernames
+          type="BodySmallSemibold"
+          clickable={true}
+          usernames={[props.explodedBy]}
+          inline={true}
+          colorFollowing={true}
+          colorYou={true}
+          underline={true}
+        />
+      </Text>
+    )
+  }
   return (
     <React.Fragment>
       {children}
-      <Box style={styles.tagBox}>
-        {!props.explodedBy ? (
-          <Text type="BodyTiny" style={styles.exploded}>
-            EXPLODED
-          </Text>
-        ) : (
-          <Text lineClamp={1} type="BodyTiny" style={styles.exploded}>
-            EXPLODED BY{' '}
-            <ConnectedUsernames
-              type="BodySmallSemibold"
-              clickable={true}
-              usernames={[props.explodedBy]}
-              inline={true}
-              colorFollowing={true}
-              colorYou={true}
-              underline={true}
-            />
-          </Text>
-        )}
-      </Box>
+      <Box style={styles.tagBox}>{exploded}</Box>
     </React.Fragment>
   )
 }
