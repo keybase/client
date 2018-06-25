@@ -25,18 +25,13 @@ class EditAvatar extends React.Component<Props> {
   }
 
   _getAndroidCrop = () => {
-    //   const x = -this._zoom.state.pan.x
-    //   const y = -this._zoom.state.pan.y
-    //   const scale = this._zoom.state.scale - 1
-    //   const rH = this.props.image.height * scale
-    //   const rW = this.props.image.width * scale
-    //   const x0 = rW * x
-    //   const y0 = rH * y
+    // Cropping coordinates will be part of the next phase. The backend does the right thing when
+    // when you send it all 0s.
     return {
-      x0: 0, // Math.round(x0),
-      y0: 0, // Math.round(y0),
-      x1: 0, // Math.round((x + AVATAR_SIZE) * rW),
-      y1: 0, // Math.round((y + AVATAR_SIZE) * rH),
+      x0: 0,
+      x1: 0,
+      y0: 0,
+      y1: 0,
     }
   }
 
