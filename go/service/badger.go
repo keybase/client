@@ -32,3 +32,9 @@ func (a *badgerHandler) GetBadgeState(ctx context.Context) (res keybase1.BadgeSt
 	a.G().Trace(fmt.Sprintf("GetBadgeState"), func() error { return err })()
 	return a.badger.State().Export()
 }
+
+func (a *badgerHandler) DismissFolderResetBannerBadge(ctx context.Context, teamID keybase1.TeamID) (err error) {
+	a.G().Trace(fmt.Sprintf("DismissFolderResetBannerBadge"), func() error { return err })()
+	// xxx todo implement dismissal
+	return nil
+}

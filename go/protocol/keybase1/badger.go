@@ -11,8 +11,13 @@ import (
 type GetBadgeStateArg struct {
 }
 
+type DismissFolderResetBannerBadgeArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+}
+
 type BadgerInterface interface {
 	GetBadgeState(context.Context) (BadgeState, error)
+	DismissFolderResetBannerBadge(context.Context, TeamID) error
 }
 
 func BadgerProtocol(i BadgerInterface) rpc.Protocol {
@@ -30,6 +35,22 @@ func BadgerProtocol(i BadgerInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"dismissFolderResetBannerBadge": {
+				MakeArg: func() interface{} {
+					ret := make([]DismissFolderResetBannerBadgeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DismissFolderResetBannerBadgeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DismissFolderResetBannerBadgeArg)(nil), args)
+						return
+					}
+					err = i.DismissFolderResetBannerBadge(ctx, (*typedArgs)[0].TeamID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -40,5 +61,11 @@ type BadgerClient struct {
 
 func (c BadgerClient) GetBadgeState(ctx context.Context) (res BadgeState, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.badger.getBadgeState", []interface{}{GetBadgeStateArg{}}, &res)
+	return
+}
+
+func (c BadgerClient) DismissFolderResetBannerBadge(ctx context.Context, teamID TeamID) (err error) {
+	__arg := DismissFolderResetBannerBadgeArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "keybase.1.badger.dismissFolderResetBannerBadge", []interface{}{__arg}, nil)
 	return
 }

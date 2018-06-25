@@ -6,6 +6,7 @@ package badges
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/gregor"
@@ -83,12 +84,14 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	defer b.Unlock()
 
 	b.state.NewTlfs = 0
-	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
+	b.state.NewFollowers = 0
+	b.state.HomeTodoItems = 0
+	b.state.FilesTab = 0 // Causes: new tlf, needs rekey, has unacked reset user
+
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
 	b.state.NewTeamNames = nil
 	b.state.NewTeamAccessRequests = nil
-	b.state.HomeTodoItems = 0
 	b.state.TeamsWithResetUsers = nil
 
 	var hsb *homeStateBody
@@ -105,8 +108,8 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 			continue
 		}
 		category := categoryObj.String()
-		switch category {
-		case "home.state":
+		switch {
+		case category == "home.state":
 			var tmp homeStateBody
 			byt := item.Body().Bytes()
 			dec := json.NewDecoder(bytes.NewReader(byt))
@@ -121,7 +124,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				sentUp = true
 			}
 			b.log.Debug("incoming home.state (sentUp=%v): %+v", sentUp, tmp)
-		case "tlf":
+		case category == "tlf":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
 				b.log.Warning("BadgeState encountered non-json 'tlf' item: %v", err)
@@ -136,16 +139,20 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			b.state.NewTlfs++
-		case "kbfs_tlf_problem_set_count", "kbfs_tlf_sbs_problem_set_count":
+			b.state.FilesTab++ // TODO prevent double counting
+		case category == "kbfs_tlf_problem_set_count":
+			fallthrough
+		case category == "kbfs_tlf_sbs_problem_set_count":
 			var body problemSetBody
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
 				b.log.Warning("BadgeState encountered non-json 'problem set' item: %v", err)
 				continue
 			}
 			b.state.RekeysNeeded += body.Count
-		case "follow":
+			b.state.FilesTab += body.Count // xxx TODO unfortunately there's not enough info to prevent deouble counting
+		case category == "follow":
 			b.state.NewFollowers++
-		case "new_git_repo":
+		case category == "new_git_repo":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
 				b.log.Warning("BadgeState encountered non-json 'new_git_repo' item: %v", err)
@@ -157,7 +164,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			b.state.NewGitRepoGlobalUniqueIDs = append(b.state.NewGitRepoGlobalUniqueIDs, globalUniqueID)
-		case "team.newly_added_to_team":
+		case category == "team.newly_added_to_team":
 			var body []newTeamBody
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
 				b.log.Warning("BadgeState unmarshal error for team.newly_added_to_team item: %v", err)
@@ -172,7 +179,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				}
 				b.state.NewTeamNames = append(b.state.NewTeamNames, x.TeamName)
 			}
-		case "team.request_access":
+		case category == "team.request_access":
 			var body []newTeamBody
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
 				b.log.Warning("BadgeState unmarshal error for team.request_access item: %v", err)
@@ -184,7 +191,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				}
 				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamName)
 			}
-		case "team.member_out_from_reset":
+		case category == "team.member_out_from_reset":
 			var body keybase1.TeamMemberOutFromReset
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
 				b.log.Warning("BadgeState unmarshal error for team.member_out_from_reset item: %v", err)
@@ -204,6 +211,13 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				b.state.TeamsWithResetUsers = append(b.state.TeamsWithResetUsers, m)
 				teamsWithResets[key] = true
 			}
+		case strings.HasPrefix(category, "badge.impteam_lockout"):
+			b.state.FilesTab++ // TODO prevent double counting
+			// teamID, err := parseImpteamLockoutCategory(category)
+			// if err != nil {
+			// 	b.log.Warning("BadgeState decode error for category: %q", category)
+			// 	continue
+			// }
 		}
 	}
 

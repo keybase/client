@@ -66,6 +66,10 @@
           "name": "homeTodoItems"
         },
         {
+          "type": "int",
+          "name": "filesTab"
+        },
+        {
           "type": {
             "type": "array",
             "items": "BadgeConversationInfo"

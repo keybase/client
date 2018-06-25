@@ -6,6 +6,15 @@
     "getBadgeState": {
       "request": [],
       "response": "BadgeState"
+    },
+    "dismissFolderResetBannerBadge": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
