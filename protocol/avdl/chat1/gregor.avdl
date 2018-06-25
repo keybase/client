@@ -146,6 +146,7 @@ protocol gregor {
     record KBFSImpteamUpgradeUpdate {
         ConversationID convID;
         InboxVers inboxVers;
+        TopicType topicType;
     }
 
 }

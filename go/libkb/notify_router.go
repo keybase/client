@@ -625,14 +625,15 @@ func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.U
 	n.G().Log.CDebugf(ctx, "- Sent ChatTLFFinalize notification")
 }
 
-func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, resolveInfo chat1.ConversationResolveInfo) {
+func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, resolveInfo chat1.ConversationResolveInfo) {
 	if n == nil {
 		return
 	}
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatTLFResolve notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -661,7 +662,7 @@ func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UI
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatInboxStale notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, chat1.TopicType_NONE) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -769,7 +770,7 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatTypingUpdate notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.shouldSendChatNotification(id, chat1.TopicType_NONE) {
+		if n.shouldSendChatNotification(id, chat1.TopicType_CHAT) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
@@ -876,14 +877,14 @@ func (n *NotifyRouter) HandleChatResetConversation(ctx context.Context, uid keyb
 }
 
 func (n *NotifyRouter) HandleChatKBFSToImpteamUpgrade(ctx context.Context, uid keybase1.UID,
-	convID chat1.ConversationID) {
+	convID chat1.ConversationID, topicType chat1.TopicType) {
 	if n == nil {
 		return
 	}
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatKBFSToImpteamUpgrade notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{

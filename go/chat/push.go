@@ -302,11 +302,8 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 		}
 		g.Debug(ctx, "TlfResolve: convID: %s new TLF name: %s", updateConv.GetConvID(),
 			updateConv.Info.TlfName)
-
-		if updateConv.GetTopicType() == chat1.TopicType_CHAT {
-			g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
-				update.ConvID, resolveInfo)
-		}
+		g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
+			update.ConvID, updateConv.GetTopicType(), resolveInfo)
 	}(bctx)
 
 	return nil
@@ -785,7 +782,8 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to clear convsource: %s", err)
 		}
 
-		g.G().NotifyRouter.HandleChatKBFSToImpteamUpgrade(ctx, keybase1.UID(uid.String()), update.ConvID)
+		g.G().NotifyRouter.HandleChatKBFSToImpteamUpgrade(ctx, keybase1.UID(uid.String()), update.ConvID,
+			update.TopicType)
 
 		return nil
 	}(bctx)
