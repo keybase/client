@@ -585,7 +585,7 @@ func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.
 // `signer` may be nil iff link is stubbed.
 func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state *TeamSigChainState,
 	link *chainLinkUnpacked, signer *signerX) (res TeamSigChainState, err error) {
-	t := &TeamSigChainPlayer{
+	t := &teamSigchainPlayer{
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
 	}
@@ -627,7 +627,7 @@ func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.Us
 		return TeamSigChainState{}, NewInflateErrorWithNote(link, "already inflated")
 	}
 
-	t := &TeamSigChainPlayer{
+	t := &teamSigchainPlayer{
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
 	}
@@ -643,8 +643,7 @@ func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.Us
 }
 
 // Helper struct for playing sigchains.
-// xxx TODO demote into lowercase helper
-type TeamSigChainPlayer struct {
+type teamSigchainPlayer struct {
 	libkb.Contextified
 	reader keybase1.UserVersion // the user processing the chain
 }
@@ -653,7 +652,7 @@ type TeamSigChainPlayer struct {
 // `prevState` is moved into this function. There must exist no live references into it from now on.
 // `signer` may be nil iff link is stubbed.
 // If `prevState` is nil this is the first chain link.
-func (t *TeamSigChainPlayer) appendChainLinkHelper(
+func (t *teamSigchainPlayer) appendChainLinkHelper(
 	ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked, signer *signerX) (
 	res TeamSigChainState, err error) {
 
@@ -691,7 +690,7 @@ func (t *TeamSigChainPlayer) appendChainLinkHelper(
 	return *newState, nil
 }
 
-func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked) (err error) {
+func (t *teamSigchainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked) (err error) {
 	if prevState == nil {
 		if link.Seqno() != 1 {
 			return NewUnexpectedSeqnoError(keybase1.Seqno(1), link.Seqno())
@@ -726,7 +725,7 @@ type checkInnerLinkResult struct {
 // Check and add the inner link.
 // `isInflate` is false if this is a new link and true if it is a link which has already been added as stubbed.
 // Does not modify `prevState` but returns a new state.
-func (t *TeamSigChainPlayer) addInnerLink(
+func (t *teamSigchainPlayer) addInnerLink(
 	prevState *TeamSigChainState, link *chainLinkUnpacked, signer signerX,
 	isInflate bool) (
 	res checkInnerLinkResult, err error) {
@@ -1611,7 +1610,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	}
 }
 
-func (t *TeamSigChainPlayer) checkSeqnoToAdd(prevState *TeamSigChainState, linkSeqno keybase1.Seqno, isInflate bool) error {
+func (t *teamSigchainPlayer) checkSeqnoToAdd(prevState *TeamSigChainState, linkSeqno keybase1.Seqno, isInflate bool) error {
 	if linkSeqno < 1 {
 		return fmt.Errorf("link seqno (%v) cannot be less than 1", linkSeqno)
 	}
@@ -1668,7 +1667,7 @@ func assertIsKeybaseInvite(g *libkb.GlobalContext, i SCTeamInvite) bool {
 // Implicit teams are different:
 // - owners and readers are the only allowed role
 // Returns nicely formatted data structures.
-func (t *TeamSigChainPlayer) sanityCheckInvites(
+func (t *teamSigchainPlayer) sanityCheckInvites(
 	signer keybase1.UserVersion, invites SCTeamInvites, options sanityCheckInvitesOptions,
 ) (additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, err error) {
 
@@ -1779,7 +1778,7 @@ type sanityCheckMembersOptions struct {
 // Check that all the users are formatted correctly.
 // Check that there are no duplicate members.
 // Do not check that all removals are members. That should be true, but not strictly enforced when reading.
-func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options sanityCheckMembersOptions) (chainRoleUpdates, error) {
+func (t *teamSigchainPlayer) sanityCheckMembers(members SCTeamMembers, options sanityCheckMembersOptions) (chainRoleUpdates, error) {
 	type assignment struct {
 		m    SCTeamMember
 		role keybase1.TeamRole
@@ -1864,7 +1863,7 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 }
 
 // Whether the roleUpdates would demote any current owner to a lesser role.
-func (t *TeamSigChainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion) bool {
+func (t *teamSigchainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion) bool {
 
 	// It is OK to readmit an owner if the owner reset and is coming in at a lower permission
 	// level. So check that case here.
@@ -1903,7 +1902,7 @@ func (t *TeamSigChainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, ro
 	return false
 }
 
-func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration keybase1.PerTeamKeyGeneration) (res keybase1.PerTeamKey, err error) {
+func (t *teamSigchainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration keybase1.PerTeamKeyGeneration) (res keybase1.PerTeamKey, err error) {
 	// check the per-team-key
 	if perTeamKey.Generation != expectedGeneration {
 		return res, fmt.Errorf("per-team-key generation expected %v but got %v", expectedGeneration, perTeamKey.Generation)
@@ -1943,7 +1942,7 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 // Update `userLog` with the membership in roleUpdates.
 // The `NONE` list removes users.
 // The other lists add users.
-func (t *TeamSigChainPlayer) updateMembership(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
+func (t *teamSigchainPlayer) updateMembership(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
 	for role, uvs := range roleUpdates {
 		for _, uv := range uvs {
 			stateToUpdate.inform(uv, role, sigMeta)
@@ -1951,7 +1950,7 @@ func (t *TeamSigChainPlayer) updateMembership(stateToUpdate *TeamSigChainState, 
 	}
 }
 
-func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID) {
+func (t *teamSigchainPlayer) updateInvites(stateToUpdate *TeamSigChainState, additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID) {
 	for _, invites := range additions {
 		for _, invite := range invites {
 			stateToUpdate.informNewInvite(invite)
@@ -1962,13 +1961,13 @@ func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 	}
 }
 
-func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm) {
+func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm) {
 	for id := range completed {
 		stateToUpdate.informCompletedInvite(id)
 	}
 }
 
-func (t *TeamSigChainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
+func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
 	if len(stateToUpdate.inner.ActiveInvites) == 0 {
 		return
 	}
@@ -1982,7 +1981,7 @@ func (t *TeamSigChainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, r
 
 // Check that the subteam name is valid and kind of is a child of this chain.
 // Returns the parsed subteam name.
-func (t *TeamSigChainPlayer) assertSubteamName(parent *TeamSigChainState, parentSeqno keybase1.Seqno, subteamNameStr string) (keybase1.TeamName, error) {
+func (t *teamSigchainPlayer) assertSubteamName(parent *TeamSigChainState, parentSeqno keybase1.Seqno, subteamNameStr string) (keybase1.TeamName, error) {
 	// Ideally, we would assert the team name is a direct child of this team's name.
 	// But the middle parts of the names might be out of date.
 	// Instead assert:
@@ -2029,7 +2028,7 @@ func (t *TeamSigChainPlayer) assertSubteamName(parent *TeamSigChainState, parent
 	return subteamName, nil
 }
 
-func (t *TeamSigChainPlayer) assertIsSubteamID(subteamIDStr string) (keybase1.TeamID, error) {
+func (t *teamSigchainPlayer) assertIsSubteamID(subteamIDStr string) (keybase1.TeamID, error) {
 	// Check the subteam ID
 	subteamID, err := keybase1.TeamIDFromString(string(subteamIDStr))
 	if err != nil {
@@ -2041,7 +2040,7 @@ func (t *TeamSigChainPlayer) assertIsSubteamID(subteamIDStr string) (keybase1.Te
 	return subteamID, nil
 }
 
-func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newState *TeamSigChainState) error {
+func (t *teamSigchainPlayer) parseTeamSettings(settings *SCTeamSettings, newState *TeamSigChainState) error {
 	if open := settings.Open; open != nil {
 		if newState.inner.Implicit {
 			return fmt.Errorf("implicit team cannot be open")
@@ -2069,7 +2068,7 @@ func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 	return nil
 }
 
-func (t *TeamSigChainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *TeamSigChainState) error {
+func (t *teamSigchainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *TeamSigChainState) error {
 	if upgrade.TLF != nil {
 		newState.inner.TlfID = upgrade.TLF.ID
 	}
