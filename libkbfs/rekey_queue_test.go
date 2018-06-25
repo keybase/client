@@ -98,7 +98,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 	}
 
 	// listen for all of the rekey results
-	for _ = range names {
+	for range names {
 		if err := <-fch; err != nil {
 			t.Fatal(err)
 		}
