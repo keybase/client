@@ -17,7 +17,7 @@ import type {Props} from '.'
 // in this file also need to change.
 const explodedIllustrationURL = require('../../../../../images/icons/pattern-ashes-mobile-400-80.png')
 
-const animationDurationMs = 1500
+export const animationDuration = 1500
 
 const copyChildren = children =>
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
@@ -46,7 +46,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       this.timeoutID = setTimeout(() => {
         this.setState({children: null})
         this.timeoutID = null
-      }, animationDurationMs)
+      }, animationDuration)
     }
   }
 
@@ -101,7 +101,7 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
     if (!prevProps.exploded && this.props.exploded) {
       // just exploded! animate
       NativeAnimated.timing(this.state.width, {
-        duration: animationDurationMs,
+        duration: animationDuration,
         easing: NativeEasing.inOut(NativeEasing.ease),
         toValue: 100,
       }).start()

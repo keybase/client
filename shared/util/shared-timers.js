@@ -46,15 +46,16 @@ class Timers {
     }
   }
 
-  addObserver = (fn: () => void, {key, ms}: {key: string, ms?: number}): ?SharedTimerID => {
+  addObserver = (fn: () => void, {key, ms}: {key: string, ms?: number}): SharedTimerID => {
     id++
     const ref = {fn, id}
     if (this._refs[key]) {
       this._refs[key].push(ref)
       return id
     } else if (!ms) {
-      logger.warn(`SharedTimers: Tried to add timer observer with key '${key}' but no timer exists`)
-      return null
+      const msg = `SharedTimers: Tried to add timer observer with key '${key}' but no timer exists`
+      logger.error(msg)
+      throw new Error(`SharedTimers: Tried to add timer observer with key '${key}' but no timer exists`)
     }
     this._refs[key] = [ref]
     const timeoutID = setTimeout(() => this._handleTrigger(key), ms)

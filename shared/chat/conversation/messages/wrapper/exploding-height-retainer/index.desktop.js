@@ -11,6 +11,7 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../../../styles'
+import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 import type {Props} from '.'
 
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
@@ -19,7 +20,7 @@ const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
 const copyChildren = children =>
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
-const animationDuration = 1.5
+export const animationDuration = 1500
 
 const retainedHeights = {}
 
@@ -30,7 +31,7 @@ type State = {
 }
 class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
-  timeoutID: ?TimeoutID = null
+  timerID: SharedTimerID
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
@@ -47,16 +48,13 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.retainHeight) {
       if (!prevProps.retainHeight) {
-        if (this.timeoutID) {
-          clearTimeout(this.timeoutID)
-          this.timeoutID = null
-        }
+        SharedTimer.removeObserver(this.props.messageKey, this.timerID)
         // destroy local copy of children when animation finishes
         this.setState({animating: true}, () => {
-          this.timeoutID = setTimeout(
-            () => this.setState({animating: false, children: null}),
-            animationDuration * 1000
-          )
+          this.timerID = SharedTimer.addObserver(() => this.setState({animating: false, children: null}), {
+            key: this.props.messageKey,
+            ms: animationDuration,
+          })
         })
       }
       return
@@ -72,10 +70,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    if (this.timeoutID) {
-      clearTimeout(this.timeoutID)
-      this.timeoutID = null
-    }
+    SharedTimer.removeObserver(this.props.messageKey, this.timerID)
   }
 
   render() {
@@ -108,7 +103,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 const AshBox = glamorous.div(props => ({
   '&.full-width': {
     overflow: 'visible',
-    transition: `width ${animationDuration}s linear`,
+    transition: `width ${animationDuration}ms linear`,
     width: '100%',
   },
   backgroundColor: globalColors.white,
@@ -124,24 +119,27 @@ const AshBox = glamorous.div(props => ({
   width: 0,
 }))
 const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?string, height: number}) => {
-  const explodedTag = props.explodedBy ? (
-    <Text type="BodyTiny" style={styles.exploded}>
-      EXPLODED BY{' '}
-      <ConnectedUsernames
-        type="BodySmallSemibold"
-        clickable={true}
-        usernames={[props.explodedBy]}
-        inline={true}
-        colorFollowing={true}
-        colorYou={true}
-        underline={true}
-      />
-    </Text>
-  ) : (
-    <Text type="BodyTiny" style={styles.exploded}>
-      EXPLODED
-    </Text>
-  )
+  let explodedTag = null
+  if (props.doneExploding) {
+    explodedTag = props.explodedBy ? (
+      <Text type="BodyTiny" style={styles.exploded}>
+        EXPLODED BY{' '}
+        <ConnectedUsernames
+          type="BodySmallSemibold"
+          clickable={true}
+          usernames={[props.explodedBy]}
+          inline={true}
+          colorFollowing={true}
+          colorYou={true}
+          underline={true}
+        />
+      </Text>
+    ) : (
+      <Text type="BodyTiny" style={styles.exploded}>
+        EXPLODED
+      </Text>
+    )
+  }
   return (
     <AshBox className={props.exploded ? 'full-width' : undefined}>
       {props.exploded && explodedTag}
