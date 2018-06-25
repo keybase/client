@@ -32,8 +32,8 @@ function usernameText({
   inlineGrammar = false,
   showAnd = false,
 }: Props) {
-  const andStyle = collapseStyles([style, styles.andStyle, {color: commaColor}])
-  const commaStyle = collapseStyles([style, styles.commaStyle, {color: commaColor}])
+  const andStyle = collapseStyles([style, styles.joinerStyle, {color: commaColor}])
+  const commaStyle = collapseStyles([style, styles.joinerStyle, {color: commaColor}])
   return users.map((u, i) => {
     let userStyle = {
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
@@ -203,14 +203,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 const styles = styleSheetCreate({
-  andStyle: platformStyles({
+  joinerStyle: platformStyles({
     isElectron: {
       textDecoration: 'none',
       fontWeight: 'inherit',
     },
-  }),
-  commaStyle: platformStyles({
-    isElectron: {textDecoration: 'none'},
   }),
   inlineStyle: platformStyles({
     isElectron: {
