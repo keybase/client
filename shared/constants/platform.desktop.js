@@ -125,8 +125,8 @@ function findCacheRoot(): string {
 function logDir(): string {
   // See LogDir() functions in go/libkb/home.go.
   //
-  // TODO: darwin and win32 are inconsistent with their LogDir()
-  // counterparts.
+  // TODO: darwin and win32 cases are inconsistent with their LogDir()
+  // counterparts. Fix this.
   switch (process.platform) {
     case 'darwin':
       return `${getenv('HOME', '')}/Library/Logs`
@@ -140,6 +140,9 @@ function logDir(): string {
 
 function logFileName(): string {
   // See DesktopLogFileName in go/libkb/constants.go.
+  //
+  // TODO: darwin and win32 cases are inconsistent with
+  // DesktopLogFileName. Fix this.
   switch (process.platform) {
     case 'darwin':
       return `${logDir()}/${envedPathOSX[runMode]}.app.log`
