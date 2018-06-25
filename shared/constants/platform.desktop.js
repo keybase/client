@@ -127,8 +127,8 @@ function logDir(): string {
     case 'darwin':
       return `${getenv('HOME', '')}/Library/Logs`
     case 'linux':
-      const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
-      return `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}`
+      const linuxDefaultRoot = `${getenv('HOME', '')}/.cache`
+      return `${getenv('XDG_CACHE_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}`
     case 'win32':
       return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}`
   }
