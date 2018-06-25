@@ -381,7 +381,7 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 
 func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
-	tracer := l.G().CTimeTracer(ctx, "TeamLoader.load2ILR", false)
+	tracer := l.G().CTimeTracer(ctx, "TeamLoader.load2ILR", true)
 	defer tracer.Finish()
 
 	var err error
@@ -557,6 +557,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		prev = link.LinkID()
 	}
 	tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2")
+	tbs.Log(ctx, "TeamLoader.verifyLink")
+	tbs.Log(ctx, "TeamLoader.applyNewLink")
 
 	if ret == nil {
 		return nil, fmt.Errorf("team loader fault: got nil from load2")
