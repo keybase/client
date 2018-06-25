@@ -13,33 +13,15 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (*keybase1.UserOrTeamResult, error) {
-	resolver, err := newChatConversationResolver(g)
+func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (res keybase1.UserOrTeamResult, err error) {
+	cli, err := GetTeamsClient(g)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	var req chatConversationResolvingRequest
-	req.ctx = new(chatConversationResolvingRequestContext)
-	var tlfError error
-	if tlfError = resolver.completeAndCanonicalizeTLFName(ctx, name, req); tlfError == nil {
-		ret := keybase1.UserOrTeamResult_USER
-		return &ret, nil
+	if _, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name}); err == nil {
+		return keybase1.UserOrTeamResult_TEAM, nil
 	}
-
-	cli, teamError := GetTeamsClient(g)
-	if teamError == nil {
-		_, teamError = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name, ForceRepoll: false})
-		if teamError == nil {
-			ret := keybase1.UserOrTeamResult_TEAM
-			return &ret, nil
-		}
-	}
-
-	msg := `Unable to find conversation.
-When considering %s as a username or a list of usernames, received error: %v.
-When considering %s as a team name, received error: %v.`
-
-	return nil, libkb.NotFoundError{Msg: fmt.Sprintf(msg, name, tlfError, name, teamError)}
+	return keybase1.UserOrTeamResult_USER, nil
 }
 
 // Post a retention policy
