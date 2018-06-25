@@ -709,14 +709,14 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 }
 
 func (n *NotifyRouter) HandleChatInboxSynced(ctx context.Context, uid keybase1.UID,
-	syncRes chat1.ChatSyncResult) {
+	topicType chat1.TopicType, syncRes chat1.ChatSyncResult) {
 	if n == nil {
 		return
 	}
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending ChatInboxSynced notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Chat {
+		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
 			go func() {
 				(chat1.NotifyChatClient{
