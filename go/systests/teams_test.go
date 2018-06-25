@@ -897,6 +897,10 @@ func (n *teamNotifyHandler) NewTeamEk(ctx context.Context, arg keybase1.NewTeamE
 	return nil
 }
 
+func (n *teamNotifyHandler) AvatarUpdated(ctx context.Context, arg keybase1.AvatarUpdatedArg) error {
+	return nil
+}
+
 func TestGetTeamRootID(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
