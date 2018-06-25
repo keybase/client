@@ -123,7 +123,8 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 				// Could not convert to a social assertion.
 				// This could be because it is a compound assertion, which we do not support when SBS.
 				// Or it could be because it's a team assertion or something weird like that.
-				return err
+				return libkb.ResolutionError{Input: expr.String(), Msg: "unknown user assertion",
+					Kind: libkb.ResolutionErrorNotFound}
 			}
 			resSet.UnresolvedUsers = append(resSet.UnresolvedUsers, sa)
 		} else {

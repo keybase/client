@@ -151,21 +151,26 @@ const downloadCommonActions = {
   cancel: action('cancel'),
 }
 
-const rowActionPopupCommonProps = {
-  size: 0,
-  type: 'folder',
-  lastModifiedTimestamp: 0,
-  lastWriter: 'meatball',
-  childrenFolders: 0,
-  childrenFiles: 0,
-  itemStyles: Constants.getItemStyles(['keybase', 'private', 'foo', 'treat'], 'folder', 'meatball'),
-  menuItems: [
-    {
-      title: 'menu item',
-      onClick: action('onClick'),
-    },
-  ],
-  onHidden: action('onHidden'),
+const rowActionPopupProps = (path: Types.Path) => {
+  const pathElements = Types.getPathElements(path)
+  return {
+    size: 0,
+    type: 'folder',
+    lastModifiedTimestamp: 0,
+    lastWriter: 'meatball',
+    childrenFolders: 0,
+    childrenFiles: 0,
+    itemStyles: Constants.getItemStyles(pathElements, 'folder', 'meatball'),
+    name: Types.getPathNameFromElems(pathElements),
+    pathElements,
+    menuItems: [
+      {
+        title: 'menu item',
+        onClick: action('onClick'),
+      },
+    ],
+    onHidden: action('onHidden'),
+  }
 }
 
 const folderHeaderProps = (names: Array<string>) => ({
@@ -364,14 +369,22 @@ const load = () => {
     ))
     .add('RowActionPopup', () => (
       <Box style={{padding: globalMargins.small}}>
-        <RowActionPopup name="treat" {...rowActionPopupCommonProps} />
         <RowActionPopup
-          name="treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat"
-          {...rowActionPopupCommonProps}
+          {...rowActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
         />
         <RowActionPopup
-          name="foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar"
-          {...rowActionPopupCommonProps}
+          {...rowActionPopupProps(
+            Types.stringToPath(
+              '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
+            )
+          )}
+        />
+        <RowActionPopup
+          {...rowActionPopupProps(
+            Types.stringToPath(
+              '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
+            )
+          )}
         />
       </Box>
     ))
