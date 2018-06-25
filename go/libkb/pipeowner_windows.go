@@ -73,6 +73,7 @@ type AccountInfo struct {
 	Account string `json:"account"`
 	Domain  string `json:"domain"`
 	Type    uint32 `json:"type"`
+	SID     string `json:"SID"`
 	Err     error  `json:"error"`
 }
 
@@ -110,10 +111,20 @@ func IsPipeowner(log logger.Logger, name string) (owner PipeOwnerInfo, err error
 	}
 	owner.IsOwner = windows.EqualSid(pipeSid, userSid)
 	owner.PipeAccount.Account, owner.PipeAccount.Domain, owner.PipeAccount.Type, owner.PipeAccount.Err = pipeSid.LookupAccount("")
+	owner.PipeAccount.SID, err = pipeSid.String()
+	if err != nil {
+		log.Errorf("error getting owner SID: %s", err.Error())
+	}
 	owner.UserAccount.Account, owner.UserAccount.Domain, owner.UserAccount.Type, owner.UserAccount.Err = userSid.LookupAccount("")
+	owner.UserAccount.SID, err = userSid.String()
+	if err != nil {
+		log.Errorf("error getting user SID: %s", err.Error())
+	}
+
 	if !owner.IsOwner {
 		// If the pipe is served by an admin, let local security policies control access
-		if owner.PipeAccount.Account == "Administrators" && owner.PipeAccount.Domain == "BUILTIN" && owner.PipeAccount.Type == syscall.SidTypeAlias {
+		// https://support.microsoft.com/en-us/help/243330/well-known-security-identifiers-in-windows-operating-systems
+		if owner.PipeAccount.SID == "S-1-5-32-544" && owner.PipeAccount.Type == syscall.SidTypeAlias {
 			owner.IsOwner = true
 		}
 	}

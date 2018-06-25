@@ -20,7 +20,8 @@ declare export function displayNewMessageNotification(
   text: string,
   convID: ?string,
   badgeCount: ?number,
-  myMsgID: ?number
+  myMsgID: ?number,
+  soundName: ?string
 ): void
 declare export function clearAllNotifications(): void
 declare export function getContentTypeFromURL(

@@ -7,12 +7,16 @@ protocol bundle {
 
   // The same format as in chat1.EncryptedData (and KBFS, Git)
   record EncryptedBundle {
-    int   v;              // version = 1
+    // CORE-8135 phase 2: ban v1 on the client and server
+    // v=1 Used an incorrect context string (CORE-8135)
+    // v=2 Use the corrected context string
+    int   v;              // Version of the CRYPT.
     bytes e;              // encrypted msgpacked BundleSecretVersioned (output of secretbox)
     keybase1.BoxNonce n;  // nonce
     keybase1.PerUserKeyGeneration gen; // PUK generation that was used
   }
 
+  // Version of the DATA.
   enum BundleVersion {
     V1_1
   }
