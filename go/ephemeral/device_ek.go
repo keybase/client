@@ -103,10 +103,6 @@ func signAndPostDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation
 	defer g.CTraceTimed(ctx, "signAndPostDeviceEK", func() error { return err })()
 
 	storage := g.GetDeviceEKStorage()
-	existingMetadata, err := storage.GetAllActive(ctx, merkleRoot)
-	if err != nil {
-		return metadata, err
-	}
 
 	// Sign the statement blob with the device's long term signing key.
 	signingKey, err := g.ActiveDevice.SigningKey()
@@ -115,7 +111,7 @@ func signAndPostDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation
 	}
 
 	dhKeypair := seed.DeriveDHKey()
-	statement, signedStatement, err := signDeviceEKStatement(generation, dhKeypair, signingKey, existingMetadata, merkleRoot)
+	statement, signedStatement, err := signDeviceEKStatement(generation, dhKeypair, signingKey, merkleRoot)
 
 	metadata = statement.CurrentDeviceEkMetadata
 	// Ensure we successfully write the secret to disk before posting to the
@@ -139,7 +135,7 @@ func signAndPostDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation
 	return metadata, err
 }
 
-func signDeviceEKStatement(generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, signingKey libkb.GenericKey, existingMetadata []keybase1.DeviceEkMetadata, merkleRoot libkb.MerkleRoot) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
+func signDeviceEKStatement(generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, signingKey libkb.GenericKey, merkleRoot libkb.MerkleRoot) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
 	metadata := keybase1.DeviceEkMetadata{
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
@@ -150,8 +146,7 @@ func signDeviceEKStatement(generation keybase1.EkGeneration, dhKeypair *libkb.Na
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
 	statement = keybase1.DeviceEkStatement{
-		CurrentDeviceEkMetadata:  metadata,
-		ExistingDeviceEkMetadata: existingMetadata,
+		CurrentDeviceEkMetadata: metadata,
 	}
 
 	statementJSON, err := json.Marshal(statement)

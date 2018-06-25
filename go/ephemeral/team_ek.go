@@ -89,20 +89,8 @@ func prepareNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
 
-	// Get the list of existing teamEKs to form the full statement. Make sure
-	// that if it's nil, we replace it with an empty slice. Although those are
-	// practically the same in Go, they get serialized to different JSON.
-	existingActiveMetadata, err := filterStaleTeamEKStatement(ctx, g, prevStatement, merkleRoot)
-	if err != nil {
-		return "", nil, metadata, nil, err
-	}
-	if existingActiveMetadata == nil {
-		existingActiveMetadata = []keybase1.TeamEkMetadata{}
-	}
-
 	statement := keybase1.TeamEkStatement{
-		CurrentTeamEkMetadata:  metadata,
-		ExistingTeamEkMetadata: existingActiveMetadata,
+		CurrentTeamEkMetadata: metadata,
 	}
 	statementJSON, err := json.Marshal(statement)
 	if err != nil {
@@ -367,24 +355,6 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 	// If we didn't short circuit above, then the signing key is correct.
 	// Return the parsed statement.
 	return parsedStatement, latestGeneration, false, nil
-}
-
-func filterStaleTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, statement *keybase1.TeamEkStatement, merkleRoot libkb.MerkleRoot) (active []keybase1.TeamEkMetadata, err error) {
-	defer g.CTraceTimed(ctx, "filterStaleTeamEKStatement", func() error { return err })()
-
-	if statement == nil {
-		return nil, err
-	}
-
-	allMetadata := append([]keybase1.TeamEkMetadata{}, statement.ExistingTeamEkMetadata...)
-	allMetadata = append(allMetadata, statement.CurrentTeamEkMetadata)
-	for _, metadata := range allMetadata {
-		if !ctimeIsStale(metadata.Ctime.Time(), merkleRoot) {
-			active = append(active, metadata)
-		}
-	}
-
-	return active, nil
 }
 
 type teamMemberEKStatementResponse struct {

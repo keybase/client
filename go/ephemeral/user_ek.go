@@ -71,7 +71,6 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 		return "", nil, newMetadata, nil, err
 	}
 	var newGeneration keybase1.EkGeneration
-	var existingMaybeStaleMetadata []keybase1.UserEkMetadata
 	if prevStatement == nil {
 		// Even if the userEK statement was signed by the wrong key (this can
 		// happen when legacy clients roll the PUK), fetchUserEKStatement will
@@ -81,8 +80,6 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 		newGeneration = latestGeneration + 1
 	} else {
 		newGeneration = prevStatement.CurrentUserEkMetadata.Generation + 1
-		existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.ExistingUserEkMetadata...)
-		existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.CurrentUserEkMetadata)
 	}
 
 	dhKeypair := seed.DeriveDHKey()
@@ -97,22 +94,8 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
 
-	// Filter out the still-active userEKs, those less than a week old. Make
-	// sure that if there are none, we use an empty slice instead of nil.
-	// Although those are practically the same in Go, they get serialized to
-	// different JSON.
-	existingActiveMetadata := []keybase1.UserEkMetadata{}
-	for _, metadata := range existingMaybeStaleMetadata {
-		if ctimeIsStale(metadata.Ctime.Time(), merkleRoot) {
-			g.Log.CDebugf(ctx, "skipping stale UserEkMetadata for KID: %s", metadata.Kid)
-			continue
-		}
-		existingActiveMetadata = append(existingActiveMetadata, metadata)
-	}
-
 	statement := keybase1.UserEkStatement{
-		CurrentUserEkMetadata:  metadata,
-		ExistingUserEkMetadata: existingActiveMetadata,
+		CurrentUserEkMetadata: metadata,
 	}
 	statementJSON, err := json.Marshal(statement)
 	if err != nil {

@@ -481,7 +481,7 @@ func (e *EKLib) DeriveDeviceDHKey(seed keybase1.Bytes32) *libkb.NaclDHKeyPair {
 	return deviceEKSeed.DeriveDHKey()
 }
 
-func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey libkb.GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
+func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey libkb.GenericKey) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
 	defer e.G().CTraceTimed(ctx, "SignedDeviceEKStatementFromSeed", func() error { return err })()
 
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.metaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
@@ -489,7 +489,7 @@ func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation 
 		return statement, signedStatement, err
 	}
 	dhKeypair := e.DeriveDeviceDHKey(seed)
-	return signDeviceEKStatement(generation, dhKeypair, signingKey, existingMetadata, *merkleRootPtr)
+	return signDeviceEKStatement(generation, dhKeypair, signingKey, *merkleRootPtr)
 }
 
 // For device provisioning
