@@ -140,7 +140,7 @@ function logFileName(): string {
     case 'darwin':
       return `${logDir()}/${envedPathOSX[runMode]}.app.log`
     case 'linux':
-      return `${logDir()}/keybase.app.log`
+      return `${logDir()}/Keybase.app.log`
     case 'win32':
       return `${logDir()}\\keybase.app.log`
   }
