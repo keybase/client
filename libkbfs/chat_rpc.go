@@ -349,14 +349,7 @@ var _ chat1.NotifyChatInterface = (*ChatRPC)(nil)
 // NewChatActivity implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) NewChatActivity(
-	_ context.Context, _ chat1.NewChatActivityArg) error {
-	return nil
-}
-
-// NewChatKBFSFileEditActivity implements the
-// chat1.NotifyChatInterface for ChatRPC.
-func (c *ChatRPC) NewChatKBFSFileEditActivity(
-	ctx context.Context, arg chat1.NewChatKBFSFileEditActivityArg) error {
+	ctx context.Context, arg chat1.NewChatActivityArg) error {
 	activityType, err := arg.Activity.ActivityType()
 	if err != nil {
 		return err

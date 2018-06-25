@@ -347,23 +347,26 @@ var NotificationKindRevMap = map[NotificationKind]string{
 type GlobalAppNotificationSetting int
 
 const (
-	GlobalAppNotificationSetting_NEWMESSAGES      GlobalAppNotificationSetting = 0
-	GlobalAppNotificationSetting_PLAINTEXTMOBILE  GlobalAppNotificationSetting = 1
-	GlobalAppNotificationSetting_PLAINTEXTDESKTOP GlobalAppNotificationSetting = 2
+	GlobalAppNotificationSetting_NEWMESSAGES        GlobalAppNotificationSetting = 0
+	GlobalAppNotificationSetting_PLAINTEXTMOBILE    GlobalAppNotificationSetting = 1
+	GlobalAppNotificationSetting_PLAINTEXTDESKTOP   GlobalAppNotificationSetting = 2
+	GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE GlobalAppNotificationSetting = 3
 )
 
 func (o GlobalAppNotificationSetting) DeepCopy() GlobalAppNotificationSetting { return o }
 
 var GlobalAppNotificationSettingMap = map[string]GlobalAppNotificationSetting{
-	"NEWMESSAGES":      0,
-	"PLAINTEXTMOBILE":  1,
-	"PLAINTEXTDESKTOP": 2,
+	"NEWMESSAGES":        0,
+	"PLAINTEXTMOBILE":    1,
+	"PLAINTEXTDESKTOP":   2,
+	"DEFAULTSOUNDMOBILE": 3,
 }
 
 var GlobalAppNotificationSettingRevMap = map[GlobalAppNotificationSetting]string{
 	0: "NEWMESSAGES",
 	1: "PLAINTEXTMOBILE",
 	2: "PLAINTEXTDESKTOP",
+	3: "DEFAULTSOUNDMOBILE",
 }
 
 func (e GlobalAppNotificationSetting) String() string {
@@ -433,14 +436,16 @@ func (e ConversationStatus) String() string {
 }
 
 type ConversationMember struct {
-	Uid    gregor1.UID    `codec:"uid" json:"uid"`
-	ConvID ConversationID `codec:"convID" json:"convID"`
+	Uid       gregor1.UID    `codec:"uid" json:"uid"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	TopicType TopicType      `codec:"topicType" json:"topicType"`
 }
 
 func (o ConversationMember) DeepCopy() ConversationMember {
 	return ConversationMember{
-		Uid:    o.Uid.DeepCopy(),
-		ConvID: o.ConvID.DeepCopy(),
+		Uid:       o.Uid.DeepCopy(),
+		ConvID:    o.ConvID.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 	}
 }
 
