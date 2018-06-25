@@ -464,11 +464,9 @@ func TestNodeCacheGCReal(t *testing.T) {
 
 	childNode1 = nil
 	runtime.GC()
-	_ = <-finalizerChan
+	<-finalizerChan
 
-	if len(ncs.nodes) != 2 {
-		t.Errorf("Expected %d nodes, got %d", 2, len(ncs.nodes))
-	}
+	require.Len(t, ncs.nodes, 1)
 
 	// Make sure childNode2 isn't GCed until after this point.
 	func(interface{}) {}(childNode2)

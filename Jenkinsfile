@@ -241,6 +241,9 @@ helpers.rootLinuxNode(env, {
 }
 
 def runNixTest(prefix) {
+    retry(5) {
+        sh 'go get -u github.com/golang/lint/golint github.com/golang/mock/gomock github.com/golang/mock/mockgen'
+    }
     tests = [:]
     // Run libkbfs tests with an in-memory bserver and mdserver, and run
     // all other tests with the tempdir bserver and mdserver.
@@ -252,9 +255,6 @@ def runNixTest(prefix) {
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/kbfs/kbfsfuse | grep testing'
     }
     tests[prefix+'vet'] = {
-        retry(5) {
-            sh 'go get -u github.com/golang/lint/golint'
-        }
         sh 'make -s lint'
         sh 'go vet $(go list ./... 2>/dev/null | grep -v /vendor/)'
     }
