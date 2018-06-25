@@ -29,26 +29,26 @@ const Banner = ({onReadMore, onHideSubteamsBanner, teamname}: Props) => (
     >
       <Text
         backgroundMode="Terminal"
-        type="BodySemibold"
+        type="BodySmallSemibold"
         style={{marginBottom: globalMargins.small, ...(isMobile ? {textAlign: 'center'} : {})}}
       >
         Subteams are cryptographically distinct, and can welcome people who aren't elsewhere in your team
         hierarchy. Some random ideas:
       </Text>
-      <Text backgroundMode="Terminal" type="BodySemibold">
+      <Text backgroundMode="Terminal" type="BodySmallSemibold">
         • {teamname}.devops
       </Text>
-      <Text backgroundMode="Terminal" type="BodySemibold">
+      <Text backgroundMode="Terminal" type="BodySmallSemibold">
         • {teamname}.legal
       </Text>
-      <Text backgroundMode="Terminal" type="BodySemibold">
+      <Text backgroundMode="Terminal" type="BodySmallSemibold">
         • {teamname}.customers.vip
       </Text>
 
       <Text
         style={{marginTop: globalMargins.small}}
         backgroundMode="Terminal"
-        type="BodySemiboldLink"
+        type="BodySmallSemiboldPrimaryLink"
         className="underline"
         onClick={onReadMore}
       >
