@@ -262,7 +262,7 @@ class Profile extends Component<Props, State> {
       <Box style={{backgroundColor: globalColors.white}}>
         {proofNotice && (
           <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
-            <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
+            <Text type="BodySmallSemibold" style={{color: globalColors.white, textAlign: 'center'}}>
               {proofNotice}
             </Text>
           </Box>
@@ -386,7 +386,7 @@ class Profile extends Component<Props, State> {
         {item.map(
           user =>
             user.dummy ? (
-              <Text key={user.dummy} type="BodySmall" style={{color: globalColors.black_40, padding: 40}}>
+              <Text key={user.dummy} type="BodySmall" style={{padding: 40}}>
                 {user.dummy}
               </Text>
             ) : (

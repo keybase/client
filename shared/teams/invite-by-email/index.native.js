@@ -4,6 +4,7 @@ import * as React from 'react'
 import {
   Avatar,
   Box,
+  Box2,
   Button,
   ButtonBar,
   ClickableBox,
@@ -116,13 +117,17 @@ type State = {
 }
 
 // Container handles all the props, this just handles filtering
-class InviteByEmail extends React.Component<MobileProps, State> {
+class InviteByEmailMobile extends React.Component<MobileProps, State> {
   state = {
     filter: '',
   }
 
   _trim(s: ?string): string {
     return (s && s.replace(/^[^a-z0-9@.]/i, '').toLowerCase()) || ''
+  }
+
+  componentWillUnmount() {
+    this.props.onClearError()
   }
 
   render() {
@@ -143,6 +148,22 @@ class InviteByEmail extends React.Component<MobileProps, State> {
     if (this.props.hasPermission) {
       contents = (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, paddingBottom: globalMargins.xtiny}}>
+          {this.props.errorMessage && (
+            <Box2
+              direction="horizontal"
+              style={{
+                alignItems: 'center',
+                backgroundColor: globalColors.red,
+                justifyContent: 'center',
+                padding: globalMargins.tiny,
+              }}
+              fullWidth={true}
+            >
+              <Text type="BodySemibold" backgroundMode="HighRisk" style={{textAlign: 'center'}}>
+                {this.props.errorMessage}
+              </Text>
+            </Box2>
+          )}
           <Box
             style={{
               ...globalStyles.flexBoxRow,
@@ -207,4 +228,4 @@ class InviteByEmail extends React.Component<MobileProps, State> {
   }
 }
 
-export default InviteByEmail
+export {InviteByEmailMobile}

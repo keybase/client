@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/terminalescaper"
+	isatty "github.com/mattn/go-isatty"
 )
 
 // Base set of color codes for colorized output
@@ -821,9 +823,17 @@ func (c *CmdSimpleFSList) ls(outputBuffer *bytes.Buffer, listResult keybase1.Sim
 		//	for _, f := range args_files {
 		//info, err := os.Stat(f)
 
-		fListing, err := c.createListing("",
-			FileInfoPath{path: e.Name,
-				info: DirentFileInfo{e}})
+		var fListing Listing
+		var err error
+		if !c.G().Env.GetDisplayRawUntrustedOutput() && isatty.IsTerminal(os.Stdout.Fd()) {
+			fListing, err = c.createListing("",
+				FileInfoPath{path: terminalescaper.Clean(e.Name),
+					info: DirentFileInfo{e}})
+		} else {
+			fListing, err = c.createListing("",
+				FileInfoPath{path: e.Name,
+					info: DirentFileInfo{e}})
+		}
 		if err != nil {
 			return err
 		}

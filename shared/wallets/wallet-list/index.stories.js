@@ -1,47 +1,71 @@
 // @flow
 import React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
-import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
-import {Wallet, AddWallet} from '.'
+import {WalletList} from '.'
+import walletRow from './wallet-row/index.stories'
+import {stringToAccountID} from '../../constants/types/wallets'
 
-const common = {
-  isSelected: false,
-  name: '',
-  keybaseUser: '',
-  contents: '',
-  onSelect: action('onSelect'),
-}
+const onSelect = action('onSelect')
 
-const mocks = [
-  {
-    ...common,
+const mockWallets = {
+  G43289XXXXX34OPL: {
     keybaseUser: 'cecileb',
-    isSelected: true,
     name: "cecileb's wallet",
     contents: '280.0871234 XLM + more',
+    isSelected: true,
+    onSelect,
   },
-  {
-    ...common,
+  G43289XXXXX34OPM: {
+    keybaseUser: '',
     name: 'Second wallet',
     contents: '56.9618203 XLM',
+    isSelected: false,
+    onSelect,
   },
-]
+  G43289XXXXX34OPMG43289XXXXX34OPM: {
+    keybaseUser: '',
+    name: 'G43289XXXXX34OPMG43289XXXXX34OPM',
+    contents: '56.9618203 XLM',
+    isSelected: false,
+    onSelect,
+  },
+}
 
-const provider = PropProviders.Common()
+const WalletRowProvider = mockWallets => ({
+  WalletRow: ({accountID}) => {
+    const mockWallet = mockWallets[accountID]
+    return (
+      mockWallet || {
+        keybaseUser: '',
+        name: '',
+        contents: '',
+        isSelected: false,
+        onSelect,
+      }
+    )
+  },
+})
+
+const provider = PropProviders.compose(
+  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
+  WalletRowProvider(mockWallets)
+)
+
+const accountIDs = Object.keys(mockWallets).map(s => stringToAccountID(s))
 
 const load = () => {
+  walletRow()
+
   storiesOf('Wallets', module)
     .addDecorator(provider)
     .add('Wallet List', () => (
-      <Box style={{width: 240}}>
-        {mocks.map(m => <Wallet key={m.name} {...m} />)}
-        <AddWallet
-          showingMenu={true}
-          onAddNew={action('onAddNew')}
-          onLinkExisting={action('onAddExisting')}
-        />
-      </Box>
+      <WalletList
+        accountIDs={accountIDs}
+        onAddNew={action('onAddNew')}
+        onLinkExisting={action('onLinkExisting')}
+        style={{height: '100%', width: 240}}
+      />
     ))
 }
 

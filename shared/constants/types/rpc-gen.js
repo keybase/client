@@ -978,7 +978,7 @@ export type DeviceType =
   | 0 // DESKTOP_0
   | 1 // MOBILE_1
 
-export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User}>
+export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User, writable: Boolean}>
 export type DirentType =
   | 0 // FILE_0
   | 1 // DIR_1
@@ -2019,7 +2019,7 @@ export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
 export type TeamMember = $ReadOnly<{uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno}>
 export type TeamMemberDetails = $ReadOnly<{uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean}>
 export type TeamMemberOutFromReset = $ReadOnly<{teamName: String, resetUser: TeamResetUser}>
-export type TeamMemberOutReset = $ReadOnly<{teamname: String, username: String, id: Gregor1.MsgID}>
+export type TeamMemberOutReset = $ReadOnly<{teamname: String, username: String, uid: UID, id: Gregor1.MsgID}>
 export type TeamMembers = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>}>
 export type TeamMembersDetails = $ReadOnly<{owners?: ?Array<TeamMemberDetails>, admins?: ?Array<TeamMemberDetails>, writers?: ?Array<TeamMemberDetails>, readers?: ?Array<TeamMemberDetails>}>
 export type TeamName = $ReadOnly<{parts?: ?Array<TeamNamePart>}>
@@ -2082,7 +2082,7 @@ export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, joinS
 export type TeamsTeamDebugRpcParam = $ReadOnly<{teamID: TeamID}>
 export type TeamsTeamDeleteRpcParam = $ReadOnly<{name: String}>
 export type TeamsTeamEditMemberRpcParam = $ReadOnly<{name: String, username: String, role: TeamRole}>
-export type TeamsTeamGetRpcParam = $ReadOnly<{name: String, forceRepoll: Boolean}>
+export type TeamsTeamGetRpcParam = $ReadOnly<{name: String}>
 export type TeamsTeamIgnoreRequestRpcParam = $ReadOnly<{name: String, username: String}>
 export type TeamsTeamImplicitAdminsRpcParam = $ReadOnly<{teamName: String}>
 export type TeamsTeamLeaveRpcParam = $ReadOnly<{name: String, permanent: Boolean}>

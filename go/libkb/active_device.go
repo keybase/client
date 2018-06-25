@@ -373,7 +373,7 @@ func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, err
 	return nist, a.uid, err
 }
 
-func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID) (ret *SecretSyncer, err error) {
+func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bool) (ret *SecretSyncer, err error) {
 	defer m.CTrace("ActiveDevice#SyncSecretsForUID", func() error { return err })()
 
 	a.RLock()
@@ -390,7 +390,7 @@ func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID) (ret *Se
 	if uid.IsNil() {
 		return nil, fmt.Errorf("can't run secret syncer without a UID")
 	}
-	err = RunSyncer(m, s, uid, true, nil)
+	err = RunSyncer(m, s, uid, true, nil, force)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +400,13 @@ func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID) (ret *Se
 func (a *ActiveDevice) SyncSecrets(m MetaContext) (ret *SecretSyncer, err error) {
 	defer m.CTrace("ActiveDevice#SyncSecrets", func() error { return err })()
 	var zed keybase1.UID
-	return a.SyncSecretsForUID(m, zed)
+	return a.SyncSecretsForUID(m, zed, false /* force */)
+}
+
+func (a *ActiveDevice) SyncSecretsForce(m MetaContext) (ret *SecretSyncer, err error) {
+	defer m.CTrace("ActiveDevice#SyncSecretsForce", func() error { return err })()
+	var zed keybase1.UID
+	return a.SyncSecretsForUID(m, zed, true /* force */)
 }
 
 func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername) (err error) {

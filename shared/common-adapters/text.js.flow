@@ -37,6 +37,8 @@ type TextType =
   | 'BodySmallSuccess'
   | 'BodySmallWallet'
   | 'BodySuccess'
+  | 'BodyTiny'
+  | 'BodyTinySemibold'
   | 'Header'
   | 'HeaderExtrabold'
   | 'HeaderBig'

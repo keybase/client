@@ -111,7 +111,7 @@ class GlobalError extends Component<Props, State> {
             }}
           >
             <Text
-              type="Body"
+              type="BodySmallSemibold"
               style={{color: globalColors.white, flex: 1, textAlign: 'center'}}
               onClick={this._onExpandClick}
             >

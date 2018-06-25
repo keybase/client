@@ -78,6 +78,15 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setTeamChannels:
       return state.setIn(['teamNameToChannelInfos', action.payload.teamname], action.payload.channelInfos)
 
+    case TeamsGen.setEmailInviteError:
+      return state.set(
+        'emailInviteError',
+        Constants.makeEmailInviteError({
+          malformed: I.Set(action.payload.malformed),
+          message: action.payload.message,
+        })
+      )
+
     case TeamsGen.setLoaded:
       return state.set('loaded', action.payload.loaded)
 

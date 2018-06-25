@@ -226,10 +226,19 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
       role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
     })
     if (res.malformed && res.malformed.length > 0) {
-      throw new Error(`Unable to parse email addresses: ${res.malformed.join('; ')}`)
+      const malformed = res.malformed
+      logger.warn(`teamInviteByEmail: Unable to parse ${malformed.length} email addresses`)
+      yield Saga.put(
+        TeamsGen.createSetEmailInviteError({
+          malformed,
+          // mobile can only invite one at a time, show bad email in error message
+          message: isMobile
+            ? `Error parsing email: ${malformed[0]}`
+            : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`,
+        })
+      )
     }
   } finally {
-    // TODO handle error
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))
   }
@@ -399,7 +408,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
   try {
     const unsafeDetails: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
-      forceRepoll: false,
       name: teamname,
     })
 

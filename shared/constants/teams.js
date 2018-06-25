@@ -48,6 +48,11 @@ export const makeRequestInfo: I.RecordFactory<Types._RequestInfo> = I.Record({
   username: '',
 })
 
+export const makeEmailInviteError: I.RecordFactory<Types._EmailInviteError> = I.Record({
+  malformed: I.Set(),
+  message: '',
+})
+
 export const teamRoleByEnum = ((m: {[Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
   const mInv: {[RPCTypes.TeamRole]: Types.MaybeTeamRoleType} = {}
   for (const roleStr in m) {
@@ -81,38 +86,39 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   addUserToTeamsResults: '',
   channelCreationError: '',
-  teamsWithChosenChannels: I.Set(),
+  emailInviteError: makeEmailInviteError(),
   loaded: false,
+  newTeamRequests: I.List(),
+  newTeams: I.Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
+  teamAccessRequestsPending: I.Set(),
   teamCreationError: '',
   teamCreationPending: false,
-  teamAccessRequestsPending: I.Set(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
+  teamNameToAllowPromote: I.Map(),
+  teamNameToCanPerform: I.Map(),
   teamNameToChannelInfos: I.Map(),
   teamNameToID: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
+  teamNameToIsShowcasing: I.Map(),
   teamNameToLoadingInvites: I.Map(),
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
+  teamNameToPublicitySettings: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToResetUsers: I.Map(),
   teamNameToRetentionPolicy: I.Map(),
   teamNameToRole: I.Map(),
-  teamNameToSubteams: I.Map(),
-  teamNameToCanPerform: I.Map(),
   teamNameToSettings: I.Map(),
-  teamNameToPublicitySettings: I.Map(),
-  teamNameToAllowPromote: I.Map(),
-  teamNameToIsShowcasing: I.Map(),
+  teamNameToSubteams: I.Map(),
   teammembercounts: I.Map(),
-  newTeams: I.Set(),
-  newTeamRequests: I.List(),
   teamnames: I.Set(),
+  teamsWithChosenChannels: I.Set(),
 })
 
 export const initialCanUserPerform: RPCTypes.TeamOperation = {
@@ -169,6 +175,8 @@ const userIsActiveInTeamHelper = (
   const member = members.get(username)
   return member && member.active
 }
+
+const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
 
 const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
   state.teams.teamsWithChosenChannels.has(teamname)
@@ -385,6 +393,7 @@ export {
   getRole,
   getCanPerform,
   hasCanPerform,
+  getEmailInviteError,
   getTeamMemberCount,
   userIsActiveInTeamHelper,
   getTeamChannelInfos,

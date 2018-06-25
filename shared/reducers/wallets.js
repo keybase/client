@@ -17,6 +17,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.paymentsReceived:
       return state.setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
+    case WalletsGen.selectAccount:
+      return state.set('selectedAccount', action.payload.accountID)
     // Saga only actions
     case WalletsGen.loadEverything:
     case WalletsGen.loadAssets:

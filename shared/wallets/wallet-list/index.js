@@ -1,100 +1,95 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Icon, Text, Avatar, FloatingMenu} from '../../common-adapters'
-import {globalStyles, globalColors, isMobile} from '../../styles'
+import {Box2, ClickableBox, Icon, List, Text, FloatingMenu} from '../../common-adapters'
+import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
-
-type Props = {
-  isSelected: boolean,
-  name: string,
-  keybaseUser: string,
-  contents: string,
-  onSelect: () => void,
-}
-
-class Wallet extends React.PureComponent<Props> {
-  render() {
-    const color = this.props.isSelected ? globalColors.blue : globalColors.white
-
-    const titleStyle = {
-      ...globalStyles.fontSemibold,
-      color: this.props.isSelected ? globalColors.white : globalColors.darkBlue,
-      backgroundColor: color,
-      fontSize: 13,
-    }
-    const amountStyle = {
-      color: this.props.isSelected ? globalColors.white : globalColors.black_40,
-      backgroundColor: color,
-      fontSize: 11,
-    }
-    const props = this.props
-    return (
-      <ClickableBox onClick={props.onSelect} style={{backgroundColor: color}}>
-        <Box2 style={{height: rowHeight, backgroundColor: color}} direction="horizontal" fullWidth={true}>
-          <Box2 direction="horizontal" gap="small">
-            <Icon type={'iconfont-hand-wave'} color={globalColors.darkBlue} fontSize={28} />
-          </Box2>
-          <Box2 direction="vertical">
-            <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-              {this.props.keybaseUser && <Avatar size={16} username={this.props.keybaseUser} />}
-              <Text type="BodySmall" style={titleStyle}>
-                {props.name}
-              </Text>
-            </Box2>
-            <Text type="BodySmall" style={amountStyle}>
-              {props.contents}
-            </Text>
-          </Box2>
-        </Box2>
-      </ClickableBox>
-    )
-  }
-}
+import {type AccountID} from '../../constants/types/wallets'
+import WalletRow from './wallet-row/container'
 
 type AddProps = {
   onAddNew: () => void,
   onLinkExisting: () => void,
 }
 
-class _AddWallet extends React.PureComponent<AddProps & FloatingMenuParentProps> {
-  _menuItems = [
+const rowHeight = isMobile ? 56 : 48
+
+const styles = styleSheetCreate({
+  addContainer: {backgroundColor: globalColors.white},
+  addContainerBox: {height: rowHeight, paddingTop: globalMargins.small},
+})
+
+const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
+  const menuItems = [
     {
-      onClick: () => this.props.onAddNew(),
+      onClick: () => props.onAddNew(),
       title: 'Create a new wallet',
     },
     {
       disabled: isMobile,
-      onClick: () => this.props.onLinkExisting(),
+      onClick: () => props.onLinkExisting(),
       title: 'Link an existing Stellar wallet',
     },
   ]
 
-  render() {
-    return (
-      <ClickableBox
-        onClick={this.props.toggleShowingMenu}
-        style={{backgroundColor: globalColors.white}}
-        ref={this.props.setAttachmentRef}
+  return (
+    <ClickableBox onClick={props.toggleShowingMenu} style={styles.addContainer} ref={props.setAttachmentRef}>
+      <Box2
+        style={styles.addContainerBox}
+        direction="horizontal"
+        fullWidth={true}
+        gap="xsmall"
+        gapStart={true}
+        gapEnd={true}
       >
-        <Box2 style={{height: rowHeight}} direction="horizontal" fullWidth={true} gap="xsmall">
-          <Icon type="iconfont-new" color={globalColors.blue} />
-          <Text type="BodyBigLink">Add a wallet</Text>
-        </Box2>
-        <FloatingMenu
-          attachTo={this.props.attachmentRef}
-          closeOnSelect={true}
-          items={this._menuItems}
-          onHidden={this.props.toggleShowingMenu}
-          visible={this.props.showingMenu}
-          position="bottom center"
-        />
-      </ClickableBox>
-    )
-  }
+        <Icon type="iconfont-new" color={globalColors.blue} />
+        <Text type="BodyBigLink">Add a wallet</Text>
+      </Box2>
+      <FloatingMenu
+        attachTo={props.attachmentRef}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={props.toggleShowingMenu}
+        visible={props.showingMenu}
+        position="bottom center"
+      />
+    </ClickableBox>
+  )
 }
 
 const AddWallet = FloatingMenuParentHOC(_AddWallet)
 
-const rowHeight = isMobile ? 56 : 48
+type Props = {
+  accountIDs: Array<AccountID>,
+  style?: StylesCrossPlatform,
+  onAddNew: () => void,
+  onLinkExisting: () => void,
+}
 
-export {Wallet, AddWallet}
+type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
+
+class WalletList extends React.Component<Props> {
+  _renderRow = (i: number, row: Row): React.Node => {
+    switch (row.type) {
+      case 'wallet':
+        return <WalletRow key={row.accountID} accountID={row.accountID} />
+      case 'add wallet':
+        return <AddWallet onAddNew={this.props.onAddNew} onLinkExisting={this.props.onLinkExisting} />
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+      */
+        throw new Error(`Impossible case encountered: ${row.type}`)
+    }
+  }
+
+  render = () => {
+    const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID}))
+    rows.push({type: 'add wallet'})
+
+    return <List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
+  }
+}
+
+export type {Props}
+export {WalletList}

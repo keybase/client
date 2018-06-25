@@ -77,16 +77,16 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 }
 
 func (s *Storage) explodeExpiredMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) (err Error) {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) (explodedMsgs []chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "explodeExpiredMessages")()
 
-	purgeInfo, _, err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
+	purgeInfo, explodedMsgs, err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// We may only be merging in some subset of messages, we only update if the
 	// info we get is more restrictive that what we have already
-	return s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
+	return explodedMsgs, s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
 }
 
 // Before adding or removing messages from storage, nuke any expired ones and

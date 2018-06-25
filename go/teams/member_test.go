@@ -489,7 +489,7 @@ func TestMemberAddNoKeys(t *testing.T) {
 
 	// this is a keybase user, so they should show up in the member list
 	// even though they are technically only "invited"
-	details, err := Details(context.TODO(), tc.G, name, true)
+	details, err := Details(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -544,7 +544,7 @@ func TestMemberAddEmail(t *testing.T) {
 		t.Fatal("List --all does not list invite.")
 	}
 
-	details, err := Details(context.TODO(), tc.G, name, true)
+	details, err := Details(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -563,7 +563,7 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	blob := "u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
+	blob := "h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
 
 	res, err := AddEmailsBulk(context.TODO(), tc.G, name, blob, keybase1.TeamRole_WRITER)
 	if err != nil {
@@ -578,7 +578,7 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	if len(res.AlreadyInvited) != 0 {
 		t.Errorf("num already invited: %d, expected 0", len(res.AlreadyInvited))
 	}
-	require.Len(t, res.Malformed, 1)
+	require.Len(t, res.Malformed, 2)
 	for _, e := range emails {
 		assertInvite(tc, name, e, "email", keybase1.TeamRole_WRITER)
 	}

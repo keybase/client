@@ -827,9 +827,17 @@ func TestInboxMembershipUpdate(t *testing.T) {
 		Uid:    uid4,
 		ConvID: otherResetConvID,
 	}}
+	userRemovedConvs := []chat1.ConversationMember{chat1.ConversationMember{
+		Uid:    uid,
+		ConvID: convs[5].GetConvID(),
+	}}
+	userResetConvs := []chat1.ConversationMember{chat1.ConversationMember{
+		Uid:    uid,
+		ConvID: convs[6].GetConvID(),
+	}}
 	require.NoError(t, inbox.MembershipUpdate(context.TODO(), 2, utils.PluckConvs(joinedConvs),
-		[]chat1.ConversationID{convs[5].GetConvID()}, otherJoinedConvs, otherRemovedConvs,
-		[]chat1.ConversationID{convs[6].GetConvID()}, otherResetConvs))
+		userRemovedConvs, otherJoinedConvs, otherRemovedConvs,
+		userResetConvs, otherResetConvs))
 
 	vers, res, err := inbox.ReadAll(context.TODO())
 	require.NoError(t, err)

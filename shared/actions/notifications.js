@@ -75,7 +75,6 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
         teamsWithResetUsers: teamsWithResetUsers || [],
       })
     ),
-    Saga.put(FsGen.createFavoritesLoad()),
   ])
 }
 

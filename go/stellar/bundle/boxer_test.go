@@ -3,8 +3,10 @@ package bundle
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"os"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -33,12 +35,15 @@ func (c *canned) gen() keybase1.PerUserKeyGeneration {
 }
 
 var cans = []canned{
-	{"eTL+zDIxcT2VXjQQ++kWV7NpHrz49b0DxK3UcdS8k/A=", 3, "hKFlxOSabxN7oh6jksn0Op99CN6jjt0RGbNkE21rgldt7XWrjUP3LKiLIZXshHF4bXehkbcUqZCpWi14wLc2z31vmEPxm3iSwwWx0ePJnCtX53oYAeJeAGeCmmfacmpvIKhNPqd1Xiv4/Ujj9QhE2QkxhYPC0KPduWN4lsnk+Ae+HHdFcNO5ifQ4DoibsfIiv4Q4GDDxACaawEBv7+BIkO+WNmv/7EPZlxw2F0WVMXY+olewEZuYkuDZSPw0q3i2XyTWzJe5epKe2+mH5nJjIXbC2s1CzvHMj7xabXRLTvuqtiLKsxgqPNKjZ2VuA6FuxBiwsPJSEeeLudeMyVeHF9LgRI77pxlhZi+hdgE=", "g6hhY2NvdW50c5GDqWFjY291bnRJRNk4R0RHUlVOTlRURUhGU0dHTk5FTklGQ1hMSEk1RkdDUk5CNTU0SEhZR0RQQlY1RDNPQ0taQlNaTzKpaXNQcmltYXJ5w6Rtb2RlAaRwcmV2wKhyZXZpc2lvbgE="},
-	{"atVK8A2oMUqH2bjNlNjQB8TQGVFy6OMZwlLegmgD2J0=", 3, "hKFlxOQ1dbS1A0jTBnUQbvKbfWJ+vRSev9O20K0x5HRRtWGBWey0ABbajtI3uDalJ3nzI2bJ8jacL6USpTB6Uxs1x9dufPARAi9H2karv2LgQdfdQJ4u30DEUa9ayXkNTY4Gzo0T8f/G0YdWL6uVjGZrB+qlXNsYn16VMbeeJ318c2TNX69mVdJEaAkWT7qu3MF6w3/GojEG4VK/PrvzcJG4+0J6swvNeNYaWGzMEn7jy8QDps4UJQshbZJw+djwa/mr40WJLrUg6jYUYGRfjTZOJTCoHHbIS2Kzlbxjhlo0CFqz5Uxij7KjZ2VuA6FuxBjMRz8H5RN+xPmEkulUakQpiVYhd+dm8fKhdgE=", "g6hhY2NvdW50c5GDqWFjY291bnRJRNk4R0FaN1VJT0xSQ1dYWFBHQkEzSjRQM1dDNjZHUlNWSVhQWERDRktLVDcyNlRWT1JNUjU3UU9QQUypaXNQcmltYXJ5w6Rtb2RlAaRwcmV2wKhyZXZpc2lvbgE="},
+	{"mAWdQTSZTnotyTeR0+2wCh1wvbRs8bmbS0SzO+RYEio=", 3, "hKFlxOQBu2gj+ZnJmy4aDGglUmGSemUPfWSmxYnf5FBGtFPezqe3Mb8hJgaFEXp2ZYenM+40enUbQpYdJw379hKosSYSh7OK+oFcuERkYL/VknUlXrLj3tyipB1jZu6mCmeknYJOqRjjvlcVXok9zM2GbCb1dLgAdYRL3RmvtcnDxsyw/YzrDSOM/mRizZ8sHIs/XHQIpUVTEjCSbC1ildsRovSlMJmNKRF7eKYkgBSRSgAX2UqP8hXDxc/ErceDGkoXAESMeaviDbZQOBD6D6s3xn2BEbo/L7nAuxnFFCBO14zo8qbR8fijZ2VuA6FuxBhVBF1NZjT7axUIU4GLLNbsouP++zRM9gqhdgI=", "g6hhY2NvdW50c5GDqWFjY291bnRJRNk4R0RHUlVOTlRURUhGU0dHTk5FTklGQ1hMSEk1RkdDUk5CNTU0SEhZR0RQQlY1RDNPQ0taQlNaTzKpaXNQcmltYXJ5w6Rtb2RlAaRwcmV2wKhyZXZpc2lvbgE="},
+	// this one was encrypted but is using the wrong key to decrypt (mA vs mB)
+	{"63NVeXpRPf0VYIaX1MxfVNoj8rl72abZc2zXS+IgnW4=", 3, "hKFlxOTvB0wso/wzHJyEUoQfMGvNeB40pCCGWsDfNXIqJISWVdnMgPxVHJtnb81BiwcY5vtptPcPmCjG/0go4pnQf8UHcXQQjf2cgWoULsMRYb1lkxIaSBC3U+5kxICoMwI/8wL3JToU3zjfq2dRLzNRPE0kM/a55saY4nwVmQ8jiJ3GMbtEt92yluZK/AG5snhIh/g3tAayfIbDjgzy4qZjJy/HCnEOntr2Nr8OeLdEzRD2wpDrYjcVX/wgXJXQO0TEAIkY/OzOHFORyxAMUJKNaczJR6wlEhNkPX3Lg5wnLRHmx7rVI2qjZ2VuA6FuxBjtPfYaWlZhEztq4R4evtHuhR3kLnCg2HChdgI=", "g6hhY2NvdW50c5GDqWFjY291bnRJRNk4R0FaN1VJT0xSQ1dYWFBHQkEzSjRQM1dDNjZHUlNWSVhQWERDRktLVDcyNlRWT1JNUjU3UU9QQUypaXNQcmltYXJ5w6Rtb2RlAaRwcmV2wKhyZXZpc2lvbgE="},
 	// this one has two primary accounts.
-	{"9Qd+6cJL8PpnpNAzpWnQYW/Dqf8p2pX37p+Fpa4u7YI=", 3, "hKFlxQF2PpQpxlJ8zd3HZrErc3zjTr9FbiSXhlr4c4e6JALlqRD7+1K1RiyZEfK3xWriy5+WAH7Uo/3gvWkaKEHLYPxpSfNNGzOJsOntMhAodU1l29h/IeldiwsCUFeIhswwIZXNZ6vfmN7M/1Ux3oVk7NKbwPCaCoIufYWx4y/BL8N1/HwdERe27IEDPyd1LpBV5rEded4sLbBhPE9V9jOx8+SbKGtILE3tzI6g3gFqSm8CjstzwRhm1D6A04frj96G5RPKAVQzp+65qVJwpG8JkHjWBg16zZMhX95nruHTCLXBEdFjDslJTZdwS6H2yunnf6tfgqHa2FLuhykspaMmgM8hXPcFnsUjL2RyYGlFpdmBgPdj4mUNfvYV2+PDfYAs9OG4nd4BV9wQKFRA7hooBp3NnC01keGORvQNkkpvZYGroyJC5odSngIVeRQD8NvWaPjqOV7MPSu3YdF9nUDd10c+OzYOvtDqonaV9DsD8ZkmqzdZeSjRnOyjZ2VuA6FuxBg/mM19V2d1K2+n3mjnziNx3okGJ3iaodqhdgE=", "g6hhY2NvdW50c5KDqWFjY291bnRJRNk4R0FNTUVZSTJESTc1NzZSWUZSSEEzRktENlJKQ0Y1RUNKVTdCV0hGNzdVUUtKN05TM01WUjZOMkupaXNQcmltYXJ5w6Rtb2RlAYOpYWNjb3VudElE2ThHQUIyQlBCQ05IRkxMQkNMRTI2UVBHSUtVWDJIQzJOTVVNTDdQRUozVVBWUjNPNFFNVTRUNlZLMqlpc1ByaW1hcnnDpG1vZGUBpHByZXbAqHJldmlzaW9uAQ=="},
+	{"8+XNNJr3nquEG7OZWWKnTrSz5iGTEDA7zToQNoRu8hA=", 3, "hKFlxQF2pJwTioFbs/xiPQ9GBoU/HQt6x0iJGxVM0CUm0ZtjxmJ9foIUqlbcv2Gg9Yiqk1noeNeJtdyJ85c70kdab2mbBpKOPa4n+MEz9+Iwd+ZbrpSsNVyBOWeb4ft4Kn8XAXs1mCKaGbSP1PK9m4Ka22qgfZKNiywtfKPvhzyKRsIPr5vODx9Jx1mdjnvNtEiAkxrqrGmFBUED5bBFJ/6PyprxhCl9kgnBJMDcevRmx9U/IrCfrnBrw9+NFrRpD7nvVXebIkZQFq5PjvEfiaE1QfzYgYetBg51h6g1j46Yg4oGddrptIt1YMACenlfBR64Rt6ERMxF5EKZbb3SLlTPqmOFO8h9rSjharrCL1L1o5fDE4fFvZotmZon1XseEQVa0t0lIDxHNK8an6udSiUqpvhsLr6Et8FJZHziSDLsjJj6hllETQz/XB+mYsTQyEjUM7Wif8PNLh3aAdm+HV4cOaCi5x4QQM6iu2c8o1ikIBwsSqUgDUIKPcGjZ2VuA6FuxBhbM4dz2ULexmZXwNfWSTe8IJTzV/N47C2hdgI=", "g6hhY2NvdW50c5KDqWFjY291bnRJRNk4R0FXWjdIVlBLUkdDSDJLUDY0NzVYVjZIQTJDQUY0NE1YV1dFNVJLVjRMTU1HQjZGTk5TRVBOUEWpaXNQcmltYXJ5w6Rtb2RlAYOpYWNjb3VudElE2ThHQlBMTEhPS1BSRlNDRTZGUDZEMzdBVVVOWUNKMlRTUE9ITUhBUjU0VEJETFdXUElaQ0Q0UkwzR6lpc1ByaW1hcnnDpG1vZGUBpHByZXbAqHJldmlzaW9uAQ=="},
 	// this one has the accounts in different orders on the inside and outside
-	{"MWoF2nQhFUC1R+7HEfD8RMHEzE95d5KURpw8fMWPU5A=", 3, "hKFlxQF2BwY9jwhef9+q54QJcfq7hfKtzEH1apJ7FC3mjTTvpcsnKHeXNX6MvEISlTwE7iuTMmnpr8ZbNv8dBT8OeAc/t5IrRUUFymXl1s0Keyvilf4q9jhG6qe8mGILG+S9D3se6CnMPiY0yVpRQBugXLm0h3xI8kJn/TVieT5Gd5IiW19f1H/jFu8C5gVa3+e8tO8TTvwOJKYYmMaczxhY2O1YWN5XZbBgxX1quDkqe+c7K2OMt4GgMxMS6KWn+kKJ6l1D1bhHvQ6cAmc5KwCECS0oAalH7vjQdJylXOxOtBEkuTxBHSqfASpT5zLNI7QnJ8Xu7T1xYUPWHCsJOTIvalA/eRXgTCurZ+tWM6BFT58npn7LVOApwHdR6EE3U2PkBysEPAY35Wr1lKJjxv07Yv9f07Hrxbp0/LaHAmSjHSJkojnPPqbWRKbTRIvLxP9Ug92f8d1KELJmpYFzantjsYRrbC9mKB4oIcNPyCCRuwtt8PELbMBDCKOjZ2VuA6FuxBgjv0ihU6zxq0XZTYfeslHWEphYuUoF+M2hdgE=", "g6hhY2NvdW50c5KDqWFjY291bnRJRNk4R0NQQkJCRk5NRjVMRUNXSU9STlpKNEU1NVdDRzdBR1dGWFhMWUVHMlc0NDRDSUZTWFhTV0IzSkepaXNQcmltYXJ5w6Rtb2RlAYOpYWNjb3VudElE2ThHQk5BRkpKUTJOQ0ozVVdCSENaR0RWVzQ2R1k0TVVJSEZYQ1ZVRlA1QVpZS0RNNDNLWDRZRlRBUalpc1ByaW1hcnnCpG1vZGUBpHByZXbAqHJldmlzaW9uAQ=="},
+	{"KRihgI3GNqHrYSk7HuN7iDcIOdZ//hA03moiVtv611I=", 3, "hKFlxQF2K2qt86lRFXoqIJjYCKZx6a0tmv30Nd4cm00EmJz5cXlCeScv+gZpdVEH/BxDhKgdeXuzeYFq/stcqrDp2lzD2kC3E3cce8NumvpEuH0TL+eRpYpjziQzGFz5ReTrae9OcUzSd/4tdD7NcSgaZyUBjJjI8mCeRHHCp5W5kS65g8OBwSC36Oa1cm+Kyaw0KaahqlMZHgpoZcKzqor0mSx0H8xaY+LzgPkFh5jVBPNvbur6Z13wpWLYLwfgGBJ0WQ6OL+mkdrrgl+0z+w/jHoEEV6dS3mhxcY21qtJqWtusi+d7D7y7GrIAIHsgbVdqA1L1ViOlHzL5JYMrhdT7IJlR5RIH0+resEmvF5WYcK5LADicfUMhH55QqTiNRLJmgkXk8uDs134ERvXvDdm8wdP4bFT8toYK+scqQF4YL4xZp1tTxuReCeHRhU/dpaROB5h+7Sj0GU5cKXVX7XnTJpeYW3nSBD2euJyNoXMPi/j/0/GZmo1uLBWjZ2VuA6FuxBi8DkD0rpMWmYunXY/BQ/HBwY13uI+eviuhdgI=", "g6hhY2NvdW50c5KDqWFjY291bnRJRNk4R0JQTExIT0tQUkZTQ0U2RlA2RDM3QVVVTllDSjJUU1BPSE1IQVI1NFRCRExXV1BJWkNENFJMM0epaXNQcmltYXJ5wqRtb2RlAYOpYWNjb3VudElE2ThHQVdaN0hWUEtSR0NIMktQNjQ3NVhWNkhBMkNBRjQ0TVhXV0U1UktWNExNTUdCNkZOTlNFUE5QRalpc1ByaW1hcnnDpG1vZGUBpHByZXbAqHJldmlzaW9uAQ=="},
+	// this one uses crypt version 1 which used the wrong context string and is retired
+	{"eTL+zDIxcT2VXjQQ++kWV7NpHrz49b0DxK3UcdS8k/A=", 3, "hKFlxOSabxN7oh6jksn0Op99CN6jjt0RGbNkE21rgldt7XWrjUP3LKiLIZXshHF4bXehkbcUqZCpWi14wLc2z31vmEPxm3iSwwWx0ePJnCtX53oYAeJeAGeCmmfacmpvIKhNPqd1Xiv4/Ujj9QhE2QkxhYPC0KPduWN4lsnk+Ae+HHdFcNO5ifQ4DoibsfIiv4Q4GDDxACaawEBv7+BIkO+WNmv/7EPZlxw2F0WVMXY+olewEZuYkuDZSPw0q3i2XyTWzJe5epKe2+mH5nJjIXbC2s1CzvHMj7xabXRLTvuqtiLKsxgqPNKjZ2VuA6FuxBiwsPJSEeeLudeMyVeHF9LgRI77pxlhZi+hdgE=", "g6hhY2NvdW50c5GDqWFjY291bnRJRNk4R0RHUlVOTlRURUhGU0dHTk5FTklGQ1hMSEk1RkdDUk5CNTU0SEhZR0RQQlY1RDNPQ0taQlNaTzKpaXNQcmltYXJ5w6Rtb2RlAaRwcmV2wKhyZXZpc2lvbgE="},
 }
 
 func TestBundleRoundtrip(t *testing.T) {
@@ -55,7 +60,7 @@ func TestBundleRoundtrip(t *testing.T) {
 	t.Logf("enc.E b64: %v", base64.StdEncoding.EncodeToString(res.Enc.E))
 	require.Equal(t, v1, res.FormatVersion)
 	require.True(t, len(res.EncB64) > 100)
-	require.Equal(t, 1, res.Enc.V)
+	require.Equal(t, 2, res.Enc.V)
 	require.True(t, len(res.Enc.E) > 100)
 	require.Equal(t, pukGen, res.Enc.Gen)
 
@@ -155,14 +160,51 @@ func TestBundleRoundtripCorruptionVis(t *testing.T) {
 	require.Contains(t, err.Error(), "hash mismatch")
 }
 
+func TestCanningFacility(t *testing.T) {
+	if os.Getenv("KEYBASE_CANNING_FACILITY") != "1" {
+		t.Skip("this is not really a test but a tool for creating cans for tests")
+	}
+	bundleLocal := stellar1.Bundle{
+		Revision: 1,
+		Prev:     nil,
+		Accounts: []stellar1.BundleEntry{{
+			AccountID: "GAWZ7HVPKRGCH2KP6475XV6HA2CAF44MXWWE5RKV4LMMGB6FNNSEPNPE",
+			Mode:      stellar1.AccountMode_USER,
+			Signers:   []stellar1.SecretKey{"SBV2JNAJA65LMCZ5HYDXAYWRQK25CD2DZB25YZVNX3OLPALN2EVKO2V2"},
+			IsPrimary: true,
+			Name:      "p1",
+		}, {
+			AccountID: "GBPLLHOKPRFSCE6FP6D37AUUNYCJ2TSPOHMHAR54TBDLWWPIZCD4RL3G",
+			Mode:      stellar1.AccountMode_USER,
+			Signers:   []stellar1.SecretKey{"SDZJUFUKEQQU77DCF2VH72XB4S427EGKF6BSOSPUIKLTBCTCMXQQ7JU5"},
+			IsPrimary: false,
+			Name:      "p2",
+		}},
+	}
+	puk, pukGen := mkPuk(t, 3)
+	res, err := Box(bundleLocal, pukGen, puk)
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(res))
+	t.Logf("puk seed: %v", base64.StdEncoding.EncodeToString(puk[:]))
+	t.Logf("puk gen: %v", pukGen)
+	t.Logf("nonce: %v", base64.StdEncoding.EncodeToString(res.Enc.N[:]))
+	t.Logf("enc E: %v", base64.StdEncoding.EncodeToString(res.Enc.E[:]))
+	t.Logf("enc: %v", res.EncB64)
+	t.Logf("vis: %v", res.VisB64)
+	cipherpack, err := base64.StdEncoding.DecodeString(res.EncB64)
+	require.NoError(t, err)
+	encHash := sha256.Sum256(cipherpack)
+	t.Logf("own hash: %v", base64.StdEncoding.EncodeToString(encHash[:]))
+}
+
 func TestCanned(t *testing.T) {
 	c := cans[0]
 	dec, err := Decode(c.encB64)
 	require.NoError(t, err)
-	require.Equal(t, 1, dec.Enc.V)
+	require.Equal(t, 2, dec.Enc.V)
 	require.Equal(t, c.gen(), dec.Enc.Gen)
-	require.Equal(t, "sLDyUhHni7nXjMlXhxfS4ESO+6cZYWYv", base64.StdEncoding.EncodeToString(dec.Enc.N[:]))
-	b64EncE := "mm8Te6Ieo5LJ9DqffQjeo47dERmzZBNta4JXbe11q41D9yyoiyGV7IRxeG13oZG3FKmQqVoteMC3Ns99b5hD8Zt4ksMFsdHjyZwrV+d6GAHiXgBngppn2nJqbyCoTT6ndV4r+P1I4/UIRNkJMYWDwtCj3bljeJbJ5PgHvhx3RXDTuYn0OA6Im7HyIr+EOBgw8QAmmsBAb+/gSJDvljZr/+xD2ZccNhdFlTF2PqJXsBGbmJLg2Uj8NKt4tl8k1syXuXqSntvph+ZyYyF2wtrNQs7xzI+8Wm10S077qrYiyrMYKjzS"
+	require.Equal(t, "VQRdTWY0+2sVCFOBiyzW7KLj/vs0TPYK", base64.StdEncoding.EncodeToString(dec.Enc.N[:]))
+	b64EncE := "AbtoI/mZyZsuGgxoJVJhknplD31kpsWJ3+RQRrRT3s6ntzG/ISYGhRF6dmWHpzPuNHp1G0KWHScN+/YSqLEmEoezivqBXLhEZGC/1ZJ1JV6y497coqQdY2bupgpnpJ2CTqkY475XFV6JPczNhmwm9XS4AHWES90Zr7XJw8bMsP2M6w0jjP5kYs2fLByLP1x0CKVFUxIwkmwtYpXbEaL0pTCZjSkRe3imJIAUkUoAF9lKj/IVw8XPxK3HgxpKFwBEjHmr4g22UDgQ+g+rN8Z9gRG6Py+5wLsZxRQgTteM6PKm0fH4"
 	require.Equal(t, b64EncE, base64.StdEncoding.EncodeToString(dec.Enc.E))
 	cipherpack, err := base64.StdEncoding.DecodeString(c.encB64)
 	require.NoError(t, err)
@@ -173,7 +215,7 @@ func TestCanned(t *testing.T) {
 	require.Equal(t, v1, v)
 	require.Equal(t, stellar1.BundleRevision(1), bundle.Revision)
 	require.Nil(t, bundle.Prev)
-	require.Equal(t, "CPbPvX1CVoMD60+dQhyLcW5pBY3758YAGUWN4Swxuy0=", base64.StdEncoding.EncodeToString(bundle.OwnHash))
+	require.Equal(t, "YCtPeRc2WInxlsyXdIWnSGOiY3HPXC4MWKhFeTfSRWo=", base64.StdEncoding.EncodeToString(bundle.OwnHash))
 	require.Equal(t, encHash[:], []byte(bundle.OwnHash))
 	require.Len(t, bundle.Accounts, 1)
 	refAccount := stellar1.BundleEntry{
@@ -220,6 +262,18 @@ func TestCannedUnboxInvariantViolationOrderMismatch(t *testing.T) {
 	_, _, err = Unbox(dec, c.visB64, c.puk(t))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "mismatched account ID")
+}
+
+func TestCannedCryptV1(t *testing.T) {
+	c := cans[4]
+	dec, err := Decode(c.encB64)
+	require.NoError(t, err)
+	_, err = Decrypt(dec.Enc, c.puk(t))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "stellar secret bundle encryption version 1 has been retired")
+	_, _, err = Unbox(dec, c.visB64, c.puk(t))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "stellar secret bundle encryption version 1 has been retired")
 }
 
 func TestBoxInvariantViolationDuplicateAccount(t *testing.T) {
