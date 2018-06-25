@@ -646,7 +646,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			Conv: s.presentUIItem(convLocal),
 		})
 		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(boxed.ClientHeader.Sender.String()),
-			&activity)
+			conv.GetTopicType(), &activity)
 	}
 	return []byte{}, boxed, nil
 }
@@ -865,7 +865,7 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 			OutboxRecords: marked,
 		})
 		s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
-			keybase1.UID(s.outbox.GetUID().String()), &act)
+			keybase1.UID(s.outbox.GetUID().String()), chat1.TopicType_NONE, &act)
 	}
 
 	return nil

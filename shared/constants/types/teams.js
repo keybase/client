@@ -49,9 +49,10 @@ export type _ChannelInfo = {
 }
 export type ChannelInfo = I.RecordOf<_ChannelInfo>
 
+export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type _MemberInfo = {
-  active: boolean,
   fullName: string,
+  status: MemberStatus,
   type: TeamRoleType,
   username: string,
 }
@@ -96,9 +97,16 @@ export type _ResetUser = {
 }
 export type ResetUser = I.RecordOf<_ResetUser>
 
+export type _EmailInviteError = {
+  malformed: I.Set<string>,
+  message: string,
+}
+export type EmailInviteError = I.RecordOf<_EmailInviteError>
+
 export type _State = {
   addUserToTeamsResults: string,
   channelCreationError: string,
+  emailInviteError: EmailInviteError,
   teamsWithChosenChannels: I.Set<Teamname>,
   sawChatBanner: boolean,
   sawSubteamsBanner: boolean,
