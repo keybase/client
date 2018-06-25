@@ -22,11 +22,10 @@ const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps) => {
   const info = map.get(username, blankInfo)
 
   return {
-    deleted: info.status === 'deleted',
     following: amIFollowing(state, username),
     fullName: state.config.username === username ? 'You' : info.fullName,
-    reset: info.status === 'reset',
     roleType: info.type,
+    status: info.status,
     username: info.username,
     waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamname, username)),
     waitingForRemove: anyWaiting(state, Constants.removeMemberWaitingKey(teamname, username)),
@@ -69,7 +68,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
 
 const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   return {
-    deleted: stateProps.deleted,
     following: stateProps.following,
     fullName: stateProps.fullName,
     onChat: dispatchProps.onChat,
@@ -78,8 +76,8 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
       dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username, stateProps.roleType),
     onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(ownProps.teamname, ownProps.username),
     onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
-    reset: stateProps.reset,
     roleType: stateProps.roleType,
+    status: stateProps.status,
     username: stateProps.username,
     waitingForAdd: stateProps.waitingForAdd,
     waitingForRemove: stateProps.waitingForRemove,

@@ -13,10 +13,9 @@ import {
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
 import {roleIconColorMap} from '../../../role-picker/index.meta'
 import {typeToLabel} from '../../../../constants/teams'
-import {type BoolTypeMap, type TeamRoleType} from '../../../../constants/types/teams'
+import type {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
-  deleted: boolean,
   following: boolean,
   fullName: string,
   onChat: () => void,
@@ -24,8 +23,8 @@ export type Props = {
   onReAddToTeam: () => void,
   onRemoveFromTeam: () => void,
   onShowTracker: () => void,
-  reset: boolean,
   roleType: TeamRoleType,
+  status: MemberStatus,
   username: string,
   waitingForAdd: boolean,
   waitingForRemove: boolean,
@@ -42,7 +41,7 @@ const showCrown: BoolTypeMap = {
 
 export const TeamMemberRow = (props: Props) => {
   let crown, fullNameLabel, resetLabel
-  const active = !(props.reset || props.deleted)
+  const active = props.status === 'active'
   if (active && props.roleType && showCrown[props.roleType]) {
     crown = (
       <Icon
@@ -67,7 +66,7 @@ export const TeamMemberRow = (props: Props) => {
     resetLabel = props.youCanManageMembers
       ? 'Has reset their account'
       : 'Has reset their account; admins can re-invite'
-    if (props.deleted) {
+    if (props.status === 'deleted') {
       resetLabel = 'Has deleted their account'
     }
   }
@@ -118,7 +117,7 @@ export const TeamMemberRow = (props: Props) => {
                     paddingRight: globalMargins.xtiny,
                   }}
                 >
-                  {props.reset ? 'LOCKED OUT' : 'DELETED'}
+                  {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
                 </Text>
               )}
               <Text type="BodySmall">
@@ -133,7 +132,7 @@ export const TeamMemberRow = (props: Props) => {
           props.youCanManageMembers && (
             <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
               <ButtonBar>
-                {!props.deleted && (
+                {!props.status === 'deleted' && (
                   <Button
                     small={true}
                     label="Re-Admit"
