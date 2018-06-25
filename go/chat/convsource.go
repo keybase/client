@@ -1037,18 +1037,20 @@ func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
 		var inboxItem *chat1.InboxUIItem
+		topicType := chat1.TopicType_NONE
 		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
 		if err != nil {
 			s.Debug(ctx, "expungeNotify: failed to get conversations: %s", err)
 		} else {
 			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
+			topicType = conv.GetTopicType()
 		}
 		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
 			ConvID:  convID,
 			Expunge: *mergeRes.Expunged,
 			Conv:    inboxItem,
 		})
-		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
+		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), topicType, &act)
 	}
 }
 
@@ -1057,11 +1059,13 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 	s.Debug(ctx, "notifyEphemeralPurge: exploded: %d", len(explodedMsgs))
 	if len(explodedMsgs) > 0 {
 		var inboxItem *chat1.InboxUIItem
+		topicType := chat1.TopicType_NONE
 		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
 		if err != nil {
 			s.Debug(ctx, "notifyEphemeralPurge: failed to get conversations: %s", err)
 		} else {
 			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
+			topicType = conv.GetTopicType()
 		}
 		purgedMsgs := []chat1.UIMessage{}
 		for _, msg := range explodedMsgs {
@@ -1072,7 +1076,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			Msgs:   purgedMsgs,
 			Conv:   inboxItem,
 		})
-		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
+		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), topicType, &act)
 	}
 }
 

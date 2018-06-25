@@ -541,7 +541,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 			IsEphemeralPurge: true,
 		})
 		o.G().NotifyRouter.HandleNewChatActivity(context.Background(),
-			keybase1.UID(o.GetUID().String()), &act)
+			keybase1.UID(o.GetUID().String()), chat1.TopicType_NONE, &act)
 	}
 	return nil
 }
