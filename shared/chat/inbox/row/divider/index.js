@@ -7,6 +7,7 @@ type Props = {
   badgeCount: number,
   hiddenCount: number,
   style?: any,
+  showSmallTeamsExpandDivider: boolean,
   toggle: () => void,
 }
 
@@ -14,15 +15,17 @@ class Divider extends React.PureComponent<Props> {
   render() {
     return (
       <Box style={this.props.style ? {..._toggleContainer, ...this.props.style} : _toggleContainer}>
-        <ClickableBox onClick={this.props.toggle} className="toggleButtonClass" style={_toggleButtonStyle}>
-          <Text type="BodySmallSemibold" style={_textStyle}>
-            {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
-          </Text>
-          {this.props.hiddenCount > 0 &&
-            this.props.badgeCount > 0 && (
-              <Badge badgeStyle={_badgeToggleStyle} badgeNumber={this.props.badgeCount} />
-            )}
-        </ClickableBox>
+        {this.props.showSmallTeamsExpandDivider && (
+          <ClickableBox onClick={this.props.toggle} className="toggleButtonClass" style={_toggleButtonStyle}>
+            <Text type="BodySmallSemibold" style={_textStyle}>
+              {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
+            </Text>
+            {this.props.hiddenCount > 0 &&
+              this.props.badgeCount > 0 && (
+                <Badge badgeStyle={_badgeToggleStyle} badgeNumber={this.props.badgeCount} />
+              )}
+          </ClickableBox>
+        )}
         <Box style={_dividerStyle} />
         <Text type="BodySmallSemibold" style={{padding: `4px ${globalMargins.tiny}px`}}>
           Big Teams
