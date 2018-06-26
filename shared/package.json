@@ -188,7 +188,7 @@
     "@storybook/react-native": "4.0.0-alpha.4",
     "babel-eslint": "8.2.3",
     "babel-jest": "^23.0.1",
-    "babel-loader": "7.1.4",
+    "babel-loader": "^8.0.0-beta",
     "babel-preset-react-native": "5.0.2",
     "css-loader": "0.28.11",
     "del": "3.0.0",
