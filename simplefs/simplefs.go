@@ -249,6 +249,17 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 		res = append(res, keybase1.Dirent{})
 		res[len(res)-1].Name = string(pname)
 		res[len(res)-1].DirentType = deTy2Ty(libkbfs.Dir)
+
+		handle, err := libfs.ParseTlfHandlePreferredQuick(ctx, k.config.KBPKI(), string(pname), t)
+		if err != nil {
+			k.log.Errorf("ParseTlfHandlePreferredQuick: %s %q %v", t, pname, err)
+			continue
+		}
+		res[len(res)-1].Writable, err = libfs.IsWriter(ctx, k.config.KBPKI(), handle)
+		if err != nil {
+			k.log.Errorf("libfs.IsWriter: %q %+v", pname, err)
+			continue
+		}
 	}
 	return res, nil
 }
@@ -266,6 +277,7 @@ func setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 		t = libkbfs.Sym
 	}
 	de.DirentType = deTy2Ty(t)
+	de.Writable = (fi.Mode()&0222 != 0)
 
 	if lwg, ok := fi.Sys().(libfs.LastWriterGetter); ok {
 		lastWriter, err := lwg.LastWriter()
