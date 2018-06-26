@@ -737,6 +737,37 @@ func (k *KeybaseDaemonLocal) addTeamWriterForTest(
 	return nil
 }
 
+func (k *KeybaseDaemonLocal) removeTeamWriterForTest(
+	tid keybase1.TeamID, uid keybase1.UID) error {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	t, err := k.localTeams.getLocalTeam(tid)
+	if err != nil {
+		return err
+	}
+
+	if _, ok := t.Writers[uid]; ok {
+		u, err := k.localUsers.getLocalUser(uid)
+		if err != nil {
+			return err
+		}
+		for _, key := range u.VerifyingKeys {
+			t.LastWriters[key] = k.merkleRoot
+		}
+	}
+
+	delete(t.Writers, uid)
+	delete(t.Readers, uid)
+
+	k.localTeams[tid] = t
+	f := keybase1.Folder{
+		Name:       string(t.Name),
+		FolderType: keybase1.FolderType_TEAM,
+	}
+	k.favoriteStore.FavoriteAdd(uid, f)
+	return nil
+}
+
 func (k *KeybaseDaemonLocal) addTeamReaderForTest(
 	tid keybase1.TeamID, uid keybase1.UID) error {
 	k.lock.Lock()

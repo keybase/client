@@ -489,6 +489,27 @@ func AddTeamWriterForTestOrBust(t logger.TestLogBackend, config Config,
 	}
 }
 
+// RemoveTeamWriterForTest removes the given user from a team.
+func RemoveTeamWriterForTest(
+	config Config, tid keybase1.TeamID, uid keybase1.UID) error {
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
+	if !ok {
+		return errors.New("Bad keybase daemon")
+	}
+
+	return kbd.removeTeamWriterForTest(tid, uid)
+}
+
+// RemoveTeamWriterForTestOrBust is like RemoveTeamWriterForTest, but
+// dies if there's an error.
+func RemoveTeamWriterForTestOrBust(t logger.TestLogBackend, config Config,
+	tid keybase1.TeamID, uid keybase1.UID) {
+	err := RemoveTeamWriterForTest(config, tid, uid)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 // AddTeamReaderForTest makes the given user a team reader.
 func AddTeamReaderForTest(
 	config Config, tid keybase1.TeamID, uid keybase1.UID) error {
