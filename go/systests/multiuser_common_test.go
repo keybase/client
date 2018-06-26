@@ -647,7 +647,7 @@ func (u *smuUser) isMemberActive(team smuTeam, user *smuUser) (bool, error) {
 		return false, err
 	}
 	for _, d := range details {
-		if d.Active {
+		if d.Status.IsActive() {
 			return true, nil
 		}
 	}

@@ -245,7 +245,7 @@ type _MuteConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   muted: boolean,
 |}>
-type _NavigateToInboxPayload = void
+type _NavigateToInboxPayload = $ReadOnly<{|findNewConversation: boolean|}>
 type _NavigateToThreadPayload = void
 type _NotificationSettingsUpdatedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,

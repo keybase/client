@@ -223,6 +223,10 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         }
       ]
     },

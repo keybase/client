@@ -150,7 +150,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmall: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: globalStyles.fontRegular,
@@ -158,7 +158,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallExtrabold: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: globalStyles.fontExtrabold,
@@ -166,7 +166,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallItalic: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: {
@@ -177,7 +177,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallInlineLink: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     isLink: true,
@@ -186,7 +186,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallSemibold: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: globalStyles.fontSemibold,
@@ -194,7 +194,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallSemiboldItalic: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: {...globalStyles.fontSemibold, fontStyle: 'italic'},
@@ -202,7 +202,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallSemiboldInlineLink: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     isLink: true,
@@ -257,7 +257,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodyTiny: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 11,
     styleOverride: globalStyles.fontRegular,
@@ -265,7 +265,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodyTinySemibold: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 11,
     styleOverride: globalStyles.fontSemibold,

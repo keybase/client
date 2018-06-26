@@ -177,7 +177,7 @@ func TestSyncerConnected(t *testing.T) {
 	require.Equal(t, chat1.InboxVers(100), vers)
 	thread, cerr := store.Fetch(context.TODO(), mconv, uid, nil, nil, nil)
 	require.NoError(t, cerr)
-	require.Equal(t, 1, len(thread.Messages))
+	require.Equal(t, 1, len(thread.Thread.Messages))
 
 	t.Logf("test server version")
 	srvVers, err := ibox.ServerVersion(context.TODO())
@@ -518,8 +518,8 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	require.Equal(t, chat1.Expunge{Upto: 12}, iconvs[0].Conv.Expunge)
 	thread, cerr := store.Fetch(context.TODO(), mconv, uid, nil, nil, nil)
 	require.NoError(t, cerr)
-	require.True(t, len(thread.Messages) > 1)
-	for i, m := range thread.Messages {
+	require.True(t, len(thread.Thread.Messages) > 1)
+	for i, m := range thread.Thread.Messages {
 		t.Logf("message %v", i)
 		require.True(t, m.IsValid())
 		require.True(t, m.Valid().MessageBody.IsNil(), "remaining messages should have no body")
