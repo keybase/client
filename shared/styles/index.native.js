@@ -52,8 +52,9 @@ export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
 export const collapseStyles = (
   styles: $ReadOnlyArray<CollapsibleStyle>
-): Array<Object | null | false | void> => {
-  return styles.reduce((a, e) => a.concat(e), [])
+): $ReadOnlyArray<Object | null | false | void> => {
+  // $ForceType RN handles this directly
+  return styles
 }
 export const transition = (...properties: Array<string>) => ({})
 export const backgroundURL = (...path: Array<string>) => ({})
