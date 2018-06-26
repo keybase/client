@@ -878,6 +878,7 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
 	rawConv := rc.Conv
 	res.ConvID = rawConv.GetConvID().String()
+	res.TopicType = rawConv.GetTopicType()
 	res.Name = rawConv.MaxMsgSummaries[0].TlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rawConv)
@@ -933,6 +934,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 		}
 	}
 	res.ConvID = rawConv.GetConvID().String()
+	res.TopicType = rawConv.GetTopicType()
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = GetTopicName(rawConv)
@@ -1330,4 +1332,21 @@ func AssetsForMessage(g *globals.Context, msgBody chat1.MessageBody) (assets []c
 		assets = append(assets, body.Previews...)
 	}
 	return assets
+}
+
+func AddUserToTLFName(g *globals.Context, tlfName string, vis keybase1.TLFVisibility,
+	membersType chat1.ConversationMembersType) string {
+	switch membersType {
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
+		chat1.ConversationMembersType_KBFS:
+		username := g.Env.GetUsername().String()
+		if vis != keybase1.TLFVisibility_PUBLIC {
+			if len(tlfName) == 0 {
+				tlfName = username
+			} else {
+				tlfName += "," + username
+			}
+		}
+	}
+	return tlfName
 }

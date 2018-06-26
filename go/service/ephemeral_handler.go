@@ -5,6 +5,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -34,7 +35,10 @@ func (r *ekHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, c
 	case "ephemeral.new_team_ek":
 		return true, r.newTeamEK(ctx, cli, item)
 	default:
-		return false, fmt.Errorf("unknown ekHandler category: %q", category)
+		if strings.HasPrefix(category, "ephemeral.") {
+			return false, fmt.Errorf("unknown ekHandler category: %q", category)
+		}
+		return false, nil
 	}
 }
 

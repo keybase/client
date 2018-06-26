@@ -181,16 +181,23 @@ func (r *teamHandler) findAndDismissResetBadges(ctx context.Context, cli gregor1
 			}
 			if upak.Current.EldestSeqno == teamUV.EldestSeqno {
 				// We have the latest version of the user in the team.
+				r.G().Log.CDebugf(ctx, "Dismissing badge for %s - team has latest user version", badge.Uid)
 				dismiss = true
+			} else {
+				r.G().Log.CDebugf(ctx, "User %s is still reset: current seq: %d team seq: ",
+					badge.Uid, upak.Current.EldestSeqno, teamUV.EldestSeqno)
 			}
 		} else {
 			// User has been removed from the team.
+			r.G().Log.CDebugf(ctx, "Dismissing badge for %s - member was removed", badge.Uid)
 			dismiss = true
 		}
 
 		if dismiss {
 			err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id)
-			if err != nil {
+			if err == nil {
+				r.G().Log.CDebugf(ctx, "dismissed badge %s for %s!", badge.Id, badge.Uid)
+			} else {
 				r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
 			}
 		}

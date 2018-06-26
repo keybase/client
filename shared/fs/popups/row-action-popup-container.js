@@ -121,7 +121,8 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
 const mergeProps = (stateProps, dispatchProps) => {
   const {path, pathItem, _username, childrenFolders, childrenFiles} = stateProps
   const {onHidden, _loadMimeType} = dispatchProps
-  const itemStyles = Constants.getItemStyles(Types.getPathElements(path), pathItem.type, _username)
+  const pathElements = Types.getPathElements(path)
+  const itemStyles = Constants.getItemStyles(pathElements, pathItem.type, _username)
   const menuItems = getRootMenuItems(stateProps, dispatchProps)
   return {
     type: pathItem.type || 'unknown',
@@ -132,6 +133,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     needLoadMimeType: pathItem.type === 'file' && pathItem.mimeType === '',
     childrenFolders,
     childrenFiles,
+    pathElements,
     itemStyles,
     menuItems,
     onHidden,

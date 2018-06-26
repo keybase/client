@@ -57,7 +57,9 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	assertState := func(maxMsgID chat1.MessageID) {
 		var rc ResultCollector
-		res, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, rc, nil, nil)
+		fetchRes, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, rc,
+			nil, nil)
+		res := fetchRes.Thread
 		require.NoError(t, err)
 		if len(res.Messages) != len(expectedState) {
 			t.Logf("wrong number of messages")

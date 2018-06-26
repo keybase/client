@@ -1,8 +1,9 @@
 // @flow
 import logger from '../../logger'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as Constants from '../../constants/teams'
 import {Set, Map} from 'immutable'
-import InviteByEmailMobile, {type ContactDisplayProps} from '.'
+import {InviteByEmailMobile, type ContactDisplayProps} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
 import {
@@ -16,7 +17,6 @@ import {
 } from '../../util/container'
 import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
-import {getTeamInvites, getTeamLoadingInvites} from '../../constants/teams'
 import {getContacts} from './permissions'
 
 const cleanPhoneNumber: string => string = (dirty: string) => {
@@ -31,22 +31,30 @@ const extractPhoneNumber: string => ?string = (name: string) => {
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const teamname = routeProps.get('teamname')
+  const inviteError = Constants.getEmailInviteError(state)
   return {
+    _pendingInvites: teamname ? Constants.getTeamInvites(state, teamname) : Set(),
+    errorMessage: inviteError.message,
     name: teamname,
-    _pendingInvites: teamname ? getTeamInvites(state, teamname) : Set(),
-    loadingInvites: teamname ? getTeamLoadingInvites(state, teamname) : Map(),
+    loadingInvites: teamname ? Constants.getTeamLoadingInvites(state, teamname) : Map(),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  onClose: () => dispatch(navigateUp()),
+  onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
+  onClose: () => {
+    dispatch(navigateUp())
+    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
+  },
   onInviteEmail: ({invitee, role}) => {
+    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(
       TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees: invitee})
     )
     dispatch(TeamsGen.createGetTeams())
   },
   onInvitePhone: ({invitee, role, fullName = ''}) => {
+    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(
       TeamsGen.createInviteToTeamByPhone({
         teamname: routeProps.get('teamname'),
@@ -58,6 +66,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(TeamsGen.createGetTeams())
   },
   onUninvite: (invitee: string, id?: string) => {
+    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(
       TeamsGen.createRemoveMemberOrPendingInvite({
         email: invitee,
@@ -229,7 +238,6 @@ export default compose(
 
       return {contactRowProps}
     }),
-    // $FlowIssue doesn't like withProps
     HeaderHoc
   )
 )(InviteByEmailMobile)

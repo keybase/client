@@ -677,6 +677,9 @@ type FormatLocalCurrencyStringArg struct {
 	Code   OutsideCurrencyCode `codec:"code" json:"code"`
 }
 
+type FixupBundleCLILocalArg struct {
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetAccountAssetsLocal(context.Context, GetAccountAssetsLocalArg) ([]AccountAssetLocal, error)
@@ -712,6 +715,7 @@ type LocalInterface interface {
 	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
 	GetAvailableLocalCurrencies(context.Context) (map[OutsideCurrencyCode]OutsideCurrencyDefinition, error)
 	FormatLocalCurrencyString(context.Context, FormatLocalCurrencyStringArg) (string, error)
+	FixupBundleCLILocal(context.Context) (bool, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1242,6 +1246,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"fixupBundleCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]FixupBundleCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.FixupBundleCLILocal(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1427,5 +1442,10 @@ func (c LocalClient) GetAvailableLocalCurrencies(ctx context.Context) (res map[O
 
 func (c LocalClient) FormatLocalCurrencyString(ctx context.Context, __arg FormatLocalCurrencyStringArg) (res string, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.formatLocalCurrencyString", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) FixupBundleCLILocal(ctx context.Context) (res bool, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.fixupBundleCLILocal", []interface{}{FixupBundleCLILocalArg{}}, &res)
 	return
 }

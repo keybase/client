@@ -437,12 +437,14 @@ func (o SetTeamRetentionUpdate) DeepCopy() SetTeamRetentionUpdate {
 type KBFSImpteamUpgradeUpdate struct {
 	ConvID    ConversationID `codec:"convID" json:"convID"`
 	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	TopicType TopicType      `codec:"topicType" json:"topicType"`
 }
 
 func (o KBFSImpteamUpgradeUpdate) DeepCopy() KBFSImpteamUpgradeUpdate {
 	return KBFSImpteamUpgradeUpdate{
 		ConvID:    o.ConvID.DeepCopy(),
 		InboxVers: o.InboxVers.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 	}
 }
 

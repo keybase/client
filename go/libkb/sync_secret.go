@@ -119,10 +119,11 @@ func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err er
 	return nil
 }
 
-func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr SessionReader) (err error) {
+func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr SessionReader,
+	forceReload bool) (err error) {
 	hargs := HTTPArgs{}
 
-	if ss.keys != nil {
+	if ss.keys != nil && !forceReload {
 		m.CDebugf("| adding version %d to fetch_private call", ss.keys.Version)
 		hargs.Add("version", I{ss.keys.Version})
 	}
@@ -146,7 +147,7 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr Sessi
 	}
 
 	m.CDebugf("| Returned object: {Status: %v, Version: %d, #pgpkeys: %d, #devices: %d}", obj.Status, obj.Version, len(obj.PrivateKeys), len(obj.Devices))
-	if ss.keys == nil || obj.Version > ss.keys.Version {
+	if forceReload || ss.keys == nil || obj.Version > ss.keys.Version {
 		m.CDebugf("| upgrade to version -> %d", obj.Version)
 		ss.keys = &obj
 		ss.dirty = true

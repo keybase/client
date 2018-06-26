@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Box, Text} from '../../../common-adapters'
-import {globalColors, globalStyles, globalMargins, isMobile} from '../../../styles'
+import {globalColors, globalStyles, globalMargins} from '../../../styles'
 
 type Props = {
   onShowNewTeamDialog: () => void,
@@ -9,8 +9,8 @@ type Props = {
 
 const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
   <Box style={stylesContainer}>
-    <Box style={isMobile ? {alignItems: 'center'} : {textAlign: 'center'}}>
-      <Text type="BodySmallSemibold" backgroundMode="HighRisk">
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <Text type="BodySmallSemibold" backgroundMode="HighRisk" style={{textAlign: 'center'}}>
         Create a team? You’ll be able to add and remove members as you wish.{' '}
       </Text>
       <Text

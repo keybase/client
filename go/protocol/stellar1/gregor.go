@@ -7,15 +7,15 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type GmAutoClaim struct {
-	KbTxID       KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
-	KnownCounter int                  `codec:"knownCounter" json:"knownCounter"`
+type PaymentStatusMsg struct {
+	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
+	TxID   TransactionID        `codec:"txID" json:"txID"`
 }
 
-func (o GmAutoClaim) DeepCopy() GmAutoClaim {
-	return GmAutoClaim{
-		KbTxID:       o.KbTxID.DeepCopy(),
-		KnownCounter: o.KnownCounter,
+func (o PaymentStatusMsg) DeepCopy() PaymentStatusMsg {
+	return PaymentStatusMsg{
+		KbTxID: o.KbTxID.DeepCopy(),
+		TxID:   o.TxID.DeepCopy(),
 	}
 }
 

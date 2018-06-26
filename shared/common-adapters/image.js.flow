@@ -3,6 +3,7 @@
 export type Props = {
   src: string,
   style?: any,
+  onLoad?: () => void,
 }
 
 export default function(props: Props) {}
