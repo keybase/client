@@ -610,7 +610,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 				}), uid, arg.ConversationID),
 		})
 		m.world.TcsByID[uid.String()].G.NotifyRouter.HandleNewChatActivity(context.Background(),
-			keybase1.UID(uid.String()), &activity)
+			keybase1.UID(uid.String()), conv.GetTopicType(), &activity)
 	}
 
 	return

@@ -705,7 +705,8 @@
       "name": "FullNamePackageVersion",
       "symbols": [
         "V0_0",
-        "V1_1"
+        "V1_1",
+        "V2_2"
       ]
     },
     {
@@ -723,6 +724,10 @@
         {
           "type": "Seqno",
           "name": "eldestSeqno"
+        },
+        {
+          "type": "StatusCode",
+          "name": "status"
         },
         {
           "type": "Time",

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
+import * as I from 'immutable'
 import {type TeamRoleType} from '../../constants/types/teams'
-import {isMobile} from '../../constants/platform'
 
 // Note: 'on Android the entire display name is passed in the givenName field. middleName and familyName will be empty strings.'
 export type ContactProps = {
@@ -34,22 +34,23 @@ export type ContactRowProps = {
   selected?: boolean,
 }
 
-export type Props = {
-  invitees: string,
+export type DesktopProps = {
+  errorMessage: string,
+  malformedEmails: I.Set<string>,
   name: string,
+  onClearInviteError: () => void,
   onClose: () => void,
-  onInvite: () => void,
-  onInviteesChange: (invitees: string) => void,
+  onInvite: (invitees: string, role: TeamRoleType) => void,
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
-  onRoleChange: (role: TeamRoleType) => void,
-  role: TeamRoleType,
 }
 
 export type MobileProps = {
+  errorMessage: string,
   invitee: string,
   invited: Array<{contactID: string, address?: string}>,
   loadingInvites: any, // TODO typing
   name: string,
+  onClearError: () => void,
   onClose: () => void,
   onInviteEmail: (invitee: string) => void,
   onInvitePhone: (invitee: string) => void,
@@ -64,7 +65,5 @@ export type MobileProps = {
   hasPermission: boolean,
 }
 
-declare export class InviteByEmailDesktop extends React.Component<Props> {}
+declare export class InviteByEmailDesktop extends React.Component<DesktopProps> {}
 declare export class InviteByEmailMobile extends React.Component<MobileProps> {}
-
-export default (isMobile ? InviteByEmailMobile : InviteByEmailDesktop)

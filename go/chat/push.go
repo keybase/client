@@ -245,11 +245,12 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			} else {
 				conv = nil
 			}
-
-			if conv == nil || conv.GetTopicType() == chat1.TopicType_CHAT {
-				g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
-					convID, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
+			topicType := chat1.TopicType_NONE
+			if conv != nil {
+				topicType = conv.GetTopicType()
 			}
+			g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
+				convID, topicType, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
 		}
 	}(bctx)
 
@@ -302,11 +303,8 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 		}
 		g.Debug(ctx, "TlfResolve: convID: %s new TLF name: %s", updateConv.GetConvID(),
 			updateConv.Info.TlfName)
-
-		if updateConv.GetTopicType() == chat1.TopicType_CHAT {
-			g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
-				update.ConvID, resolveInfo)
-		}
+		g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
+			update.ConvID, updateConv.GetTopicType(), resolveInfo)
 	}(bctx)
 
 	return nil
@@ -635,40 +633,30 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 	if err != nil {
 		return err
 	}
-	switch topicType {
-	case chat1.TopicType_CHAT:
-		g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
-	case chat1.TopicType_DEV:
-		// ignore these
-		return nil
-	case chat1.TopicType_KBFSFILEEDIT:
-		g.G().NotifyRouter.HandleChatKBFSFileEditActivity(ctx, kbUID, activity)
-	default:
-		g.Debug(ctx, "notifyNewChatActivity: unknown topic type: %v", topicType)
-	}
+	g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, topicType, activity)
 	return nil
 }
 
 func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 	conv chat1.ConversationLocal) {
-
 	kuid := keybase1.UID(uid.String())
 	g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, conv.GetConvID(),
-		g.presentUIItem(ctx, &conv, uid))
+		conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid))
 }
 
 func (g *PushHandler) notifyLeftChannel(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) {
-
+	convID chat1.ConversationID, topicType chat1.TopicType) {
 	kuid := keybase1.UID(uid.String())
-	g.G().NotifyRouter.HandleChatLeftConversation(ctx, kuid, convID)
+	g.G().NotifyRouter.HandleChatLeftConversation(ctx, kuid, convID, topicType)
 }
 
 func (g *PushHandler) notifyReset(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) {
-
+	convID chat1.ConversationID, topicType chat1.TopicType) {
+	if topicType != chat1.TopicType_CHAT {
+		return
+	}
 	kuid := keybase1.UID(uid.String())
-	g.G().NotifyRouter.HandleChatResetConversation(ctx, kuid, convID)
+	g.G().NotifyRouter.HandleChatResetConversation(ctx, kuid, convID, topicType)
 }
 
 func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
@@ -690,6 +678,9 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	convMap := make(map[string][]chat1.MemberInfo)
 	addStatus := func(status chat1.ConversationMemberStatus, l []chat1.ConversationMember) {
 		for _, cm := range l {
+			if cm.TopicType != chat1.TopicType_CHAT {
+				continue
+			}
 			if _, ok := convMap[cm.ConvID.String()]; !ok {
 				convMap[cm.ConvID.String()] = []chat1.MemberInfo{}
 			}
@@ -792,7 +783,8 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to clear convsource: %s", err)
 		}
 
-		g.G().NotifyRouter.HandleChatKBFSToImpteamUpgrade(ctx, keybase1.UID(uid.String()), update.ConvID)
+		g.G().NotifyRouter.HandleChatKBFSToImpteamUpgrade(ctx, keybase1.UID(uid.String()), update.ConvID,
+			update.TopicType)
 
 		return nil
 	}(bctx)
@@ -841,10 +833,10 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 			g.notifyJoinChannel(ctx, uid, c)
 		}
 		for _, c := range updateRes.UserRemovedConvs {
-			g.notifyLeftChannel(ctx, uid, c)
+			g.notifyLeftChannel(ctx, uid, c.ConvID, c.TopicType)
 		}
 		for _, c := range updateRes.UserResetConvs {
-			g.notifyReset(ctx, uid, c)
+			g.notifyReset(ctx, uid, c.ConvID, c.TopicType)
 		}
 		g.notifyMembersUpdate(ctx, uid, updateRes)
 
@@ -925,10 +917,8 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 			return
 		}
 		// Send notify for the conv
-		if conv.GetTopicType() == chat1.TopicType_CHAT {
-			g.G().NotifyRouter.HandleChatSetConvRetention(ctx, keybase1.UID(uid.String()),
-				conv.GetConvID(), g.presentUIItem(ctx, conv, uid))
-		}
+		g.G().NotifyRouter.HandleChatSetConvRetention(ctx, keybase1.UID(uid.String()),
+			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
 	}(bctx)
 
 	return nil
@@ -974,17 +964,17 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 			return
 		}
 		// Send notify for each conversation ID
-		var convUIItems []chat1.InboxUIItem
+		convUIItems := make(map[chat1.TopicType][]chat1.InboxUIItem)
 		for _, conv := range convs {
-			if conv.GetTopicType() == chat1.TopicType_CHAT {
-				uiItem := g.presentUIItem(ctx, &conv, uid)
-				if uiItem != nil {
-					convUIItems = append(convUIItems, *uiItem)
-				}
+			uiItem := g.presentUIItem(ctx, &conv, uid)
+			if uiItem != nil {
+				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
 			}
 		}
-		g.G().NotifyRouter.HandleChatSetTeamRetention(ctx, keybase1.UID(uid.String()), update.TeamID,
-			convUIItems)
+		for topicType, items := range convUIItems {
+			g.G().NotifyRouter.HandleChatSetTeamRetention(ctx, keybase1.UID(uid.String()), update.TeamID,
+				topicType, items)
+		}
 	}(bctx)
 
 	return nil

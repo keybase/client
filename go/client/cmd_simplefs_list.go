@@ -254,7 +254,7 @@ func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) error {
 		}
 
 		if outputBuffer.String() != "" {
-			ui.Printf("%s", outputBuffer.String())
+			ui.PrintfUnescaped("%s", outputBuffer.String())
 		}
 	}
 	return nil
