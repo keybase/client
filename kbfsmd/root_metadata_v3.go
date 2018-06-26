@@ -979,8 +979,6 @@ func (md *RootMetadataV3) IsValidAndSigned(
 			return err
 		}
 
-		// TODO: Eventually this will have to use a Merkle sequence
-		// number to check historic versions.
 		isWriter, err = teamMemChecker.IsTeamWriter(
 			ctx, tid, writer, writerVerifyingKey)
 		if err != nil {

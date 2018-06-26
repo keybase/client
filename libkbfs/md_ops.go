@@ -461,16 +461,68 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 	}
 }
 
-type everyoneOnEveryTeamChecker struct{}
+type merkleBasedTeamChecker struct {
+	teamMembershipChecker
+	md   *MDOpsStandard
+	rmds *RootMetadataSigned
+	irmd ImmutableRootMetadata
+}
 
-func (e everyoneOnEveryTeamChecker) IsTeamWriter(
-	_ context.Context, _ keybase1.TeamID, _ keybase1.UID,
-	_ kbfscrypto.VerifyingKey) (bool, error) {
+func (mbtc merkleBasedTeamChecker) IsTeamWriter(
+	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
+	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+	isCurrentWriter, err := mbtc.teamMembershipChecker.IsTeamWriter(
+		ctx, tid, uid, verifyingKey)
+	if err != nil {
+		return false, err
+	}
+	if isCurrentWriter {
+		return true, nil
+	}
+
+	// The user is not currently a writer of the team, but maybe they
+	// were at the time this MD was written.  Find out the global
+	// merkle root where they were no longer a writer, and make sure
+	// this revision came before that.
+	mbtc.md.log.CDebugf(ctx, "User %s is no longer a writer of team %s; "+
+		"checking merkle trees to verify they were a writer at the time the "+
+		"MD was written.", uid, tid)
+	root, err := mbtc.teamMembershipChecker.NoLongerTeamWriter(
+		ctx, tid, mbtc.irmd.TlfID().Type(), uid, verifyingKey)
+	if err != nil {
+		return false, err
+	}
+
+	err = mbtc.md.checkRevisionCameBeforeMerkle(
+		ctx, mbtc.rmds, verifyingKey, mbtc.irmd, root)
+	if err != nil {
+		return false, err
+	}
+
 	return true, nil
 }
 
-func (e everyoneOnEveryTeamChecker) IsTeamReader(
-	_ context.Context, _ keybase1.TeamID, _ keybase1.UID) (bool, error) {
+func (mbtc merkleBasedTeamChecker) IsTeamReader(
+	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
+	bool, error) {
+	isCurrentReader, err := mbtc.teamMembershipChecker.IsTeamReader(
+		ctx, tid, uid)
+	if err != nil {
+		return false, err
+	}
+	if isCurrentReader {
+		return true, nil
+	}
+
+	// We don't yet have a way to check for past readership based on
+	// the Merkle tree, so for now return true.  This isn't too bad,
+	// since this is only called for checking the last modifying user
+	// of an update (the last modifying _writer_ is tested with the
+	// above function).  TODO: fix this once historic team readership
+	// is available in the service.
+	mbtc.md.log.CDebugf(ctx,
+		"Faking old writership in IsTeamReader for user %s in team %s",
+		uid, tid)
 	return true, nil
 }
 
@@ -480,25 +532,9 @@ func (e everyoneOnEveryTeamChecker) IsTeamReader(
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata,
 	getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
-	// First, verify validity and signatures. Until KBFS-2955 is
-	// complete, KBFS doesn't check for team membership on MDs that
-	// have been fetched from the server, because if the writer has
-	// been removed from the team since the MD was written, we have no
-	// easy way of verifying that they used to be in the team.  We
-	// rely on the fact that the updates are decryptable with the
-	// secret key as a way to prove that only an authorized team
-	// member wrote the update, along with trusting that the server
-	// would have rejected an update from a former team member that is
-	// still using an old key.  TODO(KBFS-2955): remove this.
-	err := rmds.IsValidAndSigned(
-		ctx, md.config.Codec(),
-		everyoneOnEveryTeamChecker{}, extra)
-	if err != nil {
-		return ImmutableRootMetadata{}, MDMismatchError{
-			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),
-			rmds.MD.TlfID(), err,
-		}
-	}
+	// First, construct the ImmutableRootMetadata object, even before
+	// we validate the writer or the keys, because the irmd will be
+	// used in that process to check for valid successors.
 
 	// Get the UID unless this is a public tlf - then proceed with empty uid.
 	var uid keybase1.UID
@@ -542,6 +578,17 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 	key := rmds.GetWriterMetadataSigInfo().VerifyingKey
 	irmd := MakeImmutableRootMetadata(rmd, key, mdID, localTimestamp, true)
+
+	// Next, verify validity and signatures.  Use a checker that can
+	// check for writership in the past, using the merkle tree.
+	checker := merkleBasedTeamChecker{md.config.KBPKI(), md, rmds, irmd}
+	err = rmds.IsValidAndSigned(ctx, md.config.Codec(), checker, extra)
+	if err != nil {
+		return ImmutableRootMetadata{}, MDMismatchError{
+			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),
+			rmds.MD.TlfID(), err,
+		}
+	}
 
 	// Then, verify the verifying keys.  We do this after decrypting
 	// the MD and making the ImmutableRootMetadata, since we may need

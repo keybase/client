@@ -520,7 +520,7 @@ func testMDOpsGetBlankSigFailure(t *testing.T, ver kbfsmd.MetadataVer) {
 	rmds, extra := newRMDS(t, config, h)
 	rmds.SigInfo = kbfscrypto.SignatureInfo{}
 
-	// only the get happens, no verify needed with a blank sig
+	verifyMDForPrivate(config, rmds)
 	config.mockMdserv.EXPECT().GetForTLF(ctx, rmds.MD.TlfID(), kbfsmd.NullBranchID,
 		kbfsmd.Merged, nil).Return(rmds, nil)
 	expectGetKeyBundles(ctx, config, extra)
