@@ -767,18 +767,17 @@ func (d *Service) OnLogin() error {
 
 func (d *Service) OnLogout() (err error) {
 	defer d.G().Trace("Service#OnLogout", func() error { return err })()
-
 	log := func(s string) {
 		d.G().Log.Debug("Service#OnLogout: %s", s)
 	}
 
-	log("shutting down gregor")
-	if d.gregor != nil {
-		d.gregor.Shutdown()
-	}
-
 	log("shutting down chat modules")
 	d.stopChatModules()
+
+	log("shutting down gregor")
+	if d.gregor != nil {
+		d.gregor.Reset()
+	}
 
 	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()
