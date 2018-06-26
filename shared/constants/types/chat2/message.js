@@ -97,6 +97,7 @@ export type AttachmentType = 'image' | 'file'
 
 export type _MessageAttachment = {
   attachmentType: AttachmentType,
+  showPlayButton: boolean,
   author: string,
   conversationIDKey: Common.ConversationIDKey,
   fileURL: string,
