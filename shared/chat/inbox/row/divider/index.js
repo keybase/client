@@ -24,6 +24,9 @@ class Divider extends React.PureComponent<Props> {
             )}
         </ClickableBox>
         <Box style={_dividerStyle} />
+        <Text type="BodySmallSemibold" style={{padding: `4px ${globalMargins.tiny}px`}}>
+          Big Teams
+        </Text>
       </Box>
     )
   }
@@ -58,7 +61,7 @@ const _dividerStyle = {
 
 const _toggleContainer = {
   ...globalStyles.flexBoxColumn,
-  height: isMobile ? 56 : 40,
+  height: isMobile ? 56 : 'auto',
   justifyContent: 'center',
 }
 
