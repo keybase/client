@@ -2,7 +2,15 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 
-export type Props = {
+export type WrapperProps = {
+  message: Types.Message,
+  previous?: ?Types.Message,
+  children?: React.Node,
+  timestamp: string,
+  orangeLineAbove: boolean,
+}
+
+export type WrapperUserContentProps = {
   author: string,
   exploded: boolean,
   explodedBy: string,

@@ -14,7 +14,8 @@ import Attachment from './attachment/container'
 import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
 import Placeholder from './placeholder/container'
-import Wrapper from './wrapper/container'
+import MessageWrapper from './wrapper/container.js'
+import MessageWrapperUserContent from './wrapper/container-user-content.js'
 import {setDisplayName, connect, compose, lifecycle, type TypedState} from '../../../util/container'
 
 type Props = {
@@ -29,47 +30,97 @@ class MessageFactory extends React.PureComponent<Props> {
     if (!this.props.message) {
       return null
     }
+
+    const messageWrapperProps = {
+      message: this.props.message,
+      previous: this.props.previous,
+    }
+
     switch (this.props.message.type) {
       case 'text':
         return (
-          <Wrapper
-            innerClass={TextMessage}
-            isEditing={this.props.isEditing}
-            message={this.props.message}
-            previous={this.props.previous}
-            measure={this.props.measure}
-          />
+          <MessageWrapper {...messageWrapperProps}>
+            <MessageWrapperUserContent
+              innerClass={TextMessage}
+              isEditing={this.props.isEditing}
+              message={this.props.message}
+              previous={this.props.previous}
+              measure={this.props.measure}
+            />
+          </MessageWrapper>
         )
       case 'attachment':
         return (
-          <Wrapper
-            innerClass={Attachment}
-            isEditing={this.props.isEditing}
-            message={this.props.message}
-            previous={this.props.previous}
-            measure={this.props.measure}
-          />
+          <MessageWrapper {...messageWrapperProps}>
+            <MessageWrapperUserContent
+              innerClass={Attachment}
+              isEditing={this.props.isEditing}
+              message={this.props.message}
+              previous={this.props.previous}
+              measure={this.props.measure}
+            />
+          </MessageWrapper>
         )
       case 'placeholder':
-        return <Placeholder message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <Placeholder message={this.props.message} />
+          </MessageWrapper>
+        )
       case 'systemInviteAccepted':
-        return <SystemInviteAccepted message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <SystemInviteAccepted message={this.props.message} />
+          </MessageWrapper>
+        )
       case 'systemSimpleToComplex':
-        return <SystemSimpleToComplex message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <SystemSimpleToComplex message={this.props.message} />
+          </MessageWrapper>
+        )
       case 'systemGitPush':
-        return <SystemGitPush message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <SystemGitPush message={this.props.message} />
+          </MessageWrapper>
+        )
       case 'systemAddedToTeam':
-        return <SystemAddedToTeam message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <SystemAddedToTeam message={this.props.message} />
+          </MessageWrapper>
+        )
       case 'systemJoined':
-        return <SystemJoined message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <SystemJoined message={this.props.message} />
+          </MessageWrapper>
+        )
       case 'systemText':
-        return <SystemText message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <SystemText message={this.props.message} />
+          </MessageWrapper>
+        )
       case 'systemLeft':
-        return <SystemLeft message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <SystemLeft message={this.props.message} />
+          </MessageWrapper>
+        )
       case 'setDescription':
-        return <SetDescription message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <SetDescription message={this.props.message} />
+          </MessageWrapper>
+        )
       case 'setChannelname':
-        return <SetChannelname message={this.props.message} />
+        return (
+          <MessageWrapper {...messageWrapperProps}>
+            <SetChannelname message={this.props.message} />
+          </MessageWrapper>
+        )
       // case 'error':
       // return <Error message={this.props.message} />
       case 'deleted':

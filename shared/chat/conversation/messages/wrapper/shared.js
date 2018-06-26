@@ -17,7 +17,7 @@ import MessagePopup from '../message-popup'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta'
 
-import type {Props} from './index.types'
+import type {WrapperProps, WrapperUserContentProps} from './index.types'
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {
@@ -190,8 +190,23 @@ const RightSide = props => (
   </Box>
 )
 
-class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps> {
-  componentDidUpdate(prevProps: Props) {
+class MessageWrapper extends React.PureComponent<WrapperProps> {
+  render() {
+    const props = this.props
+    return (
+      <Box style={styles.container}>
+        {props.orangeLineAbove && <Box style={styles.orangeLine} />}
+        {props.timestamp && <Timestamp timestamp={props.timestamp} />}
+        {this.props.children}
+      </Box>
+    )
+  }
+}
+
+class MessageWrapperUserContent extends React.PureComponent<
+  WrapperUserContentProps & FloatingMenuParentProps
+> {
+  componentDidUpdate(prevProps: WrapperUserContentProps) {
     if (this.props.measure) {
       if (
         this.props.orangeLineAbove !== prevProps.orangeLineAbove ||
@@ -206,19 +221,15 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
   render() {
     const props = this.props
     return (
-      <Box style={styles.container}>
-        {props.orangeLineAbove && <Box style={styles.orangeLine} />}
-        {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        <Box
-          style={collapseStyles([
-            styles.leftRightContainer,
-            props.showingMenu && styles.selected,
-            props.includeHeader && styles.hasHeader,
-          ])}
-        >
-          <LeftSide {...props} />
-          <RightSide {...props} />
-        </Box>
+      <Box
+        style={collapseStyles([
+          styles.leftRightContainer,
+          props.showingMenu && styles.selected,
+          props.includeHeader && styles.hasHeader,
+        ])}
+      >
+        <LeftSide {...props} />
+        <RightSide {...props} />
       </Box>
     )
   }
@@ -303,5 +314,7 @@ const styles = styleSheetCreate({
     ...globalStyles.italic,
   },
 })
+
+export {MessageWrapperUserContent, MessageWrapper}
 
 export default MessageWrapper

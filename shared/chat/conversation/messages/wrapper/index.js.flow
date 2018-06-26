@@ -1,4 +1,9 @@
 // @flow
 import * as React from 'react'
-import type {Props} from './index.types'
-export default class Wrapper extends React.Component<Props> {}
+import type {WrapperProps, WrapperUserContentProps} from './index.types'
+
+class Wrapper extends React.PureComponent<WrapperProps> {}
+class WrapperUserContent extends React.PureComponent<WrapperUserContentProps> {}
+
+declare export {Wrapper}
+declare export {WrapperUserContent}
