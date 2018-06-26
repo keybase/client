@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, Markdown, Box, Meta} from '../../../../common-adapters'
+import {Text, Markdown, Box, Box2, Meta} from '../../../../common-adapters'
 import {
   globalStyles,
   globalColors,
@@ -16,6 +16,7 @@ type Props = {
   participantNeedToRekey: boolean,
   showBold: boolean,
   snippet: ?string,
+  snippetDecoration: ?string,
   subColor: string,
   youNeedToRekey: boolean,
   youAreReset: boolean,
@@ -93,9 +94,14 @@ class BottomLine extends PureComponent<Props> {
       }
 
       content = (
-        <Markdown preview={true} style={style}>
-          {this.props.snippet}
-        </Markdown>
+        <Box2 direction="horizontal" style={styles.bottomLineBox}>
+          <Markdown preview={true} style={style}>
+            {this.props.snippet}
+          </Markdown>
+          <Text type="BodySmall" style={{color: globalColors.black}}>
+            {this.props.snippetDecoration}
+          </Text>
+        </Box2>
       )
     } else {
       return null
@@ -169,10 +175,14 @@ const styles = styleSheetCreate({
     isMobile: {
       backgroundColor: globalColors.fastBlank,
       color: globalColors.black_40,
-      fontSize: 13,
+      flex: 1,
+      fontSize: 14,
       paddingRight: 30,
     },
   }),
+  bottomLineBox: {
+    width: '100%',
+  },
 })
 
 export {BottomLine}

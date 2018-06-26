@@ -122,14 +122,9 @@ export const isInfoPanelOpen = (state: TypedState) => {
 export const creatingLoadingKey = 'creatingConvo'
 
 // When we see that exploding messages are in the app, we set
-// seenExplodingGregorKey as well as newExplodingGregorKey.
-// newExploding.. is set with a dtime of a couple days.
-// seenExploding.. never expires.
-// 1. Neither exist: new and user hasn't seen them
-// 2. Both exist: new and user has seen them
-// 3. One exists (seenExploding...): old; unset tag
-export const seenExplodingGregorKey = 'hasSeenExplodingMessages'
-export const newExplodingGregorKey = 'explodingMessagesAreNew'
+// seenExplodingGregorKey. Once newExplodingGregorOffset time
+// passes, we stop showing the 'NEW' tag.
+export const seenExplodingGregorKey = 'chat.seenExplodingMessages'
 export const newExplodingGregorOffset = 1000 * 3600 * 24 * 3 // 3 days in ms
 export const getIsExplodingNew = (state: TypedState) => state.chat2.get('isExplodingNew')
 export const explodingModeGregorKeyPrefix = 'exploding:'
@@ -164,6 +159,9 @@ export const makeInboxQuery = (
   }
 }
 
+const numMessagesOnInitialLoad = isMobile ? 20 : 100
+const numMessagesOnScrollback = isMobile ? 100 : 100
+
 export {
   getConversationIDKeyMetasToLoad,
   getMeta,
@@ -184,7 +182,7 @@ export {
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
-  makePendingAttachmentMessage,
+  makePendingAttachmentMessages,
   makePendingTextMessage,
   messageExplodeDescriptions,
   pathToAttachmentType,
@@ -195,8 +193,10 @@ export {
 } from './message'
 
 export {
-  pendingConversationIDKey,
-  noConversationIDKey,
-  pendingWaitingConversationIDKey,
   isValidConversationIDKey,
+  noConversationIDKey,
+  numMessagesOnInitialLoad,
+  numMessagesOnScrollback,
+  pendingConversationIDKey,
+  pendingWaitingConversationIDKey,
 }

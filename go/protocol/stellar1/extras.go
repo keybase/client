@@ -124,6 +124,13 @@ func (s Bundle) PrimaryAccount() (BundleEntry, error) {
 	return BundleEntry{}, errors.New("primary stellar account not found")
 }
 
+// Eq compares assets strictly.
+// Assets are not Eq if their type is different
+//   even if they have the same code and issuer.
+func (a Asset) Eq(b Asset) bool {
+	return a == b
+}
+
 func (a *Asset) IsNativeXLM() bool {
 	return a.Type == "native"
 }
@@ -218,4 +225,8 @@ func (d *StellarServerDefinitions) GetCurrencyLocal(code OutsideCurrencyCode) (r
 		ok = false
 	}
 	return res, ok
+}
+
+func (c OutsideCurrencyCode) String() string {
+	return string(c)
 }

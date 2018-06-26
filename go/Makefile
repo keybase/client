@@ -8,7 +8,28 @@ vet:
 	go vet ./...
 
 lint:
-	golint ./... | grep -v ^vendor | grep -v ^protocol | grep -v comment | grep -v KeysById | grep -v "error should be the last type" | grep -v stutters | grep -v "error strings should not be capitalized" | grep -v prot.go | grep -v "redundant if ...; err != nil check, just return error instead" || echo "Lint-free!"
+	( \
+		which golint >/dev/null 2>&1 \
+		|| ( \
+			echo "Missing golint" \
+			&& exit 1 \
+		) \
+	) \
+	&& ( \
+		golint ./... \
+		| grep -v ^vendor \
+		| grep -v ^protocol \
+		| grep -v comment \
+		| grep -v KeysById \
+		| grep -v "error should be the last type" \
+		| grep -v stutters \
+		| grep -v "error strings should not be capitalized" \
+		| grep -v prot.go \
+		| grep -v "redundant if ...; err != nil check, just return error instead" \
+		| grep -v "don't use ALL_CAPS in Go names; use CamelCase" \
+		&& exit 1 \
+		|| echo "Lint-free!" \
+	)
 
 # to run splint, first do this:  go get stathat.com/c/splint
 splint:

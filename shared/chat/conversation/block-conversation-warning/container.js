@@ -20,15 +20,13 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onBlock: (conversationIDKey: ConversationIDKey, reportUser: boolean) => {
+  _onBlock: (conversationIDKey: ConversationIDKey, reportUser: boolean) =>
     dispatch(
       Chat2Gen.createBlockConversation({
         conversationIDKey,
         reportUser,
       })
-    )
-    dispatch(Chat2Gen.createNavigateToInbox())
-  },
+    ),
   onBack: () => dispatch(navigateUp()),
 })
 

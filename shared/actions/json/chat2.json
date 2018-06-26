@@ -21,7 +21,6 @@
       // why this happened, sometimes there's different side effects
       "reason": [
         "'clearSelected'", // deselect
-        "'justCreated'", // just made one
         "'desktopNotification'", // clicked notification
         "'setPendingMode'", // set to pending
         "'sendingToPending'", // select the pending we sent into
@@ -219,8 +218,10 @@
       "ordinal": "Types.Ordinal"
     },
     // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
+    // Use `noneDestination` to specify where the user should end up after setting it to 'none'
     "setPendingMode": {
-      "pendingMode": "Types.PendingMode"
+      "pendingMode": "Types.PendingMode",
+      "noneDestination?": ["'inbox'", "'thread'"]
     },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {
@@ -290,11 +291,11 @@
       "path?": "string",
       "forShare?": "boolean"
     },
-    // We want to upload an attachment
-    "attachmentUpload": {
+    // We want to upload some attachments
+    "attachmentsUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "path": "string",
-      "title": "string"
+      "paths": "Array<string>",
+      "titles": "Array<string>"
     },
     // Update progress on an upload
     "attachmentUploading": {
@@ -333,7 +334,9 @@
       "updateType": "RPCChatTypes.StaleUpdateType"
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
-    "navigateToInbox": {},
+    "navigateToInbox": {
+      "findNewConversation": "boolean"
+    },
     "navigateToThread": {},
     // Share to external app on mobile
     "messageAttachmentNativeShare": {

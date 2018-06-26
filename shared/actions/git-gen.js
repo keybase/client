@@ -18,7 +18,6 @@ export const loadGit = 'git:loadGit'
 export const loadGitRepo = 'git:loadGitRepo'
 export const navigateToTeamRepo = 'git:navigateToTeamRepo'
 export const setError = 'git:setError'
-export const setLoading = 'git:setLoading'
 export const setTeamRepoSettings = 'git:setTeamRepoSettings'
 
 // Payload Types
@@ -46,7 +45,6 @@ type _NavigateToTeamRepoPayload = $ReadOnly<{|
   teamname: string,
 |}>
 type _SetErrorPayload = $ReadOnly<{|error: ?Error|}>
-type _SetLoadingPayload = $ReadOnly<{|loading: boolean|}>
 type _SetTeamRepoSettingsPayload = $ReadOnly<{|
   chatDisabled: boolean,
   channelName: ?string,
@@ -65,7 +63,6 @@ export const createLoadGit = (payload: _LoadGitPayload) => ({error: false, paylo
 export const createLoadGitRepo = (payload: _LoadGitRepoPayload) => ({error: false, payload, type: loadGitRepo})
 export const createNavigateToTeamRepo = (payload: _NavigateToTeamRepoPayload) => ({error: false, payload, type: navigateToTeamRepo})
 export const createSetError = (payload: _SetErrorPayload) => ({error: false, payload, type: setError})
-export const createSetLoading = (payload: _SetLoadingPayload) => ({error: false, payload, type: setLoading})
 export const createSetTeamRepoSettings = (payload: _SetTeamRepoSettingsPayload) => ({error: false, payload, type: setTeamRepoSettings})
 
 // Action Payloads
@@ -79,7 +76,6 @@ export type LoadGitPayload = $Call<typeof createLoadGit, _LoadGitPayload>
 export type LoadGitRepoPayload = $Call<typeof createLoadGitRepo, _LoadGitRepoPayload>
 export type NavigateToTeamRepoPayload = $Call<typeof createNavigateToTeamRepo, _NavigateToTeamRepoPayload>
 export type SetErrorPayload = $Call<typeof createSetError, _SetErrorPayload>
-export type SetLoadingPayload = $Call<typeof createSetLoading, _SetLoadingPayload>
 export type SetTeamRepoSettingsPayload = $Call<typeof createSetTeamRepoSettings, _SetTeamRepoSettingsPayload>
 
 // All Actions
@@ -95,6 +91,5 @@ export type Actions =
   | LoadGitRepoPayload
   | NavigateToTeamRepoPayload
   | SetErrorPayload
-  | SetLoadingPayload
   | SetTeamRepoSettingsPayload
   | {type: 'common:resetStore', payload: void}

@@ -2,10 +2,13 @@
 import * as React from 'react'
 import type {StylesCrossPlatform} from '../../../../../styles'
 
+declare export var animationDuration: number
+
 export type Props = {
   children?: React.Node,
   explodedBy: ?string,
   exploding: boolean,
+  measure: null | (() => void),
   messageKey: string,
   style?: StylesCrossPlatform,
   retainHeight: boolean,

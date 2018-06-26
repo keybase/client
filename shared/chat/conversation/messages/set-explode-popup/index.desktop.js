@@ -19,11 +19,17 @@ const Header = (props: HeaderProps) => (
           fontSize={48}
           style={platformStyles({isElectron: {display: 'block', lineHeight: '28px', maxHeight: 28}})}
         />
-        <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
+        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
           Set a timeout on your messages and watch them
+          E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
         </Text>
-        <Text type="BodySemibold" backgroundMode="Announcements">
-          E X P L O D E
+        <Text
+          type="BodySmallSemiboldInlineLink"
+          backgroundMode="Announcements"
+          className="underline"
+          onClickURL="https://keybase.io/blog/keybase-exploding-messages"
+        >
+          Learn more
         </Text>
       </Box2>
     )}
@@ -60,7 +66,8 @@ type ItemProps = {
 const Item = (props: ItemProps) => {
   let content
   const words = props.desc.text.split(' ')
-  if (words.length === 1) {
+  if (props.desc.seconds === 0) {
+    // never item
     content = props.desc.text
   } else {
     content = (

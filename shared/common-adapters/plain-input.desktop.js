@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
-import {collapseStyles, styleSheetCreate, platformStyles} from '../styles'
+import {collapseStyles, globalColors, styleSheetCreate, platformStyles} from '../styles'
 
 import type {_StylesDesktop} from '../styles/css'
 import type {InternalProps} from './plain-input'
@@ -170,7 +170,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   render = () => {
     const inputProps = this._getInputProps()
-    const css = `::-webkit-input-placeholder { color: rgba(0,0,0,.4); }
+    const css = `::-webkit-input-placeholder { color: ${this.props.placeholderColor ||
+      globalColors.black_40}; }
                  ::-webkit-outer-spin-button, ::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}`
     return (
       <React.Fragment>

@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"time"
+
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
@@ -75,16 +77,16 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 }
 
 func (s *Storage) explodeExpiredMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) (err Error) {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) (explodedMsgs []chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "explodeExpiredMessages")()
 
-	purgeInfo, _, err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
+	purgeInfo, explodedMsgs, err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// We may only be merging in some subset of messages, we only update if the
 	// info we get is more restrictive that what we have already
-	return s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
+	return explodedMsgs, s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
 }
 
 // Before adding or removing messages from storage, nuke any expired ones and
@@ -102,13 +104,19 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	minUnexplodedID := msgs[0].GetMessageID()
 	var allAssets []chat1.Asset
 	var hasExploding bool
+	debugPurge := func(logMsg string, msg chat1.MessageUnboxed, now time.Time) {
+		mvalid := msg.Valid()
+		s.Debug(ctx, "%s msg: %v, etime: %v, serverCtime: %v, serverNow: %v, rtime: %v now: %v, ephemeralMetadata: %v",
+			logMsg, msg.GetMessageID(), mvalid.Etime().Time(), mvalid.ServerHeader.Ctime.Time(),
+			mvalid.ServerHeader.Now.Time(), mvalid.ClientHeader.Rtime.Time(), now, mvalid.EphemeralMetadata())
+	}
 	for i, msg := range msgs {
 		if !msg.IsValid() {
-			s.Debug(ctx, "skipping invalid msg: %v", msg.GetMessageID())
 			continue
 		}
 		mvalid := msg.Valid()
 		if mvalid.IsEphemeral() {
+			now := s.clock.Now()
 			if !mvalid.IsEphemeralExpired(s.clock.Now()) {
 				hasExploding = true
 				// Keep track of the minimum ephemeral message that is not yet
@@ -120,7 +128,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 				if nextPurgeTime == 0 || mvalid.Etime() < nextPurgeTime {
 					nextPurgeTime = mvalid.Etime()
 				}
-				s.Debug(ctx, "skipping unexpired ephemeral msg: %v, etime: %v, now: %v", msg.GetMessageID(), mvalid.Etime().Time(), s.clock.Now())
+				debugPurge("skipping unexpired ephemeral", msg, now)
 			} else if mvalid.MessageBody.IsNil() {
 				// do nothing
 			} else {
@@ -128,7 +136,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 				allAssets = append(allAssets, assets...)
 				explodedMsgs = append(explodedMsgs, msgPurged)
 				msgs[i] = msgPurged
-				s.Debug(ctx, "purging ephemeral msg: %v", msgPurged.GetMessageID())
+				debugPurge("purging ephemeral", msg, now)
 			}
 		}
 	}

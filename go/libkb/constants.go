@@ -19,16 +19,16 @@ const (
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
 )
 
-type RunMode string
-
 var TorProxy = "localhost:9050"
+
+type RunMode string
 
 const (
 	DevelRunMode      RunMode = "devel"
-	StagingRunMode            = "staging"
-	ProductionRunMode         = "prod"
-	RunModeError              = "error"
-	NoRunMode                 = ""
+	StagingRunMode    RunMode = "staging"
+	ProductionRunMode RunMode = "prod"
+	RunModeError      RunMode = "error"
+	NoRunMode         RunMode = ""
 )
 
 var RunModes = []RunMode{DevelRunMode, StagingRunMode, ProductionRunMode}
@@ -358,12 +358,12 @@ type KeyType int
 
 const (
 	KeyTypeNone                  KeyType = 0
-	KeyTypeOpenPGPPublic                 = 1
-	KeyTypeP3skbPrivate                  = 2
-	KeyTypeKbNaclEddsa                   = 3
-	KeyTypeKbNaclDH                      = 4
-	KeyTypeKbNaclEddsaServerHalf         = 5
-	KeyTypeKbNaclDHServerHalf            = 6
+	KeyTypeOpenPGPPublic         KeyType = 1
+	KeyTypeP3skbPrivate          KeyType = 2
+	KeyTypeKbNaclEddsa           KeyType = 3
+	KeyTypeKbNaclDH              KeyType = 4
+	KeyTypeKbNaclEddsaServerHalf KeyType = 5
+	KeyTypeKbNaclDHServerHalf    KeyType = 6
 )
 
 const (
@@ -610,6 +610,8 @@ const (
 	DeriveReasonUserEKEncryption    DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
 	DeriveReasonTeamEKEncryption    DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
 	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
+
+	DeriveReasonChatPairwiseMAC DeriveReason = "Derived-Chat-Pairwise-HMAC-SHA256-1"
 )
 
 // Not a DeriveReason because it is not used in the same way.
@@ -631,8 +633,8 @@ type AppType string
 
 const (
 	MobileAppType  AppType = "mobile"
-	DesktopAppType         = "desktop"
-	NoAppType              = ""
+	DesktopAppType AppType = "desktop"
+	NoAppType      AppType = ""
 )
 
 func StringToAppType(s string) AppType {
@@ -695,3 +697,5 @@ const noiseFileLen = 1024 * 1024 * 2
 // go/chatbase/storage/ephemeral.go as well.
 const MaxEphemeralLifetime = time.Hour * 24 * 7
 const MinEphemeralLifetime = time.Second * 30
+
+const MaxTeamMembersForPairwiseMAC = 100

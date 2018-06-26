@@ -6,18 +6,18 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestMerkleClientHistorical(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
+	m := NewMetaContextForTest(tc)
 
 	q := libkb.NewHTTPArgs()
 	q.Add("uid", libkb.UIDArg(fu.UID()))
 	mc := tc.G.MerkleClient
-	leaf, err := mc.LookupUser(context.TODO(), q, nil)
+	leaf, err := mc.LookupUser(m, q, nil)
 	root := mc.LastRoot()
 
 	require.NoError(t, err)
@@ -35,12 +35,11 @@ func TestMerkleClientHistorical(t *testing.T) {
 		trackAlice(tc, fu, sigVersion)
 		untrackAlice(tc, fu, sigVersion)
 	}
-	leaf2, err := mc.LookupLeafAtHashMeta(context.TODO(), fu.UID().AsUserOrTeam(), root.HashMeta())
+	leaf2, err := mc.LookupLeafAtHashMeta(m, fu.UID().AsUserOrTeam(), root.HashMeta())
 	require.NoError(t, err)
 	require.NotNil(t, leaf2)
 	require.True(t, leaf.Public().Eq(*leaf2.Public))
 
-	m := NewMetaContextForTest(tc)
 	arg := keybase1.VerifyMerkleRootAndKBFSArg{
 		Root: keybase1.MerkleRootV2{
 			Seqno:    *root.Seqno(),

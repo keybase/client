@@ -127,6 +127,22 @@ func (t TeamSigChainState) GetUserLogPoint(user keybase1.UserVersion) *keybase1.
 	return &tmp
 }
 
+// GetLastUserLogPointWithPredicate gets the last user logpoint in the series for which the given
+// predicate is true.
+func (t TeamSigChainState) GetLastUserLogPointWithPredicate(user keybase1.UserVersion, f func(keybase1.UserLogPoint) bool) *keybase1.UserLogPoint {
+	points := t.inner.UserLog[user]
+	if len(points) == 0 {
+		return nil
+	}
+	for i := len(points) - 1; i >= 0; i-- {
+		if f(points[i]) {
+			tmp := points[i].DeepCopy()
+			return &tmp
+		}
+	}
+	return nil
+}
+
 func (t TeamSigChainState) GetAdminUserLogPoint(user keybase1.UserVersion) *keybase1.UserLogPoint {
 	ret := t.GetUserLogPoint(user)
 	if ret == nil {
@@ -264,7 +280,7 @@ func (t TeamSigChainState) GetLatestUVWithUID(uid keybase1.UID) (res keybase1.Us
 	}
 
 	if !found {
-		return keybase1.UserVersion{}, errors.New("did not find user with given uid")
+		return res, errors.New("did not find user with given uid")
 	}
 	return res.DeepCopy(), nil
 }
@@ -1886,6 +1902,23 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 
 // Whether the roleUpdates would demote any current owner to a lesser role.
 func (t *TeamSigChainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion) bool {
+
+	// It is OK to readmit an owner if the owner reset and is coming in at a lower permission
+	// level. So check that case here.
+	readmittingResetUser := func(uv keybase1.UserVersion) bool {
+		for toRole, uvs := range roleUpdates {
+			if toRole == keybase1.TeamRole_NONE {
+				continue
+			}
+			for _, newUV := range uvs {
+				if newUV.Uid.Equal(uv.Uid) && newUV.EldestSeqno > uv.EldestSeqno {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
 	for toRole, uvs := range roleUpdates {
 		if toRole == keybase1.TeamRole_OWNER {
 			continue
@@ -1894,6 +1927,9 @@ func (t *TeamSigChainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, ro
 			fromRole, err := prev.GetUserRole(uv)
 			if err != nil {
 				continue // ignore error, user not in team
+			}
+			if toRole == keybase1.TeamRole_NONE && fromRole == keybase1.TeamRole_OWNER && readmittingResetUser(uv) {
+				continue
 			}
 			if fromRole == keybase1.TeamRole_OWNER {
 				// This is an intent to demote an owner.

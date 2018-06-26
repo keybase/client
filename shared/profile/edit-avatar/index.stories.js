@@ -10,10 +10,7 @@ const props = {
   onAck: action('onAck'),
 }
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.Common()
 
 const load = () => {
   storiesOf('Profile/EditAvatar', module)

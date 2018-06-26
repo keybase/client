@@ -6,7 +6,7 @@ import {globalStyles, globalColors, globalMargins, platformStyles, transition} f
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
 import {RPCError} from '../../util/errors'
 
-import type {Props as _Props} from './index'
+import type {Props as _Props} from './index.types'
 
 type Size = 'Closed' | 'Small' | 'Big'
 type State = {
@@ -109,7 +109,7 @@ class GlobalError extends Component<Props, State> {
     return (
       <Box style={containerOverlayStyle}>
         <Box style={overlayRowStyle}>
-          <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
+          <Text type="BodySmallSemibold" style={{color: globalColors.white, textAlign: 'center'}}>
             {message}
           </Text>
         </Box>

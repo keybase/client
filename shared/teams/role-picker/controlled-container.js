@@ -3,8 +3,7 @@ import React from 'react'
 import {RoleOptions} from '.'
 import {connect} from 'react-redux'
 import {compose, withHandlers, withStateHandlers} from '../../util/container'
-import {PopupDialog, HeaderHoc, ScrollView} from '../../common-adapters/index'
-import {isMobile} from '../../constants/platform'
+import {HeaderOrPopup, ScrollView} from '../../common-adapters/index'
 import {type TypedState} from '../../constants/reducer'
 import {type TeamRoleType} from '../../constants/types/teams'
 
@@ -60,12 +59,6 @@ const ControlledRolePicker = props => (
   </ScrollView>
 )
 
-const PopupWrapped = props => (
-  <PopupDialog styleCover={props.styleCover} onClose={props.onCancel}>
-    <ControlledRolePicker {...props} />
-  </PopupDialog>
-)
-
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withStateHandlers(
@@ -84,4 +77,4 @@ export default compose(
       onCancel()
     },
   })
-)(isMobile ? HeaderHoc(ControlledRolePicker) : PopupWrapped)
+)(HeaderOrPopup(ControlledRolePicker))

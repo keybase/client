@@ -11,15 +11,15 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   return git
     ? {
         error: Constants.getError(state),
-        loading: Constants.getLoading(state),
         name: git.name,
         teamname: git.teamname,
+        waitingKey: Constants.loadingWaitingKey,
       }
     : {
         error: null,
-        loading: false,
         name: '',
         teamname: '',
+        waitingKey: '',
       }
 }
 

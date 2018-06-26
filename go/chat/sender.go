@@ -267,6 +267,8 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 
 	// Get all affected messages to be deleted
 	deletes := []chat1.MessageID{deleteTargetID}
+	// Add in any reaction messages the deleteTargetID may have
+	deletes = append(deletes, deleteTarget.Valid().ServerHeader.ReactionIDs...)
 	for _, m := range tv.Messages {
 		if !m.IsValid() {
 			continue
@@ -644,7 +646,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			Conv: s.presentUIItem(convLocal),
 		})
 		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(boxed.ClientHeader.Sender.String()),
-			&activity)
+			conv.GetTopicType(), &activity)
 	}
 	return []byte{}, boxed, nil
 }
@@ -832,15 +834,21 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 }
 
 func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
-	oserr chat1.OutboxStateError) error {
+	oserr chat1.OutboxStateError) (err error) {
 	var marked []chat1.OutboxRecord
-	var err error
 	switch oserr.Typ {
 	case chat1.OutboxErrorType_TOOMANYATTEMPTS:
 		s.Debug(ctx, "failMessage: too many attempts failure, marking whole outbox failed")
 		if marked, err = s.outbox.MarkAllAsError(ctx, oserr); err != nil {
 			s.Debug(ctx, "failMessage: unable to mark all as error on outbox: uid: %s err: %s",
 				s.outbox.GetUID(), err.Error())
+			return err
+		}
+	case chat1.OutboxErrorType_DUPLICATE, chat1.OutboxErrorType_ALREADY_DELETED:
+		// Here we don't send a notification to the frontend, we just want
+		// these to go away
+		if err = s.outbox.RemoveMessage(ctx, obr.OutboxID); err != nil {
+			s.Debug(ctx, "deliverLoop: failed to remove duplicate delete msg: %s", err)
 			return err
 		}
 	default:
@@ -852,15 +860,12 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 		marked = []chat1.OutboxRecord{m}
 	}
 
-	switch oserr.Typ {
-	case chat1.OutboxErrorType_DUPLICATE:
-		// Only send notification to frontend if it is not a duplicate, we just want these to go away
-	default:
+	if len(marked) > 0 {
 		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 			OutboxRecords: marked,
 		})
 		s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
-			keybase1.UID(s.outbox.GetUID().String()), &act)
+			keybase1.UID(s.outbox.GetUID().String()), chat1.TopicType_NONE, &act)
 	}
 
 	return nil

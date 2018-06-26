@@ -166,6 +166,83 @@ func TestMemberAddInvalidRole(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 }
 
+// testFindNextMerkleRootAfterRemoval tests teams.FindNextMerkleRootAfterRemoval, which is
+// a thin wrapper around libkb.FindNextMerkleRootAfterTeamRemoval. Test that the plumbing works
+// properly. Pass in the values from the libkb inner function, to confirm that this function
+// returns the same.
+func testFindNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user *kbtest.FakeUser, id keybase1.TeamID, seqno keybase1.Seqno) {
+	m := libkb.NewMetaContextForTest(tc)
+	upak, _, err := tc.G.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(user.GetUID()))
+	require.NoError(t, err)
+	require.NotNil(t, upak)
+	var signingKey keybase1.KID
+	for kid, obj := range upak.Current.DeviceKeys {
+		if obj.Base.IsSibkey {
+			signingKey = kid
+			break
+		}
+	}
+	require.False(t, signingKey.IsNil())
+	res, err := FindNextMerkleRootAfterRemoval(m, keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg{
+		Uid:        user.GetUID(),
+		SigningKey: signingKey,
+		IsPublic:   false,
+		Team:       id,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res.Res)
+	require.Equal(t, res.Res.Seqno, seqno)
+}
+
+// Check that `libkb.FindNextMerkleRootAfterTeamRemoval` works. To do so,
+// find the logpoint on the team where the user was removed, and pass it in.
+// Check for success simply by asserting that the Merkle Root seqno bumps
+// forward after the removal went into the team sigchain.
+func pollForNextMerkleRootAfterRemovalViaLibkb(t *testing.T, tc libkb.TestContext, user *kbtest.FakeUser, teamName string) (tid keybase1.TeamID, seqno keybase1.Seqno) {
+
+	m := libkb.NewMetaContextForTest(tc)
+	team, err := GetForTestByStringName(context.TODO(), tc.G, teamName)
+	require.NoError(t, err)
+	logPoint := team.chain().GetUserLogPoint(user.GetUserVersion())
+	require.NotNil(t, logPoint)
+
+	var delay time.Duration
+
+	// Unfortunately we need to poll here, since we don't know when merkled will mint a new root.
+	// Locally it is fast, but it might be slowish on CI.
+	for i := 0; i < 50; i++ {
+		res, err := libkb.FindNextMerkleRootAfterTeamRemoval(m, keybase1.FindNextMerkleRootAfterTeamRemovalArg{
+			Uid:               user.GetUID(),
+			Team:              team.ID,
+			IsPublic:          team.IsPublic(),
+			TeamSigchainSeqno: logPoint.SigMeta.SigChainLocation.Seqno,
+			Prev:              logPoint.SigMeta.PrevMerkleRootSigned,
+		})
+
+		// Success case!
+		if err == nil {
+			require.NotNil(t, res.Res)
+			require.True(t, res.Res.Seqno > logPoint.SigMeta.PrevMerkleRootSigned.Seqno)
+			return team.ID, res.Res.Seqno
+		}
+
+		if merr, ok := err.(libkb.MerkleClientError); ok && merr.IsNotFound() {
+			t.Logf("Failed to find a root, trying again to wait for merkled")
+		} else {
+			require.NoError(t, err)
+			return tid, seqno
+		}
+
+		if delay < time.Second {
+			delay += 10 * time.Millisecond
+		}
+		t.Logf("sleeping %v", delay)
+		time.Sleep(delay)
+	}
+	t.Fatalf("failed to find a suitable merkle root with team removal")
+	return tid, seqno
+}
+
 func TestMemberRemove(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
@@ -183,6 +260,9 @@ func TestMemberRemove(t *testing.T) {
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
+
+	teamID, seqno := pollForNextMerkleRootAfterRemovalViaLibkb(t, tc, other, name)
+	testFindNextMerkleRootAfterRemoval(t, tc, other, teamID, seqno)
 }
 
 func TestMemberChangeRole(t *testing.T) {
@@ -409,7 +489,7 @@ func TestMemberAddNoKeys(t *testing.T) {
 
 	// this is a keybase user, so they should show up in the member list
 	// even though they are technically only "invited"
-	details, err := Details(context.TODO(), tc.G, name, true)
+	details, err := Details(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -423,6 +503,50 @@ func TestMemberAddNoKeys(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("keybase invited user not in membership list")
+	}
+}
+
+func TestMemberDetailsResetAndDeletedUser(t *testing.T) {
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	tc.G.UIDMapper.SetTestingNoCachingMode(true)
+	_, err := AddMember(context.TODO(), tc.G, name, otherA.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	_, err = AddMember(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	details, err := Details(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+
+	require.Len(t, details.Members.Admins, 2)
+	for _, admin := range details.Members.Admins {
+		require.Equal(t, admin.Status, keybase1.TeamMemberStatus_ACTIVE)
+	}
+
+	// Logout owner
+	kbtest.Logout(tc)
+
+	otherA.Login(tc.G)
+	kbtest.ResetAccount(tc, otherA)
+
+	otherB.Login(tc.G)
+	kbtest.DeleteAccount(tc, otherB)
+
+	owner.Login(tc.G)
+
+	details, err = Details(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+
+	require.Len(t, details.Members.Admins, 2)
+	for _, admin := range details.Members.Admins {
+		switch admin.Username {
+		case otherA.Username: // only reset
+			require.Equal(t, admin.Status, keybase1.TeamMemberStatus_RESET)
+		case otherB.Username: // deleted
+			require.Equal(t, admin.Status, keybase1.TeamMemberStatus_DELETED)
+		}
 	}
 }
 
@@ -464,7 +588,7 @@ func TestMemberAddEmail(t *testing.T) {
 		t.Fatal("List --all does not list invite.")
 	}
 
-	details, err := Details(context.TODO(), tc.G, name, true)
+	details, err := Details(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -483,7 +607,7 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	blob := "u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
+	blob := "h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
 
 	res, err := AddEmailsBulk(context.TODO(), tc.G, name, blob, keybase1.TeamRole_WRITER)
 	if err != nil {
@@ -498,7 +622,7 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	if len(res.AlreadyInvited) != 0 {
 		t.Errorf("num already invited: %d, expected 0", len(res.AlreadyInvited))
 	}
-	require.Len(t, res.Malformed, 1)
+	require.Len(t, res.Malformed, 2)
 	for _, e := range emails {
 		assertInvite(tc, name, e, "email", keybase1.TeamRole_WRITER)
 	}
@@ -579,10 +703,10 @@ func TestMemberAddAsImplicitAdmin(t *testing.T) {
 	})
 	require.Equal(t, owner.GetUserVersion(), ias[0].Uv)
 	require.Equal(t, owner.Username, ias[0].Username)
-	require.True(t, ias[0].Active)
+	require.True(t, ias[0].Status.IsActive())
 	require.Equal(t, otherA.GetUserVersion(), ias[1].Uv)
 	require.Equal(t, otherA.Username, ias[1].Username)
-	require.True(t, ias[1].Active)
+	require.True(t, ias[1].Status.IsActive())
 }
 
 func TestLeave(t *testing.T) {

@@ -263,6 +263,83 @@ func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfNam
 	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
 }
 
+func (t *TeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
+	return shouldPairwiseMAC(ctx, t.G(), t.loader, tlfName, tlfID, membersType, public)
+}
+
+func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion) (ret []keybase1.KID, err error) {
+
+	getArg := func(i int) *libkb.LoadUserArg {
+		if i >= len(uvs) {
+			return nil
+		}
+		tmp := libkb.NewLoadUserByUIDArg(ctx, g, uvs[i].Uid)
+		return &tmp
+	}
+
+	processResult := func(i int, upak *keybase1.UserPlusKeysV2AllIncarnations) {
+		if upak == nil {
+			return
+		}
+		for _, key := range upak.Current.DeviceKeys {
+			// Include only unrevoked encryption keys.
+			if !key.Base.IsSibkey && key.Base.Revocation == nil {
+				ret = append(ret, key.Base.Kid)
+			}
+		}
+	}
+
+	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, 0)
+	return ret, err
+}
+
+const pairseMACDisabled = true
+
+func shouldPairwiseMAC(ctx context.Context, g *globals.Context, loader *TeamLoader, tlfName string,
+	tlfID chat1.TLFID, membersType chat1.ConversationMembersType, public bool) (should bool, kids []keybase1.KID, err error) {
+
+	if pairseMACDisabled {
+		return false, nil, nil
+	}
+
+	defer g.CTraceTimed(ctx, fmt.Sprintf("shouldPairwiseMAC teamID %s", tlfID.String()), func() error { return err })()
+
+	team, err := loader.loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
+	if err != nil {
+		return false, nil, err
+	}
+	members, err := team.Members()
+	if err != nil {
+		return false, nil, err
+	}
+	memberUVs := members.AllUserVersions()
+
+	// For performance reasons, we don't try to pairwise MAC any messages in
+	// large teams.
+	if len(memberUVs) > libkb.MaxTeamMembersForPairwiseMAC {
+		return false, nil, nil
+	}
+
+	unrevokedKIDs, err := batchLoadEncryptionKIDs(ctx, g.GlobalContext, memberUVs)
+	if err != nil {
+		return false, nil, err
+	}
+
+	if len(unrevokedKIDs) > 10*libkb.MaxTeamMembersForPairwiseMAC {
+		// If someone on the team has a ton of devices, it could break our "100
+		// members" heuristic and lead to bad performance. We don't want to
+		// silently fall back to the non-repudiable mode, because that would
+		// create an opening for downgrade attacks, and we'd need to document
+		// this exception everywhere we talk about repudiability. But if this
+		// turns out to be a performance issue in practice, we might want to
+		// add some workaround. (For example, we could choose to omit
+		// recipients with an unreasonable number of devices.)
+		g.Log.CWarningf(ctx, "unreasonable number of devices (%d) in recipients list", len(unrevokedKIDs))
+	}
+	return true, unrevokedKIDs, nil
+}
+
 type ImplicitTeamsNameInfoSource struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -338,9 +415,14 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, p
 	}
 	res = types.NewNameInfo()
 
-	// Always create here to simulate behavior of GetTLFCryptKeys
-	team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, t.G().ExternalG(), name, public)
+	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public)
 	if err != nil {
+		// return the common type for a unknown TLF name
+		switch err.(type) {
+		case teams.TeamDoesNotExistError:
+			return res, NewUnknownTLFNameError(name)
+		}
+		t.Debug(ctx, "Lookup: error looking up the team: %s", err)
 		return res, err
 	}
 	if !team.ID.IsRootTeam() {
@@ -436,6 +518,11 @@ func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context
 		return teamEK, err
 	}
 	return t.G().GetEKLib().GetTeamEK(ctx, team.ID, generation)
+}
+
+func (t *ImplicitTeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
+	return shouldPairwiseMAC(ctx, t.G(), t.loader, tlfName, tlfID, membersType, public)
 }
 
 func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {

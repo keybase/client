@@ -21,49 +21,48 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
-  badgeCount: 0,
+export const makeNewFolder: I.RecordFactory<Types._NewFolder> = I.Record({
+  type: 'new-folder',
+  status: 'editing',
+  name: 'New Folder',
+  hint: 'New Folder',
+  parentPath: Types.stringToPath('/keybase'),
+})
+
+const pathItemMetadataDefault = {
   name: 'unknown',
   lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
   size: 0,
+  lastWriter: {uid: '', username: ''},
   progress: 'pending',
+  badgeCount: 0,
+  writable: false,
+  tlfMeta: undefined,
+}
+
+export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
+  ...pathItemMetadataDefault,
   children: I.Set(),
   favoriteChildren: I.Set(),
-  tlfMeta: undefined,
   resetParticipants: [],
+  teamID: undefined,
   type: 'folder',
 })
 
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
-  badgeCount: 0,
-  name: 'unknown',
-  lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
-  size: 0,
-  progress: 'pending',
+  ...pathItemMetadataDefault,
   type: 'file',
   mimeType: '',
 })
 
 export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
-  badgeCount: 0,
-  name: 'unknown',
-  lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
-  size: 0,
-  progress: 'pending',
+  ...pathItemMetadataDefault,
   type: 'symlink',
   linkTarget: '',
 })
 
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
-  badgeCount: 0,
-  name: 'unknown',
-  lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
-  size: 0,
-  progress: 'pending',
+  ...pathItemMetadataDefault,
   type: 'unknown',
 })
 
@@ -72,6 +71,7 @@ export const makeFavoriteItem: I.RecordFactory<Types._FavoriteItem> = I.Record({
   badgeCount: 0,
   favoriteChildren: I.Set(),
   tlfMeta: undefined,
+  teamId: '',
 })
 
 export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
@@ -124,6 +124,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
+  edits: I.Map(),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   transfers: I.Map(),
@@ -213,7 +214,7 @@ const itemStylesKeybase = {
   textType: folderTextType,
 }
 
-const getIconSpecFromUsernames = (usernames: Array<string>, me?: string) => {
+const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
   if (usernames.length === 1) {
     return makeAvatarPathItemIconSpec(usernames[0])
   } else if (usernames.length > 1) {
@@ -227,12 +228,12 @@ const splitTlfIntoUsernames = (tlf: string): Array<string> =>
     .replace(/#/g, ',')
     .split(',')
 
-const itemStylesPublicTlf = memoize((tlf: string, me?: string) => ({
+const itemStylesPublicTlf = memoize((tlf: string, me?: ?string) => ({
   iconSpec: getIconSpecFromUsernames(splitTlfIntoUsernames(tlf), me),
   textColor: publicTextColor,
   textType: folderTextType,
 }))
-const itemStylesPrivateTlf = memoize((tlf: string, me?: string) => ({
+const itemStylesPrivateTlf = memoize((tlf: string, me?: ?string) => ({
   iconSpec: getIconSpecFromUsernames(splitTlfIntoUsernames(tlf), me),
   textColor: privateTextColor,
   textType: folderTextType,
@@ -260,7 +261,7 @@ export const humanReadableFileSize = (size: number) => {
 export const getItemStyles = (
   pathElems: Array<string>,
   type: Types.PathType,
-  username?: string
+  username?: ?string
 ): Types.ItemStyles => {
   if (pathElems.length === 1 && pathElems[0] === 'keybase') {
     return itemStylesKeybase
@@ -296,6 +297,19 @@ export const getItemStyles = (
       return isPublic ? itemStylesPublicFile : itemStylesPrivateFile
     default:
       return isPublic ? itemStylesPublicUnknown : itemStylesPrivateUnknown
+  }
+}
+
+export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
+  switch (type) {
+    case 'new-folder':
+      return 'folder'
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(type);
+      */
+      return 'unknown'
   }
 }
 
@@ -402,7 +416,17 @@ export const folderToFavoriteItems = (
   // figure out who can solve the rekey
   const folders: Array<Types.FolderRPCWithMeta> = _fillMetadataInFavoritesResult(favoritesResult, myKID)
   const favoriteFolders = folders.map(
-    ({name, folderType, isIgnored, isNew, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
+    ({
+      name,
+      folderType,
+      isIgnored,
+      isNew,
+      needsRekey,
+      waitingForParticipantUnlock,
+      youCanUnlock,
+      team_id,
+      reset_members,
+    }) => {
       const folderTypeString = FolderTypeToString(folderType)
       const folderParent = `/keybase/${folderTypeString}`
       const preferredName = tlfToPreferredOrder(name, username)
@@ -426,6 +450,8 @@ export const folderToFavoriteItems = (
             needsRekey,
             waitingForParticipantUnlock,
             youCanUnlock,
+            teamId: team_id || '',
+            resetParticipants: reset_members || [],
           },
         }),
       ]
@@ -473,8 +499,15 @@ export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types._L
     return 'about:blank'
   }
   const {address, token} = localHTTPServerInfo || makeLocalHTTPServer() // make flow happy
-  const stripKeybase = Types.pathToString(path).slice(slashKeybaseSlashLength)
-  const encoded = encodeURIComponent(stripKeybase)
+  // We need to do this because otherwise encodeURIComponent would encode "/"s.
+  // If we get a relative redirect (e.g. when requested resource is index.html,
+  // we get redirected to "./"), we'd end up redirect to a wrong resource.
+  const encoded = encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength)).replace(
+    /%2F/g,
+    '/'
+  )
+  console.log(encoded)
+
   return `http://${address}/files/${encoded}?token=${token}`
 }
 
@@ -525,3 +558,5 @@ export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types
 }
 
 export const invalidTokenError = new Error('invalid token')
+
+export const makeEditID = (): Types.EditID => Types.stringToEditID(makeUUID())

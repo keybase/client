@@ -119,6 +119,11 @@ func (n *signupTerminalUI) Printf(f string, args ...interface{}) (int, error) {
 	n.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
 }
+func (n *signupTerminalUI) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+	s := fmt.Sprintf(f, args...)
+	n.G().Log.Debug("Terminal PrintfUnescaped: %s", s)
+	return len(s), nil
+}
 
 func (n *signupTerminalUI) Write(b []byte) (int, error) {
 	n.G().Log.Debug("Terminal write: %s", string(b))
@@ -126,6 +131,9 @@ func (n *signupTerminalUI) Write(b []byte) (int, error) {
 }
 
 func (n *signupTerminalUI) OutputWriter() io.Writer {
+	return n
+}
+func (n *signupTerminalUI) UnescapedOutputWriter() io.Writer {
 	return n
 }
 func (n *signupTerminalUI) ErrorWriter() io.Writer {
@@ -370,4 +378,18 @@ func TestSignupLogout(t *testing.T) {
 	default:
 	}
 
+}
+
+// Try to elicit a race between Logout and Shutdown.
+func TestLogoutMulti(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	user1 := tt.addUser("one")
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	user1.tc.G.Logout()
 }

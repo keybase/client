@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import {invert} from 'lodash'
+import {type TypedState} from './reducer'
 
 const balanceDeltaToString = invert(RPCTypes.localBalanceDelta)
 const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
@@ -16,10 +17,11 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   assetsMap: I.Map(),
   paymentsMap: I.Map(),
   accountMap: I.Map(),
+  selectedAccount: Types.noAccountID,
 })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
-  accountID: '',
+  accountID: Types.noAccountID,
   balanceDescription: '',
   isDefault: false,
   name: '',
@@ -27,7 +29,7 @@ const makeAccount: I.RecordFactory<Types._Account> = I.Record({
 
 const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
-    accountID: w.accountID,
+    accountID: Types.stringToAccountID(w.accountID),
     balanceDescription: w.balanceDescription,
     isDefault: w.isDefault,
     name: w.name,
@@ -101,13 +103,26 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   })
 }
 
+const loadEverythingWaitingKey = 'wallets:loadEverything'
+
+const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
+
+const getAccount = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.accountMap.get(accountID, makeAccount())
+
+const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
   makePayment,
   makeReserve,
   makeState,
   paymentResultToPayment,
+  getAccountIDs,
+  getAccount,
+  getSelectedAccount,
 }

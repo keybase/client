@@ -71,7 +71,7 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		return
 	}
 
-	untrackStatement, err := e.arg.Me.UntrackingProofFor(e.signingKeyPub, e.arg.SigVersion, them)
+	untrackStatement, err := e.arg.Me.UntrackingProofFor(m, e.signingKeyPub, e.arg.SigVersion, them)
 	if err != nil {
 		return
 	}

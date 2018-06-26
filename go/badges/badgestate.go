@@ -194,6 +194,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 			msgID := item.Metadata().MsgID().(gregor1.MsgID)
 			m := keybase1.TeamMemberOutReset{
 				Teamname: body.TeamName,
+				Uid:      body.ResetUser.Uid,
 				Username: body.ResetUser.Username,
 				Id:       msgID,
 			}

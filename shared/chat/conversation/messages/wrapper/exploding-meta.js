@@ -20,6 +20,8 @@ import {
 } from '../../../../styles'
 import {type TickerID, addTicker, removeTicker} from '../../../../util/second-timer'
 import {formatDurationShort} from '../../../../util/timestamp'
+import SharedTimer, {type SharedTimerID} from '../../../../util/shared-timers'
+import {animationDuration} from './exploding-height-retainer'
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
@@ -28,6 +30,7 @@ const oneDayInMs = oneHourInMs * 24
 type Props = PropsWithTimer<{
   exploded: boolean,
   explodesAt: number,
+  messageKey: string,
   onClick: ?() => void,
   pending: boolean,
 }>
@@ -43,6 +46,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     mode: 'none',
   }
   tickerID: TickerID
+  sharedTimerID: SharedTimerID
 
   componentDidMount() {
     if (this.state.mode === 'none' && (Date.now() >= this.props.explodesAt || this.props.exploded)) {
@@ -55,11 +59,17 @@ class ExplodingMeta extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (this.props.exploded && !prevProps.exploded) {
       this.setState({mode: 'boom'})
+      SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
+      this.sharedTimerID = SharedTimer.addObserver(() => this.setState({mode: 'hidden'}), {
+        key: this.props.messageKey,
+        ms: animationDuration,
+      })
     }
   }
 
   componentWillUnmount() {
     removeTicker(this.tickerID)
+    SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
   }
 
   _updateLoop = () => {
@@ -82,7 +92,9 @@ class ExplodingMeta extends React.Component<Props, State> {
   _secondLoop = () => {
     const difference = this.props.explodesAt - Date.now()
     if (difference <= 0 || this.props.exploded) {
-      this.setState({mode: 'boom'})
+      if (this.state.mode === 'countdown') {
+        this.setState({mode: 'boom'})
+      }
       removeTicker(this.tickerID)
       return
     }
@@ -101,24 +113,26 @@ class ExplodingMeta extends React.Component<Props, State> {
       case 'countdown':
         children = (
           <Box2 direction="horizontal" gap="xtiny">
-            <Box2
-              direction="horizontal"
-              style={collapseStyles([
-                styles.countdownContainer,
-                {
-                  backgroundColor,
-                },
-              ])}
-            >
-              {this.props.pending ? (
-                <ProgressIndicator style={{width: 17, height: 17}} white={true} />
-              ) : (
-                <Text type="Body" style={{color: globalColors.white, fontSize: 10, fontWeight: 'bold'}}>
+            {this.props.pending ? (
+              <Box2 direction="horizontal" style={styles.progressContainer}>
+                <ProgressIndicator style={{height: 12, width: 12}} />
+              </Box2>
+            ) : (
+              <Box2
+                direction="horizontal"
+                style={collapseStyles([
+                  styles.countdownContainer,
+                  {
+                    backgroundColor,
+                  },
+                ])}
+              >
+                <Text type="Body" style={styles.countdown}>
                   {formatDurationShort(this.props.explodesAt - Date.now())}
                 </Text>
-              )}
-            </Box2>
-            <Icon type="iconfont-bomb" fontSize={isMobile ? 22 : 16} color={globalColors.black_75} />
+              </Box2>
+            )}
+            <Icon type="iconfont-bomb" fontSize={16} color={globalColors.black_75} />
           </Box2>
         )
         break
@@ -142,20 +156,34 @@ class ExplodingMeta extends React.Component<Props, State> {
   }
 }
 
-const getLoopInterval = (diff: number) => {
+export const getLoopInterval = (diff: number) => {
   let deltaMS
   let nearestUnit
+
+  // If diff is less than half a unit away,
+  // we need to return the remainder so we
+  // update when the unit changes
+  const shouldReturnRemainder = (diff, nearestUnit) => diff - nearestUnit <= nearestUnit / 2
+
   if (diff > oneDayInMs) {
     nearestUnit = oneDayInMs
-  }
-  if (diff > oneHourInMs) {
+
+    // special case for when we're coming on 1 day
+    if (shouldReturnRemainder(diff, nearestUnit)) {
+      return diff - nearestUnit
+    }
+  } else if (diff > oneHourInMs) {
     nearestUnit = oneHourInMs
-  }
-  if (diff > oneMinuteInMs) {
+
+    // special case for when we're coming on 1 hour
+    if (shouldReturnRemainder(diff, nearestUnit)) {
+      return diff - nearestUnit
+    }
+  } else if (diff > oneMinuteInMs) {
     nearestUnit = oneMinuteInMs
 
-    // special case for when we're coming on a minute
-    if (Math.floor(diff / nearestUnit) === 1) {
+    // special case for when we're coming on 1 minute
+    if (shouldReturnRemainder(diff, nearestUnit)) {
       return diff - nearestUnit
     }
   }
@@ -185,20 +213,64 @@ const styles = styleSheetCreate({
       left: 0,
     },
   }),
-  container: {
-    ...globalStyles.flexBoxRow,
-    alignSelf: 'flex-end',
-    position: 'relative',
-    width: isMobile ? 50 : 40,
-    height: isMobile ? 22 : 19,
-    marginLeft: isMobile ? 4 : 12,
-    marginRight: isMobile ? 8 : 16,
-  },
-  countdownContainer: {
-    borderRadius: 2,
-    paddingLeft: 4,
-    paddingRight: 4,
-  },
+  container: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      alignSelf: 'flex-end',
+      position: 'relative',
+      width: isMobile ? 50 : 40,
+      height: isMobile ? 22 : 19,
+      marginLeft: isMobile ? 4 : 12,
+      marginRight: isMobile ? 8 : 16,
+    },
+    isMobile: {
+      height: 22,
+      marginLeft: 4,
+      marginRight: 8,
+    },
+    isIOS: {
+      width: 50,
+    },
+    isAndroid: {
+      width: 55,
+    },
+  }),
+  countdown: platformStyles({
+    common: {color: globalColors.white, fontSize: 10, lineHeight: 14, fontWeight: 'bold'},
+  }),
+  countdownContainer: platformStyles({
+    common: {
+      alignItems: 'center',
+      borderRadius: 2,
+      justifyContent: 'center',
+      paddingLeft: 4,
+      paddingRight: 4,
+    },
+    isElectron: {
+      height: 14,
+      width: 28,
+    },
+    isMobile: {
+      height: 15,
+      width: 32,
+    },
+  }),
+  progressContainer: platformStyles({
+    common: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    isElectron: {
+      width: 28,
+    },
+    isMobile: {
+      height: 15,
+      width: 32,
+    },
+    isAndroid: {
+      height: 17,
+    },
+  }),
 })
 
 export default HOCTimers(ExplodingMeta)

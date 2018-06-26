@@ -29,6 +29,7 @@ function fontSizeToSizeStyle(fontSize: number): ?Object {
     '14': 18,
     '13': 17,
     '12': 16,
+    '11': 15,
   }[String(fontSize)]
 
   const _lineHeight = height ? `${height}px` : null
@@ -149,7 +150,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmall: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: globalStyles.fontRegular,
@@ -157,7 +158,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallExtrabold: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: globalStyles.fontExtrabold,
@@ -165,7 +166,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallItalic: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: {
@@ -176,7 +177,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallInlineLink: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     isLink: true,
@@ -185,7 +186,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallSemibold: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: globalStyles.fontSemibold,
@@ -193,7 +194,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallSemiboldItalic: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: {...globalStyles.fontSemibold, fontStyle: 'italic'},
@@ -201,7 +202,7 @@ const metaData: {[key: TextType]: MetaType} = {
   BodySmallSemiboldInlineLink: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
-      Terminal: globalColors.white_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     isLink: true,
@@ -251,6 +252,23 @@ const metaData: {[key: TextType]: MetaType} = {
     colorForBackgroundMode: {Normal: globalColors.purple2},
     fontSize: 12,
     styleOverride: globalStyles.fontRegular,
+  },
+  // Body Tiny
+  BodyTiny: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
+    },
+    fontSize: 11,
+    styleOverride: globalStyles.fontRegular,
+  },
+  BodyTinySemibold: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
+    },
+    fontSize: 11,
+    styleOverride: globalStyles.fontSemibold,
   },
   // Terminal
   Terminal: {

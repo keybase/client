@@ -23,6 +23,12 @@
   "types": [
     {
       "type": "record",
+      "name": "VersionKind",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "MessageText",
       "fields": [
         {
@@ -650,7 +656,8 @@
         "TOOLONG_3",
         "DUPLICATE_4",
         "EXPIRED_5",
-        "TOOMANYATTEMPTS_6"
+        "TOOMANYATTEMPTS_6",
+        "ALREADY_DELETED_7"
       ]
     },
     {
@@ -1148,6 +1155,10 @@
             "items": "ChannelNameMention"
           },
           "name": "channelNameMentions"
+        },
+        {
+          "type": "ReactionMap",
+          "name": "reactions"
         }
       ]
     },
@@ -1159,7 +1170,8 @@
         "BADVERSION_CRITICAL_1",
         "BADVERSION_2",
         "IDENTIFY_3",
-        "EPHEMERAL_4"
+        "EPHEMERAL_4",
+        "PAIRWISE_MISSING_5"
       ]
     },
     {
@@ -1173,6 +1185,22 @@
         {
           "type": "string",
           "name": "errMsg"
+        },
+        {
+          "type": "string",
+          "name": "internalErrMsg"
+        },
+        {
+          "type": "VersionKind",
+          "name": "versionKind"
+        },
+        {
+          "type": "int",
+          "name": "versionNumber"
+        },
+        {
+          "type": "boolean",
+          "name": "isCritical"
         },
         {
           "type": "string",

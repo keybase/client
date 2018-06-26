@@ -347,23 +347,26 @@ var NotificationKindRevMap = map[NotificationKind]string{
 type GlobalAppNotificationSetting int
 
 const (
-	GlobalAppNotificationSetting_NEWMESSAGES      GlobalAppNotificationSetting = 0
-	GlobalAppNotificationSetting_PLAINTEXTMOBILE  GlobalAppNotificationSetting = 1
-	GlobalAppNotificationSetting_PLAINTEXTDESKTOP GlobalAppNotificationSetting = 2
+	GlobalAppNotificationSetting_NEWMESSAGES        GlobalAppNotificationSetting = 0
+	GlobalAppNotificationSetting_PLAINTEXTMOBILE    GlobalAppNotificationSetting = 1
+	GlobalAppNotificationSetting_PLAINTEXTDESKTOP   GlobalAppNotificationSetting = 2
+	GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE GlobalAppNotificationSetting = 3
 )
 
 func (o GlobalAppNotificationSetting) DeepCopy() GlobalAppNotificationSetting { return o }
 
 var GlobalAppNotificationSettingMap = map[string]GlobalAppNotificationSetting{
-	"NEWMESSAGES":      0,
-	"PLAINTEXTMOBILE":  1,
-	"PLAINTEXTDESKTOP": 2,
+	"NEWMESSAGES":        0,
+	"PLAINTEXTMOBILE":    1,
+	"PLAINTEXTDESKTOP":   2,
+	"DEFAULTSOUNDMOBILE": 3,
 }
 
 var GlobalAppNotificationSettingRevMap = map[GlobalAppNotificationSetting]string{
 	0: "NEWMESSAGES",
 	1: "PLAINTEXTMOBILE",
 	2: "PLAINTEXTDESKTOP",
+	3: "DEFAULTSOUNDMOBILE",
 }
 
 func (e GlobalAppNotificationSetting) String() string {
@@ -433,14 +436,16 @@ func (e ConversationStatus) String() string {
 }
 
 type ConversationMember struct {
-	Uid    gregor1.UID    `codec:"uid" json:"uid"`
-	ConvID ConversationID `codec:"convID" json:"convID"`
+	Uid       gregor1.UID    `codec:"uid" json:"uid"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	TopicType TopicType      `codec:"topicType" json:"topicType"`
 }
 
 func (o ConversationMember) DeepCopy() ConversationMember {
 	return ConversationMember{
-		Uid:    o.Uid.DeepCopy(),
-		ConvID: o.ConvID.DeepCopy(),
+		Uid:       o.Uid.DeepCopy(),
+		ConvID:    o.ConvID.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 	}
 }
 
@@ -1009,12 +1014,56 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 	}
 }
 
+type Reaction struct {
+	Username      string    `codec:"username" json:"username"`
+	ReactionMsgID MessageID `codec:"reactionMsgID" json:"reactionMsgID"`
+}
+
+func (o Reaction) DeepCopy() Reaction {
+	return Reaction{
+		Username:      o.Username,
+		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
+	}
+}
+
+type ReactionMap struct {
+	Reactions map[string][]Reaction `codec:"reactions" json:"reactions"`
+}
+
+func (o ReactionMap) DeepCopy() ReactionMap {
+	return ReactionMap{
+		Reactions: (func(x map[string][]Reaction) map[string][]Reaction {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string][]Reaction)
+			for k, v := range x {
+				kCopy := k
+				vCopy := (func(x []Reaction) []Reaction {
+					if x == nil {
+						return nil
+					}
+					var ret []Reaction
+					for _, v := range x {
+						vCopy := v.DeepCopy()
+						ret = append(ret, vCopy)
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Reactions),
+	}
+}
+
 type MessageServerHeader struct {
-	MessageID    MessageID    `codec:"messageID" json:"messageID"`
-	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
-	ReactionIDs  []MessageID  `codec:"r" json:"r"`
-	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
-	Now          gregor1.Time `codec:"n" json:"n"`
+	MessageID    MessageID     `codec:"messageID" json:"messageID"`
+	SupersededBy MessageID     `codec:"supersededBy" json:"supersededBy"`
+	ReactionIDs  []MessageID   `codec:"r" json:"r"`
+	Ctime        gregor1.Time  `codec:"ctime" json:"ctime"`
+	Now          gregor1.Time  `codec:"n" json:"n"`
+	Rtime        *gregor1.Time `codec:"rt,omitempty" json:"rt,omitempty"`
 }
 
 func (o MessageServerHeader) DeepCopy() MessageServerHeader {
@@ -1034,6 +1083,13 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 		})(o.ReactionIDs),
 		Ctime: o.Ctime.DeepCopy(),
 		Now:   o.Now.DeepCopy(),
+		Rtime: (func(x *gregor1.Time) *gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Rtime),
 	}
 }
 
@@ -1113,6 +1169,7 @@ type MessageClientHeader struct {
 	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
+	PairwiseMacs      map[keybase1.KID][]byte  `codec:"pm" json:"pm"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1188,6 +1245,23 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralMetadata),
+		PairwiseMacs: (func(x map[keybase1.KID][]byte) map[keybase1.KID][]byte {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[keybase1.KID][]byte)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []byte) []byte {
+					if x == nil {
+						return nil
+					}
+					return append([]byte{}, x...)
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PairwiseMacs),
 	}
 }
 

@@ -31,15 +31,17 @@ type UnverifiedInboxUIItemMetadata struct {
 	ChannelName       string   `codec:"channelName" json:"channelName"`
 	Headline          string   `codec:"headline" json:"headline"`
 	Snippet           string   `codec:"snippet" json:"snippet"`
+	SnippetDecoration string   `codec:"snippetDecoration" json:"snippetDecoration"`
 	WriterNames       []string `codec:"writerNames" json:"writerNames"`
 	ResetParticipants []string `codec:"resetParticipants" json:"resetParticipants"`
 }
 
 func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata {
 	return UnverifiedInboxUIItemMetadata{
-		ChannelName: o.ChannelName,
-		Headline:    o.Headline,
-		Snippet:     o.Snippet,
+		ChannelName:       o.ChannelName,
+		Headline:          o.Headline,
+		Snippet:           o.Snippet,
+		SnippetDecoration: o.SnippetDecoration,
 		WriterNames: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -67,6 +69,7 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 
 type UnverifiedInboxUIItem struct {
 	ConvID        string                         `codec:"convID" json:"convID"`
+	TopicType     TopicType                      `codec:"topicType" json:"topicType"`
 	Name          string                         `codec:"name" json:"name"`
 	Visibility    keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
 	Status        ConversationStatus             `codec:"status" json:"status"`
@@ -87,6 +90,7 @@ type UnverifiedInboxUIItem struct {
 func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 	return UnverifiedInboxUIItem{
 		ConvID:       o.ConvID,
+		TopicType:    o.TopicType.DeepCopy(),
 		Name:         o.Name,
 		Visibility:   o.Visibility.DeepCopy(),
 		Status:       o.Status.DeepCopy(),
@@ -175,9 +179,11 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 
 type InboxUIItem struct {
 	ConvID            string                        `codec:"convID" json:"convID"`
+	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
 	IsEmpty           bool                          `codec:"isEmpty" json:"isEmpty"`
 	Name              string                        `codec:"name" json:"name"`
 	Snippet           string                        `codec:"snippet" json:"snippet"`
+	SnippetDecoration string                        `codec:"snippetDecoration" json:"snippetDecoration"`
 	Channel           string                        `codec:"channel" json:"channel"`
 	Headline          string                        `codec:"headline" json:"headline"`
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
@@ -203,13 +209,15 @@ type InboxUIItem struct {
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
 	return InboxUIItem{
-		ConvID:     o.ConvID,
-		IsEmpty:    o.IsEmpty,
-		Name:       o.Name,
-		Snippet:    o.Snippet,
-		Channel:    o.Channel,
-		Headline:   o.Headline,
-		Visibility: o.Visibility.DeepCopy(),
+		ConvID:            o.ConvID,
+		TopicType:         o.TopicType.DeepCopy(),
+		IsEmpty:           o.IsEmpty,
+		Name:              o.Name,
+		Snippet:           o.Snippet,
+		SnippetDecoration: o.SnippetDecoration,
+		Channel:           o.Channel,
+		Headline:          o.Headline,
+		Visibility:        o.Visibility.DeepCopy(),
 		Participants: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -410,6 +418,7 @@ type UIMessageValid struct {
 	IsEphemeralExpired    bool                   `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
 	ExplodedBy            *string                `codec:"explodedBy,omitempty" json:"explodedBy,omitempty"`
 	Etime                 gregor1.Time           `codec:"etime" json:"etime"`
+	Reactions             ReactionMap            `codec:"reactions" json:"reactions"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -474,7 +483,8 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x)
 			return &tmp
 		})(o.ExplodedBy),
-		Etime: o.Etime.DeepCopy(),
+		Etime:     o.Etime.DeepCopy(),
+		Reactions: o.Reactions.DeepCopy(),
 	}
 }
 

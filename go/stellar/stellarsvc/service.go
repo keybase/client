@@ -10,8 +10,10 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
+	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/amount"
 )
 
@@ -187,9 +189,23 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	quickReturn := false
-	return stellar.SendPayment(m, s.remoter, stellarcommon.RecipientInput(arg.Recipient), arg.Amount,
-		arg.Note, displayBalance, arg.ForceRelay, quickReturn, arg.PublicNote)
+	sendRes, err := stellar.SendPayment(m, s.remoter, stellar.SendPaymentArg{
+		From:           arg.FromAccountID,
+		To:             stellarcommon.RecipientInput(arg.Recipient),
+		Amount:         arg.Amount,
+		DisplayBalance: displayBalance,
+		SecretNote:     arg.Note,
+		ForceRelay:     arg.ForceRelay,
+		QuickReturn:    false,
+		PublicMemo:     arg.PublicNote,
+	})
+	if err != nil {
+		return res, err
+	}
+	return stellar1.SendResultCLILocal{
+		KbTxID: sendRes.KbTxID,
+		TxID:   sendRes.TxID,
+	}, nil
 }
 
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {
@@ -416,6 +432,32 @@ func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.For
 	return stellar.FormatCurrency(ctx, s.G(), arg.Amount, arg.Code)
 }
 
+// CORE-8135 phase 2: remove this RPC
+func (s *Server) FixupBundleCLILocal(ctx context.Context) (wasAlreadyFixed bool, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "FixupWalletCLILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return false, err
+	}
+
+	prevBundle, _, usedCryptV1, err := remote.Fetch2(ctx, s.G(), true)
+	if err != nil {
+		return false, err
+	}
+	if !usedCryptV1 {
+		return true, nil
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	err = remote.Post(ctx, s.G(), nextBundle)
+	if err != nil {
+		return false, err
+	}
+	return false, nil
+}
+
 // check that the display amount is within 1% of current exchange rates
 func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILocalArg) error {
 	if arg.DisplayAmount == "" {
@@ -427,7 +469,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 		return err
 	}
 
-	xlmAmount, err := stellar.ConvertLocalToXLM(arg.DisplayAmount, exchangeRate)
+	xlmAmount, err := stellarnet.ConvertOutsideToXLM(arg.DisplayAmount, exchangeRate.Rate)
 	if err != nil {
 		return err
 	}

@@ -34,7 +34,7 @@ func waitNamedPipe(name string, timeout uint32) (err error) {
 		return e1
 	}
 
-	r1, _, e2 := procWaitNamedPipeW.Call(2, uintptr(unsafe.Pointer(rawName)), uintptr(timeout), 0)
+	r1, _, e2 := procWaitNamedPipeW.Call(uintptr(unsafe.Pointer(rawName)), uintptr(timeout))
 	if r1 == 0 {
 		return e2
 	}
@@ -69,14 +69,28 @@ func GetFileUserSid(name string) (*windows.SID, error) {
 	return userSID, nil
 }
 
-func IsPipeowner(log logger.Logger, name string) (isOwner bool, err error) {
+type AccountInfo struct {
+	Account string `json:"account"`
+	Domain  string `json:"domain"`
+	Type    uint32 `json:"type"`
+	SID     string `json:"SID"`
+	Err     error  `json:"error"`
+}
+
+type PipeOwnerInfo struct {
+	IsOwner     bool        `json:"isOwner"`
+	PipeAccount AccountInfo `json:"pipe"`
+	UserAccount AccountInfo `json:"user"`
+}
+
+func IsPipeowner(log logger.Logger, name string) (owner PipeOwnerInfo, err error) {
 	log.Debug("+ IsPipeowner(%s)", name)
 	defer func() {
-		log.Debug("- IsPiperowner -> (%v, %v)", isOwner, err)
+		log.Debug("- IsPiperowner -> (%v, %v)", owner, err)
 	}()
 	userSid, err := currentProcessUserSid()
 	if err != nil {
-		return false, err
+		return owner, err
 	}
 
 	pipeSid, err := GetFileUserSid(name)
@@ -88,23 +102,32 @@ func IsPipeowner(log logger.Logger, name string) (isOwner bool, err error) {
 		// If this returns with no error, there is a pipe available.
 		err2 := waitNamedPipe(name, 1000)
 		if err2 != nil {
-			return false, err // return original busy error
+			return owner, err // return original busy error
 		}
 		pipeSid, err = GetFileUserSid(name)
 	}
 	if err != nil {
-		return false, err
+		return owner, err
 	}
-	isOwner = windows.EqualSid(pipeSid, userSid)
-	if !isOwner {
-		pipeAccount, pipeDomain, pipeAccType, pipeErr := pipeSid.LookupAccount("")
-		userAccount, userDomain, userAccType, userErr := userSid.LookupAccount("")
-		log.Debug("Pipe account: %s, %s, %v, %v", pipeAccount, pipeDomain, pipeAccType, pipeErr)
-		log.Debug("User account: %s, %s, %v, %v", userAccount, userDomain, userAccType, userErr)
+	owner.IsOwner = windows.EqualSid(pipeSid, userSid)
+	owner.PipeAccount.Account, owner.PipeAccount.Domain, owner.PipeAccount.Type, owner.PipeAccount.Err = pipeSid.LookupAccount("")
+	owner.PipeAccount.SID, err = pipeSid.String()
+	if err != nil {
+		log.Errorf("error getting owner SID: %s", err.Error())
+	}
+	owner.UserAccount.Account, owner.UserAccount.Domain, owner.UserAccount.Type, owner.UserAccount.Err = userSid.LookupAccount("")
+	owner.UserAccount.SID, err = userSid.String()
+	if err != nil {
+		log.Errorf("error getting user SID: %s", err.Error())
+	}
+
+	if !owner.IsOwner {
 		// If the pipe is served by an admin, let local security policies control access
-		if pipeAccount == "Administrators" && pipeDomain == "BUILTIN" && pipeAccType == syscall.SidTypeAlias {
-			isOwner = true
+		// https://support.microsoft.com/en-us/help/243330/well-known-security-identifiers-in-windows-operating-systems
+		if owner.PipeAccount.SID == "S-1-5-32-544" && owner.PipeAccount.Type == syscall.SidTypeAlias {
+			owner.IsOwner = true
 		}
 	}
-	return isOwner, nil
+	log.Debug("%v", owner)
+	return owner, nil
 }

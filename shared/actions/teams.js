@@ -226,10 +226,19 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
       role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
     })
     if (res.malformed && res.malformed.length > 0) {
-      throw new Error(`Unable to parse email addresses: ${res.malformed.join('; ')}`)
+      const malformed = res.malformed
+      logger.warn(`teamInviteByEmail: Unable to parse ${malformed.length} email addresses`)
+      yield Saga.put(
+        TeamsGen.createSetEmailInviteError({
+          malformed,
+          // mobile can only invite one at a time, show bad email in error message
+          message: isMobile
+            ? `Error parsing email: ${malformed[0]}`
+            : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`,
+        })
+      )
     }
   } finally {
-    // TODO handle error
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))
   }
@@ -399,7 +408,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
   try {
     const unsafeDetails: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
-      forceRepoll: false,
       name: teamname,
     })
 
@@ -444,13 +452,13 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }
     types.forEach(type => {
       const key = typeToKey[type]
-      const members = details.members[key] || []
-      members.forEach(({active, fullName, username}) => {
+      const members: Array<RPCTypes.TeamMemberDetails> = details.members[key] || []
+      members.forEach(({fullName, status, username}) => {
         infos.push([
           username,
           Constants.makeMemberInfo({
-            active,
             fullName,
+            status: Constants.rpcMemberStatusToStatus[status],
             type,
             username,
           }),
@@ -581,9 +589,6 @@ const _getTeamOperations = function*(
 
 const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
-  const state: TypedState = yield Saga.select()
-  const yourOperations = Constants.getCanPerform(state, teamname)
-
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   // Get publicity settings for this team.
   const publicity: RPCTypes.TeamAndMemberShowcase = yield Saga.call(
@@ -594,12 +599,12 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
   )
 
   let tarsDisabled = false
-  // Find out whether team access requests are enabled. Throws if you aren't admin.
-  if (yourOperations.changeTarsDisabled) {
+  // can throw if you're not an admin
+  try {
     tarsDisabled = yield Saga.call(RPCTypes.teamsGetTarsDisabledRpcPromise, {
       name: teamname,
     })
-  }
+  } catch (_) {}
 
   const publicityMap = {
     anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,

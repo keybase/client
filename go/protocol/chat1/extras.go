@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -15,7 +16,7 @@ import (
 )
 
 // we will show some representation of an exploded message in the UI for a week
-const explosionLifetime = time.Hour * 24 * 7
+const showExplosionLifetime = time.Hour * 24 * 7
 
 type ByUID []gregor1.UID
 type ConvIDShort = []byte
@@ -83,6 +84,10 @@ func (cid ConversationID) DbShortFormString() string {
 
 func DbShortFormToString(cid ConvIDShort) string {
 	return hex.EncodeToString(cid)
+}
+
+func DbShortFormFromString(cid string) (ConvIDShort, error) {
+	return hex.DecodeString(cid)
 }
 
 func MakeTLFID(val string) (TLFID, error) {
@@ -198,14 +203,17 @@ func (hash Hash) Eq(other Hash) bool {
 
 func (m MessageUnboxed) GetMessageID() MessageID {
 	if state, err := m.State(); err == nil {
-		if state == MessageUnboxedState_VALID {
+		switch state {
+		case MessageUnboxedState_VALID:
 			return m.Valid().ServerHeader.MessageID
-		}
-		if state == MessageUnboxedState_ERROR {
+		case MessageUnboxedState_ERROR:
 			return m.Error().MessageID
-		}
-		if state == MessageUnboxedState_PLACEHOLDER {
+		case MessageUnboxedState_PLACEHOLDER:
 			return m.Placeholder().MessageID
+		case MessageUnboxedState_OUTBOX:
+			return m.Outbox().Msg.ClientHeader.OutboxInfo.Prev
+		default:
+			return 0
 		}
 	}
 	return 0
@@ -279,7 +287,7 @@ func (m *MessageUnboxed) DebugString() string {
 	}
 	if state == MessageUnboxedState_ERROR {
 		merr := m.Error()
-		return fmt.Sprintf("[%v %v mt:%v (%v)]", state, m.GetMessageID(), merr.ErrType, merr.ErrMsg)
+		return fmt.Sprintf("[%v %v mt:%v (%v) (%v)]", state, m.GetMessageID(), merr.ErrType, merr.ErrMsg, merr.InternalErrMsg)
 	}
 	switch state {
 	case MessageUnboxedState_VALID:
@@ -332,6 +340,62 @@ func MessageUnboxedDebugList(ms []MessageUnboxed) string {
 
 func MessageUnboxedDebugLines(ms []MessageUnboxed) string {
 	return strings.Join(MessageUnboxedDebugStrings(ms), "\n")
+}
+
+const (
+	VersionErrorMessageBoxed VersionKind = "messageboxed"
+	VersionErrorHeader       VersionKind = "header"
+	VersionErrorBody         VersionKind = "body"
+)
+
+// NOTE: these values correspond to the maximum accepted values in
+// chat/boxer.go. If these values are changed, they must also be accepted
+// there.
+var MaxMessageBoxedVersion MessageBoxedVersion = MessageBoxedVersion_V4
+var MaxHeaderVersion HeaderPlaintextVersion = HeaderPlaintextVersion_V1
+var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V1
+
+// ParseableVersion checks if this error has a version that is now able to be
+// understood by our client.
+func (m MessageUnboxedError) ParseableVersion() bool {
+	switch m.ErrType {
+	case MessageUnboxedErrorType_BADVERSION, MessageUnboxedErrorType_BADVERSION_CRITICAL:
+		// only applies to these types
+	default:
+		return false
+	}
+
+	kind := m.VersionKind
+	version := m.VersionNumber
+	// This error was stored from an old client, we have parse out the info we
+	// need from the error message.
+	// TODO remove this check once it has be live for a few cycles.
+	if kind == "" && version == 0 {
+		re := regexp.MustCompile(`.* Chat version error: \[ unhandled: (\w+) version: (\d+) .*\]`)
+		matches := re.FindStringSubmatch(m.ErrMsg)
+		if len(matches) != 3 {
+			return false
+		}
+		kind = VersionKind(matches[1])
+		var err error
+		version, err = strconv.Atoi(matches[2])
+		if err != nil {
+			return false
+		}
+	}
+
+	var maxVersion int
+	switch kind {
+	case VersionErrorMessageBoxed:
+		maxVersion = int(MaxMessageBoxedVersion)
+	case VersionErrorHeader:
+		maxVersion = int(MaxHeaderVersion)
+	case VersionErrorBody:
+		maxVersion = int(MaxBodyVersion)
+	default:
+		return false
+	}
+	return maxVersion >= version
 }
 
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
@@ -436,12 +500,17 @@ func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 	return m.MessageBody.IsNil() || m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
 
-func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
+func (m MessageUnboxedValid) HideExplosion(expunge *Expunge, now time.Time) bool {
 	if !m.IsEphemeral() {
 		return false
 	}
+	var upTo MessageID
+	if expunge != nil {
+		upTo = expunge.Upto
+	}
 	etime := m.Etime()
-	return etime.Time().Add(explosionLifetime).Before(now)
+	// Don't show ash lines for messages that have been expunged.
+	return etime.Time().Add(showExplosionLifetime).Before(now) || m.ServerHeader.MessageID < upTo
 }
 
 func (b MessageBody) IsNil() bool {
@@ -536,7 +605,11 @@ func (m MessageBoxed) Etime() gregor1.Time {
 	if metadata == nil {
 		return 0
 	}
-	return Etime(metadata.Lifetime, m.ServerHeader.Ctime, gregor1.ToTime(time.Now()), m.ServerHeader.Now)
+	rtime := gregor1.ToTime(time.Now())
+	if m.ServerHeader.Rtime != nil {
+		rtime = *m.ServerHeader.Rtime
+	}
+	return Etime(metadata.Lifetime, m.ServerHeader.Ctime, rtime, m.ServerHeader.Now)
 }
 
 func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
@@ -545,14 +618,6 @@ func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
 	}
 	etime := m.Etime().Time()
 	return m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
-}
-
-func (m MessageBoxed) HideExplosion(now time.Time) bool {
-	if !m.IsEphemeral() {
-		return false
-	}
-	etime := m.Etime()
-	return etime.Time().Add(explosionLifetime).Before(now)
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
@@ -1418,4 +1483,17 @@ func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 func (i EphemeralPurgeInfo) String() string {
 	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
+}
+
+func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found bool, reactionMsgID MessageID) {
+	reactions, ok := r.Reactions[reactionText]
+	if !ok {
+		return false, 0
+	}
+	for _, reaction := range reactions {
+		if reaction.Username == username {
+			return true, reaction.ReactionMsgID
+		}
+	}
+	return false, 0
 }

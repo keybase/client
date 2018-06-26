@@ -64,6 +64,10 @@ func (m MetaContext) CVTrace(lev VDebugLevel, msg string, f func() error) func()
 	return m.g.CVTrace(m.ctx, lev, msg, f)
 }
 
+func (m MetaContext) VLogf(lev VDebugLevel, msg string, args ...interface{}) {
+	m.g.VDL.CLogfWithAddedDepth(m.ctx, lev, 1, msg, args...)
+}
+
 func (m MetaContext) CTraceTimed(msg string, f func() error) func() {
 	return CTraceTimed(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f, m.G().Clock())
 }
@@ -612,7 +616,7 @@ func (m MetaContext) SyncSecrets() (ss *SecretSyncer, err error) {
 
 func (m MetaContext) SyncSecretsForUID(u keybase1.UID) (ss *SecretSyncer, err error) {
 	defer m.CTrace("MetaContext#SyncSecrets", func() error { return err })()
-	return m.ActiveDevice().SyncSecretsForUID(m, u)
+	return m.ActiveDevice().SyncSecretsForUID(m, u, false /* force */)
 }
 
 func (m MetaContext) ProvisionalSessionArgs() (token string, csrf string) {

@@ -116,4 +116,10 @@ protocol common {
     int revision;
     map<OutsideCurrencyCode, OutsideCurrencyDefinition> currencies;
   }
+
+  record PageCursor {
+    string horizonCursor;
+    string directCursor;
+    string relayCursor;
+  }
 }

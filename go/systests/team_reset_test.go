@@ -25,7 +25,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 		for _, member := range d.Members.Writers {
 			switch member.Username {
 			case bob.username:
-				return !member.Active
+				return member.Status.IsReset()
 			}
 		}
 		return false
@@ -35,7 +35,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 	for _, member := range details.Members.Admins {
 		switch member.Username {
 		case ann.username:
-			require.True(ann.ctx.t, member.Active)
+			require.True(ann.ctx.t, member.Status.IsActive())
 		default:
 			ann.ctx.t.Fatalf("unknown admin: %s", member.Username)
 		}
@@ -43,9 +43,9 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 	for _, member := range details.Members.Writers {
 		switch member.Username {
 		case bob.username:
-			require.False(ann.ctx.t, member.Active)
+			require.True(ann.ctx.t, member.Status.IsReset())
 		case cam.username:
-			require.True(ann.ctx.t, member.Active)
+			require.True(ann.ctx.t, member.Status.IsActive())
 		default:
 			ann.ctx.t.Fatalf("unknown writer: %s (%+v)", member.Username, details)
 		}
@@ -245,6 +245,34 @@ func TestTeamResetAdd(t *testing.T) {
 	divDebug(ctx, "Ann sending chat '2'")
 	bob.readChats(team, 2)
 	divDebug(ctx, "Bob reading chat '2'")
+}
+
+// Ann creates a team, and adds Bob as an admin. Then Alice resets, and Bob readmits
+// Ann as an admin (since he can't make her an owner). It should work.
+func TestTeamOwnerResetAdminReadmit(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	team := ann.createTeam([]*smuUser{})
+	divDebug(ctx, "team created (%s)", team.name)
+	ann.addAdmin(team, bob)
+
+	ann.reset()
+	divDebug(ctx, "Reset ann (%s)", ann.username)
+
+	ann.loginAfterReset(2)
+	divDebug(ctx, "Ann logged in after reset")
+	bob.addAdmin(team, ann)
+	_, err := ann.teamGet(team)
+	require.NoError(t, err)
+	divDebug(ctx, "Ann read the team")
 }
 
 // add bob (a user who has reset his account and has no PUK) to a team
@@ -474,8 +502,7 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 	t.Logf("Calling TeamGet")
 
 	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name:        team.name,
-		ForceRepoll: true,
+		Name: team.name,
 	})
 	require.NoError(t, err)
 
@@ -638,7 +665,7 @@ func TestTeamListAfterReset(t *testing.T) {
 		if w.Username == bob.username {
 			require.False(t, found, "wasn't found twice")
 			require.True(t, w.Uv.EldestSeqno > 1, "reset eldest seqno")
-			require.True(t, w.Active, "is active")
+			require.True(t, w.Status.IsActive(), "is active")
 			found = true
 		}
 	}
@@ -680,10 +707,7 @@ func TestTeamAfterDeleteUser(t *testing.T) {
 	bob.readChats(team, 1)
 }
 
-// TestTeamResetBadges checks that badges show up for admins
-// when a member of the team resets, and that they are dismissed
-// when the reset user is added.
-func TestTeamResetBadgesOnAdd(t *testing.T) {
+func testTeamResetBadgesAndDismiss(t *testing.T, readd bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -713,8 +737,15 @@ func TestTeamResetBadgesOnAdd(t *testing.T) {
 	// users[1] logs in after reset
 	tt.users[1].loginAfterReset()
 
-	// users[0] adds users[1] back to the team
-	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
+	// Either re-adding or removing user from the team should clear
+	// the reset badge.
+	if readd {
+		// users[0] adds users[1] back to the team
+		tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
+	} else {
+		// users[0] removes users[1] from the team
+		tt.users[0].removeTeamMember(teamName.String(), tt.users[1].username)
+	}
 
 	// wait for badge state to have no teams w/ reset member
 	badgeState = tt.users[0].waitForBadgeStateWithReset(0)
@@ -725,44 +756,16 @@ func TestTeamResetBadgesOnAdd(t *testing.T) {
 	}
 }
 
+// TestTeamResetBadges checks that badges show up for admins
+// when a member of the team resets, and that they are dismissed
+// when the reset user is added.
+func TestTeamResetBadgesOnAdd(t *testing.T) {
+	testTeamResetBadgesAndDismiss(t, true)
+}
+
 // TestTeamResetBadgesOnRemove checks that badges show up for admins
 // when a member of the team resets, and that they are dismissed
 // when the reset user is removed.
 func TestTeamResetBadgesOnRemove(t *testing.T) {
-	tt := newTeamTester(t)
-	defer tt.cleanup()
-
-	tt.addUser("own")
-	tt.addUser("roo")
-
-	teamID, teamName := tt.users[0].createTeam2()
-	tt.users[0].kickTeamRekeyd()
-	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
-	tt.users[1].reset()
-	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
-	// wait for badge state to have 1 team w/ reset member
-	badgeState := tt.users[0].waitForBadgeStateWithReset(1)
-
-	// users[0] should be badged since users[1] reset
-	if len(badgeState.TeamsWithResetUsers) == 0 {
-		t.Fatal("TeamsWithResetUsers is empty after reset")
-	}
-	out := badgeState.TeamsWithResetUsers[0]
-	if out.Teamname != teamName.String() {
-		t.Errorf("badged team name: %s, expected %s", out.Teamname, teamName)
-	}
-	if out.Username != tt.users[1].username {
-		t.Errorf("badged user: %s, expected %s", out.Username, tt.users[1].username)
-	}
-
-	// users[0] removes users[1] from the team
-	tt.users[0].removeTeamMember(teamName.String(), tt.users[1].username)
-
-	// wait for badge state to have no teams w/ reset member
-	badgeState = tt.users[0].waitForBadgeStateWithReset(0)
-
-	// badge state should be cleared
-	if len(badgeState.TeamsWithResetUsers) != 0 {
-		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))
-	}
+	testTeamResetBadgesAndDismiss(t, false)
 }

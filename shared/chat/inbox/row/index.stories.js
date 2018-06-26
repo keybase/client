@@ -23,6 +23,7 @@ const simpleCommon = {
   rekeyInfo: null,
   showBold: false,
   snippet: 'snippet',
+  snippetDecoration: '',
   subColor: globalColors.black_40,
   teamname: '',
   timestamp: '1:23 pm',
@@ -60,7 +61,7 @@ const mocks = [
     hasBadge: false,
     participants: ['jzila'],
     showBold: false,
-    snippet: 'I don\t know that I would want.',
+    snippet: "I don't know that I would want.",
     timestamp: '5:12 pm',
   },
   {
@@ -71,7 +72,7 @@ const mocks = [
     hasUnread: false,
     participants: ['jzila'],
     showBold: false,
-    snippet: 'I don\t know that I would want.',
+    snippet: "I don't know that I would want.",
     timestamp: '5:12 pm',
   },
   {

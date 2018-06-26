@@ -311,8 +311,7 @@ func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.Team
 
 func (u *userPlusDevice) teamGetDetails(teamName string) keybase1.TeamDetails {
 	res, err := u.teamsClient.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name:        teamName,
-		ForceRepoll: true,
+		Name: teamName,
 	})
 	require.NoError(u.tc.T, err)
 	return res
@@ -510,19 +509,24 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 }
 
 func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) keybase1.BadgeState {
-	for i := 0; i < 10; i++ {
+	// Process any number of badge state updates, but bail out after
+	// 10 seconds.
+	timeout := time.After(10 * time.Second * libkb.CITimeMultiplier(u.tc.G))
+	i := 0
+	for {
 		select {
 		case arg := <-u.notifications.badgeCh:
-			u.tc.T.Logf("badge state received: %+v", arg.TeamsWithResetUsers)
+			u.tc.T.Logf("badge state received %d: %+v", i, arg.TeamsWithResetUsers)
+			i++
 			if len(arg.TeamsWithResetUsers) == numReset {
 				u.tc.T.Logf("badge state length match")
 				return arg
 			}
-		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
+		case <-timeout:
+			u.tc.T.Fatal("timed out waiting for badge state")
+			return keybase1.BadgeState{}
 		}
 	}
-	u.tc.T.Fatal("timed out waiting for badge state")
-	return keybase1.BadgeState{}
 }
 
 func (u *userPlusDevice) drainGregor() {
@@ -815,6 +819,18 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	t.Logf("Calling accelerate_team_rekeyd, setting work_time_sec to %d", workTimeSec)
 
 	_, err := g.API.Post(apiArg)
+	require.NoError(t, err)
+}
+
+func clearServerUIDMapCache(g *libkb.GlobalContext, t libkb.TestingTB, uids []keybase1.UID) {
+	arg := libkb.NewAPIArg("user/names")
+	arg.SessionType = libkb.APISessionTypeNONE
+	arg.Args = libkb.HTTPArgs{
+		"uids":     libkb.S{Val: libkb.UidsToString(uids)},
+		"no_cache": libkb.B{Val: true},
+	}
+	t.Logf("Calling user/names with uids: %v and no_cache: true to clear serverside uidmap cache", uids)
+	_, err := g.API.Post(arg)
 	require.NoError(t, err)
 }
 

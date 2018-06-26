@@ -43,6 +43,8 @@ type NameInfoSource interface {
 	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+	ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 }
 
 type UnboxConversationInfo interface {
@@ -78,6 +80,8 @@ type ConversationSource interface {
 		uid gregor1.UID, expunge chat1.Expunge) error
 	ClearFromDelete(ctx context.Context, uid gregor1.UID,
 		convID chat1.ConversationID, deleteID chat1.MessageID) bool
+	EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 	DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, assets []chat1.Asset)
@@ -253,5 +257,5 @@ type RateLimitedResult interface {
 type EphemeralPurger interface {
 	Resumable
 
-	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo)
+	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error
 }

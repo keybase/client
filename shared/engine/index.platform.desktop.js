@@ -52,17 +52,18 @@ function checkRPCOwnership(): Promise<void> {
     const args = ['pipeowner', socketPath]
     execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
       if (error) {
-        logger.info(`pipeowner check returns: ${error.message}`)
+        logger.info(`pipeowner check result: ${stdout.toString()}`)
+        // error will be logged in bootstrap check
         reject(error)
         return
       }
-      const result = stdout.toString().trim()
-      logger.info(`pipeowner check returns: ${result}`)
-      if (result === 'true') {
+      const result = JSON.parse(stdout.toString())
+      if (result.isOwner) {
         resolve()
         return
       }
-      reject(new Error(`pipeowner check returns: ${result}`))
+      logger.info(`pipeowner check result: ${stdout.toString()}`)
+      reject(new Error(`pipeowner check failed`))
     })
   })
 }

@@ -81,6 +81,7 @@ const metaMapReducer = (metaMap, action) => {
               participants,
               rekeyers,
               snippet: error.message,
+              snippetDecoration: '',
               trustedState: 'error',
             })
             return metaMap.set(conversationIDKey, newMeta)
@@ -93,6 +94,7 @@ const metaMapReducer = (metaMap, action) => {
                   ? old.withMutations(m => {
                       m.set('trustedState', 'error')
                       m.set('snippet', error.message)
+                      m.set('snippetDecoration', '')
                     })
                   : old
             )
@@ -344,6 +346,16 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             s.setIn(['orangeLineMap', action.payload.conversationIDKey], null)
           }
         }
+
+        // Clear ordinals from the old selected conversation
+        const oldSelected = s.selectedConversation
+        if (oldSelected && Constants.isValidConversationIDKey(oldSelected)) {
+          s.updateIn(
+            ['messageOrdinals', oldSelected],
+            ordinals => (ordinals ? ordinals.takeLast(Constants.numMessagesOnInitialLoad) : ordinals)
+          )
+        }
+
         s.set('selectedConversation', action.payload.conversationIDKey)
       })
     case Chat2Gen.setInboxFilter:
@@ -708,7 +720,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     // Saga only actions
-    case Chat2Gen.attachmentUpload:
+    case Chat2Gen.attachmentsUpload:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.joinConversation:

@@ -81,6 +81,10 @@
         {
           "type": "User",
           "name": "lastWriterUnverified"
+        },
+        {
+          "type": "boolean",
+          "name": "writable"
         }
       ]
     },

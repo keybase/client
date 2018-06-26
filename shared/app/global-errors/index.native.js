@@ -14,7 +14,7 @@ import {globalStyles, globalColors, globalMargins, isIPhoneX, platformStyles} fr
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'
 
-import type {Props as _Props} from './index'
+import type {Props as _Props} from './index.types'
 
 type Size = 'Closed' | 'Small' | 'Big'
 type State = {
@@ -111,7 +111,7 @@ class GlobalError extends Component<Props, State> {
             }}
           >
             <Text
-              type="Body"
+              type="BodySmallSemibold"
               style={{color: globalColors.white, flex: 1, textAlign: 'center'}}
               onClick={this._onExpandClick}
             >

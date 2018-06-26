@@ -1,9 +1,11 @@
 # desktop VERSION
+# TODO: work on splitting out the .js.flow files into types.js.flow files
+# To test the future desktop version uncomment lines w/ D1 in front
 [ignore]
 # Soon we'll start running flow from desktop/ios/android perspective and have multiple flow config files
-#.*/*[.]android.js
-#.*/*[.]ios.js
-#.*/*[.]native.js
+#D1 .*/*[.]android.js
+#D1 .*/*[.]ios.js
+#D1 .*/*[.]native.js
 # Will start to ignore js.flow files soon
 #.*/*[.].js.flow
 #.*/*[.]desktop.js
@@ -53,8 +55,8 @@ module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
 # module.system.haste.name_reducers='^\(.*\)\.android$' -> '\1'
 # module.system.haste.name_reducers='^\(.*\)\.native$' -> '\1'
 # module.system.haste.name_reducers='^\(.*\)\.desktop\.js$' -> '\1'
-# module.file_ext=.js
-# module.file_ext=.desktop.js
+#D1 module.file_ext=.js
+#D1 module.file_ext=.desktop.js
 # module.file_ext=.ios.js
 # module.file_ext=.android.js
 # module.file_ext=.native.js
@@ -81,4 +83,4 @@ untyped-import=off
 deprecated-type=error
 
 [version]
-^0.74.0
+^0.75.0

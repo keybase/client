@@ -328,6 +328,12 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 
 type MergeResult struct {
 	Expunged *chat1.Expunge
+	Exploded []chat1.MessageUnboxed
+}
+
+type FetchResult struct {
+	Thread   chat1.ThreadView
+	Exploded []chat1.MessageUnboxed
 }
 
 // Merge requires msgs to be sorted by descending message ID
@@ -389,9 +395,11 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 	res.Expunged = expunged
 
-	if err = s.explodeExpiredMessages(ctx, convID, uid, msgs); err != nil {
+	explodedMsgs, err := s.explodeExpiredMessages(ctx, convID, uid, msgs)
+	if err != nil {
 		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
+	res.Exploded = explodedMsgs
 
 	// Update max msg ID if needed
 	if len(msgs) > 0 {
@@ -405,7 +413,6 @@ func (s *Storage) MergeHelper(ctx context.Context,
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
-
 	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	var allAssets []chat1.Asset
@@ -425,38 +432,97 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			s.Debug(ctx, "updateSupersededBy: msgID: %d supersedes: %v", msgid, supersededIDs)
 		}
 
+		// Helper to get a single msg to supersede
+		getMsg := func(msgID chat1.MessageID) ([]chat1.MessageUnboxed, Error) {
+			rc := NewSimpleResultCollector(1)
+			err := s.engine.ReadMessages(ctx, rc, convID, uid, msgID)
+			if err != nil {
+				// If we don't have the message, just keep going
+				if _, ok := err.(MissError); ok {
+					return nil, nil
+				}
+				return nil, err
+			}
+			return rc.Result(), nil
+		}
+		// helper to update a reaction's target when the reaction itself is deleted
+		updateReactionTarget := func(reactionMsg chat1.MessageUnboxed) (*chat1.MessageUnboxed, Error) {
+			s.Debug(ctx, "updateReactionTarget: reationMsg:%v", reactionMsg)
+			if reactionMsg.Valid().MessageBody.IsNil() {
+				return nil, nil
+			}
+
+			targetMsgID := reactionMsg.Valid().MessageBody.Reaction().MessageID
+			targetMsgs, err := getMsg(targetMsgID)
+			if err != nil || targetMsgs == nil {
+				return nil, err
+			}
+			targetMsg := targetMsgs[0]
+			if targetMsg.IsValid() {
+				mvalid := targetMsg.Valid()
+				reactionIDs := []chat1.MessageID{}
+				for _, msgID := range mvalid.ServerHeader.ReactionIDs {
+					if msgID != reactionMsg.GetMessageID() {
+						reactionIDs = append(reactionIDs, msgID)
+					}
+				}
+				mvalid.ServerHeader.ReactionIDs = reactionIDs
+				newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
+				return &newMsg, nil
+			}
+			return nil, nil
+		}
+
 		// Set all supersedes targets
 		for _, supersededID := range supersededIDs {
 			s.Debug(ctx, "updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, supersededID)
 			// Read superseded msg
-			rc := NewSimpleResultCollector(1)
-			err := s.engine.ReadMessages(ctx, rc, convID, uid, supersededID)
+			superMsgs, err := getMsg(supersededID)
 			if err != nil {
-				// If we don't have the message, just keep going
-				if _, ok := err.(MissError); ok {
-					continue
-				}
 				return err
 			}
-			superMsgs := rc.Result()
 			if len(superMsgs) == 0 {
 				continue
 			}
 
-			// Update supersededBy on the target message if we have it. And if
-			// the superseder is a deletion, delete the body as well.
+			// Update supersededBy and reactionIDs on the target message if we
+			// have it. If the superseder is a deletion, delete the body as
+			// well. If we are deleting a reaction, update the reaction's
+			// target message.
 			superMsg := superMsgs[0]
 			if superMsg.IsValid() {
 				s.Debug(ctx, "updateSupersededBy: writing: id: %d superseded: %d", msgid, supersededID)
 				mvalid := superMsg.Valid()
-				mvalid.ServerHeader.SupersededBy = msgid
+
+				// reactions don't update SupersededBy, instead they rely on ReactionIDs
+				if msg.GetMessageType() == chat1.MessageType_REACTION {
+					mvalid.ServerHeader.ReactionIDs = s.updateReactionIDs(mvalid.ServerHeader.ReactionIDs, msgid)
+				} else {
+					mvalid.ServerHeader.SupersededBy = msgid
+				}
+
+				var newMsg chat1.MessageUnboxed
 				if msg.GetMessageType() == chat1.MessageType_DELETE {
+					// We have to find the message we are reacting to and
+					// update it's ReactionIDs as well.
+					if superMsg.GetMessageType() == chat1.MessageType_REACTION {
+						newTargetMsg, err := updateReactionTarget(superMsg)
+						if err != nil {
+							return err
+						} else if newTargetMsg != nil {
+							superMsgs = append(superMsgs, *newTargetMsg)
+						}
+					}
+
 					msgPurged, assets := s.purgeMessage(mvalid)
 					allAssets = append(allAssets, assets...)
-					superMsgs[0] = msgPurged
+					newMsg = msgPurged
+
 				} else {
-					superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
+					newMsg = chat1.NewMessageUnboxedWithValid(mvalid)
 				}
+
+				superMsgs[0] = newMsg
 				if err = s.engine.WriteMessages(ctx, convID, uid, superMsgs); err != nil {
 					return err
 				}
@@ -469,7 +535,6 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
-
 	return nil
 }
 
@@ -701,6 +766,11 @@ func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, 
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 	s.Debug(ctx, "ClearBefore: convID: %s uid: %s msgID: %d", convID, uid, upto)
+
+	// Abort, we don't want to overflow uint (chat1.MessageID)
+	if upto == 0 {
+		return nil
+	}
 	return s.clearUpthrough(ctx, convID, uid, upto-1)
 }
 
@@ -735,23 +805,21 @@ func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.Get
 
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+	pagination *chat1.Pagination) (res FetchResult, err Error) {
 
-	var err Error
 	if err = isAbortedRequest(ctx); err != nil {
-		return chat1.ThreadView{}, err
+		return res, err
 	}
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
-		return chat1.ThreadView{},
-			MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+		return res, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	// Init storage engine first
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
-		return chat1.ThreadView{}, s.MaybeNuke(ctx, false, err, convID, uid)
+		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 
 	// Calculate seek parameters
@@ -768,14 +836,14 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 		} else if len(pagination.Next) > 0 {
 			if derr := decode(pagination.Next, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, s.MaybeNuke(ctx, false, err, convID, uid)
+				return res, s.MaybeNuke(ctx, false, err, convID, uid)
 			}
 			maxID = pid - 1
 			s.Debug(ctx, "Fetch: next pagination: pid: %d", pid)
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, s.MaybeNuke(ctx, false, err, convID, uid)
+				return res, s.MaybeNuke(ctx, false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
 			s.Debug(ctx, "Fetch: prev pagination: pid: %d", pid)
@@ -791,15 +859,17 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 
 	// Run seek looking for all the messages
 	if err = s.engine.ReadMessages(ctx, rc, convID, uid, maxID); err != nil {
-		return chat1.ThreadView{}, err
+		return res, err
 	}
 	msgs := rc.Result()
 
 	// Clear out any ephemeral messages that have exploded before we hand these
 	// messages out.
-	if err := s.explodeExpiredMessages(ctx, convID, uid, msgs); err != nil {
-		return chat1.ThreadView{}, err
+	explodedMsgs, err := s.explodeExpiredMessages(ctx, convID, uid, msgs)
+	if err != nil {
+		return res, err
 	}
+	res.Exploded = explodedMsgs
 
 	// Get the stored latest point upto which has been deleted.
 	// `maxDeletedUpto` can be behind the times, so the pager is patched later in ConvSource.
@@ -811,29 +881,28 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 		maxDeletedUpto = delh.MaxDeleteHistoryUpto
 	case MissError:
 	default:
-		return chat1.ThreadView{}, err
+		return res, err
 	}
 	s.Debug(ctx, "Fetch: using max deleted upto: %v for pager", maxDeletedUpto)
 
 	// Form paged result
-	var tres chat1.ThreadView
 	var pmsgs []pager.Message
 	for _, m := range msgs {
 		pmsgs = append(pmsgs, m)
 	}
-	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num, maxDeletedUpto); ierr != nil {
-		return chat1.ThreadView{},
+	if res.Thread.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num, maxDeletedUpto); ierr != nil {
+		return res,
 			NewInternalError(ctx, s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
-	tres.Messages = msgs
+	res.Thread.Messages = msgs
 
 	s.Debug(ctx, "Fetch: cache hit: num: %d", len(msgs))
-	return tres, nil
+	return res, nil
 }
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, iboxMaxMsgID chat1.MessageID,
-	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
+	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
 	locks.Storage.Lock()
@@ -842,7 +911,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
-		return chat1.ThreadView{}, err
+		return res, err
 	}
 	if iboxMaxMsgID > maxMsgID {
 		s.Debug(ctx, "FetchUpToLocalMaxMsgID: overriding locally stored max msgid with ibox: %d",
@@ -855,7 +924,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
+	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
 	locks.Storage.Lock()
@@ -897,7 +966,14 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 			}
 		}
 		sres = rc.Result()
-		res = append(res, &sres[0])
+		msg := &sres[0]
+
+		// If we have a versioning error but our client now understands the new
+		// version, don't return the error message
+		if msg.IsError() && msg.Error().ParseableVersion() {
+			msg = nil
+		}
+		res = append(res, msg)
 	}
 
 	return res, nil
@@ -916,11 +992,26 @@ func (s *Storage) IsTLFIdentifyBroken(ctx context.Context, tlfID chat1.TLFID) bo
 	}
 	return idBroken
 }
+func (s *Storage) updateReactionIDs(reactionIDs []chat1.MessageID, msgid chat1.MessageID) []chat1.MessageID {
+	var hasReaction bool
+	for _, reactionID := range reactionIDs {
+		if reactionID == msgid {
+			hasReaction = true
+			break
+		}
+	}
+	if hasReaction {
+		return reactionIDs
+	}
+	return append(reactionIDs, msgid)
+}
 
 // Clears the body of a message and returns any assets to be deleted.
 func (s *Storage) purgeMessage(mvalid chat1.MessageUnboxedValid) (chat1.MessageUnboxed, []chat1.Asset) {
 	assets := utils.AssetsForMessage(s.G(), mvalid.MessageBody)
 	var emptyBody chat1.MessageBody
 	mvalid.MessageBody = emptyBody
+	var emptyReactions chat1.ReactionMap
+	mvalid.Reactions = emptyReactions
 	return chat1.NewMessageUnboxedWithValid(mvalid), assets
 }

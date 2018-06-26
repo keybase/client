@@ -9,8 +9,9 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/stellarnet"
+	stellaramount "github.com/stellar/go/amount"
 	"golang.org/x/net/context"
 )
 
@@ -21,6 +22,7 @@ type CmdWalletSend struct {
 	Note          string
 	LocalCurrency string
 	ForceRelay    bool
+	FromAccountID stellar1.AccountID
 }
 
 func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -28,6 +30,10 @@ func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		cli.StringFlag{
 			Name:  "m, message",
 			Usage: "Include a message with the payment.",
+		},
+		cli.StringFlag{
+			Name:  "from",
+			Usage: "Specify the source account for the payment.",
 		},
 	}
 	if develUsage {
@@ -58,6 +64,7 @@ func (c *CmdWalletSend) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.Recipient = ctx.Args()[0]
+	// TODO ensure amount is numeric and does not contain escape characters
 	c.Amount = ctx.Args()[1]
 	if len(ctx.Args()) == 3 {
 		c.LocalCurrency = strings.ToUpper(ctx.Args()[2])
@@ -67,6 +74,7 @@ func (c *CmdWalletSend) ParseArgv(ctx *cli.Context) error {
 	}
 	c.Note = ctx.String("message")
 	c.ForceRelay = ctx.Bool("relay")
+	c.FromAccountID = stellar1.AccountID(ctx.String("from"))
 	return nil
 }
 
@@ -96,7 +104,7 @@ func (c *CmdWalletSend) Run() error {
 			return fmt.Errorf("Unable to get exchange rate for %q: %s", c.LocalCurrency, err)
 		}
 
-		amount, err = stellar.ConvertLocalToXLM(c.Amount, exchangeRate)
+		amount, err = stellarnet.ConvertOutsideToXLM(c.Amount, exchangeRate.Rate)
 		if err != nil {
 			return err
 		}
@@ -105,6 +113,11 @@ func (c *CmdWalletSend) Run() error {
 		amountDesc = fmt.Sprintf("%s XLM (~%s %s)", amount, c.Amount, c.LocalCurrency)
 		displayAmount = c.Amount
 		displayCurrency = c.LocalCurrency
+	}
+
+	_, err = stellaramount.ParseInt64(amount)
+	if err != nil {
+		return fmt.Errorf("invalid amount of XLM: %q", amount)
 	}
 
 	if err := ui.PromptForConfirmation(fmt.Sprintf("Send %s to %s?", ColorString(c.G(), "green", amountDesc), ColorString(c.G(), "yellow", c.Recipient))); err != nil {
@@ -119,6 +132,7 @@ func (c *CmdWalletSend) Run() error {
 		DisplayAmount:   displayAmount,
 		DisplayCurrency: displayCurrency,
 		ForceRelay:      c.ForceRelay,
+		FromAccountID:   c.FromAccountID,
 	}
 	res, err := cli.SendCLILocal(context.Background(), arg)
 	if err != nil {

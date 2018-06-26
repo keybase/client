@@ -17,8 +17,9 @@ type linkIDFixed [LinkIDLen]byte
 type LinkCache struct {
 	sync.Mutex
 
-	cache map[linkIDFixed]*list.Element
-	done  chan struct{}
+	cache        map[linkIDFixed]*list.Element
+	done         chan struct{}
+	shutdownOnce sync.Once
 
 	cleanWait time.Duration
 	maxSize   int
@@ -114,7 +115,7 @@ func (c *LinkCache) Len() int {
 
 // Shutdown terminates the use of this cache.
 func (c *LinkCache) Shutdown() {
-	close(c.done)
+	c.shutdownOnce.Do(func() { close(c.done) })
 }
 
 func (c *LinkCache) Clean() {

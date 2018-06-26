@@ -1,42 +1,51 @@
 // @flow
 import * as React from 'react'
 import {Box2, Icon, Text, FloatingPicker} from '../../../../common-adapters/mobile.native'
-import {globalColors, globalMargins} from '../../../../styles'
+import {globalColors, globalMargins, styleSheetCreate} from '../../../../styles'
 import type {Props} from '.'
 
 const Announcement = () => (
-  <Box2 direction="vertical" fullWidth={true} style={announcementContainerStyle}>
+  <Box2 direction="vertical" fullWidth={true} style={styles.announcementContainer}>
     <Icon
       type="iconfont-boom"
       color={globalColors.white}
-      fontSize={48}
+      fontSize={64}
       style={{marginTop: -10, marginBottom: -10}}
     />
+    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={styles.headline}>
+      Set a timeout on your messages and watch them
+    </Text>
+    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={styles.headline}>
+      E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
+    </Text>
     <Text
-      type="BodySemibold"
+      type="BodySmallSemiboldPrimaryLink"
       backgroundMode="Announcements"
-      style={{
-        paddingLeft: globalMargins.medium,
-        paddingRight: globalMargins.medium,
-        flexGrow: 1,
-        textAlign: 'center',
-      }}
+      className="underline"
+      onClickURL="https://keybase.io/blog/keybase-exploding-messages"
     >
-      Set a timeout on your messages and watch them E X P L O D E
+      Learn more
     </Text>
   </Box2>
 )
 
-const announcementContainerStyle = {
-  alignItems: 'center',
-  backgroundColor: globalColors.blue,
-  padding: globalMargins.small,
-  paddingBottom: globalMargins.small,
-}
+const styles = styleSheetCreate({
+  announcementContainer: {
+    alignItems: 'center',
+    backgroundColor: globalColors.blue,
+    padding: globalMargins.small,
+    paddingBottom: globalMargins.small,
+  },
+  headline: {
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+    flexGrow: 1,
+    textAlign: 'center',
+  },
+})
 
 const Prompt = () => (
   <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
-    <Icon type="iconfont-bomb" fontSize={20} />
     <Text type="BodySmallSemibold">Explode messages after:</Text>
   </Box2>
 )
@@ -78,7 +87,7 @@ class SetExplodePopup extends React.Component<Props, State> {
         onCancel={this.props.onHidden}
         onDone={this.onDone}
         prompt={<Prompt />}
-        promptString="Explode message after"
+        promptString="Pick a timeout"
         visible={this.props.visible}
         selectedValue={this.state.selected}
       />

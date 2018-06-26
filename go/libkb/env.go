@@ -115,8 +115,14 @@ func (n NullConfiguration) GetBool(string, bool) (bool, bool) { return false, fa
 func (n NullConfiguration) GetAllUsernames() (NormalizedUsername, []NormalizedUsername, error) {
 	return NormalizedUsername(""), nil, nil
 }
+func (n NullConfiguration) GetAllUserConfigs() (*UserConfig, []UserConfig, error) {
+	return nil, nil, nil
+}
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
+	return false, false
+}
+func (n NullConfiguration) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return false, false
 }
 func (n NullConfiguration) GetLogFormat() string {
@@ -524,6 +530,14 @@ func (e *Env) GetDebug() bool {
 		func() (bool, bool) { return e.cmd.GetDebug() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG") },
 		func() (bool, bool) { return e.GetConfig().GetDebug() },
+	)
+}
+
+func (e *Env) GetDisplayRawUntrustedOutput() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetDisplayRawUntrustedOutput() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISPLAY_RAW_UNTRUSTED_OUTPUT") },
+		func() (bool, bool) { return e.GetConfig().GetDisplayRawUntrustedOutput() },
 	)
 }
 

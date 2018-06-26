@@ -6,6 +6,8 @@ protocol local {
   import idl "common.avdl";
   import idl "chat_ui.avdl";
 
+  @typedef("string") record VersionKind {}
+
   record MessageText {
     string body;
   }
@@ -196,7 +198,8 @@ protocol local {
     TOOLONG_3,
     DUPLICATE_4,
     EXPIRED_5,
-    TOOMANYATTEMPTS_6
+    TOOMANYATTEMPTS_6,
+    ALREADY_DELETED_7
   }
 
   record OutboxStateError {
@@ -379,6 +382,8 @@ protocol local {
     array<gregor1.UID> atMentions;
     ChannelMention channelMention;
     array<ChannelNameMention> channelNameMentions;
+    // reactionText -> [Reaction(username, reactionMsgID)...]
+    ReactionMap reactions;
   }
 
   enum MessageUnboxedErrorType {
@@ -386,12 +391,19 @@ protocol local {
     BADVERSION_CRITICAL_1,
     BADVERSION_2,
     IDENTIFY_3,
-    EPHEMERAL_4
+    EPHEMERAL_4,
+    PAIRWISE_MISSING_5
   }
 
   record MessageUnboxedError {
     MessageUnboxedErrorType errType;
     string errMsg;
+    // verbose error info for debugging but not
+    // user display
+    string internalErrMsg;
+    VersionKind versionKind;
+    int versionNumber;
+    boolean isCritical;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;

@@ -47,13 +47,18 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
       </Text>
       <Text
         backgroundMode="Terminal"
-        type="BodySemibold"
+        type="BodySmallSemibold"
         style={{marginBottom: globalMargins.small, ...(isMobile ? {textAlign: 'center'} : {})}}
       >
         Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to
         large communities.
       </Text>
-      <Text backgroundMode="Terminal" type="BodySemiboldLink" className="underline" onClick={onReadMore}>
+      <Text
+        backgroundMode="Terminal"
+        type="BodySmallSemiboldPrimaryLink"
+        className="underline"
+        onClick={onReadMore}
+      >
         Read our announcement
       </Text>
     </Box>

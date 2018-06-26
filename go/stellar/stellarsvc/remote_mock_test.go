@@ -309,8 +309,8 @@ func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoCla
 	return nil, fmt.Errorf("RemoteClientMock does not implement NextAutoClaim")
 }
 
-func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
-	return r.Backend.RecentPayments(ctx, r.Tc, accountID, limit)
+func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (stellar1.PaymentsPage, error) {
+	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit)
 }
 
 func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
@@ -394,7 +394,8 @@ func (r *BackendMock) Balances(ctx context.Context, accountID stellar1.AccountID
 	defer r.Unlock()
 	a, ok := r.accounts[accountID]
 	if !ok {
-		return nil, libkb.NotFoundError{}
+		// If an account does not exist on the network, return empty balance list.
+		return nil, nil
 	}
 	return []stellar1.Balance{a.balance}, nil
 }
@@ -434,14 +435,19 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 		return stellar1.PaymentResult{}, errors.New("can only handle native")
 	}
 
+	toIsFunded := false
+	b, toExists := r.accounts[extract.To]
+
+	if !toIsFunded {
+		if extract.AmountXdr < 10000000 {
+			return stellar1.PaymentResult{}, errors.New("op minimum reserve get outta here")
+		}
+	}
+	if !toExists {
+		b = r.addAccountByID(extract.To, false)
+	}
 	a.SubtractBalance(extract.Amount)
 	a.AdjustBalance(-(int64(unpackedTx.Tx.Fee)))
-
-	b, ok := r.accounts[extract.To]
-	if !ok {
-		return res, fmt.Errorf("destination not funded: %v", extract.To)
-	}
-	// we know about destination as well
 	b.AddBalance(extract.Amount)
 
 	caller, err := tc.G.GetMeUV(ctx)
@@ -597,11 +603,15 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	}, nil
 }
 
-func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
+func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (res stellar1.PaymentsPage, err error) {
 	defer tc.G.CTraceTimed(ctx, "BackendMock.RecentPayments", func() error { return err })()
 	r.Lock()
 	defer r.Unlock()
-	return r.txLog.Filter(ctx, tc, accountID, limit), nil
+	if cursor != nil {
+		return res, errors.New("cursor not mocked")
+	}
+	res.Payments = r.txLog.Filter(ctx, tc, accountID, limit)
+	return res, nil
 }
 
 func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentDetails, err error) {
@@ -620,9 +630,16 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 	r.Lock()
 	defer r.Unlock()
 
+	_, err = stellarnet.NewAddressStr(string(accountID))
+	if err != nil {
+		return res, err
+	}
+
 	a, ok := r.accounts[accountID]
 	if !ok {
-		return stellar1.AccountDetails{}, libkb.NotFoundError{}
+		// If an account does not exist on the network, return empty details (WAT)
+		res.AccountID = accountID
+		return res, nil
 	}
 	var balances []stellar1.Balance
 	if a.balance.Amount != "" {

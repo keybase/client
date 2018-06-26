@@ -59,7 +59,7 @@ for debian_arch in amd64 i386 ; do
   # Add a standalone signature file, for user convenience. Other packaging
   # steps will pick this up and copy it around.
   code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
-  gpg --detach-sign --armor --use-agent --default-key "$code_signing_fingerprint" \
+  gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
       -o "$repo_root/$package_path.sig" "$repo_root/$package_path"
 
   # Update the latest pointer.

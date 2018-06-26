@@ -428,6 +428,10 @@ func UIDFromString(s string) (UID, error) {
 	return UID(s), nil
 }
 
+func UIDFromSlice(b []byte) (UID, error) {
+	return UIDFromString(hex.EncodeToString(b))
+}
+
 // Used by unit tests.
 func MakeTestUID(n uint32) UID {
 	b := make([]byte, 8)
@@ -723,6 +727,14 @@ func ToTime(t time.Time) Time {
 		return 0
 	}
 	return Time(t.UnixNano() / 1000000)
+}
+
+func ToTimePtr(t *time.Time) *Time {
+	if t == nil {
+		return nil
+	}
+	ret := ToTime(*t)
+	return &ret
 }
 
 func TimeFromSeconds(seconds int64) Time {
@@ -1435,7 +1447,7 @@ func (u UserPlusKeysV2) FindSigningDeviceKID(d DeviceID) (KID, string) {
 	return key.Base.Kid, key.DeviceDescription
 }
 
-func (u UserPlusKeysV2) FindEncryptionDeviceKey(parent KID) *PublicKeyV2NaCl {
+func (u UserPlusKeysV2) FindEncryptionDeviceKeyFromSigningKID(parent KID) *PublicKeyV2NaCl {
 	for _, k := range u.DeviceKeys {
 		if !k.Base.IsSibkey && k.Parent != nil && k.Parent.Equal(parent) {
 			return &k
@@ -1444,12 +1456,20 @@ func (u UserPlusKeysV2) FindEncryptionDeviceKey(parent KID) *PublicKeyV2NaCl {
 	return nil
 }
 
-func (u UserPlusKeysV2) FindEncryptionDeviceKID(parent KID) KID {
-	key := u.FindEncryptionDeviceKey(parent)
+func (u UserPlusKeysV2) FindEncryptionKIDFromSigningKID(parent KID) KID {
+	key := u.FindEncryptionDeviceKeyFromSigningKID(parent)
 	if key == nil {
 		return KID("")
 	}
 	return key.Base.Kid
+}
+
+func (u UserPlusKeysV2) FindEncryptionKIDFromDeviceID(deviceID DeviceID) KID {
+	signingKID, _ := u.FindSigningDeviceKID(deviceID)
+	if signingKID.IsNil() {
+		return KID("")
+	}
+	return u.FindEncryptionKIDFromSigningKID(signingKID)
 }
 
 func (s ChatConversationID) String() string {
@@ -1856,27 +1876,21 @@ func (t TeamMember) IsReset() bool {
 	return t.EldestSeqno != t.UserEldestSeqno
 }
 
-// ActiveUsernames returns a map of username -> active status
-func (t TeamMembersDetails) ActiveUsernames() map[string]bool {
-	m := make(map[string]bool)
-	for _, u := range t.Owners {
-		m[u.Username] = m[u.Username] || u.Active
-	}
-	for _, u := range t.Admins {
-		m[u.Username] = m[u.Username] || u.Active
-	}
-	for _, u := range t.Writers {
-		m[u.Username] = m[u.Username] || u.Active
-	}
-	for _, u := range t.Readers {
-		m[u.Username] = m[u.Username] || u.Active
-	}
-	return m
+func (s TeamMemberStatus) IsActive() bool {
+	return s == TeamMemberStatus_ACTIVE
+}
+
+func (s TeamMemberStatus) IsReset() bool {
+	return s == TeamMemberStatus_RESET
+}
+
+func (s TeamMemberStatus) IsDeleted() bool {
+	return s == TeamMemberStatus_DELETED
 }
 
 func FilterInactiveMembers(arg []TeamMemberDetails) (ret []TeamMemberDetails) {
 	for _, v := range arg {
-		if v.Active {
+		if v.Status.IsActive() {
 			ret = append(ret, v)
 		}
 	}

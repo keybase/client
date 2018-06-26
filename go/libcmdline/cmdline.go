@@ -96,6 +96,9 @@ func (p CommandLine) GetDebug() (bool, bool) {
 	}
 	return p.GetBool("debug", true)
 }
+func (p CommandLine) GetDisplayRawUntrustedOutput() (bool, bool) {
+	return p.GetBool("display-raw-untrusted-output", true)
+}
 func (p CommandLine) GetVDebugSetting() string {
 	return p.GetGString("vdebug")
 }
@@ -446,6 +449,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "Enable debugging mode.",
+		},
+		cli.BoolFlag{
+			Name:  "display-raw-untrusted-output",
+			Usage: "Display output from users (messages, chats, ...) in the terminal without escaping terminal codes. WARNING: maliciously crafted unescaped outputs can overwrite anything you see on the terminal.",
 		},
 		cli.StringFlag{
 			Name:  "features",

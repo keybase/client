@@ -3,10 +3,11 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 	"strings"
 	"sync"
+
+	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type ActiveDevice struct {
@@ -269,7 +270,7 @@ func (a *ActiveDevice) SigningKey() (GenericKey, error) {
 	return a.signingKey, nil
 }
 
-// EncryptionKey returns the signing key for the active device.
+// EncryptionKey returns the encryption key for the active device.
 // Safe for use by concurrent goroutines.
 func (a *ActiveDevice) EncryptionKey() (GenericKey, error) {
 	a.RLock()
@@ -280,6 +281,21 @@ func (a *ActiveDevice) EncryptionKey() (GenericKey, error) {
 		}
 	}
 	return a.encryptionKey, nil
+}
+
+// NaclEncryptionKey returns the encryption key for the active device, as a
+// NaclDHKeyPair. If the cast fails (though that should never happen), it
+// returns an error.
+func (a *ActiveDevice) NaclEncryptionKey() (*NaclDHKeyPair, error) {
+	genericKey, err := a.EncryptionKey()
+	if err != nil {
+		return nil, err
+	}
+	naclKey, ok := genericKey.(NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("expected NaclDHKeyPair, got %T", genericKey)
+	}
+	return &naclKey, nil
 }
 
 // KeyByType returns a cached key based on SecretKeyType.
@@ -357,7 +373,7 @@ func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, err
 	return nist, a.uid, err
 }
 
-func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID) (ret *SecretSyncer, err error) {
+func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bool) (ret *SecretSyncer, err error) {
 	defer m.CTrace("ActiveDevice#SyncSecretsForUID", func() error { return err })()
 
 	a.RLock()
@@ -374,7 +390,7 @@ func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID) (ret *Se
 	if uid.IsNil() {
 		return nil, fmt.Errorf("can't run secret syncer without a UID")
 	}
-	err = RunSyncer(m, s, uid, true, nil)
+	err = RunSyncer(m, s, uid, true, nil, force)
 	if err != nil {
 		return nil, err
 	}
@@ -384,7 +400,13 @@ func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID) (ret *Se
 func (a *ActiveDevice) SyncSecrets(m MetaContext) (ret *SecretSyncer, err error) {
 	defer m.CTrace("ActiveDevice#SyncSecrets", func() error { return err })()
 	var zed keybase1.UID
-	return a.SyncSecretsForUID(m, zed)
+	return a.SyncSecretsForUID(m, zed, false /* force */)
+}
+
+func (a *ActiveDevice) SyncSecretsForce(m MetaContext) (ret *SecretSyncer, err error) {
+	defer m.CTrace("ActiveDevice#SyncSecretsForce", func() error { return err })()
+	var zed keybase1.UID
+	return a.SyncSecretsForUID(m, zed, true /* force */)
 }
 
 func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername) (err error) {

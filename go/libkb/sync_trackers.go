@@ -109,7 +109,7 @@ func (t *TrackerSyncer) getLoadedVersion() int {
 
 func (t *TrackerSyncer) needsLogin(m MetaContext) bool { return false }
 
-func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr SessionReader) (err error) {
+func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr SessionReader, forceReload bool) (err error) {
 
 	lv := t.getLoadedVersion()
 
@@ -118,7 +118,7 @@ func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr Sessi
 		"limit": I{5000},
 	}
 
-	if lv >= 0 {
+	if lv >= 0 && !forceReload {
 		hargs.Add("version", I{lv})
 	}
 
@@ -137,7 +137,7 @@ func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr Sessi
 	if err = res.Body.UnmarshalAgain(&tmp); err != nil {
 		return
 	}
-	if lv < 0 || tmp.Version > lv {
+	if lv < 0 || tmp.Version > lv || forceReload {
 		m.CDebugf("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
 			len(tmp.Trackers))
 		tmp = tmp.compact()

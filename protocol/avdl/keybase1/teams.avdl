@@ -84,13 +84,19 @@ protocol teams {
     array<UserVersion> readers;
   }
 
+  enum TeamMemberStatus {
+    ACTIVE_0,
+    RESET_1,
+    DELETED_2
+  }
+
   record TeamMemberDetails {
     UserVersion uv;
     string username;
     FullName fullName;
-    boolean active;
     @lint("ignore")
     boolean needsPUK;
+    TeamMemberStatus status;
   }
 
   record TeamMembersDetails {
@@ -204,7 +210,7 @@ protocol teams {
     UserVersion inviter;
     string inviterUsername;
     string teamName;
-    boolean userActive;
+    TeamMemberStatus status;
   }
 
   record TeamEncryptedKBFSKeyset {
@@ -607,11 +613,11 @@ protocol teams {
     int memberCount;
     @jsonkey("member_eldest_seqno")
     Seqno eldestSeqno;
-    boolean active;
     @jsonkey("allow_profile_promote")
     boolean allowProfilePromote;
     @jsonkey("is_member_showcased")
     boolean isMemberShowcased;
+    TeamMemberStatus status;
   }
 
   record AnnotatedTeamList {
@@ -683,8 +689,9 @@ protocol teams {
 
   TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean joinSubteam, TeamSettings settings);
 
-  // A user can hope for success if and only if they are a member of the team or an admin of any of its ancestors.
-  TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
+  // A user can hope for success if and only if they are a member of
+  // the team or an admin of any of its ancestors.
+  TeamDetails teamGet(int sessionID, string name);
 
   // List all the admins of ancestor teams.
   // Includes admins of the specified team only if they are also admins of ancestor teams.
@@ -842,6 +849,21 @@ protocol teams {
 
   void uploadTeamAvatar(string teamname, string filename, union { null, ImageCropRect } crop, boolean sendChatNotification);
 
-  bytes tryDecryptWithTeamKey(TeamID teamID, bytes encryptedData, BoxNonce nonce, 
+  bytes tryDecryptWithTeamKey(TeamID teamID, bytes encryptedData, BoxNonce nonce,
     BoxPublicKey peersPublicKey, PerTeamKeyGeneration minGeneration);
+
+  /**
+   FindNextMerkleRootAfterTeamRemoval finds the first Merkle root that contains the user being
+   removed from the team at that given seqno in the team's chain. You should pass in a previous
+   Merkle root as a starting point for the binary search.
+  */
+  NextMerkleRootRes findNextMerkleRootAfterTeamRemoval(UID uid, TeamID team, boolean isPublic, Seqno teamSigchainSeqno, MerkleRootV2 prev);
+
+  /**
+   FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user
+   with the given signing key being removed from the given team. If there are several such instances,
+   we will return just the last one.
+   */
+  NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic);
+
 }

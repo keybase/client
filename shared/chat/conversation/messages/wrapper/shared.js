@@ -61,7 +61,7 @@ const MenuButton = ({onClick, setRef}) => (
 )
 
 const EditedMark = () => (
-  <Text type="BodySmall" style={styles.edited}>
+  <Text type="BodyTiny" style={styles.edited}>
     EDITED
   </Text>
 )
@@ -127,6 +127,7 @@ const RightSide = props => (
         <ExplodingHeightRetainer
           explodedBy={props.explodedBy}
           exploding={props.exploding}
+          measure={props.measure}
           messageKey={props.messageKey}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
@@ -156,15 +157,16 @@ const RightSide = props => (
           />
         )}
       </Box>
-      {!!props.failureDescription && (
-        <Failure
-          failureDescription={props.failureDescription}
-          isExplodingUnreadable={props.isExplodingUnreadable}
-          onRetry={props.onRetry}
-          onEdit={props.onEdit}
-          onCancel={props.onCancel}
-        />
-      )}
+      {!!props.failureDescription &&
+        !props.exploded && (
+          <Failure
+            failureDescription={props.failureDescription}
+            isExplodingUnreadable={props.isExplodingUnreadable}
+            onRetry={props.onRetry}
+            onEdit={props.onEdit}
+            onCancel={props.onCancel}
+          />
+        )}
       <Box style={styles.sendIndicatorContainer}>
         {props.isYou && (
           <SendIndicator
@@ -180,7 +182,8 @@ const RightSide = props => (
       <ExplodingMeta
         exploded={props.exploded}
         explodesAt={props.explodesAt}
-        pending={props.messagePending}
+        messageKey={props.messageKey}
+        pending={props.messagePending || props.messageFailed}
         onClick={props.exploded ? null : props.toggleShowingMenu}
       />
     )}
@@ -278,7 +281,7 @@ const styles = styleSheetCreate({
     },
     isElectron: {pointerEvents: 'none'},
     isMobile: {
-      right: -18,
+      right: -14,
     },
   }),
   textContainer: {

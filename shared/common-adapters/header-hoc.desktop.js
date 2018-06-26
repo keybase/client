@@ -41,14 +41,12 @@ export const HeaderHocHeader = ({
 )
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  return (props: P & Props) => {
-    return (
-      <Box style={_containerStyle}>
-        <HeaderHocHeader {...props} />
-        <WrappedComponent {...(props: P)} />
-      </Box>
-    )
-  }
+  return (props: P & Props) => (
+    <Box style={_containerStyle}>
+      <HeaderHocHeader {...props} />
+      <WrappedComponent {...(props: P)} />
+    </Box>
+  )
 }
 
 const _containerStyle = {
