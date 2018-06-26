@@ -1876,27 +1876,21 @@ func (t TeamMember) IsReset() bool {
 	return t.EldestSeqno != t.UserEldestSeqno
 }
 
-// ActiveUsernames returns a map of username -> active status
-func (t TeamMembersDetails) ActiveUsernames() map[string]bool {
-	m := make(map[string]bool)
-	for _, u := range t.Owners {
-		m[u.Username] = m[u.Username] || u.Active
-	}
-	for _, u := range t.Admins {
-		m[u.Username] = m[u.Username] || u.Active
-	}
-	for _, u := range t.Writers {
-		m[u.Username] = m[u.Username] || u.Active
-	}
-	for _, u := range t.Readers {
-		m[u.Username] = m[u.Username] || u.Active
-	}
-	return m
+func (s TeamMemberStatus) IsActive() bool {
+	return s == TeamMemberStatus_ACTIVE
+}
+
+func (s TeamMemberStatus) IsReset() bool {
+	return s == TeamMemberStatus_RESET
+}
+
+func (s TeamMemberStatus) IsDeleted() bool {
+	return s == TeamMemberStatus_DELETED
 }
 
 func FilterInactiveMembers(arg []TeamMemberDetails) (ret []TeamMemberDetails) {
 	for _, v := range arg {
-		if v.Active {
+		if v.Status.IsActive() {
 			ret = append(ret, v)
 		}
 	}

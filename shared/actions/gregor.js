@@ -187,10 +187,6 @@ function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
     if (!isNaN(when)) {
       isNew = Date.now() - when < ChatConstants.newExplodingGregorOffset
     }
-  } else {
-    // never clicked on bomb icon with new setup
-    // check for old one
-    isNew = !!items.find(i => i.item.category === ChatConstants.newExplodingGregorKey)
   }
   return Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: isNew}))
 }

@@ -24,6 +24,7 @@ protocol chatUi {
 
   record UnverifiedInboxUIItem {
     string convID;
+    TopicType topicType;
     string name;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
@@ -50,6 +51,7 @@ protocol chatUi {
 
   record InboxUIItem {
     string convID;
+    TopicType topicType;
     boolean isEmpty;
     string name;
     string snippet;

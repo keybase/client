@@ -54,7 +54,7 @@ class Ticker {
       logCounter++
       if (logCounter % 10 === 0 && this.refs.length > 0) {
         // 10 seconds
-        localLog('Outstanding timer listener debugger:', this.refs)
+        localLog('Outstanding second timer listener debugger:', this.refs)
       }
     }
   }

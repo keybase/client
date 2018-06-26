@@ -43,6 +43,9 @@ const load = () => {
         <Text type="Body">Resize your window to see the text input flex</Text>
       </Box2>
     ))
+    .add('With placeholder color', () => (
+      <PlainInput {...commonProps} placeholder="I'm blue!" placeholderColor="blue" />
+    ))
 }
 
 export default load
