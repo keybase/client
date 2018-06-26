@@ -436,14 +436,16 @@ func (e ConversationStatus) String() string {
 }
 
 type ConversationMember struct {
-	Uid    gregor1.UID    `codec:"uid" json:"uid"`
-	ConvID ConversationID `codec:"convID" json:"convID"`
+	Uid       gregor1.UID    `codec:"uid" json:"uid"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	TopicType TopicType      `codec:"topicType" json:"topicType"`
 }
 
 func (o ConversationMember) DeepCopy() ConversationMember {
 	return ConversationMember{
-		Uid:    o.Uid.DeepCopy(),
-		ConvID: o.ConvID.DeepCopy(),
+		Uid:       o.Uid.DeepCopy(),
+		ConvID:    o.ConvID.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 	}
 }
 

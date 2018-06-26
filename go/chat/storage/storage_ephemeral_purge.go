@@ -3,10 +3,8 @@ package storage
 import (
 	"time"
 
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
@@ -79,16 +77,16 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 }
 
 func (s *Storage) explodeExpiredMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) (err Error) {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) (explodedMsgs []chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "explodeExpiredMessages")()
 
-	purgeInfo, _, err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
+	purgeInfo, explodedMsgs, err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// We may only be merging in some subset of messages, we only update if the
 	// info we get is more restrictive that what we have already
-	return s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
+	return explodedMsgs, s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
 }
 
 // Before adding or removing messages from storage, nuke any expired ones and
@@ -152,37 +150,10 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 		return nil, nil, err
 	}
 
-	s.notifyEphemeralPurge(ctx, uid, convID, explodedMsgs)
-
 	return &chat1.EphemeralPurgeInfo{
 		ConvID:          convID,
 		MinUnexplodedID: minUnexplodedID,
 		NextPurgeTime:   nextPurgeTime,
 		IsActive:        hasExploding,
 	}, explodedMsgs, nil
-}
-
-// notifyEphemeralPurge notifies the GUI after messages are exploded.
-func (s *Storage) notifyEphemeralPurge(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, explodedMsgs []chat1.MessageUnboxed) {
-	if len(explodedMsgs) > 0 && s.G().InboxSource != nil {
-		ib, err := s.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
-		if err != nil || len(ib.Convs) != 1 {
-			s.G().GetLog().CDebugf(ctx, "InboxSource.Read: convs: %v err: %v", ib.Convs, err)
-			return
-		}
-		inboxUIItem := utils.PresentConversationLocal(ib.Convs[0], s.G().Env.GetUsername().String())
-
-		purgedMsgs := []chat1.UIMessage{}
-		for _, msg := range explodedMsgs {
-			purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
-		}
-		act := chat1.NewChatActivityWithEphemeralPurge(chat1.EphemeralPurgeNotifInfo{
-			ConvID: convID,
-			Msgs:   purgedMsgs,
-			Conv:   &inboxUIItem,
-		})
-		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
-	}
 }

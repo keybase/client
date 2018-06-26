@@ -121,6 +121,7 @@
   record ConversationMember {
     gregor1.UID uid;
     ConversationID convID;
+    TopicType topicType;
   }
 
   record ConversationIDMessageIDPair {
