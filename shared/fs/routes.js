@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import BreadcrumbPopupMenu from './popups/breadcrumb-popup-container'
 import Files from './container'
 import {BarePreview, NormalPreview} from './filepreview'
 import FinderPopupMenu from './finder-popup'
@@ -46,10 +45,6 @@ const _folderRoute = {
   children: {
     ..._commonChildren,
     folder: () => makeRouteDefNode(_folderRoute),
-    breadcrumbAction: {
-      component: RelativePopupHoc(BreadcrumbPopupMenu),
-      tags: makeLeafTags({layerOnTop: true}),
-    },
     sortbarAction: {
       component: RelativePopupHoc(SortBarPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),

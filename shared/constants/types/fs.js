@@ -146,11 +146,12 @@ export type _Transfer = {
 export type Transfer = I.RecordOf<_Transfer>
 
 export type PathBreadcrumbItem = {
-  isTlfNameItem: boolean,
+  isTeamTlf: boolean,
   isLastItem: boolean,
   name: string,
   path: Path,
-  onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
+  iconSpec: PathItemIconSpec,
+  onClick: (evt?: SyntheticEvent<>) => void,
 }
 
 export type _Flags = {
