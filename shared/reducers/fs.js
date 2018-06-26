@@ -201,7 +201,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
     case FsGen.saveMedia:
-    case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:

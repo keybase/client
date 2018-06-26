@@ -10,6 +10,7 @@ import {navigateUp} from '../../actions/route-tree'
 import {connect, type Dispatch, type TypedState} from '../../util/container'
 import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
+import PathItemAction from '../popups/path-item-action-container'
 
 const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
@@ -21,22 +22,12 @@ const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   onBack: () => dispatch(navigateUp()),
-  _onAction: (path: Types.Path, type: Types.PathType, evt?: SyntheticEvent<>) =>
-    dispatch(
-      FsGen.createFileActionPopup({
-        path,
-        type,
-        targetRect: Constants.syntheticEventToTargetRect(evt),
-        routePath,
-      })
-    ),
 })
 
-const mergeProps = ({path, _pathItem}, {onBack, _onAction}, {routePath}) => ({
+const mergeProps = ({path, _pathItem}, {onBack}, {routePath}) => ({
   path,
   routePath,
   onBack,
-  onAction: (event: SyntheticEvent<>) => _onAction(path, _pathItem.type, event),
 })
 
 type ConnectedBarePreviewProps = {
@@ -44,7 +35,6 @@ type ConnectedBarePreviewProps = {
   routePath: I.List<string>,
 
   onBack: () => void,
-  onAction: (evt?: SyntheticEvent<>) => void,
 }
 
 const BarePreview = (props: ConnectedBarePreviewProps) => (
@@ -60,10 +50,14 @@ const BarePreview = (props: ConnectedBarePreviewProps) => (
       <View path={props.path} routePath={props.routePath} />
     </Box>
     <Box style={stylesFooter}>
-      <Icon type="iconfont-ellipsis" onClick={props.onAction} color={globalColors.white} />
+      <PathItemAction path={props.path} actionIconStyle={stylesPathItemActionIcon} />
     </Box>
   </Box>
 )
+
+const stylesPathItemActionIcon = {
+  color: globalColors.white,
+}
 
 const stylesContainer = platformStyles({
   common: {

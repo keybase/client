@@ -14,7 +14,7 @@ import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
 import {Box} from '../common-adapters'
 import Download from './footer/download'
-import RowActionPopup from './popups/row-action-popup'
+import PathItemAction from './popups/path-item-action'
 import FolderHeader from './header/header.desktop'
 
 const folderItemStyles = {
@@ -141,6 +141,24 @@ const provider = createPropProvider({
     style: {},
     menuItems: [],
   }),
+  ConnectedPathItemAction: () => ({
+    name: Types.getPathNameFromElems(['keybase', 'private', 'meatball']),
+    size: 0,
+    type: 'folder',
+    lastModifiedTimestamp: 0,
+    lastWriter: 'meatball',
+    childrenFolders: 0,
+    childrenFiles: 0,
+    itemStyles: Constants.getItemStyles(['keybase', 'private', 'meatball'], 'folder', 'meatball'),
+    pathElements: ['keybase', 'private', 'meatball'],
+    menuItems: [
+      {
+        title: 'menu item',
+        onClick: action('onClick'),
+      },
+    ],
+    onHidden: action('onHidden'),
+  }),
 })
 
 const downloadCommonActions = {
@@ -149,7 +167,7 @@ const downloadCommonActions = {
   cancel: action('cancel'),
 }
 
-const rowActionPopupProps = (path: Types.Path) => {
+const pathItemActionPopupProps = (path: Types.Path) => {
   const pathElements = Types.getPathElements(path)
   return {
     size: 0,
@@ -263,6 +281,7 @@ const load = () => {
         <UploadingRow name="foo" itemStyles={fileItemStyles} />
         <UploadingRow name="foo" itemStyles={folderItemStyles} />
         <StillRow
+          path={Types.stringToPath('/keybase/private/foo/bar')}
           name="bar"
           type="file"
           lastModifiedTimestamp={Date.now()}
@@ -325,20 +344,20 @@ const load = () => {
         <Box style={{height: 8}} />
       </Box>
     ))
-    .add('RowActionPopup', () => (
+    .add('PathItemAction', () => (
       <Box style={{padding: globalMargins.small}}>
-        <RowActionPopup
-          {...rowActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
+        <PathItemAction
+          {...pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
         />
-        <RowActionPopup
-          {...rowActionPopupProps(
+        <PathItemAction
+          {...pathItemActionPopupProps(
             Types.stringToPath(
               '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
             )
           )}
         />
-        <RowActionPopup
-          {...rowActionPopupProps(
+        <PathItemAction
+          {...pathItemActionPopupProps(
             Types.stringToPath(
               '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
             )

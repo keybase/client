@@ -402,28 +402,6 @@ const editSuccess = (res, action, state: TypedState) => {
 
 const editFailed = (res, {payload: {editID}}) => Saga.put(FsGen.createEditFailed({editID}))
 
-function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenerator<any, any> {
-  const {path, type, targetRect, routePath} = action.payload
-  // We may not have the folder loaded yet, but will need metadata to know
-  // folder entry types in the popup. So dispatch an action now to load it.
-  type === 'folder' && (yield Saga.put(FsGen.createFolderListLoad({path})))
-  yield Saga.put(
-    putActionIfOnPath(
-      routePath,
-      navigateAppend([
-        {
-          props: {
-            path,
-            position: 'bottom right',
-            targetRect,
-          },
-          selected: 'pathItemAction',
-        },
-      ])
-    )
-  )
-}
-
 function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
   const {path, routePath} = action.payload
   const state: TypedState = yield Saga.select()
@@ -497,7 +475,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(platformSpecificSaga)
 
   // These are saga tasks that may use actions above.
-  yield Saga.safeTakeEvery(FsGen.fileActionPopup, fileActionPopup)
   yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
 }
 

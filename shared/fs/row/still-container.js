@@ -22,15 +22,6 @@ const mapStateToProps = (state: TypedState, {path}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   _onOpen: (path: Types.Path) => dispatch(FsGen.createOpenPathItem({path, routePath})),
   _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
-  _onAction: (path: Types.Path, type: Types.PathType, evt?: SyntheticEvent<>) =>
-    dispatch(
-      FsGen.createFileActionPopup({
-        path,
-        type,
-        targetRect: Constants.syntheticEventToTargetRect(evt),
-        routePath,
-      })
-    ),
   _openFinderPopup: (evt?: SyntheticEvent<>) =>
     dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
 })
@@ -43,6 +34,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       ? stateProps.pathItem.tlfMeta.resetParticipants.map(i => i.username)
       : []
   return {
+    path: stateProps.path,
     name: stateProps.pathItem.name,
     type: stateProps.pathItem.type,
     badgeCount: stateProps.pathItem.badgeCount,
@@ -58,8 +50,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     openInFileUI: stateProps.kbfsEnabled
       ? () => dispatchProps._openInFileUI(stateProps.path)
       : dispatchProps._openFinderPopup,
-    onAction: (event: SyntheticEvent<>) =>
-      dispatchProps._onAction(stateProps.path, stateProps.pathItem.type, event),
     itemStyles: Constants.getItemStyles(
       Types.getPathElements(stateProps.path),
       stateProps.pathItem.type,
