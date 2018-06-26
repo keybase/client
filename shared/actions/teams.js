@@ -1031,15 +1031,11 @@ function _setupTeamHandlers() {
   )
   engine().setIncomingActionCreators(
     'keybase.1.NotifyTeam.avatarUpdated',
-    (args: RPCTypes.NotifyTeamAvatarUpdatedRpcParam, _, __, getState) => {
-      const actions = []
-      if (getState().teams.teamnames.includes(args.name)) {
-        actions.push(ConfigGen.createLoadTeamAvatars({teamnames: [args.name]}))
-      } else {
-        actions.push(ConfigGen.createLoadAvatars({usernames: [args.name]}))
-      }
-      return actions
-    }
+    ({name}: RPCTypes.NotifyTeamAvatarUpdatedRpcParam, _, __, getState) => [
+      getState().teams.teamnames.includes(name)
+        ? ConfigGen.createLoadTeamAvatars({teamnames: [name]})
+        : ConfigGen.createLoadAvatars({usernames: [name]}),
+    ]
   )
 }
 
