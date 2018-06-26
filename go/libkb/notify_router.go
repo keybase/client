@@ -66,6 +66,7 @@ type NotifyListener interface {
 	TeamDeleted(teamID keybase1.TeamID)
 	TeamExit(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
 }
 
 type NoopNotifyListener struct{}
@@ -121,6 +122,7 @@ func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keyb
 func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                 {}
 func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                    {}
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
+func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.AvatarFormat)         {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1309,4 +1311,29 @@ func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.Team
 		n.listener.NewTeamEK(teamID, generation)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent NewTeamEK notification")
+}
+
+func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, formats []keybase1.AvatarFormat) {
+	if n == nil {
+		return
+	}
+
+	arg := keybase1.AvatarUpdatedArg{
+		Name:    name,
+		Formats: formats,
+	}
+
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).AvatarUpdated(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.AvatarUpdated(name, formats)
+	}
 }
