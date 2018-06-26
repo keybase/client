@@ -47,7 +47,6 @@ const _toggleButtonStyle = {
   backgroundColor: globalColors.black_05,
   borderRadius: 19,
   height: isMobile ? 28 : 20,
-  marginBottom: isMobile ? 16 : 8,
   paddingLeft: isMobile ? globalMargins.small : globalMargins.tiny,
   paddingRight: isMobile ? globalMargins.small : globalMargins.tiny,
 }
@@ -61,6 +60,7 @@ const _badgeStyle = {
 const _dividerStyle = {
   backgroundColor: globalColors.black_05,
   height: 1,
+  marginTop: isMobile ? 16 : 8,
   width: '100%',
 }
 
