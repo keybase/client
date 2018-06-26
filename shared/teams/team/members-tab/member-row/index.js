@@ -13,11 +13,9 @@ import {
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
 import {roleIconColorMap} from '../../../role-picker/index.meta'
 import {typeToLabel} from '../../../../constants/teams'
-import {type BoolTypeMap, type TeamRoleType} from '../../../../constants/types/teams'
+import type {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
-  active: boolean,
-  youCanManageMembers: boolean,
   following: boolean,
   fullName: string,
   onChat: () => void,
@@ -26,10 +24,12 @@ export type Props = {
   onRemoveFromTeam: () => void,
   onShowTracker: () => void,
   roleType: TeamRoleType,
+  status: MemberStatus,
   username: string,
   waitingForAdd: boolean,
   waitingForRemove: boolean,
-  you: ?string,
+  you: string,
+  youCanManageMembers: boolean,
 }
 
 const showCrown: BoolTypeMap = {
@@ -41,7 +41,8 @@ const showCrown: BoolTypeMap = {
 
 export const TeamMemberRow = (props: Props) => {
   let crown, fullNameLabel, resetLabel
-  if (props.active && props.roleType && showCrown[props.roleType]) {
+  const active = props.status === 'active'
+  if (active && props.roleType && showCrown[props.roleType]) {
     crown = (
       <Icon
         // $FlowIssue "some string with unknown value"
@@ -54,21 +55,24 @@ export const TeamMemberRow = (props: Props) => {
       />
     )
   }
-  if (props.fullName && props.active) {
+  if (props.fullName && active) {
     fullNameLabel = (
       <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">
         {props.fullName} •
       </Text>
     )
   }
-  if (!props.active) {
+  if (!active) {
     resetLabel = props.youCanManageMembers
       ? 'Has reset their account'
       : 'Has reset their account; admins can re-invite'
+    if (props.status === 'deleted') {
+      resetLabel = 'Has deleted their account'
+    }
   }
 
   return (
-    <Box style={props.active ? stylesContainer : stylesContainerReset}>
+    <Box style={active ? stylesContainer : stylesContainerReset}>
       <Box
         style={{
           ...globalStyles.flexBoxRow,
@@ -85,7 +89,7 @@ export const TeamMemberRow = (props: Props) => {
             flexGrow: 1,
             alignItems: 'center',
           }}
-          onClick={props.active || isMobile ? props.onClick : props.onShowTracker}
+          onClick={active || isMobile ? props.onClick : props.onShowTracker}
         >
           <Avatar username={props.username} size={isMobile ? 48 : 32} />
           <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
@@ -101,7 +105,7 @@ export const TeamMemberRow = (props: Props) => {
             <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
               {fullNameLabel}
               {crown}
-              {!props.active && (
+              {!active && (
                 <Text
                   type="BodySmall"
                   style={{
@@ -113,29 +117,31 @@ export const TeamMemberRow = (props: Props) => {
                     paddingRight: globalMargins.xtiny,
                   }}
                 >
-                  LOCKED OUT
+                  {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
                 </Text>
               )}
               <Text type="BodySmall">
-                {!!props.active && !!props.roleType && typeToLabel[props.roleType]}
+                {!!active && !!props.roleType && typeToLabel[props.roleType]}
                 {resetLabel}
               </Text>
             </Box>
           </Box>
         </ClickableBox>
-        {!props.active &&
+        {!active &&
           !isMobile &&
           props.youCanManageMembers && (
             <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
               <ButtonBar>
-                <Button
-                  small={true}
-                  label="Re-Admit"
-                  onClick={props.onReAddToTeam}
-                  type="PrimaryGreen"
-                  waiting={props.waitingForAdd}
-                  disabled={props.waitingForRemove}
-                />
+                {!props.status === 'deleted' && (
+                  <Button
+                    small={true}
+                    label="Re-Admit"
+                    onClick={props.onReAddToTeam}
+                    type="PrimaryGreen"
+                    waiting={props.waitingForAdd}
+                    disabled={props.waitingForRemove}
+                  />
+                )}
                 <Button
                   small={true}
                   label="Remove"
@@ -159,7 +165,7 @@ export const TeamMemberRow = (props: Props) => {
           />
         </Box>
       </Box>
-      {!props.active &&
+      {!active &&
         isMobile &&
         props.youCanManageMembers && (
           <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>

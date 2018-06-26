@@ -4,7 +4,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -14,34 +13,15 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (*keybase1.UserOrTeamResult, error) {
-	var req chatConversationResolvingRequest
-	req.ctx = new(chatConversationResolvingRequestContext)
-	var tlfError, teamError error
-
+func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (res keybase1.UserOrTeamResult, err error) {
 	cli, err := GetTeamsClient(g)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	if _, tlfError = cli.LookupOrCreateImplicitTeam(ctx, keybase1.LookupOrCreateImplicitTeamArg{
-		Name:   g.GetEnv().GetUsername().String() + "," + name,
-		Public: false,
-	}); tlfError == nil {
-		ret := keybase1.UserOrTeamResult_USER
-		return &ret, nil
+	if _, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name}); err == nil {
+		return keybase1.UserOrTeamResult_TEAM, nil
 	}
-	tlfError = errors.New("unable to find one or more users")
-
-	if _, teamError = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name}); teamError == nil {
-		ret := keybase1.UserOrTeamResult_TEAM
-		return &ret, nil
-	}
-
-	msg := `Unable to find conversation.
-When considering %s as a username or a list of usernames, received error: %v.
-When considering %s as a team name, received error: %v.`
-
-	return nil, libkb.NotFoundError{Msg: fmt.Sprintf(msg, name, tlfError, name, teamError)}
+	return keybase1.UserOrTeamResult_USER, nil
 }
 
 // Post a retention policy

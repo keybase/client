@@ -14,18 +14,12 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type chatConversationResolvingRequestContext struct {
-	canonicalizedTlfName string
-}
-
 type chatConversationResolvingRequest struct {
 	TlfName     string
 	TopicName   string
 	TopicType   chat1.TopicType
 	Visibility  keybase1.TLFVisibility
 	MembersType chat1.ConversationMembersType
-
-	ctx *chatConversationResolvingRequestContext
 }
 
 type chatConversationResolvingBehavior struct {
@@ -66,77 +60,19 @@ func newChatConversationResolver(g *libkb.GlobalContext) (c *chatConversationRes
 	return c, nil
 }
 
-// completeAndCanonicalizeTLFName completes tlfName and canonicalizes it if
-// necessary. The new TLF name is stored to req.ctx.canonicalizedTlfName.
-// len(tlfName) must > 0
-func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Context, tlfName string, req chatConversationResolvingRequest) error {
-
-	switch req.MembersType {
-	case chat1.ConversationMembersType_KBFS:
-		query := keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
-		var cname keybase1.CanonicalTLFNameAndIDWithBreaks
-		var err error
-		if req.Visibility == keybase1.TLFVisibility_PUBLIC {
-			cname, err = r.TlfClient.PublicCanonicalTLFNameAndID(ctx, query)
-		} else {
-			cname, err = r.TlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, query)
-		}
-		if err != nil {
-			// When a recipient's proofs are failing, this is the error a CLI user
-			// will see. It needs to be human readable.
-			return fmt.Errorf("failed to open chat conversation: %v", err)
-		}
-		req.ctx.canonicalizedTlfName = string(cname.CanonicalName)
-	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		// Add our name out front
-		if req.Visibility != keybase1.TLFVisibility_PUBLIC {
-			username := r.G.Env.GetUsername()
-			if len(username) == 0 {
-				return libkb.LoginRequiredError{}
-			}
-			tlfName = username.String() + "," + tlfName
-		}
-		impRes, err := r.TeamsClient.LookupOrCreateImplicitTeam(ctx, keybase1.LookupOrCreateImplicitTeamArg{
-			Name:   tlfName,
-			Public: req.Visibility == keybase1.TLFVisibility_PUBLIC,
-		})
-		var canonName string
-		if err != nil {
-			r.G.Log.Debug("failed to lookup or create implicit team, not canonicalizing: %s", err)
-			canonName = tlfName
-		} else {
-			canonName = impRes.DisplayName.String()
-		}
-		req.ctx.canonicalizedTlfName = canonName
-	case chat1.ConversationMembersType_TEAM:
-		req.ctx.canonicalizedTlfName = tlfName
-	}
-
-	return nil
-}
-
 func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 	ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.GetInboxAndUnboxLocalArg, error) {
-
 	var nameQuery *chat1.NameQuery
 	if len(req.TlfName) > 0 {
-		if err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req); err != nil {
-			return chat1.GetInboxAndUnboxLocalArg{}, err
-		}
 		nameQuery = &chat1.NameQuery{
-			Name:        req.ctx.canonicalizedTlfName,
+			Name:        req.TlfName,
 			MembersType: req.MembersType,
 		}
 	}
-
 	var topicName *string
 	if len(req.TopicName) > 0 {
 		topicName = &req.TopicName
 	}
-
 	return chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			Name:          nameQuery,
@@ -218,17 +154,14 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		newConversation = fmt.Sprintf("Creating a new %s %s conversation [%s]", req.Visibility, req.TopicType, req.TopicName)
 	}
 
-	if len(req.ctx.canonicalizedTlfName) == 0 {
+	if len(req.TlfName) == 0 {
 		tlfName, err := r.G.UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatTLFName, fmt.Sprintf(
 			"No conversation found. %s. Hit Ctrl-C to cancel, or specify a TLF name to continue: ",
 			newConversation))
 		if err != nil {
 			return nil, err
 		}
-		err = r.completeAndCanonicalizeTLFName(ctx, tlfName, req)
-		if err != nil {
-			return nil, err
-		}
+		req.TlfName = tlfName
 	} else {
 		r.G.UI.GetTerminalUI().Printf("%s\n", newConversation)
 	}
@@ -238,7 +171,7 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		tnp = &req.TopicName
 	}
 	ncres, err := r.ChatClient.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
-		TlfName:       req.ctx.canonicalizedTlfName,
+		TlfName:       req.TlfName,
 		TopicName:     tnp,
 		TopicType:     req.TopicType,
 		TlfVisibility: req.Visibility,
@@ -252,8 +185,6 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 
 func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversationResolvingRequest, behavior chatConversationResolvingBehavior) (
 	conversation *chat1.ConversationLocal, userChosen bool, err error) {
-	req.ctx = &chatConversationResolvingRequestContext{}
-
 	conversations, err := r.resolveWithService(ctx, req, behavior.IdentifyBehavior)
 	if err != nil {
 		return nil, false, err

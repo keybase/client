@@ -55,6 +55,7 @@ export type PathItemMetadata = {
   lastWriter: RPCTypes.User,
   progress: ProgressType,
   badgeCount: number,
+  writable: boolean,
   tlfMeta?: FavoriteMetadata,
 }
 
@@ -193,7 +194,7 @@ export const pathToString = (p: Path): string => (!p ? '' : p)
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
 export const getPathNameFromElems = (elems: Array<string>): string => {
   if (elems.length === 0) return ''
-  return elems.pop()
+  return elems[elems.length - 1]
 }
 export const getPathLevel = (p: Path): number => (!p ? 0 : getPathElements(p).length)
 export const getPathParent = (p: Path): Path =>

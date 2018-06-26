@@ -48,9 +48,6 @@ func (c *CmdChatCreateChannel) Run() error {
 		TopicType:   c.topicType,
 		MembersType: chat1.ConversationMembersType_TEAM,
 		Visibility:  keybase1.TLFVisibility_PRIVATE,
-		ctx: &chatConversationResolvingRequestContext{
-			canonicalizedTlfName: c.teamName,
-		},
 	}
 
 	_, err = resolver.create(context.Background(), req)

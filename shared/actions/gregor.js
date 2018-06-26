@@ -187,9 +187,6 @@ function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
     if (!isNaN(when)) {
       isNew = Date.now() - when < ChatConstants.newExplodingGregorOffset
     }
-    if (body === 'true') {
-      isNew = !!items.filter(i => i.item.category === ChatConstants.newExplodingGregorKey)
-    }
   }
   return Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: isNew}))
 }
