@@ -463,9 +463,10 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 
 type merkleBasedTeamChecker struct {
 	teamMembershipChecker
-	md   *MDOpsStandard
-	rmds *RootMetadataSigned
-	irmd ImmutableRootMetadata
+	md           *MDOpsStandard
+	rmds         *RootMetadataSigned
+	irmd         ImmutableRootMetadata
+	notCacheable bool
 }
 
 func (mbtc merkleBasedTeamChecker) IsTeamWriter(
@@ -477,6 +478,14 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 		return false, err
 	}
 	if isCurrentWriter {
+		return true, nil
+	}
+
+	if ctx.Value(ctxMDOpsSkipKeyVerification) != nil {
+		// Don't cache this fake verification.
+		mbtc.notCacheable = true
+		mbtc.md.log.CDebugf(ctx,
+			"Skipping old team writership verification due to recursion")
 		return true, nil
 	}
 
@@ -580,7 +589,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 	// Next, verify validity and signatures.  Use a checker that can
 	// check for writership in the past, using the merkle tree.
-	checker := merkleBasedTeamChecker{md.config.KBPKI(), md, rmds, irmd}
+	checker := merkleBasedTeamChecker{md.config.KBPKI(), md, rmds, irmd, false}
 	err = rmds.IsValidAndSigned(ctx, md.config.Codec(), checker, extra)
 	if err != nil {
 		return ImmutableRootMetadata{}, MDMismatchError{
@@ -609,7 +618,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	// Make sure the caller doesn't use rmds anymore.
 	*rmds = RootMetadataSigned{}
 
-	if cacheable {
+	if cacheable && !checker.notCacheable {
 		err = md.config.MDCache().Put(irmd)
 		if err != nil {
 			return ImmutableRootMetadata{}, err
