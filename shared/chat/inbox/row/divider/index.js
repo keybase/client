@@ -27,9 +27,11 @@ class Divider extends React.PureComponent<Props> {
           </ClickableBox>
         )}
         <Box style={_dividerStyle} />
-        <Text type="BodySmallSemibold" style={{padding: `4px ${globalMargins.tiny}px`}}>
-          Big Teams
-        </Text>
+        {!this.props.showSmallTeamsExpandDivider && (
+          <Text type="BodySmallSemibold" style={{padding: `4px ${globalMargins.tiny}px`}}>
+            Big teams
+          </Text>
+        )}
       </Box>
     )
   }
