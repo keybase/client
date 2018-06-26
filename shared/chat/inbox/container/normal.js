@@ -82,7 +82,7 @@ const getRowsAndMetadata = createSelector(
       conversationIDKey => ({conversationIDKey, type: 'small'})
     )
     const smallIDsHidden = truncateSmallTeams ? smallIDs.slice(smallTeamsCollapsedMaxShown) : []
-    const divider = [{type: 'divider'}]
+    const divider = bigRows.length !== 0 ? [{type: 'divider'}] : []
 
     return {
       rows: [...smallRows, ...divider, ...bigRows],
