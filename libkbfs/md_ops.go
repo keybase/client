@@ -206,6 +206,108 @@ func (md *MDOpsStandard) makeMerkleLeaf(
 	return &mLeaf, nil
 }
 
+func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
+	ctx context.Context, rmds *RootMetadataSigned,
+	verifyingKey kbfscrypto.VerifyingKey, irmd ImmutableRootMetadata,
+	root keybase1.MerkleRootV2) (err error) {
+	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
+
+	kbfsRoot, merkleNodes, rootSeqno, err :=
+		md.config.MDServer().FindNextMD(ctx, rmds.MD.TlfID(),
+			root.Seqno)
+	if err != nil {
+		return err
+	}
+	if len(merkleNodes) == 0 {
+		// This can happen legitimately if we are still inside the
+		// error window and no new merkle trees have been made yet, or
+		// the server could be lying to us.
+		md.log.CDebugf(ctx, "The server claims there haven't been any "+
+			"KBFS merkle trees published since the merkle root")
+		// Verify the chain up to the current head.  By using `ctx`,
+		// we'll avoid infinite loops in the writer-key-checking code
+		// by skipping revoked key verification.  This is ok, because
+		// we only care about the hash chain for the purposes of
+		// verifying `irmd`.
+		chain, err := getMergedMDUpdates(
+			ctx, md.config, irmd.TlfID(), irmd.Revision()+1, nil)
+		if err != nil {
+			return err
+		}
+		if len(chain) > 0 {
+			err = irmd.CheckValidSuccessor(
+				irmd.mdID, chain[0].ReadOnlyRootMetadata)
+			if err != nil {
+				return err
+			}
+		}
+
+		// TODO(KBFS-2956): check the most recent global merkle root
+		// and KBFS merkle root ctimes and make sure they fall within
+		// the expected error window with respect to the revocation.
+		// Also eventually check the blockchain-published merkles to
+		// make sure the server isn't lying (though that will have a
+		// much larger error window).
+		return nil
+	}
+
+	md.log.CDebugf(ctx,
+		"Next KBFS merkle root is %d, included in global merkle root seqno=%d",
+		kbfsRoot.SeqNo, rootSeqno)
+
+	// The FindNextMD call already validated the global root, and the
+	// fact that the root contained the given KBFS root.  Now we need
+	// to validate the hashes of the nodes all the way down to the
+	// leaf.
+	err = verifyMerkleNodes(ctx, kbfsRoot, merkleNodes, irmd.TlfID())
+	if err != nil {
+		return err
+	}
+
+	// Decode (and possibly decrypt) the leaf node, so we can see what
+	// the given MD revision number was for the MD that followed the
+	// revoke.
+	leaf, err := md.makeMerkleLeaf(
+		ctx, irmd.ReadOnlyRootMetadata, kbfsRoot,
+		merkleNodes[len(merkleNodes)-1])
+	if err != nil {
+		return err
+	}
+
+	// If the given revision comes after the merkle leaf revision,
+	// then don't verify it.
+	if irmd.Revision() > leaf.Revision {
+		return MDWrittenAfterRevokeError{
+			irmd.TlfID(), irmd.Revision(), leaf.Revision, verifyingKey}
+	} else if irmd.Revision() == leaf.Revision {
+		return nil
+	}
+
+	// Otherwise it's valid, as long as there's a valid chain of MD
+	// revisions between the two, and the global root info checks out
+	// as well.  By using `ctx`, we'll avoid infinite loops in the
+	// writer-key-checking code by skipping revoked key verification.
+	// This is ok, because we only care about the hash chain for the
+	// purposes of verifying `irmd`.
+	chain, err := getMergedMDUpdatesWithEnd(
+		ctx, md.config, irmd.TlfID(), irmd.Revision()+1, leaf.Revision, nil)
+	if err != nil {
+		return err
+	}
+	if len(chain) == 0 {
+		return errors.Errorf("Unexpectedly found no revisions "+
+			"after %d, even though the merkle tree includes revision %d",
+			irmd.Revision(), leaf.Revision)
+	}
+
+	err = irmd.CheckValidSuccessor(irmd.mdID, chain[0].ReadOnlyRootMetadata)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (md *MDOpsStandard) verifyKey(
 	ctx context.Context, rmds *RootMetadataSigned,
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
@@ -237,101 +339,12 @@ func (md *MDOpsStandard) verifyKey(
 	md.log.CDebugf(ctx, "Revision %d for %s was signed by a device that was "+
 		"revoked at time=%d,root=%d; checking via Merkle",
 		irmd.Revision(), irmd.TlfID(), info.Time, info.MerkleRoot.Seqno)
-	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
 
-	kbfsRoot, merkleNodes, rootSeqno, err :=
-		md.config.MDServer().FindNextMD(ctx, rmds.MD.TlfID(),
-			info.MerkleRoot.Seqno)
+	err = md.checkRevisionCameBeforeMerkle(
+		ctx, rmds, verifyingKey, irmd, info.MerkleRoot)
 	if err != nil {
 		return false, err
 	}
-	if len(merkleNodes) == 0 {
-		// This can happen legitimately if we are still inside the
-		// error window and no new merkle trees have been made yet, or
-		// the server could be lying to us.
-		md.log.CDebugf(ctx, "The server claims there haven't been any "+
-			"KBFS merkle trees published since the revocation")
-		// Verify the chain up to the current head.  By using `ctx`,
-		// we'll avoid infinite loops in the writer-key-checking code
-		// by skipping revoked key verification.  This is ok, because
-		// we only care about the hash chain for the purposes of
-		// verifying `irmd`.
-		chain, err := getMergedMDUpdates(
-			ctx, md.config, irmd.TlfID(), irmd.Revision()+1, nil)
-		if err != nil {
-			return false, err
-		}
-		if len(chain) > 0 {
-			err = irmd.CheckValidSuccessor(
-				irmd.mdID, chain[0].ReadOnlyRootMetadata)
-			if err != nil {
-				return false, err
-			}
-		}
-
-		// TODO(KBFS-2956): check the most recent global merkle root
-		// and KBFS merkle root ctimes and make sure they fall within
-		// the expected error window with respect to the revocation.
-		// Also eventually check the blockchain-published merkles to
-		// make sure the server isn't lying (though that will have a
-		// much larger error window).
-		return true, nil
-	}
-
-	md.log.CDebugf(ctx,
-		"Next KBFS merkle root is %d, included in global merkle root seqno=%d",
-		kbfsRoot.SeqNo, rootSeqno)
-
-	// The FindNextMD call already validated the global root, and the
-	// fact that the root contained the given KBFS root.  Now we need
-	// to validate the hashes of the nodes all the way down to the
-	// leaf.
-	err = verifyMerkleNodes(ctx, kbfsRoot, merkleNodes, irmd.TlfID())
-	if err != nil {
-		return false, err
-	}
-
-	// Decode (and possibly decrypt) the leaf node, so we can see what
-	// the given MD revision number was for the MD that followed the
-	// revoke.
-	leaf, err := md.makeMerkleLeaf(
-		ctx, irmd.ReadOnlyRootMetadata, kbfsRoot,
-		merkleNodes[len(merkleNodes)-1])
-	if err != nil {
-		return false, err
-	}
-
-	// If the given revision comes after the merkle leaf revision,
-	// then don't verify it.
-	if irmd.Revision() > leaf.Revision {
-		return false, MDWrittenAfterRevokeError{
-			irmd.TlfID(), irmd.Revision(), leaf.Revision, verifyingKey}
-	} else if irmd.Revision() == leaf.Revision {
-		return true, nil
-	}
-
-	// Otherwise it's valid, as long as there's a valid chain of MD
-	// revisions between the two, and the global root info checks out
-	// as well.  By using `ctx`, we'll avoid infinite loops in the
-	// writer-key-checking code by skipping revoked key verification.
-	// This is ok, because we only care about the hash chain for the
-	// purposes of verifying `irmd`.
-	chain, err := getMergedMDUpdatesWithEnd(
-		ctx, md.config, irmd.TlfID(), irmd.Revision()+1, leaf.Revision, nil)
-	if err != nil {
-		return false, err
-	}
-	if len(chain) == 0 {
-		return false, errors.Errorf("Unexpectedly found no revisions "+
-			"after %d, even though the merkle tree includes revision %d",
-			irmd.Revision(), leaf.Revision)
-	}
-
-	err = irmd.CheckValidSuccessor(irmd.mdID, chain[0].ReadOnlyRootMetadata)
-	if err != nil {
-		return false, err
-	}
-
 	return true, nil
 }
 
