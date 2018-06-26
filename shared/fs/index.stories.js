@@ -14,7 +14,7 @@ import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
 import {Box} from '../common-adapters'
 import Download from './footer/download'
-import PathItemAction from './popups/path-item-action'
+import PathItemAction from './common/path-item-action'
 import FolderHeader from './header/header.desktop'
 
 const folderItemStyles = {

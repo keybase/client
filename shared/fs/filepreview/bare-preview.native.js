@@ -10,7 +10,7 @@ import {navigateUp} from '../../actions/route-tree'
 import {connect, type Dispatch, type TypedState} from '../../util/container'
 import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
-import PathItemAction from '../popups/path-item-action-container'
+import PathItemAction from '../common/path-item-action-container'
 
 const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))

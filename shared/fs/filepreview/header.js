@@ -5,7 +5,7 @@ import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {Box, Icon, Text, BackButton} from '../../common-adapters'
 import PathItemInfo from '../common/path-item-info'
 import {isMobile} from '../../constants/platform'
-import PathItemAction from '../popups/path-item-action-container'
+import PathItemAction from '../common/path-item-action-container'
 
 type HeaderProps = {
   path: Types.Path,

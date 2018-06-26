@@ -6,7 +6,7 @@ import rowStyles from './styles'
 import {Badge, Box, ClickableBox, Icon, Meta, Text, Divider} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
-import PathItemAction from '../popups/path-item-action-container'
+import PathItemAction from '../common/path-item-action-container'
 
 type StillProps = {
   path: Types.Path,
