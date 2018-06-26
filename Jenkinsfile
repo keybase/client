@@ -294,14 +294,18 @@ def testGo(prefix) {
         retry(5) {
             sh 'go get -u github.com/golang/lint/golint'
         }
-        sh 'make -s lint'
+        retry(5) {
+            timeout(activity: true, time: 30, unit: 'SECONDS') {
+                sh 'make -s lint'
+            }
+        }
         if (isUnix()) {
             // Windows `gofmt` pukes on CRLF, so only run on *nix.
             sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
         }
         // Make sure we don't accidentally pull in the testing package.
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
-        sh "go vet ./..."
+        sh 'go list ./... | grep -v github.com/keybase/client/go/bind | xargs go vet'
 
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []

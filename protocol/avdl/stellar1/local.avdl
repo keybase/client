@@ -323,4 +323,8 @@ protocol local {
 
   map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
+
+  // CORE-8135 phase 2: remove this RPC
+  // Returns whether the bundle was _already_ fixed.
+  boolean fixupBundleCLILocal();
 }

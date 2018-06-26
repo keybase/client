@@ -313,13 +313,15 @@ protocol Common {
 
   enum FullNamePackageVersion {
     V0_0,
-    V1_1
+    V1_1,
+    V2_2
   }
 
   record FullNamePackage {
     FullNamePackageVersion version;
     FullName fullName;
     Seqno eldestSeqno;
+    StatusCode status;
     Time cachedAt;
   }
 

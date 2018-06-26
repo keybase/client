@@ -92,7 +92,7 @@ func (c *CmdSimpleFSRead) Run() error {
 
 func (c *CmdSimpleFSRead) output(data []byte) {
 	ui := c.G().UI.GetTerminalUI()
-	ui.OutputWriter().Write(data)
+	ui.UnescapedOutputWriter().Write(data)
 }
 
 // ParseArgv does nothing for this command.

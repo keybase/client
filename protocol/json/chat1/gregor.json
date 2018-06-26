@@ -489,6 +489,10 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         }
       ]
     }

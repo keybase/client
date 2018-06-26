@@ -1316,7 +1316,7 @@ const changeSelectedConversation = (
           Saga.put(navigateToThreadRoute),
         ])
       } else if (action.payload.noneDestination === 'inbox') {
-        return Saga.put(Chat2Gen.createNavigateToInbox())
+        return Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true}))
       } else if (action.payload.noneDestination === 'thread') {
         // don't allow check of isValidConversationIDKey
         return Saga.put(navigateToThreadRoute)
@@ -1353,6 +1353,7 @@ const _maybeAutoselectNewestConversation = (
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
+    | Chat2Gen.NavigateToInboxPayload
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
@@ -1778,11 +1779,18 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
 }
 
 // Helpers to nav you to the right place
-const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload) => {
+const navigateToInbox = (
+  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload,
+  state: TypedState
+) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
+  const actions = [Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))]
+  if (action.payload.findNewConversation && !isMobile) {
+    actions.push(_maybeAutoselectNewestConversation(action, state))
+  }
+  return Saga.sequentially(actions)
 }
 
 // Unchecked version of Chat2Gen.createNavigateToThread() --
@@ -1900,7 +1908,7 @@ const updateNotificationSettings = (action: Chat2Gen.UpdateNotificationSettingsP
 
 const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
   Saga.sequentially([
-    Saga.put(Chat2Gen.createNavigateToInbox()),
+    Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
     Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
       conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -2078,29 +2086,24 @@ const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePay
 
 function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMessagesPayload) {
   const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
-  const seenExplodingMessages = !!gregorState.items.filter(
+  const seenExplodingMessages = gregorState.items.find(
     i => i.item.category === Constants.seenExplodingGregorKey
-  ).length
+  )
+  let body = Date.now().toString()
   if (seenExplodingMessages) {
-    // do nothing
-    return
+    const contents = seenExplodingMessages.item.body.toString()
+    if (isNaN(parseInt(contents, 10))) {
+      logger.info('handleSeeingExplodingMessages: bad seenExploding item body, updating category')
+    } else {
+      // do nothing
+      return
+    }
   }
-  // neither are set, inject both
-  yield Saga.all([
-    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-      cat: Constants.seenExplodingGregorKey,
-      body: 'true',
-      dtime: {time: 0, offset: 0},
-    }),
-    // note that we don't get a push state when this item expires,
-    // it doesn't really affect things here - we can wait for the
-    // next push state to stop displaying 'new' mode
-    Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-      cat: Constants.newExplodingGregorKey,
-      body: 'true',
-      dtime: {time: 0, offset: Constants.newExplodingGregorOffset},
-    }),
-  ])
+  yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+    body,
+    category: Constants.seenExplodingGregorKey,
+    dtime: {time: 0, offset: 0},
+  })
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
