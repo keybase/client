@@ -24,15 +24,19 @@ const AssetInput = (props: Props) => (
       type="number"
       decoration={
         <Box2 direction="vertical" style={styles.flexEnd}>
-          <Text type="HeaderBigExtrabold">{props.displayUnit}</Text>
+          <Text type="HeaderBigExtrabold" style={styles.colorPurple2}>
+            {props.displayUnit}
+          </Text>
           <Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
             Change
           </Text>
         </Box2>
       }
+      style={styles.colorPurple2}
       onChangeText={props.onChangeAmount}
       textType="HeaderBigExtrabold"
       placeholder={props.inputPlaceholder}
+      placeholderColor={globalColors.purple2_40}
     />
     <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
       <Text type="BodySmall" style={styles.labelMargin}>
@@ -49,6 +53,7 @@ const AssetInput = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
+  colorPurple2: {color: globalColors.purple2},
   flexEnd: {
     alignItems: 'flex-end',
   },

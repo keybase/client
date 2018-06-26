@@ -453,13 +453,13 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }
     types.forEach(type => {
       const key = typeToKey[type]
-      const members = details.members[key] || []
-      members.forEach(({active, fullName, username}) => {
+      const members: Array<RPCTypes.TeamMemberDetails> = details.members[key] || []
+      members.forEach(({fullName, status, username}) => {
         infos.push([
           username,
           Constants.makeMemberInfo({
-            active,
             fullName,
+            status: Constants.rpcMemberStatusToStatus[status],
             type,
             username,
           }),
