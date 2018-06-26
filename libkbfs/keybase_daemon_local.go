@@ -751,10 +751,15 @@ func (k *KeybaseDaemonLocal) removeTeamWriterForTest(
 		if err != nil {
 			return err
 		}
+		if t.LastWriters == nil {
+			t.LastWriters = make(
+				map[kbfscrypto.VerifyingKey]keybase1.MerkleRootV2)
+		}
 		for _, key := range u.VerifyingKeys {
 			t.LastWriters[key] = k.merkleRoot
 		}
 	}
+	k.merkleRoot.Seqno++
 
 	delete(t.Writers, uid)
 	delete(t.Readers, uid)

@@ -521,8 +521,7 @@ func (mbtc merkleBasedTeamChecker) IsTeamReader(
 	// above function).  TODO: fix this once historic team readership
 	// is available in the service.
 	mbtc.md.log.CDebugf(ctx,
-		"Faking old writership in IsTeamReader for user %s in team %s",
-		uid, tid)
+		"Faking old readership for user %s in team %s", uid, tid)
 	return true, nil
 }
 

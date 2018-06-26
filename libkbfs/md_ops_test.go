@@ -1279,6 +1279,83 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.True(t, cacheable)
 }
 
+func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
+	if ver < kbfsmd.SegregatedKeyBundlesVer {
+		t.Skip("Teams not supported")
+	}
+
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	config.SetMetadataVersion(ver)
+
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+
+	config2 := ConfigAsUser(config, u2)
+	defer config2.Shutdown(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+
+	mdServer := makeKeyBundleMDServer(config.MDServer())
+	config.SetMDServer(mdServer)
+	config2.SetMDServer(mdServer)
+
+	t.Log("Initial MD written by the user we will remove")
+	id := tlf.FakeID(1, tlf.SingleTeam)
+	teamInfos := AddEmptyTeamsForTestOrBust(t, config, "t1")
+	AddEmptyTeamsForTestOrBust(t, config2, "t1")
+	tid := teamInfos[0].TID
+	AddTeamWriterForTestOrBust(t, config, tid, session.UID)
+	AddTeamWriterForTestOrBust(t, config2, tid, session.UID)
+	AddTeamWriterForTestOrBust(t, config, tid, session2.UID)
+	AddTeamWriterForTestOrBust(t, config2, tid, session2.UID)
+	h := parseTlfHandleOrBust(t, config, "t1", tlf.SingleTeam, id)
+	rmd, rmds := makeRealInitialRMDForTesting(t, ctx, config, h, id)
+	mdServer.processRMDSes(rmds, rmd.extra)
+
+	RemoveTeamWriterForTestOrBust(t, config, tid, session.UID)
+	RemoveTeamWriterForTestOrBust(t, config2, tid, session.UID)
+
+	t.Log("A few writes by a user that won't be removed")
+	allRMDs := []*RootMetadata{rmd}
+	allRMDSs := []*RootMetadataSigned{rmds}
+	for i := 2; i < 5; i++ {
+		rmd, rmds = makeSuccessorRMDForTesting(t, ctx, config2, rmd, -1)
+		allRMDs = append(allRMDs, rmd)
+		allRMDSs = append(allRMDSs, rmds)
+	}
+
+	mdServer.processRMDSes(rmds, rmd.extra)
+	mdServer.nextHead = rmds
+	mdServer.nextGetRange = allRMDSs[1 : len(allRMDSs)-1]
+
+	t.Log("Make a merkle leaf")
+	root, rootNodeBytes, _, leafBytes := makeEncryptedMerkleLeafForTesting(
+		t, config, rmd)
+	mdServer.nextMerkleRoot = root
+	mdServer.nextMerkleNodes = [][]byte{rootNodeBytes, leafBytes}
+	mdServer.nextMerkleRootSeqno = 100
+
+	mdOps := config.MDOps().(*MDOpsStandard)
+	_, err = mdOps.processMetadata(ctx, h, allRMDSs[0], rmd.extra, nil)
+	require.NoError(t, err)
+
+	t.Log("Try another write by the removed user and make sure it fails")
+	rmd, rmds = makeSuccessorRMDForTesting(t, ctx, config, rmd, -1)
+	allRMDs = append(allRMDs, rmd)
+	allRMDSs = append(allRMDSs, rmds)
+	mdServer.processRMDSes(rmds, rmd.extra)
+	mdServer.nextHead = rmds
+	mdServer.nextGetRange = nil
+	mdServer.nextMerkleRoot = root
+	mdServer.nextMerkleNodes = [][]byte{rootNodeBytes, leafBytes}
+	mdServer.nextMerkleRootSeqno = 100
+	_, err = mdOps.processMetadata(ctx, h, rmds, rmd.extra, nil)
+	require.Error(t, err)
+
+}
+
 func TestMDOps(t *testing.T) {
 	tests := []func(*testing.T, kbfsmd.MetadataVer){
 		testMDOpsGetIDForHandlePublicSuccess,
@@ -1305,6 +1382,7 @@ func TestMDOps(t *testing.T) {
 		testMDOpsDecryptMerkleLeafPrivate,
 		testMDOpsDecryptMerkleLeafTeam,
 		testMDOpsVerifyRevokedDeviceWrite,
+		testMDOpsVerifyRemovedUserWrite,
 	}
 	runTestsOverMetadataVers(t, "testMDOps", tests)
 }

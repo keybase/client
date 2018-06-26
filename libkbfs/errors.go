@@ -1187,7 +1187,7 @@ type MDWrittenAfterRevokeError struct {
 
 // Error implements the Error interface for MDWrittenAfterRevokeError.
 func (e MDWrittenAfterRevokeError) Error() string {
-	return fmt.Sprintf("Faled to verify revision %d of folder %s by key %s; "+
+	return fmt.Sprintf("Failed to verify revision %d of folder %s by key %s; "+
 		"last valid revision would have been %d",
 		e.revBad, e.tlfID, e.verifyingKey, e.revLimit)
 }
