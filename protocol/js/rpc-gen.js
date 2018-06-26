@@ -42,6 +42,7 @@ export const commonDeviceType = {
 export const commonFullNamePackageVersion = {
   v0: 0,
   v1: 1,
+  v2: 2,
 }
 
 export const commonLogLevel = {
@@ -639,6 +640,12 @@ export const teamsTeamInviteCategory = {
   seitan: 5,
 }
 
+export const teamsTeamMemberStatus = {
+  active: 0,
+  reset: 1,
+  deleted: 2,
+}
+
 export const teamsTeamRole = {
   none: 0,
   reader: 1,
@@ -819,8 +826,8 @@ export type AccountHasServerKeysRpcParam = void
 export type AccountPassphraseChangeRpcParam = $ReadOnly<{oldPassphrase: String, passphrase: String, force: Boolean}>
 export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg}>
 export type AccountResetAccountRpcParam = $ReadOnly<{passphrase: String}>
-export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
-export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean}>
+export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, allowProfilePromote: Boolean, isMemberShowcased: Boolean, status: TeamMemberStatus}>
+export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, status: TeamMemberStatus}>
 export type AnnotatedTeamList = $ReadOnly<{teams?: ?Array<AnnotatedMemberInfo>, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}>
 export type ApiserverDeleteRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
 export type ApiserverGetRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
@@ -1077,10 +1084,11 @@ export type ForkType =
 
 export type FsListRpcParam = $ReadOnly<{path: String}>
 export type FullName = String
-export type FullNamePackage = $ReadOnly<{version: FullNamePackageVersion, fullName: FullName, eldestSeqno: Seqno, cachedAt: Time}>
+export type FullNamePackage = $ReadOnly<{version: FullNamePackageVersion, fullName: FullName, eldestSeqno: Seqno, status: StatusCode, cachedAt: Time}>
 export type FullNamePackageVersion =
   | 0 // V0_0
   | 1 // V1_1
+  | 2 // V2_2
 
 export type FuseMountInfo = $ReadOnly<{path: String, fstype: String, output: String}>
 export type FuseStatus = $ReadOnly<{version: String, bundleVersion: String, kextID: String, path: String, kextStarted: Boolean, installStatus: InstallStatus, installAction: InstallAction, mountInfos?: ?Array<FuseMountInfo>, status: Status}>
@@ -1381,7 +1389,7 @@ export type NaclDHKeyPublic = any
 export type NaclSigningKeyPrivate = any
 export type NaclSigningKeyPublic = any
 export type NextMerkleRootRes = $ReadOnly<{res?: ?MerkleRootV2}>
-export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean, chatkbfsedits: Boolean}>
+export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean, chatkbfsedits: Boolean, chatdev: Boolean}>
 export type NotifyAppExitRpcParam = void
 export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState}>
 export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels}>
@@ -2016,9 +2024,14 @@ export type TeamKBFSKeyRefresher = $ReadOnly<{generation: Int, appType: TeamAppl
 export type TeamLegacyTLFUpgradeChainInfo = $ReadOnly<{keysetHash: TeamEncryptedKBFSKeysetHash, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
 export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
 export type TeamMember = $ReadOnly<{uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno}>
-export type TeamMemberDetails = $ReadOnly<{uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean}>
+export type TeamMemberDetails = $ReadOnly<{uv: UserVersion, username: String, fullName: FullName, needsPUK: Boolean, status: TeamMemberStatus}>
 export type TeamMemberOutFromReset = $ReadOnly<{teamName: String, resetUser: TeamResetUser}>
 export type TeamMemberOutReset = $ReadOnly<{teamname: String, username: String, uid: UID, id: Gregor1.MsgID}>
+export type TeamMemberStatus =
+  | 0 // ACTIVE_0
+  | 1 // RESET_1
+  | 2 // DELETED_2
+
 export type TeamMembers = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>}>
 export type TeamMembersDetails = $ReadOnly<{owners?: ?Array<TeamMemberDetails>, admins?: ?Array<TeamMemberDetails>, writers?: ?Array<TeamMemberDetails>, readers?: ?Array<TeamMemberDetails>}>
 export type TeamName = $ReadOnly<{parts?: ?Array<TeamNamePart>}>

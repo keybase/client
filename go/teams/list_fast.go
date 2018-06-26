@@ -79,7 +79,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 			Username:            queryUsername.String(),
 			FullName:            queryFullName,
 			MemberCount:         memberInfo.MemberCount,
-			Active:              true,
+			Status:              keybase1.TeamMemberStatus_ACTIVE,
 			AllowProfilePromote: memberInfo.AllowProfilePromote,
 			IsMemberShowcased:   memberInfo.IsMemberShowcased,
 		}
