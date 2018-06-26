@@ -255,6 +255,29 @@ export const constantsStatusCode = {
   scstellarbadpuk: 3104,
   scstellarmissingaccount: 3105,
   scstellarbadprev: 3106,
+  scstellarwrongprimary: 3107,
+  scstellarunsupportedcurrency: 3108,
+  scnistwrongsize: 3201,
+  scnistbadmode: 3202,
+  scnisthashwrongsize: 3203,
+  scnistsigwrongsize: 3204,
+  scnistsigbadinput: 3205,
+  scnistsigbaduid: 3206,
+  scnistsigbaddeviceid: 3207,
+  scnistsigbadnonce: 3208,
+  scnistnosigorhash: 3209,
+  scnistexpired: 3210,
+  scnistsigrevoked: 3211,
+  scnistkeyrevoked: 3212,
+  scnistuserdeleted: 3213,
+  scnistnodevice: 3214,
+  scnistsigcannotVerify: 3215,
+  scnistreplay: 3216,
+  scnistsigbadlifetime: 3217,
+  scnistnotfound: 3218,
+  scnistbadclock: 3219,
+  scnistsigbadctime: 3220,
+  scbadsignupusernamedeleted: 3221,
 }
 
 export const ctlDbType = {
@@ -1939,6 +1962,29 @@ export type StatusCode =
   | 3104 // SCStellarBadPuk_3104
   | 3105 // SCStellarMissingAccount_3105
   | 3106 // SCStellarBadPrev_3106
+  | 3107 // SCStellarWrongPrimary_3107
+  | 3108 // SCStellarUnsupportedCurrency_3108
+  | 3201 // SCNISTWrongSize_3201
+  | 3202 // SCNISTBadMode_3202
+  | 3203 // SCNISTHashWrongSize_3203
+  | 3204 // SCNISTSigWrongSize_3204
+  | 3205 // SCNISTSigBadInput_3205
+  | 3206 // SCNISTSigBadUID_3206
+  | 3207 // SCNISTSigBadDeviceID_3207
+  | 3208 // SCNISTSigBadNonce_3208
+  | 3209 // SCNISTNoSigOrHash_3209
+  | 3210 // SCNISTExpired_3210
+  | 3211 // SCNISTSigRevoked_3211
+  | 3212 // SCNISTKeyRevoked_3212
+  | 3213 // SCNISTUserDeleted_3213
+  | 3214 // SCNISTNoDevice_3214
+  | 3215 // SCNISTSigCannot_verify_3215
+  | 3216 // SCNISTReplay_3216
+  | 3217 // SCNISTSigBadLifetime_3217
+  | 3218 // SCNISTNotFound_3218
+  | 3219 // SCNISTBadClock_3219
+  | 3220 // SCNISTSigBadCtime_3220
+  | 3221 // SCBadSignupUsernameDeleted_3221
 
 export type Stream = $ReadOnly<{fd: Int}>
 export type StreamUiCloseRpcParam = $ReadOnly<{s: Stream}>
