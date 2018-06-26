@@ -38,10 +38,16 @@ const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) =
   return Saga.put(
     WalletsGen.createPaymentsReceived({
       accountID,
-      payments: res.map(elem => Constants.paymentResultToPayment(elem)),
+      payments: res.payments.map(elem => Constants.paymentResultToPayment(elem)),
     })
   )
 }
+
+const loadAccount = (action: WalletsGen.SelectAccountPayload) =>
+  Saga.all([
+    Saga.put(WalletsGen.createLoadAssets({accountID: action.payload.accountID})),
+    Saga.put(WalletsGen.createLoadPayments({accountID: action.payload.accountID})),
+  ])
 
 function* loadEverything(action: WalletsGen.LoadEverythingPayload) {
   if (__DEV__) {
@@ -60,6 +66,7 @@ function* loadEverything(action: WalletsGen.LoadEverythingPayload) {
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.loadAccounts, loadAccounts, loadAccountsSuccess)
+  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadAccount)
   yield Saga.safeTakeEveryPure(WalletsGen.loadAssets, loadAssets, loadAssetsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadPayments, loadPayments, loadPaymentsSuccess)
   // Debugging saga -- remove before launching.

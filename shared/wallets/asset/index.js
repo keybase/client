@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, ClickableBox, Divider, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
+import {Box2, ClickableBox, Divider, Icon, List, Text, iconCastPlatformStyles} from '../../common-adapters'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 
 export type Props = {
@@ -18,49 +18,47 @@ export type Props = {
   toggleExpanded: () => void,
 }
 
-export const Asset = (props: Props) => {
-  const caretType = props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
-  return (
-    <Box2 direction="vertical" fullWidth={true}>
-      <ClickableBox onClick={props.toggleExpanded}>
-        <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
-          <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
-            <Icon type={caretType} style={iconCastPlatformStyles(styles.caret)} />
-            <Box2 direction="vertical">
-              <Text type="BodySemibold" lineClamp={1}>
-                {props.name}
-              </Text>
-              <Text type="BodySmall" lineClamp={1}>
-                {props.issuer}
-              </Text>
-            </Box2>
-          </Box2>
-          <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
-            <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
-              {props.balance} {props.code}
+export const Asset = (props: Props) => (
+  <Box2 direction="vertical" fullWidth={true}>
+    <ClickableBox onClick={props.toggleExpanded}>
+      <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
+        <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
+          <Icon
+            type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+            style={iconCastPlatformStyles(styles.caret)}
+          />
+          <Box2 direction="vertical">
+            <Text type="BodySemibold" lineClamp={1}>
+              {props.name}
             </Text>
             <Text type="BodySmall" lineClamp={1}>
-              {props.equivBalance}
+              {props.issuer}
             </Text>
           </Box2>
         </Box2>
-      </ClickableBox>
-      {props.expanded && (
-        <Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
-          {!!props.reserves.length && (
-            <BalanceSummary
-              availableToSend={props.availableToSend}
-              equivAvailableToSend={props.equivAvailableToSend}
-              reserves={props.reserves}
-              total={props.balance}
-            />
-          )}
-          {!!props.issuerAddress && <IssuerAddress issuerAddress={props.issuerAddress} />}
+        <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
+          <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
+            {props.balance} {props.code}
+          </Text>
+          <Text type="BodySmall" lineClamp={1}>
+            {props.equivBalance}
+          </Text>
         </Box2>
-      )}
-    </Box2>
-  )
-}
+      </Box2>
+    </ClickableBox>
+    {props.expanded && (
+      <Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
+        <BalanceSummary
+          availableToSend={props.availableToSend}
+          equivAvailableToSend={props.equivAvailableToSend}
+          reserves={props.reserves}
+          total={props.balance}
+        />
+        {!!props.issuerAddress && <IssuerAddress issuerAddress={props.issuerAddress} />}
+      </Box2>
+    )}
+  </Box2>
+)
 
 type BalanceSummaryProps = {
   availableToSend: string,
@@ -154,3 +152,63 @@ const styles = styleSheetCreate({
 })
 
 export default Asset
+
+type AssetWrappedState = {
+  expanded: boolean,
+}
+
+export class AssetWrapped extends React.Component<Props, AssetWrappedState> {
+  state = {expanded: false}
+
+  _toggleExpanded = () => {
+    this.setState(prevProps => ({
+      expanded: !prevProps.expanded,
+    }))
+  }
+
+  render = () => (
+    <Asset {...this.props} expanded={this.state.expanded} toggleExpanded={this._toggleExpanded} />
+  )
+}
+
+type AssetsProps = {
+  assets: Array<Props>,
+}
+
+export class Assets extends React.Component<AssetsProps> {
+  _renderRow = (i: number, row: Row): React.Node => {
+    switch (row.type) {
+      case 'header':
+        return (
+          <Box2
+            direction="vertical"
+            fullWidth={true}
+            style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
+          >
+            <Text type="BodySmallSemibold">Your assets</Text>
+          </Box2>
+        )
+      case 'asset':
+        return <AssetWrapped {...row.asset} />
+      default:
+        /*::
+        declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+        */
+        throw new Error(`Impossible case encountered: ${row.type}`)
+    }
+  }
+
+  render = () => {
+    const rows = this.props.assets.map(asset => ({
+      asset,
+      type: 'asset',
+    }))
+    if (rows.length > 0) {
+      rows.unshift({type: 'header'})
+    }
+    return <List items={rows} renderItem={this._renderRow} keyProperty="key" />
+  }
+}
+
+type Row = {type: 'asset', asset: Props} | {type: 'header'}

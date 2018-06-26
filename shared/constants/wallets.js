@@ -112,6 +112,8 @@ const getAccount = (state: TypedState, accountID: Types.AccountID) =>
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
+const getAssets = (state: TypedState, accountID: Types.AccountID) => state.wallets.assetsMap.get(accountID, I.List())
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -124,5 +126,6 @@ export {
   paymentResultToPayment,
   getAccountIDs,
   getAccount,
+  getAssets,
   getSelectedAccount,
 }
