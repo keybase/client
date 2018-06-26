@@ -1197,6 +1197,12 @@ func (k *KeybaseDaemonRPC) TeamAbandoned(
 	return nil
 }
 
+// AvatarUpdated implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
+func (k *KeybaseDaemonRPC) AvatarUpdated(ctx context.Context,
+	arg keybase1.AvatarUpdatedArg) error {
+	return nil
+}
+
 // StartMigration implements keybase1.ImplicitTeamMigrationInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
