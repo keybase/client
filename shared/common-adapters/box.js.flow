@@ -5,6 +5,7 @@ export type Props = any
 
 export type Box2Props = {
   children?: React.Node,
+  centerChildren?: boolean,
   direction: 'horizontal' | 'vertical',
   fullHeight?: boolean,
   fullWidth?: boolean,

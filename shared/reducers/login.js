@@ -3,13 +3,19 @@ import * as I from 'immutable'
 import * as Constants from '../constants/login'
 import * as Types from '../constants/types/login'
 import * as LoginGen from '../actions/login-gen'
+import * as SignupGen from '../actions/signup-gen'
 
 const initialState = Constants.makeState()
 
-export default function(state: Types.State = initialState, action: LoginGen.Actions): Types.State {
+export default function(
+  state: Types.State = initialState,
+  action: LoginGen.Actions | SignupGen.RequestAutoInvitePayload
+): Types.State {
   switch (action.type) {
     case LoginGen.resetStore:
       return initialState
+    case SignupGen.requestAutoInvite:
+      return state.merge({justRevokedSelf: '', justDeletedSelf: ''})
     case LoginGen.setMyDeviceCodeState:
       return state.set('codePageMyDeviceRole', action.payload.codePageMyDeviceRole)
     case LoginGen.setOtherDeviceCodeState:
