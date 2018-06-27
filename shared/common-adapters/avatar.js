@@ -14,7 +14,7 @@ import {
   type StylesCrossPlatformWithSomeDisallowed,
 } from '../styles'
 import {createShowUserProfile} from '../actions/profile-gen'
-import {createGetProfile} from '../actions/tracker-gen.js'
+import {createGetProfile} from '../actions/tracker-gen'
 import {action} from '../stories/storybook'
 import * as ConfigGen from '../actions/config-gen'
 

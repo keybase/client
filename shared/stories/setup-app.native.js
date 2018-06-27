@@ -2,7 +2,7 @@
 import './mock-react-redux'
 import {AppRegistry} from 'react-native'
 import {getStorybookUI} from '@storybook/react-native'
-import loadStories from './index.native.js'
+import loadStories from './index.native'
 
 const load = () => {
   loadStories()
