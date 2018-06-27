@@ -206,6 +206,66 @@ func (o FSEditListRequest) DeepCopy() FSEditListRequest {
 	}
 }
 
+type FSFolderWriterEdit struct {
+	Filename         string             `codec:"filename" json:"filename"`
+	NotificationType FSNotificationType `codec:"notificationType" json:"notificationType"`
+	ServerTime       Time               `codec:"serverTime" json:"serverTime"`
+}
+
+func (o FSFolderWriterEdit) DeepCopy() FSFolderWriterEdit {
+	return FSFolderWriterEdit{
+		Filename:         o.Filename,
+		NotificationType: o.NotificationType.DeepCopy(),
+		ServerTime:       o.ServerTime.DeepCopy(),
+	}
+}
+
+type FSFolderWriterEditHistory struct {
+	WriterName string               `codec:"writerName" json:"writerName"`
+	Edits      []FSFolderWriterEdit `codec:"edits" json:"edits"`
+}
+
+func (o FSFolderWriterEditHistory) DeepCopy() FSFolderWriterEditHistory {
+	return FSFolderWriterEditHistory{
+		WriterName: o.WriterName,
+		Edits: (func(x []FSFolderWriterEdit) []FSFolderWriterEdit {
+			if x == nil {
+				return nil
+			}
+			var ret []FSFolderWriterEdit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Edits),
+	}
+}
+
+type FSFolderEditHistory struct {
+	Folder     Folder                      `codec:"folder" json:"folder"`
+	ServerTime Time                        `codec:"serverTime" json:"serverTime"`
+	History    []FSFolderWriterEditHistory `codec:"history" json:"history"`
+}
+
+func (o FSFolderEditHistory) DeepCopy() FSFolderEditHistory {
+	return FSFolderEditHistory{
+		Folder:     o.Folder.DeepCopy(),
+		ServerTime: o.ServerTime.DeepCopy(),
+		History: (func(x []FSFolderWriterEditHistory) []FSFolderWriterEditHistory {
+			if x == nil {
+				return nil
+			}
+			var ret []FSFolderWriterEditHistory
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.History),
+	}
+}
+
 type FSSyncStatusRequest struct {
 	RequestID int `codec:"requestID" json:"requestID"`
 }

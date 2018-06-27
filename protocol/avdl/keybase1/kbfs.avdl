@@ -26,7 +26,7 @@ protocol kbfs {
     given requestID.
         */
   @lint("ignore")
-  void FSEditList(array<FSNotification> edits, int requestID);
+  void FSEditList(FSFolderEditHistory edits, int requestID);
 
   /**
     FSSyncStatus is called by KBFS as a response to receiving an
