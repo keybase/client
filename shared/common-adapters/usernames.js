@@ -33,8 +33,7 @@ function usernameText({
   inlineGrammar = false,
   showAnd = false,
 }: Props) {
-  const andStyle = collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
-  const commaStyle = collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
+  const derivedJoinerStyle = collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
   return users.map((u, i) => {
     let userStyle = {
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
@@ -57,7 +56,7 @@ function usernameText({
         {i !== 0 &&
           i === users.length - 1 &&
           showAnd && (
-            <Text type={type} backgroundMode={backgroundMode} style={andStyle}>
+            <Text type={type} backgroundMode={backgroundMode} style={derivedJoinerStyle}>
               {'and '}
             </Text>
           )}
@@ -72,7 +71,7 @@ function usernameText({
         </Text>
         {i !== users.length - 1 &&
         (!inlineGrammar || users.length > 2) && ( // Injecting the commas here so we never wrap and have newlines starting with a ,
-            <Text type={type} backgroundMode={backgroundMode} style={commaStyle}>
+            <Text type={type} backgroundMode={backgroundMode} style={derivedJoinerStyle}>
               ,
             </Text>
           )}
@@ -216,7 +215,6 @@ const styles = styleSheetCreate({
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
-      width: '100%',
     },
   }),
   nonInlineStyle: platformStyles({
