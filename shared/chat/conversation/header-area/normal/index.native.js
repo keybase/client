@@ -1,6 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Badge, Box2, ClickableBox, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
+import {
+  Avatar,
+  Badge,
+  Box2,
+  ClickableBox,
+  Icon,
+  iconCastPlatformStyles,
+  Text,
+  ConnectedUsernames,
+} from '../../../../common-adapters'
 import {collapseStyles, globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../styles'
 import type {Props} from '.'
 
@@ -40,7 +49,7 @@ const Wrapper = (props: {
 const ShhIcon = () => (
   <Icon
     type="iconfont-shh"
-    style={{marginLeft: globalMargins.xtiny}}
+    style={iconCastPlatformStyles(styles.shhIcon)}
     color={shhIconColor}
     fontSize={shhIconFontSize}
   />
@@ -62,7 +71,7 @@ const ChannelHeader = (props: Props) => (
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type="BodyBig" style={{color: globalColors.black_75}}>
+        <Text type="BodyBig" style={styles.channelName}>
           #{props.channelName}
         </Text>
         {props.muted && <ShhIcon />}
@@ -102,6 +111,7 @@ const styles = styleSheetCreate({
     textAlign: 'center',
   },
   channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
+  channelName: {color: globalColors.black_75},
   container: {
     alignItems: 'stretch',
     backgroundColor: globalColors.fastBlank,
@@ -126,6 +136,7 @@ const styles = styleSheetCreate({
     justifyContent: 'flex-end',
     paddingRight: globalMargins.small,
   },
+  shhIcon: {marginLeft: globalMargins.xtiny},
   usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
 })
 
