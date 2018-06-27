@@ -14,28 +14,16 @@ class EditAvatar extends React.Component<Props> {
   _x: number = 0
   _y: number = 0
 
-  _onSave = (e: Object) => {
+  _onSave = () => {
     const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
     if (this._h && this._w && this._x && this._y) {
-      const crop = isIOS ? this._getIOSCrop() : this._getAndroidCrop()
-      this.props.onSave(filename, crop)
+      this.props.onSave(filename, this._getCropCoordinates())
       return
     }
     this.props.onSave(filename)
   }
 
-  _getAndroidCrop = () => {
-    // Cropping coordinates will be part of the next phase. The backend does the right thing when
-    // when you send it all 0s.
-    return {
-      x0: 0,
-      x1: 0,
-      y0: 0,
-      y1: 0,
-    }
-  }
-
-  _getIOSCrop = () => {
+  _getCropCoordinates = () => {
     const x = this._x
     const y = this._y
     const rH = this.props.image.height / this._h
@@ -50,11 +38,11 @@ class EditAvatar extends React.Component<Props> {
     }
   }
 
-  _onZoom = (e: Object) => {
-    this._h = e.nativeEvent.contentSize.height
-    this._w = e.nativeEvent.contentSize.width
-    this._x = e.nativeEvent.contentOffset.x
-    this._y = e.nativeEvent.contentOffset.y
+  _onZoom = ({height, width, x, y}: {height: number, width: number, x: number, y: number}) => {
+    this._h = height
+    this._w = width
+    this._x = x
+    this._y = y
   }
 
   render() {
@@ -78,18 +66,19 @@ class EditAvatar extends React.Component<Props> {
                 height: this.props.image.height,
                 width: this.props.image.width,
               }}
-              maxZoom={10}
+              // Temporarily deactive zooming on Android.
+              maxZoom={isIOS ? 10 : 1}
               onZoom={isIOS ? this._onZoom : null}
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
-              style={isIOS ? styles.zoomContainer : null}
+              style={styles.zoomContainer}
             >
               <NativeImage
                 resizeMode="contain"
                 source={{uri: `data:image/jpeg;base64,${this.props.image.data}`}}
                 style={{
-                  height: this.props.image.height,
-                  width: this.props.image.width,
+                  height: isIOS ? this.props.image.height : AVATAR_SIZE,
+                  width: isIOS ? this.props.image.width : AVATAR_SIZE,
                 }}
               />
             </ZoomableBox>
