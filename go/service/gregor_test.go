@@ -973,8 +973,8 @@ func TestOfflineConsume(t *testing.T) {
 	fclient := newFlakeyIncomingClient(func() gregor1.IncomingInterface { return server })
 	fc := clockwork.NewFakeClock()
 	client := grclient.NewClient(uid, nil, func() gregor.StateMachine {
-		return storage.NewMemEngine(gregor1.ObjFactory{}, clockwork.NewRealClock(), tc.G.GetLog(), fc)
-	}, storage.NewLocalDB(tc.G), func() gregor1.IncomingInterface { return fclient }, tc.G.GetLog())
+		return storage.NewMemEngine(gregor1.ObjFactory{}, clockwork.NewRealClock(), tc.G.GetLog())
+	}, storage.NewLocalDB(tc.G), func() gregor1.IncomingInterface { return fclient }, tc.G.GetLog(), fc)
 	tev := grclient.NewTestingEvents()
 	client.TestingEvents = tev
 	h.gregorCli = client

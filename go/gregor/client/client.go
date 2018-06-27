@@ -55,7 +55,7 @@ func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.S
 		Sm:             createSm(),
 		Storage:        storage,
 		Log:            log,
-		clock:          clockwork.NewRealClock(),
+		clock:          clock,
 		outboxSendCh:   make(chan struct{}, 100),
 		stopCh:         make(chan struct{}),
 		incomingClient: incomingClient,
