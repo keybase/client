@@ -40,6 +40,7 @@ const AVATAR_BORDER_WIDTH = 5
 
 class EditAvatar extends React.Component<Props, State> {
   _file: ?HTMLInputElement
+  _image: ?HTMLImageElement
 
   constructor(props: Props) {
     super(props)
@@ -61,6 +62,10 @@ class EditAvatar extends React.Component<Props, State> {
       scaledImageWidth: 0,
       submitting: false,
     }
+  }
+
+  _imageSetRef = (ref: ?HTMLImageElement) => {
+    this._image = ref
   }
 
   _filePickerFiles = () => (this._file && this._file.files) || []
@@ -168,29 +173,33 @@ class EditAvatar extends React.Component<Props, State> {
     })
   }
 
-  _onMouseDown = (e: SyntheticMouseEvent<HTMLImageElement>) => {
+  _onMouseDown = (e: SyntheticMouseEvent<any>) => {
     this.setState({
       dragStartX: e.pageX,
       dragStartY: e.pageY,
-      dragStopX: e.currentTarget.style.left ? parseInt(e.currentTarget.style.left, 10) : this.state.dragStopX,
-      dragStopY: e.currentTarget.style.top ? parseInt(e.currentTarget.style.top, 10) : this.state.dragStopY,
+      dragStopX:
+        this._image && this._image.style.left ? parseInt(this._image.style.left, 10) : this.state.dragStopX,
+      dragStopY:
+        this._image && this._image.style.top ? parseInt(this._image.style.top, 10) : this.state.dragStopY,
       dragging: true,
-      offsetLeft: e.currentTarget.offsetLeft,
-      offsetTop: e.currentTarget.offsetTop,
+      offsetLeft: this._image ? this._image.offsetLeft : this.state.offsetLeft,
+      offsetTop: this._image ? this._image.offsetTop : this.state.offsetTop,
     })
   }
 
-  _onMouseUp = (e: SyntheticMouseEvent<HTMLImageElement>) => {
+  _onMouseUp = (e: SyntheticMouseEvent<any>) => {
     this.setState({
-      dragStopX: e.currentTarget.style.left ? parseInt(e.currentTarget.style.left, 10) : this.state.dragStopX,
-      dragStopY: e.currentTarget.style.top ? parseInt(e.currentTarget.style.top, 10) : this.state.dragStopY,
+      dragStopX:
+        this._image && this._image.style.left ? parseInt(this._image.style.left, 10) : this.state.dragStopX,
+      dragStopY:
+        this._image && this._image.style.top ? parseInt(this._image.style.top, 10) : this.state.dragStopY,
       dragging: false,
-      offsetLeft: e.currentTarget.offsetLeft,
-      offsetTop: e.currentTarget.offsetTop,
+      offsetLeft: this._image ? this._image.offsetLeft : this.state.offsetLeft,
+      offsetTop: this._image ? this._image.offsetTop : this.state.offsetTop,
     })
   }
 
-  _onMouseMove = (e: SyntheticMouseEvent<HTMLImageElement>) => {
+  _onMouseMove = (e: SyntheticMouseEvent<any>) => {
     if (!this.state.dragging || this.state.submitting) return
 
     const dragLeft = this.state.dragStopX + e.pageX - this.state.dragStartX
@@ -220,14 +229,23 @@ class EditAvatar extends React.Component<Props, State> {
     this.props.onSave(this.state.imageSource, crop)
   }
 
-  _hoverBoxClassName = () => {
+  _className = () => {
     if (this.state.hasPreview) return 'filled'
     if (this.state.dropping) return 'dropping'
   }
 
   render = () => {
     return (
-      <MaybePopup onClose={this.props.onClose} styleCover={styles.popup}>
+      <MaybePopup
+        onClose={this.props.onClose}
+        styleCover={{
+          cursor: this.state.hasPreview && this.state.dragging ? 'grabbing' : 'default',
+          zIndex: EDIT_AVATAR_ZINDEX,
+        }}
+        onMouseUp={this._onMouseUp}
+        onMouseDown={this._onMouseDown}
+        onMouseMove={this._onMouseMove}
+      >
         <Box
           onDragLeave={this._onDragLeave}
           onDragOver={this._onDragOver}
@@ -239,8 +257,9 @@ class EditAvatar extends React.Component<Props, State> {
             or browse your computer for one
           </Text>
           <HoverBox
-            className={this._hoverBoxClassName}
+            className={this._className}
             onClick={this.state.hasPreview ? null : this._filePickerOpen}
+            style={styles.imageContainer}
           >
             <input
               accept="image/*"
@@ -251,6 +270,7 @@ class EditAvatar extends React.Component<Props, State> {
               type="file"
             />
             <img
+              ref={this._imageSetRef}
               src={this.state.imageSource}
               style={{
                 height: this.state.scaledImageHeight,
@@ -261,9 +281,6 @@ class EditAvatar extends React.Component<Props, State> {
               }}
               onDragStart={e => e.preventDefault()}
               onLoad={this._onImageLoad}
-              onMouseUp={this._onMouseUp}
-              onMouseDown={this._onMouseDown}
-              onMouseMove={this._onMouseMove}
             />
             {!this.state.hasPreview && (
               <Icon
@@ -312,18 +329,14 @@ const HoverBox = glamorous(Box)({
     borderColor: globalColors.lightGrey2,
     borderStyle: 'solid',
   },
-  '&.filled:active': {
-    cursor: 'grabbing',
-  },
   '&.filled:hover': {
     backgroundColor: globalColors.white,
     borderColor: globalColors.lightGrey2,
-    cursor: 'grab',
   },
-  ':hover, &.dropping': {
+  '&:hover, &.dropping': {
     borderColor: globalColors.black_40,
   },
-  ':hover .icon, &.dropping .icon': {
+  '&:hover .icon, &.dropping .icon': {
     color: globalColors.black_40,
   },
   backgroundColor: globalColors.lightGrey2,
@@ -358,9 +371,6 @@ const styles = styleSheetCreate({
     marginTop: -21,
     position: 'absolute',
     top: '50%',
-  },
-  popup: {
-    zIndex: EDIT_AVATAR_ZINDEX,
   },
 })
 

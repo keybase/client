@@ -11,6 +11,9 @@ const MaybePopup = isMobile
     )
   : (props: {
       onClose: () => void,
+      onMouseUp?: (e: SyntheticMouseEvent<>) => void,
+      onMouseDown?: (e: SyntheticMouseEvent<>) => void,
+      onMouseMove?: (e: SyntheticMouseEvent<>) => void,
       children: React.Node,
       cover?: boolean,
       styleCover?: any,
@@ -18,6 +21,9 @@ const MaybePopup = isMobile
     }) => (
       <PopupDialog
         onClose={props.onClose}
+        onMouseUp={props.onMouseUp}
+        onMouseDown={props.onMouseDown}
+        onMouseMove={props.onMouseMove}
         styleCover={
           props.cover ? {..._styleCover, ...props.styleCover} : props.styleCover ? props.styleCover : {}
         }
