@@ -38,7 +38,7 @@ class Dropdown extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box style={this.props.style}>
+      <Box style={{width: 270, ...this.props.style}}>
         <ButtonBox onClick={this._toggleOpen}>
           {this.state.expanded && (
             <PopupDialog
@@ -124,7 +124,7 @@ const ButtonBox = glamorous(Box)({
   borderWidth: 1,
   color: globalColors.lightGrey2,
   paddingRight: isMobile ? globalMargins.medium : globalMargins.small,
-  width: isMobile ? '100%' : 270,
+  width: '100%',
 })
 
 export default Dropdown
