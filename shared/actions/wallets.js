@@ -3,9 +3,7 @@ import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
-import * as WaitingGen from './waiting-gen'
 import * as WalletsGen from './wallets-gen'
-import type {TypedState} from '../util/container'
 
 const loadAccounts = (action: WalletsGen.LoadAccountsPayload) =>
   Saga.call(RPCTypes.localGetWalletAccountsLocalRpcPromise)
