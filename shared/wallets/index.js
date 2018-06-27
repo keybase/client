@@ -11,7 +11,7 @@ type Props = {
 }
 
 const Wallets = ({refresh, waitingKey}: Props) => (
-  <Box2 direction="horizontal" fullHeight={true} fullWidth={true} gap="xtiny">
+  <Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
     <Box2 direction="vertical" fullHeight={true} style={styles.walletListContainer}>
       <WalletList style={{height: '100%'}} />
     </Box2>
