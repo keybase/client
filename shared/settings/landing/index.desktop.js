@@ -2,7 +2,7 @@
 import * as React from 'react'
 import SubHeading from '../subheading'
 import {Box, Button, Checkbox, Divider, Text, Meta} from '../../common-adapters'
-import {Stars} from '../common.desktop.js'
+import {Stars} from '../common.desktop'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
 import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
 import flags from '../../util/feature-flags'

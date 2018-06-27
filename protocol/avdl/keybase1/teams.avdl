@@ -84,13 +84,19 @@ protocol teams {
     array<UserVersion> readers;
   }
 
+  enum TeamMemberStatus {
+    ACTIVE_0,
+    RESET_1,
+    DELETED_2
+  }
+
   record TeamMemberDetails {
     UserVersion uv;
     string username;
     FullName fullName;
-    boolean active;
     @lint("ignore")
     boolean needsPUK;
+    TeamMemberStatus status;
   }
 
   record TeamMembersDetails {
@@ -204,7 +210,7 @@ protocol teams {
     UserVersion inviter;
     string inviterUsername;
     string teamName;
-    boolean userActive;
+    TeamMemberStatus status;
   }
 
   record TeamEncryptedKBFSKeyset {
@@ -607,11 +613,11 @@ protocol teams {
     int memberCount;
     @jsonkey("member_eldest_seqno")
     Seqno eldestSeqno;
-    boolean active;
     @jsonkey("allow_profile_promote")
     boolean allowProfilePromote;
     @jsonkey("is_member_showcased")
     boolean isMemberShowcased;
+    TeamMemberStatus status;
   }
 
   record AnnotatedTeamList {

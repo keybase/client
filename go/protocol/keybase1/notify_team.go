@@ -50,12 +50,18 @@ type TeamExitArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
+type AvatarUpdatedArg struct {
+	Name    string         `codec:"name" json:"name"`
+	Formats []AvatarFormat `codec:"formats" json:"formats"`
+}
+
 type NotifyTeamInterface interface {
 	TeamChangedByID(context.Context, TeamChangedByIDArg) error
 	TeamChangedByName(context.Context, TeamChangedByNameArg) error
 	TeamDeleted(context.Context, TeamID) error
 	TeamAbandoned(context.Context, TeamID) error
 	TeamExit(context.Context, TeamID) error
+	AvatarUpdated(context.Context, AvatarUpdatedArg) error
 }
 
 func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
@@ -142,6 +148,22 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"avatarUpdated": {
+				MakeArg: func() interface{} {
+					ret := make([]AvatarUpdatedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]AvatarUpdatedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]AvatarUpdatedArg)(nil), args)
+						return
+					}
+					err = i.AvatarUpdated(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -175,5 +197,10 @@ func (c NotifyTeamClient) TeamAbandoned(ctx context.Context, teamID TeamID) (err
 func (c NotifyTeamClient) TeamExit(ctx context.Context, teamID TeamID) (err error) {
 	__arg := TeamExitArg{TeamID: teamID}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamExit", []interface{}{__arg})
+	return
+}
+
+func (c NotifyTeamClient) AvatarUpdated(ctx context.Context, __arg AvatarUpdatedArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.avatarUpdated", []interface{}{__arg})
 	return
 }

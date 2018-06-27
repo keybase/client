@@ -14,7 +14,7 @@ import {
   metaIgnored,
 } from '../constants/tracker'
 import type {IconType} from '../common-adapters'
-import type {PlatformsExpandedType} from '../constants/types/more.js'
+import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Proof} from '../constants/types/tracker'
 
 function metaColor(proof: Proof): string {
