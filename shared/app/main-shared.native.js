@@ -66,11 +66,13 @@ class Main extends Component<any> {
           routeState={this.props.routeState}
           setRouteState={this.props.setRouteState}
         />
-        <GatewayDest name="popup-root" component={View} pointerEvents="box-none" />
+        <GatewayDest name="popup-root" component={ViewForGatewayDest} pointerEvents="box-none" />
       </Fragment>
     )
   }
 }
+
+const ViewForGatewayDest = (props: any) => <View {...props} />
 
 const mapStateToProps = (state: TypedState) => ({
   folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,

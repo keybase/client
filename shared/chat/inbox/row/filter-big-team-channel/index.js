@@ -1,8 +1,16 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Box, Text, ClickableBox} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../../../styles'
+import {
+  collapseStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 import {TeamAvatar} from '../avatars'
+import * as RowSizes from '../sizes'
 
 type Props = {
   isSelected: boolean,
@@ -16,28 +24,28 @@ class FilterBigTeamChannel extends PureComponent<Props> {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
         <Box
-          style={{
-            ...filteredRowStyle,
-            ...(this.props.isSelected ? {backgroundColor: globalColors.blue} : undefined),
-          }}
+          style={collapseStyles([
+            styles.filteredRow,
+            this.props.isSelected && {backgroundColor: globalColors.blue},
+          ])}
         >
           <TeamAvatar teamname={this.props.teamname} isMuted={false} isSelected={false} />
           <Text
             type="BodySemibold"
-            style={{
-              ...teamnameStyle,
-              color: this.props.isSelected ? globalColors.white : globalColors.darkBlue,
-            }}
+            style={collapseStyles([
+              styles.teamname,
+              {color: this.props.isSelected ? globalColors.white : globalColors.darkBlue},
+            ])}
             title={this.props.teamname}
           >
             {this.props.teamname}
           </Text>
           <Text
             type="Body"
-            style={{
-              ...channelnameStyle,
-              color: this.props.isSelected ? globalColors.white : globalColors.black_75,
-            }}
+            style={collapseStyles([
+              styles.channelname,
+              {color: this.props.isSelected ? globalColors.white : globalColors.black_75},
+            ])}
             title={`#${this.props.channelname}`}
           >
             &nbsp;#{this.props.channelname}
@@ -48,33 +56,31 @@ class FilterBigTeamChannel extends PureComponent<Props> {
   }
 }
 
-const channelnameStyle = platformStyles({
-  common: {
-    flexBasis: '70%',
+const styles = styleSheetCreate({
+  channelname: platformStyles({
+    common: {flexBasis: '70%'},
+    isElectron: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  }),
+  filteredRow: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexShrink: 0,
+    height: RowSizes.smallRowHeight,
+    paddingRight: globalMargins.tiny,
+    width: '100%',
   },
-  isElectron: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
+  teamname: platformStyles({
+    common: {color: globalColors.darkBlue},
+    isElectron: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  }),
 })
-const teamnameStyle = platformStyles({
-  common: {
-    color: globalColors.darkBlue,
-  },
-  isElectron: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-})
-const filteredRowStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  flexShrink: 0,
-  height: 56,
-  paddingRight: globalMargins.tiny,
-  width: '100%',
-}
 
 export {FilterBigTeamChannel}
