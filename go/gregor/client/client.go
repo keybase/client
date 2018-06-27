@@ -36,7 +36,7 @@ type Client struct {
 	Sm      gregor.StateMachine
 	Storage LocalStorageEngine
 	Log     logger.Logger
-	Clock   clockwork.Clock
+	clock   clockwork.Clock
 
 	incomingClient func() gregor1.IncomingInterface
 	outboxSendCh   chan struct{}
@@ -48,14 +48,14 @@ type Client struct {
 }
 
 func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.StateMachine,
-	storage LocalStorageEngine, incomingClient func() gregor1.IncomingInterface, log logger.Logger) *Client {
+	storage LocalStorageEngine, incomingClient func() gregor1.IncomingInterface, log logger.Logger, clock clockwork.Clock) *Client {
 	c := &Client{
 		User:           user,
 		Device:         device,
 		Sm:             createSm(),
 		Storage:        storage,
 		Log:            log,
-		Clock:          clockwork.NewRealClock(),
+		clock:          clockwork.NewRealClock(),
 		outboxSendCh:   make(chan struct{}, 100),
 		stopCh:         make(chan struct{}),
 		incomingClient: incomingClient,
@@ -503,11 +503,11 @@ func (c *Client) outboxSend() {
 }
 
 func (c *Client) outboxSendLoop() {
-	deadline := c.Clock.Now().Add(time.Minute)
+	deadline := c.clock.Now().Add(time.Minute)
 	for {
 		var now time.Time
 		select {
-		case now = <-c.Clock.AfterTime(deadline):
+		case now = <-c.clock.AfterTime(deadline):
 			c.outboxSend()
 		case <-c.outboxSendCh:
 			c.outboxSend()
