@@ -1148,6 +1148,9 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 			if !ok {
 				continue
 			}
+			if err := kbfsOps.shutdownEdits(ctx); err != nil {
+				return err
+			}
 			for _, fbo := range kbfsOps.ops {
 				if err := fbo.fbm.waitForArchives(ctx); err != nil {
 					return err

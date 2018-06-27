@@ -115,6 +115,18 @@ func (fs *KBFSOpsStandard) markForReIdentifyIfNeeded(
 	}
 }
 
+func (fs *KBFSOpsStandard) shutdownEdits(ctx context.Context) error {
+	fs.editLock.Lock()
+	fs.editShutdown = true
+	fs.editLock.Unlock()
+
+	err := fs.editActivity.Wait(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by KBFSOpsStandard.
 func (fs *KBFSOpsStandard) Shutdown(ctx context.Context) error {
@@ -122,11 +134,7 @@ func (fs *KBFSOpsStandard) Shutdown(ctx context.Context) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
-	fs.editLock.Lock()
-	fs.editShutdown = true
-	fs.editLock.Unlock()
-
-	err := fs.editActivity.Wait(ctx)
+	err := fs.shutdownEdits(ctx)
 	if err != nil {
 		return err
 	}
