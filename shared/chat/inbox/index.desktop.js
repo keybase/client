@@ -11,8 +11,7 @@ import {debounce} from 'lodash-es'
 import {isDarwin} from '../../constants/platform'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
-
-import type {Props} from './'
+import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
 
 type State = {
   showFloating: boolean,
@@ -188,3 +187,4 @@ const _scrollableStyle = {
 }
 
 export default Inbox
+export type {RowItem, RowItemSmall, RowItemBig, RouteState}

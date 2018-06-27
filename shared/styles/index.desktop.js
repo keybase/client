@@ -2,7 +2,7 @@
 import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
-import {type CollapsibleStyle} from '.'
+import {type CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
 
 export const windowStyle = {
@@ -132,3 +132,4 @@ export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
 export {default as glamorous} from 'glamorous'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
+export type {StylesCrossPlatform} from './index.types'

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box} from './box'
 import {Gateway} from 'react-gateway'
-import type {Props} from './floating-box'
+import type {Props} from './floating-box.types'
 
 export default (props: Props) => {
   return (

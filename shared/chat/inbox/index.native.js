@@ -17,7 +17,7 @@ import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import * as RowSizes from './row/sizes'
 
-import type {Props, RowItem} from './'
+import type {Props, RowItem, RowItemSmall} from './index.types'
 
 const NoChats = () => (
   <Box
@@ -225,3 +225,4 @@ const boxStyle = {
 }
 
 export default Inbox
+export type {RowItem, RowItemSmall}

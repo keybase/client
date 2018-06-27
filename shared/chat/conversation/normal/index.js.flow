@@ -1,21 +1,4 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
-
-export type Props = {
-  conversationIDKey: Types.ConversationIDKey,
-  focusInputCounter: number,
-  infoPanelOpen: boolean,
-  isSearching: boolean,
-  listScrollDownCounter: number,
-  showLoader: boolean,
-  onAttach: (paths: Array<string>) => void,
-  onCancelSearch: () => void,
-  onFocusInput: () => void,
-  onScrollDown: () => void,
-  onShowTracker: (username: string) => void,
-  onToggleInfoPanel: () => void,
-  threadLoadedOffline: boolean,
-}
-
+import type {Props} from './index.types'
 export default class Conversation extends React.Component<Props> {}
