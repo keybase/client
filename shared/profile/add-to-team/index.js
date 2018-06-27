@@ -143,7 +143,7 @@ const AddToTeam = (props: Props) => {
               const selectedRole: TeamRoleType = (node && node.key) || null
               props.onRoleChange(selectedRole)
             }}
-            style={{width: 'auto'}}
+            style={{width: isMobile ? '100%' : 100}}
           />
         </ClickableBox>
       </Box2>

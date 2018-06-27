@@ -99,7 +99,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                     const selectedRole: TeamRoleType = (node && node.key) || null
                     this._setRole(selectedRole)
                   }}
-                  style={{width: 'auto'}}
+                  style={{width: 100}}
                 />
               </ClickableBox>
             </Box>

@@ -89,7 +89,7 @@ const AddPeople = (props: Props) => (
               const selectedRole: TeamRoleType = (node && node.key) || null
               props.onRoleChange(selectedRole)
             }}
-            style={{width: 'auto'}}
+            style={{width: isMobile ? 120 : 100}}
           />
         </ClickableBox>
         <Button
