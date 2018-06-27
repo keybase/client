@@ -1155,6 +1155,7 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 }
 
 func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
+	defer fs.editActivity.Done()
 	shutdown := func() bool {
 		fs.editLock.Lock()
 		defer fs.editLock.Unlock()
@@ -1164,7 +1165,6 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 		return
 	}
 
-	defer fs.editActivity.Done()
 	if !fs.config.Mode().TLFEditHistoryEnabled() {
 		return
 	}
