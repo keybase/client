@@ -234,7 +234,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 		timeoutCancel()
 
-		err = tx.Post(ctx)
+		err = tx.Post(libkb.NewMetaContext(ctx, g))
 		if err != nil {
 			return err
 		}
@@ -315,7 +315,7 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 			return err
 		}
 
-		return tx.Post(ctx)
+		return tx.Post(libkb.NewMetaContext(ctx, g))
 	})
 }
 
