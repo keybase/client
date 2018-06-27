@@ -26,7 +26,10 @@ export const submitDevicenameDone = 'signup:submitDevicenameDone'
 
 // Payload Types
 type _CheckInviteCodeDonePayload = $ReadOnly<{|inviteCode: string|}>
-type _CheckInviteCodeDonePayloadError = $ReadOnly<{|errorText: string|}>
+type _CheckInviteCodeDonePayloadError = $ReadOnly<{|
+  inviteCode: string,
+  errorText: string,
+|}>
 type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
 type _CheckPassphraseDonePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _CheckPassphraseDonePayloadError = $ReadOnly<{|

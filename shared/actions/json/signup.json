@@ -5,7 +5,10 @@
     "checkInviteCode": { "inviteCode": "string" },
     "checkInviteCodeDone": {
       "inviteCode": "string",
-      "canError": {"errorText": "string"}
+      "canError": {
+        "inviteCode": "string",
+        "errorText": "string"
+      }
     },
     "checkPassphrase": {
       "pass1": "HiddenString",

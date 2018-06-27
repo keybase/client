@@ -11,9 +11,9 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.resetSignup:
       return initialState
     case SignupGen.checkInviteCodeDone:
-      return state.withMutations(s => {
-        s.set('inviteCode', action.error ? '' : action.payload.inviteCode)
-        s.set('inviteCodeError', action.error ? action.payload.errorText : '')
+      return state.merge({
+        inviteCode: action.payload.inviteCode,
+        inviteCodeError: action.error ? action.payload.errorText : '',
       })
     case SignupGen.checkUsernameEmailDone:
       return state.merge({
@@ -36,7 +36,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
       })
     case SignupGen.submitDevicenameDone:
       return state.merge({
-        devicename: action.error ? '' : action.payload.devicename,
+        devicename: action.payload.devicename,
         devicenameError: action.error ? action.payload.error : '',
       })
     case SignupGen.signupError:

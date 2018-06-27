@@ -9,7 +9,7 @@ import {
   Input as CommonInput,
   ButtonBar,
 } from '../../common-adapters'
-import {styleSheetCreate, isMobile} from '../../styles'
+import {styleSheetCreate, isMobile, globalMargins} from '../../styles'
 
 type Props = {
   children: React.Node,
@@ -23,6 +23,7 @@ export const Wrapper = (props: Props) => (
       fullWidth={true}
       fullHeight={true}
       centerChildren={true}
+      style={styles.wrapper}
       gap={isMobile ? 'xtiny' : 'small'}
     >
       {props.children}
@@ -31,7 +32,7 @@ export const Wrapper = (props: Props) => (
   </Box2>
 )
 
-export const BlankAvatar = () => <Avatar username="" size={isMobile ? 96 : 128} />
+export const BlankAvatar = () => <Avatar username="" size={isMobile ? 96 : 128} style={styles.avatar} />
 
 export const ContinueButton = ({disabled, onClick}: {disabled?: boolean, onClick: () => void}) => (
   <ButtonBar fullWidth={true} style={styles.buttonBar}>
@@ -58,10 +59,12 @@ export const Input = (props: any) => (
 )
 
 export const styles = styleSheetCreate({
-  buttonBar: {maxWidth: 460},
+  avatar: {marginBottom: isMobile ? globalMargins.xtiny : 0},
+  buttonBar: {maxWidth: 460, padding: 0, paddingTop: globalMargins.medium},
   header: {position: 'absolute'},
   input: {maxWidth: 460, width: '100%'},
   inputContainer: {alignItems: 'center', alignSelf: 'stretch'},
-  inputInnerStyle: {width: '100%'},
   inputErrorStyle: {minHeight: 0},
+  inputInnerStyle: {width: '100%'},
+  wrapper: {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium},
 })
