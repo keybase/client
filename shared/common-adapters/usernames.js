@@ -54,7 +54,6 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username}>
-        {i !== 0 && <Text type={type}>&nbsp;</Text>}
         {i !== 0 &&
           i === users.length - 1 &&
           showAnd && (
@@ -77,6 +76,7 @@ function usernameText({
               ,
             </Text>
           )}
+        {i !== users.length - 1 && <Text type={type}>&nbsp;</Text>}
       </Text>
     )
   })
@@ -211,7 +211,8 @@ const styles = styleSheetCreate({
   }),
   inlineStyle: platformStyles({
     isElectron: {
-      display: 'inline',
+      display: 'inline-flex',
+      flexWrap: 'wrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
