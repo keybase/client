@@ -2,8 +2,7 @@
 import * as React from 'react'
 import {Avatar, Box, Button, Icon, Input, PopupDialog, Text, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const errorHeader = (errorText: string) => {
   if (!errorText) {
