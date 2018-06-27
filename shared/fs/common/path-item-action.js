@@ -45,7 +45,7 @@ const PathItemAction = (props: Props & FloatingMenuParentProps) => (
       attachTo={props.attachmentRef}
       visible={props.showingMenu}
       onHidden={props.toggleShowingMenu}
-      position="bottom center"
+      position="bottom right"
       closeOnSelect={true}
       header={{
         title: 'unused',

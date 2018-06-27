@@ -15,7 +15,7 @@ import {NormalPreview} from './filepreview'
 import {Box} from '../common-adapters'
 import Download from './footer/download'
 import PathItemAction from './common/path-item-action'
-import FolderHeader from './header/header.desktop'
+import Breadcrumb from './header/breadcrumb.desktop'
 
 const folderItemStyles = {
   iconSpec: {
@@ -60,18 +60,12 @@ const provider = createPropProvider({
     downloads: [],
   }),
   FolderHeader: () => ({
-    breadcrumbItems: [
-      {
-        name: 'keybase',
-        path: '/keybase',
-      },
-    ],
-    dropdownItems: [],
-    isTeamPath: false,
     path: Types.stringToPath('/keybase'),
-    onBack: action('onBack'),
-    onOpenBreadcrumb: action('onOpenBreadcrumb'),
-    onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
+    openInFileUI: action('openInFleUI'),
+  }),
+  ConnectedBreadcrumb: () => ({
+    dropdownItems: undefined,
+    shownItems: [],
   }),
   SortBar: ({path}: {path: Types.Path}) => ({
     sortSetting: {
@@ -141,24 +135,7 @@ const provider = createPropProvider({
     style: {},
     menuItems: [],
   }),
-  ConnectedPathItemAction: () => ({
-    name: Types.getPathNameFromElems(['keybase', 'private', 'meatball']),
-    size: 0,
-    type: 'folder',
-    lastModifiedTimestamp: 0,
-    lastWriter: 'meatball',
-    childrenFolders: 0,
-    childrenFiles: 0,
-    itemStyles: Constants.getItemStyles(['keybase', 'private', 'meatball'], 'folder', 'meatball'),
-    pathElements: ['keybase', 'private', 'meatball'],
-    menuItems: [
-      {
-        title: 'menu item',
-        onClick: action('onClick'),
-      },
-    ],
-    onHidden: action('onHidden'),
-  }),
+  ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
 })
 
 const downloadCommonActions = {
@@ -189,23 +166,25 @@ const pathItemActionPopupProps = (path: Types.Path) => {
   }
 }
 
-const folderHeaderProps = (names: Array<string>) => ({
-  breadcrumbItems: names
-    .map((name, idx) => ({
-      isTlfNameItem: idx === 2,
-      isLastItem: idx === names.length - 1,
-      name: name,
-      path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
-      onOpenBreadcrumb: action('onOpenBreadcrumb'),
-    }))
-    .slice(names.length > 3 ? names.length - 2 : 0),
-  dropdownPath: names.length > 3 ? 'blah' : '',
-  isTeamPath: names[1] === 'team',
-  path: Types.stringToPath('/' + names.join('/')),
-  onBack: action('onBack'),
-  onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
-  openInFileUI: action('openInFileUI'),
-})
+const breadcrumbProps = (names: Array<string>) => {
+  const items = names.map((name, idx) => ({
+    isTeamTlf: idx === 2 && names[idx - 1] === 'team',
+    isLastItem: idx === names.length - 1,
+    name: name,
+    path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
+    iconSpec: Constants.getItemStyles(names.slice(0, idx + 1), 'folder', 'foo').iconSpec,
+    onClick: action('onClick'),
+  }))
+  return items.length > 3
+    ? {
+        dropdownItems: items.slice(0, items.length - 2),
+        shownItems: items.slice(items.length - 2),
+      }
+    : {
+        dropdownItems: undefined,
+        shownItems: items,
+      }
+}
 
 const commonRowProps = {
   onSubmit: action('onSubmit'),
@@ -365,34 +344,34 @@ const load = () => {
         />
       </Box>
     ))
-    .add('FolderHeader', () => (
+    .add('Breadcrumbs', () => (
       <Box>
-        <FolderHeader {...folderHeaderProps(['keybase', 'private', 'foo', 'bar'])} />
-        <FolderHeader {...folderHeaderProps(['keybase', 'private', 'foo'])} />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb {...breadcrumbProps(['keybase', 'private', 'foo', 'bar'])} />
+        <Breadcrumb {...breadcrumbProps(['keybase', 'private', 'foo'])} />
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
           ])}
         />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
           ])}
         />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
             'haha',
           ])}
         />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
