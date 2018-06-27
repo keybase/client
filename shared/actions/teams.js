@@ -88,7 +88,7 @@ const _leaveTeam = function(action: TeamsGen.LeaveTeamPayload) {
 
 const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   const {destSubPath, role, rootPath, sendChatNotification, sourceSubPath, teamname} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
   const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
   const collectedErrors = []
