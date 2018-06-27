@@ -13,7 +13,7 @@ import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner from '.'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const _pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
+  const _pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _username = state.config.username || undefined
   return {
     _pathItem,

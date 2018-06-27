@@ -405,7 +405,7 @@ const editFailed = (res, {payload: {editID}}) => Saga.put(FsGen.createEditFailed
 function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
   const {path, routePath} = action.payload
   const state: TypedState = yield Saga.select()
-  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   if (pathItem.type === 'folder') {
     yield Saga.put(
       putActionIfOnPath(

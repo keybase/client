@@ -14,7 +14,7 @@ import {navigateUp} from '../../actions/route-tree'
 import Header from './header'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   return {
     path,
     pathItem,

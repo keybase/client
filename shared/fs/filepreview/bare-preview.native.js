@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
   return {
     path,
-    _pathItem: state.fs.pathItems.get(path) || Constants.makeUnknownPathItem(),
+    _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   }
 }
 

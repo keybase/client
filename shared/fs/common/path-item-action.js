@@ -26,8 +26,36 @@ type Props = {
   actionIconClassName?: string,
   actionIconFontSize?: number,
   pathElements: Array<string>,
-  menuItems: Array<MenuItem>,
+  menuItems: Array<MenuItem | 'Divider' | null>,
 }
+
+const PathItemActionHeader = (props: Props) => (
+  <Box style={stylesHeader}>
+    <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
+    <StaticBreadcrumb pathElements={props.pathElements} />
+    <Box style={stylesNameTextBox}>
+      <Text type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
+        {props.name}
+      </Text>
+    </Box>
+    {props.type === 'file' && <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>}
+    {props.type === 'folder' && (
+      <Text type="BodySmall">
+        {props.childrenFolders
+          ? `${props.childrenFolders} Folder${props.childrenFolders > 1 ? 's' : ''}${
+              props.childrenFiles ? ', ' : ''
+            }`
+          : undefined}
+        {props.childrenFiles ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}` : undefined}
+      </Text>
+    )}
+    <PathItemInfo
+      lastModifiedTimestamp={props.lastModifiedTimestamp}
+      lastWriter={props.lastWriter}
+      wrap={true}
+    />
+  </Box>
+)
 
 const PathItemAction = (props: Props & FloatingMenuParentProps) => (
   <Box>
@@ -49,39 +77,9 @@ const PathItemAction = (props: Props & FloatingMenuParentProps) => (
       closeOnSelect={true}
       header={{
         title: 'unused',
-        view: (
-          <Box style={stylesHeader}>
-            <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
-            <StaticBreadcrumb pathElements={props.pathElements} />
-            <Box style={stylesNameTextBox}>
-              <Text type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
-                {props.name}
-              </Text>
-            </Box>
-            {props.type === 'file' && (
-              <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>
-            )}
-            {props.type === 'folder' && (
-              <Text type="BodySmall">
-                {props.childrenFolders
-                  ? `${props.childrenFolders} Folder${props.childrenFolders > 1 ? 's' : ''}${
-                      props.childrenFiles ? ', ' : ''
-                    }`
-                  : undefined}
-                {props.childrenFiles
-                  ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}`
-                  : undefined}
-              </Text>
-            )}
-            <PathItemInfo
-              lastModifiedTimestamp={props.lastModifiedTimestamp}
-              lastWriter={props.lastWriter}
-              wrap={true}
-            />
-          </Box>
-        ),
+        view: <PathItemActionHeader {...props} />,
       }}
-      items={props.menuItems.map(a => a /* make flow happy */)}
+      items={props.menuItems}
     />
   </Box>
 )

@@ -56,7 +56,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
 const getRootMenuItems = (stateProps, dispatchProps, path: Types.Path) => {
   const {_pathItems, fileUIEnabled, _username} = stateProps
   const {_showInFileUI, _saveMedia, _shareNative, _download, _ignoreFolder} = dispatchProps
-  const pathItem = _pathItems.get(path) || Constants.makeUnknownPathItem()
+  const pathItem = _pathItems.get(path, Constants.unknownPathItem)
   let menuItems = []
 
   !isMobile &&
@@ -101,21 +101,21 @@ const getRootMenuItems = (stateProps, dispatchProps, path: Types.Path) => {
 const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actionIconFontSize}) => {
   const {_pathItems, _username} = stateProps
   const {_loadMimeType} = dispatchProps
-  const pathItem = _pathItems.get(path) || Constants.makeUnknownPathItem()
-  const [childrenFolders, childrenFiles] =
+  const pathItem = _pathItems.get(path, Constants.unknownPathItem)
+  const {childrenFolders, childrenFiles} =
     !pathItem || pathItem.type !== 'folder'
-      ? [0, 0]
+      ? {childrenFolders: 0, childrenFiles: 0}
       : pathItem.children.reduce(
-          ([currentFolders, currentFiles], p) => {
+          ({childrenFolders, childrenFiles}, p) => {
             const pi = _pathItems.get(Types.pathConcat(path, p))
             if (!pi) {
-              return [currentFolders, currentFiles]
+              return {childrenFolders, childrenFiles}
             }
             return pi.type === 'folder'
-              ? [currentFolders + 1, currentFiles]
-              : [currentFolders, currentFiles + 1]
+              ? {childrenFolders: childrenFolders + 1, childrenFiles}
+              : {childrenFolders, childrenFiles: childrenFiles + 1}
           },
-          [0, 0]
+          {childrenFolders: 0, childrenFiles: 0}
         )
   const pathElements = Types.getPathElements(path)
   const itemStyles = Constants.getItemStyles(pathElements, pathItem.type, _username)

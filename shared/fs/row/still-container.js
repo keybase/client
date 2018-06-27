@@ -7,7 +7,7 @@ import Still from './still'
 import * as StateMappers from '../utils/state-mappers'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
+  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _username = state.config.username || undefined
   const _transfers = state.fs.transfers
   return {

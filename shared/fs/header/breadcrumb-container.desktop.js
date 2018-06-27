@@ -11,7 +11,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  _username: state.config.username || undefined,
+  _username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -19,21 +19,23 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
-  const elems = Types.getPathElements(path)
-
-  let acc = Types.stringToPath('/')
-  const items = elems.map((elem, i) => {
-    acc = Types.pathConcat(acc, elem)
-    const itemPath = acc
-    return {
-      isTeamTlf: i === 2 && elems[i - 1] === 'team',
-      isLastItem: i === elems.length - 1,
-      name: elem,
-      path: itemPath,
-      iconSpec: Constants.getItemStyles(elems.slice(0, i + 1), 'folder', _username).iconSpec,
-      onClick: () => _navigateTo(itemPath),
-    }
-  })
+  const {items} = Types.getPathElements(path).reduce(
+    ({previousPath, items}, elem, i, elems) => {
+      const itemPath = Types.pathConcat(previousPath, elem)
+      return {
+        previousPath: itemPath,
+        items: items.concat({
+          isTeamTlf: i === 2 && elems[i - 1] === 'team',
+          isLastItem: i === elems.length - 1,
+          name: elem,
+          path: itemPath,
+          iconSpec: Constants.getItemStyles(elems.slice(0, i + 1), 'folder', _username).iconSpec,
+          onClick: () => _navigateTo(itemPath),
+        }),
+      }
+    },
+    {previousPath: Types.stringToPath('/'), items: []}
+  )
 
   return items.length > 3
     ? {
