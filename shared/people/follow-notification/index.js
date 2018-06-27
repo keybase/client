@@ -21,6 +21,9 @@ const connectedUsernamesProps = {
   colorFollowing: true,
   type: 'BodySemibold',
   underline: true,
+  joinerStyle: {
+    fontWeight: 'normal',
+  },
 }
 
 export type NewFollow = Types.FollowedNotification

@@ -21,6 +21,7 @@ function usernameText({
   users,
   style,
   commaColor,
+  joinerStyle,
   inline,
   redColor,
   backgroundMode,
@@ -32,11 +33,11 @@ function usernameText({
   inlineGrammar = false,
   showAnd = false,
 }: Props) {
-  const andStyle = collapseStyles([style, styles.joinerStyle, {color: commaColor}])
-  const commaStyle = collapseStyles([style, styles.joinerStyle, {color: commaColor}])
+  const andStyle = collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
+  const commaStyle = collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
   return users.map((u, i) => {
     let userStyle = {
-      ...(!isMobile ? {textDecoration: 'inherit', fontWeight: 'inherit'} : null),
+      ...(!isMobile ? {textDecoration: 'inherit'} : null),
       ...(colorFollowing && !u.you ? {color: u.following ? globalColors.green2 : globalColors.blue} : null),
       ...(colorBroken && u.broken && !u.you ? {color: redColor || globalColors.red} : null),
       ...(inline && !isMobile ? {display: 'inline'} : null),
