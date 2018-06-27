@@ -9,20 +9,29 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  assets: stateProps.assets
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const assets = stateProps.assets
     .map(asset => ({
-      availableToSend: asset.balanceAvailableToSend,
-      balance: asset.balanceTotal,
-      code: asset.assetCode,
-      equivAvailableToSend: '', // XXX: Need this from core.
-      equivBalance: `${asset.worth} ${asset.worthCurrency}`,
-      issuer: asset.issuer,
-      issuerAddress: '', // XXX: Need this from core.
-      name: asset.name,
-      reserves: [], // XXX: Need this from core.
+      asset: {
+        availableToSend: asset.balanceAvailableToSend,
+        balance: asset.balanceTotal,
+        code: asset.assetCode,
+        equivAvailableToSend: '', // XXX: Need this from core.
+        equivBalance: `${asset.worth} ${asset.worthCurrency}`,
+        issuer: asset.issuer,
+        issuerAddress: '', // XXX: Need this from core.
+        name: asset.name,
+        reserves: [], // XXX: Need this from core.
+      },
+      type: 'asset',
     }))
-    .toArray(),
-})
+    .toArray()
+  if (assets.length > 0) {
+    assets.unshift({type: 'header'})
+  }
+  return {
+    assets,
+  }
+}
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Assets)

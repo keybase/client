@@ -120,6 +120,10 @@ const IssuerAddress = (props: IssuerAddressProps) => (
 )
 
 const styles = styleSheetCreate({
+  assetHeader: {
+    backgroundColor: globalColors.blue5,
+    padding: globalMargins.xtiny,
+  },
   balanceContainer: {
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
@@ -171,16 +175,14 @@ export class AssetWrapped extends React.Component<Props, AssetWrappedState> {
   )
 }
 
+type Row = {type: 'asset', asset: Props} | {type: 'header'}
+
 type AssetsProps = {
-  assets: Array<Props>,
+  assets: Array<Row>,
 }
 
 const AssetHeader = () => (
-  <Box2
-    direction="vertical"
-    fullWidth={true}
-    style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
-  >
+  <Box2 direction="vertical" fullWidth={true} style={styles.assetHeader}>
     <Text type="BodySmallSemibold">Your assets</Text>
   </Box2>
 )
@@ -201,16 +203,5 @@ export class Assets extends React.Component<AssetsProps> {
     }
   }
 
-  render = () => {
-    const rows = this.props.assets.map(asset => ({
-      asset,
-      type: 'asset',
-    }))
-    if (rows.length > 0) {
-      rows.unshift({type: 'header'})
-    }
-    return <List items={rows} renderItem={this._renderRow} keyProperty="key" />
-  }
+  render = () => <List items={this.props.assets} renderItem={this._renderRow} keyProperty="key" />
 }
-
-type Row = {type: 'asset', asset: Props} | {type: 'header'}
