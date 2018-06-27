@@ -3,7 +3,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
-import {isWindows} from '../../constants/platform'
+import {isLinux, isWindows} from '../../constants/platform'
 import logger from '../../logger'
 import {
   ExitCodeFuseKextError,
