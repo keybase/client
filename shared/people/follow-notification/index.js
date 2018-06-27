@@ -87,7 +87,7 @@ export const MultiFollowNotification = (props: Props) => {
       }
       when={props.notificationTime}
     >
-      <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
+      <Text type="Body" style={platformStyles({common: {marginTop: 2, marginBottom: globalMargins.xtiny}, isElectron: {display: 'inline'}})}>
         <ConnectedUsernames
           containerStyle={platformStyles({isElectron: {whiteSpace: 'wrap'}})}
           inlineGrammar={true}

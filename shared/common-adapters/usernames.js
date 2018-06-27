@@ -210,10 +210,10 @@ const styles = styleSheetCreate({
   }),
   inlineStyle: platformStyles({
     isElectron: {
-      display: 'inline-flex',
-      flexWrap: 'wrap',
+      display: 'inline',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
+      overflowWrap: 'break-word',
       whiteSpace: 'nowrap',
     },
   }),
