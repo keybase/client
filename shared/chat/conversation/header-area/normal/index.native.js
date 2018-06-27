@@ -11,7 +11,7 @@ import {
   ConnectedUsernames,
 } from '../../../../common-adapters'
 import {collapseStyles, globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../styles'
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 // width of containers for back button and info button.
 // must be increased if something else will go in those,

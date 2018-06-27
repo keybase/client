@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
-import AutosizeInput from './autosize-input'
-import {action, storiesOf} from '../stories/storybook'
+import AutosizeInput from './autosize-input.desktop'
+import {action, storiesOf} from '../../stories/storybook'
 
 const props = {
   onChange: action('onchnage'),
 }
 const load = () => {
-  storiesOf('Common/AutosizeInput', module)
+  storiesOf('Search/AutosizeInput', module)
     .add('Normal', () => <AutosizeInput {...props} value={'here is some long text'} placeholder={''} />)
     .add('Placeholder', () => <AutosizeInput {...props} value={''} placeholder={'Type here...'} />)
     .add('Styled', () => (
