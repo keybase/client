@@ -8,7 +8,7 @@ import {isMobile} from '../../../constants/platform'
 import {fsTab} from '../../../constants/tabs'
 import {navigateTo} from '../../../actions/route-tree'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {createGetProfile} from '../../../actions/tracker-gen.js'
+import {createGetProfile} from '../../../actions/tracker-gen'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner from '.'
 

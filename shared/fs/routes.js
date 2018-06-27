@@ -8,7 +8,7 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import RowPopupMenu from './popups/row-action-popup-container'
 import SecurityPrefs from './common/security-prefs-container'
-import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
+import SortBarPopupMenu from './sortbar/sort-setting-popup'
 import TransferPopup from './popups/transfer-container'
 
 const _commonChildren = {

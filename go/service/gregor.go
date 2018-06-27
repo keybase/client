@@ -211,6 +211,7 @@ type gregorHandler struct {
 	cli               rpc.GenericClient
 	pingCli           rpc.GenericClient
 	sessionID         gregor1.SessionID
+	firstConnectMu    sync.Mutex
 	firstConnect      bool
 	forceSessionCheck bool
 
@@ -316,6 +317,18 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 
 	g.chatLog.Debug(context.Background(), "GetClient: not shutdown, making new remote client")
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
+}
+
+func (g *gregorHandler) isFirstConnect() bool {
+	g.firstConnectMu.Lock()
+	defer g.firstConnectMu.Unlock()
+	return g.firstConnect
+}
+
+func (g *gregorHandler) setFirstConnect(val bool) {
+	g.firstConnectMu.Lock()
+	defer g.firstConnectMu.Unlock()
+	g.firstConnect = val
 }
 
 func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
@@ -631,7 +644,7 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
-	if !g.firstConnect {
+	if !g.isFirstConnect() {
 		pt := gcli.StateMachineLatestCTime(ctx)
 		if pt != nil {
 			t = *pt
@@ -747,7 +760,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		Session:   token,
 		InboxVers: iboxVers,
 		Ctime:     latestCtime,
-		Fresh:     g.firstConnect,
+		Fresh:     g.isFirstConnect(),
 		ProtVers:  chat1.SyncAllProtVers_V1,
 		HostName:  g.GetURI().Host,
 	})
@@ -800,7 +813,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}(g.makeReconnectOobm())
 
 	// No longer first connect if we are now connected
-	g.firstConnect = false
+	g.setFirstConnect(false)
 	// On successful login we can reset this guy to not force a check
 	g.forceSessionCheck = false
 	g.chatLog.Debug(ctx, "OnConnect complete")
@@ -1239,6 +1252,7 @@ func (g *gregorHandler) Shutdown() {
 
 func (g *gregorHandler) Reset() error {
 	g.Shutdown()
+	g.setFirstConnect(true)
 	return g.resetGregorClient(context.TODO())
 }
 
