@@ -23,7 +23,6 @@ class PaperKey extends Component<Props> {
           onEnterKeyDown={() => this.props.onSubmit()}
           onChangeText={paperKey => this.props.onChangePaperKey(paperKey)}
           type="passwordVisible"
-          uncontrolled={true}
           value={this.props.paperKey ? this.props.paperKey : null}
         />
         <Button

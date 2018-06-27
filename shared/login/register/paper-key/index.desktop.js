@@ -22,7 +22,6 @@ const PaperKey = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingF
         hintText="opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas"
         onEnterKeyDown={() => onSubmit()}
         onChangeText={text => onChangePaperKey(text)}
-        uncontrolled={true}
         value={paperKey}
       />
       <Button
