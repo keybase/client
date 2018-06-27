@@ -61,7 +61,7 @@ export const Input = (props: any) => (
 export const styles = styleSheetCreate({
   avatar: {marginBottom: isMobile ? globalMargins.xtiny : 0},
   buttonBar: {maxWidth: 460, padding: 0, paddingTop: globalMargins.medium},
-  header: {position: 'absolute'},
+  header: {left: 0, position: 'absolute', right: 0, top: 0},
   input: {maxWidth: 460, width: '100%'},
   inputContainer: {alignItems: 'center', alignSelf: 'stretch'},
   inputErrorStyle: {minHeight: 0},

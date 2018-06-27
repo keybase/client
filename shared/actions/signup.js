@@ -28,7 +28,7 @@ const checkInviteCodeSuccess = (_, action: SignupGen.CheckInviteCodePayload) =>
 const checkInviteCodeError = (_, action: SignupGen.CheckInviteCodePayload) =>
   Saga.put(
     SignupGen.createCheckInviteCodeDoneError({
-      errorText: "Sorry, that's not a valid invite code.",
+      error: "Sorry, that's not a valid invite code.",
       inviteCode: action.payload.inviteCode,
     })
   )
@@ -252,7 +252,7 @@ const signupSuccess = (result: RPCTypes.SignupRes) => {
   if (result) {
     logger.info('Successful signup', result.passphraseOk, result.postOk, result.writeOk)
     // done clear out any signup data
-    return Saga.put(SignupGen.createResetSignup())
+    return Saga.put(SignupGen.createRestartSignup())
   } else {
     return Saga.sequentially([
       Saga.put(SignupGen.createSignupError({signupError: new HiddenString('Cant signup, try again?')})),

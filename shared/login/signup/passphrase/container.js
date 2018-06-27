@@ -8,8 +8,8 @@ import type {RouteProps} from '../../../route-tree/render-route'
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
-  error: state.signup.passphraseError ? state.signup.passphraseError.stringValue() : '',
-  passphrase: state.signup.passphrase ? state.signup.passphrase.stringValue() : '',
+  error: state.signup.passphraseError.stringValue(),
+  passphrase: state.signup.passphrase.stringValue(),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({

@@ -12,9 +12,9 @@ export type _State = {
   inviteCode: string,
   inviteCodeError: string,
   nameError: string,
-  passphrase: ?HiddenString,
-  passphraseError: ?HiddenString,
-  signupError: ?HiddenString,
+  passphrase: HiddenString,
+  passphraseError: HiddenString,
+  signupError: HiddenString,
   username: string,
   usernameError: string,
 }

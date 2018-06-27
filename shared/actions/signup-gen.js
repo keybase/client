@@ -17,7 +17,6 @@ export const checkUsernameEmailDone = 'signup:checkUsernameEmailDone'
 export const requestAutoInvite = 'signup:requestAutoInvite'
 export const requestInvite = 'signup:requestInvite'
 export const requestInviteDone = 'signup:requestInviteDone'
-export const resetSignup = 'signup:resetSignup'
 export const restartSignup = 'signup:restartSignup'
 export const signup = 'signup:signup'
 export const signupError = 'signup:signupError'
@@ -28,7 +27,7 @@ export const submitDevicenameDone = 'signup:submitDevicenameDone'
 type _CheckInviteCodeDonePayload = $ReadOnly<{|inviteCode: string|}>
 type _CheckInviteCodeDonePayloadError = $ReadOnly<{|
   inviteCode: string,
-  errorText: string,
+  error: string,
 |}>
 type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
 type _CheckPassphraseDonePayload = $ReadOnly<{|passphrase: HiddenString|}>
@@ -69,7 +68,6 @@ type _RequestInvitePayload = $ReadOnly<{|
   email: string,
   name: string,
 |}>
-type _ResetSignupPayload = void
 type _RestartSignupPayload = void
 type _SignupErrorPayload = $ReadOnly<{|signupError: HiddenString|}>
 type _SignupPayload = void
@@ -100,7 +98,6 @@ export const createRequestAutoInvite = (payload: _RequestAutoInvitePayload) => (
 export const createRequestInvite = (payload: _RequestInvitePayload) => ({error: false, payload, type: requestInvite})
 export const createRequestInviteDone = (payload: _RequestInviteDonePayload) => ({error: false, payload, type: requestInviteDone})
 export const createRequestInviteDoneError = (payload: _RequestInviteDonePayloadError) => ({error: true, payload, type: requestInviteDone})
-export const createResetSignup = (payload: _ResetSignupPayload) => ({error: false, payload, type: resetSignup})
 export const createRestartSignup = (payload: _RestartSignupPayload) => ({error: false, payload, type: restartSignup})
 export const createSignup = (payload: _SignupPayload) => ({error: false, payload, type: signup})
 export const createSignupError = (payload: _SignupErrorPayload) => ({error: false, payload, type: signupError})
@@ -122,7 +119,6 @@ export type RequestAutoInvitePayload = $Call<typeof createRequestAutoInvite, _Re
 export type RequestInviteDonePayload = $Call<typeof createRequestInviteDone, _RequestInviteDonePayload>
 export type RequestInviteDonePayloadError = $Call<typeof createRequestInviteDoneError, _RequestInviteDonePayloadError>
 export type RequestInvitePayload = $Call<typeof createRequestInvite, _RequestInvitePayload>
-export type ResetSignupPayload = $Call<typeof createResetSignup, _ResetSignupPayload>
 export type RestartSignupPayload = $Call<typeof createRestartSignup, _RestartSignupPayload>
 export type SignupErrorPayload = $Call<typeof createSignupError, _SignupErrorPayload>
 export type SignupPayload = $Call<typeof createSignup, _SignupPayload>
@@ -146,7 +142,6 @@ export type Actions =
   | RequestInviteDonePayload
   | RequestInviteDonePayloadError
   | RequestInvitePayload
-  | ResetSignupPayload
   | RestartSignupPayload
   | SignupErrorPayload
   | SignupPayload

@@ -7,7 +7,7 @@
       "inviteCode": "string",
       "canError": {
         "inviteCode": "string",
-        "errorText": "string"
+        "error": "string"
       }
     },
     "checkPassphrase": {
@@ -52,7 +52,6 @@
       }
     },
     "signup": {},
-    "resetSignup": {},
     "restartSignup": {},
     "signupError": {"signupError": "HiddenString"},
     "submitDevicename": {
