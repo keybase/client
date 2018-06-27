@@ -10,8 +10,7 @@ import {
   iconCastPlatformStyles,
 } from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, collapseStyles, styleSheetCreate} from '../../../../styles'
-
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const ShhIcon = () => (
   <Box style={{position: 'relative', alignSelf: 'flex-start'}}>

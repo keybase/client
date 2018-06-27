@@ -4,8 +4,7 @@ import Wrapper from './shared'
 import {NativeTouchableHighlight, NativeKeyboard} from '../../../../common-adapters/mobile.native'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {globalColors} from '../../../../styles'
-
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const dismissKeyboard = () => {
   NativeKeyboard.dismiss()
