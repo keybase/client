@@ -42,6 +42,7 @@ export const commonDeviceType = {
 export const commonFullNamePackageVersion = {
   v0: 0,
   v1: 1,
+  v2: 2,
 }
 
 export const commonLogLevel = {
@@ -254,6 +255,29 @@ export const constantsStatusCode = {
   scstellarbadpuk: 3104,
   scstellarmissingaccount: 3105,
   scstellarbadprev: 3106,
+  scstellarwrongprimary: 3107,
+  scstellarunsupportedcurrency: 3108,
+  scnistwrongsize: 3201,
+  scnistbadmode: 3202,
+  scnisthashwrongsize: 3203,
+  scnistsigwrongsize: 3204,
+  scnistsigbadinput: 3205,
+  scnistsigbaduid: 3206,
+  scnistsigbaddeviceid: 3207,
+  scnistsigbadnonce: 3208,
+  scnistnosigorhash: 3209,
+  scnistexpired: 3210,
+  scnistsigrevoked: 3211,
+  scnistkeyrevoked: 3212,
+  scnistuserdeleted: 3213,
+  scnistnodevice: 3214,
+  scnistsigcannotVerify: 3215,
+  scnistreplay: 3216,
+  scnistsigbadlifetime: 3217,
+  scnistnotfound: 3218,
+  scnistbadclock: 3219,
+  scnistsigbadctime: 3220,
+  scbadsignupusernamedeleted: 3221,
 }
 
 export const ctlDbType = {
@@ -639,6 +663,12 @@ export const teamsTeamInviteCategory = {
   seitan: 5,
 }
 
+export const teamsTeamMemberStatus = {
+  active: 0,
+  reset: 1,
+  deleted: 2,
+}
+
 export const teamsTeamRole = {
   none: 0,
   reader: 1,
@@ -819,8 +849,8 @@ export type AccountHasServerKeysRpcParam = void
 export type AccountPassphraseChangeRpcParam = $ReadOnly<{oldPassphrase: String, passphrase: String, force: Boolean}>
 export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg}>
 export type AccountResetAccountRpcParam = $ReadOnly<{passphrase: String}>
-export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
-export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean}>
+export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, allowProfilePromote: Boolean, isMemberShowcased: Boolean, status: TeamMemberStatus}>
+export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, status: TeamMemberStatus}>
 export type AnnotatedTeamList = $ReadOnly<{teams?: ?Array<AnnotatedMemberInfo>, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}>
 export type ApiserverDeleteRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
 export type ApiserverGetRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>
@@ -1023,6 +1053,9 @@ export type FSErrorType =
   | 13 // DISK_LIMIT_REACHED_13
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
+export type FSFolderEditHistory = $ReadOnly<{folder: Folder, serverTime: Time, history?: ?Array<FSFolderWriterEditHistory>}>
+export type FSFolderWriterEdit = $ReadOnly<{filename: String, notificationType: FSNotificationType, serverTime: Time}>
+export type FSFolderWriterEditHistory = $ReadOnly<{writerName: String, edits?: ?Array<FSFolderWriterEdit>}>
 export type FSNotification = $ReadOnly<{filename: String, status: String, statusCode: FSStatusCode, notificationType: FSNotificationType, errorType: FSErrorType, params: {[key: string]: String}, writerUid: UID, localTime: Time, folderType: FolderType}>
 export type FSNotificationType =
   | 0 // ENCRYPTING_0
@@ -1077,10 +1110,11 @@ export type ForkType =
 
 export type FsListRpcParam = $ReadOnly<{path: String}>
 export type FullName = String
-export type FullNamePackage = $ReadOnly<{version: FullNamePackageVersion, fullName: FullName, eldestSeqno: Seqno, cachedAt: Time}>
+export type FullNamePackage = $ReadOnly<{version: FullNamePackageVersion, fullName: FullName, eldestSeqno: Seqno, status: StatusCode, cachedAt: Time}>
 export type FullNamePackageVersion =
   | 0 // V0_0
   | 1 // V1_1
+  | 2 // V2_2
 
 export type FuseMountInfo = $ReadOnly<{path: String, fstype: String, output: String}>
 export type FuseStatus = $ReadOnly<{version: String, bundleVersion: String, kextID: String, path: String, kextStarted: Boolean, installStatus: InstallStatus, installAction: InstallAction, mountInfos?: ?Array<FuseMountInfo>, status: Status}>
@@ -1259,7 +1293,7 @@ export type KBFSRootHash = Bytes
 export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
 export type KID = String
 export type KbfsCreateTLFRpcParam = $ReadOnly<{teamID: TeamID, tlfID: TLFID}>
-export type KbfsFSEditListRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>
+export type KbfsFSEditListRpcParam = $ReadOnly<{edits: FSFolderEditHistory, requestID: Int}>
 export type KbfsFSEventRpcParam = $ReadOnly<{event: FSNotification}>
 export type KbfsFSSyncEventRpcParam = $ReadOnly<{event: FSPathSyncStatus}>
 export type KbfsFSSyncStatusRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int}>
@@ -1381,13 +1415,13 @@ export type NaclDHKeyPublic = any
 export type NaclSigningKeyPrivate = any
 export type NaclSigningKeyPublic = any
 export type NextMerkleRootRes = $ReadOnly<{res?: ?MerkleRootV2}>
-export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean, chatkbfsedits: Boolean}>
+export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean, chatkbfsedits: Boolean, chatdev: Boolean}>
 export type NotifyAppExitRpcParam = void
 export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState}>
 export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels}>
 export type NotifyEphemeralNewTeamEkRpcParam = $ReadOnly<{id: TeamID, generation: EkGeneration}>
 export type NotifyFSFSActivityRpcParam = $ReadOnly<{notification: FSNotification}>
-export type NotifyFSFSEditListResponseRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>
+export type NotifyFSFSEditListResponseRpcParam = $ReadOnly<{edits: FSFolderEditHistory, requestID: Int}>
 export type NotifyFSFSSyncActivityRpcParam = $ReadOnly<{status: FSPathSyncStatus}>
 export type NotifyFSFSSyncStatusResponseRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int}>
 export type NotifyFSRequestFSEditListRequestRpcParam = $ReadOnly<{req: FSEditListRequest}>
@@ -1400,6 +1434,7 @@ export type NotifyServiceShutdownRpcParam = $ReadOnly<{code: Int}>
 export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String}>
 export type NotifySessionLoggedInRpcParam = $ReadOnly<{username: String}>
 export type NotifySessionLoggedOutRpcParam = void
+export type NotifyTeamAvatarUpdatedRpcParam = $ReadOnly<{name: String, formats?: ?Array<AvatarFormat>}>
 export type NotifyTeamTeamAbandonedRpcParam = $ReadOnly<{teamID: TeamID}>
 export type NotifyTeamTeamChangedByIDRpcParam = $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>
 export type NotifyTeamTeamChangedByNameRpcParam = $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>
@@ -1931,6 +1966,29 @@ export type StatusCode =
   | 3104 // SCStellarBadPuk_3104
   | 3105 // SCStellarMissingAccount_3105
   | 3106 // SCStellarBadPrev_3106
+  | 3107 // SCStellarWrongPrimary_3107
+  | 3108 // SCStellarUnsupportedCurrency_3108
+  | 3201 // SCNISTWrongSize_3201
+  | 3202 // SCNISTBadMode_3202
+  | 3203 // SCNISTHashWrongSize_3203
+  | 3204 // SCNISTSigWrongSize_3204
+  | 3205 // SCNISTSigBadInput_3205
+  | 3206 // SCNISTSigBadUID_3206
+  | 3207 // SCNISTSigBadDeviceID_3207
+  | 3208 // SCNISTSigBadNonce_3208
+  | 3209 // SCNISTNoSigOrHash_3209
+  | 3210 // SCNISTExpired_3210
+  | 3211 // SCNISTSigRevoked_3211
+  | 3212 // SCNISTKeyRevoked_3212
+  | 3213 // SCNISTUserDeleted_3213
+  | 3214 // SCNISTNoDevice_3214
+  | 3215 // SCNISTSigCannot_verify_3215
+  | 3216 // SCNISTReplay_3216
+  | 3217 // SCNISTSigBadLifetime_3217
+  | 3218 // SCNISTNotFound_3218
+  | 3219 // SCNISTBadClock_3219
+  | 3220 // SCNISTSigBadCtime_3220
+  | 3221 // SCBadSignupUsernameDeleted_3221
 
 export type Stream = $ReadOnly<{fd: Int}>
 export type StreamUiCloseRpcParam = $ReadOnly<{s: Stream}>
@@ -2016,9 +2074,14 @@ export type TeamKBFSKeyRefresher = $ReadOnly<{generation: Int, appType: TeamAppl
 export type TeamLegacyTLFUpgradeChainInfo = $ReadOnly<{keysetHash: TeamEncryptedKBFSKeysetHash, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
 export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
 export type TeamMember = $ReadOnly<{uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno}>
-export type TeamMemberDetails = $ReadOnly<{uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean}>
+export type TeamMemberDetails = $ReadOnly<{uv: UserVersion, username: String, fullName: FullName, needsPUK: Boolean, status: TeamMemberStatus}>
 export type TeamMemberOutFromReset = $ReadOnly<{teamName: String, resetUser: TeamResetUser}>
 export type TeamMemberOutReset = $ReadOnly<{teamname: String, username: String, uid: UID, id: Gregor1.MsgID}>
+export type TeamMemberStatus =
+  | 0 // ACTIVE_0
+  | 1 // RESET_1
+  | 2 // DELETED_2
+
 export type TeamMembers = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>}>
 export type TeamMembersDetails = $ReadOnly<{owners?: ?Array<TeamMemberDetails>, admins?: ?Array<TeamMemberDetails>, writers?: ?Array<TeamMemberDetails>, readers?: ?Array<TeamMemberDetails>}>
 export type TeamName = $ReadOnly<{parts?: ?Array<TeamNamePart>}>
@@ -2461,7 +2524,7 @@ export type IncomingCallMapType = {|
   'keybase.1.NotifyFavorites.favoritesChanged'?: (params: $ReadOnly<{uid: UID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyFS.FSActivity'?: (params: $ReadOnly<{notification: FSNotification}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyFS.FSSyncActivity'?: (params: $ReadOnly<{status: FSPathSyncStatus}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
-  'keybase.1.NotifyFS.FSEditListResponse'?: (params: $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
+  'keybase.1.NotifyFS.FSEditListResponse'?: (params: $ReadOnly<{edits: FSFolderEditHistory, requestID: Int}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $ReadOnly<{status: FSSyncStatus, requestID: Int}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $ReadOnly<{uid: UID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $ReadOnly<{uid: UID, encKID: KID, sigKID: KID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
@@ -2475,6 +2538,7 @@ export type IncomingCallMapType = {|
   'keybase.1.NotifyTeam.teamDeleted'?: (params: $ReadOnly<{teamID: TeamID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyTeam.teamAbandoned'?: (params: $ReadOnly<{teamID: TeamID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyTeam.teamExit'?: (params: $ReadOnly<{teamID: TeamID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
+  'keybase.1.NotifyTeam.avatarUpdated'?: (params: $ReadOnly<{name: String, formats?: ?Array<AvatarFormat>}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyTracking.trackingChanged'?: (params: $ReadOnly<{uid: UID, username: String, isTracking: Boolean}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.NotifyUsers.userChanged'?: (params: $ReadOnly<{uid: UID}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.pgpUi.outputSignatureSuccess'?: (params: $ReadOnly<{sessionID: Int, fingerprint: String, username: String, signedAt: Time}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
@@ -2515,4 +2579,4 @@ export type IncomingCallMapType = {|
   'keybase.1.ui.promptYesNo'?: (params: $ReadOnly<{sessionID: Int, text: Text, promptDefault: PromptDefault}>, response: {error: RPCErrorHandler, result: (result: UiPromptYesNoResult) => void}, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
 |}
 
-// Not enabled calls. To enable add to enabled-calls.json: 'keybase.1.account.passphrasePrompt' 'keybase.1.account.resetAccount' 'keybase.1.appState.updateAppState' 'keybase.1.badger.getBadgeState' 'keybase.1.block.getSessionChallenge' 'keybase.1.block.authenticateSession' 'keybase.1.block.putBlock' 'keybase.1.block.putBlockAgain' 'keybase.1.block.getBlock' 'keybase.1.block.addReference' 'keybase.1.block.delReference' 'keybase.1.block.archiveReference' 'keybase.1.block.delReferenceWithCount' 'keybase.1.block.archiveReferenceWithCount' 'keybase.1.block.getUserQuotaInfo' 'keybase.1.block.getTeamQuotaInfo' 'keybase.1.block.blockPing' 'keybase.1.BTC.registerBTC' 'keybase.1.config.getCurrentStatus' 'keybase.1.config.setUserConfig' 'keybase.1.config.setPath' 'keybase.1.config.setValue' 'keybase.1.config.clearValue' 'keybase.1.config.getValue' 'keybase.1.config.checkAPIServerOutOfDateWarning' 'keybase.1.crypto.signED25519' 'keybase.1.crypto.signED25519ForKBFS' 'keybase.1.crypto.signToString' 'keybase.1.crypto.unboxBytes32' 'keybase.1.crypto.unboxBytes32Any' 'keybase.1.ctl.stop' 'keybase.1.ctl.logRotate' 'keybase.1.ctl.reload' 'keybase.1.ctl.appExit' 'keybase.1.ctl.dbDelete' 'keybase.1.ctl.dbPut' 'keybase.1.ctl.dbGet' 'keybase.1.debugging.firstStep' 'keybase.1.debugging.secondStep' 'keybase.1.debugging.increment' 'keybase.1.debugging.script' 'keybase.1.delegateUiCtl.registerUpdateUI' 'keybase.1.delegateUiCtl.registerGregorFirehose' 'keybase.1.device.deviceList' 'keybase.1.device.checkDeviceNameForUser' 'keybase.1.favorite.getFavorites' 'keybase.1.fs.List' 'keybase.1.git.putGitMetadata' 'keybase.1.git.deleteGitMetadata' 'keybase.1.git.gcPersonalRepo' 'keybase.1.git.gcTeamRepo' 'keybase.1.git.getTeamRepoSettings' 'keybase.1.gpgUi.wantToAddGPGKey' 'keybase.1.gpgUi.confirmDuplicateKeyChosen' 'keybase.1.gpgUi.confirmImportSecretToExistingKey' 'keybase.1.gpgUi.selectKeyAndPushOption' 'keybase.1.gpgUi.selectKey' 'keybase.1.gpgUi.sign' 'keybase.1.gpgUi.getTTY' 'keybase.1.gregorUI.pushState' 'keybase.1.gregorUI.pushOutOfBandMessages' 'keybase.1.home.homeActionTaken' 'keybase.1.homeUI.homeUIRefresh' 'keybase.1.identify.Resolve3' 'keybase.1.identify.identifyLite' 'keybase.1.identify.resolveIdentifyImplicitTeam' 'keybase.1.identify.resolveImplicitTeam' 'keybase.1.identifyUi.displayTLFCreateWithInvite' 'keybase.1.identifyUi.delegateIdentifyUI' 'keybase.1.identifyUi.start' 'keybase.1.identifyUi.displayKey' 'keybase.1.identifyUi.reportLastTrack' 'keybase.1.identifyUi.launchNetworkChecks' 'keybase.1.identifyUi.displayTrackStatement' 'keybase.1.identifyUi.finishWebProofCheck' 'keybase.1.identifyUi.finishSocialProofCheck' 'keybase.1.identifyUi.displayCryptocurrency' 'keybase.1.identifyUi.reportTrackToken' 'keybase.1.identifyUi.displayUserCard' 'keybase.1.identifyUi.confirm' 'keybase.1.identifyUi.cancel' 'keybase.1.identifyUi.finish' 'keybase.1.identifyUi.dismiss' 'keybase.1.implicitTeamMigration.startMigration' 'keybase.1.implicitTeamMigration.finalizeMigration' 'keybase.1.install.installCommandLinePrivileged' 'keybase.1.kbfs.FSEvent' 'keybase.1.kbfs.FSEditList' 'keybase.1.kbfs.FSSyncStatus' 'keybase.1.kbfs.FSSyncEvent' 'keybase.1.kbfs.createTLF' 'keybase.1.kbfs.getKBFSTeamSettings' 'keybase.1.KBFSGit.createRepo' 'keybase.1.KBFSGit.deleteRepo' 'keybase.1.KBFSGit.gc' 'keybase.1.kbfsMount.GetAllAvailableMountDirs' 'keybase.1.kbfsMount.SetCurrentMountDir' 'keybase.1.Kex2Provisionee.hello' 'keybase.1.Kex2Provisionee.didCounterSign' 'keybase.1.Kex2Provisionee2.hello2' 'keybase.1.Kex2Provisionee2.didCounterSign2' 'keybase.1.Kex2Provisioner.kexStart' 'keybase.1.log.registerLogger' 'keybase.1.logUi.log' 'keybase.1.login.loginProvisionedDevice' 'keybase.1.login.loginWithPaperKey' 'keybase.1.login.clearStoredSecret' 'keybase.1.login.recoverAccountFromEmailAddress' 'keybase.1.login.unlock' 'keybase.1.login.unlockWithPassphrase' 'keybase.1.login.loginOneshot' 'keybase.1.loginUi.getEmailOrUsername' 'keybase.1.loginUi.promptRevokePaperKeys' 'keybase.1.loginUi.displayPaperKeyPhrase' 'keybase.1.loginUi.displayPrimaryPaperKey' 'keybase.1.logsend.prepareLogsend' 'keybase.1.merkle.getCurrentMerkleRoot' 'keybase.1.merkle.verifyMerkleRootAndKBFS' 'keybase.1.metadata.getChallenge' 'keybase.1.metadata.authenticate' 'keybase.1.metadata.putMetadata' 'keybase.1.metadata.getMetadata' 'keybase.1.metadata.registerForUpdates' 'keybase.1.metadata.pruneBranch' 'keybase.1.metadata.putKeys' 'keybase.1.metadata.getKey' 'keybase.1.metadata.deleteKey' 'keybase.1.metadata.truncateLock' 'keybase.1.metadata.truncateUnlock' 'keybase.1.metadata.getFolderHandle' 'keybase.1.metadata.getFoldersForRekey' 'keybase.1.metadata.ping' 'keybase.1.metadata.ping2' 'keybase.1.metadata.getLatestFolderHandle' 'keybase.1.metadata.getKeyBundles' 'keybase.1.metadata.lock' 'keybase.1.metadata.releaseLock' 'keybase.1.metadata.startImplicitTeamMigration' 'keybase.1.metadata.getMerkleRoot' 'keybase.1.metadata.getMerkleRootLatest' 'keybase.1.metadata.getMerkleRootSince' 'keybase.1.metadata.getMerkleNode' 'keybase.1.metadata.findNextMD' 'keybase.1.metadata.setImplicitTeamModeForTest' 'keybase.1.metadata.forceMerkleBuildForTest' 'keybase.1.metadataUpdate.metadataUpdate' 'keybase.1.metadataUpdate.folderNeedsRekey' 'keybase.1.metadataUpdate.foldersNeedRekey' 'keybase.1.NotifyApp.exit' 'keybase.1.NotifyBadges.badgeState' 'keybase.1.NotifyEphemeral.newTeamEk' 'keybase.1.NotifyFavorites.favoritesChanged' 'keybase.1.NotifyFS.FSActivity' 'keybase.1.NotifyFS.FSSyncActivity' 'keybase.1.NotifyFS.FSEditListResponse' 'keybase.1.NotifyFS.FSSyncStatusResponse' 'keybase.1.NotifyFSRequest.FSEditListRequest' 'keybase.1.NotifyFSRequest.FSSyncStatusRequest' 'keybase.1.NotifyKeyfamily.keyfamilyChanged' 'keybase.1.NotifyPaperKey.paperKeyCached' 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile' 'keybase.1.NotifyService.shutdown' 'keybase.1.NotifySession.loggedOut' 'keybase.1.NotifySession.loggedIn' 'keybase.1.NotifySession.clientOutOfDate' 'keybase.1.NotifyTeam.teamChangedByID' 'keybase.1.NotifyTeam.teamChangedByName' 'keybase.1.NotifyTeam.teamDeleted' 'keybase.1.NotifyTeam.teamAbandoned' 'keybase.1.NotifyTeam.teamExit' 'keybase.1.NotifyTracking.trackingChanged' 'keybase.1.NotifyUsers.userChanged' 'keybase.1.paperprovision.paperProvision' 'keybase.1.pgp.pgpSign' 'keybase.1.pgp.pgpPull' 'keybase.1.pgp.pgpEncrypt' 'keybase.1.pgp.pgpDecrypt' 'keybase.1.pgp.pgpVerify' 'keybase.1.pgp.pgpImport' 'keybase.1.pgp.pgpExport' 'keybase.1.pgp.pgpExportByFingerprint' 'keybase.1.pgp.pgpExportByKID' 'keybase.1.pgp.pgpKeyGen' 'keybase.1.pgp.pgpDeletePrimary' 'keybase.1.pgp.pgpSelect' 'keybase.1.pgp.pgpUpdate' 'keybase.1.pgp.pgpPurge' 'keybase.1.pgpUi.outputSignatureSuccess' 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase' 'keybase.1.pgpUi.keyGenerated' 'keybase.1.pgpUi.shouldPushPrivate' 'keybase.1.pgpUi.finished' 'keybase.1.pprof.processorProfile' 'keybase.1.pprof.trace' 'keybase.1.proveUi.promptOverwrite' 'keybase.1.proveUi.promptUsername' 'keybase.1.proveUi.outputPrechecks' 'keybase.1.proveUi.preProofWarning' 'keybase.1.proveUi.outputInstructions' 'keybase.1.proveUi.okToCheck' 'keybase.1.proveUi.displayRecheckWarning' 'keybase.1.provisionUi.chooseProvisioningMethod' 'keybase.1.provisionUi.chooseGPGMethod' 'keybase.1.provisionUi.switchToGPGSignOK' 'keybase.1.provisionUi.chooseDevice' 'keybase.1.provisionUi.chooseDeviceType' 'keybase.1.provisionUi.DisplayAndPromptSecret' 'keybase.1.provisionUi.DisplaySecretExchanged' 'keybase.1.provisionUi.PromptNewDeviceName' 'keybase.1.provisionUi.ProvisioneeSuccess' 'keybase.1.provisionUi.ProvisionerSuccess' 'keybase.1.quota.verifySession' 'keybase.1.reachability.reachabilityChanged' 'keybase.1.rekey.getPendingRekeyStatus' 'keybase.1.rekey.debugShowRekeyStatus' 'keybase.1.rekey.rekeySync' 'keybase.1.rekeyUI.delegateRekeyUI' 'keybase.1.rekeyUI.refresh' 'keybase.1.rekeyUI.rekeySendEvent' 'keybase.1.saltpack.saltpackEncrypt' 'keybase.1.saltpack.saltpackDecrypt' 'keybase.1.saltpack.saltpackSign' 'keybase.1.saltpack.saltpackVerify' 'keybase.1.saltpackUi.saltpackPromptForDecrypt' 'keybase.1.saltpackUi.saltpackVerifySuccess' 'keybase.1.saltpackUi.saltpackVerifyBadSender' 'keybase.1.ScanProofs.scanProofs' 'keybase.1.secretUi.getPassphrase' 'keybase.1.SecretKeys.getSecretKeys' 'keybase.1.session.currentSession' 'keybase.1.session.sessionPing' 'keybase.1.sigs.sigList' 'keybase.1.sigs.sigListJSON' 'keybase.1.SimpleFS.simpleFSListRecursive' 'keybase.1.SimpleFS.simpleFSCopy' 'keybase.1.SimpleFS.simpleFSMove' 'keybase.1.SimpleFS.simpleFSRename' 'keybase.1.SimpleFS.simpleFSSetStat' 'keybase.1.SimpleFS.simpleFSRead' 'keybase.1.SimpleFS.simpleFSWrite' 'keybase.1.SimpleFS.simpleFSRemove' 'keybase.1.SimpleFS.simpleFSMakeOpid' 'keybase.1.SimpleFS.simpleFSClose' 'keybase.1.SimpleFS.simpleFSGetOps' 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo' 'keybase.1.streamUi.close' 'keybase.1.streamUi.read' 'keybase.1.streamUi.reset' 'keybase.1.streamUi.write' 'keybase.1.teams.teamCreateWithSettings' 'keybase.1.teams.teamImplicitAdmins' 'keybase.1.teams.teamListTeammates' 'keybase.1.teams.teamListVerified' 'keybase.1.teams.teamListSubteamsRecursive' 'keybase.1.teams.teamChangeMembership' 'keybase.1.teams.teamRename' 'keybase.1.teams.teamAcceptInvite' 'keybase.1.teams.teamRequestAccess' 'keybase.1.teams.teamDelete' 'keybase.1.teams.teamCreateSeitanToken' 'keybase.1.teams.lookupImplicitTeam' 'keybase.1.teams.lookupOrCreateImplicitTeam' 'keybase.1.teams.loadTeamPlusApplicationKeys' 'keybase.1.teams.getTeamRootID' 'keybase.1.teams.getTeamShowcase' 'keybase.1.teams.teamRotateKey' 'keybase.1.teams.teamDebug' 'keybase.1.teams.uploadTeamAvatar' 'keybase.1.teams.tryDecryptWithTeamKey' 'keybase.1.teams.findNextMerkleRootAfterTeamRemoval' 'keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey' 'keybase.1.teamsUi.confirmRootTeamDelete' 'keybase.1.teamsUi.confirmSubteamDelete' 'keybase.1.test.test' 'keybase.1.test.testCallback' 'keybase.1.test.panic' 'keybase.1.tlf.CryptKeys' 'keybase.1.tlf.publicCanonicalTLFNameAndID' 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName' 'keybase.1.tlfKeys.getTLFCryptKeys' 'keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID' 'keybase.1.track.track' 'keybase.1.track.fakeTrackingChanged' 'keybase.1.ui.promptYesNo' 'keybase.1.user.listTrackers' 'keybase.1.user.listTrackersByName' 'keybase.1.user.listTrackersSelf' 'keybase.1.user.loadUncheckedUserSummaries' 'keybase.1.user.loadUser' 'keybase.1.user.loadUserByName' 'keybase.1.user.loadUserPlusKeys' 'keybase.1.user.loadUserPlusKeysV2' 'keybase.1.user.loadPublicKeys' 'keybase.1.user.loadMyPublicKeys' 'keybase.1.user.listTracking' 'keybase.1.user.listTrackingJSON' 'keybase.1.user.search' 'keybase.1.user.loadAllPublicKeysUnverified' 'keybase.1.user.meUserVersion' 'keybase.1.user.getUPAK' 'keybase.1.user.uploadUserAvatar' 'keybase.1.user.findNextMerkleRootAfterRevoke' 'keybase.1.user.findNextMerkleRootAfterReset'
+// Not enabled calls. To enable add to enabled-calls.json: 'keybase.1.account.passphrasePrompt' 'keybase.1.account.resetAccount' 'keybase.1.appState.updateAppState' 'keybase.1.badger.getBadgeState' 'keybase.1.block.getSessionChallenge' 'keybase.1.block.authenticateSession' 'keybase.1.block.putBlock' 'keybase.1.block.putBlockAgain' 'keybase.1.block.getBlock' 'keybase.1.block.addReference' 'keybase.1.block.delReference' 'keybase.1.block.archiveReference' 'keybase.1.block.delReferenceWithCount' 'keybase.1.block.archiveReferenceWithCount' 'keybase.1.block.getUserQuotaInfo' 'keybase.1.block.getTeamQuotaInfo' 'keybase.1.block.blockPing' 'keybase.1.BTC.registerBTC' 'keybase.1.config.getCurrentStatus' 'keybase.1.config.setUserConfig' 'keybase.1.config.setPath' 'keybase.1.config.setValue' 'keybase.1.config.clearValue' 'keybase.1.config.getValue' 'keybase.1.config.checkAPIServerOutOfDateWarning' 'keybase.1.crypto.signED25519' 'keybase.1.crypto.signED25519ForKBFS' 'keybase.1.crypto.signToString' 'keybase.1.crypto.unboxBytes32' 'keybase.1.crypto.unboxBytes32Any' 'keybase.1.ctl.stop' 'keybase.1.ctl.logRotate' 'keybase.1.ctl.reload' 'keybase.1.ctl.appExit' 'keybase.1.ctl.dbDelete' 'keybase.1.ctl.dbPut' 'keybase.1.ctl.dbGet' 'keybase.1.debugging.firstStep' 'keybase.1.debugging.secondStep' 'keybase.1.debugging.increment' 'keybase.1.debugging.script' 'keybase.1.delegateUiCtl.registerUpdateUI' 'keybase.1.delegateUiCtl.registerGregorFirehose' 'keybase.1.device.deviceList' 'keybase.1.device.checkDeviceNameForUser' 'keybase.1.favorite.getFavorites' 'keybase.1.fs.List' 'keybase.1.git.putGitMetadata' 'keybase.1.git.deleteGitMetadata' 'keybase.1.git.gcPersonalRepo' 'keybase.1.git.gcTeamRepo' 'keybase.1.git.getTeamRepoSettings' 'keybase.1.gpgUi.wantToAddGPGKey' 'keybase.1.gpgUi.confirmDuplicateKeyChosen' 'keybase.1.gpgUi.confirmImportSecretToExistingKey' 'keybase.1.gpgUi.selectKeyAndPushOption' 'keybase.1.gpgUi.selectKey' 'keybase.1.gpgUi.sign' 'keybase.1.gpgUi.getTTY' 'keybase.1.gregorUI.pushState' 'keybase.1.gregorUI.pushOutOfBandMessages' 'keybase.1.home.homeActionTaken' 'keybase.1.homeUI.homeUIRefresh' 'keybase.1.identify.Resolve3' 'keybase.1.identify.identifyLite' 'keybase.1.identify.resolveIdentifyImplicitTeam' 'keybase.1.identify.resolveImplicitTeam' 'keybase.1.identifyUi.displayTLFCreateWithInvite' 'keybase.1.identifyUi.delegateIdentifyUI' 'keybase.1.identifyUi.start' 'keybase.1.identifyUi.displayKey' 'keybase.1.identifyUi.reportLastTrack' 'keybase.1.identifyUi.launchNetworkChecks' 'keybase.1.identifyUi.displayTrackStatement' 'keybase.1.identifyUi.finishWebProofCheck' 'keybase.1.identifyUi.finishSocialProofCheck' 'keybase.1.identifyUi.displayCryptocurrency' 'keybase.1.identifyUi.reportTrackToken' 'keybase.1.identifyUi.displayUserCard' 'keybase.1.identifyUi.confirm' 'keybase.1.identifyUi.cancel' 'keybase.1.identifyUi.finish' 'keybase.1.identifyUi.dismiss' 'keybase.1.implicitTeamMigration.startMigration' 'keybase.1.implicitTeamMigration.finalizeMigration' 'keybase.1.install.installCommandLinePrivileged' 'keybase.1.kbfs.FSEvent' 'keybase.1.kbfs.FSEditList' 'keybase.1.kbfs.FSSyncStatus' 'keybase.1.kbfs.FSSyncEvent' 'keybase.1.kbfs.createTLF' 'keybase.1.kbfs.getKBFSTeamSettings' 'keybase.1.KBFSGit.createRepo' 'keybase.1.KBFSGit.deleteRepo' 'keybase.1.KBFSGit.gc' 'keybase.1.kbfsMount.GetAllAvailableMountDirs' 'keybase.1.kbfsMount.SetCurrentMountDir' 'keybase.1.Kex2Provisionee.hello' 'keybase.1.Kex2Provisionee.didCounterSign' 'keybase.1.Kex2Provisionee2.hello2' 'keybase.1.Kex2Provisionee2.didCounterSign2' 'keybase.1.Kex2Provisioner.kexStart' 'keybase.1.log.registerLogger' 'keybase.1.logUi.log' 'keybase.1.login.loginProvisionedDevice' 'keybase.1.login.loginWithPaperKey' 'keybase.1.login.clearStoredSecret' 'keybase.1.login.recoverAccountFromEmailAddress' 'keybase.1.login.unlock' 'keybase.1.login.unlockWithPassphrase' 'keybase.1.login.loginOneshot' 'keybase.1.loginUi.getEmailOrUsername' 'keybase.1.loginUi.promptRevokePaperKeys' 'keybase.1.loginUi.displayPaperKeyPhrase' 'keybase.1.loginUi.displayPrimaryPaperKey' 'keybase.1.logsend.prepareLogsend' 'keybase.1.merkle.getCurrentMerkleRoot' 'keybase.1.merkle.verifyMerkleRootAndKBFS' 'keybase.1.metadata.getChallenge' 'keybase.1.metadata.authenticate' 'keybase.1.metadata.putMetadata' 'keybase.1.metadata.getMetadata' 'keybase.1.metadata.registerForUpdates' 'keybase.1.metadata.pruneBranch' 'keybase.1.metadata.putKeys' 'keybase.1.metadata.getKey' 'keybase.1.metadata.deleteKey' 'keybase.1.metadata.truncateLock' 'keybase.1.metadata.truncateUnlock' 'keybase.1.metadata.getFolderHandle' 'keybase.1.metadata.getFoldersForRekey' 'keybase.1.metadata.ping' 'keybase.1.metadata.ping2' 'keybase.1.metadata.getLatestFolderHandle' 'keybase.1.metadata.getKeyBundles' 'keybase.1.metadata.lock' 'keybase.1.metadata.releaseLock' 'keybase.1.metadata.startImplicitTeamMigration' 'keybase.1.metadata.getMerkleRoot' 'keybase.1.metadata.getMerkleRootLatest' 'keybase.1.metadata.getMerkleRootSince' 'keybase.1.metadata.getMerkleNode' 'keybase.1.metadata.findNextMD' 'keybase.1.metadata.setImplicitTeamModeForTest' 'keybase.1.metadata.forceMerkleBuildForTest' 'keybase.1.metadataUpdate.metadataUpdate' 'keybase.1.metadataUpdate.folderNeedsRekey' 'keybase.1.metadataUpdate.foldersNeedRekey' 'keybase.1.NotifyApp.exit' 'keybase.1.NotifyBadges.badgeState' 'keybase.1.NotifyEphemeral.newTeamEk' 'keybase.1.NotifyFavorites.favoritesChanged' 'keybase.1.NotifyFS.FSActivity' 'keybase.1.NotifyFS.FSSyncActivity' 'keybase.1.NotifyFS.FSEditListResponse' 'keybase.1.NotifyFS.FSSyncStatusResponse' 'keybase.1.NotifyFSRequest.FSEditListRequest' 'keybase.1.NotifyFSRequest.FSSyncStatusRequest' 'keybase.1.NotifyKeyfamily.keyfamilyChanged' 'keybase.1.NotifyPaperKey.paperKeyCached' 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile' 'keybase.1.NotifyService.shutdown' 'keybase.1.NotifySession.loggedOut' 'keybase.1.NotifySession.loggedIn' 'keybase.1.NotifySession.clientOutOfDate' 'keybase.1.NotifyTeam.teamChangedByID' 'keybase.1.NotifyTeam.teamChangedByName' 'keybase.1.NotifyTeam.teamDeleted' 'keybase.1.NotifyTeam.teamAbandoned' 'keybase.1.NotifyTeam.teamExit' 'keybase.1.NotifyTeam.avatarUpdated' 'keybase.1.NotifyTracking.trackingChanged' 'keybase.1.NotifyUsers.userChanged' 'keybase.1.paperprovision.paperProvision' 'keybase.1.pgp.pgpSign' 'keybase.1.pgp.pgpPull' 'keybase.1.pgp.pgpEncrypt' 'keybase.1.pgp.pgpDecrypt' 'keybase.1.pgp.pgpVerify' 'keybase.1.pgp.pgpImport' 'keybase.1.pgp.pgpExport' 'keybase.1.pgp.pgpExportByFingerprint' 'keybase.1.pgp.pgpExportByKID' 'keybase.1.pgp.pgpKeyGen' 'keybase.1.pgp.pgpDeletePrimary' 'keybase.1.pgp.pgpSelect' 'keybase.1.pgp.pgpUpdate' 'keybase.1.pgp.pgpPurge' 'keybase.1.pgpUi.outputSignatureSuccess' 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase' 'keybase.1.pgpUi.keyGenerated' 'keybase.1.pgpUi.shouldPushPrivate' 'keybase.1.pgpUi.finished' 'keybase.1.pprof.processorProfile' 'keybase.1.pprof.trace' 'keybase.1.proveUi.promptOverwrite' 'keybase.1.proveUi.promptUsername' 'keybase.1.proveUi.outputPrechecks' 'keybase.1.proveUi.preProofWarning' 'keybase.1.proveUi.outputInstructions' 'keybase.1.proveUi.okToCheck' 'keybase.1.proveUi.displayRecheckWarning' 'keybase.1.provisionUi.chooseProvisioningMethod' 'keybase.1.provisionUi.chooseGPGMethod' 'keybase.1.provisionUi.switchToGPGSignOK' 'keybase.1.provisionUi.chooseDevice' 'keybase.1.provisionUi.chooseDeviceType' 'keybase.1.provisionUi.DisplayAndPromptSecret' 'keybase.1.provisionUi.DisplaySecretExchanged' 'keybase.1.provisionUi.PromptNewDeviceName' 'keybase.1.provisionUi.ProvisioneeSuccess' 'keybase.1.provisionUi.ProvisionerSuccess' 'keybase.1.quota.verifySession' 'keybase.1.reachability.reachabilityChanged' 'keybase.1.rekey.getPendingRekeyStatus' 'keybase.1.rekey.debugShowRekeyStatus' 'keybase.1.rekey.rekeySync' 'keybase.1.rekeyUI.delegateRekeyUI' 'keybase.1.rekeyUI.refresh' 'keybase.1.rekeyUI.rekeySendEvent' 'keybase.1.saltpack.saltpackEncrypt' 'keybase.1.saltpack.saltpackDecrypt' 'keybase.1.saltpack.saltpackSign' 'keybase.1.saltpack.saltpackVerify' 'keybase.1.saltpackUi.saltpackPromptForDecrypt' 'keybase.1.saltpackUi.saltpackVerifySuccess' 'keybase.1.saltpackUi.saltpackVerifyBadSender' 'keybase.1.ScanProofs.scanProofs' 'keybase.1.secretUi.getPassphrase' 'keybase.1.SecretKeys.getSecretKeys' 'keybase.1.session.currentSession' 'keybase.1.session.sessionPing' 'keybase.1.sigs.sigList' 'keybase.1.sigs.sigListJSON' 'keybase.1.SimpleFS.simpleFSListRecursive' 'keybase.1.SimpleFS.simpleFSCopy' 'keybase.1.SimpleFS.simpleFSMove' 'keybase.1.SimpleFS.simpleFSRename' 'keybase.1.SimpleFS.simpleFSSetStat' 'keybase.1.SimpleFS.simpleFSRead' 'keybase.1.SimpleFS.simpleFSWrite' 'keybase.1.SimpleFS.simpleFSRemove' 'keybase.1.SimpleFS.simpleFSMakeOpid' 'keybase.1.SimpleFS.simpleFSClose' 'keybase.1.SimpleFS.simpleFSGetOps' 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo' 'keybase.1.streamUi.close' 'keybase.1.streamUi.read' 'keybase.1.streamUi.reset' 'keybase.1.streamUi.write' 'keybase.1.teams.teamCreateWithSettings' 'keybase.1.teams.teamImplicitAdmins' 'keybase.1.teams.teamListTeammates' 'keybase.1.teams.teamListVerified' 'keybase.1.teams.teamListSubteamsRecursive' 'keybase.1.teams.teamChangeMembership' 'keybase.1.teams.teamRename' 'keybase.1.teams.teamAcceptInvite' 'keybase.1.teams.teamRequestAccess' 'keybase.1.teams.teamDelete' 'keybase.1.teams.teamCreateSeitanToken' 'keybase.1.teams.lookupImplicitTeam' 'keybase.1.teams.lookupOrCreateImplicitTeam' 'keybase.1.teams.loadTeamPlusApplicationKeys' 'keybase.1.teams.getTeamRootID' 'keybase.1.teams.getTeamShowcase' 'keybase.1.teams.teamRotateKey' 'keybase.1.teams.teamDebug' 'keybase.1.teams.uploadTeamAvatar' 'keybase.1.teams.tryDecryptWithTeamKey' 'keybase.1.teams.findNextMerkleRootAfterTeamRemoval' 'keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey' 'keybase.1.teamsUi.confirmRootTeamDelete' 'keybase.1.teamsUi.confirmSubteamDelete' 'keybase.1.test.test' 'keybase.1.test.testCallback' 'keybase.1.test.panic' 'keybase.1.tlf.CryptKeys' 'keybase.1.tlf.publicCanonicalTLFNameAndID' 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName' 'keybase.1.tlfKeys.getTLFCryptKeys' 'keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID' 'keybase.1.track.track' 'keybase.1.track.fakeTrackingChanged' 'keybase.1.ui.promptYesNo' 'keybase.1.user.listTrackers' 'keybase.1.user.listTrackersByName' 'keybase.1.user.listTrackersSelf' 'keybase.1.user.loadUncheckedUserSummaries' 'keybase.1.user.loadUser' 'keybase.1.user.loadUserByName' 'keybase.1.user.loadUserPlusKeys' 'keybase.1.user.loadUserPlusKeysV2' 'keybase.1.user.loadPublicKeys' 'keybase.1.user.loadMyPublicKeys' 'keybase.1.user.listTracking' 'keybase.1.user.listTrackingJSON' 'keybase.1.user.search' 'keybase.1.user.loadAllPublicKeysUnverified' 'keybase.1.user.meUserVersion' 'keybase.1.user.getUPAK' 'keybase.1.user.uploadUserAvatar' 'keybase.1.user.findNextMerkleRootAfterRevoke' 'keybase.1.user.findNextMerkleRootAfterReset'

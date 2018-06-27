@@ -203,14 +203,17 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 			role += strings.ToLower(t.Role.String())
 		}
 		if c.showAll {
-			var reset string
-			if !t.Active {
-				reset = "(inactive due to account reset)"
-				if len(t.FullName) > 0 {
-					reset = " " + reset
-				}
+			var status string
+			switch t.Status {
+			case keybase1.TeamMemberStatus_RESET:
+				status = " (inactive due to account reset)"
+			case keybase1.TeamMemberStatus_DELETED:
+				status = " (inactive due to account delete)"
 			}
-			fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", t.FqName, role, t.Username, t.FullName, reset)
+			if len(t.FullName) > 0 && len(status) > 0 {
+				status = " " + status
+			}
+			fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", t.FqName, role, t.Username, t.FullName, status)
 		} else {
 			fmt.Fprintf(c.tabw, "%s\t%s\t%d\n", t.FqName, role, t.MemberCount)
 		}
@@ -263,11 +266,14 @@ func (c *CmdTeamListMemberships) outputTerminal(details keybase1.TeamDetails) er
 
 func (c *CmdTeamListMemberships) outputRole(role string, members []keybase1.TeamMemberDetails) {
 	for _, member := range members {
-		var reset string
-		if !member.Active {
-			reset = " (inactive due to account reset)"
+		var status string
+		switch member.Status {
+		case keybase1.TeamMemberStatus_RESET:
+			status = " (inactive due to account reset)"
+		case keybase1.TeamMemberStatus_DELETED:
+			status = " (inactive due to account delete)"
 		}
-		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", c.team, role, member.Username, member.FullName, reset)
+		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", c.team, role, member.Username, member.FullName, status)
 	}
 }
 

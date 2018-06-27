@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -24,7 +26,38 @@ func NewSignupHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SignupHandler
 }
 
 func (h *SignupHandler) CheckUsernameAvailable(_ context.Context, arg keybase1.CheckUsernameAvailableArg) error {
-	return engine.CheckUsernameAvailable(h.G(), arg.Username)
+	_, err := h.G().API.Get(libkb.APIArg{
+		Endpoint:    "user/lookup",
+		SessionType: libkb.APISessionTypeNONE,
+		Args: libkb.HTTPArgs{
+			"username": libkb.S{Val: arg.Username},
+			"fields":   libkb.S{Val: "basics"},
+		},
+	})
+	switch err := err.(type) {
+	case nil:
+		// User found, so the name is taken.
+		return libkb.AppStatusError{
+			Code: libkb.SCBadSignupUsernameTaken,
+			Name: "BAD_SIGNUP_USERNAME_TAKEN",
+			Desc: fmt.Sprintf("Username '%s' is taken", arg.Username),
+		}
+	case libkb.AppStatusError:
+		switch err.Name {
+		case "NOT_FOUND":
+			// User not found, name is available.
+			return nil
+		case "DELETED":
+			return libkb.AppStatusError{
+				Code: libkb.SCBadSignupUsernameDeleted,
+				Name: "BAD_SIGNUP_USERNAME_DELETED",
+				Desc: fmt.Sprintf("Username '%s' has been deleted", arg.Username),
+			}
+		}
+		return err
+	default:
+		return err
+	}
 }
 
 func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {

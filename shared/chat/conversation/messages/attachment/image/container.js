@@ -62,6 +62,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     path: message.previewURL,
     progress: message.transferProgress,
     progressLabel,
+    showPlayButton: message.showPlayButton,
     title: message.title || message.fileName,
     toggleShowingMenu: ownProps.toggleShowingMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),

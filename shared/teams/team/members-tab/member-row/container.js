@@ -22,10 +22,10 @@ const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps) => {
   const info = map.get(username, blankInfo)
 
   return {
-    active: info.active,
     following: amIFollowing(state, username),
     fullName: state.config.username === username ? 'You' : info.fullName,
     roleType: info.type,
+    status: info.status,
     username: info.username,
     waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamname, username)),
     waitingForRemove: anyWaiting(state, Constants.removeMemberWaitingKey(teamname, username)),
@@ -68,7 +68,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
 
 const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   return {
-    active: stateProps.active,
     following: stateProps.following,
     fullName: stateProps.fullName,
     onChat: dispatchProps.onChat,
@@ -78,6 +77,7 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
     onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(ownProps.teamname, ownProps.username),
     onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
     roleType: stateProps.roleType,
+    status: stateProps.status,
     username: stateProps.username,
     waitingForAdd: stateProps.waitingForAdd,
     waitingForRemove: stateProps.waitingForRemove,

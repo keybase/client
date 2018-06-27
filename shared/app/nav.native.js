@@ -25,6 +25,7 @@ import {tabBarHeight} from './tab-bar/index.native'
 import type {Props, OwnProps} from './nav.types'
 import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
 import {makeLeafTags} from '../route-tree'
+import RpcStats from './rpc-stats'
 
 type CardStackShimProps = {
   mode: 'modal' | null,
@@ -361,6 +362,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
       <Box style={styles.shimContainer}>
         {shim}
         {layers}
+        <RpcStats />
       </Box>
     )
   }

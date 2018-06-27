@@ -12,7 +12,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as ChatConstants from '../constants/chat2/'
 import engine from '../engine'
-import {folderFromPath} from '../constants/favorite.js'
+import {folderFromPath} from '../constants/favorite'
 import {nativeReachabilityEvents} from '../util/reachability'
 import {type Dispatch} from '../constants/types/flux'
 import {type State as GregorState, type OutOfBandMessage} from '../constants/types/rpc-gregor-gen'
@@ -187,10 +187,6 @@ function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
     if (!isNaN(when)) {
       isNew = Date.now() - when < ChatConstants.newExplodingGregorOffset
     }
-  } else {
-    // never clicked on bomb icon with new setup
-    // check for old one
-    isNew = !!items.find(i => i.item.category === ChatConstants.newExplodingGregorKey)
   }
   return Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: isNew}))
 }

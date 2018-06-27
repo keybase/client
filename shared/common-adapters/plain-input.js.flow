@@ -32,6 +32,7 @@ export type Props = {
   onChangeText?: (text: string) => void,
   onFocus?: () => void,
   placeholder?: string,
+  placeholderColor?: string,
   rowsMin?: number,
   rowsMax?: number,
   style?: StylesCrossPlatform,
