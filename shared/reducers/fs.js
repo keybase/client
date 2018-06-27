@@ -46,7 +46,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // the new item, but reuse children, progress, and tlfMeta fields.
           if (originalFolder.type === 'folder' && newItem.type === 'folder') {
             // make flow happy
-            newItem = newItem.set('children', originalFolder.children).set('progress', 'loaded')
+            newItem = newItem
+              .set('children', originalFolder.children)
+              .set('tlfMeta', originalFolder.tlfMeta)
+              .set('badgeCount', originalFolder.badgeCount)
+              .set('progress', 'loaded')
           }
         }
 
