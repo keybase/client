@@ -43,14 +43,11 @@ type State = {
 class Inbox extends React.PureComponent<Props, State> {
   _list: any
   // Help us calculate row heights and offsets quickly
-  _dividerIndex = -1
+  _dividerIndex: number = -1
+  // 2 different sizes
+  _dividerShowButton: boolean = false
 
   state = {showFloating: false}
-
-  constructor(props: Props) {
-    super(props)
-    this._calculateDivider(props)
-  }
 
   _renderItem = ({item, index}) => {
     const row = item
@@ -58,6 +55,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return (
         <Divider
           key="divider"
+          showButton={row.showButton}
           toggle={this.props.toggleSmallTeamsExpanded}
           smallIDsHidden={this.props.smallIDsHidden}
         />
@@ -87,8 +85,6 @@ class Inbox extends React.PureComponent<Props, State> {
       'missingkey'
     )
   }
-
-  _calculateDivider = (props: Props) => {}
 
   _askForUnboxing = (rows: Array<RowItem>) => {
     const toUnbox = rows.reduce((arr, r) => {
@@ -144,46 +140,43 @@ class Inbox extends React.PureComponent<Props, State> {
     this._list = r
   }
 
-  _itemTypeToHeight = {
-    big: RowSizes.bigRowHeight,
-    bigHeader: RowSizes.bigHeaderHeight,
-    divider: RowSizes.dividerHeight,
-    small: RowSizes.smallRowHeight,
-  }
-
   _getItemLayout = (data, index) => {
-    console.log('aaa d:', this._dividerIndex)
-
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
-    const smallHeight = this._itemTypeToHeight['small']
+    const smallHeight = RowSizes.smallRowHeight
     if (index < this._dividerIndex || this._dividerIndex === -1) {
       const offset = index ? smallHeight * index : 0
       const length = smallHeight
-      console.log('aaa 1:', index, length, offset)
       return {index, length, offset}
     }
 
-    const dividerHeight = this._itemTypeToHeight['divider']
+    const dividerHeight = RowSizes.dividerHeight(this._dividerShowButton)
     if (index === this._dividerIndex) {
       const offset = smallHeight * index
       const length = dividerHeight
-      console.log('aaa 2:', index, length, offset)
       return {index, length, offset}
     }
 
     let offset = smallHeight * (this._dividerIndex - 1) + dividerHeight
 
     for (let i = this._dividerIndex; i < index; ++i) {
-      offset += this._itemTypeToHeight[data[i].type]
+      const h = data[index].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+      offset += h
     }
-    const length = this._itemTypeToHeight[data[index].type]
-    console.log('aaa 3:', index, length, offset)
+    const length = data[index].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
     return {index, length, offset}
   }
 
   render() {
-    this._dividerIndex = this.props.rows.findIndex(r => r.type === 'divider')
+    this._dividerShowButton = false
+    this._dividerIndex = this.props.rows.findIndex(r => {
+      if (r.type === 'divider') {
+        this._dividerShowButton = r.showButton
+        return true
+      }
+      return false
+    })
+
     const noChats = !this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&

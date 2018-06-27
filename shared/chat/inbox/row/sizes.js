@@ -6,4 +6,10 @@ import {isMobile} from '../../../styles'
 export const smallRowHeight = isMobile ? 64 : 56
 export const bigRowHeight = isMobile ? 40 : 24
 export const bigHeaderHeight = 32
-export const dividerHeight = isMobile ? 56 : 40
+export const dividerHeight = (showingButton: boolean) => {
+  if (isMobile) {
+    return showingButton ? 49 : 44
+  } else {
+    return showingButton ? 49 : 41
+  }
+}
