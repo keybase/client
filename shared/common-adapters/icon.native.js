@@ -5,7 +5,7 @@ import ClickableBox from './clickable-box'
 import * as React from 'react'
 import {globalColors, glamorous, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
-import {NativeStyleSheet} from './native-wrappers.native.js'
+import {NativeStyleSheet} from './native-wrappers.native'
 import type {IconType, Props} from './icon'
 
 // In order to optimize this commonly used component we use StyleSheet on all the default variants

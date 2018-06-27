@@ -1,7 +1,7 @@
 // @flow
 import {without, uniq, difference} from 'lodash-es'
 import {globalColors} from '../styles'
-import {proveMessage} from '../util/platforms.js'
+import {proveMessage} from '../util/platforms'
 import {PlatformsExpanded} from '../constants/types/more'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
