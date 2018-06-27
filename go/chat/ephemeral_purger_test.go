@@ -94,15 +94,19 @@ func TestBackgroundPurge(t *testing.T) {
 	lifetimeDuration := time.Second
 	sendEphemeral(lifetime)
 	sendEphemeral(lifetime * 2)
+	sendEphemeral(lifetime * 3)
 
-	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, &chat1.GetThreadQuery{
-		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-	}, nil)
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid,
+		chat1.GetThreadReason_GENERAL,
+		&chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
 	require.NoError(t, err)
 	msgs := thread.Messages
-	require.Len(t, msgs, 2)
-	msgUnboxed2 := msgs[0]
-	msgUnboxed1 := msgs[1]
+	require.Len(t, msgs, 3)
+	msgUnboxed3 := msgs[0]
+	msgUnboxed2 := msgs[1]
+	msgUnboxed1 := msgs[2]
 
 	t.Logf("assert listener 1")
 	world.Fc.Advance(lifetimeDuration)
@@ -127,9 +131,29 @@ func TestBackgroundPurge(t *testing.T) {
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
 		ConvID:          res.ConvID,
-		MinUnexplodedID: msgUnboxed2.GetMessageID(),
-		NextPurgeTime:   0,
-		IsActive:        false,
+		MinUnexplodedID: msgUnboxed3.GetMessageID(),
+		NextPurgeTime:   msgUnboxed3.Valid().Etime(),
+		IsActive:        true,
 	})
 	assertEphemeralPurgeNotifInfo(res.ConvID, []chat1.MessageID{msgUnboxed2.GetMessageID()})
+
+	// Stop the Purger, and ensure the final message gets purged when we Pull
+	// the conversation and the GUI get's a notification
+	<-g.EphemeralPurger.Stop(context.Background())
+	t.Logf("assert listener 3")
+	world.Fc.Advance(lifetimeDuration)
+	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid,
+		chat1.GetThreadReason_GENERAL,
+		&chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+	require.NoError(t, err)
+	require.Len(t, thread.Messages, 3)
+	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
+		ConvID:          res.ConvID,
+		MinUnexplodedID: msgUnboxed3.GetMessageID(),
+		NextPurgeTime:   msgUnboxed3.Valid().Etime(),
+		IsActive:        true,
+	})
+	assertEphemeralPurgeNotifInfo(res.ConvID, []chat1.MessageID{msgUnboxed3.GetMessageID()})
 }

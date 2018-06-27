@@ -81,13 +81,12 @@ func (c *cmdWalletExport) Run() (err error) {
 		}
 	}
 
-	dui.Printf("This secret key is used to send money and manage your stellar account.\n")
-	dui.Printf("Anyone with the secret will have full access to the account.\n")
-
 	secKey, err := cli.ExportSecretKeyLocal(context.TODO(), accountID)
 	if err != nil {
 		return err
 	}
+	dui.Printf("This secret key is used to send money and manage your stellar account.\n")
+	dui.Printf("Anyone with the secret will have full access to the account.\n")
 	dui.Printf("\nAccount ID: %s\n\nKeep it secret.\nSecret Key: %s\nKeep it safe.\n", accountID.String(), secKey.SecureNoLogString())
 	return
 }

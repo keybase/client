@@ -16,6 +16,10 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		newCmdWalletImport(cl, g),
 		newCmdWalletSend(cl, g),
 		newCmdWalletSetCurrency(cl, g),
+		newCmdWalletSetPrimary(cl, g),
+	}
+	if g.Env.GetFeatureFlags().Admin() {
+		subcommands = append(subcommands, newCmdWalletFixup(cl, g))
 	}
 	subcommands = append(subcommands, getBuildSpecificWalletCommands(cl, g)...)
 	return cli.Command{

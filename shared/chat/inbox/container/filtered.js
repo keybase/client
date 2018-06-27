@@ -5,7 +5,7 @@ import {createSelector, type TypedState} from '../../../util/container'
 const score = (lcFilter: string, lcYou: string, names: Array<string>): number => {
   // special case, looking for yourself
   if (names.length === 1 && names[0] === lcYou) {
-    return lcYou.indexOf(lcFilter) !== -1 ? 1 : 0
+    return lcYou.indexOf(lcFilter) !== -1 ? 100000 : 0
   }
 
   const namesMinusYou = names.filter(n => n !== lcYou)
@@ -44,7 +44,15 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
     },
     {foundExact: 0, foundPrefix: 0, foundSub: 0}
   )
-  const rawScore = (foundExact ? 1000 : 0) + (foundPrefix ? 100 : 0) + (foundSub ? 10 : 0)
+  let rawScore = (foundExact ? 1000 : 0) + (foundPrefix ? 100 : 0) + (foundSub ? 10 : 0)
+
+  // Special case an exact match that is the only name, otherwise
+  // e.g. "chris,chrisnojima" gets a higher score than "chris", when
+  // input is "chris" -- (1000 + 100) vs. (1000).
+  if (namesMinusYou.length === 1 && foundExact) {
+    rawScore += 10000
+  }
+
   // We subtract inputLength to give a bonus to shorter groups, but we never want that to make a matching score go to zero
   const inputLength = namesMinusYou.join('').length
 

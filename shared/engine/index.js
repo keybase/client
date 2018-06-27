@@ -191,10 +191,21 @@ class Engine {
       this._sessionsMap[key].hasSeqID(seqid)
     )
     if (cancelledSessionID) {
-      rpcLog('engineInternal', 'received cancel for session', {cancelledSessionID})
-      this._sessionsMap[cancelledSessionID].cancel()
+      const s = this._sessionsMap[cancelledSessionID]
+      rpcLog({
+        extra: {cancelledSessionID},
+        method: s._startMethod || 'unknown',
+        reason: '[cancel]',
+        type: 'engineInternal',
+      })
+      s.cancel()
     } else {
-      rpcLog('engineInternal', "received cancel but couldn't find session", {cancelledSessionID})
+      rpcLog({
+        extra: {cancelledSessionID},
+        method: 'unknown',
+        reason: '[cancel?]',
+        type: 'engineInternal',
+      })
     }
   }
 
@@ -245,7 +256,7 @@ class Engine {
       } else if (this._incomingActionCreators[method]) {
         // General incoming
         const creator = this._incomingActionCreators[method]
-        rpcLog('engineInternal', 'handling incoming')
+        rpcLog({reason: '[incoming]', type: 'engineInternal', method})
         const rawActions = creator(param, response, this._dispatch, this._getState)
         const actions = (rawActions || []).reduce((arr, a) => {
           if (a) {
@@ -300,7 +311,7 @@ class Engine {
     }
 
     // Make a new session and start the request
-    const session = this.createSession(incomingCallMap, waitingHandler)
+    const session = this.createSession({incomingCallMap, startMethod: method, waitingHandler})
     // Don't make outgoing calls immediately since components can do this when they mount
     setImmediate(() => {
       session.start(method, param, callback)
@@ -309,15 +320,14 @@ class Engine {
   }
 
   // Make a new session. If the session hangs around forever set dangling to true
-  createSession(
-    incomingCallMap: ?IncomingCallMapType,
-    waitingHandler: ?WaitingHandlerType,
-    cancelHandler: ?CancelHandlerType,
-    dangling?: boolean = false
-  ): Session {
+  createSession(p: {
+    incomingCallMap?: IncomingCallMapType,
+    waitingHandler?: WaitingHandlerType,
+    cancelHandler?: CancelHandlerType,
+    dangling?: boolean,
+  }): Session {
+    const {incomingCallMap, waitingHandler, cancelHandler, dangling = false} = p
     const sessionID = this._generateSessionID()
-    rpcLog('engineInternal', 'session start', {sessionID})
-
     const session = new Session(
       sessionID,
       incomingCallMap,
@@ -351,7 +361,14 @@ class Engine {
 
   // Cleanup a session that ended
   _sessionEnded(session: Session) {
-    rpcLog('engineInternal', 'session end', {sessionID: session.getId()})
+    rpcLog({
+      extra: {
+        sessionID: session.getId(),
+      },
+      method: session._startMethod || 'unknown',
+      reason: '[-session]',
+      type: 'engineInternal',
+    })
     delete this._sessionsMap[String(session.getId())]
     this._deadSessionsMap[String(session.getId())] = true
   }
@@ -392,10 +409,18 @@ class Engine {
     ) => ?Array<Action>
   ) {
     if (this._incomingActionCreators[method]) {
-      rpcLog('engineInternal', "duplicate incoming action creator!!! this isn't allowed", {method})
+      rpcLog({
+        method,
+        reason: "duplicate incoming action creator!!! this isn't allowed",
+        type: 'engineInternal',
+      })
       return
     }
-    rpcLog('engineInternal', 'registering incoming action creator:', {method})
+    rpcLog({
+      method,
+      reason: '[register]',
+      type: 'engineInternal',
+    })
     this._incomingActionCreators[method] = actionCreator
   }
 
@@ -471,12 +496,12 @@ class FakeEngine {
     method: MethodKey,
     actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?Action
   ) {}
-  createSession(
-    incomingCallMap: ?IncomingCallMapType,
-    waitingHandler: ?WaitingHandlerType,
-    cancelHandler: ?CancelHandlerType,
-    dangling?: boolean = false
-  ) {
+  createSession(p: {
+    incomingCallMap?: IncomingCallMapType,
+    waitingHandler?: WaitingHandlerType,
+    cancelHandler?: CancelHandlerType,
+    dangling?: boolean,
+  }) {
     return new Session(0, {}, null, () => {}, () => {})
   }
   _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {

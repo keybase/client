@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
-	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -59,12 +58,8 @@ func (c *CmdChatSend) SetMessage(m string) {
 
 func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := append(getConversationResolverFlags(),
-		mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
+		mustGetChatFlags("set-headline", "clear-headline", "nonblock", "exploding-lifetime")...,
 	)
-	// TODO remove this check for release.
-	if ephemeral.NewEKLib(g).ShouldRun(context.TODO()) {
-		flags = append(flags, mustGetChatFlags("exploding-lifetime")...)
-	}
 	return cli.Command{
 		Name:         "send",
 		Usage:        "Send a message to a conversation",
@@ -79,14 +74,25 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 
 func (c *CmdChatSend) Run() (err error) {
 	if c.resolvingRequest.TlfName != "" {
-		err = annotateResolvingRequest(c.G(), &c.resolvingRequest)
-		if err != nil {
+		if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
 			return err
 		}
 	}
 	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
 	if c.resolvingRequest.Visibility == keybase1.TLFVisibility_ANY {
 		c.resolvingRequest.Visibility = keybase1.TLFVisibility_PRIVATE
+	}
+
+	// Verify we can continue with the current options, this will return an
+	// error if you try to send to a KBFS chat or have --public set and
+	// ephemeralLifetime.
+	if c.ephemeralLifetime > 0 {
+		if c.resolvingRequest.Visibility == keybase1.TLFVisibility_PUBLIC {
+			return fmt.Errorf("Cannot send ephemeral messages with --public set.")
+		}
+		if c.resolvingRequest.MembersType == chat1.ConversationMembersType_KBFS {
+			return fmt.Errorf("Cannot send ephemeral messages to a KBFS type chat.")
+		}
 	}
 
 	// TODO: Right now this command cannot be run in standalone at
@@ -98,8 +104,7 @@ func (c *CmdChatSend) Run() (err error) {
 			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 			c.G().StartStandaloneChat()
 		default:
-			err = CantRunInStandaloneError{}
-			return err
+			return CantRunInStandaloneError{}
 		}
 	}
 

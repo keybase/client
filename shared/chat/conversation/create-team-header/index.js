@@ -1,20 +1,20 @@
 // @flow
 import React from 'react'
 import {Box, Text} from '../../../common-adapters'
-import {globalColors, globalStyles, globalMargins, isMobile} from '../../../styles'
+import {globalColors, globalStyles, globalMargins} from '../../../styles'
 
 type Props = {
   onShowNewTeamDialog: () => void,
 }
 
 const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
-  <Box style={isMobile ? stylesMobileContainer : stylesDesktopContainer}>
-    <Box style={isMobile ? {alignItems: 'center'} : {textAlign: 'center'}}>
-      <Text type="BodySemibold" backgroundMode="HighRisk">
+  <Box style={stylesContainer}>
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <Text type="BodySmallSemibold" backgroundMode="HighRisk" style={{textAlign: 'center'}}>
         Create a team? You’ll be able to add and remove members as you wish.{' '}
       </Text>
       <Text
-        type="BodySemiboldLink"
+        type="BodySmallSemiboldPrimaryLink"
         style={{color: globalColors.white}}
         onClick={onShowNewTeamDialog}
         underline={true}
@@ -27,18 +27,7 @@ const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
   </Box>
 )
 
-const stylesDesktopContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: globalColors.blue,
-  paddingBottom: globalMargins.tiny,
-  paddingTop: globalMargins.tiny,
-  justifyContent: 'center',
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-}
-
-const stylesMobileContainer = {
+const stylesContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   backgroundColor: globalColors.blue,

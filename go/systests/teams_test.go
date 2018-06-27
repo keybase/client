@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -114,15 +115,19 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, false)
+	return tt.addUserHelper(pre, true, false, true)
 }
 
 func (tt *teamTester) addUserWithPaper(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, true)
+	return tt.addUserHelper(pre, true, true, true)
 }
 
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false, false)
+	return tt.addUserHelper(pre, false, false, true)
+}
+
+func (tt *teamTester) addWalletlessUser(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true, false, false)
 }
 
 func (tt *teamTester) logUserNames() {
@@ -145,10 +150,13 @@ func installInsecureTriplesec(g *libkb.GlobalContext) {
 	}
 }
 
-func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
+func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
+	}
+	if !wallet {
+		tctx.Tp.DisableAutoWallet = true
 	}
 
 	var u userPlusDevice
@@ -210,6 +218,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	}
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
+	u.stellarClient = stellar1.LocalClient{Cli: cli}
 
 	g.ConfigureConfig()
 
@@ -245,6 +254,7 @@ type userPlusDevice struct {
 	tc                       *libkb.TestContext
 	deviceClient             keybase1.DeviceClient
 	teamsClient              keybase1.TeamsClient
+	stellarClient            stellar1.LocalClient
 	notifications            *teamNotifyHandler
 	suppressTeamChatAnnounce bool
 }
@@ -301,8 +311,7 @@ func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.Team
 
 func (u *userPlusDevice) teamGetDetails(teamName string) keybase1.TeamDetails {
 	res, err := u.teamsClient.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name:        teamName,
-		ForceRepoll: true,
+		Name: teamName,
 	})
 	require.NoError(u.tc.T, err)
 	return res
@@ -500,19 +509,24 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 }
 
 func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) keybase1.BadgeState {
-	for i := 0; i < 10; i++ {
+	// Process any number of badge state updates, but bail out after
+	// 10 seconds.
+	timeout := time.After(10 * time.Second * libkb.CITimeMultiplier(u.tc.G))
+	i := 0
+	for {
 		select {
 		case arg := <-u.notifications.badgeCh:
-			u.tc.T.Logf("badge state received: %+v", arg.TeamsWithResetUsers)
+			u.tc.T.Logf("badge state received %d: %+v", i, arg.TeamsWithResetUsers)
+			i++
 			if len(arg.TeamsWithResetUsers) == numReset {
 				u.tc.T.Logf("badge state length match")
 				return arg
 			}
-		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
+		case <-timeout:
+			u.tc.T.Fatal("timed out waiting for badge state")
+			return keybase1.BadgeState{}
 		}
 	}
-	u.tc.T.Fatal("timed out waiting for badge state")
-	return keybase1.BadgeState{}
 }
 
 func (u *userPlusDevice) drainGregor() {
@@ -808,6 +822,18 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	require.NoError(t, err)
 }
 
+func clearServerUIDMapCache(g *libkb.GlobalContext, t libkb.TestingTB, uids []keybase1.UID) {
+	arg := libkb.NewAPIArg("user/names")
+	arg.SessionType = libkb.APISessionTypeNONE
+	arg.Args = libkb.HTTPArgs{
+		"uids":     libkb.S{Val: libkb.UidsToString(uids)},
+		"no_cache": libkb.B{Val: true},
+	}
+	t.Logf("Calling user/names with uids: %v and no_cache: true to clear serverside uidmap cache", uids)
+	_, err := g.API.Post(arg)
+	require.NoError(t, err)
+}
+
 func GetTeamForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*teams.Team, error) {
 	return teams.Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
@@ -868,6 +894,10 @@ func (n *teamNotifyHandler) BadgeState(ctx context.Context, badgeState keybase1.
 
 func (n *teamNotifyHandler) NewTeamEk(ctx context.Context, arg keybase1.NewTeamEkArg) error {
 	n.newTeamEKCh <- arg
+	return nil
+}
+
+func (n *teamNotifyHandler) AvatarUpdated(ctx context.Context, arg keybase1.AvatarUpdatedArg) error {
 	return nil
 }
 

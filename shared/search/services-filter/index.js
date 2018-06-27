@@ -72,19 +72,25 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
         },
       }
 
+  const tooltipStyleHovering = hovering
+    ? {opacity: 1, pointerEvents: 'cursor'}
+    : {opacity: 0, pointerEvents: 'none'}
+
   return (
     <ClickableBox key={service} onClick={() => onSelect(service)} {...boxProps}>
       <Icon type={selected ? selectedIconMap[service] : unselectedIconMap[service]} />
-      <Box
-        style={{
-          ...serviceTooltipStyle,
-          opacity: hovering ? 1 : 0,
-        }}
-      >
-        <Text type="BodySmall" style={{color: globalColors.white}}>
-          {service}
-        </Text>
-      </Box>
+      {!isMobile && (
+        <Box
+          style={{
+            ...serviceTooltipStyle,
+            ...tooltipStyleHovering,
+          }}
+        >
+          <Text type="BodySmall" style={{color: globalColors.white}}>
+            {service}
+          </Text>
+        </Box>
+      )}
     </ClickableBox>
   )
 }

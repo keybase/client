@@ -1,11 +1,17 @@
 // @flow
 import React from 'react'
 import {Box} from '../../common-adapters'
+import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action} from '../../stories/storybook'
 import NewRepo from '.'
 
+const provider = PropProviders.compose(
+  PropProviders.WaitingButton(),
+)
+
 const load = () => {
   storiesOf('Git/New', module)
+    .addDecorator(provider)
     .add('PersonalRepo', () => (
       <Box style={{height: 500, width: '100%'}}>
         <NewRepo
@@ -13,8 +19,8 @@ const load = () => {
           onCreate={action('onCreate')}
           onClose={action('onClose')}
           onNewTeam={action('onNewTeam')}
-          loading={false}
           error={null}
+          waitingKey="test"
         />
       </Box>
     ))
@@ -26,8 +32,8 @@ const load = () => {
           onCreate={action('onCreate')}
           onNewTeam={action('onNewTeam')}
           teams={['fortgreenmoms', 'siggis', 'siggis.board']}
-          loading={false}
           error={null}
+          waitingKey="test"
         />
       </Box>
     ))

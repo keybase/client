@@ -4,7 +4,7 @@ import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
-import {Box, LoadingLine, Text} from '../../../common-adapters'
+import {Box, LoadingLine, Text, HeaderHocHeader} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
@@ -21,7 +21,7 @@ const Offline = () => (
       width: '100%',
     }}
   >
-    <Text style={{color: globalColors.black_40, textAlign: 'center'}} type="BodySemibold">
+    <Text style={{textAlign: 'center'}} type="BodySmallSemibold">
       Couldn't load all chat messages due to network connectivity. Retrying...
     </Text>
   </Box>
@@ -31,6 +31,9 @@ class Conversation extends React.PureComponent<Props> {
   render() {
     return (
       <Box style={containerStyle}>
+        {this.props.isSearching && (
+          <HeaderHocHeader title="New Chat" onCancel={this.props.onCancelSearch} headerStyle={_headerStyle} />
+        )}
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
           onToggleInfoPanel={this.props.onToggleInfoPanel}
@@ -58,6 +61,10 @@ class Conversation extends React.PureComponent<Props> {
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.fullHeight,
+}
+
+const _headerStyle = {
+  borderBottomWidth: 0,
 }
 
 export default Conversation

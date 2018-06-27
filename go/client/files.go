@@ -12,6 +12,9 @@ import (
 	"os"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/terminalescaper"
+	isatty "github.com/mattn/go-isatty"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -197,6 +200,31 @@ func (s *StdoutSink) Write(b []byte) (n int, err error) {
 
 func (s *StdoutSink) HitError(e error) error { return nil }
 
+// EscapedSink can be used to write data to the underlying Sink, while transparently sanitizing it.
+// If an error occurs writing to an EscapedSink, no more data will be
+// accepted and all subsequent writes will return the error.
+type EscapedSink struct {
+	err error
+	Sink
+}
+
+// Write writes p to the underlying Sink, after sanitizing it.
+// It returns n = len(p) on a successful write (regardless of how much data is written to the underlying Sink).
+// This is because the escaping function might alter the actual dimension of the data, but the caller is interested
+// in knowing how much of what they wanted to write was actually written. In case of errors it (conservatively) returns n=0
+// and the error, and no other writes are possible.
+func (s *EscapedSink) Write(p []byte) (int, error) {
+	if s.err != nil {
+		return 0, s.err
+	}
+	_, err := s.Sink.Write(terminalescaper.CleanBytes(p))
+	if err == nil {
+		return len(p), nil
+	}
+	s.err = err
+	return 0, err
+}
+
 type FileSink struct {
 	libkb.Contextified
 	name   string
@@ -268,13 +296,20 @@ func (s *FileSink) HitError(e error) error {
 }
 
 type UnixFilter struct {
-	sink   Sink
-	source Source
+	libkb.Contextified
+	sink    Sink
+	source  Source
+	msg     string // input
+	infile  string
+	outfile string
 }
 
 func initSink(g *libkb.GlobalContext, fn string) Sink {
 	if len(fn) == 0 || fn == "-" {
-		return &StdoutSink{}
+		if g.Env.GetDisplayRawUntrustedOutput() || !isatty.IsTerminal(os.Stdout.Fd()) {
+			return &StdoutSink{}
+		}
+		return &EscapedSink{Sink: &StdoutSink{}}
 	}
 	return NewFileSink(g, fn)
 }
@@ -293,19 +328,26 @@ func initSource(msg, infile string) (Source, error) {
 }
 
 func (u *UnixFilter) FilterInit(g *libkb.GlobalContext, msg, infile, outfile string) (err error) {
-	u.source, err = initSource(msg, infile)
-	if err == nil {
-		u.sink = initSink(g, outfile)
-	}
-	return err
+	u.msg = msg
+	u.infile = infile
+	u.outfile = outfile
+	return nil // Any errors will be raised when the filter is opened.
 }
 
-func (u *UnixFilter) FilterOpen() error {
-	err := u.sink.Open()
-	if err == nil {
-		err = u.source.Open()
+func (u *UnixFilter) FilterOpen(g *libkb.GlobalContext) (err error) {
+	if u.source, err = initSource(u.msg, u.infile); err != nil {
+		return err
 	}
-	return err
+	u.sink = initSink(g, u.outfile)
+
+	if err = u.sink.Open(); err != nil {
+		return err
+	}
+	if err = u.source.Open(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *UnixFilter) Close(inerr error) error {
@@ -316,7 +358,7 @@ func (u *UnixFilter) Close(inerr error) error {
 }
 
 func (u *UnixFilter) ClientFilterOpen(g *libkb.GlobalContext) (snk, src keybase1.Stream, err error) {
-	if err = u.FilterOpen(); err != nil {
+	if err = u.FilterOpen(g); err != nil {
 		return
 	}
 	snk = g.XStreams.ExportWriter(u.sink)

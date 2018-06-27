@@ -42,12 +42,24 @@ func (r *RemoteNet) SubmitRelayClaim(ctx context.Context, post stellar1.RelayCla
 	return SubmitRelayClaim(ctx, r.G(), post)
 }
 
-func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
-	return RecentPayments(ctx, r.G(), accountID, limit)
+func (r *RemoteNet) AcquireAutoClaimLock(ctx context.Context) (string, error) {
+	return AcquireAutoClaimLock(ctx, r.G())
 }
 
-func (r *RemoteNet) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
-	return PaymentDetail(ctx, r.G(), txID)
+func (r *RemoteNet) ReleaseAutoClaimLock(ctx context.Context, token string) error {
+	return ReleaseAutoClaimLock(ctx, r.G(), token)
+}
+
+func (r *RemoteNet) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, error) {
+	return NextAutoClaim(ctx, r.G())
+}
+
+func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (stellar1.PaymentsPage, error) {
+	return RecentPayments(ctx, r.G(), accountID, cursor, limit)
+}
+
+func (r *RemoteNet) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
+	return PaymentDetails(ctx, r.G(), txID)
 }
 
 func (r *RemoteNet) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {

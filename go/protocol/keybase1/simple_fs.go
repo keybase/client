@@ -157,6 +157,7 @@ type Dirent struct {
 	Name                 string     `codec:"name" json:"name"`
 	DirentType           DirentType `codec:"direntType" json:"direntType"`
 	LastWriterUnverified User       `codec:"lastWriterUnverified" json:"lastWriterUnverified"`
+	Writable             bool       `codec:"writable" json:"writable"`
 }
 
 func (o Dirent) DeepCopy() Dirent {
@@ -166,6 +167,7 @@ func (o Dirent) DeepCopy() Dirent {
 		Name:                 o.Name,
 		DirentType:           o.DirentType.DeepCopy(),
 		LastWriterUnverified: o.LastWriterUnverified.DeepCopy(),
+		Writable:             o.Writable,
 	}
 }
 

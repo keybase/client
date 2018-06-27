@@ -21,24 +21,9 @@ type Props = {
 }
 type State = {
   expanded: boolean,
-  selected: React.Node,
 }
 class Dropdown extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      expanded: false,
-      selected: props.selected,
-    }
-  }
-
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (nextProps.selected !== prevState.selected) {
-      return {selected: nextProps.selected}
-    }
-    return null
-  }
+  state = {expanded: false}
 
   _toggleOpen = () => {
     this.setState(prevProps => ({
@@ -48,10 +33,7 @@ class Dropdown extends React.Component<Props, State> {
 
   _onSelect = (n: React.Node) => {
     this.props.onChanged && this.props.onChanged(n)
-    this.setState({
-      expanded: false,
-      selected: n,
-    })
+    this.setState({expanded: false})
   }
 
   render() {
@@ -100,7 +82,7 @@ class Dropdown extends React.Component<Props, State> {
               width: '100%',
             }}
           >
-            {this.state.selected}
+            {this.props.selected}
           </Box>
           <Icon type="iconfont-caret-down" inheritColor={true} fontSize={11} />
         </ButtonBox>

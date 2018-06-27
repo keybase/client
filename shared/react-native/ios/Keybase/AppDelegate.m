@@ -228,11 +228,12 @@ const BOOL isDebug = NO;
       int messageID = [notification[@"d"] intValue];
       int badgeCount = [notification[@"b"] intValue];
       int unixTime = [notification[@"x"] intValue];
+      NSString* soundName = notification[@"s"];
       NSString* pushID = [notification[@"p"] objectAtIndex:0];
       NSString* body = notification[@"m"];
       PushNotifier* pusher = [[PushNotifier alloc] init];
       NSError* err = nil;
-      KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, pusher, &err);
+      KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, soundName, pusher, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }
@@ -258,19 +259,26 @@ const BOOL isDebug = NO;
 
 - (void) hideCover {
   // Always cancel outstanding animations else they can fight and the timing is very weird
+  NSLog(@"hideCover: cancelling outstanding animations...");
   [self.resignImageView.layer removeAllAnimations];
   [UIView animateWithDuration:0.3 delay:0.3 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
     self.resignImageView.alpha = 0;
-  } completion:nil];
+  } completion:^(BOOL finished){
+    NSLog(@"hideCover: hid keyz screen. Finished: %d", finished);
+  }];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
   // Always cancel outstanding animations else they can fight and the timing is very weird
+  NSLog(@"applicationWillResignActive: cancelling outstanding animations...");
   [self.resignImageView.layer removeAllAnimations];
   // Try a nice animation out
+  NSLog(@"applicationWillResignActive: rendering keyz screen...");
   [UIView animateWithDuration:0.3 delay:0.1 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
     self.resignImageView.alpha = 1;
-  } completion:nil];
+  } completion:^(BOOL finished){
+    NSLog(@"applicationWillResignActive: rendered keyz screen. Finished: %d", finished);
+  }];
   KeybaseSetAppStateInactive();
 }
 
@@ -278,8 +286,10 @@ const BOOL isDebug = NO;
   // Throw away any saved screenshot just in case anyways
   [application ignoreSnapshotOnNextApplicationLaunch];
   // Always cancel outstanding animations else they can fight and the timing is very weird
+  NSLog(@"applicationDidEnterBackground: cancelling outstanding animations...");
   [self.resignImageView.layer removeAllAnimations];
   // Snapshot happens right after this call, force alpha immediately w/o animation else you'll get a half animated overlay
+  NSLog(@"applicationDidEnterBackground: setting keyz screen alpha to 1.");
   self.resignImageView.alpha = 1;
 
   const bool requestTime = KeybaseAppDidEnterBackground();
@@ -295,20 +305,25 @@ const BOOL isDebug = NO;
 
 // Sometimes these lifecycle calls can be skipped so try and catch them all
 - (void)applicationDidBecomeActive:(UIApplication *)application {
+  NSLog(@"applicationDidBecomeActive: hiding keyz screen.");
   [self hideCover];
+  NSLog(@"applicationDidBecomeActive: notifying service.");
   [self notifyAppState:application];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
+  NSLog(@"applicationWillEnterForeground: hiding keyz screen.");
   [self hideCover];
 }
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
+  NSLog(@"applicationDidFinishLaunching: notifying service.");
   [self notifyAppState:application];
 }
 
 - (void)notifyAppState:(UIApplication *)application {
   const UIApplicationState state = application.applicationState;
+  NSLog(@"notifyAppState: notifying service with new appState: %ld", (long)state);
   switch (state) {
     case UIApplicationStateActive:
       KeybaseSetAppStateForeground();

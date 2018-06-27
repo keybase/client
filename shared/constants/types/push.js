@@ -9,6 +9,7 @@ export type PushNotification = {
   convID?: string,
   m?: string,
   p?: Array<string>,
+  s?: string, // soundName
   t?: number,
   d?: number,
   x?: number,
@@ -20,7 +21,6 @@ export type PushNotification = {
 export type State = {
   token: string,
   tokenType: ?TokenType,
-  permissionsRequesting: boolean,
   permissionsPrompt: boolean,
   hasPermissions: boolean,
 }

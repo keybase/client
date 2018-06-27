@@ -79,10 +79,7 @@
       "kextPermissionError": "boolean"
     },
     "installKBFS": {},
-    "uninstallKBFSConfirm": {
-      "onSuccess": "() => void"
-    },
-    "uninstallKBFS": {},
+    "uninstallKBFSConfirm": {},
     "fsActivity": {},
     "openSecurityPreferences": {},
     "refreshLocalHTTPServerInfo": {},
@@ -97,16 +94,33 @@
       "path": "Types.Path",
       "errorText": "string"
     },
-
-    "setupFSHandlers": {},
-
-    "share": {
-      "path": "Types.Path",
-      "routePath": "I.List<string>"
+    "newFolderRow": {
+      "parentPath": "Types.Path"
     },
-    "save": {
+    "newFolderName": {
+      "editID": "Types.EditID",
+      "name": "string"
+    },
+    "commitEdit": {
+      "editID": "Types.EditID"
+    },
+    "editSuccess": {
+      "editID": "Types.EditID"
+    },
+    "editFailed": {
+      "editID": "Types.EditID"
+    },
+    "discardEdit": {
+      "editID": "Types.EditID"
+    },
+
+    "shareNative": {
       "path": "Types.Path",
-      "routePath": "I.List<string>"
+      "routePath?": "I.List<string>"
+    },
+    "saveMedia": {
+      "path": "Types.Path",
+      "routePath?": "I.List<string>"
     },
     "fileActionPopup": {
       "path": "Types.Path",
@@ -121,6 +135,12 @@
     "openPathItem": {
       "path": "Types.Path",
       "routePath": "I.List<string>"
-    }
+    },
+    "letResetUserBackIn": {
+      "id": "RPCTypes.TeamID",
+      "username": "string"
+    },
+
+    "setupFSHandlers": {}
   }
 }

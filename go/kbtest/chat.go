@@ -170,7 +170,16 @@ func NewTlfMock(world *ChatMockWorld) *TlfMock {
 func CanonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	// very much simplified canonicalization.
 	// TODO: implement rest when we need it
-	names := strings.Split(tlfName, ",")
+	var names []string
+	nameMap := make(map[string]bool)
+	rawNames := strings.Split(tlfName, ",")
+	for _, rn := range rawNames {
+		if nameMap[rn] {
+			continue
+		}
+		names = append(names, rn)
+		nameMap[rn] = true
+	}
 	sort.Strings(names)
 	return keybase1.CanonicalTlfName(strings.Join(names, ","))
 }
@@ -253,6 +262,11 @@ func (m *TlfMock) EphemeralDecryptionKey(ctx context.Context, tlfName string, tl
 	// Returns a totally zero teamEK. That's enough to get some very simple
 	// round trip tests to pass.
 	return keybase1.TeamEk{}, nil
+}
+
+func (m *TlfMock) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
+	return false, nil, nil
 }
 
 func (m *TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
@@ -531,6 +545,7 @@ func (m *ChatRemoteMock) createBogusBody(typ chat1.MessageType) chat1.MessageBod
 		Leave__:              &chat1.MessageLeave{},
 		Headline__:           &chat1.MessageHeadline{},
 		Metadata__:           &chat1.MessageConversationMetadata{},
+		Reaction__:           &chat1.MessageReaction{},
 	}
 }
 
@@ -595,7 +610,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 				}), uid, arg.ConversationID),
 		})
 		m.world.TcsByID[uid.String()].G.NotifyRouter.HandleNewChatActivity(context.Background(),
-			keybase1.UID(uid.String()), &activity)
+			keybase1.UID(uid.String()), conv.GetTopicType(), &activity)
 	}
 
 	return

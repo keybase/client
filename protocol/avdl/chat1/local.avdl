@@ -6,6 +6,8 @@ protocol local {
   import idl "common.avdl";
   import idl "chat_ui.avdl";
 
+  @typedef("string") record VersionKind {}
+
   record MessageText {
     string body;
   }
@@ -162,6 +164,13 @@ protocol local {
 
   record MessageLeave {}
 
+  record MessageReaction {
+    @mpackkey("m") @jsonkey("m")
+    MessageID messageID;
+    @mpackkey("b") @jsonkey("b")
+    string body; // emoji reaction :+1:
+  }
+
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
@@ -174,6 +183,7 @@ protocol local {
     case LEAVE: MessageLeave;
     case SYSTEM: MessageSystem;
     case DELETEHISTORY: MessageDeleteHistory;
+    case REACTION: MessageReaction;
   }
 
   enum OutboxStateType {
@@ -187,7 +197,9 @@ protocol local {
     IDENTIFY_2,
     TOOLONG_3,
     DUPLICATE_4,
-    EXPIRED_5
+    EXPIRED_5,
+    TOOMANYATTEMPTS_6,
+    ALREADY_DELETED_7
   }
 
   record OutboxStateError {
@@ -370,6 +382,8 @@ protocol local {
     array<gregor1.UID> atMentions;
     ChannelMention channelMention;
     array<ChannelNameMention> channelNameMentions;
+    // reactionText -> [Reaction(username, reactionMsgID)...]
+    ReactionMap reactions;
   }
 
   enum MessageUnboxedErrorType {
@@ -377,12 +391,19 @@ protocol local {
     BADVERSION_CRITICAL_1,
     BADVERSION_2,
     IDENTIFY_3,
-    EPHEMERAL_4
+    EPHEMERAL_4,
+    PAIRWISE_MISSING_5
   }
 
   record MessageUnboxedError {
     MessageUnboxedErrorType errType;
     string errMsg;
+    // verbose error info for debugging but not
+    // user display
+    string internalErrMsg;
+    VersionKind versionKind;
+    int versionNumber;
+    boolean isCritical;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
@@ -525,7 +546,7 @@ protocol local {
     int num;
   }
 
-  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetThreadLocalRes getThreadLocal(ConversationID conversationID, GetThreadReason reason, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetThreadQuery {
     boolean markAsRead;
     array<MessageType> messageTypes;
@@ -550,16 +571,11 @@ protocol local {
     FULL_0,
     INCREMENTAL_1
   }
-  enum GetThreadNonblockReason {
-    GENERAL_0,
-    PUSH_1,
-    FOREGROUND_2
-  }
   enum GetThreadNonblockPgMode {
     DEFAULT_0,
     SERVER_1
   }
-  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadNonblockReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
@@ -638,6 +654,7 @@ protocol local {
   PostLocalNonblockRes postTextNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
   PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalNonblockRes postEditNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postReactionNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalNonblockRes postHeadlineNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic,  string headline, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalRes postHeadline(ConversationID conversationID, string tlfName, boolean tlfPublic, string headline, keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalNonblockRes postMetadataNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic,  string channelName, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);

@@ -217,7 +217,7 @@ type userEKStatementResponse struct {
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
 func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []keybase1.UID) (statements map[keybase1.UID]*keybase1.UserEkStatement, err error) {
-	defer g.CTraceTimed(ctx, "fetchUserEKStatements", func() error { return err })()
+	defer g.CTraceTimed(ctx, fmt.Sprintf("fetchUserEKStatements: numUids: %v", len(uids)), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",
@@ -374,7 +374,7 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid key
 }
 
 func filterStaleUserEKStatements(ctx context.Context, g *libkb.GlobalContext, statementMap map[keybase1.UID]*keybase1.UserEkStatement, merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkStatement, err error) {
-	defer g.CTraceTimed(ctx, "filterStaleUserEKStatements", func() error { return err })()
+	defer g.CTraceTimed(ctx, fmt.Sprintf("filterStaleUserEKStatements: numStatements: %v", len(statementMap)), func() error { return err })()
 
 	activeMap = make(map[keybase1.UID]keybase1.UserEkStatement)
 	for uid, statement := range statementMap {

@@ -85,6 +85,9 @@ def Integer timestamp() {
 }
 
 android {
+    dexOptions {
+        jumboMode true
+    }
     compileSdkVersion 27
     buildToolsVersion "27.0.3"
 
@@ -93,7 +96,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 28
         versionCode timestamp()
-        versionName "2.0.1"
+        versionName "2.3.0"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }

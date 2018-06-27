@@ -8,7 +8,7 @@ import {
   Icon,
   MaybePopup,
   ProgressIndicator,
-  HeaderHoc,
+  HeaderOnMobile,
   Text,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
@@ -29,7 +29,7 @@ const _Spinner = (props: Props) => (
     </Box>
   </MaybePopup>
 )
-const Spinner = isMobile ? HeaderHoc(_Spinner) : _Spinner
+const Spinner = HeaderOnMobile(_Spinner)
 
 const _ReallyLeaveTeam = (props: Props) => (
   <MaybePopup onClose={props.onBack}>
@@ -50,7 +50,6 @@ const _ReallyLeaveTeam = (props: Props) => (
     </Box>
   </MaybePopup>
 )
-const ReallyLeaveTeam = isMobile ? HeaderHoc(_ReallyLeaveTeam) : _ReallyLeaveTeam
 
-export default ReallyLeaveTeam
+export default HeaderOnMobile(_ReallyLeaveTeam)
 export {Spinner}

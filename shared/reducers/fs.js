@@ -19,6 +19,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         return Constants.shouldUseOldMimeType(original, meta) ? meta.set('mimeType', original.mimeType) : meta
       })
     case FsGen.folderListLoaded: {
+      let toRemove = []
       const toMerge = action.payload.pathItems.map((item, path) => {
         const original = state.pathItems.get(path)
 
@@ -38,18 +39,27 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // placeholder), which then gets updated when we hear back from RPC.
           return original
         }
-        // Since both `folderListLoaded` and `favoritesLoaded` can change
-        // `pathItems`, we need to make sure that neither one clobbers the
-        // other's work.
+
+        toRemove = toRemove.concat(
+          original.children
+            .filter(child => !item.children.includes(child))
+            .toArray()
+            .map(name => Types.pathConcat(path, name))
+        )
+        console.log({msg: 'Removing entries in state.fs.pathItems', toRemove: toRemove})
+
+        // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
+        // can change `pathItems`, we need to make sure that neither one
+        // clobbers the others' work.
         return item
           .set('badgeCount', original.badgeCount)
           .set('tlfMeta', original.tlfMeta)
           .set('favoriteChildren', original.favoriteChildren)
       })
-      const s = state
+      return state
+        .set('pathItems', state.pathItems.filter((item, path) => !toRemove.includes(path)))
         .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
-      return s
     }
     case FsGen.folderListLoad:
       return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
@@ -64,17 +74,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
         return [
           path,
-          // Since both `folderListLoaded` and `favoritesLoaded` can change
-          // `pathItems`, we need to make sure that neither one clobbers the
-          // other's work.
+          // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
+          // can change `pathItems`, we need to make sure that neither one
+          // clobbers the others' work.
           original
             .set('badgeCount', item.badgeCount)
             .set('tlfMeta', item.tlfMeta)
             .set('favoriteChildren', item.favoriteChildren),
         ]
       })
-      const s = state.mergeIn(['pathItems'], toMerge)
-      return s
+      return state.mergeIn(['pathItems'], toMerge)
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
@@ -142,23 +151,62 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['pathItems', action.payload.path],
         pathItem => (pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem)
       )
+    case FsGen.newFolderRow:
+      const {parentPath} = action.payload
+      const parentPathItem = state.pathItems.get(parentPath, Constants.makeUnknownPathItem())
+      if (parentPathItem.type !== 'folder') {
+        console.warn(`bad parentPath: ${parentPathItem.type}`)
+        return state
+      }
+      let newFolderName = 'New Folder'
+      for (let i = 2; parentPathItem.children.has(newFolderName); ++i) {
+        newFolderName = `New Folder ${i}`
+      }
+
+      return state.mergeIn(
+        ['edits'],
+        [
+          [
+            Constants.makeEditID(),
+            Constants.makeNewFolder({
+              name: newFolderName,
+              hint: newFolderName,
+              parentPath,
+            }),
+          ],
+        ]
+      )
+    case FsGen.newFolderName:
+      return state.updateIn(
+        // $FlowFixMe
+        ['edits', action.payload.editID],
+        editItem => editItem && editItem.set('name', action.payload.name)
+      )
+    case FsGen.editSuccess:
+    case FsGen.discardEdit:
+      // $FlowFixMe
+      return state.removeIn(['edits', action.payload.editID])
+    case FsGen.editFailed:
+      // $FlowFixMe
+      return state.setIn(['edits', action.payload.editID, 'status'], 'failed')
     case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.uninstallKBFS:
     case FsGen.fsActivity:
     case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
-    case FsGen.mimeTypeLoad:
-    case FsGen.share:
-    case FsGen.save:
+    case FsGen.shareNative:
+    case FsGen.saveMedia:
     case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
+    case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
+    case FsGen.commitEdit:
+    case FsGen.letResetUserBackIn:
       return state
     default:
       /*::

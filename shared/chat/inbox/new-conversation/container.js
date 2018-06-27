@@ -28,7 +28,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+  onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'inbox'})),
   onClick: () =>
     dispatch(
       Chat2Gen.createSelectConversation({
@@ -43,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onCancel: dispatchProps.onCancel,
   onClick: dispatchProps.onClick,
   shouldShow: stateProps.shouldShow,
-  users: stateProps.users.subtract([stateProps._you]),
+  users: stateProps.users.toSet().subtract([stateProps._you]),
 })
 
 class NewChooser extends React.PureComponent<Props> {

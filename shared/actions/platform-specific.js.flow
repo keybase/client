@@ -1,7 +1,6 @@
 // @flow
 declare export function checkPermissions(): Promise<boolean>
-declare export function setShownPushPrompt(): Promise<void>
-declare export function getShownPushPrompt(): Promise<string>
+declare export function getShownPushPrompt(): Promise<0 | 1>
 declare export function openAppSettings(): void
 declare export function requestPushPermissions(): Promise<void>
 declare export function configurePush(): void
@@ -21,7 +20,11 @@ declare export function displayNewMessageNotification(
   text: string,
   convID: ?string,
   badgeCount: ?number,
-  myMsgID: ?number
+  myMsgID: ?number,
+  soundName: ?string
 ): void
 declare export function clearAllNotifications(): void
-declare export function getContentTypeFromURL(url: string, cb: {error?: any, statusCode?: number, contentType?: string}): Promise<string>
+declare export function getContentTypeFromURL(
+  url: string,
+  cb: {error?: any, statusCode?: number, contentType?: string}
+): Promise<string>

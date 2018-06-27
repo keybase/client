@@ -24,7 +24,7 @@ import (
 
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 	tc = externalstest.SetupTest(tb, name, depth+1)
-	stellar.ServiceInit(tc.G)
+	stellar.ServiceInit(tc.G, nil)
 	teams.ServiceInit(tc.G)
 	// use an insecure triplesec in tests
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
@@ -414,7 +414,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	stellarSender, err := stellar.LookupSenderPrimary(context.Background(), tcs[0].G)
+	stellarSender, err := stellar.LookupSender(context.Background(), tcs[0].G, "")
 	require.NoError(t, err)
 
 	u1, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcs[0].G, tcs[1].Fu.Username))
@@ -474,7 +474,9 @@ func testRelay(t *testing.T, yank bool) {
 		Asset:     stellar1.Asset{Type: "native"},
 	})
 	require.NoError(t, err)
-	require.NotNil(t, sendRes.Relay)
+
+	details, err := tcs[0].Backend.PaymentDetails(context.Background(), tcs[0], sendRes.KbTxID.String())
+	require.NoError(t, err)
 
 	claimant := 0
 	if !yank {
@@ -490,14 +492,11 @@ func testRelay(t *testing.T, yank bool) {
 		}
 		getapuk(tcs[1])
 
-		_, err := stellar.CreateWallet(context.Background(), tcs[1].G)
-		require.NoError(t, err)
-
 		tcs[0].Backend.ImportAccountsForUser(tcs[claimant])
 
 		// The implicit team has an invite for the claimant. Now the sender signs them into the team.
 		t.Logf("Sender keys recipient into implicit team")
-		teamID := sendRes.Relay.TeamID
+		teamID := details.Summary.Relay().TeamID
 		team, err := teams.Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamID})
 		require.NoError(t, err)
 		invite, _, found := team.FindActiveKeybaseInvite(tcs[claimant].Fu.GetUID())
@@ -519,11 +518,12 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "claimable", history[0].Payment.Status)
+	require.Equal(t, "Claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
 
-	fhistory, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
+	fhistory := fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
@@ -560,10 +560,11 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "completed", history[0].Payment.Status)
+	require.Equal(t, "Completed", history[0].Payment.Status)
 
-	fhistory, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistoryPage, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
+	fhistory = fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
@@ -575,10 +576,11 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "completed", history[0].Payment.Status)
+	require.Equal(t, "Completed", history[0].Payment.Status)
 
-	fhistory, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
+	fhistoryPage, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
+	fhistory = fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
@@ -595,11 +597,55 @@ func TestGetAvailableCurrencies(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	stellar.ServiceInit(tcs[0].G)
 	conf, err := tcs[0].G.GetStellar().GetServerDefinitions(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, conf.Currencies["USD"].Name, "US Dollar")
 	require.Equal(t, conf.Currencies["EUR"].Name, "Euro")
+}
+
+func TestDefaultCurrency(t *testing.T) {
+	// Initial account should be created with display currency set
+	// according to system locale/region. Additional accounts display
+	// currencies should be set to primary account currency (and can
+	// later be changed by the user).
+
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	primary := getPrimaryAccountID(tcs[0])
+	currency, err := remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
+	require.NoError(t, err)
+	require.EqualValues(t, "USD", currency)
+
+	err = tcs[0].Srv.SetDisplayCurrency(context.Background(), stellar1.SetDisplayCurrencyArg{
+		AccountID: primary,
+		Currency:  "EUR",
+	})
+	require.NoError(t, err)
+
+	currency, err = remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
+	require.NoError(t, err)
+	require.EqualValues(t, "EUR", currency)
+
+	a1, s1 := randomStellarKeypair()
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+	})
+	require.NoError(t, err)
+
+	// Should be "EUR" as well, inherited from primary account. Try to
+	// use RPC instead of remote endpoint directly this time.
+	currencyObj, err := tcs[0].Srv.GetDisplayCurrencyLocal(context.Background(), stellar1.GetDisplayCurrencyLocalArg{
+		AccountID: a1,
+	})
+	require.NoError(t, err)
+	require.IsType(t, stellar1.CurrencyLocal{}, currencyObj)
+	require.Equal(t, stellar1.OutsideCurrencyCode("EUR"), currencyObj.Code)
 }
 
 type TestContext struct {

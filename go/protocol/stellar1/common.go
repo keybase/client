@@ -170,12 +170,14 @@ func (e RelayDirection) String() string {
 type PaymentResult struct {
 	KeybaseID KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
 	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
+	Pending   bool                 `codec:"pending" json:"pending"`
 }
 
 func (o PaymentResult) DeepCopy() PaymentResult {
 	return PaymentResult{
 		KeybaseID: o.KeybaseID.DeepCopy(),
 		StellarID: o.StellarID.DeepCopy(),
+		Pending:   o.Pending,
 	}
 }
 
@@ -341,6 +343,20 @@ func (o StellarServerDefinitions) DeepCopy() StellarServerDefinitions {
 			}
 			return ret
 		})(o.Currencies),
+	}
+}
+
+type PageCursor struct {
+	HorizonCursor string `codec:"horizonCursor" json:"horizonCursor"`
+	DirectCursor  string `codec:"directCursor" json:"directCursor"`
+	RelayCursor   string `codec:"relayCursor" json:"relayCursor"`
+}
+
+func (o PageCursor) DeepCopy() PageCursor {
+	return PageCursor{
+		HorizonCursor: o.HorizonCursor,
+		DirectCursor:  o.DirectCursor,
+		RelayCursor:   o.RelayCursor,
 	}
 }
 

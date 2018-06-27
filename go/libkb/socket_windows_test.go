@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
@@ -83,36 +84,45 @@ func namedPipeClient(sendSocket Socket, t *testing.T) {
 }
 
 func TestWindowsPipeOwner(t *testing.T) {
-	t.Skip()
+
+	if os.Getenv("JENKINS_URL") != "" {
+		t.Skip("Skipping pipeowner test - doesn't work on CI, works locally")
+	}
+
 	tc := setupTest(t, "socket_windows_test")
 	defer tc.Cleanup()
 
-	testPipeName := "\\\\.\\pipe\\keybase\\test\\pipe"
-	serverCmd := exec.Command("go", "run", "testfixtures\\npipe\\main.go", testPipeName)
+	testPipeName := "\\\\.\\pipe\\kbservice\\test_pipe"
+	serverCmd := exec.Command("go", "run", "testfixtures\\kb_pipetest_server\\main.go", testPipeName)
 	err := serverCmd.Start()
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer serverCmd.Process.Kill()
 
-	// Give the server time to open the pipe
-	time.Sleep(200 * time.Millisecond)
+	for i := 0; i < 20; i++ {
+		// Give the server time to open the pipe
+		time.Sleep(500 * time.Millisecond)
 
-	// Test existing pipe
-	owner, err := IsPipeowner(testPipeName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !owner {
-		t.Fatal(errors.New("Expected true getting owner of test pipe"))
+		// Test existing pipe
+		owner, err := IsPipeowner(tc.G.Log, testPipeName)
+		if err != nil {
+			if i < 19 {
+				continue
+			}
+			t.Fatal(err)
+		}
+		if !owner.IsOwner {
+			t.Fatal(errors.New("Expected true getting owner of test pipe"))
+		}
 	}
 
 	// Test nonexisting
-	owner, err = IsPipeowner(testPipeName + "_nonexistent")
+	owner, err := IsPipeowner(tc.G.Log, testPipeName+"_nonexistent")
 	if err == nil {
 		t.Fatal(errors.New("Expected error getting owner of nonexistent pipe"))
 	}
-	if owner {
+	if owner.IsOwner {
 		t.Fatal(errors.New("Expected false getting owner of nonexistent pipe"))
 	}
 }

@@ -19,11 +19,17 @@ const Header = (props: HeaderProps) => (
           fontSize={48}
           style={platformStyles({isElectron: {display: 'block', lineHeight: '28px', maxHeight: 28}})}
         />
-        <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
+        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
           Set a timeout on your messages and watch them
+          E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
         </Text>
-        <Text type="BodySemibold" backgroundMode="Announcements">
-          E X P L O D E
+        <Text
+          type="BodySmallSemiboldInlineLink"
+          backgroundMode="Announcements"
+          className="underline"
+          onClickURL="https://keybase.io/blog/keybase-exploding-messages"
+        >
+          Learn more
         </Text>
       </Box2>
     )}
@@ -41,27 +47,54 @@ const announcementContainerStyle = {
   paddingBottom: globalMargins.tiny,
 }
 
+const quantityTextStyle = platformStyles({
+  common: {
+    textAlign: 'right',
+    // NOTE if times are added that have three digits, this will need to be increased.
+    width: 15,
+  },
+  isElectron: {
+    display: 'inline-block',
+  },
+})
+
 type ItemProps = {
   desc: MessageExplodeDescription,
   selected: boolean,
-  onSelect: MessageExplodeDescription => void,
 }
 
-const Item = (props: ItemProps) => (
-  <Box2 direction="horizontal" fullWidth={true}>
-    <Text type="Body" style={{flex: 1}}>
-      {props.desc.text}
-    </Text>
-    {props.selected && <Icon type="iconfont-check" color={globalColors.blue} />}
-  </Box2>
-)
+const Item = (props: ItemProps) => {
+  let content
+  const words = props.desc.text.split(' ')
+  if (props.desc.seconds === 0) {
+    // never item
+    content = props.desc.text
+  } else {
+    content = (
+      <React.Fragment>
+        <Text type="Body" style={quantityTextStyle}>
+          {words[0]}
+        </Text>
+        {' ' + words.slice(1).join(' ')}
+      </React.Fragment>
+    )
+  }
+  return (
+    <Box2 direction="horizontal" fullWidth={true}>
+      <Text type="Body" style={{flex: 1}}>
+        {content}
+      </Text>
+      {props.selected && <Icon type="iconfont-check" color={globalColors.blue} />}
+    </Box2>
+  )
+}
 
 export default (props: Props) => {
   const selected = props.selected || {text: 'Never', seconds: 0}
   const listItems = props.items.map(it => ({
-    onClick: () => props.onSelect(it),
+    onClick: () => props.onSelect(it.seconds),
     title: it.text,
-    view: <Item desc={it} selected={selected.seconds === it.seconds} onSelect={props.onSelect} />,
+    view: <Item desc={it} selected={selected === it.seconds} />,
   }))
   listItems.unshift({
     title: 'Explode message after:',

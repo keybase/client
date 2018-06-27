@@ -160,7 +160,7 @@ func (e *DeviceHistory) loadDevices(m libkb.MetaContext, user *libkb.User) error
 
 func (e *DeviceHistory) provisioner(m libkb.MetaContext, d *libkb.Device, ckis *libkb.ComputedKeyInfos, info *libkb.ComputedKeyInfo) (*libkb.Device, error) {
 	for _, v := range info.Delegations {
-		if v.GetKeyType() != libkb.KIDNaclEddsa {
+		if libkb.AlgoType(v.GetKeyType()) != libkb.KIDNaclEddsa {
 			// only concerned with device history, not pgp provisioners
 			continue
 		}
@@ -183,7 +183,7 @@ func (e *DeviceHistory) getLastUsedTimes(m libkb.MetaContext) (ret map[keybase1.
 	defer m.CTrace("DeviceHistory#getLastUsedTimes", func() error { return err })()
 	var devs libkb.DeviceKeyMap
 	var ss *libkb.SecretSyncer
-	ss, err = m.ActiveDevice().SyncSecrets(m)
+	ss, err = m.ActiveDevice().SyncSecretsForce(m)
 	if err != nil {
 		return nil, err
 	}

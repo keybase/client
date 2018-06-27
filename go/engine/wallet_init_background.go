@@ -14,15 +14,11 @@ import (
 )
 
 var WalletInitBackgroundSettings = BackgroundTaskSettings{
-	// Wait after starting the app
-	Start: 15 * time.Second,
-	// When waking up on mobile lots of timers will go off at once. We wait an additional
-	// delay so as not to add to that herd and slow down the mobile experience when opening the app.
-	WakeUp: 12 * time.Second,
-	// Wait between checks
-	Interval: 6 * time.Hour,
-	// Time limit on each round
-	Limit: 5 * time.Minute,
+	Start:        15 * time.Second, // Wait after starting the app
+	StartStagger: 30 * time.Second, // Wait an additional random amount.
+	WakeUp:       12 * time.Second, // Additional delay after waking from sleep.
+	Interval:     6 * time.Hour,    // Wait between checks
+	Limit:        5 * time.Minute,  // Time limit on each round
 }
 
 // WalletInitBackground is an engine.
@@ -105,6 +101,5 @@ func WalletInitBackgroundRound(m libkb.MetaContext) error {
 		return nil
 	}
 
-	_, err := g.GetStellar().CreateWalletGated(context.Background())
-	return err
+	return g.GetStellar().CreateWalletGated(context.Background())
 }

@@ -17,8 +17,8 @@ type FSSyncActivityArg struct {
 }
 
 type FSEditListResponseArg struct {
-	Edits     []FSNotification `codec:"edits" json:"edits"`
-	RequestID int              `codec:"requestID" json:"requestID"`
+	Edits     FSFolderEditHistory `codec:"edits" json:"edits"`
+	RequestID int                 `codec:"requestID" json:"requestID"`
 }
 
 type FSSyncStatusResponseArg struct {

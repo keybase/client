@@ -65,6 +65,7 @@ class Inbox extends PureComponent<Props, State> {
         <Divider
           key="divider"
           toggle={this.props.toggleSmallTeamsExpanded}
+          showSmallTeamsExpandDivider={this.props.showSmallTeamsExpandDivider}
           smallIDsHidden={this.props.smallIDsHidden}
           style={{marginBottom: globalMargins.tiny}}
         />
@@ -176,8 +177,8 @@ const _containerStyle = {
   borderRight: `1px solid ${globalColors.black_05}`,
   contain: 'strict',
   height: '100%',
-  maxWidth: 240,
-  minWidth: 240,
+  maxWidth: 260,
+  minWidth: 260,
   position: 'relative',
 }
 

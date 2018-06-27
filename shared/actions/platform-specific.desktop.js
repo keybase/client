@@ -48,7 +48,13 @@ function showMainWindow() {
   showDockIcon()
 }
 
-function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {
+function displayNewMessageNotification(
+  text: string,
+  convID: ?string,
+  badgeCount: ?number,
+  myMsgID: ?number,
+  soundName: ?string
+) {
   throw new Error('Display new message notification not available on this platform')
 }
 
@@ -57,10 +63,6 @@ function clearAllNotifications() {
 }
 
 function checkPermissions() {
-  throw new Error('Push permissions unsupported on this platform')
-}
-
-function setShownPushPrompt() {
   throw new Error('Push permissions unsupported on this platform')
 }
 
@@ -91,7 +93,6 @@ const getContentTypeFromURL = (
 
 export {
   checkPermissions,
-  setShownPushPrompt,
   getShownPushPrompt,
   openAppSettings,
   requestPushPermissions,

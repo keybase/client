@@ -9,6 +9,7 @@ client_dir="$gopath/src/github.com/keybase/client"
 shared_dir="$gopath/src/github.com/keybase/client/shared"
 rn_dir="$gopath/src/github.com/keybase/client/shared/react-native"
 ios_dir="$gopath/src/github.com/keybase/client/shared/react-native/ios"
+clean=${CLEAN:-}
 cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 client_commit=${CLIENT_COMMIT:-}
@@ -81,6 +82,9 @@ echo "Packager running with PID $rn_packager_pid"
 
 # Build and publish the apk
 cd "$ios_dir"
+if [ -n "$clean" ]; then
+    xcodebuild clean -workspace "Keybase.xcworkspace" -scheme "Keybase"
+fi
 fastlane ios beta
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing ios"

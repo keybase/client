@@ -19,7 +19,9 @@ let config = {
   maskStrings: false, // Replace all hiddenstrings w/ fake values
   printBridgeB64: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
+  printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
   printRPC: false, // Print rpc traffic
+  printRPCStats: false, // Print more detailed stats about rpcs
   reduxSagaLogger: false, // Print saga debug info
   reduxSagaLoggerMasked: true, // Print saga debug info masked out
   showDevTools: false, // Show devtools on start
@@ -34,7 +36,9 @@ if (__DEV__) {
   config.enableStoreLogging = true
   config.filterActionLogs = null // '^chat|entity'
   config.printOutstandingRPCs = true
+  config.printOutstandingTimerListeners = true
   config.printRPC = true
+  config.printRPCStats = true
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
@@ -78,6 +82,7 @@ if (PERF) {
   config.ignoreDisconnectOverlay = false
   config.immediateStateLogging = false
   config.printOutstandingRPCs = false
+  config.printOutstandingTimerListeners = false
   config.printRPC = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
@@ -98,7 +103,9 @@ export const {
   isTesting,
   maskStrings,
   printOutstandingRPCs,
+  printOutstandingTimerListeners,
   printRPC,
+  printRPCStats,
   reduxSagaLogger,
   reduxSagaLoggerMasked,
   showDevTools,

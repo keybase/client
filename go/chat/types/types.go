@@ -46,8 +46,8 @@ func NewNameInfo() *NameInfo {
 
 type MembershipUpdateRes struct {
 	UserJoinedConvs    []chat1.ConversationLocal
-	UserRemovedConvs   []chat1.ConversationID
-	UserResetConvs     []chat1.ConversationID
+	UserRemovedConvs   []chat1.ConversationMember
+	UserResetConvs     []chat1.ConversationMember
 	OthersJoinedConvs  []chat1.ConversationMember
 	OthersRemovedConvs []chat1.ConversationMember
 	OthersResetConvs   []chat1.ConversationMember
@@ -63,6 +63,7 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 type RemoteConversationMetadata struct {
 	TopicName         string   `codec:"t"`
 	Snippet           string   `codec:"s"`
+	SnippetDecoration string   `codec:"d"`
 	Headline          string   `codec:"h"`
 	WriterNames       []string `codec:"w"`
 	ResetParticipants []string `codec:"r"`

@@ -24,9 +24,9 @@ function previewCreateComponent(style) {
           </Text>
         )
       case 'emoji':
-        return <EmojiIfExists emojiName={String(children)} size={12} key={key} />
+        return <EmojiIfExists emojiName={String(children)} size={14} key={key} />
       case 'native-emoji':
-        return <Emoji emojiName={String(children)} size={12} key={key} />
+        return <Emoji emojiName={String(children)} size={14} key={key} />
       default:
         return (
           <Text type="Body" key={key} lineClamp={1} style={collapseStyles([styles.neutral, style])}>
@@ -151,7 +151,7 @@ function messageCreateComponent(style, allowFontScaling) {
         return (
           <EmojiIfExists
             emojiName={String(children)}
-            size={options.bigEmoji ? 32 : 15}
+            size={options.bigEmoji ? 32 : 16}
             key={key}
             allowFontScaling={allowFontScaling}
           />
@@ -160,7 +160,7 @@ function messageCreateComponent(style, allowFontScaling) {
         return (
           <Emoji
             emojiName={String(children)}
-            size={options.bigEmoji ? 32 : 15}
+            size={options.bigEmoji ? 32 : 16}
             key={key}
             allowFontScaling={allowFontScaling}
           />
@@ -201,9 +201,10 @@ const styles = styleSheetCreate({
   bold: {color: undefined},
   codeSnippet: {
     ...globalStyles.fontTerminal,
+    ...globalStyles.rounded,
     backgroundColor: globalColors.beige,
     color: globalColors.blue,
-    fontSize: 13,
+    fontSize: 15,
     // FIXME not yet supported for nested <Text>:
     // ...globalStyles.rounded,
     // paddingLeft: globalMargins.xtiny,
@@ -221,6 +222,7 @@ const styles = styleSheetCreate({
   },
   codeSnippetBlockText: {
     ...globalStyles.fontTerminal,
+    fontSize: 15,
     color: globalColors.black_75,
   },
   italic: {color: undefined, fontStyle: 'italic', fontWeight: undefined},
@@ -230,7 +232,11 @@ const styles = styleSheetCreate({
   // <Markdown style={{color: ...}}> works.
   link: {fontWeight: undefined},
   neutral: {color: undefined, fontWeight: undefined},
-  quoteBlock: {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8},
+  quoteBlock: {
+    borderLeftColor: globalColors.lightGrey2,
+    borderLeftWidth: 3,
+    paddingLeft: 8,
+  },
   strike: {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'},
 })
 

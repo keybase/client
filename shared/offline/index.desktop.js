@@ -4,7 +4,7 @@ import * as React from 'react'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {reachabilityReachable} from '../constants/types/rpc-gen'
-import {ignoreDisconnectOverlay} from '../local-debug.desktop.js'
+import {ignoreDisconnectOverlay} from '../local-debug.desktop'
 
 import type {Props} from './index'
 
@@ -22,7 +22,7 @@ const Offline = ({reachable, appFocused}: Props) => {
   return (
     <Box style={containerOverlayStyle}>
       <Box style={overlayRowStyle}>
-        <Text type="BodySemibold" style={textStyle}>
+        <Text type="BodySmallSemibold" style={textStyle}>
           {message}
         </Text>
       </Box>

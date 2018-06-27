@@ -35,7 +35,9 @@ let config = {
   isTesting: nativeBridge.test === '1' || (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
   maskStrings: false, // Replace all hiddenstrings w/ fake values
   printBridgeB64: false, // Print raw b64 going over the wire
+  printRPCStats: false, // print detailed info on stats
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
+  printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
   printRPC: false, // Print rpc traffic
   reduxSagaLogger: false, // Print saga debug info
   reduxSagaLoggerMasked: true, // Print saga debug info masked out
@@ -53,7 +55,9 @@ if (__DEV__) {
   // with a "Profile" build on a phone.
   config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
+  config.printOutstandingTimerListeners = true
   config.printRPC = true
+  config.printRPCStats = true
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
 
@@ -75,6 +79,7 @@ if (PERF) {
   config.forceImmediateLogging = false
   config.immediateStateLogging = false
   config.printOutstandingRPCs = false
+  config.printOutstandingTimerListeners = false
   config.printRPC = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
@@ -95,7 +100,9 @@ export const {
   maskStrings,
   printBridgeB64,
   printOutstandingRPCs,
+  printOutstandingTimerListeners,
   printRPC,
+  printRPCStats,
   reduxSagaLogger,
   reduxSagaLoggerMasked,
   showDevTools,

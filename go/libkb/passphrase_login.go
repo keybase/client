@@ -217,7 +217,7 @@ func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts in
 
 func StoreSecretAfterLogin(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
 	defer m.CTrace("StoreSecretAfterLogin", func() error { return err })()
-	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID, m.G())
+	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID)
 	return StoreSecretAfterLoginWithLKS(m, n, lksec)
 }
 
@@ -281,7 +281,7 @@ func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {
 	if err != nil {
 		return nil, err
 	}
-	lks := NewLKSecWithFullSecret(fullSecret, m.CurrentUID(), m.G())
+	lks := NewLKSecWithFullSecret(fullSecret, m.CurrentUID())
 	if err = lks.LoadServerHalf(m); err != nil {
 		return nil, err
 	}
@@ -460,4 +460,21 @@ func ComputeLoginPackage2(m MetaContext, pps *PassphraseStream) (ret PDPKALoginP
 		return ret, err
 	}
 	return computeLoginPackageFromUID(m.CurrentUID(), pps, loginSessionRaw)
+}
+
+// UnverifiedPassphraseStream takes a passphrase as a parameter and
+// also the salt from the Account and computes a Triplesec and
+// a passphrase stream.  It's not verified through a Login.
+func UnverifiedPassphraseStream(m MetaContext, uid keybase1.UID, passphrase string) (tsec Triplesec, ret *PassphraseStream, err error) {
+	var salt []byte
+	if lctx := m.LoginContext(); lctx != nil && lctx.GetUID().Equal(uid) {
+		salt = lctx.Salt()
+	}
+	if salt == nil {
+		salt, err = LookupSaltForUID(m, uid)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return StretchPassphrase(m.G(), passphrase, salt)
 }

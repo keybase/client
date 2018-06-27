@@ -10,6 +10,7 @@ import {
   Text,
   ButtonBar,
   ScrollView,
+  WaitingButton,
 } from '../../../common-adapters/index'
 import {globalColors, globalStyles, isMobile, isIPhoneX} from '../../../styles'
 
@@ -43,7 +44,9 @@ class GetTitles extends React.Component<Props, State> {
     }
   }
 
-  _onNext = () => {
+  _onNext = (e: SyntheticEvent<>) => {
+    e.preventDefault()
+
     const paths = Object.keys(this.state.pathToInfo)
     const path = paths[this.state.index]
     const info = this.state.pathToInfo[path]
@@ -58,6 +61,11 @@ class GetTitles extends React.Component<Props, State> {
       // go to next
       this.setState({index: nextIndex})
     }
+  }
+
+  _isLast = () => {
+    const numPaths = Object.keys(this.state.pathToInfo).length
+    return this.state.index + 1 === numPaths
   }
 
   _updateTitle = (title: string) => {
@@ -129,7 +137,11 @@ class GetTitles extends React.Component<Props, State> {
             />
             <ButtonBar style={{flexShrink: 0}}>
               <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-              <Button type="Primary" onClick={this._onNext} label="Send" />
+              {this._isLast() ? (
+                <WaitingButton type="Primary" waitingKey={null} onClick={this._onNext} label="Send" />
+              ) : (
+                <Button type="Primary" onClick={this._onNext} label="Next" />
+              )}
             </ButtonBar>
           </Box>
         </ScrollView>

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 	samount "github.com/stellar/go/amount"
@@ -15,27 +16,69 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-var client = horizon.DefaultPublicNetClient
-var network = build.PublicNetwork
+var configLock sync.Mutex
+var gclient = horizon.DefaultPublicNetClient
+var gnetwork = build.PublicNetwork
 
 const defaultMemo = "via keybase"
 const baseReserve = 5000000
 
+// SetClientAndNetwork sets the horizon client and network. Used by stellarnet/testclient.
+func SetClientAndNetwork(c *horizon.Client, n build.Network) {
+	configLock.Lock()
+	defer configLock.Unlock()
+	gclient = c
+	gnetwork = n
+}
+
+// SetClientURLAndNetwork sets the horizon client URL and network.
+func SetClientURLAndNetwork(url string, n build.Network) {
+	configLock.Lock()
+	defer configLock.Unlock()
+	gclient = &horizon.Client{
+		URL:  url,
+		HTTP: http.DefaultClient,
+	}
+	gnetwork = n
+}
+
+// SetClient sets the horizon client.
+func SetClient(c *horizon.Client) {
+	configLock.Lock()
+	defer configLock.Unlock()
+	gclient = c
+}
+
 // SetClientURL sets the url for the horizon server this client
 // connects to.
 func SetClientURL(url string) {
-	client.URL = url
+	configLock.Lock()
+	defer configLock.Unlock()
+	gclient = &horizon.Client{
+		URL:  url,
+		HTTP: http.DefaultClient,
+	}
 }
 
-// SetClient sets the horizon client and network. Used by stellarnet/testclient.
-func SetClient(c *horizon.Client, n build.Network) {
-	client = c
-	network = n
+// SetNetwork sets the horizon network.
+func SetNetwork(n build.Network) {
+	configLock.Lock()
+	defer configLock.Unlock()
+	gnetwork = n
 }
 
 // Client returns the horizon client.
 func Client() *horizon.Client {
-	return client
+	configLock.Lock()
+	defer configLock.Unlock()
+	return gclient
+}
+
+// Network returns the horizon network
+func Network() build.Network {
+	configLock.Lock()
+	defer configLock.Unlock()
+	return gnetwork
 }
 
 // Account represents a Stellar account.
@@ -52,7 +95,7 @@ func NewAccount(address AddressStr) *Account {
 // load uses the horizon client to get the current account
 // information.
 func (a *Account) load() error {
-	internal, err := client.LoadAccount(a.address.String())
+	internal, err := Client().LoadAccount(a.address.String())
 	if err != nil {
 		return errMap(err)
 	}
@@ -165,7 +208,7 @@ func IsMasterKeyActive(accountID AddressStr) (bool, error) {
 	a := NewAccount(accountID)
 	err := a.load()
 	if err != nil {
-		if err == ErrAccountNotFound {
+		if err == ErrSourceAccountNotFound {
 			// Accounts with no entries have active master keys.
 			return true, nil
 		}
@@ -194,7 +237,7 @@ func IsMasterKeyActive(accountID AddressStr) (bool, error) {
 
 // AccountSeqno returns the account sequence number.
 func AccountSeqno(address AddressStr) (uint64, error) {
-	seqno, err := client.SequenceForAccount(address.String())
+	seqno, err := Client().SequenceForAccount(address.String())
 	if err != nil {
 		return 0, errMap(err)
 	}
@@ -205,13 +248,22 @@ func AccountSeqno(address AddressStr) (uint64, error) {
 // This is a summary of any recent payment transactions (payment, create_account, or account_merge).
 // It does not contain as much information as RecentTransactions.
 // It is faster as it is only one request to horizon.
-func (a *Account) RecentPayments() ([]horizon.Payment, error) {
-	link, err := a.paymentsLink()
+// cursor is optional.  if specified, it is used for pagination.
+// limit is optional.  if not specified, default is 10.  max limit is 100.
+func (a *Account) RecentPayments(cursor string, limit int) ([]horizon.Payment, error) {
+	if limit <= 0 {
+		limit = 10
+	} else if limit > 100 {
+		limit = 100
+	}
+
+	link, err := a.paymentsLink(cursor, limit)
 	if err != nil {
 		return nil, err
 	}
+
 	var page PaymentsPage
-	err = getDecodeJSONStrict(link+"?order=desc&limit=10", client.HTTP.Get, &page)
+	err = getDecodeJSONStrict(link, Client().HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +278,7 @@ func (a *Account) RecentTransactions() ([]Transaction, error) {
 		return nil, err
 	}
 	var page TransactionsPage
-	err = getDecodeJSONStrict(link+"?order=desc&limit=10", client.HTTP.Get, &page)
+	err = getDecodeJSONStrict(link+"?order=desc&limit=10", Client().HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +302,7 @@ func (a *Account) RecentTransactions() ([]Transaction, error) {
 func (a *Account) loadOperations(tx Transaction) ([]Operation, error) {
 	link := a.linkHref(tx.Internal.Links.Operations)
 	var page OperationsPage
-	err := getDecodeJSONStrict(link, client.HTTP.Get, &page)
+	err := getDecodeJSONStrict(link, Client().HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
@@ -265,16 +317,25 @@ func TxPayments(txID string) ([]horizon.Payment, error) {
 		return nil, err
 	}
 	var page PaymentsPage
-	err = getDecodeJSONStrict(client.URL+"/transactions/"+txID+"/payments", client.HTTP.Get, &page)
+	err = getDecodeJSONStrict(Client().URL+"/transactions/"+txID+"/payments", Client().HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
 	return page.Embedded.Records, nil
 }
 
+// TxDetails gets a horizon.Transaction for txID.
+func TxDetails(txID string) (horizon.Transaction, error) {
+	var embed TransactionEmbed
+	if err := getDecodeJSONStrict(Client().URL+"/transactions/"+txID, Client().HTTP.Get, &embed); err != nil {
+		return horizon.Transaction{}, err
+	}
+	return embed.Transaction, nil
+}
+
 // HashTx returns the hex transaction ID using the active network passphrase.
 func HashTx(tx xdr.Transaction) (string, error) {
-	bs, err := snetwork.HashTransaction(&tx, network.Passphrase)
+	bs, err := snetwork.HashTransaction(&tx, Network().Passphrase)
 	if err != nil {
 		return "", err
 	}
@@ -315,31 +376,35 @@ func isOpNoDestination(inErr error) bool {
 
 // SendXLM sends 'amount' lumens from 'from' account to 'to' account.
 // If the recipient has no account yet, this will create it.
-func SendXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
+// memoText is a public memo.
+func SendXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, err error) {
+	if len(memoText) > 28 {
+		return 0, "", errors.New("public memo is too long")
+	}
 	// this is checked in build.Transaction, but can't hurt to break out early
 	if _, err = samount.Parse(amount); err != nil {
 		return 0, "", err
 	}
 
 	// try payment first
-	ledger, txid, err = paymentXLM(from, to, amount)
+	ledger, txid, err = paymentXLM(from, to, amount, memoText)
 
 	if err != nil {
-		if err != ErrAccountNotFound {
+		if err != ErrDestinationAccountNotFound {
 			return 0, "", err
 		}
 
 		// if payment failed due to op_no_destination, then
 		// should try createAccount instead
-		return createAccountXLM(from, to, amount)
+		return createAccountXLM(from, to, amount, memoText)
 	}
 
 	return ledger, txid, nil
 }
 
 // paymentXLM creates a payment transaction from 'from' to 'to' for 'amount' lumens.
-func paymentXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	sig, err := PaymentXLMTransaction(from, to, amount, client)
+func paymentXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, err error) {
+	sig, err := PaymentXLMTransaction(from, to, amount, memoText, Client())
 	if err != nil {
 		return 0, "", err
 	}
@@ -347,17 +412,17 @@ func paymentXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid 
 }
 
 // PaymentXLMTransaction creates a signed transaction to send a payment from 'from' to 'to' for 'amount' lumens.
-func PaymentXLMTransaction(from SeedStr, to AddressStr, amount string,
+func PaymentXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
 	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		network,
+		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.Payment(
 			build.Destination{AddressOrSeed: to.String()},
 			build.NativeAmount{Amount: amount},
 		),
-		build.MemoText{Value: defaultMemo},
+		build.MemoText{Value: memoText},
 	)
 	if err != nil {
 		return res, err
@@ -366,8 +431,9 @@ func PaymentXLMTransaction(from SeedStr, to AddressStr, amount string,
 }
 
 // createAccountXLM funds an new account 'to' from 'from' with a starting balance of 'amount'.
-func createAccountXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	sig, err := CreateAccountXLMTransaction(from, to, amount, client)
+// memoText is a public memo.
+func createAccountXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, err error) {
+	sig, err := CreateAccountXLMTransaction(from, to, amount, memoText, Client())
 	if err != nil {
 		return 0, "", err
 	}
@@ -376,17 +442,17 @@ func createAccountXLM(from SeedStr, to AddressStr, amount string) (ledger int32,
 
 // CreateAccountXLMTransaction creates a signed transaction to fund an new account 'to' from 'from'
 // with a starting balance of 'amount'.
-func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string,
+func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
 	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		network,
+		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.CreateAccount(
 			build.Destination{AddressOrSeed: to.String()},
 			build.NativeAmount{Amount: amount},
 		),
-		build.MemoText{Value: defaultMemo},
+		build.MemoText{Value: memoText},
 	)
 	if err != nil {
 		return res, err
@@ -399,7 +465,7 @@ func AccountMergeTransaction(from SeedStr, to AddressStr,
 	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		network,
+		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.AccountMerge(
 			build.Destination{AddressOrSeed: to.String()},
@@ -423,7 +489,7 @@ func RelocateTransaction(from SeedStr, to AddressStr, toIsFunded bool,
 	}
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
-		network,
+		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.CreateAccount(
 			build.Destination{AddressOrSeed: to.String()},
@@ -471,7 +537,7 @@ func sign(from SeedStr, tx *build.TransactionBuilder) (res SignResult, err error
 
 // Submit submits a signed transaction to horizon.
 func Submit(signed string) (ledger int32, txid string, err error) {
-	resp, err := client.SubmitTransaction(signed)
+	resp, err := Client().SubmitTransaction(signed)
 	if err != nil {
 		return 0, "", errMap(err)
 	}
@@ -480,14 +546,23 @@ func Submit(signed string) (ledger int32, txid string, err error) {
 }
 
 // paymentsLink returns the horizon endpoint to get payment information.
-func (a *Account) paymentsLink() (string, error) {
+func (a *Account) paymentsLink(cursor string, limit int) (string, error) {
 	if a.internal == nil {
 		if err := a.load(); err != nil {
 			return "", err
 		}
 	}
 
-	return a.linkHref(a.internal.Links.Payments), nil
+	link := a.linkHref(a.internal.Links.Payments)
+
+	var url string
+	if cursor != "" {
+		url = fmt.Sprintf("%s?cursor=%s&order=desc&limit=%d", link, cursor, limit)
+	} else {
+		url = fmt.Sprintf("%s?order=desc&limit=%d", link, limit)
+	}
+
+	return url, nil
 }
 
 // transactionsLink returns the horizon endpoint to get transaction information.
@@ -520,12 +595,12 @@ func errMap(err error) error {
 	xerr := errors.Cause(err)
 
 	if isOpNoDestination(xerr) {
-		return ErrAccountNotFound
+		return ErrDestinationAccountNotFound
 	}
 
 	if herr, ok := xerr.(*horizon.Error); ok {
 		if herr.Problem.Status == 404 {
-			return ErrAccountNotFound
+			return ErrSourceAccountNotFound
 		}
 	}
 

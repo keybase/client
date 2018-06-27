@@ -21,12 +21,24 @@ const mapStateToProps = (state: TypedState, {path}) => {
     itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.Set()) : I.Set()
   const itemFavoriteChildren =
     itemDetail && itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
+  const _username = state.config.username || undefined
+  const resetParticipants =
+    itemDetail &&
+    itemDetail.type === 'folder' &&
+    !!itemDetail.tlfMeta &&
+    itemDetail.tlfMeta.resetParticipants.length > 0
+      ? itemDetail.tlfMeta.resetParticipants.map(i => i.username)
+      : []
+  const isUserReset = resetParticipants.includes(_username)
   return {
     _itemChildren: itemChildren,
     _itemFavoriteChildren: itemFavoriteChildren,
-    _username: state.config.username || undefined,
     _pathItems: state.fs.pathItems,
+    _edits: state.fs.edits,
     _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
+    _username,
+    isUserReset,
+    resetParticipants,
     path,
     progress: itemDetail ? itemDetail.progress : 'pending',
   }
@@ -42,14 +54,22 @@ const mergeProps = (stateProps, dispatchProps, {routePath}) => {
   })
   const filteredPathItems = pathItems.filter(item => !(item.tlfMeta && item.tlfMeta.isIgnored)).toList()
   const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
-  const items = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)
+  const stillItems = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)
     .map(({name}) => Types.pathConcat(stateProps.path, name))
     .toArray()
+  const editingItems = stateProps._edits
+    .filter(edit => edit.parentPath === stateProps.path)
+    .keySeq()
+    .toArray()
+    .sort()
   return {
-    routePath,
-    items,
-    progress: stateProps.progress,
+    stillItems,
+    editingItems,
+    isUserReset: stateProps.isUserReset,
+    resetParticipants: stateProps.resetParticipants,
     path: stateProps.path,
+    progress: stateProps.progress,
+    routePath,
   }
 }
 
@@ -76,8 +96,9 @@ const FilesLoadingHoc = compose(
     componentDidUpdate(prevProps) {
       // This gets called on route changes too, e.g. when user clicks the
       // action menu. So only load folder list when path changes.
+      const pathLevel = Types.getPathLevel(this.props.path)
       this.props.path !== prevProps.path && this.props.loadFolderList(this.props.path)
-      Types.getPathLevel(this.props.path) === 2 && this.props.loadFavorites()
+      pathLevel === 2 && this.props.loadFavorites()
     },
   }),
   setDisplayName('FilesLoadingHoc')

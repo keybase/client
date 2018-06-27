@@ -3,29 +3,30 @@ import * as React from 'react'
 import {
   Avatar,
   Box2,
+  ConnectedUsernames,
   FloatingMenu,
-  Icon,
-  Text,
   HOCTimers,
+  Icon,
+  ProgressIndicator,
+  Text,
   type PropsWithTimer,
 } from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
-import {formatTimeForPopup, formatTimeForRevoked, secondsToDHMS} from '../../../../../util/timestamp'
-import {PopupHeaderText} from '../../../../../common-adapters/popup-menu'
+import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
+import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
+import {PopupHeaderText, type MenuItem} from '../../../../../common-adapters/popup-menu'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
   attachTo: ?React.Component<any, any>,
   author: string,
-  canEdit: boolean,
-  canExplodeNow: boolean,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   explodesAt: number,
-  onEdit: () => void,
-  onExplodeNow: () => void,
+  hideTimer: boolean,
+  items: Array<MenuItem | 'Divider' | null>,
   onHidden: () => void,
   position: Position,
   style?: Object,
@@ -39,63 +40,71 @@ type State = {
 }
 
 class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
-  timer: ?IntervalID = null
+  timer: TickerID
   state = {
     secondsLeft: 0,
   }
 
   componentWillMount() {
     if (!__STORYBOOK__) {
-      this.timer = this.props.setInterval(() => this.tick(), 1000)
+      this.timer = addTicker(this.tick)
     }
     this.tick()
   }
 
   componentWillUnmount() {
-    this.timer && this.props.clearInterval(this.timer)
+    this.timer && removeTicker(this.timer)
   }
 
-  tick() {
-    const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
-    let secondsLeft = Math.floor(this.props.explodesAt / 1000) - now
+  tick = () => {
+    const now = __STORYBOOK__ ? 1999999999000 : Date.now()
+    let secondsLeft = Math.floor((this.props.explodesAt - now) / 1000)
     if (secondsLeft < 0) {
+      // TODO remove if we end up w/ an "exploded" popup
+      this.props.onHidden()
       secondsLeft = 0
     }
     this.setState({secondsLeft})
   }
 
   render() {
-    const {author, deviceName, deviceRevokedAt, timestamp, yourMessage} = this.props
+    const {author, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
+    const bombVerticalOffset = isMobile ? 0 : -20
     return (
-      <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
+      <Box2
+        direction="vertical"
+        fullWidth={true}
+        style={{alignItems: 'center', paddingTop: (isMobile ? 96 : 64) + bombVerticalOffset}}
+      >
         <Icon
-          style={{marginBottom: globalMargins.tiny}}
+          style={{marginBottom: globalMargins.tiny, position: 'absolute', top: bombVerticalOffset}}
           type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
         />
-        <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black}}>
+        <Box2 direction="vertical" gap="tiny" gapStart={true} gapEnd={true}>
+          <Text type="BodySmall" style={{color: globalColors.black_75}}>
             EXPLODING MESSAGE
           </Text>
         </Box2>
         <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black_40}}>
-            by
-          </Text>
-          <Avatar style={styleAvatar} username={author} size={16} />
-          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-            {author}
-          </Text>
+          <Text type="BodySmall">by</Text>
+          <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
+            <Avatar username={author} size={16} clickToProfile="tracker" />
+            <ConnectedUsernames
+              clickable={true}
+              colorFollowing={true}
+              colorYou={true}
+              usernames={[author]}
+              underline={true}
+              type="BodySmallSemibold"
+            />
+          </Box2>
         </Box2>
         <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black_40}}>
-            using device&nbsp;{deviceName}
-          </Text>
+          <Text type="BodySmall">using device {deviceName}</Text>
         </Box2>
         <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black_40}}>
-            {formatTimeForPopup(timestamp)}
-          </Text>
+          <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
         </Box2>
         {deviceRevokedAt && (
           <PopupHeaderText
@@ -112,14 +121,21 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           fullWidth={true}
           gapEnd={true}
           gapStart={true}
-          style={{
-            backgroundColor: this.state.secondsLeft < oneMinuteInS ? globalColors.red : globalColors.black_75,
-            marginTop: globalMargins.tiny,
-          }}
+          style={collapseStyles([
+            styleTimerBox,
+            {
+              backgroundColor:
+                this.state.secondsLeft < oneMinuteInS ? globalColors.red : globalColors.black_75,
+            },
+          ])}
         >
-          <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
-            {secondsToDHMS(this.state.secondsLeft)}
-          </Text>
+          {hideTimer ? (
+            <ProgressIndicator white={true} style={{width: 17, height: 17}} />
+          ) : (
+            <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
+              {msToDHMS(this.props.explodesAt - Date.now())}
+            </Text>
+          )}
         </Box2>
       </Box2>
     )
@@ -127,27 +143,11 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
 }
 
 const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
-  const items = [
-    ...(props.canEdit
-      ? [
-          {
-            onClick: props.onEdit,
-            title: 'Edit',
-          },
-        ]
-      : []),
-    ...(props.canExplodeNow
-      ? [
-          {
-            danger: true,
-            onClick: props.onExplodeNow,
-            title: 'Explode now',
-          },
-        ]
-      : []),
-  ]
-
   const header = {
+    style: {
+      paddingBottom: 0,
+      paddingTop: 24,
+    },
     title: 'header',
     view: <ExplodingPopupHeader {...props} />,
   }
@@ -157,7 +157,7 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
       attachTo={props.attachTo}
       closeOnSelect={true}
       header={header}
-      items={items}
+      items={props.items}
       onHidden={props.onHidden}
       position={props.position}
       style={collapseStyles([stylePopup, props.style])}
@@ -180,11 +180,6 @@ const stylePopup = platformStyles({
   },
 })
 
-const styleAvatar = {
-  marginLeft: globalMargins.xtiny,
-  marginRight: 1,
-}
-
 const styleRevokedAt = {
   borderBottomLeftRadius: 3,
   borderBottomRightRadius: 3,
@@ -192,5 +187,16 @@ const styleRevokedAt = {
   marginTop: globalMargins.small,
   width: '100%',
 }
+
+const styleTimerBox = platformStyles({
+  common: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: globalMargins.tiny,
+  },
+  isMobile: {
+    height: 46,
+  },
+})
 
 export default HOCTimers(ExplodingPopupMenu)

@@ -31,6 +31,10 @@
           "name": "convID"
         },
         {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
           "type": [
             null,
             "UnreadUpdate"
@@ -55,6 +59,10 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         },
         {
           "type": [
@@ -85,6 +93,10 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         },
         {
           "type": [
@@ -124,6 +136,10 @@
           "name": "inboxVers"
         },
         {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
           "type": [
             null,
             "UnreadUpdate"
@@ -152,6 +168,10 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         },
         {
           "type": [
@@ -184,6 +204,10 @@
           "name": "inboxVers"
         },
         {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
           "type": [
             null,
             "UnreadUpdate"
@@ -212,6 +236,10 @@
         {
           "type": "ConversationNotificationInfo",
           "name": "settings"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         },
         {
           "type": [
@@ -249,6 +277,10 @@
             "items": "MessageSummary"
           },
           "name": "maxMsgs"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         },
         {
           "type": [
@@ -457,6 +489,10 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         }
       ]
     }

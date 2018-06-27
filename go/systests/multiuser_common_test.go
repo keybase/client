@@ -113,7 +113,9 @@ func (t smuTerminalUI) ErrorWriter() io.Writer                                  
 func (t smuTerminalUI) Output(string) error                                           { return nil }
 func (t smuTerminalUI) OutputDesc(libkb.OutputDescriptor, string) error               { return nil }
 func (t smuTerminalUI) OutputWriter() io.Writer                                       { return nil }
+func (t smuTerminalUI) UnescapedOutputWriter() io.Writer                              { return nil }
 func (t smuTerminalUI) Printf(fmt string, args ...interface{}) (int, error)           { return 0, nil }
+func (t smuTerminalUI) PrintfUnescaped(fmt string, args ...interface{}) (int, error)  { return 0, nil }
 func (t smuTerminalUI) Prompt(libkb.PromptDescriptor, string) (string, error)         { return "", nil }
 func (t smuTerminalUI) PromptForConfirmation(prompt string) error                     { return nil }
 func (t smuTerminalUI) PromptPassword(libkb.PromptDescriptor, string) (string, error) { return "", nil }
@@ -396,7 +398,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 	i := 0
 	for {
 		cli := u.getTeamsClient()
-		details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name, ForceRepoll: true})
+		details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name})
 		if err != nil {
 			u.ctx.t.Fatal(err)
 		}
@@ -611,7 +613,7 @@ func (u *smuUser) secretUI() signupInfoSecretUI {
 
 func (u *smuUser) teamGet(team smuTeam) (keybase1.TeamDetails, error) {
 	cli := u.getTeamsClient()
-	details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name, ForceRepoll: true})
+	details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name})
 	return details, err
 }
 
@@ -645,7 +647,7 @@ func (u *smuUser) isMemberActive(team smuTeam, user *smuUser) (bool, error) {
 		return false, err
 	}
 	for _, d := range details {
-		if d.Active {
+		if d.Status.IsActive() {
 			return true, nil
 		}
 	}

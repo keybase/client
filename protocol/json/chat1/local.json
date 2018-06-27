@@ -23,6 +23,12 @@
   "types": [
     {
       "type": "record",
+      "name": "VersionKind",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "MessageText",
       "fields": [
         {
@@ -521,6 +527,24 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "MessageReaction",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID",
+          "mpackkey": "m",
+          "jsonkey": "m"
+        },
+        {
+          "type": "string",
+          "name": "body",
+          "mpackkey": "b",
+          "jsonkey": "b"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -604,6 +628,13 @@
             "def": false
           },
           "body": "MessageDeleteHistory"
+        },
+        {
+          "label": {
+            "name": "REACTION",
+            "def": false
+          },
+          "body": "MessageReaction"
         }
       ]
     },
@@ -624,7 +655,9 @@
         "IDENTIFY_2",
         "TOOLONG_3",
         "DUPLICATE_4",
-        "EXPIRED_5"
+        "EXPIRED_5",
+        "TOOMANYATTEMPTS_6",
+        "ALREADY_DELETED_7"
       ]
     },
     {
@@ -1122,6 +1155,10 @@
             "items": "ChannelNameMention"
           },
           "name": "channelNameMentions"
+        },
+        {
+          "type": "ReactionMap",
+          "name": "reactions"
         }
       ]
     },
@@ -1133,7 +1170,8 @@
         "BADVERSION_CRITICAL_1",
         "BADVERSION_2",
         "IDENTIFY_3",
-        "EPHEMERAL_4"
+        "EPHEMERAL_4",
+        "PAIRWISE_MISSING_5"
       ]
     },
     {
@@ -1147,6 +1185,22 @@
         {
           "type": "string",
           "name": "errMsg"
+        },
+        {
+          "type": "string",
+          "name": "internalErrMsg"
+        },
+        {
+          "type": "VersionKind",
+          "name": "versionKind"
+        },
+        {
+          "type": "int",
+          "name": "versionNumber"
+        },
+        {
+          "type": "boolean",
+          "name": "isCritical"
         },
         {
           "type": "string",
@@ -1650,15 +1704,6 @@
       "symbols": [
         "FULL_0",
         "INCREMENTAL_1"
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "GetThreadNonblockReason",
-      "symbols": [
-        "GENERAL_0",
-        "PUSH_1",
-        "FOREGROUND_2"
       ]
     },
     {
@@ -2389,6 +2434,10 @@
           "type": "ConversationID"
         },
         {
+          "name": "reason",
+          "type": "GetThreadReason"
+        },
+        {
           "name": "query",
           "type": [
             null,
@@ -2452,7 +2501,7 @@
         },
         {
           "name": "reason",
-          "type": "GetThreadNonblockReason"
+          "type": "GetThreadReason"
         },
         {
           "name": "pgmode",
@@ -2692,6 +2741,46 @@
       "response": "PostLocalNonblockRes"
     },
     "postEditNonblock": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "supersedes",
+          "type": "MessageID"
+        },
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
+          "name": "clientPrev",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalNonblockRes"
+    },
+    "postReactionNonblock": {
       "request": [
         {
           "name": "conversationID",

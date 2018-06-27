@@ -6,6 +6,7 @@
 package client
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/keybase/cli"
@@ -40,13 +41,14 @@ func (s *CmdPipeOwner) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPipeOwner) Run() error {
-	owner, err := libkb.IsPipeowner(s.arg)
+	owner, err := libkb.IsPipeowner(s.G().Log, s.arg)
 	if err != nil {
 		return err
 	}
 	dui := s.G().UI.GetDumbOutputUI()
-	dui.Printf("%v\n", owner)
-	if !owner {
+	output, err := json.Marshal(owner)
+	dui.Printf("%v\n", string(output[:]))
+	if err == nil && !owner.IsOwner {
 		err = errors.New("failed to establish pipe ownership")
 	}
 

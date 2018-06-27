@@ -4,11 +4,16 @@
 package systests
 
 import (
+	"fmt"
 	"path/filepath"
+	"testing"
+	"time"
 
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -41,6 +46,9 @@ func (d dumbUI) Printf(format string, args ...interface{}) (int, error) {
 	return 0, nil
 }
 func (d dumbUI) PrintfStderr(format string, args ...interface{}) (int, error) {
+	return 0, nil
+}
+func (d dumbUI) PrintfUnescaped(format string, args ...interface{}) (int, error) {
 	return 0, nil
 }
 
@@ -151,4 +159,38 @@ func getActiveDevicesAndKeys(tc *libkb.TestContext, username string) ([]*libkb.D
 		}
 	}
 	return activeDevices, append(sibkeys, subkeys...)
+}
+
+func pollFor(t *testing.T, label string, totalTime time.Duration, g *libkb.GlobalContext, poller func(i int) bool) {
+	t.Logf("pollFor '%s'", label)
+	totalTime *= libkb.CITimeMultiplier(g)
+	clock := clockwork.NewRealClock()
+	start := clock.Now()
+	endCh := clock.After(totalTime)
+	wait := 10 * time.Millisecond
+	var i int
+	for {
+		satisfied := poller(i)
+		since := clock.Since(start)
+		t.Logf("pollFor '%s' round:%v -> %v running:%v", label, i, satisfied, since)
+		if satisfied {
+			t.Logf("pollFor '%s' succeeded after %v attempts over %v", label, i, since)
+			return
+		}
+		if since > totalTime {
+			// Game over
+			msg := fmt.Sprintf("pollFor '%s' timed out after %v attempts over %v", label, i, since)
+			t.Logf(msg)
+			require.Fail(t, msg)
+			require.FailNow(t, msg)
+			return
+		}
+		t.Logf("pollFor '%s' wait:%v", label, wait)
+		select {
+		case <-endCh:
+		case <-clock.After(wait):
+		}
+		wait *= 2
+		i++
+	}
 }

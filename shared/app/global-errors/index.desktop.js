@@ -3,10 +3,10 @@ import React, {Component} from 'react'
 import logger from '../../logger'
 import {Box, Text, Icon, HOCTimers, type PropsWithTimer} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, transition} from '../../styles'
-import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
+import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
 import {RPCError} from '../../util/errors'
 
-import type {Props as _Props} from './index'
+import type {Props as _Props} from './index.types'
 
 type Size = 'Closed' | 'Small' | 'Big'
 type State = {
@@ -109,7 +109,7 @@ class GlobalError extends Component<Props, State> {
     return (
       <Box style={containerOverlayStyle}>
         <Box style={overlayRowStyle}>
-          <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
+          <Text type="BodySmallSemibold" style={{color: globalColors.white, textAlign: 'center'}}>
             {message}
           </Text>
         </Box>

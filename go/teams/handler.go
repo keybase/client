@@ -33,8 +33,8 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		return err == nil && role.IsOrAbove(keybase1.TeamRole_ADMIN)
 	}
 	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() && isAdmin() {
-		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team, msg.ResetUsersUntrusted); err == nil {
-			// If sweepOpenTeamResetMembers does not do anything to
+		if needRP, err := sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted); err == nil {
+			// If sweepOpenTeamResetAndDeletedMembers does not do anything to
 			// the team, do not load team again later.
 			needTeamReload = needRP
 		}
@@ -74,16 +74,20 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 	})
 }
 
-func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
+func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalContext,
 	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser) (needRepoll bool, err error) {
 	// When CLKR is invoked because of account reset and it's an open team,
 	// we go ahead and boot reset readers and writers out of the team. Key
 	// is also rotated in the process (in the same ChangeMembership link).
-	defer g.CTrace(ctx, "sweepOpenTeamResetMembers", func() error { return err })()
+	defer g.CTrace(ctx, "sweepOpenTeamResetAndDeletedMembers", func() error { return err })()
 
 	// Go through resetUsersUntrusted and fetch non-cached latest
-	// EldestSeqnos.
-	resetUsers := make(map[keybase1.UID]keybase1.Seqno)
+	// EldestSeqnos/Status.
+	type seqnoAndStatus struct {
+		eldestSeqno keybase1.Seqno
+		status      keybase1.StatusCode
+	}
+	resetUsers := make(map[keybase1.UID]seqnoAndStatus)
 	for _, u := range resetUsersUntrusted {
 		if _, found := resetUsers[u.Uid]; found {
 			// User was in the list more than once.
@@ -97,7 +101,10 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 			WithForcePoll(true)
 		upak, _, err := g.GetUPAKLoader().LoadV2(arg)
 		if err == nil {
-			resetUsers[u.Uid] = upak.Current.EldestSeqno
+			resetUsers[u.Uid] = seqnoAndStatus{
+				eldestSeqno: upak.Current.EldestSeqno,
+				status:      upak.Current.Status,
+			}
 		} else {
 			g.Log.CDebugf(ctx, "Could not load uid:%s through UPAKLoader: %s", u.Uid)
 		}
@@ -118,7 +125,7 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 
 		changeReq := keybase1.TeamChangeReq{None: []keybase1.UserVersion{}}
 
-		// We are iterating thorugh resetUsers map, which is map of
+		// We are iterating through resetUsers map, which is map of
 		// uid->EldestSeqno that we loaded via UPAKLoader. Do not rely
 		// on server provided resetUsersUntrusted for EldestSeqnos,
 		// just use UIDs and see if these users are reset.
@@ -127,10 +134,10 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 		// are not auto-adding PUKless people to open teams (server
 		// doesn't send PUKless TARs in OPENREQ msg), so it shouldn't
 		// be an issue.
-		for uid, loadedSeqno := range resetUsers {
+		for uid, u := range resetUsers {
 			members := team.AllUserVersionsByUID(ctx, uid)
 			for _, memberUV := range members {
-				if memberUV.EldestSeqno == loadedSeqno {
+				if memberUV.EldestSeqno == u.eldestSeqno && u.status != keybase1.StatusCode_SCDeleted {
 					// Member is the current incarnation of the user
 					// (or user has never reset).
 					continue

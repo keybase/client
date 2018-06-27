@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/keybase/client/go/gregor"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 )
 
@@ -17,8 +18,10 @@ func newNullStellar(g *GlobalContext) *nullStellar {
 	return &nullStellar{NewContextified(g)}
 }
 
-func (n *nullStellar) CreateWalletGated(ctx context.Context) (bool, error) {
-	return false, fmt.Errorf("null stellar impl")
+func (n *nullStellar) OnLogout() {}
+
+func (n *nullStellar) CreateWalletGated(ctx context.Context) error {
+	return fmt.Errorf("null stellar impl")
 }
 
 func (n *nullStellar) CreateWalletSoft(ctx context.Context) {
@@ -29,8 +32,8 @@ func (n *nullStellar) Upkeep(ctx context.Context) error {
 	return fmt.Errorf("null stellar impl")
 }
 
-func (n *nullStellar) OnLogout() {}
-
 func (n *nullStellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
 	return ret, fmt.Errorf("null stellar impl")
 }
+
+func (n *nullStellar) KickAutoClaimRunner(MetaContext, gregor.MsgID) {}

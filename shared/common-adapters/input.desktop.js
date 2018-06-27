@@ -9,25 +9,14 @@ import {checkTextInfo} from './input.shared'
 
 type State = {
   focused: boolean,
-  // Only used for controlled components.
-  value?: string,
 }
 
 class Input extends React.PureComponent<Props, State> {
-  state: State
   _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
 
-  constructor(props: Props) {
-    super(props)
-
-    const text = props.value || ''
-    this.state = ({
-      focused: false,
-    }: State)
-    if (!props.uncontrolled) {
-      this.state.value = text
-    }
+  state = {
+    focused: false,
   }
 
   _setInputRef = (ref: HTMLTextAreaElement | HTMLInputElement | null) => {
@@ -36,26 +25,24 @@ class Input extends React.PureComponent<Props, State> {
 
   componentDidMount = () => {
     this._autoResize()
-  }
-
-  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
-    if (!nextProps.uncontrolled && nextProps.hasOwnProperty('value')) {
-      return {value: nextProps.value || ''}
-    }
-    return null
+    this.props.autoFocus && this.focus()
   }
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
-    if (this.state.value !== prevState.value) {
+    if (!this.props.uncontrolled && this.props.value !== prevProps.value) {
       this._autoResize()
     }
   }
 
+  _getValue = () => {
+    return (this.props.uncontrolled ? this._input && this._input.value : this.props.value) || ''
+  }
+
   getValue = (): string => {
     if (this.props.uncontrolled) {
-      return this._input ? this._input.value : ''
+      return this._getValue()
     } else {
-      return this.state.value || ''
+      throw new Error('getValue only supported on uncontrolled inputs')
     }
   }
 
@@ -68,18 +55,13 @@ class Input extends React.PureComponent<Props, State> {
     return {start: selectionStart, end: selectionEnd}
   }
 
-  _onChangeTextDone = () => {
-    const value = this.getValue()
+  _onChangeTextDone = value => {
     this.props.onChangeText && this.props.onChangeText(value)
   }
 
   _onChangeText = (text: string) => {
     this._autoResize()
-    if (this.props.uncontrolled) {
-      this._onChangeTextDone()
-    } else {
-      this.setState({value: text}, this._onChangeTextDone)
-    }
+    this._onChangeTextDone(text)
   }
 
   _onChange = (event: {target: {value: ?string}}) => {
@@ -101,7 +83,7 @@ class Input extends React.PureComponent<Props, State> {
       return
     }
 
-    const value = this.getValue()
+    const value = this._getValue()
 
     // Try and not style/render thrash. We bookkeep the length of the string that was used to go up a line and if we shorten our length
     // we'll remeasure. It's very expensive to just remeasure as the user is typing. it causes a lot of actual layout thrashing
@@ -134,6 +116,7 @@ class Input extends React.PureComponent<Props, State> {
   focus = () => {
     const n = this._input
     n && n.focus()
+    this.props.selectTextOnFocus && this.select()
   }
 
   select = () => {
@@ -146,7 +129,7 @@ class Input extends React.PureComponent<Props, State> {
     n && n.blur()
   }
 
-  _transformText = (fn: TextInfo => TextInfo) => {
+  _transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
@@ -162,16 +145,20 @@ class Input extends React.PureComponent<Props, State> {
       n.selectionStart = newTextInfo.selection.start
       n.selectionEnd = newTextInfo.selection.end
 
+      if (reflectChange) {
+        this._onChangeText(newTextInfo.text)
+      }
+
       this._autoResize()
     }
   }
 
-  transformText = (fn: TextInfo => TextInfo) => {
+  transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
     if (!this.props.uncontrolled) {
       throw new Error('transformText can only be called on uncontrolled components')
     }
 
-    this._transformText(fn)
+    this._transformText(fn, reflectChange)
   }
 
   _onCompositionStart = () => {
@@ -199,7 +186,6 @@ class Input extends React.PureComponent<Props, State> {
               selection: newSelection,
             }
           })
-          this._onChangeText(this.getValue())
         }
       } else {
         this.props.onEnterKeyDown(e)
@@ -216,6 +202,7 @@ class Input extends React.PureComponent<Props, State> {
   _onFocus = () => {
     this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
+    this.props.selectTextOnFocus && this.select()
   }
 
   _onBlur = () => {
@@ -310,7 +297,7 @@ class Input extends React.PureComponent<Props, State> {
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
     }
 
-    const value = this.getValue()
+    const value = this._getValue()
 
     const floatingHintText =
       !!value.length &&
@@ -362,7 +349,7 @@ class Input extends React.PureComponent<Props, State> {
       this.props.smallLabelStyle,
     ])
 
-    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }`
+    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.4); }`
 
     return (
       <Box style={collapseStyles([containerStyle, this.props.style])}>

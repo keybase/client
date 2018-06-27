@@ -23,6 +23,7 @@ type ChatServiceHandler interface {
 	ReadV1(context.Context, readOptionsV1) Reply
 	SendV1(context.Context, sendOptionsV1) Reply
 	EditV1(context.Context, editOptionsV1) Reply
+	ReactionV1(context.Context, reactionOptionsV1) Reply
 	DeleteV1(context.Context, deleteOptionsV1) Reply
 	AttachV1(context.Context, attachOptionsV1) Reply
 	DownloadV1(context.Context, downloadOptionsV1) Reply
@@ -234,6 +235,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			IsEphemeral:        mv.IsEphemeral(),
 			IsEphemeralExpired: mv.IsEphemeralExpired(time.Now()),
 			ETime:              mv.Etime(),
+			Reactions:          mv.Reactions,
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -309,6 +311,23 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 		mtype:          chat1.MessageType_EDIT,
 		supersedes:     opts.MessageID,
 		response:       "message edited",
+	}
+	return c.sendV1(ctx, arg)
+}
+
+// ReactionV1 implements ChatServiceHandler.ReactionV1.
+func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOptionsV1) Reply {
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
+	arg := sendArgV1{
+		conversationID: convID,
+		channel:        opts.Channel,
+		body:           chat1.NewMessageBodyWithReaction(chat1.MessageReaction{MessageID: opts.MessageID, Body: opts.Message.Body}),
+		mtype:          chat1.MessageType_REACTION,
+		supersedes:     opts.MessageID,
+		response:       "message reacted to",
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -818,8 +837,9 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 		if arg.channel.TopicName != "" {
 			topicName = &arg.channel.TopicName
 		}
+		channelName := arg.channel.Name
 		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
-			TlfName:          arg.channel.Name,
+			TlfName:          channelName,
 			TlfVisibility:    visibility,
 			TopicName:        topicName,
 			TopicType:        tt,
@@ -942,6 +962,7 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		Text:               mb.Text__,
 		Attachment:         mb.Attachment__,
 		Edit:               mb.Edit__,
+		Reaction:           mb.Reaction__,
 		Delete:             mb.Delete__,
 		Metadata:           mb.Metadata__,
 		AttachmentUploaded: mb.Attachmentuploaded__,
@@ -1006,19 +1027,18 @@ func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr str
 	var conv chat1.ConversationLocal
 	var rlimits []chat1.RateLimit
 
-	if (channel == ChatChannel{}) && len(convIDStr) == 0 {
+	if channel.IsNil() && len(convIDStr) == 0 {
 		return conv, rlimits, errors.New("missing conversation specificer")
 	}
 
 	var convID chat1.ConversationID
-	if channel == (ChatChannel{}) {
+	if channel.IsNil() {
 		var err error
 		convID, err = chat1.MakeConvID(convIDStr)
 		if err != nil {
 			return conv, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
 		}
 	}
-
 	existing, existingRl, err := c.getExistingConvs(ctx, convID, channel)
 	if err != nil {
 		return conv, rlimits, err
@@ -1054,14 +1074,16 @@ type MsgSender struct {
 	DeviceName string `json:"device_name,omitempty"`
 }
 
-// MsgContent is used to retrieve the type name in addition to one of
-// Text, Attachment, Edit, Delete, Metadata depending on the type of message.
+// MsgContent is used to retrieve the type name in addition to one of Text,
+// Attachment, Edit, Reaction, Delete, Metadata depending on the type of
+// message.
 // It is included in MsgSummary.
 type MsgContent struct {
 	TypeName           string                             `json:"type"`
 	Text               *chat1.MessageText                 `json:"text,omitempty"`
 	Attachment         *chat1.MessageAttachment           `json:"attachment,omitempty"`
 	Edit               *chat1.MessageEdit                 `json:"edit,omitempty"`
+	Reaction           *chat1.MessageReaction             `json:"reaction,omitempty"`
 	Delete             *chat1.MessageDelete               `json:"delete,omitempty"`
 	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
 	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
@@ -1083,6 +1105,7 @@ type MsgSummary struct {
 	IsEphemeral        bool                           `json:"is_ephemeral,omitempty"`
 	IsEphemeralExpired bool                           `json:"is_ephemeral_expired,omitempty"`
 	ETime              gregor1.Time                   `json:"etime,omitempty"`
+	Reactions          chat1.ReactionMap              `json:"reactions,omitempty"`
 }
 
 // Message contains either a MsgSummary or an Error.  Used for JSON output.

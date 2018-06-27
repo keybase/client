@@ -102,7 +102,7 @@ func (e *SaltpackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageK
 	}
 	ckf := me.GetComputedKeyFamily()
 	for _, nr := range mki.NamedReceivers {
-		kid := keybase1.KIDFromRawKey(nr, libkb.KIDNaclDH)
+		kid := keybase1.KIDFromRawKey(nr, byte(libkb.KIDNaclDH))
 		if dev, _ := ckf.GetDeviceForKID(kid); dev != nil {
 			edev := dev.ProtExport()
 			edev.EncryptKey = kid

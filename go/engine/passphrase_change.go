@@ -169,7 +169,7 @@ func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey lib
 	}
 
 	// Generate a signature with our unlocked sibling key from device.
-	proof, err := c.me.UpdatePassphraseProof(sigKey, pwh, ppGen+1, pdpka5kid)
+	proof, err := c.me.UpdatePassphraseProof(m, sigKey, pwh, ppGen+1, pdpka5kid)
 	if err != nil {
 		return err
 	}
@@ -298,6 +298,11 @@ func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
+
+	// Reset the passphrase stream cache on the global Active Device, since if it exists,
+	// it was for a previous version of the passphrase.
+	m = m.WithGlobalActiveDevice()
+	m.ActiveDevice().ClearCaches()
 
 	return nil
 }

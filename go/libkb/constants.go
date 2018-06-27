@@ -19,16 +19,16 @@ const (
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
 )
 
-type RunMode string
-
 var TorProxy = "localhost:9050"
+
+type RunMode string
 
 const (
 	DevelRunMode      RunMode = "devel"
-	StagingRunMode            = "staging"
-	ProductionRunMode         = "prod"
-	RunModeError              = "error"
-	NoRunMode                 = ""
+	StagingRunMode    RunMode = "staging"
+	ProductionRunMode RunMode = "prod"
+	RunModeError      RunMode = "error"
+	NoRunMode         RunMode = ""
 )
 
 var RunModes = []RunMode{DevelRunMode, StagingRunMode, ProductionRunMode}
@@ -295,6 +295,7 @@ const (
 	SCTeamBadMembership        = int(keybase1.StatusCode_SCTeamBadMembership)
 	SCTeamProvisionalCanKey    = int(keybase1.StatusCode_SCTeamProvisionalCanKey)
 	SCTeamProvisionalCannotKey = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
+	SCBadSignupUsernameDeleted = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
 )
 
 const (
@@ -358,12 +359,12 @@ type KeyType int
 
 const (
 	KeyTypeNone                  KeyType = 0
-	KeyTypeOpenPGPPublic                 = 1
-	KeyTypeP3skbPrivate                  = 2
-	KeyTypeKbNaclEddsa                   = 3
-	KeyTypeKbNaclDH                      = 4
-	KeyTypeKbNaclEddsaServerHalf         = 5
-	KeyTypeKbNaclDHServerHalf            = 6
+	KeyTypeOpenPGPPublic         KeyType = 1
+	KeyTypeP3skbPrivate          KeyType = 2
+	KeyTypeKbNaclEddsa           KeyType = 3
+	KeyTypeKbNaclDH              KeyType = 4
+	KeyTypeKbNaclEddsaServerHalf KeyType = 5
+	KeyTypeKbNaclDHServerHalf    KeyType = 6
 )
 
 const (
@@ -433,24 +434,33 @@ const (
 	HTTPRetryCount          = 6
 )
 
-// Packet tags for OpenPGP and also Keybase packets
+type PacketVersion int
+
 const (
-	KeybasePacketV1 = 1
-	TagP3skb        = 513
-	TagSignature    = 514
-	TagEncryption   = 515
+	KeybasePacketV1 PacketVersion = 1
+)
+
+// PacketTag are tags for OpenPGP and Keybase packets. It is a uint to
+// be backwards compatible with older versions of codec that encoded
+// positive ints as uints.
+type PacketTag uint
+
+const (
+	TagP3skb      PacketTag = 513
+	TagSignature  PacketTag = 514
+	TagEncryption PacketTag = 515
 )
 
 const (
 	KIDPGPBase    AlgoType = 0x00
-	KIDPGPRsa              = 0x1
-	KIDPGPElgamal          = 0x10
-	KIDPGPDsa              = 0x11
-	KIDPGPEcdh             = 0x12
-	KIDPGPEcdsa            = 0x13
-	KIDPGPEddsa            = 0x16
-	KIDNaclEddsa           = 0x20
-	KIDNaclDH              = 0x21
+	KIDPGPRsa     AlgoType = 0x1
+	KIDPGPElgamal AlgoType = 0x10
+	KIDPGPDsa     AlgoType = 0x11
+	KIDPGPEcdh    AlgoType = 0x12
+	KIDPGPEcdsa   AlgoType = 0x13
+	KIDPGPEddsa   AlgoType = 0x16
+	KIDNaclEddsa  AlgoType = 0x20
+	KIDNaclDH     AlgoType = 0x21
 )
 
 // OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
@@ -601,6 +611,8 @@ const (
 	DeriveReasonUserEKEncryption    DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
 	DeriveReasonTeamEKEncryption    DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
 	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
+
+	DeriveReasonChatPairwiseMAC DeriveReason = "Derived-Chat-Pairwise-HMAC-SHA256-1"
 )
 
 // Not a DeriveReason because it is not used in the same way.
@@ -622,8 +634,8 @@ type AppType string
 
 const (
 	MobileAppType  AppType = "mobile"
-	DesktopAppType         = "desktop"
-	NoAppType              = ""
+	DesktopAppType AppType = "desktop"
+	NoAppType      AppType = ""
 )
 
 func StringToAppType(s string) AppType {
@@ -686,3 +698,5 @@ const noiseFileLen = 1024 * 1024 * 2
 // go/chatbase/storage/ephemeral.go as well.
 const MaxEphemeralLifetime = time.Hour * 24 * 7
 const MinEphemeralLifetime = time.Second * 30
+
+const MaxTeamMembersForPairwiseMAC = 100

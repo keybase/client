@@ -56,6 +56,10 @@
           "name": "snippet"
         },
         {
+          "type": "string",
+          "name": "snippetDecoration"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"
@@ -78,6 +82,10 @@
         {
           "type": "string",
           "name": "convID"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         },
         {
           "type": "string",
@@ -121,6 +129,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "readMsgID"
         },
         {
           "type": [
@@ -185,6 +197,10 @@
           "name": "convID"
         },
         {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
           "type": "boolean",
           "name": "isEmpty"
         },
@@ -195,6 +211,10 @@
         {
           "type": "string",
           "name": "snippet"
+        },
+        {
+          "type": "string",
+          "name": "snippetDecoration"
         },
         {
           "type": "string",
@@ -271,6 +291,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "readMsgID"
         },
         {
           "type": [
@@ -483,6 +507,10 @@
         {
           "type": "gregor1.Time",
           "name": "etime"
+        },
+        {
+          "type": "ReactionMap",
+          "name": "reactions"
         }
       ]
     },

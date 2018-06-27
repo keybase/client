@@ -11,6 +11,12 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type VersionKind string
+
+func (o VersionKind) DeepCopy() VersionKind {
+	return o
+}
+
 type MessageText struct {
 	Body string `codec:"body" json:"body"`
 }
@@ -781,6 +787,18 @@ func (o MessageLeave) DeepCopy() MessageLeave {
 	return MessageLeave{}
 }
 
+type MessageReaction struct {
+	MessageID MessageID `codec:"m" json:"m"`
+	Body      string    `codec:"b" json:"b"`
+}
+
+func (o MessageReaction) DeepCopy() MessageReaction {
+	return MessageReaction{
+		MessageID: o.MessageID.DeepCopy(),
+		Body:      o.Body,
+	}
+}
+
 type MessageBody struct {
 	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
 	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
@@ -794,6 +812,7 @@ type MessageBody struct {
 	Leave__              *MessageLeave                `codec:"leave,omitempty" json:"leave,omitempty"`
 	System__             *MessageSystem               `codec:"system,omitempty" json:"system,omitempty"`
 	Deletehistory__      *MessageDeleteHistory        `codec:"deletehistory,omitempty" json:"deletehistory,omitempty"`
+	Reaction__           *MessageReaction             `codec:"reaction,omitempty" json:"reaction,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -851,6 +870,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_DELETEHISTORY:
 		if o.Deletehistory__ == nil {
 			err = errors.New("unexpected nil value for Deletehistory__")
+			return ret, err
+		}
+	case MessageType_REACTION:
+		if o.Reaction__ == nil {
+			err = errors.New("unexpected nil value for Reaction__")
 			return ret, err
 		}
 	}
@@ -967,6 +991,16 @@ func (o MessageBody) Deletehistory() (res MessageDeleteHistory) {
 	return *o.Deletehistory__
 }
 
+func (o MessageBody) Reaction() (res MessageReaction) {
+	if o.MessageType__ != MessageType_REACTION {
+		panic("wrong case accessed")
+	}
+	if o.Reaction__ == nil {
+		return
+	}
+	return *o.Reaction__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1041,6 +1075,13 @@ func NewMessageBodyWithDeletehistory(v MessageDeleteHistory) MessageBody {
 	return MessageBody{
 		MessageType__:   MessageType_DELETEHISTORY,
 		Deletehistory__: &v,
+	}
+}
+
+func NewMessageBodyWithReaction(v MessageReaction) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_REACTION,
+		Reaction__:    &v,
 	}
 }
 
@@ -1124,6 +1165,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Deletehistory__),
+		Reaction__: (func(x *MessageReaction) *MessageReaction {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Reaction__),
 	}
 }
 
@@ -1156,23 +1204,27 @@ func (e OutboxStateType) String() string {
 type OutboxErrorType int
 
 const (
-	OutboxErrorType_MISC      OutboxErrorType = 0
-	OutboxErrorType_OFFLINE   OutboxErrorType = 1
-	OutboxErrorType_IDENTIFY  OutboxErrorType = 2
-	OutboxErrorType_TOOLONG   OutboxErrorType = 3
-	OutboxErrorType_DUPLICATE OutboxErrorType = 4
-	OutboxErrorType_EXPIRED   OutboxErrorType = 5
+	OutboxErrorType_MISC            OutboxErrorType = 0
+	OutboxErrorType_OFFLINE         OutboxErrorType = 1
+	OutboxErrorType_IDENTIFY        OutboxErrorType = 2
+	OutboxErrorType_TOOLONG         OutboxErrorType = 3
+	OutboxErrorType_DUPLICATE       OutboxErrorType = 4
+	OutboxErrorType_EXPIRED         OutboxErrorType = 5
+	OutboxErrorType_TOOMANYATTEMPTS OutboxErrorType = 6
+	OutboxErrorType_ALREADY_DELETED OutboxErrorType = 7
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
 
 var OutboxErrorTypeMap = map[string]OutboxErrorType{
-	"MISC":      0,
-	"OFFLINE":   1,
-	"IDENTIFY":  2,
-	"TOOLONG":   3,
-	"DUPLICATE": 4,
-	"EXPIRED":   5,
+	"MISC":            0,
+	"OFFLINE":         1,
+	"IDENTIFY":        2,
+	"TOOLONG":         3,
+	"DUPLICATE":       4,
+	"EXPIRED":         5,
+	"TOOMANYATTEMPTS": 6,
+	"ALREADY_DELETED": 7,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1182,6 +1234,8 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	3: "TOOLONG",
 	4: "DUPLICATE",
 	5: "EXPIRED",
+	6: "TOOMANYATTEMPTS",
+	7: "ALREADY_DELETED",
 }
 
 func (e OutboxErrorType) String() string {
@@ -2193,6 +2247,7 @@ type MessageUnboxedValid struct {
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
+	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2265,6 +2320,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		Reactions: o.Reactions.DeepCopy(),
 	}
 }
 
@@ -2276,6 +2332,7 @@ const (
 	MessageUnboxedErrorType_BADVERSION          MessageUnboxedErrorType = 2
 	MessageUnboxedErrorType_IDENTIFY            MessageUnboxedErrorType = 3
 	MessageUnboxedErrorType_EPHEMERAL           MessageUnboxedErrorType = 4
+	MessageUnboxedErrorType_PAIRWISE_MISSING    MessageUnboxedErrorType = 5
 )
 
 func (o MessageUnboxedErrorType) DeepCopy() MessageUnboxedErrorType { return o }
@@ -2286,6 +2343,7 @@ var MessageUnboxedErrorTypeMap = map[string]MessageUnboxedErrorType{
 	"BADVERSION":          2,
 	"IDENTIFY":            3,
 	"EPHEMERAL":           4,
+	"PAIRWISE_MISSING":    5,
 }
 
 var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
@@ -2294,6 +2352,7 @@ var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
 	2: "BADVERSION",
 	3: "IDENTIFY",
 	4: "EPHEMERAL",
+	5: "PAIRWISE_MISSING",
 }
 
 func (e MessageUnboxedErrorType) String() string {
@@ -2306,6 +2365,10 @@ func (e MessageUnboxedErrorType) String() string {
 type MessageUnboxedError struct {
 	ErrType            MessageUnboxedErrorType `codec:"errType" json:"errType"`
 	ErrMsg             string                  `codec:"errMsg" json:"errMsg"`
+	InternalErrMsg     string                  `codec:"internalErrMsg" json:"internalErrMsg"`
+	VersionKind        VersionKind             `codec:"versionKind" json:"versionKind"`
+	VersionNumber      int                     `codec:"versionNumber" json:"versionNumber"`
+	IsCritical         bool                    `codec:"isCritical" json:"isCritical"`
 	SenderUsername     string                  `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName   string                  `codec:"senderDeviceName" json:"senderDeviceName"`
 	SenderDeviceType   string                  `codec:"senderDeviceType" json:"senderDeviceType"`
@@ -2321,6 +2384,10 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 	return MessageUnboxedError{
 		ErrType:            o.ErrType.DeepCopy(),
 		ErrMsg:             o.ErrMsg,
+		InternalErrMsg:     o.InternalErrMsg,
+		VersionKind:        o.VersionKind.DeepCopy(),
+		VersionNumber:      o.VersionNumber,
+		IsCritical:         o.IsCritical,
 		SenderUsername:     o.SenderUsername,
 		SenderDeviceName:   o.SenderDeviceName,
 		SenderDeviceType:   o.SenderDeviceType,
@@ -2979,35 +3046,6 @@ var GetThreadNonblockCbModeRevMap = map[GetThreadNonblockCbMode]string{
 
 func (e GetThreadNonblockCbMode) String() string {
 	if v, ok := GetThreadNonblockCbModeRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
-type GetThreadNonblockReason int
-
-const (
-	GetThreadNonblockReason_GENERAL    GetThreadNonblockReason = 0
-	GetThreadNonblockReason_PUSH       GetThreadNonblockReason = 1
-	GetThreadNonblockReason_FOREGROUND GetThreadNonblockReason = 2
-)
-
-func (o GetThreadNonblockReason) DeepCopy() GetThreadNonblockReason { return o }
-
-var GetThreadNonblockReasonMap = map[string]GetThreadNonblockReason{
-	"GENERAL":    0,
-	"PUSH":       1,
-	"FOREGROUND": 2,
-}
-
-var GetThreadNonblockReasonRevMap = map[GetThreadNonblockReason]string{
-	0: "GENERAL",
-	1: "PUSH",
-	2: "FOREGROUND",
-}
-
-func (e GetThreadNonblockReason) String() string {
-	if v, ok := GetThreadNonblockReasonRevMap[e]; ok {
 		return v
 	}
 	return ""
@@ -3945,6 +3983,7 @@ func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
 
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Reason           GetThreadReason              `codec:"reason" json:"reason"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -3961,7 +4000,7 @@ type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	CbMode           GetThreadNonblockCbMode      `codec:"cbMode" json:"cbMode"`
-	Reason           GetThreadNonblockReason      `codec:"reason" json:"reason"`
+	Reason           GetThreadReason              `codec:"reason" json:"reason"`
 	Pgmode           GetThreadNonblockPgMode      `codec:"pgmode" json:"pgmode"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -4028,6 +4067,17 @@ type PostDeleteNonblockArg struct {
 }
 
 type PostEditNonblockArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
+	Body             string                       `codec:"body" json:"body"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type PostReactionNonblockArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
@@ -4310,6 +4360,7 @@ type LocalInterface interface {
 	PostTextNonblock(context.Context, PostTextNonblockArg) (PostLocalNonblockRes, error)
 	PostDeleteNonblock(context.Context, PostDeleteNonblockArg) (PostLocalNonblockRes, error)
 	PostEditNonblock(context.Context, PostEditNonblockArg) (PostLocalNonblockRes, error)
+	PostReactionNonblock(context.Context, PostReactionNonblockArg) (PostLocalNonblockRes, error)
 	PostHeadlineNonblock(context.Context, PostHeadlineNonblockArg) (PostLocalNonblockRes, error)
 	PostHeadline(context.Context, PostHeadlineArg) (PostLocalRes, error)
 	PostMetadataNonblock(context.Context, PostMetadataNonblockArg) (PostLocalNonblockRes, error)
@@ -4537,6 +4588,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostEditNonblock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postReactionNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]PostReactionNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostReactionNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostReactionNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.PostReactionNonblock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5209,6 +5276,11 @@ func (c LocalClient) PostDeleteNonblock(ctx context.Context, __arg PostDeleteNon
 
 func (c LocalClient) PostEditNonblock(ctx context.Context, __arg PostEditNonblockArg) (res PostLocalNonblockRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postEditNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostReactionNonblock(ctx context.Context, __arg PostReactionNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postReactionNonblock", []interface{}{__arg}, &res)
 	return
 }
 

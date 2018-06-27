@@ -8,37 +8,45 @@ import {collapseStyles, globalStyles, globalColors, globalMargins, desktopStyles
 
 import type {Props} from './header-hoc'
 
-function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  return (props: P & Props) => {
-    const {onBack, onCancel, headerStyle, title, customComponent, theme = 'light'} = props
-    return (
-      <Box style={_containerStyle}>
-        <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
-          {customComponent}
-          {onBack && (
-            <BackButton
-              key="back"
-              onClick={onBack}
-              style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
-            />
-          )}
-          {onCancel && (
-            <Icon
-              style={collapseStyles([_styleClose, _styleCloseThemed[theme]])}
-              type="iconfont-close"
-              onClick={onCancel}
-            />
-          )}
-          {title && (
-            <Box style={_titleStyle}>
-              <Text type="Header">{title}</Text>
-            </Box>
-          )}
-        </Box>
-        <WrappedComponent {...(props: P)} />
+export const HeaderHocHeader = ({
+  headerStyle,
+  customComponent,
+  title,
+  onCancel,
+  onBack,
+  theme = 'light',
+}: Props) => (
+  <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+    {customComponent}
+    {onBack && (
+      <BackButton
+        key="back"
+        onClick={onBack}
+        style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
+      />
+    )}
+    {onCancel && (
+      <Icon
+        style={collapseStyles([_styleClose, _styleCloseThemed[theme]])}
+        type="iconfont-close"
+        onClick={onCancel}
+      />
+    )}
+    {title && (
+      <Box style={_titleStyle}>
+        <Text type="Header">{title}</Text>
       </Box>
-    )
-  }
+    )}
+  </Box>
+)
+
+function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
+  return (props: P & Props) => (
+    <Box style={_containerStyle}>
+      <HeaderHocHeader {...props} />
+      <WrappedComponent {...(props: P)} />
+    </Box>
+  )
 }
 
 const _containerStyle = {

@@ -1,16 +1,31 @@
 // @flow
-import Banner from './install/banner'
-import InstallSecurityPrefs from './install/security-prefs.desktop'
-import List from './list'
 import React, {Component} from 'react'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {isLinux} from '../constants/platform'
-import {type Props, type FolderType} from '.'
+import List, {type Props as ListProps} from './list.desktop'
 
-// NOTE: This component is also used in menu-bar (widget)
-// Make sure to check behavior there if you're changing this
+export type FolderType = 'public' | 'private' | 'team'
+
+export type Props = {
+  username: string,
+  privateBadge?: number,
+  private: ListProps,
+  publicBadge?: number,
+  public: ListProps,
+  teamBadge?: number,
+  team: ListProps,
+  selected: FolderType,
+  showingIgnored: boolean,
+  onSwitchTab?: (selected: FolderType) => void,
+  listStyle?: any,
+  onClick?: (path: string) => void,
+  onChat?: (tlf: string) => void,
+  onOpen?: (path: string) => void,
+  onRekey: (path: string) => void,
+  onToggleShowIgnored: () => void,
+}
+
 class FoldersRender extends Component<Props> {
   _makeItem(folderType: FolderType, isSelected: boolean) {
     let isPublic = folderType === 'public'
@@ -45,18 +60,12 @@ class FoldersRender extends Component<Props> {
   }
 
   render() {
-    if (this.props.showSecurityPrefs) {
-      return <InstallSecurityPrefs />
-    }
-
     const sharedListProps = {
       style: this.props.listStyle,
-      smallMode: this.props.smallMode,
       onRekey: this.props.onRekey,
       onOpen: this.props.onOpen,
       onChat: this.props.onChat,
       onClick: this.props.onClick,
-      installed: this.props.installed,
     }
 
     return (
@@ -68,13 +77,12 @@ class FoldersRender extends Component<Props> {
           minHeight: 32,
         }}
       >
-        {!this.props.smallMode && !isLinux && <Banner />}
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
             backgroundColor: globalColors.white,
-            opacity: !this.props.smallMode && !this.props.installed ? 0.4 : 1,
-            minHeight: this.props.smallMode ? 32 : 48,
+            opacity: 1,
+            minHeight: 32,
           }}
           style={{
             flex: 1,

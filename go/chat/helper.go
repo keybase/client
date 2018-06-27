@@ -217,20 +217,25 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
-	conv, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true /* useLocalData */)
+	return GetMessages(ctx, h.G(), uid, convID, msgIDs, resolveSupersedes)
+}
+
+func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
+	conv, err := GetUnverifiedConv(ctx, g, uid, convID, true /* useLocalData */)
 	if err != nil {
 		return nil, err
 	}
 
 	// use ConvSource to get the messages, to try the cache first
-	messages, err := h.G().ConvSource.GetMessages(ctx, conv, uid, msgIDs)
+	messages, err := g.ConvSource.GetMessages(ctx, conv, uid, msgIDs, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	// unless arg says not to, transform the superseded messages
 	if resolveSupersedes {
-		messages, err = h.G().ConvSource.TransformSupersedes(ctx, conv, uid, messages)
+		messages, err = g.ConvSource.TransformSupersedes(ctx, conv, uid, messages)
 		if err != nil {
 			return nil, err
 		}
@@ -379,11 +384,9 @@ type sendHelper struct {
 	sender      types.Sender
 	ri          func() chat1.RemoteInterface
 
-	canonicalName string
-	topicName     *string
-	tlfID         chat1.TLFID
-	convID        chat1.ConversationID
-	triple        chat1.ConversationIDTriple
+	topicName *string
+	convID    chat1.ConversationID
+	triple    chat1.ConversationIDTriple
 
 	globals.Contextified
 }
@@ -410,26 +413,10 @@ func (s *sendHelper) SendText(ctx context.Context, text string) error {
 
 func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
 	ctx = Context(ctx, s.G(), s.ident, nil, NewCachingIdentifyNotifier(s.G()))
-	if err := s.nameInfo(ctx); err != nil {
-		return err
-	}
-
 	if err := s.conversation(ctx); err != nil {
 		return err
 	}
-
 	return s.deliver(ctx, body, mtype)
-}
-
-func (s *sendHelper) nameInfo(ctx context.Context) error {
-	nameInfo, err := CtxKeyFinder(ctx, s.G()).Find(ctx, s.name, s.membersType, false)
-	if err != nil {
-		return err
-	}
-	s.tlfID = nameInfo.ID
-	s.canonicalName = nameInfo.CanonicalName
-
-	return nil
 }
 
 func (s *sendHelper) conversation(ctx context.Context) error {
@@ -438,57 +425,14 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 		return err
 	}
 	uid := gregor1.UID(kuid.ToBytes())
-	conv, err := NewConversation(ctx, s.G(), uid, s.canonicalName, s.topicName,
+	conv, err := NewConversation(ctx, s.G(), uid, s.name, s.topicName,
 		chat1.TopicType_CHAT, s.membersType, keybase1.TLFVisibility_PRIVATE, s.remoteInterface)
 	if err != nil {
 		return err
 	}
 	s.convID = conv.GetConvID()
 	s.triple = conv.Info.Triple
-	return nil
-}
-
-func (s *sendHelper) newConversation(ctx context.Context) error {
-	s.triple = chat1.ConversationIDTriple{
-		Tlfid:     s.tlfID,
-		TopicType: chat1.TopicType_CHAT,
-	}
-	var err error
-	s.triple.TopicID, err = utils.NewChatTopicID()
-	if err != nil {
-		return err
-	}
-
-	first := chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        s.triple,
-			TlfName:     s.canonicalName,
-			MessageType: chat1.MessageType_TLFNAME,
-		},
-	}
-
-	mbox, _, _, _, topicNameState, err := s.sender.Prepare(ctx, first, s.membersType, nil)
-	if err != nil {
-		return err
-	}
-
-	ncrres, reserr := s.ri().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
-		IdTriple:       s.triple,
-		TLFMessage:     *mbox,
-		MembersType:    s.membersType,
-		TopicNameState: topicNameState,
-	})
-	convID := ncrres.ConvID
-	if reserr != nil {
-		switch cerr := reserr.(type) {
-		case libkb.ChatConvExistsError:
-			convID = cerr.ConvID
-		default:
-			return fmt.Errorf("error creating conversation: %s", reserr)
-		}
-	}
-	s.convID = convID
-
+	s.name = conv.Info.TlfName
 	return nil
 }
 
@@ -496,7 +440,7 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        s.triple,
-			TlfName:     s.canonicalName,
+			TlfName:     s.name,
 			MessageType: mtype,
 		},
 		MessageBody: body,
@@ -693,7 +637,11 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 		inbox, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
 		if err != nil {
-			return res, err
+			// don't error out if the TLF name is just unknown, treat it as a complete miss
+			if _, ok := err.(UnknownTLFNameError); !ok {
+				return res, err
+			}
+			inbox.Convs = nil
 		}
 
 		// If we have inbox hits, return those
@@ -856,6 +804,9 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 		ConvIDs: []chat1.ConversationID{convID},
 	}
 	ib, err := g.InboxSource.Read(ctx, uid, nil, true, &query, nil)
+	if err != nil {
+		return fmt.Errorf("inbox read error: %s", err)
+	}
 	if len(ib.Convs) != 1 {
 		return fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
 	}
@@ -973,9 +924,9 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 	return nil
 }
 
-func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
-	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
-	ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
+func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri)
 	return helper.create(ctx)
 }
@@ -1000,7 +951,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
 		uid:          uid,
-		tlfName:      tlfName,
+		tlfName:      utils.AddUserToTLFName(g, tlfName, vis, membersType),
 		topicName:    topicName,
 		topicType:    topicType,
 		membersType:  membersType,
@@ -1072,7 +1023,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if n.membersType != chat1.ConversationMembersType_IMPTEAMNATIVE {
 			return res, err
 		}
-		if _, ok := err.(teams.TeamDoesNotExistError); !ok {
+		if _, ok := err.(UnknownTLFNameError); !ok {
 			return res, err
 		}
 

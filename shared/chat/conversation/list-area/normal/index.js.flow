@@ -11,7 +11,9 @@ export type Props = {|
   onToggleInfoPanel: () => void,
   loadMoreMessages: (ordinal: ?Types.Ordinal) => void,
   editingOrdinal: ?Types.Ordinal,
+  lastMessageIsOurs: boolean,
   lastLoadMoreOrdinal: ?Types.Ordinal,
+  listScrollDownCounter: number,
 |}
 
 export default class ConversationList extends React.Component<Props> {}

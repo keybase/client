@@ -70,7 +70,7 @@ for arch in i386 x86_64 ; do
   # Add a standalone signature file, for user convenience. Other packaging
   # steps will pick this up and copy it around.
   code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
-  gpg --detach-sign --armor --use-agent --default-key "$code_signing_fingerprint" \
+  gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
       -o "$rpmcopy.sig" "$rpmcopy"
 
   # Update the latest pointer. Even though the RPM repo is split by

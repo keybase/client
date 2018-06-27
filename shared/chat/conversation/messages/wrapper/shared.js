@@ -14,7 +14,7 @@ import {
 import Timestamp from './timestamp'
 import SendIndicator from './chat-send'
 import MessagePopup from '../message-popup'
-import HeightRetainer from './height-retainer'
+import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta'
 
 import type {Props} from '.'
@@ -61,7 +61,7 @@ const MenuButton = ({onClick, setRef}) => (
 )
 
 const EditedMark = () => (
-  <Text type="BodySmall" style={styles.edited}>
+  <Text type="BodyTiny" style={styles.edited}>
     EDITED
   </Text>
 )
@@ -124,7 +124,11 @@ const RightSide = props => (
       <Box style={styles.textContainer} className="message">
         {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
-        <HeightRetainer
+        <ExplodingHeightRetainer
+          explodedBy={props.explodedBy}
+          exploding={props.exploding}
+          measure={props.measure}
+          messageKey={props.messageKey}
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
@@ -134,14 +138,14 @@ const RightSide = props => (
             toggleShowingMenu={props.toggleShowingMenu}
           />
           {props.isEdited && <EditedMark />}
-        </HeightRetainer>
+        </ExplodingHeightRetainer>
         {!isMobile &&
           !props.exploded && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
         <MessagePopup
           attachTo={props.attachmentRef}
           message={props.message}
           onHidden={props.toggleShowingMenu}
-          position="bottom left"
+          position="top center"
           visible={props.showingMenu}
         />
         {props.isRevoked && (
@@ -149,23 +153,24 @@ const RightSide = props => (
             type="iconfont-exclamation"
             style={iconCastPlatformStyles(styles.exclamation)}
             color={globalColors.blue}
-            fontSize={11}
+            fontSize={14}
           />
         )}
       </Box>
-      {!!props.failureDescription && (
-        <Failure
-          failureDescription={props.failureDescription}
-          isExplodingUnreadable={props.isExplodingUnreadable}
-          onRetry={props.onRetry}
-          onEdit={props.onEdit}
-          onCancel={props.onCancel}
-        />
-      )}
+      {!!props.failureDescription &&
+        !props.exploded && (
+          <Failure
+            failureDescription={props.failureDescription}
+            isExplodingUnreadable={props.isExplodingUnreadable}
+            onRetry={props.onRetry}
+            onEdit={props.onEdit}
+            onCancel={props.onCancel}
+          />
+        )}
       <Box style={styles.sendIndicatorContainer}>
         {props.isYou && (
           <SendIndicator
-            sent={props.messageSent}
+            sent={props.messageSent || props.exploded}
             failed={props.messageFailed}
             style={{marginBottom: 2}}
             id={props.message.timestamp}
@@ -173,11 +178,31 @@ const RightSide = props => (
         )}
       </Box>
     </Box>
-    {props.exploding && <ExplodingMeta explodesAt={props.explodesAt} />}
+    {props.exploding && (
+      <ExplodingMeta
+        exploded={props.exploded}
+        explodesAt={props.explodesAt}
+        messageKey={props.messageKey}
+        pending={props.messagePending || props.messageFailed}
+        onClick={props.exploded ? null : props.toggleShowingMenu}
+      />
+    )}
   </Box>
 )
 
 class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps> {
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.measure) {
+      if (
+        this.props.orangeLineAbove !== prevProps.orangeLineAbove ||
+        this.props.timestamp !== prevProps.timestamp ||
+        this.props.includeHeader !== prevProps.includeHeader
+      ) {
+        this.props.measure()
+      }
+    }
+  }
+
   render() {
     const props = this.props
     return (
@@ -230,17 +255,12 @@ const styles = styleSheetCreate({
     },
   }),
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
-  rightSide: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-      flex: 1,
-      paddingRight: globalMargins.tiny,
-      position: 'relative',
-    },
-    isMobile: {
-      marginRight: sendIndicatorWidth,
-    },
-  }),
+  rightSide: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1,
+    paddingRight: globalMargins.tiny,
+    position: 'relative',
+  },
   rightSideContainer: {
     ...globalStyles.flexBoxRow,
     flex: 1,
@@ -261,7 +281,7 @@ const styles = styleSheetCreate({
     },
     isElectron: {pointerEvents: 'none'},
     isMobile: {
-      right: -sendIndicatorWidth,
+      right: -14,
     },
   }),
   textContainer: {

@@ -1,16 +1,24 @@
 // @flow
 import * as Types from '../constants/types/devices'
 import React, {PureComponent} from 'react'
-import {Box2, Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderHoc} from '../common-adapters'
+import {
+  Box2,
+  Box,
+  Text,
+  List,
+  Icon,
+  ClickableBox,
+  ProgressIndicator,
+  HeaderOnMobile,
+} from '../common-adapters'
 import FloatingMenu, {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
 } from '../common-adapters/floating-menu'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
-import {branch} from 'recompose'
 
-import type {MenuItem} from '../common-adapters/popup-menu.js'
+import type {MenuItem} from '../common-adapters/popup-menu'
 
 export type Props = {
   deviceIDs: Array<Types.DeviceID>,
@@ -171,4 +179,4 @@ const textStyle = isRevoked =>
         flex: 0,
       }
 
-export default branch(() => isMobile, HeaderHoc)(Devices)
+export default HeaderOnMobile(Devices)

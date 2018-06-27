@@ -213,7 +213,7 @@ function _serverCallMap(
   getState: () => TypedState,
   onStart: ?(username: string) => void,
   onFinish: ?() => void
-): RPCTypes.IncomingCallMapType {
+): Object {
   // if true we already have a pending call so let's skip a ton of work
   let username
   let clearPendingTimeout
@@ -618,11 +618,10 @@ function _setupTrackerHandlers() {
         }
       }
 
-      const session: Session = engine().createSession(
-        _serverCallMap(dispatch, getState, onStart, onFinish),
-        null,
-        cancelHandler
-      )
+      const session: Session = engine().createSession({
+        cancelHandler,
+        incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
+      })
 
       response && response.result(session.getId())
     }

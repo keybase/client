@@ -2,10 +2,10 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
@@ -33,10 +33,7 @@ func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			Usage: "Title of attachment (defaults to filename)",
 		},
 	}
-	// TODO remove this check for release.
-	if ephemeral.NewEKLib(g).ShouldRun(context.TODO()) {
-		flags = append(flags, mustGetChatFlags("exploding-lifetime")...)
-	}
+	flags = append(flags, mustGetChatFlags("exploding-lifetime")...)
 	return cli.Command{
 		Name:         "upload",
 		Usage:        "Upload an attachment to a conversation",
@@ -66,6 +63,12 @@ func (c *CmdChatUpload) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdChatUpload) Run() error {
+	// Verify that we are not trying to send an ephemeral message to a public
+	// chat.
+	if c.ephemeralLifetime.Duration > 0 && c.public {
+		return fmt.Errorf("Cannot send ephemeral messages with --public set.")
+	}
+
 	opts := attachOptionsV1{
 		Channel: ChatChannel{
 			Name:   c.tlf,

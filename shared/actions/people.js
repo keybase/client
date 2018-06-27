@@ -72,8 +72,7 @@ const _processPeopleData = function(fromGetPeopleData: any[]) {
   )
 }
 
-const _markViewed = (action: PeopleGen.MarkViewedPayload) =>
-  Saga.call(RPCTypes.homeHomeMarkViewedRpcPromise, {})
+const _markViewed = (action: PeopleGen.MarkViewedPayload) => Saga.call(RPCTypes.homeHomeMarkViewedRpcPromise)
 
 const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
   return Saga.sequentially([

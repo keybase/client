@@ -40,6 +40,10 @@ const Usernames = (following: string[], you?: string) => ({
   },
 })
 
+const WaitingButton = () => ({
+  WaitingButton: (props: any) => props,
+})
+
 const Avatar = (following: string[], followers: string[]) => ({
   Avatar: (props: any) =>
     mockOwnToViewProps(props, following.includes(props.username), followers.includes(props.username)),
@@ -65,5 +69,11 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
   }),
 })
 
+const Common = () => compose(
+  Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  Avatar(['following', 'both'], ['followers', 'both']),
+  WaitingButton()
+)
+
 export {compose}
-export {Avatar, TeamDropdownMenu, Usernames}
+export {Avatar, Common, TeamDropdownMenu, Usernames, WaitingButton}

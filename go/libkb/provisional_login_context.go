@@ -3,9 +3,7 @@ package libkb
 import (
 	"encoding/hex"
 	"errors"
-	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 type ProvisionalLoginContext struct {
@@ -48,32 +46,17 @@ func (p *ProvisionalLoginContext) Dump(m MetaContext, prefix string) {
 	m.CDebugf("%sLoginSession: %v", prefix, (p.loginSession != nil))
 }
 
-func plcErr(s string) error {
-	return fmt.Errorf("ProvisionalLoginContext#%s not implemented", s)
-}
-
 func (p *ProvisionalLoginContext) LoggedInLoad() (bool, error) {
 	if p.localSession != nil {
 		return p.localSession.IsLoggedIn(), nil
 	}
 	return false, nil
 }
-func (p *ProvisionalLoginContext) LoggedInProvisioned(context.Context) (bool, error) {
-	return false, plcErr("LoggedInProvisioned")
-
-}
-func (p *ProvisionalLoginContext) Logout() error {
-	return plcErr("Logout")
-}
 func (p *ProvisionalLoginContext) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 	p.streamCache = NewPassphraseStreamCache(tsec, pps)
 }
 func (p *ProvisionalLoginContext) SetStreamCache(c *PassphraseStreamCache) {
 	p.streamCache = c
-}
-
-func (p *ProvisionalLoginContext) CreateStreamCacheViaStretch(passphrase string) error {
-	return plcErr("CreateStreamCacheViaStretch")
 }
 func (p *ProvisionalLoginContext) PassphraseStreamCache() *PassphraseStreamCache {
 	return p.streamCache
@@ -165,7 +148,8 @@ func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username Nor
 	return p.localSession.SetLoggedIn(sessionID, csrf, username, uid, deviceID)
 }
 
-func (p *ProvisionalLoginContext) Keyring() (ret *SKBKeyringFile, err error) {
+func (p *ProvisionalLoginContext) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
+	defer m.CTrace("ProvisionalLoginContext#Keyring", func() error { return err })()
 	if p.skbKeyring != nil {
 		return p.skbKeyring, nil
 	}
@@ -184,24 +168,27 @@ func (p *ProvisionalLoginContext) Keyring() (ret *SKBKeyringFile, err error) {
 func (p *ProvisionalLoginContext) ClearKeyring() {
 	p.skbKeyring = nil
 }
-func (p *ProvisionalLoginContext) LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error) {
-	return nil, plcErr("LockedLocalSecretKey")
-}
 func (p *ProvisionalLoginContext) SecretSyncer() *SecretSyncer {
 	return p.secretSyncer
 }
 func (p *ProvisionalLoginContext) RunSecretSyncer(m MetaContext, uid keybase1.UID) error {
-	return RunSyncer(m, p.secretSyncer, uid, (p.localSession != nil), p.localSession)
-}
-func (p *ProvisionalLoginContext) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
-	return plcErr("SetCachedSecretKey")
-}
-func (p *ProvisionalLoginContext) SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error {
-	return plcErr("SetUnlockedPaperKey")
+	if uid.IsNil() {
+		uid = p.GetUID()
+	}
+	return RunSyncer(m, p.secretSyncer, uid, (p.localSession != nil), p.localSession, false /* forceReload */)
 }
 func (p *ProvisionalLoginContext) GetUnlockedPaperEncKey() GenericKey {
 	return nil
 }
 func (p *ProvisionalLoginContext) GetUnlockedPaperSigKey() GenericKey {
 	return nil
+}
+func (p *ProvisionalLoginContext) Salt() []byte {
+	if len(p.salt) > 0 {
+		return p.salt
+	}
+	if p.loginSession == nil {
+		return nil
+	}
+	return p.loginSession.salt
 }

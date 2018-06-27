@@ -1,7 +1,7 @@
 // @flow
 import {connect, type TypedState, type Dispatch, isMobile} from '../../util/container'
 import {usernameSelector} from '../../constants/selectors'
-import TabBarRender from './index.render'
+import TabBarRender from '.'
 import {chatTab, peopleTab, profileTab, type Tab} from '../../constants/tabs'
 import {navigateTo, switchTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'

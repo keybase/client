@@ -11,6 +11,9 @@ protocol remote {
     string displayCurrency;
     string noteB64; // b64-encoded EncryptedNote or empty string.
     string signedTransaction;
+    // If quickReturn == true then the RPC can return success
+    //   while the payment is still pending on the stellar network.
+    boolean quickReturn;
   }
 
   record PaymentRelayPost {
@@ -23,6 +26,7 @@ protocol remote {
     string displayCurrency;
     string boxB64; // b64-encoded EncryptedRelaySecret
     string signedTransaction; // Funding tx
+    boolean quickReturn; // Same as PaymentDirectPost.quickReturn but success refers to the funding of the relay.
   }
 
   record RelayClaimPost {
@@ -54,6 +58,7 @@ protocol remote {
     Asset asset;
     uint64 operationID;
     TimeMs ctime; // time on the network
+    string cursorToken;
   }
 
   record PaymentSummaryDirect {
@@ -73,6 +78,7 @@ protocol remote {
     string noteB64; // b64-encoded EncryptedNote or empty string.
     TimeMs ctime; // ctime in keybase db
     TimeMs rtime; // time of last status update
+    string cursorToken;
   }
 
   record PaymentSummaryRelay {
@@ -98,6 +104,7 @@ protocol remote {
     keybase1.TeamID teamID; // Impteam ID
     // Summary of the most relevant claim. Either the successful one or latest pending.
     union { null, ClaimSummary } claim;
+    string cursorToken;
   }
 
   record ClaimSummary {
@@ -107,6 +114,12 @@ protocol remote {
     RelayDirection dir;
     AccountID toStellar;
     keybase1.UserVersion to; // who claimed it
+  }
+
+  record PaymentDetails {
+    PaymentSummary summary;
+    string memo;
+    string memoType;
   }
 
   array<Balance> balances(keybase1.UserVersion caller, AccountID accountID);
@@ -120,10 +133,14 @@ protocol remote {
   }
   AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
 
-  array<PaymentSummary> recentPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
+  record PaymentsPage {
+    array<PaymentSummary> payments;
+    union { null, PageCursor } cursor;
+  }
+  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit);
 
   // txID can be either a keybase or stellar transaction ID.
-  PaymentSummary paymentDetail(keybase1.UserVersion caller, string txID);
+  PaymentDetails paymentDetails(keybase1.UserVersion caller, string txID);
 
   // js can't handle uint64, so returning a string
   string accountSeqno(keybase1.UserVersion caller, AccountID accountID);

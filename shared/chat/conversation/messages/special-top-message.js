@@ -7,7 +7,7 @@ import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
 import {Text, Box, Icon} from '../../../common-adapters'
-import {connect, type TypedState} from '../../../util/container'
+import {compose, setDisplayName, connect, type TypedState} from '../../../util/container'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 type Props = {
@@ -79,14 +79,20 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
   const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
     ? 'moreToLoad'
     : 'noMoreToLoad'
-  const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
+  const showTeamOffer =
+    hasLoadedEver &&
+    loadMoreType === 'noMoreToLoad' &&
+    meta.teamType === 'adhoc' &&
+    meta.participants.size > 2
   const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
   // don't show default header in the case of the retention notice being visible
   const showRetentionNotice =
+    hasLoadedEver &&
     meta.retentionPolicy.type !== 'retain' &&
     !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
   return {
@@ -104,4 +110,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   measure: ownProps.measure,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TopMessage)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('TopMessage')
+)(TopMessage)

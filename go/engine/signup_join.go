@@ -10,7 +10,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
-	"golang.org/x/net/context"
 )
 
 type SignupJoinEngine struct {
@@ -24,28 +23,6 @@ type SignupJoinEngine struct {
 
 func NewSignupJoinEngine(g *libkb.GlobalContext) *SignupJoinEngine {
 	return &SignupJoinEngine{Contextified: libkb.NewContextified(g)}
-}
-
-// XXX why is this here?
-func CheckUsernameAvailable(g *libkb.GlobalContext, s string) (err error) {
-	_, err = g.API.Get(libkb.APIArg{
-		Endpoint:    "user/lookup",
-		SessionType: libkb.APISessionTypeNONE,
-		Args: libkb.HTTPArgs{
-			"username": libkb.S{Val: s},
-			"fields":   libkb.S{Val: "basics"},
-		},
-	})
-	if err == nil {
-		err = libkb.AppStatusError{
-			Code: libkb.SCBadSignupUsernameTaken,
-			Name: "BAD_SIGNUP_USERNAME_TAKEN",
-			Desc: fmt.Sprintf("Username '%s' is taken", s),
-		}
-	} else if ase, ok := err.(libkb.AppStatusError); ok && ase.Name == "NOT_FOUND" {
-		err = nil
-	}
-	return
 }
 
 func (s *SignupJoinEngine) Init() error {
@@ -148,6 +125,6 @@ func (s *SignupJoinEngine) WriteOut(m libkb.MetaContext, salt []byte) error {
 	return m.SwitchUserNewConfig(s.uid, s.username, salt, nilDeviceID)
 }
 
-func (s *SignupJoinEngine) PostInviteRequest(ctx context.Context, arg libkb.InviteRequestArg) error {
-	return libkb.PostInviteRequest(ctx, s.G(), arg)
+func (s *SignupJoinEngine) PostInviteRequest(m libkb.MetaContext, arg libkb.InviteRequestArg) error {
+	return libkb.PostInviteRequest(m, arg)
 }

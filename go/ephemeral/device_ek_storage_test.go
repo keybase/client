@@ -3,7 +3,6 @@ package ephemeral
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -61,7 +60,9 @@ func TestDeviceEKStorage(t *testing.T) {
 		},
 	}
 
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	m := libkb.NewMetaContextForTest(tc)
+
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
@@ -146,33 +147,6 @@ func TestDeviceEKStorage(t *testing.T) {
 	err = erasableStorage.Get(context.Background(), badEldestSeqnoKey, &badEldestSeqnoDeviceEK)
 	require.Error(t, err)
 	require.Equal(t, badEldestSeqnoDeviceEK, keybase1.DeviceEk{})
-
-	// There was a bug in the deviceEK format introduced in
-	// https://github.com/keybase/client/pull/11911 where the key format went from
-	//  deviceEKPrefix-username-eldestSeqNo-generation.ek to
-	//  deviceEKPrefix-username--eldestSeqNo-generation.ek
-	// Test that we repair these keys
-	badKeyFormat := fmt.Sprintf("%s-%s--%s-0.ek", deviceEKPrefix, s.G().Env.GetUsername(), uv.EldestSeqno)
-	err = erasableStorage.Put(context.Background(), badKeyFormat, keybase1.DeviceEk{})
-	require.NoError(t, err)
-
-	goodKeyFormat := fmt.Sprintf("%s-%s-%s-1.ek", deviceEKPrefix, s.G().Env.GetUsername(), uv.EldestSeqno)
-	err = erasableStorage.Put(context.Background(), goodKeyFormat, keybase1.DeviceEk{})
-	require.NoError(t, err)
-
-	err = s.keyFormatRepair(context.Background())
-	require.NoError(t, err)
-
-	var badKeyFormatDeviceEK keybase1.DeviceEk
-	err = erasableStorage.Get(context.Background(), badKeyFormat, &badKeyFormatDeviceEK)
-	require.Error(t, err)
-
-	var goodKeyFormatDeviceEK keybase1.DeviceEk
-	err = erasableStorage.Get(context.Background(), goodKeyFormat, &goodKeyFormatDeviceEK)
-	require.NoError(t, err)
-
-	err = erasableStorage.Get(context.Background(), strings.Replace(badKeyFormat, "--", "-", 1), &goodKeyFormatDeviceEK)
-	require.NoError(t, err)
 }
 
 // If we change the key format intentionally, we have to introduce some form of

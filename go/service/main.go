@@ -35,6 +35,8 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellargregor"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/tlfupgrade"
@@ -312,7 +314,7 @@ func (d *Service) setupTeams() error {
 }
 
 func (d *Service) setupStellar() error {
-	stellar.ServiceInit(d.G())
+	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()))
 	return nil
 }
 
@@ -327,6 +329,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	ctx := context.Background()
 	d.tryLogin(ctx)
+	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
 	d.createChatModules()
@@ -505,6 +508,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
+		d.gregor.PushHandler(stellargregor.New(d.G(), remote.NewRemoteNet(d.G())))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
@@ -563,6 +567,30 @@ func (d *Service) writeServiceInfo() error {
 	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath(), d.G().Log)
 }
 
+func (d *Service) chatOutboxPurgeCheck() {
+	ticker := libkb.NewBgTicker(5 * time.Minute)
+	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("OBOXPRGE")
+	d.G().PushShutdownHook(func() error {
+		m.CDebugf("stopping chatOutboxPurgeCheck loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		for {
+			<-ticker.C
+			uid := d.G().Env.GetUID()
+			if uid.IsNil() {
+				continue
+			}
+			gregorUID := gregor1.UID(uid.ToBytes())
+			g := globals.NewContext(d.G(), d.ChatG())
+			if err := storage.NewOutbox(g, gregorUID).OutboxPurge(context.Background()); err != nil {
+				m.CDebugf("OutboxPurge error: %s", err)
+			}
+		}
+	}()
+}
+
 func (d *Service) hourlyChecks() {
 	ticker := libkb.NewBgTicker(1 * time.Hour)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("HRLY")
@@ -583,7 +611,9 @@ func (d *Service) hourlyChecks() {
 			m.CDebugf("+ hourly check loop")
 			ekLib := m.G().GetEKLib()
 			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
-			ekLib.KeygenIfNeeded(m.Ctx())
+			if err := ekLib.KeygenIfNeeded(m.Ctx()); err != nil {
+				m.CDebugf("KeygenIfNeeded error: %s", err)
+			}
 
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
@@ -737,18 +767,17 @@ func (d *Service) OnLogin() error {
 
 func (d *Service) OnLogout() (err error) {
 	defer d.G().Trace("Service#OnLogout", func() error { return err })()
-
 	log := func(s string) {
 		d.G().Log.Debug("Service#OnLogout: %s", s)
 	}
 
-	log("shutting down gregor")
-	if d.gregor != nil {
-		d.gregor.Shutdown()
-	}
-
 	log("shutting down chat modules")
 	d.stopChatModules()
+
+	log("shutting down gregor")
+	if d.gregor != nil {
+		d.gregor.Reset()
+	}
 
 	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()
@@ -996,7 +1025,7 @@ func (d *Service) GregorInjectOutOfBandMessage(sys string, body []byte) error {
 	if d.gregor == nil {
 		return errors.New("can't gregor inject without a gregor")
 	}
-	return d.gregor.InjectOutOfBandMessage(sys, body)
+	return d.gregor.InjectOutOfBandMessage(context.TODO(), sys, body)
 }
 
 func (d *Service) HasGregor() bool {

@@ -8,7 +8,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/stellarnet"
 	"golang.org/x/net/context"
 )
 
@@ -97,15 +97,15 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 			localAmountStr := ""
 			if balance.Asset.IsNativeXLM() {
 				if acc.ExchangeRate != nil {
-					localAmount, err := stellar.ConvertXLMToOutside(balance.Amount, *acc.ExchangeRate)
+					localAmount, err := stellarnet.ConvertXLMToOutside(balance.Amount, acc.ExchangeRate.Rate)
 					if err == nil {
-						localAmountStr = fmt.Sprintf(" (%s ~%s)", string(acc.ExchangeRate.Currency), localAmount)
+						localAmountStr = fmt.Sprintf(" (%s %s)", string(acc.ExchangeRate.Currency), localAmount)
 					} else {
 						c.G().Log.Warning("Unable to convert to local currency: %s", err)
 					}
 				}
 
-				dui.Printf("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
+				dui.PrintfUnescaped("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
 			} else {
 				dui.Printf("%q\t%s\t(issued by %s)\n", balance.Asset.Code, balance.Amount, balance.Asset.Issuer)
 			}

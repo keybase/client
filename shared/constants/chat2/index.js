@@ -20,8 +20,10 @@ import {formatTextForQuoting} from '../../util/chat'
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   editingMap: I.Map(),
+  explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
   inboxFilter: '',
+  isExplodingNew: true,
   loadingMap: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
@@ -29,6 +31,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
     [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
   ]),
   moreToLoadMap: I.Map(),
+  orangeLineMap: I.Map(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
@@ -69,7 +72,7 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
     return null
   }
 
-  return {text: message.text.stringValue(), ordinal}
+  return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
 }
 
 export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => {
@@ -118,6 +121,12 @@ export const isInfoPanelOpen = (state: TypedState) => {
 
 export const creatingLoadingKey = 'creatingConvo'
 
+// When we see that exploding messages are in the app, we set
+// seenExplodingGregorKey. Once newExplodingGregorOffset time
+// passes, we stop showing the 'NEW' tag.
+export const seenExplodingGregorKey = 'chat.seenExplodingMessages'
+export const newExplodingGregorOffset = 1000 * 3600 * 24 * 3 // 3 days in ms
+export const getIsExplodingNew = (state: TypedState) => state.chat2.get('isExplodingNew')
 export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
  * Gregor key for exploding conversations
@@ -126,8 +135,13 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
  */
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
-export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) =>
-  state.chat2.getIn(['explodingModes', c], 0)
+export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) => {
+  let mode = state.chat2.getIn(['explodingModeLocks', c], null)
+  if (mode === null) {
+    mode = state.chat2.getIn(['explodingModes', c], 0)
+  }
+  return mode
+}
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>
@@ -144,6 +158,9 @@ export const makeInboxQuery = (
     unreadOnly: false,
   }
 }
+
+const numMessagesOnInitialLoad = isMobile ? 20 : 100
+const numMessagesOnScrollback = isMobile ? 100 : 100
 
 export {
   getConversationIDKeyMetasToLoad,
@@ -165,7 +182,7 @@ export {
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
-  makePendingAttachmentMessage,
+  makePendingAttachmentMessages,
   makePendingTextMessage,
   messageExplodeDescriptions,
   pathToAttachmentType,
@@ -176,8 +193,10 @@ export {
 } from './message'
 
 export {
-  pendingConversationIDKey,
-  noConversationIDKey,
-  pendingWaitingConversationIDKey,
   isValidConversationIDKey,
+  noConversationIDKey,
+  numMessagesOnInitialLoad,
+  numMessagesOnScrollback,
+  pendingConversationIDKey,
+  pendingWaitingConversationIDKey,
 }

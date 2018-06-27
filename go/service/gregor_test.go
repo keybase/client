@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/gregor"
+	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -444,6 +445,7 @@ func TestSyncFresh(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 20
@@ -467,6 +469,7 @@ func TestSyncNonFresh(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
@@ -503,6 +506,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
@@ -548,6 +552,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
@@ -597,6 +602,7 @@ func TestSyncDismissal(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	// Consume msg
 	msg := server.newIbm(uid)
@@ -630,6 +636,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
@@ -679,6 +686,7 @@ func TestGregorTeamBadges(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
@@ -725,6 +733,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 
 	// Set up client and server
 	h, _, _ := setupSyncTests(t, tc)
+	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
@@ -774,6 +783,7 @@ func TestSyncDismissalExistingState(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 
@@ -811,6 +821,7 @@ func TestSyncFutureDismissals(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 
@@ -902,6 +913,7 @@ func TestLocalDismissals(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
 
 	var refReplayMsgs []gregor.InBandMessage
 	var refConsumeMsgs []gregor.InBandMessage
@@ -929,4 +941,93 @@ func TestLocalDismissals(t *testing.T) {
 	lds, err := gcli.Sm.LocalDismissals(context.TODO(), uid)
 	require.NoError(t, err)
 	require.Zero(t, len(lds))
+}
+
+type flakeyIncomingClient struct {
+	gregor1.IncomingInterface
+
+	offline bool
+	client  func() gregor1.IncomingInterface
+}
+
+func newFlakeyIncomingClient(client func() gregor1.IncomingInterface) flakeyIncomingClient {
+	return flakeyIncomingClient{
+		client: client,
+	}
+}
+
+func (f flakeyIncomingClient) ConsumeMessage(ctx context.Context, m gregor1.Message) error {
+	if f.offline {
+		return errors.New("offline")
+	}
+	return f.client().ConsumeMessage(ctx, m)
+}
+
+func TestOfflineConsume(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
+
+	fclient := newFlakeyIncomingClient(func() gregor1.IncomingInterface { return server })
+	client := grclient.NewClient(uid, nil, func() gregor.StateMachine {
+		return storage.NewMemEngine(gregor1.ObjFactory{}, clockwork.NewRealClock(), tc.G.GetLog())
+	}, storage.NewLocalDB(tc.G), func() gregor1.IncomingInterface { return fclient }, tc.G.GetLog())
+	tev := grclient.NewTestingEvents()
+	client.TestingEvents = tev
+	fc := clockwork.NewFakeClock()
+	client.Clock = fc
+	h.gregorCli = client
+
+	// Try to consume offline
+	t.Logf("offline")
+	fclient.offline = true
+	msg := server.newIbm(uid)
+	require.NoError(t, client.ConsumeMessage(context.TODO(), msg))
+	serverState, err := server.State(context.TODO(), gregor1.StateArg{
+		Uid: uid,
+	})
+	require.NoError(t, err)
+	require.Zero(t, len(serverState.Items_))
+	clientState, err := client.StateMachineState(context.TODO(), gregor1.TimeOrOffset{}, true)
+	require.NoError(t, err)
+	items, err := clientState.Items()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(items))
+	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
+		items[0].Metadata().MsgID().String())
+	select {
+	case <-tev.OutboxSend:
+		require.Fail(t, "should not have sent")
+	default:
+	}
+
+	// Come back online
+	t.Logf("online")
+	fclient.offline = false
+	fc.Advance(10 * time.Minute)
+	select {
+	case msg := <-tev.OutboxSend:
+		require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
+			items[0].Metadata().MsgID().String())
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no send")
+	}
+	serverState, err = server.State(context.TODO(), gregor1.StateArg{
+		Uid: uid,
+	})
+	require.NoError(t, err)
+	require.NoError(t, broadcastMessageTesting(t, h, msg))
+	require.Equal(t, 1, len(serverState.Items_))
+	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
+		serverState.Items_[0].Metadata().MsgID().String())
+	clientState, err = client.StateMachineState(context.TODO(), gregor1.TimeOrOffset{}, true)
+	require.NoError(t, err)
+	items, err = clientState.Items()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(items))
+	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
+		items[0].Metadata().MsgID().String())
+
 }

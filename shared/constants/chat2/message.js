@@ -85,6 +85,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   previewTransferState: null,
   previewURL: '',
   previewWidth: 0,
+  showPlayButton: false,
   submitState: null,
   title: '',
   transferProgress: 0,
@@ -321,6 +322,7 @@ const validUIMessagetoMessage = (
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
     exploded: m.isEphemeralExpired,
+    explodedBy: m.explodedBy || '',
     exploding: m.isEphemeral,
     explodingTime: m.etime,
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
@@ -353,6 +355,7 @@ const validUIMessagetoMessage = (
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
       let attachment = {}
       let preview: ?RPCChatTypes.Asset
+      let full: ?RPCChatTypes.Asset
       let transferState = null
 
       if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachment) {
@@ -360,18 +363,21 @@ const validUIMessagetoMessage = (
         preview =
           attachment.preview ||
           (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+        full = attachment.object
         if (!attachment.uploaded) {
           transferState = 'remoteUploading'
         }
       } else if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded || {}
         preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+        full = attachment.object
         transferState = null
       }
       const {filename, title, size} = attachment.object
       let previewHeight = 0
       let previewWidth = 0
       let attachmentType = 'file'
+      let showPlayButton = false
 
       if (preview && preview.metadata) {
         if (
@@ -382,6 +388,14 @@ const validUIMessagetoMessage = (
           previewHeight = wh.height
           previewWidth = wh.width
           attachmentType = 'image'
+          // full is a video but preview is an image?
+          if (
+            full &&
+            full.metadata &&
+            full.metadata.assetType === RPCChatTypes.localAssetMetadataType.video
+          ) {
+            showPlayButton = true
+          }
         } else if (
           preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.video &&
           preview.metadata.video
@@ -406,13 +420,14 @@ const validUIMessagetoMessage = (
         attachmentType,
         fileName: filename,
         fileSize: size,
+        fileType,
+        fileURL,
         previewHeight,
+        previewURL,
         previewWidth,
+        showPlayButton,
         title,
         transferState,
-        previewURL,
-        fileURL,
-        fileType,
       })
     }
     case RPCChatTypes.commonMessageType.join:
@@ -580,7 +595,8 @@ export const makePendingTextMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   text: HiddenString,
-  outboxID: Types.OutboxID
+  outboxID: Types.OutboxID,
+  explodeTime?: number
 ) => {
   // we could read the exploding mode for the convo from state here, but that
   // would cause the timer to count down while the message is still pending
@@ -590,7 +606,10 @@ export const makePendingTextMessage = (
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
+  const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
+
   return makeMessageText({
+    ...explodeInfo,
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
@@ -604,40 +623,77 @@ export const makePendingTextMessage = (
   })
 }
 
-export const makePendingAttachmentMessage = (
+export const makePendingAttachmentMessages = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  attachmentType: Types.AttachmentType,
-  title: string,
-  previewURL: string,
-  outboxID: Types.OutboxID
+  attachmentTypes: Types.AttachmentType[],
+  titles: string[],
+  previewURLs: string[],
+  outboxIDs: Types.OutboxID[],
+  explodeTime?: number
 ) => {
+  if (attachmentTypes.length - titles.length + previewURLs.length - outboxIDs.length !== 0) {
+    // some are not the same size. no good.
+    throw new Error(
+      `makePendingAttachments: got arrays of differing lengths: (${attachmentTypes.length}, ${
+        titles.length
+      }, ${previewURLs.length}, ${outboxIDs.length})`
+    )
+  }
   const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  const ordinal = nextFractionalOrdinal(lastOrdinal)
+  // arbitrarily reduce on attachmentTypes to get the same length
+  const ordinals = attachmentTypes.reduce((ords, _) => {
+    if (ords.length === 0) {
+      ords.push(nextFractionalOrdinal(lastOrdinal))
+      return ords
+    }
+    ords.push(nextFractionalOrdinal(ords[ords.length - 1]))
+    return ords
+  }, [])
 
-  return makeMessageAttachment({
-    attachmentType,
-    author: state.config.username || '',
-    conversationIDKey,
-    deviceName: '',
-    previewURL,
-    deviceType: isMobile ? 'mobile' : 'desktop',
-    id: Types.numberToMessageID(0),
-    ordinal,
-    outboxID,
-    submitState: 'pending',
-    timestamp: Date.now(),
-    title,
-  })
+  const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
+
+  const res = []
+  for (let i = 0; i < attachmentTypes.length; i++) {
+    res.push(
+      makeMessageAttachment({
+        ...explodeInfo,
+        attachmentType: attachmentTypes[i],
+        author: state.config.username || '',
+        conversationIDKey,
+        deviceName: '',
+        previewURL: previewURLs[i],
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        id: Types.numberToMessageID(0),
+        ordinal: ordinals[i],
+        outboxID: outboxIDs[i],
+        submitState: 'pending',
+        timestamp: Date.now(),
+        title: titles[i],
+      })
+    )
+  }
+  return res
 }
 
-// We only pass message ids to the service so let's just truncate it so a messageid-like value instead of searching back for it.
-// this value is a hint to the service and how the ordinals work this is always a valid messageid
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const lastOrdinal =
-    state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).last() || Types.numberToOrdinal(0)
-  return Math.floor(Types.ordinalToNumber(lastOrdinal))
+  let clientPrev
+
+  const mm = state.chat2.messageMap.get(conversationIDKey)
+  if (mm) {
+    // find last valid messageid we know about
+    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).findLast(o =>
+      // $FlowIssue not going to fix this message resolution stuff now, they all have ids that we care about
+      mm.getIn([o, 'id'])
+    )
+
+    if (goodOrdinal) {
+      clientPrev = mm.getIn([goodOrdinal, 'id'])
+    }
+  }
+
+  return clientPrev || 0
 }
 
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
@@ -681,12 +737,12 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 }
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
-  {text: 'Never', seconds: 0},
-  {text: '3 minutes', seconds: 180},
-  {text: '1 hour', seconds: 3600},
-  {text: '3 hours', seconds: 3600 * 3},
-  {text: '12 hours', seconds: 3600 * 12},
+  {text: 'Never (turn off)', seconds: 0},
+  {text: '30 seconds', seconds: 30},
+  {text: '5 minutes', seconds: 300},
+  {text: '60 minutes', seconds: 3600},
+  {text: '6 hours', seconds: 3600 * 6},
   {text: '24 hours', seconds: 86400},
   {text: '3 days', seconds: 86400 * 3},
   {text: '7 days', seconds: 86400 * 7},
-]
+].reverse()

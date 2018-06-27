@@ -250,7 +250,7 @@ func (h *PGPHandler) PGPKeyGenDefault(ctx context.Context, arg keybase1.PGPKeyGe
 }
 
 func (h *PGPHandler) PGPDeletePrimary(ctx context.Context, sessionID int) (err error) {
-	return libkb.DeletePrimary(ctx, h.G())
+	return libkb.DeletePrimary(libkb.NewMetaContext(ctx, h.G()))
 }
 
 func (h *PGPHandler) PGPSelect(nctx context.Context, sarg keybase1.PGPSelectArg) error {

@@ -66,7 +66,7 @@ class Main extends Component<any> {
           routeState={this.props.routeState}
           setRouteState={this.props.setRouteState}
         />
-        <GatewayDest name="popup-root" component={View} />
+        <GatewayDest name="popup-root" component={View} pointerEvents="box-none" />
       </Fragment>
     )
   }

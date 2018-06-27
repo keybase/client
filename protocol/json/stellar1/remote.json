@@ -42,6 +42,10 @@
         {
           "type": "string",
           "name": "signedTransaction"
+        },
+        {
+          "type": "boolean",
+          "name": "quickReturn"
         }
       ]
     },
@@ -87,6 +91,10 @@
         {
           "type": "string",
           "name": "signedTransaction"
+        },
+        {
+          "type": "boolean",
+          "name": "quickReturn"
         }
       ]
     },
@@ -187,6 +195,10 @@
         {
           "type": "TimeMs",
           "name": "ctime"
+        },
+        {
+          "type": "string",
+          "name": "cursorToken"
         }
       ]
     },
@@ -266,6 +278,10 @@
         {
           "type": "TimeMs",
           "name": "rtime"
+        },
+        {
+          "type": "string",
+          "name": "cursorToken"
         }
       ]
     },
@@ -356,6 +372,10 @@
             "ClaimSummary"
           ],
           "name": "claim"
+        },
+        {
+          "type": "string",
+          "name": "cursorToken"
         }
       ]
     },
@@ -391,6 +411,24 @@
     },
     {
       "type": "record",
+      "name": "PaymentDetails",
+      "fields": [
+        {
+          "type": "PaymentSummary",
+          "name": "summary"
+        },
+        {
+          "type": "string",
+          "name": "memo"
+        },
+        {
+          "type": "string",
+          "name": "memoType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AccountDetails",
       "fields": [
         {
@@ -415,6 +453,26 @@
         {
           "type": "string",
           "name": "available"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentsPage",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "PaymentSummary"
+          },
+          "name": "payments"
+        },
+        {
+          "type": [
+            null,
+            "PageCursor"
+          ],
+          "name": "cursor"
         }
       ]
     },
@@ -470,16 +528,20 @@
           "type": "AccountID"
         },
         {
+          "name": "cursor",
+          "type": [
+            null,
+            "PageCursor"
+          ]
+        },
+        {
           "name": "limit",
           "type": "int"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "PaymentSummary"
-      }
+      "response": "PaymentsPage"
     },
-    "paymentDetail": {
+    "paymentDetails": {
       "request": [
         {
           "name": "caller",
@@ -490,7 +552,7 @@
           "type": "string"
         }
       ],
-      "response": "PaymentSummary"
+      "response": "PaymentDetails"
     },
     "accountSeqno": {
       "request": [

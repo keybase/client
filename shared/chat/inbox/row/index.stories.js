@@ -15,7 +15,7 @@ const simpleCommon = {
   conversationIDKey: '',
   hasResetUsers: false,
   hasUnread: false,
-  iconHoverColor: globalColors.black_75,
+  iconHoverColor: globalColors.black_60,
   isMuted: false,
   isSelected: false,
   onSelectConversation: action('onSelectConversation'),
@@ -23,6 +23,7 @@ const simpleCommon = {
   rekeyInfo: null,
   showBold: false,
   snippet: 'snippet',
+  snippetDecoration: '',
   subColor: globalColors.black_40,
   teamname: '',
   timestamp: '1:23 pm',
@@ -60,7 +61,7 @@ const mocks = [
     hasBadge: false,
     participants: ['jzila'],
     showBold: false,
-    snippet: 'I don\t know that I would want.',
+    snippet: "I don't know that I would want.",
     timestamp: '5:12 pm',
   },
   {
@@ -71,7 +72,7 @@ const mocks = [
     hasUnread: false,
     participants: ['jzila'],
     showBold: false,
-    snippet: 'I don\t know that I would want.',
+    snippet: "I don't know that I would want.",
     timestamp: '5:12 pm',
   },
   {
@@ -110,7 +111,7 @@ const load = () => {
   storiesOf('Chat/Inbox', module)
     .addDecorator(provider)
     .add('Simple', () => (
-      <Box style={{width: 240}}>
+      <Box style={{width: 270}}>
         {mocks.map(m => (
           <SmallTeam
             key={m.conversationIDKey}
@@ -123,7 +124,7 @@ const load = () => {
       </Box>
     ))
     .add('Team', () => (
-      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
+      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 270}}>
         <BigTeamHeader badgeSubscribe={false} memberCount={30} teamname="Keybase" />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#general" />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#random" showBold={true} />
@@ -155,7 +156,7 @@ const load = () => {
       </Box>
     ))
     .add('Filtered', () => (
-      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
+      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 270}}>
         <FilterSmallTeam {...commonFiltered} />
         <FilterSmallTeam {...commonFiltered} participants={['chris']} />
         <FilterSmallTeam {...commonFiltered} teamname="pokerpals" />

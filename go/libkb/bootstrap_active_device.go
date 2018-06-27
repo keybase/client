@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -67,7 +68,7 @@ func fixupBootstrapError(err error) error {
 }
 
 func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (err error) {
-	defer m.CTrace("bootstrapActiveDeviceReturnRawError", func() error { return err })()
+	defer m.CTrace("bootstrapActiveDeviceReturnRaw", func() error { return err })()
 
 	ad := m.ActiveDevice()
 	if ad.IsValidFor(uid, deviceID) {
@@ -115,7 +116,7 @@ func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.D
 	sibkeyKID := device.Base.Kid
 	deviceName = device.DeviceDescription
 
-	subkeyKID := upak.Current.FindEncryptionDeviceKID(sibkeyKID)
+	subkeyKID := upak.Current.FindEncryptionKIDFromSigningKID(sibkeyKID)
 	if subkeyKID.IsNil() {
 		m.CDebugf("BootstrapActiveDevice: no subkey found for device: %s", deviceID)
 		return nil, nil, deviceName, NoKeyError{"no encryption device key found for user"}
@@ -157,20 +158,7 @@ func LoadProvisionalActiveDevice(m MetaContext, uid keybase1.UID, deviceID keyba
 // for anything aside from assertions, but as we phase out LoginState, we'll
 // leave it here so that assertions in LoginState can still pass.
 func BootstrapActiveDeviceWithMetaContext(m MetaContext) (ok bool, uid keybase1.UID, err error) {
-	run := func(lctx LoginContext) (keybase1.UID, error) {
-		return BootstrapActiveDeviceFromConfig(m.WithLoginContext(lctx), true)
-	}
-	if lctx := m.LoginContext(); lctx == nil {
-		aerr := m.G().LoginStateDeprecated().Account(func(lctx *Account) {
-			uid, err = run(lctx)
-		}, "BootstrapActiveDevice")
-		if err == nil && aerr != nil {
-			m.CDebugf("LoginOffline: LoginState account error: %s", aerr)
-			err = aerr
-		}
-	} else {
-		uid, err = run(lctx)
-	}
+	uid, err = BootstrapActiveDeviceFromConfig(m, true)
 	ok = false
 	if err == nil {
 		ok = true

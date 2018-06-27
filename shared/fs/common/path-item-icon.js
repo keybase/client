@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {Avatar, Icon} from '../../common-adapters'
-import {memoize} from 'lodash-es'
 
 type PathItemIconProps = {
   spec: Types.PathItemIconSpec,
@@ -27,12 +26,9 @@ const PathItemIcon = ({spec, style, small}: PathItemIconProps) => {
   }
 }
 
-// memoize uses first arg as cache key, so aggregate both parameters into an
-// object to avoid having a custom cache resolving function.
-const basicIconStyles = (small, appendStyle) =>
-  memoize(({appendStyle}) => ({
-    ...(small ? {width: 16, height: 16} : {}),
-    ...(appendStyle || {}),
-  }))({appendStyle})
+const basicIconStyles = (small, appendStyle) => ({
+  ...(small ? {width: 16, height: 16} : {}),
+  ...(appendStyle || {}),
+})
 
 export default PathItemIcon

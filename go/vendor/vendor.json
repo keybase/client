@@ -33,21 +33,6 @@
 			"revisionTime": "2016-12-05T18:39:50Z"
 		},
 		{
-			"path": "code.google.com/p/rsc/gf256",
-			"revision": "2d8aa6027fab",
-			"revisionTime": "2014-11-30T16:07:12-05:00"
-		},
-		{
-			"path": "code.google.com/p/rsc/qr",
-			"revision": "2d8aa6027fab",
-			"revisionTime": "2014-11-30T16:07:12-05:00"
-		},
-		{
-			"path": "code.google.com/p/rsc/qr/coding",
-			"revision": "2d8aa6027fab",
-			"revisionTime": "2014-11-30T16:07:12-05:00"
-		},
-		{
 			"checksumSHA1": "b2fhCQnbJ+xgt/4eSjmTKcMjGrM=",
 			"path": "github.com/PuerkitoBio/goquery",
 			"revision": "7f4291566cf7cac3be222a933e01a2bed97532b1",
@@ -152,6 +137,12 @@
 			"path": "github.com/golang/snappy",
 			"revision": "d6668316e43571d7dde95be6fd077f96de002f8b",
 			"revisionTime": "2016-05-19T03:34:20Z"
+		},
+		{
+			"checksumSHA1": "B7tNNRFtE+SkHjYAx3L8xak8zLU=",
+			"path": "github.com/gonutz/w32",
+			"revision": "7b87625ae312b3dc5a34773dfbf819ed486f2685",
+			"revisionTime": "2018-05-16T16:26:43Z"
 		},
 		{
 			"path": "github.com/google/go-snappy/snappy",
@@ -420,10 +411,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "+W3SwqGOF6dMFyme9/wauBn8n1Q=",
+			"checksumSHA1": "zdyg2NMqEzg9lxg9PHWChXkc1FY=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "e9463ae7cfea28b44aafe51584127c5c12df30cf",
-			"revisionTime": "2018-05-21T16:18:00Z"
+			"revision": "66f411bee2255cd32002dbffa8ab9fd0a1afb009",
+			"revisionTime": "2018-06-19T21:14:21Z"
 		},
 		{
 			"path": "github.com/kr/pty",
@@ -993,14 +984,39 @@
 			"revisionTime": "2016-09-22T05:42:04Z"
 		},
 		{
+			"checksumSHA1": "cTGhZzixV6ZWBw4TcrG+s+j/fkA=",
+			"path": "gopkg.in/kyokomi/emoji.v1",
+			"revision": "2e9a9507333f3ee28f3fab88c2c3aba34455d734",
+			"revisionTime": "2017-11-21T01:00:09Z"
+		},
+		{
 			"path": "h12.me/socks",
 			"revision": "c19db44edd3ca0f7992809b55412dbb57805bc8e",
 			"revisionTime": "2015-04-10T14:41:13+08:00"
 		},
 		{
+			"checksumSHA1": "MApJNLxDXnmird4KHtr+5eWSWBM=",
+			"path": "rsc.io/qr",
+			"revision": "ca9a01fc2f9505024045632c50e5e8cd6142fafe",
+			"revisionTime": "2018-06-05T10:54:35Z"
+		},
+		{
+			"checksumSHA1": "cCb4q+jBCc35Mg77eeey7WUoLzo=",
+			"path": "rsc.io/qr/coding",
+			"revision": "ca9a01fc2f9505024045632c50e5e8cd6142fafe",
+			"revisionTime": "2018-06-05T10:54:35Z"
+		},
+		{
+			"checksumSHA1": "tRudFWngA48S9jkF8Lnh+5PUBiM=",
+			"path": "rsc.io/qr/gf256",
+			"revision": "ca9a01fc2f9505024045632c50e5e8cd6142fafe",
+			"revisionTime": "2018-06-05T10:54:35Z"
+		},
+		{
+			"checksumSHA1": "L5s/EGLVeV7pz2afcVDbnRx7b8c=",
 			"path": "stathat.com/c/ramcache",
-			"revision": "d229745ea466bc903d6cdf310aa57bfffb45653b",
-			"revisionTime": "2015-09-01T15:03:09-05:00"
+			"revision": "cf1a4fb3fbdac11685f748ffead9acd8612fba7b",
+			"revisionTime": "2018-06-22T15:25:10Z"
 		}
 	],
 	"rootPath": "github.com/keybase/client/go"

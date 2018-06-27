@@ -78,14 +78,17 @@ const strikeStyle = platformStyles({
     textDecoration: 'line-through',
   },
 })
-const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 13}
+const quoteStyle = {
+  borderLeft: `3px solid ${globalColors.lightGrey2}`,
+  paddingLeft: globalMargins.small,
+}
 
 function previewCreateComponent(type, key, children, options) {
   switch (type) {
     case 'emoji':
-      return <EmojiIfExists emojiName={String(children)} size={11} key={key} />
+      return <EmojiIfExists emojiName={String(children)} size={12} key={key} />
     case 'native-emoji':
-      return <Emoji emojiName={String(children)} size={11} key={key} />
+      return <Emoji emojiName={String(children)} size={12} key={key} />
     default:
       return (
         <Text type="BodySmall" key={key} style={neutralPreviewStyle}>

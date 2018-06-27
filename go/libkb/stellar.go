@@ -39,23 +39,23 @@ func MakeNaclSigningKeyPairFromStellarSecretKey(sec stellar1.SecretKey) (res Nac
 func ParseStellarSecretKey(secStr string) (stellar1.SecretKey, stellar1.AccountID, *keypair.Full, error) {
 	secStr = strings.ToUpper(secStr)
 	if len(secStr) != 56 {
-		return "", "", nil, fmt.Errorf("stellar secret key must be 56 chars long: was %v", len(secStr))
+		return "", "", nil, fmt.Errorf("Stellar secret key must be 56 chars long: was %v", len(secStr))
 	}
 	_, err := base32.StdEncoding.DecodeString(secStr)
 	if err != nil {
-		return "", "", nil, fmt.Errorf("invalid characters in stellar secret key")
+		return "", "", nil, fmt.Errorf("invalid characters in Stellar secret key")
 	}
 	kp, err := keypair.Parse(secStr)
 	if err != nil {
-		return "", "", nil, fmt.Errorf("invalid stellar secret key: %v", err)
+		return "", "", nil, fmt.Errorf("invalid Stellar secret key: %v", err)
 	}
 	switch kp := kp.(type) {
 	case *keypair.FromAddress:
-		return "", "", nil, errors.New("unexpected stellar account ID, expected secret key")
+		return "", "", nil, errors.New("unexpected Stellar account ID, expected secret key")
 	case *keypair.Full:
 		return stellar1.SecretKey(kp.Seed()), stellar1.AccountID(kp.Address()), kp, nil
 	default:
-		return "", "", nil, fmt.Errorf("invalid stellar secret key")
+		return "", "", nil, fmt.Errorf("invalid Stellar secret key")
 	}
 }
 
@@ -64,23 +64,23 @@ func ParseStellarSecretKey(secStr string) (stellar1.SecretKey, stellar1.AccountI
 func ParseStellarAccountID(idStr string) (stellar1.AccountID, error) {
 	idStr = strings.ToUpper(idStr)
 	if len(idStr) != 56 {
-		return "", fmt.Errorf("stellar account ID must be 56 chars long: was %v", len(idStr))
+		return "", fmt.Errorf("Stellar account ID must be 56 chars long: was %v", len(idStr))
 	}
 	_, err := base32.StdEncoding.DecodeString(idStr)
 	if err != nil {
-		return "", fmt.Errorf("invalid characters in stellar secret key")
+		return "", fmt.Errorf("invalid characters in Stellar account ID")
 	}
 	kp, err := keypair.Parse(idStr)
 	if err != nil {
-		return "", fmt.Errorf("invalid stellar account ID key: %v", err)
+		return "", fmt.Errorf("invalid Stellar account ID key: %v", err)
 	}
 	switch kp := kp.(type) {
 	case *keypair.FromAddress:
 		return stellar1.AccountID(kp.Address()), nil
 	case *keypair.Full:
-		return "", errors.New("unexpected stellar secret key, expected account ID")
+		return "", errors.New("unexpected Stellar secret key, expected account ID")
 	default:
-		return "", fmt.Errorf("invalid stellar secret key")
+		return "", fmt.Errorf("invalid Stellar account ID")
 	}
 }
 

@@ -1,16 +1,38 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text, Icon, HOCTimers, type PropsWithTimer} from '../../../../common-adapters'
+import {
+  Box2,
+  ClickableBox,
+  Text,
+  Icon,
+  HOCTimers,
+  ProgressIndicator,
+  type PropsWithTimer,
+} from '../../../../common-adapters'
 import {castPlatformStyles} from '../../../../common-adapters/icon'
-import {collapseStyles, globalColors, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalStyles,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
+import {type TickerID, addTicker, removeTicker} from '../../../../util/second-timer'
 import {formatDurationShort} from '../../../../util/timestamp'
+import SharedTimer, {type SharedTimerID} from '../../../../util/shared-timers'
+import {animationDuration} from './exploding-height-retainer'
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 
 type Props = PropsWithTimer<{
+  exploded: boolean,
   explodesAt: number,
+  messageKey: string,
+  onClick: ?() => void,
+  pending: boolean,
 }>
 
 // 'none' is functionally 'unset', used to detect a fresh mount
@@ -23,33 +45,65 @@ class ExplodingMeta extends React.Component<Props, State> {
   state = {
     mode: 'none',
   }
-
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (prevState.mode === 'none' && Date.now() >= nextProps.explodesAt) {
-      return {mode: 'hidden'}
-    }
-    if (prevState.mode !== 'none') {
-      // never change away from anything set
-      return null
-    }
-    return {mode: 'countdown'}
-  }
+  tickerID: TickerID
+  sharedTimerID: SharedTimerID
 
   componentDidMount() {
-    this.state.mode === 'countdown' && this._updateLoop()
+    if (this.state.mode === 'none' && (Date.now() >= this.props.explodesAt || this.props.exploded)) {
+      this._setHidden()
+      return
+    }
+    this._setCountdown()
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.exploded && !prevProps.exploded) {
+      this.setState({mode: 'boom'})
+      SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
+      this.sharedTimerID = SharedTimer.addObserver(() => this.setState({mode: 'hidden'}), {
+        key: this.props.messageKey,
+        ms: animationDuration,
+      })
+    }
+  }
+
+  componentWillUnmount() {
+    removeTicker(this.tickerID)
+    SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
   }
 
   _updateLoop = () => {
     const difference = this.props.explodesAt - Date.now()
-    if (difference <= 0) {
+    if (difference <= 0 || this.props.exploded) {
       this.setState({mode: 'boom'})
       return
     }
     const interval = getLoopInterval(difference)
+    if (interval < 1000) {
+      // switch to 'seconds' mode
+      this.tickerID = addTicker(this._secondLoop)
+      return
+    }
     this.props.setTimeout(() => {
       this.forceUpdate(this._updateLoop)
     }, interval)
   }
+
+  _secondLoop = () => {
+    const difference = this.props.explodesAt - Date.now()
+    if (difference <= 0 || this.props.exploded) {
+      if (this.state.mode === 'countdown') {
+        this.setState({mode: 'boom'})
+      }
+      removeTicker(this.tickerID)
+      return
+    }
+    this.forceUpdate()
+  }
+
+  _setHidden = () => this.state.mode !== 'hidden' && this.setState({mode: 'hidden'})
+  _setCountdown = () =>
+    this.state.mode !== 'countdown' && this.setState({mode: 'countdown'}, this._updateLoop)
 
   render() {
     const backgroundColor =
@@ -59,20 +113,26 @@ class ExplodingMeta extends React.Component<Props, State> {
       case 'countdown':
         children = (
           <Box2 direction="horizontal" gap="xtiny">
-            <Box2
-              direction="horizontal"
-              style={collapseStyles([
-                styles.countdownContainer,
-                {
-                  backgroundColor,
-                },
-              ])}
-            >
-              <Text type="Body" style={{color: globalColors.white, fontSize: 10, fontWeight: 'bold'}}>
-                {formatDurationShort(this.props.explodesAt - Date.now())}
-              </Text>
-            </Box2>
-            <Icon type="iconfont-bomb" fontSize={isMobile ? 22 : 16} color={globalColors.black_75} />
+            {this.props.pending ? (
+              <Box2 direction="horizontal" style={styles.progressContainer}>
+                <ProgressIndicator style={{height: 12, width: 12}} />
+              </Box2>
+            ) : (
+              <Box2
+                direction="horizontal"
+                style={collapseStyles([
+                  styles.countdownContainer,
+                  {
+                    backgroundColor,
+                  },
+                ])}
+              >
+                <Text type="Body" style={styles.countdown}>
+                  {formatDurationShort(this.props.explodesAt - Date.now())}
+                </Text>
+              </Box2>
+            )}
+            <Icon type="iconfont-bomb" fontSize={16} color={globalColors.black_75} />
           </Box2>
         )
         break
@@ -89,25 +149,54 @@ class ExplodingMeta extends React.Component<Props, State> {
         )
     }
     return (
-      <Box2 direction="horizontal" style={styles.container}>
+      <ClickableBox onClick={this.props.onClick} style={styles.container}>
         {children}
-      </Box2>
+      </ClickableBox>
     )
   }
 }
 
-const getLoopInterval = (diff: number) => {
+export const getLoopInterval = (diff: number) => {
+  let deltaMS
+  let nearestUnit
+
+  // If diff is less than half a unit away,
+  // we need to return the remainder so we
+  // update when the unit changes
+  const shouldReturnRemainder = (diff, nearestUnit) => diff - nearestUnit <= nearestUnit / 2
+
   if (diff > oneDayInMs) {
-    return diff - Math.floor(diff / oneDayInMs) * oneDayInMs
+    nearestUnit = oneDayInMs
+
+    // special case for when we're coming on 1 day
+    if (shouldReturnRemainder(diff, nearestUnit)) {
+      return diff - nearestUnit
+    }
+  } else if (diff > oneHourInMs) {
+    nearestUnit = oneHourInMs
+
+    // special case for when we're coming on 1 hour
+    if (shouldReturnRemainder(diff, nearestUnit)) {
+      return diff - nearestUnit
+    }
+  } else if (diff > oneMinuteInMs) {
+    nearestUnit = oneMinuteInMs
+
+    // special case for when we're coming on 1 minute
+    if (shouldReturnRemainder(diff, nearestUnit)) {
+      return diff - nearestUnit
+    }
   }
-  if (diff > oneHourInMs) {
-    return diff - Math.floor(diff / oneHourInMs) * oneHourInMs
+  if (!nearestUnit) {
+    // less than a minute, check every half second
+    return 500
   }
-  if (diff > oneMinuteInMs) {
-    return diff - Math.floor(diff / oneMinuteInMs) * oneMinuteInMs
+  deltaMS = diff - Math.floor(diff / nearestUnit) * nearestUnit
+  const halfNearestUnit = nearestUnit / 2
+  if (deltaMS > halfNearestUnit) {
+    return deltaMS - halfNearestUnit
   }
-  // less than a minute, check every second
-  return 1000
+  return deltaMS + halfNearestUnit
 }
 
 const styles = styleSheetCreate({
@@ -124,17 +213,64 @@ const styles = styleSheetCreate({
       left: 0,
     },
   }),
-  container: {
-    alignSelf: 'flex-end',
-    position: 'relative',
-    width: isMobile ? 80 : 72,
-    height: isMobile ? 22 : 19,
-  },
-  countdownContainer: {
-    borderRadius: 2,
-    paddingLeft: 4,
-    paddingRight: 4,
-  },
+  container: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      alignSelf: 'flex-end',
+      position: 'relative',
+      width: isMobile ? 50 : 40,
+      height: isMobile ? 22 : 19,
+      marginLeft: isMobile ? 4 : 12,
+      marginRight: isMobile ? 8 : 16,
+    },
+    isMobile: {
+      height: 22,
+      marginLeft: 4,
+      marginRight: 8,
+    },
+    isIOS: {
+      width: 50,
+    },
+    isAndroid: {
+      width: 55,
+    },
+  }),
+  countdown: platformStyles({
+    common: {color: globalColors.white, fontSize: 10, lineHeight: 14, fontWeight: 'bold'},
+  }),
+  countdownContainer: platformStyles({
+    common: {
+      alignItems: 'center',
+      borderRadius: 2,
+      justifyContent: 'center',
+      paddingLeft: 4,
+      paddingRight: 4,
+    },
+    isElectron: {
+      height: 14,
+      width: 28,
+    },
+    isMobile: {
+      height: 15,
+      width: 32,
+    },
+  }),
+  progressContainer: platformStyles({
+    common: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    isElectron: {
+      width: 28,
+    },
+    isMobile: {
+      height: 15,
+      width: 32,
+    },
+    isAndroid: {
+      height: 17,
+    },
+  }),
 })
 
 export default HOCTimers(ExplodingMeta)

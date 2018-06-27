@@ -1,7 +1,7 @@
 // @flow
 import Box from './box'
 import React, {Component} from 'react'
-import {NativeAnimated, NativeEasing} from './native-wrappers.native.js'
+import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import {globalColors, styleSheetCreate} from '../styles'
 
 import type {Props} from './loading-line'

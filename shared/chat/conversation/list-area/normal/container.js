@@ -14,14 +14,24 @@ import {
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  listScrollDownCounter: number,
   onFocusInput: () => void,
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+  const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
+  const lastOrdinal = messageOrdinals.last()
+  let lastMessageIsOurs = false
+  if (lastOrdinal) {
+    const m = Constants.getMessage(state, conversationIDKey, lastOrdinal)
+    lastMessageIsOurs = m && m.author === state.config.username
+  }
+
   return {
     conversationIDKey,
     editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
-    messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
+    lastMessageIsOurs,
+    messageOrdinals,
   }
 }
 
@@ -39,6 +49,8 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
   _loadMoreMessages: dispatchProps._loadMoreMessages,
   conversationIDKey: stateProps.conversationIDKey,
   editingOrdinal: stateProps.editingOrdinal,
+  lastMessageIsOurs: stateProps.lastMessageIsOurs,
+  listScrollDownCounter: ownProps.listScrollDownCounter,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,

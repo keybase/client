@@ -4,6 +4,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {invert} from 'lodash-es'
 import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
 
@@ -11,6 +12,8 @@ import type {Service} from './types/search'
 import {type TypedState} from './reducer'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
+
+export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
 
 // Waiting keys
 // Add granularity as necessary
@@ -30,8 +33,8 @@ export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
 })
 
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
-  active: true,
   fullName: '',
+  status: 'active',
   type: 'reader',
   username: '',
 })
@@ -46,6 +49,11 @@ export const makeInviteInfo: I.RecordFactory<Types._InviteInfo> = I.Record({
 
 export const makeRequestInfo: I.RecordFactory<Types._RequestInfo> = I.Record({
   username: '',
+})
+
+export const makeEmailInviteError: I.RecordFactory<Types._EmailInviteError> = I.Record({
+  malformed: I.Set(),
+  message: '',
 })
 
 export const teamRoleByEnum = ((m: {[Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
@@ -81,38 +89,39 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   addUserToTeamsResults: '',
   channelCreationError: '',
-  teamsWithChosenChannels: I.Set(),
+  emailInviteError: makeEmailInviteError(),
   loaded: false,
+  newTeamRequests: I.List(),
+  newTeams: I.Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
+  teamAccessRequestsPending: I.Set(),
   teamCreationError: '',
   teamCreationPending: false,
-  teamAccessRequestsPending: I.Set(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
+  teamNameToAllowPromote: I.Map(),
+  teamNameToCanPerform: I.Map(),
   teamNameToChannelInfos: I.Map(),
   teamNameToID: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
+  teamNameToIsShowcasing: I.Map(),
   teamNameToLoadingInvites: I.Map(),
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
+  teamNameToPublicitySettings: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToResetUsers: I.Map(),
   teamNameToRetentionPolicy: I.Map(),
   teamNameToRole: I.Map(),
-  teamNameToSubteams: I.Map(),
-  teamNameToCanPerform: I.Map(),
   teamNameToSettings: I.Map(),
-  teamNameToPublicitySettings: I.Map(),
-  teamNameToAllowPromote: I.Map(),
-  teamNameToIsShowcasing: I.Map(),
+  teamNameToSubteams: I.Map(),
   teammembercounts: I.Map(),
-  newTeams: I.Set(),
-  newTeamRequests: I.List(),
   teamnames: I.Set(),
+  teamsWithChosenChannels: I.Set(),
 })
 
 export const initialCanUserPerform: RPCTypes.TeamOperation = {
@@ -137,26 +146,17 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
 
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
 const policyRetain = makeRetentionPolicy({type: 'retain'})
-const policyDay = makeRetentionPolicy({type: 'expire', days: 1})
-const policyWeek = makeRetentionPolicy({type: 'expire', days: 7})
 const policyMonth = makeRetentionPolicy({type: 'expire', days: 30})
 const policyThreeMonths = makeRetentionPolicy({type: 'expire', days: 90})
+const policySixMonths = makeRetentionPolicy({type: 'expire', days: 180})
 const policyYear = makeRetentionPolicy({type: 'expire', days: 365})
-const baseRetentionPolicies = [
-  policyDay,
-  policyWeek,
-  policyMonth,
-  policyThreeMonths,
-  policyYear,
-  policyRetain,
-]
+const baseRetentionPolicies = [policyMonth, policyThreeMonths, policySixMonths, policyYear, policyRetain]
 const retentionPolicies = {
   policyInherit,
   policyRetain,
-  policyDay,
-  policyWeek,
   policyMonth,
   policyThreeMonths,
+  policySixMonths,
   policyYear,
 }
 
@@ -176,8 +176,10 @@ const userIsActiveInTeamHelper = (
   }
 
   const member = members.get(username)
-  return member && member.active
+  return member && member.status === 'active'
 }
+
+const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
 
 const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
   state.teams.teamsWithChosenChannels.has(teamname)
@@ -394,6 +396,7 @@ export {
   getRole,
   getCanPerform,
   hasCanPerform,
+  getEmailInviteError,
   getTeamMemberCount,
   userIsActiveInTeamHelper,
   getTeamChannelInfos,

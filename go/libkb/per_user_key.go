@@ -40,7 +40,7 @@ func (s *PerUserKeySeed) DeriveDHKey() (*NaclDHKeyPair, error) {
 }
 
 func (s *PerUserKeySeed) DeriveSymmetricKey(reason DeriveReason) (res NaclSecretBoxKey, err error) {
-	derived, err := DeriveFromSecret(*s, DeriveReasonPUKPrev)
+	derived, err := DeriveFromSecret(*s, reason)
 	if err != nil {
 		return res, err
 	}

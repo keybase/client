@@ -48,6 +48,7 @@ export type Props = {
   style?: StylesCrossPlatform,
   type?: 'password' | 'text' | 'passwordVisible',
   value?: ?string,
+  selectTextOnFocus?: boolean,
 
   // Looks like desktop only, but used on mobile for onSubmitEditing (!).
   // TODO: Have a separate onSubmitEditing prop.
@@ -69,7 +70,6 @@ export type Props = {
   // If keyboardType is set, it overrides type.
   keyboardType?: KeyboardType,
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
-  selectTextOnFocus?: boolean,
 }
 
 export type Selection = {start: number, end: number}
@@ -87,5 +87,7 @@ declare export default class Input extends Component<Props> {
   selection: () => Selection;
   // transformText must be called only on uncontrolled Input
   // components. The transformation may be done asynchronously.
-  transformText: (fn: (TextInfo) => TextInfo) => void;
+  // @param reflectChange: desktop only. If true, `onChangeText`
+  // will be called after the transform
+  transformText: (fn: (TextInfo) => TextInfo, reflectChange?: boolean) => void;
 }

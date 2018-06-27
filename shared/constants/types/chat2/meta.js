@@ -2,7 +2,6 @@
 // @flow
 import * as I from 'immutable'
 import * as Common from './common'
-import type {Ordinal} from './message'
 import type {RetentionPolicy} from '../teams'
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
@@ -23,12 +22,12 @@ export type _ConversationMeta = {
   notificationsMobile: NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,
   offline: boolean,
-  orangeLineOrdinal: ?Ordinal,
-  participants: I.OrderedSet<string>,
+  participants: I.List<string>, // was OrderedSet but is quite slow
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,
   retentionPolicy: RetentionPolicy,
   snippet: string,
+  snippetDecoration: string,
   supersededBy: Common.ConversationIDKey,
   supersedes: Common.ConversationIDKey,
   teamType: TeamType,

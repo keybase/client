@@ -17,7 +17,7 @@
     },
     "setupTrackerHandlers": {},
     "openProofUrl": {
-        "proof": "Types.Proof"
+      "proof": "Types.Proof"
     },
     "getMyProfile": {
       "ignoreCache?": "boolean"
@@ -160,8 +160,10 @@
     },
     "setUpdateTrackers": {
       "username": "string",
-      "trackers": "Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>",
-      "tracking": "Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>"
+      "trackers":
+        "Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>",
+      "tracking":
+        "Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>"
     }
   }
 }

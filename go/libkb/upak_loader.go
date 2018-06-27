@@ -8,6 +8,8 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
+	"sync"
 )
 
 // UPAK Loader is a loader for UserPlusKeysV2AllIncarnations. It's a thin user object that is
@@ -21,14 +23,16 @@ type UPAKLoader interface {
 	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error)
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upak *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
+	LoadUPAKWithDeviceID(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error)
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
-	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
+	ListFollowedUIDs(ctx context.Context, uid keybase1.UID) ([]keybase1.UID, error)
 	PutUserToCache(ctx context.Context, user *User) error
 	LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
 	CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n NormalizedUsername) error
+	Batcher(ctx context.Context, getArg func(int) *LoadUserArg, processResult func(int, *keybase1.UserPlusKeysV2AllIncarnations), window int) (err error)
 }
 
 // CachedUPAKLoader is a UPAKLoader implementation that can cache results both
@@ -591,6 +595,31 @@ func (u *CachedUPAKLoader) LoadDeviceKey(ctx context.Context, uid keybase1.UID, 
 	return &upakV1, deviceKey, revoked, err
 }
 
+// If the user exists but the device doesn't, will force a load in case the device is very new.
+func (u *CachedUPAKLoader) LoadUPAKWithDeviceID(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
+	var info CachedUserLoadInfo
+	larg := NewLoadUserByUIDArg(ctx, u.G(), uid)
+	upakV2, _, err := u.loadWithInfo(larg, &info, nil, false)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, device := range upakV2.Current.DeviceKeys {
+		if device.DeviceID.Eq(deviceID) {
+			// Early success, return
+			return upakV2, nil
+		}
+	}
+
+	// Try again with a forced load in case the device is very new.
+	larg = larg.WithForcePoll(true)
+	upakV2, _, err = u.loadWithInfo(larg, nil, nil, false)
+	if err != nil {
+		return nil, err
+	}
+	return upakV2, nil
+}
+
 // LookupUsername uses the UIDMapper to find a username for uid.
 func (u *CachedUPAKLoader) LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error) {
 	var empty NormalizedUsername
@@ -745,8 +774,8 @@ func (u *CachedUPAKLoader) LookupUsernameAndDevice(ctx context.Context, uid keyb
 	return u.lookupUsernameAndDeviceWithInfo(ctx, uid, did, nil)
 }
 
-func (u *CachedUPAKLoader) ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error) {
-	arg := NewLoadUserByUIDArg(nil, u.G(), uid)
+func (u *CachedUPAKLoader) ListFollowedUIDs(ctx context.Context, uid keybase1.UID) ([]keybase1.UID, error) {
+	arg := NewLoadUserByUIDArg(ctx, u.G(), uid)
 	upak, _, err := u.Load(arg)
 	if err != nil {
 		return nil, err
@@ -809,4 +838,64 @@ func CheckCurrentUIDDeviceID(m MetaContext) (err error) {
 		return NoDeviceError{fmt.Sprintf("for UID %s", uid)}
 	}
 	return checkDeviceValidForUID(m.Ctx(), m.G().GetUPAKLoader(), uid, did)
+}
+
+// Batcher loads a batch of UPAKs with the given window width. It keeps calling getArg(i) with an
+// increasing i, until that getArg return nil, in which case the production of UPAK loads is over.
+// UPAKs will be loaded and fed into processResult() as they come in. Both getArg() and processResult()
+// are called in the same mutex to simplify synchronization.
+func (u *CachedUPAKLoader) Batcher(ctx context.Context, getArg func(int) *LoadUserArg, processResult func(int, *keybase1.UserPlusKeysV2AllIncarnations), window int) (err error) {
+	if window == 0 {
+		window = 10
+	}
+
+	ctx = WithLogTag(ctx, "LUB")
+	eg, ctx := errgroup.WithContext(ctx)
+	defer u.G().CTrace(ctx, "CachedUPAKLoader#Batcher", func() error { return err })()
+
+	type argWithIndex struct {
+		i   int
+		arg LoadUserArg
+	}
+	args := make(chan argWithIndex)
+	var mut sync.Mutex
+
+	// Make a stream of args, and send them down the channel
+	eg.Go(func() error {
+		defer close(args)
+		for i := 0; true; i++ {
+			mut.Lock()
+			arg := getArg(i)
+			mut.Unlock()
+			if arg == nil {
+				return nil
+			}
+			select {
+			case args <- argWithIndex{i, arg.WithNetContext(ctx)}:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+		return nil
+	})
+
+	for i := 0; i < window; i++ {
+		eg.Go(func() error {
+			for awi := range args {
+				arg := awi.arg
+				_, _, err := u.loadWithInfo(arg, nil, func(u *keybase1.UserPlusKeysV2AllIncarnations) error {
+					mut.Lock()
+					processResult(awi.i, u)
+					mut.Unlock()
+					return nil
+				}, false)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+	}
+
+	return eg.Wait()
 }

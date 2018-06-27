@@ -192,6 +192,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "TeamMemberStatus",
+      "symbols": [
+        "ACTIVE_0",
+        "RESET_1",
+        "DELETED_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamMemberDetails",
       "fields": [
@@ -209,12 +218,12 @@
         },
         {
           "type": "boolean",
-          "name": "active"
-        },
-        {
-          "type": "boolean",
           "name": "needsPUK",
           "lint": "ignore"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -558,8 +567,8 @@
           "name": "teamName"
         },
         {
-          "type": "boolean",
-          "name": "userActive"
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -1476,10 +1485,6 @@
         },
         {
           "type": "boolean",
-          "name": "active"
-        },
-        {
-          "type": "boolean",
           "name": "allowProfilePromote",
           "jsonkey": "allow_profile_promote"
         },
@@ -1487,6 +1492,10 @@
           "type": "boolean",
           "name": "isMemberShowcased",
           "jsonkey": "is_member_showcased"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -1934,10 +1943,6 @@
         {
           "name": "name",
           "type": "string"
-        },
-        {
-          "name": "forceRepoll",
-          "type": "boolean"
         }
       ],
       "response": "TeamDetails"
@@ -2583,6 +2588,54 @@
         }
       ],
       "response": "bytes"
+    },
+    "findNextMerkleRootAfterTeamRemoval": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "team",
+          "type": "TeamID"
+        },
+        {
+          "name": "isPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "teamSigchainSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "prev",
+          "type": "MerkleRootV2"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterTeamRemoval finds the first Merkle root that contains the user being\n   removed from the team at that given seqno in the team's chain. You should pass in a previous\n   Merkle root as a starting point for the binary search."
+    },
+    "findNextMerkleRootAfterTeamRemovalBySigningKey": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "signingKey",
+          "type": "KID"
+        },
+        {
+          "name": "team",
+          "type": "TeamID"
+        },
+        {
+          "name": "isPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user\n   with the given signing key being removed from the given team. If there are several such instances,\n   we will return just the last one."
     }
   },
   "namespace": "keybase.1"

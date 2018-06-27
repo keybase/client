@@ -1,26 +1,20 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text, Button} from '../common-adapters'
-import {styleSheetCreate} from '../styles'
+import {Box2, WaitingButton} from '../common-adapters'
+import WalletList from './wallet-list/container'
 
 type Props = {
-  hello: string,
   refresh: () => void,
+  waitingKey: string,
 }
 
-const Todo = ({hello, refresh}: Props) => (
-  <Box2 direction="vertical" fullHeight={true} gap="xlarge" gapStart={true} gapEnd={true}>
-    <Text type="Body" style={styles.text}>
-      Wallets hello: {hello}
-    </Text>
-    <Button type="Primary" label="Click" onClick={refresh} />
+const Wallets = ({refresh, waitingKey}: Props) => (
+  <Box2 direction="horizontal" fullHeight={true} fullWidth={true} gap="small">
+    <WalletList style={{height: '100%', maxWidth: 240}} />
+    <Box2 direction="vertical" fullHeight={true} gap="xlarge" gapStart={true} gapEnd={true}>
+      <WaitingButton type="Primary" label="Refresh wallets" onClick={refresh} waitingKey={waitingKey} />
+    </Box2>
   </Box2>
 )
 
-const styles = styleSheetCreate({
-  text: {
-    textAlign: 'center',
-  },
-})
-
-export default Todo
+export default Wallets

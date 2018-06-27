@@ -74,6 +74,14 @@
         {
           "type": "boolean",
           "name": "ephemeral"
+        },
+        {
+          "type": "boolean",
+          "name": "chatkbfsedits"
+        },
+        {
+          "type": "boolean",
+          "name": "chatdev"
         }
       ]
     }

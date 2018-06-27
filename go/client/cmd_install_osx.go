@@ -250,7 +250,7 @@ func (v *CmdUninstall) Run() error {
 	return nil
 }
 
-func DiagnoseSocketError(ui libkb.UI, err error) {
+func DiagnoseSocketError(ui libkb.UI, inErr error) {
 	t := ui.GetTerminalUI()
 	services, err := launchd.ListServices([]string{"keybase.service.", "homebrew.mxcl.keybase"})
 	if err != nil {

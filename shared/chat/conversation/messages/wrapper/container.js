@@ -1,11 +1,10 @@
 // @flow
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Constants from '../../../../constants/chat2'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as Types from '../../../../constants/types/chat2'
 import Wrapper from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {setDisplayName, compose, connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {isMobile} from '../../../../constants/platform'
 
@@ -15,10 +14,11 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
-  const meta = Constants.getMeta(state, message.conversationIDKey)
-  const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
+  const orangeLineOrdinal = state.chat2.orangeLineMap.get(message.conversationIDKey)
+  const orangeLineAbove = !!previous && orangeLineOrdinal === previous.ordinal
   const messageSent = !message.submitState
   const messageFailed = message.submitState === 'failed'
+  const messagePending = message.submitState === 'pending'
   const isExplodingUnreadable = message.explodingUnreadable
 
   return {
@@ -30,6 +30,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
     isYou,
     message,
     messageFailed,
+    messagePending,
     messageSent,
     orangeLineAbove,
     previous,
@@ -49,7 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, {measure}) => {
   const {message, previous} = stateProps
 
   const continuingTextBlock =
@@ -83,6 +84,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     author: message.author,
     exploded: message.exploded,
+    explodedBy: message.explodedBy,
     explodesAt: message.explodingTime,
     exploding: message.exploding,
     failureDescription,
@@ -95,8 +97,13 @@ const mergeProps = (stateProps, dispatchProps) => {
     isFollowing: stateProps.isFollowing,
     isRevoked: !!message.deviceRevokedAt,
     isYou: stateProps.isYou,
+    measure,
     message,
     messageFailed: stateProps.messageFailed,
+    // `messageKey` should be unique for the message as long
+    // as threads aren't switched
+    messageKey: `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`,
+    messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
     onCancel: stateProps.isYou
@@ -111,4 +118,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Wrapper'))(
+  Wrapper
+)

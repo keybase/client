@@ -2,7 +2,7 @@
 import * as React from 'react'
 import SubHeading from '../subheading'
 import {Box, Button, Checkbox, Divider, Text, Meta} from '../../common-adapters'
-import {Stars} from '../common.desktop.js'
+import {Stars} from '../common.desktop'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
 import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
 import flags from '../../util/feature-flags'
@@ -73,7 +73,7 @@ function SpaceInfo({
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Text
-        style={{marginRight: globalMargins.xtiny, fontSize: 11, color: globalColors.black_40}}
+        style={{marginRight: globalMargins.xtiny, fontSize: 12, color: globalColors.black_40}}
         type={'BodySmallSemibold'}
       >
         {freeSpace} FREE
