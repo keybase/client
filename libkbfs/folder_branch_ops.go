@@ -6936,28 +6936,17 @@ func (fbo *folderBranchOps) getEditMessages(
 	return nextPage
 }
 
-func (fbo *folderBranchOps) monitorEditsChat() {
-	ctx, cancelFunc := fbo.newCtxWithFBOID()
-	defer cancelFunc()
-	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
-
-	fbo.cancelEditsLock.Lock()
-	fbo.cancelEdits = cancelFunc
-	fbo.cancelEditsLock.Unlock()
-
-	// Register for all the channels of this chat.
-	lState := makeFBOLockState()
-	md, _ := fbo.getHead(lState)
-	name := md.GetTlfHandle().GetCanonicalName()
-
-	idToName, nameToID, nameToNextPage := fbo.initEditChatChannels(ctx, name)
-
-	finishActivity := false
-	for {
+func (fbo *folderBranchOps) recomputeEditHistory(
+	ctx context.Context,
+	tlfName tlf.CanonicalName,
+	nameToID map[string]chat1.ConversationID,
+	nameToNextPage map[string][]byte) {
+	gotMore := true
+	for gotMore {
 		// Recompute the history, and fetch more messages for any
 		// writers who need them.
 		writersWhoNeedMore := fbo.editHistory.Recompute()
-		gotMore := false
+		gotMore = false
 		for w, needsMore := range writersWhoNeedMore {
 			if !needsMore {
 				continue
@@ -6979,58 +6968,88 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 				}
 			}
 		}
-		if gotMore {
-			// Retry the recompute, now with more messages.
-			continue
+	}
+	// Update the overall user history.  TODO: if the TLF name
+	// changed, we should clean up the old user history.
+	fbo.config.UserHistory().UpdateHistory(
+		tlfName, fbo.id().Type(), fbo.editHistory)
+}
+
+func (fbo *folderBranchOps) handleEditActivity(
+	ctx context.Context,
+	a editChannelActivity,
+	tlfName tlf.CanonicalName,
+	idToName map[string]string,
+	nameToID map[string]chat1.ConversationID,
+	nameToNextPage map[string][]byte) (
+	idToNameRet map[string]string,
+	nameToIDRet map[string]chat1.ConversationID,
+	nameToNextPageRet map[string][]byte) {
+	defer func() {
+		fbo.recomputeEditHistory(ctx, tlfName, nameToIDRet, nameToNextPageRet)
+		fbo.editActivity.Done()
+	}()
+
+	if a.convID == nil {
+		fbo.log.CDebugf(ctx, "Re-initializing chat channels")
+		return fbo.initEditChatChannels(ctx, tlfName)
+	}
+
+	idStr := a.convID.String()
+	name, ok := idToName[idStr]
+	if !ok {
+		// This is a new channel that we need to monitor.
+		fbo.config.Chat().RegisterForMessages(
+			a.convID, fbo.receiveNewEditChat)
+		idToName[idStr] = a.name
+		nameToID[a.name] = a.convID
+		name = a.name
+	}
+	if a.message != "" {
+		fbo.log.CDebugf(ctx, "New edit message for %s", name)
+		err := fbo.editHistory.AddNotifications(
+			name, []string{a.message})
+		if err != nil {
+			fbo.log.CWarningf(ctx,
+				"Couldn't add messages for conv %s: %+v", a.convID, err)
+			return
 		}
-
-		// Update the overall user history.  TODO: if the TLF name
-		// changed, we should clean up the old user history.
-		fbo.config.UserHistory().UpdateHistory(
-			name, fbo.id().Type(), fbo.editHistory)
-
-		if finishActivity {
-			fbo.editActivity.Done()
+	} else {
+		fbo.log.CDebugf(ctx, "New edit channel for %s", name)
+		nextPage := fbo.getEditMessages(ctx, a.convID, name, nil)
+		if nextPage != nil {
+			nameToNextPage[name] = nextPage
 		}
+	}
 
+	return idToName, nameToID, nameToNextPage
+}
+
+func (fbo *folderBranchOps) monitorEditsChat() {
+	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	defer cancelFunc()
+	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
+
+	fbo.cancelEditsLock.Lock()
+	fbo.cancelEdits = cancelFunc
+	fbo.cancelEditsLock.Unlock()
+
+	// Register for all the channels of this chat.
+	lState := makeFBOLockState()
+	md, _ := fbo.getHead(lState)
+	tlfName := md.GetTlfHandle().GetCanonicalName()
+
+	idToName, nameToID, nameToNextPage := fbo.initEditChatChannels(ctx, tlfName)
+	fbo.recomputeEditHistory(ctx, tlfName, nameToID, nameToNextPage)
+
+	for {
 		select {
 		case <-fbo.shutdownChan:
 			fbo.log.CDebugf(ctx, "Shutting down chat monitoring")
 			return
 		case a := <-fbo.editChannels:
-			finishActivity = true
-			if a.convID == nil {
-				fbo.log.CDebugf(ctx, "Re-initializing chat channels")
-				idToName, nameToID, nameToNextPage = fbo.initEditChatChannels(
-					ctx, name)
-				continue
-			}
-			idStr := a.convID.String()
-			name, ok := idToName[idStr]
-			if !ok {
-				// This is a new channel that we need to monitor.
-				fbo.config.Chat().RegisterForMessages(
-					a.convID, fbo.receiveNewEditChat)
-				idToName[idStr] = a.name
-				nameToID[a.name] = a.convID
-				name = a.name
-			}
-			if a.message != "" {
-				fbo.log.CDebugf(ctx, "New edit message for %s", name)
-				err := fbo.editHistory.AddNotifications(
-					name, []string{a.message})
-				if err != nil {
-					fbo.log.CWarningf(ctx,
-						"Couldn't add messages for conv %s: %+v", a.convID, err)
-					continue
-				}
-			} else {
-				fbo.log.CDebugf(ctx, "New edit channel for %s", name)
-				nextPage := fbo.getEditMessages(ctx, a.convID, name, nil)
-				if nextPage != nil {
-					nameToNextPage[name] = nextPage
-				}
-			}
+			idToName, nameToID, nameToNextPage = fbo.handleEditActivity(
+				ctx, a, tlfName, idToName, nameToID, nameToNextPage)
 		case <-ctx.Done():
 			return
 		}
