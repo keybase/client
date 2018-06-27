@@ -124,7 +124,7 @@ const ButtonBox = glamorous(Box)({
   borderWidth: 1,
   color: globalColors.lightGrey2,
   paddingRight: isMobile ? globalMargins.medium : globalMargins.small,
-  width: '100%',
+  width: isMobile ? '100%' : 270,
 })
 
 export default Dropdown
