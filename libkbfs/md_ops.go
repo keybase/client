@@ -514,6 +514,10 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 func (mbtc merkleBasedTeamChecker) IsTeamReader(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
 	bool, error) {
+	if mbtc.irmd.TlfID().Type() == tlf.Public {
+		return true, nil
+	}
+
 	isCurrentReader, err := mbtc.teamMembershipChecker.IsTeamReader(
 		ctx, tid, uid)
 	if err != nil {
